@@ -25,8 +25,15 @@ function deriveZScore(row, raw) {
 
 /**
  * Convert raw BioIndex association rows into GEM package table rows.
+ * @param {object[]} rawRows
+ * @param {object|null} searchSession
+ * @param {{ project?: string }} [options]
  */
-export function formatAssociationRows(rawRows, searchSession = null) {
+export function formatAssociationRows(
+    rawRows,
+    searchSession = null,
+    { project = "KP" } = {}
+) {
     if (!Array.isArray(rawRows) || !rawRows.length) {
         return [];
     }
@@ -37,6 +44,7 @@ export function formatAssociationRows(rawRows, searchSession = null) {
     );
 
     const sessionAncestry = searchSession?.ancestry || null;
+    const projectLabel = String(project || "KP");
 
     return converted.map((row, index) => {
         const raw = rawRows[index] || {};
@@ -64,6 +72,8 @@ export function formatAssociationRows(rawRows, searchSession = null) {
         } else {
             formatted.Ancestry = "Mixed";
         }
+
+        formatted.Project = projectLabel;
 
         const zScore = deriveZScore(formatted, raw);
         if (zScore != null && zScore !== "") {

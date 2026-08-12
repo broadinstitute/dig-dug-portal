@@ -24,6 +24,12 @@ import {
     normalizeVisibleSectionIds,
 } from "./variantSifterToolSettings.js";
 import { VARIANT_SIFTER_SECTIONS } from "./variantSifterSections.js";
+import {
+    isGwasCeProject,
+    projectAssociationsOnly,
+    resolveGwasCeToken,
+    VKS_GWAS_CE_TOKEN_REDACTION,
+} from "./variantSifterProjects.js";
 
 export const VKS_SESSION_VERSION = 10;
 export const VKS_SESSION_APP = "kp-variant-sifter";
@@ -48,7 +54,10 @@ export function validateSessionExportReady({
     globalEnrichmentState,
     v2gState,
     s2gState,
+    projectId = "",
 }) {
+    const associationsOnly = projectAssociationsOnly(projectId);
+
     if (associationsState?.loading) {
         throw new Error("Association data is still loading. Wait before exporting.");
     }
@@ -63,6 +72,9 @@ export function validateSessionExportReady({
     }
     if (!associationsState?.rows?.length) {
         throw new Error("No association data to export. Wait for data to load first.");
+    }
+    if (associationsOnly) {
+        return;
     }
     if (genesState?.loading) {
         throw new Error("Genes track is still loading. Wait before exporting.");
@@ -101,6 +113,34 @@ export function validateSessionExportReady({
 }
 
 /**
+ * Replace every occurrence of the GWAS-CE token in the export payload.
+ */
+export function redactGwasCeTokenInPayload(payload, token) {
+    const secret = String(token || "").trim();
+    if (!secret || !payload || typeof payload !== "object") {
+        return payload;
+    }
+    const redacted = JSON.parse(JSON.stringify(payload));
+    const walk = (value) => {
+        if (typeof value === "string") {
+            return value.split(secret).join(VKS_GWAS_CE_TOKEN_REDACTION);
+        }
+        if (Array.isArray(value)) {
+            return value.map(walk);
+        }
+        if (value && typeof value === "object") {
+            const next = {};
+            Object.keys(value).forEach((key) => {
+                next[key] = walk(value[key]);
+            });
+            return next;
+        }
+        return value;
+    };
+    return walk(redacted);
+}
+
+/**
  * Build a portable JSON snapshot of the Variant Sifter workspace.
  * Includes every data layer needed to restore the current view without API calls.
  */
@@ -134,13 +174,14 @@ export function exportVariantSifterSession({
         globalEnrichmentState,
         v2gState,
         s2gState,
+        projectId,
     });
 
     if (!searchSession?.phenotype || !searchSession?.region) {
         throw new Error("No active search session to export.");
     }
 
-    return {
+    const payload = {
         version: VKS_SESSION_VERSION,
         app: VKS_SESSION_APP,
         exportedAt: new Date().toISOString(),
@@ -157,6 +198,7 @@ export function exportVariantSifterSession({
             regionLabel: searchSession.regionLabel,
             geneOrVariantQuery: searchSession.geneOrVariantQuery || null,
             regionExpandBp: searchSession.regionExpandBp ?? null,
+            gwasCeToken: searchSession.gwasCeToken || null,
         },
         associationsState: {
             rows: associationsState.rows,
@@ -215,6 +257,14 @@ export function exportVariantSifterSession({
                 normalizeWorkspaceMappingFilter(workspaceMappingFilter),
         },
     };
+
+    if (isGwasCeProject(projectId)) {
+        return redactGwasCeTokenInPayload(
+            payload,
+            resolveGwasCeToken(searchSession)
+        );
+    }
+    return payload;
 }
 
 function sanitizeFilenamePart(value, fallback) {
@@ -225,9 +275,14 @@ function sanitizeFilenamePart(value, fallback) {
     return text.replace(/[^\w.-]+/g, "_");
 }
 
-export function buildSessionExportFilename(searchSession) {
-    const traitId = sanitizeFilenamePart(searchSession?.phenotype?.name, "session");
-    const ancestry = sanitizeFilenamePart(searchSession?.ancestry || "Mixed", "Mixed");
+export function buildSessionExportFilename(searchSession, { projectId } = {}) {
+    const traitId = isGwasCeProject(projectId)
+        ? `GWAS-CE_${sanitizeFilenamePart(searchSession?.phenotype?.name, "session")}`
+        : sanitizeFilenamePart(searchSession?.phenotype?.name, "session");
+    const ancestry = sanitizeFilenamePart(
+        searchSession?.ancestry || "Mixed",
+        "Mixed"
+    );
     const region = sanitizeFilenamePart(searchSession?.regionLabel, "locus");
     return normalizeExportFilename(`${traitId}_${ancestry}_${region}.json`);
 }
@@ -439,6 +494,7 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         regionLabel: exportedSearch.regionLabel,
         geneOrVariantQuery: exportedSearch.geneOrVariantQuery || exportedSearch.regionLabel,
         regionExpandBp: exportedSearch.regionExpandBp ?? null,
+        gwasCeToken: exportedSearch.gwasCeToken || null,
     };
 
     const primaryAncestry = searchSession.ancestry || "Mixed";
