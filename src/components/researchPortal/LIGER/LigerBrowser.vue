@@ -1,6 +1,7 @@
 <script>
 import Vue from "vue";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import CellStateInfographic from "./CellStateInfographic.vue";
 
 const LIGER_FORCE_DEV_BIOINDEX = false; //change this flag to TRUE to force use of bioindex-dev in all cases
 const LIGER_DEV_BIOINDEX_HOST = "https://bioindex-dev.pankbase.org";
@@ -84,6 +85,10 @@ const LIGER_DATASET_TISSUE_MAP = Object.keys(LIGER_TISSUE_CONFIG).reduce((map, t
 }, {});
 
 export default Vue.component('LigerBrowser', {
+    components: {
+        CellStateInfographic
+    },
+
     props: {
         config: {
             type: Object,
@@ -2892,9 +2897,12 @@ export default Vue.component('LigerBrowser', {
                         computationally inferred gene programs with genetically supported links 
                         to human traits, revealing both established and potentially novel biology.
                     </h5>
-                    <a :href="documentationUrl" target="_blank">Read Documentation</a>
+                    <a :href="documentationUrl" target="_blank" style="width:fit-content">Read Documentation</a>
                 </div>
                 <div class="f-col align-v-bottom flex1 g-5">
+                    <div class="ai-disclosure">
+                        <span class="bold">Note:</span> this resource uses AI-assisted curation of program names and cell states; manual review and curation are ongoing. Please see cell state and program metadata for details.
+                    </div>
                     <h5 class="bold">Search gene</h5>
                     <div class="search f-row g-5 relative">
                         <div class="search-input-wrap flex1 relative">
@@ -2938,13 +2946,8 @@ export default Vue.component('LigerBrowser', {
                     <div v-else>&nbsp;</div>
                 </div>
             </div>
-            <div class="f-row spread-out g-40">
-                <div class="ai-disclosure flex1">
-                    <span class="bold">Note:</span> this resource uses AI-assisted curation of program names and cell states; manual review and curation are ongoing. Please see cell state and program metadata for details.
-                </div>
-                <div class="flex1">&nbsp;</div>
-            </div>
         </div>
+        <cell-state-infographic />
         <div v-if="selectedGene && availableTissues.length" id="liger-body" class="f-col g-40">
             <div class="flex1">
                 <h4 class="bold">Where is <span class="pill">{{ selectedGene }}</span>{{ expressionSectionTitleSuffix }}</h4>
@@ -3929,7 +3932,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     padding: 5px 10px;
     border-radius: 10px;
     font-style: italic;
-    margin: 0 -10px;
+    margin: 0 -10px auto -10px;
 }
 
 .expression-grid{
