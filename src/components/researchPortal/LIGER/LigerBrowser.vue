@@ -3,13 +3,26 @@ import Vue from "vue";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 const LIGER_FORCE_DEV_BIOINDEX = false; //change this flag to TRUE to force use of bioindex-dev in all cases
-const LIGER_DEV_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
+const LIGER_DEV_BIOINDEX_HOST = "https://bioindex-dev.pankbase.org";
 const LIGER_LOCAL_HOSTNAMES = ["localhost", "127.0.0.1", "0.0.0.0"];
 const LIGER_RUNTIME_HOSTNAME = typeof window !== "undefined" ? window.location.hostname : "";
 const LIGER_USE_DEV_BIOINDEX = LIGER_FORCE_DEV_BIOINDEX || LIGER_LOCAL_HOSTNAMES.includes(LIGER_RUNTIME_HOSTNAME);
 const LIGER_RESOLVED_BIOINDEX_HOST = LIGER_USE_DEV_BIOINDEX ? LIGER_DEV_BIOINDEX_HOST : BIO_INDEX_HOST;
 const LIGER_API_HOST = LIGER_RESOLVED_BIOINDEX_HOST;
+// /api/portal/phenotypes is only served by the hugeamp bioindex, so it stays
+// pinned there regardless of which portal is hosting this component. These must
+// stay independent of LIGER_DEV_BIOINDEX_HOST above: that constant is the knob
+// for pointing the rest of the component at a different portal, so routing
+// through it would drag this endpoint along with it.
+const LIGER_DEV_HUGEAMP_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
+const LIGER_PROD_HUGEAMP_BIOINDEX_HOST = "https://bioindex.hugeamp.org";
+const LIGER_PHENOTYPES_HOST = LIGER_USE_DEV_BIOINDEX ? LIGER_DEV_HUGEAMP_BIOINDEX_HOST : LIGER_PROD_HUGEAMP_BIOINDEX_HOST;
 const LIGER_PROGRAM_MODEL = "mouse_msigdb";
+// Some portals partition cell-state trait data per cell type, others put it all
+// under a single combined cell type. Which one applies is probed at runtime
+// rather than tied to a base domain. This applies to cell-state traits only,
+// since those key on a state_name that is unique across cell types.
+const LIGER_COMBINED_TRAIT_CELL_TYPE = "combined_signatures";
 const LIGER_DEFAULT_CONFIG = {
     pageTitle: "Cell State & Program Explorer",
     documentationUrl: "/research.html?pageid=kp_liger_documentation",
@@ -19,50 +32,54 @@ const LIGER_DEFAULT_CONFIG = {
 // Keep this code-level toggle in place so we can quickly compare raw API traits
 // versus portal-labeled traits without introducing UI controls yet.
 const LIGER_FILTER_UNLABELED_HEATMAP_TRAITS = true;
+// Portals do not agree on how a tissue is identified. Some return a tissue label
+// on the gene-level expression rows, others return only a dataset ID, and the
+// dataset IDs themselves differ between portals for the same tissue. So each
+// tissue lists every dataset ID we know it by, and we resolve in whichever
+// direction the response happens to give us.
 const LIGER_TISSUE_CONFIG = {
     artery: {
         label: "Artery",
-        datasetId: "FNIH_Artery_scRNA_v2.2",
+        datasetIds: ["FNIH_Artery_scRNA_v2.2"],
     },
     heart: {
         label: "Heart",
-        datasetId: "FNIH_Heart_scRNA_v3.2",
+        datasetIds: ["FNIH_Heart_scRNA_v3.2"],
     },
     hypothalamus: {
         label: "Hypothalamus",
-        datasetId: "FNIH_Hypothalamus_scRNA_v2.2"
+        datasetIds: ["FNIH_Hypothalamus_scRNA_v2.2"],
     },
     kidney: {
         label: "Kidney",
-        datasetId: "FNIH_Kidney_scRNA_v2.2"
+        datasetIds: ["FNIH_Kidney_scRNA_v2.2"],
     },
     liver: {
         label: "Liver",
-        datasetId: "FNIH_Liver_scRNA_v3.2",
+        datasetIds: ["FNIH_Liver_scRNA_v3.2"],
     },
     muscle: {
         label: "Muscle",
-        datasetId: "FNIH_Muscle_scRNA_v2.2",
+        datasetIds: ["FNIH_Muscle_scRNA_v2.2"],
     },
     pancreas: {
         label: "Pancreas",
-        datasetId: "FNIH_Pancreas_scRNA_v2.2",
+        datasetIds: ["FNIH_Pancreas_scRNA_v2.2", "islet_of_Langerhans_scRNA_v3-4"],
     },
     sat: {
         label: "SAT",
-        datasetId: "FNIH_SAT_scRNA_v2.2",
+        datasetIds: ["FNIH_SAT_scRNA_v2.2"],
     },
     vat: {
         label: "VAT",
-        datasetId: "FNIH_VAT_scRNA_v2.2",
+        datasetIds: ["FNIH_VAT_scRNA_v2.2"],
     }
 };
 
 const LIGER_DATASET_TISSUE_MAP = Object.keys(LIGER_TISSUE_CONFIG).reduce((map, tissueKey) => {
-    let datasetId = LIGER_TISSUE_CONFIG[tissueKey].datasetId;
-    if (datasetId) {
+    (LIGER_TISSUE_CONFIG[tissueKey].datasetIds || []).forEach((datasetId) => {
         map[datasetId] = tissueKey;
-    }
+    });
     return map;
 }, {});
 
@@ -80,6 +97,12 @@ export default Vue.component('LigerBrowser', {
             selectedGene: null,
             geneSuggestions: [],
             availableTissues: [],
+            // tissue key -> dataset ID as reported by this portal for the
+            // current gene. Empty when the portal returns tissue labels instead.
+            observedDatasetIds: {},
+            // Whether this portal's cell-state endpoints are keyed by dataset ID
+            // rather than tissue. Derived from the gene search response.
+            cellStateUsesDatasetKey: false,
             selectedTissue: null,
             cellTypeExpressionRows: [],
             selectedCellType: null,
@@ -94,6 +117,9 @@ export default Vue.component('LigerBrowser', {
             traitHeatmapColumns: [],
             phenotypeTraitRows: [],
             qcMetadataRows: [],
+            // `${datasetId}:${cellTypeKey}` -> cell type partition the trait
+            // endpoints actually serve data under on this portal.
+            traitCellTypeKeys: {},
             stateTraitRowsCache: {},
             programTraitRowsCache: {},
             programGeneSetRowsCache: {},
@@ -815,11 +841,13 @@ export default Vue.component('LigerBrowser', {
         buildProgramExpressionUrl(gene) {
             return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(gene)}`;
         },
-        buildCellTypeExpressionUrl(tissue, gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-type?q=${encodeURIComponent(`${tissue},${gene}`)}`;
+        // The tissueQuery argument comes from tissueQueryKey(): a dataset ID on
+        // dataset-keyed portals, a tissue key on tissue-keyed ones.
+        buildCellTypeExpressionUrl(tissueQuery, gene) {
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-type?q=${encodeURIComponent(`${tissueQuery},${gene}`)}`;
         },
-        buildCellStateSectionExpressionUrl(tissue, cellType, gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(`${tissue},${cellType},${gene}`)}`;
+        buildCellStateSectionExpressionUrl(tissueQuery, cellType, gene) {
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(`${tissueQuery},${cellType},${gene}`)}`;
         },
         buildProgramSectionExpressionUrl(datasetId, cellType, gene) {
             return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${gene}`)}`;
@@ -842,14 +870,14 @@ export default Vue.component('LigerBrowser', {
         buildQcMetadataUrl() {
             return `${LIGER_API_HOST}/api/bio/query/gene-program-qc-metadata-extended?q=1`;
         },
-        buildRelationshipHeatmapUrl(tissue, cellType) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
+        buildRelationshipHeatmapUrl(tissueQuery, cellType) {
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissueQuery},${cellType}`)}`;
         },
         buildTraitPhenotypesUrl() {
-            return `${LIGER_RESOLVED_BIOINDEX_HOST}/api/portal/phenotypes?q=md`;
+            return `${LIGER_PHENOTYPES_HOST}/api/portal/phenotypes?q=md`;
         },
-        buildCellStateTraitUrl(tissue, cellType, stateId) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-cell-state-trait-factor?q=${encodeURIComponent(`${tissue},${cellType},${stateId}`)}`;
+        buildCellStateTraitUrl(tissueQuery, cellType, stateId) {
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-cell-state-trait-factor?q=${encodeURIComponent(`${tissueQuery},${cellType},${stateId}`)}`;
         },
         buildProgramTraitUrl(datasetId, cellType, programId) {
             return `${LIGER_API_HOST}/api/bio/query/gene-program-trait-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
@@ -983,24 +1011,68 @@ export default Vue.component('LigerBrowser', {
         },
         tissueDatasetId(label) {
             let tissueKey = this.tissueKeyFromLabel(label);
-            return tissueKey ? LIGER_TISSUE_CONFIG[tissueKey].datasetId : null;
+            if (!tissueKey) {
+                return null;
+            }
+
+            // Prefer the dataset ID this portal actually used for the current
+            // gene; fall back to the first configured ID when the response only
+            // gave us tissue labels.
+            return this.observedDatasetIds[tissueKey]
+                || (LIGER_TISSUE_CONFIG[tissueKey].datasetIds || [])[0]
+                || null;
         },
-        tissueLabel(row) {
+        // The cell-state family of endpoints keys on a tissue on some portals and
+        // on a dataset ID on others. The gene-level cell-state response tells us
+        // which: if its rows carry a tissue, the portal speaks tissue; if they
+        // only carry a dataset ID, it speaks dataset. Note the program payload
+        // is no help here, since it reports dataset IDs on both kinds of portal.
+        detectCellStateDatasetKeying(rows = []) {
+            let hasTissue = rows.some((row) => !!this.field(row, ["tissue_label", "tissue"]));
+            let hasDataset = rows.some((row) => !!this.rowDatasetId(row));
+
+            return !hasTissue && hasDataset;
+        },
+        // Query key for the cell-state family only. The two cell-state-metadata
+        // endpoints are tissue-keyed everywhere and should keep using
+        // tissueKeyFromLabel; the program endpoints take tissueDatasetId.
+        tissueQueryKey(label) {
+            let tissueKey = this.tissueKeyFromLabel(label);
+            if (!tissueKey) {
+                return "";
+            }
+
+            if (!this.cellStateUsesDatasetKey) {
+                return tissueKey;
+            }
+
+            return this.tissueDatasetId(label) || tissueKey;
+        },
+        rowDatasetId(row) {
+            return String(this.field(row, ["dataset_id", "dataset"]) || "");
+        },
+        rowTissueKey(row) {
             let tissue = this.field(row, ["tissue_label", "tissue"]);
             if (tissue) {
                 let normalizedTissue = this.normalizeKey(tissue);
                 if (LIGER_TISSUE_CONFIG[normalizedTissue]) {
-                    return LIGER_TISSUE_CONFIG[normalizedTissue].label;
+                    return normalizedTissue;
                 }
-                return this.formatDisplayLabel(tissue);
             }
 
-            let datasetId = this.field(row, ["dataset_id", "dataset"]);
-            if (datasetId && LIGER_DATASET_TISSUE_MAP[datasetId]) {
-                return LIGER_TISSUE_CONFIG[LIGER_DATASET_TISSUE_MAP[datasetId]].label;
+            let datasetId = this.rowDatasetId(row);
+            return LIGER_DATASET_TISSUE_MAP[datasetId] || null;
+        },
+        tissueLabel(row) {
+            let tissueKey = this.rowTissueKey(row);
+            if (tissueKey) {
+                return LIGER_TISSUE_CONFIG[tissueKey].label;
             }
 
-            return "";
+            // Unrecognized tissue with no dataset ID we can map: show it as-is
+            // rather than dropping the row.
+            let tissue = this.field(row, ["tissue_label", "tissue"]);
+            return tissue ? this.formatDisplayLabel(tissue) : "";
         },
         cellTypeKey(row) {
             let label = this.field(row, ["cell_type", "annotated_cell_type", "celltype", "cell_type_label"]);
@@ -1945,6 +2017,46 @@ export default Vue.component('LigerBrowser', {
                     row,
                 }));
         },
+        // Cell type partition for the cell-state trait endpoint only. Populated
+        // by resolveTraitCellTypeKey during the trait heatmap load; falls back
+        // to the real cell type until then. Not valid for the program trait
+        // endpoint, whose factor IDs are namespaced per cell type.
+        traitCellTypeKey(datasetId, cellTypeKey) {
+            return this.traitCellTypeKeys[`${datasetId}:${cellTypeKey}`] || cellTypeKey;
+        },
+        // Probe which partition this portal serves trait data under, and cache
+        // it per dataset + cell type so it costs at most one extra request.
+        async resolveTraitCellTypeKey(datasetId, cellTypeKey, buildUrlForCellType) {
+            let cacheKey = `${datasetId}:${cellTypeKey}`;
+            if (this.traitCellTypeKeys[cacheKey]) {
+                return this.traitCellTypeKeys[cacheKey];
+            }
+
+            let hasRows = async (key) => {
+                try {
+                    return this.rowsFromResponse(await this.fetchJson(buildUrlForCellType(key))).length > 0;
+                } catch (error) {
+                    return false;
+                }
+            };
+
+            // Only cache a conclusive answer. Empty results from both partitions
+            // mean this column simply has no traits, not that the portal
+            // partitions differently, and caching that would wrongly send every
+            // later request to the combined partition.
+            let resolved = null;
+            if (await hasRows(cellTypeKey)) {
+                resolved = cellTypeKey;
+            } else if (await hasRows(LIGER_COMBINED_TRAIT_CELL_TYPE)) {
+                resolved = LIGER_COMBINED_TRAIT_CELL_TYPE;
+            }
+
+            if (resolved) {
+                this.$set(this.traitCellTypeKeys, cacheKey, resolved);
+            }
+
+            return resolved || cellTypeKey;
+        },
         async getStateTraitRows(stateId) {
             if (this.stateTraitRowsCache[stateId]) {
                 return this.stateTraitRowsCache[stateId];
@@ -1962,7 +2074,8 @@ export default Vue.component('LigerBrowser', {
             }
 
             try {
-                let payload = await this.fetchJson(this.buildCellStateTraitUrl(tissueKey, this.selectedCellType.key, stateId));
+                let traitCellType = this.traitCellTypeKey(this.tissueDatasetId(this.selectedTissue), this.selectedCellType.key);
+                let payload = await this.fetchJson(this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), traitCellType, stateId));
                 let rows = this.rowsFromResponse(payload);
                 this.$set(this.stateTraitRowsCache, stateId, rows);
                 return rows;
@@ -1987,6 +2100,8 @@ export default Vue.component('LigerBrowser', {
             }
 
             try {
+                // Deliberately the real cell type, not the resolved trait
+                // partition: factor IDs are namespaced per cell type.
                 let payload = await this.fetchJson(this.buildProgramTraitUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
                 let rows = this.rowsFromResponse(payload);
                 this.$set(this.programTraitRowsCache, programId, rows);
@@ -2343,6 +2458,8 @@ export default Vue.component('LigerBrowser', {
         },
         resetGeneResults() {
             this.availableTissues = [];
+            this.observedDatasetIds = {};
+            this.cellStateUsesDatasetKey = false;
             this.selectedTissue = null;
             this.cellTypeExpressionRows = [];
             this.selectedCellType = null;
@@ -2355,6 +2472,7 @@ export default Vue.component('LigerBrowser', {
             this.relationshipHeatmapRows = [];
             this.traitHeatmapRows = [];
             this.traitHeatmapColumns = [];
+            this.traitCellTypeKeys = {};
             this.stateTraitRowsCache = {};
             this.programTraitRowsCache = {};
             this.programGeneSetRowsCache = {};
@@ -2412,6 +2530,19 @@ export default Vue.component('LigerBrowser', {
                 .map((row) => this.tissueLabel(row))
                 .filter((value) => !!value)
                 .filter((value) => this.tissueAllowed(value));
+        },
+        // Records the dataset ID a portal reported for each tissue, so the
+        // dataset-keyed endpoints downstream query the ID this portal actually
+        // serves rather than the first one in the static config.
+        collectDatasetIds(rows = []) {
+            rows.forEach((row) => {
+                let datasetId = this.rowDatasetId(row);
+                let tissueKey = this.rowTissueKey(row);
+
+                if (datasetId && tissueKey && !this.observedDatasetIds[tissueKey]) {
+                    Vue.set(this.observedDatasetIds, tissueKey, datasetId);
+                }
+            });
         },
         async lookupGenes(input) {
             try {
@@ -2491,6 +2622,10 @@ export default Vue.component('LigerBrowser', {
                 let geneLevelCellStateRows = this.rowsFromResponse(cellStatePayload);
                 let geneLevelProgramRows = this.rowsFromResponse(programPayload);
 
+                this.collectDatasetIds(geneLevelCellStateRows);
+                this.collectDatasetIds(geneLevelProgramRows);
+                this.cellStateUsesDatasetKey = this.detectCellStateDatasetKeying(geneLevelCellStateRows);
+
                 let uniqueTissues = Array.from(
                     new Set(
                         [
@@ -2534,7 +2669,7 @@ export default Vue.component('LigerBrowser', {
             this.isLoadingCellTypes = true;
 
             try {
-                let payload = await this.fetchJson(this.buildCellTypeExpressionUrl(tissue, this.selectedGene));
+                let payload = await this.fetchJson(this.buildCellTypeExpressionUrl(this.tissueQueryKey(tissue), this.selectedGene));
                 let rows = this.rowsFromResponse(payload);
 
                 this.cellTypeExpressionRows = rows.filter((row) => !!this.cellTypeLabel(row));
@@ -2581,7 +2716,7 @@ export default Vue.component('LigerBrowser', {
 
             try {
                 let [expressionPayload, metadataPayload] = await Promise.all([
-                    this.fetchJson(this.buildCellStateSectionExpressionUrl(tissueKey, cellType.key, this.selectedGene)),
+                    this.fetchJson(this.buildCellStateSectionExpressionUrl(this.tissueQueryKey(this.selectedTissue), cellType.key, this.selectedGene)),
                     this.fetchJson(this.buildCellStateMetadataUrl(tissueKey, cellType.key)),
                 ]);
 
@@ -2650,7 +2785,7 @@ export default Vue.component('LigerBrowser', {
             this.isLoadingRelationshipHeatmap = true;
 
             try {
-                let payload = await this.fetchJson(this.buildRelationshipHeatmapUrl(tissueKey, cellType.key));
+                let payload = await this.fetchJson(this.buildRelationshipHeatmapUrl(this.tissueQueryKey(this.selectedTissue), cellType.key));
                 this.relationshipHeatmapRows = this.rowsFromResponse(payload);
 
                 if (!this.relationshipHeatmapRows.length) {
@@ -2697,11 +2832,24 @@ export default Vue.component('LigerBrowser', {
                     return;
                 }
 
+                // Only the cell-state trait endpoint may use the combined
+                // partition. It keys on state_name, which is unique across cell
+                // types, so the join stays correct. The program trait endpoint
+                // keys on factor, and each cell type has its own Factor1..N
+                // namespace, so the combined partition's Factor1 is a different
+                // program entirely and must not be substituted.
+                let stateProbe = columns.find((column) => column.type === "state");
+                let stateTraitCellType = stateProbe
+                    ? await this.resolveTraitCellTypeKey(datasetId, cellType.key, (key) => {
+                        return this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), key, stateProbe.id);
+                    })
+                    : cellType.key;
+
                 let traitPayloads = await Promise.all(
                     columns.map(async (column) => {
                         try {
                             let payload = column.type === "state"
-                                ? await this.fetchJson(this.buildCellStateTraitUrl(tissueKey, cellType.key, column.id))
+                                ? await this.fetchJson(this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), stateTraitCellType, column.id))
                                 : await this.fetchJson(this.buildProgramTraitUrl(datasetId, cellType.key, column.id));
 
                             return this.rowsFromResponse(payload).map((row) => ({

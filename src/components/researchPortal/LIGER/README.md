@@ -76,7 +76,14 @@ Important implementation detail:
 
 ## Temporary Local Tissue Config
 
-The program endpoints return dataset IDs instead of tissue labels, so there is a temporary hardcoded mapping in `LigerBrowser.vue`.
+Portals do not agree on how a tissue is identified, so there is a temporary hardcoded mapping in `LigerBrowser.vue`.
+
+Two things vary by portal:
+
+- some responses carry a tissue label, others carry only a dataset ID
+- the dataset ID for the same tissue differs between portals
+
+So each tissue lists every dataset ID we know it by, and resolution runs in whichever direction the response supports:
 
 - `artery` -> `FNIH_Artery_scRNA_v2.2`
 - `heart` -> `FNIH_Heart_scRNA_v3.2`
@@ -84,14 +91,50 @@ The program endpoints return dataset IDs instead of tissue labels, so there is a
 - `kidney` -> `FNIH_Kidney_scRNA_v2.2`
 - `liver` -> `FNIH_Liver_scRNA_v3.2`
 - `muscle` -> `FNIH_Muscle_scRNA_v2.2`
-- `pancreas` -> `FNIH_Pancreas_scRNA_v2.2`
+- `pancreas` -> `FNIH_Pancreas_scRNA_v2.2`, `islet_of_Langerhans_scRNA_v3-4`
 - `sat` -> `FNIH_SAT_scRNA_v2.2`
 - `vat` -> `FNIH_VAT_scRNA_v2.2`
 
+How it resolves:
+
+- `rowTissueKey(row)` reads `tissue` / `tissue_label` first, then falls back to `dataset` / `dataset_id` via the reverse map
+- the gene search records which dataset ID the portal actually used, in `observedDatasetIds`
+- `tissueDatasetId(label)` returns that observed ID, falling back to the first configured ID when the portal only returned tissue labels
+
+## Tissue vs Dataset Query Keys
+
+Portals also disagree on what the first query argument should be. Some accept a tissue key, others require a dataset ID for the same endpoint:
+
+- pankbase: `gene-program-expression-cell-type?q=islet_of_Langerhans_scRNA_v3-4,INS`
+- hugeamp: `gene-program-expression-cell-type?q=pancreas,INS`
+
+`detectCellStateDatasetKeying()` decides which convention applies, from the gene-level `gene-program-expression-cell-state` response:
+
+- rows carry a `tissue` -> the portal is tissue-keyed
+- rows carry only a `dataset` -> the portal is dataset-keyed
+
+The result is stored in `cellStateUsesDatasetKey`, and `tissueQueryKey(label)` returns a dataset ID or a tissue key accordingly.
+
+Only the cell-state response is a valid signal here. The `gene-program-expression-program` response reports dataset IDs on **both** kinds of portal, so including it makes every portal look dataset-keyed.
+
+Use `tissueQueryKey()` for:
+
+- `gene-program-expression-cell-type`
+- `gene-program-expression-cell-state` (3-arg form)
+- `gene-program-heatmap`
+- `gene-program-cell-state-trait-factor`
+
+Do **not** use it for `gene-program-cell-state-metadata` / `-extended` — those are tissue-keyed on every portal, so they keep using `tissueKeyFromLabel()`.
+
+The `gene-program-*factor` and `gene-program-expression-program` builders take `tissueDatasetId()` and are unaffected.
+
+Note that on a dataset-keyed portal, passing a tissue name to `gene-program-expression-cell-type` or `gene-program-expression-cell-state` returns **HTTP 500**, not an empty result, so this surfaces as a load error rather than an empty state.
+
 Config note:
 
-- keep this mapping consistent on `datasetId` only
-- do not mix `datasetId` and `datasetID`
+- keep this mapping consistent on `datasetIds` (an array) only
+- do not mix `datasetIds`, `datasetId`, and `datasetID`
+- add a new portal's dataset ID to the existing tissue entry rather than adding a new tissue
 
 Program model currently hardcoded:
 
@@ -163,6 +206,26 @@ Current UI orientation:
 - `/api/bio/query/gene-program-cell-state-trait-factor?q=<tissue>,<cellType>,<stateId>`
 - `/api/bio/query/gene-program-trait-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
 - `/api/portal/phenotypes?q=md`
+
+`/api/portal/phenotypes` is served only by the hugeamp bioindex; other portals return `501`. It is therefore pinned to `LIGER_PHENOTYPES_HOST` rather than `LIGER_API_HOST`, so it stays on hugeamp regardless of which portal hosts the component. It is the only endpoint that does not follow the resolved host.
+
+#### Trait cell type partition
+
+Portals also disagree on how trait data is partitioned. Some serve it per cell type, others put all of it under the single cell type `combined_signatures`. On pankbase both trait endpoints return 0 rows for a real cell type and serve data only under `combined_signatures`.
+
+**This substitution is valid for cell-state traits only.**
+
+- `gene-program-cell-state-trait-factor` keys on `state_name` (e.g. `pancreas_beta_cell_mature_beta_cell_identity`), which is unique across cell types. Reading it from the combined partition keeps the join correct.
+- `gene-program-trait-factor` keys on `factor`, and **each cell type has its own `Factor1..FactorN` namespace** (beta has 10, alpha has 12). The combined partition is a separate decomposition with `Factor1..Factor24`, no `factor_label`, and no metadata at all — `gene-program-factor?q=<dataset>,combined_signatures,<model>` returns 0. So its `Factor1` is **not** any cell type's `Factor1`, and there is no key to join them on.
+
+Program trait columns therefore keep using the real cell type and come back empty on a combined-partition portal. That is intentional: showing the combined partition's factors there would attribute one program's trait associations to a different program. Do not "fix" it by routing program traits through `traitCellTypeKey()`.
+
+`resolveTraitCellTypeKey()` probes once per dataset + cell type and caches in `traitCellTypeKeys`, so it costs one extra request per cell type rather than one per column. `loadTraitHeatmap` resolves before its column fan-out; `getStateTraitRows` reads the cached value via `traitCellTypeKey()`.
+
+Two further details:
+
+- the probe uses a state column, since that is the only column type the result is applied to
+- a result that is empty under **both** partitions is not cached, because that means the state has no traits rather than that the portal partitions differently. Caching it would wrongly send every later request to the combined partition.
 
 These power:
 
