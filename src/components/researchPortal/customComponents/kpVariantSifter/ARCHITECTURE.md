@@ -136,7 +136,7 @@ Region math is split across `variantSifterRegionZoom.js` and `variantSifterRegio
 | Concept | Meaning |
 |---------|---------|
 | **Search region** | `searchSession.region` — original query locus |
-| **Active / data region** | Shifted + zoomed-out extent used for loading (`resolveActiveDataRegion` / `dataRegion`). Width capped (`VKS_MAX_ACTIVE_REGION_WIDTH_BP`, 500 kb) |
+| **Active / data region** | Shifted + zoomed-out extent used for loading (`resolveActiveDataRegion` / `dataRegion`). Width capped (`VKS_MAX_ACTIVE_REGION_WIDTH_BP`, 500 kb); oversized search loci are center-trimmed with an alert |
 | **View region** | On-screen window after zoom-in + `regionViewArea` (`computeViewRegion`) |
 | **regionZoom** | 0–99 magnify within active region |
 | **regionZoomOut** | 0–100 expand beyond search |

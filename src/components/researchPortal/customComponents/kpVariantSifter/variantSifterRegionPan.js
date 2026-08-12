@@ -71,7 +71,7 @@ export function regionExceedsActiveDataLimit(
     return computeRegionWidth(region) > maxWidthBp;
 }
 
-/** Shrink a region to max width while preserving its center. */
+/** Shrink a region to max width while preserving its center and metadata. */
 export function clampRegionToMaxWidth(
     region,
     maxWidthBp = VKS_MAX_ACTIVE_REGION_WIDTH_BP
@@ -82,15 +82,73 @@ export function clampRegionToMaxWidth(
 
     const width = computeRegionWidth(region);
     if (!width || width <= maxWidthBp) {
-        return cloneGenomicRegion(region);
+        return { ...region, start: Number(region.start), end: Number(region.end) };
     }
 
     const center = Math.round((Number(region.start) + Number(region.end)) / 2);
     const half = Math.floor(maxWidthBp / 2);
     return {
+        ...region,
         chr: region.chr,
         start: Math.max(0, center - half),
         end: center + half,
+    };
+}
+
+function formatRegionCoords(region) {
+    if (!region?.chr && region?.chr !== 0) {
+        return "";
+    }
+    return `${region.chr}:${region.start}-${region.end}`;
+}
+
+/**
+ * Message shown when a search/import region is center-trimmed to the load cap.
+ */
+export function activeRegionTrimmedMessage(
+    originalRegion,
+    trimmedRegion,
+    maxWidthBp = VKS_MAX_ACTIVE_REGION_WIDTH_BP
+) {
+    const limitLabel = formatMaxActiveRegionWidthBp(maxWidthBp);
+    const from = formatRegionCoords(originalRegion);
+    const to = formatRegionCoords(trimmedRegion);
+    if (from && to) {
+        return (
+            `The locus was wider than ${limitLabel}, so the search region was ` +
+            `trimmed to the center ${limitLabel} (${from} → ${to}).`
+        );
+    }
+    return (
+        `The locus was wider than ${limitLabel}, so the search region was ` +
+        `trimmed to the center ${limitLabel}.`
+    );
+}
+
+/**
+ * If region exceeds the association-load cap, return a center-trimmed copy.
+ * @returns {{ region: object|null, trimmed: boolean, originalRegion: object|null }}
+ */
+export function ensureRegionWithinActiveDataLimit(
+    region,
+    maxWidthBp = VKS_MAX_ACTIVE_REGION_WIDTH_BP
+) {
+    if (!region) {
+        return { region: null, trimmed: false, originalRegion: null };
+    }
+    const originalRegion = { ...region };
+    if (!regionExceedsActiveDataLimit(region, maxWidthBp)) {
+        return {
+            region: { ...region },
+            trimmed: false,
+            originalRegion,
+        };
+    }
+    const trimmedRegion = clampRegionToMaxWidth(region, maxWidthBp);
+    return {
+        region: trimmedRegion,
+        trimmed: true,
+        originalRegion,
     };
 }
 

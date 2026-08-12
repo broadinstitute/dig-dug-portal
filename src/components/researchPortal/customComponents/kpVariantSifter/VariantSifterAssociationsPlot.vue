@@ -23,10 +23,17 @@
                         <h3 class="vks-plot-section-title">GWAS-CE associations</h3>
                     </header>
                     <div
-                        v-if="!gwasCePlotRows.length"
+                        v-if="loading && !gwasCePlotRows.length"
                         class="vks-associations-plot-status vks-associations-plot-status--inline"
                     >
-                        No GWAS-CE association points for this locus.
+                        Loading GWAS-CE associations…
+                    </div>
+                    <div
+                        v-else-if="!gwasCePlotRows.length"
+                        class="vks-associations-plot-status vks-associations-plot-status--inline vks-associations-plot-status--warning"
+                        role="status"
+                    >
+                        No data found in GWAS-CE
                     </div>
                     <VariantSifterAssociationRegionPlot
                         v-else
@@ -276,6 +283,8 @@ import {
 import {
     VKS_ASSOCIATION_PROJECT_GWAS_CE,
     VKS_ASSOCIATION_PROJECT_KP,
+    VKS_PROJECT_DEFAULT_ID,
+    isGwasCeProject,
 } from "./variantSifterProjects.js";
 import { pickLeadVariantRow, rowToLdVariant } from "./variantSifterLdServer.js";
 import {
@@ -449,10 +458,17 @@ export default {
             type: Object,
             default: null,
         },
+        projectId: {
+            type: String,
+            default: VKS_PROJECT_DEFAULT_ID,
+        },
     },
     computed: {
         primaryAncestry() {
             return primaryAssociationAncestry(this.searchSession);
+        },
+        isGwasCeProjectActive() {
+            return isGwasCeProject(this.projectId);
         },
         plotSeries() {
             return buildAssociationPlotSeries({
@@ -483,9 +499,7 @@ export default {
             };
         },
         showGwasCeAssociationsSection() {
-            return (
-                this.showAssociationsSection && this.gwasCePlotRows.length > 0
-            );
+            return this.showAssociationsSection && this.isGwasCeProjectActive;
         },
         showKpAssociationsSection() {
             return (
@@ -506,7 +520,8 @@ export default {
         hasPlotSeriesData() {
             return (
                 this.plotSeries.some((series) => series.rows.length > 0) ||
-                this.gwasCePlotRows.length > 0
+                this.gwasCePlotRows.length > 0 ||
+                this.showGwasCeAssociationsSection
             );
         },
         plotMargin() {
@@ -862,6 +877,11 @@ export default {
     padding: 12px 0 18px;
 }
 
+.vks-associations-plot-status--warning {
+    color: #9a3412;
+    font-weight: 600;
+}
+
 .vks-genes-track-slot {
     position: relative;
 }
@@ -874,7 +894,7 @@ export default {
 .vks-genes-track-dock {
     box-sizing: border-box;
     padding: 0 8px;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.85);
     box-shadow: 0 -4px 12px rgba(20, 22, 30, 0.06);
 }
 

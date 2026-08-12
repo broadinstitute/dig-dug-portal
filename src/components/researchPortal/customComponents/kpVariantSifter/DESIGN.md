@@ -44,7 +44,7 @@ Settings and Actions live in **viewport controls**, not the menu bar.
 | `giant` | GIANT | Curated phenotypes + ancestries | `https://giant.hugeampkpnbi.org` | Subset of indexes on Giant; others fall back to portal |
 | `gwas-ce` | GWAS-CE | **Token** + Phenotype + Ancestry | Portal host for default VS; CE host for additive GWAS-CE associations | Default KP associations + GE/CS/…; CE overlay plot/table rows tagged `Project=GWAS-CE` |
 
-**GWAS-CE query shape:** additive overlay — keep default KP `associations` / `ancestry-associations` for the selected phenotype + ancestry. Also fetch CE `associations-{token}`, `q={token},{chr:start-end}`, `fmt=row`, via **HTTP GET**. Canvas shows a **GWAS-CE associations** plot above the default **Associations** plot. Table rows include a **Project** column (`KP` / `GWAS-CE`) and a **Project** filter under Ancestry. Do **not** put the token in the page URL. Session / HTML export replaces the token with `$token`.
+**GWAS-CE query shape:** additive overlay — keep default KP `associations` / `ancestry-associations` for the selected phenotype + ancestry. Also fetch CE `associations-{token}`, `q={token},{chr:start-end}`, `fmt=row`, via **HTTP GET**. Welcome **Fetch metadata** calls `https://api.ldserver.kpndataregistry.org/api/metadata/{token}` to prefill phenotype/ancestry (manual set if unmatched). Canvas shows a **GWAS-CE associations** plot above the default **Associations** plot. Table rows include a **Project** column (`KP` / `GWAS-CE`) and a **Project** filter under Ancestry. Do **not** put the token in the page URL. Session / HTML export replaces the token with `$token`.
 
 ### Canvas vs drawers
 
@@ -242,3 +242,5 @@ Reference pattern: `VariantSifterGenesTrack.vue` + `variantSifterGenesTrackRende
 | 2026-08-11 | GWAS-CE: Token + Phenotype + Ancestry; associations via token, companion layers via phenotype on portal BioIndex |
 | 2026-08-11 | GWAS-CE: skip ancestry-association availability probes; LD falls back past I/D lead variants |
 | 2026-08-11 | GWAS-CE additive: KP associations remain primary; CE overlay plot + Project column/filter |
+| 2026-08-12 | GWAS-CE welcome: Fetch metadata from LD-server API to prefill phenotype/ancestry |
+| 2026-08-12 | Header search params as editable bubbles (project / phenotype / ancestry / region) |

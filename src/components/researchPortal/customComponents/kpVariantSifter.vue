@@ -16,13 +16,15 @@
                     @action="onMenuAction"
                 />
             </div>
-            <p
-                v-if="searchSessionLabel"
-                class="vks-header-session"
-                :title="searchSessionLabel"
-            >
-                {{ searchSessionLabel }}
-            </p>
+            <VariantSifterSessionParamBubbles
+                v-if="searchSession"
+                :search-session="searchSession"
+                :project-id="projectId"
+                :phenotypes-in-use="phenotypesInUse || []"
+                :utils="utilsBox"
+                :bio-index-host="bioIndexHostFor('gene')"
+                @apply-search="onSessionParamApply"
+            />
             <VariantSifterViewportControls
                 v-if="canvasActive"
                 class="vks-header-controls"
@@ -241,6 +243,7 @@ import Vue from "vue";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 
 import VariantSifterMenuBar from "./kpVariantSifter/VariantSifterMenuBar.vue";
+import VariantSifterSessionParamBubbles from "./kpVariantSifter/VariantSifterSessionParamBubbles.vue";
 import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
 import VariantSifterViewportControls from "./kpVariantSifter/VariantSifterViewportControls.vue";
 import VariantSifterCanvas from "./kpVariantSifter/VariantSifterCanvas.vue";
@@ -308,8 +311,8 @@ import {
     resolveZoomOutLimitRegion,
     trimRecombData,
     unionGenomicRegions,
-    regionExceedsActiveDataLimit,
-    activeRegionDataLimitMessage,
+    activeRegionTrimmedMessage,
+    ensureRegionWithinActiveDataLimit,
 } from "./kpVariantSifter/variantSifterRegionPan.js";
 import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
 import {
@@ -541,6 +544,7 @@ export default Vue.component("kp-variant-sifter", {
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
     components: {
         VariantSifterMenuBar,
+        VariantSifterSessionParamBubbles,
         VariantSifterWorkspaceGuide,
         VariantSifterViewportControls,
         VariantSifterCanvas,
@@ -678,6 +682,7 @@ export default Vue.component("kp-variant-sifter", {
                 projectId: this.projectId,
             });
         },
+        // kept for export/report titles; header uses SessionParamBubbles
         assistantCanRunActions() {
             return Boolean(this.searchSession || this.canvasActive);
         },
@@ -1930,8 +1935,27 @@ export default Vue.component("kp-variant-sifter", {
             }
         },
         applyImportedSession(restored) {
-            if (regionExceedsActiveDataLimit(restored.searchSession?.region)) {
-                throw new Error(activeRegionDataLimitMessage());
+            if (restored.searchSession?.region) {
+                const ensured = ensureRegionWithinActiveDataLimit(
+                    restored.searchSession.region
+                );
+                if (ensured.trimmed) {
+                    window.alert(
+                        activeRegionTrimmedMessage(
+                            ensured.originalRegion,
+                            ensured.region
+                        )
+                    );
+                    restored.searchSession = {
+                        ...restored.searchSession,
+                        region: ensured.region,
+                        regionLabel:
+                            formatRegion(ensured.region) ||
+                            restored.searchSession.regionLabel,
+                        regionTrimmed: true,
+                        regionBeforeTrim: ensured.originalRegion,
+                    };
+                }
             }
 
             if (restored.projectId != null) {
@@ -2360,24 +2384,51 @@ export default Vue.component("kp-variant-sifter", {
             });
             this.syncUrlProjectParam();
         },
-        onStartSearch(session, { subAncestries = [] } = {}) {
-            if (regionExceedsActiveDataLimit(session.region)) {
-                this.welcomeInitialValues = {
-                    phenotype: session.phenotype?.name || "",
-                    ancestry: session.ancestry || "",
-                    geneOrVariantQuery: session.geneOrVariantQuery || session.regionLabel || "",
-                    regionExpandBp: session.regionExpandBp ?? null,
-                    errorMessage: activeRegionDataLimitMessage(),
-                };
-                this.welcomeOpen = true;
-                this.canvasActive = false;
+        onSessionParamApply({ session, projectId } = {}) {
+            if (!session) {
                 return;
             }
+            const nextProjectId = normalizeProjectId(projectId);
+            if (nextProjectId !== this.projectId) {
+                this.projectId = nextProjectId;
+                this.syncUrlProjectParam();
+            }
+            const subAncestries = [
+                ...(this.associationsState?.selectedAncestries || []),
+            ];
+            this.onStartSearch(session, { subAncestries });
+        },
+        onStartSearch(session, { subAncestries = [] } = {}) {
+            let searchSession = session;
+            if (session?.region) {
+                const ensured = ensureRegionWithinActiveDataLimit(session.region);
+                if (ensured.trimmed) {
+                    // Welcome already alerts when it trims; only notify here for
+                    // other entry points (recent search, URL hydrate, etc.).
+                    if (!session.regionTrimmed) {
+                        window.alert(
+                            activeRegionTrimmedMessage(
+                                ensured.originalRegion,
+                                ensured.region
+                            )
+                        );
+                    }
+                    searchSession = {
+                        ...session,
+                        region: ensured.region,
+                        regionLabel:
+                            formatRegion(ensured.region) || session.regionLabel,
+                        regionTrimmed: true,
+                        regionBeforeTrim:
+                            session.regionBeforeTrim || ensured.originalRegion,
+                    };
+                }
+            }
 
-            this.searchSession = session;
+            this.searchSession = searchSession;
             this.pendingSubAncestries = parseSubAncestriesParam(
                 subAncestries,
-                session.ancestry || "Mixed"
+                searchSession.ancestry || "Mixed"
             );
             this.assistantActionToken += 1;
             this.assistantState = emptyAssistantState();
@@ -2386,7 +2437,7 @@ export default Vue.component("kp-variant-sifter", {
             this.regionZoomOut = 0;
             this.regionViewArea = 0;
             this.regionShiftBp = 0;
-            this.dataRegion = cloneGenomicRegion(session.region);
+            this.dataRegion = cloneGenomicRegion(searchSession.region);
             this.genesState = emptyGenesState();
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
@@ -2405,12 +2456,12 @@ export default Vue.component("kp-variant-sifter", {
             }
             this.canvasActive = true;
             this.welcomeOpen = false;
-            this.syncUrlSearchParams(session);
-            this.recentSearches = pushRecentSearch(session, {
+            this.syncUrlSearchParams(searchSession);
+            this.recentSearches = pushRecentSearch(searchSession, {
                 projectId: this.projectId,
                 subAncestries: this.pendingSubAncestries,
             });
-            this.loadInitialSearchData(session);
+            this.loadInitialSearchData(searchSession);
         },
         syncCredibleSetsToActiveRegion(activeRegion) {
             if (projectAssociationsOnly(this.projectId)) {
@@ -5210,7 +5261,7 @@ export default Vue.component("kp-variant-sifter", {
 
 .vks-header {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 16px;
     padding: 12px 18px;
@@ -5234,22 +5285,8 @@ export default Vue.component("kp-variant-sifter", {
     align-items: center;
     gap: 24px;
     min-width: 0;
+    flex-shrink: 0;
     justify-self: start;
-}
-
-.vks-header-session {
-    margin: 0;
-    grid-column: 2;
-    justify-self: center;
-    max-width: min(560px, 42vw);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 13px;
-    line-height: 1.35;
-    font-weight: 600;
-    color: var(--cfde-muted, #6b6b6b);
-    text-align: center;
 }
 
 .vks-header-controls,
@@ -5257,6 +5294,9 @@ export default Vue.component("kp-variant-sifter", {
     grid-column: 3;
     justify-self: end;
     margin-left: 0;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    white-space: nowrap;
 }
 
 .vks-brand {
