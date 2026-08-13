@@ -86,6 +86,18 @@ const SCENARIOS = {
 const PAGE_WIDTH = 1380;
 
 export default Vue.component("CellStateInfographic", {
+    props: {
+        // Sets the starting state, and re-applies whenever it changes - so the
+        // figure folds away when the page stops being an introduction and starts
+        // being a result. It is only the default: a manual toggle afterwards
+        // stands, because nothing changes this back until the page's own state
+        // does.
+        defaultCollapsed: {
+            type: Boolean,
+            default: false
+        }
+    },
+
     data() {
         return {
             modes: MODES,
@@ -95,7 +107,7 @@ export default Vue.component("CellStateInfographic", {
             locked: "healthy",
             // hover and focus preview a scenario without committing to it
             hovered: null,
-            collapsed: false,
+            collapsed: this.defaultCollapsed,
             scale: 1,
             stageHeight: null,
             // pinned once, to the tallest rendering across scenarios, so switching
@@ -157,6 +169,9 @@ export default Vue.component("CellStateInfographic", {
     watch: {
         collapsed() {
             this.$nextTick(this.fit);
+        },
+        defaultCollapsed(value) {
+            this.collapsed = value;
         },
     },
 

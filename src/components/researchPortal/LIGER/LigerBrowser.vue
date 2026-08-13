@@ -2,9 +2,10 @@
 import Vue from "vue";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import CellStateInfographic from "./CellStateInfographic.vue";
+import LigerDetailPanel from "./LigerDetailPanel.vue";
 
 const LIGER_FORCE_DEV_BIOINDEX = false; //change this flag to TRUE to force use of bioindex-dev in all cases
-const LIGER_DEV_BIOINDEX_HOST = "https://bioindex-dev.pankbase.org";
+const LIGER_DEV_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
 const LIGER_LOCAL_HOSTNAMES = ["localhost", "127.0.0.1", "0.0.0.0"];
 const LIGER_RUNTIME_HOSTNAME = typeof window !== "undefined" ? window.location.hostname : "";
 const LIGER_USE_DEV_BIOINDEX = LIGER_FORCE_DEV_BIOINDEX || LIGER_LOCAL_HOSTNAMES.includes(LIGER_RUNTIME_HOSTNAME);
@@ -19,6 +20,31 @@ const LIGER_DEV_HUGEAMP_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
 const LIGER_PROD_HUGEAMP_BIOINDEX_HOST = "https://bioindex.hugeamp.org";
 const LIGER_PHENOTYPES_HOST = LIGER_USE_DEV_BIOINDEX ? LIGER_DEV_HUGEAMP_BIOINDEX_HOST : LIGER_PROD_HUGEAMP_BIOINDEX_HOST;
 const LIGER_PROGRAM_MODEL = "mouse_msigdb";
+// The section headers stack rather than replace each other: each one pins below
+// the headers of the sections above it, so by the time you are reading programs
+// the gene, tissue and cell type that produced them are all still on screen.
+//
+// A header compacts once it parks, so there are two heights: the full height it
+// has in flow, and the shorter height it takes when stuck. Only stuck headers
+// stack, so the pin offset is index * STUCK height. Both are mirrored in CSS
+// (--liger-header-h / --liger-header-stuck-h); keep the pairs in sync.
+const LIGER_HEADER_HEIGHT = 50;
+const LIGER_HEADER_STUCK_HEIGHT = 34;
+// The row tooltip sits above or below its row rather than beside it, so it never
+// covers the row it is describing. Wider than the old side placement because a
+// wider box is a shorter box, and height is what decides whether it fits.
+const LIGER_TOOLTIP_WIDTH = 640;
+const LIGER_TOOLTIP_MARGIN = 12;
+const LIGER_SECTION_ORDER = ["gene", "tissue", "cellType", "state", "program", "relationships", "traits"];
+const LIGER_SECTION_ANCHOR_REFS = {
+    gene: "anchorGene",
+    tissue: "anchorTissue",
+    cellType: "anchorCellType",
+    state: "anchorState",
+    program: "anchorProgram",
+    relationships: "anchorRelationships",
+    traits: "anchorTraits",
+};
 const LIGER_DEFAULT_CONFIG = {
     pageTitle: "Cell State & Program Explorer",
     documentationUrl: "/research.html?pageid=kp_liger_documentation",
@@ -140,7 +166,8 @@ const LIGER_DATASET_TISSUE_MAP = Object.keys(LIGER_TISSUE_CONFIG).reduce((map, t
 
 export default Vue.component('LigerBrowser', {
     components: {
-        CellStateInfographic
+        CellStateInfographic,
+        LigerDetailPanel
     },
 
     props: {
@@ -165,6 +192,16 @@ export default Vue.component('LigerBrowser', {
             selectedTissue: null,
             cellTypeExpressionRows: [],
             selectedCellType: null,
+            // Row selections. Distinct from the drawer target: the drawer is a
+            // transient look at metadata, these stay put. Selecting a state also
+            // narrows the program section to the programs that state is linked to.
+            selectedCellStateKey: "",
+            selectedProgramKey: "",
+            // Metadata for the selected row, rendered in the card beside the
+            // rows. Shape: { id, title, badges, content, loading }. The drawer
+            // keeps its own copy because the heatmaps still open it.
+            cellStateDetail: null,
+            geneProgramDetail: null,
             viewStateInfo: false,
             viewProgramInfo: false,
             cellStateExpressionRows: [],
@@ -188,8 +225,11 @@ export default Vue.component('LigerBrowser', {
             drawerBadges: [],
             drawerContent: null,
             drawerTargetId: "",
-            showAllProgramQcBadges: false,
-            showAllProgramGeneSets: false,
+            // name -> whether that header is currently parked at the top. Driven
+            // by measurement rather than by scroll position arithmetic, so it
+            // stays right when the sections above change height.
+            stuckSections: {},
+            stuckSectionFrame: null,
             isHydratingFromQuery: false,
             isLoadingGeneSuggestions: false,
             isLoadingGeneData: false,
@@ -218,9 +258,17 @@ export default Vue.component('LigerBrowser', {
             },
             floatingExpressionTooltip: {
                 visible: false,
+                // Stays false for the one frame between rendering the box and
+                // measuring it, so nothing is drawn at a provisional position.
+                positioned: false,
+                rowKey: "",
                 x: 0,
                 y: 0,
-                side: "right",
+                anchorX: 0,
+                anchorTop: 0,
+                anchorBottom: 0,
+                arrowX: 0,
+                side: "below",
                 columns: [],
             },
         };
@@ -338,9 +386,6 @@ export default Vue.component('LigerBrowser', {
                 program: "Specificity is log₂ fold-change of the program-weighted expression versus the parent cell-type background. Positive means enriched in this program.",
             };
         },
-        aiSuggestedLabelTooltip() {
-            return "AI was used to generate this program label. See rationale for more detail.";
-        },
         showGeneSuggestions() {
             return this.searchedGene.length > 1 &&
                 (this.geneSuggestions.length > 0 || this.isLoadingGeneSuggestions || this.noGeneSuggestions);
@@ -368,11 +413,138 @@ export default Vue.component('LigerBrowser', {
         availableCellTypes() {
             return this.toExpressionList(this.cellTypeExpressionRows, "cellType");
         },
+        // Hiding the tissue section shifts every section below it up one slot in
+        // the sticky stack, so the pin offsets are derived from the sections that
+        // actually render rather than from a fixed position in LIGER_SECTION_ORDER.
+        visibleSectionOrder() {
+            return LIGER_SECTION_ORDER.filter((name) => name !== "tissue" || !this.shouldHideTissueCard);
+        },
+        // One string per section, rendered in the value slot while nothing is
+        // selected and on the right once something is - so the count is what the
+        // header says when it has nothing better to say. Each names what it is
+        // counted within, since the same section shows different numbers as the
+        // selection above it changes.
+        //
+        // Empty while loading: a count of zero that has not been fetched yet is
+        // not the same claim as "none available", and the body already has a
+        // loading overlay saying so.
+        tissueMetaText() {
+            if (this.isLoadingGeneData) {
+                return "";
+            }
+
+            return this.tissueCount ? `${this.tissueCount} with data for ${this.selectedGene}` : "None available";
+        },
+        cellTypeMetaText() {
+            if (!this.selectedTissue || this.isLoadingCellTypes) {
+                return "";
+            }
+
+            return this.cellTypeCount ? `${this.cellTypeCount} in ${this.selectedTissue}` : "None available";
+        },
+        cellStateMetaText() {
+            if (!this.selectedCellType || this.isLoadingCellStateSection) {
+                return "";
+            }
+
+            return this.cellStateCount ? `${this.cellStateCount} in ${this.selectedCellType.label}` : "None available";
+        },
+        geneProgramMetaText() {
+            if (!this.selectedCellType || this.isLoadingGeneProgramSection) {
+                return "";
+            }
+
+            // A state filter is otherwise only visible in the cell state header,
+            // so the program count keeps saying what it has been narrowed to.
+            if (this.selectedCellStateKey) {
+                return this.geneProgramCount
+                    ? `${this.geneProgramCount} linked to ${this.selectedCellStateLabel}`
+                    : `None linked to ${this.selectedCellStateLabel}`;
+            }
+
+            return this.geneProgramCount ? `${this.geneProgramCount} in ${this.selectedCellType.label}` : "None available";
+        },
+        relationshipMetaText() {
+            if (!this.selectedCellType || this.isLoadingRelationshipHeatmap) {
+                return "";
+            }
+
+            let heatmap = this.relationshipHeatmapDisplay;
+
+            if (!heatmap.programCount || !heatmap.stateCount) {
+                return "None available";
+            }
+
+            return `${heatmap.programCount} programs x ${heatmap.stateCount} states in ${this.selectedCellType.label}`;
+        },
+        traitMetaText() {
+            if (!this.selectedCellType || this.isLoadingTraitHeatmap) {
+                return "";
+            }
+
+            let traitCount = this.traitHeatmapDisplay.groupRows.reduce((sum, group) => sum + group.traits.length, 0);
+            let columnCount = this.availableTraitColumns.length;
+
+            if (!traitCount || !columnCount) {
+                return "None available";
+            }
+
+            return `${traitCount} traits x ${columnCount} state/program columns`;
+        },
+        selectedCellStateLabel() {
+            if (!this.selectedCellStateKey) {
+                return "";
+            }
+
+            return this.stateLabel(this.stateMetadataById[this.selectedCellStateKey] || { state_id: this.selectedCellStateKey });
+        },
+        selectedProgramLabel() {
+            if (!this.selectedProgramKey) {
+                return "";
+            }
+
+            return this.programLabel(this.geneProgramInfoById[this.selectedProgramKey] || { program_id: this.selectedProgramKey });
+        },
+        // Programs the selected state is linked to, by the same GSEA P < 0.05
+        // rule the state drawer already uses for "related programs" - one
+        // definition of "related", so the two views cannot disagree.
+        // null (not an empty set) means no state is selected, i.e. no filter.
+        relatedProgramKeys() {
+            if (!this.selectedCellStateKey) {
+                return null;
+            }
+
+            return new Set(
+                this.relatedProgramsForState(this.selectedCellStateKey)
+                    .map((row) => row.programId)
+                    .filter((programId) => !!programId)
+            );
+        },
         cellStateExpressionList() {
             return this.toExpressionList(this.cellStateExpressionRows, "state");
         },
         geneProgramExpressionList() {
-            return this.toExpressionList(this.programExpressionRows, "program");
+            let programs = this.toExpressionList(this.programExpressionRows, "program");
+
+            if (!this.relatedProgramKeys) {
+                return programs;
+            }
+
+            return programs.filter((program) => this.relatedProgramKeys.has(program.key));
+        },
+        // Filtering to nothing has two very different causes and the section has
+        // to say which: no relationships were loaded for this cell type at all,
+        // versus loaded and none of them reach significance for this state.
+        geneProgramFilterEmptyMessage() {
+            if (!this.selectedCellStateKey || this.geneProgramExpressionList.length) {
+                return "";
+            }
+
+            if (!this.relationshipHeatmapRows.length) {
+                return `Program-state relationships have not loaded for this cell type, so programs cannot be filtered by ${this.selectedCellStateLabel}.`;
+            }
+
+            return `No gene programs are linked to ${this.selectedCellStateLabel} at GSEA P < 0.05.`;
         },
         // gene-program-expression-cell-type returns log2fc_weighted_vs_all_parent
         // as null on every row, so the cell-type card hides the column entirely
@@ -423,6 +595,7 @@ export default Vue.component('LigerBrowser', {
                     genes: this.joinDisplayList(this.extractGenes(row, ["top_genes", "genes", "gene_symbols"])),
                 }))
                 .filter((row) => !!row.key)
+                .filter((row) => !this.relatedProgramKeys || this.relatedProgramKeys.has(row.key))
                 .sort((a, b) => {
                     let aIndex = Object.prototype.hasOwnProperty.call(expressionOrderMap, a.key) ? expressionOrderMap[a.key] : Number.MAX_SAFE_INTEGER;
                     let bIndex = Object.prototype.hasOwnProperty.call(expressionOrderMap, b.key) ? expressionOrderMap[b.key] : Number.MAX_SAFE_INTEGER;
@@ -604,15 +777,6 @@ export default Vue.component('LigerBrowser', {
                 stateRows,
             };
         },
-        relationshipHeatmapMeta() {
-            let heatmap = this.relationshipHeatmapDisplay;
-
-            if (!heatmap.programCount || !heatmap.stateCount) {
-                return "No relationships loaded";
-            }
-
-            return `${heatmap.programCount} programs x ${heatmap.stateCount} states`;
-        },
         relationshipHeatmapMetricLabel() {
             return this.relationshipMetricLabel(this.relationshipHeatmapDisplay.metric);
         },
@@ -769,19 +933,6 @@ export default Vue.component('LigerBrowser', {
                 scaleMax,
             };
         },
-        traitHeatmapMeta() {
-            let groupCount = this.traitHeatmapDisplay.groupRows.length;
-            let traitCount = this.traitHeatmapDisplay.groupRows.reduce((sum, group) => {
-                return sum + group.traits.length;
-            }, 0);
-            let columnCount = this.availableTraitColumns.length;
-
-            if (!traitCount || !columnCount) {
-                return "No trait links loaded";
-            }
-
-            return `${traitCount} traits in ${groupCount} groups x ${columnCount} state/program columns`;
-        },
         traitHeatmapMetricLabel() {
             return this.selectedTraitMetric === "beta" ? "Joint beta" : "Marginal beta";
         },
@@ -833,10 +984,36 @@ export default Vue.component('LigerBrowser', {
         await this.initializeFromQuery();
     },
 
+    mounted() {
+        // The row lists scroll with the page now rather than inside their own
+        // panels, so the row tooltip - which is position:fixed and anchored to
+        // where the row was - has to be dismissed on page scroll as well.
+        window.addEventListener("scroll", this.hideExpressionRowTooltip, true);
+        window.addEventListener("scroll", this.scheduleStuckSectionUpdate, { passive: true });
+        window.addEventListener("resize", this.scheduleStuckSectionUpdate);
+        this.scheduleStuckSectionUpdate();
+    },
+
+    // Selecting a row changes how tall the sections are, which can park or
+    // release a header without any scrolling at all. Re-measuring after every
+    // render is cheap because updateStuckSections only writes when something
+    // actually changed, which is also what stops this from looping.
+    updated() {
+        this.scheduleStuckSectionUpdate();
+    },
+
     beforeDestroy() {
         if (this.geneSuggestionTimer) {
             clearTimeout(this.geneSuggestionTimer);
         }
+
+        if (this.stuckSectionFrame && typeof window !== "undefined") {
+            window.cancelAnimationFrame(this.stuckSectionFrame);
+        }
+
+        window.removeEventListener("scroll", this.hideExpressionRowTooltip, true);
+        window.removeEventListener("scroll", this.scheduleStuckSectionUpdate);
+        window.removeEventListener("resize", this.scheduleStuckSectionUpdate);
     },
 
     methods: {
@@ -931,18 +1108,21 @@ export default Vue.component('LigerBrowser', {
                     }
                 }
 
+                // A shared link restores the row selection, which is what opens
+                // the in-card metadata - not the drawer, which is now only for
+                // the relationship and trait heatmaps.
                 if (query.cell_state && this.selectedCellType) {
-                    await this.openStateDrawer(query.cell_state, this.stateMetadataById[query.cell_state] || this.cellStateExpressionRows.find((row) => this.stateKey(row) === query.cell_state));
+                    await this.applyCellStateSelection(query.cell_state, this.stateMetadataById[query.cell_state] || this.cellStateExpressionRows.find((row) => this.stateKey(row) === query.cell_state));
                 } else if (query.gene_program && this.selectedCellType) {
-                    await this.openProgramDrawer(query.gene_program, this.geneProgramInfoById[query.gene_program] || this.programExpressionRows.find((row) => this.programKey(row) === query.gene_program));
+                    await this.applyGeneProgramSelection(query.gene_program, this.geneProgramInfoById[query.gene_program] || this.programExpressionRows.find((row) => this.programKey(row) === query.gene_program));
                 }
             } finally {
                 this.syncQueryParams({
                     gene: this.selectedGene || "",
                     tissue: this.selectedTissue ? this.tissueKeyFromLabel(this.selectedTissue) : "",
                     cell_type: this.selectedCellType ? this.selectedCellType.key : "",
-                    cell_state: this.drawerOpen && this.drawerContent && this.drawerContent.type === "state" ? this.drawerTargetId : "",
-                    gene_program: this.drawerOpen && this.drawerContent && this.drawerContent.type === "program" ? this.drawerTargetId : "",
+                    cell_state: this.selectedCellStateKey,
+                    gene_program: this.selectedProgramKey,
                 }, { replace: true });
                 this.isHydratingFromQuery = false;
             }
@@ -1582,15 +1762,281 @@ export default Vue.component('LigerBrowser', {
                 { label: "Top Genes", value: this.joinDisplayList(topGenes), items: topGenes },
             ];
         },
-        isDrawerTarget(kind, id) {
-            return this.drawerOpen &&
-                this.drawerContent &&
-                this.drawerContent.type === kind &&
-                this.drawerTargetId === id;
+        // Clicking a row is the selection, and the selection is what opens the
+        // metadata beside the rows - so clicking the selected row again closes
+        // it. Cross-links from inside a pane go through the apply* methods
+        // instead, since "go to this state" must not toggle it shut.
+        async selectCellState(cellState) {
+            if (this.selectedCellStateKey === cellState.key) {
+                this.clearCellStateSelection();
+                return;
+            }
+
+            await this.applyCellStateSelection(cellState.key, cellState.row);
+        },
+        async applyCellStateSelection(stateId, fallbackRow) {
+            if (!stateId) {
+                return;
+            }
+
+            this.selectedCellStateKey = stateId;
+
+            // The program list has just been refiltered; a selected program the
+            // new filter excludes would leave the program section showing
+            // metadata for a row that is no longer in it.
+            if (this.selectedProgramKey && !this.geneProgramExpressionList.some((program) => program.key === this.selectedProgramKey)) {
+                this.clearGeneProgramSelection();
+            }
+
+            await this.loadCellStateDetail(stateId, fallbackRow);
+        },
+        clearCellStateSelection() {
+            this.selectedCellStateKey = "";
+            this.cellStateDetail = null;
+        },
+        async selectGeneProgram(program) {
+            if (this.selectedProgramKey === program.key) {
+                this.clearGeneProgramSelection();
+                return;
+            }
+
+            await this.applyGeneProgramSelection(program.key, program.row);
+        },
+        async applyGeneProgramSelection(programId, fallbackRow) {
+            if (!programId) {
+                return;
+            }
+
+            this.selectedProgramKey = programId;
+            await this.loadGeneProgramDetail(programId, fallbackRow);
+        },
+        clearGeneProgramSelection() {
+            this.selectedProgramKey = "";
+            this.geneProgramDetail = null;
+        },
+        // Both loaders re-check the selection after every await: clicking a
+        // second row before the first one's fetches land would otherwise let the
+        // slower response overwrite the newer selection's pane.
+        async loadCellStateDetail(stateId, fallbackRow) {
+            let head = this.stateDetailHead(stateId, fallbackRow);
+
+            this.cellStateDetail = {
+                id: head.id,
+                title: head.title,
+                badges: head.badges,
+                content: null,
+                loading: true,
+            };
+
+            let content = await this.stateDetailContent(head.resolution);
+
+            if (this.selectedCellStateKey !== stateId) {
+                return;
+            }
+
+            this.cellStateDetail = {
+                id: head.id,
+                title: head.title,
+                badges: head.badges,
+                content,
+                loading: false,
+            };
+        },
+        async loadGeneProgramDetail(programId, fallbackRow) {
+            this.geneProgramDetail = {
+                id: programId,
+                title: this.programLabel(this.geneProgramInfoById[programId] || fallbackRow || { program_id: programId }),
+                badges: [],
+                content: null,
+                loading: true,
+            };
+
+            let head = await this.programDetailHead(programId, fallbackRow);
+
+            if (this.selectedProgramKey !== programId) {
+                return;
+            }
+
+            this.geneProgramDetail = {
+                id: head.id,
+                title: head.title,
+                badges: head.badges,
+                content: null,
+                loading: true,
+            };
+
+            let content = await this.programDetailContent(head);
+
+            if (this.selectedProgramKey !== programId) {
+                return;
+            }
+
+            this.geneProgramDetail = {
+                id: head.id,
+                title: head.title,
+                badges: head.badges,
+                content,
+                loading: false,
+            };
+        },
+        // A pane's cross-links point into the other section, so following one
+        // moves the selection there and scrolls that section into view.
+        openStateFromPanel(stateId, fallbackRow) {
+            this.applyCellStateSelection(stateId, fallbackRow);
+            this.scrollToSection("state");
+        },
+        openProgramFromPanel(programId, fallbackRow) {
+            this.applyGeneProgramSelection(programId, fallbackRow);
+            this.scrollToSection("program");
+        },
+        sectionStackIndex(name) {
+            let index = this.visibleSectionOrder.indexOf(name);
+            return index < 0 ? 0 : index;
+        },
+        // Reads down the stack at a glance: a filled dot is the gene the page is
+        // about, a hook is a section that has something in it, and an outline is
+        // one still waiting. Decorative only - the header text says the same
+        // thing, which is why the span is aria-hidden.
+        sectionIcon(name) {
+            if (name === "gene") {
+                return this.selectedGene ? "\u25cf" : "\u25cb";
+            }
+
+            return this.sectionHasContent(name) ? "\u21b3" : "\u25cb";
+        },
+        sectionHasContent(name) {
+            if (name === "tissue") {
+                return this.tissueCount > 0;
+            }
+
+            if (name === "cellType") {
+                return this.cellTypeCount > 0;
+            }
+
+            if (name === "state") {
+                return this.cellStateCount > 0;
+            }
+
+            if (name === "program") {
+                return this.geneProgramCount > 0;
+            }
+
+            if (name === "relationships") {
+                return this.relationshipHeatmapDisplay.stateRows.length > 0;
+            }
+
+            if (name === "traits") {
+                return this.traitHeatmapDisplay.groupRows.length > 0;
+            }
+
+            return false;
+        },
+        sectionStickyStyle(name) {
+            return { "--i": String(this.sectionStackIndex(name)) };
+        },
+        scheduleStuckSectionUpdate() {
+            if (typeof window === "undefined" || this.stuckSectionFrame) {
+                return;
+            }
+
+            this.stuckSectionFrame = window.requestAnimationFrame(() => {
+                this.stuckSectionFrame = null;
+                this.updateStuckSections();
+            });
+        },
+        // A header is parked once its anchor - the zero-height marker sitting in
+        // front of it - has reached the slot the header pins to. Reading the
+        // anchor rather than the header matters: a stuck header reports the
+        // position it is pinned at, so it would always look parked.
+        //
+        // The subtlety is that parking a header shortens it, which pulls every
+        // anchor below it up - so with two headers back to back (which happens
+        // whenever a section has no body, e.g. before a cell type is picked)
+        // they park at the same scroll position, but only the first one looks
+        // parked in a pass that reads live positions. So each anchor is measured
+        // against where it will be once the headers above have finished
+        // shrinking, and the whole cascade resolves in one pass instead of
+        // needing a further scroll event per header to catch up.
+        updateStuckSections() {
+            let next = {};
+            let changed = false;
+            let shrinkAbove = 0;
+            // A sticky box cannot be held below the bottom of its containing
+            // block, so a header only actually parks if the sheet still reaches
+            // past its slot. Without this the class could say parked while the
+            // browser had clamped the header somewhere else entirely.
+            let sheet = this.$refs.ligerSections;
+            let sheetBottom = sheet ? sheet.getBoundingClientRect().bottom : Number.POSITIVE_INFINITY;
+
+            this.visibleSectionOrder.forEach((name, index) => {
+                let anchor = this.$refs[LIGER_SECTION_ANCHOR_REFS[name]];
+
+                if (!anchor) {
+                    next[name] = false;
+                    return;
+                }
+
+                let slotTop = index * LIGER_HEADER_STUCK_HEIGHT;
+                let projectedTop = anchor.getBoundingClientRect().top - shrinkAbove;
+                let stuck = projectedTop <= slotTop + 0.5 && sheetBottom >= slotTop + LIGER_HEADER_STUCK_HEIGHT;
+
+                next[name] = stuck;
+
+                if (this.stuckSections[name] !== stuck) {
+                    changed = true;
+                }
+
+                if (stuck) {
+                    let header = anchor.nextElementSibling;
+                    let height = header ? header.getBoundingClientRect().height : LIGER_HEADER_STUCK_HEIGHT;
+
+                    shrinkAbove += Math.max(0, height - LIGER_HEADER_STUCK_HEIGHT);
+                }
+            });
+
+            if (changed || Object.keys(next).length !== Object.keys(this.stuckSections).length) {
+                this.stuckSections = next;
+            }
+        },
+        // Clicking a header returns to its section. The anchor is a zero-height
+        // element in front of the header rather than the header itself: a stuck
+        // header reports the position it is pinned at, not the one it came from,
+        // so scrolling to it would be a no-op exactly when it is needed.
+        scrollToSection(name) {
+            let anchor = this.$refs[LIGER_SECTION_ANCHOR_REFS[name]];
+
+            if (!anchor || typeof window === "undefined") {
+                return;
+            }
+
+            let index = this.sectionStackIndex(name);
+            // Every header above this one will be parked once we get there, and
+            // parking one shortens it - so the anchor's document position is
+            // about to move up by that much. Measuring without allowing for it
+            // overshoots by 10px per header that is not parked yet.
+            let aboutToPark = this.visibleSectionOrder
+                .slice(0, index)
+                .filter((sectionName) => !this.stuckSections[sectionName])
+                .length;
+            let top = anchor.getBoundingClientRect().top
+                + window.pageYOffset
+                - (index * LIGER_HEADER_STUCK_HEIGHT)
+                - (aboutToPark * (LIGER_HEADER_HEIGHT - LIGER_HEADER_STUCK_HEIGHT));
+
+            window.scrollTo({ top, behavior: "smooth" });
         },
         showExpressionRowTooltip(event, kind, item) {
             if (!event || !event.currentTarget || !item) {
                 this.hideExpressionRowTooltip();
+                return;
+            }
+
+            let rowKey = `${kind}:${item.key}`;
+
+            // mousemove fires this on every pixel of travel across a row. The
+            // answer only changes when the row changes, and recomputing would
+            // re-measure and jitter the box under the cursor.
+            if (this.floatingExpressionTooltip.visible && this.floatingExpressionTooltip.rowKey === rowKey) {
                 return;
             }
 
@@ -1604,22 +2050,57 @@ export default Vue.component('LigerBrowser', {
             }
 
             let rect = event.currentTarget.getBoundingClientRect();
-            let tooltipWidth = 430;
-            let tooltipHeight = 220;
-            let gap = 14;
             let viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1440;
-            let viewportHeight = typeof window !== "undefined" ? window.innerHeight : 900;
-            let preferredX = kind === "state" ? rect.right + gap : rect.left - tooltipWidth - gap;
-            let preferredY = rect.top + (rect.height / 2) - (tooltipHeight / 2);
 
             this.floatingExpressionTooltip.visible = true;
+            this.floatingExpressionTooltip.positioned = false;
+            this.floatingExpressionTooltip.rowKey = rowKey;
             this.floatingExpressionTooltip.columns = columns;
-            this.floatingExpressionTooltip.side = kind === "state" ? "right" : "left";
-            this.floatingExpressionTooltip.x = Math.max(12, Math.min(viewportWidth - tooltipWidth - 12, preferredX));
-            this.floatingExpressionTooltip.y = Math.max(12, Math.min(viewportHeight - tooltipHeight - 12, preferredY));
+            // Left-aligned to the row, so the tooltip reads as belonging to it.
+            this.floatingExpressionTooltip.x = Math.max(
+                LIGER_TOOLTIP_MARGIN,
+                Math.min(viewportWidth - LIGER_TOOLTIP_WIDTH - LIGER_TOOLTIP_MARGIN, rect.left)
+            );
+            this.floatingExpressionTooltip.anchorX = rect.left + 60;
+            this.floatingExpressionTooltip.anchorTop = rect.top;
+            this.floatingExpressionTooltip.anchorBottom = rect.bottom;
+
+            this.$nextTick(this.alignExpressionRowTooltip);
+        },
+        // Vertical placement needs the rendered height, which is only knowable
+        // once the box exists - and the height swings from a couple of lines to
+        // a full marker list, so guessing it (this used to assume 220px) put the
+        // box in the wrong place entirely.
+        alignExpressionRowTooltip() {
+            let element = this.$refs.expressionTooltip;
+
+            if (!element || !this.floatingExpressionTooltip.visible) {
+                return;
+            }
+
+            let gap = 10;
+            let height = element.offsetHeight;
+            let viewportHeight = typeof window !== "undefined" ? window.innerHeight : 900;
+            let tooltip = this.floatingExpressionTooltip;
+            let spaceBelow = viewportHeight - tooltip.anchorBottom - gap - LIGER_TOOLTIP_MARGIN;
+            let spaceAbove = tooltip.anchorTop - gap - LIGER_TOOLTIP_MARGIN;
+            // Below by default; above only when the box genuinely does not fit
+            // below and fits better above. If it fits neither the clamp below
+            // takes over, which is the one case where it can still cover rows.
+            let placeBelow = height <= spaceBelow || spaceBelow >= spaceAbove;
+            let top = placeBelow ? tooltip.anchorBottom + gap : tooltip.anchorTop - gap - height;
+            let maxTop = Math.max(LIGER_TOOLTIP_MARGIN, viewportHeight - height - LIGER_TOOLTIP_MARGIN);
+
+            tooltip.side = placeBelow ? "below" : "above";
+            tooltip.y = Math.max(LIGER_TOOLTIP_MARGIN, Math.min(maxTop, top));
+            // Clamped so the arrow stays clear of the rounded corners.
+            tooltip.arrowX = Math.max(20, Math.min(element.offsetWidth - 20, tooltip.anchorX - tooltip.x));
+            tooltip.positioned = true;
         },
         hideExpressionRowTooltip() {
             this.floatingExpressionTooltip.visible = false;
+            this.floatingExpressionTooltip.positioned = false;
+            this.floatingExpressionTooltip.rowKey = "";
             this.floatingExpressionTooltip.columns = [];
         },
         showHeatmapTooltip(event, rows = []) {
@@ -2191,41 +2672,6 @@ export default Vue.component('LigerBrowser', {
 
             return badges;
         },
-        collapsedProgramQcBadgeCount(badges = []) {
-            let goodCount = 0;
-
-            for (let i = 0; i < badges.length; i++) {
-                if (badges[i] && badges[i].tone === "good") {
-                    goodCount += 1;
-
-                    if (goodCount === 2) {
-                        return i + 1;
-                    }
-                }
-            }
-
-            return badges.length;
-        },
-        visibleProgramQcBadges(badges = []) {
-            if (this.showAllProgramQcBadges) {
-                return badges;
-            }
-
-            return badges.slice(0, this.collapsedProgramQcBadgeCount(badges));
-        },
-        hiddenProgramQcBadgeCount(badges = []) {
-            return Math.max(0, badges.length - this.visibleProgramQcBadges(badges).length);
-        },
-        visibleProgramGeneSetRows(rows = []) {
-            if (this.showAllProgramGeneSets) {
-                return rows;
-            }
-
-            return rows.slice(0, 25);
-        },
-        hiddenProgramGeneSetRowCount(rows = []) {
-            return Math.max(0, rows.length - this.visibleProgramGeneSetRows(rows).length);
-        },
         curatedStateMatchesForProgram(programId) {
             return this.relationshipHeatmapRows
                 .filter((row) => this.programKey(row) === programId && this.field(row, ["state_type"]) !== "qc_state")
@@ -2453,8 +2899,6 @@ export default Vue.component('LigerBrowser', {
         },
         openDrawerShell(kind, title, badges = []) {
             this.hideExpressionRowTooltip();
-            this.showAllProgramQcBadges = false;
-            this.showAllProgramGeneSets = false;
             this.drawerKind = kind;
             this.drawerTitle = title;
             this.drawerBadges = badges;
@@ -2465,25 +2909,29 @@ export default Vue.component('LigerBrowser', {
         closeDrawer() {
             this.drawerOpen = false;
             this.drawerTargetId = "";
-            this.showAllProgramQcBadges = false;
-            this.showAllProgramGeneSets = false;
             this.syncQueryParams({
                 cell_state: "",
                 gene_program: "",
             });
         },
-        async openStateDrawer(stateId, fallbackRow) {
+        // Head (label, badges) is synchronous and content is not, so they are
+        // separate: both hosts show the header immediately and fill the body in
+        // when the fetches land.
+        stateDetailHead(stateId, fallbackRow) {
             let resolution = this.resolveStateDetail(stateId, fallbackRow);
-            let label = this.resolvedStateLabel(resolution);
 
-            this.openDrawerShell("Curated state", label, this.stateDrawerBadges(resolution));
-            this.drawerTargetId = resolution.stateId;
-
+            return {
+                resolution,
+                id: resolution.stateId,
+                title: this.resolvedStateLabel(resolution),
+                badges: this.stateDrawerBadges(resolution),
+            };
+        },
+        async stateDetailContent(resolution) {
             await this.ensurePhenotypeTraitRows();
             let stateTraitRows = await this.getStateTraitRows(resolution.stateId);
-            let markerDetail = this.stateMarkerDetail(resolution);
-            let referenceDetail = this.stateReferenceDetail(resolution);
-            this.drawerContent = {
+
+            return {
                 type: "state",
                 summaryDescription: this.resolvedStateDescription(resolution) || "A curated marker-defined cell state. Use expression and program overlap to assess whether a gene or factor maps to this state.",
                 summaryFields: [
@@ -2492,29 +2940,51 @@ export default Vue.component('LigerBrowser', {
                     { label: "Cell type", value: this.nestedValue(resolution.detail, ["cell_type", "label"]) || this.field(resolution.fallback, ["cell_type_label", "cell_type", "annotated_cell_type"]) || (this.selectedCellType && this.selectedCellType.label) },
                 ].filter((row) => row.value),
                 interpretationRows: this.stateInterpretationRows(resolution),
-                markerDetail,
-                referenceDetail,
+                markerDetail: this.stateMarkerDetail(resolution),
+                referenceDetail: this.stateReferenceDetail(resolution),
                 relatedPrograms: this.relatedProgramsForState(resolution.stateId),
                 traitRows: this.topTraitRows(stateTraitRows),
             };
+        },
+        // Still used by the relationship and trait heatmaps, which have no
+        // in-card pane to render into.
+        async openStateDrawer(stateId, fallbackRow) {
+            let head = this.stateDetailHead(stateId, fallbackRow);
+
+            this.openDrawerShell("Curated state", head.title, head.badges);
+            this.drawerTargetId = head.id;
+            this.drawerContent = await this.stateDetailContent(head.resolution);
 
             this.syncQueryParams({
-                cell_state: resolution.stateId,
+                cell_state: head.id,
                 gene_program: "",
             });
             this.drawerLoading = false;
         },
-        async openProgramDrawer(programId, fallbackRow) {
+        // Unlike the state head, this one is async: the badges need the QC rows.
+        async programDetailHead(programId, fallbackRow) {
             let meta = Object.assign({}, fallbackRow || {}, this.geneProgramInfoById[programId] || {});
             let quality = this.field(meta, ["suggested_program_quality_class", "quality_class", "release_recommendation", "qc_recommendation"]) || this.inferredProgramQuality(programId);
             let label = this.field(meta, ["suggested_program_label", "program_label", "label"]) || this.inferredProgramLabel(programId);
             let curatedMatches = this.curatedStateMatchesForProgram(programId);
             let qcMatches = this.qcMatchesForProgram(programId);
+
             await this.ensureQcMetadataRows();
             let programQcRows = await this.getProgramQcRows(programId);
 
-            this.openDrawerShell("Inferred program", label, this.programDrawerBadges(programId, quality, programQcRows, qcMatches));
-            this.drawerTargetId = programId;
+            return {
+                id: programId,
+                title: label,
+                badges: this.programDrawerBadges(programId, quality, programQcRows, qcMatches),
+                meta,
+                quality,
+                curatedMatches,
+                qcMatches,
+                programQcRows,
+            };
+        },
+        async programDetailContent(head) {
+            let { id: programId, meta, quality, curatedMatches, qcMatches, programQcRows } = head;
 
             await this.ensurePhenotypeTraitRows();
             let [programGeneRows, programTraitRows, programGeneSetRows] = await Promise.all([
@@ -2523,12 +2993,12 @@ export default Vue.component('LigerBrowser', {
                 this.getProgramGeneSetRows(programId),
             ]);
 
-            this.drawerContent = {
+            return {
                 type: "program",
                 summaryText: this.programSummaryText(programId, curatedMatches, quality),
                 summaryFields: [
                     { label: "Program ID", value: this.programApiFactor(programId) },
-                    { label: "Suggested label", value: label },
+                    { label: "Suggested label", value: head.title },
                     { label: "Rationale", value: this.field(meta, ["rationale"]) },
                     { label: "Quality", value: this.prettyToken(quality) },
                 ].filter((row) => row.value),
@@ -2549,10 +3019,19 @@ export default Vue.component('LigerBrowser', {
                 traitRows: this.topTraitRows(programTraitRows).slice(0, 12),
                 geneSetRows: this.buildProgramGeneSetTableRows(programGeneSetRows),
             };
+        },
+        // Still used by the relationship and trait heatmaps, which have no
+        // in-card pane to render into.
+        async openProgramDrawer(programId, fallbackRow) {
+            let head = await this.programDetailHead(programId, fallbackRow);
+
+            this.openDrawerShell("Inferred program", head.title, head.badges);
+            this.drawerTargetId = head.id;
+            this.drawerContent = await this.programDetailContent(head);
 
             this.syncQueryParams({
                 cell_state: "",
-                gene_program: programId,
+                gene_program: head.id,
             });
             this.drawerLoading = false;
         },
@@ -2662,6 +3141,7 @@ export default Vue.component('LigerBrowser', {
             this.selectedTissue = null;
             this.cellTypeExpressionRows = [];
             this.selectedCellType = null;
+            this.selectedCellStateKey = "";
             this.viewStateInfo = false;
             this.viewProgramInfo = false;
             this.cellStateExpressionRows = [];
@@ -2693,10 +3173,21 @@ export default Vue.component('LigerBrowser', {
         },
         resetCellTypeResults() {
             this.cellTypeExpressionRows = [];
+            this.isLoadingCellTypes = false;
+            this.cellTypeLoadError = null;
+            this.dropCellTypeDownstream();
+        },
+        // States, programs and both heatmaps are all keyed on the cell type, so
+        // dropping the cell type has to drop them too - leaving them on screen
+        // would attribute one cell type's rows to whichever is picked next.
+        dropCellTypeDownstream() {
             this.selectedCellType = null;
+            this.selectedCellStateKey = "";
+            this.selectedProgramKey = "";
+            this.cellStateDetail = null;
+            this.geneProgramDetail = null;
             this.viewStateInfo = false;
             this.viewProgramInfo = false;
-            this.isLoadingCellTypes = false;
             this.cellStateExpressionRows = [];
             this.programExpressionRows = [];
             this.cellStateMetadataRows = [];
@@ -2713,7 +3204,6 @@ export default Vue.component('LigerBrowser', {
             this.isLoadingGeneProgramSection = false;
             this.isLoadingRelationshipHeatmap = false;
             this.isLoadingTraitHeatmap = false;
-            this.cellTypeLoadError = null;
             this.cellStateSectionError = null;
             this.geneProgramSectionError = null;
             this.relationshipHeatmapError = null;
@@ -2722,6 +3212,15 @@ export default Vue.component('LigerBrowser', {
             this.selectedTraitMetric = "beta";
             this.selectedTraitColumnFilter = "all";
             this.closeDrawer();
+        },
+        clearTissueSelection() {
+            this.selectedTissue = null;
+            this.resetCellTypeResults();
+            this.syncQueryParams({ tissue: "" });
+        },
+        clearCellTypeSelection() {
+            this.dropCellTypeDownstream();
+            this.syncQueryParams({ cell_type: "" });
         },
         collectTissues(rows = []) {
             return rows
@@ -2883,6 +3382,10 @@ export default Vue.component('LigerBrowser', {
         },
         async selectCellType(cellType) {
             this.selectedCellType = cellType;
+            this.selectedCellStateKey = "";
+            this.selectedProgramKey = "";
+            this.cellStateDetail = null;
+            this.geneProgramDetail = null;
             this.syncQueryParams({
                 cell_type: cellType.key,
                 cell_state: "",
@@ -3127,497 +3630,699 @@ export default Vue.component('LigerBrowser', {
                 </div>
             </div>
         </div>
-        <cell-state-infographic />
+        <cell-state-infographic :default-collapsed="!!selectedGene" />
         <div v-if="selectedGene && availableTissues.length" id="liger-body" class="f-col g-40">
-            <div class="flex1">
-                <h4 class="bold">Where is <span class="pill">{{ selectedGene }}</span>{{ expressionSectionTitleSuffix }}</h4>
-                <div class="subtitle">See gene expression per tissue by cell type, cell states, and gene programs.</div>
-            </div>
-            <div class="f-col g-40">
-                <div class="f-row g-20">
-                    <div v-if="!shouldHideTissueCard" class="f-col g-5 flex1">
-                        <div class="f-row g-5">
-                            <h5 class="bold">Tissues</h5>
-                            <span class="count">({{ tissueCount }})</span>
-                        </div>
-                        <div class="section-card f-col g-10">
-                            <div class="scroll-panel">
-                                <div class="options f-col">
-                                    <div v-if="isLoadingGeneData" class="empty-state">
-                                        Loading tissues...
-                                    </div>
-                                    <div v-if="!isLoadingGeneData && !availableTissues.length" class="empty-state">
-                                        No tissues available yet for this gene.
-                                    </div>
-                                    <div v-for="tissue in availableTissues" 
-                                        :key="tissue" 
-                                        class="grid-item"
-                                        :class="{selected: selectedTissue === tissue}"
-                                        @click="selectTissue(tissue)"
-                                    >
-                                        {{tissue}}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <div class="liger-sections" ref="ligerSections">
+                <div class="section-anchor" ref="anchorGene"></div>
+                <header
+                    class="liger-section-header"
+                    :class="{ stuck: stuckSections.gene }"
+                    :style="sectionStickyStyle('gene')"
+                    @click="scrollToSection('gene')"
+                >
+                    <div class="section-crumb">
+                        <span class="section-kicker"><span class="section-icon" aria-hidden="true">{{ sectionIcon('gene') }}</span>Gene</span>
+                        <span class="section-value">{{ selectedGene }}</span>
                     </div>
-                    <div class="f-col g-5 flex1">
-                        <div class="f-row g-5">
-                            <h5 class="bold">Cell Types</h5>
-                            <span class="count" v-if="cellTypeCount>0">({{ cellTypeCount }})</span>
-                        </div>
-                        <div class="section-card relative">
-                            <div v-if="!selectedTissue && !isLoadingCellTypes"
-                                class="card-overlay"
+                </header>
+
+                <template v-if="!shouldHideTissueCard">
+                    <div class="section-anchor" ref="anchorTissue"></div>
+                    <header
+                        class="liger-section-header"
+                        :class="{ stuck: stuckSections.tissue }"
+                        :style="sectionStickyStyle('tissue')"
+                        @click="scrollToSection('tissue')"
+                    >
+                        <div class="section-crumb">
+                            <span class="section-kicker"><span class="section-icon" aria-hidden="true">{{ sectionIcon('tissue') }}</span>Tissue</span>
+                            <span v-if="selectedTissue" class="section-value">{{ selectedTissue }}</span>
+                            <span v-else-if="tissueMetaText" class="section-value as-meta">{{ tissueMetaText }}</span>
+                            <button
+                                v-if="selectedTissue"
+                                type="button"
+                                class="link-button"
+                                @click.stop="clearTissueSelection"
                             >
-                                <div><span class="shout">Select a Tissue</span> to see expression by Cell Type</div>
+                                Clear
+                            </button>
+                        </div>
+                        <div class="section-meta">
+                            <span v-if="selectedTissue && tissueMetaText">{{ tissueMetaText }}</span>
+                        </div>
+                    </header>
+                    <div class="liger-section-body">
+                        <div v-if="isLoadingGeneData" class="empty-state">
+                            Loading tissues...
+                        </div>
+                        <div v-else-if="!availableTissues.length" class="empty-state">
+                            No tissues available yet for this gene.
+                        </div>
+                        <div v-else class="chip-row">
+                            <button
+                                v-for="tissue in availableTissues"
+                                :key="tissue"
+                                type="button"
+                                class="chip"
+                                :class="{ selected: selectedTissue === tissue }"
+                                @click="selectTissue(tissue)"
+                            >
+                                {{ tissue }}
+                            </button>
+                        </div>
+                    </div>
+                    </template>
+
+                    <div class="section-anchor" ref="anchorCellType"></div>
+                    <header
+                        class="liger-section-header"
+                        :class="{ stuck: stuckSections.cellType }"
+                        :style="sectionStickyStyle('cellType')"
+                        @click="scrollToSection('cellType')"
+                    >
+                        <div class="section-crumb">
+                            <span class="section-kicker"><span class="section-icon" aria-hidden="true">{{ sectionIcon('cellType') }}</span>Cell type</span>
+                            <span v-if="selectedCellType" class="section-value">{{ selectedCellType.label }}</span>
+                            <span v-else-if="!selectedTissue" class="section-value placeholder">Waiting for tissue selection</span>
+                            <span v-else-if="cellTypeMetaText" class="section-value as-meta">{{ cellTypeMetaText }}</span>
+                            <button
+                                v-if="selectedCellType"
+                                type="button"
+                                class="link-button"
+                                @click.stop="clearCellTypeSelection"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                        <div class="section-meta">
+                            <span v-if="selectedCellType && cellTypeMetaText">{{ cellTypeMetaText }}</span>
+                        </div>
+                    </header>
+                    <div v-if="selectedTissue" class="liger-section-body tall">
+                        <div v-if="isLoadingCellTypes" class="card-overlay">
+                            <div>Loading cell types...</div>
+                        </div>
+                        <div class="bar-block f-col">
+                            <div class="bar-grid-header" :class="{'no-spec': !showCellTypeSpecificity}">
+                                <div class="bold">Cell Type</div>
+                                <div class="bold column-head">
+                                    <span class="metric-tooltip">
+                                        <span class="metric-tooltip-label">Expression</span>
+                                        <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltipByKind.cellType }}</span>
+                                    </span>
+                                    <span class="axis-unit">{{ expressionUnitLabel }}</span>
+                                </div>
+                                <template v-if="showCellTypeSpecificity">
+                                    <div class="bold column-head">
+                                        <span class="metric-tooltip">
+                                            <span class="metric-tooltip-label">Specificity</span>
+                                            <span class="metric-tooltip-bubble">{{ specificityTooltipByKind.cellType }}</span>
+                                        </span>
+                                        <span class="axis-unit">{{ specificityUnitLabel }}</span>
+                                    </div>
+                                </template>
                             </div>
-                            <div v-if="isLoadingCellTypes" class="card-overlay">
-                                <div>Loading cell types...</div>
+                            <div class="axis-row" :class="{'no-spec': !showCellTypeSpecificity}">
+                                <div></div>
+                                <div class="axis-scale">
+                                    <span
+                                        v-for="tick in expressionAxisTicks"
+                                        :key="`ct-x-${tick.value}`"
+                                        class="axis-tick"
+                                        :style="{ left: tick.offset }"
+                                    >{{ tick.label }}</span>
+                                </div>
+                                <div v-if="showCellTypeSpecificity" class="axis-scale">
+                                    <span
+                                        v-for="tick in cellTypeSpecificityTicks"
+                                        :key="`ct-s-${tick.value}`"
+                                        class="axis-tick"
+                                        :style="{ left: tick.offset }"
+                                    >{{ tick.label }}</span>
+                                </div>
                             </div>
-                            <div class="f-row g-20">
-                                <div class="f-col flex1">
-                                    <div class="bar-grid-header" :class="{'no-spec': !showCellTypeSpecificity}">
-                                        <div class="bold">Cell Type</div>
-                                        <div class="bold">
-                                            <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">Expression</span>
-                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltipByKind.cellType }}</span>
-                                            </span>
+                            <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
+                                <div v-if="cellTypeLoadError" class="empty-state">
+                                    {{ cellTypeLoadError }}
+                                </div>
+                                <div
+                                    v-for="cellType in availableCellTypes"
+                                    :key="cellType.key"
+                                    class="bar-grid-item grid-item"
+                                    :class="{
+                                        selected: selectedCellType && selectedCellType.key === cellType.key,
+                                        'no-data': !cellType.hasExpression,
+                                        'no-spec': !showCellTypeSpecificity
+                                    }"
+                                    @click="selectCellType(cellType)"
+                                >
+                                    <div class="bar-label">{{cellType.label}}</div>
+                                    <div class="bar-cell">
+                                        <div class="bar-track">
+                                            <div
+                                                v-if="cellType.hasExpression"
+                                                class="bar-fill"
+                                                :class="{ 'overflow-high': cellType.expressionOverflow === 'high' }"
+                                                :style="{ width: cellType.expressionWidth }"
+                                            ></div>
                                         </div>
-                                        <template v-if="showCellTypeSpecificity">
-                                            <div class="bold">
-                                                <span class="metric-tooltip">
-                                                    <span class="metric-tooltip-label">Specificity</span>
-                                                    <span class="metric-tooltip-bubble">{{ specificityTooltipByKind.cellType }}</span>
-                                                </span>
-                                            </div>
-                                        </template>
+                                        <div class="bar-number">{{cellType.absText}}</div>
                                     </div>
-                                    <div class="axis-row unit-row" :class="{'no-spec': !showCellTypeSpecificity}">
-                                        <div></div>
-                                        <div class="axis-unit">{{ expressionUnitLabel }}</div>
-                                        <div v-if="showCellTypeSpecificity" class="axis-unit">{{ specificityUnitLabel }}</div>
-                                    </div>
-                                    <div class="axis-row" :class="{'no-spec': !showCellTypeSpecificity}">
-                                        <div></div>
-                                        <div class="axis-scale">
-                                            <span
-                                                v-for="tick in expressionAxisTicks"
-                                                :key="`ct-x-${tick.value}`"
-                                                class="axis-tick"
-                                                :style="{ left: tick.offset }"
-                                            >{{ tick.label }}</span>
+                                    <div v-if="showCellTypeSpecificity" class="bar-cell">
+                                        <div class="bar-track diverging">
+                                            <div
+                                                v-if="cellType.hasSpec"
+                                                class="bar-fill-diverging"
+                                                :class="{ negative: cellType.spec < 0, muted: cellType.muted, clamped: !!cellType.specOverflow }"
+                                                :style="{ '--k': cellType.specScale }"
+                                            ></div>
                                         </div>
-                                        <div v-if="showCellTypeSpecificity" class="axis-scale">
-                                            <span
-                                                v-for="tick in cellTypeSpecificityTicks"
-                                                :key="`ct-s-${tick.value}`"
-                                                class="axis-tick"
-                                                :style="{ left: tick.offset }"
-                                            >{{ tick.label }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
-                                        <div v-if="cellTypeLoadError" class="empty-state">
-                                            {{ cellTypeLoadError }}
-                                        </div>
-                                        <div
-                                            v-for="cellType in availableCellTypes"
-                                            :key="cellType.key"
-                                            class="bar-grid-item grid-item"
-                                            :class="{
-                                                selected: selectedCellType && selectedCellType.key === cellType.key,
-                                                'no-data': !cellType.hasExpression,
-                                                'no-spec': !showCellTypeSpecificity
-                                            }"
-                                            @click="selectCellType(cellType)"
-                                        >
-                                            <div class="bar-label">{{cellType.label}}</div>
-                                            <div class="bar-cell">
-                                                <div class="bar-track">
-                                                    <div
-                                                        v-if="cellType.hasExpression"
-                                                        class="bar-fill"
-                                                        :class="{ 'overflow-high': cellType.expressionOverflow === 'high' }"
-                                                        :style="{ width: cellType.expressionWidth }"
-                                                    ></div>
-                                                </div>
-                                                <div class="bar-number">{{cellType.absText}}</div>
-                                            </div>
-                                            <div v-if="showCellTypeSpecificity" class="bar-cell">
-                                                <div class="bar-track diverging">
-                                                    <div
-                                                        v-if="cellType.hasSpec"
-                                                        class="bar-fill-diverging"
-                                                        :class="{ negative: cellType.spec < 0, muted: cellType.muted, clamped: !!cellType.specOverflow }"
-                                                        :style="{ '--k': cellType.specScale }"
-                                                    ></div>
-                                                </div>
-                                                <div class="bar-number">{{cellType.specText}}</div>
-                                            </div>
-                                        </div>
+                                        <div class="bar-number">{{cellType.specText}}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="f-col g-20">
-                    <div class="f-row g-20">
-                        <div class="f-col g-10 flex1">
-                            <div class="f-col">
-                                <div class="f-row spread-out">
-                                    <div class="f-row g-5">
-                                        <h5 class="bold">Cell States</h5>
-                                        <span class="count"  v-if="cellStateCount>0">({{ cellStateCount }})</span>
-                                    </div>
-                                    <!--
-                                    <button v-if="selectedCellType"
-                                        @click="viewStateInfo=!viewStateInfo"
-                                    >
-                                        Show {{ viewStateInfo ? 'Expression': 'Info'}}
-                                    </button>
-                                    -->
+
+                    <div class="section-anchor" ref="anchorState"></div>
+                    <header
+                        class="liger-section-header"
+                        :class="{ stuck: stuckSections.state }"
+                        :style="sectionStickyStyle('state')"
+                        @click="scrollToSection('state')"
+                    >
+                        <div class="section-crumb">
+                            <span class="section-kicker"><span class="section-icon" aria-hidden="true">{{ sectionIcon('state') }}</span>Cell state</span>
+                            <span v-if="selectedCellStateLabel" class="section-value">{{ selectedCellStateLabel }}</span>
+                            <span v-else-if="!selectedCellType" class="section-value placeholder">Waiting for cell type selection</span>
+                            <span v-else-if="cellStateMetaText" class="section-value as-meta">{{ cellStateMetaText }}</span>
+                            <button
+                                v-if="selectedCellStateKey"
+                                type="button"
+                                class="link-button"
+                                @click.stop="clearCellStateSelection"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                        <div class="section-meta">
+                            <span v-if="selectedCellStateKey && cellStateMetaText">{{ cellStateMetaText }}</span>
+                        </div>
+                    </header>
+                    <div v-if="selectedCellType" class="liger-section-body tall">
+                        <div class="section-lede-row">
+                            <div class="section-lede">Cell states are curated, marker-defined biology.</div>
+                            <div class="also">Hover row for info</div>
+                        </div>
+                        <div v-if="isLoadingCellStateSection" class="card-overlay">
+                            <div>Loading cell states...</div>
+                        </div>
+                        <div class="detail-split">
+                        <div v-if="!viewStateInfo" class="expression bar-block f-col">
+                            <div class="bar-grid-header">
+                                <div class="bold">Cell State</div>
+                                <div class="bold column-head">
+                                    <span class="metric-tooltip">
+                                        <span class="metric-tooltip-label">Expression</span>
+                                        <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltipByKind.state }}</span>
+                                    </span>
+                                    <span class="axis-unit">{{ expressionUnitLabel }}</span>
                                 </div>
-                                <div class="f-row spread-out g-10 align-v-bottom">
-                                    <div class="subtitle-2">Cell states are curated, marker-defined biology.</div>
-                                    <div v-if="selectedCellType" class="also">Hover row for info</div>
+                                <div class="bold column-head">
+                                    <span class="metric-tooltip">
+                                        <span class="metric-tooltip-label">Specificity</span>
+                                        <span class="metric-tooltip-bubble">{{ specificityTooltipByKind.state }}</span>
+                                    </span>
+                                    <span class="axis-unit">{{ specificityUnitLabel }}</span>
                                 </div>
                             </div>
-                            <div class="section-card flex1 relative">
-                                <div v-if="!selectedCellType && !isLoadingCellStateSection"
-                                    class="card-overlay"
+                            <div class="axis-row">
+                                <div></div>
+                                <div class="axis-scale">
+                                    <span
+                                        v-for="tick in expressionAxisTicks"
+                                        :key="`st-x-${tick.value}`"
+                                        class="axis-tick"
+                                        :style="{ left: tick.offset }"
+                                    >{{ tick.label }}</span>
+                                </div>
+                                <div class="axis-scale">
+                                    <span
+                                        v-for="tick in cellStateSpecificityTicks"
+                                        :key="`st-s-${tick.value}`"
+                                        class="axis-tick"
+                                        :style="{ left: tick.offset }"
+                                    >{{ tick.label }}</span>
+                                </div>
+                            </div>
+                            <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
+                                <div v-if="cellStateSectionError" class="empty-state">
+                                    {{ cellStateSectionError }}
+                                </div>
+                                <div
+                                    v-for="cellState in cellStateExpressionList"
+                                    :key="cellState.key"
+                                    class="bar-grid-item grid-item"
+                                    :class="{
+                                        selected: selectedCellStateKey === cellState.key,
+                                        'no-data': !cellState.hasExpression
+                                    }"
+                                    @mouseenter="showExpressionRowTooltip($event, 'state', cellState)"
+                                    @mousemove="showExpressionRowTooltip($event, 'state', cellState)"
+                                    @mouseleave="hideExpressionRowTooltip"
+                                    @click="selectCellState(cellState)"
                                 >
-                                    <div><span class="shout">Select a Cell Type</span> to see expression by Curated Cell State</div>
-                                </div>
-                                <div v-if="isLoadingCellStateSection" class="card-overlay">
-                                    <div>Loading cell states...</div>
-                                </div>
-                                <div v-if="selectedCellType && !viewStateInfo" class="expression f-col flex1">
-                                    <div class="bar-grid-header">
-                                        <div class="bold">Cell State</div>
-                                        <div class="bold">
-                                            <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">Expression</span>
-                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltipByKind.state }}</span>
-                                            </span>
+                                    <div class="bar-label">{{cellState.label}}</div>
+                                    <div class="bar-cell">
+                                        <div class="bar-track">
+                                            <div
+                                                v-if="cellState.hasExpression"
+                                                class="bar-fill"
+                                                :class="{ 'overflow-high': cellState.expressionOverflow === 'high' }"
+                                                :style="{ width: cellState.expressionWidth }"
+                                            ></div>
                                         </div>
-                                        <div class="bold">
-                                            <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">Specificity</span>
-                                                <span class="metric-tooltip-bubble">{{ specificityTooltipByKind.state }}</span>
-                                            </span>
-                                        </div>
+                                        <div class="bar-number">{{cellState.absText}}</div>
                                     </div>
-                                    <div class="axis-row unit-row">
-                                        <div></div>
-                                        <div class="axis-unit">{{ expressionUnitLabel }}</div>
-                                        <div class="axis-unit">{{ specificityUnitLabel }}</div>
-                                    </div>
-                                    <div class="axis-row">
-                                        <div></div>
-                                        <div class="axis-scale">
-                                            <span
-                                                v-for="tick in expressionAxisTicks"
-                                                :key="`st-x-${tick.value}`"
-                                                class="axis-tick"
-                                                :style="{ left: tick.offset }"
-                                            >{{ tick.label }}</span>
+                                    <div class="bar-cell">
+                                        <div class="bar-track diverging">
+                                            <div
+                                                v-if="cellState.hasSpec"
+                                                class="bar-fill-diverging"
+                                                :class="{ negative: cellState.spec < 0, muted: cellState.muted, clamped: !!cellState.specOverflow }"
+                                                :style="{ '--k': cellState.specScale }"
+                                            ></div>
                                         </div>
-                                        <div class="axis-scale">
-                                            <span
-                                                v-for="tick in cellStateSpecificityTicks"
-                                                :key="`st-s-${tick.value}`"
-                                                class="axis-tick"
-                                                :style="{ left: tick.offset }"
-                                            >{{ tick.label }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
-                                        <div v-if="cellStateSectionError" class="empty-state">
-                                            {{ cellStateSectionError }}
-                                        </div>
-                                        <div
-                                            v-for="cellState in cellStateExpressionList"
-                                            :key="cellState.key"
-                                            class="bar-grid-item grid-item"
-                                            :class="{
-                                                selected: isDrawerTarget('state', cellState.key),
-                                                'no-data': !cellState.hasExpression
-                                            }"
-                                            @mouseenter="showExpressionRowTooltip($event, 'state', cellState)"
-                                            @mousemove="showExpressionRowTooltip($event, 'state', cellState)"
-                                            @mouseleave="hideExpressionRowTooltip"
-                                            @click="openStateDrawer(cellState.key, cellState.row)"
-                                        >
-                                            <div class="bar-label">{{cellState.label}}</div>
-                                            <div class="bar-cell">
-                                                <div class="bar-track">
-                                                    <div
-                                                        v-if="cellState.hasExpression"
-                                                        class="bar-fill"
-                                                        :class="{ 'overflow-high': cellState.expressionOverflow === 'high' }"
-                                                        :style="{ width: cellState.expressionWidth }"
-                                                    ></div>
-                                                </div>
-                                                <div class="bar-number">{{cellState.absText}}</div>
-                                            </div>
-                                            <div class="bar-cell">
-                                                <div class="bar-track diverging">
-                                                    <div
-                                                        v-if="cellState.hasSpec"
-                                                        class="bar-fill-diverging"
-                                                        :class="{ negative: cellState.spec < 0, muted: cellState.muted, clamped: !!cellState.specOverflow }"
-                                                        :style="{ '--k': cellState.specScale }"
-                                                    ></div>
-                                                </div>
-                                                <div class="bar-number">{{cellState.specText}}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-    
-                                <div v-else-if="selectedCellType" class="info f-col flex1">
-                                    <div class="info-grid">
-                                        <div class="bold">Cell State</div>
-                                        <div class="bold">Description</div>
-                                        <div class="bold">Marker Genes</div>
-                                    </div>
-                                    <div class="scroll-panel f-col">
-                                        <div v-if="cellStateSectionError" class="empty-state">
-                                            {{ cellStateSectionError }}
-                                        </div>
-                                        <div
-                                            v-for="cellState in cellStateInfoList"
-                                            :key="cellState.key"
-                                            class="info-grid grid-item"
-                                            :class="{ selected: isDrawerTarget('state', cellState.key) }"
-                                            @click="openStateDrawer(cellState.key, stateMetadataById[cellState.key])"
-                                        >
-                                            <div>{{cellState.label}}</div>
-                                            <div class="info-description">{{cellState.description}}</div>
-                                            <div class="info-genes"><span class="info-gene" v-for="gene in cellState.genes.split(',')">{{gene.trim()}}</span></div>
-                                        </div>
+                                        <div class="bar-number">{{cellState.specText}}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="f-col g-10 flex1">
-                            <div class="f-col">
-                                <div class="f-row spread-out">
-                                    <div class="f-row g-5">
-                                        <h5 class="bold">Gene Programs</h5>
-                                    <span class="count" v-if="geneProgramCount>0">({{ geneProgramCount }})</span>
-                                    </div>
-                                    <!--
-                                    <button v-if="selectedCellType"
-                                        @click="viewProgramInfo=!viewProgramInfo"
-                                    >
-                                        Show {{ viewProgramInfo ? 'Expression': 'Info'}}
-                                    </button>
-                                    -->
+                        <div v-else class="info f-col">
+                            <div class="info-grid">
+                                <div class="bold">Cell State</div>
+                                <div class="bold">Description</div>
+                                <div class="bold">Marker Genes</div>
+                            </div>
+                            <div class="scroll-panel f-col">
+                                <div v-if="cellStateSectionError" class="empty-state">
+                                    {{ cellStateSectionError }}
                                 </div>
-                                <div class="f-row spread-out g-10 align-v-bottom">
-                                    <div class="subtitle-2">Gene programs are data-driven, computationally inferred latent factors.</div>
-                                    <div v-if="selectedCellType" class="also">Hover row for info</div>
+                                <div
+                                    v-for="cellState in cellStateInfoList"
+                                    :key="cellState.key"
+                                    class="info-grid grid-item"
+                                    :class="{ selected: selectedCellStateKey === cellState.key }"
+                                    @click="selectCellState({ key: cellState.key, row: stateMetadataById[cellState.key] })"
+                                >
+                                    <div>{{cellState.label}}</div>
+                                    <div class="info-description">{{cellState.description}}</div>
+                                    <div class="info-genes"><span class="info-gene" v-for="gene in cellState.genes.split(',')">{{gene.trim()}}</span></div>
                                 </div>
                             </div>
-                            <div class="section-card  flex1 relative">
-                                <div v-if="!selectedCellType && !isLoadingGeneProgramSection"
-                                    class="card-overlay"
+                        </div>
+
+                        <aside v-if="cellStateDetail" class="detail-pane">
+                            <div class="detail-pane-scroll">
+                                <div class="detail-pane-header">
+                                    <div class="detail-pane-eyebrow">Curated cell state</div>
+                                    <h4 class="bold detail-pane-title">{{ cellStateDetail.title }}</h4>
+                                    <button type="button" class="detail-pane-close" @click="clearCellStateSelection">Close</button>
+                                    <div v-if="cellStateDetail.badges.length" class="drawer-badge-row">
+                                        <span
+                                            v-for="badge in cellStateDetail.badges"
+                                            :key="badge.text"
+                                            class="drawer-badge"
+                                            :class="badge.tone"
+                                        >
+                                            {{ badge.text }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <liger-detail-panel
+                                    :content="cellStateDetail.content"
+                                    :loading="cellStateDetail.loading"
+                                    @open-state="openStateFromPanel"
+                                    @open-program="openProgramFromPanel"
+                                />
+                            </div>
+                        </aside>
+                        </div>
+                    </div>
+
+                    <div class="section-anchor" ref="anchorProgram"></div>
+                    <header
+                        class="liger-section-header"
+                        :class="{ stuck: stuckSections.program }"
+                        :style="sectionStickyStyle('program')"
+                        @click="scrollToSection('program')"
+                    >
+                        <div class="section-crumb">
+                            <span class="section-kicker"><span class="section-icon" aria-hidden="true">{{ sectionIcon('program') }}</span>Gene program</span>
+                            <span v-if="selectedProgramLabel" class="section-value">{{ selectedProgramLabel }}</span>
+                            <span v-else-if="!selectedCellType" class="section-value placeholder">Waiting for cell type selection</span>
+                            <span v-else-if="geneProgramMetaText" class="section-value as-meta">{{ geneProgramMetaText }}</span>
+                            <button
+                                v-if="selectedProgramKey"
+                                type="button"
+                                class="link-button"
+                                @click.stop="clearGeneProgramSelection"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                        <div class="section-meta">
+                            <span v-if="selectedProgramKey && geneProgramMetaText">{{ geneProgramMetaText }}</span>
+                        </div>
+                    </header>
+                    <div v-if="selectedCellType" class="liger-section-body tall">
+                        <div class="section-lede-row">
+                            <div class="section-lede">Gene programs are data-driven, computationally inferred latent factors.</div>
+                            <div class="also">Hover row for info</div>
+                        </div>
+                        <div v-if="isLoadingGeneProgramSection" class="card-overlay">
+                            <div>Loading gene programs...</div>
+                        </div>
+                        <div class="detail-split">
+                        <div v-if="!viewProgramInfo" class="expression bar-block f-col">
+                            <div class="bar-grid-header">
+                                <div class="bold">Gene Program</div>
+                                <div class="bold column-head">
+                                    <span class="metric-tooltip">
+                                        <span class="metric-tooltip-label">Expression</span>
+                                        <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltipByKind.program }}</span>
+                                    </span>
+                                    <span class="axis-unit">{{ expressionUnitLabel }}</span>
+                                </div>
+                                <div class="bold column-head">
+                                    <span class="metric-tooltip">
+                                        <span class="metric-tooltip-label">Specificity</span>
+                                        <span class="metric-tooltip-bubble">{{ specificityTooltipByKind.program }}</span>
+                                    </span>
+                                    <span class="axis-unit">{{ specificityUnitLabel }}</span>
+                                </div>
+                            </div>
+                            <div class="axis-row">
+                                <div></div>
+                                <div class="axis-scale">
+                                    <span
+                                        v-for="tick in expressionAxisTicks"
+                                        :key="`pr-x-${tick.value}`"
+                                        class="axis-tick"
+                                        :style="{ left: tick.offset }"
+                                    >{{ tick.label }}</span>
+                                </div>
+                                <div class="axis-scale">
+                                    <span
+                                        v-for="tick in programSpecificityTicks"
+                                        :key="`pr-s-${tick.value}`"
+                                        class="axis-tick"
+                                        :style="{ left: tick.offset }"
+                                    >{{ tick.label }}</span>
+                                </div>
+                            </div>
+                            <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
+                                <div v-if="geneProgramSectionError" class="empty-state">
+                                    {{ geneProgramSectionError }}
+                                </div>
+                                <div v-else-if="geneProgramFilterEmptyMessage" class="empty-state">
+                                    {{ geneProgramFilterEmptyMessage }}
+                                </div>
+                                <div
+                                    v-for="program in geneProgramExpressionList"
+                                    :key="program.key"
+                                    class="bar-grid-item grid-item"
+                                    :class="{
+                                        selected: selectedProgramKey === program.key,
+                                        'no-data': !program.hasExpression
+                                    }"
+                                    @mouseenter="showExpressionRowTooltip($event, 'program', program)"
+                                    @mousemove="showExpressionRowTooltip($event, 'program', program)"
+                                    @mouseleave="hideExpressionRowTooltip"
+                                    @click="selectGeneProgram(program)"
                                 >
-                                    <div><span class="shout">Select a Cell Type</span> to see expression by Inferred Gene Program</div>
-                                </div>
-                                <div v-if="isLoadingGeneProgramSection" class="card-overlay">
-                                    <div>Loading gene programs...</div>
-                                </div>
-                                <div v-if="selectedCellType && !viewProgramInfo" class="expression f-col flex1">
-                                    <div class="bar-grid-header">
-                                        <div class="bold">Gene Program</div>
-                                        <div class="bold">
-                                            <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">Expression</span>
-                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltipByKind.program }}</span>
-                                            </span>
+                                    <div class="bar-label">{{program.label}}</div>
+                                    <div class="bar-cell">
+                                        <div class="bar-track">
+                                            <div
+                                                v-if="program.hasExpression"
+                                                class="bar-fill"
+                                                :class="{ 'overflow-high': program.expressionOverflow === 'high' }"
+                                                :style="{ width: program.expressionWidth }"
+                                            ></div>
                                         </div>
-                                        <div class="bold">
-                                            <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">Specificity</span>
-                                                <span class="metric-tooltip-bubble">{{ specificityTooltipByKind.program }}</span>
-                                            </span>
-                                        </div>
+                                        <div class="bar-number">{{program.absText}}</div>
                                     </div>
-                                    <div class="axis-row unit-row">
-                                        <div></div>
-                                        <div class="axis-unit">{{ expressionUnitLabel }}</div>
-                                        <div class="axis-unit">{{ specificityUnitLabel }}</div>
-                                    </div>
-                                    <div class="axis-row">
-                                        <div></div>
-                                        <div class="axis-scale">
-                                            <span
-                                                v-for="tick in expressionAxisTicks"
-                                                :key="`pr-x-${tick.value}`"
-                                                class="axis-tick"
-                                                :style="{ left: tick.offset }"
-                                            >{{ tick.label }}</span>
+                                    <div class="bar-cell">
+                                        <div class="bar-track diverging">
+                                            <div
+                                                v-if="program.hasSpec"
+                                                class="bar-fill-diverging"
+                                                :class="{ negative: program.spec < 0, muted: program.muted, clamped: !!program.specOverflow }"
+                                                :style="{ '--k': program.specScale }"
+                                            ></div>
                                         </div>
-                                        <div class="axis-scale">
-                                            <span
-                                                v-for="tick in programSpecificityTicks"
-                                                :key="`pr-s-${tick.value}`"
-                                                class="axis-tick"
-                                                :style="{ left: tick.offset }"
-                                            >{{ tick.label }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
-                                        <div v-if="geneProgramSectionError" class="empty-state">
-                                            {{ geneProgramSectionError }}
-                                        </div>
-                                        <div
-                                            v-for="program in geneProgramExpressionList"
-                                            :key="program.key"
-                                            class="bar-grid-item grid-item"
-                                            :class="{
-                                                selected: isDrawerTarget('program', program.key),
-                                                'no-data': !program.hasExpression
-                                            }"
-                                            @mouseenter="showExpressionRowTooltip($event, 'program', program)"
-                                            @mousemove="showExpressionRowTooltip($event, 'program', program)"
-                                            @mouseleave="hideExpressionRowTooltip"
-                                            @click="openProgramDrawer(program.key, program.row)"
-                                        >
-                                            <div class="bar-label">{{program.label}}</div>
-                                            <div class="bar-cell">
-                                                <div class="bar-track">
-                                                    <div
-                                                        v-if="program.hasExpression"
-                                                        class="bar-fill"
-                                                        :class="{ 'overflow-high': program.expressionOverflow === 'high' }"
-                                                        :style="{ width: program.expressionWidth }"
-                                                    ></div>
-                                                </div>
-                                                <div class="bar-number">{{program.absText}}</div>
-                                            </div>
-                                            <div class="bar-cell">
-                                                <div class="bar-track diverging">
-                                                    <div
-                                                        v-if="program.hasSpec"
-                                                        class="bar-fill-diverging"
-                                                        :class="{ negative: program.spec < 0, muted: program.muted, clamped: !!program.specOverflow }"
-                                                        :style="{ '--k': program.specScale }"
-                                                    ></div>
-                                                </div>
-                                                <div class="bar-number">{{program.specText}}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div v-else-if="selectedCellType" class="info f-col flex1">
-                                    <div class="info-grid">
-                                        <div class="bold">Gene Program</div>
-                                        <div class="bold">Description</div>
-                                        <div class="bold">Top Genes</div>
-                                    </div>
-                                    <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
-                                        <div v-if="geneProgramSectionError" class="empty-state">
-                                            {{ geneProgramSectionError }}
-                                        </div>
-                                        <div
-                                            v-for="program in geneProgramInfoList"
-                                            :key="program.key"
-                                            class="info-grid grid-item"
-                                            :class="{ selected: isDrawerTarget('program', program.key) }"
-                                            @click="openProgramDrawer(program.key, geneProgramInfoById[program.key])"
-                                        >
-                                            <div>{{program.label}}</div>
-                                            <div class="info-description">{{program.description}}</div>
-                                            <div class="info-genes"><span class="info-gene" v-for="gene in program.genes.split(',')">{{gene.trim()}}</span></div>
-                                        </div>
+                                        <div class="bar-number">{{program.specText}}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        <div v-else class="info f-col">
+                            <div class="info-grid">
+                                <div class="bold">Gene Program</div>
+                                <div class="bold">Description</div>
+                                <div class="bold">Top Genes</div>
+                            </div>
+                            <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
+                                <div v-if="geneProgramSectionError" class="empty-state">
+                                    {{ geneProgramSectionError }}
+                                </div>
+                                <div
+                                    v-for="program in geneProgramInfoList"
+                                    :key="program.key"
+                                    class="info-grid grid-item"
+                                    :class="{ selected: selectedProgramKey === program.key }"
+                                    @click="selectGeneProgram({ key: program.key, row: geneProgramInfoById[program.key] })"
+                                >
+                                    <div>{{program.label}}</div>
+                                    <div class="info-description">{{program.description}}</div>
+                                    <div class="info-genes"><span class="info-gene" v-for="gene in program.genes.split(',')">{{gene.trim()}}</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <aside v-if="geneProgramDetail" class="detail-pane">
+                            <div class="detail-pane-scroll">
+                                <div class="detail-pane-header">
+                                    <div class="detail-pane-eyebrow">Inferred gene program</div>
+                                    <h4 class="bold detail-pane-title">{{ geneProgramDetail.title }}</h4>
+                                    <button type="button" class="detail-pane-close" @click="clearGeneProgramSelection">Close</button>
+                                    <div v-if="geneProgramDetail.badges.length" class="drawer-badge-row">
+                                        <span
+                                            v-for="badge in geneProgramDetail.badges"
+                                            :key="badge.text"
+                                            class="drawer-badge"
+                                            :class="badge.tone"
+                                        >
+                                            {{ badge.text }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <liger-detail-panel
+                                    :content="geneProgramDetail.content"
+                                    :loading="geneProgramDetail.loading"
+                                    @open-state="openStateFromPanel"
+                                    @open-program="openProgramFromPanel"
+                                />
+                            </div>
+                        </aside>
+                        </div>
+                    </div>
+
+                <div class="section-anchor" ref="anchorRelationships"></div>
+                <header
+                    class="liger-section-header"
+                    :class="{ stuck: stuckSections.relationships }"
+                    :style="sectionStickyStyle('relationships')"
+                    @click="scrollToSection('relationships')"
+                >
+                    <div class="section-crumb">
+                        <span class="section-kicker"><span class="section-icon" aria-hidden="true">{{ sectionIcon('relationships') }}</span>Relationships</span>
+                        <span v-if="!selectedCellType" class="section-value placeholder">Waiting for cell type selection</span>
+                        <span v-else-if="relationshipMetaText" class="section-value as-meta">{{ relationshipMetaText }}</span>
+                    </div>
+                </header>
+                <div v-if="selectedCellType" class="liger-section-body tall">
+                    <div class="section-lede-row">
+                        <div class="section-lede">Explore genetic correlations between known cell states and inferred gene programs for potentially novel connections.</div>
+                    </div>
+                    <div v-if="isLoadingRelationshipHeatmap" class="card-overlay">
+                        <div>Loading relationships...</div>
+                    </div>
+                    <div class="f-row spread-out align-v-center">
+                        <div class="f-row g-10 align-v-center">
+                            <select v-model="selectedRelationshipMetric" :disabled="!relationshipMetricOptions.length">
+                                <option
+                                    v-for="option in relationshipMetricOptions"
+                                    :key="option.value"
+                                    :value="option.value"
+                                >
+                                    {{ option.label }}
+                                </option>
+                            </select>
+                            <span class="heatmap-meta">
+                                <span class="metric-tooltip">
+                                    <span class="metric-tooltip-label">{{ relationshipHeatmapMetricLabel }}</span>
+                                    <span class="metric-tooltip-bubble">{{ relationshipMetricTooltip(relationshipHeatmapDisplay.metric) }}</span>
+                                </span>
+                            </span>
+                        </div>
+                        <div class="heatmap-legend">
+                            <span class="legend-label">Lower</span>
+                            <span
+                                class="legend-gradient"
+                                :class="{ diverging: relationshipMetricIsDiverging(selectedRelationshipMetric || 'correlation') }"
+                            ></span>
+                            <span class="legend-label">Higher</span>
+                        </div>
+                    </div>
+                    <div v-if="relationshipHeatmapError" class="empty-state">
+                        {{ relationshipHeatmapError }}
+                    </div>
+                    <div v-else-if="selectedCellType && !relationshipHeatmapDisplay.stateRows.length" class="empty-state">
+                        No relationship heatmap rows returned.
+                    </div>
+                    <div v-else-if="relationshipHeatmapDisplay.stateRows.length" class="heatmap-wrap">
+                        <table class="heatmap-table">
+                            <thead>
+                                <tr>
+                                    <th class="heatmap-row-head">
+                                        <div class="heatmap-row-head-label">Cell State</div>
+                                        <div class="heatmap-column-head-label">Gene Program</div>
+                                    </th>
+                                    <th
+                                        v-for="program in relationshipHeatmapDisplay.programHeaders"
+                                        :key="program.key"
+                                        class="heatmap-column-head"
+                                        :title="program.label"
+                                        @click="openProgramDrawer(program.key, geneProgramInfoById[program.key])"
+                                    >
+                                        <div class="heatmap-column-label">{{ program.label }}</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="state in relationshipHeatmapDisplay.stateRows"
+                                    :key="state.key"
+                                >
+                                    <td class="heatmap-row-head clickable-cell" :title="state.label" @click="openStateDrawer(state.key, stateMetadataById[state.key])">{{ state.label }}</td>
+                                    <td
+                                        v-for="cell in state.cells"
+                                        :key="cell.key"
+                                        class="heatmap-cell"
+                                        :style="{ background: cell.color }"
+                                        @mouseenter="showHeatmapTooltip($event, cell.tooltipRows)"
+                                        @mousemove="moveHeatmapTooltip($event)"
+                                        @mouseleave="hideHeatmapTooltip()"
+                                    >
+                                        <div class="heatmap-cell-inner">
+                                            <span v-if="isFiniteNumber(cell.value)">{{ formatMetric(cell.value) }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div v-else class="empty-state">
+                        No relationships loaded.
                     </div>
                 </div>
-                <div class="f-col g-20">
-                    <div>
-                        <h4 class="bold">Relationships between states and programs</h4>
-                        <div class="subtitle">Explore genetic correlations between known cell states and inferred gene programs for potentially novel connections.</div>
+
+                <div class="section-anchor" ref="anchorTraits"></div>
+                <header
+                    class="liger-section-header"
+                    :class="{ stuck: stuckSections.traits }"
+                    :style="sectionStickyStyle('traits')"
+                    @click="scrollToSection('traits')"
+                >
+                    <div class="section-crumb">
+                        <span class="section-kicker"><span class="section-icon" aria-hidden="true">{{ sectionIcon('traits') }}</span>Traits</span>
+                        <span v-if="!selectedCellType" class="section-value placeholder">Waiting for cell type selection</span>
+                        <span v-else-if="traitMetaText" class="section-value as-meta">{{ traitMetaText }}</span>
                     </div>
-                    <div class="section-card f-col g-10 relative">
-                        <div v-if="!selectedCellType && !isLoadingRelationshipHeatmap"
-                            class="card-overlay"
-                        >
-                            <div><span class="shout">Select a Cell Type</span> to see relationships</div>
-                        </div>
-                        <div v-if="isLoadingRelationshipHeatmap" class="card-overlay">
-                            <div>Loading relationships...</div>
-                        </div>
-                        <div class="f-row spread-out align-v-center">
-                            <div class="f-row g-10 align-v-center">
-                                <select v-model="selectedRelationshipMetric" :disabled="!relationshipMetricOptions.length">
-                                    <option
-                                        v-for="option in relationshipMetricOptions"
-                                        :key="option.value"
-                                        :value="option.value"
-                                    >
-                                        {{ option.label }}
-                                    </option>
-                                </select>
-                                <span class="heatmap-meta">
-                                    {{ relationshipHeatmapMeta }} |
-                                    <span class="metric-tooltip">
-                                        <span class="metric-tooltip-label">{{ relationshipHeatmapMetricLabel }}</span>
-                                        <span class="metric-tooltip-bubble">{{ relationshipMetricTooltip(relationshipHeatmapDisplay.metric) }}</span>
-                                    </span>
+                </header>
+                <div v-if="selectedCellType" class="liger-section-body tall">
+                    <div class="section-lede-row">
+                        <div class="section-lede">See which curated states and inferred programs connect to human traits.</div>
+                    </div>
+                    <div v-if="isLoadingTraitHeatmap" class="card-overlay">
+                        <div>Loading trait links...</div>
+                    </div>
+                    <div class="f-row spread-out">
+                        <div class="f-row g-10 align-v-center">
+                            <select v-model="selectedTraitMetric">
+                                <option value="beta">Joint beta</option>
+                                <option value="beta_uncorrected">Marginal beta</option>
+                            </select>
+                            <select v-model="selectedTraitColumnFilter">
+                                <option value="all">states + factors</option>
+                                <option value="program">factors only</option>
+                                <option value="state">states only</option>
+                            </select>
+                            <span class="heatmap-meta">
+                                <span class="metric-tooltip">
+                                    <span class="metric-tooltip-label">{{ traitHeatmapMetricLabel }}</span>
+                                    <span class="metric-tooltip-bubble">{{ traitMetricTooltip(selectedTraitMetric) }}</span>
                                 </span>
-                            </div>
-                            <div class="heatmap-legend">
-                                <span class="legend-label">Lower</span>
-                                <span
-                                    class="legend-gradient"
-                                    :class="{ diverging: relationshipMetricIsDiverging(selectedRelationshipMetric || 'correlation') }"
-                                ></span>
-                                <span class="legend-label">Higher</span>
-                            </div>
+                            </span>
                         </div>
-                        <div v-if="relationshipHeatmapError" class="empty-state">
-                            {{ relationshipHeatmapError }}
+                        <div class="heatmap-legend">
+                            <span class="legend-label">Negative</span>
+                            <span class="legend-gradient diverging"></span>
+                            <span class="legend-label">Positive</span>
                         </div>
-                        <div v-else-if="selectedCellType && !relationshipHeatmapDisplay.stateRows.length" class="empty-state">
-                            No relationship heatmap rows returned.
-                        </div>
-                        <div v-else-if="relationshipHeatmapDisplay.stateRows.length" class="heatmap-wrap">
-                            <table class="heatmap-table">
-                                <thead>
-                                    <tr>
-                                        <th class="heatmap-row-head">
-                                            <div class="heatmap-row-head-label">Cell State</div>
-                                            <div class="heatmap-column-head-label">Gene Program</div>
-                                        </th>
-                                        <th
-                                            v-for="program in relationshipHeatmapDisplay.programHeaders"
-                                            :key="program.key"
-                                            class="heatmap-column-head"
-                                            :title="program.label"
-                                            @click="openProgramDrawer(program.key, geneProgramInfoById[program.key])"
-                                        >
-                                            <div class="heatmap-column-label">{{ program.label }}</div>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="state in relationshipHeatmapDisplay.stateRows"
-                                        :key="state.key"
+                    </div>
+                    <div v-if="traitHeatmapError" class="empty-state">
+                        {{ traitHeatmapError }}
+                    </div>
+                    <div v-else-if="selectedCellType && !traitHeatmapDisplay.groupRows.length" class="empty-state">
+                        No grouped trait links returned.
+                    </div>
+                    <div v-else-if="traitHeatmapDisplay.groupRows.length" class="heatmap-wrap">
+                        <table class="heatmap-table">
+                            <thead>
+                                <tr>
+                                    <th class="heatmap-row-head">
+                                        <div class="heatmap-row-head-label">Trait</div>
+                                        <div class="heatmap-column-head-label">{{ traitColumnHeaderLabel }}</div>
+                                    </th>
+                                    <th
+                                        v-for="column in availableTraitColumns"
+                                        :key="column.id"
+                                        class="heatmap-column-head"
+                                        :title="`${column.type}: ${column.label}`"
+                                        @click="column.type === 'state' ? openStateDrawer(column.id, stateMetadataById[column.id]) : openProgramDrawer(column.id, geneProgramInfoById[column.id])"
                                     >
-                                        <td class="heatmap-row-head clickable-cell" :title="state.label" @click="openStateDrawer(state.key, stateMetadataById[state.key])">{{ state.label }}</td>
+                                        <div class="heatmap-column-label">{{ column.label }}</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-for="group in traitHeatmapDisplay.groupRows">
+                                    <tr :key="`${group.group}-header`" class="heatmap-group-row">
+                                        <td class="heatmap-group-label" :colspan="availableTraitColumns.length + 1">
+                                            {{ group.group }}
+                                        </td>
+                                    </tr>
+                                    <tr
+                                        v-for="trait in group.traits"
+                                        :key="`${group.group}-${trait.trait}`"
+                                    >
+                                        <td class="heatmap-row-head" :title="trait.displayTrait">{{ trait.displayTrait }}</td>
                                         <td
-                                            v-for="cell in state.cells"
+                                            v-for="cell in trait.cells"
                                             :key="cell.key"
                                             class="heatmap-cell"
                                             :style="{ background: cell.color }"
@@ -3626,120 +4331,20 @@ export default Vue.component('LigerBrowser', {
                                             @mouseleave="hideHeatmapTooltip()"
                                         >
                                             <div class="heatmap-cell-inner">
-                                                <span v-if="isFiniteNumber(cell.value)">{{ formatMetric(cell.value) }}</span>
+                                                <span v-if="isFiniteNumber(cell.value)">{{ cell.value.toFixed(3) }}</span>
                                             </div>
                                         </td>
                                     </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div v-else class="empty-state">
-                            Select a cell type to load relationships.
-                        </div>
+                                </template>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-                <div class="f-col g-20">
-                    <div>
-                        <h4 class="bold">Genetically supported links of states and programs to human traits</h4>
-                        <div class="subtitle">See which curated states and inferred programs connect to human traits.</div>
-                    </div>
-                    <div class="section-card f-col g-10 relative">
-                        <div v-if="!selectedCellType && !isLoadingTraitHeatmap"
-                            class="card-overlay"
-                        >
-                            <div><span class="shout">Select a Cell Type</span> to see trait links</div>
-                        </div>
-                        <div v-if="isLoadingTraitHeatmap" class="card-overlay">
-                            <div>Loading trait links...</div>
-                        </div>
-                        <div class="f-row spread-out">
-                            <div class="f-row g-10 align-v-center">
-                                <select v-model="selectedTraitMetric">
-                                    <option value="beta">Joint beta</option>
-                                    <option value="beta_uncorrected">Marginal beta</option>
-                                </select>
-                                <select v-model="selectedTraitColumnFilter">
-                                    <option value="all">states + factors</option>
-                                    <option value="program">factors only</option>
-                                    <option value="state">states only</option>
-                                </select>
-                                <span class="heatmap-meta">
-                                    {{ traitHeatmapMeta }} |
-                                    <span class="metric-tooltip">
-                                        <span class="metric-tooltip-label">{{ traitHeatmapMetricLabel }}</span>
-                                        <span class="metric-tooltip-bubble">{{ traitMetricTooltip(selectedTraitMetric) }}</span>
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="heatmap-legend">
-                                <span class="legend-label">Negative</span>
-                                <span class="legend-gradient diverging"></span>
-                                <span class="legend-label">Positive</span>
-                            </div>
-                        </div>
-                        <div v-if="traitHeatmapError" class="empty-state">
-                            {{ traitHeatmapError }}
-                        </div>
-                        <div v-else-if="selectedCellType && !traitHeatmapDisplay.groupRows.length" class="empty-state">
-                            No grouped trait links returned.
-                        </div>
-                        <div v-else-if="traitHeatmapDisplay.groupRows.length" class="heatmap-wrap">
-                            <table class="heatmap-table">
-                                <thead>
-                                    <tr>
-                                        <th class="heatmap-row-head">
-                                            <div class="heatmap-row-head-label">Trait</div>
-                                            <div class="heatmap-column-head-label">{{ traitColumnHeaderLabel }}</div>
-                                        </th>
-                                        <th
-                                            v-for="column in availableTraitColumns"
-                                            :key="column.id"
-                                            class="heatmap-column-head"
-                                            :title="`${column.type}: ${column.label}`"
-                                            @click="column.type === 'state' ? openStateDrawer(column.id, stateMetadataById[column.id]) : openProgramDrawer(column.id, geneProgramInfoById[column.id])"
-                                        >
-                                            <div class="heatmap-column-label">{{ column.label }}</div>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template v-for="group in traitHeatmapDisplay.groupRows">
-                                        <tr :key="`${group.group}-header`" class="heatmap-group-row">
-                                            <td class="heatmap-group-label" :colspan="availableTraitColumns.length + 1">
-                                                {{ group.group }}
-                                            </td>
-                                        </tr>
-                                        <tr
-                                            v-for="trait in group.traits"
-                                            :key="`${group.group}-${trait.trait}`"
-                                        >
-                                            <td class="heatmap-row-head" :title="trait.displayTrait">{{ trait.displayTrait }}</td>
-                                            <td
-                                                v-for="cell in trait.cells"
-                                                :key="cell.key"
-                                                class="heatmap-cell"
-                                                :style="{ background: cell.color }"
-                                                @mouseenter="showHeatmapTooltip($event, cell.tooltipRows)"
-                                                @mousemove="moveHeatmapTooltip($event)"
-                                                @mouseleave="hideHeatmapTooltip()"
-                                            >
-                                                <div class="heatmap-cell-inner">
-                                                    <span v-if="isFiniteNumber(cell.value)">{{ cell.value.toFixed(3) }}</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div v-else class="empty-state">
-                            Select a cell type to load trait links.
-                        </div>
+                    <div v-else class="empty-state">
+                        No trait links loaded.
                     </div>
                 </div>
             </div>
         </div>
-
         <div
             v-if="floatingHeatmapTooltip.visible && floatingHeatmapTooltip.rows.length"
             class="floating-heatmap-tooltip"
@@ -3756,9 +4361,14 @@ export default Vue.component('LigerBrowser', {
 
         <div
             v-if="floatingExpressionTooltip.visible && floatingExpressionTooltip.columns.length"
+            ref="expressionTooltip"
             class="floating-expression-tooltip"
-            :class="`side-${floatingExpressionTooltip.side}`"
-            :style="{ left: `${floatingExpressionTooltip.x}px`, top: `${floatingExpressionTooltip.y}px` }"
+            :class="[`side-${floatingExpressionTooltip.side}`, { positioned: floatingExpressionTooltip.positioned }]"
+            :style="{
+                left: `${floatingExpressionTooltip.x}px`,
+                top: `${floatingExpressionTooltip.y}px`,
+                '--arrow-x': `${floatingExpressionTooltip.arrowX}px`
+            }"
         >
             <div class="expression-tooltip-grid">
                 <div
@@ -3804,321 +4414,12 @@ export default Vue.component('LigerBrowser', {
                 </div>
             </div>
             <div class="drawer-body">
-                <div v-if="drawerLoading" class="empty-state">Loading details...</div>
-
-                <template v-else-if="drawerContent && drawerContent.type === 'state'">
-                    <div class="drawer-panel">
-                        <h3>What this state represents</h3>
-                        <p>{{ drawerContent.summaryDescription }}</p>
-                        <dl class="drawer-field-grid">
-                            <template v-for="field in drawerContent.summaryFields">
-                                <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                                <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
-                            </template>
-                        </dl>
-                    </div>
-
-                    <div class="drawer-panel">
-                        <h3>What this means for your gene</h3>
-                        <dl v-if="drawerContent.interpretationRows.length" class="drawer-field-grid">
-                            <template v-for="field in drawerContent.interpretationRows">
-                                <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                                <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
-                            </template>
-                        </dl>
-                        <div v-else class="empty-state">No interpretation metadata available.</div>
-                    </div>
-
-                    <div class="drawer-panel">
-                        <h3>Marker genes</h3>
-                        <div v-if="drawerContent.markerDetail.markers.length" class="drawer-marker-list">
-                            <span
-                                v-for="gene in drawerContent.markerDetail.markers"
-                                :key="gene"
-                                class="drawer-marker"
-                            >
-                                {{ gene }}
-                            </span>
-                        </div>
-                        <div v-else class="empty-state">No marker genes returned.</div>
-                        <details v-if="drawerContent.markerDetail.provenance.length" class="drawer-details">
-                            <summary>Show marker provenance</summary>
-                            <div class="table-wrap">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Gene</th>
-                                            <th>Role</th>
-                                            <th>Evidence</th>
-                                            <th>Marker notes</th>
-                                            <th>Source type</th>
-                                            <th>Citations</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="row in drawerContent.markerDetail.provenance" :key="`${row.gene}-${row.role}`">
-                                            <td>{{ row.gene }}</td>
-                                            <td>{{ row.role }}</td>
-                                            <td>{{ row.evidence }}</td>
-                                            <td>{{ row.notes }}</td>
-                                            <td>{{ row.sourceType }}</td>
-                                            <td>{{ row.citations }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </details>
-                    </div>
-
-                    <div class="drawer-panel">
-                        <h3>Curation and references</h3>
-                        <dl v-if="drawerContent.referenceDetail.curationRows.length" class="drawer-field-grid">
-                            <template v-for="field in drawerContent.referenceDetail.curationRows">
-                                <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                                <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
-                            </template>
-                        </dl>
-                        <ul v-if="drawerContent.referenceDetail.references.length" class="drawer-reference-list">
-                            <li v-for="reference in drawerContent.referenceDetail.references" :key="reference.label">
-                                <a v-if="reference.url" :href="reference.url" target="_blank" rel="noreferrer">{{ reference.label }}</a>
-                                <span v-else>{{ reference.label }}</span>
-                                <span v-if="reference.suffix" class="drawer-reference-suffix">({{ reference.suffix }})</span>
-                            </li>
-                        </ul>
-                        <div v-else class="empty-state">No state-level citations available.</div>
-                    </div>
-
-                    <div v-if="drawerContent.relatedPrograms.length" class="drawer-panel">
-                        <h3>Related programs with GSEA P &lt; 0.05</h3>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Program</th>
-                                        <th>GSEA P</th>
-                                        <th>GSEA Q</th>
-                                        <th>Cell coactivity</th>
-                                        <th>Match score</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="row in drawerContent.relatedPrograms"
-                                        :key="row.programId"
-                                        class="clickable-cell"
-                                        @click="openProgramDrawer(row.programId, row.row)"
-                                    >
-                                        <td>{{ row.programLabel }}</td>
-                                        <td>{{ formatPValue(row.gseaP) }}</td>
-                                        <td>{{ formatPValue(row.gseaQ) }}</td>
-                                        <td>{{ formatMetric(row.coactivity) }}</td>
-                                        <td>{{ formatMetric(row.matchScore) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="drawer-panel">
-                        <h3>Human genetic trait anchors</h3>
-                        <div v-if="drawerContent.traitRows.length" class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Trait</th>
-                                        <th>Joint beta</th>
-                                        <th>Marginal beta</th>
-                                        <th>Method</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="row in drawerContent.traitRows" :key="row.trait">
-                                        <td>{{ row.trait }}</td>
-                                        <td>{{ formatMetric(row.beta) }}</td>
-                                        <td>{{ formatMetric(row.betaUncorrected) }}</td>
-                                        <td>{{ row.method }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div v-else class="empty-state">No state-level PIGEAN rows returned for this state in the current API.</div>
-                    </div>
-                </template>
-
-                <template v-else-if="drawerContent && drawerContent.type === 'program'">
-                    <div class="drawer-panel">
-                        <h3>Program summary</h3>
-                        <p>{{ drawerContent.summaryText }}</p>
-                        <dl class="drawer-field-grid">
-                            <template v-for="field in drawerContent.summaryFields">
-                                <dt :key="`${field.label}-dt`">
-                                    <span v-if="field.label === 'Suggested label'" class="drawer-inline-value">
-                                        <span>{{ field.label }}</span>
-                                        <span class="drawer-ai-tooltip">
-                                            <span class="drawer-ai-pill">AI</span>
-                                            <span class="drawer-ai-tooltip-bubble">{{ aiSuggestedLabelTooltip }}</span>
-                                        </span>
-                                    </span>
-                                    <span v-else>{{ field.label }}</span>
-                                </dt>
-                                <dd :key="`${field.label}-dd`">
-                                    <span>{{ field.value }}</span>
-                                </dd>
-                            </template>
-                        </dl>
-                        <div class="drawer-badge-row drawer-qc-row">
-                            <span
-                                v-for="badge in visibleProgramQcBadges(drawerContent.qcBadges)"
-                                :key="badge.text"
-                                class="drawer-qc-tooltip"
-                            >
-                                <span
-                                    class="drawer-badge"
-                                    :class="badge.tone"
-                                >
-                                    {{ badge.text }}
-                                </span>
-                                <span v-if="badge.tooltip" class="drawer-qc-tooltip-bubble">
-                                    <strong>{{ badge.tooltip.displayName }}</strong>
-                                    <span><strong>Category:</strong> {{ badge.tooltip.category }}</span>
-                                    <span><strong>Marker genes:</strong> {{ badge.tooltip.markerGenes.join(', ') }}</span>
-                                </span>
-                            </span>
-                        </div>
-                        <button
-                            v-if="hiddenProgramQcBadgeCount(drawerContent.qcBadges) > 0 && !showAllProgramQcBadges"
-                            class="drawer-link-button"
-                            @click="showAllProgramQcBadges = true"
-                        >
-                            See {{ hiddenProgramQcBadgeCount(drawerContent.qcBadges) }} more
-                        </button>
-                        <div class="drawer-mini">QC bubble colors: green = QC GSEA P &gt;= 0.05, yellow = QC GSEA P &lt; 0.05, red = QC GSEA q &lt; 0.05</div>
-                    </div>
-
-                    <div class="drawer-panel">
-                        <h3>Best curated state matches</h3>
-                        <div v-if="drawerContent.curatedMatches.length" class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>State</th>
-                                        <th>GSEA P</th>
-                                        <th>GSEA q</th>
-                                        <th>-log10(q)</th>
-                                        <th>Correlation</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="row in drawerContent.curatedMatches"
-                                        :key="`${row.stateId}-${row.programId || ''}`"
-                                        class="clickable-cell"
-                                        @click="openStateDrawer(row.stateId, row.row)"
-                                    >
-                                        <td>{{ row.stateLabel }}</td>
-                                        <td>{{ formatPValue(row.gseaP) }}</td>
-                                        <td>{{ formatPValue(row.gseaQ) }}</td>
-                                        <td>{{ formatMetric(row.negLogQ) }}</td>
-                                        <td>{{ formatMetric(row.correlation) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div v-else class="empty-state">No curated state matches with GSEA P &lt; 0.05.</div>
-                    </div>
-
-                    <div class="drawer-panel">
-                        <h3>Top gene loadings</h3>
-                        <div v-if="drawerContent.topGenes.rows.length" class="table-wrap">
-                            <table v-if="drawerContent.topGenes.mode === 'loading'">
-                                <thead>
-                                    <tr>
-                                        <th>Gene</th>
-                                        <th>Loading</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="row in drawerContent.topGenes.rows" :key="row.gene">
-                                        <td>{{ row.gene }}</td>
-                                        <td>{{ formatMetric(row.loading) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <table v-else>
-                                <thead>
-                                    <tr>
-                                        <th>Rank</th>
-                                        <th>Gene</th>
-                                        <th>Rank score</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="row in drawerContent.topGenes.rows" :key="`${row.gene}-${row.rank}`">
-                                        <td>{{ row.rank }}</td>
-                                        <td>{{ row.gene }}</td>
-                                        <td>{{ row.rankScore }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div v-else class="empty-state">No positive program gene loadings returned.</div>
-                    </div>
-
-                    <div class="drawer-panel">
-                        <h3>Top anchor traits</h3>
-                        <div v-if="drawerContent.traitRows.length" class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Trait</th>
-                                        <th>Joint beta</th>
-                                        <th>Marginal beta</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="row in drawerContent.traitRows" :key="row.trait">
-                                        <td>{{ row.trait }}</td>
-                                        <td>{{ formatMetric(row.beta) }}</td>
-                                        <td>{{ formatMetric(row.betaUncorrected) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div v-else class="empty-state">No program trait anchors returned.</div>
-                    </div>
-
-                    <div class="drawer-panel">
-                        <h3>Gene set associations</h3>
-                        <template v-if="drawerContent.geneSetRows.length">
-                            <div class="table-wrap">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Gene set</th>
-                                            <th>Joint beta</th>
-                                            <th>Marginal beta</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="row in visibleProgramGeneSetRows(drawerContent.geneSetRows)" :key="row.geneSet">
-                                            <td>{{ row.geneSet }}</td>
-                                            <td>{{ formatMetric(row.beta) }}</td>
-                                            <td>{{ formatMetric(row.betaUncorrected) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <button
-                                v-if="hiddenProgramGeneSetRowCount(drawerContent.geneSetRows) > 0 && !showAllProgramGeneSets"
-                                class="drawer-link-button"
-                                @click="showAllProgramGeneSets = true"
-                            >
-                                See {{ hiddenProgramGeneSetRowCount(drawerContent.geneSetRows) }} more
-                            </button>
-                        </template>
-                        <div v-else class="empty-state">No program gene set associations returned.</div>
-                    </div>
-                </template>
+                <liger-detail-panel
+                    :content="drawerContent"
+                    :loading="drawerLoading"
+                    @open-state="openStateDrawer"
+                    @open-program="openProgramDrawer"
+                />
             </div>
         </aside>
     </div>
@@ -4144,8 +4445,6 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-size: 14px;
 }
 #liger-body{
-    background: #f8f8f8;
-    padding: 20px;
     min-width: 1230px;
 }
 .headline{
@@ -4247,7 +4546,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     grid-template-columns: 1.5fr 1fr 1fr;
     gap: 40px;
     align-items: center;
-    padding: 5px 10px;
+    padding: 7px 12px;
 }
 /* Cell types have no specificity data, so that card runs a two-column grid.
    The bar column is capped rather than left to fill the freed space, so bars
@@ -4256,7 +4555,85 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .bar-grid-header.no-spec,
 .bar-grid-item.no-spec,
 .axis-row.no-spec{
-    grid-template-columns: 200px minmax(160px, 100%);
+    grid-template-columns: 1.5fr 2fr;
+}
+/* Selecting a row opens its metadata beside the rows rather than in the drawer,
+   which put the record on top of the list it came from. Half the card each, so
+   the bars stay readable while the record is open. The split only exists while a
+   row is selected - reserving the space permanently would halve the bar tracks
+   for the whole session to serve a pane that is usually not there. */
+/* No min-height here: with no row selected this holds the list alone, and a
+   floor would pad every short list with dead space. The floor belongs to the
+   pane, which only exists while a row is selected. */
+.detail-split{
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+}
+.detail-split > .expression,
+.detail-split > .info{
+    flex: 1 1 50%;
+    min-width: 0;
+}
+/* The pane ends up max(row list height, 500px) and never taller than the split.
+   It holds no in-flow content of its own (the scroller below is absolutely
+   positioned), so a long record contributes nothing to the flex line and cannot
+   stretch the rows column to match it - only min-height does, which is what
+   gives a short list enough room to read a record in. align-items: stretch then
+   sizes the pane to the line. Sizing it by its own content instead is what would
+   let it run past the card. */
+.detail-pane{
+    position: relative;
+    flex: 0 0 50%;
+    min-width: 0;
+    min-height: 500px;
+    border-left: 2px solid var(--blue);
+    background: #fafafa;
+    overflow: hidden;
+}
+.detail-pane-scroll{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.detail-pane-header{
+    position: relative;
+    margin-bottom: 16px;
+    padding-right: 70px;
+}
+.detail-pane-eyebrow{
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #6b7688;
+}
+.detail-pane-title{
+    margin: 4px 0 8px !important;
+}
+.detail-pane-close{
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 2px 10px !important;
+}
+/* Sits in a sticky header next to the counts, so it reads as a control on that
+   line rather than as another portal button. */
+#liger .link-button{
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #175cd3;
+    font-size: 12px;
+    font-weight: 700;
+}
+#liger .link-button:hover{
+    text-decoration: underline;
 }
 .bar-cell{
     display: flex;
@@ -4366,16 +4743,22 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     width: 1px;
     background: #dfe4ee;
 }
-/* Units live here rather than inside the column header, so they read as a
-   caption on the scale instead of competing with the column name. */
-.axis-row.unit-row{
-    padding-bottom: 0;
+/* Title on the left of the column, unit on the right of the same line. The
+   50px right margin is the same one the tick labels use, so the unit ends where
+   the bar track ends rather than out over the numeric column. */
+.column-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
 }
 .axis-unit{
     font-size: 10px;
+    font-weight: 400;
     color: #8a93a5;
     margin-right: 50px;
     line-height: 1.3;
+    white-space: nowrap;
 }
 .bar-label{
     overflow: hidden;
@@ -4467,8 +4850,8 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 .floating-expression-tooltip{
     position: fixed;
-    width: 430px;
-    max-width: min(430px, calc(100vw - 24px));
+    width: 640px;
+    max-width: min(640px, calc(100vw - 24px));
     padding: 14px;
     border-radius: 12px;
     background: #16324f;
@@ -4476,21 +4859,30 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     box-shadow: 0 18px 34px rgba(0, 0, 0, .22);
     z-index: 35;
     pointer-events: none;
+    /* Held back until alignExpressionRowTooltip has measured the box, so it is
+       never briefly drawn at its provisional position. */
+    opacity: 0;
 }
+.floating-expression-tooltip.positioned{
+    opacity: 1;
+}
+/* --arrow-x is the hovered row's anchor point measured from the left edge of
+   this box, so the arrow stays over the row even when the box has been clamped
+   away from a viewport edge. */
 .floating-expression-tooltip::after{
     content: "";
     position: absolute;
-    top: calc(50% - 7px);
+    left: calc(var(--arrow-x, 60px) - 7px);
     border-width: 7px;
     border-style: solid;
 }
-.floating-expression-tooltip.side-right::after{
-    left: -14px;
-    border-color: transparent #16324f transparent transparent;
+.floating-expression-tooltip.side-below::after{
+    top: -14px;
+    border-color: transparent transparent #16324f transparent;
 }
-.floating-expression-tooltip.side-left::after{
-    right: -14px;
-    border-color: transparent transparent transparent #16324f;
+.floating-expression-tooltip.side-above::after{
+    bottom: -14px;
+    border-color: #16324f transparent transparent transparent;
 }
 .expression-tooltip-grid{
     display: grid;
@@ -4533,14 +4925,6 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     color: #c6ddf7;
 }
 
-
-.options > div {
-    padding: 5px 10px;  
-}
-.options .selected {
-    background: var(--blue);
-    color: white;
-}
 
 .title{
     margin-bottom: 20px;
@@ -4785,89 +5169,6 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     flex-direction: column;
     gap: 16px;
 }
-.drawer-panel{
-    border: 1px solid #edf0f7;
-    border-radius: 12px;
-    padding: 16px;
-    background: #fff;
-}
-.drawer-panel h3{
-    margin-bottom: 10px !important;
-}
-.drawer-field-grid{
-    display: grid;
-    grid-template-columns: 170px minmax(0, 1fr);
-    gap: 10px 14px;
-    margin: 0;
-}
-.drawer-field-grid dt{
-    font-weight: 700;
-    color: #1f2937;
-}
-.drawer-field-grid dd{
-    margin: 0;
-    color: #374151;
-}
-.drawer-inline-value{
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-.drawer-ai-tooltip{
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    cursor: help;
-}
-.drawer-ai-pill{
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: #e8f1fb;
-    color: #175cd3;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .02em;
-}
-.drawer-ai-tooltip-bubble{
-    position: absolute;
-    left: 50%;
-    bottom: calc(100% + 10px);
-    width: 280px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: #16324f;
-    color: white;
-    text-align: left;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.45;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(-50%, 4px);
-    transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
-    pointer-events: none;
-    z-index: 20;
-}
-.drawer-ai-tooltip-bubble::after{
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 100%;
-    transform: translateX(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: #16324f transparent transparent transparent;
-}
-.drawer-ai-tooltip:hover .drawer-ai-tooltip-bubble,
-.drawer-ai-tooltip:focus-within .drawer-ai-tooltip-bubble{
-    opacity: 1;
-    visibility: visible;
-    transform: translate(-50%, 0);
-}
 .drawer-badge-row{
     display: flex;
     flex-wrap: wrap;
@@ -4880,55 +5181,6 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
-}
-.drawer-qc-tooltip{
-    position: relative;
-    display: inline-flex;
-}
-.drawer-qc-tooltip-bubble{
-    position: absolute;
-    left: 50%;
-    bottom: calc(100% + 10px);
-    width: 320px;
-    max-width: min(320px, calc(100vw - 32px));
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: #16324f;
-    color: white;
-    text-align: left;
-    font-size: 12px;
-    font-weight: 400;
-    line-height: 1.45;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(-50%, 4px);
-    transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
-    pointer-events: none;
-    z-index: 20;
-}
-.drawer-qc-tooltip-bubble::after{
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 100%;
-    transform: translateX(-50%);
-    border-width: 6px;
-    border-style: solid;
-    border-color: #16324f transparent transparent transparent;
-}
-.drawer-qc-tooltip-bubble strong{
-    display: block;
-}
-.drawer-qc-tooltip-bubble span{
-    display: block;
-    margin-top: 4px;
-}
-.drawer-qc-tooltip:hover .drawer-qc-tooltip-bubble,
-.drawer-qc-tooltip:focus-within .drawer-qc-tooltip-bubble{
-    opacity: 1;
-    visibility: visible;
-    transform: translate(-50%, 0);
 }
 .drawer-badge.good{
     background: #e7f7ed;
@@ -4946,97 +5198,227 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     background: #e8f1fb;
     color: #175cd3;
 }
-.drawer-link-button{
-    margin-top: 10px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #175cd3;
-    font-size: 13px;
-    font-weight: 700;
-    text-align: left;
-    cursor: pointer;
-}
-.drawer-link-button:hover{
-    text-decoration: underline;
-}
-.drawer-marker-list{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-.drawer-marker{
-    display: inline-flex;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: #f3f4f6;
-    color: #1f2937;
-    font-size: 12px;
-    font-weight: 700;
-}
-.drawer-reference-list{
-    margin: 0;
-    padding-left: 18px;
-}
-.drawer-reference-suffix{
-    color: #6b7280;
-    font-size: 12px;
-}
-.drawer-details{
-    margin-top: 12px;
-}
-.drawer-details-body{
-    margin-top: 12px;
-}
-.drawer-mini{
-    margin-top: 10px;
-    font-size: 12px;
-    color: #4e4e4e;
-}
-.drawer-qc-row{
-    margin-top: 12px;
-}
 
-.table-wrap table {
-    width: 100%;
-}
-.table-wrap table tr th {
-    white-space: nowrap;
-}
-.table-wrap table tr th, .table-wrap table tr td {
-    padding: 0 5px;
-}
-.table-wrap table tr td:first-child {
-    max-width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 @media (max-width: 900px) {
     .drawer-field-grid{
         grid-template-columns: 1fr;
     }
     .floating-expression-tooltip{
-        width: min(430px, calc(100vw - 24px));
+        width: min(640px, calc(100vw - 24px));
     }
     .expression-tooltip-grid{
         grid-template-columns: 1fr;
     }
 }
 
-.section-card {
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
-    background: white;
-    min-height: 200px;
-    flex: 1;
-}
 .scroll-panel{
     flex: 1;
     overflow-y: auto;
     min-height: 0;
     max-height: 300px;
+}
+
+/* ---------------------------------------------------------------------------
+   Stacked sections with sticky headers.
+
+   Gene -> tissue -> cell type -> cell state -> program now read top to bottom
+   as one sheet instead of a 2x2 grid of cards, and the headers accumulate as you
+   scroll: each pins directly below the ones above it instead of replacing them.
+   Every header names the selection its section owns ("TISSUE: Pancreas"), so the
+   stack reads as the path that produced whatever is currently on screen.
+
+   Accumulating is why the headers are siblings of the bodies rather than nested
+   inside per-section wrappers. A sticky element can only travel within its own
+   containing block, so a header inside its section would be shoved out the
+   moment that section ended - the iOS behavior, not this one. Sharing one
+   containing block (.liger-sections) lets every header stay pinned to the bottom
+   of the whole sheet, and --i on each header is what separates them into slots.
+   --------------------------------------------------------------------------- */
+.liger-sections{
+    /* Two fixed heights: the one a header has in flow, and the shorter one it
+       takes once it parks. Only parked headers stack, so the pin offset is
+       index x the parked height. Both are mirrored by LIGER_HEADER_HEIGHT and
+       LIGER_HEADER_STUCK_HEIGHT in the script; change the pairs together.
+       --liger-sticky-top is 0 because no portal chrome is pinned to the top of
+       the window today - it is here so a future fixed nav is one number. */
+    --liger-header-h: 50px;
+    --liger-header-stuck-h: 34px;
+    --liger-sticky-top: 0px;
+    background: white;
+    /* Room for the whole parked stack, as PADDING rather than margin. A sticky
+       box cannot be pushed past the bottom of its containing block's padding
+       box, and with several sections bodyless (before a cell type is picked) the
+       sheet ends right below the last header - so the deepest headers could not
+       reach their slots and got clamped upward onto each other. Margin does not
+       help: it is outside the padding box, so it moves the sheet without giving
+       the headers anywhere to sit. */
+    padding-bottom: calc(7 * var(--liger-header-stuck-h));
+}
+.section-anchor{
+    height: 0;
+}
+.liger-section-header{
+    position: sticky;
+    top: calc(var(--liger-sticky-top) + (var(--i, 0) * var(--liger-header-stuck-h)));
+    /* Descending, so a header never covers one already parked above it, and the
+       gene header's suggestion dropdown stays over everything below. Stays under
+       the drawer backdrop (20) and the floating tooltips. */
+    z-index: calc(14 - var(--i, 0));
+    box-sizing: border-box;
+    height: var(--liger-header-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 0 20px;
+    background: rgba(255, 255, 255, .95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e6e8ee;
+    cursor: pointer;
+}
+/* Parked headers give a little height back, so a five-deep stack costs 210px of
+   viewport rather than 250. There is no :stuck selector in CSS, so the class is
+   set from measurement - see updateStuckSections. */
+.liger-section-header.stuck{
+    height: var(--liger-header-stuck-h);
+}
+.liger-section-header.stuck .section-kicker{
+    font-size: 13px;
+}
+.liger-section-header.stuck .section-value{
+    font-size: 14px;
+}
+.liger-section-header.stuck .section-meta{
+    font-size: 11px;
+}
+/* The gene header opens the sheet, so its divider would double the container
+   border. Its anchor is the first child, which is why this reads one step in. */
+.liger-sections > .section-anchor:first-child + .liger-section-header{
+    border-top: 0;
+}
+.section-crumb{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+}
+.section-kicker{
+    transition: font-size .12s ease;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #6b7688;
+    white-space: nowrap;
+}
+.section-kicker::after{
+    content: ":";
+}
+/* Fixed width so the kickers line up whichever glyph is showing. */
+.section-icon{
+    display: inline-block;
+    width: 14px;
+    margin-right: 6px;
+    font-size: 11px;
+    letter-spacing: normal;
+    text-align: center;
+    color: #98a2b3;
+}
+/* Deliberately larger than .bar-grid-header (1.1em): the header names what you
+   picked, the grid header only labels a column. */
+.section-value{
+    transition: font-size .12s ease;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #16324f;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/* An unmade choice is prompt text, not a value - it should not read as a
+   selection that happens to be named "Select a tissue". */
+.section-value.placeholder{
+    font-weight: 400;
+    font-style: italic;
+    color: #9aa4b5;
+}
+/* The count standing in for a selection: muted, so it does not read as one. */
+.section-value.as-meta{
+    font-weight: 400;
+    color: #6b7688;
+    font-style: italic;
+}
+.section-meta{
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    font-size: 14px;
+    color: #6b7688;
+    white-space: nowrap;
+}
+.liger-section-body{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 25px 30px 30px;
+    background: #f5f5f5;
+    box-shadow: inset 0 10px 10px -10px rgba(0, 0, 0, 0.5);
+}
+/* Enough height for the "select a tissue" overlay to land on before any rows
+   have loaded. */
+.liger-section-body.tall{
+    min-height: 180px;
+}
+/* The lede describes what the section is, which is exactly what a reader needs
+   while the loading overlay is up - so it sits above the overlay rather than
+   being greyed out by it, and below the sticky header so it scrolls under it
+   cleanly. */
+.section-lede-row{
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+}
+.section-lede{
+    font-size: 1.1em;
+}
+.liger-section-body .card-overlay{
+    z-index: 4;
+}
+/* The page scroll is what the sticky headers ride on, so these lists grow to
+   their content instead of scrolling inside a fixed-height panel - an inner
+   scrollbar would leave the headers nothing to stick against. */
+.liger-section-body .scroll-panel{
+    max-height: none;
+    overflow: visible;
+}
+/* Full-width sections would stretch the bar tracks across the whole sheet,
+   which makes the fixed axis harder to read rather than easier. */
+.bar-block{
+    /*max-width: 1100px;*/
+}
+.chip-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+#liger .chip{
+    padding: 5px 14px;
+    border: 1px solid #d7dce6;
+    background: white;
+    color: #4e4e4e;
+}
+#liger .chip:hover{
+    background: #eef2f7;
+}
+#liger .chip.selected{
+    background: var(--blue);
+    border-color: var(--blue);
+    color: white;
 }
 .count{
     font-weight: normal;
