@@ -122,7 +122,10 @@ export default {
         },
         selectedProgramData() {
             if (!this.convertedData || !this.selectedProgramKeys.length) return null;
-            return this.aggregateProgramData(this.convertedData, this.selectedProgramKeys);
+            let allData = structuredClone(this.aggregateProgramData(this.convertedData, this.selectedProgramKeys));
+            delete allData.race;
+            delete allData.ethnicity;
+            return allData;
         },
         /** Per-program breakdown by field when multiple programs: { [field]: { [category]: { [program]: count } } } */
         breakdownByField() {
