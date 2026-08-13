@@ -172,6 +172,7 @@ export default {
         formatFieldLabel(fieldName) {
             if (!fieldName) return "";
             return String(fieldName)
+                .replace("sex", "biological sex")
                 .replace(/_/g, " ")
                 .replace(/\b\w/g, (c) => c.toUpperCase());
         },
