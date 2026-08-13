@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED. Do not edit. -->
-<!-- Version: 1.0.16 | Generated: 2026-07-29T22:03:53Z | Hash: 49991b3535a3 -->
+<!-- Version: 1.0.17 | Generated: 2026-08-13T18:40:14Z | Hash: 7e5659f510a2 -->
 <!-- Sources: dig-dug-portal/sysbio-main/AGENTS.md + dig-dug-portal/AGENTS.md -->
 
 # dig-dug-portal — sysbio-main
@@ -38,7 +38,7 @@ This branch includes a `scripts/` folder at root with CMS caching and GCP deploy
 
 - **Production:** Uses snapshot cache from `public/cmsdata/` (required by check-cmsdata.js).
 - **Development:** Use live CMS by setting `USE_REMOTE_CMS=1` environment variable.
-- **Refresh cache:** `npm run fetch:cmsdata`
+- **Refresh cache:** `npm run fetch:cmsdata`. If that script is missing from `package.json` (e.g. after a merge-down from `master` overwrote it), run `node scripts/fetch-cmsdata.js` directly and restore the `fetch:cmsdata` entry in `package.json` scripts.
 - Cache includes manifest.json with timestamp and file counts.
 
 ### GCP Deployment
@@ -87,7 +87,7 @@ Use this after `npm run build` for smoke tests of generated HTML/assets.
 - Do not duplicate parent guidance; record only variant-specific differences here.
 - Use uppercase `AGENTS.md` for any nested agent docs.
 - Static links are relative to this folder; avoid absolute paths to maintain portability.
-- **CMS data is mandatory for production builds.** Always run `npm run fetch:cmsdata` before final build if manifest is stale or missing. Live CMS data is opt-in via `USE_REMOTE_CMS=1` for development only.
+- **CMS data is mandatory for production builds.** Always run `npm run fetch:cmsdata` (or `node scripts/fetch-cmsdata.js` if the npm script is not listed) before final build if manifest is stale or missing. Live CMS data is opt-in via `USE_REMOTE_CMS=1` for development only.
 - Keep local static preview scripts available upstream (`preview`, `preview:dir`) and use `preview:dir` for SysBio's non-`dist/` output.
 - This portal use runtime configs for environment-specific values; do not hardcode env vars or deploy targets in source docs.
 - Minimize third-party dependencies; document any that are added. Whenever possible, and especially for static assets, cache them locally to avoid runtime fetches and ensure stability.
