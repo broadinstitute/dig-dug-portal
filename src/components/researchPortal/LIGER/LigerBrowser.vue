@@ -19,17 +19,71 @@ const LIGER_DEV_HUGEAMP_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
 const LIGER_PROD_HUGEAMP_BIOINDEX_HOST = "https://bioindex.hugeamp.org";
 const LIGER_PHENOTYPES_HOST = LIGER_USE_DEV_BIOINDEX ? LIGER_DEV_HUGEAMP_BIOINDEX_HOST : LIGER_PROD_HUGEAMP_BIOINDEX_HOST;
 const LIGER_PROGRAM_MODEL = "mouse_msigdb";
-// Some portals partition cell-state trait data per cell type, others put it all
-// under a single combined cell type. Which one applies is probed at runtime
-// rather than tied to a base domain. This applies to cell-state traits only,
-// since those key on a state_name that is unique across cell types.
-const LIGER_COMBINED_TRAIT_CELL_TYPE = "combined_signatures";
 const LIGER_DEFAULT_CONFIG = {
     pageTitle: "Cell State & Program Explorer",
     documentationUrl: "/research.html?pageid=kp_liger_documentation",
     tissues: [],
     hideTissueCardIfOneOption: false,
+    expressionAxis: null,
+    specificityAxis: null,
 };
+// Expression bars are drawn against a FIXED axis, not the min/max of whatever
+// rows happen to be on screen. Rescaling per section made every gene look the
+// same: the weakest row always sat at the floor and the strongest always filled
+// the track, so a cell-type-specific marker and a gene that is absent everywhere
+// produced identical pictures. With a fixed domain the bar finally means
+// something on its own, and is comparable across cards, genes, and tissues.
+//
+// The bar is drawn from 10^log10_cpk, not from log10_cpk itself.
+//
+// A filled bar asserts a meaningful zero: length is supposed to be proportional
+// to the quantity. log10_cpk has no such zero - log10_cpk = 0 just means "1 CPK"
+// - and it runs negative for most genes, so a bar drawn from it starts at an
+// arbitrary point on a log axis and its length means nothing. Undoing the
+// pipeline's outer log recovers the underlying positive quantity, which does
+// have a true zero, so the bar becomes legitimate: empty really is "none".
+//
+// This is not a new metric, just the linear form of the value the API already
+// returns. The raw log10_cpk is still what we show on hover.
+//
+// It also reads far better. In linear form a cell-type-specific gene separates
+// cleanly (SST: 94% on delta, then 15/13/10/9...) while an absent gene collapses
+// to nothing (A1BG: 1.6% down to 0), which is exactly the right message for each.
+//
+// The axis top scales to the gene being viewed, since a user only ever looks at
+// one gene at a time - a global ceiling set by the islet hormones (INS 1.54)
+// left a mid-expressed gene like PRSS1 (max 0.24) using the bottom 15% of every
+// track.
+//
+// This is NOT the per-section rescaling this component started with. That was
+// broken for two separate reasons: it ran from the section MINIMUM rather than
+// zero, so an absent gene still filled the track, and the axis was unlabeled so
+// nothing revealed the scale had moved. Here the bar keeps a true zero and the
+// ticks are labeled with real values, so a shifting top is visible rather than
+// hidden. One axis is shared by all three cards so they stay mutually readable.
+//
+// The floor stops a barely-expressed gene from filling its own bar: A1BG peaks
+// at 0.025, and without this it would scale up to look strongly expressed.
+// Chosen against the observed distribution (p50 = 0.088, p75 = 0.47), so a gene
+// has to reach roughly the upper quartile before the axis starts tracking it.
+const LIGER_EXPRESSION_AXIS_FLOOR = 0.5;
+// log2 fold-change is signed and symmetric around a true zero, so it gets a
+// symmetric domain and a center-anchored bar.
+//
+// The top is per-card, not global. Cell-type specificity is measured against the
+// other cell types in the tissue, while state and program specificity is measured
+// against the parent cell type - different denominators, so those numbers were
+// never comparable and must not share a scale. Ranges differ enormously in
+// practice: one portal returns cell-type values spanning -4.65..+7.56 while its
+// own state and program values sit inside +/-1.4.
+//
+// The floor keeps the pre-existing behavior where values cluster at zero
+// (p75 = +0.115 on the pankbase sweep); without it a card whose values are all
+// tiny would scale up and imply enrichment that isn't there.
+const LIGER_SPECIFICITY_AXIS_FLOOR = 1.5;
+// p_value underflows to 5e-324 for the strongest hits, so it is only usable as a
+// significance flag - never as a continuous ranking.
+const LIGER_SIGNIFICANCE_P = 0.05;
 // Keep this code-level toggle in place so we can quickly compare raw API traits
 // versus portal-labeled traits without introducing UI controls yet.
 const LIGER_FILTER_UNLABELED_HEATMAP_TRAITS = true;
@@ -122,9 +176,6 @@ export default Vue.component('LigerBrowser', {
             traitHeatmapColumns: [],
             phenotypeTraitRows: [],
             qcMetadataRows: [],
-            // `${datasetId}:${cellTypeKey}` -> cell type partition the trait
-            // endpoints actually serve data under on this portal.
-            traitCellTypeKeys: {},
             stateTraitRowsCache: {},
             programTraitRowsCache: {},
             programGeneSetRowsCache: {},
@@ -213,11 +264,79 @@ export default Vue.component('LigerBrowser', {
 
             return " expressed?";
         },
-        absoluteExpressionTooltip() {
-            return "Absolute expression is log10(CP10K + 1), where CP10K is gene counts normalized per 10,000 total cell counts and averaged within the cell type.";
+        // One axis for the whole gene view, computed across all three cards so
+        // a cell type, a state and a program are read on the same scale. It
+        // steps once when the state/program sections finish loading, which is a
+        // single predictable reflow rather than each card drifting on its own.
+        expressionAxisMax() {
+            let configured = Number(this.ligerConfig.expressionAxis);
+            if (Number.isFinite(configured) && configured > 0) {
+                return configured;
+            }
+
+            let observed = []
+                .concat(this.cellTypeExpressionRows, this.cellStateExpressionRows, this.programExpressionRows)
+                .map((row) => this.absoluteExpressionValue(row))
+                .filter((value) => Number.isFinite(value))
+                .reduce((max, value) => Math.max(max, Math.pow(10, value)), 0);
+
+            return this.niceAxisMax(Math.max(observed, LIGER_EXPRESSION_AXIS_FLOOR));
         },
-        specificityTooltip() {
-            return "Specificity is log2 fold-change of the cell-type mean expression versus the other cell types in the tissue.";
+        cellTypeSpecificityAxis() {
+            return this.specificityAxisFor(this.cellTypeExpressionRows);
+        },
+        cellStateSpecificityAxis() {
+            return this.specificityAxisFor(this.cellStateExpressionRows);
+        },
+        programSpecificityAxis() {
+            return this.specificityAxisFor(this.programExpressionRows);
+        },
+        // Ticks are rendered under each bar column so the scale is readable
+        // without hovering anything.
+        expressionAxisTicks() {
+            let max = this.expressionAxisMax;
+            return [0, max / 2, max].map((value) => ({
+                value,
+                label: this.formatAxisTick(value),
+                offset: `${(value / max) * 100}%`,
+            }));
+        },
+        cellTypeSpecificityTicks() {
+            return this.specificityTicksFor(this.cellTypeSpecificityAxis);
+        },
+        cellStateSpecificityTicks() {
+            return this.specificityTicksFor(this.cellStateSpecificityAxis);
+        },
+        programSpecificityTicks() {
+            return this.specificityTicksFor(this.programSpecificityAxis);
+        },
+        // Naming this "CPK" would assert counts-per-thousand, which the observed
+        // magnitudes contradict (INS in beta comes out at 1.54, orders of
+        // magnitude too low). Stating the transform instead is exact and
+        // inherits the pipeline's own naming rather than inventing a unit.
+        expressionUnitLabel() {
+            return "10^log₁₀CPK";
+        },
+        specificityUnitLabel() {
+            return "log₂ fold-change";
+        },
+        // The three cards measure against different backgrounds. Collapsing them
+        // to one tooltip described the wrong denominator on two of the three.
+        absoluteExpressionTooltipByKind() {
+            let basis = "The bar shows 10^log₁₀CPK, the linear form of the pipeline's log₁₀ CPK value, so the bar starts at a true zero and an empty bar means none detected. Hover a row for the raw value.";
+
+            return {
+                cellType: `Mean expression across cells of this cell type. ${basis}`,
+                state: `State-weighted mean expression: cells are weighted by curated state activity. ${basis}`,
+                program: `Program-weighted mean expression: cells are weighted by inferred program activity. ${basis}`,
+            };
+        },
+        specificityTooltipByKind() {
+            return {
+                cellType: "Specificity is log₂ fold-change of this cell type versus the other cell types in the tissue. Not currently reported for cell types.",
+                state: "Specificity is log₂ fold-change of the state-weighted expression versus the parent cell-type background. Positive means enriched in this state.",
+                program: "Specificity is log₂ fold-change of the program-weighted expression versus the parent cell-type background. Positive means enriched in this program.",
+            };
         },
         aiSuggestedLabelTooltip() {
             return "AI was used to generate this program label. See rationale for more detail.";
@@ -247,30 +366,21 @@ export default Vue.component('LigerBrowser', {
             return this.geneProgramExpressionList.length;
         },
         availableCellTypes() {
-            let range = this.metricRange(this.cellTypeExpressionRows, (row) => this.absoluteExpressionValue(row));
-
-            return this.cellTypeExpressionRows
-                .map((row) => {
-                    let expression = this.expressionValue(row);
-                    let width = this.barWidth(this.absoluteExpressionValue(row), range);
-
-                    return {
-                        key: this.cellTypeKey(row),
-                        label: this.cellTypeLabel(row),
-                        expression: this.formatMetric(expression),
-                        expressionWidth: `${width}%`,
-                        abs: this.formatMetric(this.absoluteExpressionValue(row)),
-                        spec: this.formatMetric(this.specificityValue(row)),
-                        row,
-                    };
-                })
-                .sort((a, b) => this.expressionValue(b.row) - this.expressionValue(a.row));
+            return this.toExpressionList(this.cellTypeExpressionRows, "cellType");
         },
         cellStateExpressionList() {
             return this.toExpressionList(this.cellStateExpressionRows, "state");
         },
         geneProgramExpressionList() {
             return this.toExpressionList(this.programExpressionRows, "program");
+        },
+        // gene-program-expression-cell-type returns log2fc_weighted_vs_all_parent
+        // as null on every row, so the cell-type card hides the column entirely
+        // rather than printing a wall of 0.00 that reads as "measured, no
+        // enrichment". If the pipeline starts populating it this lights up on its
+        // own.
+        showCellTypeSpecificity() {
+            return this.availableCellTypes.some((item) => Number.isFinite(item.spec));
         },
         cellStateInfoList() {
             let expressionOrder = this.cellStateExpressionList.map((row) => row.key);
@@ -838,7 +948,7 @@ export default Vue.component('LigerBrowser', {
             }
         },
         buildMatchUrl(queryValue) {
-            return `${LIGER_API_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
+            return `${LIGER_PHENOTYPES_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
         },
         buildCellStateExpressionUrl(gene) {
             return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(gene)}`;
@@ -1105,18 +1215,9 @@ export default Vue.component('LigerBrowser', {
             let label = this.field(infoRow || row, ["suggested_program_label", "program_label", "label", "display_name", "program_id", "factor"]);
             return this.formatDisplayLabel(label);
         },
-        expressionValue(row) {
-            return this.numericField(row, [
-                "log10_cpk",
-                "log10_cp10k",
-                "log1p_mean_cp10k",
-                "log1p_weighted_mean_cp10k",
-            ]);
-        },
         absoluteExpressionValue(row) {
             return this.numericField(row, [
                 "log10_cpk",
-                "log10_cp10k",
             ]);
         },
         specificityValue(row) {
@@ -1131,6 +1232,18 @@ export default Vue.component('LigerBrowser', {
         },
         numericField(row, names = []) {
             let value = this.field(row, names);
+
+            // field() returns null when it finds nothing, and Number(null) is 0,
+            // which is finite - so without this guard every absent numeric field
+            // silently became a real zero. That is what put a column of "0.00"
+            // under cell-type Specificity (the API sends null there on every
+            // row), and it made a missing p_value read as 0, i.e. maximally
+            // significant. Real zeros in the data still pass through: field()
+            // only skips null/undefined/"".
+            if (value === null || value === undefined || value === "") {
+                return null;
+            }
+
             let numberValue = Number(value);
             return Number.isFinite(numberValue) ? numberValue : null;
         },
@@ -1144,63 +1257,181 @@ export default Vue.component('LigerBrowser', {
         isFiniteNumber(value) {
             return Number.isFinite(value);
         },
-        metricRange(rows = [], valueFn) {
-            let values = rows
-                .map((row) => valueFn(row))
-                .filter((value) => Number.isFinite(value));
-
-            if (!values.length) {
-                return { min: 0, max: 1 };
-            }
-
-            let minValue = Math.min(...values);
-            let maxValue = Math.max(...values);
-
-            if (minValue === maxValue) {
-                return { min: minValue, max: minValue + 1 };
-            }
-
-            return { min: minValue, max: maxValue };
+        // Missing and zero are different facts. formatMetric() renders both as
+        // "0.00", which in the bar cards reads as a real measurement of nothing.
+        // The wider drawer tables still use formatMetric; only the bars use this.
+        formatMetricOrDash(value) {
+            return Number.isFinite(value) ? value.toFixed(2) : "—";
         },
-        barWidth(value, range) {
+        // The linear expression scale spans several orders of magnitude, so a
+        // fixed 2 decimals would print "0.00" for everything below a hundredth
+        // and lose the distinction between "barely there" and "absent".
+        formatExpressionValue(value) {
             if (!Number.isFinite(value)) {
-                return 8;
+                return "—";
             }
 
-            let minValue = range && Number.isFinite(range.min) ? range.min : 0;
-            let maxValue = range && Number.isFinite(range.max) ? range.max : 1;
-            let denominator = maxValue - minValue;
-
-            if (denominator <= 0) {
-                return 100;
+            if (value >= 0.1) {
+                return value.toFixed(2);
             }
 
-            let normalized = ((value - minValue) / denominator) * 100;
-            return Math.max(8, Math.min(100, normalized));
+            if (value >= 0.001) {
+                return value.toFixed(3);
+            }
+
+            return value > 0 ? "<0.001" : "0";
+        },
+        // p_value underflows to 5e-324 for the strongest hits, so anything at the
+        // floor is reported as a bound rather than a number that looks precise.
+        formatSignificance(value) {
+            if (!Number.isFinite(value)) {
+                return "—";
+            }
+
+            if (value < 1e-300) {
+                return "<1e-300";
+            }
+
+            return this.formatPValue(value);
+        },
+        specificityAxisFor(rows = []) {
+            let configured = Number(this.ligerConfig.specificityAxis);
+            if (Number.isFinite(configured) && configured > 0) {
+                return configured;
+            }
+
+            let observed = rows
+                .map((row) => this.specificityValue(row))
+                .filter((value) => Number.isFinite(value))
+                .reduce((max, value) => Math.max(max, Math.abs(value)), 0);
+
+            return this.niceAxisMax(Math.max(observed, LIGER_SPECIFICITY_AXIS_FLOOR));
+        },
+        specificityTicksFor(axis) {
+            return [-axis, 0, axis].map((value) => ({
+                value,
+                label: value > 0 ? `+${this.formatAxisTick(value)}` : this.formatAxisTick(value),
+                offset: `${((value + axis) / (axis * 2)) * 100}%`,
+            }));
+        },
+        // Round the axis top up to the next readable step so ticks land on
+        // values like 0.6 / 0.8 / 1.5 instead of 1.543.
+        niceAxisMax(value) {
+            if (!Number.isFinite(value) || value <= 0) {
+                return 1;
+            }
+
+            let magnitude = Math.pow(10, Math.floor(Math.log10(value)));
+            let normalized = value / magnitude;
+            let step = [1, 1.2, 1.4, 1.5, 1.6, 1.8, 2, 2.5, 3, 4, 5, 6, 8, 10]
+                .find((candidate) => normalized <= candidate + 1e-9);
+
+            return Number((step * magnitude).toPrecision(2));
+        },
+        // The axis top moves with the gene, so ticks span anything from ~0.5 to
+        // ~1.6 and a fixed decimal count would print "0.0" or drop detail.
+        formatAxisTick(value) {
+            if (!Number.isFinite(value)) {
+                return "";
+            }
+
+            if (value === 0) {
+                return "0";
+            }
+
+            // Axis tops range from ~0.5 to ~10 depending on gene and portal, so
+            // no single decimal count works: "10.0" is clumsy and "0.3" loses a
+            // 0.25 midpoint.
+            if (Number.isInteger(value)) {
+                return String(value);
+            }
+
+            return Math.abs(value) >= 1 ? value.toFixed(1) : String(Number(value.toFixed(2)));
+        },
+        // Fraction of the fixed axis this value fills, plus which end it ran off
+        // so the caller can mark clamped rows instead of hiding the clamp.
+        axisFill(value, min, max) {
+            if (!Number.isFinite(value) || max <= min) {
+                return { percent: 0, overflow: null, present: false };
+            }
+
+            let raw = ((value - min) / (max - min)) * 100;
+            let overflow = raw > 100 ? "high" : (raw < 0 ? "low" : null);
+
+            return { percent: Math.max(0, Math.min(100, raw)), overflow, present: true };
         },
         toExpressionList(rows = [], kind) {
-            let range = this.metricRange(rows, (row) => this.absoluteExpressionValue(row));
+            let axisMax = this.expressionAxisMax;
+            let specAxis = this.specificityAxisFor(rows);
 
             return rows
                 .map((row) => {
-                    let expression = this.expressionValue(row);
                     let absoluteExpression = this.absoluteExpressionValue(row);
-                    let width = this.barWidth(absoluteExpression, range);
-                    let key = kind === "state" ? this.stateKey(row) : this.programKey(row);
-                    let label = kind === "state" ? this.stateLabel(row) : this.programLabel(row);
+                    // Undo the pipeline's outer log so the bar has a true zero.
+                    let linearExpression = Number.isFinite(absoluteExpression)
+                        ? Math.pow(10, absoluteExpression)
+                        : null;
+                    let specificity = this.specificityValue(row);
+                    let pValue = this.numericField(row, ["p_value"]);
+                    let fill = this.axisFill(linearExpression, 0, axisMax);
+                    let specFill = this.axisFill(specificity, -specAxis, specAxis);
+                    let key = kind === "state"
+                        ? this.stateKey(row)
+                        : (kind === "program" ? this.programKey(row) : this.cellTypeKey(row));
+                    let label = kind === "state"
+                        ? this.stateLabel(row)
+                        : (kind === "program" ? this.programLabel(row) : this.cellTypeLabel(row));
 
                     return {
                         key,
                         label,
-                        expression: this.formatMetric(expression),
-                        expressionWidth: `${width}%`,
-                        abs: this.formatMetric(absoluteExpression),
-                        spec: this.formatMetric(this.specificityValue(row)),
+                        abs: linearExpression,
+                        // raw pipeline value, surfaced on hover
+                        absRaw: absoluteExpression,
+                        absRawText: this.formatMetricOrDash(absoluteExpression),
+                        absText: this.formatExpressionValue(linearExpression),
+                        expressionWidth: `${fill.percent}%`,
+                        expressionOverflow: fill.overflow,
+                        hasExpression: fill.present,
+                        spec: specificity,
+                        specText: this.formatMetricOrDash(specificity),
+                        // -1..1 of a half-track; the template scales a
+                        // center-anchored fill by this, so passing through 0
+                        // crosses the axis cleanly.
+                        specScale: Number.isFinite(specificity)
+                            ? Math.max(-1, Math.min(1, specificity / specAxis)).toFixed(3)
+                            : "0",
+                        specOverflow: specFill.overflow,
+                        hasSpec: specFill.present,
+                        // Only dim a bar when there is a p-value saying it is not
+                        // significant. Some endpoints omit p_value entirely, and
+                        // dimming the whole column on missing data reads as "all
+                        // low confidence" when it actually means "not reported".
+                        muted: Number.isFinite(pValue) && pValue > LIGER_SIGNIFICANCE_P,
+                        pValueText: this.formatSignificance(pValue),
                         row,
                     };
                 })
-                .filter((row) => !!row.key)
-                .sort((a, b) => this.expressionValue(b.row) - this.expressionValue(a.row));
+                .filter((item) => !!item.key)
+                .sort((a, b) => this.compareExpressionRows(a, b));
+        },
+        // Sort by the same value the bar is drawn from. The old order used a
+        // wider field-name fallback list than the bar used, so rows could appear
+        // out of order relative to their own bars. Rows with no value sort last
+        // rather than being treated as zero.
+        compareExpressionRows(a, b) {
+            let aFinite = Number.isFinite(a.abs);
+            let bFinite = Number.isFinite(b.abs);
+
+            if (aFinite !== bFinite) {
+                return aFinite ? -1 : 1;
+            }
+
+            if (!aFinite) {
+                return String(a.label).localeCompare(String(b.label));
+            }
+
+            return b.abs - a.abs;
         },
         stateDescription(row) {
             let summary = this.field(row, [
@@ -1333,6 +1564,8 @@ export default Vue.component('LigerBrowser', {
 
             return [
                 { label: "Cell State", value: cellState.label || this.stateLabel(metadataRow) || "Not available" },
+                { label: "Expression (raw log₁₀ CPK)", value: cellState.absRawText },
+                { label: "Specificity p-value", value: cellState.pValueText },
                 { label: "Description", value: this.stateDescription(metadataRow) || "No description available." },
                 { label: "Marker Genes", value: this.joinDisplayList(markerGenes), items: markerGenes },
             ];
@@ -1343,6 +1576,8 @@ export default Vue.component('LigerBrowser', {
 
             return [
                 { label: "Gene Program", value: program.label || this.programLabel(infoRow) || "Not available" },
+                { label: "Expression (raw log₁₀ CPK)", value: program.absRawText },
+                { label: "Specificity p-value", value: program.pValueText },
                 { label: "Description", value: this.programDescription(infoRow) || "No description available." },
                 { label: "Top Genes", value: this.joinDisplayList(topGenes), items: topGenes },
             ];
@@ -2022,46 +2257,6 @@ export default Vue.component('LigerBrowser', {
                     row,
                 }));
         },
-        // Cell type partition for the cell-state trait endpoint only. Populated
-        // by resolveTraitCellTypeKey during the trait heatmap load; falls back
-        // to the real cell type until then. Not valid for the program trait
-        // endpoint, whose factor IDs are namespaced per cell type.
-        traitCellTypeKey(datasetId, cellTypeKey) {
-            return this.traitCellTypeKeys[`${datasetId}:${cellTypeKey}`] || cellTypeKey;
-        },
-        // Probe which partition this portal serves trait data under, and cache
-        // it per dataset + cell type so it costs at most one extra request.
-        async resolveTraitCellTypeKey(datasetId, cellTypeKey, buildUrlForCellType) {
-            let cacheKey = `${datasetId}:${cellTypeKey}`;
-            if (this.traitCellTypeKeys[cacheKey]) {
-                return this.traitCellTypeKeys[cacheKey];
-            }
-
-            let hasRows = async (key) => {
-                try {
-                    return this.rowsFromResponse(await this.fetchJson(buildUrlForCellType(key))).length > 0;
-                } catch (error) {
-                    return false;
-                }
-            };
-
-            // Only cache a conclusive answer. Empty results from both partitions
-            // mean this column simply has no traits, not that the portal
-            // partitions differently, and caching that would wrongly send every
-            // later request to the combined partition.
-            let resolved = null;
-            if (await hasRows(cellTypeKey)) {
-                resolved = cellTypeKey;
-            } else if (await hasRows(LIGER_COMBINED_TRAIT_CELL_TYPE)) {
-                resolved = LIGER_COMBINED_TRAIT_CELL_TYPE;
-            }
-
-            if (resolved) {
-                this.$set(this.traitCellTypeKeys, cacheKey, resolved);
-            }
-
-            return resolved || cellTypeKey;
-        },
         async getStateTraitRows(stateId) {
             if (this.stateTraitRowsCache[stateId]) {
                 return this.stateTraitRowsCache[stateId];
@@ -2079,8 +2274,7 @@ export default Vue.component('LigerBrowser', {
             }
 
             try {
-                let traitCellType = this.traitCellTypeKey(this.tissueDatasetId(this.selectedTissue), this.selectedCellType.key);
-                let payload = await this.fetchJson(this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), traitCellType, stateId));
+                let payload = await this.fetchJson(this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), this.selectedCellType.key, stateId));
                 let rows = this.rowsFromResponse(payload);
                 this.$set(this.stateTraitRowsCache, stateId, rows);
                 return rows;
@@ -2477,7 +2671,6 @@ export default Vue.component('LigerBrowser', {
             this.relationshipHeatmapRows = [];
             this.traitHeatmapRows = [];
             this.traitHeatmapColumns = [];
-            this.traitCellTypeKeys = {};
             this.stateTraitRowsCache = {};
             this.programTraitRowsCache = {};
             this.programGeneSetRowsCache = {};
@@ -2837,24 +3030,11 @@ export default Vue.component('LigerBrowser', {
                     return;
                 }
 
-                // Only the cell-state trait endpoint may use the combined
-                // partition. It keys on state_name, which is unique across cell
-                // types, so the join stays correct. The program trait endpoint
-                // keys on factor, and each cell type has its own Factor1..N
-                // namespace, so the combined partition's Factor1 is a different
-                // program entirely and must not be substituted.
-                let stateProbe = columns.find((column) => column.type === "state");
-                let stateTraitCellType = stateProbe
-                    ? await this.resolveTraitCellTypeKey(datasetId, cellType.key, (key) => {
-                        return this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), key, stateProbe.id);
-                    })
-                    : cellType.key;
-
                 let traitPayloads = await Promise.all(
                     columns.map(async (column) => {
                         try {
                             let payload = column.type === "state"
-                                ? await this.fetchJson(this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), stateTraitCellType, column.id))
+                                ? await this.fetchJson(this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), cellType.key, column.id))
                                 : await this.fetchJson(this.buildProgramTraitUrl(datasetId, cellType.key, column.id));
 
                             return this.rowsFromResponse(payload).map((row) => ({
@@ -2962,7 +3142,7 @@ export default Vue.component('LigerBrowser', {
                         </div>
                         <div class="section-card f-col g-10">
                             <div class="scroll-panel">
-                                <div class="options f-col g-5">
+                                <div class="options f-col">
                                     <div v-if="isLoadingGeneData" class="empty-state">
                                         Loading tissues...
                                     </div>
@@ -2997,44 +3177,85 @@ export default Vue.component('LigerBrowser', {
                             </div>
                             <div class="f-row g-20">
                                 <div class="f-col flex1">
-                                    <div class="bar-grid-header">
+                                    <div class="bar-grid-header" :class="{'no-spec': !showCellTypeSpecificity}">
                                         <div class="bold">Cell Type</div>
-                                        <div class="bold">Expression</div>
-                                        <div class="bold text-right">
+                                        <div class="bold">
                                             <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">ABS</span>
-                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltip }}</span>
+                                                <span class="metric-tooltip-label">Expression</span>
+                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltipByKind.cellType }}</span>
                                             </span>
                                         </div>
-                                        <div class="bold text-right">
-                                            <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">SPEC</span>
-                                                <span class="metric-tooltip-bubble">{{ specificityTooltip }}</span>
-                                            </span>
+                                        <template v-if="showCellTypeSpecificity">
+                                            <div class="bold">
+                                                <span class="metric-tooltip">
+                                                    <span class="metric-tooltip-label">Specificity</span>
+                                                    <span class="metric-tooltip-bubble">{{ specificityTooltipByKind.cellType }}</span>
+                                                </span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="axis-row unit-row" :class="{'no-spec': !showCellTypeSpecificity}">
+                                        <div></div>
+                                        <div class="axis-unit">{{ expressionUnitLabel }}</div>
+                                        <div v-if="showCellTypeSpecificity" class="axis-unit">{{ specificityUnitLabel }}</div>
+                                    </div>
+                                    <div class="axis-row" :class="{'no-spec': !showCellTypeSpecificity}">
+                                        <div></div>
+                                        <div class="axis-scale">
+                                            <span
+                                                v-for="tick in expressionAxisTicks"
+                                                :key="`ct-x-${tick.value}`"
+                                                class="axis-tick"
+                                                :style="{ left: tick.offset }"
+                                            >{{ tick.label }}</span>
+                                        </div>
+                                        <div v-if="showCellTypeSpecificity" class="axis-scale">
+                                            <span
+                                                v-for="tick in cellTypeSpecificityTicks"
+                                                :key="`ct-s-${tick.value}`"
+                                                class="axis-tick"
+                                                :style="{ left: tick.offset }"
+                                            >{{ tick.label }}</span>
                                         </div>
                                     </div>
-                                    <div class="scroll-panel f-col g-5" @scroll="hideExpressionRowTooltip">
+                                    <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
                                         <div v-if="cellTypeLoadError" class="empty-state">
                                             {{ cellTypeLoadError }}
                                         </div>
                                         <div
-                                            v-for="cellType in availableCellTypes" 
-                                            :key="cellType.key" 
+                                            v-for="cellType in availableCellTypes"
+                                            :key="cellType.key"
                                             class="bar-grid-item grid-item"
-                                            :class="{selected: selectedCellType && selectedCellType.key === cellType.key}"
+                                            :class="{
+                                                selected: selectedCellType && selectedCellType.key === cellType.key,
+                                                'no-data': !cellType.hasExpression,
+                                                'no-spec': !showCellTypeSpecificity
+                                            }"
                                             @click="selectCellType(cellType)"
                                         >
                                             <div class="bar-label">{{cellType.label}}</div>
                                             <div class="bar-cell">
                                                 <div class="bar-track">
                                                     <div
+                                                        v-if="cellType.hasExpression"
                                                         class="bar-fill"
+                                                        :class="{ 'overflow-high': cellType.expressionOverflow === 'high' }"
                                                         :style="{ width: cellType.expressionWidth }"
                                                     ></div>
                                                 </div>
+                                                <div class="bar-number">{{cellType.absText}}</div>
                                             </div>
-                                            <div class="text-right">{{cellType.abs}}</div>
-                                            <div class="text-right">{{cellType.spec}}</div>
+                                            <div v-if="showCellTypeSpecificity" class="bar-cell">
+                                                <div class="bar-track diverging">
+                                                    <div
+                                                        v-if="cellType.hasSpec"
+                                                        class="bar-fill-diverging"
+                                                        :class="{ negative: cellType.spec < 0, muted: cellType.muted, clamped: !!cellType.specOverflow }"
+                                                        :style="{ '--k': cellType.specScale }"
+                                                    ></div>
+                                                </div>
+                                                <div class="bar-number">{{cellType.specText}}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -3076,21 +3297,44 @@ export default Vue.component('LigerBrowser', {
                                 <div v-if="selectedCellType && !viewStateInfo" class="expression f-col flex1">
                                     <div class="bar-grid-header">
                                         <div class="bold">Cell State</div>
-                                        <div class="bold">Expression</div>
-                                        <div class="bold text-right">
+                                        <div class="bold">
                                             <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">ABS</span>
-                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltip }}</span>
+                                                <span class="metric-tooltip-label">Expression</span>
+                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltipByKind.state }}</span>
                                             </span>
                                         </div>
-                                        <div class="bold text-right">
+                                        <div class="bold">
                                             <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">SPEC</span>
-                                                <span class="metric-tooltip-bubble">{{ specificityTooltip }}</span>
+                                                <span class="metric-tooltip-label">Specificity</span>
+                                                <span class="metric-tooltip-bubble">{{ specificityTooltipByKind.state }}</span>
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="scroll-panel f-col g-5" @scroll="hideExpressionRowTooltip">
+                                    <div class="axis-row unit-row">
+                                        <div></div>
+                                        <div class="axis-unit">{{ expressionUnitLabel }}</div>
+                                        <div class="axis-unit">{{ specificityUnitLabel }}</div>
+                                    </div>
+                                    <div class="axis-row">
+                                        <div></div>
+                                        <div class="axis-scale">
+                                            <span
+                                                v-for="tick in expressionAxisTicks"
+                                                :key="`st-x-${tick.value}`"
+                                                class="axis-tick"
+                                                :style="{ left: tick.offset }"
+                                            >{{ tick.label }}</span>
+                                        </div>
+                                        <div class="axis-scale">
+                                            <span
+                                                v-for="tick in cellStateSpecificityTicks"
+                                                :key="`st-s-${tick.value}`"
+                                                class="axis-tick"
+                                                :style="{ left: tick.offset }"
+                                            >{{ tick.label }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
                                         <div v-if="cellStateSectionError" class="empty-state">
                                             {{ cellStateSectionError }}
                                         </div>
@@ -3098,7 +3342,10 @@ export default Vue.component('LigerBrowser', {
                                             v-for="cellState in cellStateExpressionList"
                                             :key="cellState.key"
                                             class="bar-grid-item grid-item"
-                                            :class="{ selected: isDrawerTarget('state', cellState.key) }"
+                                            :class="{
+                                                selected: isDrawerTarget('state', cellState.key),
+                                                'no-data': !cellState.hasExpression
+                                            }"
                                             @mouseenter="showExpressionRowTooltip($event, 'state', cellState)"
                                             @mousemove="showExpressionRowTooltip($event, 'state', cellState)"
                                             @mouseleave="hideExpressionRowTooltip"
@@ -3108,13 +3355,25 @@ export default Vue.component('LigerBrowser', {
                                             <div class="bar-cell">
                                                 <div class="bar-track">
                                                     <div
+                                                        v-if="cellState.hasExpression"
                                                         class="bar-fill"
+                                                        :class="{ 'overflow-high': cellState.expressionOverflow === 'high' }"
                                                         :style="{ width: cellState.expressionWidth }"
                                                     ></div>
                                                 </div>
+                                                <div class="bar-number">{{cellState.absText}}</div>
                                             </div>
-                                            <div class="text-right">{{cellState.abs}}</div>
-                                            <div class="text-right">{{cellState.spec}}</div>
+                                            <div class="bar-cell">
+                                                <div class="bar-track diverging">
+                                                    <div
+                                                        v-if="cellState.hasSpec"
+                                                        class="bar-fill-diverging"
+                                                        :class="{ negative: cellState.spec < 0, muted: cellState.muted, clamped: !!cellState.specOverflow }"
+                                                        :style="{ '--k': cellState.specScale }"
+                                                    ></div>
+                                                </div>
+                                                <div class="bar-number">{{cellState.specText}}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -3125,7 +3384,7 @@ export default Vue.component('LigerBrowser', {
                                         <div class="bold">Description</div>
                                         <div class="bold">Marker Genes</div>
                                     </div>
-                                    <div class="scroll-panel f-col g-5">
+                                    <div class="scroll-panel f-col">
                                         <div v-if="cellStateSectionError" class="empty-state">
                                             {{ cellStateSectionError }}
                                         </div>
@@ -3177,21 +3436,44 @@ export default Vue.component('LigerBrowser', {
                                 <div v-if="selectedCellType && !viewProgramInfo" class="expression f-col flex1">
                                     <div class="bar-grid-header">
                                         <div class="bold">Gene Program</div>
-                                        <div class="bold">Expression</div>
-                                        <div class="bold text-right">
+                                        <div class="bold">
                                             <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">ABS</span>
-                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltip }}</span>
+                                                <span class="metric-tooltip-label">Expression</span>
+                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltipByKind.program }}</span>
                                             </span>
                                         </div>
-                                        <div class="bold text-right">
+                                        <div class="bold">
                                             <span class="metric-tooltip">
-                                                <span class="metric-tooltip-label">SPEC</span>
-                                                <span class="metric-tooltip-bubble">{{ specificityTooltip }}</span>
+                                                <span class="metric-tooltip-label">Specificity</span>
+                                                <span class="metric-tooltip-bubble">{{ specificityTooltipByKind.program }}</span>
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="scroll-panel  f-col g-5" @scroll="hideExpressionRowTooltip">
+                                    <div class="axis-row unit-row">
+                                        <div></div>
+                                        <div class="axis-unit">{{ expressionUnitLabel }}</div>
+                                        <div class="axis-unit">{{ specificityUnitLabel }}</div>
+                                    </div>
+                                    <div class="axis-row">
+                                        <div></div>
+                                        <div class="axis-scale">
+                                            <span
+                                                v-for="tick in expressionAxisTicks"
+                                                :key="`pr-x-${tick.value}`"
+                                                class="axis-tick"
+                                                :style="{ left: tick.offset }"
+                                            >{{ tick.label }}</span>
+                                        </div>
+                                        <div class="axis-scale">
+                                            <span
+                                                v-for="tick in programSpecificityTicks"
+                                                :key="`pr-s-${tick.value}`"
+                                                class="axis-tick"
+                                                :style="{ left: tick.offset }"
+                                            >{{ tick.label }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
                                         <div v-if="geneProgramSectionError" class="empty-state">
                                             {{ geneProgramSectionError }}
                                         </div>
@@ -3199,7 +3481,10 @@ export default Vue.component('LigerBrowser', {
                                             v-for="program in geneProgramExpressionList"
                                             :key="program.key"
                                             class="bar-grid-item grid-item"
-                                            :class="{ selected: isDrawerTarget('program', program.key) }"
+                                            :class="{
+                                                selected: isDrawerTarget('program', program.key),
+                                                'no-data': !program.hasExpression
+                                            }"
                                             @mouseenter="showExpressionRowTooltip($event, 'program', program)"
                                             @mousemove="showExpressionRowTooltip($event, 'program', program)"
                                             @mouseleave="hideExpressionRowTooltip"
@@ -3209,13 +3494,25 @@ export default Vue.component('LigerBrowser', {
                                             <div class="bar-cell">
                                                 <div class="bar-track">
                                                     <div
+                                                        v-if="program.hasExpression"
                                                         class="bar-fill"
+                                                        :class="{ 'overflow-high': program.expressionOverflow === 'high' }"
                                                         :style="{ width: program.expressionWidth }"
                                                     ></div>
                                                 </div>
+                                                <div class="bar-number">{{program.absText}}</div>
                                             </div>
-                                            <div class="text-right">{{program.abs}}</div>
-                                            <div class="text-right">{{program.spec}}</div>
+                                            <div class="bar-cell">
+                                                <div class="bar-track diverging">
+                                                    <div
+                                                        v-if="program.hasSpec"
+                                                        class="bar-fill-diverging"
+                                                        :class="{ negative: program.spec < 0, muted: program.muted, clamped: !!program.specOverflow }"
+                                                        :style="{ '--k': program.specScale }"
+                                                    ></div>
+                                                </div>
+                                                <div class="bar-number">{{program.specText}}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -3225,7 +3522,7 @@ export default Vue.component('LigerBrowser', {
                                         <div class="bold">Description</div>
                                         <div class="bold">Top Genes</div>
                                     </div>
-                                    <div class="scroll-panel  f-col g-5" @scroll="hideExpressionRowTooltip">
+                                    <div class="scroll-panel f-col" @scroll="hideExpressionRowTooltip">
                                         <div v-if="geneProgramSectionError" class="empty-state">
                                             {{ geneProgramSectionError }}
                                         </div>
@@ -3944,15 +4241,27 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-size: 1.1em;
 }
 .bar-grid-header,
-.bar-grid-item{
+.bar-grid-item,
+.axis-row{
     display:grid;
-    grid-template-columns: 200px minmax(180px, 1fr) 60px 60px;
-    gap: 10px;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 40px;
     align-items: center;
     padding: 5px 10px;
 }
+/* Cell types have no specificity data, so that card runs a two-column grid.
+   The bar column is capped rather than left to fill the freed space, so bars
+   stay the same physical length as the other two cards - a fixed axis is only
+   readable as "comparable" if the tracks are the same size. */
+.bar-grid-header.no-spec,
+.bar-grid-item.no-spec,
+.axis-row.no-spec{
+    grid-template-columns: 200px minmax(160px, 100%);
+}
 .bar-cell{
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 .bar-track{
     flex: 1;
@@ -3960,15 +4269,113 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     background: #edf0f7;
     border-radius: 999px;
     overflow: hidden;
+    position: relative;
 }
 .bar-fill{
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, var(--lite-blue), var(--lite-green));
 }
+/* A row past the top of the fixed axis gets a hard edge and a marker, so
+   clamping is visible rather than silently reading as "exactly the maximum". */
+.bar-fill.overflow-high{
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    background: linear-gradient(90deg, var(--lite-blue), var(--lite-green) 88%, #16324f 88%);
+}
+/* Diverging track for signed log2FC: center line is the zero point. */
+.bar-track.diverging::before{
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -1px;
+    bottom: -1px;
+    width: 1px;
+    background: #c3cad8;
+}
+/* -1..1 of a half-track; scaling through 0 crosses the axis cleanly.
+   Same mechanism as CellStateInfographic's delta bars. */
+.bar-fill-diverging{
+    --k: 0;
+    position: absolute;
+    left: 50%;
+    width: 50%;
+    top: 0;
+    bottom: 0;
+    border-radius: 3px;
+    background: #1d4ed8;
+    transform: scaleX(var(--k));
+    transform-origin: left center;
+}
+.bar-fill-diverging.negative{
+    background: #c2410c;
+}
+.bar-fill-diverging.muted{
+    opacity: .35;
+}
+/* Rows past the end of the symmetric axis get a squared-off edge so a clamped
+   bar is not mistaken for one that happens to reach the axis limit. */
+.bar-fill-diverging.clamped{
+    border-radius: 0;
+}
+.bar-fill-diverging.clamped::after{
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 2px;
+    background: #16324f;
+}
 .bar-number{
-    min-width: 42px;
+    min-width: 30px;
+    font-size:12px;
     text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.bar-grid-item.no-data .bar-label,
+.bar-grid-item.no-data .bar-number{
+    color: #9aa4b5;
+}
+/* Tick labels sit under the bar columns so the scale never needs a hover. */
+.axis-row{
+    padding-top: 0;
+    padding-bottom: 2px;
+}
+.axis-scale{
+    position: relative;
+    height: 14px;
+    /* leave room for the numeric column the bars sit beside */
+    margin-right: 50px;
+    border-top: 1px solid #dfe4ee;
+}
+.axis-tick{
+    position: absolute;
+    top: 1px;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #6b7688;
+    white-space: nowrap;
+}
+.axis-tick::before{
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -3px;
+    height: 3px;
+    width: 1px;
+    background: #dfe4ee;
+}
+/* Units live here rather than inside the column header, so they read as a
+   caption on the scale instead of competing with the column name. */
+.axis-row.unit-row{
+    padding-bottom: 0;
+}
+.axis-unit{
+    font-size: 10px;
+    color: #8a93a5;
+    margin-right: 50px;
+    line-height: 1.3;
 }
 .bar-label{
     overflow: hidden;
@@ -4000,9 +4407,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .grid-item{
     text-align: left;
     cursor: pointer;
-    border: 1px solid #ddd;
     background: #fafafa;
-    border-radius: 10px;
 }
 .grid-item:hover{
     background: #ddd;

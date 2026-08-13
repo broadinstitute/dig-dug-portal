@@ -209,23 +209,23 @@ Current UI orientation:
 
 `/api/portal/phenotypes` is served only by the hugeamp bioindex; other portals return `501`. It is therefore pinned to `LIGER_PHENOTYPES_HOST` rather than `LIGER_API_HOST`, so it stays on hugeamp regardless of which portal hosts the component. It is the only endpoint that does not follow the resolved host.
 
-#### Trait cell type partition
+#### Trait cell type partition — resolved, mechanism removed
 
-Portals also disagree on how trait data is partitioned. Some serve it per cell type, others put all of it under the single cell type `combined_signatures`. On pankbase both trait endpoints return 0 rows for a real cell type and serve data only under `combined_signatures`.
+Both trait endpoints once returned 0 rows for a real cell type on pankbase and served everything under a single synthetic cell type, `combined_signatures`. The component probed at runtime and substituted that key for cell-state traits, while deliberately leaving program traits on the real cell type (the combined partition was a separate decomposition whose `Factor1` was not any cell type's `Factor1`, so substituting would have misattributed trait associations across programs).
 
-**This substitution is valid for cell-state traits only.**
+**The pipeline now returns real cell type names, and the whole mechanism has been deleted.** Verified against `islet_of_Langerhans_scRNA_v3-4` / `beta`:
 
-- `gene-program-cell-state-trait-factor` keys on `state_name` (e.g. `pancreas_beta_cell_mature_beta_cell_identity`), which is unique across cell types. Reading it from the combined partition keeps the join correct.
-- `gene-program-trait-factor` keys on `factor`, and **each cell type has its own `Factor1..FactorN` namespace** (beta has 10, alpha has 12). The combined partition is a separate decomposition with `Factor1..Factor24`, no `factor_label`, and no metadata at all — `gene-program-factor?q=<dataset>,combined_signatures,<model>` returns 0. So its `Factor1` is **not** any cell type's `Factor1`, and there is no key to join them on.
+| query | before | now |
+|---|---|---|
+| `gene-program-cell-state-trait-factor?q=<ds>,beta,<state>` | 0 rows | **207 rows** |
+| `gene-program-cell-state-trait-factor?q=<ds>,combined_signatures,<state>` | had data | **0 rows** |
+| `gene-program-trait-factor?q=<ds>,beta,<model>,Factor1` | 0 rows | **103 rows** |
 
-Program trait columns therefore keep using the real cell type and come back empty on a combined-partition portal. That is intentional: showing the combined partition's factors there would attribute one program's trait associations to a different program. Do not "fix" it by routing program traits through `traitCellTypeKey()`.
+Rows carry `cell_type: "beta"`. The `combined_signatures` partition is now empty, so the fallback had no data to fall back to.
 
-`resolveTraitCellTypeKey()` probes once per dataset + cell type and caches in `traitCellTypeKeys`, so it costs one extra request per cell type rather than one per column. `loadTraitHeatmap` resolves before its column fan-out; `getStateTraitRows` reads the cached value via `traitCellTypeKey()`.
+Removed: `LIGER_COMBINED_TRAIT_CELL_TYPE`, `traitCellTypeKeys`, `traitCellTypeKey()`, `resolveTraitCellTypeKey()`, and the probe in `loadTraitHeatmap`. Both trait endpoints now take `cellType.key` directly, which also drops one probe request per cell type.
 
-Two further details:
-
-- the probe uses a state column, since that is the only column type the result is applied to
-- a result that is empty under **both** partitions is not cached, because that means the state has no traits rather than that the portal partitions differently. Caching it would wrongly send every later request to the combined partition.
+Program traits returning data against the real cell type is new — the old note that they "come back empty on a combined-partition portal" no longer applies.
 
 These power:
 
@@ -424,36 +424,133 @@ Expected behavior:
 
 ## Value Definitions
 
-These definitions were explicitly called out during implementation and should remain the interpretation basis unless the API changes.
+- Expression bars show `log10_cpk`, the only expression field any of these endpoints returns.
+- Specificity is `log2fc_weighted_vs_all_parent`. The denominator differs by card: cell types measure against the other cell types in the tissue; cell states and gene programs measure their weighted mean against the parent cell-type background. The three header tooltips say so individually — do not collapse them back into one string.
 
-- Bars show absolute expression.
-- Absolute expression is `log10(CP10K + 1)`, where CP10K is gene counts normalized per 10,000 total cell counts and averaged within the cell type.
-- Specificity is log2 fold-change of the cell-type mean expression versus the other cell types in the tissue.
+### Open question on `log10_cpk`
+
+The earlier documented definition, `log10(CP10K + 1)`, is wrong on two counts: the field is per-*thousand*, and a `log1p` quantity cannot be negative while ~90% of these values are. A `log10_cp10k` field does not exist on any endpoint.
+
+The shape of the data suggests it is a **log of a log**, roughly `log10(mean_cells(log10(1 + CPK)))`:
+
+- housekeeping genes pin to ≈0 in every cell type (ACTB +0.02, GAPDH +0.03)
+- INS spans only +0.19 (beta) to −0.43 (ductal), a 1.6× linear range, where the true ratio is ~1000×
+- `10^0.188 = 1.54` is impossible as CPK for INS in beta (should be 100–400), but is the right magnitude for a mean of `log10(1+CPK)` across cells
+
+Consequence for the UI: the bars reliably separate *expressed* from *not expressed*, but differences **within** a well-expressed gene stay compressed. INS renders 71–99% across cell types even though it is overwhelmingly beta-specific. The specificity bar is what carries that signal — which is why the cell-type card, where specificity is null, currently cannot show beta-specificity at all.
+
+**Confirm the exact definition with the pipeline owner before relabeling the axis.** The header says `log₁₀ CPK` (the backend's own naming) rather than asserting the double-log reading.
 
 ## Current Field Assumptions
 
 ### Expression values
 
-Current preferred fields in the component:
-
-- ABS / expression basis:
-  - `log10_cpk`
-  - fallback `log10_cp10k`
-- SPEC:
-  - `log2fc_weighted_vs_all_parent`
-  - then nearby fold-change fallbacks
+- Expression: `log10_cpk` only. No fallbacks — nothing else is ever returned.
+- Specificity: `log2fc_weighted_vs_all_parent`.
+  - **Always `null` on `gene-program-expression-cell-type`** (verified across 58 genes). The cell-type card hides the column entirely via `showCellTypeSpecificity`, and lights it up automatically if the pipeline starts populating it.
+- `p_value` is used only as a significance flag (bars below threshold are muted). It underflows to `5e-324` for the strongest hits, so it is never usable as a continuous ranking.
+- There is no `pct_expressing` / `n_cells` on any endpoint. It cannot be derived client-side: `single-cell-lognorm` has per-cell arrays but carries no cell-type or cell-state labels to join on.
 
 ### Bars
 
-Bars are intended to scale consistently within a section from the section minimum ABS value to the section maximum ABS value, using the same absolute-expression metric shown in the `ABS` column.
+Two things about the expression bar matter and are easy to undo by accident.
+
+**1. It is drawn from `10^log10_cpk`, not from `log10_cpk`.**
+
+A filled bar asserts a meaningful zero — length is read as proportional to the quantity. `log10_cpk` has no such zero (`log10_cpk = 0` merely means "1 CPK") and runs negative for ~90% of values, so a bar drawn from it starts at an arbitrary point on a log axis and its length carries no meaning. Undoing the pipeline's outer log recovers a positive quantity with a true zero, so an empty bar honestly means "none detected".
+
+This is not a new metric — it is the linear form of the value the API already returns. The raw `log10_cpk` is still shown on row hover.
+
+The unit label reads `10^log₁₀CPK` rather than `CPK`. Calling it counts-per-thousand would assert something the magnitudes contradict: INS in beta comes out at 1.54, orders of magnitude below a real CPK reading. Stating the transform is exact and inherits the pipeline's own naming instead of inventing a unit.
+
+**2. The axis top scales to the gene, but is anchored at zero and labeled.**
+
+A user only ever views one gene at a time, so a globally fixed ceiling wasted most of the track: set by the islet hormones (INS 1.56), it left a mid-expressed gene like PRSS1 (max 0.24) using the bottom 15% of every bar.
+
+`expressionAxisMax` is therefore `max(gene's own max across all three cards, LIGER_EXPRESSION_AXIS_FLOOR)`, rounded up to a readable step by `niceAxisMax()`. One axis is shared by all three cards so a cell type, a state and a program stay mutually readable.
+
+**This is deliberately relative scaling, and it is only safe because of two properties the original lacked.** The component started out rescaling each section from its own minimum to its own maximum, which was broken twice over: the bar ran from the section *minimum* rather than zero, so an absent gene still filled the track, and the axis was unlabeled, so nothing revealed that the scale had moved. Here the bar keeps a true zero and the ticks carry real values, so a moving top is visible rather than hidden. **If either property is removed, the original bug is back.** Measured on real data under the old behavior, A1BG's bars (100/99/96/96/91…) read as *stronger* than INS's (100/57/51/50/49…).
+
+Constants in `LigerBrowser.vue`, both overridable via the `config` prop (`expressionAxis` — a scalar that pins the top — and `specificityAxis`):
+
+- `LIGER_EXPRESSION_AXIS_FLOOR = 0.5` (linear, axis always runs from 0)
+- `LIGER_SPECIFICITY_AXIS_FLOOR = 1.5` (symmetric, log₂FC)
+
+Calibrated against a 58-gene sweep of the islet dataset — 14,107 values across all three endpoints, spanning markers, housekeeping genes and background:
+
+| | min | p1 | p5 | p50 | p75 | p95 | p99 | max |
+|---|---|---|---|---|---|---|---|---|
+| `log10_cpk` | −8.05 | −4.03 | −3.28 | −1.06 | −0.33 | −0.003 | +0.067 | **+0.193** |
+| `10^log10_cpk` | ~0 | | 0.0005 | 0.088 | 0.470 | 0.992 | 1.167 | **1.561** |
+| `log2fc…parent` | −2.51 | −1.72 | −1.03 | −0.058 | +0.115 | +0.571 | +1.08 | +1.44 |
+
+Why these numbers:
+
+- **expression floor 0.5** — this is what stops a barely-expressed gene from filling its own bar. A1BG peaks at 0.029; without the floor the axis would scale down to it and it would render at 100%, reading as strongly expressed. At 0.5 it tops out at 5% and ADIPOQ at 0.4%. Chosen against the distribution above: a gene must reach roughly the upper quartile (p75 = 0.47) before the axis starts tracking it.
+- **specificity floor ±1.5** — on the pankbase sweep the values cluster hard at zero (p75 = +0.115), so without a floor a card whose values are all tiny would scale up and imply enrichment that isn't there.
+
+**The specificity axis is per-card, and this matters.** Cell-type specificity is measured against the other cell types in the tissue; state and program specificity is measured against the parent cell type. Different denominators — those numbers were never comparable, so they must not share a scale. (The expression axis *is* shared across cards, because it is the same metric everywhere.)
+
+The ranges differ enormously between portals, which is why a hardcoded top does not survive. Same gene, PRSS1 in pancreas:
+
+| card | portal A | portal B |
+|---|---|---|
+| Cell Types | field is `null` — column hidden | −4.65 … **+7.56** → axis ±8 |
+| Cell States | −0.0 … +1.35 → axis ±1.5 | +1.04 … +1.17 → axis ±1.5 |
+| Gene Programs | −1.31 … +1.38 → axis ±1.5 | −1.33 … +1.18 → axis ±1.5 |
+
+A fixed ±1.5 clamped every one of portal B's cell-type rows to a full half-track, making +7.56 and −4.65 visually identical — the same failure the expression bars originally had, in the other column.
+
+Values outside either domain clamp and get an overflow marker (squared-off edge) rather than being silently squashed. Missing values render as `—`, never `0.00`.
+
+Verified behavior across the sweep — housekeeping stays flat and high, markers spread, background collapses:
+
+| gene | axis top | ticks | top bar | bottom bar |
+|---|---|---|---|---|
+| INS | 1.6 | 0 / 0.8 / 1.6 | 98% | 24% |
+| GCG | 1.5 | 0 / 0.75 / 1.5 | 90% | 16% |
+| GAPDH | 1.2 | 0 / 0.6 / 1.2 | 90% | 79% |
+| COL1A1 | 1.2 | 0 / 0.6 / 1.2 | 84% | 0.01% |
+| PRSS1 | 0.5 | 0 / 0.25 / 0.5 | 49% | 1.2% |
+| A1BG | 0.5 | 0 / 0.25 / 0.5 | 5% | 0.1% |
+
+**The axis steps once mid-load.** Cell types render first; states and programs arrive together and can raise the max, resizing the bars once at that moment. This is a single predictable reflow rather than each card drifting independently.
+
+**Known limitation.** Because `log10_cpk` is compressed (see the open question above), differences *within* a well-expressed gene stay small. INS across the beta cell states is 1.505–1.545 — the states genuinely are near-identical there, so specificity, not magnitude, is the informative column on those two cards.
 
 If bars look visually wrong again, inspect:
 
 - `absoluteExpressionValue()`
-- `metricRange()`
-- `barWidth()`
+- `axisFill()`
+- `niceAxisMax()`
 - `toExpressionList()`
-- `availableCellTypes()`
+- `expressionAxisMax` / `specificityAxis` computed properties
+
+**Regression check:** compare `INS` against `A1BG` on the islet dataset. INS must show long bars peaking on beta; A1BG must show near-empty bars everywhere (~5% top). Under the original code these two looked identical. Check `ADIPOQ` too — it is absent from islet, so every bar should be effectively empty while still printing a real number (`0.002`, `<0.001`) rather than `—`, which is reserved for genuinely missing data.
+
+### `numericField()` returns null for missing, not 0
+
+`field()` returns `null` when it finds nothing, and `Number(null)` is `0`, which is finite. Without an explicit guard every absent numeric field in the component silently became a real zero. That is why:
+
+- cell-type **Specificity** rendered a column of `0.00` — the API sends `log2fc_weighted_vs_all_parent: null` on every row of that endpoint
+- a missing `p_value` read as `0`, i.e. **maximally significant**
+- filters written as `numericField(row, ["beta"]) !== null` could never fire
+
+`numericField()` now guards `null` / `undefined` / `""` before coercing. Real zeros in the data still pass through, because `field()` only skips those three values. Do not remove this guard.
+
+### p_value
+
+Used as a significance flag only — it dims the specificity bar above `LIGER_SIGNIFICANCE_P` (0.05) and appears on row hover. It is never used for ranking: it underflows to `5e-324` for the strongest hits, so it cannot order them. Anything at the floor is displayed as `<1e-300` rather than a falsely precise number.
+
+A bar is dimmed **only when a p-value is present and fails the threshold.** Not every portal returns `p_value` on every endpoint, and dimming on missing data washes out the whole column — reading as "all low confidence" when it actually means "not reported".
+
+It discriminates well and is worth keeping:
+
+| gene | cell states significant | programs significant |
+|---|---|---|
+| INS (marker) | 83% | 91% |
+| PRSS1 | 59% | 31% |
+| A1BG (background) | 15% | 10% |
 
 ## Loading State Expectation
 
