@@ -24,6 +24,7 @@ import FactorBaseReveal from "@/components/researchPortal/customComponents/Facto
 import hybridSearchReveal from "@/components/researchPortal/customComponents/hybridSearchReveal.vue";
 import multiQueriesReveal from "@/components/researchPortal/customComponents/multiQueriesReveal.vue";
 import revealKgWorkspace from "@/components/researchPortal/customComponents/revealKgWorkspace.vue";
+import biomarkerNetwork from "@/components/researchPortal/customComponents/biomarkerNetwork.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
@@ -37,7 +38,8 @@ export default Vue.component("research-section-components", {
 		FactorBaseReveal,
 		hybridSearchReveal,
 		multiQueriesReveal,
-		revealKgWorkspace
+		revealKgWorkspace,
+		biomarkerNetwork
 	},
 	data() {
 		return {
@@ -84,6 +86,9 @@ console.log('this.component', this.component);
 				break;
 			case 'revealKgWorkspace':
 				this.currentComponent = revealKgWorkspace;
+				break;
+			case 'biomarkerNetwork':
+				this.currentComponent = biomarkerNetwork;
 				break;
 		}
 	},
