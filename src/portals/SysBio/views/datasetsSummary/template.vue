@@ -79,6 +79,28 @@
                                 </div>
                             </div>
                         </template>
+                        <div v-if="fieldName === 'case_control' || fieldName === 'disease'" class="notDisplayed">
+                            <div>
+                                <strong>Not Displayed</strong>
+                            </div>
+                            <ul>
+                                <li v-if="fieldName === 'disease'">
+                                    <strong>Control:</strong> Control participant diagnoses are not listed in this table.
+                                </li>
+                                <li>
+                                    <strong>Other:</strong> 
+                                    <span v-if="fieldName === 'case_control'">
+                                        Participants with non-target diagnoses who do not meet the primary diagnostic criteria, excluding them from the primary Case/Control classification.
+                                    </span>
+                                    <span v-else-if="fieldName === 'disease'">
+                                        Combines non-target clinical diagnoses from individual studies that fall outside the primary disease cases of interest.
+                                    </span>
+                                </li>
+                                <li>
+                                    <strong>Suppressed:</strong> Data groups containing fewer than 20 participants have been programmatically excluded from this visualization to comply with privacy rules.
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -122,7 +144,10 @@ export default {
         },
         selectedProgramData() {
             if (!this.convertedData || !this.selectedProgramKeys.length) return null;
-            return this.aggregateProgramData(this.convertedData, this.selectedProgramKeys);
+            let allData = structuredClone(this.aggregateProgramData(this.convertedData, this.selectedProgramKeys));
+            delete allData.race;
+            delete allData.ethnicity;
+            return allData;
         },
         /** Per-program breakdown by field when multiple programs: { [field]: { [category]: { [program]: count } } } */
         breakdownByField() {
@@ -169,6 +194,7 @@ export default {
         formatFieldLabel(fieldName) {
             if (!fieldName) return "";
             return String(fieldName)
+                .replace("sex", "biological sex")
                 .replace(/_/g, " ")
                 .replace(/\b\w/g, (c) => c.toUpperCase());
         },
@@ -818,5 +844,8 @@ export default {
     justify-content: center;
     color: #6c757d;
     font-size: 0.875rem;
+}
+.notDisplayed {
+    margin-top: 20px;
 }
 </style>
