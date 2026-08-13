@@ -3,11 +3,18 @@
         <div class="header-message">
             Welcome to SysBio FAIRplex. This platform is newly launched and actively scaling. Stay updated or <a href="https://www.google.com/url?q=https://redcap.vumc.org/surveys/?s%3D4FPLKJEYAWFCHRNL&sa=D&source=docs&ust=1785261217863919&usg=AOvVaw0ITAMCZZOUnNYgecifYavD" target="_blank">send feedback</a>.
         </div>
+        <div v-if="showBeta" class="betaBanner">⚠️ <strong>Beta Release Notice:</strong> 
+            The SysBio FAIRplex platform is currently in Beta
+            with ongoing data standardization and harmonization efforts.
+            Please be advised that the data and visualizations provided are preliminary and are expected to mature over time. 
+            They are displayed here to demonstrate structure, functionality and invite community feedback. 
+            <a target="_blank" href="https://redcap.vumc.org/surveys/?s=4FPLKJEYAWFCHRNL">
+                Stay updated or send programmatic feedback</a>.
+            </div>
         <div class="header f-row align-v-center spread-out">
             <a class="logo f-row align-v-center" href="./">
                 <img :src="'images/sysbio/logos/sb-color-h.svg'" />
             </a>
-            <!--<div class="beta">beta</div>-->
             <div class="menu-btn" :class="{open: toggleMenu}" @click="toggleMenu = !toggleMenu">
                 <span></span>
                 <span></span>
@@ -88,7 +95,7 @@ let menuItemActive = false;
 
 export default Vue.component("sysbio-header", {
     components: {},
-    props: {},
+    props: { showBeta: {type: Boolean, default: false}},
     data() {
         return {
             nav: sysbioMenu,
@@ -403,5 +410,8 @@ export default Vue.component("sysbio-header", {
             text-align: left;
         }
     }
+}
+.betaBanner {
+    margin: 5px 10px 5px 10px;
 }
 </style>

@@ -2,7 +2,7 @@
   <div class="sysbio f-layout">
         <div class="f-col fill-height">
           <!-- NAV -->
-          <sysbio-header></sysbio-header>
+          <sysbio-header :showBeta="true"></sysbio-header>
           <!-- BODY -->
           <div class="sysbio-body f-col">
             <h2>Differential Gene Expression Browser</h2>
