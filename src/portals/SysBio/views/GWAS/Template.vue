@@ -1,7 +1,7 @@
 <template>
     <div class="sysbio f-layout">
         <!-- NAV -->
-        <sysbio-header></sysbio-header>
+        <sysbio-header :showBeta="true"></sysbio-header>
         <!-- BODY -->
         <div class="sysbio-body">
             <h2>Genetic Studies</h2>

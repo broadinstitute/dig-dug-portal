@@ -1,6 +1,6 @@
 <template>
     <div class="sysbio f-layout">
-        <sysbio-header></sysbio-header>
+        <sysbio-header :showBeta="true"></sysbio-header>
         <div class="sysbio-body">
             <h2>Data Summary Browser</h2>
             <div id="pageDescription" style="font-size:16px" v-html="$parent.pageDesc">
