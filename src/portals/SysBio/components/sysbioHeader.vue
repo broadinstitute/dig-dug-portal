@@ -3,13 +3,11 @@
         <div class="header-message">
             Welcome to SysBio FAIRplex. This platform is newly launched and actively scaling. Stay updated or <a href="https://www.google.com/url?q=https://redcap.vumc.org/surveys/?s%3D4FPLKJEYAWFCHRNL&sa=D&source=docs&ust=1785261217863919&usg=AOvVaw0ITAMCZZOUnNYgecifYavD" target="_blank">send feedback</a>.
         </div>
-        <div v-if="showBeta" class="betaBanner">⚠️ <strong>Beta Release Notice:</strong> 
+        <div v-if="showBeta" class="betaBanner"><strong>Beta Release Notice:</strong> 
             The SysBio FAIRplex platform is currently in Beta
             with ongoing data standardization and harmonization efforts.
             Please be advised that the data and visualizations provided are preliminary and are expected to mature over time. 
-            They are displayed here to demonstrate structure, functionality and invite community feedback. 
-            <a target="_blank" href="https://redcap.vumc.org/surveys/?s=4FPLKJEYAWFCHRNL">
-                Stay updated or send programmatic feedback</a>.
+            They are displayed here to demonstrate structure, functionality and invite community feedback.
             </div>
         <div class="header f-row align-v-center spread-out">
             <a class="logo f-row align-v-center" href="./">
@@ -412,6 +410,7 @@ export default Vue.component("sysbio-header", {
     }
 }
 .betaBanner {
-    margin: 5px 10px 5px 10px;
+    background: #ffd302;
+    padding: 5px 40px;
 }
 </style>

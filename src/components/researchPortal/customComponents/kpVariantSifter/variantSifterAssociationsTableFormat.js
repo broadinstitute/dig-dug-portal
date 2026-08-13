@@ -58,6 +58,7 @@ export const ASSOCIATIONS_TABLE_FORMAT = {
         "Z Score",
         "Consequence",
         "Ancestry",
+        "Project",
     ],
     "tool tips": {
         "Variant ID": "chromosome:position (hg19)_ref/alt",
@@ -69,6 +70,8 @@ export const ASSOCIATIONS_TABLE_FORMAT = {
         "Z Score": "Beta / Standard error",
         Consequence:
             "Impact of the variant for overlapping genes or transcripts, as predicted by the Ensembl Variant Effect Predictor (VEP)",
+        Ancestry: "Ancestry series for the association row",
+        Project: "Data source project (KP portal associations or GWAS-CE overlay)",
         "Credible Set":
             "Posterior Probability of Association for the variant in the selected credible set(s)",
         "Cred. sets":
