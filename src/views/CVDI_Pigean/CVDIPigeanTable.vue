@@ -27,7 +27,6 @@ export default Vue.component("cvdi-pigean-table", {
             perPage: 10,
             currentPage: 1,
             subtableData: {},
-            subtable2Data: {},
             plotColors: plotUtils.plotColors(),
         };
     },
@@ -68,10 +67,6 @@ export default Vue.component("cvdi-pigean-table", {
         },
         tableData() {
             let data = this.probData;
-            //add subtableActive to each row
-            data.forEach((row) => {
-                row.subtableActive = 0;
-            });
             if (this.filter) {
                 data = data.filter(this.filter);
             }
@@ -92,53 +87,20 @@ export default Vue.component("cvdi-pigean-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        async getSubtable(row, whichSubtable) {
+        async getSubtable(row) {
             let queryKey = this.subtableKey(row.item);
-            if (!this.subtableData[queryKey] && whichSubtable === 1) {
+            if (!this.subtableData[queryKey]) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
+                if (this.config.subtableEndpoint === 'pigean-joined-gene-set'){
+                    // De-duplicate trait groups on joined geneset endpoint.
+                    data = data.filter(d => d.trait_group === row.item.trait_group);
+                }
                 Vue.set(this.subtableData, queryKey, data);
             }
-            if (
-                !!this.config.subtable2Endpoint &&
-                !this.subtable2Data[queryKey] &&
-                whichSubtable === 2
-            ) {
-                let data2 = await query(
-                    this.config.subtable2Endpoint,
-                    queryKey
-                );
-                Vue.set(this.subtable2Data, queryKey, data2);
-            }
         },
-        showDetails(row, tableNum) {
-            this.toggleTable(row, tableNum);
-            this.getSubtable(row, tableNum);
-        },
-        toggleTable(row, subtable) {
-            let show = false;
-            if (subtable === row.item.subtableActive) {
-                show = false;
-            } else {
-                show = true;
-            }
-            // Toggle active table
-            row.item.subtableActive = !show ? 0 : subtable;
-            // Hide details if it's currently showing and no tables should be active
-            if (
-                !show &&
-                row.detailsShowing &&
-                row.item.subtableActive === 0
-            ) {
-                row.toggleDetails();
-            }
-            // Show details if it's currently not showing but it should be
-            if (
-                show &&
-                !row.detailsShowing &&
-                row.item.subtableActive !== 0
-            ) {
-                row.toggleDetails();
-            }
+        showDetails(row) {
+            row.toggleDetails();
+            this.getSubtable(row);
         },
         subtableKey(item) {
             return `${item.phenotype},${item[this.config.queryParam]},${DEFAULT_MODEL}`;
@@ -197,15 +159,6 @@ export default Vue.component("cvdi-pigean-table", {
                 inputData[i]["phenotypeDesc"] = phenotypeDesc;
             }
             return inputData;
-        },
-        hideLocusButton(phenotype) {
-            if (!!this.phenotypeMap) {
-                return (
-                    this.phenotypeMap[phenotype] === undefined ||
-                    this.phenotypeMap[phenotype].trait_group !== "portal"
-                );
-            }
-            return this.traitGroup !== "portal";
         },
     },
 });
@@ -282,78 +235,10 @@ export default Vue.component("cvdi-pigean-table", {
                     <b-button
                         variant="outline-primary"
                         size="sm"
-                        @click="showDetails(row, 1)"
+                        @click="showDetails(row)"
                     >
                         {{
-                            row.detailsShowing && row.item.subtableActive !== 3
-                                ? "Hide"
-                                : "Show"
-                        }}
-                    </b-button>
-                </template>
-                <template #cell(expand1)="row">
-                    <b-dropdown
-                        split
-                        right
-                        :text="
-                            row.detailsShowing && row.item.subtableActive === 1
-                                ? 'Hide'
-                                : 'Show'
-                        "
-                        variant="outline-primary"
-                        size="sm"
-                        @click="showDetails(row, 1)"
-                    >
-                        <b-dropdown-header id="dropdown-header-label">
-                            Top 5 Genes
-                        </b-dropdown-header>
-                        <b-dropdown-item
-                            v-for="gene in row.item.top_genes.split(';')"
-                            :key="gene"
-                            :href="`/cvdi_pigean/gene.html?gene=${gene}${suffix}`"
-                        >
-                            {{ gene }}
-                        </b-dropdown-item>
-                    </b-dropdown>
-                </template>
-                <template #cell(expand2)="row">
-                    <b-dropdown
-                        split
-                        right
-                        :text="
-                            row.detailsShowing && row.item.subtableActive === 2
-                                ? 'Hide'
-                                : 'Show'
-                        "
-                        variant="outline-primary"
-                        size="sm"
-                        @click="showDetails(row, 2)"
-                    >
-                        <b-dropdown-header id="dropdown-header-label">
-                            Top 5 Gene Sets
-                        </b-dropdown-header>
-                        <b-dropdown-item
-                            v-for="geneSet in row.item.top_gene_sets.split(';')"
-                            :key="geneSet"
-                            :href="`/cvdi_pigean/geneset.html?geneset=${geneSet}${suffix}`"
-                        >
-                            {{
-                                geneSet.length > 40
-                                    ? `${geneSet.slice(0, 40)}...`
-                                    : geneSet
-                            }}
-                        </b-dropdown-item>
-                    </b-dropdown>
-                </template>
-                <template #cell(expand3)="row">
-                    <b-button
-                        variant="outline-primary"
-                        size="sm"
-                        :disabled="hideLocusButton(row.item.phenotype)"
-                        @click="showDetails(row, 3)"
-                    >
-                        {{
-                            row.detailsShowing && row.item.subtableActive === 3
+                            row.detailsShowing
                                 ? "Hide"
                                 : "Show"
                         }}
@@ -362,18 +247,6 @@ export default Vue.component("cvdi-pigean-table", {
                 <template #row-details="row">
                     <cvdi-pigean-table
                         v-if="
-                            row.item.subtableActive === 2 &&
-                            subtable2Data[subtableKey(row.item)] &&
-                            subtable2Data[subtableKey(row.item)].length > 0
-                        "
-                        :pigeanData="subtable2Data[subtableKey(row.item)]"
-                        :config="{ fields: config.subtable2Fields }"
-                        :isSubtable="true"
-                    >
-                    </cvdi-pigean-table>
-                    <cvdi-pigean-table
-                        v-if="
-                            row.item.subtableActive === 1 &&
                             subtableData[subtableKey(row.item)] &&
                             subtableData[subtableKey(row.item)].length > 0
                         "
@@ -382,9 +255,6 @@ export default Vue.component("cvdi-pigean-table", {
                         :isSubtable="true"
                     >
                     </cvdi-pigean-table>
-                    <div v-if="row.item.subtableActive === 3">
-                        Locus zoom unavailable
-                    </div>
                 </template>
             </b-table>
             <b-pagination
