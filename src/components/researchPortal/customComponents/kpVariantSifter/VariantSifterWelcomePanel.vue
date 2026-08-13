@@ -15,6 +15,41 @@
                 <h3 class="vks-welcome-form-title">Start a new search</h3>
 
                 <div class="vks-welcome-fields">
+                    <div
+                        v-if="tokenSearchMode"
+                        class="vks-welcome-field vks-welcome-field--wide"
+                    >
+                        <label class="vks-welcome-label" :for="tokenInputId">
+                            Token
+                        </label>
+                        <div class="vks-welcome-token-row">
+                            <input
+                                :id="tokenInputId"
+                                v-model="accessToken"
+                                type="text"
+                                class="vks-welcome-input"
+                                autocomplete="off"
+                                spellcheck="false"
+                                placeholder="Paste access token"
+                                @input="onTokenInput"
+                            />
+                            <button
+                                type="button"
+                                class="vks-welcome-token-fetch"
+                                :disabled="metadataFetching || !accessToken.trim()"
+                                @click="onFetchTokenMetadata"
+                            >
+                                {{ metadataFetching ? "Fetching…" : "Fetch metadata" }}
+                            </button>
+                        </div>
+                        <p class="vks-welcome-hint">
+                            GWAS-CE associations load with this token. Use
+                            <strong>Fetch metadata</strong> to fill phenotype and
+                            ancestry when the token provides them; otherwise set those
+                            fields manually for KP companion layers.
+                        </p>
+                    </div>
+
                     <div class="vks-welcome-field">
                         <label class="vks-welcome-label" :for="phenotypeInputId">
                             Phenotype
@@ -57,7 +92,7 @@
                         </div>
                     </div>
 
-                    <div class="vks-welcome-field">
+                    <div v-if="!hideAncestry" class="vks-welcome-field">
                         <label class="vks-welcome-label" :for="ancestrySelectId">
                             Ancestry
                         </label>
@@ -180,13 +215,20 @@ import {
     resolveGeneOrVariantToRegion,
 } from "./variantSifterSearchUtils.js";
 import {
+    normalizeGwasCeToken,
     projectAncestryOptions,
+    projectHidesAncestry,
+    projectUsesTokenSearch,
     VKS_PROJECT_DEFAULT_ID,
 } from "./variantSifterProjects.js";
 import {
-    activeRegionDataLimitMessage,
-    regionExceedsActiveDataLimit,
+    activeRegionTrimmedMessage,
+    ensureRegionWithinActiveDataLimit,
 } from "./variantSifterRegionPan.js";
+import {
+    applyGwasCeMetadataToSearchFields,
+    fetchGwasCeTokenMetadata,
+} from "./variantSifterGwasCeMetadataApi.js";
 
 let welcomeFieldCounter = 0;
 const GENE_LOOKUP_DEBOUNCE_MS = 200;
@@ -220,10 +262,12 @@ export default {
         const suffix = welcomeFieldCounter;
         return {
             phenotypeInputId: `vks-welcome-phenotype-${suffix}`,
+            tokenInputId: `vks-welcome-token-${suffix}`,
             ancestrySelectId: `vks-welcome-ancestry-${suffix}`,
             locusInputId: `vks-welcome-locus-${suffix}`,
             expandSelectId: `vks-welcome-expand-${suffix}`,
             phenotypeQuery: "",
+            accessToken: "",
             selectedPhenotype: null,
             selectedAncestry: "Mixed",
             geneOrVariantQuery: "",
@@ -236,11 +280,18 @@ export default {
             geneLookupTimer: null,
             errorMessage: "",
             submitting: false,
+            metadataFetching: false,
             resolvedRegionLabel: "",
             regionExpandOptions: REGION_EXPAND_OPTIONS,
         };
     },
     computed: {
+        tokenSearchMode() {
+            return projectUsesTokenSearch(this.projectId);
+        },
+        hideAncestry() {
+            return projectHidesAncestry(this.projectId);
+        },
         phenotypeSuggestions() {
             return filterPhenotypes(this.phenotypes, this.phenotypeQuery);
         },
@@ -260,8 +311,9 @@ export default {
             },
         },
         projectId() {
-            if (!this.ancestryOptions.includes(this.selectedAncestry)) {
-                this.selectedAncestry = "Mixed";
+            this.selectedAncestry = "Mixed";
+            if (!this.tokenSearchMode) {
+                this.accessToken = "";
             }
             if (
                 this.selectedPhenotype &&
@@ -271,6 +323,13 @@ export default {
             ) {
                 this.phenotypeQuery = "";
                 this.selectedPhenotype = null;
+            }
+            if (
+                !this.hideAncestry &&
+                this.ancestryOptions.length &&
+                !this.ancestryOptions.includes(this.selectedAncestry)
+            ) {
+                this.selectedAncestry = this.ancestryOptions[0] || "Mixed";
             }
         },
         phenotypes() {
@@ -303,6 +362,7 @@ export default {
         ancestryLabel,
         resetFormFields() {
             this.phenotypeQuery = "";
+            this.accessToken = "";
             this.selectedPhenotype = null;
             this.selectedAncestry = "Mixed";
             this.geneOrVariantQuery = "";
@@ -312,9 +372,15 @@ export default {
             this.geneSuggestions = [];
             this.geneSuggestionSuppressed = false;
             this.errorMessage = "";
+            this.metadataFetching = false;
             this.resolvedRegionLabel = "";
         },
         applyInitialValues(values) {
+            if (values.gwasCeToken || values.accessToken) {
+                this.accessToken = String(
+                    values.gwasCeToken || values.accessToken || ""
+                );
+            }
             if (values.phenotype) {
                 const match = (this.phenotypes || []).find(
                     (phenotype) => phenotype.name === values.phenotype
@@ -325,8 +391,14 @@ export default {
                     this.phenotypeQuery = values.phenotype;
                 }
             }
-            if (values.ancestry != null && values.ancestry !== "") {
+            if (
+                !this.hideAncestry &&
+                values.ancestry != null &&
+                values.ancestry !== ""
+            ) {
                 this.selectedAncestry = values.ancestry;
+            } else if (this.hideAncestry) {
+                this.selectedAncestry = "Mixed";
             }
             if (values.geneOrVariantQuery) {
                 this.geneOrVariantQuery = values.geneOrVariantQuery;
@@ -420,6 +492,54 @@ export default {
             this.phenotypeListOpen = false;
             this.errorMessage = "";
         },
+        onTokenInput() {
+            this.errorMessage = "";
+        },
+        async onFetchTokenMetadata() {
+            const token = normalizeGwasCeToken(this.accessToken);
+            if (!token) {
+                this.errorMessage = "Enter an access token before fetching metadata.";
+                return;
+            }
+
+            this.metadataFetching = true;
+            this.errorMessage = "";
+            try {
+                const metadata = await fetchGwasCeTokenMetadata(token);
+                const applied = applyGwasCeMetadataToSearchFields(metadata, {
+                    phenotypes: this.phenotypes,
+                    ancestryOptions: this.ancestryOptions,
+                });
+
+                if (applied.phenotypeMatched) {
+                    this.selectPhenotype(applied.phenotype);
+                } else {
+                    this.selectedPhenotype = null;
+                    this.phenotypeQuery = metadata.phenotype || "";
+                    this.phenotypeListOpen = false;
+                }
+
+                if (!this.hideAncestry) {
+                    if (applied.ancestryMatched) {
+                        this.selectedAncestry = applied.ancestry;
+                    }
+                } else {
+                    this.selectedAncestry = "Mixed";
+                }
+
+                if (applied.mismatchMessage) {
+                    this.errorMessage = applied.mismatchMessage;
+                    window.alert(applied.mismatchMessage);
+                }
+            } catch (error) {
+                const message =
+                    error?.message || "Could not fetch token metadata.";
+                this.errorMessage = message;
+                window.alert(message);
+            } finally {
+                this.metadataFetching = false;
+            }
+        },
         phenotypeSuggestionLabel(phenotype) {
             const description = String(phenotype?.description || "").trim();
             if (description) {
@@ -451,6 +571,14 @@ export default {
             this.errorMessage = "";
             this.resolvedRegionLabel = "";
 
+            const gwasCeToken = this.tokenSearchMode
+                ? normalizeGwasCeToken(this.accessToken)
+                : "";
+            if (this.tokenSearchMode && !gwasCeToken) {
+                this.errorMessage = "Enter an access token to continue.";
+                return;
+            }
+
             const phenotype =
                 this.selectedPhenotype ||
                 (this.phenotypes || []).find(
@@ -458,7 +586,6 @@ export default {
                         entry.name === this.phenotypeQuery ||
                         entry.description === this.phenotypeQuery
                 );
-
             if (!phenotype) {
                 this.errorMessage = "Select a phenotype to continue.";
                 return;
@@ -477,7 +604,7 @@ export default {
 
             this.submitting = true;
             try {
-                const region = await resolveGeneOrVariantToRegion(
+                let region = await resolveGeneOrVariantToRegion(
                     this.geneOrVariantQuery,
                     this.utils.regionUtils,
                     this.regionExpandBp,
@@ -490,19 +617,32 @@ export default {
                     return;
                 }
 
-                if (regionExceedsActiveDataLimit(region)) {
-                    this.errorMessage = activeRegionDataLimitMessage();
-                    return;
+                const ensured = ensureRegionWithinActiveDataLimit(region);
+                if (ensured.trimmed) {
+                    window.alert(
+                        activeRegionTrimmedMessage(
+                            ensured.originalRegion,
+                            ensured.region
+                        )
+                    );
                 }
+                region = ensured.region;
 
                 this.resolvedRegionLabel = formatRegion(region);
                 this.$emit("start-search", {
                     phenotype,
-                    ancestry: this.selectedAncestry || null,
+                    ancestry: this.hideAncestry
+                        ? "Mixed"
+                        : this.selectedAncestry || null,
                     region,
                     regionLabel: this.resolvedRegionLabel,
                     geneOrVariantQuery: this.geneOrVariantQuery.trim(),
                     regionExpandBp: this.regionExpandBp,
+                    gwasCeToken: gwasCeToken || null,
+                    regionTrimmed: Boolean(ensured.trimmed),
+                    regionBeforeTrim: ensured.trimmed
+                        ? ensured.originalRegion
+                        : null,
                 });
             } finally {
                 this.submitting = false;
@@ -599,6 +739,39 @@ export default {
 .vks-welcome-select:focus {
     outline: 2px solid rgba(44, 92, 151, 0.25);
     border-color: var(--cfde-blue, #2c5c97);
+}
+
+.vks-welcome-token-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.vks-welcome-token-row .vks-welcome-input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.vks-welcome-token-fetch {
+    flex: 0 0 auto;
+    padding: 0 14px;
+    border: 1px solid var(--cfde-blue, #2c5c97);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--cfde-blue, #2c5c97);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.vks-welcome-token-fetch:hover:not(:disabled) {
+    background: rgba(44, 92, 151, 0.06);
+}
+
+.vks-welcome-token-fetch:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .vks-welcome-hint {

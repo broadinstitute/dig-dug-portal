@@ -54,6 +54,12 @@ export const ASSOCIATIONS_FILTERS = [
         type: "checkbox",
         "label in bubble": "true",
     },
+    {
+        field: "Project",
+        label: "Project",
+        type: "checkbox",
+        "label in bubble": "true",
+    },
 ];
 
 /** Column layout for the Associations filters panel. */
@@ -72,6 +78,11 @@ export const ASSOCIATIONS_FILTER_GROUPS = [
         id: "ancestry",
         label: "Ancestry",
         fields: ["Ancestry"],
+    },
+    {
+        id: "project",
+        label: "Project",
+        fields: ["Project"],
     },
 ];
 

@@ -119,7 +119,19 @@ export default {
     },
     computed: {
         activeFiltersIndex() {
-            return this.filtersIndex || createFiltersIndex(this.filters);
+            const base = createFiltersIndex(this.filters);
+            const incoming = this.filtersIndex || {};
+            Object.keys(base).forEach((field) => {
+                if (!incoming[field]) {
+                    return;
+                }
+                base[field] = {
+                    ...base[field],
+                    ...incoming[field],
+                    search: [...(incoming[field].search || [])],
+                };
+            });
+            return base;
         },
         filterByField() {
             const map = {};
@@ -260,7 +272,7 @@ export default {
 
 .vks-assoc-filter-columns {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px 24px;
     margin-bottom: 10px;
 }
@@ -329,6 +341,12 @@ export default {
     margin: 0;
     font-size: 12px;
     color: var(--cfde-muted, #6b6b6b);
+}
+
+@media (max-width: 1200px) {
+    .vks-assoc-filter-columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 900px) {

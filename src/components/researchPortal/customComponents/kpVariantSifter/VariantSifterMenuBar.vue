@@ -121,7 +121,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex: 1;
+    flex: 0 0 auto;
 }
 
 .vks-menu >>> .vks-menu-toggle {
