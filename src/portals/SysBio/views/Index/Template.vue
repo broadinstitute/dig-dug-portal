@@ -67,46 +67,56 @@
                 </div>
                 <div class="counters">
                     <div class="counter">
-                        <div class="counter-num" data-count="013">
+                        <div class="counter-num" data-count="4931">
                         </div>
                         <div class="counter-label">
                             Harmonized Participants
                         </div>
                     </div>
                     <div class="counter">
-                        <div class="counter-num" data-count="98">
+                        <div class="counter-num" data-count="8">
                         </div>
                         <div class="counter-label">
                             Diseases
                         </div>
                     </div>
                     <div class="counter">
-                        <div class="counter-num" data-count="45">
+                        <div class="counter-num" data-count="909">
                         </div>
                         <div class="counter-label">
                             Gene Expression Profiles
                         </div>
                     </div>
                     <div class="counter">
-                        <div class="counter-num" data-count="16">
+                        <div class="counter-num" data-count="3">
                         </div>
                         <div class="counter-label">
                             Data Modalities
                         </div>
                     </div>
                     <div class="counter">
-                        <div class="counter-num" data-count="4">
+                        <div class="counter-num" data-count="3">
                         </div>
                         <div class="counter-label">
                             Tools Available
                         </div>
                     </div>
                     <div class="counter">
-                        <div class="counter-num" data-count="12">
+                        <div class="counter-num" data-count="4">
                         </div>
                         <div class="counter-label">
                             Participating Program Repositories
                         </div>
+                    </div>
+                </div>
+                <div class="f-col" style="gap:5px; margin-top:10px">
+                    <div class="bold" style="font-size:16px">Program repositories currently undergoing integration</div>
+                    <div class="f-row" style="gap:5px; flex-wrap: wrap;">
+                        <div class="amp">AMP Alzheimer's Disease (AD)</div>
+                        <div class="amp">AMP Cardiometabolic Diseases (CMD)</div>
+                        <div class="amp">AMP Parkinson's Disease and Related Disorders (PDRD)</div>
+                        <div class="amp">AMP Rheumatoid Arthritis</div>
+                        <div class="amp">Systemic Lupus Erythematosus (RA/SLE)</div>
                     </div>
                 </div>
             </div>
@@ -442,7 +452,7 @@
                     </div>
                     <div class="muted" style="padding:0 40px">
                         <strong>Are you currently publishing a manuscript using data derivatives from SysBio FAIRplex?</strong><br/>
-                        Formal attribution is required by policy. <a href="">View Policies Page</a>
+                        Formal attribution is required by policy. <a href="/about.html?page=policies">View Policies Page</a>
                     </div>
                 </div>
             </div>
@@ -807,7 +817,7 @@ export default {
 .counters {
     display: grid;
     /*grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));*/
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(6, auto);
 }
 .counter {
     display: flex;
@@ -841,6 +851,13 @@ export default {
     font-size: 12px;
     font-weight: 600;
     color: #949494;
+}
+
+.amp {
+    padding: 5px 10px;
+    background: #eee;
+    border-radius: 10px;
+    white-space: nowrap;
 }
 
 .tech-table td {
