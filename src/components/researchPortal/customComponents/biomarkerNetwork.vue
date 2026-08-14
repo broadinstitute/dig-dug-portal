@@ -60,7 +60,7 @@
                                 <li class="bn-suggestion-group" role="presentation">Mechanisms</li>
                                 <li
                                     v-for="s in groupedSuggestions.mechanisms"
-                                    :key="'m-' + s.iri + '-' + s.label"
+                                    :key="'m-' + s.factor"
                                     class="bn-suggestion"
                                     :class="{ 'bn-suggestion--active': s.flatIndex === suggestionIndex }"
                                     role="option"
@@ -155,11 +155,34 @@
                             {{ label }}
                         </button>
                     </div>
+                    <div
+                        v-if="showBiomarkerDiseaseFilters"
+                        class="bn-type-filters"
+                        role="group"
+                        aria-label="Filter biomarkers by disease"
+                    >
+                        <span class="bn-type-filters-label">Diseases:</span>
+                        <button
+                            v-for="d in uniqueBiomarkerDiseaseFilters"
+                            :key="'bio-' + d.iri"
+                            type="button"
+                            class="bn-type-bubble"
+                            :class="{ 'bn-type-bubble--off': !isDiseaseVisible(d.iri) }"
+                            :aria-pressed="isDiseaseVisible(d.iri) ? 'true' : 'false'"
+                            @click="toggleDiseaseFilter(d.iri)"
+                        >
+                            <b-icon
+                                :icon="isDiseaseVisible(d.iri) ? 'eye-fill' : 'eye-slash'"
+                                aria-hidden="true"
+                            />
+                            {{ d.label }}
+                        </button>
+                    </div>
                     <p v-if="!rows.length" class="bn-filter-empty">
                         No biomarkers found for “{{ lastNeedle }}”.
                     </p>
                     <p v-else-if="!filteredRows.length" class="bn-filter-empty">
-                        No rows for the selected types.
+                        No rows for the selected filters.
                     </p>
                     <table v-else class="table table-sm table-hover bn-table">
                         <thead>
@@ -167,10 +190,11 @@
                                 <th scope="col">Biomarker</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">Gene</th>
+                                <th scope="col">Disease</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(row, idx) in pageRows" :key="row.biomarker + '-' + idx">
+            <tr v-for="(row, idx) in pageRows" :key="row.biomarker + '-' + row.disease + '-' + idx">
                                 <td>
                                     <a
                                         v-if="row.biomarker"
@@ -198,6 +222,14 @@
                                     >{{ row.geneSymbol }}</a>
                                     <span v-else class="text-muted">—</span>
                                 </td>
+                                <td>
+                                    <a
+                                        v-if="row.disease"
+                                        href="#"
+                                        @click.prevent="searchDisease({ iri: row.disease, label: rowDiseaseLabel(row) })"
+                                    >{{ rowDiseaseLabel(row) }}</a>
+                                    <span v-else class="text-muted">—</span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -212,11 +244,53 @@
                     />
                 </div>
 
-                <div v-show="activeTab === 'mechanisms'" class="bn-table-wrap" role="tabpanel">
+                <div v-if="activeTab === 'mechanisms'" class="bn-table-wrap" role="tabpanel">
+                    <div
+                        v-if="showFactorDiseaseFilters"
+                        class="bn-type-filters"
+                        role="group"
+                        aria-label="Filter mechanisms by disease"
+                    >
+                        <span class="bn-type-filters-label">Diseases:</span>
+                        <button
+                            v-for="d in uniqueFactorDiseaseFilters"
+                            :key="'fac-' + d.iri"
+                            type="button"
+                            class="bn-type-bubble"
+                            :class="{ 'bn-type-bubble--off': !isDiseaseVisible(d.iri) }"
+                            :aria-pressed="isDiseaseVisible(d.iri) ? 'true' : 'false'"
+                            @click="toggleDiseaseFilter(d.iri)"
+                        >
+                            <b-icon
+                                :icon="isDiseaseVisible(d.iri) ? 'eye-fill' : 'eye-slash'"
+                                aria-hidden="true"
+                            />
+                            {{ d.label }}
+                        </button>
+                    </div>
                     <p v-if="!associatedFactors.length" class="bn-filter-empty">
                         No associated mechanisms for this disease.
                     </p>
-                    <table v-else class="table table-sm table-hover bn-table">
+                    <p v-else-if="!filteredMechanismRows.length" class="bn-filter-empty">
+                        No rows for the selected filters.
+                    </p>
+                    <template v-else>
+                    <div
+                        v-if="mechanismNetwork.nodes.length"
+                        class="bn-mechanism-network"
+                    >
+                        <factor-base-reveal-network
+                            :key="'mech-net-' + mechanismNetworkKey"
+                            :network="mechanismNetwork"
+                            :height="480"
+                            keep-physics-enabled
+                            preserve-edge-direction
+                            :use-gene-role-colors="false"
+                            :show-selected-anchor-legend="false"
+                            :legend-type-labels="mechanismLegendLabels"
+                        />
+                    </div>
+                    <table class="table table-sm table-hover bn-table">
                         <thead>
                             <tr>
                                 <th scope="col">Mechanism</th>
@@ -227,7 +301,7 @@
                             <tr v-for="row in mechanismPageRows" :key="row.factor">
                                 <td>{{ row.factor }}</td>
                                 <td>
-                                    <template v-for="(d, i) in row.diseases">
+                                    <template v-for="(d, i) in visibleDiseasesForFactor(row)">
                                         <span :key="'sep-' + row.factor + '-' + d.iri" v-if="i">, </span>
                                         <a
                                             :key="row.factor + '-' + d.iri"
@@ -235,19 +309,20 @@
                                             @click.prevent="searchDisease(d)"
                                         >{{ d.label }}</a>
                                     </template>
-                                    <span v-if="!row.diseases.length" class="text-muted">—</span>
+                                    <span v-if="!visibleDiseasesForFactor(row).length" class="text-muted">—</span>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                     <b-pagination
-                        v-if="associatedFactors.length > perPage"
+                        v-if="filteredMechanismRows.length > perPage"
                         class="pagination-sm justify-content-center mt-2"
                         v-model="mechanismPage"
-                        :total-rows="associatedFactors.length"
+                        :total-rows="filteredMechanismRows.length"
                         :per-page="perPage"
                         size="sm"
                     />
+                    </template>
                 </div>
             </div>
         </div>
@@ -257,6 +332,7 @@
 <script>
 import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork2.vue";
 import { getBiomarkerDiseaseFactorData } from "./biomarkerNetwork/biomarkerDiseaseFactors.js";
 import keyParams from "@/utils/keyParams";
 import {
@@ -271,6 +347,7 @@ const PER_PAGE = 10;
 const SUGGESTION_LIMIT_PER_GROUP = 8;
 
 export default Vue.component("biomarker-network", {
+    components: { FactorBaseRevealNetwork },
     props: ["phenotypesInUse", "utilsBox", "sectionConfigs"],
     data() {
         return {
@@ -297,6 +374,7 @@ export default Vue.component("biomarker-network", {
             currentPage: 1,
             perPage: PER_PAGE,
             hiddenTypes: {},
+            hiddenDiseases: {},
             associatedFactors: [],
             activeTab: "biomarkers",
             mechanismPage: 1,
@@ -345,8 +423,103 @@ export default Vue.component("biomarker-network", {
             });
             return labels.sort((a, b) => a.localeCompare(b));
         },
+        uniqueBiomarkerDiseaseFilters() {
+            const seen = {};
+            const out = [];
+            (this.rows || []).forEach((row) => {
+                const iri = row && row.disease;
+                if (!iri || seen[iri]) return;
+                seen[iri] = true;
+                out.push({ iri, label: this.rowDiseaseLabel(row) });
+            });
+            return out.sort((a, b) => a.label.localeCompare(b.label));
+        },
+        uniqueFactorDiseaseFilters() {
+            const seen = {};
+            const out = [];
+            (this.associatedFactors || []).forEach((row) => {
+                (row.diseases || []).forEach((d) => {
+                    if (!d || !d.iri || seen[d.iri]) return;
+                    seen[d.iri] = true;
+                    out.push({ iri: d.iri, label: d.label || d.iri });
+                });
+            });
+            return out.sort((a, b) => a.label.localeCompare(b.label));
+        },
+        showBiomarkerDiseaseFilters() {
+            return this.uniqueBiomarkerDiseaseFilters.length > 1;
+        },
+        showFactorDiseaseFilters() {
+            return this.uniqueFactorDiseaseFilters.length > 1;
+        },
         filteredRows() {
-            return (this.rows || []).filter((row) => this.isTypeVisible(this.rowTypeLabel(row)));
+            return (this.rows || []).filter((row) => {
+                if (!this.isTypeVisible(this.rowTypeLabel(row))) return false;
+                if (!this.showBiomarkerDiseaseFilters) return true;
+                return !row.disease || this.isDiseaseVisible(row.disease);
+            });
+        },
+        filteredMechanismRows() {
+            const rows = this.associatedFactors || [];
+            if (!this.showFactorDiseaseFilters) return rows;
+            return rows.filter((row) => this.visibleDiseasesForFactor(row).length > 0);
+        },
+        mechanismPageRows() {
+            const start = (this.mechanismPage - 1) * this.perPage;
+            return this.filteredMechanismRows.slice(start, start + this.perPage);
+        },
+        mechanismNetwork() {
+            const searchLabel = this.searchedDiseaseLabel || this.lastNeedle || "Search";
+            const searchId = "search:root";
+            const nodes = [{ id: searchId, label: searchLabel, type: "Entity" }];
+            const edges = [];
+            const diseaseSeen = {};
+            const factorSeen = {};
+            (this.filteredMechanismRows || []).forEach((row) => {
+                const factorId = `factor:${row.factor}`;
+                if (!factorSeen[factorId]) {
+                    factorSeen[factorId] = true;
+                    nodes.push({ id: factorId, label: row.factor, type: "Factor" });
+                }
+                this.visibleDiseasesForFactor(row).forEach((d) => {
+                    const diseaseId = `disease:${d.iri}`;
+                    if (!diseaseSeen[diseaseId]) {
+                        diseaseSeen[diseaseId] = true;
+                        nodes.push({
+                            id: diseaseId,
+                            label: d.label || d.iri,
+                            type: "Phenotype",
+                        });
+                        edges.push({
+                            source: searchId,
+                            target: diseaseId,
+                            predicate: "",
+                        });
+                    }
+                    edges.push({
+                        source: diseaseId,
+                        target: factorId,
+                        predicate: "",
+                    });
+                });
+            });
+            return { nodes, edges };
+        },
+        mechanismNetworkKey() {
+            const net = this.mechanismNetwork;
+            return [
+                this.searchedDiseaseLabel || "",
+                (net.nodes || []).length,
+                (net.edges || []).length,
+                Object.keys(this.hiddenDiseases || {}).sort().join(","),
+            ].join("|");
+        },
+        mechanismLegendLabels() {
+            return {
+                Entity: "Search",
+                Phenotype: "Disease",
+                Factor: "Mechanism",
+            };
         },
         pageRows() {
             const start = (this.currentPage - 1) * this.perPage;
@@ -354,10 +527,6 @@ export default Vue.component("biomarker-network", {
         },
         showResultTabs() {
             return this.searched && (this.rows.length > 0 || this.associatedFactors.length > 0);
-        },
-        mechanismPageRows() {
-            const start = (this.mechanismPage - 1) * this.perPage;
-            return this.associatedFactors.slice(start, start + this.perPage);
         },
         showSearchClear() {
             return Boolean((this.userQuery || "").trim() || this.searched);
@@ -380,11 +549,7 @@ export default Vue.component("biomarker-network", {
         const factorFromUrl = keyParams.factor != null ? String(keyParams.factor).trim() : "";
         if (!fromUrl && !factorFromUrl) return;
         if (factorFromUrl && fromUrl) {
-            const mech = (this.mechanismList || []).find(
-                (m) =>
-                    m.factor === factorFromUrl &&
-                    (m.disease === fromUrl || m.cfdeDisease === fromUrl)
-            ) || (this.mechanismList || []).find((m) => m.factor === factorFromUrl);
+            const mech = (this.mechanismList || []).find((m) => m.factor === factorFromUrl);
             if (mech) {
                 this.userQuery = mech.label;
                 this.searchNeedle = mech.label;
@@ -467,6 +632,7 @@ export default Vue.component("biomarker-network", {
             this.currentPage = 1;
             this.mechanismPage = 1;
             this.hiddenTypes = {};
+            this.hiddenDiseases = {};
             this.activeTab = "biomarkers";
             keyParams.set({ disease: "", factor: "" });
             this.$nextTick(() => {
@@ -529,17 +695,38 @@ export default Vue.component("biomarker-network", {
         isTypeVisible(label) {
             return !this.hiddenTypes[label];
         },
+        isDiseaseVisible(iri) {
+            return !this.hiddenDiseases[iri];
+        },
+        visibleDiseasesForFactor(row) {
+            const diseases = (row && row.diseases) || [];
+            if (!this.showFactorDiseaseFilters) return diseases;
+            return diseases.filter((d) => d && d.iri && this.isDiseaseVisible(d.iri));
+        },
+        clampPages() {
+            const maxBio = Math.max(1, Math.ceil(this.filteredRows.length / this.perPage) || 1);
+            if (this.currentPage > maxBio) this.currentPage = maxBio;
+            const maxMech = Math.max(
+                1,
+                Math.ceil(this.filteredMechanismRows.length / this.perPage) || 1
+            );
+            if (this.mechanismPage > maxMech) this.mechanismPage = maxMech;
+        },
         toggleTypeFilter(label) {
             if (this.hiddenTypes[label]) {
                 this.$delete(this.hiddenTypes, label);
             } else {
                 this.$set(this.hiddenTypes, label, true);
             }
-            const maxPage = Math.max(
-                1,
-                Math.ceil(this.filteredRows.length / this.perPage) || 1
-            );
-            if (this.currentPage > maxPage) this.currentPage = maxPage;
+            this.clampPages();
+        },
+        toggleDiseaseFilter(iri) {
+            if (this.hiddenDiseases[iri]) {
+                this.$delete(this.hiddenDiseases, iri);
+            } else {
+                this.$set(this.hiddenDiseases, iri, true);
+            }
+            this.clampPages();
         },
         writeSearchParams(diseaseIri, factor) {
             const rec = (this.diseasesByIri && this.diseasesByIri[diseaseIri]) || {};
@@ -591,6 +778,47 @@ export default Vue.component("biomarker-network", {
             }
             return `/gene.html?gene=${encodeURIComponent(row.geneSymbol)}`;
         },
+        rowDiseaseLabel(row) {
+            if (!row) return "—";
+            if (row.diseaseLabel) return row.diseaseLabel;
+            const rec = row.disease && this.diseasesByIri && this.diseasesByIri[row.disease];
+            return (rec && rec.disease) || row.disease || "—";
+        },
+        searchIrisForQuery(diseaseIri, factor) {
+            if (factor) {
+                const linked = this.diseasesForFactor(factor);
+                const iris = [];
+                const seen = {};
+                linked.forEach((d) => {
+                    if (!d.iri || seen[d.iri]) return;
+                    seen[d.iri] = true;
+                    iris.push(d.iri);
+                });
+                if (iris.length) return iris;
+            }
+            return diseaseIri ? [diseaseIri] : [];
+        },
+        associatedFactorsForIris(iris) {
+            const seen = {};
+            const out = [];
+            (iris || []).forEach((iri) => {
+                this.factorsForDisease(iri).forEach((row) => {
+                    if (seen[row.factor]) return;
+                    seen[row.factor] = true;
+                    out.push(row);
+                });
+            });
+            return out.sort((a, b) => a.factor.localeCompare(b.factor));
+        },
+        decorateBiomarkerRows(rows) {
+            return (rows || []).map((row) => {
+                if (row.diseaseLabel) return row;
+                const rec = row.disease && this.diseasesByIri && this.diseasesByIri[row.disease];
+                return Object.assign({}, row, {
+                    diseaseLabel: (rec && rec.disease) || row.diseaseLabel || "",
+                });
+            });
+        },
         async runSearch() {
             const needle = (this.userQuery || "").trim();
             if (!needle || this.loading) return;
@@ -615,7 +843,8 @@ export default Vue.component("biomarker-network", {
             this.writeSearchParams(diseaseIri, this.selectedFactor);
             this.selectedDiseaseIri = diseaseIri;
             const rec = (this.diseasesByIri && this.diseasesByIri[diseaseIri]) || {};
-            this.searchedDiseaseLabel = rec.disease || needle;
+            this.searchedDiseaseLabel = this.selectedFactor || rec.disease || needle;
+            const searchIris = this.searchIrisForQuery(diseaseIri, this.selectedFactor);
 
             this.cancelInFlight();
             const ac = new AbortController();
@@ -633,32 +862,34 @@ export default Vue.component("biomarker-network", {
             this.currentPage = 1;
             this.mechanismPage = 1;
             this.hiddenTypes = {};
+            this.hiddenDiseases = {};
             this.activeTab = "biomarkers";
-            this.associatedFactors = this.factorsForDisease(diseaseIri);
+            this.associatedFactors = this.associatedFactorsForIris(searchIris);
 
             try {
                 this.loadingMessage = "Counting biomarkers…";
-                const counts = await countBiomarkersForDisease(diseaseIri, { signal: ac.signal });
+                const counts = await countBiomarkersForDisease(searchIris, { signal: ac.signal });
                 if (ac.signal.aborted) return;
                 this.counts = counts;
 
-                if (!counts.biomarkerCount) {
+                const rowCount = counts.rowCount || counts.biomarkerCount;
+                if (!rowCount) {
                     this.loading = false;
                     this.loadingMessage = "";
                     return;
                 }
 
-                const limit = counts.biomarkerCount + 1;
+                const limit = rowCount + 1;
                 this.fetchLimit = limit;
                 this.loadingMessage = `Fetching ${counts.biomarkerCount} biomarkers…`;
-                const rows = await listBiomarkersForDisease(diseaseIri, {
+                const rows = await listBiomarkersForDisease(searchIris, {
                     limit,
                     signal: ac.signal,
                 });
                 if (ac.signal.aborted) return;
 
-                this.truncatedFetch = rows.length > counts.biomarkerCount;
-                this.rows = rows.slice(0, counts.biomarkerCount);
+                this.truncatedFetch = rows.length > rowCount;
+                this.rows = this.decorateBiomarkerRows(rows.slice(0, rowCount));
             } catch (e) {
                 if (e && e.name === "AbortError") return;
                 this.error = (e && e.message) || "Search failed.";
@@ -901,6 +1132,10 @@ export default Vue.component("biomarker-network", {
 
 .bn-table-wrap {
     margin-top: 4px;
+}
+
+.bn-mechanism-network {
+    margin: 35px 0 16px;
 }
 
 .bn-type-filters {

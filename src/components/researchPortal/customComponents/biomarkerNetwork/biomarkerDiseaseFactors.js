@@ -90,7 +90,8 @@ export function buildDiseaseFactorIndexes(rows) {
 
 /**
  * Autocomplete options from the two indexes.
- * Mechanism labels are "factor (disease)".
+ * Mechanism labels are "factor (disease)" or "factor (disease +N)" when more
+ * B-KB diseases are associated with the same factor.
  */
 export function buildSearchOptions(indexes) {
     const diseases = (indexes && indexes.diseases) || {};
@@ -113,21 +114,38 @@ export function buildSearchOptions(indexes) {
         .sort((a, b) => a.localeCompare(b))
         .forEach((name) => {
             const f = factors[name];
+            const uniqueByIri = [];
+            const seenIri = {};
             (f.diseases || []).forEach((link) => {
-                const diseaseName = link.cfdeDisease || link.disease || "";
-                const label = `${f.factor} (${diseaseName})`;
-                mechanismOptions.push({
-                    kind: "mechanism",
-                    iri: link.iri,
-                    factor: f.factor,
-                    disease: link.disease,
-                    cfdeDisease: diseaseName,
-                    label,
-                    searchText: [f.factor, link.disease, diseaseName, link.iri]
-                        .filter(Boolean)
-                        .join(" ")
-                        .toLowerCase(),
-                });
+                if (!link || !link.iri || seenIri[link.iri]) return;
+                seenIri[link.iri] = true;
+                uniqueByIri.push(link);
+            });
+            uniqueByIri.sort((a, b) => {
+                const an = (a.cfdeDisease || a.disease || "").toLowerCase();
+                const bn = (b.cfdeDisease || b.disease || "").toLowerCase();
+                return an.localeCompare(bn);
+            });
+            const primary = uniqueByIri[0];
+            if (!primary) return;
+            const extra = Math.max(0, uniqueByIri.length - 1);
+            const diseaseName = primary.cfdeDisease || primary.disease || "";
+            const label = extra
+                ? `${f.factor} (${diseaseName} +${extra})`
+                : `${f.factor} (${diseaseName})`;
+            const searchBits = [f.factor];
+            uniqueByIri.forEach((link) => {
+                searchBits.push(link.disease, link.cfdeDisease, link.iri);
+            });
+            mechanismOptions.push({
+                kind: "mechanism",
+                iri: primary.iri,
+                factor: f.factor,
+                disease: primary.disease,
+                cfdeDisease: diseaseName,
+                extraDiseaseCount: extra,
+                label,
+                searchText: searchBits.filter(Boolean).join(" ").toLowerCase(),
             });
         });
 

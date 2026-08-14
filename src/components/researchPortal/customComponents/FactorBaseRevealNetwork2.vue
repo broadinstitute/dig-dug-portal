@@ -181,6 +181,8 @@ export default {
          * Default Data-tab networks freeze after stabilize for a static layout.
          */
         keepPhysicsEnabled: { type: Boolean, default: false },
+        /** Keep source→target as given (skip Phenotype/Factor rank reorder). */
+        preserveEdgeDirection: { type: Boolean, default: false },
         /** When true, render Biolink-oriented legend labels/colors for mechanism flow maps. */
         isBiolinkMap: { type: Boolean, default: false },
         /** Show “Original map” checkbox between zoom and fullscreen (when Biolink network exists). */
@@ -213,6 +215,12 @@ export default {
          * Paint search-anchor genes (candidate_genes[].is_input) with the Selected / Anchor color.
          */
         highlightAnchorGenes: { type: Boolean, default: false },
+        /**
+         * Remap node-type legend labels (e.g. Phenotype → Disease). Empty keeps REVEAL names.
+         */
+        legendTypeLabels: { type: Object, default: () => ({}) },
+        /** Hide the Selected / Anchor swatch (biomarker network has no selection). */
+        showSelectedAnchorLegend: { type: Boolean, default: true },
     },
     data() {
         return {
@@ -220,7 +228,7 @@ export default {
             nodesDataSet: null,
             edgesDataSet: null,
             zoomLevel: 1,
-            zoomMin: 0.2,
+            zoomMin: 0.05,
             zoomMax: 2,
             zoomStep: 0.05,
             nodeMap: {},
@@ -239,6 +247,12 @@ export default {
             lastNetworkSignature: "",
             pendingSelectionNodes: null,
             selectionRefreshRafId: null,
+            resizeObserver: null,
+            resizeFitTimer: null,
+            lastContainerWidth: 0,
+            isRendering: false,
+            pendingResize: false,
+            layoutFitTimer: null,
         };
     },
     computed: {
@@ -291,28 +305,37 @@ export default {
                 ];
             }
             // Supporting / factorization network: legend tracks types present + Selected / Anchor.
+            const typeLabel = (type, fallback) => {
+                const custom = this.legendTypeLabels && this.legendTypeLabels[type];
+                return custom ? String(custom) : fallback;
+            };
             const typesPresent = new Set();
             (this.network.nodes || []).forEach((n) => {
                 const t = n && n.type != null ? String(n.type).trim() : "";
                 if (t) typesPresent.add(t);
             });
             const items = [];
+            if (typesPresent.has("Entity")) {
+                items.push({ label: typeLabel("Entity", "Entity"), color: NODE_COLORS.Entity });
+            }
             if (typesPresent.has("Phenotype")) {
-                items.push({ label: "Phenotype", color: NODE_COLORS.Phenotype });
+                items.push({ label: typeLabel("Phenotype", "Phenotype"), color: NODE_COLORS.Phenotype });
             }
             if (typesPresent.has("Factor") || !typesPresent.size) {
-                items.push({ label: "Gene set cluster", color: NODE_COLORS.Factor });
+                items.push({ label: typeLabel("Factor", "Gene set cluster"), color: NODE_COLORS.Factor });
             }
             if (typesPresent.has("Pathway") || !typesPresent.size) {
-                items.push({ label: "Gene set", color: NODE_COLORS.Pathway });
+                items.push({ label: typeLabel("Pathway", "Gene set"), color: NODE_COLORS.Pathway });
             }
             if (typesPresent.has("Gene") || !typesPresent.size) {
-                items.push({ label: "Gene", color: DEFAULT_GENE_COLOR });
+                items.push({ label: typeLabel("Gene", "Gene"), color: DEFAULT_GENE_COLOR });
             }
-            items.push({
-                label: "Selected / Anchor",
-                color: SELECTION_HIGHLIGHT_ORANGE.nodeBackground,
-            });
+            if (this.showSelectedAnchorLegend) {
+                items.push({
+                    label: "Selected / Anchor",
+                    color: SELECTION_HIGHLIGHT_ORANGE.nodeBackground,
+                });
+            }
             return items;
         },
         showNodeSizeLegend() {
@@ -368,6 +391,9 @@ export default {
         geneColorByGwasSupport() {
             this.$nextTick(() => this.render());
         },
+        keepPhysicsEnabled() {
+            this.$nextTick(() => this.render());
+        },
         selectedNodes: {
             handler(next) {
                 this.pendingSelectionNodes = next;
@@ -380,9 +406,11 @@ export default {
         },
     },
     mounted() {
-        this.render();
+        this.bindResizeObserver();
+        this.$nextTick(() => this.render());
     },
     beforeDestroy() {
+        this.unbindResizeObserver();
         this.cleanup();
     },
     methods: {
@@ -523,6 +551,10 @@ export default {
             });
         },
         cleanup() {
+            if (this.layoutFitTimer) {
+                clearTimeout(this.layoutFitTimer);
+                this.layoutFitTimer = null;
+            }
             if (this.selectionRefreshRafId != null && typeof cancelAnimationFrame === "function") {
                 cancelAnimationFrame(this.selectionRefreshRafId);
             }
@@ -535,6 +567,7 @@ export default {
             this.edgesDataSet = null;
             this.baseVisNodeStyles = {};
             this.baseVisEdgeStyles = {};
+            this.lastContainerWidth = 0;
             this.closeNetworkNodeMenu();
             this.hideHoverTooltip();
         },
@@ -969,7 +1002,7 @@ export default {
                 let from = e.source;
                 let to = e.target;
 
-                if (!this.isMechanismFlowMap && sourceNode && targetNode) {
+                if (!this.isMechanismFlowMap && !this.preserveEdgeDirection && sourceNode && targetNode) {
                     const sourceRank = typeOrder[sourceNode.type] ?? 0;
                     const targetRank = typeOrder[targetNode.type] ?? 0;
                     if (sourceRank > targetRank) {
@@ -1020,11 +1053,26 @@ export default {
             });
         },
         render() {
+            if (this.isRendering) {
+                this.pendingResize = true;
+                return;
+            }
+            this.isRendering = true;
+            try {
+                this.renderNetwork();
+            } finally {
+                this.isRendering = false;
+                if (this.pendingResize) {
+                    this.pendingResize = false;
+                    this.$nextTick(() => this.onContainerResize());
+                }
+            }
+        },
+        renderNetwork() {
             this.cleanup();
+            this.bindResizeObserver();
             const container = this.$refs.container;
             if (!container) return;
-
-            console.log('Graph: network', this.network);
 
             const nodes = (this.network.nodes || []).map((n) => ({ ...n }));
             const edges = (this.network.edges || []).map((e) => ({
@@ -1038,6 +1086,10 @@ export default {
 
             if (nodes.length === 0) {
                 this.$emit("network-ready");
+                return;
+            }
+
+            if (container.clientWidth < 8 || container.clientHeight < 8) {
                 return;
             }
 
@@ -1074,6 +1126,9 @@ export default {
             };
 
             const options = {
+                autoResize: true,
+                width: `${container.clientWidth}px`,
+                height: `${container.clientHeight}px`,
                 nodes: {
                     shape: "dot",
                     borderWidth: 1.5,
@@ -1099,6 +1154,7 @@ export default {
                           }
                         : {}),
                 },
+                layout: { randomSeed: 2 },
                 physics: {
                     enabled: true,
                     stabilization: {
@@ -1129,6 +1185,8 @@ export default {
             };
 
             this.visNetwork = new Network(container, data, options);
+            this.lastContainerWidth = container.clientWidth;
+            this.visNetwork.setSize(`${container.clientWidth}px`, `${container.clientHeight}px`);
             let readyEmitted = false;
             const emitNetworkReady = () => {
                 if (readyEmitted || !this.visNetwork) return;
@@ -1138,9 +1196,13 @@ export default {
                 if (!this.isMechanismFlowMap && !this.keepPhysicsEnabled) {
                     this.visNetwork.setOptions({ physics: false });
                 }
-                const scale = this.visNetwork.getScale();
-                if (typeof scale === "number" && !Number.isNaN(scale)) {
-                    this.zoomLevel = Math.max(this.zoomMin, Math.min(this.zoomMax, scale));
+                this.fitNetworkToViewport();
+                if (this.keepPhysicsEnabled) {
+                    if (this.layoutFitTimer) clearTimeout(this.layoutFitTimer);
+                    this.layoutFitTimer = window.setTimeout(() => {
+                        this.layoutFitTimer = null;
+                        this.fitNetworkToViewport();
+                    }, 700);
                 }
                 this.applySelectionHighlights();
                 this.$emit("network-ready");
@@ -1163,13 +1225,68 @@ export default {
             this.visNetwork.on("stabilizationIterationsDone", emitNetworkReady);
             this.visNetwork.on("stabilized", emitNetworkReady);
             setTimeout(emitNetworkReady, 2500);
-
-            this.visNetwork.fit({
-                animation: {
-                    duration: 600,
-                    easingFunction: "easeInOutQuad",
-                },
+        },
+        bindResizeObserver() {
+            if (this.resizeObserver || typeof ResizeObserver === "undefined") return;
+            const el = this.$refs.container;
+            if (!el) return;
+            this.resizeObserver = new ResizeObserver(() => {
+                if (this.resizeFitTimer) clearTimeout(this.resizeFitTimer);
+                this.resizeFitTimer = setTimeout(() => {
+                    this.resizeFitTimer = null;
+                    this.onContainerResize();
+                }, 80);
             });
+            this.resizeObserver.observe(el);
+        },
+        unbindResizeObserver() {
+            if (this.resizeFitTimer) {
+                clearTimeout(this.resizeFitTimer);
+                this.resizeFitTimer = null;
+            }
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect();
+                this.resizeObserver = null;
+            }
+        },
+        onContainerResize() {
+            if (this.isRendering) {
+                this.pendingResize = true;
+                return;
+            }
+            const container = this.$refs.container;
+            if (!container) return;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            if (width < 8 || height < 8) {
+                this.lastContainerWidth = width;
+                return;
+            }
+            const becameVisible = this.lastContainerWidth < 8;
+            this.lastContainerWidth = width;
+            if (!this.visNetwork) {
+                this.render();
+                return;
+            }
+            this.visNetwork.setSize(`${width}px`, `${height}px`);
+            this.visNetwork.redraw();
+            if (becameVisible) this.fitNetworkToViewport();
+        },
+        fitNetworkToViewport() {
+            if (!this.visNetwork) return;
+            const container = this.$refs.container;
+            if (container && container.clientWidth >= 8 && container.clientHeight >= 8) {
+                this.visNetwork.setSize(`${container.clientWidth}px`, `${container.clientHeight}px`);
+                this.visNetwork.redraw();
+            }
+            this.visNetwork.fit({
+                padding: 48,
+                animation: false,
+            });
+            const scale = this.visNetwork.getScale();
+            if (typeof scale === "number" && !Number.isNaN(scale)) {
+                this.zoomLevel = Math.max(this.zoomMin, Math.min(this.zoomMax, scale));
+            }
         },
         onNetworkClick(params) {
             if (!this.nodeSelectionEnabled || !params) return;

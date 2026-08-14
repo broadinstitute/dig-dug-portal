@@ -45,12 +45,20 @@ function toDiseaseIriTerm(diseaseIri) {
 }
 
 /**
- * Shared WHERE body for disease → biomarker matching by MONDO/DOID IRI.
- * @param {string} diseaseIri
+ * Shared WHERE body for disease → biomarker matching by one or more MONDO/DOID IRIs.
+ * @param {string|string[]} diseaseIris
  */
-function diseaseWhereBody(diseaseIri) {
-    const iriTerm = toDiseaseIriTerm(diseaseIri);
-    if (!iriTerm) {
+function diseaseWhereBody(diseaseIris) {
+    const list = Array.isArray(diseaseIris) ? diseaseIris : [diseaseIris];
+    const terms = [];
+    const seen = {};
+    list.forEach((iri) => {
+        const term = toDiseaseIriTerm(iri);
+        if (!term || seen[term]) return;
+        seen[term] = true;
+        terms.push(term);
+    });
+    if (!terms.length) {
         return `
   FILTER(false)
 `;
@@ -61,7 +69,8 @@ function diseaseWhereBody(diseaseIri) {
   VALUES ?diseasePred {
     ${DISEASE_PREDICATES.join("\n    ")}
   }
-  VALUES ?disease { ${iriTerm} }
+  VALUES ?disease { ${terms.join(" ")} }
+  OPTIONAL { ?disease rdfs:label ?diseaseLabel }
 
   OPTIONAL {
     ?biomarker obci:OBCI_1000011 ?bestType .
@@ -76,19 +85,16 @@ function diseaseWhereBody(diseaseIri) {
 }
 
 /**
- * Count distinct biomarkers and distinct gene symbols for a disease IRI.
+ * Count distinct biomarkers, gene symbols, and biomarker–disease rows for disease IRI(s).
  *
- * Note: geneCount is unique gene symbols among matching biomarkers (empty symbols
- * excluded). It is not nested inside biomarkerCount — many biomarkers can share a gene.
- *
- * @param {string} diseaseIri
+ * @param {string|string[]} diseaseIris
  * @param {{ signal?: AbortSignal }} [opts]
- * @returns {Promise<{ biomarkerCount: number, geneCount: number }>}
+ * @returns {Promise<{ biomarkerCount: number, geneCount: number, rowCount: number }>}
  */
-export async function countBiomarkersForDisease(diseaseIri, opts = {}) {
-    const body = diseaseWhereBody(diseaseIri);
+export async function countBiomarkersForDisease(diseaseIris, opts = {}) {
+    const body = diseaseWhereBody(diseaseIris);
     const q = `${PREFIXES}
-SELECT ?biomarkerCount ?geneCount WHERE {
+SELECT ?biomarkerCount ?geneCount ?rowCount WHERE {
   {
     SELECT (COUNT(DISTINCT ?biomarker) AS ?biomarkerCount) WHERE {
 ${body}
@@ -100,6 +106,13 @@ ${body}
       FILTER(?geneSymbol != "")
     }
   }
+  {
+    SELECT (COUNT(*) AS ?rowCount) WHERE {
+      SELECT DISTINCT ?biomarker ?disease WHERE {
+${body}
+      }
+    }
+  }
 }
 `;
     const { bindings } = await fetchSparql(q, opts);
@@ -107,12 +120,14 @@ ${body}
     return {
         biomarkerCount: Number(row.biomarkerCount && row.biomarkerCount.value) || 0,
         geneCount: Number(row.geneCount && row.geneCount.value) || 0,
+        rowCount: Number(row.rowCount && row.rowCount.value) || 0,
     };
 }
 
 /**
- * List biomarkers for a disease. Prefer calling count first and passing limit = count + 1.
- * @param {string} diseaseIri
+ * List biomarkers for one or more diseases. Prefer calling count first and passing
+ * limit = rowCount + 1 (biomarker–disease pairs).
+ * @param {string|string[]} diseaseIris
  * @param {{ limit?: number, signal?: AbortSignal }} [opts]
  * @returns {Promise<Array<{
  *   biomarker: string,
@@ -121,16 +136,18 @@ ${body}
  *   bestTypeLabel: string,
  *   geneSymbol: string,
  *   ncbiId: string,
+ *   disease: string,
+ *   diseaseLabel: string,
  * }>>}
  */
-export async function listBiomarkersForDisease(diseaseIri, opts = {}) {
+export async function listBiomarkersForDisease(diseaseIris, opts = {}) {
     const limit = Math.max(1, Number(opts.limit) || 101);
     const q = `${PREFIXES}
-SELECT DISTINCT ?biomarker ?biomarkerLabel ?bestType ?bestTypeLabel ?geneSymbol ?ncbiId
+SELECT DISTINCT ?biomarker ?biomarkerLabel ?bestType ?bestTypeLabel ?geneSymbol ?ncbiId ?disease ?diseaseLabel
 WHERE {
-${diseaseWhereBody(diseaseIri)}
+${diseaseWhereBody(diseaseIris)}
 }
-ORDER BY ?geneSymbol ?biomarkerLabel
+ORDER BY ?diseaseLabel ?geneSymbol ?biomarkerLabel
 LIMIT ${limit}
 `;
     const { bindings } = await fetchSparql(q, opts);
@@ -141,5 +158,7 @@ LIMIT ${limit}
         bestTypeLabel: (b.bestTypeLabel && b.bestTypeLabel.value) || "",
         geneSymbol: (b.geneSymbol && b.geneSymbol.value) || "",
         ncbiId: (b.ncbiId && b.ncbiId.value) || "",
+        disease: (b.disease && b.disease.value) || "",
+        diseaseLabel: (b.diseaseLabel && b.diseaseLabel.value) || "",
     }));
 }
