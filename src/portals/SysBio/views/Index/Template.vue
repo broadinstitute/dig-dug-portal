@@ -113,7 +113,7 @@
                     <div class="bold" style="font-size:16px">Program repositories currently undergoing integration</div>
                     <div class="f-row" style="gap:5px; flex-wrap: wrap;">
                         <div class="amp">AMP Alzheimer's Disease (AD)</div>
-                        <div class="amp">AMP Cardiometabolic Diseases (CMD)</div>
+                        <div class="amp">AMP Common Metabolic Diseases (CMD)</div>
                         <div class="amp">AMP Parkinson's Disease and Related Disorders (PDRD)</div>
                         <div class="amp">AMP Rheumatoid Arthritis</div>
                         <div class="amp">Systemic Lupus Erythematosus (RA/SLE)</div>
