@@ -38,31 +38,19 @@ export async function fetchSparql(query, opts = {}) {
     return { bindings: (raw.results && raw.results.bindings) || [], raw };
 }
 
-function escapeSparqlString(s) {
-    return String(s || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+function toDiseaseIriTerm(diseaseIri) {
+    const iri = String(diseaseIri || "").trim();
+    if (!/^https?:\/\/[^\s<>"]+$/i.test(iri)) return "";
+    return `<${iri}>`;
 }
 
 /**
- * Normalize a CFDE / user disease string for BiomarkerKB CONTAINS matching.
- * e.g. "Crohn's disease" → "crohn"
+ * Shared WHERE body for disease → biomarker matching by MONDO/DOID IRI.
+ * @param {string} diseaseIri
  */
-export function normalizeDiseaseNeedle(q) {
-    return String(q || "")
-        .toLowerCase()
-        .replace(/['']s\b/g, "")
-        .replace(/['']/g, "")
-        .replace(/\b(disease|syndrome|disorder)\b/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-}
-
-/**
- * Shared WHERE body for disease → biomarker matching.
- * @param {string} diseaseNeedle
- */
-function diseaseWhereBody(diseaseNeedle) {
-    const needle = escapeSparqlString(normalizeDiseaseNeedle(diseaseNeedle));
-    if (!needle) {
+function diseaseWhereBody(diseaseIri) {
+    const iriTerm = toDiseaseIriTerm(diseaseIri);
+    if (!iriTerm) {
         return `
   FILTER(false)
 `;
@@ -73,8 +61,7 @@ function diseaseWhereBody(diseaseNeedle) {
   VALUES ?diseasePred {
     ${DISEASE_PREDICATES.join("\n    ")}
   }
-  ?disease rdfs:label ?diseaseLabel .
-  FILTER(CONTAINS(LCASE(STR(?diseaseLabel)), "${needle}"))
+  VALUES ?disease { ${iriTerm} }
 
   OPTIONAL {
     ?biomarker obci:OBCI_1000011 ?bestType .
@@ -85,23 +72,21 @@ function diseaseWhereBody(diseaseNeedle) {
   BIND(IF(CONTAINS(?biomarkerLabel, "/NCBI:") && !CONTAINS(?geneCandidate, " "), ?geneCandidate, "") AS ?geneSymbol)
   BIND(REPLACE(STR(?biomarkerLabel), "^.*NCBI:(\\\\d+).*$", "$1", "i") AS ?ncbiCandidate)
   BIND(IF(CONTAINS(?biomarkerLabel, "NCBI:"), ?ncbiCandidate, "") AS ?ncbiId)
-  BIND(REPLACE(STR(?biomarkerLabel), "^.*\\\\b(rs\\\\d+)\\\\b.*$", "$1", "i") AS ?rsCandidate)
-  BIND(IF(REGEX(STR(?biomarkerLabel), "\\\\brs\\\\d+\\\\b", "i"), ?rsCandidate, "") AS ?rsId)
 `;
 }
 
 /**
- * Count distinct biomarkers and distinct gene symbols for a disease label needle.
+ * Count distinct biomarkers and distinct gene symbols for a disease IRI.
  *
  * Note: geneCount is unique gene symbols among matching biomarkers (empty symbols
  * excluded). It is not nested inside biomarkerCount — many biomarkers can share a gene.
  *
- * @param {string} diseaseNeedle
+ * @param {string} diseaseIri
  * @param {{ signal?: AbortSignal }} [opts]
  * @returns {Promise<{ biomarkerCount: number, geneCount: number }>}
  */
-export async function countBiomarkersForDisease(diseaseNeedle, opts = {}) {
-    const body = diseaseWhereBody(diseaseNeedle);
+export async function countBiomarkersForDisease(diseaseIri, opts = {}) {
+    const body = diseaseWhereBody(diseaseIri);
     const q = `${PREFIXES}
 SELECT ?biomarkerCount ?geneCount WHERE {
   {
@@ -127,7 +112,7 @@ ${body}
 
 /**
  * List biomarkers for a disease. Prefer calling count first and passing limit = count + 1.
- * @param {string} diseaseNeedle
+ * @param {string} diseaseIri
  * @param {{ limit?: number, signal?: AbortSignal }} [opts]
  * @returns {Promise<Array<{
  *   biomarker: string,
@@ -138,12 +123,12 @@ ${body}
  *   ncbiId: string,
  * }>>}
  */
-export async function listBiomarkersForDisease(diseaseNeedle, opts = {}) {
+export async function listBiomarkersForDisease(diseaseIri, opts = {}) {
     const limit = Math.max(1, Number(opts.limit) || 101);
     const q = `${PREFIXES}
-SELECT DISTINCT ?biomarker ?biomarkerLabel ?bestType ?bestTypeLabel ?geneSymbol ?ncbiId ?rsId
+SELECT DISTINCT ?biomarker ?biomarkerLabel ?bestType ?bestTypeLabel ?geneSymbol ?ncbiId
 WHERE {
-${diseaseWhereBody(diseaseNeedle)}
+${diseaseWhereBody(diseaseIri)}
 }
 ORDER BY ?geneSymbol ?biomarkerLabel
 LIMIT ${limit}
@@ -156,6 +141,5 @@ LIMIT ${limit}
         bestTypeLabel: (b.bestTypeLabel && b.bestTypeLabel.value) || "",
         geneSymbol: (b.geneSymbol && b.geneSymbol.value) || "",
         ncbiId: (b.ncbiId && b.ncbiId.value) || "",
-        rsId: (b.rsId && b.rsId.value) || "",
     }));
 }
