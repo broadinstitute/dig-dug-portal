@@ -1048,7 +1048,7 @@
 
 .pbg-mini-card-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     gap: 0.75rem;
     flex: 1;
 }
@@ -1259,6 +1259,73 @@
     color: var(--pbg-text-soft);
     font-size: 0.85rem;
     line-height: 1.4;
+}
+
+.pbg-pathogenic-coverage {
+    text-align: center;
+}
+
+.pbg-pathogenic-coverage-heading,
+.pbg-pathogenic-coverage-sources {
+    display: block;
+    color: var(--pbg-text-muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pbg-pathogenic-coverage-metric {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.65rem;
+    margin: 0.55rem 0 0.4rem;
+}
+
+.pbg-pathogenic-coverage-stat {
+    display: grid;
+    justify-items: center;
+}
+
+.pbg-pathogenic-coverage-stat strong {
+    color: var(--pbg-ink-strong);
+    font-size: clamp(1.9rem, 3vw, 2.6rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-pathogenic-coverage-stat strong.pbg-pathogenic-coverage-value--annotated {
+    color: var(--pbg-primary);
+}
+
+.pbg-pathogenic-coverage-stat small {
+    margin-top: 0.25rem;
+    color: var(--pbg-text-soft);
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pbg-pathogenic-coverage-slash {
+    margin-top: 0.1rem;
+    color: #94a3b8;
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.pbg-pathogenic-coverage-sources {
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.pbg-severe-variant-section {
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--pbg-border-soft);
 }
 
 .pbg-score-spotlights {

@@ -92,35 +92,6 @@
                                 <small>CRDC cohort:</small>
                                 <strong>{{ cohortCount(crdcEvidence.crdcCohortCount) }}</strong>
                             </span>
-                            <span>
-                                <small>Distinct gene carriers:</small>
-                                <strong>{{ cohortRatio(totalGeneCarriers) }}</strong>
-                            </span>
-                        </div>
-                        <div class="pbg-metric-strip" aria-label="Gene-level CRDC summary">
-                            <div class="pbg-metric-item">
-                                <img class="pbg-metric-icon" :src="metricIcons.affected" alt="" aria-hidden="true">
-                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.affected), 'pbg-metric-ratio': !isUnavailableValue(crdcEvidence.affected) }">{{ metricRatio(crdcEvidence.affected) }}</strong>
-                                <em>Affected</em>
-                            </div>
-                            <div class="pbg-metric-item">
-                                <img class="pbg-metric-icon" :src="metricIcons.probands" alt="" aria-hidden="true">
-                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.probands), 'pbg-metric-ratio': !isUnavailableValue(crdcEvidence.probands) }">{{ metricRatio(crdcEvidence.probands) }}</strong>
-                                <em>Probands</em>
-                            </div>
-                            <div class="pbg-metric-item">
-                                <strong class="pbg-clinical-area-value" :class="{ 'pbg-unavailable-value': !crdcEvidence.largestClinicalArea }">
-                                    {{ crdcEvidence.largestClinicalArea ? crdcEvidence.largestClinicalArea.label : 'Unavailable' }}
-                                </strong>
-                                <small v-if="crdcEvidence.largestClinicalArea">{{ metricRatio(crdcEvidence.largestClinicalArea.count) }}</small>
-                                <em>Largest contributing clinical area</em>
-                            </div>
-                            <div class="pbg-metric-item pbg-metric-item--variant-count"
-                                 title="Variants with at least one LoFTEE, AlphaMissense, or REVEL annotation">
-                                <img class="pbg-metric-icon" :src="metricIcons.variants" alt="" aria-hidden="true">
-                                <strong>{{ predictionAnnotatedVariantCount.toLocaleString() }} scored / {{ variantRows.length.toLocaleString() }} observed</strong>
-                                <em>Variants with LoFTEE / AlphaMissense / REVEL data</em>
-                            </div>
                         </div>
 
                         <div class="pbg-mini-card-grid">
@@ -158,26 +129,44 @@
                                 <p v-else class="pbg-association-empty">Precomputed phenotype association results have not been connected for this gene.</p>
                             </article>
 
-                            <article v-if="topVariant" class="pbg-mini-card pbg-score-spotlight-card">
-                                <div class="pbg-mini-card-head">
-                                    <h2>Most severe observed variant</h2>
-                                    <span class="pbg-crdc-badge" title="Source: CRDC cohort">CRDC</span>
-                                </div>
-                                <div class="pbg-score-spotlights">
-                                    <div>
-                                        <span>Extended Pathogenic Score</span>
-                                        <strong>{{ topVariant.topScore.toFixed(2) }}</strong>
-                                        <em>{{ topVariant.scoreSource }}</em>
+                            <article class="pbg-mini-card pbg-score-spotlight-card">
+                                <section class="pbg-pathogenic-coverage" aria-label="Pathogenic score coverage">
+                                    <span class="pbg-pathogenic-coverage-heading">Pathogenic score coverage</span>
+                                    <div class="pbg-pathogenic-coverage-metric">
+                                        <span class="pbg-pathogenic-coverage-stat">
+                                            <strong class="pbg-pathogenic-coverage-value--annotated">{{ predictionAnnotatedVariantCount.toLocaleString() }}</strong>
+                                            <small>annotated</small>
+                                        </span>
+                                        <span class="pbg-pathogenic-coverage-slash" aria-hidden="true">/</span>
+                                        <span class="pbg-pathogenic-coverage-stat">
+                                            <strong>{{ variantRows.length.toLocaleString() }}</strong>
+                                            <small>observed variants</small>
+                                        </span>
                                     </div>
-                                </div>
-                                <div class="pbg-top-variant-line">
-                                    <span>Most severe variant</span>
-                                    <a class="pbg-table-link" :href="`/krVariant.html?query=${topVariant.id}`" @click.stop>{{ topVariant.id }}</a>
-                                </div>
-                                <div class="pbg-score-chip-row">
-                                    <span>REVEL <strong>{{ topVariant.revel }}</strong></span>
-                                    <span>AlphaMissense <strong>{{ topVariant.am }}</strong></span>
-                                    <span>LOFTEE <strong>{{ topVariant.loftee }}</strong></span>
+                                    <small class="pbg-pathogenic-coverage-sources">LoFTEE · AlphaMissense · REVEL</small>
+                                </section>
+
+                                <div v-if="topVariant" class="pbg-severe-variant-section">
+                                    <div class="pbg-mini-card-head">
+                                        <h2>Most severe observed variant</h2>
+                                        <span class="pbg-crdc-badge" title="Source: CRDC cohort">CRDC</span>
+                                    </div>
+                                    <div class="pbg-score-spotlights">
+                                        <div>
+                                            <span>Extended Pathogenic Score</span>
+                                            <strong>{{ topVariant.topScore.toFixed(2) }}</strong>
+                                            <em>{{ topVariant.scoreSource }}</em>
+                                        </div>
+                                    </div>
+                                    <div class="pbg-top-variant-line">
+                                        <span>Most severe variant</span>
+                                        <a class="pbg-table-link" :href="`/krVariant.html?query=${topVariant.id}`" @click.stop>{{ topVariant.id }}</a>
+                                    </div>
+                                    <div class="pbg-score-chip-row">
+                                        <span>REVEL <strong>{{ topVariant.revel }}</strong></span>
+                                        <span>AlphaMissense <strong>{{ topVariant.am }}</strong></span>
+                                        <span>LOFTEE <strong>{{ topVariant.loftee }}</strong></span>
+                                    </div>
                                 </div>
                             </article>
                         </div>
