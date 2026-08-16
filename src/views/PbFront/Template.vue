@@ -267,7 +267,7 @@ export default {
 .crdc-front-main {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     width: min(1400px, calc(100% - 10vw));
     min-height: 100svh;
     margin-inline: auto;
@@ -314,7 +314,7 @@ h1 {
     align-items: end;
     column-gap: 32px;
     width: 100%;
-    margin-top: clamp(70px, 16vh, 260px);
+    margin-top: clamp(76px, 9vh, 120px);
     text-align: left;
 }
 
