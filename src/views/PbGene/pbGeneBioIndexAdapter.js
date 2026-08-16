@@ -97,6 +97,8 @@ function buildPbGeneState(gene, geneRows, variantRows, sampleRows) {
         geneCarrierDemographics: buildDemographics(sampleRows),
         geneLevelPhenotypeCategories: [],
         geneLevelCoCarrierGenes: [],
+        // Populated later from the separately precomputed association result set.
+        genePhenotypeAssociations: [],
     };
 }
 

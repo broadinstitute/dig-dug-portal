@@ -1086,7 +1086,82 @@
     white-space: nowrap;
 }
 
-.pbg-pheno-spotlight {
+.pbg-association-heading {
+    min-width: 0;
+}
+
+.pbg-association-title-line {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.pbg-association-heading p {
+    margin: 0.18rem 0 0;
+    color: var(--pbg-text-soft);
+    font-size: 0.78rem;
+    font-weight: 650;
+    line-height: 1.25;
+}
+
+.pbg-info-button {
+    position: relative;
+    display: inline-grid;
+    flex: 0 0 auto;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    place-items: center;
+    border: 1px solid #8aa4bf;
+    border-radius: 50%;
+    background: var(--pbg-surface);
+    color: var(--pbg-primary-dark);
+    cursor: help;
+    font: 900 0.78rem/1 sans-serif;
+}
+
+.pbg-info-button--small {
+    width: 1.05rem;
+    height: 1.05rem;
+    font-size: 0.66rem;
+}
+
+.pbg-info-button:hover,
+.pbg-info-button:focus-visible {
+    border-color: var(--pbg-primary);
+    color: var(--pbg-primary);
+    outline: none;
+}
+
+.pbg-info-tooltip {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.45rem);
+    left: -0.35rem;
+    display: none;
+    width: 22rem;
+    max-width: calc(100vw - 3rem);
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #bfd0e2;
+    border-radius: 0.4rem;
+    background: #14213d;
+    box-shadow: 0 0.55rem 1.4rem rgba(20, 33, 61, 0.2);
+    color: #fff;
+    font: 600 0.8rem/1.45 system-ui, sans-serif;
+    letter-spacing: 0;
+    text-align: left;
+    text-transform: none;
+    white-space: normal;
+}
+
+.pbg-info-button:hover .pbg-info-tooltip,
+.pbg-info-button:focus .pbg-info-tooltip,
+.pbg-info-button:focus-within .pbg-info-tooltip {
+    display: block;
+}
+
+.pbg-association-spotlight {
     display: grid;
     grid-template-columns: auto 1fr;
     align-items: center;
@@ -1097,15 +1172,16 @@
     box-shadow: inset 0 0 0 1px #dbeafe;
 }
 
-.pbg-pheno-spotlight strong {
+.pbg-association-spotlight > strong {
     color: var(--pbg-primary);
-    font-size: 2rem;
+    font-size: 1.45rem;
     font-weight: 950;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
-.pbg-pheno-spotlight span {
+.pbg-association-spotlight span {
     display: block;
     color: var(--pbg-ink-strong);
     font-size: 1rem;
@@ -1114,7 +1190,8 @@
     overflow-wrap: anywhere;
 }
 
-.pbg-pheno-spotlight em {
+.pbg-association-spotlight em,
+.pbg-association-spotlight small {
     display: block;
     margin-top: 0.12rem;
     color: var(--pbg-text-soft);
@@ -1123,11 +1200,16 @@
     font-weight: 700;
 }
 
-.pbg-pheno-rank-list {
+.pbg-association-spotlight small {
+    color: var(--pbg-primary-dark);
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-association-rank-list {
     margin-top: 0.65rem;
 }
 
-.pbg-pheno-rank-row {
+.pbg-association-rank-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: baseline;
@@ -1136,7 +1218,7 @@
     border-top: 1px solid var(--pbg-border-soft);
 }
 
-.pbg-pheno-rank-row span {
+.pbg-association-rank-row > span {
     min-width: 0;
     color: var(--pbg-text);
     font-size: 0.95rem;
@@ -1145,19 +1227,39 @@
     overflow-wrap: anywhere;
 }
 
-.pbg-pheno-rank-row strong {
-    color: var(--pbg-primary);
-    font-size: 1.05rem;
-    font-weight: 900;
-    font-variant-numeric: tabular-nums;
+.pbg-association-rank-row span small {
+    display: block;
+    margin-top: 0.1rem;
+    color: var(--pbg-text-soft);
+    font: 700 0.75rem/1.1 "SFMono-Regular", Consolas, monospace;
 }
 
-.pbg-pheno-rank-row em {
+.pbg-association-rank-row strong {
+    color: var(--pbg-primary);
+    font-size: 0.9rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.pbg-association-rank-row em {
     color: var(--pbg-text-soft);
-    font-size: 0.84rem;
+    font-size: 0.72rem;
     font-style: normal;
     font-weight: 700;
+    line-height: 1.25;
     white-space: nowrap;
+}
+
+.pbg-association-empty {
+    margin: 0.8rem 0 0;
+    padding: 0.9rem;
+    border: 1px dashed #c7d5e5;
+    border-radius: 0.4rem;
+    background: var(--pbg-surface-subtle);
+    color: var(--pbg-text-soft);
+    font-size: 0.85rem;
+    line-height: 1.4;
 }
 
 .pbg-score-spotlights {
@@ -3360,7 +3462,7 @@
     font-weight: 900;
 }
 
-.pbg-summary-card-head span {
+.pbg-summary-card-head > span {
     color: #7a92a8;
     font-size: 0.78rem;
     font-style: italic;
@@ -3409,26 +3511,61 @@
     background: #eef6ff;
 }
 
-.pbg-summary-pheno-list {
+.pbg-summary-association-table {
     display: grid;
-    gap: 0.45rem;
+    align-content: start;
+    gap: 0;
 }
 
-.pbg-summary-pheno-row {
+.pbg-summary-association-head,
+.pbg-summary-association-row {
     display: grid;
-    grid-template-columns: minmax(7.2rem, 1.15fr) minmax(3.4rem, 0.9fr) 2.8rem 4.2rem;
+    grid-template-columns: minmax(6rem, 1fr) repeat(3, minmax(2.7rem, auto));
     align-items: center;
-    gap: 0.45rem;
-    color: var(--pbg-text-secondary);
-    font-size: 0.88rem;
+    gap: 0.35rem;
+    padding: 0.3rem 0;
+    font-variant-numeric: tabular-nums;
 }
 
-.pbg-summary-pheno-row > span {
+.pbg-summary-association-head {
+    border-bottom: 1px solid var(--pbg-border);
+    color: #47637d;
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.pbg-summary-association-row {
+    border-bottom: 1px solid #f0f4f9;
+    color: var(--pbg-text-secondary);
+    font-size: 0.74rem;
+}
+
+.pbg-summary-association-row > span:first-child {
+    min-width: 0;
+    font-size: 0.8rem;
+    font-weight: 800;
     line-height: 1.18;
     overflow-wrap: anywhere;
 }
 
-.pbg-summary-pheno-row div,
+.pbg-summary-association-row small {
+    display: block;
+    margin-top: 0.08rem;
+    color: var(--pbg-text-soft);
+    font: 700 0.67rem/1.1 "SFMono-Regular", Consolas, monospace;
+}
+
+.pbg-summary-association-row strong {
+    color: var(--pbg-primary);
+    text-align: right;
+}
+
+.pbg-summary-association-row > span:not(:first-child),
+.pbg-summary-association-head > span:not(:first-child) {
+    text-align: right;
+}
+
 .pbg-summary-demo-row i {
     height: 0.38rem;
     border-radius: 99px;
@@ -3436,26 +3573,11 @@
     overflow: hidden;
 }
 
-.pbg-summary-pheno-row i,
 .pbg-summary-demo-row b {
     display: block;
     height: 100%;
     border-radius: 99px;
     background: var(--pbg-primary);
-}
-
-.pbg-summary-pheno-row strong {
-    color: var(--pbg-primary);
-    font-size: 0.88rem;
-    text-align: right;
-}
-
-.pbg-summary-pheno-row em {
-    color: var(--pbg-text-soft);
-    font-size: 0.78rem;
-    font-style: normal;
-    font-weight: 800;
-    white-space: nowrap;
 }
 
 .pbg-summary-mini-table {
