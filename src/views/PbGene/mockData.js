@@ -93,6 +93,18 @@ export const crdcEvidence = {
     ],
 };
 
+// ─── Precomputed gene-burden phenotype associations (UI preview only) ───────
+// Contract: upstream analysis supplies positive, threshold-passing rows ordered
+// by q-value. The portal only displays these results; it does not run or filter
+// the association analysis.
+export const genePhenotypeAssociations = [
+    { hpoId: "HP:0001250", label: "Seizure", oddsRatio: 3.42, ciLow: 1.81, ciHigh: 6.47, pValue: 0.00021, qValue: 0.012 },
+    { hpoId: "HP:0001252", label: "Hypotonia", oddsRatio: 2.76, ciLow: 1.58, ciHigh: 4.81, pValue: 0.00043, qValue: 0.018 },
+    { hpoId: "HP:0001263", label: "Global developmental delay", oddsRatio: 2.31, ciLow: 1.42, ciHigh: 3.76, pValue: 0.00078, qValue: 0.026 },
+    { hpoId: "HP:0000750", label: "Delayed speech and language", oddsRatio: 1.94, ciLow: 1.26, ciHigh: 2.99, pValue: 0.0021, qValue: 0.041 },
+    { hpoId: "HP:0001270", label: "Motor delay", oddsRatio: 1.78, ciLow: 1.17, ciHigh: 2.71, pValue: 0.0068, qValue: 0.049 },
+];
+
 // ─── Gene carrier demographics (source: CRDC cohort) ─────────────────────────
 // Aggregated across all 13 carriers (6 + 4 + 3 across 3 variants)
 export const geneCarrierDemographics = {

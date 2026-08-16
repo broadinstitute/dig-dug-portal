@@ -126,25 +126,36 @@
                         <div class="pbg-mini-card-grid">
                             <article class="pbg-mini-card pbg-pheno-spotlight-card">
                                 <div class="pbg-mini-card-head">
-                                    <h2>Carrier phenotype profile</h2>
-                                    <span>Top 4 categories</span>
+                                    <div class="pbg-association-heading">
+                                        <div class="pbg-association-title-line">
+                                            <h2>Top phenotype associations</h2>
+                                            <button class="pbg-info-button" type="button" aria-label="About top phenotype associations" aria-describedby="pbg-association-help-hero">
+                                                ?
+                                                <span id="pbg-association-help-hero" class="pbg-info-tooltip" role="tooltip">
+                                                    Shows precomputed binary HPO phenotypes positively associated with higher gene burden scores. OR is per one-unit increase in score. Only results passing p &lt; 0.05 and the configured FDR q threshold are included; negative associations are not displayed.
+                                                </span>
+                                            </button>
+                                        </div>
+                                        <p>Positive associations across binary HPO phenotypes</p>
+                                    </div>
+                                    <span>{{ liveDataLoaded ? 'Precomputed' : 'Preview data' }}</span>
                                 </div>
-                                <div v-if="topHeroPhenotypeCategories.length" class="pbg-pheno-spotlight">
-                                    <strong>{{ topHeroPhenotypeCategories[0].allPct }}%</strong>
+                                <div v-if="topPhenotypeAssociations.length" class="pbg-association-spotlight">
+                                    <strong>OR {{ contextStatistic(topPhenotypeAssociations[0].oddsRatio) }}</strong>
                                     <div>
-                                        <span :title="shortPhenotypeCategory(topHeroPhenotypeCategories[0].category)">
-                                            {{ shortPhenotypeCategory(topHeroPhenotypeCategories[0].category) }}
-                                        </span>
-                                        <em>{{ topHeroPhenotypeCategories[0].termCount }} terms</em>
+                                        <span>{{ topPhenotypeAssociations[0].label }}</span>
+                                        <em>{{ topPhenotypeAssociations[0].hpoId }} · 95% CI {{ contextStatistic(topPhenotypeAssociations[0].ciLow) }}–{{ contextStatistic(topPhenotypeAssociations[0].ciHigh) }}</em>
+                                        <small>p {{ contextStatistic(topPhenotypeAssociations[0].pValue) }} · q {{ contextStatistic(topPhenotypeAssociations[0].qValue) }}</small>
                                     </div>
                                 </div>
-                                <div class="pbg-pheno-rank-list">
-                                    <div v-for="cat in topHeroPhenotypeCategories.slice(1)" :key="cat.category" class="pbg-pheno-rank-row">
-                                        <span :title="shortPhenotypeCategory(cat.category)">{{ shortPhenotypeCategory(cat.category) }}</span>
-                                        <strong>{{ cat.allPct }}%</strong>
-                                        <em>{{ cat.termCount }} terms</em>
+                                <div v-if="topPhenotypeAssociations.length" class="pbg-association-rank-list">
+                                    <div v-for="association in topPhenotypeAssociations.slice(1)" :key="association.hpoId" class="pbg-association-rank-row">
+                                        <span>{{ association.label }} <small>{{ association.hpoId }}</small></span>
+                                        <strong>OR {{ contextStatistic(association.oddsRatio) }}</strong>
+                                        <em>p {{ contextStatistic(association.pValue) }}<br>q {{ contextStatistic(association.qValue) }}</em>
                                     </div>
                                 </div>
+                                <p v-else class="pbg-association-empty">Precomputed phenotype association results have not been connected for this gene.</p>
                             </article>
 
                             <article v-if="topVariant" class="pbg-mini-card pbg-score-spotlight-card">
@@ -359,27 +370,38 @@
                     <div class="pbg-summary-panel-grid">
                         <article class="pbg-summary-card"
                                  :class="{ 'pbg-summary-card--expanded': isSummaryCardExpanded('phenotype') }">
-                            <button class="pbg-summary-card-head pbg-summary-card-head--button"
-                                    type="button"
-                                    :aria-expanded="isSummaryCardExpanded('phenotype') ? 'true' : 'false'"
-                                    @click="toggleSummaryCard('phenotype')">
-                                <strong>Carrier phenotype profile</strong>
-                                <span>{{ summaryPhenotypeCardLabel }}</span>
-                            </button>
-                            <div class="pbg-summary-card-body pbg-summary-pheno-list">
-                                <div v-for="cat in summaryPhenotypeRows"
-                                     :key="'summary-pheno-' + cat.category"
-                                     class="pbg-summary-pheno-row">
-                                    <span :title="shortPhenotypeCategory(cat.category)">{{ shortPhenotypeCategory(cat.category) }}</span>
-                                    <div><i :style="{ width: cat.allPct + '%' }"></i></div>
-                                    <strong>{{ cat.allPct }}%</strong>
-                                    <em>({{ cat.termCount }} terms)</em>
+                            <div class="pbg-summary-card-head">
+                                <div class="pbg-association-heading">
+                                    <div class="pbg-association-title-line">
+                                        <strong>Top phenotype associations</strong>
+                                        <button class="pbg-info-button pbg-info-button--small" type="button" aria-label="About phenotype association results" aria-describedby="pbg-association-help-summary">
+                                            ?
+                                            <span id="pbg-association-help-summary" class="pbg-info-tooltip" role="tooltip">
+                                                Gene-level results are precomputed outside the portal. OR is the change in phenotype odds per one-unit increase in gene burden score. Only positive associations passing the configured p-value and FDR q-value thresholds are shown.
+                                            </span>
+                                        </button>
+                                    </div>
+                                    <p>Gene-level · binary HPO phenotypes</p>
                                 </div>
-                                <p v-if="!summaryPhenotypeRows.length" class="pbg-empty-note">No HPO category data</p>
+                                <span>{{ phenotypeAssociationCardLabel }}</span>
                             </div>
-                            <div v-if="summaryPhenotypeHiddenCount" class="pbg-summary-card-foot">
+                            <div class="pbg-summary-card-body pbg-summary-association-table">
+                                <div v-if="summaryAssociationRows.length" class="pbg-summary-association-head" aria-hidden="true">
+                                    <span>Phenotype</span><span>OR</span><span>p</span><span>q</span>
+                                </div>
+                                <div v-for="association in summaryAssociationRows"
+                                     :key="'summary-association-' + association.hpoId"
+                                     class="pbg-summary-association-row">
+                                    <span>{{ association.label }} <small>{{ association.hpoId }}</small></span>
+                                    <strong>{{ contextStatistic(association.oddsRatio) }}</strong>
+                                    <span>{{ contextStatistic(association.pValue) }}</span>
+                                    <span>{{ contextStatistic(association.qValue) }}</span>
+                                </div>
+                                <p v-if="!summaryAssociationRows.length" class="pbg-empty-note">Precomputed association results are not available yet.</p>
+                            </div>
+                            <div v-if="summaryAssociationHiddenCount" class="pbg-summary-card-foot">
                                 <button class="pbg-summary-more-btn" type="button" @click="toggleSummaryCard('phenotype')">
-                                    {{ isSummaryCardExpanded('phenotype') ? 'Show less' : '+' + summaryPhenotypeHiddenCount + ' more categories' }}
+                                    {{ isSummaryCardExpanded('phenotype') ? 'Show less' : '+' + summaryAssociationHiddenCount + ' more associations' }}
                                 </button>
                             </div>
                         </article>

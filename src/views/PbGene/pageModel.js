@@ -1,6 +1,7 @@
 import {
     geneInfo, crdcEvidence, genomeWindow, variantRows,
     geneCarrierDemographics, geneLevelPhenotypeCategories, geneLevelCoCarrierGenes,
+    genePhenotypeAssociations,
 } from "./mockData";
 import { applyPbGeneFixturePipeline, fixtureGeneSymbol, fixtureLoaded } from "./fixturePipeline";
 import { fetchPbGeneBioIndexState } from "./pbGeneBioIndexAdapter";
@@ -25,6 +26,7 @@ export function createPbGeneState() {
             geneCarrierDemographics,
             geneLevelPhenotypeCategories,
             geneLevelCoCarrierGenes,
+            genePhenotypeAssociations,
         }
         : createUnavailableGeneState(query);
 
@@ -167,6 +169,7 @@ function createUnavailableGeneState(query) {
         geneCarrierDemographics: { byAge: [], bySex: [], byAffected: [], byProband: [], byInvestigator: [] },
         geneLevelPhenotypeCategories: [],
         geneLevelCoCarrierGenes: [],
+        genePhenotypeAssociations: [],
     };
 }
 
@@ -488,28 +491,21 @@ export const pbGeneComputed = {
             : this.totalGeneCarriers;
     },
 
-    summaryPhenotypeCategories() {
-        if (this.geneTab === "variant" && this.selectedEvidenceVariant) {
-            return this.selectedEvidenceVariant.phenotypeCategories || [];
-        }
-        return this.geneLevelPhenotypeCategories || [];
-    },
-
-    summaryPhenotypeCardLabel() {
+    phenotypeAssociationCardLabel() {
         if (this.isSummaryCardExpanded("phenotype")) {
-            return `${this.summaryPhenotypeCategories.length} categories`;
+            return `${this.genePhenotypeAssociations.length} passing associations`;
         }
-        const shown = Math.min(SUMMARY_PHENO_LIMIT, this.summaryPhenotypeCategories.length);
-        return shown ? `Top ${shown} categories` : "0 categories";
+        const shown = Math.min(SUMMARY_PHENO_LIMIT, this.genePhenotypeAssociations.length);
+        return shown ? `Top ${shown} associations` : "Results pending";
     },
 
-    summaryPhenotypeRows() {
-        if (this.isSummaryCardExpanded("phenotype")) return this.summaryPhenotypeCategories;
-        return this.summaryPhenotypeCategories.slice(0, SUMMARY_PHENO_LIMIT);
+    summaryAssociationRows() {
+        if (this.isSummaryCardExpanded("phenotype")) return this.genePhenotypeAssociations;
+        return this.genePhenotypeAssociations.slice(0, SUMMARY_PHENO_LIMIT);
     },
 
-    summaryPhenotypeHiddenCount() {
-        return Math.max(0, this.summaryPhenotypeCategories.length - SUMMARY_PHENO_LIMIT);
+    summaryAssociationHiddenCount() {
+        return Math.max(0, this.genePhenotypeAssociations.length - SUMMARY_PHENO_LIMIT);
     },
 
     summaryCoCarrierGenes() {
@@ -1454,8 +1450,8 @@ export const pbGeneComputed = {
         return this.geneLevelPhenotypeCategories.slice(0, PHENO_CAT_LIMIT);
     },
 
-    topHeroPhenotypeCategories() {
-        return (this.geneLevelPhenotypeCategories || []).slice(0, 4);
+    topPhenotypeAssociations() {
+        return (this.genePhenotypeAssociations || []).slice(0, 4);
     },
 
     externalPhenotypeResultUrl() {

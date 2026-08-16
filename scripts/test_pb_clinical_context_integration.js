@@ -33,5 +33,10 @@ assert.doesNotMatch(variantModel, /this\.activeContextTerms = \[\]/);
 assert.match(variantModel, /pbv-evidence--pathogenic/);
 assert.match(variantModel, /pbv-evidence--likely-pathogenic/);
 assert.match(variantModel, /pbv-evidence--vus/);
+assert.match(geneTemplate, /Top phenotype associations/);
+assert.match(geneTemplate, /OR is per one-unit increase in score/);
+assert.match(geneTemplate, /Precomputed association results are not available yet/);
+assert.doesNotMatch(geneTemplate, /Carrier phenotype profile/);
+assert.match(geneModel, /genePhenotypeAssociations/);
 
 console.log("PB_CLINICAL_CONTEXT_INTEGRATION_TEST_PASS");
