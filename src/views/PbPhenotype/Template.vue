@@ -11,7 +11,92 @@
                     </form>
                 </div>
 
-                <section v-if="term" class="pbp-card pbp-reference" aria-labelledby="phenotype-title">
+                <section v-if="term" class="pbp-context" aria-labelledby="hpo-context-title">
+                    <div class="pbp-context-head">
+                        <div><strong id="hpo-context-title">HPO Context</strong><span class="pbp-context-badge">ON-DEMAND TOOL</span></div>
+                        <strong class="pbp-view-label">{{ selectedHpoIds.length }} {{ selectedHpoIds.length === 1 ? 'phenotype · Term view' : 'phenotypes · Profile view' }}</strong>
+                    </div>
+                    <div class="pbp-context-controls">
+                        <div class="pbp-context-chips" aria-label="Selected HPO context">
+                            <span v-for="id in selectedHpoIds" :key="id" class="pbp-context-chip">
+                                <span><strong>{{ phenotypeName(id) }}</strong><small>{{ id }}</small></span>
+                                <button v-if="selectedHpoIds.length > 1" type="button" :aria-label="`Remove ${phenotypeName(id)}`" @click="removeContextTerm(id)">×</button>
+                            </span>
+                        </div>
+                        <form class="pbp-context-add" @submit.prevent="addContextTerm">
+                            <div class="pbp-suggestion-shell">
+                                <input v-model.trim="contextQuery" aria-label="Add phenotype to HPO context" placeholder="Add phenotype name or HPO ID" @focus="contextFocused = true" @blur="closeSuggestions">
+                                <div v-if="contextFocused && contextSuggestions.length" class="pbp-suggestions" role="listbox" aria-label="Phenotype suggestions">
+                                    <button v-for="suggestion in contextSuggestions" :key="suggestion.id" type="button" @mousedown.prevent="chooseContextSuggestion(suggestion.id)"><strong>{{ suggestion.name }}</strong><small>{{ suggestion.id }}</small></button>
+                                </div>
+                            </div>
+                            <button type="submit">+ Add</button>
+                        </form>
+                    </div>
+                    <p v-if="isProfileView" class="pbp-context-note"><strong>This HPO set is now one custom phenotype profile.</strong> Disease references and CRDC samples are compared with the combination, not with one selected “primary” term.</p>
+                </section>
+
+                <template v-if="term && isProfileView">
+                    <section class="pbp-card pbp-profile-summary" aria-labelledby="profile-title">
+                        <div class="pbp-profile-title">
+                            <span class="pbp-badge pbp-badge--teal">PROFILE VIEW · ILLUSTRATIVE MOCK VALUES</span>
+                            <h2 id="profile-title">Custom HPO profile</h2>
+                            <p class="pbp-muted">{{ selectedHpoIds.length }} HPO terms used together</p>
+                        </div>
+                        <div class="pbp-profile-metrics" aria-label="Profile cohort summary">
+                            <div><strong>{{ profileSummary.sampleCount }}</strong><span>samples with all {{ selectedHpoIds.length }} terms</span></div>
+                            <div><strong>{{ profileSummary.topInvestigator }}</strong><span>largest group · {{ profileSummary.topInvestigatorCount }} samples</span></div>
+                            <div><strong>{{ profileSummary.medianAge }} years</strong><span>median age</span></div>
+                        </div>
+                    </section>
+
+                    <section class="pbp-card" aria-labelledby="profile-diseases-title">
+                        <div class="pbp-section-head">
+                            <div><span class="pbp-badge">ORPHANET REFERENCE</span><h2 id="profile-diseases-title">Disease profile matches</h2><p class="pbp-muted">Diseases containing one or more exact query HPO terms. Semantic similarity will replace this preview overlap when the analysis service is connected.</p></div>
+                            <span>{{ profileDiseaseRows.length.toLocaleString() }} reference profiles</span>
+                        </div>
+                        <div class="pbp-table-wrap pbp-profile-table">
+                            <table>
+                                <thead><tr><th>Disease</th><th>Profile overlap</th><th>Matched query phenotypes</th><th>Related genes</th></tr></thead>
+                                <tbody><tr v-for="row in visibleProfileDiseases" :key="row.code">
+                                    <td><strong>{{ row.name }}</strong><a class="pbp-orpha-link" :href="`https://www.orpha.net/en/disease/detail/${row.code}`" target="_blank" rel="noopener noreferrer">ORPHA:{{ row.code }} ↗</a></td>
+                                    <td><strong class="pbp-overlap-score">{{ row.matchedIds.length }}/{{ selectedHpoIds.length }}</strong><small>exact query terms</small></td>
+                                    <td><span v-for="id in row.matchedIds" :key="id" class="pbp-match-term">✓ {{ phenotypeName(id) }}</span><span v-for="id in row.unmatchedIds" :key="id" class="pbp-unmatched-term">Not represented: {{ phenotypeName(id) }}</span></td>
+                                    <td><template v-if="row.genes.length"><a v-for="gene in row.genes.slice(0, 4)" :key="gene[0]" class="pbp-gene-link" :href="`/pb_Gene.html?query=${encodeURIComponent(gene[0])}`">{{ gene[0] }}</a><small>{{ row.genes.length }} Orphanet disease-associated {{ row.genes.length === 1 ? 'gene' : 'genes' }}</small></template><span v-else>Not listed</span></td>
+                                </tr></tbody>
+                            </table>
+                        </div>
+                        <button v-if="profileDiseaseVisibleCount < profileDiseaseRows.length" class="pbp-load" type="button" @click="profileDiseaseVisibleCount += 5">Load 5 more</button>
+                        <p class="pbp-footnote">Profile overlap is an interface preview based on exact HPO presence. It is not the future ontology-aware disease similarity score.</p>
+                    </section>
+
+                    <section class="pbp-card" aria-labelledby="profile-samples-title">
+                        <div class="pbp-section-head">
+                            <div><span class="pbp-badge pbp-badge--teal">CRDC · ILLUSTRATIVE MOCK VALUES</span><h2 id="profile-samples-title">CRDC sample profile matches</h2><p class="pbp-muted">Every CRDC sample will be scored against this complete HPO profile. The rows below demonstrate the intended layout only.</p></div>
+                            <span>All eligible CRDC samples</span>
+                        </div>
+                        <div class="pbp-sample-filters" aria-label="Sample result filters">
+                            <label>Investigator<select><option>All investigators</option></select></label>
+                            <label>Exact age<input type="number" inputmode="numeric" placeholder="Any"></label>
+                            <label>Sex<select><option>All sexes</option></select></label>
+                        </div>
+                        <div class="pbp-table-wrap pbp-sample-table">
+                            <table>
+                                <thead><tr><th>Sample</th><th>Profile similarity</th><th>Exact matches</th><th>Ontology-related matches</th><th>Investigator · age</th></tr></thead>
+                                <tbody><tr v-for="sample in mockSamples" :key="sample.id"><td><a :href="`/pb_Sample.html?query=${encodeURIComponent(sample.id)}`">{{ sample.id }}</a></td><td><strong>{{ sample.score }}</strong><small>mock value</small></td><td>{{ sample.exact }}/{{ selectedHpoIds.length }}</td><td>{{ sample.related }}</td><td>{{ sample.investigator }} · {{ sample.age }}</td></tr></tbody>
+                            </table>
+                        </div>
+                        <p class="pbp-footnote">A phenotype not recorded for a sample is not treated as clinically absent. Production values require the connected CRDC HPO source and the approved profile-scoring method.</p>
+                    </section>
+
+                    <section class="pbp-card" aria-labelledby="profile-terms-title">
+                        <h2 id="profile-terms-title">Terms in this profile</h2>
+                        <p class="pbp-muted">Open any term to return to its full single-phenotype reference page.</p>
+                        <div class="pbp-term-grid"><article v-for="item in profileTerms" :key="item.id"><a :href="`/pb_phenotype.html?query=${encodeURIComponent(item.id)}`"><strong>{{ item.name }}</strong><small>{{ item.id }}</small></a><p>{{ item.definition || 'No definition is available.' }}</p></article></div>
+                    </section>
+                </template>
+
+                <section v-if="term && !isProfileView" class="pbp-card pbp-reference" aria-labelledby="phenotype-title">
                     <div class="pbp-definition">
                         <h1 id="phenotype-title">{{ term.name }}</h1>
                         <p class="pbp-id">{{ hpoId }}</p>
@@ -39,7 +124,7 @@
                     </div>
                 </section>
 
-                <section v-if="term" class="pbp-card pbp-orphanet-list-card" aria-labelledby="diseases-title">
+                <section v-if="term && !isProfileView" class="pbp-card pbp-orphanet-list-card" aria-labelledby="diseases-title">
                     <div class="pbp-section-head"><div><h2 id="diseases-title">Diseases and related genes</h2><p class="pbp-muted">The selected overview filter controls this Orphanet list · separate from CRDC gene burden results · not a diagnosis</p></div><span>{{ filteredRows.length.toLocaleString() }} matching entries</span></div>
                     <label class="pbp-within-search">Filter this list by disease or gene<input v-model.trim="withinQuery" type="search" placeholder="For example: epilepsy or SCN1A"></label>
                     <div v-if="visibleRows.length" class="pbp-table-wrap">
@@ -63,21 +148,21 @@
                     <p class="pbp-footnote">* Included in an established diagnostic criteria set; this finding alone does not establish a diagnosis. Excluded (0%) annotations are omitted from this list.</p>
                 </section>
 
-                <section v-if="term" class="pbp-card" aria-labelledby="genes-title">
+                <section v-if="term && !isProfileView" class="pbp-card" aria-labelledby="genes-title">
                     <span class="pbp-badge">CRDC · PRECOMPUTED</span>
                     <h2 id="genes-title">Top associated genes</h2>
                     <p class="pbp-muted">Genes whose burden scores are positively associated with this binary HPO phenotype.</p>
                     <div class="pbp-unavailable">Precomputed CRDC gene burden association results have not been connected for {{ hpoId }}.</div>
                 </section>
 
-                <section v-if="term" class="pbp-card" aria-labelledby="crdc-title">
+                <section v-if="term && !isProfileView" class="pbp-card" aria-labelledby="crdc-title">
                     <span class="pbp-badge pbp-badge--teal">CRDC</span>
                     <h2 id="crdc-title">Explore this phenotype in CRDC</h2>
                     <p class="pbp-muted">Investigator, exact-age statistics, and matching samples will appear when the test server HPO data source is connected.</p>
                     <div class="pbp-unavailable">CRDC phenotype observations are currently unavailable.</div>
                 </section>
 
-                <section v-else class="pbp-card pbp-empty">
+                <section v-if="!term" class="pbp-card pbp-empty">
                     <h1>Phenotype not found</h1>
                     <p>Enter an HPO ID such as HP:0001250 or an exact HPO term such as Seizure.</p>
                 </section>
@@ -110,13 +195,31 @@ function resolveHpoId(query) {
     return Object.keys(ORPHANET_REFERENCE.terms).find((key) => ORPHANET_REFERENCE.terms[key][0].toLocaleLowerCase() === normalized) || "";
 }
 
+function resolveHpoIds(query) {
+    const ids = String(query || "").split(/[,;|]+/).map((part) => resolveHpoId(part)).filter(Boolean);
+    return [...new Set(ids)];
+}
+
 export default {
     name: "PbPhenotypeTemplate",
     data() {
         const query = new URLSearchParams(window.location.search).get("query") || "HP:0001250";
-        return { reference: ORPHANET_REFERENCE, hpoId: resolveHpoId(query), searchQuery: query, filter: "all", withinQuery: "", visibleCount: 5, showAllChildren: false, expandedGenes: [], expandedCriteria: [], expandedPhenotypes: [] };
+        const selectedHpoIds = resolveHpoIds(query);
+        return { reference: ORPHANET_REFERENCE, hpoId: selectedHpoIds[0] || "", selectedHpoIds, searchQuery: query, contextQuery: "", contextFocused: false, profileDiseaseVisibleCount: 5, filter: "all", withinQuery: "", visibleCount: 5, showAllChildren: false, expandedGenes: [], expandedCriteria: [], expandedPhenotypes: [], profileSummary: { sampleCount: 184, topInvestigator: "Investigator A", topInvestigatorCount: 62, medianAge: 11 }, mockSamples: [
+            { id: "CRDC-000184", score: "0.91", exact: 2, related: 3, investigator: "Investigator A", age: 11 },
+            { id: "CRDC-004821", score: "0.84", exact: 1, related: 4, investigator: "Investigator C", age: 7 },
+            { id: "CRDC-009316", score: "0.79", exact: 2, related: 1, investigator: "Investigator B", age: 19 },
+            { id: "CRDC-012027", score: "0.73", exact: 1, related: 3, investigator: "Investigator A", age: 4 },
+        ] };
     },
     computed: {
+        isProfileView() { return this.selectedHpoIds.length > 1; },
+        profileTerms() { return this.selectedHpoIds.map((id) => ({ id, name: this.phenotypeName(id), definition: this.reference.terms[id] ? this.reference.terms[id][1] : "" })); },
+        contextSuggestions() {
+            const query = this.contextQuery.toLocaleLowerCase();
+            if (query.length < 2) return [];
+            return Object.entries(this.reference.terms).filter(([id, item]) => !this.selectedHpoIds.includes(id) && (id.toLocaleLowerCase().includes(query) || item[0].toLocaleLowerCase().includes(query))).slice(0, 6).map(([id, item]) => ({ id, name: item[0] }));
+        },
         term() {
             const item = this.reference.terms[this.hpoId];
             return item ? { name: item[0], definition: item[1], parents: item[2], children: item[3] } : null;
@@ -142,9 +245,35 @@ export default {
             });
         },
         visibleRows() { return this.filteredRows.slice(0, this.visibleCount); },
+        profileDiseaseRows() {
+            const diseaseMatches = {};
+            this.selectedHpoIds.forEach((id) => (this.reference.associations[id] || []).forEach(([index, frequency, diagnostic]) => {
+                if (frequency === "Excluded (0%)") return;
+                if (!diseaseMatches[index]) diseaseMatches[index] = { matchedIds: [], diagnostic: false };
+                diseaseMatches[index].matchedIds.push(id);
+                diseaseMatches[index].diagnostic = diseaseMatches[index].diagnostic || Boolean(diagnostic);
+            }));
+            return Object.entries(diseaseMatches).map(([index, match]) => {
+                const [code, name, genes] = this.reference.diseases[index];
+                return { code, name, genes, diagnostic: match.diagnostic, matchedIds: match.matchedIds, unmatchedIds: this.selectedHpoIds.filter((id) => !match.matchedIds.includes(id)) };
+            }).sort((a, b) => b.matchedIds.length - a.matchedIds.length || Number(b.diagnostic) - Number(a.diagnostic) || a.name.localeCompare(b.name));
+        },
+        visibleProfileDiseases() { return this.profileDiseaseRows.slice(0, this.profileDiseaseVisibleCount); },
     },
     methods: {
         submitSearch() { window.location.assign(`/pb_phenotype.html?query=${encodeURIComponent(this.searchQuery)}`); },
+        syncContextUrl() { this.searchQuery = this.selectedHpoIds.join(","); window.history.replaceState({}, "", `/pb_phenotype.html?query=${encodeURIComponent(this.searchQuery)}`); },
+        addContextTerm() {
+            const id = resolveHpoId(this.contextQuery);
+            if (!id || this.selectedHpoIds.includes(id)) return;
+            this.selectedHpoIds.push(id); this.contextQuery = ""; this.contextFocused = false; this.profileDiseaseVisibleCount = 5; this.syncContextUrl();
+        },
+        chooseContextSuggestion(id) { this.contextQuery = id; this.addContextTerm(); },
+        closeSuggestions() { window.setTimeout(() => { this.contextFocused = false; }, 100); },
+        removeContextTerm(id) {
+            if (this.selectedHpoIds.length === 1) return;
+            this.selectedHpoIds = this.selectedHpoIds.filter((item) => item !== id); this.hpoId = this.selectedHpoIds[0] || ""; this.profileDiseaseVisibleCount = 5; this.syncContextUrl();
+        },
         selectFilter(value) { this.filter = value; this.visibleCount = 5; },
         relationText(ids) { return ids.map((id) => `${this.reference.terms[id] ? this.reference.terms[id][0] : id} [${id}]`).join(" · "); },
         toggleGenes(code) { this.expandedGenes = this.expandedGenes.includes(code) ? this.expandedGenes.filter((item) => item !== code) : [...this.expandedGenes, code]; },
