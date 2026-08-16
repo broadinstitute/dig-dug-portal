@@ -94,6 +94,13 @@ let pages = {
         title: "Gene Info",
         chunks: ["chunk-vendors", "chunk-common", "gene"],
     },
+    pbPhenotype: {
+        entry: "src/views/PbPhenotype/main.js",
+        template: "public/index.html",
+        filename: "pb_phenotype.html",
+        title: "PB Phenotype Search",
+        chunks: ["chunk-vendors", "chunk-common", "pbPhenotype"]
+    },
     datasets: {
         entry: "src/views/Datasets/main.js",
         template: "public/index.html",

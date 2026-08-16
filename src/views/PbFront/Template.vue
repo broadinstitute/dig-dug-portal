@@ -16,7 +16,7 @@
                     and
                 </span>
                 <span class="headline-line">
-                    <a class="page-link" href="/krPhenotype.html">Phenotype</a> evidence.
+                    <a class="page-link" href="/pb_phenotype.html">Phenotype</a> evidence.
                 </span>
             </h1>
 

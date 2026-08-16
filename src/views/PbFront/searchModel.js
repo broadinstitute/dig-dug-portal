@@ -49,7 +49,7 @@ function resolveSearchTarget(value, selectedKind, geneSymbols) {
         return { path: "/pb_Gene.html", param: "query", value: query.toUpperCase() };
     }
 
-    return { path: "/krPhenotype.html", param: "query", value: query };
+    return { path: "/pb_phenotype.html", param: "query", value: query };
 }
 
 function buildSearchHref(target) {
