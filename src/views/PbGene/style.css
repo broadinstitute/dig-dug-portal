@@ -3418,6 +3418,11 @@
     box-shadow: inset 0 0 0 2px var(--pbg-surface);
 }
 
+.pbg-summary-panels-disclosure {
+    margin-bottom: 0;
+    border-top: 0;
+}
+
 .pbg-summary-panel-grid {
     display: grid;
     grid-template-columns: 1fr 1.05fr 1.55fr;
