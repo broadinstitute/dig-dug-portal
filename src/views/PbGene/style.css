@@ -335,7 +335,6 @@
 
 .pbg-context-summary-pill {
     flex-shrink: 0;
-    margin-left: auto;
     padding: 0.15rem 0.55rem;
     border: 1px solid #99e6e0;
     border-radius: 999px;
