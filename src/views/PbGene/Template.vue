@@ -367,7 +367,12 @@
                         </div>
                     </div>
 
-                    <div class="pbg-summary-panel-grid">
+                    <details class="pbg-context-disclosure pbg-summary-panels-disclosure">
+                        <summary>
+                            <strong>Carrier summary details</strong>
+                            <span class="pbg-context-summary-sub">3 panels</span>
+                        </summary>
+                        <div class="pbg-summary-panel-grid">
                         <article class="pbg-summary-card"
                                  :class="{ 'pbg-summary-card--expanded': isSummaryCardExpanded('phenotype') }">
                             <div class="pbg-summary-card-head">
@@ -483,7 +488,8 @@
                                 </button>
                             </div>
                         </article>
-                    </div>
+                        </div>
+                    </details>
 
                     <div class="pbg-variant-evidence-block">
                         <div class="pbg-variant-evidence-head">

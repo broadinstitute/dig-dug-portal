@@ -38,5 +38,7 @@ assert.match(geneTemplate, /OR is per one-unit increase in score/);
 assert.match(geneTemplate, /Precomputed association results are not available yet/);
 assert.doesNotMatch(geneTemplate, /Carrier phenotype profile/);
 assert.match(geneModel, /genePhenotypeAssociations/);
+assert.match(geneTemplate, /<details class="pbg-context-disclosure pbg-summary-panels-disclosure">/);
+assert.match(geneTemplate, /Carrier summary details/);
 
 console.log("PB_CLINICAL_CONTEXT_INTEGRATION_TEST_PASS");
