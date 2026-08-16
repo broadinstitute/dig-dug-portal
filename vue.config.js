@@ -53,11 +53,18 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "pbGene"]
     },
     pbFront: {
-        entry: "src/views/KrFront/main.js",
+        entry: "src/views/PbFront/main.js",
         template: "public/index.html",
         filename: "pb_Front.html",
-        title: "PB Front",
+        title: "CRDC Cohort Explorer",
         chunks: ["chunk-vendors", "chunk-common", "pbFront"]
+    },
+    pbFrontLegacy: {
+        entry: "src/views/KrFront/main.js",
+        template: "public/index.html",
+        filename: "pb_Front_legacy.html",
+        title: "PB Front (legacy)",
+        chunks: ["chunk-vendors", "chunk-common", "pbFrontLegacy"]
     },
     pbVariant: {
         entry: "src/views/PbVariant/main.js",
