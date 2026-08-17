@@ -4,7 +4,6 @@
 .claude
 node_modules
 dist
-portals
 public/cmsdata.tmp
 .env.local
 .env.*.local
