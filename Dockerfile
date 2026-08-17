@@ -1,22 +1,23 @@
-# Multi-stage Dockerfile for Portal
+# Multi-stage Dockerfile for the SysBio portal
 
 # Stage 1: Build the Vue.js application
-FROM node:16 as build-stage
+FROM node:24-bookworm AS build-stage
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
-COPY package*.json ./
+# Copy the dependency manifests separately to keep dependency installation cached
+COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install the exact dependency tree from package-lock.json
+RUN npm ci --no-audit --no-fund --progress=false
 
 # Copy project files
 COPY . .
 
 # Build the project for production
-ARG VUE_CONFIG_PATH="./vue.config.js"
+ARG VUE_CONFIG_PATH=./vue.config.js
+RUN node scripts/check-cmsdata.js
 ENV VUE_CLI_SERVICE_CONFIG_PATH=${VUE_CONFIG_PATH}
 RUN npm run deploy
 

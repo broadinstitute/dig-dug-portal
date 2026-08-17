@@ -15,10 +15,10 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "16"
+                  node-version: "24"
 
             - name: Install dependencies
-              run: npm install --no-audit --progress=false
+              run: npm ci --no-audit --no-fund --progress=false
 
             - name: Extract tag name
               id: get_tag
@@ -27,7 +27,6 @@ jobs:
             - name: Build project
               env:
                   VUE_CLI_SERVICE_CONFIG_PATH: "./configs/vue.config.SysBio.js"
-                  VUE_APP_GA4_ID: ${{ secrets.VUE_APP_GA4_ID_SYSBIO }}
               run: npm run deploy
 
             # - name: Deploy to target repository

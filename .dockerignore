@@ -1,0 +1,14 @@
+.git
+.idea
+.vscode
+.claude
+node_modules
+dist
+portals
+public/cmsdata.tmp
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log*
