@@ -86,6 +86,15 @@ const SCENARIOS = {
 const PAGE_WIDTH = 1380;
 
 export default Vue.component("CellStateInfographic", {
+    props: {
+        // The parent collapses the figure once the user starts analyzing, but the
+        // user can still expand or re-collapse it from here afterwards.
+        collapse: {
+            type: Boolean,
+            default: false
+        }
+    },
+
     data() {
         return {
             modes: MODES,
@@ -95,7 +104,7 @@ export default Vue.component("CellStateInfographic", {
             locked: "healthy",
             // hover and focus preview a scenario without committing to it
             hovered: null,
-            collapsed: false,
+            collapsed: this.collapse,
             scale: 1,
             stageHeight: null,
             // pinned once, to the tallest rendering across scenarios, so switching
@@ -157,6 +166,9 @@ export default Vue.component("CellStateInfographic", {
     watch: {
         collapsed() {
             this.$nextTick(this.fit);
+        },
+        collapse(value) {
+            this.collapsed = value;
         },
     },
 
