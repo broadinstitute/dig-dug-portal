@@ -5,6 +5,22 @@
       <div class="volcano-tooltip-inner" v-html="hoveredPoint.tooltip"></div>
     </div>
 
+    <div v-if="significantDepotLegend.length" class="volcano-depot-legend">
+      <div class="volcano-depot-legend__title">Depot</div>
+      <div
+        v-for="item in significantDepotLegend"
+        :key="item.label"
+        class="volcano-depot-legend__item"
+        :title="item.label"
+      >
+        <span
+          class="volcano-depot-legend__swatch"
+          :style="{ backgroundColor: item.color }"
+        ></span>
+        <span class="volcano-depot-legend__label">{{ item.label }}</span>
+      </div>
+    </div>
+
     <svg :width="svgW" :height="svgH" class="volcano-svg" overflow="visible">
       <!-- D3-rendered axes -->
       <g ref="xAxis" :transform="`translate(0,${pad.t + plotH})`" class="v-axis"></g>
@@ -17,7 +33,7 @@
       >log2 fold change</text>
       <text
         text-anchor="middle" class="v-axis-lbl"
-        :transform="`rotate(-90) translate(${-(pad.t + plotH / 2)},13)`"
+        :transform="`rotate(-90) translate(${-(pad.t + plotH / 2)},${pad.l - 34})`"
       >-log10(p-value)</text>
 
       <!-- x=0 vertical guide -->
@@ -52,9 +68,9 @@
         v-for="pt in bgPoints"
         :key="pt.key"
         :cx="pt.x" :cy="pt.y"
-        :r="hoveredKey === pt.key ? 7 : 4.5"
-        :fill="hoveredKey === pt.key ? '#777777' : '#bbbbbb'"
-        :opacity="hoveredKey === pt.key ? 0.9 : 0.4"
+        :r="isPointActive(pt) ? 7 : 4.5"
+        :fill="isPointActive(pt) ? '#777777' : '#bbbbbb'"
+        :opacity="pt.dimmed ? 0.14 : isPointActive(pt) ? 0.9 : 0.4"
         style="cursor:pointer"
         @mouseenter="$emit('hover', pt.key)"
         @mouseleave="$emit('hover-end')"
@@ -65,9 +81,11 @@
         v-for="pt in fgPoints"
         :key="pt.key"
         :cx="pt.x" :cy="pt.y"
-        :r="hoveredKey === pt.key ? 7 : 5.5"
-        :fill="hoveredKey === pt.key ? '#d45500' : '#ff6c02'"
-        :opacity="hoveredKey === pt.key ? 1 : 0.88"
+        :r="isPointActive(pt) ? 7 : 5.5"
+        :fill="pt.color"
+        :opacity="pt.dimmed ? 0.24 : isPointActive(pt) ? 1 : 0.88"
+        :stroke="isPointActive(pt) ? '#333333' : '#ffffff'"
+        :stroke-width="isPointActive(pt) ? 1.5 : 0.75"
         style="cursor:pointer"
         @mouseenter="$emit('hover', pt.key)"
         @mouseleave="$emit('hover-end')"
@@ -80,7 +98,7 @@
         :x="pt.labelX" :y="pt.y + 4"
         :text-anchor="pt.labelAnchor"
         font-size="10"
-        :fill="hoveredKey === pt.key ? '#aa2200' : '#aa4400'"
+        :fill="isPointActive(pt) ? '#333333' : pt.color"
         style="pointer-events:none"
       >{{ pt.label }}</text>
 
@@ -99,6 +117,17 @@
 <script>
 import * as d3 from "d3";
 
+const DEPOT_COLORS = [
+  "#0072b2",
+  "#d55e00",
+  "#009e73",
+  "#cc79a7",
+  "#e69f00",
+  "#56b4e9",
+  "#6a3d9a",
+  "#4d4d4d",
+];
+
 export default {
   name: "VolcanoPlot",
 
@@ -106,13 +135,14 @@ export default {
     rows:       { type: Array,    default: () => [] },
     rowTooltip: { type: Function, default: () => "" },
     hoveredKey: { type: String,   default: null },
+    selectedKey: { type: String,  default: null },
   },
 
   data() {
     return {
       svgW: 500,
       svgH: 340,
-      pad: { l: 46, r: 20, t: 24, b: 36 },
+      pad: { l: 120, r: 140, t: 24, b: 36 },
     };
   },
 
@@ -156,18 +186,46 @@ export default {
       return y >= this.pad.t && y <= this.pad.t + this.plotH ? y : null;
     },
 
+    significantDepotLabels() {
+      return [
+        ...new Set(
+          this.dataRows
+            .filter((row) => row.p_value <= 0.05)
+            .map((row) => this.formatDepotLabel(row.depot))
+        ),
+      ].sort((a, b) => a.localeCompare(b));
+    },
+
+    depotColorMap() {
+      return this.significantDepotLabels.reduce((map, label, index) => {
+        map[label] = DEPOT_COLORS[index % DEPOT_COLORS.length];
+        return map;
+      }, {});
+    },
+
+    significantDepotLegend() {
+      return this.significantDepotLabels.map((label) => ({
+        label,
+        color: this.depotColorMap[label],
+      }));
+    },
+
     allPoints() {
       return this.dataRows.map((row, i) => {
         const x = this.xScale(row.effect);
         const y = this.yScale(-Math.log10(row.p_value));
         const significant = row.p_value <= 0.05;
-        const fullLabel = row.level_b || row.direction_label || "";
-        const label = fullLabel.length > 16 ? fullLabel.slice(0, 15) + "…" : fullLabel;
+        const fullLabel = row.comparison_level_b || row.second_term || "";
+        const label = fullLabel.length > 24 ? fullLabel.slice(0, 23) + "..." : fullLabel;
         const labelRight = row.effect >= 0;
+        const depotLabel = this.formatDepotLabel(row.depot);
+        const key = row.plot_key || `${i}-${row.dataset_id || i}`;
         return {
-          key:         `${i}-${row.dataset_id || i}`,
+          key,
           x, y,
           significant,
+          color:       significant ? this.depotColorMap[depotLabel] : "#bbbbbb",
+          dimmed:      row.isAdjPFilteredOut,
           label,
           labelX:      labelRight ? x + 9 : x - 9,
           labelAnchor: labelRight ? "start" : "end",
@@ -246,6 +304,13 @@ export default {
   },
 
   methods: {
+    isPointActive(point) {
+      return point.key === this.hoveredKey || point.key === this.selectedKey;
+    },
+    formatDepotLabel(value) {
+      const label = String(value || "").trim();
+      return label || "Not specified";
+    },
     updateWidth() {
       const w = this.$el ? this.$el.offsetWidth : 500;
       if (w > 0) this.svgW = w;
@@ -265,6 +330,56 @@ export default {
 .volcano-wrap {
   position: relative;
   width: 100%;
+}
+
+.volcano-depot-legend {
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #eeeeee;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 170px;
+  padding: 6px 8px;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  z-index: 5;
+}
+
+.volcano-depot-legend__item {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.volcano-depot-legend__title {
+  color: #333333;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.volcano-depot-legend__swatch {
+  border-radius: 50%;
+  flex: 0 0 auto;
+  height: 8px;
+  width: 8px;
+}
+
+.volcano-depot-legend__label {
+  color: #444444;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Custom tooltip — matches the Bootstrap-Vue tooltip override in Template.vue */

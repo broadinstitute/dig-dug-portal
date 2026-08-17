@@ -8,7 +8,7 @@ A gene-first viewer for differential expression results across curated bulk RNA-
 
 ## Key features
 
-- Gene search with URL sync (`?gene=LEP&outcome=age`). Defaults to ADIPOQ on first load.
+- Gene search with URL sync (`?gene=LEP&outcome=age_group`). Defaults to ADIPOQ on first load.
 - Human / mouse toggle — filters all outcome sections to the selected species.
 - Dataset, depot, and adjusted P-value filters in the sticky gene bar.
 - Sidebar nav with scroll-linked outcome highlighting and direct jump-to links.
@@ -24,7 +24,7 @@ A gene-first viewer for differential expression results across curated bulk RNA-
 | `Template.vue` | Page layout, gene bar, sidebar nav, forest plot UI, volcano layout, evidence tables |
 | `VolcanoPlot.vue` | D3-based volcano plot component (SVG only, responsive via ResizeObserver) |
 | `../../utils/forestGeneApi.js` | BioIndex `single-cell-forest` query client |
-| `../../utils/buildForestGenePayload.js` | API row → page payload adapter (outcome grouping, axis labels, row normalisation) |
+| `buildForestGenePayload.js` | API row → page payload adapter (outcome grouping, axis labels, row normalisation) |
 
 ## API
 
@@ -32,4 +32,4 @@ Data comes from the MATKP BioIndex endpoint:
 ```
 GET /api/bio/query/single-cell-forest?q={gene}
 ```
-The `OUTCOME_ORDER` constant in `buildForestGenePayload.js` controls the display order of outcome sections.
+Outcome sections follow the first-seen order returned by the API, so newly added outcomes render automatically.

@@ -231,34 +231,38 @@
                       <button
                         type="button"
                         class="plot-view-btn"
-                        :class="{ 'plot-view-btn--active': $parent.getPlotView(outcome.outcome_id) === 'forest' }"
+                        :class="{ 'plot-view-btn--active': $parent.getPlotView(outcome) === 'forest' }"
                         @click="$parent.setPlotView(outcome.outcome_id, 'forest')"
                       >Forest</button>
                       <button
                         type="button"
                         class="plot-view-btn"
-                        :class="{ 'plot-view-btn--active': $parent.getPlotView(outcome.outcome_id) === 'volcano' }"
+                        :class="{ 'plot-view-btn--active': $parent.getPlotView(outcome) === 'volcano' }"
                         @click="$parent.setPlotView(outcome.outcome_id, 'volcano')"
                       >Volcano</button>
                     </div>
                   </div>
                   <div class="section-header-meta f-col">
-                    <div v-if="!outcome.supportsVolcano || $parent.getPlotView(outcome.outcome_id) === 'forest'" class="plot-legend f-col">
+                    <div v-if="!outcome.supportsVolcano || $parent.getPlotView(outcome) === 'forest'" class="plot-legend f-col">
                       <div class="f-row legend-row">
                         <div class="legend-item f-row">
                           <span class="legend-dot"></span>
-                          <span>effect size</span>
+                          <span>log fold change</span>
                         </div>
                         <div class="legend-item f-row">
                           <span class="legend-line"></span>
                           <span>95% CI</span>
+                        </div>
+                        <div class="legend-item f-row">
+                          <span class="legend-dot legend-dot--adj-p"></span>
+                          <span>adj. p ≤ 0.05</span>
                         </div>
                       </div>
                       <template v-if="outcome.pooledEffectLeft !== null">
                         <div class="f-row legend-row">
                           <div class="legend-item f-row">
                             <span class="legend-dot legend-dot--pooled"></span>
-                            <span>pooled effect size</span>
+                            <span>pooled log fold change</span>
                           </div>
                           <div class="legend-item f-row">
                             <span class="legend-ref-line"></span>
@@ -273,40 +277,11 @@
                         </div>
                       </template>
                     </div>
-                    <div v-else class="plot-legend f-col">
-                      <div class="f-row legend-row">
-                        <div class="legend-item f-row">
-                          <span class="legend-dot" style="background:#ff6c02"></span>
-                          <span>p ≤ 0.05</span>
-                        </div>
-                        <div class="legend-item f-row">
-                          <span class="legend-dot" style="background:#bbbbbb; opacity:0.55"></span>
-                          <span>p > 0.05</span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
                 <div class="plot-card f-col">
-                  <template v-if="!outcome.supportsVolcano || $parent.getPlotView(outcome.outcome_id) === 'forest'">
-                    <div
-                      v-if="outcome.axis_labels.left || outcome.axis_labels.right"
-                      class="plot-scale-row"
-                    >
-                      <div></div>
-                      <div class="plot-direction-bar">
-                        <span
-                          v-if="outcome.axis_labels.left"
-                          class="plot-direction-left"
-                        >← {{ outcome.axis_labels.left }}</span>
-                        <span
-                          v-if="outcome.axis_labels.right"
-                          class="plot-direction-right"
-                        >{{ outcome.axis_labels.right }} →</span>
-                      </div>
-                    </div>
-
+                  <template v-if="!outcome.supportsVolcano || $parent.getPlotView(outcome) === 'forest'">
                     <div class="plot-scale-row">
                       <div></div>
                       <div class="plot-guide">
@@ -327,7 +302,12 @@
                         v-for="item in outcome.plotRowGroups"
                         :key="item.key"
                         class="plot-row"
-                        :class="{ pooled: item.row.row_type === 'pooled' }"
+                        :class="{
+                          pooled: item.row.row_type === 'pooled',
+                          'plot-row--adj-p-dimmed': item.row.isAdjPFilteredOut,
+                          'plot-row--adj-p-significant': item.row.isAdjPSignificant,
+                          'plot-row--selected': $parent.selectedEvidenceRowKey === item.row.plot_key,
+                        }"
                       >
                           <div class="label-rail">
                             <div
@@ -351,6 +331,7 @@
                             <span
                               v-if="item.row.comparison_level_a && item.row.row_type !== 'pooled'"
                               class="level-pill level-pill--left"
+                              :title="item.row.comparison_level_a"
                             >{{ item.row.comparison_level_a }}</span>
                             <div
                               class="plot-rail"
@@ -374,7 +355,10 @@
                               ></div>
                               <div
                                 class="effect-marker"
-                                :class="{ pooled: item.row.row_type === 'pooled' }"
+                                :class="{
+                                  pooled: item.row.row_type === 'pooled',
+                                  'effect-marker--adj-p-significant': item.row.isAdjPSignificant,
+                                }"
                                 :style="{
                                   left: `calc(${item.row.effectLeft}% - 7px)`,
                                 }"
@@ -388,6 +372,7 @@
                             <span
                               v-if="item.row.comparison_level_b && item.row.row_type !== 'pooled'"
                               class="level-pill level-pill--right"
+                              :title="item.row.comparison_level_b"
                             >{{ item.row.comparison_level_b }}</span>
                           </div>
                       </div>
@@ -405,7 +390,11 @@
                           class="row-title"
                           :class="[
                             $parent.speciesClass(row.species),
-                            { 'vlabel-active': $parent.volcanoHoveredKey === $parent.volcanoRowKey(row, idx) },
+                            {
+                              'vlabel-active': $parent.volcanoHoveredKey === $parent.volcanoRowKey(row, idx),
+                              'vlabel-active-selected': $parent.selectedEvidenceRowKey === $parent.volcanoRowKey(row, idx),
+                              'vlabel-dimmed': row.isAdjPFilteredOut,
+                            },
                           ]"
                           @mouseenter="$parent.setVolcanoHoveredKey($parent.volcanoRowKey(row, idx))"
                           @mouseleave="$parent.setVolcanoHoveredKey(null)"
@@ -414,9 +403,10 @@
                     </div>
                     <div class="volcano-plot-col">
                       <volcano-plot
-                        :rows="outcome.rows"
+                        :rows="outcome.plotRows"
                         :row-tooltip="$parent.rowTooltip"
                         :hovered-key="$parent.volcanoHoveredKey"
+                        :selected-key="$parent.selectedEvidenceRowKey"
                         @hover="$parent.setVolcanoHoveredKey($event)"
                         @hover-end="$parent.setVolcanoHoveredKey(null)"
                       />
@@ -438,7 +428,7 @@
                   @click="$parent.toggleOutcome(outcome.outcome_id)"
                 >
                   <span class="evidence-accordion__caret" aria-hidden="true"></span>
-                  <span class="evidence-accordion__label">Evidence rows</span>
+                  <span class="evidence-accordion__label">Evidence rows ({{ $parent.evidenceRowCount(outcome) }})</span>
                 </button>
 
                 <div
@@ -473,7 +463,7 @@
                             class="th-tooltip"
                             v-b-tooltip.hover.top="'Number of samples in each comparison group: reference (a) / treatment (b)'"
                           >N (a / b)</th>
-                          <th>Effect (95% CI)</th>
+                          <th>Log fold change (95% CI)</th>
                           <th>P-value</th>
                           <th>Adj. P</th>
                           <th>Method</th>
@@ -481,9 +471,16 @@
                       </thead>
                       <tbody>
                         <tr
-                          v-for="(row, rowIndex) in outcome.rows"
+                          v-for="(row, rowIndex) in $parent.evidenceRowsForOutcome(outcome)"
                           :key="`${outcome.outcome_id}-table-${rowIndex}`"
-                          :class="{ pooled: row.row_type === 'pooled' }"
+                          :class="{
+                            pooled: row.row_type === 'pooled',
+                            selected: $parent.isEvidenceRowSelected(outcome, row, rowIndex),
+                          }"
+                          tabindex="0"
+                          @click="$parent.selectEvidenceRow(outcome, row, rowIndex)"
+                          @keydown.enter.prevent="$parent.selectEvidenceRow(outcome, row, rowIndex)"
+                          @keydown.space.prevent="$parent.selectEvidenceRow(outcome, row, rowIndex)"
                         >
                           <td class="cell-truncate" :title="row.display_label_medium">{{ row.display_label_short }}</td>
                           <td class="cell-truncate" :title="row.dataset_name">{{ row.dataset_name || "—" }}</td>
@@ -501,6 +498,14 @@
                     </table>
                   </div>
                   </div>
+                  <button
+                    v-if="!$parent.isEvidenceTableExpanded(outcome.outcome_id) && $parent.hiddenEvidenceRowCount(outcome)"
+                    type="button"
+                    class="evidence-show-more"
+                    @click="$parent.expandEvidenceTable(outcome.outcome_id)"
+                  >
+                    Show {{ $parent.hiddenEvidenceRowCount(outcome) }} more
+                  </button>
                 </div>
               </section>
             </div>
@@ -1111,25 +1116,6 @@
   font-weight: 700;
 }
 
-.plot-direction-bar {
-  align-items: center;
-  color: #333333;
-  display: flex;
-  font-size: 11px;
-  font-weight: 600;
-  gap: 8px;
-  justify-content: space-between;
-  padding: 0 2px;
-}
-
-.plot-direction-left,
-.plot-direction-right {
-  max-width: 45%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .plot-rows {
   gap: 0px;
 }
@@ -1140,6 +1126,36 @@
   gap: 8px;
   grid-template-columns: 220px minmax(0, 1fr);
   min-height: 20px;
+}
+
+.plot-row--adj-p-dimmed .row-title,
+.plot-row--adj-p-dimmed .level-pill,
+.plot-row--adj-p-dimmed .ci-line,
+.plot-row--adj-p-dimmed .effect-marker,
+.plot-row--adj-p-dimmed .pooled-stars {
+  opacity: 0.28;
+}
+
+.plot-row--adj-p-dimmed:hover .row-title,
+.plot-row--adj-p-dimmed:hover .level-pill,
+.plot-row--adj-p-dimmed:hover .ci-line,
+.plot-row--adj-p-dimmed:hover .effect-marker,
+.plot-row--adj-p-dimmed:hover .pooled-stars {
+  opacity: 0.7;
+}
+
+.plot-row--selected .row-title {
+  background: #fff4ee;
+  color: #cc4400;
+}
+
+.plot-row--selected .plot-rail {
+  background: rgba(255, 108, 2, 0.08);
+  border-radius: 4px;
+}
+
+.plot-row--selected .effect-marker {
+  box-shadow: 0 0 0 4px rgba(255, 108, 2, 0.34);
 }
 
 .label-rail {
@@ -1158,8 +1174,11 @@
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
+  max-width: min(190px, 42%);
+  overflow: hidden;
   padding: 2px 5px;
   position: absolute;
+  text-overflow: ellipsis;
   top: 50%;
   transform: translateY(-50%);
   white-space: nowrap;
@@ -1292,6 +1311,10 @@
   border-color: #424242;
 }
 
+.effect-marker--adj-p-significant {
+  box-shadow: 0 0 0 3px rgba(255, 108, 2, 0.28);
+}
+
 .pooled-stars {
   color: #ff6c02;
   font-size: 11px;
@@ -1333,6 +1356,15 @@
 .legend-dot--pooled {
   background: #ff6c02;
   border-color: #424242;
+}
+
+.legend-dot--adj-p {
+  box-shadow: 0 0 0 3px rgba(255, 108, 2, 0.28);
+}
+
+.legend-dot--depot {
+  background: linear-gradient(135deg, #0072b2 0 50%, #d55e00 50% 100%);
+  border-color: #009e73;
 }
 
 .legend-line {
@@ -1401,6 +1433,25 @@
 
 .evidence-accordion.expanded .evidence-accordion__caret {
   transform: rotate(90deg);
+}
+
+.evidence-show-more {
+  align-self: flex-start;
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+  color: #444444;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 8px;
+  padding: 5px 10px;
+}
+
+.evidence-show-more:hover,
+.evidence-show-more:focus {
+  border-color: #ff6c02;
+  color: #cc4400;
 }
 
 :global(.tooltip.b-tooltip .tooltip-inner) {
@@ -1540,6 +1591,20 @@
   background: #fff9d9;
 }
 
+.details-table tbody tr {
+  cursor: pointer;
+}
+
+.details-table tbody tr:hover td {
+  background: #fff4ee;
+}
+
+.details-table tbody tr.selected td,
+.details-table tbody tr.selected td:first-child {
+  background: #ffe9dc;
+  box-shadow: inset 0 1px 0 #ffb07a, inset 0 -1px 0 #ffb07a;
+}
+
 .cell-truncate {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1561,6 +1626,7 @@
   width: 220px;
   height: 320px;
   overflow: scroll;
+  box-shadow: inset 0 -30px 25px -30px rgba(0, 0, 0, 0.1);
 }
 
 .vlabel-row {
@@ -1573,6 +1639,20 @@
 .vlabel-active {
   background: #fff4ee;
   color: #cc4400;
+}
+
+.vlabel-active-selected {
+  background: #ffe9dc;
+  color: #aa3300;
+}
+
+.vlabel-dimmed {
+  opacity: 0.35;
+}
+
+.vlabel-active.vlabel-dimmed,
+.vlabel-dimmed:hover {
+  opacity: 0.75;
 }
 
 .volcano-plot-col {

@@ -9,12 +9,12 @@ import {
     fetchOrthologSymbol,
     resolveHumanMouseSymbols,
 } from "../../utils/gprofilerOrth.js";
-import { fetchForestGenePayload } from "../../utils/buildForestGenePayload.js";
+import { fetchForestGenePayload } from "./buildForestGenePayload.js";
 
 import VolcanoPlot from "./VolcanoPlot.vue";
 Vue.component("volcano-plot", VolcanoPlot);
 
-const VOLCANO_OUTCOME_IDS = new Set(["genotype_status"]);
+const VOLCANO_OUTCOME_FALLBACK_IDS = new Set(["genotype_status"]);
 
 const FILTER_DROPDOWN_POPPER_OPTS = {
     placement: "right",
@@ -60,6 +60,7 @@ new Vue({
             geneNotFound: false,
             selectedOutcomeId: null,
             expandedOutcomes: {},
+            expandedEvidenceTables: {},
             visibleOutcomes: {},
             speciesFilters: {
                 human: true,
@@ -73,6 +74,7 @@ new Vue({
             datasetRowVisibility: {},
             plotViews: {},
             volcanoHoveredKey: null,
+            selectedEvidenceRowKey: null,
             filterDropdownPopperOpts: FILTER_DROPDOWN_POPPER_OPTS,
             activeScrolledOutcomeId: null,
             scrollHandler: null,
@@ -143,8 +145,8 @@ new Vue({
                     this.isRowFilterVisible(row, outcome.outcome_id)
                 );
                 const domain = this.getOutcomeDomain(visibleRows);
-                const plotRows = visibleRows.map((row) =>
-                    this.decorateRowForPlot(row, domain)
+                const plotRows = visibleRows.map((row, index) =>
+                    this.decorateRowForPlot(row, domain, outcome.outcome_id, index)
                 );
 
                 const pooledPlotRow = plotRows.find(
@@ -158,11 +160,12 @@ new Vue({
                     hasFilteredData: visibleRows.length > 0,
                     domain,
                     ticks: this.buildTicks(domain),
+                    plotRows,
                     plotRowGroups: this.buildPlotRowGroups(plotRows),
                     pooledEffectLeft: pooledPlotRow
                         ? pooledPlotRow.effectLeft
                         : null,
-                    supportsVolcano: VOLCANO_OUTCOME_IDS.has(outcomeId),
+                    supportsVolcano: this.supportsVolcanoOutcome(outcome),
                 };
             });
         },
@@ -404,8 +407,7 @@ new Vue({
             return (
                 this.isSpeciesRowVisible(row) &&
                 this.isGlobalDatasetRowVisible(row) &&
-                this.isDepotRowVisible(row) &&
-                this.isAdjPRowVisible(row)
+                this.isDepotRowVisible(row)
             );
         },
         collectDatasetOptions(gene) {
@@ -786,16 +788,20 @@ new Vue({
                 };
             });
         },
-        decorateRowForPlot(row, domain) {
+        decorateRowForPlot(row, domain, outcomeId, index = 0) {
             const ciLeft = this.scaleValue(row.ci_low, domain);
             const ciRight = this.scaleValue(row.ci_high, domain);
             const effectLeft = this.scaleValue(row.effect, domain);
+            const plotKey = this.getEvidenceRowKey(outcomeId, row, index);
 
             return {
                 ...row,
+                plot_key: plotKey,
                 ciLeft,
                 ciWidth: Math.max(ciRight - ciLeft, 1),
                 effectLeft,
+                isAdjPFilteredOut: !this.isAdjPRowVisible(row),
+                isAdjPSignificant: this.isAdjPSignificant(row),
             };
         },
         formatEstimate(row) {
@@ -816,6 +822,12 @@ new Vue({
             if (pValue < 0.01) return "**";
             if (pValue < 0.05) return "*";
             return "";
+        },
+        isAdjPSignificant(row) {
+            return row.p_value_adj !== null &&
+                row.p_value_adj !== undefined &&
+                !Number.isNaN(row.p_value_adj) &&
+                row.p_value_adj <= 0.05;
         },
         formatPValue(value) {
             if (value === null || value === undefined || Number.isNaN(value)) {
@@ -921,6 +933,8 @@ new Vue({
                 this.geneQuery = gene;
             }
             this.expandedOutcomes = {};
+            this.expandedEvidenceTables = {};
+            this.selectedEvidenceRowKey = null;
             this.speciesFilters = {
                 human: this.viewSpecies === "human",
                 mouse: this.viewSpecies === "mouse",
@@ -992,7 +1006,7 @@ new Vue({
                     ${r("Depot", depot)}
                     ${r("Depot 2", depot2)}
                     <div class="plot-tooltip__divider"></div>
-                    ${r("Effect", effect)}
+                    ${r("Log fold change", effect)}
                     ${r("CI low", ciLow)}
                     ${r("CI high", ciHigh)}
                     ${r("P-value", pValue)}
@@ -1035,33 +1049,100 @@ new Vue({
                 }
             });
         },
-        getPlotView(outcomeId) {
+        supportsVolcanoOutcome(outcome) {
+            return (
+                outcome.recommended_visualization === "volcano" ||
+                VOLCANO_OUTCOME_FALLBACK_IDS.has(outcome.outcome_id)
+            );
+        },
+        getPlotView(outcome) {
+            const outcomeId =
+                typeof outcome === "string" ? outcome : outcome.outcome_id;
+
             if (this.plotViews[outcomeId]) return this.plotViews[outcomeId];
-            return VOLCANO_OUTCOME_IDS.has(outcomeId) ? "volcano" : "forest";
+            return this.supportsVolcanoOutcome(
+                typeof outcome === "string"
+                    ? { outcome_id: outcome, recommended_visualization: null }
+                    : outcome
+            )
+                ? "volcano"
+                : "forest";
         },
         setPlotView(outcomeId, view) {
             this.$set(this.plotViews, outcomeId, view);
         },
         volcanoDataRows(outcome) {
-            return outcome.rows.filter(
+            const rows = outcome.plotRows || outcome.rows || [];
+
+            return rows.filter(
                 (r) => r.row_type !== "pooled" && r.effect != null && r.p_value != null && r.p_value > 0
             );
         },
         volcanoRowKey(row, idx) {
-            return `${idx}-${row.dataset_id || idx}`;
+            return row.plot_key || this.getEvidenceRowKey(row.outcome_id, row, idx);
         },
         setVolcanoHoveredKey(key) {
             this.volcanoHoveredKey = key || null;
+        },
+        getEvidenceRowKey(outcomeId, row) {
+            return [
+                outcomeId || row.outcome_id || "outcome",
+                row.row_type || "row",
+                row.dataset_id || row.display_label_short || "dataset",
+                row.comparison_id || row.direction_label || "comparison",
+                row.comparison_level_a || "",
+                row.comparison_level_b || "",
+                row.effect ?? "",
+                row.p_value ?? "",
+                row.p_value_adj ?? "",
+            ].join("::");
+        },
+        evidenceRowsForOutcome(outcome) {
+            if (!outcome || !outcome.rows) {
+                return [];
+            }
+
+            if (this.isEvidenceTableExpanded(outcome.outcome_id)) {
+                return outcome.rows;
+            }
+
+            return outcome.rows.slice(0, 3);
+        },
+        evidenceRowCount(outcome) {
+            return outcome && outcome.rows ? outcome.rows.length : 0;
+        },
+        hiddenEvidenceRowCount(outcome) {
+            return Math.max(this.evidenceRowCount(outcome) - 3, 0);
+        },
+        isEvidenceTableExpanded(outcomeId) {
+            return !!this.expandedEvidenceTables[outcomeId];
+        },
+        expandEvidenceTable(outcomeId) {
+            this.$set(this.expandedEvidenceTables, outcomeId, true);
+        },
+        selectEvidenceRow(outcome, row, index = 0) {
+            this.selectedEvidenceRowKey = this.getEvidenceRowKey(
+                outcome.outcome_id,
+                row,
+                index
+            );
+        },
+        isEvidenceRowSelected(outcome, row, index = 0) {
+            return this.selectedEvidenceRowKey === this.getEvidenceRowKey(
+                outcome.outcome_id,
+                row,
+                index
+            );
         },
         toggleOutcome(outcomeId) {
             this.$set(
                 this.expandedOutcomes,
                 outcomeId,
-                !this.expandedOutcomes[outcomeId]
+                !this.isOutcomeExpanded(outcomeId)
             );
         },
         isOutcomeExpanded(outcomeId) {
-            return !!this.expandedOutcomes[outcomeId];
+            return this.expandedOutcomes[outcomeId] !== false;
         },
         isOutcomeInFocus(outcomeId) {
             if (this.activeScrolledOutcomeId) {
