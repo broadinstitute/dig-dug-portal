@@ -33,6 +33,12 @@ Current supported keys:
 - `documentationUrl`
   - Overrides the `Read Documentation` link target.
   - Default: `/research.html?pageid=kp_liger_documentation`
+- `bioIndexHost`
+  - Overrides which bioindex serves the LIGER indexes.
+  - Default: unset, i.e. the host portal's own `BIO_INDEX_HOST`.
+  - Set it only on branches whose LIGER indexes live somewhere other than their own bioindex.
+  - Trailing slashes are trimmed, so `https://host` and `https://host/` both work.
+  - Does **not** affect `/api/portal/phenotypes` — see the API Host section.
 - `tissues`
   - Optional allowlist of tissue keys to expose in results.
   - Example values: `["liver"]`, `["liver", "pancreas"]`
@@ -54,6 +60,7 @@ Example:
 config: {
   pageTitle: "Liver Cell State Explorer",
   documentationUrl: "/research.html?pageid=my_docs",
+  bioIndexHost: "https://bioindex-dev.pankbase.org", // only when not this portal's own bioindex
   tissues: ["liver", "pancreas"],
   hideTissueCardIfOneOption: true,
 }
@@ -76,18 +83,33 @@ config: {
 
 ## API Host
 
-LIGER now has a code-level host selection toggle in `LigerBrowser.vue`.
+The host for the LIGER indexes is resolved in the `apiHost()` computed. Precedence, highest first:
 
-- Default behavior:
-  - use `BIO_INDEX_HOST` from `@/utils/bioIndexUtils`
-  - if the page is running on `localhost`, `127.0.0.1`, or `0.0.0.0`, force dev BioIndex at runtime
-- Optional override:
-  - set `LIGER_FORCE_DEV_BIOINDEX = true` to force `https://bioindex-dev.hugeamp.org` everywhere
+1. `LIGER_FORCE_DEV_BIOINDEX = true` -- a code-level debugging switch, so it wins outright and points
+   everything at `LIGER_DEV_BIOINDEX_HOST`.
+2. `config.bioIndexHost`, if set.
+3. Running on `localhost` / `127.0.0.1` / `0.0.0.0` -- falls back to `LIGER_DEV_BIOINDEX_HOST`.
+4. `BIO_INDEX_HOST` -- the host portal's own bioindex, compile-time injected per portal by
+   `vue.config.js`.
+5. `LIGER_DEFAULT_BIOINDEX_HOST` (`https://bioindex.hugeamp.org`), only as a guard for `BIO_INDEX_HOST`
+   being absent -- which happens in builds that do not run the `vue.config.js` define (tests, or any
+   consumer importing this component outside the portal build).
 
-Important implementation detail:
+So a branch whose bioindex serves the LIGER indexes needs no configuration; `config.bioIndexHost` is for
+the branches whose indexes live elsewhere.
 
-- `BIO_INDEX_HOST` in this repo is compile-time injected by `vue.config.js`; it is not inherently runtime-aware of localhost
-- LIGER therefore adds its own localhost fallback logic
+Two details worth keeping:
+
+- **The localhost fallback applies only when no host is configured.** A page that names its host gets that
+  host when served locally too -- otherwise local development silently reads from a different backend than
+  production, which is the hardest kind of discrepancy to notice.
+- **`bioIndexHost` is `null` in `LIGER_DEFAULT_CONFIG`, not a host string.** The chain above lives in
+  `apiHost()`; filling a value in at the config layer would make every step below it unreachable.
+
+`/api/portal/phenotypes` is the one endpoint that does not follow `apiHost`. Only the hugeamp bioindex
+serves it (others return `501`), so it stays pinned to `LIGER_PHENOTYPES_HOST`. Do not route it through
+`config.bioIndexHost`: that knob exists to point the LIGER indexes at another portal, and dragging the
+phenotype labels along would send them to a host that does not serve them.
 
 ## Temporary Local Tissue Config
 

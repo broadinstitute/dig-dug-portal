@@ -84,12 +84,19 @@ const SCENARIOS = {
 
 // the layout is authored at this width and scaled down to whatever space it gets
 const PAGE_WIDTH = 1380;
+// The preview is a fixed scale rather than "whatever the container allows": it
+// sits beside the page headline, where the figure should be a stable, recognisable
+// glyph rather than something that grows and shrinks with the column.
+const PREVIEW_SCALE = .25;
 
 export default Vue.component("CellStateInfographic", {
     props: {
-        // The parent collapses the figure once the user starts analyzing, but the
-        // user can still expand or re-collapse it from here afterwards.
-        collapse: {
+        // Render as a small preview that sits beside the page headline. The figure
+        // itself is unchanged -- it is authored at PAGE_WIDTH and scaled to
+        // whatever width it is given, so a narrow container is all "smaller"
+        // takes. Clicking the preview opens the same figure as an overlay, at
+        // which point it is interactive again.
+        thumbnail: {
             type: Boolean,
             default: false
         }
@@ -104,7 +111,11 @@ export default Vue.component("CellStateInfographic", {
             locked: "healthy",
             // hover and focus preview a scenario without committing to it
             hovered: null,
-            collapsed: this.collapse,
+            overlayOpen: false,
+            // The shell goes `position: fixed` while the overlay is open, which
+            // takes it out of flow -- without holding its height the page headline
+            // it sits beside would reflow the moment the figure is opened.
+            reservedHeight: null,
             scale: 1,
             stageHeight: null,
             // pinned once, to the tallest rendering across scenarios, so switching
@@ -115,6 +126,12 @@ export default Vue.component("CellStateInfographic", {
     },
 
     computed: {
+        // Preview is the shrunk, non-interactive state: a click anywhere on it
+        // opens the overlay. Once the overlay is open the same figure is live
+        // again, so the preview affordances have to come off.
+        isPreview() {
+            return this.thumbnail && !this.overlayOpen;
+        },
         activeMode() {
             return this.hovered || this.locked;
         },
@@ -125,7 +142,21 @@ export default Vue.component("CellStateInfographic", {
             return { transform: `scale(${this.scale})` };
         },
         stageStyle() {
-            return this.stageHeight ? { height: this.stageHeight } : {};
+            let style = this.stageHeight ? { height: this.stageHeight } : {};
+
+            // At a fixed scale the stage has to be told its width too -- otherwise
+            // it takes the full column and the box is mostly empty space to the
+            // right of the figure.
+            if (this.isPreview) {
+                style.width = Math.round(PAGE_WIDTH * PREVIEW_SCALE) + "px";
+            }
+
+            return style;
+        },
+        rootStyle() {
+            return this.overlayOpen && this.reservedHeight
+                ? { minHeight: this.reservedHeight }
+                : {};
         },
         // one rule for both encodings, so the arrow always agrees with the bar it labels
         arrows() {
@@ -164,32 +195,44 @@ export default Vue.component("CellStateInfographic", {
     },
 
     watch: {
-        collapsed() {
+        // Opening or closing the overlay changes how much width the stage has, and
+        // the scale is derived from that width, so it has to be remeasured.
+        overlayOpen() {
             this.$nextTick(this.fit);
-        },
-        collapse(value) {
-            this.collapsed = value;
         },
     },
 
     mounted() {
         window.addEventListener("resize", this.fit);
+        window.addEventListener("keydown", this.onWindowKeydown);
         this.fit();
         this.lockHeights();
     },
 
     beforeDestroy() {
         window.removeEventListener("resize", this.fit);
+        window.removeEventListener("keydown", this.onWindowKeydown);
     },
 
     methods: {
         onModeClick(mode) {
             this.locked = mode;
         },
-        onContextClick(event) {
-            // the button handles its own clicks; this only reopens from the collapsed header
-            if (event.target.closest(".toggle")) return;
-            if (this.collapsed) this.collapsed = false;
+        openOverlay() {
+            if (this.$el) {
+                this.reservedHeight = this.$el.offsetHeight + "px";
+            }
+
+            this.overlayOpen = true;
+        },
+        closeOverlay() {
+            this.overlayOpen = false;
+            this.reservedHeight = null;
+        },
+        onWindowKeydown(event) {
+            if (event && event.key === "Escape" && this.overlayOpen) {
+                this.closeOverlay();
+            }
         },
         fit() {
             const stage = this.$refs.stage;
@@ -198,7 +241,7 @@ export default Vue.component("CellStateInfographic", {
             // the stage's own width, not the window's: the figure lives inside a portal
             // page whose content column is narrower than the viewport
             const avail = stage.clientWidth;
-            this.scale = Math.min(1, avail / PAGE_WIDTH);
+            this.scale = this.isPreview ? PREVIEW_SCALE : Math.min(1, avail / PAGE_WIDTH);
             this.$nextTick(() => {
                 if (!this.$refs.page) return;
                 // offsetHeight is the unscaled height, so the stage has to be told
@@ -229,38 +272,52 @@ export default Vue.component("CellStateInfographic", {
 </script>
 
 <template>
-    <div id="cell-state-infographic">
-        <div class="stage" ref="stage" :style="stageStyle">
-            <div class="page" ref="page" :style="pageStyle">
-                <div class="frame" :class="{ collapsed: collapsed }" :style="{ '--state-color': scenario.color }">
-                    <section class="context" @click="onContextClick">
-                        <h1>Cell state model</h1>
-                        <p class="intro">See how gene activity is summarized as programs, how programs help characterize a cell state, and how that state relates to disease.</p>
-                        <div class="mode-wrap" role="group" aria-label="Ways cell state and disease relate">
-                            <button
-                                v-for="mode in modes"
-                                :key="mode.key"
-                                class="mode"
-                                :class="{ active: activeMode === mode.key }"
-                                :data-mode="mode.key"
-                                :aria-pressed="String(activeMode === mode.key)"
-                                @mouseenter="hovered = mode.key"
-                                @mouseleave="hovered = null"
-                                @focus="hovered = mode.key"
-                                @blur="hovered = null"
-                                @click="onModeClick(mode.key)"
-                            >{{ mode.label }}</button>
-                        </div>
-                        <button
-                            class="toggle"
-                            aria-controls="modelWrap"
-                            :aria-expanded="String(!collapsed)"
-                            :aria-label="collapsed ? 'Expand figure' : 'Collapse figure'"
-                            @click="collapsed = !collapsed"
-                        >
-                            <span class="chev" aria-hidden="true">▾</span>
-                        </button>
-                    </section>
+    <div
+        id="cell-state-infographic"
+        :class="{ 'is-preview': isPreview, 'is-overlay': overlayOpen }"
+        :style="rootStyle"
+    >
+        <div v-if="overlayOpen" class="figure-backdrop" @click="closeOverlay"></div>
+        <!-- One figure, not two: the overlay re-parents nothing, it only changes
+             how the shell is positioned and how wide the stage is. A second copy
+             would duplicate every ref that `fit` and `lockHeights` measure. -->
+        <div
+            class="figure-shell"
+            :role="isPreview ? 'button' : null"
+            :tabindex="isPreview ? 0 : null"
+            :aria-label="isPreview ? 'Expand the cell state model figure' : null"
+            @click="isPreview ? openOverlay() : null"
+            @keydown.enter.prevent="isPreview ? openOverlay() : null"
+            @keydown.space.prevent="isPreview ? openOverlay() : null"
+        >
+            <button
+                v-if="overlayOpen"
+                type="button"
+                class="figure-close"
+                aria-label="Close figure"
+                @click.stop="closeOverlay"
+            >&times;</button>
+            <div class="stage" ref="stage" :style="stageStyle">
+                <div class="page" ref="page" :style="pageStyle">
+                    <div class="frame" :style="{ '--state-color': scenario.color }">
+                        <section class="context">
+                            <h1>Cell state model</h1>
+                            <div class="mode-wrap" role="group" aria-label="Ways cell state and disease relate">
+                                <button
+                                    v-for="mode in modes"
+                                    :key="mode.key"
+                                    class="mode"
+                                    :class="{ active: activeMode === mode.key }"
+                                    :data-mode="mode.key"
+                                    :aria-pressed="String(activeMode === mode.key)"
+                                    @mouseenter="hovered = mode.key"
+                                    @mouseleave="hovered = null"
+                                    @focus="hovered = mode.key"
+                                    @blur="hovered = null"
+                                    @click="onModeClick(mode.key)"
+                                >{{ mode.label }}</button>
+                            </div>
+                        </section>
 
                     <div class="model-wrap" id="modelWrap">
                         <div class="model-shell">
@@ -346,9 +403,11 @@ export default Vue.component("CellStateInfographic", {
 
                         </div>
                     </div>
-                    <p class="note">This example uses a beta cell but conceptually applies to any cell type. States, genes, programs, contexts, and outcomes are simplified; not measured data.</p>
+                        <p class="note">This example uses a beta cell but conceptually applies to any cell type. States, genes, programs, contexts, and outcomes are simplified; not measured data.</p>
+                    </div>
                 </div>
             </div>
+            <span v-if="isPreview" class="figure-preview-hint">Click to expand</span>
         </div>
     </div>
 </template>
@@ -373,26 +432,80 @@ h1{font-size:28px;margin:0;letter-spacing: -.5px;}
 /* the scenario tints one frame that holds the buttons and the whole five-card chain */
 .frame{background:color-mix(in srgb,var(--state-color) 10%,white);border-radius:22px;transition:.2s ease}
 .context{padding: 30px;display:flex;align-items:center;gap:24px}
-/* the whole header is the hit target once collapsed */
-.frame.collapsed .context{cursor:pointer}
-.frame.collapsed:hover {background: color-mix(in srgb, var(--state-color) 20%, white);}
-/* intro copy stands in for the figure while it is put away */
-.intro{margin:0;font-size:14px;color:var(--muted);display:none; padding:8px 0 0;}
-.frame.collapsed .intro{display:block}
-.frame.collapsed .mode-wrap,
-.frame.collapsed .model-wrap,
-.frame.collapsed .note{display:none}
-.toggle{
-    flex:none;margin-left:auto;width:34px;height:34px;border-radius:50%;
-    border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;
-    display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;transition:.18s ease
-}
-.toggle:hover,.toggle:focus-visible{
-    border-color:var(--state-color);background:color-mix(in srgb,var(--state-color) 8%,white)
-}
-.toggle .chev{display:block;transition:transform .22s ease}
-.frame:not(.collapsed) .toggle .chev{transform:rotate(180deg)}
 .model-wrap{padding:0 30px 30px}
+
+/* Preview: the figure at whatever scale its narrow container allows, as one hit
+   target. The inner controls are switched off rather than removed -- at this size
+   they are illegible, and a stray hover on a mode button would silently change
+   which scenario the preview shows. */
+.is-preview .figure-shell{
+    position:relative;
+    display:inline-block;
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:border-color .18s ease, box-shadow .18s ease;
+}
+.is-preview .figure-shell:hover,
+.is-preview .figure-shell:focus-visible{
+    border-color:var(--green);
+    box-shadow:0 6px 18px rgba(23,38,43,.12);
+}
+.is-preview .page{pointer-events:none}
+.figure-preview-hint{
+    position:absolute;
+    right:8px;
+    top:8px;
+    padding:3px 9px;
+    border-radius:999px;
+    background:rgba(23,38,43,.78);
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+}
+
+/* Overlay: same figure, given the width to render at full scale. `fit` remeasures
+   on open, so the scale follows the wider stage on its own. */
+.figure-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.55);
+    z-index:3000;
+}
+.is-overlay .figure-shell{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:min(1424px,calc(100vw - 48px));
+    max-height:calc(100vh - 48px);
+    padding:16px;
+    border-radius:18px;
+    background:#fff;
+    box-shadow:0 24px 60px rgba(0,0,0,.35);
+    overflow:auto;
+    z-index:3001;
+}
+.figure-close{
+    position:absolute;
+    top:25px;
+    right:25px;
+    width:30px;
+    height:30px;
+    border:1px solid var(--line);
+    border-radius:50%;
+    background:#fff;
+    color:var(--ink);
+    font-size:20px;
+    line-height:1;
+    cursor:pointer;
+    z-index:1;
+    padding: 0 0 2px;
+}
+.figure-close:hover,.figure-close:focus-visible{
+    border-color:var(--state-color);
+}
 
 .mode-wrap{display:flex;align-items:center;gap:12px}
 .mode{

@@ -7,25 +7,39 @@ import CellStateInfographic from "./CellStateInfographic.vue";
 import StateDetails from "./StateDetails.vue";
 import ProgramDetails from "./ProgramDetails.vue";
 
+const LIGER_DEV_HUGEAMP_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
+const LIGER_PROD_HUGEAMP_BIOINDEX_HOST = "https://bioindex.hugeamp.org";
+// The default is the host portal's own bioindex, compile-time injected per portal
+// by `vue.config.js` -- so a branch that serves the LIGER indexes from its own
+// bioindex needs no configuration at all. `config.bioIndexHost` overrides it for
+// the branches whose indexes live somewhere else.
+//
+// LIGER_DEFAULT_BIOINDEX_HOST is only the guard for BIO_INDEX_HOST being absent,
+// which happens in builds that do not run the `vue.config.js` define (tests, and
+// any consumer importing this component outside the portal build).
+const LIGER_DEFAULT_BIOINDEX_HOST = LIGER_PROD_HUGEAMP_BIOINDEX_HOST;
 const LIGER_FORCE_DEV_BIOINDEX = false; //change this flag to TRUE to force use of bioindex-dev in all cases
-const LIGER_DEV_BIOINDEX_HOST = "https://bioindex-dev.pankbase.org";
+const LIGER_DEV_BIOINDEX_HOST = LIGER_DEV_HUGEAMP_BIOINDEX_HOST;
 const LIGER_LOCAL_HOSTNAMES = ["localhost", "127.0.0.1", "0.0.0.0"];
 const LIGER_RUNTIME_HOSTNAME = typeof window !== "undefined" ? window.location.hostname : "";
 const LIGER_USE_DEV_BIOINDEX = LIGER_FORCE_DEV_BIOINDEX || LIGER_LOCAL_HOSTNAMES.includes(LIGER_RUNTIME_HOSTNAME);
-const LIGER_RESOLVED_BIOINDEX_HOST = LIGER_USE_DEV_BIOINDEX ? LIGER_DEV_BIOINDEX_HOST : BIO_INDEX_HOST;
-const LIGER_API_HOST = LIGER_RESOLVED_BIOINDEX_HOST;
 // /api/portal/phenotypes is only served by the hugeamp bioindex, so it stays
-// pinned there regardless of which portal is hosting this component. These must
-// stay independent of LIGER_DEV_BIOINDEX_HOST above: that constant is the knob
-// for pointing the rest of the component at a different portal, so routing
-// through it would drag this endpoint along with it.
-const LIGER_DEV_HUGEAMP_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
-const LIGER_PROD_HUGEAMP_BIOINDEX_HOST = "https://bioindex.hugeamp.org";
+// pinned there regardless of which host the rest of the component is pointed at.
+// It must stay independent of `config.bioIndexHost`: that is the knob for pointing
+// the LIGER indexes at a different portal, and routing this through it would drag
+// the phenotype labels along to a host that does not serve them.
 const LIGER_PHENOTYPES_HOST = LIGER_USE_DEV_BIOINDEX ? LIGER_DEV_HUGEAMP_BIOINDEX_HOST : LIGER_PROD_HUGEAMP_BIOINDEX_HOST;
 const LIGER_PROGRAM_MODEL = "mouse_msigdb";
 const LIGER_DEFAULT_CONFIG = {
     pageTitle: "Cell State & Program Explorer",
     documentationUrl: "/research.html?pageid=kp_liger_documentation",
+    // Overrides which bioindex serves the LIGER indexes. Leave unset to use the
+    // host portal's own injected bioindex. Trailing slashes are trimmed, so both
+    // "https://host" and "https://host/" work.
+    //
+    // Null rather than a host string: the fallback chain lives in `apiHost()`, and
+    // filling a value in at this layer would make everything below it unreachable.
+    bioIndexHost: null,
     tissues: [],
     hideTissueCardIfOneOption: false,
     // Shown on the landing state only. Set to [] to hide the row entirely; the
@@ -271,6 +285,30 @@ export default Vue.component('LigerBrowser', {
                 ...LIGER_DEFAULT_CONFIG,
                 ...(this.config || {}),
             };
+        },
+        // Every LIGER index URL is built from this. Precedence, highest first:
+        // the code-level dev flag (a debugging switch, so it wins outright), then
+        // `config.bioIndexHost`, then the localhost convenience, then the host
+        // portal's own injected bioindex.
+        //
+        // The localhost case only applies when no host is configured -- a page that
+        // names its host should get that host when served locally too, otherwise
+        // local development silently tests a different backend than production.
+        apiHost() {
+            if (LIGER_FORCE_DEV_BIOINDEX) {
+                return LIGER_DEV_BIOINDEX_HOST;
+            }
+
+            let configured = String(this.ligerConfig.bioIndexHost || "").trim().replace(/\/+$/, "");
+            if (configured) {
+                return configured;
+            }
+
+            if (LIGER_LOCAL_HOSTNAMES.includes(LIGER_RUNTIME_HOSTNAME)) {
+                return LIGER_DEV_BIOINDEX_HOST;
+            }
+
+            return String(BIO_INDEX_HOST || "").replace(/\/+$/, "") || LIGER_DEFAULT_BIOINDEX_HOST;
         },
         pageTitle() {
             return this.ligerConfig.pageTitle || LIGER_DEFAULT_CONFIG.pageTitle;
@@ -894,51 +932,51 @@ export default Vue.component('LigerBrowser', {
             return `${LIGER_PHENOTYPES_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
         },
         buildCellStateExpressionUrl(gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(gene)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(gene)}`;
         },
         buildProgramExpressionUrl(gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(gene)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(gene)}`;
         },
         // The tissueQuery argument comes from tissueQueryKey(): a dataset ID on
         // dataset-keyed portals, a tissue key on tissue-keyed ones.
         buildCellTypeExpressionUrl(tissueQuery, gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-type?q=${encodeURIComponent(`${tissueQuery},${gene}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-expression-cell-type?q=${encodeURIComponent(`${tissueQuery},${gene}`)}`;
         },
         buildCellStateSectionExpressionUrl(tissueQuery, cellType, gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(`${tissueQuery},${cellType},${gene}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(`${tissueQuery},${cellType},${gene}`)}`;
         },
         buildProgramSectionExpressionUrl(datasetId, cellType, gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${gene}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${gene}`)}`;
         },
         buildCellStateMetadataUrl(tissue, cellType) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-cell-state-metadata-extended?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-cell-state-metadata-extended?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
         },
         buildGeneProgramInfoUrl(datasetId, cellType) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL}`)}`;
         },
         buildProgramGeneInfoUrl(datasetId, cellType, programId) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-gene-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-gene-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
         },
         buildProgramGeneSetInfoUrl(datasetId, cellType, programId) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-gene-set-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-gene-set-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
         },
         buildProgramQcInfoUrl(datasetId, cellType, programId) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-qc-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-qc-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
         },
         buildQcMetadataUrl() {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-qc-metadata-extended?q=1`;
+            return `${this.apiHost}/api/bio/query/gene-program-qc-metadata-extended?q=1`;
         },
         buildRelationshipHeatmapUrl(tissueQuery, cellType) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissueQuery},${cellType}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissueQuery},${cellType}`)}`;
         },
         buildTraitPhenotypesUrl() {
             return `${LIGER_PHENOTYPES_HOST}/api/portal/phenotypes?q=md`;
         },
         buildCellStateTraitUrl(tissueQuery, cellType, stateId) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-cell-state-trait-factor?q=${encodeURIComponent(`${tissueQuery},${cellType},${stateId}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-cell-state-trait-factor?q=${encodeURIComponent(`${tissueQuery},${cellType},${stateId}`)}`;
         },
         buildProgramTraitUrl(datasetId, cellType, programId) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-trait-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+            return `${this.apiHost}/api/bio/query/gene-program-trait-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
         },
         async ensurePhenotypeTraitRows() {
             if (this.phenotypeTraitRows.length) {
@@ -2858,17 +2896,22 @@ export default Vue.component('LigerBrowser', {
                         Explore where a gene is expressed and the cell states and gene
                         programs associated with its expression.
                     </h5>
-                    <a :href="documentationUrl" target="_blank" style="width:fit-content">Read Documentation</a>
-                </div>
-                <div class="f-col align-v-bottom flex1 g-5">
                     <div class="ai-disclosure">
                         <span class="bold">Note:</span> this resource uses AI-assisted curation of program names and cell states; manual review and curation are ongoing. Please see cell state and program metadata for details.
                     </div>
                 </div>
+                <!-- The figure rides alongside the headline as a thumbnail rather
+                     than taking a full-width band of its own: it is orienting
+                     material, not a step in the workflow. Clicking it opens the
+                     full figure as an overlay. `align-h-bottom` is this repo's
+                     `align-items: flex-end`, so the figure and the documentation
+                     link under it both sit against the right edge. -->
+                <div class="f-col align-h-bottom flex1 g-5">
+                    <cell-state-infographic thumbnail />
+                    <a :href="documentationUrl" target="_blank" style="width:fit-content">Read Documentation</a>
+                </div>
             </div>
         </div>
-
-        <cell-state-infographic :collapse="!isLandingState" />
 
         <!-- Layer 1 - Search. The gene is not part of the scope: tissue and cell
              type are questions *about* a gene, so choosing one has to come first
