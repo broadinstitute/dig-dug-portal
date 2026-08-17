@@ -1162,14 +1162,23 @@ export default {
                         iterations: 200,
                         fit: true,
                     },
-                    barnesHut: {
-                        gravitationalConstant: -1200,
-                        centralGravity: 0.06,
-                        springLength: 120,
-                        springConstant: 0.04,
-                        damping: 0.3,
-                        avoidOverlap: 0.5
-                    },
+                    barnesHut: this.keepPhysicsEnabled || this.isMechanismFlowMap
+                        ? {
+                              gravitationalConstant: -2200,
+                              centralGravity: 0.015,
+                              springLength: 160,
+                              springConstant: 0.018,
+                              damping: 0.5,
+                              avoidOverlap: 0.85,
+                          }
+                        : {
+                              gravitationalConstant: -1200,
+                              centralGravity: 0.06,
+                              springLength: 120,
+                              springConstant: 0.04,
+                              damping: 0.3,
+                              avoidOverlap: 0.5,
+                          },
                 },
                 interaction: {
                     hover: true,
@@ -1210,7 +1219,11 @@ export default {
 
             this.visNetwork.on("hoverNode", (params) => this.showHoverTooltip(params));
             this.visNetwork.on("blurNode", () => this.hideHoverTooltip());
-            this.visNetwork.on("dragStart", () => this.hideHoverTooltip());
+            this.visNetwork.on("dragStart", (params) => {
+                this.hideHoverTooltip();
+                this.onNodeDragStart(params);
+            });
+            this.visNetwork.on("dragEnd", (params) => this.onNodeDragEnd(params));
             this.visNetwork.on("zoom", (params) => this.moveHoverTooltip(params));
             this.visNetwork.on("dragging", (params) => this.moveHoverTooltip(params));
             this.visNetwork.on("selectEdge", () => this.refreshSelectionStylesSoon());
@@ -1287,6 +1300,42 @@ export default {
             if (typeof scale === "number" && !Number.isNaN(scale)) {
                 this.zoomLevel = Math.max(this.zoomMin, Math.min(this.zoomMax, scale));
             }
+        },
+        physicsRemainsEnabled() {
+            return !!(this.keepPhysicsEnabled || this.isMechanismFlowMap);
+        },
+        onNodeDragStart(params) {
+            if (!this.physicsRemainsEnabled() || !this.nodesDataSet) return;
+            const ids = (params && params.nodes) || [];
+            if (!ids.length) return;
+            // Temporarily release any prior pin so the node can move freely while dragging.
+            this.nodesDataSet.update(
+                ids.map((id) => ({
+                    id,
+                    fixed: { x: false, y: false },
+                    physics: true,
+                }))
+            );
+        },
+        onNodeDragEnd(params) {
+            if (!this.physicsRemainsEnabled() || !this.visNetwork || !this.nodesDataSet) return;
+            const ids = (params && params.nodes) || [];
+            if (!ids.length) return;
+            const positions = this.visNetwork.getPositions(ids);
+            const updates = ids
+                .map((id) => {
+                    const pos = positions[id];
+                    if (!pos) return null;
+                    return {
+                        id,
+                        x: pos.x,
+                        y: pos.y,
+                        fixed: { x: true, y: true },
+                        physics: false,
+                    };
+                })
+                .filter(Boolean);
+            if (updates.length) this.nodesDataSet.update(updates);
         },
         onNetworkClick(params) {
             if (!this.nodeSelectionEnabled || !params) return;
