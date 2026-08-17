@@ -19,7 +19,6 @@
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
-const url = require("url");
 
 const REMOTE_HOST = "hugeampkpncms.org";
 const REMOTE_BASE = `https://${REMOTE_HOST}`;
@@ -56,7 +55,7 @@ function skipForNonSysBioBuild() {
 
 function httpGet(targetUrl, { binary = false, redirects = 0 } = {}) {
     return new Promise((resolve, reject) => {
-        const opts = url.parse(targetUrl);
+        const opts = new URL(targetUrl);
         const req = https.get(opts, (res) => {
             const status = res.statusCode || 0;
             if (status >= 300 && status < 400 && res.headers.location) {
@@ -69,8 +68,12 @@ function httpGet(targetUrl, { binary = false, redirects = 0 } = {}) {
                     return;
                 }
                 res.resume();
+                const redirectUrl = new URL(
+                    res.headers.location,
+                    targetUrl
+                ).toString();
                 resolve(
-                    httpGet(res.headers.location, {
+                    httpGet(redirectUrl, {
                         binary,
                         redirects: redirects + 1,
                     })
