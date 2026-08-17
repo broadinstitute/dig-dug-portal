@@ -179,6 +179,7 @@ export default Vue.component("bulk-heatmap", {
             const data = await(response.json());
             
             if(!!data) {
+                console.log(JSON.stringify(data));
 
                 const metaData = data.metadata[this.comparisonId]
                 const metaLabel = data.metadata_labels[this.comparisonId]
