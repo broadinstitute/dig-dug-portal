@@ -1,0 +1,116 @@
+# Build and deploy sysbio-portal to the dev environment on every push to main.
+#
+# CI equivalent of scripts/push-to-dev.sh — same tags, same build args, same
+# dev Cloud Run deploy. Does NOT touch staging/demo/prod: promotion is a
+# deliberate `gcloud artifacts docker tags add` in the dev Artifact Registry
+# (the command is printed in this workflow's run summary).
+#
+# Auth is keyless via Workload Identity Federation. WIF_PROVIDER and DEPLOY_SA
+# are not secrets — the OIDC trust relationship is what grants access, and it
+# is scoped to this repository. See cicd/github-oidc/setup-wif.sh.
+
+name: Deploy to dev
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-dev-sysbio-portal
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  DEV_PROJECT: sysbio-tools-dev
+  REGION: us-central1
+  REPO: dev
+  SERVICE: sysbio-portal
+  CLOUD_RUN_SERVICE: sysbio-portal
+  WIF_PROVIDER: projects/848335228927/locations/global/workloadIdentityPools/github-actions/providers/github
+  DEPLOY_SA: github-deployer-sa@sysbio-tools-dev.iam.gserviceaccount.com
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          IMAGE="${REGION}-docker.pkg.dev/${DEV_PROJECT}/${REPO}/${SERVICE}"
+          echo "sha=${SHA}"     >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+      # The Vue build (`npm run deploy`) is memory-hungry; the default runner
+      # has 16GB, which is enough. If this ever OOMs, bump NODE_OPTIONS
+      # --max-old-space-size rather than moving the build off the runner.
+      - name: Build image
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            --build-arg "BUILD_SHA=${{ steps.tags.outputs.sha }}" \
+            --build-arg "BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -t "${{ steps.tags.outputs.image }}:${{ steps.tags.outputs.sha }}" \
+            -t "${{ steps.tags.outputs.image }}:dev-latest" \
+            -f Dockerfile \
+            .
+
+      - name: Push image
+        run: |
+          docker push "${{ steps.tags.outputs.image }}:${{ steps.tags.outputs.sha }}"
+          docker push "${{ steps.tags.outputs.image }}:dev-latest"
+
+      # Flags kept in step with
+      # cicd/env-deployer/cloudbuild/cloudbuild-sysbio-portal.yaml so dev
+      # behaves identically to staging/demo/prod. If you change one, change both.
+      # BASE_URL and SHOW_LOGIN are read at runtime by docker-entrypoint.sh.
+      - name: Deploy to dev Cloud Run
+        run: |
+          gcloud run deploy "${CLOUD_RUN_SERVICE}" \
+            --image="${{ steps.tags.outputs.image }}:${{ steps.tags.outputs.sha }}" \
+            --region="${REGION}" \
+            --project="${DEV_PROJECT}" \
+            --allow-unauthenticated \
+            --cpu=2 \
+            --memory=8Gi \
+            --min-instances=0 \
+            --max-instances=10 \
+            --set-env-vars=BASE_URL=/portal/,SHOW_LOGIN=true
+
+      - name: Summary
+        run: |
+          IMAGE="${{ steps.tags.outputs.image }}"
+          SHA="${{ steps.tags.outputs.sha }}"
+          {
+            echo "### Deployed to dev"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Image | \`${IMAGE}:${SHA}\` |"
+            echo "| Cloud Run | \`${CLOUD_RUN_SERVICE}\` in \`${DEV_PROJECT}\` |"
+            echo
+            echo "Promote this exact build into staging:"
+            echo
+            echo '```sh'
+            echo "gcloud artifacts docker tags add \\"
+            echo "  ${IMAGE}:${SHA} \\"
+            echo "  ${IMAGE}:release-staging-\$(date +%Y%m%d-%H%M)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,35 @@
+# Pull request checks. Nothing here touches GCP — no cloud credentials are
+# requested, so this workflow is safe to run on forks.
+#
+# The Docker build is the real check: the image's build stage runs
+# `npm run deploy` (the production Vue build), which is exactly what
+# deploy-dev.yml will do on merge. There is no test suite in this repo today,
+# so a green build is the bar.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build only — never pushed. Mirrors deploy-dev.yml's build args so a PR
+      # that breaks the image fails here rather than on merge to main.
+      - name: Build image
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            --build-arg "BUILD_SHA=$(git rev-parse --short HEAD)" \
+            --build-arg "BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -t sysbio-portal:pr \
+            -f Dockerfile \
+            .

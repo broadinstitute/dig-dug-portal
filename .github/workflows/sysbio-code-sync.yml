@@ -35,6 +35,8 @@ jobs:
                   repository: SysBio-FAIRPlex/sysbio-portal # <-- Destination repository
                   ref: main # <-- Destination branch
                   path: repo-b # <-- Subdirectory for checkout
+                  # Must have Contents: write and Workflows: write because the
+                  # downstream overlay installs GitHub Actions workflows.
                   token: ${{ secrets.SYSBIO_CODE_SYNC_PAT }} # <-- Secret name (must match below)
             # Step 3.5: Clean the target directory before syncing
             - name: Clean Target Directory Contents
@@ -86,6 +88,15 @@ jobs:
             - name: Remove AGENTS.md files from target
               run: |
                   find repo-b -type f -iname 'agents.md' -delete
+
+            # Step 4.10: Apply files that exist only in the downstream portal.
+            # This runs last so the overlay wins over the normal mirror and
+            # transformations above. The source overlay lives under .github/,
+            # which the main rsync intentionally excludes.
+            - name: Apply downstream-only SysBio files
+              run: |
+                  rsync -av .github/templates/sysbio-portal/ repo-b/
+                  chmod +x repo-b/scripts/push-to-dev.sh
 
             # Step 5: Commit and push the changes to the target repository
             # This creates a single squashed commit on the 'main' branch of sysbio-portal.
