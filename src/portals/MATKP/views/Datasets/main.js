@@ -5,8 +5,6 @@ import "../../assets/matkp-styles.css";
 import { fetchMetadata } from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-
 const hostname = window.location.hostname;
 const PROD_API = "https://matkp.hugeampkpnbi.org";
 const DEV_API  = "https://matkp-dev.hugeampkpnbi.org";

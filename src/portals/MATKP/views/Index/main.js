@@ -9,7 +9,6 @@ import matkpHero from "@/portals/MATKP/components/matkp-hero.vue";
 import matkpAnatomogram from "@/portals/MATKP/components/matkp-anatomogram.vue";
 import { getNewsFeed } from "@/portals/MATKP/utils/content.js";
 
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 
 new Vue({

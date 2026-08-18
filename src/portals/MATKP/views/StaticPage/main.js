@@ -10,7 +10,6 @@ import matkpAnatomogram from "@/portals/MATKP/components/matkp-anatomogram.vue";
 import { getTextContent, getNewsFeed, getNewsItem } from "@/portals/MATKP/utils/content.js";
 import keyParams from "../../../../utils/keyParams.js";
 
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
 // Use keyparams to do this
 
