@@ -1,45 +1,46 @@
 <script>
 import Vue from "vue";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { formatMetric, formatPValue, isFiniteNumber } from "./ligerFormat";
 import { clamp, mixColor, heatColor } from "./ligerHeat";
 import CellStateInfographic from "./CellStateInfographic.vue";
 import StateDetails from "./StateDetails.vue";
 import ProgramDetails from "./ProgramDetails.vue";
 
-const LIGER_DEV_HUGEAMP_BIOINDEX_HOST = "https://bioindex-dev.pankbase.org";
-const LIGER_PROD_HUGEAMP_BIOINDEX_HOST = "https://bioindex.pankbase.org";
-// The default is the host portal's own bioindex, compile-time injected per portal
-// by `vue.config.js` -- so a branch that serves the LIGER indexes from its own
-// bioindex needs no configuration at all. `config.bioIndexHost` overrides it for
-// the branches whose indexes live somewhere else.
-//
-// LIGER_DEFAULT_BIOINDEX_HOST is only the guard for BIO_INDEX_HOST being absent,
-// which happens in builds that do not run the `vue.config.js` define (tests, and
-// any consumer importing this component outside the portal build).
-const LIGER_DEFAULT_BIOINDEX_HOST = LIGER_PROD_HUGEAMP_BIOINDEX_HOST;
-const LIGER_FORCE_DEV_BIOINDEX = false; //change this flag to TRUE to force use of bioindex-dev in all cases
-const LIGER_DEV_BIOINDEX_HOST = LIGER_DEV_HUGEAMP_BIOINDEX_HOST;
+const LIGER_DEV_HUGEAMP_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
+const LIGER_PROD_HUGEAMP_BIOINDEX_HOST = "https://bioindex.hugeamp.org";
 const LIGER_LOCAL_HOSTNAMES = ["localhost", "127.0.0.1", "0.0.0.0"];
 const LIGER_RUNTIME_HOSTNAME = typeof window !== "undefined" ? window.location.hostname : "";
-const LIGER_USE_DEV_BIOINDEX = LIGER_FORCE_DEV_BIOINDEX || LIGER_LOCAL_HOSTNAMES.includes(LIGER_RUNTIME_HOSTNAME);
-// /api/portal/phenotypes is only served by the hugeamp bioindex, so it stays
-// pinned there regardless of which host the rest of the component is pointed at.
-// It must stay independent of `config.bioIndexHost`: that is the knob for pointing
-// the LIGER indexes at a different portal, and routing this through it would drag
-// the phenotype labels along to a host that does not serve them.
-const LIGER_PHENOTYPES_HOST = LIGER_USE_DEV_BIOINDEX ? LIGER_DEV_HUGEAMP_BIOINDEX_HOST : LIGER_PROD_HUGEAMP_BIOINDEX_HOST;
+// Dev when served locally, or when any label of the hostname other than the TLD
+// says dev -- so dev.pankbase.org, cmd.dev.hugeamp.org, bioindex-dev.hugeamp.org
+// and kp4cd-dev.org all count, while hugeamp.org does not. Checking only the
+// first label would miss cmd.dev.hugeamp.org, where dev sits in the middle.
+const LIGER_USE_DEV_HOST =
+    LIGER_LOCAL_HOSTNAMES.includes(LIGER_RUNTIME_HOSTNAME) ||
+    LIGER_RUNTIME_HOSTNAME.split(".").slice(0, -1).some((part) => part.includes("dev"));
+// /api/portal/phenotypes and /api/bio/match/gene are only served by the hugeamp
+// bioindex (other portals return 501), so they stay pinned to hugeamp regardless
+// of the configured prod/dev hosts -- routing them through `config.prodHost` /
+// `config.devHost` would drag them to a host that does not serve them.
+const LIGER_HUGEAMP_HOST = LIGER_USE_DEV_HOST
+    ? LIGER_DEV_HUGEAMP_BIOINDEX_HOST
+    : LIGER_PROD_HUGEAMP_BIOINDEX_HOST;
 const LIGER_PROGRAM_MODEL = "mouse_msigdb";
+// The two accent colors, exposed as CSS variables on the component root so the
+// child components and `ligerDetails.css` pick them up by inheritance. Defaults
+// are the colors that were hardcoded before: `--blue` for the primary accent
+// (buttons, links, bars) and #175cd3 for the secondary one (badges, notes).
+const LIGER_DEFAULT_PRIMARY_COLOR = "#0277b6";
+const LIGER_DEFAULT_SECONDARY_COLOR = "#175cd3";
 const LIGER_DEFAULT_CONFIG = {
     pageTitle: "Cell State & Program Explorer",
     documentationUrl: "/research.html?pageid=kp_liger_documentation",
-    // Overrides which bioindex serves the LIGER indexes. Leave unset to use the
-    // host portal's own injected bioindex. Trailing slashes are trimmed, so both
-    // "https://host" and "https://host/" work.
-    //
-    // Null rather than a host string: the fallback chain lives in `apiHost()`, and
-    // filling a value in at this layer would make everything below it unreachable.
-    bioIndexHost: null,
+    // Which bioindex serves the LIGER indexes. `devHost` is used when the page is
+    // served locally or from a dev subdomain, `prodHost` otherwise. Trailing
+    // slashes are trimmed, so both "https://host" and "https://host/" work.
+    prodHost: LIGER_PROD_HUGEAMP_BIOINDEX_HOST,
+    devHost: LIGER_DEV_HUGEAMP_BIOINDEX_HOST,
+    primaryColor: LIGER_DEFAULT_PRIMARY_COLOR,
+    secondaryColor: LIGER_DEFAULT_SECONDARY_COLOR,
     tissues: [],
     hideTissueCardIfOneOption: false,
     // Shown on the landing state only. Set to [] to hide the row entirely; the
@@ -286,29 +287,33 @@ export default Vue.component('LigerBrowser', {
                 ...(this.config || {}),
             };
         },
-        // Every LIGER index URL is built from this. Precedence, highest first:
-        // the code-level dev flag (a debugging switch, so it wins outright), then
-        // `config.bioIndexHost`, then the localhost convenience, then the host
-        // portal's own injected bioindex.
-        //
-        // The localhost case only applies when no host is configured -- a page that
-        // names its host should get that host when served locally too, otherwise
-        // local development silently tests a different backend than production.
+        // Every LIGER index URL is built from this: `config.devHost` when the page is
+        // served locally or from a dev subdomain, `config.prodHost` otherwise. Both
+        // default to the hugeamp bioindexes.
         apiHost() {
-            if (LIGER_FORCE_DEV_BIOINDEX) {
-                return LIGER_DEV_BIOINDEX_HOST;
-            }
+            let configured = LIGER_USE_DEV_HOST
+                ? this.ligerConfig.devHost
+                : this.ligerConfig.prodHost;
+            let host = String(configured || "").trim().replace(/\/+$/, "");
 
-            let configured = String(this.ligerConfig.bioIndexHost || "").trim().replace(/\/+$/, "");
-            if (configured) {
-                return configured;
-            }
-
-            if (LIGER_LOCAL_HOSTNAMES.includes(LIGER_RUNTIME_HOSTNAME)) {
-                return LIGER_DEV_BIOINDEX_HOST;
-            }
-
-            return LIGER_DEFAULT_BIOINDEX_HOST;
+            return host || (LIGER_USE_DEV_HOST
+                ? LIGER_DEV_HUGEAMP_BIOINDEX_HOST
+                : LIGER_PROD_HUGEAMP_BIOINDEX_HOST);
+        },
+        // Bound to the component root, so both accents reach the child components
+        // and `ligerDetails.css` by inheritance -- those styles are scoped, which
+        // rules out overriding their rules from here, but CSS variables still cross
+        // the scope boundary.
+        //
+        // `--blue` is overridden rather than replaced everywhere: it is already the
+        // primary accent throughout this component, so redefining it locally is the
+        // whole change. The definition in the global `:root` block below stays as
+        // the default for anything outside this root.
+        themeStyle() {
+            return {
+                "--blue": this.ligerConfig.primaryColor || LIGER_DEFAULT_PRIMARY_COLOR,
+                "--liger-secondary": this.ligerConfig.secondaryColor || LIGER_DEFAULT_SECONDARY_COLOR,
+            };
         },
         pageTitle() {
             return this.ligerConfig.pageTitle || LIGER_DEFAULT_CONFIG.pageTitle;
@@ -929,7 +934,7 @@ export default Vue.component('LigerBrowser', {
             }
         },
         buildMatchUrl(queryValue) {
-            return `${LIGER_PHENOTYPES_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
+            return `${LIGER_HUGEAMP_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
         },
         buildCellStateExpressionUrl(gene) {
             return `${this.apiHost}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(gene)}`;
@@ -970,7 +975,7 @@ export default Vue.component('LigerBrowser', {
             return `${this.apiHost}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissueQuery},${cellType}`)}`;
         },
         buildTraitPhenotypesUrl() {
-            return `${BIO_INDEX_HOST}/api/portal/phenotypes?q=md`;
+            return `${LIGER_HUGEAMP_HOST}/api/portal/phenotypes?q=md`;
         },
         buildCellStateTraitUrl(tissueQuery, cellType, stateId) {
             return `${this.apiHost}/api/bio/query/gene-program-cell-state-trait-factor?q=${encodeURIComponent(`${tissueQuery},${cellType},${stateId}`)}`;
@@ -2887,11 +2892,11 @@ export default Vue.component('LigerBrowser', {
 </script>
 
 <template>
-    <div id="liger" class="f-col g-40">
+    <div id="liger" class="f-col g-40" :style="themeStyle">
         <div class="f-col g-10">
             <div class="f-row g-40">
                 <div class="f-col g-10 flex1">
-                    <h3>{{ pageTitle }}</h3>
+                    <h3 class="bold">{{ pageTitle }}</h3>
                     <h5 class="headline">
                         Explore where a gene is expressed and the cell states and gene
                         programs associated with its expression.
@@ -3606,7 +3611,7 @@ export default Vue.component('LigerBrowser', {
 
 <style>
 :root{
-    --blue: #219197;
+    --blue: #0277b6;
     --lite-green: #c7dd04;
     --lite-blue: #afe6fd;
 }
@@ -4327,7 +4332,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     padding: 4px 10px;
     border-radius: 8px;
     background: #e8f1fb;
-    color: #175cd3;
+    color: var(--liger-secondary, #175cd3);
     font-size: 13px;
 }
 

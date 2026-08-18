@@ -16,7 +16,11 @@ new Vue({
     data() {
         return {
              liger_config: {
-                exampleGenes: ["CFTR", "PDX1", "INS"]
+                prodHost: "https://bioindex.pankbase.org",
+                devHost: "https://bioindex-dev.pankbase.org",
+                exampleGenes: ["CFTR", "PDX1", "INS"],
+                primaryColor: "#219197",
+                secondaryColor: "#219197",
              },
         };
     },
