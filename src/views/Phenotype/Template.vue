@@ -342,7 +342,7 @@
                         </criterion-function-group>
                     </div>
                 </div>
-                <!-- 
+                <!-- PIGEAN, EAGGL, FALCON -->
                 <pigean-factors
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     :pigeanFactorData="$store.state.pigeanFactor.data"
@@ -351,13 +351,21 @@
             
 
                 <pigean-phenotype
+                    v-if="
+                        ($store.state.pigeanGenePhenotype.data &&
+                            $store.state.pigeanGenePhenotype.data.length > 0) ||
+                        ($store.state.hugePhenotype.data &&
+                            $store.state.hugePhenotype.data.length > 0)
+                    "
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     :pigeanData="$store.state.pigeanGenePhenotype.data"
+                    :hugeScores="$store.state.hugePhenotype.data"
+                    :phenotype="$store.state.phenotype"
+                    :docDetails="$parent.docDetails"
                 >
-
                 </pigean-phenotype>
 
-                -->
+                
 
           <div class="card mdkp-card">
                     <div class="card-body geneLevelAssoc">

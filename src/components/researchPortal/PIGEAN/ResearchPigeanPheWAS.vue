@@ -82,6 +82,18 @@
                             >
                                 Go to phenotype page
                             </button>
+
+                            <button
+                                v-if="!!options.includes('open gene page')"
+                                class="option-button"
+                                @click="
+                                    openPage('gene.html', {
+                                        gene: ptValue.id,
+                                    })
+                                "
+                            >
+                                Go to gene page
+                            </button>
                         </template>
                         <span
                             v-if="
