@@ -15,6 +15,7 @@
           :phenotype-name="phenotypeName"
           :heatmap-data="heatmapDataForViz"
           :gene-sets-heatmap-data="geneSetsHeatmapDataForViz"
+          :top-combined-heatmap-data="topCombinedHeatmapDataForViz"
           height="500px"
         ></pigean-factors-viz>
       </div>
@@ -33,6 +34,7 @@
         <b-table 
           striped 
           hover 
+          class="factors-table"
           :items="pigeanDataFiltered" 
           :fields="tableFields"
           :per-page="perPage"
@@ -40,34 +42,36 @@
           responsive
         >
           <template v-slot:cell(top_gene_sets)="row">
-            <span v-if="row.item.top_gene_sets" class="top-gene-sets-cell">
-              {{ formatSemicolonList(row.item.top_gene_sets) }}
-            </span>
-            <span v-else>-</span>
+            <div class="top-list-cell">
+              <span v-if="row.item.top_gene_sets" class="top-gene-sets-cell">
+                {{ formatSemicolonList(row.item.top_gene_sets) }}
+              </span>
+              <span v-else>-</span>
+              <b-button
+                variant="outline-primary"
+                size="sm"
+                class="view-more-btn"
+                @click="toggleGeneSetsSubtable(row)"
+              >
+                {{ row.detailsShowing && row.item.geneSetsSubtableActive ? "Hide" : "View more" }}
+              </b-button>
+            </div>
           </template>
           <template v-slot:cell(top_genes)="row">
-            <span v-if="row.item.top_genes">
-              {{ formatSemicolonList(row.item.top_genes) }}
-            </span>
-            <span v-else>-</span>
-          </template>
-          <template v-slot:cell(genes_in_gene_sets)="row">
-            <b-button
-              variant="outline-primary"
-              size="sm"
-              @click="toggleSubtable(row)"
-            >
-              {{ row.detailsShowing && row.item.subtableActive ? "Hide" : "View" }}
-            </b-button>
-          </template>
-          <template v-slot:cell(gene_sets)="row">
-            <b-button
-              variant="outline-primary"
-              size="sm"
-              @click="toggleGeneSetsSubtable(row)"
-            >
-              {{ row.detailsShowing && row.item.geneSetsSubtableActive ? "Hide" : "View" }}
-            </b-button>
+            <div class="top-list-cell">
+              <span v-if="row.item.top_genes">
+                {{ formatSemicolonList(row.item.top_genes) }}
+              </span>
+              <span v-else>-</span>
+              <b-button
+                variant="outline-primary"
+                size="sm"
+                class="view-more-btn"
+                @click="toggleSubtable(row)"
+              >
+                {{ row.detailsShowing && row.item.subtableActive ? "Hide" : "View more" }}
+              </b-button>
+            </div>
           </template>
           <template v-slot:row-details="row">
             <div v-if="row.item.subtableActive" class="subtable-container">
@@ -206,33 +210,31 @@ export default Vue.component("pigean-factors", {
         {
           key: 'label',
           label: 'Factor',
-          sortable: true
+          sortable: true,
+          thStyle: { width: '25%' },
+          tdStyle: { width: '25%' }
         },
         {
           key: 'gene_set_score',
           label: 'Factor relevance to phenotype',
           sortable: true,
-          formatter: (value) => value ? value.toFixed(2) : 'N/A'
+          formatter: (value) => value ? value.toFixed(2) : 'N/A',
+          thStyle: { width: '15%' },
+          tdStyle: { width: '15%' }
         },
         {
           key: 'top_gene_sets',
           label: 'Top gene sets',
-          sortable: false
+          sortable: false,
+          thStyle: { width: '45%' },
+          tdStyle: { width: '45%' }
         },
         {
           key: 'top_genes',
           label: 'Top genes',
-          sortable: false
-        },
-        {
-          key: 'genes_in_gene_sets',
-          label: 'Genes relevant to factor',
-          sortable: false
-        },
-        {
-          key: 'gene_sets',
-          label: 'Gene sets relevant to factor',
-          sortable: false
+          sortable: false,
+          thStyle: { width: '15%' },
+          tdStyle: { width: '15%' }
         }
       ],
       subtableFields: [
@@ -588,6 +590,89 @@ export default Vue.component("pigean-factors", {
       });
       
       return result;
+    },
+    topCombinedHeatmapDataForViz() {
+      const parseList = (value) => {
+        if (!value) return [];
+        return String(value).split(';').map(s => s.trim()).filter(Boolean);
+      };
+
+      const topGeneNames = new Set();
+      const topGeneSetNames = new Set();
+      this.pigeanDataFiltered.forEach(f => {
+        parseList(f.top_genes).forEach(g => topGeneNames.add(g));
+        parseList(f.top_gene_sets).forEach(gs => topGeneSetNames.add(gs));
+      });
+
+      const full = this.heatmapDataForViz || {};
+      const factors = full.factors || [];
+      const geneLookup = new Map((full.genes || []).map((g, i) => [g.toLowerCase(), { gene: g, i }]));
+
+      const genes = [];
+      const seenGenes = new Set();
+      topGeneNames.forEach(name => {
+        const match = geneLookup.get(name.toLowerCase());
+        const gene = match ? match.gene : name;
+        if (!seenGenes.has(gene.toLowerCase())) {
+          seenGenes.add(gene.toLowerCase());
+          genes.push(gene);
+        }
+      });
+
+      const emptyFactorRow = () => factors.map(() => null);
+      const pickRow = (matrix, gene) => {
+        const match = geneLookup.get(gene.toLowerCase());
+        if (!match || !matrix || !matrix[match.i]) {
+          return emptyFactorRow();
+        }
+        return matrix[match.i];
+      };
+      const pickScore = (arr, gene) => {
+        const match = geneLookup.get(gene.toLowerCase());
+        if (!match || !arr) return null;
+        const value = arr[match.i];
+        return value !== undefined ? value : null;
+      };
+
+      const gsFull = this.geneSetsHeatmapDataForViz || {};
+      const geneSetLookup = new Map((gsFull.geneSets || []).map((gs, i) => [gs.toLowerCase(), { geneSet: gs, i }]));
+      const geneSets = [];
+      const seenSets = new Set();
+      topGeneSetNames.forEach(name => {
+        const match = geneSetLookup.get(name.toLowerCase());
+        const geneSet = match ? match.geneSet : name;
+        if (!seenSets.has(geneSet.toLowerCase())) {
+          seenSets.add(geneSet.toLowerCase());
+          geneSets.push(geneSet);
+        }
+      });
+      geneSets.sort((a, b) => a.localeCompare(b));
+
+      const geneSetFactorData = factors.map((_, factorIndex) => {
+        return geneSets.map(geneSet => {
+          const match = geneSetLookup.get(geneSet.toLowerCase());
+          if (!match || !gsFull.data || !gsFull.data[factorIndex]) {
+            return null;
+          }
+          const value = gsFull.data[factorIndex][match.i];
+          return value !== undefined ? value : null;
+        });
+      });
+
+      return {
+        genes,
+        geneSets,
+        factors,
+        factorLabels: full.factorLabels || [],
+        factorScores: full.factorScores || [],
+        data: genes.map(g => pickRow(full.data, g)),
+        gwasData: genes.map(g => pickRow(full.gwasData, g)),
+        geneSetData: genes.map(g => pickRow(full.geneSetData, g)),
+        combinedScores: genes.map(g => pickScore(full.combinedScores, g)),
+        gwasScores: genes.map(g => pickScore(full.gwasScores, g)),
+        geneSetScores: genes.map(g => pickScore(full.geneSetScores, g)),
+        geneSetFactorData
+      };
     }
   },
   watch: {
@@ -769,6 +854,7 @@ export default Vue.component("pigean-factors", {
           row.toggleDetails();
         }
         item.subtableActive = true;
+        item.geneSetsSubtableActive = false;
         
         // Load data if not already loaded
         if (!this.subtableData[key]) {
@@ -820,6 +906,7 @@ export default Vue.component("pigean-factors", {
           row.toggleDetails();
         }
         item.geneSetsSubtableActive = true;
+        item.subtableActive = false;
         
         // Load data if not already loaded
         if (!this.subtableDataGeneSets[key]) {
@@ -891,11 +978,30 @@ export default Vue.component("pigean-factors", {
   background-color: transparent !important;
 }
 
+::v-deep .factors-table {
+  table-layout: fixed;
+  width: 100%;
+}
+::v-deep .factors-table th,
+::v-deep .factors-table td {
+  vertical-align: top;
+  word-wrap: break-word;
+  word-break: break-word;
+}
 ::v-deep .top-gene-sets-cell {
   word-wrap: break-word;
   word-break: break-word;
   white-space: normal;
-  max-width: 300px;
   display: inline-block;
+  width: 100%;
+}
+.top-list-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.view-more-btn {
+  white-space: nowrap;
 }
 </style>

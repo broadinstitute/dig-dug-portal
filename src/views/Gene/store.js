@@ -29,6 +29,7 @@ export default new Vuex.Store({
         uniprot,
         pigeanGene: bioIndex("pigean-gene"),
         pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
+        falconGeneAssociations: bioIndex("falcon.gene.associations"),
     },
     state: {
         geneName: keyParams.gene,
@@ -192,6 +193,12 @@ export default new Vuex.Store({
         async getPigeanGeneData(context) {
             let name = context.state.geneName;
             context.dispatch("pigeanGene/query", { q: 'portal,' + name + ',2,small' });
+        },
+        async getFalconGeneAssociations(context) {
+            let name = context.state.geneName;
+            if (name) {
+                context.dispatch("falconGeneAssociations/query", { q: name });
+            }
         },
         async getMouseData(context) {
             let name = context.state.geneName;
