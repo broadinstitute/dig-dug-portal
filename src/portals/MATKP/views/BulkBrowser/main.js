@@ -190,7 +190,7 @@ new Vue({
                 "render by": "gene",
                 "x axis field": "logFoldChange",
                 "x axis label": "log2 Fold Change",
-                "y axis field": "-log10P",
+                "y axis field": "-logP10", // Formerly -log10P
                 "y axis label": "-log10(FDR adj. p)",
                 "width": 600,
                 "height": this.plotHeight,
