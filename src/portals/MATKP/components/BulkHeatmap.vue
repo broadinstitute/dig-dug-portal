@@ -179,8 +179,6 @@ export default Vue.component("bulk-heatmap", {
             const data = await(response.json());
             
             if(!!data) {
-                console.log(JSON.stringify(data));
-
                 const metaData = data.metadata[this.comparisonId]
                 const metaLabel = data.metadata_labels[this.comparisonId]
 
@@ -292,6 +290,12 @@ export default Vue.component("bulk-heatmap", {
       dataToClass(value){
         let expr = `expr_${value.expression}`.replaceAll(".", "dot");
         return `${value.sample} ${expr}`;
+    },
+    comparisonNomenclature(currentComparisons, metadata_labels){
+        let reconciliation = {};
+        for (const [cKey, cVal] of Object.entries(currentComparisons)){
+            let descriptive
+        }
     },
     },
     watch: {

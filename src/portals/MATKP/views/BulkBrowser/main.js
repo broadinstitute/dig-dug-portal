@@ -216,7 +216,8 @@ new Vue({
             }
             let comparisonText = this.$store.state.currentComparisons[this.$store.state.selectedComparison];
             let versus = /[^w]vs/;
-            return Formatters.snakeFormatter(comparisonText.split(versus)[0]);
+            //return Formatters.snakeFormatter(comparisonText.split(versus)[0]);
+            return comparisonText[0];
         },
         kpDataset() {
             return keyParams.dataset;

@@ -73,7 +73,6 @@ export default new Vuex.Store({
         let datasetFile = `${context.state.bulkFileUrl
           }${context.state.selectedDataset}/dea.tsv.gz`;
         console.log(datasetFile);
-        
         const response = await fetch(datasetFile);
         const bulkDataText = await response.text();
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
@@ -84,7 +83,24 @@ export default new Vuex.Store({
       }
       context.commit("setBulkData19K", bulkDataObject);
       context.dispatch("firstGene"); // Default to viewing first gene in table
-      context.commit("setCurrentComparisons", comparisons);
+
+      // We need to get the comparisons separately
+      let queryUrl = `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/${
+        context.state.selectedDataset}/fields.json.gz`;
+      console.log(queryUrl);
+      const fieldsResponse = await fetch(queryUrl);
+      const fieldsData = await fieldsResponse.json();
+      let metadataLabels = fieldsData?.metadata_labels;
+      let useMetadataLabels = false;
+      if (!!metadataLabels){
+        // New data uses a different convention - hardcoding that for now.
+        console.log(JSON.stringify(metadataLabels));
+        let metadataFields = Object.keys(metadataLabels);
+        if (metadataFields.length <= 2) {
+          useMetadataLabels = true;
+        }
+      }
+      context.commit("setCurrentComparisons", useMetadataLabels ? metadataLabels : comparisons);
     },
     resetComparison(context) {
       context.commit("setSelectedComparison", context.state.defaultComparison);
