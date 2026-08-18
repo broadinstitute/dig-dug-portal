@@ -10,7 +10,7 @@ Two facts that frame everything:
 
 - **Prod pankbase does not serve these indexes.** `https://bioindex.pankbase.org` returns
   `{"detail":"Invalid index: ..."}` for every LIGER index. Only `bioindex-dev.pankbase.org`
-  has them, i.e. only when `LIGER_FORCE_DEV_BIOINDEX` / localhost is in play.
+  has them, i.e. only when the dev host is in play (localhost or a `dev` subdomain).
 - **Only one dataset has data.** Of the 10 datasets in `LIGER_TISSUE_CONFIG`, only
   `islet_of_Langerhans_scRNA_v3-4` returns rows. The other nine (including the other pancreas
   dataset `FNIH_Pancreas_scRNA_v2.2`) return 0 on every index.
