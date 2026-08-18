@@ -269,6 +269,13 @@ let pages = {
         title: "Liger",
         chunks: ["chunk-vendors", "chunk-common", "liger2"]
     },
+    cellstate: {
+        entry: "src/portals/PanKbase/views/CellStateBrowser/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "cell-states.html",
+        title: "Cell State Browser",
+        chunks: ["chunk-vendors", "chunk-common", "cellstate"]
+    },
 };
 
 module.exports = {
