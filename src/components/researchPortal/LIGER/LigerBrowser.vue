@@ -308,7 +308,7 @@ export default Vue.component('LigerBrowser', {
                 return LIGER_DEV_BIOINDEX_HOST;
             }
 
-            return String(BIO_INDEX_HOST || "").replace(/\/+$/, "") || LIGER_DEFAULT_BIOINDEX_HOST;
+            return LIGER_DEFAULT_BIOINDEX_HOST;
         },
         pageTitle() {
             return this.ligerConfig.pageTitle || LIGER_DEFAULT_CONFIG.pageTitle;
