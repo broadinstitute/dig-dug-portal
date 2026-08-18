@@ -360,6 +360,7 @@
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     :pigeanData="$store.state.pigeanGenePhenotype.data"
                     :hugeScores="$store.state.hugePhenotype.data"
+                    :falconTraitAssociatedGenes="$store.state.falconTraitAssociatedGenes.data"
                     :phenotype="$store.state.phenotype"
                     :docDetails="$parent.docDetails"
                 >
@@ -367,7 +368,8 @@
 
                 
 
-          <div class="card mdkp-card">
+            <!-- Top gene-level associations (HuGE / common / rare) — hidden -->
+          <div v-if="false" class="card mdkp-card">
                     <div class="card-body geneLevelAssoc">
                         <h4 class="card-title">
                             Top gene-level associations for

@@ -1470,19 +1470,16 @@ export default Vue.component("pigean-gene", {
     background-color: #4a90e2 !important;
     color: #ffffff !important;
     padding: 2px 4px;
-    border-radius: 2px;
   }
   ::v-deep .strongly-suggestive {
     background-color: #f5a623 !important;
     color: #ffffff !important;
     padding: 2px 4px;
-    border-radius: 2px;
   }
   ::v-deep .nominally-significant {
     background-color: #f8e71c !important;
     color: #333333 !important;
     padding: 2px 4px;
-    border-radius: 2px;
   }
   ::v-deep .not-significant {
     background-color: transparent !important;

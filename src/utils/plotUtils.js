@@ -599,7 +599,7 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
             }
 
             if (LABEL != null) {
-                let labelXPos = WIDTH - 30;
+                let labelXPos = WIDTH - 90;
                 let labelYPos = MARGIN.top + ((HEIGHT - MARGIN.top - MARGIN.bottom - yRightPadBottom) / 2);
                 CTX.font = "24px Arial";
                 CTX.fillStyle = "#000000";
@@ -647,7 +647,7 @@ const renderStripYAxis = function (CTX, WIDTH, HEIGHT, MARGIN, STRIP_HEIGHT, LAB
 
     if (LABEL != null) {
         CTX.save();
-        CTX.translate(WIDTH - 30, stripTop + STRIP_HEIGHT / 2);
+        CTX.translate(WIDTH - 90, stripTop + STRIP_HEIGHT / 2);
         CTX.rotate((90 * Math.PI) / 180);
         CTX.textAlign = "center";
         CTX.fillText(LABEL, 0, 0);

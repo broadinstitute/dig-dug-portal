@@ -70,6 +70,19 @@
                             </span>
                         </span>
                     </template>
+                    <template #head(PPA)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.phenotype.column.falcon.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    supply-text="Placeholder documentation for FALCON posterior probability of association (PPA)."
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
                     <template #head(Factor)="data">
                         <span class="column-header-with-tooltip">
                             <span>{{ data.label }}</span>
@@ -109,6 +122,9 @@
                                 {{ formatScore(row.item.Gene_set_support) }}
                             </span>
                         </span>
+                    </template>
+                    <template #cell(PPA)="row">
+                        {{ formatPpa(row.item.PPA) }}
                     </template>
                 </b-table>
                 <b-pagination
@@ -288,7 +304,7 @@ export default Vue.component("pigean-phenotype", {
     Documentation,
     TooltipDocumentation,
   },
-  props: ["phenotypeMap", "pigeanData", "hugeScores", "phenotype", "docDetails", "filter"],
+  props: ["phenotypeMap", "pigeanData", "hugeScores", "falconTraitAssociatedGenes", "phenotype", "docDetails", "filter"],
   data() {
       return {
         perPage: 10,
@@ -307,14 +323,17 @@ export default Vue.component("pigean-phenotype", {
             "y axis label": "Combined (GWAS + gene sets)",
             "x axis label": "",
             "beta field": "null",
-            "hover content": ["Gene", "Factor", "Combined_GWAS_gene_sets", "GWAS_support", "Gene_set_support"],
+            "hover content": ["Gene", "Factor", "Combined_GWAS_gene_sets", "GWAS_support", "Gene_set_support", "PPA"],
             "filter by threshold": true,
             thresholds: [2],
             "label in black": "greater than",
             height: "600",
+            "ppa field": "PPA",
+            "ppa axis label": "PPA",
+            "ppa strip height": 30,
             "plot margin": {
                 left: 150,
-                right: 150,
+                right: 180,
                 top: 250,
                 bottom: 300,
             },
@@ -404,6 +423,11 @@ export default Vue.component("pigean-phenotype", {
             sortable: true
           },
           {
+            key: 'PPA',
+            label: 'FALCON PPA',
+            sortable: true
+          },
+          {
             key: 'Factor',
             label: 'EAGGL Mechanistic factor',
             sortable: true
@@ -469,6 +493,28 @@ export default Vue.component("pigean-phenotype", {
     hugeScoreGenes() {
       return (this.hugeScores || []).map((score) => score.gene).filter(Boolean);
     },
+    ppaByGene() {
+      const map = {};
+      (this.falconTraitAssociatedGenes || []).forEach((row) => {
+        const gene = row && (row.GENE != null ? row.GENE : row.gene);
+        if (gene == null || gene === "") {
+          return;
+        }
+        const pipRaw = row.PIP != null ? row.PIP : row.pip;
+        if (pipRaw == null || pipRaw === "") {
+          return;
+        }
+        const pip = Number(pipRaw);
+        if (Number.isNaN(pip)) {
+          return;
+        }
+        const key = String(gene).toLowerCase();
+        if (map[key] == null || pip > map[key]) {
+          map[key] = pip;
+        }
+      });
+      return map;
+    },
     hugePhewasData() {
       const factorByGene = {};
       (this.pigeanDataFiltered || []).forEach((item) => {
@@ -488,24 +534,30 @@ export default Vue.component("pigean-phenotype", {
           };
         }
       });
-      return (this.hugeScores || []).map((score) => {
+      return (this.hugeScores || []).reduce((rows, score) => {
         const gene = score.gene;
+        if (!gene) {
+          return rows;
+        }
+        const factorInfo = factorByGene[String(gene).toLowerCase()];
+        if (!factorInfo) {
+          return rows;
+        }
         const hugeValue =
           score.huge != null && score.huge !== "" ? Number(score.huge) : null;
         const renderScore =
           hugeValue != null && !Number.isNaN(hugeValue) && hugeValue > 0
             ? Math.log(hugeValue)
             : null;
-        const factorInfo =
-          gene != null ? factorByGene[String(gene).toLowerCase()] : null;
-        return {
+        rows.push({
           ...score,
           Gene: gene,
           gene,
-          Factor: factorInfo ? factorInfo.factor : "N/A",
+          Factor: factorInfo.factor,
           renderScore,
-        };
-      });
+        });
+        return rows;
+      }, []);
     },
     pigeanDataFiltered() {
       if (!this.pigeanData) {
@@ -538,6 +590,11 @@ export default Vue.component("pigean-phenotype", {
           if (item.hasOwnProperty('phenotype')) {
             reformattedItem.phenotype = item.phenotype;
           }
+
+          const ppaKey = item.gene != null ? String(item.gene).toLowerCase() : "";
+          reformattedItem.PPA = ppaKey && this.ppaByGene[ppaKey] != null
+            ? this.ppaByGene[ppaKey]
+            : null;
 
           Object.keys(item).forEach(key => {
             if (!fieldMapping.hasOwnProperty(key) && key !== 'gene' && key !== 'phenotype') {
@@ -628,6 +685,13 @@ export default Vue.component("pigean-phenotype", {
       }
       const numValue = typeof value === "string" ? parseFloat(value) : value;
       return Number.isNaN(numValue) ? "N/A" : numValue.toFixed(2);
+    },
+    formatPpa(value) {
+      if (value === null || value === undefined || value === "") {
+        return "N/A";
+      }
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      return Number.isNaN(numValue) ? "N/A" : numValue.toFixed(4);
     },
     evidenceRangeClass(value) {
       if (value === null || value === undefined || value === "") {
@@ -742,19 +806,16 @@ export default Vue.component("pigean-phenotype", {
     background-color: #4a90e2 !important;
     color: #ffffff !important;
     padding: 2px 4px;
-    border-radius: 2px;
   }
   ::v-deep .strongly-suggestive {
     background-color: #f5a623 !important;
     color: #ffffff !important;
     padding: 2px 4px;
-    border-radius: 2px;
   }
   ::v-deep .nominally-significant {
     background-color: #f8e71c !important;
     color: #333333 !important;
     padding: 2px 4px;
-    border-radius: 2px;
   }
   ::v-deep .not-significant {
     background-color: transparent !important;
