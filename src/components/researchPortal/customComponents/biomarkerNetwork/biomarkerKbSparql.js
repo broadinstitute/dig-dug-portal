@@ -4,6 +4,7 @@
  */
 
 export const BIOMARKER_KG_SPARQL = "https://apps.okn.us/biomarkerkg/sparql";
+export const BIOMARKER_KG_GRAPH = "https://purl.org/okn/frink/kg/biomarkerkg";
 
 /** Disease-linking predicates used in BiomarkerKB. */
 export const DISEASE_PREDICATES = [
@@ -161,4 +162,109 @@ LIMIT ${limit}
         disease: (b.disease && b.disease.value) || "",
         diseaseLabel: (b.diseaseLabel && b.diseaseLabel.value) || "",
     }));
+}
+
+function uniqueIriTerms(diseaseIris) {
+    const list = Array.isArray(diseaseIris) ? diseaseIris : [diseaseIris];
+    const terms = [];
+    const seen = {};
+    list.forEach((iri) => {
+        const term = toDiseaseIriTerm(iri);
+        if (!term || seen[term]) return;
+        seen[term] = true;
+        terms.push(term);
+    });
+    return terms;
+}
+
+function splitPipe(value) {
+    return String(value || "")
+        .split(" | ")
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
+/**
+ * Query 2: MONDO diseases from CFDE REVEAL → BiomarkerKG records, grouped by biomarker.
+ *
+ * @param {string|string[]} diseaseIris
+ * @param {{ limit?: number, signal?: AbortSignal }} [opts]
+ * @returns {Promise<Array<{
+ *   biomarker: string,
+ *   biomarkerIdentifier: string,
+ *   biomarkerLabel: string,
+ *   diseaseCount: number,
+ *   recordCount: number,
+ *   diseases: string,
+ *   roles: string,
+ *   diseaseList: string[],
+ *   roleList: string[],
+ * }>>}
+ */
+export async function listBiomarkersForMondoDiseases(diseaseIris, opts = {}) {
+    const terms = uniqueIriTerms(diseaseIris);
+    if (!terms.length) return [];
+    const limit = Math.max(1, Number(opts.limit) || 100);
+    const q = `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX obci: <http://purl.obolibrary.org/obo/OBCI_>
+
+SELECT
+  ?biomarker
+  ?biomarkerIdentifier
+  ?biomarkerLabel
+  (COUNT(DISTINCT ?disease) AS ?diseaseCount)
+  (COUNT(DISTINCT ?biomarkerRecord) AS ?recordCount)
+  (GROUP_CONCAT(DISTINCT ?diseaseLabel; SEPARATOR=" | ") AS ?diseases)
+  (GROUP_CONCAT(DISTINCT ?roleLabel; SEPARATOR=" | ") AS ?roles)
+WHERE {
+  GRAPH <${BIOMARKER_KG_GRAPH}> {
+    VALUES ?disease {
+      ${terms.join("\n      ")}
+    }
+
+    VALUES (?diseaseRelation ?roleLabel) {
+      (obci:1000002 "diagnostic")
+      (obci:1000003 "monitoring")
+      (obci:1000006 "prognostic")
+      (obci:1000008 "susceptibility/risk")
+    }
+
+    VALUES ?entityRelation {
+      obci:1000009
+      obci:1000015
+      obci:1000016
+      obci:1000017
+    }
+
+    ?biomarkerRecord ?diseaseRelation ?disease ;
+      ?entityRelation ?biomarker .
+
+    OPTIONAL { ?disease rdfs:label ?diseaseNodeLabel . }
+    OPTIONAL { ?biomarker rdfs:label ?biomarkerNodeLabel . }
+  }
+
+  BIND(COALESCE(?diseaseNodeLabel, STR(?disease)) AS ?diseaseLabel)
+  BIND(REPLACE(STR(?biomarker), "^.*/", "") AS ?biomarkerIdentifier)
+  BIND(COALESCE(?biomarkerNodeLabel, STR(?biomarker)) AS ?biomarkerLabel)
+}
+GROUP BY ?biomarker ?biomarkerIdentifier ?biomarkerLabel
+ORDER BY DESC(?diseaseCount) DESC(?recordCount) ?biomarkerLabel
+LIMIT ${limit}
+`;
+    const { bindings } = await fetchSparql(q, opts);
+    return bindings.map((b) => {
+        const diseases = (b.diseases && b.diseases.value) || "";
+        const roles = (b.roles && b.roles.value) || "";
+        return {
+            biomarker: (b.biomarker && b.biomarker.value) || "",
+            biomarkerIdentifier: (b.biomarkerIdentifier && b.biomarkerIdentifier.value) || "",
+            biomarkerLabel: (b.biomarkerLabel && b.biomarkerLabel.value) || "",
+            diseaseCount: Number(b.diseaseCount && b.diseaseCount.value) || 0,
+            recordCount: Number(b.recordCount && b.recordCount.value) || 0,
+            diseases,
+            roles,
+            diseaseList: splitPipe(diseases),
+            roleList: splitPipe(roles),
+        };
+    });
 }
