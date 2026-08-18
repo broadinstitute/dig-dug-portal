@@ -15,19 +15,11 @@
                 <div style="color: #f26822; font-weight: bold; text-transform: uppercase; font-size: 16px;">Search Common Fund Knowledge</div>
                 <div class="f-col fill-width">
 
-                    <research-single-search-cfde
+                    <cfde-single-search
                         :single-search-config="sectionConfigs['content']"
                         :phenotypes="phenotypesInUse"
                         :utils="utilsBox"
                     />
-
-                    <!--
-                    <research-single-search-cfde-llm
-                        :single-search-config="sectionConfigs['content']"
-                        :phenotypes="phenotypesInUse"
-                        :utils="utilsBox"
-                    />
-                    -->
 
 
 
@@ -590,10 +582,14 @@
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import CfdeSingleSearch from "@/components/researchPortal/customComponents/CfdeSingleSearch.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("cfde-landing-2", {
+    components: {
+        CfdeSingleSearch,
+    },
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox", "keyParams"],
     data() {
         return {
