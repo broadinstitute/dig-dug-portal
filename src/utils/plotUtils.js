@@ -518,6 +518,7 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
             break;
         case "y":
             // render y axis
+            let yPadBottom = MARGIN.plotPadBottom || 0;
             CTX.moveTo(MARGIN.left - MARGIN.bump, MARGIN.top - MARGIN.bump);
             CTX.lineTo(MARGIN.left - MARGIN.bump, HEIGHT + MARGIN.bump - MARGIN.bottom);
             CTX.stroke();
@@ -526,7 +527,7 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
                 // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;
-                let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom) / WITH_TICKS;
+                let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom - yPadBottom) / WITH_TICKS;
                 for (let i = 0; i <= WITH_TICKS; i++) {
                     let tickYPos = MARGIN.top + i * yTickDistance;
                     let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
@@ -555,7 +556,7 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
             if (LABEL != null) {
                 let labelXPos = 30;
-                let labelYPos = MARGIN.top + ((HEIGHT - MARGIN.top - MARGIN.bottom) / 2);
+                let labelYPos = MARGIN.top + ((HEIGHT - MARGIN.top - MARGIN.bottom - yPadBottom) / 2);
                 CTX.font = "24px Arial";
                 CTX.fillStyle = "#000000";
                 CTX.save();
@@ -566,8 +567,92 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
                 CTX.restore();
             }
             break;
+        case "y-right":
+            let yRightPadBottom = MARGIN.plotPadBottom || 0;
+            CTX.moveTo(WIDTH + MARGIN.bump - MARGIN.right, MARGIN.top - MARGIN.bump);
+            CTX.lineTo(WIDTH + MARGIN.bump - MARGIN.right, HEIGHT + MARGIN.bump - MARGIN.bottom - yRightPadBottom);
+            CTX.stroke();
+
+            if (WITH_TICKS != null) {
+                let yStep = (max - min) / WITH_TICKS;
+                let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom - yRightPadBottom) / WITH_TICKS;
+                for (let i = 0; i <= WITH_TICKS; i++) {
+                    let tickYPos = MARGIN.top + i * yTickDistance;
+                    let adjTickYPos = Math.floor(tickYPos);
+                    CTX.moveTo(WIDTH - MARGIN.right + MARGIN.bump, adjTickYPos);
+                    CTX.lineTo(WIDTH - MARGIN.right + MARGIN.bump * 2, adjTickYPos);
+                    CTX.stroke();
+
+                    CTX.textAlign = "left";
+
+                    let tickValue =
+                        i == WITH_TICKS
+                            ? Formatters.decimalFormatter(min, decimal)
+                            : Formatters.decimalFormatter(max - i * yStep, decimal);
+
+                    CTX.fillText(
+                        tickValue,
+                        WIDTH - MARGIN.right + MARGIN.bump * 2 + 2,
+                        adjTickYPos + 6
+                    );
+                }
+            }
+
+            if (LABEL != null) {
+                let labelXPos = WIDTH - 30;
+                let labelYPos = MARGIN.top + ((HEIGHT - MARGIN.top - MARGIN.bottom - yRightPadBottom) / 2);
+                CTX.font = "24px Arial";
+                CTX.fillStyle = "#000000";
+                CTX.save();
+                CTX.translate(labelXPos, labelYPos);
+                CTX.rotate((90 * Math.PI) / 180);
+                CTX.textAlign = "center";
+                CTX.fillText(LABEL, 0, 0);
+                CTX.restore();
+            }
+            break;
     }
 
+};
+
+const renderStripYAxis = function (CTX, WIDTH, HEIGHT, MARGIN, STRIP_HEIGHT, LABEL) {
+    if (!STRIP_HEIGHT) {
+        return;
+    }
+
+    const xAxisY = HEIGHT + MARGIN.bump - MARGIN.bottom;
+    const stripTop = xAxisY - STRIP_HEIGHT;
+    const axisX = WIDTH + MARGIN.bump - MARGIN.right;
+
+    CTX.beginPath();
+    CTX.lineWidth = 1;
+    CTX.strokeStyle = "#000000";
+    CTX.font = "24px Arial";
+    CTX.fillStyle = "#000000";
+    CTX.setLineDash([]);
+
+    CTX.moveTo(axisX, stripTop);
+    CTX.lineTo(axisX, xAxisY);
+    CTX.stroke();
+
+    [1, 0].forEach((tickVal) => {
+        const tickY = Math.floor(stripTop + (1 - tickVal) * STRIP_HEIGHT);
+        CTX.beginPath();
+        CTX.moveTo(WIDTH - MARGIN.right + MARGIN.bump, tickY);
+        CTX.lineTo(WIDTH - MARGIN.right + MARGIN.bump * 2, tickY);
+        CTX.stroke();
+        CTX.textAlign = "left";
+        CTX.fillText(String(tickVal), WIDTH - MARGIN.right + MARGIN.bump * 2 + 2, tickY + 6);
+    });
+
+    if (LABEL != null) {
+        CTX.save();
+        CTX.translate(WIDTH - 30, stripTop + STRIP_HEIGHT / 2);
+        CTX.rotate((90 * Math.PI) / 180);
+        CTX.textAlign = "center";
+        CTX.fillText(LABEL, 0, 0);
+        CTX.restore();
+    }
 };
 
 const renderGuideLine = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX) {
@@ -786,6 +871,7 @@ const getDotsInPos = function (X, Y, DATA) {
 export default {
     renderAxis,
     renderAxisWBump,
+    renderStripYAxis,
     renderTicksByKeys,
     renderBars,
     renderPie,

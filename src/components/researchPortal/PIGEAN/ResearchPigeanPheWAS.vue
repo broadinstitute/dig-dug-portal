@@ -308,6 +308,22 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             }
             return this.renderConfig["y axis field"] || null;
         },
+        secondaryYAxisField() {
+            return this.renderConfig["secondary y axis field"] || null;
+        },
+        hasSecondaryYAxis() {
+            return !!this.secondaryYAxisField;
+        },
+        ppaField() {
+            return this.renderConfig["ppa field"] || null;
+        },
+        ppaStripHeight() {
+            if (!this.ppaField) {
+                return 0;
+            }
+            const cssPx = Number(this.renderConfig["ppa strip height"]);
+            return (Number.isNaN(cssPx) || cssPx <= 0 ? 30 : cssPx) * 2;
+        },
         currentYAxisField() {
             // Use primary field if no fields selected, otherwise use first selected
             if (this.selectedYAxisFields.length === 0) {
@@ -1039,17 +1055,24 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
 
                 let minY = null;
                 let maxY = null;
+                let minYRight = null;
+                let maxYRight = null;
 
                 // Determine which fields to use for min/max calculation - use ALL fields if multiple y-axis
                 const fieldsForMinMax = this.hasMultipleYAxisFields
-                    ? this.yAxisFields
+                    ? this.yAxisFields.filter(
+                          (field) => field !== this.secondaryYAxisField
+                      )
                     : [this.renderConfig["y axis field"]];
+                const rightFieldsForMinMax = this.hasSecondaryYAxis
+                    ? [this.secondaryYAxisField]
+                    : [];
 
                 for (const [key, value] of Object.entries(renderData)) {
                     groups[key] = value.length;
                     totalNum += value.length;
                     value.map((p) => {
-                        // Calculate min/max across all fields
+                        // Calculate min/max across left-axis fields
                         fieldsForMinMax.forEach(field => {
                             let yValue;
                             if (this.renderConfig["convert y -log10"] == "true") {
@@ -1064,6 +1087,26 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                                 maxY = maxY == null ? yValue : yValue > maxY ? yValue : maxY;
                             }
                         });
+                        rightFieldsForMinMax.forEach((field) => {
+                            const yValue =
+                                p[field] !== undefined && p[field] !== null
+                                    ? Number(p[field])
+                                    : null;
+                            if (yValue !== null && !isNaN(yValue)) {
+                                minYRight =
+                                    minYRight == null
+                                        ? yValue
+                                        : yValue < minYRight
+                                        ? yValue
+                                        : minYRight;
+                                maxYRight =
+                                    maxYRight == null
+                                        ? yValue
+                                        : yValue > maxYRight
+                                        ? yValue
+                                        : maxYRight;
+                            }
+                        });
                     });
                 }
                 minY = Math.floor(minY);
@@ -1072,6 +1115,14 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                 if (minY == maxY) {
                     minY -= 0.5;
                     maxY += 0.5;
+                }
+                if (this.hasSecondaryYAxis && minYRight != null && maxYRight != null) {
+                    minYRight = Math.floor(minYRight);
+                    maxYRight = Math.ceil(maxYRight);
+                    if (minYRight == maxYRight) {
+                        minYRight -= 0.5;
+                        maxYRight += 0.5;
+                    }
                 }
 
                 ctx.stroke();
@@ -1094,6 +1145,11 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                           bottom: (this.plotMargin.bottomMargin / 2) * 2.5,
                           bump: 10,
                       };
+                const ppaStripHeight = this.ppaStripHeight;
+                plotMargin.plotPadBottom =
+                    ppaStripHeight > 0 ? ppaStripHeight - plotMargin.bump : 0;
+                const scoreBottomMargin =
+                    plotMargin.bottom + (plotMargin.plotPadBottom || 0);
 
                 if (this.renderData.data.length > 1) {
                     this.utils.plotUtils.renderAxisWBump(
@@ -1107,6 +1163,20 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                         maxY,
                         this.renderConfig["y axis label"]
                     );
+                    if (this.hasSecondaryYAxis && minYRight != null && maxYRight != null) {
+                        this.utils.plotUtils.renderAxisWBump(
+                            ctx,
+                            canvasWidth,
+                            canvasHeight,
+                            plotMargin,
+                            "y-right",
+                            5,
+                            minYRight,
+                            maxYRight,
+                            this.renderConfig["secondary y axis label"] ||
+                                "Log(HuGE scores)"
+                        );
+                    }
                 }
 
                 this.utils.plotUtils.renderAxisWBump(
@@ -1130,6 +1200,37 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                     groups
                 );
 
+                if (ppaStripHeight > 0) {
+                    const xAxisY =
+                        canvasHeight + plotMargin.bump - plotMargin.bottom;
+                    const stripTop = xAxisY - ppaStripHeight;
+                    ctx.fillStyle = "#f3f3f3";
+                    ctx.fillRect(
+                        plotMargin.left,
+                        stripTop,
+                        canvasWidth - plotMargin.left - plotMargin.right,
+                        ppaStripHeight
+                    );
+                    ctx.beginPath();
+                    ctx.strokeStyle = "#cccccc";
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([]);
+                    ctx.moveTo(plotMargin.left - plotMargin.bump, stripTop);
+                    ctx.lineTo(
+                        canvasWidth + plotMargin.bump - plotMargin.right,
+                        stripTop
+                    );
+                    ctx.stroke();
+                    this.utils.plotUtils.renderStripYAxis(
+                        ctx,
+                        canvasWidth,
+                        canvasHeight,
+                        plotMargin,
+                        ppaStripHeight,
+                        this.renderConfig["ppa axis label"] || "PPA"
+                    );
+                }
+
                 let xStep =
                     (canvasWidth - plotMargin.left - plotMargin.right) /
                     totalNum;
@@ -1139,8 +1240,14 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
 
                 // render Y ticks
                 let yStep =
-                    (canvasHeight - (plotMargin.top + plotMargin.bottom)) /
+                    (canvasHeight - (plotMargin.top + scoreBottomMargin)) /
                     (yMax - yMin);
+                let yStepRight = null;
+                if (this.hasSecondaryYAxis && minYRight != null && maxYRight != null) {
+                    yStepRight =
+                        (canvasHeight - (plotMargin.top + scoreBottomMargin)) /
+                        (maxYRight - minYRight);
+                }
 
                 /// render guide line
                 //
@@ -1156,7 +1263,7 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
 
                     let guidelineYpos =
                         canvasHeight -
-                        plotMargin.bottom -
+                        scoreBottomMargin -
                         yFromMinYGuide * yStep;
 
                     ctx.setLineDash([20, 10]);
@@ -1218,6 +1325,20 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                                     // No phenotype map - use raw value
                                     pName = rawValue;
                                 }
+
+                                if (ppaStripHeight > 0) {
+                                    this.renderPpaBar(
+                                        ctx,
+                                        p,
+                                        xPos,
+                                        xStep,
+                                        canvasHeight,
+                                        plotMargin,
+                                        ppaStripHeight,
+                                        fillColor,
+                                        pName
+                                    );
+                                }
                                 
                                 // Determine which fields to render - use ALL fields if multiple y-axis
                                 const fieldsToRender = this.hasMultipleYAxisFields
@@ -1238,24 +1359,33 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                                     // Get shape for this field
                                     const fieldShape = this.getFieldShape(field);
                                     let yValue;
-                                    if (this.renderConfig["convert y -log10"] == "true") {
+                                    if (this.renderConfig["convert y -log10"] == "true" && field !== this.secondaryYAxisField) {
                                         const logField = field + "-log10";
                                         yValue = p[logField] !== undefined ? Number(p[logField]) : null;
                                     } else {
-                                        yValue = p[field] !== undefined && p[field] !== null && p[field] != 0
+                                        yValue = p[field] !== undefined && p[field] !== null && p[field] !== ""
                                             ? Number(p[field])
                                             : null;
+                                        if (field !== this.secondaryYAxisField && yValue === 0) {
+                                            yValue = null;
+                                        }
                                     }
                                     
                                     if (yValue === null || isNaN(yValue)) {
                                         return; // Skip if no valid value
                                     }
 
-                                    let yFromMinY = -minY + yValue;
+                                    const useRightAxis =
+                                        this.hasSecondaryYAxis &&
+                                        field === this.secondaryYAxisField &&
+                                        yStepRight != null;
+                                    let yFromMinY = useRightAxis
+                                        ? -minYRight + yValue
+                                        : -minY + yValue;
                                     let yPos =
                                         canvasHeight -
-                                        plotMargin.bottom -
-                                        yFromMinY * yStep;
+                                        scoreBottomMargin -
+                                        yFromMinY * (useRightAxis ? yStepRight : yStep);
                                     
                                     // Determine opacity: primary field = 100%, others = 50%
                                     let opacity = 1.0;
@@ -1368,7 +1498,7 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
                                         let yFromMinY = -minY + primaryYValue;
                                         let yPos =
                                             canvasHeight -
-                                            plotMargin.bottom -
+                                            scoreBottomMargin -
                                             yFromMinY * yStep;
                                         
                                         let passesThreshold = this.greaterThan
@@ -1513,6 +1643,62 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             }
         },
 
+        renderPpaBar(
+            CTX,
+            item,
+            XPOS,
+            XSTEP,
+            HEIGHT,
+            MARGIN,
+            STRIP_HEIGHT,
+            BAR_COLOR,
+            P_NAME
+        ) {
+            const field = this.ppaField;
+            if (!field || item[field] === undefined || item[field] === null || item[field] === "") {
+                return;
+            }
+            const ppaValue = Number(item[field]);
+            if (Number.isNaN(ppaValue) || ppaValue < 0) {
+                return;
+            }
+
+            const xAxisY = HEIGHT + MARGIN.bump - MARGIN.bottom;
+            const barHeight = Math.min(1, ppaValue) * STRIP_HEIGHT;
+            if (barHeight <= 0) {
+                return;
+            }
+            const barWidth = Math.max(2, XSTEP * 0.75);
+            const barTop = xAxisY - barHeight;
+
+            CTX.beginPath();
+            CTX.fillStyle = BAR_COLOR;
+            CTX.globalAlpha = 0.85;
+            CTX.fillRect(XPOS - barWidth / 2, barTop, barWidth, barHeight);
+            CTX.globalAlpha = 1;
+            CTX.lineWidth = 1;
+            CTX.strokeStyle = "#00000050";
+            CTX.strokeRect(XPOS - barWidth / 2, barTop, barWidth, barHeight);
+
+            const yRangeStart = Math.round((xAxisY - STRIP_HEIGHT) / 2) - 1;
+            const yRangeEnd = Math.round(xAxisY / 2) + 1;
+            const yRange = yRangeStart + "-" + yRangeEnd;
+            const tempObj = {};
+            (this.renderConfig["hover content"] || []).forEach((c) => {
+                tempObj[c] = item[c];
+            });
+            const xRange = {
+                start: Math.round((XPOS - barWidth / 2) / 2),
+                end: Math.round((XPOS + barWidth / 2) / 2),
+                data: tempObj,
+                name: P_NAME,
+                id: item[this.renderConfig["render by"]],
+            };
+            if (!this.pheWasPosData[yRange]) {
+                this.pheWasPosData[yRange] = [];
+            }
+            this.pheWasPosData[yRange].push(xRange);
+        },
         renderDot(CTX, XPOS, YPOS, DOT_COLOR, STROKE_COLOR) {
             CTX.beginPath();
             CTX.arc(XPOS, YPOS, 10, 0, 2 * Math.PI);
