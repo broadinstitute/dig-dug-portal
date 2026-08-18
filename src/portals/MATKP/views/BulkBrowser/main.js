@@ -29,8 +29,8 @@ import keyParams from "@/utils/keyParams";
 import { isNull } from "lodash";
 import { padStart } from "lodash";
 
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+//const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
 new Vue({
     store,

@@ -3,7 +3,10 @@ import dataConvert from "@/utils/dataConvert";
 const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=";
 const NEWSFEED_URL = "https://hugeampkpncms.org/rest/news_list?project=";
 const NEWSITEM_URL = "https://hugeampkpncms.org/rest/news?id=";
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+import bioIndexUtils from "@/utils/bioIndexUtils";
+let useDev = bioIndexUtils.BIO_INDEX_HOST.indexOf("dev") !== -1;
+const BIO_INDEX_HOST = useDev ? "https://matkp-dev.hugeampkpnbi.org" : "https://matkp.hugeampkpnbi.org";
+
 const MOTRPAC_AUTH = process.env.MOTRPAC;
 export const ACCESSIBLE_RED = "rgb(191 044 035)"; // colorblind safe red
 export const ACCESSIBLE_BLUE = "rgb(047 103 177)"; // colorblind safe blue,
