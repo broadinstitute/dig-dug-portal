@@ -37,7 +37,7 @@
 .detail-tab.active{
     border-color: #edf0f7;
     background: #e8f1fb;
-    color: #175cd3;
+    color: var(--liger-secondary, #175cd3);
     font-weight: 700;
 }
 .detail-tab-count{
@@ -179,7 +179,7 @@
     border: 1px solid #d9e6f5;
     border-radius: 999px;
     background: #f6f9fd;
-    color: #175cd3;
+    color: var(--liger-secondary, #175cd3);
     font-size: 12px;
     font-weight: 700;
 }
@@ -447,14 +447,14 @@
 }
 .detail-badge.blue{
     background: #e8f1fb;
-    color: #175cd3;
+    color: var(--liger-secondary, #175cd3);
 }
 .detail-link-button{
     margin-top: 10px;
     padding: 0;
     border: 0;
     background: transparent;
-    color: #175cd3;
+    color: var(--liger-secondary, #175cd3);
     font-size: 13px;
     font-weight: 700;
     text-align: left;

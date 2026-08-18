@@ -33,12 +33,25 @@ Current supported keys:
 - `documentationUrl`
   - Overrides the `Read Documentation` link target.
   - Default: `/research.html?pageid=kp_liger_documentation`
-- `bioIndexHost`
-  - Overrides which bioindex serves the LIGER indexes.
-  - Default: unset, i.e. the host portal's own `BIO_INDEX_HOST`.
-  - Set it only on branches whose LIGER indexes live somewhere other than their own bioindex.
-  - Trailing slashes are trimmed, so `https://host` and `https://host/` both work.
-  - Does **not** affect `/api/portal/phenotypes` — see the API Host section.
+- `prodHost`
+  - Bioindex serving the LIGER indexes on production pages.
+  - Default: `https://bioindex.hugeamp.org`
+- `devHost`
+  - Bioindex serving the LIGER indexes on local / dev pages.
+  - Default: `https://bioindex-dev.hugeamp.org`
+  - Trailing slashes are trimmed on both, so `https://host` and `https://host/` work.
+  - Neither affects `/api/portal/phenotypes` or `/api/bio/match/gene` — see the API Host section.
+- `primaryColor`
+  - The main accent: buttons, links, bars, selected chips. Overrides the `--blue` CSS variable within
+    the component root.
+  - Default: `#0277b6`
+- `secondaryColor`
+  - The secondary accent: detail-panel badges, filter notes, section labels.
+  - Default: `#175cd3`
+  - Both are set as CSS variables on the `#liger` root in the `themeStyle()` computed, so they reach
+    `StateDetails` / `ProgramDetails` / `HeatTable` and `ligerDetails.css` by inheritance despite those
+    styles being scoped. The category palette inside `CellStateInfographic.vue` is deliberately
+    untouched — its `--blue` is one of four categorical colors, not an accent.
 - `tissues`
   - Optional allowlist of tissue keys to expose in results.
   - Example values: `["liver"]`, `["liver", "pancreas"]`
@@ -60,7 +73,10 @@ Example:
 config: {
   pageTitle: "Liver Cell State Explorer",
   documentationUrl: "/research.html?pageid=my_docs",
-  bioIndexHost: "https://bioindex-dev.pankbase.org", // only when not this portal's own bioindex
+  prodHost: "https://bioindex.pankbase.org",
+  devHost: "https://bioindex-dev.pankbase.org",
+  primaryColor: "#0277b6",
+  secondaryColor: "#175cd3",
   tissues: ["liver", "pancreas"],
   hideTissueCardIfOneOption: true,
 }
@@ -83,33 +99,31 @@ config: {
 
 ## API Host
 
-The host for the LIGER indexes is resolved in the `apiHost()` computed. Precedence, highest first:
+The host for the LIGER indexes is resolved in the `apiHost()` computed. It is a single binary choice, no
+precedence chain:
 
-1. `LIGER_FORCE_DEV_BIOINDEX = true` -- a code-level debugging switch, so it wins outright and points
-   everything at `LIGER_DEV_BIOINDEX_HOST`.
-2. `config.bioIndexHost`, if set.
-3. Running on `localhost` / `127.0.0.1` / `0.0.0.0` -- falls back to `LIGER_DEV_BIOINDEX_HOST`.
-4. `BIO_INDEX_HOST` -- the host portal's own bioindex, compile-time injected per portal by
-   `vue.config.js`.
-5. `LIGER_DEFAULT_BIOINDEX_HOST` (`https://bioindex.hugeamp.org`), only as a guard for `BIO_INDEX_HOST`
-   being absent -- which happens in builds that do not run the `vue.config.js` define (tests, or any
-   consumer importing this component outside the portal build).
+- Dev when the page is served from `localhost` / `127.0.0.1` / `0.0.0.0`, or when any label of the
+  hostname other than the TLD contains `dev` — `dev.pankbase.org`, `cmd.dev.hugeamp.org`,
+  `bioindex-dev.hugeamp.org`, `kp4cd-dev.org`. Uses `config.devHost`.
+- Prod otherwise. Uses `config.prodHost`.
 
-So a branch whose bioindex serves the LIGER indexes needs no configuration; `config.bioIndexHost` is for
-the branches whose indexes live elsewhere.
+Both default to the hugeamp bioindexes (`https://bioindex.hugeamp.org` /
+`https://bioindex-dev.hugeamp.org`), so a page that reads LIGER from hugeamp needs no configuration. A
+portal serving the LIGER indexes from its own bioindex sets both keys.
 
-Two details worth keeping:
+`BIO_INDEX_HOST` is deliberately not used here. It is compile-time injected per portal build, which made
+the resolved host depend on how the bundle was built rather than on the page config, and it is not
+overridable per page.
 
-- **The localhost fallback applies only when no host is configured.** A page that names its host gets that
-  host when served locally too -- otherwise local development silently reads from a different backend than
-  production, which is the hardest kind of discrepancy to notice.
-- **`bioIndexHost` is `null` in `LIGER_DEFAULT_CONFIG`, not a host string.** The chain above lives in
-  `apiHost()`; filling a value in at the config layer would make every step below it unreachable.
+Two endpoints do **not** follow `apiHost`:
 
-`/api/portal/phenotypes` is the one endpoint that does not follow `apiHost`. Only the hugeamp bioindex
-serves it (others return `501`), so it stays pinned to `LIGER_PHENOTYPES_HOST`. Do not route it through
-`config.bioIndexHost`: that knob exists to point the LIGER indexes at another portal, and dragging the
-phenotype labels along would send them to a host that does not serve them.
+- `/api/portal/phenotypes?q=md`
+- `/api/bio/match/gene?q=`
+
+Only the hugeamp bioindex serves them (others return `501`), so both are pinned to `LIGER_HUGEAMP_HOST`,
+which is hugeamp prod or hugeamp dev by the same dev check above. Do not route them through
+`config.prodHost` / `config.devHost`: those exist to point the LIGER indexes at another portal, and
+dragging these two along would send them to a host that does not serve them.
 
 ## Temporary Local Tissue Config
 
@@ -258,7 +272,7 @@ test first in case the index starts sending it.
 - `/api/bio/query/gene-program-trait-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
 - `/api/portal/phenotypes?q=md`
 
-`/api/portal/phenotypes` is served only by the hugeamp bioindex; other portals return `501`. It is therefore pinned to `LIGER_PHENOTYPES_HOST` rather than `LIGER_API_HOST`, so it stays on hugeamp regardless of which portal hosts the component. It is the only endpoint that does not follow the resolved host.
+`/api/portal/phenotypes` is served only by the hugeamp bioindex; other portals return `501`. It is therefore pinned to `LIGER_HUGEAMP_HOST` rather than `apiHost`, so it stays on hugeamp regardless of which portal hosts the component. Along with `/api/bio/match/gene`, it is one of the two endpoints that do not follow the resolved host.
 
 #### Trait cell type partition — resolved, mechanism removed
 
