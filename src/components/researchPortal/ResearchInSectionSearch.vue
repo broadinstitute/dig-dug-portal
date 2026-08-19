@@ -151,7 +151,7 @@
 					</div>
 					<input
 						v-if="parameter.type == 'input' &&
-							parameter.values != 'kp genes'
+							parameter.values != 'kp genes' && parameter.values != 'kp variant'
 							"
 						type="text"
 						class="form-control"

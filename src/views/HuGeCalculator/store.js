@@ -8,7 +8,6 @@ import ldServer from "@/modules/ldServer";
 import regionUtils from "@/utils/regionUtils";
 import keyParams from "@/utils/keyParams";
 import { query } from "@/utils/bioIndexUtils";
-import { uniqBy } from "lodash";
 
 Vue.use(Vuex);
 

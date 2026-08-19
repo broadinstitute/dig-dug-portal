@@ -1,3 +1,9 @@
+// Field values can be numbers, null or nested objects depending on the
+// dataset, so normalize before any case-insensitive comparison.
+let toLowerString = function (VALUE) {
+    return String(VALUE == undefined ? "" : VALUE).toLowerCase();
+}
+
 let applyFilters = function (FILTERS, DATA, PARAMS) {
     let returnData = [];
     let filterData = DATA;
@@ -15,31 +21,35 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
                     case 'search':
 
                         if (!!filter.value) {
-                            if (!!d[filter.field] && typeof d[filter.field] == 'string') {
-                                meetFilters = !!d[filter.field].toLowerCase().includes(filterValue.toLowerCase()) ? true : false;
-                            } else if (!!d[filter.field] && typeof d[filter.field] == 'object' && !!Array.isArray(d[filter.field])) {
+                            if (typeof d[filter.field] == 'string') {
+                                meetFilters = d[filter.field].toLowerCase().includes(filterValue.toLowerCase());
+                            } else if (Array.isArray(d[filter.field])) {
 
-                                let valuesInColumn = [...new Set(d[filter.field].map(c => c.toLowerCase()))];
+                                let valuesInColumn = d[filter.field].map(c => toLowerString(c));
 
-                                meetFilters = !!valuesInColumn.includes(filterValue.toLowerCase()) ? true : false;
+                                meetFilters = valuesInColumn.includes(toLowerString(filterValue));
 
                             }
                         } else if (!!filter.values) {
-                            meetFilters = false;
+                            let filterValuesLower = filterValue.map(fV => toLowerString(fV));
 
-                            if (!!d[filter.field] && typeof d[filter.field] == 'string') {
+                            if (typeof d[filter.field] == 'string') {
 
-                                filterValue.map(fV => {
-                                    meetFilters = !!d[filter.field].toLowerCase().includes(fV.toLowerCase()) ? true : meetFilters;
-                                })
+                                let valueInColumn = d[filter.field].toLowerCase();
 
-                            } else if (!!d[filter.field] && typeof d[filter.field] == 'object' && !!Array.isArray(d[filter.field])) {
+                                meetFilters = filterValuesLower.some(fV => valueInColumn.includes(fV));
 
-                                let valuesInColumn = d[filter.field].toString().toLowerCase();
+                            } else if (Array.isArray(d[filter.field])) {
 
-                                filterValue.map(fV => {
-                                    meetFilters = !!d[filter.field].toLowerCase().includes(fV.toLowerCase()) ? true : meetFilters;
-                                })
+                                // Match whole elements, like the single-value
+                                // branch above, so 'male' doesn't match a row
+                                // whose column holds ['female'].
+                                let valuesInColumn = d[filter.field].map(c => toLowerString(c));
+
+                                meetFilters = filterValuesLower.some(fV => valuesInColumn.includes(fV));
+
+                            } else {
+                                meetFilters = false;
                             }
                         }
                         break;
@@ -118,8 +128,8 @@ let filterMulti2Multi = function (FilterKey, TargetKey, TYPE, FilterData, Target
     if (!!FilterData && FilterData.length > 0) {
         switch (TYPE) {
             case "search":
-                let filterValues = [...new Set(FilterData.map(d => d[FilterKey].toLowerCase()))];
-                returnData = [...new Set(TargetData.filter(d => !!filterValues.includes(d[TargetKey].toLowerCase())))];
+                let filterValues = [...new Set(FilterData.map(d => toLowerString(d[FilterKey])))];
+                returnData = [...new Set(TargetData.filter(d => filterValues.includes(toLowerString(d[TargetKey]))))];
 
                 break;
         }

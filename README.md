@@ -59,6 +59,54 @@ C:\> $env:BIOINDEX_DEV=1
 C:\> npm run watch
 ```
 
+### Connecting a page or module to a secondary BioIndex host
+
+By default every BioIndex request goes to the single compile-time host
+(`BIO_INDEX_HOST`, set from `SERVER_IP_ADDRESS` / `BIOINDEX_DEV` at build time).
+If a particular portal, page, or section needs to read from a **different**
+BioIndex server, you no longer need to fork `bioIndexUtils.js` / `bioIndex.js`.
+Both the transport helpers and the Vuex bioindex factory accept an optional
+`host` that overrides the default for those calls only. The override is threaded
+all the way through (`query`/`match` → `request` → `rawUrl` → `apiUrl`, including
+continuation fetches), and everything that omits it keeps using the default host.
+
+Per Vuex module (the common case) — pass `host` as the 3rd factory argument:
+
+```js
+import bioIndex from "@/modules/bioIndex";
+
+export default new Vuex.Store({
+    modules: {
+        // default host (no change)
+        genes:       bioIndex("gene"),
+        // this module reads from a secondary host
+        specialData: bioIndex("special-index", undefined, { host: "https://secondary.example.org" }),
+    },
+});
+```
+
+Per call — pass `host` in the options object:
+
+```js
+import { query } from "@/utils/bioIndexUtils";
+
+let rows = await query("special-index", q, { host: "https://secondary.example.org", limit: 100 });
+```
+
+If the secondary host is the existing private/internal server, import the
+`BIO_INDEX_HOST_PRIVATE` constant and pass it as the `host`:
+
+```js
+import { BIO_INDEX_HOST_PRIVATE } from "@/utils/bioIndexUtils";
+
+privateData: bioIndex("bar", undefined, { host: BIO_INDEX_HOST_PRIVATE }),
+```
+
+> **Backward compatibility:** `host` is optional everywhere. Existing calls that
+> omit it behave exactly as before, and the `BIO_INDEX_HOST` / `BIO_INDEX_HOST_PRIVATE`
+> exports and the `query_private` flag on `apiUrl` are unchanged. Branches that pull
+> these changes from `master` need no edits unless they want to use a secondary host.
+
 ## Front-end framework
 
 ### Vue.js / Vuex

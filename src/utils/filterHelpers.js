@@ -1,4 +1,4 @@
-import { get } from "lodash";
+import { get } from "./lodashUtils";
 
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
@@ -176,8 +176,7 @@ export function decodeNamespace(
 }
 
 export function unsetFilter(filterList, filter) {
-    const _filterList = _.filter(
-        filterList, 
+    const _filterList = filterList.filter(
         el => !(el.field === filter.field && el.threshold === filter.threshold));
     return _filterList;
 }

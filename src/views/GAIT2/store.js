@@ -8,7 +8,7 @@ import bioIndex from "@/modules/bioIndex";
 import ldServer from "@/modules/ldServer";
 import keyParams from "@/utils/keyParams";
 import { query } from "@/utils/bioIndexUtils";
-import { uniqBy } from "lodash";
+import { uniqBy } from "@/utils/lodashUtils";
 
 Vue.use(Vuex);
 

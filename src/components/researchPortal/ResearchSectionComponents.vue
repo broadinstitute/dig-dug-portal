@@ -15,12 +15,16 @@ import $ from "jquery";
 
 import cfdeEcoSystem from "@/components/researchPortal/customComponents/cfdeEcoSystem.vue";
 import cfdeLanding from "@/components/researchPortal/customComponents/cfdeLanding.vue";
+import GiantGemPkg from "@/components/researchPortal/customComponents/GiantGemPkg.vue";
+import kpVariantSifter from "@/components/researchPortal/customComponents/kpVariantSifter.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
 	components: {
 		cfdeEcoSystem,
-		cfdeLanding
+		cfdeLanding,
+		GiantGemPkg,
+		kpVariantSifter,
 	},
 	data() {
 		return {
@@ -37,6 +41,12 @@ export default Vue.component("research-section-components", {
 				break;
 			case 'cfdeLanding':
 				this.currentComponent = cfdeLanding;
+				break;
+			case 'GiantGemPkg':
+				this.currentComponent = GiantGemPkg;
+				break;
+			case 'kpVariantSifter':
+				this.currentComponent = kpVariantSifter;
 				break;
 		}
 	},

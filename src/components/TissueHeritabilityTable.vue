@@ -18,9 +18,10 @@
                 </data-download>
             </div>
         </div>
-        <b-table v-if="!dataEmpty"
+        <b-table
+            v-if="!dataEmpty"
             small
-            responsive="sm"
+            responsive
             :items="itemData"
             :fields="fields"
             :per-page="perPage"
@@ -130,9 +131,7 @@ export default Vue.component("TissueHeritabilityTable", {
                     key: "biosample",
                     label: "Biosample",
                     formatter: (value) =>
-                        !value
-                            ? `All biosamples (${this.tissue})`
-                            : value,
+                        !value ? `All biosamples (${this.tissue})` : value,
                     tdClass: (value) => (!value ? "all_biosamples" : ""),
                     sortable: true,
                 },
@@ -152,14 +151,14 @@ export default Vue.component("TissueHeritabilityTable", {
             tableData: {},
             subTableData: {},
             ancestry: "Mixed",
-            dataEmpty: false
+            dataEmpty: false,
         };
     },
     computed: {
         totalRows() {
             return this.itemData?.length || 0;
         },
-        tableKey(){
+        tableKey() {
             return `${this.tissue},${this.ancestry}`;
         },
         itemData() {
@@ -168,7 +167,7 @@ export default Vue.component("TissueHeritabilityTable", {
                 return [];
             }
             let data = this.tableData[this.tableKey];
-            if (typeof data === "object" && data.length === 0){
+            if (typeof data === "object" && data.length === 0) {
                 this.dataEmpty = true;
             }
             return data;
@@ -198,16 +197,16 @@ export default Vue.component("TissueHeritabilityTable", {
                 this.queryHeritability();
             },
         },
-        topPhenotype(newPhenotype){
-            let desc = !this.phenotypeMap[newPhenotype] 
+        topPhenotype(newPhenotype) {
+            let desc = !this.phenotypeMap[newPhenotype]
                 ? newPhenotype
                 : this.phenotypeMap[newPhenotype].description;
             let phenotype = {
                 name: newPhenotype,
-                description: desc
+                description: desc,
             };
             this.$emit("topPhenotypeFound", phenotype);
-        }
+        },
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -228,9 +227,7 @@ export default Vue.component("TissueHeritabilityTable", {
             }
         },
         async queryPartitionedHeritability(item) {
-            let queryString = `${item.phenotype},${this.ancestry},${
-                item.annotation
-            },${this.tissue}`;
+            let queryString = `${item.phenotype},${this.ancestry},${item.annotation},${this.tissue}`;
             if (!this.subTableData[queryString]) {
                 let data = await query(
                     "partitioned-heritability-tissue",
@@ -245,9 +242,7 @@ export default Vue.component("TissueHeritabilityTable", {
             this.queryPartitionedHeritability(row.item);
         },
         getSubTableData(item) {
-            let query = `${item.phenotype},${this.ancestry},${
-                item.annotation
-            },${this.tissue}`;
+            let query = `${item.phenotype},${this.ancestry},${item.annotation},${this.tissue}`;
             return this.subTableData[query];
         },
     },

@@ -38,6 +38,7 @@ import filterHelpers from "@/utils/filterHelpers";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
+import { difference } from "@/utils/lodashUtils";
 import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
@@ -321,7 +322,7 @@ new Vue({
             this.enrichmentScoring = groups;
         },
         selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = _.difference(
+            const removedPhenotypes = difference(
                 oldPhenotypes.map((p) => p.name),
                 phenotypes.map((p) => p.name)
             );

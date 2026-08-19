@@ -171,6 +171,9 @@ export default Vue.component("research-region-plot", {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		pageLevelLD(){
+			return this.$store.state.topLevelLDData;
+		},
 		adjPlotMargin() {
 			
 			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
@@ -553,7 +556,7 @@ export default Vue.component("research-region-plot", {
 		},
 		starItems(CONTENT) {
 			this.renderPlots();
-		}
+		},
 	},
 	methods: {
 

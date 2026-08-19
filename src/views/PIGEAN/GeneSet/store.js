@@ -58,15 +58,19 @@ export default new Vuex.Store({
             context.commit("setGenesetSize", genesetSize);
             context.commit("setTraitGroup", traitGroup);
 
-            if (traitGroup !== 'all'){
+            if (!traitGroup.startsWith('all')){
                 await context.dispatch("pigeanGeneset/query", { q: 
                     `${traitGroup},${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`});
                 context.commit("setPhewasData", context.state.pigeanGeneset.data);
             } else {
                 // If ALL is selected, query all trait groups and get top results across all
+                let traits = Object.keys(bioIndexUtils.TRAIT_GROUPS);
+                if (traitGroup === 'all_but_hpo'){
+                    traits = traits.filter(t => t !== 'hpo');
+                }
                 let traitsData = [];
-                for (let i = 0; i < bioIndexUtils.TRAIT_GROUPS.length; i++){
-                    let group = bioIndexUtils.TRAIT_GROUPS[i];
+                for (let i = 0; i < traits.length; i++){
+                    let group = traits[i];
                     let traitQuery = `${group},${name},${
                         bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`;
                     let groupData = await bioIndexUtils.query("pigean-gene-set", traitQuery);
