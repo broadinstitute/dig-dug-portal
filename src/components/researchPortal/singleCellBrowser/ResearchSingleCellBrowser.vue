@@ -1192,6 +1192,13 @@
                 expressionData: {}, //obj, keys are gene names, values are arrays of raw expression per cell
                 expressionExtents: {}, //obj, keys are gene names, values are {min, max} of the above
                 expressionStatsAll: [], //array of objects, each obj is gene, mean expr., pct. expressing
+                //per gene calcExpressionStats results, so loading a gene does not recompute the
+                //genes already loaded. a Map because Vue 2 does not walk Map contents, and the
+                //values are already frozen by the aggregation functions
+                expressionStatsCache: new Map(),
+                //the (fields, labelColors, cellTypeField) the cache was built against - stats
+                //depend on all three, so if any changes every entry is stale
+                expressionStatsCacheKey: null,
                 geneToSearch: "",
                 geneLoading: null,
                 genesNotFound: [],
@@ -1282,9 +1289,31 @@
         },
         watch: {
             expressionData(){
+                //this fires once per gene loaded, and it used to recompute the stats for
+                //every gene already loaded as well - O(cells x genes) per search, so the
+                //cost of searching a gene grew with the number already searched. only the
+                //genes whose stats are not cached are computed now.
+                const key = Object.freeze([this.fields, this.labelColors, this.cellTypeField]);
+                const staleKey = !this.expressionStatsCacheKey ||
+                    key.some((value, i) => value !== this.expressionStatsCacheKey[i]);
+                if(staleKey){
+                    this.expressionStatsCache.clear();
+                    this.expressionStatsCacheKey = key;
+                }else{
+                    //forget genes that are no longer loaded so the cache cannot outlive them
+                    this.expressionStatsCache.forEach((_, gene) => {
+                        if(!(gene in this.expressionData)) this.expressionStatsCache.delete(gene);
+                    });
+                }
+
                 const expressionStats = [];
                 Object.keys(this.expressionData).forEach(gene => {
-                    expressionStats.push(...scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true))
+                    let stats = this.expressionStatsCache.get(gene);
+                    if(!stats){
+                        stats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true);
+                        this.expressionStatsCache.set(gene, stats);
+                    }
+                    expressionStats.push(...stats);
                 })
                 //frozen for the same reason the grouped results are - this feeds the marker
                 //dot plot, and Vue would walk it on every read during a render
@@ -1587,6 +1616,8 @@
                 this.expressionExtents = {};
                 this.geneNames = [];
                 this.expressionStatsAll = [];
+                this.expressionStatsCache.clear();
+                this.expressionStatsCacheKey = null;
                 this.genesNotFound = [];
                 this.dotPlotCellType = "";
                 this.markerFileOptions = [];
