@@ -163,6 +163,7 @@ export default {
                 rows: this.rows,
                 primaryAncestry: this.resolvedPrimaryAncestry,
                 selectedAncestries: this.selectedAncestries,
+                project: "KP",
             }).filter((series) => series.rows.length > 0);
         },
         showTabs() {

@@ -5,8 +5,12 @@ import {
 } from "./variantSifterSearchUtils.js";
 import {
     getProjectConfig,
+    gwasCeAssociationsIndex,
     projectAncestryOptions,
+    resolveGwasCeToken,
     resolveProjectQueryIndex,
+    VKS_ASSOCIATION_PROJECT_KP,
+    VKS_GWAS_CE_BIOINDEX_HOST,
     VKS_PROJECT_DEFAULT_ID,
 } from "./variantSifterProjects.js";
 
@@ -24,10 +28,27 @@ export function primaryAssociationAncestry(session) {
     return session?.ancestry || "Mixed";
 }
 
+export function associationRowProject(row, fallback = VKS_ASSOCIATION_PROJECT_KP) {
+    return row?.Project || fallback;
+}
+
+export function filterAssociationRowsByProject(
+    rows,
+    project = VKS_ASSOCIATION_PROJECT_KP
+) {
+    if (!Array.isArray(rows)) {
+        return [];
+    }
+    return rows.filter(
+        (row) => associationRowProject(row) === project
+    );
+}
+
 /**
  * Mixed ancestry uses associations without ancestry key.
  * Specific ancestries use ancestry-associations on KP, or associations
  * with phenotype,ancestry,region on projects like Giant.
+ * GWAS-CE token overlays are fetched separately via {@link fetchGwasCeAssociations}.
  */
 export function resolveAssociationsRequest(
     session,
@@ -57,16 +78,63 @@ export function resolveAssociationsRequest(
     };
 }
 
+/** GWAS-CE overlay: associations-{token} with q=token,region. */
+export function resolveGwasCeAssociationsRequest(session) {
+    const region = formatRegion(session?.region);
+    const token = resolveGwasCeToken(session);
+    if (!token || !region) {
+        return {
+            index: gwasCeAssociationsIndex(""),
+            q: "",
+            logicalIndex: "gwas-ce-associations",
+            fmt: "row",
+            host: VKS_GWAS_CE_BIOINDEX_HOST,
+        };
+    }
+    return {
+        index: gwasCeAssociationsIndex(token),
+        q: `${token},${region}`,
+        logicalIndex: "gwas-ce-associations",
+        fmt: "row",
+        host: VKS_GWAS_CE_BIOINDEX_HOST,
+    };
+}
+
 export async function fetchAssociations(
     session,
     host,
     projectId = VKS_PROJECT_DEFAULT_ID
 ) {
-    const { index, q, logicalIndex } = resolveAssociationsRequest(
+    const { index, q, logicalIndex, fmt } = resolveAssociationsRequest(
         session,
         projectId
     );
-    const data = await query(index, q, { host });
+    const data = await query(index, q, { host, fmt });
+    const rows = Array.isArray(data) ? data : [];
+
+    rows.sort((a, b) => {
+        const pA = a?.pValue ?? 1;
+        const pB = b?.pValue ?? 1;
+        return pA - pB;
+    });
+
+    return { index: logicalIndex || index, q, rows };
+}
+
+/**
+ * Fetch GWAS-CE token associations (additive overlay). Uses the CE BioIndex host.
+ */
+export async function fetchGwasCeAssociations(session) {
+    const token = resolveGwasCeToken(session);
+    if (!token) {
+        throw new Error("GWAS-CE access token is required.");
+    }
+    const { index, q, logicalIndex, fmt, host } =
+        resolveGwasCeAssociationsRequest(session);
+    if (!q) {
+        return { index: logicalIndex, q, rows: [] };
+    }
+    const data = await query(index, q, { host, fmt });
     const rows = Array.isArray(data) ? data : [];
 
     rows.sort((a, b) => {
@@ -92,6 +160,13 @@ export async function fetchAssociationsForRegion(
         host,
         projectId
     );
+}
+
+export async function fetchGwasCeAssociationsForRegion(session, region) {
+    return fetchGwasCeAssociations({
+        ...session,
+        region,
+    });
 }
 
 /**
@@ -253,12 +328,15 @@ export function filterAssociationRowsByAncestry(
 
 /**
  * Ordered association plot series: primary first, then additional selected ancestries.
+ * Default KP plot uses only KP-project rows (GWAS-CE has its own plot section).
  */
 export function buildAssociationPlotSeries({
     rows = [],
     primaryAncestry = "Mixed",
     selectedAncestries = [],
+    project = VKS_ASSOCIATION_PROJECT_KP,
 } = {}) {
+    const projectRows = filterAssociationRowsByProject(rows, project);
     const ordered = [primaryAncestry];
     (selectedAncestries || []).forEach((code) => {
         if (code && code !== primaryAncestry && !ordered.includes(code)) {
@@ -270,8 +348,9 @@ export function buildAssociationPlotSeries({
         ancestry,
         label: ancestryLabel(ancestry),
         isPrimary: ancestry === primaryAncestry,
+        project,
         rows: filterAssociationRowsByAncestry(
-            rows,
+            projectRows,
             ancestry,
             primaryAncestry,
             selectedAncestries

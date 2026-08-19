@@ -255,7 +255,7 @@ export default {
 <style scoped>
 .vks-viewport-controls {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: var(--vks-toolbar-gap, 12px);
     flex-shrink: 0;

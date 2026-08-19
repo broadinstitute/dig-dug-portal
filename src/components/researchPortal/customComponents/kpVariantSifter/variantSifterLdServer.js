@@ -105,6 +105,68 @@ export function pickLeadVariantRow(rows) {
     return lead;
 }
 
+/** Association rows ordered by ascending P-value (lead first). */
+export function associationRowsByAscendingPValue(rows) {
+    if (!Array.isArray(rows) || !rows.length) {
+        return [];
+    }
+    return [...rows].sort((a, b) => {
+        const pA = typeof a?.["P-Value"] === "number" ? a["P-Value"] : Number.POSITIVE_INFINITY;
+        const pB = typeof b?.["P-Value"] === "number" ? b["P-Value"] : Number.POSITIVE_INFINITY;
+        return pA - pB;
+    });
+}
+
+/**
+ * Alleles the U-M 1000G LD server typically cannot resolve (e.g. GWAS-CE I/D indels).
+ * Used only to prefer better LD candidates; non-matching rows are still tried last.
+ */
+export function isLikelyLdCapableVariant(row) {
+    const gem = rowToLdVariant(row);
+    if (!gem) {
+        return false;
+    }
+    const match = String(gem).match(
+        /^((?:\d+|X|Y|MT)):(\d+)_([^/]+)\/(.+)$/i
+    );
+    if (!match) {
+        return true;
+    }
+    const ref = String(match[3] || "").toUpperCase();
+    const alt = String(match[4] || "").toUpperCase();
+    if (!ref || !alt) {
+        return false;
+    }
+    if (ref === "I" || ref === "D" || alt === "I" || alt === "D") {
+        return false;
+    }
+    return true;
+}
+
+/** Prefer LD-capable SNPs by P-value, then remaining rows by P-value. */
+export function ldReferenceCandidateRows(rows, { maxCandidates = 12 } = {}) {
+    const ordered = associationRowsByAscendingPValue(rows);
+    if (!ordered.length) {
+        return [];
+    }
+    const capable = [];
+    const fallback = [];
+    const seen = new Set();
+    ordered.forEach((row) => {
+        const key = rowToLdVariant(row) || row?.varId || row?.["Variant ID"];
+        if (!key || seen.has(key)) {
+            return;
+        }
+        seen.add(key);
+        if (isLikelyLdCapableVariant(row)) {
+            capable.push(row);
+        } else {
+            fallback.push(row);
+        }
+    });
+    return capable.concat(fallback).slice(0, Math.max(1, maxCandidates));
+}
+
 export function findAssociationRefRow(rows, refVariant) {
     if (!rows?.length) {
         return null;
@@ -189,15 +251,37 @@ export function lookupLdScore(scoreMap, row) {
 }
 
 /**
- * Fetch LD r² scores for a locus relative to the lead variant.
+ * Fetch LD r² scores for a locus, trying lead then next LD-capable variants
+ * when the preferred reference is missing from the 1000G panel (e.g. I/D indels).
  */
-export async function fetchLdScoreMap(rows, session) {
-    if (!Array.isArray(rows) || !rows.length || !session?.region) {
-        return { scoreMap: new Map(), refVariant: null };
+export async function fetchLdScoreMap(rows, session, region = null) {
+    const activeRegion = region || session?.region;
+    if (!Array.isArray(rows) || !rows.length || !session || !activeRegion) {
+        return { scoreMap: new Map(), refVariant: null, refRow: null };
+    }
+
+    const candidates = ldReferenceCandidateRows(rows);
+    for (const candidate of candidates) {
+        const result = await fetchLdScoreMapForRefRow(
+            candidate,
+            session,
+            activeRegion
+        );
+        if (result.scoreMap.size) {
+            return {
+                scoreMap: result.scoreMap,
+                refVariant: result.refVariant,
+                refRow: candidate,
+            };
+        }
     }
 
     const leadRow = pickLeadVariantRow(rows);
-    return fetchLdScoreMapForRefRow(leadRow, session, session.region);
+    return {
+        scoreMap: new Map(),
+        refVariant: rowToLdVariant(leadRow),
+        refRow: leadRow,
+    };
 }
 
 /**
@@ -236,6 +320,22 @@ export async function fetchLdScoreMapForRefRow(refRow, session, region) {
     }
 }
 
+function applyLdScoreMapToRows(rows, scoreMap) {
+    if (!scoreMap?.size) {
+        return rows;
+    }
+    return rows.map((row) => {
+        const ldScore = lookupLdScore(scoreMap, row);
+        if (ldScore == null) {
+            return { ...row, LDS: null };
+        }
+        return {
+            ...row,
+            LDS: ldScore,
+        };
+    });
+}
+
 export async function enrichAssociationRowsWithLdScoresForRef(rows, session, refRow, region) {
     if (!Array.isArray(rows) || !rows.length || !refRow) {
         return rows;
@@ -250,39 +350,29 @@ export async function enrichAssociationRowsWithLdScoresForRef(rows, session, ref
         return rows;
     }
 
-    return rows.map((row) => {
-        const ldScore = lookupLdScore(scoreMap, row);
-        if (ldScore == null) {
-            return { ...row, LDS: null };
-        }
-        return {
-            ...row,
-            LDS: ldScore,
-        };
-    });
+    return applyLdScoreMapToRows(rows, scoreMap);
 }
 
 /**
- * Fetch LD r² scores for a locus and merge into association rows as LDS.
+ * Fetch LD r² scores for a locus (with lead→next fallback) and merge as LDS.
+ * @returns {{ rows: object[], refVariant: string|null }}
  */
-export async function enrichAssociationRowsWithLdScores(rows, session) {
+export async function enrichAssociationRowsWithLdScores(rows, session, region = null) {
     if (!Array.isArray(rows) || !rows.length || !session?.region) {
-        return rows;
+        return { rows: rows || [], refVariant: null };
     }
 
-    const { scoreMap } = await fetchLdScoreMap(rows, session);
+    const { scoreMap, refVariant } = await fetchLdScoreMap(
+        rows,
+        session,
+        region || session.region
+    );
     if (!scoreMap.size) {
-        return rows;
+        return { rows, refVariant };
     }
 
-    return rows.map((row) => {
-        const ldScore = lookupLdScore(scoreMap, row);
-        if (ldScore == null) {
-            return row;
-        }
-        return {
-            ...row,
-            LDS: ldScore,
-        };
-    });
+    return {
+        rows: applyLdScoreMapToRows(rows, scoreMap),
+        refVariant,
+    };
 }

@@ -56,6 +56,7 @@ export function serializeRecentSearch(
             session.regionExpandBp == null || session.regionExpandBp === ""
                 ? null
                 : Number(session.regionExpandBp),
+        gwasCeToken: String(session.gwasCeToken || "").trim() || null,
         projectId: normalizeProjectId(projectId),
         subAncestries: parseSubAncestriesParam(
             subAncestries,
@@ -69,14 +70,17 @@ export function formatRecentSearchLabel(entry) {
     if (!entry) {
         return "";
     }
-    return formatSearchSessionLabel({
-        phenotype: {
-            name: entry.phenotypeName,
-            description: entry.phenotypeDescription,
+    return formatSearchSessionLabel(
+        {
+            phenotype: {
+                name: entry.phenotypeName,
+                description: entry.phenotypeDescription,
+            },
+            ancestry: entry.ancestry,
+            regionLabel: entry.regionLabel || entry.geneOrVariantQuery || "",
         },
-        ancestry: entry.ancestry,
-        regionLabel: entry.regionLabel || entry.geneOrVariantQuery || "",
-    });
+        { projectId: entry.projectId }
+    );
 }
 
 function normalizeStoredEntry(raw) {
@@ -110,6 +114,7 @@ function normalizeStoredEntry(raw) {
             raw.regionExpandBp == null || raw.regionExpandBp === ""
                 ? null
                 : Number(raw.regionExpandBp),
+        gwasCeToken: String(raw.gwasCeToken || "").trim() || null,
         projectId: normalizeProjectId(raw.projectId),
         subAncestries: parseSubAncestriesParam(
             raw.subAncestries,

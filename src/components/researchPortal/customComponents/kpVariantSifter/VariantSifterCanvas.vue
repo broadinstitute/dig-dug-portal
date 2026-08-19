@@ -41,6 +41,7 @@
                         :workspace-mapping-filter="workspaceMappingFilter"
                         :utils="utils"
                         :tissue-regions-host="tissueRegionsHost"
+                        :project-id="projectId"
                         @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
                         @pan-end="$emit('pan-end')"
