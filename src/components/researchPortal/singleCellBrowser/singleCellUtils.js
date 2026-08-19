@@ -195,11 +195,51 @@ export function calcLabelColors(fields, colors){
     return Object.freeze(labelColors);
 }
 
+/*
+    counting helpers.
+
+    these all make a single pass over the cells. the previous versions looped the label
+    list on the outside and every cell on the inside, building an index array per label and
+    then re-filtering it once per subset label - O(cells x labels) time, and worse,
+    O(cells x subset labels) allocation. stratifying 2M cells by a 191-value sample field
+    churned through well over a gigabyte of temporary arrays.
+
+    combinations are packed into a single numeric key so only combinations that actually
+    occur are stored, rather than allocating the full label1 x label2 grid up front.
+*/
+function countByLabel(groupValues, groupCount) {
+    //out-of-range values fall outside the array and are dropped, which matches the old
+    //behaviour of never matching any label index
+    const counts = new Uint32Array(groupCount);
+    for (let i = 0; i < groupValues.length; i++) {
+        counts[groupValues[i]]++;
+    }
+    return counts;
+}
+
+function countByLabelPair(aValues, bValues, bCount) {
+    const counts = new Map();
+    for (let i = 0; i < aValues.length; i++) {
+        const key = aValues[i] * bCount + bValues[i];
+        counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    return counts;
+}
+
+function countByLabelTriple(aValues, bValues, cValues, bCount, cCount) {
+    const counts = new Map();
+    for (let i = 0; i < aValues.length; i++) {
+        const key = (aValues[i] * bCount + bValues[i]) * cCount + cValues[i];
+        counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    return counts;
+}
+
 export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
     llog('calcCellCounts', {fields, labelColors, primaryKey, subsetKey})
     const keys = fields.metadata_labels;
     const values = fields.metadata;
-    
+
     const primaryLabels = keys[primaryKey];
     const primaryValues = values[primaryKey];
 
@@ -207,16 +247,13 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
 
     if (!subsetKey) {
         // calculate counts by primary key only
+        const counts = countByLabel(primaryValues, primaryLabels.length);
+
         primaryLabels.forEach((label, index) => {
             if (isMissingMetadataValue(label)) return;
-            const indices = [];
-                for (let i = 0; i < primaryValues.length; i++) {
-                    if (primaryValues[i] === index) indices.push(i);
-                }
-
             result.push({
-                [primaryKey]: label,  
-                count: indices.length,
+                [primaryKey]: label,
+                count: counts[index],
                 color: labelColors[primaryKey][label]
             });
         });
@@ -224,23 +261,18 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
         // calculate counts grouped by primary key and subset key
         const subsetValues = values[subsetKey];
         const subsetLabels = keys[subsetKey];
+        const subsetCount = subsetLabels.length;
+        const counts = countByLabelPair(primaryValues, subsetValues, subsetCount);
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
             if (isMissingMetadataValue(primaryLabel)) return;
-            const primaryIndices = [];
-                for (let i = 0; i < primaryValues.length; i++) {
-                    if (primaryValues[i] === primaryIndex) primaryIndices.push(i);
-                }
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
                 if (isMissingMetadataValue(subsetLabel)) return;
-                const subsetIndices = primaryIndices.filter(
-                    i => subsetValues[i] === subsetIndex
-                );
                 result.push({
-                    [primaryKey]: primaryLabel, 
-                    [subsetKey]: subsetLabel, 
-                    count: subsetIndices.length,
+                    [primaryKey]: primaryLabel,
+                    [subsetKey]: subsetLabel,
+                    count: counts.get(primaryIndex * subsetCount + subsetIndex) || 0,
                     color: labelColors[subsetKey][subsetLabel]
                 })
             });
@@ -262,16 +294,13 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
 
     if (!facetKey && !subsetKey) {
         // calculate counts by primary key only
+        const counts = countByLabel(primaryValues, primaryLabels.length);
+
         primaryLabels.forEach((label, index) => {
             if (isMissingMetadataValue(label)) return;
-            const indices = [];
-                for (let i = 0; i < primaryValues.length; i++) {
-                    if (primaryValues[i] === index) indices.push(i);
-                }
-
             result.push({
-                [primaryKey]: label,  
-                count: indices.length,
+                [primaryKey]: label,
+                count: counts[index],
                 color: labelColors[primaryKey][label]
             });
         });
@@ -279,23 +308,18 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
         // calculate counts grouped by primary key and subset key
         const subsetValues = values[subsetKey];
         const subsetLabels = keys[subsetKey];
+        const subsetCount = subsetLabels.length;
+        const counts = countByLabelPair(primaryValues, subsetValues, subsetCount);
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
             if (isMissingMetadataValue(primaryLabel)) return;
-            const primaryIndices = [];
-                for (let i = 0; i < primaryValues.length; i++) {
-                    if (primaryValues[i] === primaryIndex) primaryIndices.push(i);
-                }
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
                 if (isMissingMetadataValue(subsetLabel)) return;
-                const subsetIndices = primaryIndices.filter(
-                    i => subsetValues[i] === subsetIndex
-                );
                 result.push({
-                    [primaryKey]: primaryLabel, 
-                    [subsetKey]: subsetLabel, 
-                    count: subsetIndices.length,
+                    [primaryKey]: primaryLabel,
+                    [subsetKey]: subsetLabel,
+                    count: counts.get(primaryIndex * subsetCount + subsetIndex) || 0,
                     color: labelColors[subsetKey][subsetLabel]
                 })
             });
@@ -304,34 +328,28 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
         // calculate counts grouped by primary key, subset key, and facet key
         const subsetValues = values[subsetKey];
         const subsetLabels = keys[subsetKey];
+        const subsetCount = subsetLabels.length;
 
         const facetValues = values[facetKey];
         const facetLabels = keys[facetKey];
+        const facetCount = facetLabels.length;
+
+        //keyed primary -> facet -> subset, matching the emit order below
+        const counts = countByLabelTriple(primaryValues, facetValues, subsetValues, facetCount, subsetCount);
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
             if (isMissingMetadataValue(primaryLabel)) return;
-            const primaryIndices = [];
-            for (let i = 0; i < primaryValues.length; i++) {
-                if (primaryValues[i] === primaryIndex) primaryIndices.push(i);
-            }
 
             facetLabels.forEach((facetLabel, facetIndex) => {
                 if (isMissingMetadataValue(facetLabel)) return;
-                const facetFiltered = primaryIndices.filter(
-                    i => facetValues[i] === facetIndex
-                );
 
                 subsetLabels.forEach((subsetLabel, subsetIndex) => {
                     if (isMissingMetadataValue(subsetLabel)) return;
-                    const subsetFiltered = facetFiltered.filter(
-                        i => subsetValues[i] === subsetIndex
-                    );
-
                     result.push({
                         [primaryKey]: primaryLabel,
                         [subsetKey]: subsetLabel,
                         [facetKey]: facetLabel,
-                        count: subsetFiltered.length,
+                        count: counts.get((primaryIndex * facetCount + facetIndex) * subsetCount + subsetIndex) || 0,
                         color: labelColors[subsetKey][subsetLabel]
                     });
                 });
@@ -769,6 +787,37 @@ export function parseFacetedScatterDataA(metadata, metadataLabels, groupKey, con
   
   
 
+/*
+    groups values by whatever key groupKeyForCell returns for each cell, in two passes:
+    one to size every bucket, one to fill it. returning -1 drops the cell.
+    exact-sized buckets mean no array growth and no temporary index arrays.
+*/
+function bucketByGroup(values, cellCount, groupKeyForCell) {
+    const sizes = new Map();
+    for (let i = 0; i < cellCount; i++) {
+        const key = groupKeyForCell(i);
+        if (key < 0) continue;
+        sizes.set(key, (sizes.get(key) || 0) + 1);
+    }
+
+    const buckets = new Map();
+    const offsets = new Map();
+    sizes.forEach((size, key) => {
+        buckets.set(key, new Array(size));
+        offsets.set(key, 0);
+    });
+
+    for (let i = 0; i < cellCount; i++) {
+        const key = groupKeyForCell(i);
+        if (key < 0) continue;
+        const offset = offsets.get(key);
+        buckets.get(key)[offset] = values[i];
+        offsets.set(key, offset + 1);
+    }
+
+    return buckets;
+}
+
 export function calcExpressionStats(fields, labelColors, expression, gene, primaryKey, subsetKey, partial=false) {
     //const expression = this.expressionData[gene];
     const keys = fields.metadata_labels;
@@ -779,48 +828,54 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
 
     const result = [];
 
+    /*
+        expression values are bucketed by group in two passes over the cells: one to size
+        each bucket, one to fill it. previously each label re-scanned every cell, and with
+        a subset key each primary label's index array was re-filtered once per subset
+        label - so a 2M cell dataset stratified by 191 samples allocated roughly
+        cells x samples worth of temporary arrays before any stats were computed.
+        total allocation here is now bounded by the number of cells.
+    */
     if (!subsetKey) {
         // calculate stats grouped by primary key only
-        primaryLabels.forEach((label, index) => {
-            if (isMissingMetadataValue(label)) return;
-            const indices = [];
-            for (let i = 0; i < primaryValues.length; i++) {
-                if (primaryValues[i] === index) indices.push(i);
-            }
+        const include = primaryLabels.map(label => !isMissingMetadataValue(label));
+        const buckets = bucketByGroup(expression, primaryValues.length, i => (include[primaryValues[i]] ? primaryValues[i] : -1));
 
-            const exprValues = indices.map(i => expression[i]);
+        primaryLabels.forEach((label, index) => {
+            if (!include[index]) return;
             result.push({
                 gene: gene,
-                [primaryKey]: label, 
+                [primaryKey]: label,
                 color: labelColors[primaryKey][label],
-                ...calculateExpressionStats(exprValues, partial)
+                ...calculateExpressionStats(buckets.get(index) || [], partial)
             });
         });
     } else {
         // calculate stats grouped by primary key and subset key
         const subsetValues = values[subsetKey];
         const subsetLabels = keys[subsetKey];
+        const subsetCount = subsetLabels.length;
+        const includePrimary = primaryLabels.map(label => !isMissingMetadataValue(label));
+        const includeSubset = subsetLabels.map(label => !isMissingMetadataValue(label));
+
+        const buckets = bucketByGroup(expression, primaryValues.length, i => {
+            const primaryIndex = primaryValues[i];
+            const subsetIndex = subsetValues[i];
+            if (!includePrimary[primaryIndex] || !includeSubset[subsetIndex]) return -1;
+            return primaryIndex * subsetCount + subsetIndex;
+        });
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
-            if (isMissingMetadataValue(primaryLabel)) return;
-
-            const primaryIndices = [];
-            for (let i = 0; i < primaryValues.length; i++) {
-                if (primaryValues[i] === primaryIndex) primaryIndices.push(i);
-            }
+            if (!includePrimary[primaryIndex]) return;
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
-                if (isMissingMetadataValue(subsetLabel)) return;
-                const subsetIndices = primaryIndices.filter(
-                    i => subsetValues[i] === subsetIndex
-                );
-                const exprValues = subsetIndices.map(i => expression[i]);
+                if (!includeSubset[subsetIndex]) return;
                 result.push({
                     gene: gene,
                     [primaryKey]: primaryLabel,
                     [subsetKey]: subsetLabel,
                     color: labelColors[subsetKey][subsetLabel],
-                    ...calculateExpressionStats(exprValues)
+                    ...calculateExpressionStats(buckets.get(primaryIndex * subsetCount + subsetIndex) || [])
                 })
             });
         });
