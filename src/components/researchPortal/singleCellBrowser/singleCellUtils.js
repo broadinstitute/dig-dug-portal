@@ -55,7 +55,11 @@ export async function fetchCoordinates(url, datasetId) {
     try {
         const response = await fetch(replacedUrl);
         const json = dataConvert.tsv2Json(await response.text());
-        return json;
+        //there is one point object per cell, so on large datasets this array can
+        //hold millions of objects. freezing it makes it non-extensible, which makes
+        //Vue's observe() skip it instead of attaching an Observer + Deps to every
+        //single point. points are read-only after load, so nothing is lost.
+        return Object.freeze(json);
     }catch (error){
         llog('Error fetching coordinates:', error);
         return null;

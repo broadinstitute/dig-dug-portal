@@ -1755,24 +1755,29 @@
                 this.preloadItem = 'fields';
                 //const fieldsUrl = this.renderConfig["data points"].find(x => x.role === "fields");
                 const fieldsEnpoint = this.selectedBI+this.BIendpoints.fields;
-                this.fields = await scUtils.fetchFields(fieldsEnpoint, this.datasetId);
-                if(this.fields){
-                    this.fields.metadata_labels_sorted = {};
-                    Object.keys(this.fields.metadata_labels).forEach(key => {
+                //build the fields object fully before assigning it, so it can be frozen first.
+                //metadata holds one index per cell per annotation (tens of millions of values on
+                //large datasets) - freezing makes Vue's observe() skip the whole tree instead of
+                //walking it. fields is read-only after this block.
+                const fields = await scUtils.fetchFields(fieldsEnpoint, this.datasetId);
+                if(fields){
+                    fields.metadata_labels_sorted = {};
+                    Object.keys(fields.metadata_labels).forEach(key => {
                         const customSortOrder = this.displayFields?.[key]?.customSortOrder;
-                        const values = this.fields.metadata_labels[key];
+                        const values = fields.metadata_labels[key];
 
                         if (
                             customSortOrder &&
                             arraysHaveSameElements(customSortOrder, values)
                         ) {
-                            this.fields.metadata_labels_sorted[key] = [...customSortOrder];
+                            fields.metadata_labels_sorted[key] = [...customSortOrder];
                         } else {
-                            this.fields.metadata_labels_sorted[key] = [...values].sort((a, b) =>
+                            fields.metadata_labels_sorted[key] = [...values].sort((a, b) =>
                                 a.localeCompare(b, undefined, { numeric: true })
                             );
                         }
                     });
+                    this.fields = Object.freeze(fields);
                     if(!this.totalCells){
                         this.totalCells = this.fields.NAME?.length | this.fields.ID?.length;
                     }
