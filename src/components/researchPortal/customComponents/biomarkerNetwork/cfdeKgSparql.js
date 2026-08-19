@@ -3,6 +3,8 @@
  * Endpoint: https://apps.okn.us/digcfdekg/sparql
  */
 
+import { canonicalGeneNodeId } from "./geneNodeIds.js";
+
 export const CFDE_KG_SPARQL = "https://apps.okn.us/digcfdekg/sparql";
 export const CFDE_KG_GRAPH = "https://purl.org/okn/frink/kg/digcfdekg";
 export const CFDE_KG_FACTOR_PREFIX = "https://purl.org/okn/frink/kg/digcfdekg/node/factor/";
@@ -119,6 +121,84 @@ LIMIT ${diseaseLimit}
         aggregatePigeanScore: num(b.aggregatePigeanScore),
         highestFactorGeneLoading: num(b.highestFactorGeneLoading),
     }));
+}
+
+/**
+ * Fetch the shared genes between a factor and a disease.
+ * Returns gene IRI, label, factor loading, and PIGEAN gene-to-trait score.
+ */
+export async function listSharedGenesForFactorDisease(factorRef, diseaseIri, opts = {}) {
+    const factorTerm = toIriTerm(toFactorIri(factorRef));
+    const diseaseTerm = toIriTerm(diseaseIri);
+    if (!factorTerm || !diseaseTerm) return [];
+    const geneLimit = Math.max(1, Number(opts.geneLimit) || 25);
+    const q = `${PREFIXES}
+SELECT ?gene ?geneLabel ?factorGeneLoading ?geneTraitScore
+WHERE {
+  GRAPH <${CFDE_KG_GRAPH}> {
+    {
+      SELECT ?gene ?factorGeneLoading
+      WHERE {
+        ?factorGeneStatement
+          rdf:subject ?gene ;
+          rdf:predicate reveal:geneToFactor ;
+          rdf:object ${factorTerm} ;
+          reveal:weight ?factorGeneLoading .
+      }
+      ORDER BY DESC(ABS(?factorGeneLoading))
+      LIMIT ${geneLimit}
+    }
+
+    ?geneTraitStatement
+      rdf:subject ?gene ;
+      rdf:predicate reveal:geneToTrait ;
+      rdf:object ${diseaseTerm} ;
+      reveal:weight ?geneTraitScore .
+
+    OPTIONAL { ?gene rdfs:label ?geneLabel . }
+  }
+}
+ORDER BY DESC(ABS(?factorGeneLoading))
+`;
+    const { bindings } = await fetchCfdeKgSparql(q, opts);
+    const byGene = new Map();
+    bindings.forEach((b) => {
+        const gene = (b.gene && b.gene.value) || "";
+        let geneLabel = (b.geneLabel && b.geneLabel.value) || "";
+        if (!geneLabel && gene) {
+            const parts = String(gene).split(/[/#]/);
+            const last = parts[parts.length - 1] || gene;
+            geneLabel = last.replace(/^NCBIGene:/i, "").replace(/^HGNC:/i, "") || last;
+        }
+        const factorLoading = num(b.factorGeneLoading);
+        const pigeanScore = num(b.geneTraitScore);
+        const key = geneLabel
+            ? canonicalGeneNodeId(geneLabel)
+            : gene;
+        if (!key) return;
+        const existing = byGene.get(key);
+        if (!existing) {
+            byGene.set(key, { gene, geneLabel, factorLoading, pigeanScore });
+            return;
+        }
+        if (
+            factorLoading != null &&
+            (existing.factorLoading == null ||
+                Math.abs(factorLoading) > Math.abs(existing.factorLoading))
+        ) {
+            existing.factorLoading = factorLoading;
+        }
+        if (
+            pigeanScore != null &&
+            (existing.pigeanScore == null ||
+                Math.abs(pigeanScore) > Math.abs(existing.pigeanScore))
+        ) {
+            existing.pigeanScore = pigeanScore;
+        }
+        if (!existing.geneLabel && geneLabel) existing.geneLabel = geneLabel;
+        if (!existing.gene && gene) existing.gene = gene;
+    });
+    return Array.from(byGene.values());
 }
 
 function sparqlEscape(value) {
