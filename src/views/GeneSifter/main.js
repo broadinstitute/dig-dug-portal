@@ -32,7 +32,7 @@ import Alert, {
     closeAlert,
 } from "@/components/Alert";
 import { query } from "@/utils/bioIndexUtils";
-import { isEqual, difference } from "lodash";
+import { isEqual, difference } from "@/utils/lodashUtils";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -1024,10 +1024,6 @@ new Vue({
                 this.$store.dispatch("getGeneExpressionTissue", t);
             });
         },
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     render(createElement, context) {

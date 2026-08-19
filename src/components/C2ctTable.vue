@@ -7,13 +7,16 @@
                     class="table-total-rows"
                 ></div>
                 <div class="text-right mb-2">
-                    <data-download :data="c2ctData" :filename="`c2ct_${phenotype}`"></data-download>
+                    <data-download
+                        :data="c2ctData"
+                        :filename="`c2ct_${phenotype}`"
+                    ></data-download>
                 </div>
             </div>
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
@@ -39,10 +42,9 @@
                     {{ tissueFormatter(r.item.tissue) }}
                 </template>
                 <template #cell(chromosome)="r">
-                        {{
-                            `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
-                        }}
-                    
+                    {{
+                        `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
+                    }}
                 </template>
                 <template #cell(overlapLeadSNP)="r">
                     {{ r.item.overlapLeadSNP }}
@@ -132,7 +134,13 @@ export default Vue.component("c2ct-table", {
                     label: "Combined score",
                     formatter: Formatters.tpmFormatter,
                     sortable: true,
-                }
+                },
+                {
+                    key: "variantSifter",
+                    label: "variantSifter",
+                    sortable: false,
+                    tdClass: "text-center",
+                },
             ],
         };
     },
@@ -163,12 +171,17 @@ export default Vue.component("c2ct-table", {
             let center = parseInt(location[1]);
             let start = center - expanded;
             start = start < minimum ? minimum : start;
-            let end  = center + expanded;
-            return 'https://a2f.hugeamp.org/research.html?pageid=kp_variant_sifter&phenotype=' +
-				item.phenotype + '&region=' +
-                chr + ':' +
-                start + '-' +
-                end;
+            let end = center + expanded;
+            return (
+                "/research.html?pageid=kp_variant_sifter&phenotype=" +
+                item.phenotype +
+                "&region=" +
+                chr +
+                ":" +
+                start +
+                "-" +
+                end
+            );
         },
     },
 });

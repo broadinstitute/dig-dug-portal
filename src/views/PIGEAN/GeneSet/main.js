@@ -88,6 +88,7 @@ new Vue({
                 dotKey: "phenotype",
             },
             plotColors: plotUtils.plotColors(),
+            pigeanColors: null,
             renderConfig: {
                 type: "phewas plot",
                 "render by": "phenotype",
@@ -144,6 +145,11 @@ new Vue({
         },
         phewasAllData(){
             return this.$store.state.phewasData;
+        }
+    },
+    methods: {
+        storeColors(colors){
+            this.pigeanColors = colors;
         }
     },
     watch: {

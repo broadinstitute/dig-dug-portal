@@ -5,13 +5,14 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
+
 import bioIndexUtils from "@/utils/bioIndexUtils";
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+let useDev = bioIndexUtils.BIO_INDEX_HOST.indexOf("dev") !== -1;
+const BIO_INDEX_HOST = useDev ? "https://matkp-dev.hugeampkpnbi.org" : "https://matkp.hugeampkpnbi.org";
+
 import dataConvert from "@/utils/dataConvert";
 
 Vue.use(Vuex);
-
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 
 export default new Vuex.Store({
   modules: {

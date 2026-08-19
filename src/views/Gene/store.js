@@ -25,7 +25,11 @@ export default new Vuex.Store({
         hugeScores: bioIndex("huge"),
         geneExpression: bioIndex("gene-expression"),
         mouseSummary: bioIndex("diff-exp-summary-gene"),
+        cellStateExpression: bioIndex("gene-program-expression-cell-state"),
         uniprot,
+        pigeanGene: bioIndex("pigean-gene"),
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
+        falconGeneAssociations: bioIndex("falcon.gene.associations"),
     },
     state: {
         geneName: keyParams.gene,
@@ -161,6 +165,7 @@ export default new Vuex.Store({
             context.dispatch("associations52k/query", query);
             context.dispatch("geneassociations/query", query);
             context.dispatch("geneExpression/query", query);
+            context.dispatch("cellStateExpression/query", query);
         },
         async getVarAssociationsData(context, phenotype) {
             let gene = context.state.geneName;
@@ -172,9 +177,8 @@ export default new Vuex.Store({
                 context.state.newEnd = locus.end;
             }
 
-            const phenoRegionQuery = `${phenotype},${locus.chr}:${
-                locus.start - 50000
-            }-${locus.end + 50000}`;
+            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start - 50000
+                }-${locus.end + 50000}`;
 
             context.dispatch("varassociations/query", { q: phenoRegionQuery });
         },
@@ -185,6 +189,16 @@ export default new Vuex.Store({
         async getHugeScoresData(context) {
             let name = context.state.geneName;
             context.dispatch("hugeScores/query", { q: name });
+        },
+        async getPigeanGeneData(context) {
+            let name = context.state.geneName;
+            context.dispatch("pigeanGene/query", { q: 'portal,' + name + ',2,small' });
+        },
+        async getFalconGeneAssociations(context) {
+            let name = context.state.geneName;
+            if (name) {
+                context.dispatch("falconGeneAssociations/query", { q: name });
+            }
         },
         async getMouseData(context) {
             let name = context.state.geneName;

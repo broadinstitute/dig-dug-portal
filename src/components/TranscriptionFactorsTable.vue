@@ -4,7 +4,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="transcriptionFactors"
                 :fields="fields"
                 :per-page="perPage"
@@ -39,42 +39,42 @@ export default Vue.component("transcription-factors-table", {
             fields: [
                 {
                     key: "positionWeightMatrix",
-                    label: "Position Weight Matrix"
+                    label: "Position Weight Matrix",
                 },
                 {
                     key: "delta",
                     label: "Delta",
-                    formatter: Formatters.floatFormatter
+                    formatter: Formatters.floatFormatter,
                 },
                 {
                     key: "position",
                     label: "Position",
-                    formatter: Formatters.intFormatter
+                    formatter: Formatters.intFormatter,
                 },
                 {
                     key: "strand",
-                    label: "Strand"
+                    label: "Strand",
                 },
                 {
                     key: "refScore",
                     label: "Reference Score",
-                    formatter: Formatters.floatFormatter
+                    formatter: Formatters.floatFormatter,
                 },
                 {
                     key: "altScore",
                     label: "Alternate Score",
-                    formatter: Formatters.floatFormatter
-                }
+                    formatter: Formatters.floatFormatter,
+                },
             ],
             perPage: 5,
-            currentPage: 1
+            currentPage: 1,
         };
     },
 
     computed: {
         rows() {
             return this.transcriptionFactors.length;
-        }
-    }
+        },
+    },
 });
 </script>

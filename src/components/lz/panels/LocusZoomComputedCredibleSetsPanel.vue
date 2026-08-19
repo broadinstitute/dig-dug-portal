@@ -3,7 +3,7 @@
 </template>
 <script>
 import Vue from "vue";
-import { isEqual, isEmpty } from "lodash";
+import { isEqual, isEmpty } from "@/utils/lodashUtils";
 import idCounter from "@/utils/idCounter";
 import LocusZoom from "locuszoom";
 

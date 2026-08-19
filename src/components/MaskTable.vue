@@ -16,6 +16,8 @@
                     >Beta</b-col
                 >
                 <b-col v-else class="feature-header-item">Odds Ratio</b-col>
+                <b-col v-if="showStudy" class="feature-header-item">Study</b-col>
+                <b-col v-if="showPmid" class="feature-header-item">PMID</b-col>
             </b-row>
             <template v-for="(mask, j) in formattedMasks">
                 <b-row
@@ -66,6 +68,12 @@
                         >
                         {{ effectFormatter(Math.exp(mask.beta)) }}
                     </b-col>
+                    <b-col v-if="showStudy" class="feature-content-item">
+                        {{ mask.study }}
+                    </b-col>
+                    <b-col v-if="showPmid" class="feature-content-item">
+                         {{ mask.pmid }}
+                    </b-col>
                 </b-row>
             </template>
         </div>
@@ -101,6 +109,8 @@ export default Vue.component("MaskTable", {
     component: ForestPlot,
     data() {
         return {
+            showStudy: false,
+            showPmid: false,
             colNames: [
                 "Mask",
                 "P-Value",
@@ -127,6 +137,21 @@ export default Vue.component("MaskTable", {
         },
     },
     created() {},
+    watch: {
+        formattedMasks(newData){
+            for (let i = 0; i < newData.length; i++){
+                if (!!newData[i].study){
+                    this.showStudy = true;
+                }
+                if (!!newData[i].pmid){
+                    this.showPmid = true;
+                }
+                if (this.showStudy && this.showPmid){
+                    return;
+                }
+            }
+        }
+    },
 
     methods: {
         pValueFormatter: Formatters.pValueFormatter,

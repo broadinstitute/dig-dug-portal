@@ -1,7 +1,11 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-import _ from "lodash";
+import {
+    CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
+    CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
+} from "./cellStateExpressionDocumentation";
+import { difference } from "@/utils/lodashUtils";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -23,6 +27,7 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import ColocusTable from "@/components/ColocusTable.vue";
+import LigerTable from "@/components/LigerTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -32,8 +37,9 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidenceTable.vue";
 
+import PigeanGene from "@/components/PigeanGene.vue";
+
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
-import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
 
 import sessionUtils from "@/utils/sessionUtils";
 import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
@@ -76,7 +82,6 @@ new Vue({
         ResearchExpressionDisplay,
         ResearchDataTable,
         SearchHeaderWrapper,
-        ResultsDashboard,
         NCATSPredicateTable,
         VariantSearch,
         ColorBarPlot,
@@ -87,15 +92,21 @@ new Vue({
         ResearchSingleSearch,
         MouseSummaryTable,
         ColocusTable,
+        LigerTable,
+        PigeanGene,
     },
     mixins: [pageMixin],
 
     data() {
         return {
             counter: 0,
+            cellStateExpressionTooltipDefault:
+                CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
+            cellStateExpressionSubheaderDefault:
+                CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
-            activeTab: "hugeScorePheWASPlot",
+            activeTab: "commonVariantPheWASPlot",
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
@@ -369,6 +380,14 @@ new Vue({
             return x;
         },
 
+        pigeanGeneData() {
+            let data = this.$store.state.pigeanGene.data;
+            return data;
+        },
+        falconGeneAssociations() {
+            return this.$store.state.falconGeneAssociations.data || [];
+        },
+
         associations52k() {
             let data = this.$store.state.associations52k.data;
 
@@ -562,7 +581,7 @@ new Vue({
         },
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = _.difference(
+            const removedPhenotypes = difference(
                 oldPhenotypes.map((p) => p.name),
                 phenotypes.map((p) => p.name)
             );
@@ -592,6 +611,8 @@ new Vue({
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
+            this.$store.dispatch("getPigeanGeneData");
+            this.$store.dispatch("getFalconGeneAssociations");
             this.$store.dispatch("getMouseData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
@@ -609,6 +630,11 @@ new Vue({
         },
         "$store.state.geneName"(NAME) {
             this.$store.dispatch("getHugeScoresData");
+            this.$store.dispatch("getPigeanGeneData");
+            this.$store.dispatch("getFalconGeneAssociations");
+            if (NAME) {
+                this.$store.dispatch("cellStateExpression/query", { q: NAME });
+            }
         },
     },
 

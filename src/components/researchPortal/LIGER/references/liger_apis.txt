@@ -1,0 +1,118 @@
+LIGER APIs
+
+BASE DOMAIN: varies by the portal hosting this component. Both of these are valid,
+and others may be added:
+  https://bioindex-dev.pankbase.org
+  https://bioindex-dev.hugeamp.org
+Examples below use pankbase, but the domain is not part of the API contract —
+only the path and query schema are.
+
+All endpoints are called as:
+  {BASE}/api/bio/query/{endpoint}?q={comma-separated schema values}
+
+- - - - - - - - - -
+
+ENDPOINT INDEX (endpoint / bioindex table / schema)
+
+single-cell-lognorm                        SingleCellLogNorm                     dataset,gene
+single-cell-gene                           SingleCellGene                        gene
+gene-program-expression-cell-state         GeneProgramExpressionAllCellState     gene
+gene-program-expression-cell-state         GeneProgramExpressionCellState        dataset,cell_type,gene
+gene-program-expression-program            GeneProgramExpressionAllProgram       gene
+gene-program-expression-program            GeneProgramExpressionProgram          dataset,cell_type,model,gene
+gene-program-expression-cell-type          GeneProgramExpressionCellType         dataset,gene
+gene-program-heatmap                       GeneProgramHeatMap                    dataset,cell_type
+gene-program-factor                        GeneProgramFactor                     dataset,cell_type,model
+gene-program-gene-factor                   GeneProgramGeneFactor                 dataset,cell_type,model,factor
+gene-program-trait-factor                  GeneProgramTraitFactor                dataset,cell_type,model,factor
+gene-program-cell-state-trait-factor       GeneProgramCellStateTraitFactor       dataset,cell_type,state_name
+gene-program-cell-state-metadata           GeneProgramCellStateMetadata          tissue,cell_type
+gene-program-cell-state-metadata-extended  GeneProgramCellStateMetadataExtended  tissue,cell_type
+gene-program-qc-factor                     GeneProgramQCFactor                   dataset,cell_type,model,factor
+gene-program-qc-metadata                   GeneProgramQCMetadata                 dummy
+gene-program-qc-metadata-extended          GeneProgramQCMetadataExtended         dummy
+
+NOTE: gene-program-expression-cell-state and gene-program-expression-program each
+back two tables. The single-argument (gene only) form returns all datasets / cell
+types; the multi-argument form narrows to one dataset + cell type.
+
+NOTE: most endpoints now key on a dataset ID (e.g. islet_of_Langerhans_scRNA_v3-4)
+rather than a plain tissue name. The two cell-state-metadata endpoints are the
+exception and still take tissue (e.g. pancreas).
+
+- - - - - - - - - -
+
+API ENDPOINT EXAMPLES:
+
+Get list of genes that match substring
+used for search autocomplete
+input: string
+/api/bio/match/gene?q=SAM
+
+Get log-normalized single cell expression for a gene in a dataset
+inputs: dataset, gene
+https://bioindex-dev.pankbase.org/api/bio/query/single-cell-lognorm?q=HPAP,A1BG
+
+Get single cell data for a gene across datasets
+input: gene
+https://bioindex-dev.pankbase.org/api/bio/query/single-cell-gene?q=A1CF
+
+Get gene expression by cell state for all available datasets and cell types
+input: gene
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-expression-cell-state?q=A1BG
+
+Get gene expression by cell state for a specific dataset cell type
+inputs: dataset, cell type, gene
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-expression-cell-state?q=islet_of_Langerhans_scRNA_v3-4,active_stellate,A1BG
+
+Get gene expression by gene program for all available datasets and cell types
+input: gene
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-expression-program?q=A1BG
+
+Get gene expression by gene program for a specific dataset cell type
+inputs: dataset, cell type, model, gene
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-expression-program?q=islet_of_Langerhans_scRNA_v3-4,active_stellate,mouse_msigdb,A1BG
+
+Get gene expression by cell type for a dataset
+inputs: dataset, gene
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-expression-cell-type?q=islet_of_Langerhans_scRNA_v3-4,A1BG
+
+Get correlation heatmap data between cell states and gene programs of a dataset cell type
+inputs: dataset, cell type
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-heatmap?q=islet_of_Langerhans_scRNA_v3-4,active_stellate
+
+Get all factors (gene programs) for a dataset cell type
+inputs: dataset, cell type, model
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-factor?q=islet_of_Langerhans_scRNA_v3-4,active_stellate,mouse_msigdb
+
+Get all gene associations for a factor of a dataset cell type
+inputs: dataset, cell type, model, factorID
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-gene-factor?q=islet_of_Langerhans_scRNA_v3-4,active_stellate,mouse_msigdb,Factor1
+
+Get traits associated with a factor (gene program) for a dataset cell type
+inputs: dataset, cell type, model, factorID
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-trait-factor?q=islet_of_Langerhans_scRNA_v3-4,combined_signatures,mouse_msigdb,Factor1
+
+Get traits associated with a cell state for a dataset cell type
+inputs: dataset, cell type, cell state name
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-cell-state-trait-factor?q=islet_of_Langerhans_scRNA_v3-4,combined_signatures,pancreas_active_stellate_program_factor_1
+
+Get QC metrics for a factor of a dataset cell type
+inputs: dataset, cell type, model, factorID
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-qc-factor?q=islet_of_Langerhans_scRNA_v3-4,active_stellate,mouse_msigdb,Factor1
+
+Get full metadata for all cell states in a tissue cell type
+inputs: tissue, cell type
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-cell-state-metadata-extended?q=pancreas,acinar
+
+Get partial metadata for all cell states in a tissue cell type
+inputs: tissue, cell type
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-cell-state-metadata?q=pancreas,acinar
+
+Get full metadata about all QC states
+inputs: 1 (dummy)
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-qc-metadata-extended?q=1
+
+Get partial metadata about all QC states
+inputs: 1 (dummy)
+https://bioindex-dev.pankbase.org/api/bio/query/gene-program-qc-metadata?q=1

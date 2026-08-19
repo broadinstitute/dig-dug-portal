@@ -15,7 +15,7 @@ import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.v
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
-import { isEqual, sumBy } from "lodash";
+import { isEqual, sumBy } from "@/utils/lodashUtils";
 import regionUtils from "@/utils/regionUtils";
 import * as raremetal from "raremetal.js";
 import EventBus from "@/utils/eventBus";

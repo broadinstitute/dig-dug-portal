@@ -146,8 +146,8 @@
 import Vue from "vue"
 import trapi from "./trapi"
 import { mock_knowledge_graph } from "./mock"
-import merge from "lodash.merge"
-import { cloneDeep } from "lodash"
+import { merge } from "@/utils/lodashUtils"
+import { cloneDeep } from "@/utils/lodashUtils"
 import ResultsTooltip from "@/components/NCATS/ResultsTooltip";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 

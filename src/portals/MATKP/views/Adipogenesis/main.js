@@ -35,7 +35,10 @@ import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+import bioIndexUtils from "@/utils/bioIndexUtils";
+let useDev = bioIndexUtils.BIO_INDEX_HOST.indexOf("dev") !== -1;
+const BIO_INDEX_HOST = useDev ? "https://matkp-dev.hugeampkpnbi.org" : "https://matkp.hugeampkpnbi.org";
+
 
 new Vue({
     components: {

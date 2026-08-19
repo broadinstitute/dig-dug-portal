@@ -25,12 +25,15 @@
 <script>
 import Vue from "vue";
 import * as d3 from 'd3';
-//import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import sortUtils from "@/utils/sortUtils";
 import "../assets/matkp-styles.css";
 import { ACCESSIBLE_RED, ACCESSIBLE_BLUE, ACCESSIBLE_GRAY } from "../utils/content.js";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+
+import bioIndexUtils from "@/utils/bioIndexUtils";
+let useDev = bioIndexUtils.BIO_INDEX_HOST.indexOf("dev") !== -1;
+const BIO_INDEX_HOST = useDev ? "https://matkp-dev.hugeampkpnbi.org" : "https://matkp.hugeampkpnbi.org";
+
 export default Vue.component("bulk-heatmap", {
     components: {
     },

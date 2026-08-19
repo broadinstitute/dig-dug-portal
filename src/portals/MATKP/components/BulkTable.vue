@@ -151,7 +151,10 @@ import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
 import { cloneDeep } from "lodash";
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+import bioIndexUtils from "@/utils/bioIndexUtils";
+let useDev = bioIndexUtils.BIO_INDEX_HOST.indexOf("dev") !== -1;
+const BIO_INDEX_HOST = useDev ? "https://matkp-dev.hugeampkpnbi.org" : "https://matkp.hugeampkpnbi.org";
+
 export default Vue.component("bulk-table", {
     components: {
         DataDownload,
