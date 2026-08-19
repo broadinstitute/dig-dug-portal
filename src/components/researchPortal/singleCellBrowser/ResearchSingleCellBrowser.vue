@@ -2315,6 +2315,15 @@
                                 display: false,
                                 excludeReason: 'ontologyID'
                             };
+                        }else if(value.length > scUtils.MAX_PLOTTABLE_LABELS){
+                            //hide id-like fields (barcode, cell id). grouping by one would
+                            //mean a bar per cell, and they have no label colors
+                            rawDisplayFields[key] = {
+                                displayName: key,
+                                dataType: 'cat',
+                                display: false,
+                                excludeReason: 'tooManyValues'
+                            };
                         }else{
                             //show all others
                             rawDisplayFields[key] = {

@@ -157,19 +157,42 @@ export function calcFieldsDisplayList(fields){
     return list;
 }
 
+/*
+    a field with more distinct values than this cannot be plotted or colored usefully -
+    it would mean thousands of bars/violins and a legend nobody can read. in practice a
+    field over this size is an id column (barcode, cell id), which has one distinct value
+    per cell.
+*/
+export const MAX_PLOTTABLE_LABELS = 1000;
+
 export function calcLabelColors(fields, colors){
     let colorIndex = 0;
-    const colorScaleIndex = d3.scaleOrdinal(colors);
     const labelColors = {};
     for(const [key, value] of Object.entries(fields.metadata_labels)){
         labelColors[key] = {};
+
+        //an id-like field builds a color map with one entry per cell. those colors can
+        //never be displayed, but reactively they cost tens of MB. the empty object is
+        //kept so callers can still do labelColors[key][label] without throwing.
+        //colorIndex is still advanced so every other field keeps the color it has today.
+        if(value.length > MAX_PLOTTABLE_LABELS){
+            llog(`   skipping colors for ${key}, ${value.length} labels`);
+            colorIndex += value.length;
+            continue;
+        }
+
         for(var i=0; i<value.length; i++){
-            labelColors[key][value[i]] = colorScaleIndex(colorIndex)
+            //this used to be a d3.scaleOrdinal fed a running counter, which for
+            //sequential inputs returns exactly this - minus the scale's internal
+            //one-entry-per-label map
+            labelColors[key][value[i]] = colors[colorIndex % colors.length];
             colorIndex++;
         }
     }
     llog('calcLabelColors', labelColors);
-    return labelColors;
+    //read-only after this point, so keep Vue from walking it (one Dep + accessor pair
+    //per label otherwise)
+    return Object.freeze(labelColors);
 }
 
 export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
