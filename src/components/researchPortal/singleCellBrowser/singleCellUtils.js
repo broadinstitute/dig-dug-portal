@@ -43,11 +43,54 @@ export async function fetchFields(url, datasetId) {
     try {
         const response = await fetch(replacedUrl);
         const fields = await response.json();
-        return fields;
+        return packMetadataIndices(fields);
     } catch (error) {
         llog('Error fetching fields:', error);
         return null;
     }
+}
+
+/*
+    metadata holds one label index per cell per annotation. parsed from JSON those are
+    plain arrays, which cost a full tagged slot per value - on a 2M cell dataset with 60
+    annotations that is over a hundred million slots, and it is the single largest thing
+    the browser keeps in memory.
+
+    the values are only ever used as indices into metadata_labels, so they fit in the
+    narrowest typed array that can hold the label count (a Uint8Array for most fields).
+    each array is replaced in place so the original can be collected.
+*/
+function packMetadataIndices(fields) {
+    if(!fields?.metadata || !fields?.metadata_labels) return fields;
+
+    let packedFields = 0;
+    Object.keys(fields.metadata).forEach(key => {
+        const values = fields.metadata[key];
+        const labelCount = fields.metadata_labels[key]?.length;
+        if(!Array.isArray(values) || !labelCount) return;
+
+        const IndexArray = labelCount <= 256 ? Uint8Array
+            : labelCount <= 65536 ? Uint16Array
+            : Uint32Array;
+
+        const packed = new IndexArray(values.length);
+        for (let i = 0; i < values.length; i++) {
+            const value = values[i];
+            //a null or out-of-range value would be silently coerced to 0 here, which would
+            //relabel those cells as the first label. leave the field alone instead.
+            if(!Number.isInteger(value) || value < 0 || value >= labelCount){
+                llog(`   leaving ${key} unpacked, unexpected index at ${i}:`, value);
+                return;
+            }
+            packed[i] = value;
+        }
+
+        fields.metadata[key] = packed;
+        packedFields++;
+    });
+
+    llog(`packed ${packedFields}/${Object.keys(fields.metadata).length} metadata fields`);
+    return fields;
 }
 export async function fetchCoordinates(url, datasetId) {
     const replacedUrl = url.replace('$datasetId', datasetId);
