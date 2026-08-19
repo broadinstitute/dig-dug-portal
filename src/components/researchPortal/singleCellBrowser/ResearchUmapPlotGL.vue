@@ -200,8 +200,10 @@ export default Vue.component('research-umap-plot-gl', {
             type: String,
             required: true,
         },
+        //typed array bundle from scUtils.parseCoordinates:
+        //{ count, X: Float32Array, Y: Float32Array, Z: Float32Array|null }
         points: {
-            type: Array,
+            type: Object,
             required: true,
         },
         labels: {
@@ -332,7 +334,9 @@ export default Vue.component('research-umap-plot-gl', {
     },
     computed: {
         is3dMode() {
-            return this.points.some(point => (point.Z ?? 0) !== 0);
+            //parseCoordinates only keeps Z when the file has one with a non-zero
+            //value, which is the same test this used to run over every point
+            return !!this.points.Z;
         },
         currColorOption(){
             return this.colorOptions[this.expressionColorScale];
@@ -423,7 +427,7 @@ export default Vue.component('research-umap-plot-gl', {
         init() {
             llog("---glUMAP init");
 
-            if (!this.$refs.umapContainer || !this.points || this.points.length === 0) return;
+            if (!this.$refs.umapContainer || !this.points || this.points.count === 0) return;
 
             if (this.sharedGroupAttached) {
                 sharedUmapData.release(this.group);
@@ -517,15 +521,18 @@ export default Vue.component('research-umap-plot-gl', {
                 maxZ: -Infinity,
             };
 
-            this.points.forEach(point => {
-                const z = point.Z ?? 0;
-                if (point.X < bounds.minX) bounds.minX = point.X;
-                if (point.X > bounds.maxX) bounds.maxX = point.X;
-                if (point.Y < bounds.minY) bounds.minY = point.Y;
-                if (point.Y > bounds.maxY) bounds.maxY = point.Y;
+            const { count, X, Y, Z } = this.points;
+            for (let i = 0; i < count; i++) {
+                const x = X[i];
+                const y = Y[i];
+                const z = Z ? Z[i] : 0;
+                if (x < bounds.minX) bounds.minX = x;
+                if (x > bounds.maxX) bounds.maxX = x;
+                if (y < bounds.minY) bounds.minY = y;
+                if (y > bounds.maxY) bounds.maxY = y;
                 if (z < bounds.minZ) bounds.minZ = z;
                 if (z > bounds.maxZ) bounds.maxZ = z;
-            });
+            }
 
             const size = [
                 Math.max(bounds.maxX - bounds.minX, 1),
@@ -554,17 +561,19 @@ export default Vue.component('research-umap-plot-gl', {
             const metadataLabels = this.labels.metadata_labels[labelField];
 
             const sums = {};
-            this.points.forEach((point, index) => {
+            const { count, X, Y, Z } = this.points;
+            const use3d = this.is3dMode;
+            for (let index = 0; index < count; index++) {
                 const labelIndex = metadata[index];
                 const label = metadataLabels[labelIndex] || 'Unlabeled';
                 if (!sums[label]) {
                     sums[label] = { xSum: 0, ySum: 0, zSum: 0, count: 0 };
                 }
-                sums[label].xSum += point.X;
-                sums[label].ySum += point.Y;
-                sums[label].zSum += this.is3dMode ? (point.Z ?? 0) : 0;
+                sums[label].xSum += X[index];
+                sums[label].ySum += Y[index];
+                sums[label].zSum += use3d ? Z[index] : 0;
                 sums[label].count++;
-            });
+            }
 
             Object.entries(sums).forEach(([label, info]) => {
                 this.clusterCenters.push({
@@ -770,7 +779,7 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         buildPointOrder() {
-            const count = this.points.length;
+            const count = this.points.count;
             const indices = Array.from({ length: count }, (_, index) => index);
 
             if (!this.is3dMode && this.expression) {
@@ -786,14 +795,14 @@ export default Vue.component('research-umap-plot-gl', {
 
         buildPositionBuffer(indices) {
             const count = indices.length;
-            const originalPositions = sharedUmapData.getPositions(this.group);
+            const { X, Y, Z } = this.points;
             const positions = new Float32Array(count * 3);
 
             for (let drawIndex = 0; drawIndex < count; drawIndex++) {
                 const index = indices[drawIndex];
-                positions[drawIndex * 3] = originalPositions[index * 3];
-                positions[drawIndex * 3 + 1] = originalPositions[index * 3 + 1];
-                positions[drawIndex * 3 + 2] = this.is3dMode ? originalPositions[index * 3 + 2] : 0;
+                positions[drawIndex * 3] = X[index];
+                positions[drawIndex * 3 + 1] = Y[index];
+                positions[drawIndex * 3 + 2] = Z ? Z[index] : 0;
             }
 
             return positions;
@@ -869,11 +878,11 @@ export default Vue.component('research-umap-plot-gl', {
                 rebuildAxes = true,
             } = options;
 
-            if (rebuildOrder || this.pointDrawOrder.length !== this.points.length) {
+            if (rebuildOrder || this.pointDrawOrder.length !== this.points.count) {
                 this.pointDrawOrder = this.buildPointOrder();
             }
 
-            this.vertexCount = this.points.length;
+            this.vertexCount = this.points.count;
 
             if (rebuildPositions) {
                 const positions = this.buildPositionBuffer(this.pointDrawOrder);
@@ -909,16 +918,17 @@ export default Vue.component('research-umap-plot-gl', {
                 return;
             }
 
-            const point = this.points[this.hoveredPointIndex];
-            if (!point) {
+            const index = this.hoveredPointIndex;
+            const { count, X, Y, Z } = this.points;
+            if (index >= count) {
                 this.hoverVertexCount = 0;
                 return;
             }
 
             const positions = new Float32Array([
-                point.X,
-                point.Y,
-                this.is3dMode ? (point.Z ?? 0) : 0,
+                X[index],
+                Y[index],
+                Z ? Z[index] : 0,
             ]);
             const colors = new Uint8Array([0, 0, 0, 255]);
             const highlight = new Uint8Array([255]);
@@ -1032,7 +1042,12 @@ export default Vue.component('research-umap-plot-gl', {
 
         updateProjectedGeometry() {
             if (this.is3dMode) {
-                this.projectedPoints = this.points.map(point => this.projectWorldPoint([point.X, point.Y, point.Z ?? 0]));
+                const { count, X, Y, Z } = this.points;
+                const projected = new Array(count);
+                for (let i = 0; i < count; i++) {
+                    projected[i] = this.projectWorldPoint([X[i], Y[i], Z[i]]);
+                }
+                this.projectedPoints = projected;
             } else {
                 this.projectedPoints = [];
             }
@@ -1361,10 +1376,7 @@ export default Vue.component('research-umap-plot-gl', {
                 ((this.orthoBounds.top - this.orthoBounds.bottom) / canvas.height) * 8
             );
 
-            const point = sharedUmapData.getQuadtree(this.group)?.find(dataX, dataY, radius);
-            if (!point) return -1;
-            const index = sharedUmapData.getPointIndex(this.group, point);
-            return index == null ? -1 : index;
+            return sharedUmapData.findNearest(this.group, dataX, dataY, radius);
         },
 
         updateHoveredPoint(nextIndex) {

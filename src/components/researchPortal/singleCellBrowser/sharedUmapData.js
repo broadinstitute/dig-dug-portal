@@ -1,6 +1,72 @@
-import * as d3 from 'd3';
+/*
+    umap data cache, shared by the umap panels that render the same embedding.
 
-// umap data chache
+    points is the typed array bundle from scUtils.parseCoordinates:
+        { count, X: Float32Array, Y: Float32Array, Z: Float32Array|null }
+
+    it used to also keep an interleaved positions copy, a Map from point object to
+    index, and a d3 quadtree - together ~114 bytes per cell in chrome, against 8 for
+    the coordinates themselves. positions and the Map are gone entirely (the buffers
+    read X/Y/Z directly, and the index *is* the identity), and the quadtree is
+    replaced by the uniform grid below, which is built lazily on the first hover and
+    costs ~5 bytes per cell.
+*/
+
+//target cells per grid bucket. a hover query scans the buckets overlapping its
+//search radius, so this trades bucket count (memory) against points scanned.
+const POINTS_PER_BUCKET = 4;
+const MAX_BUCKETS_PER_AXIS = 2048;
+
+function buildHoverGrid(points) {
+    const { count, X, Y } = points;
+    if (!count) return null;
+
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (let i = 0; i < count; i++) {
+        const x = X[i];
+        const y = Y[i];
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+    }
+    if (!Number.isFinite(minX) || !Number.isFinite(minY)) return null;
+
+    const axis = Math.max(1, Math.min(MAX_BUCKETS_PER_AXIS,
+        Math.round(Math.sqrt(count / POINTS_PER_BUCKET))));
+    const spanX = Math.max(maxX - minX, 1e-9);
+    const spanY = Math.max(maxY - minY, 1e-9);
+    //scale maps a coordinate to a bucket column/row; the tiny shrink keeps the
+    //maximum coordinate inside the last bucket instead of one past it.
+    const scaleX = (axis * (1 - 1e-9)) / spanX;
+    const scaleY = (axis * (1 - 1e-9)) / spanY;
+
+    //CSR layout: starts[b]..starts[b+1] is the slice of order holding bucket b
+    const starts = new Uint32Array(axis * axis + 1);
+    const bucketOf = i => {
+        const col = (X[i] - minX) * scaleX | 0;
+        const row = (Y[i] - minY) * scaleY | 0;
+        return row * axis + col;
+    };
+
+    for (let i = 0; i < count; i++) {
+        const b = bucketOf(i);
+        if (b >= 0 && b < starts.length - 1) starts[b + 1]++;
+    }
+    for (let b = 0; b < axis * axis; b++) {
+        starts[b + 1] += starts[b];
+    }
+
+    const cursor = starts.slice(0, axis * axis);
+    const order = new Uint32Array(count);
+    for (let i = 0; i < count; i++) {
+        const b = bucketOf(i);
+        if (b >= 0 && b < cursor.length) order[cursor[b]++] = i;
+    }
+
+    return { axis, minX, minY, scaleX, scaleY, starts, order };
+}
+
 class SharedUmapData {
     constructor() {
         this.groups = new Map();
@@ -8,43 +74,15 @@ class SharedUmapData {
 
     initPoints(group, points) {
         if(!this.groups.has(group)){
-            const numPoints = points.length;
-            const pointIndexMap = new Map();
-        
-            // positions = [x1, y1, z1, x2, y2, z2, ...]
-            const positions = new Float32Array(points.length * 3);
-            let idx = 0;
-            for (let i = 0; i < points.length; i++) {
-                pointIndexMap.set(points[i], i);
-                positions[idx++] = points[i].X;
-                positions[idx++] = points[i].Y;
-                positions[idx++] = points[i].Z ?? 0;
-            }
-
-            // build quadtree
-            const quadtree = d3.quadtree()
-                .x(d => d.X)
-                .y(d => d.Y)
-                .addAll(points);
-
-            const instances = 1;
-
             this.groups.set(group, {
-                numPoints,
-                positions,
+                numPoints: points.count,
                 points,
-                pointIndexMap,
-                quadtree,
-                instances
+                hoverGrid: null,
+                instances: 1
             })
         }else{
             this.groups.get(group).instances++;
         }
-    }
-
-    getPositions(group) {
-        const data = this.groups.get(group);
-        return data ? data.positions : null;
     }
 
     getPoints(group) {
@@ -52,19 +90,51 @@ class SharedUmapData {
         return data ? data.points : null;
     }
 
-    getQuadtree(group) {
-        const data = this.groups.get(group);
-        return data ? data.quadtree : null;
-    }
-
-    getPointIndex(group, point) {
-        const data = this.groups.get(group);
-        return data ? data.pointIndexMap.get(point) : null;
-    }
-
     getNumPoints(group) {
         const data = this.groups.get(group);
         return data ? data.numPoints : null;
+    }
+
+    //nearest point to (x, y) within radius, or -1. replaces quadtree.find plus the
+    //point-object-to-index Map lookup that followed it.
+    findNearest(group, x, y, radius) {
+        const data = this.groups.get(group);
+        if (!data) return -1;
+        if (!data.hoverGrid) {
+            data.hoverGrid = buildHoverGrid(data.points);
+            if (!data.hoverGrid) return -1;
+        }
+
+        const { axis, minX, minY, scaleX, scaleY, starts, order } = data.hoverGrid;
+        const { X, Y } = data.points;
+
+        const colMin = Math.max(0, ((x - radius - minX) * scaleX | 0));
+        const colMax = Math.min(axis - 1, ((x + radius - minX) * scaleX | 0));
+        const rowMin = Math.max(0, ((y - radius - minY) * scaleY | 0));
+        const rowMax = Math.min(axis - 1, ((y + radius - minY) * scaleY | 0));
+        if (colMin > colMax || rowMin > rowMax) return -1;
+
+        let best = -1;
+        let bestDist = radius * radius;
+        for (let row = rowMin; row <= rowMax; row++) {
+            const rowOffset = row * axis;
+            for (let col = colMin; col <= colMax; col++) {
+                const bucket = rowOffset + col;
+                const end = starts[bucket + 1];
+                for (let s = starts[bucket]; s < end; s++) {
+                    const i = order[s];
+                    const dx = X[i] - x;
+                    const dy = Y[i] - y;
+                    const dist = dx * dx + dy * dy;
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        best = i;
+                    }
+                }
+            }
+        }
+
+        return best;
     }
 
     release(group){

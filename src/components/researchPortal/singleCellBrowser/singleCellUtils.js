@@ -1,4 +1,3 @@
-import dataConvert from "@/utils/dataConvert";
 import * as d3 from 'd3';
 import {llog} from "./llog.js";
 
@@ -92,17 +91,107 @@ function packMetadataIndices(fields) {
     llog(`packed ${packedFields}/${Object.keys(fields.metadata).length} metadata fields`);
     return fields;
 }
+/*
+    coordinates used to be parsed by the generic tsv2Json into one plain object per
+    cell. that is ~52 bytes per cell in chrome for what is really two floats, and it
+    also forced a Map keyed by those objects and a d3 quadtree built over them.
+
+    parsed straight into Float32Arrays instead, a cell costs 8 bytes (12 in 3D) and
+    the object identity that the Map and the quadtree existed to resolve is replaced
+    by the array index. see sharedUmapData for the hover lookup that replaces the
+    quadtree.
+
+    shape returned: { count, X: Float32Array, Y: Float32Array, Z: Float32Array|null }
+    Z is null unless the file has a Z column with at least one non-zero value, which
+    is exactly the condition the plot used to call 3D mode.
+*/
+export function parseCoordinates(text) {
+    const length = text.length;
+    let headerEnd = text.indexOf('\n');
+    if (headerEnd === -1) headerEnd = length;
+
+    const headers = text.slice(0, headerEnd).split('\t');
+    const xCol = headers.findIndex(h => h.trim() === 'X');
+    const yCol = headers.findIndex(h => h.trim() === 'Y');
+    const zCol = headers.findIndex(h => h.trim() === 'Z');
+    if (xCol === -1 || yCol === -1) {
+        llog('coordinates: no X/Y columns in', headers);
+        return null;
+    }
+    const lastCol = Math.max(xCol, yCol, zCol);
+
+    //one newline per row at most. rows that are blank are skipped, so this is an
+    //upper bound and the arrays get trimmed at the end if it was not exact.
+    let rowCap = 0;
+    for (let i = headerEnd; i < length; i++) {
+        if (text.charCodeAt(i) === 10) rowCap++;
+    }
+    if (length > headerEnd && text.charCodeAt(length - 1) !== 10) rowCap++;
+
+    let X = new Float32Array(rowCap);
+    let Y = new Float32Array(rowCap);
+    let Z = zCol === -1 ? null : new Float32Array(rowCap);
+    let hasZ = false;
+    let count = 0;
+
+    let pos = headerEnd + 1;
+    while (pos < length) {
+        let eol = text.indexOf('\n', pos);
+        if (eol === -1) eol = length;
+
+        if (eol > pos) {
+            //walk the tab separated fields once, picking off only the columns we need
+            let col = 0;
+            let fieldStart = pos;
+            let x = NaN;
+            let y = NaN;
+            let z = 0;
+            let seen = 0;
+            for (let i = pos; i <= eol; i++) {
+                if (i === eol || text.charCodeAt(i) === 9) {
+                    if (col === xCol) { x = +text.slice(fieldStart, i); seen++; }
+                    else if (col === yCol) { y = +text.slice(fieldStart, i); seen++; }
+                    else if (col === zCol) { z = +text.slice(fieldStart, i); seen++; }
+                    if (col === lastCol) break;
+                    col++;
+                    fieldStart = i + 1;
+                }
+            }
+
+            if (seen > 0) {
+                X[count] = x;
+                Y[count] = y;
+                if (Z) {
+                    Z[count] = z;
+                    if (z !== 0) hasZ = true;
+                }
+                count++;
+            }
+        }
+
+        pos = eol + 1;
+    }
+
+    if (count !== rowCap) {
+        X = X.slice(0, count);
+        Y = Y.slice(0, count);
+        if (Z) Z = Z.slice(0, count);
+    }
+
+    //a Z column of all zeros is a 2D embedding; drop it rather than carry 4 bytes
+    //per cell that only ever read back as 0.
+    if (Z && !hasZ) Z = null;
+
+    //frozen so Vue's observe() skips it - it is assigned straight to reactive data.
+    return Object.freeze({ count, X, Y, Z });
+}
+
 export async function fetchCoordinates(url, datasetId) {
     const replacedUrl = url.replace('$datasetId', datasetId);
     llog('getting coordinates', replacedUrl);
     try {
         const response = await fetch(replacedUrl);
-        const json = dataConvert.tsv2Json(await response.text());
-        //there is one point object per cell, so on large datasets this array can
-        //hold millions of objects. freezing it makes it non-extensible, which makes
-        //Vue's observe() skip it instead of attaching an Observer + Deps to every
-        //single point. points are read-only after load, so nothing is lost.
-        return Object.freeze(json);
+        return parseCoordinates(await response.text());
     }catch (error){
         llog('Error fetching coordinates:', error);
         return null;
