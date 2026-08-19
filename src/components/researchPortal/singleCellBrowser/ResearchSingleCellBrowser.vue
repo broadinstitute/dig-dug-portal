@@ -1051,6 +1051,14 @@
 
     const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"]
 
+    //raw expression is one double per cell per gene and nothing used to evict it, so a
+    //session that searched twenty genes on a 1.5M cell dataset carried ~240 MB of it.
+    //the budget is a byte total rather than a gene count, so a small dataset keeps
+    //everything a user is likely to load and only the large ones start evicting:
+    //54 genes at 242k cells, 29 at 449k, 8 at 1.5M, 5 at 2.2M.
+    const EXPRESSION_CACHE_BYTES = 100 * 1024 * 1024;
+    const EXPRESSION_CACHE_MIN_GENES = 3;
+
     export default Vue.component('research-single-cell-browser', {
         components: {
             ResearchUmapPlotGL,
@@ -1199,6 +1207,9 @@
                 //the (fields, labelColors, cellTypeField) the cache was built against - stats
                 //depend on all three, so if any changes every entry is stale
                 expressionStatsCacheKey: null,
+                //gene names in least-recently-used order, most recent last. only genes whose
+                //raw expression is currently held appear here
+                expressionLRU: [],
                 geneToSearch: "",
                 geneLoading: null,
                 genesNotFound: [],
@@ -1299,22 +1310,19 @@
                 if(staleKey){
                     this.expressionStatsCache.clear();
                     this.expressionStatsCacheKey = key;
-                }else{
-                    //forget genes that are no longer loaded so the cache cannot outlive them
-                    this.expressionStatsCache.forEach((_, gene) => {
-                        if(!(gene in this.expressionData)) this.expressionStatsCache.delete(gene);
-                    });
                 }
 
-                const expressionStats = [];
+                //the cache deliberately outlives the raw arrays: evicting a gene's
+                //expression must not drop its row from the dot plot, and a row is a
+                //handful of objects against one value per cell. it is bounded by the
+                //number of genes searched, and cleared with the dataset
                 Object.keys(this.expressionData).forEach(gene => {
-                    let stats = this.expressionStatsCache.get(gene);
-                    if(!stats){
-                        stats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true);
-                        this.expressionStatsCache.set(gene, stats);
-                    }
-                    expressionStats.push(...stats);
+                    if(this.expressionStatsCache.has(gene)) return;
+                    this.expressionStatsCache.set(gene, scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true));
                 })
+
+                const expressionStats = [];
+                this.expressionStatsCache.forEach(stats => expressionStats.push(...stats));
                 //frozen for the same reason the grouped results are - this feeds the marker
                 //dot plot, and Vue would walk it on every read during a render
                 this.expressionStatsAll = Object.freeze(expressionStats);
@@ -1618,6 +1626,7 @@
                 this.expressionStatsAll = [];
                 this.expressionStatsCache.clear();
                 this.expressionStatsCacheKey = null;
+                this.expressionLRU = [];
                 this.genesNotFound = [];
                 this.dotPlotCellType = "";
                 this.markerFileOptions = [];
@@ -2088,6 +2097,31 @@
                 }
             },
 
+            //mark a gene as the most recently used, so eviction takes the coldest one
+            touchGene(gene){
+                const at = this.expressionLRU.indexOf(gene);
+                if(at !== -1) this.expressionLRU.splice(at, 1);
+                this.expressionLRU.push(gene);
+            },
+
+            //drop the raw expression of the coldest genes once the held arrays exceed the
+            //byte budget. the gene stays in the list and keeps its dot plot row - clicking
+            //it refetches, which geneClick already handled for genes that never loaded
+            evictExpressionData(cellCount){
+                const perGene = Math.max(1, cellCount) * 8; //raw expression arrives as doubles
+                const limit = Math.max(EXPRESSION_CACHE_MIN_GENES, Math.floor(EXPRESSION_CACHE_BYTES / perGene));
+
+                while(this.expressionLRU.length > limit){
+                    //never evict what is on screen
+                    const index = this.expressionLRU.findIndex(g => g !== this.geneExpressionVars.selectedGene);
+                    if(index === -1) break;
+                    const [evicted] = this.expressionLRU.splice(index, 1);
+                    Vue.delete(this.expressionData, evicted);
+                    Vue.delete(this.expressionExtents, evicted);
+                    llog(`evicted ${evicted} expression, keeping ${limit} genes`);
+                }
+            },
+
             async getGeneExpression(gene, addToKeyParams = true, setAsSelected = false){
                 if(this.geneNames.includes(gene)) {
                     llog(`${gene} already listed`);
@@ -2105,10 +2139,15 @@
                 this.geneLoading = null;
 
                 if(expressionResult){
-                    if((this.markerGenes && !this.markersList.includes(gene)) || !this.markerGenes) {
+                    //a gene can already be listed and still reach here, because eviction
+                    //drops its expression but leaves it in the list to be clicked again
+                    if(((this.markerGenes && !this.markersList.includes(gene)) || !this.markerGenes)
+                        && !this.geneNames.includes(gene)) {
                         this.geneNames.push(gene);
                     }
                     Vue.set(this.expressionData, gene, expressionResult);
+                    this.touchGene(gene);
+                    this.evictExpressionData(expressionResult.length);
                     //same d3 calls the template used to make per violin, run once here
                     Vue.set(this.expressionExtents, gene, {
                         min: d3.min(expressionResult),
@@ -2547,6 +2586,7 @@
                     this.getGeneExpression(gene, false, true);
                     return;
                 }
+                this.touchGene(gene);
                 const g = this.geneExpressionVars;
                 g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, g.selectedLabel, g.subsetLabel);
                 g.selectedGene = gene;
