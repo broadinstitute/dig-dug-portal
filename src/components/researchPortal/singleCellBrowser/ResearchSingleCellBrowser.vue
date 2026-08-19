@@ -1190,6 +1190,7 @@
                 geneNames: [], //list of loaded gene names
                 sortedGeneNames: [],
                 expressionData: {}, //obj, keys are gene names, values are arrays of raw expression per cell
+                expressionExtents: {}, //obj, keys are gene names, values are {min, max} of the above
                 expressionStatsAll: [], //array of objects, each obj is gene, mean expr., pct. expressing
                 geneToSearch: "",
                 geneLoading: null,
@@ -1285,7 +1286,9 @@
                 Object.keys(this.expressionData).forEach(gene => {
                     expressionStats.push(...scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true))
                 })
-                this.expressionStatsAll = expressionStats;
+                //frozen for the same reason the grouped results are - this feeds the marker
+                //dot plot, and Vue would walk it on every read during a render
+                this.expressionStatsAll = Object.freeze(expressionStats);
                 //llog('updated expression stats', this.expressionStatsAll);
             },
             geneNames(){
@@ -1581,6 +1584,7 @@
                 this.dataLoaded = false;
                 this.dataReady = false;
                 this.expressionData = {};
+                this.expressionExtents = {};
                 this.geneNames = [];
                 this.expressionStatsAll = [];
                 this.genesNotFound = [];
@@ -2074,6 +2078,11 @@
                         this.geneNames.push(gene);
                     }
                     Vue.set(this.expressionData, gene, expressionResult);
+                    //same d3 calls the template used to make per violin, run once here
+                    Vue.set(this.expressionExtents, gene, {
+                        min: d3.min(expressionResult),
+                        max: d3.max(expressionResult)
+                    });
 
                     llog('getGeneExpression', gene);
                     //llog(addToKeyParams);
@@ -2112,12 +2121,14 @@
                 //llog('max', max);
                 return max;
             },
+            //these are called from inside the v-for over stratify values, so they used to
+            //run a full d3 scan of every cell's expression once per violin. the extent is
+            //computed once when the gene loads instead
             minExpressionValue(gene){
-                return d3.min(this.expressionData[gene])
+                return this.expressionExtents[gene]?.min;
             },
             maxExpressionValue(gene){
-                //llog(gene, this.expressionData);
-                return d3.max(this.expressionData[gene])
+                return this.expressionExtents[gene]?.max;
             },
             getPlotMetadataLabels(field) {
                 if (!field || !this.fields) return [];

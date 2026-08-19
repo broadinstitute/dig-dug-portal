@@ -141,7 +141,10 @@ export async function fetchGeneExpression(url, gene, datasetId){
             return null;
         }
         const expression = json.data[0]['expression'];
-        return expression;
+        //one value per cell, and it lands on reactive state via Vue.set. unfrozen, every
+        //read during a render walks all of it through dependArray - and the template reads
+        //it once per stratify value via min/maxExpressionValue. never mutated after load.
+        return Object.freeze(expression);
     }catch(error){
         llog('   Error fetching gene expression', error);
         return null;
@@ -884,8 +887,23 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
     return sortGroupedResults(fields, result, [primaryKey, subsetKey].filter(Boolean));
 }
 
+/*
+    every grouped result goes out through here, so this is also where they get frozen.
+
+    these arrays land on reactive component state, and Vue's reactive getter calls
+    dependArray() on any array value - which walks the entire array on every read during
+    a render. with one entry per group, each carrying an exprValues array of every value
+    in that group, and the template reading them once per stratify value, that walking
+    measured 5.2s of a 11.95s stratified render. a frozen array is never observed, so the
+    entries never get an __ob__ and dependArray never runs on them.
+
+    freezing is shallow, so the entry objects and their exprValues arrays stay mutable -
+    only in-place changes to the array itself (sort/push/splice) are blocked, and nothing
+    downstream does that.
+*/
 function sortGroupedResults(fields, rows, keys) {
-    if (!rows || rows.length === 0) return rows;
+    if (!rows) return rows;
+    if (rows.length === 0) return Object.freeze(rows);
 
     const sortedLabels = fields.metadata_labels_sorted || {};
     const orderMaps = {};
@@ -897,7 +915,7 @@ function sortGroupedResults(fields, rows, keys) {
         }
     });
 
-    return [...rows].sort((a, b) => {
+    return Object.freeze([...rows].sort((a, b) => {
         for (const key of keys) {
             const orderMap = orderMaps[key];
             if (!orderMap) continue;
@@ -910,7 +928,7 @@ function sortGroupedResults(fields, rows, keys) {
             }
         }
         return 0;
-    });
+    }));
 }
 
 
