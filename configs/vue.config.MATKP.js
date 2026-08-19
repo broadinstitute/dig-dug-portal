@@ -66,29 +66,29 @@ let pages = {
         template: "public/index.html",
         filename: "phenotype.html",
         title: "MATKP | Phenotype",
-        chunks: ["chunk-vendors", "chunk-common", "phenotype"]
+        chunks: ["chunk-vendors", "chunk-common", "phenotype"],
     },
     adipogenesis: {
         entry: "src/portals/MATKP/views/Adipogenesis/main.js",
         template: "public/index.html",
         filename: "adipogenesis.html",
         title: "MATKP | Adipogenesis",
-        chunks: ["chunk-vendors", "chunk-common", "adipogenesis"]
+        chunks: ["chunk-vendors", "chunk-common", "adipogenesis"],
     },
     nmf: {
         entry: "src/portals/MATKP/views/NMF/main.js",
         template: "public/index.html",
         filename: "nmf.html",
         title: "MATKP | NMF",
-        chunks: ["chunk-vendors", "chunk-common", "nmf"]
+        chunks: ["chunk-vendors", "chunk-common", "nmf"],
     },
     transcriptomics: {
         entry: "src/portals/MATKP/views/Transcriptomics/main.js",
         template: "public/index.html",
         filename: "transcriptomics.html",
         title: "MATKP | Transcriptomic Viewer",
-        chunks: ["chunk-vendors", "chunk-common", "transcriptomics"]
-    }
+        chunks: ["chunk-vendors", "chunk-common", "transcriptomics"],
+    },
 };
 
 module.exports = {
@@ -140,10 +140,14 @@ module.exports = {
             },
         });
 
-        // Add the rule for handling .js files with babel-loader
+        // Add the rule for handling .js/.mjs/.cjs files with babel-loader
         config.module.rules.push({
-            test: /\.js$/,
-            include: [/node_modules\/vis-network/, /node_modules\/vis-data/],
+            test: /\.(js|mjs|cjs)$/,
+            include: [
+                /node_modules[\\/]vis-network/,
+                /node_modules[\\/]vis-data/,
+                /node_modules[\\/]marked/,
+            ],
             use: {
                 loader: "babel-loader",
                 options: {
