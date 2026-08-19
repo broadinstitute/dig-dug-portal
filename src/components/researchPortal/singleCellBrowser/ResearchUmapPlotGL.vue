@@ -382,11 +382,14 @@ export default Vue.component('research-umap-plot-gl', {
         },
         expression() {
             this.updateExpressionScale();
+            //the draw order is fixed per dataset now, so selecting a gene only changes
+            //colours - positions, order and highlight were only rebuilt here because
+            //the order used to depend on the expression values
             this.setupBuffers({
-                rebuildPositions: !this.is3dMode,
+                rebuildPositions: false,
                 rebuildColors: true,
-                rebuildOrder: !this.is3dMode,
-                rebuildHighlight: !this.is3dMode,
+                rebuildOrder: false,
+                rebuildHighlight: false,
                 rebuildAxes: false,
             });
             this.requestRender(true);
@@ -779,18 +782,10 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         buildPointOrder() {
-            const count = this.points.count;
-            const indices = Array.from({ length: count }, (_, index) => index);
-
-            if (!this.is3dMode && this.expression) {
-                indices.sort((a, b) => {
-                    const va = this.expression[a] ?? -Infinity;
-                    const vb = this.expression[b] ?? -Infinity;
-                    return va - vb;
-                });
-            }
-
-            return indices;
+            //one fixed shuffle per dataset, shared with the other panel. it used to sort
+            //by expression, which made a lightly expressing region look broadly positive
+            //- see the note in sharedUmapData
+            return sharedUmapData.getDrawOrder(this.group);
         },
 
         buildPositionBuffer(indices) {
@@ -881,6 +876,9 @@ export default Vue.component('research-umap-plot-gl', {
             if (rebuildOrder || this.pointDrawOrder.length !== this.points.count) {
                 this.pointDrawOrder = this.buildPointOrder();
             }
+            //the order comes from the shared group, so there is nothing to draw until
+            //this panel has attached to one
+            if (!this.pointDrawOrder) return;
 
             this.vertexCount = this.points.count;
 

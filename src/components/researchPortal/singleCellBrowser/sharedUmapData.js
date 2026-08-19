@@ -67,6 +67,44 @@ function buildHoverGrid(points) {
     return { axis, minX, minY, scaleX, scaleY, starts, order };
 }
 
+/*
+    the order points are written into the vertex buffers is the order they are painted,
+    and in 2D the depth test is off, so later points cover earlier ones.
+
+    this used to be ascending expression, which put every expressing cell on top of
+    every non-expressing one: a region where 2% of cells express a gene rendered as
+    broadly positive, because the 2% were all drawn last. drawing in file order is not
+    a fix either - these files are written one sample at a time (measured: 100% of
+    adjacent cells share a sample, against 0.7% under a random permutation), so it
+    would paint the last donor over all the others.
+
+    a fixed shuffle makes the chance that a pixel shows an expressing cell equal to the
+    real local fraction of expressing cells. seeded rather than Math.random so both
+    panels draw the same order, it does not change as genes are selected, and exported
+    images are reproducible.
+*/
+function buildDrawOrder(count) {
+    const order = new Uint32Array(count);
+    for (let i = 0; i < count; i++) order[i] = i;
+
+    //mulberry32
+    let seed = 0x9e3779b9;
+    const random = () => {
+        seed = (seed + 0x6d2b79f5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
+    for (let i = count - 1; i > 0; i--) {
+        const j = (random() * (i + 1)) | 0;
+        const swap = order[i];
+        order[i] = order[j];
+        order[j] = swap;
+    }
+    return order;
+}
+
 class SharedUmapData {
     constructor() {
         this.groups = new Map();
@@ -78,6 +116,7 @@ class SharedUmapData {
                 numPoints: points.count,
                 points,
                 hoverGrid: null,
+                drawOrder: null,
                 instances: 1
             })
         }else{
@@ -88,6 +127,14 @@ class SharedUmapData {
     getPoints(group) {
         const data = this.groups.get(group);
         return data ? data.points : null;
+    }
+
+    //shared by both panels, so it is built once and they paint identically
+    getDrawOrder(group) {
+        const data = this.groups.get(group);
+        if (!data) return null;
+        if (!data.drawOrder) data.drawOrder = buildDrawOrder(data.numPoints);
+        return data.drawOrder;
     }
 
     getNumPoints(group) {
