@@ -366,10 +366,10 @@ import {
     parseBiomarkerSessionImportFile,
     sessionHasExportableContent,
 } from "./biomarkerNetwork/biomarkerNetworkSession.js";
+import { getFactorById, looksLikeFactorId } from "./biomarkerNetwork/biomarkerFactorCatalog.js";
+import { searchBiomarkerFactors } from "./biomarkerNetwork/biomarkerFactorSearch.js";
 import keyParams from "@/utils/keyParams";
 import {
-    getFactorLabel,
-    searchFactorsByLabel,
     listMondoDiseasesForFactor,
     listSharedGenesForFactorDisease,
 } from "./biomarkerNetwork/cfdeKgSparql.js";
@@ -393,6 +393,7 @@ export default Vue.component("biomarker-network", {
             lastNeedle: "",
             searchedFactorLabel: "",
             selectedFactorIri: "",
+            selectedFactorId: null,
             factorSuggestions: [],
             suggestionsOpen: false,
             suggestionsLoading: false,
@@ -583,7 +584,6 @@ export default Vue.component("biomarker-network", {
     mounted() {
         const factorFromUrl = keyParams.factor != null ? String(keyParams.factor).trim() : "";
         if (!factorFromUrl) return;
-        this.selectedFactorIri = factorFromUrl;
         setTimeout(() => this.hydrateFromUrl(factorFromUrl), 0);
     },
     beforeDestroy() {
@@ -608,28 +608,21 @@ export default Vue.component("biomarker-network", {
             this.loading = true;
             this.loadingMessage = "Resolving mechanism from URL…";
             this.error = "";
-            let label = "";
-            try {
-                const timeout = new Promise((_, rej) =>
-                    setTimeout(() => rej(new Error("timeout")), 8000)
-                );
-                label = await Promise.race([getFactorLabel(factorRef), timeout]);
-            } catch (_) {
-                // label stays empty — proceed with the hash as display text
+
+            const catalog = looksLikeFactorId(factorRef) ? getFactorById(factorRef) : null;
+            if (!catalog || !catalog.iri) {
+                this.loading = false;
+                this.loadingMessage = "";
+                this.error = "Unknown mechanism in the URL.";
+                return;
             }
-            this.userQuery = label || factorRef;
-            this.searchNeedle = this.userQuery;
-            if (label) this.searchedFactorLabel = label;
+
+            this.selectedFactorId = catalog.id;
+            this.selectedFactorIri = catalog.iri;
+            this.userQuery = catalog.label;
+            this.searchNeedle = catalog.label;
+            this.searchedFactorLabel = catalog.label;
             await this.runSearch({ allowWhileLoading: true });
-            if (!this.searchedFactorLabel || this.searchedFactorLabel === factorRef) {
-                try {
-                    const retryLabel = await getFactorLabel(factorRef);
-                    if (retryLabel) {
-                        this.searchedFactorLabel = retryLabel;
-                        this.userQuery = retryLabel;
-                    }
-                } catch (_) {}
-            }
         },
         onQueryInput() {
             this.searchNeedle = (this.userQuery || "").trim();
@@ -639,6 +632,7 @@ export default Vue.component("biomarker-network", {
                 );
                 if (!selected && this.searchedFactorLabel !== this.searchNeedle) {
                     this.selectedFactorIri = "";
+                    this.selectedFactorId = null;
                 }
             }
             this.suggestionIndex = -1;
@@ -660,7 +654,7 @@ export default Vue.component("biomarker-network", {
             const ac = new AbortController();
             this.suggestionAbort = ac;
             try {
-                const hits = await searchFactorsByLabel(needle, {
+                const hits = await searchBiomarkerFactors(needle, {
                     limit: SUGGESTION_LIMIT,
                     signal: ac.signal,
                 });
@@ -704,6 +698,7 @@ export default Vue.component("biomarker-network", {
             this.lastNeedle = "";
             this.searchedFactorLabel = "";
             this.selectedFactorIri = "";
+            this.selectedFactorId = null;
             this.factorSuggestions = [];
             this.loading = false;
             this.loadingMessage = "";
@@ -772,17 +767,13 @@ export default Vue.component("biomarker-network", {
         },
         selectSuggestion(s) {
             this.selectedFactorIri = s.iri || "";
+            this.selectedFactorId = s.id != null ? Number(s.id) : null;
             this.userQuery = s.label || "";
             this.searchNeedle = (this.userQuery || "").trim();
             this.closeSuggestions();
             this.$nextTick(() => {
                 if (this.$refs.diseaseInput) this.$refs.diseaseInput.focus();
             });
-        },
-        factorHash(iri) {
-            const s = String(iri || "");
-            const parts = s.split("/");
-            return parts[parts.length - 1] || s;
         },
         onEnter() {
             if (
@@ -826,8 +817,12 @@ export default Vue.component("biomarker-network", {
             }
             this.clampPages();
         },
-        writeSearchParams(factorIri) {
-            const nextFactor = this.factorHash(factorIri);
+        writeSearchParams(factorId) {
+            const nextFactor =
+                factorId != null && Number.isFinite(Number(factorId)) && Number(factorId) > 0
+                    ? String(Number(factorId))
+                    : "";
+            if (!nextFactor) return;
             if (String(keyParams.factor || "") === nextFactor && !keyParams.disease) return;
             keyParams.set({ disease: "", factor: nextFactor });
         },
@@ -998,14 +993,27 @@ export default Vue.component("biomarker-network", {
                     (s) => s.iri === this.selectedFactorIri
                 );
                 if (match) return match;
-                const label = this.searchedFactorLabel || needle;
-                return { iri: this.selectedFactorIri, label };
+                if (this.selectedFactorId != null) {
+                    const catalog = getFactorById(this.selectedFactorId);
+                    if (catalog && catalog.iri === this.selectedFactorIri) {
+                        return {
+                            id: catalog.id,
+                            iri: catalog.iri,
+                            label: catalog.label || this.searchedFactorLabel || needle,
+                        };
+                    }
+                }
+                return {
+                    id: this.selectedFactorId,
+                    iri: this.selectedFactorIri,
+                    label: this.searchedFactorLabel || needle,
+                };
             }
             const exact = (this.factorSuggestions || []).filter(
                 (s) => String(s.label || "").toLowerCase() === needle.toLowerCase()
             );
             if (exact.length === 1) return exact[0];
-            const hits = await searchFactorsByLabel(needle, { limit: SUGGESTION_LIMIT });
+            const hits = await searchBiomarkerFactors(needle, { limit: SUGGESTION_LIMIT });
             this.factorSuggestions = hits;
             const exactHits = hits.filter(
                 (s) => String(s.label || "").toLowerCase() === needle.toLowerCase()
@@ -1048,8 +1056,9 @@ export default Vue.component("biomarker-network", {
             }
 
             this.selectedFactorIri = factor.iri;
+            this.selectedFactorId = factor.id != null ? Number(factor.id) : this.selectedFactorId;
             this.searchedFactorLabel = factor.label || needle;
-            this.writeSearchParams(factor.iri);
+            this.writeSearchParams(this.selectedFactorId);
 
             this.cancelInFlight();
             const ac = new AbortController();

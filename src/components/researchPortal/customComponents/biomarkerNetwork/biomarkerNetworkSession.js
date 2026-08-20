@@ -65,6 +65,10 @@ export function buildBiomarkerSessionExport(vm) {
             lastNeedle: String((vm && vm.lastNeedle) || ""),
             searchedFactorLabel: String((vm && vm.searchedFactorLabel) || ""),
             selectedFactorIri: String((vm && vm.selectedFactorIri) || ""),
+            selectedFactorId:
+                vm && vm.selectedFactorId != null && Number.isFinite(Number(vm.selectedFactorId))
+                    ? Number(vm.selectedFactorId)
+                    : null,
             searched: !!(vm && vm.searched),
             counts: cloneJson((vm && vm.counts) || null, null),
             rows: cloneJson((vm && vm.rows) || [], []),
@@ -207,12 +211,17 @@ function assign(vm, key, value) {
 export function applyBiomarkerSessionImport(vm, payload, { setKeyParams } = {}) {
     const session = (payload && payload.session) || {};
     const factorIri = String(session.selectedFactorIri || "");
+    const factorId =
+        session.selectedFactorId != null && Number.isFinite(Number(session.selectedFactorId))
+            ? Number(session.selectedFactorId)
+            : null;
 
     assign(vm, "userQuery", String(session.userQuery || ""));
     assign(vm, "searchNeedle", String(session.searchNeedle || session.userQuery || ""));
     assign(vm, "lastNeedle", String(session.lastNeedle || ""));
     assign(vm, "searchedFactorLabel", String(session.searchedFactorLabel || ""));
     assign(vm, "selectedFactorIri", factorIri);
+    assign(vm, "selectedFactorId", factorId);
     assign(vm, "searched", session.searched !== false);
     assign(vm, "counts", cloneJson(session.counts, null));
     assign(vm, "rows", cloneJson(session.rows, []));
@@ -235,12 +244,13 @@ export function applyBiomarkerSessionImport(vm, payload, { setKeyParams } = {}) 
     if (typeof setKeyParams === "function") {
         setKeyParams({
             disease: "",
-            factor: factorIri || "",
+            factor: factorId != null ? String(factorId) : "",
         });
     }
 
     return {
         label: String((payload && payload.label) || session.searchedFactorLabel || "session"),
         factorIri,
+        factorId,
     };
 }
