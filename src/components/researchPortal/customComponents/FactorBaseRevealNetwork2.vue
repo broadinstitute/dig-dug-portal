@@ -126,11 +126,6 @@ import {
     isSelectionNodeSelected,
     toggleSelectionNode,
 } from "./revealMultiQueryWorkflow/revealMqHeatmapSelection.js";
-import {
-    canonicalGeneNodeId,
-    geneSymbolFromNodeId,
-    normalizeGeneSymbol,
-} from "./biomarkerNetwork/geneNodeIds.js";
 
 const DATA_TAB_GENE_COLOR = { background: DEFAULT_GENE_NODE_COLOR, border: "#7a3d82" };
 
@@ -1008,133 +1003,6 @@ export default {
             this.hideDiseaseNodeMenu();
             this.hideHoverTooltip();
         },
-        /**
-         * Drop the entire gene layer, then rebuild it from the caller's
-         * gene-keyed node/edge lists and let physics settle the new positions.
-         * One gene symbol in, one gene node out — no incremental merging.
-         */
-        replaceGeneNodes(geneNodes = [], geneEdges = [], hints = {}) {
-            if (!this.nodesDataSet || !this.edgesDataSet) return { nodes: 0, edges: 0 };
-
-            this.removeAllGeneNodes();
-
-            const graphNodes = [];
-            (geneNodes || []).forEach((n) => {
-                if (!n || n.id == null) return;
-                const sym = normalizeGeneSymbol(
-                    (n.metadata && n.metadata.geneSymbol) || n.label || geneSymbolFromNodeId(n.id)
-                );
-                if (!sym) return;
-                const graphNode = {
-                    id: canonicalGeneNodeId(sym),
-                    type: "Gene",
-                    label: sym,
-                    metadata: { ...(n.metadata || {}), geneSymbol: sym },
-                };
-                this.nodeMap[graphNode.id] = graphNode;
-                graphNodes.push(graphNode);
-            });
-
-            (hints.diseaseIds || []).forEach((diseaseId) => {
-                this.removeEdgeBetween(hints.factorId, diseaseId);
-            });
-
-            if (graphNodes.length) {
-                this.seedGenePositions(graphNodes, hints);
-                const metricScope = Object.values(this.nodeMap);
-                const visNodes = this.buildVisNodes(graphNodes, metricScope);
-                visNodes.forEach((vn) => {
-                    const sym = geneSymbolFromNodeId(vn.id);
-                    if (sym) vn.label = sym;
-                    this.baseVisNodeStyles[vn.id] = {
-                        color: vn.color,
-                        borderWidth: vn.borderWidth,
-                        font: vn.font,
-                    };
-                });
-                this.nodesDataSet.add(visNodes);
-            }
-
-            const visEdges = this.buildVisEdges(geneEdges || [], geneEdges || []).filter(
-                (edge) =>
-                    edge &&
-                    this.nodesDataSet.get(edge.from) &&
-                    this.nodesDataSet.get(edge.to) &&
-                    !this.edgesDataSet.get(edge.id)
-            );
-            visEdges.forEach((ve) => {
-                this.baseVisEdgeStyles[ve.id] = {
-                    color: ve.color,
-                    width: ve.width,
-                    arrows: ve.arrows,
-                };
-            });
-            if (visEdges.length) this.edgesDataSet.add(visEdges);
-
-            this.restartPhysics();
-            this.applyDiseaseFetchedBorders();
-            return { nodes: graphNodes.length, edges: visEdges.length };
-        },
-        removeAllGeneNodes() {
-            if (!this.nodesDataSet || !this.edgesDataSet) return;
-            const geneIds = new Set();
-            (this.nodesDataSet.get() || []).forEach((visNode) => {
-                if (!visNode || visNode.id == null) return;
-                const graphNode = this.nodeMap[visNode.id];
-                const isGene = graphNode
-                    ? graphNode.type === "Gene"
-                    : Boolean(geneSymbolFromNodeId(visNode.id));
-                if (isGene) geneIds.add(String(visNode.id));
-            });
-            if (!geneIds.size) return;
-
-            (this.edgesDataSet.get() || []).forEach((edge) => {
-                if (!edge) return;
-                if (geneIds.has(String(edge.from)) || geneIds.has(String(edge.to))) {
-                    this.edgesDataSet.remove(edge.id);
-                    delete this.baseVisEdgeStyles[edge.id];
-                }
-            });
-            geneIds.forEach((id) => {
-                this.nodesDataSet.remove(id);
-                delete this.nodeMap[id];
-                delete this.baseVisNodeStyles[id];
-            });
-        },
-        /** Initial placement so physics has a sensible starting point per gene. */
-        seedGenePositions(graphNodes, hints = {}) {
-            if (!this.visNetwork) return;
-            const factorId = hints.factorId;
-            let factorPos = null;
-            try {
-                factorPos = factorId ? this.visNetwork.getPositions([factorId])[factorId] : null;
-            } catch (e) {
-                factorPos = null;
-            }
-            const originX = factorPos ? factorPos.x : 0;
-            const originY = factorPos ? factorPos.y : 0;
-            const radius = 180;
-            const count = graphNodes.length;
-            graphNodes.forEach((n, i) => {
-                const angle = count <= 1 ? 0 : ((Math.PI * 2) * i) / count;
-                n.x = originX + Math.cos(angle) * radius;
-                n.y = originY + Math.sin(angle) * radius;
-            });
-        },
-        restartPhysics() {
-            if (!this.visNetwork) return;
-            try {
-                this.visNetwork.setOptions({
-                    physics: {
-                        enabled: true,
-                        stabilization: { enabled: true, iterations: 200, fit: false },
-                    },
-                });
-                this.visNetwork.stabilize(200);
-            } catch (e) {
-                // vis teardown race — nothing to settle.
-            }
-        },
         applyDiseaseFetchedBorders() {
             if (!this.nodesDataSet) return;
             const fetched = this.genesFetchedDiseaseIdSet;
@@ -1167,15 +1035,6 @@ export default {
                 };
             });
             if (updates.length) this.nodesDataSet.update(updates);
-        },
-        removeEdgeBetween(sourceId, targetId) {
-            if (!this.edgesDataSet || sourceId == null || targetId == null) return;
-            [`e-${sourceId}-${targetId}`, `e-${targetId}-${sourceId}`].forEach((id) => {
-                if (this.edgesDataSet.get(id)) {
-                    delete this.baseVisEdgeStyles[id];
-                    this.edgesDataSet.remove(id);
-                }
-            });
         },
         /** First GO:####### found in metadata or node fields (Biolink tooltips). */
         extractGoIdForBiolinkTooltip(meta, n) {
@@ -1240,16 +1099,10 @@ export default {
                 const biolinkColor = colorFromBiolinkClass(biolinkClass);
                 if (biolinkColor) color = biolinkColor;
                 const rawDisplay = (n.label || n.id || "").toString();
-                let headlineLabel =
+                const headlineLabel =
                     type === "Factor"
                         ? resolveCfdeFactorClusterDisplayLabel(rawDisplay)
                         : rawDisplay;
-                if (type === "Gene") {
-                    headlineLabel =
-                        geneSymbolFromNodeId(n.id) ||
-                        normalizeGeneSymbol(meta.geneSymbol) ||
-                        headlineLabel;
-                }
                 const parts = [`Full label: ${headlineLabel}`, `Type: ${type}`];
                 let geneBorder = meta.biolink_unmapped ? "#6b7280" : "#fff";
                 if (type === "Gene") {

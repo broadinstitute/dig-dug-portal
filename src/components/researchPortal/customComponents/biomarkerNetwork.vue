@@ -5,6 +5,47 @@
                 <span class="rkw-mark">CFDE KG</span>
                 <span class="rkw-title">&lt;-&gt; BiomarkerKB</span>
             </div>
+            <div class="bn-header-ops">
+                <div class="bn-ops-menu">
+                    <button type="button" class="bn-ops-menu-toggle" aria-haspopup="true">
+                        Session
+                    </button>
+                    <div class="bn-ops-menu-list" role="menu">
+                        <button
+                            type="button"
+                            class="bn-ops-menu-item"
+                            role="menuitem"
+                            @click="resetSearch"
+                        >
+                            Reset search
+                        </button>
+                        <button
+                            type="button"
+                            class="bn-ops-menu-item"
+                            role="menuitem"
+                            @click="triggerSessionImport"
+                        >
+                            Import session
+                        </button>
+                        <button
+                            type="button"
+                            class="bn-ops-menu-item"
+                            role="menuitem"
+                            :disabled="!canExportSession"
+                            @click="exportSession"
+                        >
+                            Export session
+                        </button>
+                    </div>
+                </div>
+                <input
+                    ref="sessionImportInput"
+                    type="file"
+                    accept="application/json,.json"
+                    class="d-none"
+                    @change="onSessionImportFileChange"
+                />
+            </div>
         </header>
 
         <div class="bn-body">
@@ -31,9 +72,9 @@
                             v-if="showSearchClear"
                             type="button"
                             class="bn-clear-bubble"
-                            aria-label="Reset search"
-                            title="Reset search"
-                            @click="resetSearch"
+                            aria-label="Clear search input"
+                            title="Clear search input"
+                            @click="clearSearchInput"
                         >
                             <b-icon icon="x" aria-hidden="true" />
                         </button>
@@ -216,25 +257,18 @@
                     </p>
                     <template v-else>
                     <div
-                        v-if="mechanismNetwork.nodes.length"
+                        v-if="mechanismGraph.nodes.length"
                         class="bn-mechanism-network"
                     >
-                        <factor-base-reveal-network
+                        <biomarker-network-graph
                             ref="mechNetwork"
                             :key="'mech-net-' + mechanismNetworkKey"
-                            :network="mechanismNetwork"
+                            :graph="mechanismGraph"
                             :height="480"
-                            keep-physics-enabled
-                            preserve-edge-direction
-                            :use-gene-role-colors="false"
-                            :show-selected-anchor-legend="false"
-                            :legend-type-labels="mechanismLegendLabels"
-                            phenotype-node-metric-key="aggregatePigeanScore"
-                            gene-node-metric-key="pigeanScore"
-                            edge-distance-metric-key="edgeStrength"
-                            disease-node-menu-enabled
+                            :type-labels="mechanismLegendLabels"
                             :genes-fetched-disease-ids="genesFetchedDiseaseIds"
                             @view-shared-genes="onViewSharedGenesInNetwork"
+                            @hide-genes="onHideGenesInNetwork"
                         />
                     </div>
                     <table class="table table-sm table-hover bn-table">
@@ -325,7 +359,13 @@ import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import {
     canonicalGeneNodeId,
 } from "./biomarkerNetwork/geneNodeIds.js";
-import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork2.vue";
+import BiomarkerNetworkGraph from "./biomarkerNetwork/BiomarkerNetworkGraph.vue";
+import {
+    applyBiomarkerSessionImport,
+    exportBiomarkerSession,
+    parseBiomarkerSessionImportFile,
+    sessionHasExportableContent,
+} from "./biomarkerNetwork/biomarkerNetworkSession.js";
 import keyParams from "@/utils/keyParams";
 import {
     getFactorLabel,
@@ -344,7 +384,7 @@ const SUGGESTION_DEBOUNCE_MS = 280;
 const BIOMARKER_LIMIT = 100;
 
 export default Vue.component("biomarker-network", {
-    components: { FactorBaseRevealNetwork },
+    components: { BiomarkerNetworkGraph },
     props: ["phenotypesInUse", "utilsBox", "sectionConfigs"],
     data() {
         return {
@@ -378,13 +418,12 @@ export default Vue.component("biomarker-network", {
             expandedDiseases: {},
             diseaseGenes: {},
             networkExpandedDiseases: {},
-            networkGeneIds: {},
-            networkGeneMeta: {},
             /**
              * Gene-centric registry rebuilt into the network on every fetch:
              * { SYMBOL: { symbol, diseases: [{ disease, factorLoading, pigeanScore }] } }
              */
             geneRegistry: {},
+            exportSessionBusy: false,
         };
     },
     computed: {
@@ -436,11 +475,17 @@ export default Vue.component("biomarker-network", {
             const start = (this.mechanismPage - 1) * this.perPage;
             return (this.associatedDiseases || []).slice(start, start + this.perPage);
         },
-        mechanismNetwork() {
+        /**
+         * The complete graph, derived from the disease list plus the gene
+         * registry. Because the whole node/edge set is recomputed from state,
+         * each gene symbol yields exactly one node carrying its own metrics.
+         */
+        mechanismGraph() {
             const factorLabel = this.searchedFactorLabel || this.lastNeedle || "Mechanism";
             const factorId = this.selectedFactorIri || "factor:root";
             const nodes = [{ id: factorId, label: factorLabel, type: "Factor" }];
             const edges = [];
+
             (this.associatedDiseases || []).forEach((d) => {
                 const diseaseId = d.disease || `disease:${d.diseaseLabel}`;
                 nodes.push({
@@ -452,15 +497,58 @@ export default Vue.component("biomarker-network", {
                         sharedGeneCount: d.sharedGeneCount,
                     },
                 });
-                edges.push({
-                    source: factorId,
-                    target: diseaseId,
-                    predicate: "",
+                // Once genes are shown for a disease, the factor reaches it
+                // through those genes instead of a direct edge.
+                if (!this.networkExpandedDiseases[diseaseId]) {
+                    edges.push({
+                        source: factorId,
+                        target: diseaseId,
+                        metadata: { edgeStrength: d.highestFactorGeneLoading },
+                    });
+                }
+            });
+
+            const diseaseIds = new Set(nodes.map((n) => String(n.id)));
+            Object.keys(this.geneRegistry).forEach((symKey) => {
+                const entry = this.geneRegistry[symKey];
+                if (!entry || !entry.diseases.length) return;
+                const symbol = entry.symbol || symKey;
+                const geneId = canonicalGeneNodeId(symbol);
+                if (!geneId) return;
+
+                let factorLoading = null;
+                let topPigeanScore = null;
+                entry.diseases.forEach((d) => {
+                    factorLoading = this.maxAbsMetric(factorLoading, d.factorLoading);
+                    topPigeanScore = this.maxAbsMetric(topPigeanScore, d.pigeanScore);
+                });
+
+                nodes.push({
+                    id: geneId,
+                    label: symbol,
+                    type: "Gene",
                     metadata: {
-                        edgeStrength: d.highestFactorGeneLoading,
+                        geneSymbol: symbol,
+                        factorLoading,
+                        pigeanScore: topPigeanScore,
+                        diseaseCount: entry.diseases.length,
                     },
                 });
+                edges.push({
+                    source: factorId,
+                    target: geneId,
+                    metadata: { edgeStrength: factorLoading },
+                });
+                entry.diseases.forEach((d) => {
+                    if (!diseaseIds.has(String(d.disease))) return;
+                    edges.push({
+                        source: geneId,
+                        target: d.disease,
+                        metadata: { edgeStrength: d.pigeanScore },
+                    });
+                });
             });
+
             return { nodes, edges };
         },
         mechanismNetworkKey() {
@@ -486,7 +574,10 @@ export default Vue.component("biomarker-network", {
             return this.searched && (this.rows.length > 0 || this.associatedDiseases.length > 0);
         },
         showSearchClear() {
-            return Boolean((this.userQuery || "").trim() || this.searched);
+            return Boolean((this.userQuery || "").trim());
+        },
+        canExportSession() {
+            return sessionHasExportableContent(this);
         },
     },
     mounted() {
@@ -588,6 +679,21 @@ export default Vue.component("biomarker-network", {
             this.suggestionIndex = -1;
             this.suggestionsLoading = false;
         },
+        /** Clears only the search input; session results stay intact. */
+        clearSearchInput() {
+            this.cancelSuggestionLookup();
+            if (this.suggestionTimer) {
+                clearTimeout(this.suggestionTimer);
+                this.suggestionTimer = null;
+            }
+            this.closeSuggestions();
+            this.userQuery = "";
+            this.searchNeedle = "";
+            this.factorSuggestions = [];
+            this.$nextTick(() => {
+                if (this.$refs.diseaseInput) this.$refs.diseaseInput.focus();
+            });
+        },
         resetSearch() {
             this.cancelInFlight();
             this.cancelSuggestionLookup();
@@ -615,14 +721,49 @@ export default Vue.component("biomarker-network", {
             this.expandedDiseases = {};
             this.diseaseGenes = {};
             this.networkExpandedDiseases = {};
-            this.networkGeneIds = {};
-            this.networkGeneMeta = {};
             this.geneRegistry = {};
             this.activeTab = "biomarkers";
             keyParams.set({ disease: "", factor: "" });
             this.$nextTick(() => {
                 if (this.$refs.diseaseInput) this.$refs.diseaseInput.focus();
             });
+        },
+        async exportSession() {
+            if (!this.canExportSession || this.exportSessionBusy) return;
+            this.exportSessionBusy = true;
+            try {
+                const result = await exportBiomarkerSession(this);
+                if (result && result.reason === "cancelled") return;
+                if (!result || !result.ok) {
+                    this.error = "Could not export session.";
+                }
+            } catch (e) {
+                console.error("Biomarker session export failed", e);
+                this.error = (e && e.message) || "Could not export session.";
+            } finally {
+                this.exportSessionBusy = false;
+            }
+        },
+        triggerSessionImport() {
+            const input = this.$refs.sessionImportInput;
+            if (!input) return;
+            input.value = "";
+            input.click();
+        },
+        async onSessionImportFileChange(event) {
+            const file = event && event.target && event.target.files && event.target.files[0];
+            if (event && event.target) event.target.value = "";
+            if (!file) return;
+            try {
+                const payload = await parseBiomarkerSessionImportFile(file);
+                this.resetSearch();
+                applyBiomarkerSessionImport(this, payload, {
+                    setKeyParams: (map) => keyParams.set(map),
+                });
+            } catch (e) {
+                console.error("Biomarker session import failed", e);
+                this.error = (e && e.message) || "Could not import session.";
+            }
         },
         moveSuggestion(delta) {
             if (!this.suggestionsOpen || !this.flatSuggestions.length) return;
@@ -731,7 +872,7 @@ export default Vue.component("biomarker-network", {
             }
             const genes = this.diseaseGenes[key];
             if (Array.isArray(genes) && genes.length) {
-                await this.addGenesForDisease(key, genes);
+                this.addGenesForDisease(key, genes);
             }
         },
         normalizeGeneId(g) {
@@ -807,92 +948,49 @@ export default Vue.component("biomarker-network", {
             });
         },
         /**
-         * Steps 2 / 3: gene nodes plus factor→gene and gene→disease edges,
-         * derived entirely from the registry.
+         * Records a disease's genes. The network re-derives itself from this
+         * state, so no direct graph manipulation is needed here.
          */
-        buildGeneElementsFromRegistry() {
-            const factorId = this.selectedFactorIri;
-            const nodes = [];
-            const edges = [];
-
-            Object.keys(this.geneRegistry).forEach((symKey) => {
-                const entry = this.geneRegistry[symKey];
-                if (!entry || !entry.diseases.length) return;
-                const symbol = entry.symbol || symKey;
-                const nodeId = canonicalGeneNodeId(symbol);
-                if (!nodeId) return;
-
-                let factorLoading = null;
-                let topPigeanScore = null;
-                entry.diseases.forEach((d) => {
-                    factorLoading = this.maxAbsMetric(factorLoading, d.factorLoading);
-                    topPigeanScore = this.maxAbsMetric(topPigeanScore, d.pigeanScore);
-                });
-
-                nodes.push({
-                    id: nodeId,
-                    label: symbol,
-                    type: "Gene",
-                    metadata: {
-                        geneSymbol: symbol,
-                        factorLoading,
-                        pigeanScore: topPigeanScore,
-                        diseaseCount: entry.diseases.length,
-                    },
-                });
-
-                edges.push({
-                    source: factorId,
-                    target: nodeId,
-                    metadata: { edgeStrength: factorLoading },
-                });
-                entry.diseases.forEach((d) => {
-                    edges.push({
-                        source: nodeId,
-                        target: d.disease,
-                        metadata: { edgeStrength: d.pigeanScore },
-                    });
-                });
-            });
-
-            return { nodes, edges };
-        },
-        async addGenesForDisease(diseaseIri, genes) {
+        addGenesForDisease(diseaseIri, genes) {
             const diseaseKey = this.normalizeDiseaseKey(diseaseIri);
             if (!diseaseKey || !Array.isArray(genes) || !genes.length) return;
-
-            const net = this.$refs.mechNetwork;
-            if (!net || typeof net.replaceGeneNodes !== "function") return;
-
             this.mergeGenesIntoRegistry(diseaseKey, this.dedupeGenesById(genes));
             this.$set(this.networkExpandedDiseases, diseaseKey, true);
-
-            const { nodes, edges } = this.buildGeneElementsFromRegistry();
-
-            this.networkGeneIds = {};
-            this.networkGeneMeta = {};
-            nodes.forEach((n) => {
-                this.$set(this.networkGeneIds, n.id, true);
-                this.$set(this.networkGeneMeta, n.id, { ...n.metadata });
-            });
-
-            // Steps 6 / 2 / 3 / 4: drop the whole gene layer, rebuild it, re-settle physics.
-            net.replaceGeneNodes(nodes, edges, {
-                factorId: this.selectedFactorIri,
-                diseaseIds: Object.keys(this.networkExpandedDiseases).filter(
-                    (id) => this.networkExpandedDiseases[id]
-                ),
-            });
         },
         async onViewSharedGenesInNetwork(payload) {
             const diseaseIri = payload && payload.nodeId;
             if (!diseaseIri) return;
             try {
                 const genes = await this.fetchSharedGenes(diseaseIri);
-                await this.addGenesForDisease(diseaseIri, genes);
+                this.addGenesForDisease(diseaseIri, genes);
             } catch (e) {
                 /* ignore */
             }
+        },
+        /**
+         * Collapse a disease's gene layer: drop exclusive genes, keep genes that
+         * still connect to other expanded diseases, and restore the direct
+         * factor→disease edge.
+         */
+        onHideGenesInNetwork(payload) {
+            const diseaseId = this.normalizeDiseaseKey(payload && payload.nodeId);
+            if (!diseaseId || !this.networkExpandedDiseases[diseaseId]) return;
+
+            Object.keys(this.geneRegistry).forEach((symKey) => {
+                const entry = this.geneRegistry[symKey];
+                if (!entry || !Array.isArray(entry.diseases)) return;
+                const remaining = entry.diseases.filter((d) => d.disease !== diseaseId);
+                if (!remaining.length) {
+                    this.$delete(this.geneRegistry, symKey);
+                } else if (remaining.length !== entry.diseases.length) {
+                    this.$set(this.geneRegistry, symKey, {
+                        symbol: entry.symbol,
+                        diseases: remaining,
+                    });
+                }
+            });
+
+            this.$set(this.networkExpandedDiseases, diseaseId, false);
         },
         async resolveSelectedFactor(needle) {
             if (this.selectedFactorIri) {
@@ -974,8 +1072,6 @@ export default Vue.component("biomarker-network", {
             this.expandedDiseases = {};
             this.diseaseGenes = {};
             this.networkExpandedDiseases = {};
-            this.networkGeneIds = {};
-            this.networkGeneMeta = {};
             this.geneRegistry = {};
             this.activeTab = "biomarkers";
 
@@ -1064,6 +1160,70 @@ export default Vue.component("biomarker-network", {
     font-weight: 600;
     color: var(--cfde-blue);
     font-size: 1.05rem;
+}
+
+.bn-header-ops {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.bn-ops-menu {
+    position: relative;
+}
+
+.bn-ops-menu-toggle {
+    padding: 4px 10px;
+    border: 1px solid var(--cfde-border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--cfde-blue);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: default;
+}
+
+.bn-ops-menu-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 40;
+    min-width: 168px;
+    margin-top: 2px;
+    padding: 4px;
+    border: 1px solid #d5d5d5;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
+}
+
+.bn-ops-menu:hover .bn-ops-menu-list,
+.bn-ops-menu:focus-within .bn-ops-menu-list {
+    display: block;
+}
+
+.bn-ops-menu-item {
+    display: block;
+    width: 100%;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    text-align: left;
+    font-size: 12px;
+    color: #21618c;
+    cursor: pointer;
+}
+
+.bn-ops-menu-item:hover:not(:disabled) {
+    background: #f0f6fb;
+}
+
+.bn-ops-menu-item:disabled {
+    color: #9aa5ad;
+    cursor: not-allowed;
 }
 
 .bn-body {
