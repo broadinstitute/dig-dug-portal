@@ -457,7 +457,7 @@
                                     <template v-else>
                                         <research-dot-plot v-if="stratifyPlotType==='dot'"
                                             style="display:flex; align-self: center"
-                                            :data="getAllStats()"
+                                            :data="allSegmentStats"
                                             :xKey="cellCompositionVars.segmentByLabel"
                                             :yKey="geneExpressionVars.selectedLabel"
                                             :xLabel="displayLabel(cellCompositionVars.segmentByLabel)"
@@ -487,12 +487,46 @@
                                         />
                                         <div id="sc_violin_plot_group" v-else>
                                             <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
-                                            <div v-for="value in getPlotMetadataLabels(cellCompositionVars.segmentByLabel)" :key="value">
+                                            <!--
+                                                one full violin plot per stratify value,
+                                                ~290 svg nodes each - 13,228 nodes and ~1.5 s
+                                                of a 3.0 s render at 45 values, far more at
+                                                750. content-visibility lets the browser skip
+                                                layout, style and paint for the ones scrolled
+                                                out of view, and the plot itself defers its
+                                                draw until it is asked for (see the
+                                                availableWidth guard in ResearchViolinPlot),
+                                                so an off screen entry holds no svg at all.
+
+                                                two things this depends on, both handled -
+                                                do not remove either:
+                                                - these plots size themselves by measuring
+                                                  their own labels with getBBox(), which
+                                                  returns zeros inside a skipped subtree. the
+                                                  plot detects that and waits for
+                                                  contentvisibilityautostatechange instead of
+                                                  drawing itself too short.
+                                                - the png/svg export collects labels with
+                                                  innerText and measures them with
+                                                  getBoundingClientRect, both empty for
+                                                  skipped content. DownloadChart forces the
+                                                  subtree visible while it walks it; without
+                                                  that, a 752 entry export kept 1 of 753
+                                                  labels.
+
+                                                contain-intrinsic-size is the placeholder
+                                                height for entries not yet drawn; 'auto'
+                                                means the real measured height is used once
+                                                it has been seen, which matters here because
+                                                long labels make the real height vary.
+                                            -->
+                                            <div v-for="value in getPlotMetadataLabels(cellCompositionVars.segmentByLabel)" :key="value"
+                                                style="content-visibility: auto; contain-intrinsic-size: auto 340px;">
                                                 <div style="display:flex; gap:3px; align-items: baseline;">
                                                     <div style="font-weight: bold;">{{ value }}</div>
                                                 </div>
                                                 <research-violin-plot
-                                                    :data="getStatsByPropValue(geneExpressionVars.expressionStats, cellCompositionVars.segmentByLabel, value)"
+                                                    :data="statsFor(value)"
                                                     :primaryKey="geneExpressionVars.selectedLabel" 
                                                     :highlightKey="cellCompositionVars.highlightLabel"
                                                     :height="300"
@@ -1065,6 +1099,9 @@
     //Intl.Collator over the same data for identical ordering.
     const naturalCollator = new Intl.Collator(undefined, { numeric: true });
 
+    //one shared empty array for stratify values with no stats - see statsFor()
+    const EMPTY_STATS = Object.freeze([]);
+
     export default Vue.component('research-single-cell-browser', {
         components: {
             ResearchUmapPlotGL,
@@ -1357,6 +1394,43 @@
         computed: {
             isDev(){
                 return keyParams['dev']===1;
+            },
+            /*
+                expression stats bucketed by the stratify field, in one pass.
+
+                the violin list used to call getStatsByPropValue(stats, field, value) from
+                the template, once per stratify value - O(values x rows), the same shape B1
+                removed from calcCellCounts.
+
+                the bigger cost was that a method call in a template returns a *new* array on
+                every parent re-render, and each violin watches its data prop and redraws on
+                any change. so anything that re-rendered this component - hovering a label in
+                the selector, which only needs the highlightKey watcher - rebuilt the svg for
+                every violin in the list. as a computed, the arrays keep their identity until
+                the stats or the field actually change, and those redraws stop happening.
+            */
+            statsBySegmentValue(){
+                const grouped = new Map();
+                const property = this.cellCompositionVars.segmentByLabel;
+                const stats = this.geneExpressionVars.expressionStats;
+                if(!property || !Array.isArray(stats)) return grouped;
+
+                for(const item of stats){
+                    const bucket = grouped.get(item[property]);
+                    if(bucket) bucket.push(item);
+                    else grouped.set(item[property], [item]);
+                }
+                return grouped;
+            },
+            //same rows, same order as the old getAllStats(): every stratify value in display
+            //order, flattened
+            allSegmentStats(){
+                const data = [];
+                for(const value of this.getPlotMetadataLabels(this.cellCompositionVars.segmentByLabel)){
+                    const rows = this.statsBySegmentValue.get(value);
+                    if(rows) data.push(...rows);
+                }
+                return data;
             },
             portalGroup(){
                 const hostname = window.location.hostname;
@@ -2218,17 +2292,11 @@
 
                 return labels.filter(label => !scUtils.isMissingMetadataValue(label));
             },
-            getStatsByPropValue(data, property, value){
-                return data.filter(item => item[property] === value);
-            },
-            getAllStats(){
-                const data = [];
-                const displayLabels = this.getPlotMetadataLabels(this.cellCompositionVars.segmentByLabel);
-                for(const value of displayLabels){
-                    const row = this.getStatsByPropValue(this.geneExpressionVars.expressionStats, this.cellCompositionVars.segmentByLabel, value);
-                    data.push(...row);
-                }
-                return data;
+            //the stats for one stratify value, out of the statsBySegmentValue buckets.
+            //EMPTY_STATS is shared rather than a fresh [], so a value with no rows does not
+            //hand its violin a new array identity on every render and trigger a redraw
+            statsFor(value){
+                return this.statsBySegmentValue.get(value) || EMPTY_STATS;
             },
             stratifyPlotTypeLabel(type){
                 const labels = {
