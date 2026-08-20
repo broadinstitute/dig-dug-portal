@@ -664,7 +664,15 @@ export default Vue.component('research-umap-plot-gl', {
 
         initializeWebGL() {
             const canvas = this.$refs.umapCanvas;
-            const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
+            /*
+                preserveDrawingBuffer is deliberately off. it existed so download() could
+                read the canvas at any time, but it makes the browser keep a copy of the
+                whole framebuffer after every composite - on two panels, every frame, for
+                the entire session, to serve an export that happens rarely if ever.
+                download() renders synchronously before reading instead, which is the same
+                guarantee for the one moment it is needed.
+            */
+            const gl = canvas.getContext('webgl');
             if (!gl) {
                 console.error('WebGL not supported');
                 return;
@@ -1499,6 +1507,14 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         download() {
+            /*
+                without preserveDrawingBuffer the gl drawing buffer is undefined once the
+                browser has composited, so the export has to draw and read in one task -
+                render synchronously here, then drawImage below with nothing in between.
+                a rAF render may still be queued; an extra redraw after this is harmless.
+            */
+            this.renderUMAP();
+
             const canvas1 = this.$refs.umapCanvas;
             const canvas2 = this.$refs.umapLabelCanvas;
             const scaleFactor = 2;

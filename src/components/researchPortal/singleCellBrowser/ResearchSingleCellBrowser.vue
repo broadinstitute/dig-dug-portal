@@ -1043,7 +1043,6 @@
     import { reportSingleCellMemory } from "@/components/researchPortal/singleCellBrowser/memoryReport.js";
     import ResearchUmapPlotGL from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlotGL.vue";
     import ResearchStackedBarPlot from "@/components/researchPortal/singleCellBrowser/ResearchStackedBarPlot.vue";
-    import ResearchStackedBarPlot2 from "@/components/researchPortal/singleCellBrowser/ResearchStackedBarPlot2.vue";
     import ResearchDotPlot from "@/components/researchPortal/singleCellBrowser/ResearchDotPlot.vue";
     import ResearchViolinPlot from "@/components/researchPortal/singleCellBrowser/ResearchViolinPlot.vue";
     import ResearchScatterPlot from "@/components/researchPortal/singleCellBrowser/ResearchScatterPlot.vue";
@@ -2062,28 +2061,6 @@
                             //this.markerCellTypes = [...new Set(this.markers.map(x=>x[markerFile.markerKey]))];
                             
 
-                            /*
-                            //sort metadata_labels naturally (alpha/num)
-                    Object.keys(this.fields.metadata_labels).forEach(key => {
-                        const customSortOrder = this.displayFields?.[key]?.customSortOrder;
-                        const values = this.fields.metadata_labels[key];
-                        //if config specifies a custom sort order
-                        //and the config array is like the fields arrays
-                        if (
-                            customSortOrder &&
-                            arraysHaveSameElements(customSortOrder, values)
-                        ) {
-                            //replace field sort order with custom sort order
-                            this.fields.metadata_labels[key] = [...customSortOrder];
-                        } else {
-                            //otherwise, by default, sort naturally
-                            this.fields.metadata_labels[key] = [...values].sort((a, b) =>
-                                a.localeCompare(b, undefined, { numeric: true })
-                            );
-                        }
-                    });
-                            */
-
                            this.markersByGene = scUtils.groupByKey(this.markers, 'gene');
                            //this.markersByCellType = scUtils.groupByKey(this.markers, 'cell_type');
                            this.markersByCellType = scUtils.groupByKey(this.markers, markerFile.markerKey);
@@ -2113,7 +2090,7 @@
                                     label: markerFile.markerKey
                                 })
                             }
-                            console.log("%%%%%%", this.markerTableColumns);
+                            llog('marker table columns', this.markerTableColumns);
                             this.markersHaveZscores = this.markerGenes.some(row => row.z_score !== null && row.z_score !== undefined);
                             llog('markers', {markersByGene:this.markersByGene, markersByCellType:this.markersByCellType, markerGenes:this.markerGenes, markersList:this.markersList});
                             

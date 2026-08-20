@@ -192,11 +192,22 @@
             //if we have subsetKey
             //calculate the totals for each primaryKey
             let primaryCounts = [];
+            /*
+                the same single pass also buckets the rows by primary key. the draw loops
+                below used to re-filter all of this.data once per primary key, which is
+                O(primaries x rows) - the same shape B1 removed from calcCellCounts. pushing
+                in data order gives arrays identical to what filter() returned.
+            */
+            const rowsByPrimary = new Map();
             //if(hasSubsetKey){
                 const counts = {};
                 this.data.forEach(item => {
                     if (!counts[item[primaryKey]]) counts[item[primaryKey]] = 0;
                     counts[item[primaryKey]] += item.count;
+
+                    const bucket = rowsByPrimary.get(item[primaryKey]);
+                    if(bucket) bucket.push(item);
+                    else rowsByPrimary.set(item[primaryKey], [item]);
                 });
                 primaryCounts = Object.entries(counts).map(([primaryLabel, count]) => ({ [primaryKey]:primaryLabel, count }));
             //}
@@ -228,6 +239,7 @@
                     hasSubsetKey,
                     primaryKeys,
                     primaryCounts,
+                    rowsByPrimary,
                     primarySum,
                     min,
                     max,
@@ -354,7 +366,7 @@
 
                     //draw stacked bars
                     primaryCounts.forEach(entry => {
-                        const subsetKeys = this.data.filter(row => row[primaryKey] === entry[primaryKey]);
+                        const subsetKeys = rowsByPrimary.get(entry[primaryKey]) || [];
                         //llog('subsetKeys', entry[primaryKey], subsetKeys);
 
                         const xCenter = x2(entry[primaryKey]) + x2.bandwidth() / 2;
@@ -464,6 +476,7 @@
             hasSubsetKey,
             primaryKeys,
             primaryCounts,
+            rowsByPrimary,
             primarySum,
             min,
             max,
@@ -572,7 +585,7 @@
                     const boxHeight = y.bandwidth() * 0.75;
 
                     primaryCounts.forEach(entry => {
-                        const subsetKeys = this.data.filter(row => row[primaryKey] === entry[primaryKey]);
+                        const subsetKeys = rowsByPrimary.get(entry[primaryKey]) || [];
                         const yCenter = y(entry[primaryKey]) + (y.bandwidth() / 2);
                         let lastCount = 0;
 
