@@ -1982,44 +1982,45 @@
 
                 //return;
                 
-                //check if a gene was requested in config or url key params
-                let geneRequested = false;
+                /*
+                    exactly one gene's expression is loaded at startup, whichever source
+                    names it - a url key param, a config preset, or the markers file.
+
+                    each of these used to loop and await a fetch per gene. at 1.5M cells one
+                    gene is ~12.4 MB of doubles plus a full stats pass, and the markersList
+                    branch was reachable with every gene in the marker list in it (111 on
+                    FNIH_Pancreas_scRNA_v2.2), fetched serially before the page finished
+                    loading. the markers file's job is to name the gene to show, not to
+                    drive a bulk load.
+
+                    names beyond the first are dropped rather than listed: getGeneExpression
+                    only pushes to geneNames after a successful fetch, so a gene that is
+                    never fetched never appears in the gene list.
+                */
+                let requestedGene = null;
                 if(this.renderConfig["parameters"]?.gene){
-                    //load genes from url key params
                     const paramGenes = decodeURIComponent(keyParams[this.renderConfig["parameters"].gene]);
                     if(paramGenes && paramGenes !== 'undefined'){
-                        llog('loading param genes');
-                        const paramGenesArray = paramGenes.split(',');
-                        for (const gene of paramGenesArray) {
-                            await this.getGeneExpression(gene.toUpperCase(), false);
-                            await Vue.nextTick();
-                            geneRequested = true;
-                        }
-                    }else if(this.presetsConfig?.["genes"]){
-                        //load genes from config
-                        llog('loading config genes');
-                        for (const gene of this.presetsConfig["genes"]) {
-                            await this.getGeneExpression(gene.toUpperCase(), false);
-                            await Vue.nextTick();
-                            geneRequested = true;
-                        }
+                        //first non-empty, so a stray leading comma does not request ''
+                        requestedGene = paramGenes.split(',').map(g => g.trim()).find(Boolean);
+                        if(requestedGene) llog('loading param gene', requestedGene);
+                    }else if(this.presetsConfig?.["genes"]?.length){
+                        //NOTE: config preset genes are only consulted when the url param is
+                        //also configured, which looks unintended but is left as it was
+                        requestedGene = this.presetsConfig["genes"][0];
+                        if(requestedGene) llog('loading config gene', requestedGene);
                     }
                 }
 
-                //if no specific gene was requested
-                if(!geneRequested){
-                    //but we have marker genes
-                    if(this.markerGenes){
-                        //just load the first in the list
-                        await this.getGeneExpression(this.markerGenes[0].gene.toUpperCase(), false);
-                    }else if(this.markersList){
-                        //no marker genes given, try loading genes from config list
-                        llog('loading marker genes');
-                        for(const gene of this.markersList){
-                            await this.getGeneExpression(gene.toUpperCase(), false);
-                            await Vue.nextTick();
-                        }
-                    }
+                if(!requestedGene){
+                    //markerGenes is the current markers format, markersList the older one
+                    if(this.markerGenes?.length) requestedGene = this.markerGenes[0].gene;
+                    else if(this.markersList?.length) requestedGene = this.markersList[0];
+                    if(requestedGene) llog('loading marker gene', requestedGene);
+                }
+
+                if(requestedGene){
+                    await this.getGeneExpression(String(requestedGene).trim().toUpperCase(), false);
                 }
 
                 //debug only, mem=1 in the url. see memoryReport.js
@@ -2032,7 +2033,7 @@
                     expressionStatsAll: this.expressionStatsAll,
                     expressionStatsCache: this.expressionStatsCache,
                     expressionLRU: this.expressionLRU,
-                    genesLoaded: this.geneNames?.length,
+                    listedGenes: this.geneNames?.length,
                     markers: this.markers,
                     sharedUmapData,
                 });

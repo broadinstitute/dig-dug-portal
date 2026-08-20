@@ -103,10 +103,11 @@ export async function reportSingleCellMemory(context) {
         if (isTypedArray(values)) exprBytes += values.byteLength;
         else if (Array.isArray(values)) exprBytes += plainNumberArrayBytes(values, true);
     });
-    //genesLoaded is how many were fetched over the session, genes.length how many are
-    //still held after C1 eviction. a dataset with a long markersList and no marker
-    //matrix fetches every gene in it at load, so these can differ by a lot
-    add('expressionData', exprBytes, `${genes.length} of ${context.genesLoaded ?? '?'} fetched genes held` +
+    //genes.length is how many gene expression arrays are held right now, after C1 eviction.
+    //listedGenes is the size of the gene picker, which is the marker gene list plus whatever
+    //has been searched - it is NOT a count of fetches, and calling it one sent a reading of
+    //'1 of 111 fetched genes held' up as a bug when only one gene had ever been fetched
+    add('expressionData', exprBytes, `${genes.length} held of ${context.listedGenes ?? '?'} listed` +
         `${genes.length ? `: ${genes.join(', ')}` : ''}${expressionLRU ? ` (LRU ${expressionLRU.length})` : ''}`);
 
     add('expressionStatsAll', (expressionStatsAll?.length || 0) * 120,
