@@ -427,7 +427,7 @@
                                                 <span>Sample</span><span>Age</span><span>Sex</span><span>GT</span><span>Co-genes</span><span>Investigator</span><span>Affected</span><span>Proband</span><span>GenDx</span>
                                             </div>
                                             <div v-for="carrier in visibleCarrierRows" :key="carrier.key" class="pbg-selected-sample-row">
-                                                <a class="pbg-sample-link" :href="`/krSample.html?query=${carrier.id}`">{{ carrier.id }}</a>
+                                                <a class="pbg-sample-link" :href="`/pb_sample.html?query=${encodeURIComponent(carrier.id)}`">{{ carrier.id }}</a>
                                                 <span>{{ carrierAge(carrier) }}</span>
                                                 <span>{{ displayCarrierValue(carrier.sex) }}</span>
                                                 <span>{{ displayCarrierValue(carrier.genotype) }}</span>

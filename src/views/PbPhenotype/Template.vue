@@ -83,7 +83,7 @@
                         <div class="pbp-table-wrap pbp-sample-table">
                             <table>
                                 <thead><tr><th>Sample</th><th>Profile similarity</th><th>Exact matches</th><th>Ontology-related matches</th><th>Investigator · age</th></tr></thead>
-                                <tbody><tr v-for="sample in mockSamples" :key="sample.id"><td><a :href="`/pb_Sample.html?query=${encodeURIComponent(sample.id)}`">{{ sample.id }}</a></td><td><strong>{{ sample.score }}</strong><small>mock value</small></td><td>{{ sample.exact }}/{{ selectedHpoIds.length }}</td><td>{{ sample.related }}</td><td>{{ sample.investigator }} · {{ sample.age }}</td></tr></tbody>
+                                <tbody><tr v-for="sample in mockSamples" :key="sample.id"><td><a :href="`/pb_sample.html?query=${encodeURIComponent(sample.id)}`">{{ sample.id }}</a></td><td><strong>{{ sample.score }}</strong><small>mock value</small></td><td>{{ sample.exact }}/{{ selectedHpoIds.length }}</td><td>{{ sample.related }}</td><td>{{ sample.investigator }} · {{ sample.age }}</td></tr></tbody>
                             </table>
                         </div>
                         <p class="pbp-footnote">A phenotype not recorded for a sample is not treated as clinically absent. Production values require the connected CRDC HPO source and the approved profile-scoring method.</p>
@@ -206,7 +206,7 @@ export default {
         const query = new URLSearchParams(window.location.search).get("query") || "HP:0001250";
         const selectedHpoIds = resolveHpoIds(query);
         return { reference: ORPHANET_REFERENCE, hpoId: selectedHpoIds[0] || "", selectedHpoIds, searchQuery: query, contextQuery: "", contextFocused: false, profileDiseaseVisibleCount: 5, filter: "all", withinQuery: "", visibleCount: 5, showAllChildren: false, expandedGenes: [], expandedCriteria: [], expandedPhenotypes: [], profileSummary: { sampleCount: 184, topInvestigator: "Investigator A", topInvestigatorCount: 62, medianAge: 11 }, mockSamples: [
-            { id: "CRDC-000184", score: "0.91", exact: 2, related: 3, investigator: "Investigator A", age: 11 },
+            { id: "BCH-00-00000-01", score: "0.91", exact: 2, related: 3, investigator: "Investigator A", age: 11 },
             { id: "CRDC-004821", score: "0.84", exact: 1, related: 4, investigator: "Investigator C", age: 7 },
             { id: "CRDC-009316", score: "0.79", exact: 2, related: 1, investigator: "Investigator B", age: 19 },
             { id: "CRDC-012027", score: "0.73", exact: 1, related: 3, investigator: "Investigator A", age: 4 },
