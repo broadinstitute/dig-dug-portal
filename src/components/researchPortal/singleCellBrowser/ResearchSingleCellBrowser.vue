@@ -1059,6 +1059,11 @@
     const EXPRESSION_CACHE_BYTES = 100 * 1024 * 1024;
     const EXPRESSION_CACHE_MIN_GENES = 3;
 
+    //one collator, reused. calling a.localeCompare(b, undefined, {numeric:true}) resolves
+    //the collation on every comparison, which measured 51-72x slower than a shared
+    //Intl.Collator over the same data for identical ordering.
+    const naturalCollator = new Intl.Collator(undefined, { numeric: true });
+
     export default Vue.component('research-single-cell-browser', {
         components: {
             ResearchUmapPlotGL,
@@ -1815,10 +1820,20 @@
                             arraysHaveSameElements(customSortOrder, values)
                         ) {
                             fields.metadata_labels_sorted[key] = [...customSortOrder];
+                        } else if (values.length > scUtils.MAX_PLOTTABLE_LABELS
+                            && this.displayFields?.[key]?.display !== true) {
+                            //an id-like field (a barcode or cell id, one label per cell) is
+                            //marked tooManyValues by filterDisplayFields - it can never be
+                            //grouped, stratified, coloured or plotted, so nothing ever reads
+                            //its order. sorting it measured 15 s at 250k labels and 67 s at
+                            //1M, all of it a frozen tab. the entry is kept, pointing at the
+                            //unsorted array, so every consumer still finds a list per field
+                            //and no copy of one string per cell is made.
+                            //a config that explicitly displays such a field still gets it
+                            //sorted, since then the order can actually be seen
+                            fields.metadata_labels_sorted[key] = values;
                         } else {
-                            fields.metadata_labels_sorted[key] = [...values].sort((a, b) =>
-                                a.localeCompare(b, undefined, { numeric: true })
-                            );
+                            fields.metadata_labels_sorted[key] = [...values].sort(naturalCollator.compare);
                         }
                     });
                     this.fields = Object.freeze(fields);
