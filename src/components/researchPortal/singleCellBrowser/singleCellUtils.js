@@ -42,7 +42,8 @@ export async function fetchFields(url, datasetId) {
     try {
         const response = await fetch(replacedUrl);
         const fields = await response.json();
-        return packMetadataIndices(fields);
+        //drop before packing, so the dropped field never gets an index array built for it
+        return packMetadataIndices(dropDuplicateIdFields(fields));
     } catch (error) {
         llog('Error fetching fields:', error);
         return null;
@@ -59,6 +60,66 @@ export async function fetchFields(url, datasetId) {
     narrowest typed array that can hold the label count (a Uint8Array for most fields).
     each array is replaced in place so the original can be collected.
 */
+/*
+    some datasets ship a metadata field whose labels are the cell barcodes - one distinct
+    label per cell, identical to fields.NAME. measured on FNIH_SAT_scRNA_v2.2 (1.69M cells)
+    that field cost 85 MB of label strings plus a 6.7 MB Uint32 index array, against 85 MB
+    for NAME holding the same strings: ~92 MB of exact duplicate, a third of everything the
+    browser held.
+
+    the field is useless either way. filterDisplayFields marks anything over
+    MAX_PLOTTABLE_LABELS as tooManyValues, so it can never be grouped, stratified, coloured
+    or plotted, and its only other appearance is a hover tooltip row that repeats the Cell
+    ID row already rendered from NAME.
+
+    the field name varies between datasets (barcode, cell_id, ...), so this identifies it
+    structurally instead: over the label cap, one label per cell, and every cell resolving
+    through its own index array to the string NAME already holds. a field that fails any of
+    those is left alone, so an over-cap field carrying something other than the barcodes
+    keeps its tooltip row.
+
+    the comparison is every cell rather than a sample, because the only thing that makes
+    deleting a field safe is that it is provably a duplicate, and a sample cannot prove it.
+    it costs nothing in the common case - a field that is not a copy of NAME mismatches
+    almost immediately and exits - and the full scan only runs when it is about to free
+    tens of MB.
+*/
+export function dropDuplicateIdFields(fields) {
+    const names = fields?.NAME || fields?.ID;
+    if(!names || !fields.metadata || !fields.metadata_labels) return fields;
+
+    const cellCount = names.length;
+    const dropped = [];
+    const idFieldLabelCounts = {};
+
+    Object.keys(fields.metadata_labels).forEach(key => {
+        const labels = fields.metadata_labels[key];
+        const values = fields.metadata[key];
+        if(!labels || labels.length <= MAX_PLOTTABLE_LABELS) return;
+        //one label per cell is what makes it a copy of NAME rather than a coarse grouping
+        if(labels.length !== cellCount || !values || values.length !== cellCount) return;
+
+        for(let i = 0; i < cellCount; i++){
+            if(labels[values[i]] !== names[i]) return;
+        }
+
+        //the key is emptied rather than removed, and the original label count recorded,
+        //because calcLabelColors walks metadata_labels in insertion order and advances a
+        //running counter by each field's label count - that is what keeps every other
+        //field's colors identical (see A6). removing the key would shift them all.
+        idFieldLabelCounts[key] = labels.length;
+        fields.metadata_labels[key] = [];
+        delete fields.metadata[key];
+        dropped.push(`${key} (${labels.length.toLocaleString()} labels)`);
+    });
+
+    if(dropped.length){
+        fields.idFieldLabelCounts = idFieldLabelCounts;
+        llog(`dropped id field(s) duplicating NAME: ${dropped.join(', ')}`);
+    }
+    return fields;
+}
+
 function packMetadataIndices(fields) {
     if(!fields?.metadata || !fields?.metadata_labels) return fields;
 
@@ -266,10 +327,13 @@ export function calcLabelColors(fields, colors){
         //an id-like field builds a color map with one entry per cell. those colors can
         //never be displayed, but reactively they cost tens of MB. the empty object is
         //kept so callers can still do labelColors[key][label] without throwing.
-        //colorIndex is still advanced so every other field keeps the color it has today.
-        if(value.length > MAX_PLOTTABLE_LABELS){
-            llog(`   skipping colors for ${key}, ${value.length} labels`);
-            colorIndex += value.length;
+        //colorIndex is still advanced so every other field keeps the color it has today -
+        //including past a field dropDuplicateIdFields emptied, whose original label count
+        //is recorded for exactly this reason.
+        const labelCount = fields.idFieldLabelCounts?.[key] ?? value.length;
+        if(labelCount > MAX_PLOTTABLE_LABELS){
+            llog(`   skipping colors for ${key}, ${labelCount} labels`);
+            colorIndex += labelCount;
             continue;
         }
 

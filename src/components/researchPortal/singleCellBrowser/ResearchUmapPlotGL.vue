@@ -1391,7 +1391,11 @@ export default Vue.component('research-umap-plot-gl', {
 
             Object.keys(this.labels.metadata_labels).forEach(field => {
                 if (!this.isHoverField(field)) return;
-                const value = this.labels.metadata_labels[field][this.labels.metadata[field][index]];
+                //a field dropped as a duplicate of NAME keeps its key but loses its index
+                //array - its row was the Cell ID row above, repeated
+                const indices = this.labels.metadata[field];
+                if (!indices) return;
+                const value = this.labels.metadata_labels[field][indices[index]];
                 if (value && value !== "") {
                     hoverHTML += `<div style="font-weight:bold;">${field}</div><div>${value}</div>`;
                 }

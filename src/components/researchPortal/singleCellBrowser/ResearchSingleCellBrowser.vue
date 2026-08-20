@@ -1039,6 +1039,8 @@
     import {llog} from "./llog.js";
     import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
     import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
+    import sharedUmapData from "@/components/researchPortal/singleCellBrowser/sharedUmapData.js";
+    import { reportSingleCellMemory } from "@/components/researchPortal/singleCellBrowser/memoryReport.js";
     import ResearchUmapPlotGL from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlotGL.vue";
     import ResearchStackedBarPlot from "@/components/researchPortal/singleCellBrowser/ResearchStackedBarPlot.vue";
     import ResearchStackedBarPlot2 from "@/components/researchPortal/singleCellBrowser/ResearchStackedBarPlot2.vue";
@@ -2019,7 +2021,21 @@
                         }
                     }
                 }
-                
+
+                //debug only, mem=1 in the url. see memoryReport.js
+                await Vue.nextTick();
+                reportSingleCellMemory({
+                    datasetId: this.datasetId,
+                    fields: this.fields,
+                    coordinates: this.coordinates,
+                    expressionData: this.expressionData,
+                    expressionStatsAll: this.expressionStatsAll,
+                    expressionStatsCache: this.expressionStatsCache,
+                    expressionLRU: this.expressionLRU,
+                    genesLoaded: this.geneNames?.length,
+                    markers: this.markers,
+                    sharedUmapData,
+                });
             },
 
 

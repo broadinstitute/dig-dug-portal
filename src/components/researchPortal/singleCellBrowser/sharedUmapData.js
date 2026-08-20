@@ -184,6 +184,22 @@ class SharedUmapData {
         return best;
     }
 
+    //debug only, for memoryReport.js - these are typed arrays, so they do not appear in
+    //DevTools' JS heap line
+    getMemoryUsage() {
+        const usage = [];
+        this.groups.forEach((data, group) => {
+            const grid = data.hoverGrid;
+            usage.push({
+                group,
+                instances: data.instances,
+                hoverGrid: grid ? grid.starts.byteLength + grid.order.byteLength : 0,
+                drawOrder: data.drawOrder ? data.drawOrder.byteLength : 0,
+            });
+        });
+        return usage;
+    }
+
     release(group){
         if(!this.groups.has(group)) return;
         const data = this.groups.get(group);
