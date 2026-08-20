@@ -179,15 +179,35 @@ function multiplyMatrices(a, b) {
     return out;
 }
 
-function transformPoint(matrix, point) {
-    const [x, y, z] = point;
-    return [
-        matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12],
-        matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13],
-        matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14],
-        matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15],
-    ];
+/*
+    world point -> canvas pixels, written into `out` instead of returned, so the per-cell
+    loop in projectPoints() can reuse one scratch object rather than allocating per point.
+
+    this is the only copy of the projection: projectWorldPoint() wraps it for the handful of
+    cluster labels, and projectPoints() calls it once per cell. the matrix multiply is
+    written in the same order the transformPoint() helper it replaced used, so results are
+    bit-identical to the old path - verified against it over six camera setups in node.
+    returns false when the point cannot be projected (no matrix, or a degenerate w).
+*/
+function projectToCanvas(matrix, x, y, z, canvasWidth, canvasHeight, out) {
+    const clipX = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12];
+    const clipY = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13];
+    const clipZ = matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14];
+    const w = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15];
+    if (Math.abs(w) < EPSILON) return false;
+
+    const ndcX = clipX / w;
+    const ndcY = clipY / w;
+    const ndcZ = clipZ / w;
+
+    out.x = (ndcX * 0.5 + 0.5) * canvasWidth;
+    out.y = (1 - (ndcY * 0.5 + 0.5)) * canvasHeight;
+    out.depth = ndcZ;
+    out.visible = ndcX >= -1 && ndcX <= 1 && ndcY >= -1 && ndcY <= 1 && ndcZ >= -1 && ndcZ <= 1;
+    return true;
 }
+
+const projectionScratch = { x: 0, y: 0, depth: 0, visible: false };
 
 function colorToRgba(color, alpha = 255) {
     const rgb = d3.color(color || "#000000").rgb();
@@ -311,7 +331,9 @@ export default Vue.component('research-umap-plot-gl', {
                 red: d3.interpolateReds,
                 blue: d3.interpolate("lightgrey", "blue")
             },
-            projectedPoints: [],
+            //projectedPoints is deliberately NOT here - see projectPoints(). it holds one
+            //entry per cell, and a reactive property made Vue observe every one of them on
+            //every render. it is initialised in created() as a plain field instead
             projectedLabels: [],
             renderMatrix: null,
             viewMatrix: IDENTITY_MATRIX,
@@ -394,6 +416,12 @@ export default Vue.component('research-umap-plot-gl', {
             });
             this.requestRender(true);
         },
+    },
+    created() {
+        //a plain field, not reactive data: one entry per cell, rebuilt every render in 3D
+        this.projectedPoints = null;
+        //floats per point in the position buffer - 2 in 2D, 3 in 3D. see buildPositionBuffer
+        this.pointPositionComponents = 3;
     },
     mounted() {
         EventBus.$on('view-transform-change', this.handleUpdateViewTransform);
@@ -796,16 +824,27 @@ export default Vue.component('research-umap-plot-gl', {
             return sharedUmapData.getDrawOrder(this.group);
         },
 
-        buildPositionBuffer(indices) {
+        /*
+            2 floats per point on a 2D dataset, 3 on a 3D one.
+
+            this always wrote 3 and stored a literal 0 for Z in 2D - 4 bytes per cell of
+            nothing, in the gl buffer and again in this staging copy, on both panels. at
+            1.5M cells that is ~6 MB per panel. a_position is a vec3 in the shader and
+            WebGL defaults the components an attribute does not supply to (0, 0, 0, 1), so
+            a 2-component attribute arrives in the shader as exactly the vec3(x, y, 0) the
+            old buffer spelled out. bindAttributes reads the count off the buffer set.
+        */
+        buildPositionBuffer(indices, components) {
             const count = indices.length;
             const { X, Y, Z } = this.points;
-            const positions = new Float32Array(count * 3);
+            const positions = new Float32Array(count * components);
 
             for (let drawIndex = 0; drawIndex < count; drawIndex++) {
                 const index = indices[drawIndex];
-                positions[drawIndex * 3] = X[index];
-                positions[drawIndex * 3 + 1] = Y[index];
-                positions[drawIndex * 3 + 2] = Z ? Z[index] : 0;
+                const at = drawIndex * components;
+                positions[at] = X[index];
+                positions[at + 1] = Y[index];
+                if (components > 2) positions[at + 2] = Z ? Z[index] : 0;
             }
 
             return positions;
@@ -891,8 +930,13 @@ export default Vue.component('research-umap-plot-gl', {
             this.vertexCount = this.points.count;
 
             if (rebuildPositions) {
-                const positions = this.buildPositionBuffer(this.pointDrawOrder);
+                //set together, so the attribute layout can never disagree with the buffer.
+                //kept off this.buffers.points - everything in there is deleted as a
+                //WebGLBuffer on teardown, so a plain number cannot live in it
+                const components = this.is3dMode ? 3 : 2;
+                const positions = this.buildPositionBuffer(this.pointDrawOrder, components);
                 this.buffers.points.position = this.makeBuffer(positions, this.buffers.points.position);
+                this.pointPositionComponents = components;
             }
 
             if (rebuildColors) {
@@ -1029,33 +1073,79 @@ export default Vue.component('research-umap-plot-gl', {
         projectWorldPoint(point) {
             if (!this.renderMatrix) return null;
 
-            const clip = transformPoint(this.renderMatrix, point);
-            const w = clip[3];
-            if (Math.abs(w) < EPSILON) return null;
-
-            const ndcX = clip[0] / w;
-            const ndcY = clip[1] / w;
-            const ndcZ = clip[2] / w;
-
             const canvas = this.$refs.umapCanvas;
+            if (!projectToCanvas(this.renderMatrix, point[0], point[1], point[2],
+                canvas.width, canvas.height, projectionScratch)) {
+                return null;
+            }
+            //a fresh object: cluster labels are few and are held across renders
             return {
-                x: (ndcX * 0.5 + 0.5) * canvas.width,
-                y: (1 - (ndcY * 0.5 + 0.5)) * canvas.height,
-                depth: ndcZ,
-                visible: ndcX >= -1 && ndcX <= 1 && ndcY >= -1 && ndcY <= 1 && ndcZ >= -1 && ndcZ <= 1,
+                x: projectionScratch.x,
+                y: projectionScratch.y,
+                depth: projectionScratch.depth,
+                visible: projectionScratch.visible,
             };
+        },
+
+        /*
+            the 3D hover test needs every cell in canvas space. this used to build one
+            {x,y,depth,visible} object per cell into a plain Array and assign it to
+            this.projectedPoints - which was declared in data(), so Vue deep-observed all of
+            them, attaching an Observer and a Dep per object. on a 1.5M cell dataset that is
+            A1's ~467 bytes per cell of pure reactivity, paid again on every render, on top
+            of an array literal and an object per point.
+
+            now three typed arrays, allocated once and overwritten in place, on a plain
+            non-reactive field: 9 bytes per cell, no per-point allocation, nothing for Vue to
+            walk. depth is not kept - nothing reads it.
+
+            UNTESTED AGAINST A REAL 3D DATASET. there was none in the portal when this was
+            written; the maths is verified bit-identical to the old path in node, but if 3D
+            hover ever misbehaves this is the first place to look. to debug: the old code
+            skipped a point when projectWorldPoint returned null (no matrix, or |w| < EPSILON)
+            OR when visible was false; here both cases are folded into visible[i] === 0, so a
+            point that is silently never hoverable most likely has visible stuck at 0.
+        */
+        projectPoints() {
+            const { count, X, Y, Z } = this.points;
+            let projected = this.projectedPoints;
+            if (!projected || projected.count !== count) {
+                projected = {
+                    count,
+                    x: new Float32Array(count),
+                    y: new Float32Array(count),
+                    visible: new Uint8Array(count),
+                };
+            }
+
+            const matrix = this.renderMatrix;
+            const canvas = this.$refs.umapCanvas;
+            if (!matrix || !canvas) {
+                projected.visible.fill(0);
+                return projected;
+            }
+
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const scratch = projectionScratch;
+            for (let i = 0; i < count; i++) {
+                if (projectToCanvas(matrix, X[i], Y[i], Z ? Z[i] : 0,
+                    canvasWidth, canvasHeight, scratch) && scratch.visible) {
+                    projected.x[i] = scratch.x;
+                    projected.y[i] = scratch.y;
+                    projected.visible[i] = 1;
+                } else {
+                    projected.visible[i] = 0;
+                }
+            }
+            return projected;
         },
 
         updateProjectedGeometry() {
             if (this.is3dMode) {
-                const { count, X, Y, Z } = this.points;
-                const projected = new Array(count);
-                for (let i = 0; i < count; i++) {
-                    projected[i] = this.projectWorldPoint([X[i], Y[i], Z[i]]);
-                }
-                this.projectedPoints = projected;
+                this.projectedPoints = this.projectPoints();
             } else {
-                this.projectedPoints = [];
+                this.projectedPoints = null;
             }
             this.projectedLabels = this.clusterCenters
                 .map(cluster => {
@@ -1152,12 +1242,13 @@ export default Vue.component('research-umap-plot-gl', {
             });
         },
 
-        bindAttributes(bufferSet) {
+        //positionComponents defaults to 3: only the points buffer drops Z, and only in 2D
+        bindAttributes(bufferSet, positionComponents = 3) {
             const gl = this.gl;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, bufferSet.position);
             gl.enableVertexAttribArray(this.locations.position);
-            gl.vertexAttribPointer(this.locations.position, 3, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(this.locations.position, positionComponents, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, bufferSet.color);
             gl.enableVertexAttribArray(this.locations.color);
@@ -1199,7 +1290,7 @@ export default Vue.component('research-umap-plot-gl', {
                 gl.drawArrays(gl.LINES, 0, this.axisVertexCount);
             }
 
-            this.bindAttributes(this.buffers.points);
+            this.bindAttributes(this.buffers.points, this.pointPositionComponents);
             gl.uniform1f(this.locations.renderPoints, 1);
             gl.uniform1f(this.locations.pointSize, baseSize * (window.devicePixelRatio || 1));
             gl.uniform1f(this.locations.hoverScale, 1);
@@ -1349,17 +1440,22 @@ export default Vue.component('research-umap-plot-gl', {
             let nearestDist = Infinity;
             const maxDist = 12 * (window.devicePixelRatio || 1);
 
-            for (let i = 0; i < this.projectedPoints.length; i++) {
-                const projected = this.projectedPoints[i];
-                if (!projected || !projected.visible) continue;
+            //visible[i] === 0 covers both cases the old code skipped: a point that failed to
+            //project at all, and one that projected outside the view
+            const projected = this.projectedPoints;
+            if (projected) {
+                const { count, x: projectedX, y: projectedY, visible } = projected;
+                for (let i = 0; i < count; i++) {
+                    if (!visible[i]) continue;
 
-                const dx = projected.x - mouseX;
-                const dy = projected.y - mouseY;
-                const dist = Math.hypot(dx, dy);
+                    const dx = projectedX[i] - mouseX;
+                    const dy = projectedY[i] - mouseY;
+                    const dist = Math.hypot(dx, dy);
 
-                if (dist < maxDist && dist < nearestDist) {
-                    nearestDist = dist;
-                    nearestIdx = i;
+                    if (dist < maxDist && dist < nearestDist) {
+                        nearestDist = dist;
+                        nearestIdx = i;
+                    }
                 }
             }
 
