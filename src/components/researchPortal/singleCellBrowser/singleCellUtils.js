@@ -301,6 +301,30 @@ export async function fetchGeneExpression(url, gene, datasetId){
     }
 }
 
+/*
+    a download filename from its meaningful parts, e.g.
+    buildDownloadFilename(['FNIH_Artery_scRNA_v1', 'PDE3B', 'expression_violin'])
+      -> 'FNIH_Artery_scRNA_v1_PDE3B_expression_violin'
+
+    empty and null parts are dropped rather than leaving '__' where an optional part - a
+    gene on a plot that has none - was absent.
+
+    the sanitising is not cosmetic: dataset ids and gene names both reach here from data
+    rather than from a list this code controls, and '/' in a name would be read as a path
+    separator by the download. anything outside word characters, dot and dash becomes an
+    underscore, runs are collapsed, and the extension is left to the caller.
+*/
+export function buildDownloadFilename(parts){
+    const name = (parts || [])
+        .filter(part => part !== null && part !== undefined && String(part).trim() !== '')
+        .map(part => String(part).trim().replace(/[^\w.-]+/g, '_'))
+        .join('_')
+        .replace(/_{2,}/g, '_')
+        .replace(/^[_.]+|[_.]+$/g, '');
+
+    return name || 'chart';
+}
+
 export function calcFieldsDisplayList(fields){
     const list = [];
     for(const [key, value] of Object.entries(fields.metadata_labels)){

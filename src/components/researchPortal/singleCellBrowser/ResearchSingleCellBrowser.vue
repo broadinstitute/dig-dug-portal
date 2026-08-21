@@ -104,6 +104,7 @@
                                     <div>{{ cellCountLabel }}</div>
                                 </div>
                                 <research-umap-plot-gl 
+                                    :downloadFilename="umapDownloadFilename"
                                     :group="datasetId"
                                     :points="coordinates"
                                     :labels="fields"
@@ -149,6 +150,7 @@
                                 </div>
                                 <div style="position:relative; width:100%">
                                     <research-umap-plot-gl 
+                                        :downloadFilename="umapExpressionDownloadFilename"
                                         :group="datasetId"
                                         :points="coordinates"
                                         :labels="fields"
@@ -431,6 +433,7 @@
                                         class="download"
                                         :chartId="countDownloadChartId"
                                         :titleText="countSectionTitle"
+                                        :filename="countDownloadFilename"
                                         style="width: 125px; align-self: flex-start;"
                                         :style="`${countDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
                                     />
@@ -534,6 +537,7 @@
                                             class="download"
                                             :chartId="expressionDownloadChartId"
                                             :titleText="expressionSectionTitle"
+                                            :filename="expressionDownloadFilename"
                                             style="width: 125px; align-self: flex-start;"
                                             :style="`${expressionDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
                                         />
@@ -741,6 +745,7 @@
                                     class="download"
                                     chartId="sc_marker_dot_plot"
                                     :titleText="markerDotPlotTitle"
+                                    :filename="markerDownloadFilename"
                                     style="width: 125px; align-self: flex-start;"
                                     />
                                 </div>
@@ -845,6 +850,7 @@
                             </div>
                             <div style="display:flex; position: relative;">
                                 <research-umap-plot-gl 
+                                    :downloadFilename="umapExpressionDownloadFilename"
                                     :group="datasetId"
                                     :points="coordinates"
                                     :labels="fields"
@@ -940,6 +946,7 @@
                                     <div>{{ cellCountLabel }}</div>
                                 </div>
                                 <research-umap-plot-gl 
+                                    :downloadFilename="umapDownloadFilename"
                                     :group="datasetId"
                                     :points="coordinates"
                                     :labels="fields"
@@ -993,6 +1000,7 @@
                                     class="download"
                                     :chartId="countDownloadChartId"
                                     :titleText="countSectionTitle"
+                                    :filename="countDownloadFilename"
                                     style="width: 125px; align-self: flex-start;"
                                     :style="`${countDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
                                 />
@@ -1056,6 +1064,7 @@
                                             <download-chart 
                                                 class="download"
                                                 chartId="sc_dot_plot"
+                                                :filename="markerDownloadFilename"
                                                 style="width: 125px; align-self: flex-start;"
                                             />
                                         </div>
@@ -1790,6 +1799,49 @@
             },
             countDownloadDisabled() {
                 return false;
+            },
+            /*
+                download filenames: <datasetId>[_<gene>]_<what the plot is>.
+
+                each of these mirrors the *DownloadChartId computed above it, because that is
+                what picks the dom node the export actually walks - if the two disagreed the
+                file would be named after a plot it does not contain. the chart id itself is
+                not reused as the name: sc_dot_plot serves both the stratified expression dot
+                plot and the marker dot plot in different layouts, so it would name two
+                different figures the same thing.
+
+                the metric and the gene are also rendered into the exported image by
+                titleText, so the filename is a label rather than the only record of what
+                the figure is.
+            */
+            countDownloadFilename() {
+                const what = this.contCountResults
+                    ? `${this.cellNoun}_proportion_scatter`
+                    : `${this.cellNoun}_${this.isNormalized ? 'proportion' : 'count'}`;
+                return scUtils.buildDownloadFilename([this.datasetId, what]);
+            },
+            expressionDownloadFilename() {
+                let what = 'expression_violin';
+                if(this.contExprResults){
+                    what = 'expression_scatter';
+                }else if(this.cellCompositionVars.segmentByLabel){
+                    if(this.stratifyPlotType === 'dot') what = 'expression_dot_plot';
+                    else if(this.stratifyPlotType === 'combined') what = 'expression_violin_combined';
+                    else what = 'expression_violin_by_stratification';
+                }
+                return scUtils.buildDownloadFilename([
+                    this.datasetId, this.geneExpressionVars.selectedGene, what]);
+            },
+            //no single gene here - the figure is many genes at once
+            markerDownloadFilename() {
+                return scUtils.buildDownloadFilename([this.datasetId, 'marker_genes_dot_plot']);
+            },
+            umapDownloadFilename() {
+                return scUtils.buildDownloadFilename([this.datasetId, 'umap']);
+            },
+            umapExpressionDownloadFilename() {
+                return scUtils.buildDownloadFilename([
+                    this.datasetId, this.geneExpressionVars.selectedGene, 'umap_expression']);
             },
             plotMetadataLabels() {
                 if (!this.fields) return {};

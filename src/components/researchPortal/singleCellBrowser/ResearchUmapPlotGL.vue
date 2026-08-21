@@ -285,6 +285,13 @@ export default Vue.component('research-umap-plot-gl', {
             type: String,
             required: false,
             default: "blue"
+        },
+        //name for the png download, without the extension. the parent owns it because it is
+        //the only thing that knows which panel this is - the label-coloured one or the gene
+        //one - and it names every other export on the page the same way
+        downloadFilename: {
+            type: String,
+            default: "umap"
         }
     },
     data() {
@@ -1740,7 +1747,7 @@ export default Vue.component('research-umap-plot-gl', {
             ctx.drawImage(canvas2, 0, 0, combinedCanvas.width, combinedCanvas.height);
 
             const link = document.createElement('a');
-            link.download = 'umap.png';
+            link.download = `${this.downloadFilename}.png`;
             link.href = combinedCanvas.toDataURL('image/png');
             link.click();
         },
