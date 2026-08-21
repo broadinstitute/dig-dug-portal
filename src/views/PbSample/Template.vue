@@ -1,0 +1,612 @@
+<template>
+    <div>
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
+
+        <div class="container-fluid mdkp-body pbg-page pbs-page">
+            <div class="pbg-shell">
+                <div class="pbg-toolbar">
+                    <div class="pbg-toolbar-left">
+                        <a href="/pb_Front.html" class="pbg-home-link" aria-label="PB portal home">
+                            <b-icon-house-door-fill aria-hidden="true"></b-icon-house-door-fill>
+                            <span>Home</span>
+                        </a>
+                        <span class="pbg-breadcrumb-sep">&gt;</span>
+                        <span class="pbg-breadcrumb-link">Sample search</span>
+                        <span class="pbg-breadcrumb-sep">&gt;</span>
+                        <form class="pbg-gene-search-form" role="search" aria-label="Search another sample" @submit.prevent="submitSampleSearch">
+                            <input
+                                v-model.trim="searchQuery"
+                                class="pbg-gene-search-input pbs-search-input"
+                                type="search"
+                                autocomplete="off"
+                                spellcheck="false"
+                                aria-label="CRDC sample ID"
+                                placeholder="CRDC sample ID"
+                            >
+                            <button class="pbg-gene-search-submit" type="submit">Search</button>
+                            <span v-if="searchError" class="pbg-gene-search-error" role="alert">{{ searchError }}</span>
+                        </form>
+                    </div>
+                    <nav class="pbg-toolbar-right" aria-label="PB evidence pages">
+                        <a href="/pb_phenotype.html" class="pbg-nav-link">Phenotype</a>
+                        <a href="/pb_Gene.html" class="pbg-nav-link">Gene</a>
+                        <a href="/pb_variant.html" class="pbg-nav-link">Variant</a>
+                    </nav>
+                </div>
+
+                <p class="pbs-preview-note" aria-live="polite">
+                    <template v-if="fixtureMode">
+                        <strong>Illustrative mock data.</strong>
+                        This page demonstrates how one sample connects to the existing PB phenotype, gene, and variant pages.
+                    </template>
+                    <template v-else-if="loading">
+                        <strong>Connecting to private BioIndex.</strong>
+                        Loading {{ requestedSampleId }}.
+                    </template>
+                    <template v-else>
+                        <strong>Live private BioIndex.</strong>
+                        <span v-if="patientStatus === 'unavailable'"> Sample metadata is unavailable: {{ patientError }}</span>
+                        <span v-else-if="patientStatus === 'not-found'"> No patient/sample record was returned for {{ requestedSampleId }}.</span>
+                        <span> A sample-keyed variant index is not currently built, so complete genotype discovery is unavailable.</span>
+                    </template>
+                </p>
+
+                <main>
+                    <section class="pbs-identity" aria-labelledby="sample-title">
+                        <div>
+                            <p class="pbs-eyebrow">BCH sample</p>
+                            <h1 id="sample-title">{{ displaySampleId }}</h1>
+                            <div v-if="hasFamilyData" class="pbs-family">
+                                <p>Family ID <strong>{{ familyId }}</strong></p>
+                                <ul aria-label="Family members">
+                                    <li v-for="member in orderedFamilyMembers" :key="member.sampleId">
+                                        <span>{{ member.role }}</span>
+                                        <a
+                                            :href="sampleHref(member.sampleId)"
+                                            :aria-current="member.sampleId === sample.sampleId ? 'page' : null"
+                                        >{{ member.sampleId }}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <p v-else class="pbs-no-family">No family data available for this sample.</p>
+                        </div>
+                        <dl class="pbs-metadata">
+                            <div><dt>Affected</dt><dd>{{ sample.affected }}</dd></div>
+                            <div><dt>Sex</dt><dd>{{ sample.sex }}</dd></div>
+                            <div><dt>Age at enrollment</dt><dd>{{ sample.ageAtEnrollment }}</dd></div>
+                            <div><dt>Investigator</dt><dd>{{ sample.investigator }}</dd></div>
+                            <div><dt>Total HPO term count</dt><dd>{{ sample.phenotypeTotal || 'Unavailable' }}</dd></div>
+                            <div class="pbs-metadata-wide">
+                                <dt>Dominant HPO group</dt>
+                                <dd v-if="dominantPhenotypeGroups.length">
+                                    <span v-for="(group, index) in dominantPhenotypeGroups" :key="group.id">
+                                        <span v-if="index"> · </span>
+                                        <a :href="phenotypeHref(group.id)">{{ group.label }} [{{ group.id }}]</a>
+                                    </span>
+                                    <small>{{ dominantPhenotypeGroups[0].count }} distinct terms · {{ dominantPhenotypeGroups.length > 1 ? 'co-leading groups' : 'largest group' }} directly under HP:0000118</small>
+                                </dd>
+                                <dd v-else>Unavailable</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <div class="pbs-profile-tabs">
+                        <div class="pbs-profile-tablist" role="tablist" aria-label="Sample profiles">
+                            <button
+                                id="sample-phenotype-tab"
+                                type="button"
+                                role="tab"
+                                aria-controls="sample-phenotype-panel"
+                                :aria-selected="activeProfileTab === 'phenotype' ? 'true' : 'false'"
+                                @click="activeProfileTab = 'phenotype'"
+                            >Phenotype profile</button>
+                            <button
+                                id="sample-genotype-tab"
+                                type="button"
+                                role="tab"
+                                aria-controls="sample-genotype-panel"
+                                :aria-selected="activeProfileTab === 'genotype' ? 'true' : 'false'"
+                                @click="activeProfileTab = 'genotype'"
+                            >Genotype profile</button>
+                        </div>
+
+                        <section
+                            v-show="activeProfileTab === 'phenotype'"
+                            id="sample-phenotype-panel"
+                            class="pbs-card"
+                            role="tabpanel"
+                            aria-labelledby="sample-phenotype-tab"
+                        >
+                            <header class="pbs-card-head">
+                                <div>
+                                    <h2 id="sample-phenotype-title">Phenotype profile</h2>
+                                    <p v-if="sample.phenotypeTotal">{{ sample.phenotypeTotal }} recorded HPO terms · grouped directly under HP:0000118</p>
+                                    <p v-else>No live sample HPO profile is connected.</p>
+                                </div>
+                                <a v-if="sample.phenotypeTotal" class="pbs-primary-link" :href="phenotypeProfileHref">Open phenotype page →</a>
+                            </header>
+                            <div class="pbs-phenotype-layout">
+                                <div class="pbs-phenotype-groups" aria-label="Phenotype profile composition">
+                                    <details v-for="group in orderedPhenotypeGroups" :key="group.id" class="pbs-phenotype-group">
+                                        <summary
+                                            :style="{ '--phenotype-fill': `${sample.phenotypeTotal ? Math.round(group.count / sample.phenotypeTotal * 100) : 0}%` }"
+                                        >
+                                            <h3>{{ group.label }} [{{ group.id }}]</h3>
+                                            <strong>{{ group.count }} / {{ sample.phenotypeTotal }}</strong>
+                                        </summary>
+                                        <div class="pbs-phenotype-terms">
+                                            <ul>
+                                                <li v-for="term in group.terms.slice(0, 5)" :key="term.id">
+                                                    <a :href="phenotypeHref(term.id)">{{ term.label }} [{{ term.id }}]</a>
+                                                </li>
+                                            </ul>
+                                            <details v-if="group.terms.length > 5" class="pbs-phenotype-more">
+                                                <summary>
+                                                    <span class="pbs-show-more">Show {{ group.terms.length - 5 }} more</span>
+                                                    <span class="pbs-show-fewer">Show fewer</span>
+                                                </summary>
+                                                <ul>
+                                                    <li v-for="term in group.terms.slice(5)" :key="term.id">
+                                                        <a :href="phenotypeHref(term.id)">{{ term.label }} [{{ term.id }}]</a>
+                                                    </li>
+                                                </ul>
+                                            </details>
+                                            <p v-if="group.count > group.terms.length">
+                                                {{ group.count - group.terms.length }} additional terms are not loaded in this design fixture.
+                                            </p>
+                                        </div>
+                                    </details>
+                                </div>
+
+                                <section class="pbs-phenotype-matches" aria-labelledby="phenotype-match-title">
+                                    <div class="pbs-phenotype-match-head">
+                                        <div>
+                                            <h3 id="phenotype-match-title">Similar phenotype profiles</h3>
+                                            <p v-if="sample.phenotypeMatchEligibleCount">{{ sample.phenotypeMatchEligibleCount.toLocaleString() }} PheRS-eligible samples · current sample and family excluded</p>
+                                            <p v-else>Residual PheRS result is not connected.</p>
+                                        </div>
+                                        <div class="pbs-match-tabs" role="tablist" aria-label="Phenotype match summaries">
+                                            <button
+                                                id="phenotype-match-investigators-tab"
+                                                type="button"
+                                                role="tab"
+                                                aria-controls="phenotype-match-investigators-panel"
+                                                :aria-selected="activePhenotypeMatchView === 'investigators' ? 'true' : 'false'"
+                                                @click="activePhenotypeMatchView = 'investigators'"
+                                            >Investigator</button>
+                                            <button
+                                                id="phenotype-match-samples-tab"
+                                                type="button"
+                                                role="tab"
+                                                aria-controls="phenotype-match-samples-panel"
+                                                :aria-selected="activePhenotypeMatchView === 'samples' ? 'true' : 'false'"
+                                                @click="activePhenotypeMatchView = 'samples'"
+                                            >Samples</button>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        v-show="activePhenotypeMatchView === 'samples'"
+                                        id="phenotype-match-samples-panel"
+                                        role="tabpanel"
+                                        aria-labelledby="phenotype-match-samples-tab"
+                                    >
+                                        <div v-if="visiblePhenotypeMatches.length" class="pbs-match-table-wrap">
+                                            <table class="pbs-match-table pbs-sample-match-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col" :aria-sort="tableAriaSort('samples', 'rank')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'rank')">Rank <span aria-hidden="true">{{ tableSortIndicator('samples', 'rank') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('samples', 'sampleId')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'sampleId')">Sample <span aria-hidden="true">{{ tableSortIndicator('samples', 'sampleId') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('samples', 'matchedHpo')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'matchedHpo', 'desc')">Matched <span aria-hidden="true">{{ tableSortIndicator('samples', 'matchedHpo') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('samples', 'investigator')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'investigator')">Investigator <span aria-hidden="true">{{ tableSortIndicator('samples', 'investigator') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('samples', 'age')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'age')">Age <span aria-hidden="true">{{ tableSortIndicator('samples', 'age') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('samples', 'sex')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'sex')">Sex <span aria-hidden="true">{{ tableSortIndicator('samples', 'sex') }}</span></button></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="match in visiblePhenotypeMatches" :key="match.sampleId">
+                                                        <td><strong>#{{ match.rank }}</strong></td>
+                                                        <td><a :href="sampleHref(match.sampleId)">{{ match.sampleId }}</a></td>
+                                                        <td><strong>{{ match.matchedHpo }} / {{ sample.phenotypeTotal }}</strong></td>
+                                                        <td>{{ match.investigator }}</td>
+                                                        <td>{{ match.age }}</td>
+                                                        <td>{{ match.sex }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <div class="pbs-match-table-actions" aria-live="polite">
+                                                <span>Showing {{ visiblePhenotypeMatches.length }} of top {{ phenotypeMatchDisplayLimit }}</span>
+                                                <div>
+                                                    <button v-if="visiblePhenotypeMatches.length > 5" type="button" @click="visiblePhenotypeMatchCount = 5">Show first 5</button>
+                                                    <button v-if="hasMorePhenotypeMatches" type="button" @click="showMorePhenotypeMatches">Show 5 more</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p v-else class="pbs-match-empty">No eligible non-family phenotype matches are available.</p>
+                                    </div>
+
+                                    <div
+                                        v-show="activePhenotypeMatchView === 'investigators'"
+                                        id="phenotype-match-investigators-panel"
+                                        role="tabpanel"
+                                        aria-labelledby="phenotype-match-investigators-tab"
+                                    >
+                                        <div v-if="visibleInvestigatorSummary.length" class="pbs-match-table-wrap">
+                                            <table class="pbs-match-table pbs-investigator-match-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col" :aria-sort="tableAriaSort('investigators', 'rank')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'rank')">Rank <span aria-hidden="true">{{ tableSortIndicator('investigators', 'rank') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('investigators', 'investigator')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'investigator')">Investigator <span aria-hidden="true">{{ tableSortIndicator('investigators', 'investigator') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('investigators', 'medianResidual')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'medianResidual', 'desc')">Median residual PheRS <span aria-hidden="true">{{ tableSortIndicator('investigators', 'medianResidual') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('investigators', 'iqr')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'iqr')">IQR <span aria-hidden="true">{{ tableSortIndicator('investigators', 'iqr') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('investigators', 'n')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'n', 'desc')">n <span aria-hidden="true">{{ tableSortIndicator('investigators', 'n') }}</span></button></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="group in visibleInvestigatorSummary" :key="group.investigator" :class="{ 'pbs-current-investigator-row': group.currentGroup }">
+                                                        <td><strong>#{{ group.rank }}</strong></td>
+                                                        <td><strong>{{ group.investigator }}</strong><small v-if="group.currentGroup">Current sample group</small></td>
+                                                        <td>{{ group.medianResidual.toFixed(2) }}</td>
+                                                        <td>{{ group.iqr }}</td>
+                                                        <td>{{ group.n.toLocaleString() }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <div class="pbs-match-table-actions" aria-live="polite">
+                                                <span>Showing {{ visibleInvestigatorSummary.length }} of {{ sortedInvestigatorSummary.length }}</span>
+                                                <div>
+                                                    <button v-if="visibleInvestigatorSummary.length > 5" type="button" @click="visibleInvestigatorCount = 5">Show first 5</button>
+                                                    <button v-if="hasMoreInvestigators" type="button" @click="showMoreInvestigators">Show 5 more</button>
+                                                </div>
+                                            </div>
+                                            <p class="pbs-match-method">Calculated from all eligible samples, not only the top 50 displayed matches.</p>
+                                        </div>
+                                        <p v-else class="pbs-match-empty">No investigator-level phenotype summary is available.</p>
+                                    </div>
+                                </section>
+                            </div>
+                        </section>
+
+                        <section
+                            v-show="activeProfileTab === 'genotype'"
+                            id="sample-genotype-panel"
+                            class="pbs-card"
+                            role="tabpanel"
+                            aria-labelledby="sample-genotype-tab"
+                        >
+                            <header class="pbs-card-head">
+                                <div>
+                                    <h2 id="sample-genetics-title">Genotype profile</h2>
+                                    <p>All variant calls and prioritized Type 1–6 findings</p>
+                                </div>
+                            </header>
+                            <div class="pbs-track-key" role="group" aria-label="Variant views">
+                                <button type="button" title="All variant calls available for this sample" aria-label="All variants: complete per-sample variant call table" :aria-pressed="activeVariantView === 'all'" @click="toggleVariantView('all')">
+                                    <strong>All</strong>
+                                </button>
+                                <button type="button" title="ClinVar RCV pathogenic or likely pathogenic variant evidence; Type 1 is cohort MATCH and Type 2 is OUTSIDE" aria-label="Types 1 to 2: ClinVar pathogenic or likely pathogenic variant evidence" :aria-pressed="activeVariantView === 'clinical'" @click="toggleVariantView('clinical')">
+                                    <strong>Types 1–2</strong>
+                                </button>
+                                <button type="button" title="Qualifying known-gene evidence without Tier 1 ClinVar RCV P/LP evidence; Type 3 is cohort MATCH and Type 4 is OUTSIDE" aria-label="Types 3 to 4: qualifying known-gene evidence" :aria-pressed="activeVariantView === 'reanalysis'" @click="toggleVariantView('reanalysis')">
+                                    <strong>Types 3–4</strong>
+                                </button>
+                                <button type="button" title="High-impact unknown-gene variants supported by phenotype and cohort evidence; Type 5 is own-cohort and Type 6 is cross-cohort" aria-label="Types 5 to 6: phenotype-supported unknown-gene discovery evidence" :aria-pressed="activeVariantView === 'discovery'" @click="toggleVariantView('discovery')">
+                                    <strong>Types 5–6</strong>
+                                </button>
+                            </div>
+                            <div v-if="activeVariantView === 'all'" class="pbs-all-variants" role="region" aria-label="All sample variant calls">
+                                <p v-if="fixtureMode">{{ allVariantGeneGroups.length }} genes · {{ sample.allVariants.length }} variant calls in this design fixture</p>
+                                <p v-else>Complete per-sample variant calls are unavailable.</p>
+                                <details v-for="group in allVariantGeneGroups" :key="group.gene" class="pbs-gene-variant-group">
+                                    <summary>
+                                        <span class="pbs-gene-title"><strong>{{ group.gene }}</strong><small>{{ group.transcript }}</small></span>
+                                        <span class="pbs-gene-variant-count">{{ group.variants.length }} {{ group.variants.length === 1 ? 'variant' : 'variants' }}</span>
+                                    </summary>
+                                    <a class="pbs-gene-page-link" :href="geneHref(group.gene)" :aria-label="`Open ${group.gene} gene page`">{{ group.gene }} →</a>
+                                    <div class="pbs-gene-variant-body">
+                                        <div class="pbg-variant-evidence-block pbs-sample-variant-evidence">
+                                            <div class="pbg-ve-table-head pbs-sample-ve-head">
+                                                <span>Variant</span>
+                                                <span>GT</span>
+                                                <span>CRDC carrier frequency</span>
+                                                <span>Classification</span>
+                                                <span>
+                                                    Pathogenic Score
+                                                    <button type="button"
+                                                          class="pbg-score-help pbs-help-button"
+                                                          v-b-tooltip.hover.focus.top
+                                                          title="LoFTEE HC = 1.00; otherwise AlphaMissense is used. REVEL-only is excluded and shown as —*. — means no LoFTEE HC, AlphaMissense, or REVEL annotation."
+                                                          aria-label="Pathogenic Score calculation: LoFTEE HC equals 1.00; otherwise AlphaMissense is used. REVEL-only is excluded."
+                                                    >?</button>
+                                                    <em>CRDC</em>
+                                                </span>
+                                                <span>
+                                                    Mean carrier residual PheRS
+                                                    <button type="button"
+                                                            class="pbg-score-help pbs-help-button"
+                                                            v-b-tooltip.hover.focus.top
+                                                            title="Mean residual PheRS across unique carriers of this variant, using the current sample's HPO profile as the reference."
+                                                            aria-label="Mean carrier residual PheRS: mean residual PheRS across unique variant carriers, using the current sample HPO profile as the reference.">?</button>
+                                                    <em>CRDC</em>
+                                                </span>
+                                            </div>
+                                            <div v-for="variant in group.variants" :key="variant.id" class="pbg-ve-row pbs-sample-ve-row">
+                                                <span class="pbg-variant-id pbs-sample-variant-id">
+                                                    {{ variant.id }}
+                                                    <a class="pbs-variant-page-badge"
+                                                       :href="variantHref(variant)"
+                                                       :aria-label="`Open ${variant.id} variant page`"
+                                                       title="Open variant page">VAR ↗</a>
+                                                </span>
+                                                <strong class="pbg-ve-carriers pbs-sample-ve-gt"><span>GT</span>{{ variant.genotype }}</strong>
+                                                <span class="pbg-ve-af pbs-sample-ve-af">{{ variant.crdcCarrierFrequency }}</span>
+                                                <span class="pbg-ve-classification">
+                                                    <span class="pbg-clinvar-badge">{{ variant.clinvar }}</span>
+                                                    <small>{{ variant.consequence }}</small>
+                                                </span>
+                                                <span class="pbs-sample-ve-score">
+                                                    <strong class="pbg-score-badge" :title="variant.burdenScore.title">{{ variant.burdenScore.display }}</strong>
+                                                </span>
+                                                <span class="pbg-no-context pbs-sample-ve-match">Unavailable</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+                            <div v-else-if="filteredVariants.length" class="pbs-findings" role="tabpanel">
+                                <details
+                                    v-for="(variant, index) in filteredVariants"
+                                    :key="variant.id"
+                                    class="pbs-finding"
+                                    :class="`pbs-finding-${variant.trackClass}`"
+                                    :open="index === 0"
+                                >
+                                    <summary>
+                                        <span class="pbs-type-badge">{{ variant.type }}</span>
+                                        <span class="pbs-finding-title">
+                                            <a :href="geneHref(variant.gene)" @click.stop>{{ variant.gene }}</a>
+                                            <small>{{ variant.typeLabel }}</small>
+                                        </span>
+                                        <span class="pbs-finding-meta">
+                                            <span class="pbs-tier-badge">{{ variant.tier }}</span>
+                                            <span class="pbs-clinvar-review"
+                                                  role="img"
+                                                  :title="`VCV review status: ${variant.clinvarReview.label}`"
+                                                  :aria-label="`ClinVar VCV review: ${variant.clinvarReview.stars} of 4 stars, ${variant.clinvarReview.label}`">
+                                                ClinVar
+                                                <strong aria-hidden="true">{{ '★'.repeat(variant.clinvarReview.stars) || '—' }}</strong>
+                                            </span>
+                                        </span>
+                                    </summary>
+                                    <dl class="pbs-finding-evidence">
+                                        <div>
+                                            <dt>Variant</dt>
+                                            <dd><a :href="variantHref(variant)">{{ variant.id }}</a> · {{ variant.consequence }} · GT {{ variant.genotype }}</dd>
+                                        </div>
+                                        <div class="pbs-disease-phers-row">
+                                            <dt>Disease / PheRS</dt>
+                                            <dd class="pbs-disease-list">
+                                                <article v-for="disease in variant.diseases" :key="disease.id" class="pbs-disease-match">
+                                                    <span class="pbs-disease-identity">
+                                                        <a class="pbs-disease-link" :href="orphaHref(disease.id)" target="_blank" rel="noopener noreferrer">{{ disease.id }} ↗</a>
+                                                        <span class="pbs-disease-overlap">
+                                                            <strong>{{ disease.matchedHpoCount }} / {{ disease.diseaseHpoCount }}</strong>
+                                                            HPO · {{ disease.phenotypeCoverage }}%
+                                                        </span>
+                                                    </span>
+                                                    <strong class="pbs-phers-current">
+                                                        <span class="pbs-phers-current-value">{{ disease.samplePercentile }}</span>
+                                                        <span class="pbs-phers-current-unit">{{ disease.samplePercentileSuffix }} pct</span>
+                                                    </strong>
+                                                    <div class="pbs-phers-track"
+                                                         :style="{ '--sample-pct': `${disease.samplePercentile}%`, '--investigator-pct': `${disease.investigatorMeanPercentile}%` }"
+                                                         aria-hidden="true">
+                                                        <span class="pbs-phers-investigator-marker"></span>
+                                                        <span class="pbs-phers-sample-marker"></span>
+                                                    </div>
+                                                    <span class="pbs-phers-comparison"
+                                                          :class="disease.samplePercentile > disease.investigatorMeanPercentile ? 'pbs-phers-comparison-high' : disease.samplePercentile < disease.investigatorMeanPercentile ? 'pbs-phers-comparison-low' : 'pbs-phers-comparison-equal'">
+                                                        <span aria-hidden="true">{{ disease.samplePercentile > disease.investigatorMeanPercentile ? '↑' : disease.samplePercentile < disease.investigatorMeanPercentile ? '↓' : '→' }}</span>
+                                                        {{ disease.differenceLabel }} pts vs {{ sample.investigator }} ({{ disease.investigatorMeanPercentile }}{{ disease.investigatorPercentileSuffix }})
+                                                    </span>
+                                                    <button type="button"
+                                                            class="pbg-score-help pbs-help-button"
+                                                            v-b-tooltip.hover.focus.top
+                                                            :title="disease.matchTooltip"
+                                                            :aria-label="disease.matchTooltip">?</button>
+                                                </article>
+                                            </dd>
+                                        </div>
+                                    </dl>
+                                </details>
+                            </div>
+                            <p v-else-if="activeVariantView" class="pbs-empty-findings">{{ fixtureMode ? 'No findings in this Type group for the design fixture.' : 'No connected Type result is available for this sample.' }}</p>
+                            <p v-if="activeVariantView === 'all' && fixtureMode" class="pbs-footnote">The production table requires the complete per-sample variant call set; this mock shows fixture rows only.</p>
+                            <p v-else-if="activeVariantView === 'all'" class="pbs-footnote">A sample-keyed variant source is required for the complete All view.</p>
+                            <p v-else-if="activeVariantView" class="pbs-footnote">Types 1–2 use ClinVar RCV P/LP variant evidence; Types 3–4 use qualifying known-gene evidence; Types 5–6 use high-impact unknown-gene and phenotype/cohort evidence.</p>
+                        </section>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
+    </div>
+</template>
+
+<script>
+import { PB_SAMPLE_MOCK } from "./mockData";
+import { fetchPbSampleBioIndexState } from "./pbSampleBioIndexAdapter";
+const { familyIdFromSampleId, sortFamilyMembers } = require("./familyModel");
+const { emptyPbSample } = require("./sampleRecord");
+const { burdenPathogenicScore } = require("./variantEvidence");
+const { sortedRows } = require("./tableSort");
+import "@/views/PbGene/style.css";
+import "./style.css";
+
+export default {
+    name: "PbSampleTemplate",
+    data() {
+        const params = new URLSearchParams(window.location.search);
+        const fixtureMode = params.get("fixture") === "1";
+        const requestedId = params.get("query") || params.get("sample_id") || (fixtureMode ? PB_SAMPLE_MOCK.sampleId : "");
+        return {
+            requestedSampleId: requestedId,
+            sample: fixtureMode ? PB_SAMPLE_MOCK : emptyPbSample(requestedId),
+            fixtureMode,
+            loading: !fixtureMode && Boolean(requestedId),
+            patientStatus: fixtureMode ? "fixture" : "idle",
+            patientError: "",
+            activeProfileTab: "phenotype",
+            activePhenotypeMatchView: "investigators",
+            visiblePhenotypeMatchCount: 5,
+            visibleInvestigatorCount: 5,
+            phenotypeMatchLimit: 50,
+            phenotypeMatchSort: { key: "rank", direction: "asc" },
+            investigatorSort: { key: "rank", direction: "asc" },
+            activeVariantView: "all",
+            searchQuery: requestedId,
+            searchError: "",
+        };
+    },
+    mounted() {
+        if (!this.fixtureMode && this.requestedSampleId) this.loadLiveSample();
+    },
+    computed: {
+        displaySampleId() {
+            return this.sample.sampleId || this.requestedSampleId || "No sample selected";
+        },
+        orderedPhenotypeGroups() {
+            return [...this.sample.phenotypeGroups].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+        },
+        dominantPhenotypeGroups() {
+            if (!this.orderedPhenotypeGroups.length) return [];
+            const largestCount = this.orderedPhenotypeGroups[0].count;
+            return this.orderedPhenotypeGroups.filter((group) => group.count === largestCount);
+        },
+        phenotypeMatchDisplayLimit() {
+            return Math.min(this.sample.phenotypeMatches.length, this.phenotypeMatchLimit);
+        },
+        sortedPhenotypeMatches() {
+            return sortedRows(this.sample.phenotypeMatches, this.phenotypeMatchSort);
+        },
+        visiblePhenotypeMatches() {
+            return this.sortedPhenotypeMatches.slice(0, Math.min(this.visiblePhenotypeMatchCount, this.phenotypeMatchDisplayLimit));
+        },
+        hasMorePhenotypeMatches() {
+            return this.visiblePhenotypeMatches.length < this.phenotypeMatchDisplayLimit;
+        },
+        sortedInvestigatorSummary() {
+            return sortedRows(this.sample.investigatorPhenotypeSummary, this.investigatorSort);
+        },
+        visibleInvestigatorSummary() {
+            return this.sortedInvestigatorSummary.slice(0, this.visibleInvestigatorCount);
+        },
+        hasMoreInvestigators() {
+            return this.visibleInvestigatorSummary.length < this.sortedInvestigatorSummary.length;
+        },
+        filteredVariants() {
+            return this.sample.variants.filter((variant) => variant.trackClass === this.activeVariantView);
+        },
+        allVariantGeneGroups() {
+            const groups = new Map();
+            this.sample.allVariants.forEach((variant) => {
+                if (!groups.has(variant.gene)) groups.set(variant.gene, []);
+                groups.get(variant.gene).push(variant);
+            });
+            return [...groups]
+                .map(([gene, variants]) => ({
+                    gene,
+                    transcript: variants.find((variant) => variant.transcript)?.transcript || "Unavailable",
+                    variants: variants.map((variant) => ({ ...variant, burdenScore: burdenPathogenicScore(variant) })),
+                }))
+                .sort((a, b) => a.gene.localeCompare(b.gene));
+        },
+        familyId() {
+            return familyIdFromSampleId(this.sample.sampleId);
+        },
+        orderedFamilyMembers() {
+            return sortFamilyMembers(this.sample.familyMembers);
+        },
+        hasFamilyData() {
+            return this.familyId && this.orderedFamilyMembers.length > 1;
+        },
+        phenotypeProfileHref() {
+            const query = this.sample.phenotypeGroups
+                .reduce((terms, group) => terms.concat(group.terms), [])
+                .map((phenotype) => phenotype.id)
+                .join(", ");
+            return `/pb_phenotype.html?query=${encodeURIComponent(query)}`;
+        },
+    },
+    methods: {
+        async loadLiveSample() {
+            try {
+                const state = await fetchPbSampleBioIndexState(this.requestedSampleId);
+                this.sample = state.sample;
+                this.patientStatus = state.patientStatus;
+                this.patientError = state.patientError;
+            } catch (error) {
+                this.patientStatus = "unavailable";
+                this.patientError = error.message || "Unable to load private BioIndex data.";
+            } finally {
+                this.loading = false;
+            }
+        },
+        showMorePhenotypeMatches() {
+            this.visiblePhenotypeMatchCount = Math.min(this.visiblePhenotypeMatchCount + 5, this.phenotypeMatchDisplayLimit);
+        },
+        showMoreInvestigators() {
+            this.visibleInvestigatorCount = Math.min(this.visibleInvestigatorCount + 5, this.sortedInvestigatorSummary.length);
+        },
+        toggleTableSort(table, key, defaultDirection = "asc") {
+            const sort = table === "samples" ? this.phenotypeMatchSort : this.investigatorSort;
+            const nextSort = {
+                key,
+                direction: sort.key === key ? (sort.direction === "asc" ? "desc" : "asc") : defaultDirection,
+            };
+            if (table === "samples") this.phenotypeMatchSort = nextSort;
+            else this.investigatorSort = nextSort;
+        },
+        tableAriaSort(table, key) {
+            const sort = table === "samples" ? this.phenotypeMatchSort : this.investigatorSort;
+            if (sort.key !== key) return "none";
+            return sort.direction === "asc" ? "ascending" : "descending";
+        },
+        tableSortIndicator(table, key) {
+            const sort = table === "samples" ? this.phenotypeMatchSort : this.investigatorSort;
+            if (sort.key !== key) return "↕";
+            return sort.direction === "asc" ? "▲" : "▼";
+        },
+        toggleVariantView(view) {
+            this.activeVariantView = this.activeVariantView === view ? "" : view;
+        },
+        submitSampleSearch() {
+            const query = this.searchQuery.trim();
+            if (!/^(?:BCH|CRDC)-[A-Za-z0-9-]+$/i.test(query)) {
+                this.searchError = "Enter a BCH or CRDC sample ID.";
+                return;
+            }
+            window.location.assign(`/pb_sample.html?query=${encodeURIComponent(query)}`);
+        },
+        phenotypeHref(hpoId) {
+            return `/pb_phenotype.html?query=${encodeURIComponent(hpoId)}`;
+        },
+        sampleHref(sampleId) {
+            return `/pb_sample.html?query=${encodeURIComponent(sampleId)}`;
+        },
+        geneHref(gene) {
+            return `/pb_Gene.html?query=${encodeURIComponent(gene)}`;
+        },
+        variantHref(variant) {
+            return `/pb_variant.html?query=${encodeURIComponent(variant.id)}&gene=${encodeURIComponent(variant.gene)}`;
+        },
+        orphaHref(diseaseId) {
+            return `https://www.orpha.net/en/disease/detail/${diseaseId.replace("ORPHA:", "")}`;
+        },
+    },
+};
+</script>

@@ -36,8 +36,8 @@ function resolveSearchTarget(value, selectedKind, geneSymbols) {
     const query = String(value || "").trim();
     if (!query) return null;
 
-    if (/^BCH-/i.test(query)) {
-        return { path: "/krSample.html", param: "sample_id", value: query };
+    if (/^(?:BCH|CRDC)-/i.test(query)) {
+        return { path: "/pb_sample.html", param: "query", value: query };
     }
 
     if (/^(?:chr)?(?:\d{1,2}|x|y|m|mt):\d+:[acgtn]+:[acgtn]+$/i.test(query) || /^rs\d+$/i.test(query)) {

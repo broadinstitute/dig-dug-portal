@@ -6,7 +6,7 @@
                 <span class="headline-line">cohort explorer</span>
                 <span class="headline-line">
                     connecting
-                    <span class="sample-break"><a class="page-link" href="/krSample.html">Sample</a>,</span>
+                    <span class="sample-break"><a class="page-link" href="/pb_sample.html">Sample</a>,</span>
                 </span>
                 <span class="headline-line">
                     <span class="keep-together">

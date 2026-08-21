@@ -80,6 +80,13 @@ let pages = {
         title: "PB Phenotype Search",
         chunks: ["chunk-vendors", "chunk-common", "pbPhenotype"]
     },
+    pbSample: {
+        entry: "src/views/PbSample/main.js",
+        template: "public/index.html",
+        filename: "pb_sample.html",
+        title: "PB Sample Search",
+        chunks: ["chunk-vendors", "chunk-common", "pbSample"]
+    },
     datasets: {
         entry: "src/views/Datasets/main.js",
         template: "public/index.html",

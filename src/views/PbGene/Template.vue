@@ -616,7 +616,7 @@
                                             <span>GenDx</span>
                                         </div>
                                         <div v-for="s in visibleCarrierRows(row)" :key="row.id + '-' + s.id" class="pbg-selected-sample-row">
-                                            <a class="pbg-sample-link" :href="`/krSample.html?query=${s.id}`" @click.stop>{{ s.id }}</a>
+                                            <a class="pbg-sample-link" :href="`/pb_sample.html?query=${encodeURIComponent(s.id)}`" @click.stop>{{ s.id }}</a>
                                             <span>{{ s.age }}</span>
                                             <span>{{ s.sex }}</span>
                                             <span>{{ s.gt }}</span>
