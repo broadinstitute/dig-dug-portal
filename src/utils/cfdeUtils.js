@@ -40,7 +40,7 @@ export function setSimpleLink(path) {
     }
 }
 
-const cfdePhenotypes = {
+export const cfdePhenotypes = {
     "CerebellarVol": "Total cerebellar volume",
     "Thyroid": "Hypothyroidism",
     "SmokingFGint": "Smoking-fasting glucose interaction",
