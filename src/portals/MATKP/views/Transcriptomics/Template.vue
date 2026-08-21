@@ -333,10 +333,10 @@
 
                           <div class="plot-rail-wrap">
                             <span
-                              v-if="item.row.comparison_level_a && item.row.row_type !== 'pooled'"
+                              v-if="item.row.comparison_level_b && item.row.row_type !== 'pooled'"
                               class="level-pill level-pill--left"
-                              :title="item.row.comparison_level_a"
-                            >{{ item.row.comparison_level_a }}</span>
+                              :title="item.row.comparison_level_b"
+                            >{{ item.row.comparison_level_b }}</span>
                             <div
                               class="plot-rail"
                               v-b-tooltip.html.hover.top="
@@ -374,10 +374,10 @@
                               >{{ $parent.formatStars(item.row.p_value) }}</div>
                             </div>
                             <span
-                              v-if="item.row.comparison_level_b && item.row.row_type !== 'pooled'"
+                              v-if="item.row.comparison_level_a && item.row.row_type !== 'pooled'"
                               class="level-pill level-pill--right"
-                              :title="item.row.comparison_level_b"
-                            >{{ item.row.comparison_level_b }}</span>
+                              :title="item.row.comparison_level_a"
+                            >{{ item.row.comparison_level_a }}</span>
                           </div>
                       </div>
                     </div>
