@@ -1,3 +1,13 @@
+const PHENOTYPE_MATCH_INVESTIGATORS = ["Investigator B", "Investigator C", "Investigator B", "Investigator D", "Investigator A"];
+const PHENOTYPE_MATCHES = Array.from({ length: 50 }, (_, index) => ({
+    rank: index + 1,
+    sampleId: `BCH-24-${10001 + index}-01`,
+    matchedHpo: 84 - Math.floor(index * 29 / 49),
+    investigator: PHENOTYPE_MATCH_INVESTIGATORS[index % PHENOTYPE_MATCH_INVESTIGATORS.length],
+    age: 5 + (index * 7) % 25,
+    sex: index % 2 ? "Male" : "Female",
+}));
+
 export const PB_SAMPLE_MOCK = {
     sampleId: "BCH-00-00000-01",
     sex: "Female",
@@ -12,6 +22,20 @@ export const PB_SAMPLE_MOCK = {
         { sampleId: "BCH-00-00000-12", role: "father" },
     ],
     phenotypeTotal: 131,
+    phenotypeMatchEligibleCount: 12475,
+    phenotypeMatches: PHENOTYPE_MATCHES,
+    investigatorPhenotypeSummary: [
+        { rank: 1, investigator: "Investigator B", medianResidual: 1.42, iqr: "0.88–1.91", n: 1850, currentGroup: false },
+        { rank: 2, investigator: "Investigator C", medianResidual: 1.08, iqr: "0.54–1.62", n: 1630, currentGroup: false },
+        { rank: 3, investigator: "Investigator A", medianResidual: 0.71, iqr: "0.20–1.18", n: 1516, currentGroup: true },
+        { rank: 4, investigator: "Investigator D", medianResidual: 0.48, iqr: "−0.08–0.97", n: 1284, currentGroup: false },
+        { rank: 5, investigator: "Investigator E", medianResidual: 0.19, iqr: "−0.31–0.72", n: 1195, currentGroup: false },
+        { rank: 6, investigator: "Investigator F", medianResidual: 0.04, iqr: "−0.42–0.59", n: 1100, currentGroup: false },
+        { rank: 7, investigator: "Investigator G", medianResidual: -0.11, iqr: "−0.57–0.41", n: 1050, currentGroup: false },
+        { rank: 8, investigator: "Investigator H", medianResidual: -0.26, iqr: "−0.69–0.23", n: 1000, currentGroup: false },
+        { rank: 9, investigator: "Investigator I", medianResidual: -0.39, iqr: "−0.83–0.08", n: 950, currentGroup: false },
+        { rank: 10, investigator: "Investigator J", medianResidual: -0.55, iqr: "−0.98–−0.12", n: 900, currentGroup: false },
+    ],
     phenotypeGroups: [
         {
             id: "HP:0000152",
@@ -62,7 +86,7 @@ export const PB_SAMPLE_MOCK = {
     variants: [
         {
             type: "Type 1",
-            typeLabel: "ClinVar high-review P/LP · investigator-cohort HPO match",
+            typeLabel: "ClinVar high-review P/LP · investigator scope MATCH",
             trackClass: "clinical",
             tier: "Tier 1",
             clinvarReview: { stars: 3, label: "reviewed by expert panel" },
@@ -70,19 +94,28 @@ export const PB_SAMPLE_MOCK = {
             id: "chr6:79518824:A:T",
             consequence: "stop gained · LoFTEE HC",
             genotype: "1/1",
-            cohortRelation: "Matched by HPO overlap with Investigator A's cohort phenotype profile.",
             diseases: [
                 {
                     id: "ORPHA:364055",
+                    matchedHpoCount: 24,
+                    diseaseHpoCount: 64,
+                    phenotypeCoverage: 37.5,
                     samplePercentile: 90,
+                    samplePercentileSuffix: "th",
                     investigatorMeanPercentile: 92,
+                    investigatorPercentileSuffix: "nd",
                     differenceLabel: "−2",
                     matchTooltip: "Illustrative residual PheRS 2.14. Percentile 90 among 12,480 disease-specific eligible samples. Investigator A mean: percentile 92 among 216 eligible samples, excluding this sample.",
                 },
                 {
                     id: "ORPHA:65",
+                    matchedHpoCount: 18,
+                    diseaseHpoCount: 52,
+                    phenotypeCoverage: 34.6,
                     samplePercentile: 76,
+                    samplePercentileSuffix: "th",
                     investigatorMeanPercentile: 61,
+                    investigatorPercentileSuffix: "st",
                     differenceLabel: "+15",
                     matchTooltip: "Illustrative residual PheRS 1.31. Percentile 76 among 12,480 disease-specific eligible samples. Investigator A mean: percentile 61 among 216 eligible samples, excluding this sample.",
                 },
@@ -90,7 +123,7 @@ export const PB_SAMPLE_MOCK = {
         },
         {
             type: "Type 3",
-            typeLabel: "Known-gene evidence · investigator-cohort HPO match",
+            typeLabel: "Known-gene evidence · investigator scope MATCH",
             trackClass: "reanalysis",
             tier: "Tier 2",
             clinvarReview: { stars: 1, label: "criteria provided, single submitter" },
@@ -98,14 +131,18 @@ export const PB_SAMPLE_MOCK = {
             id: "chr6:79519012:G:C",
             consequence: "missense variant",
             genotype: "0/1",
-            cohortRelation: "Matched by HPO overlap with Investigator A's cohort phenotype profile.",
             diseases: [
                 {
                     id: "ORPHA:65",
-                    samplePercentile: 68,
-                    investigatorMeanPercentile: 55,
-                    differenceLabel: "+13",
-                    matchTooltip: "Illustrative residual PheRS 0.84. Percentile 68 among 12,480 disease-specific eligible samples. Investigator A mean: percentile 55 among 216 eligible samples, excluding this sample.",
+                    matchedHpoCount: 18,
+                    diseaseHpoCount: 52,
+                    phenotypeCoverage: 34.6,
+                    samplePercentile: 76,
+                    samplePercentileSuffix: "th",
+                    investigatorMeanPercentile: 61,
+                    investigatorPercentileSuffix: "st",
+                    differenceLabel: "+15",
+                    matchTooltip: "Illustrative residual PheRS 1.31. Percentile 76 among 12,480 disease-specific eligible samples. Investigator A mean: percentile 61 among 216 eligible samples, excluding this sample.",
                 },
             ],
         },
