@@ -95,6 +95,22 @@ export async function reportSingleCellMemory(context) {
         });
     }
 
+    // --- cell filter: mask + the two arrays behind the facet counts ---
+    if (context.cellFilter) {
+        const f = context.cellFilter;
+        add('cellFilter', f.mask.byteLength + f.failCount.byteLength + f.firstFail.byteLength,
+            `${f.activeKeys.length} field(s): ${f.activeKeys.join(', ')} - ` +
+            `keeps ${f.keptCount.toLocaleString()} of ${f.totalCount.toLocaleString()}`);
+    }
+    if (context.facetCounts) {
+        const keys = Object.keys(context.facetCounts);
+        if (keys.length) {
+            let entries = 0;
+            keys.forEach(k => { entries += Object.keys(context.facetCounts[k]).length; });
+            add('facetCounts', entries * 40, `${keys.length} field(s), ${entries.toLocaleString()} labels`);
+        }
+    }
+
     // --- expression ---
     let exprBytes = 0;
     const genes = Object.keys(expressionData || {});

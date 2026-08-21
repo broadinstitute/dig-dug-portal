@@ -266,6 +266,21 @@ export default Vue.component('research-umap-plot-gl', {
             type: Array,
             default: null,
         },
+        /*
+            optional cell filter from scUtils.buildCellFilter - a Uint8Array with one byte
+            per cell, 1 to draw and 0 to hide. null means every cell is drawn.
+
+            no `type` here on purpose: Vue's Object check reads toRawType, which is
+            'Uint8Array' rather than 'Object', and would warn on every valid value.
+
+            it is deliberately NOT folded into a_isHighlight: that channel already carries
+            two meanings at once (the two-pass draw shrinks non-highlighted points to 0.2x
+            and then paints the highlighted ones over them), and a filtered-out cell has to
+            disappear from both passes.
+        */
+        visibleMask: {
+            default: null,
+        },
         expressionColorScale: {
             type: String,
             required: false,
@@ -390,6 +405,26 @@ export default Vue.component('research-umap-plot-gl', {
                 rebuildColors: true,
                 rebuildOrder: false,
                 rebuildHighlight: true,
+                rebuildVisible: false,
+                rebuildAxes: false,
+            });
+            this.requestRender(true);
+        },
+        /*
+            only the visible buffer and the cluster label positions depend on the filter.
+            the camera deliberately does not: pointBounds and resetCameraFromBounds are left
+            alone, so the embedding holds still while the filter changes instead of jumping
+            and rescaling on every toggle.
+        */
+        visibleMask() {
+            if (!this.points) return;
+            this.calculateClusterCenters();
+            this.setupBuffers({
+                rebuildPositions: false,
+                rebuildColors: false,
+                rebuildOrder: false,
+                rebuildHighlight: false,
+                rebuildVisible: true,
                 rebuildAxes: false,
             });
             this.requestRender(true);
@@ -412,6 +447,7 @@ export default Vue.component('research-umap-plot-gl', {
                 rebuildColors: true,
                 rebuildOrder: false,
                 rebuildHighlight: false,
+                rebuildVisible: false,
                 rebuildAxes: false,
             });
             this.requestRender(true);
@@ -594,7 +630,11 @@ export default Vue.component('research-umap-plot-gl', {
             const sums = {};
             const { count, X, Y, Z } = this.points;
             const use3d = this.is3dMode;
+            //a centroid over cells that are no longer drawn would put the label somewhere
+            //with nothing under it
+            const mask = this.visibleMask && this.visibleMask.length === count ? this.visibleMask : null;
             for (let index = 0; index < count; index++) {
+                if (mask && !mask[index]) continue;
                 const labelIndex = metadata[index];
                 const label = metadataLabels[labelIndex] || 'Unlabeled';
                 if (!sums[label]) {
@@ -712,6 +752,7 @@ export default Vue.component('research-umap-plot-gl', {
                 attribute vec3 a_position;
                 attribute vec4 a_color;
                 attribute float a_isHighlight;
+                attribute float a_isVisible;
 
                 uniform mat4 u_matrix;
                 uniform float u_pointSize;
@@ -725,6 +766,16 @@ export default Vue.component('research-umap-plot-gl', {
                 varying float v_renderPoints;
 
                 void main() {
+                    //a cell excluded by the filter leaves both highlight passes. buffer
+                    //sets without a visible buffer read a constant 1.0 (see bindAttributes)
+                    if (a_isVisible < 0.5) {
+                        gl_Position = vec4(-2.0, -2.0, 0.0, 1.0);
+                        gl_PointSize = 0.0;
+                        v_color = vec4(0.0);
+                        v_renderPoints = u_renderPoints;
+                        return;
+                    }
+
                     if (u_highlightMode < 1.5 && a_isHighlight < 0.5) {
                         gl_Position = vec4(-2.0, -2.0, 0.0, 1.0);
                         gl_PointSize = 0.0;
@@ -774,6 +825,7 @@ export default Vue.component('research-umap-plot-gl', {
                 position: gl.getAttribLocation(this.program, 'a_position'),
                 color: gl.getAttribLocation(this.program, 'a_color'),
                 highlight: gl.getAttribLocation(this.program, 'a_isHighlight'),
+                visible: gl.getAttribLocation(this.program, 'a_isVisible'),
                 matrix: gl.getUniformLocation(this.program, 'u_matrix'),
                 pointSize: gl.getUniformLocation(this.program, 'u_pointSize'),
                 renderPoints: gl.getUniformLocation(this.program, 'u_renderPoints'),
@@ -917,6 +969,7 @@ export default Vue.component('research-umap-plot-gl', {
                 rebuildColors = true,
                 rebuildOrder = true,
                 rebuildHighlight = true,
+                rebuildVisible = true,
                 rebuildAxes = true,
             } = options;
 
@@ -946,6 +999,10 @@ export default Vue.component('research-umap-plot-gl', {
 
             if (rebuildHighlight) {
                 this.updateHighlightBuffer(this.pointDrawOrder);
+            }
+
+            if (rebuildVisible) {
+                this.updateVisibleBuffer(this.pointDrawOrder);
             }
 
             if (rebuildAxes) {
@@ -1013,6 +1070,42 @@ export default Vue.component('research-umap-plot-gl', {
             }
 
             this.buffers.points.highlight = this.makeBuffer(highlight, this.buffers.points.highlight);
+        },
+
+        /*
+            the filter, reordered into draw order. one byte per cell per panel.
+
+            this is the whole cost of filtering the embedding: positions, colours and the
+            shared seeded draw order are all untouched, so a filter change uploads ~1.7 MB
+            at 1.7M cells instead of rebuilding the ~18 MB of position buffer that changing
+            the draw order used to force.
+
+            when there is no filter the buffer is deleted rather than filled with ones, so
+            bindAttributes falls back to the constant and nothing per-cell is uploaded at
+            all.
+        */
+        updateVisibleBuffer(sortedIndices = null) {
+            const gl = this.gl;
+            if (!gl) return;
+
+            const mask = this.visibleMask;
+            if (!mask || mask.length !== this.points.count) {
+                if (this.buffers.points.visible) {
+                    gl.deleteBuffer(this.buffers.points.visible);
+                    this.buffers.points.visible = null;
+                }
+                return;
+            }
+
+            const indices = sortedIndices || this.pointDrawOrder;
+            if (!indices) return;
+
+            const visible = new Uint8Array(indices.length);
+            for (let drawIndex = 0; drawIndex < indices.length; drawIndex++) {
+                visible[drawIndex] = mask[indices[drawIndex]] ? 255 : 0;
+            }
+
+            this.buffers.points.visible = this.makeBuffer(visible, this.buffers.points.visible);
         },
 
         getEyePosition() {
@@ -1128,7 +1221,14 @@ export default Vue.component('research-umap-plot-gl', {
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
             const scratch = projectionScratch;
+            //visible[] is what the 3D hover scan reads, so clearing it for filtered cells
+            //is also what keeps hover off points that are not drawn
+            const mask = this.visibleMask && this.visibleMask.length === count ? this.visibleMask : null;
             for (let i = 0; i < count; i++) {
+                if (mask && !mask[i]) {
+                    projected.visible[i] = 0;
+                    continue;
+                }
                 if (projectToCanvas(matrix, X[i], Y[i], Z ? Z[i] : 0,
                     canvasWidth, canvasHeight, scratch) && scratch.visible) {
                     projected.x[i] = scratch.x;
@@ -1257,6 +1357,18 @@ export default Vue.component('research-umap-plot-gl', {
             gl.bindBuffer(gl.ARRAY_BUFFER, bufferSet.highlight);
             gl.enableVertexAttribArray(this.locations.highlight);
             gl.vertexAttribPointer(this.locations.highlight, 1, gl.UNSIGNED_BYTE, true, 0, 0);
+
+            //only the points set is ever filtered. the axes and the hover marker have no
+            //visible buffer, so their attribute falls back to a constant 1 - a disabled
+            //attribute array reads the value set by vertexAttrib1f
+            if (bufferSet.visible) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, bufferSet.visible);
+                gl.enableVertexAttribArray(this.locations.visible);
+                gl.vertexAttribPointer(this.locations.visible, 1, gl.UNSIGNED_BYTE, true, 0, 0);
+            } else {
+                gl.disableVertexAttribArray(this.locations.visible);
+                gl.vertexAttrib1f(this.locations.visible, 1);
+            }
         },
 
         renderPoints() {
@@ -1478,7 +1590,9 @@ export default Vue.component('research-umap-plot-gl', {
                 ((this.orthoBounds.top - this.orthoBounds.bottom) / canvas.height) * 8
             );
 
-            return sharedUmapData.findNearest(this.group, dataX, dataY, radius);
+            //the grid is built over every cell and stays valid across filter changes; the
+            //mask is applied to the candidates it returns instead
+            return sharedUmapData.findNearest(this.group, dataX, dataY, radius, this.visibleMask);
         },
 
         updateHoveredPoint(nextIndex) {

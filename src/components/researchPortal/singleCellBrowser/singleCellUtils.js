@@ -352,6 +352,389 @@ export function calcLabelColors(fields, colors){
 }
 
 /*
+    combinatorial cell filtering.
+
+    a filter is a set of allowed labels per field, ANDed across fields: gender in {male}
+    AND disease in {healthy} keeps the cells satisfying both. within one field the allowed
+    labels are a disjunction by construction (a cell has exactly one value per field), so
+    no and/or modifier is ever needed - the model is the standard faceted one.
+
+    the result is a mask with one byte per cell rather than a compacted list of surviving
+    indices. that matters here: A2/A4 left every per-cell structure parallel by index -
+    fields.metadata[key][i], expressionData[gene][i], points.X[i], and the values inside
+    the shared draw order are all the same i. a mask composes with all of them for one
+    byte per cell (1.7 MB at 1.7M cells), while compacting would need a remap in every
+    consumer and would force the position/colour buffers to be rebuilt and re-uploaded on
+    every filter change - measured at ~390 ms and 18 MB at 1.5M cells when the draw order
+    used to change per gene.
+
+    the pass is fused rather than one pass per field ANDed together: each field gets a
+    tiny allow table indexed by label (labels are capped at MAX_PLOTTABLE_LABELS, so this
+    is bytes), and the cell loop checks the active fields with an early exit. the cost is
+    therefore cells x (fields checked before the first rejection), which *falls* as the
+    filter narrows.
+
+    failCount / firstFail exist for the facet counts in computeFacetCounts - see there.
+*/
+
+//how many cells the fields object describes. metadata arrays are all this long
+function cellCountOf(fields){
+    const names = fields?.NAME || fields?.ID;
+    if(names) return names.length;
+    const first = fields?.metadata && Object.values(fields.metadata)[0];
+    return first ? first.length : 0;
+}
+
+/*
+    which fields can be filtered on. deliberately NOT the same set that can be grouped or
+    stratified: a field over MAX_PLOTTABLE_LABELS cannot be an axis (a bar per cell) but is
+    a perfectly good filter target - "one donor out of 2000". two structural exclusions,
+    both of which have to be detected by shape rather than by name because the field name
+    varies between datasets:
+      - a field dropDuplicateIdFields emptied has no labels and no index array at all
+      - a single-valued field is a no-op as a filter
+    continuous fields are included: their values are still label indices, so a range
+    selection resolves to the same allow table (see rangeToLabels).
+*/
+export function isFilterableField(fields, key){
+    const labels = fields?.metadata_labels?.[key];
+    const values = fields?.metadata?.[key];
+    return !!(labels && labels.length > 1 && values && values.length);
+}
+
+/*
+    the label list a filter control offers for a field. unlike getPlotMetadataLabels this
+    keeps the missing-value labels, so a cell with no value for the field can be included
+    deliberately instead of vanishing the moment the field is filtered at all.
+*/
+export function filterLabelsFor(fields, key){
+    if(!isFilterableField(fields, key)) return [];
+    return fields.metadata_labels_sorted?.[key] || fields.metadata_labels[key];
+}
+
+/*
+    the label indices of a continuous field whose values fall in [min, max]. a continuous
+    field is still stored as indices into string labels, so a range filter reduces to the
+    same allow table as a categorical one and costs nothing extra in the cell loop.
+*/
+export function rangeToLabels(fields, key, min, max){
+    const labels = fields?.metadata_labels?.[key] || [];
+    const kept = [];
+    for(let i = 0; i < labels.length; i++){
+        const value = Number(labels[i]);
+        if(!Number.isFinite(value)) continue;
+        if(value >= min && value <= max) kept.push(labels[i]);
+    }
+    return kept;
+}
+
+//below this many distinct values a slider is worse than a list of checkboxes - you cannot
+//reliably land on one of four ages by dragging
+export const MIN_RANGE_FILTER_VALUES = 5;
+
+/*
+    whether a field should be filtered with a range rather than a value list, and the
+    extent to offer if so. returns null for anything that is not numeric.
+
+    this deliberately does NOT read displayFields[key].dataType. that inference is about
+    plotting, and it marks every field over MAX_PLOTTABLE_LABELS as categorical regardless
+    of content - but a numeric column with thousands of distinct values is exactly the case
+    where a slider beats a list most. the test here is only "are all the labels numbers".
+
+    one non-numeric label disqualifies the field and exits immediately, so this is cheap on
+    the string fields it rejects, and O(labels) - never O(cells) - on the ones it accepts.
+*/
+export function numericRangeFor(fields, key){
+    if(!isFilterableField(fields, key)) return null;
+
+    const labels = fields.metadata_labels[key];
+    let min = Infinity;
+    let max = -Infinity;
+    let valueCount = 0;
+    let allIntegers = true;
+
+    for(let i = 0; i < labels.length; i++){
+        const label = labels[i];
+        //a missing value is not a number and must not disqualify the field. it simply
+        //cannot be selected by a range, which matches the rule that filtering a field
+        //excludes cells with no value for it
+        if(isMissingMetadataValue(label)) continue;
+
+        const value = Number(label);
+        if(!Number.isFinite(value)) return null;
+
+        if(!Number.isInteger(value)) allIntegers = false;
+        if(value < min) min = value;
+        if(value > max) max = value;
+        valueCount++;
+    }
+
+    if(valueCount < MIN_RANGE_FILTER_VALUES) return null;
+    //a single distinct value has nothing to drag between
+    if(!(max > min)) return null;
+
+    /*
+        integers covering every value from min to max with no gaps are an enumeration, not a
+        quantity - cluster ids, resolutions, batch numbers. dragging a range over them is
+        meaningless ("clusters 5 to 20"), so they get a value list instead.
+
+        completeness is the signal rather than density, because density cannot separate the
+        two: on the islet dataset RNA_snn_res.1.8 is 1..48 with all 48 present, and age is
+        1..66 with 56 present - 100% against 85%, close enough that any density threshold
+        would be a guess. requiring EVERY integer in the range makes it exact, and it holds
+        because a measured quantity hitting every integer in its span with none missing gets
+        less likely the wider the span is.
+
+        labels are distinct, so valueCount is the distinct non-missing count and no second
+        pass is needed to know the run is complete.
+    */
+    if(allIntegers && valueCount === (max - min + 1)) return null;
+
+    /*
+        a step of the largest power of ten that still gives at least ~200 stops. that keeps
+        the numbers the slider can land on readable (0.01, 0.1, 1, 10) instead of the
+        span/200 an even division would give, which shows up as 23.456789 in the readout.
+    */
+    const span = max - min;
+    const step = allIntegers
+        ? 1
+        : Math.pow(10, Math.floor(Math.log10(span / 200)));
+    //how many decimals to render, derived from the step so the two always agree
+    const decimals = step >= 1 ? 0 : Math.min(6, Math.ceil(-Math.log10(step)));
+
+    return Object.freeze({ min, max, step, decimals, allIntegers, valueCount });
+}
+
+/*
+    builds the allow table for one field's selection. two selection shapes are accepted, and
+    both reduce to the same table so the cell loop never has to know which it was:
+
+      string[]        - the allowed labels, for a value list
+      {min, max}      - a numeric range, for a slider
+
+    a range excludes the field's missing-value labels by construction, since they are not
+    finite numbers. that is the same rule a value list follows: filtering a field at all
+    excludes cells with no value for it unless that value is picked deliberately.
+*/
+function buildAllowTable(labels, selected){
+    const allow = new Uint8Array(labels.length);
+    let allowed = 0;
+
+    if(Array.isArray(selected)){
+        if(selected.length === 0) return null;
+        const wanted = new Set(selected);
+        for(let i = 0; i < labels.length; i++){
+            if(wanted.has(labels[i])){
+                allow[i] = 1;
+                allowed++;
+            }
+        }
+    }else if(selected && Number.isFinite(selected.min) && Number.isFinite(selected.max)){
+        for(let i = 0; i < labels.length; i++){
+            const value = Number(labels[i]);
+            if(Number.isFinite(value) && value >= selected.min && value <= selected.max){
+                allow[i] = 1;
+                allowed++;
+            }
+        }
+    }else{
+        return null;
+    }
+
+    return { allow, allowed };
+}
+
+/*
+    selections: { [fieldKey]: string[] | {min, max} } - the allowed values per field, ANDed
+    across fields. a field that is absent, empty, or admits every one of its labels places
+    no constraint and is dropped, so activeKeys is always the set that actually narrows
+    anything.
+
+    returns null when nothing is constrained. that is load bearing: a null filter means
+    every consumer below takes the exact code path it took before this existed, so the
+    unfiltered case is unchanged rather than merely equivalent.
+*/
+export function buildCellFilter(fields, selections){
+    if(!fields || !selections) return null;
+
+    const totalCount = cellCountOf(fields);
+    if(!totalCount) return null;
+
+    const active = [];
+    Object.keys(selections).forEach(key => {
+        if(!isFilterableField(fields, key)) return;
+
+        const labels = fields.metadata_labels[key];
+        const table = buildAllowTable(labels, selections[key]);
+        if(!table) return;
+
+        const { allow, allowed } = table;
+        //admitting everything is not a filter
+        if(allowed === 0 || allowed === labels.length) return;
+
+        active.push({ key, allow, values: fields.metadata[key] });
+    });
+
+    if(active.length === 0) return null;
+
+    const fieldCount = active.length;
+    const mask = new Uint8Array(totalCount);
+    //how many active filters the cell fails, saturating at 2 - nothing downstream needs
+    //to tell 2 from 7, and stopping at 2 is what keeps the inner loop short
+    const failCount = new Uint8Array(totalCount);
+    //which filter it failed, meaningful only where failCount is 1. it holds an index into
+    //`active`, so it has to be wide enough for the field count or the facet counts would
+    //silently attribute failures to the wrong field
+    const firstFail = fieldCount <= 256
+        ? new Uint8Array(totalCount)
+        : new Uint16Array(totalCount);
+    let keptCount = 0;
+
+    for(let i = 0; i < totalCount; i++){
+        let fails = 0;
+        let first = 0;
+        for(let f = 0; f < fieldCount; f++){
+            const filter = active[f];
+            if(!filter.allow[filter.values[i]]){
+                if(fails === 0) first = f;
+                fails++;
+                if(fails > 1) break;
+            }
+        }
+        failCount[i] = fails;
+        firstFail[i] = first;
+        if(fails === 0){
+            mask[i] = 1;
+            keptCount++;
+        }
+    }
+
+    const activeIndexByKey = {};
+    //the allow tables are kept, not just used and dropped. when a field is BOTH filtered
+    //and used as a plot axis, the values it excludes are empty by construction - filtering
+    //disease to healthy and stratifying by disease can only ever draw an empty bar for
+    //every other disease. the aggregation skips those rows using these tables, which is
+    //exact and needs no pass over the cells. a group that is empty because the data says
+    //so is a different thing and is still emitted - see the note on calcCellCounts.
+    const allowByKey = {};
+    active.forEach((filter, index) => {
+        activeIndexByKey[filter.key] = index;
+        allowByKey[filter.key] = filter.allow;
+    });
+
+    llog('buildCellFilter', {
+        fields: active.map(f => f.key),
+        kept: keptCount,
+        of: totalCount
+    });
+
+    //frozen so it can be used as a cache identity and so Vue never observes the per-cell
+    //arrays inside it
+    return Object.freeze({
+        mask,
+        keptCount,
+        totalCount,
+        activeKeys: Object.freeze(active.map(f => f.key)),
+        activeIndexByKey: Object.freeze(activeIndexByKey),
+        allowByKey: Object.freeze(allowByKey),
+        failCount,
+        firstFail
+    });
+}
+
+/*
+    the allow table for one field, indexed by its label index, or null when the field
+    places no constraint. label indices here are into metadata_labels[key] - the unsorted
+    array - which is exactly what the aggregation emit loops iterate.
+*/
+function allowTableFor(cellFilter, key){
+    return (key && cellFilter?.allowByKey?.[key]) || null;
+}
+
+/*
+    how many cells each label of each requested field would keep.
+
+    for a field that is not itself filtered this is just a count over the mask. for one
+    that IS filtered the count has to ignore that field's own constraint, otherwise every
+    unselected value of a field you have already narrowed reads as 0 and there is no way
+    to see what switching to it would give you - which is exactly how a compounding filter
+    turns into a dead end.
+
+    that leave-one-out would be a pass per field, but failCount/firstFail collapse it to
+    one: a cell counts towards field g when it fails nothing, or when the single thing it
+    fails IS g. so all the requested fields are counted in a single sweep, over only the
+    cells that fail at most one filter.
+
+    the caller passes the fields it is actually rendering options for rather than all of
+    them, because the sweep is cells x requested fields.
+
+    fields over MAX_PLOTTABLE_LABELS are skipped. a donor or barcode field has one label
+    per cell, so a count per label would be an object with one entry per cell - the same
+    shape A6 removed for costing tens of MB - and a per-value count is not the useful
+    signal there anyway, since you are looking for one known value rather than comparing
+    them. callers render no count for those.
+*/
+export function computeFacetCounts(fields, cellFilter, fieldKeys){
+    const result = {};
+    const targets = [];
+
+    (fieldKeys || []).forEach(key => {
+        if(!isFilterableField(fields, key)) return;
+        const labels = fields.metadata_labels[key];
+        if(labels.length > MAX_PLOTTABLE_LABELS){
+            llog(`   no facet counts for ${key}, ${labels.length} labels`);
+            return;
+        }
+        const counts = new Uint32Array(labels.length);
+        targets.push({
+            key,
+            labels,
+            counts,
+            values: fields.metadata[key],
+            //-1 when this field places no constraint, so only failCount 0 cells count
+            activeIndex: cellFilter ? (cellFilter.activeIndexByKey[key] ?? -1) : -1
+        });
+    });
+
+    if(targets.length === 0) return result;
+
+    const totalCount = cellCountOf(fields);
+    const targetCount = targets.length;
+
+    if(!cellFilter){
+        for(let i = 0; i < totalCount; i++){
+            for(let t = 0; t < targetCount; t++){
+                const target = targets[t];
+                target.counts[target.values[i]]++;
+            }
+        }
+    }else{
+        const { failCount, firstFail } = cellFilter;
+        for(let i = 0; i < totalCount; i++){
+            const fails = failCount[i];
+            if(fails > 1) continue;
+            const failed = fails === 1 ? firstFail[i] : -1;
+            for(let t = 0; t < targetCount; t++){
+                const target = targets[t];
+                if(fails === 0 || target.activeIndex === failed){
+                    target.counts[target.values[i]]++;
+                }
+            }
+        }
+    }
+
+    targets.forEach(target => {
+        const byLabel = {};
+        for(let i = 0; i < target.labels.length; i++){
+            byLabel[target.labels[i]] = target.counts[i];
+        }
+        result[target.key] = byLabel;
+    });
+
+    return result;
+}
+
+/*
     counting helpers.
 
     these all make a single pass over the cells. the previous versions looped the label
@@ -362,39 +745,63 @@ export function calcLabelColors(fields, colors){
 
     combinations are packed into a single numeric key so only combinations that actually
     occur are stored, rather than allocating the full label1 x label2 grid up front.
+
+    mask is the optional cell filter (buildCellFilter().mask). a null mask keeps the loop
+    exactly as it was.
 */
-function countByLabel(groupValues, groupCount) {
+function countByLabel(groupValues, groupCount, mask = null) {
     //out-of-range values fall outside the array and are dropped, which matches the old
     //behaviour of never matching any label index
     const counts = new Uint32Array(groupCount);
     for (let i = 0; i < groupValues.length; i++) {
+        if (mask && !mask[i]) continue;
         counts[groupValues[i]]++;
     }
     return counts;
 }
 
-function countByLabelPair(aValues, bValues, bCount) {
+function countByLabelPair(aValues, bValues, bCount, mask = null) {
     const counts = new Map();
     for (let i = 0; i < aValues.length; i++) {
+        if (mask && !mask[i]) continue;
         const key = aValues[i] * bCount + bValues[i];
         counts.set(key, (counts.get(key) || 0) + 1);
     }
     return counts;
 }
 
-function countByLabelTriple(aValues, bValues, cValues, bCount, cCount) {
+function countByLabelTriple(aValues, bValues, cValues, bCount, cCount, mask = null) {
     const counts = new Map();
     for (let i = 0; i < aValues.length; i++) {
+        if (mask && !mask[i]) continue;
         const key = (aValues[i] * bCount + bValues[i]) * cCount + cValues[i];
         counts.set(key, (counts.get(key) || 0) + 1);
     }
     return counts;
 }
 
-export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
+/*
+    cellFilter is the optional filter from buildCellFilter. it does two separate things
+    here, and the difference is the whole design:
+
+      - its mask drops filtered-out cells from the counts.
+      - its allow table for an axis key drops that axis's excluded LABELS entirely. those
+        rows are empty by construction, not by observation: stratifying by disease while
+        filtered to healthy can only ever draw an empty bar for every other disease, and
+        the user already said they did not want them.
+
+    a label that survives the filter but happens to have no cells still gets its row, with
+    a count of 0. "no cells here" is a finding, and dropping it would also let the axis
+    reorder as filters move, so bars would change position instead of height.
+*/
+export function calcCellCounts(fields, labelColors, primaryKey, subsetKey, cellFilter = null){
     llog('calcCellCounts', {fields, labelColors, primaryKey, subsetKey})
     const keys = fields.metadata_labels;
     const values = fields.metadata;
+
+    const mask = cellFilter ? cellFilter.mask : null;
+    const primaryAllow = allowTableFor(cellFilter, primaryKey);
+    const subsetAllow = allowTableFor(cellFilter, subsetKey);
 
     const primaryLabels = keys[primaryKey];
     const primaryValues = values[primaryKey];
@@ -403,10 +810,11 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
 
     if (!subsetKey) {
         // calculate counts by primary key only
-        const counts = countByLabel(primaryValues, primaryLabels.length);
+        const counts = countByLabel(primaryValues, primaryLabels.length, mask);
 
         primaryLabels.forEach((label, index) => {
             if (isMissingMetadataValue(label)) return;
+            if (primaryAllow && !primaryAllow[index]) return;
             result.push({
                 [primaryKey]: label,
                 count: counts[index],
@@ -418,13 +826,15 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
         const subsetValues = values[subsetKey];
         const subsetLabels = keys[subsetKey];
         const subsetCount = subsetLabels.length;
-        const counts = countByLabelPair(primaryValues, subsetValues, subsetCount);
+        const counts = countByLabelPair(primaryValues, subsetValues, subsetCount, mask);
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
             if (isMissingMetadataValue(primaryLabel)) return;
+            if (primaryAllow && !primaryAllow[primaryIndex]) return;
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
                 if (isMissingMetadataValue(subsetLabel)) return;
+                if (subsetAllow && !subsetAllow[subsetIndex]) return;
                 result.push({
                     [primaryKey]: primaryLabel,
                     [subsetKey]: subsetLabel,
@@ -438,11 +848,16 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
     return sortGroupedResults(fields, result, [primaryKey, subsetKey].filter(Boolean));
 }
 
-export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, facetKey){
+export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, facetKey, cellFilter = null){
     llog('calcCellCounts2', {fields, labelColors, primaryKey, subsetKey, facetKey})
     const keys = fields.metadata_labels;
     const values = fields.metadata;
-    
+
+    const mask = cellFilter ? cellFilter.mask : null;
+    const primaryAllow = allowTableFor(cellFilter, primaryKey);
+    const subsetAllow = allowTableFor(cellFilter, subsetKey);
+    const facetAllow = allowTableFor(cellFilter, facetKey);
+
     const primaryLabels = keys[primaryKey];
     const primaryValues = values[primaryKey];
 
@@ -450,10 +865,11 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
 
     if (!facetKey && !subsetKey) {
         // calculate counts by primary key only
-        const counts = countByLabel(primaryValues, primaryLabels.length);
+        const counts = countByLabel(primaryValues, primaryLabels.length, mask);
 
         primaryLabels.forEach((label, index) => {
             if (isMissingMetadataValue(label)) return;
+            if (primaryAllow && !primaryAllow[index]) return;
             result.push({
                 [primaryKey]: label,
                 count: counts[index],
@@ -465,13 +881,15 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
         const subsetValues = values[subsetKey];
         const subsetLabels = keys[subsetKey];
         const subsetCount = subsetLabels.length;
-        const counts = countByLabelPair(primaryValues, subsetValues, subsetCount);
+        const counts = countByLabelPair(primaryValues, subsetValues, subsetCount, mask);
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
             if (isMissingMetadataValue(primaryLabel)) return;
+            if (primaryAllow && !primaryAllow[primaryIndex]) return;
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
                 if (isMissingMetadataValue(subsetLabel)) return;
+                if (subsetAllow && !subsetAllow[subsetIndex]) return;
                 result.push({
                     [primaryKey]: primaryLabel,
                     [subsetKey]: subsetLabel,
@@ -491,16 +909,19 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
         const facetCount = facetLabels.length;
 
         //keyed primary -> facet -> subset, matching the emit order below
-        const counts = countByLabelTriple(primaryValues, facetValues, subsetValues, facetCount, subsetCount);
+        const counts = countByLabelTriple(primaryValues, facetValues, subsetValues, facetCount, subsetCount, mask);
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
             if (isMissingMetadataValue(primaryLabel)) return;
+            if (primaryAllow && !primaryAllow[primaryIndex]) return;
 
             facetLabels.forEach((facetLabel, facetIndex) => {
                 if (isMissingMetadataValue(facetLabel)) return;
+                if (facetAllow && !facetAllow[facetIndex]) return;
 
                 subsetLabels.forEach((subsetLabel, subsetIndex) => {
                     if (isMissingMetadataValue(subsetLabel)) return;
+                    if (subsetAllow && !subsetAllow[subsetIndex]) return;
                     result.push({
                         [primaryKey]: primaryLabel,
                         [subsetKey]: subsetLabel,
@@ -668,7 +1089,8 @@ export function parseCellCountScatterData(
   metadataLabels,
   groupKey,      // e.g. "cell_type"
   contKey,       // e.g. "custom__organism_age"
-  aggregateKey   // e.g. "donor_id"
+  aggregateKey,  // e.g. "donor_id"
+  mask = null    // optional cell filter
 ) {
   const groupIndices = metadata[groupKey];
   const contIndices = metadata[contKey];
@@ -683,6 +1105,7 @@ export function parseCellCountScatterData(
   const totalPerAggregate = {};
 
   for (let i = 0; i < groupIndices.length; i++) {
+    if (mask && !mask[i]) continue;
     const group = groupLabels[groupIndices[i]] ?? "unknown";
     const donor = aggLabels[aggIndices[i]];
     let age = contLabels[contIndices[i]];
@@ -823,7 +1246,8 @@ export function parseFacetedScatterData(
   contKey,
   expression,
   expressionKey,
-  aggregateKey = null
+  aggregateKey = null,
+  mask = null
 ) {
   const exprValues = expression;
   const contIndices = metadata[contKey];
@@ -837,6 +1261,7 @@ export function parseFacetedScatterData(
   const records = [];
 
   for (let i = 0; i < exprValues.length; i++) {
+    if (mask && !mask[i]) continue;
     const expr = exprValues[i];
     const cont = contLabels[contIndices[i]];
     const group = groupLabels[groupIndices[i]];
@@ -974,10 +1399,16 @@ function bucketByGroup(values, cellCount, groupKeyForCell) {
     return buckets;
 }
 
-export function calcExpressionStats(fields, labelColors, expression, gene, primaryKey, subsetKey, partial=false) {
+//cellFilter as in calcCellCounts: the mask drops cells, and an axis key's allow table
+//drops that axis's excluded labels, which are empty by construction
+export function calcExpressionStats(fields, labelColors, expression, gene, primaryKey, subsetKey, partial=false, cellFilter=null) {
     //const expression = this.expressionData[gene];
     const keys = fields.metadata_labels;
     const values = fields.metadata;
+
+    const mask = cellFilter ? cellFilter.mask : null;
+    const primaryAllow = allowTableFor(cellFilter, primaryKey);
+    const subsetAllow = allowTableFor(cellFilter, subsetKey);
 
     const primaryLabels = keys[primaryKey];
     const primaryValues = values[primaryKey];
@@ -991,14 +1422,21 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
         label - so a 2M cell dataset stratified by 191 samples allocated roughly
         cells x samples worth of temporary arrays before any stats were computed.
         total allocation here is now bounded by the number of cells.
+
+        a cell filter needs no change to bucketByGroup: returning -1 is already how a cell
+        is dropped, so the mask just joins the conditions the key function already tests.
     */
     if (!subsetKey) {
         // calculate stats grouped by primary key only
         const include = primaryLabels.map(label => !isMissingMetadataValue(label));
-        const buckets = bucketByGroup(expression, primaryValues.length, i => (include[primaryValues[i]] ? primaryValues[i] : -1));
+        const buckets = bucketByGroup(expression, primaryValues.length, i => {
+            if (mask && !mask[i]) return -1;
+            return include[primaryValues[i]] ? primaryValues[i] : -1;
+        });
 
         primaryLabels.forEach((label, index) => {
             if (!include[index]) return;
+            if (primaryAllow && !primaryAllow[index]) return;
             result.push({
                 gene: gene,
                 [primaryKey]: label,
@@ -1015,6 +1453,7 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
         const includeSubset = subsetLabels.map(label => !isMissingMetadataValue(label));
 
         const buckets = bucketByGroup(expression, primaryValues.length, i => {
+            if (mask && !mask[i]) return -1;
             const primaryIndex = primaryValues[i];
             const subsetIndex = subsetValues[i];
             if (!includePrimary[primaryIndex] || !includeSubset[subsetIndex]) return -1;
@@ -1023,9 +1462,11 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
             if (!includePrimary[primaryIndex]) return;
+            if (primaryAllow && !primaryAllow[primaryIndex]) return;
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
                 if (!includeSubset[subsetIndex]) return;
+                if (subsetAllow && !subsetAllow[subsetIndex]) return;
                 result.push({
                     gene: gene,
                     [primaryKey]: primaryLabel,

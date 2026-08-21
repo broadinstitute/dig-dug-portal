@@ -142,9 +142,16 @@ class SharedUmapData {
         return data ? data.numPoints : null;
     }
 
-    //nearest point to (x, y) within radius, or -1. replaces quadtree.find plus the
-    //point-object-to-index Map lookup that followed it.
-    findNearest(group, x, y, radius) {
+    /*
+        nearest point to (x, y) within radius, or -1. replaces quadtree.find plus the
+        point-object-to-index Map lookup that followed it.
+
+        mask is the optional cell filter: candidates whose byte is 0 are skipped, so hover
+        never lands on a cell the filter is hiding. it is applied to candidates rather than
+        used to build the grid, so the grid stays dataset-global and a filter change costs
+        nothing here.
+    */
+    findNearest(group, x, y, radius, mask = null) {
         const data = this.groups.get(group);
         if (!data) return -1;
         if (!data.hoverGrid) {
@@ -170,6 +177,7 @@ class SharedUmapData {
                 const end = starts[bucket + 1];
                 for (let s = starts[bucket]; s < end; s++) {
                     const i = order[s];
+                    if (mask && !mask[i]) continue;
                     const dx = X[i] - x;
                     const dy = Y[i] - y;
                     const dist = dx * dx + dy * dy;
