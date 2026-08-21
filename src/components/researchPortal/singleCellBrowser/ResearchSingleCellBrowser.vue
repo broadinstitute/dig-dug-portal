@@ -82,8 +82,32 @@
         </div>
 
 
-        <div v-if="datasetId && !dataLoaded" style="margin: 0 auto">
-            Loading {{ preloadItem }}...
+        <!--
+            the same spinner the gene search uses, so a slow section reads as working rather
+            than stalled. hidden once an error is set, otherwise a failed load would sit
+            there spinning under the error message
+        -->
+        <div v-if="datasetId && !dataLoaded && !loadError"
+            style="display:flex; align-items:center; gap:8px; margin: 0 auto">
+            <div class="geneLoader"></div>
+            <div>Loading {{ preloadItem }}...</div>
+        </div>
+
+        <!--
+            a section whose data cannot be fetched used to leave the page on "Loading
+            markers..." forever - the fetch helpers return null on failure and the callers
+            walked straight into it. now the load stops at the first required section that is
+            missing and says which one.
+        -->
+        <div v-if="loadError"
+            style="display:flex; flex-direction:column; gap:5px; margin: 0 auto; max-width:600px; padding:15px; border:1px solid #e0b4b4; background:#fff6f6; border-radius:3px;">
+            <div style="font-weight:bold; color:#912d2b;">This dataset could not be loaded</div>
+            <div style="font-size:14px;">{{ loadError.message }}</div>
+            <div v-if="loadError.detail" style="font-size:12px; opacity:0.7;">{{ loadError.detail }}</div>
+            <div v-if="isDev && loadError.url" style="font-size:11px; opacity:0.6; word-break:break-all;">
+                {{ loadError.url }}
+            </div>
+            <div v-if="showDatasetSelect" style="font-size:13px;">Select another tissue above to continue.</div>
         </div>
 
 
@@ -1506,6 +1530,9 @@
                 dataLoaded: false,
                 preloadItem: '',
                 dataReady: false,
+                //{ item, message, detail, url } when a required section could not be
+                //fetched, otherwise null. see failLoad
+                loadError: null,
 
                 highlightHoverTimeout: null,
 
@@ -1995,6 +2022,28 @@
             calcCellCounts(a,b,c){
                 return scUtils.calcCellCounts2(this.fields,this.labelColors,a,b,c, this.cellFilter);
             },
+            /*
+                stop the load and say which section failed.
+
+                the fetch helpers in singleCellUtils all swallow their errors and return
+                null, which is why a 404 used to surface as a hang: the caller carried on
+                with null and either threw somewhere unrelated (fields, in
+                filterDisplayFields) or threw inside the fetch chain and left preloadItem
+                stuck on the section that failed (markers, in initMarkers).
+
+                so every required section is checked at the point of the fetch, and this is
+                the single exit. dataLoaded is deliberately left false - the layout below
+                reads fields, coordinates and labelColors unguarded, so rendering it without
+                them would just be a different crash.
+            */
+            failLoad(item, message, url, detail = null){
+                llog(`load failed at ${item}`, {url, detail});
+                this.loadError = { item, message, url, detail };
+                this.preloadItem = '';
+                this.dataLoaded = false;
+                this.dataReady = false;
+                return false;
+            },
             clean(){
                 this.allMetadata = null;
                 this.metadata = null;
@@ -2012,6 +2061,7 @@
 
                 this.dataLoaded = false;
                 this.dataReady = false;
+                this.loadError = null;
                 this.expressionData = {};
                 this.expressionExtents = {};
                 this.geneNames = [];
@@ -2062,7 +2112,30 @@
                 this.filterSearch = "";
                 this.numericRanges = {};
             },
+            /*
+                the load is an async chain with a dozen awaits in it, and an unhandled throw
+                anywhere inside just rejects the promise: nothing catches it, so the page
+                keeps whatever partial state it had and sits on the last preloadItem it set.
+                that is the shape of every "the page hangs" report here.
+
+                so the whole thing runs behind this, and anything the explicit per-section
+                checks did not anticipate still ends up as a visible error naming the section
+                it happened in.
+            */
             async init(){
+                try {
+                    await this.loadDataset();
+                } catch (error) {
+                    const item = this.preloadItem || 'data';
+                    //not llog: an unexpected throw should be visible without dev=1
+                    console.error('single cell browser: load failed', error);
+                    this.failLoad(item,
+                        'Something went wrong while loading this dataset.',
+                        null,
+                        String(error?.message || error));
+                }
+            },
+            async loadDataset(){
                 this.presetsConfig = this.renderConfig["presets"];
                 llog('presets', this.presetsConfig);
                 this.showDatasetSelect = this.presetsConfig?.["showDatasetSelect"] || false;
@@ -2100,8 +2173,11 @@
                 const metadataEnpoint = this.selectedBI+this.BIendpoints.metadata;
                 this.allMetadata = await scUtils.fetchMetadata(metadataEnpoint);
                 if(!this.allMetadata){
-                    llog('there was an error getting metadata');
-                    return;
+                    //used to be a bare return, which left the page on "Loading metadata..."
+                    return this.failLoad('metadata',
+                        'The dataset catalogue could not be loaded.',
+                        metadataEnpoint,
+                        'This affects every dataset, so it is likely the data service rather than this dataset.');
                 }
                 llog('allMetadata', this.allMetadata);
 
@@ -2237,7 +2313,17 @@
                     }
                     llog('fields', this.fields);
                 }else{
-                    llog('there was an error getting fields');
+                    /*
+                        this is the case that was reported: a dataset whose fields.json.gz
+                        404s. it used to only llog and carry on, and the throw surfaced much
+                        later in filterDisplayFields, after dataLoaded had already been set.
+                        nothing works without fields - every plot, colour and annotation
+                        comes from them - so stop here.
+                    */
+                    return this.failLoad('annotations',
+                        'The cell annotations for this dataset are unavailable.',
+                        fieldsEnpoint.replace('$datasetId', this.datasetId),
+                        'Without them none of the plots can be drawn.');
                 }
 
                 //fetch coordinates
@@ -2248,7 +2334,11 @@
                     if(this.coordinates){
                         llog('coordinates', this.coordinates);
                     }else{
-                        llog('there was an error getting coordinates');
+                        //every layout except 3 renders an embedding, and the panels read
+                        //points.count unguarded
+                        return this.failLoad('embedding',
+                            'The embedding coordinates for this dataset are unavailable.',
+                            coordinatesEnpoint.replace('$datasetId', this.datasetId));
                     }
                 }
 
@@ -2440,14 +2530,46 @@
                 if(markersEnpoint){
                     const url = markersEnpoint;
                     const markersRaw = await scUtils.fetchMarkers(url, this.datasetId);
-                    const markersCleaned =  markersRaw.filter(v => v !== null);
-                    //remap params to handle older/newer versions
-                    const markersNormalized = markersCleaned.map(m => ({
-                        ...m,
-                        mean_expression: m.mean_expression ?? m.mean_expression_raw ?? 0,
-                        pct_cells_expression: m.pct_cells_expression ?? m.pct_nz_group ?? 0,
-                        // Add other fallback mappings here if needed
-                    }));
+                    /*
+                        marker genes are optional - not every dataset ships a file, and every
+                        marker section is gated on `markers` being set. fetchMarkers returns
+                        null when the file is missing or unparseable, and this used to go
+                        straight into markersRaw.filter(), so the throw happened inside the
+                        load and left the page on "Loading markers..." forever with
+                        everything else already fetched and usable. a missing file now just
+                        means no marker sections.
+                    */
+                    if(!markersRaw || typeof markersRaw !== 'object'){
+                        llog('no usable marker genes for this dataset', url);
+                        this.markers = null;
+                        this.markersList = null;
+                        this.markerGenes = null;
+                        this.markerGenesTable = null;
+                        return;
+                    }
+
+                    /*
+                        two shapes reach here. the current one is a list of per-gene records,
+                        which gets the stat-name remapping below. the older one is
+                        { cellType: [genes] } with no stats to remap - the branch further
+                        down builds its gene list from Object.values, but nothing could ever
+                        reach it, because .filter() threw on a non-array first. so that
+                        format was not "supported with a fallback", it was broken; passing
+                        the object through unmodified is what actually reaches the fallback.
+                    */
+                    let markersNormalized;
+                    if(Array.isArray(markersRaw)){
+                        const markersCleaned = markersRaw.filter(v => v !== null);
+                        //remap params to handle older/newer versions
+                        markersNormalized = markersCleaned.map(m => ({
+                            ...m,
+                            mean_expression: m.mean_expression ?? m.mean_expression_raw ?? 0,
+                            pct_cells_expression: m.pct_cells_expression ?? m.pct_nz_group ?? 0,
+                            // Add other fallback mappings here if needed
+                        }));
+                    }else{
+                        markersNormalized = markersRaw;
+                    }
                     this.markers = markersNormalized;
                     llog('markers', this.markers);
                     if(this.markers){

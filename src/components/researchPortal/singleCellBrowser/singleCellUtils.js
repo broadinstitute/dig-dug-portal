@@ -22,10 +22,33 @@ export function isMissingMetadataValue(value) {
 }
 
 /* fetch utils */
+
+/*
+    every helper below reports failure by returning null, and the callers rely on that to
+    tell a missing dataset from a present one. checking the status is what makes that true.
+
+    a 404 is not a network error, so fetch() resolves normally - and this service answers one
+    with a perfectly parseable json body: `{"detail":"Not Found"}`, content-type
+    application/json. so response.json() succeeded and fetchFields handed back a truthy
+    object with no metadata_labels on it. the caller saw a value, carried on, and the failure
+    surfaced much later somewhere unrelated - which is what made a 404 on one dataset look
+    like the whole page hanging.
+
+    fetchMarkers had the same problem with a worse ending: the error body parsed into an
+    object, which the old-format branch read as { cellType: [genes] } and turned into a gene
+    list containing the string "Not Found".
+*/
+function checkResponse(response, url){
+    if(response.ok) return true;
+    llog(`   ${url} returned ${response.status} ${response.statusText}`);
+    return false;
+}
+
 export async function fetchMetadata(url) {
     llog('getting metadata', url);
     try {
         const response = await fetch(url);
+        if(!checkResponse(response, url)) return null;
         //returns line json
         const text = await response.text();
         const lines = text.split('\n').filter(line => line.trim() !== '');
@@ -41,6 +64,7 @@ export async function fetchFields(url, datasetId) {
     llog('getting fields', replacedUrl);
     try {
         const response = await fetch(replacedUrl);
+        if(!checkResponse(response, replacedUrl)) return null;
         const fields = await response.json();
         //drop before packing, so the dropped field never gets an index array built for it
         return packMetadataIndices(dropDuplicateIdFields(fields));
@@ -252,6 +276,7 @@ export async function fetchCoordinates(url, datasetId) {
     llog('getting coordinates', replacedUrl);
     try {
         const response = await fetch(replacedUrl);
+        if(!checkResponse(response, replacedUrl)) return null;
         return parseCoordinates(await response.text());
     }catch (error){
         llog('Error fetching coordinates:', error);
@@ -263,6 +288,7 @@ export async function fetchMarkers(url, datasetId) {
     llog('getting markers', replacedUrl);
     try {
         const response = await fetch(replacedUrl);
+        if(!checkResponse(response, replacedUrl)) return null;
         //likely temporary, but currently the marker_genes api
         //may send a json object or line-json
         //here we catch that and return a json object either way
@@ -285,6 +311,7 @@ export async function fetchGeneExpression(url, gene, datasetId){
     llog(`getting ${gene} expression`, replacedUrl)
     try{
         const response = await fetch(replacedUrl);
+        if(!checkResponse(response, replacedUrl)) return null;
         const json = await response.json();
         if(json.data.length===0){
             llog(`${gene} not found`);
