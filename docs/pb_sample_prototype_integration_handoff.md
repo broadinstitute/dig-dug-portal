@@ -1,5 +1,11 @@
 # PB Sample prototype integration handoff
 
+For production implementation, start with
+[`pb_sample_engineering_integration_handoff.md`](pb_sample_engineering_integration_handoff.md).
+It defines the required sample-keyed variant source, separately precomputed
+Tier/Type artifact, phased agent workflow, stop conditions, and acceptance
+checks. This document remains the shorter prototype behavior and payload record.
+
 This document records the production-facing contract of the PB Sample mockup.
 The current page is a UI fixture; none of its sample, family, HPO, variant,
 disease, PheRS, percentile, investigator, or ClinVar values are production data.
