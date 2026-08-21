@@ -974,12 +974,25 @@ new Vue({
 
             return ((value - domain.min) / (domain.max - domain.min)) * 100;
         },
+        deBrowserUrl(row) {
+            const datasetId = row && row.dataset_id;
+            const gene = (row && row.gene) || this.selectedGene;
+
+            if (!datasetId || !gene) {
+                return null;
+            }
+
+            return `/bulkbrowser.html?dataset=${encodeURIComponent(
+                datasetId
+            )}&gene=${encodeURIComponent(gene)}`;
+        },
         rowTooltip(row) {
             const title = row.display_label_short || "—";
             const description = row.dataset_name || null;
             const comparison = row.direction_label || null;
             const species = this.formatSpeciesLabel(row.species);
             const tissue = row.tissue || null;
+            const deBrowserUrl = this.deBrowserUrl(row);
 
             const depot = row.depot || null;
             const depot2 = row.depot2 || null;
@@ -1011,6 +1024,12 @@ new Vue({
                     ${r("CI high", ciHigh)}
                     ${r("P-value", pValue)}
                     ${r("Adj. P", pValueAdj)}
+                    ${r(
+                        "DE Browser",
+                        deBrowserUrl
+                            ? `<a class="plot-tooltip__link" href="${deBrowserUrl}" target="_blank" rel="noopener noreferrer">View in DE Browser</a>`
+                            : null
+                    )}
                 </div>
             `;
         },
@@ -1120,11 +1139,34 @@ new Vue({
         expandEvidenceTable(outcomeId) {
             this.$set(this.expandedEvidenceTables, outcomeId, true);
         },
+        selectPlotRow(outcome, row) {
+            this.selectEvidenceKey(
+                outcome,
+                row.plot_key || this.getEvidenceRowKey(outcome.outcome_id, row)
+            );
+        },
+        selectEvidenceKey(outcome, key) {
+            this.selectedEvidenceRowKey =
+                key && this.selectedEvidenceRowKey !== key ? key : null;
+
+            if (!outcome || !this.selectedEvidenceRowKey) {
+                return;
+            }
+
+            const rowIndex = (outcome.rows || []).findIndex(
+                (row) =>
+                    this.getEvidenceRowKey(outcome.outcome_id, row) ===
+                    this.selectedEvidenceRowKey
+            );
+
+            if (rowIndex >= 3) {
+                this.expandEvidenceTable(outcome.outcome_id);
+            }
+        },
         selectEvidenceRow(outcome, row, index = 0) {
-            this.selectedEvidenceRowKey = this.getEvidenceRowKey(
-                outcome.outcome_id,
-                row,
-                index
+            this.selectEvidenceKey(
+                outcome,
+                this.getEvidenceRowKey(outcome.outcome_id, row, index)
             );
         },
         isEvidenceRowSelected(outcome, row, index = 0) {

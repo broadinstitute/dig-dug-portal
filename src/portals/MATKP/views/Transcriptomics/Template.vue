@@ -308,6 +308,10 @@
                           'plot-row--adj-p-significant': item.row.isAdjPSignificant,
                           'plot-row--selected': $parent.selectedEvidenceRowKey === item.row.plot_key,
                         }"
+                        tabindex="0"
+                        @click="$parent.selectPlotRow(outcome, item.row)"
+                        @keydown.enter.prevent="$parent.selectPlotRow(outcome, item.row)"
+                        @keydown.space.prevent="$parent.selectPlotRow(outcome, item.row)"
                       >
                           <div class="label-rail">
                             <div
@@ -396,8 +400,12 @@
                               'vlabel-dimmed': row.isAdjPFilteredOut,
                             },
                           ]"
+                          tabindex="0"
                           @mouseenter="$parent.setVolcanoHoveredKey($parent.volcanoRowKey(row, idx))"
                           @mouseleave="$parent.setVolcanoHoveredKey(null)"
+                          @click="$parent.selectPlotRow(outcome, row)"
+                          @keydown.enter.prevent="$parent.selectPlotRow(outcome, row)"
+                          @keydown.space.prevent="$parent.selectPlotRow(outcome, row)"
                         >{{ row.display_label_short }}</div>
                       </div>
                     </div>
@@ -409,6 +417,7 @@
                         :selected-key="$parent.selectedEvidenceRowKey"
                         @hover="$parent.setVolcanoHoveredKey($event)"
                         @hover-end="$parent.setVolcanoHoveredKey(null)"
+                        @select="$parent.selectEvidenceKey(outcome, $event)"
                       />
                     </div>
                   </div>
@@ -450,6 +459,7 @@
                         <col style="width: 75px" />
                         <col style="width: 75px" />
                         <col style="width: 150px" />
+                        <col style="width: 110px" />
                       </colgroup>
                       <thead>
                         <tr>
@@ -467,6 +477,7 @@
                           <th>P-value</th>
                           <th>Adj. P</th>
                           <th>Method</th>
+                          <th>DE Browser</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -493,6 +504,17 @@
                           <td>{{ $parent.formatPValue(row.p_value) }}</td>
                           <td>{{ $parent.formatPValue(row.p_value_adj) }}</td>
                           <td class="cell-truncate" :title="row.note">{{ row.note || "—" }}</td>
+                          <td>
+                            <a
+                              v-if="$parent.deBrowserUrl(row)"
+                              class="de-browser-btn"
+                              :href="$parent.deBrowserUrl(row)"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              @click.stop
+                            >View</a>
+                            <span v-else>—</span>
+                          </td>
                         </tr>
                       </tbody>
                     </table>
@@ -1122,10 +1144,16 @@
 
 .plot-row {
   align-items: center;
+  cursor: pointer;
   display: grid;
   gap: 8px;
   grid-template-columns: 220px minmax(0, 1fr);
   min-height: 20px;
+}
+
+.plot-row:focus {
+  outline: 2px solid rgba(255, 108, 2, 0.4);
+  outline-offset: 2px;
 }
 
 .plot-row--adj-p-dimmed .row-title,
@@ -1459,9 +1487,10 @@
   border: 1px solid #dddddd;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   color: #000000;
-  max-width: 320px;
+  max-width: min(420px, calc(100vw - 32px));
   padding: 10px 12px;
   text-align: left;
+  width: max-content;
 }
 
 :global(.tooltip.b-tooltip .arrow::before) {
@@ -1476,9 +1505,11 @@
   display: inline-block;
   font-size: 10px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.25;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   padding: 2px 5px;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 :global(.plot-tooltip) {
@@ -1507,7 +1538,7 @@
 :global(.plot-tooltip__row) {
   display: grid;
   gap: 12px;
-  grid-template-columns: 60px minmax(0, 1fr);
+  grid-template-columns: 78px minmax(0, 1fr);
 }
 
 :global(.plot-tooltip__label) {
@@ -1520,6 +1551,13 @@
 :global(.plot-tooltip__value) {
   font-size: 12px;
   line-height: 1.35;
+}
+
+:global(.plot-tooltip__link) {
+  color: #cc4400;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .table-shadow-wrap {
@@ -1615,6 +1653,26 @@
   text-align: right;
 }
 
+.de-browser-btn {
+  background: #fff4ee;
+  border: 1px solid #ffb07a;
+  border-radius: 4px;
+  color: #cc4400;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 9px;
+  text-decoration: none;
+}
+
+.de-browser-btn:hover,
+.de-browser-btn:focus {
+  background: #ffe9dc;
+  color: #aa3300;
+  text-decoration: none;
+}
+
 .volcano-section {
   align-items: flex-start;
   display: flex;
@@ -1644,6 +1702,15 @@
 .vlabel-active-selected {
   background: #ffe9dc;
   color: #aa3300;
+}
+
+.vlabel-row .row-title {
+  cursor: pointer;
+}
+
+.vlabel-row .row-title:focus {
+  outline: 2px solid rgba(255, 108, 2, 0.4);
+  outline-offset: 2px;
 }
 
 .vlabel-dimmed {

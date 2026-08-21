@@ -1,7 +1,14 @@
 <template>
   <div class="volcano-wrap">
     <!-- Custom tooltip, styled to match Bootstrap-Vue, anchored at the hovered dot -->
-    <div v-if="hoveredKey && hoveredPoint" class="volcano-tooltip" :class="tooltipArrowClass" :style="tooltipStyle">
+    <div
+      v-if="hoveredKey && hoveredPoint"
+      class="volcano-tooltip"
+      :class="tooltipArrowClass"
+      :style="tooltipStyle"
+      @mouseenter="cancelHoverEnd"
+      @mouseleave="scheduleHoverEnd"
+    >
       <div class="volcano-tooltip-inner" v-html="hoveredPoint.tooltip"></div>
     </div>
 
@@ -72,8 +79,9 @@
         :fill="isPointActive(pt) ? '#777777' : '#bbbbbb'"
         :opacity="pt.dimmed ? 0.14 : isPointActive(pt) ? 0.9 : 0.4"
         style="cursor:pointer"
-        @mouseenter="$emit('hover', pt.key)"
-        @mouseleave="$emit('hover-end')"
+        @mouseenter="emitHover(pt.key)"
+        @mouseleave="scheduleHoverEnd"
+        @click="$emit('select', pt.key)"
       />
 
       <!-- Significant dots (on top) -->
@@ -87,8 +95,9 @@
         :stroke="isPointActive(pt) ? '#333333' : '#ffffff'"
         :stroke-width="isPointActive(pt) ? 1.5 : 0.75"
         style="cursor:pointer"
-        @mouseenter="$emit('hover', pt.key)"
-        @mouseleave="$emit('hover-end')"
+        @mouseenter="emitHover(pt.key)"
+        @mouseleave="scheduleHoverEnd"
+        @click="$emit('select', pt.key)"
       />
 
       <!-- Labels for significant dots -->
@@ -143,6 +152,7 @@ export default {
       svgW: 500,
       svgH: 340,
       pad: { l: 120, r: 140, t: 24, b: 36 },
+      hoverEndTimer: null,
     };
   },
 
@@ -215,7 +225,7 @@ export default {
         const x = this.xScale(row.effect);
         const y = this.yScale(-Math.log10(row.p_value));
         const significant = row.p_value <= 0.05;
-        const fullLabel = row.comparison_level_b || row.second_term || "";
+        const fullLabel = row.comparison_level_a || row.first_term || "";
         const label = fullLabel.length > 24 ? fullLabel.slice(0, 23) + "..." : fullLabel;
         const labelRight = row.effect >= 0;
         const depotLabel = this.formatDepotLabel(row.depot);
@@ -299,11 +309,29 @@ export default {
   },
 
   beforeDestroy() {
+    this.cancelHoverEnd();
     if (this._ro) this._ro.disconnect();
     if (this._onResize) window.removeEventListener("resize", this._onResize);
   },
 
   methods: {
+    emitHover(key) {
+      this.cancelHoverEnd();
+      this.$emit("hover", key);
+    },
+    scheduleHoverEnd() {
+      this.cancelHoverEnd();
+      this.hoverEndTimer = window.setTimeout(() => {
+        this.hoverEndTimer = null;
+        this.$emit("hover-end");
+      }, 180);
+    },
+    cancelHoverEnd() {
+      if (this.hoverEndTimer) {
+        window.clearTimeout(this.hoverEndTimer);
+        this.hoverEndTimer = null;
+      }
+    },
     isPointActive(point) {
       return point.key === this.hoveredKey || point.key === this.selectedKey;
     },
@@ -384,9 +412,10 @@ export default {
 
 /* Custom tooltip — matches the Bootstrap-Vue tooltip override in Template.vue */
 .volcano-tooltip {
-  max-width: 320px;
-  pointer-events: none;
+  max-width: min(420px, calc(100vw - 32px));
+  pointer-events: auto;
   position: absolute;
+  width: max-content;
   z-index: 50;
 }
 
