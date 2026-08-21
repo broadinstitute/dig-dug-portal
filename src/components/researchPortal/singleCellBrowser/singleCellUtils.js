@@ -1495,7 +1495,22 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
                     gene: gene,
                     [primaryKey]: primaryLabel,
                     [subsetKey]: subsetLabel,
-                    color: labelColors[subsetKey][subsetLabel],
+                    /*
+                        coloured by the PRIMARY key, which here is the Group By field -
+                        selectExpressionBy passes (groupBy, stratify) in that order. it used
+                        to be the subset key, which meant the violins were coloured by the
+                        stratification: every violin in a facet row came out the same colour
+                        and the row-to-row colours meant nothing, while the composition plot
+                        beside it was correctly coloured by cell type.
+
+                        note this looks like the opposite of calcCellCounts, which colours by
+                        its subset key - but that reaches the same rule from the other side,
+                        because selectSegmentBy calls it with the keys SWAPPED
+                        (stratify as primary, Group By as subset) so the bars stack by group.
+                        both are "colour by Group By"; do not make them look consistent by
+                        changing one to match the other.
+                    */
+                    color: labelColors[primaryKey][primaryLabel],
                     ...calculateExpressionStats(buckets.get(primaryIndex * subsetCount + subsetIndex) || [])
                 })
             });

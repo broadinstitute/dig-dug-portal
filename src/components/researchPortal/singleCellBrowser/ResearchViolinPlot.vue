@@ -10,7 +10,28 @@
   import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
   import EventBus from "@/utils/eventBus";
   import {llog} from "./llog.js";
-  
+
+  /*
+    in facet-rows mode a violin's height is one facet row, but its width comes from the x
+    band - and the x axis there is the stratification, which is often just two or three
+    categories, so a band is a third to a half of the whole plot. uncapped that gave a glyph
+    ~350px wide inside a 55px row: the density axis had six times the room the value axis
+    did, and every violin read as a horizontal smear rather than a distribution.
+
+    so the box width is capped at a fraction of the row height, which bounds the aspect
+    ratio rather than the pixel count. the violin comes out 1.33x the box width (see
+    violinWidth in drawEntry), so 0.5 draws one about two thirds as wide as it is tall -
+    narrow and upright.
+
+    the row height is deliberately NOT raised to compensate. this plot type exists to be
+    compact next to the violin list, which spends a full 300px row per stratify value; the
+    fix here is to stop the violins spreading sideways, not to give them more room.
+
+    the cap only binds when there are few categories. stratify by something with 191 values
+    and the band is already far narrower than the cap, so nothing changes.
+  */
+  const FACET_BOX_WIDTH_TO_ROW_HEIGHT = 0.5;
+
   export default Vue.component('research-violin-plot', {
     props: {
       data: {                           
@@ -64,6 +85,9 @@
         type: Boolean,
         default: false
       },
+      //kept deliberately short - a compact row per facet is the point of this plot type.
+      //the violin width is capped against it, so lowering this narrows the violins in step
+      //rather than squashing them - see FACET_BOX_WIDTH_TO_ROW_HEIGHT
       facetRowHeight: {
         type: Number,
         default: 55
@@ -494,7 +518,13 @@
             }
 
             const baseBandwidth = useFacetRows ? x.bandwidth() : (hasSubsetKey && xGrouped ? xGrouped.bandwidth() : x.bandwidth());
-            const boxWidth = baseBandwidth * 0.6;
+            //capped against the row height in facet mode - see FACET_BOX_WIDTH_TO_ROW_HEIGHT.
+            //boxWidth drives the violin, the box, the whiskers and the median line, and
+            //xCenter is independent of it, so capping narrows the whole glyph and leaves it
+            //centred in its band
+            const boxWidth = useFacetRows
+                ? Math.min(baseBandwidth * 0.6, this.facetRowHeight * FACET_BOX_WIDTH_TO_ROW_HEIGHT)
+                : baseBandwidth * 0.6;
 
             //add background boxes to separate primaryKey sections
             //when they have subsetKey items
