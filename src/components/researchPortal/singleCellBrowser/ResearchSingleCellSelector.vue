@@ -202,7 +202,7 @@ export default Vue.component('research-single-cell-selector', {
     },
     methods: {
         init(){
-            console.log('init data', this.data);
+            llog('init data', this.data);
             if(!this.data) return;
 
             //check if data is array
