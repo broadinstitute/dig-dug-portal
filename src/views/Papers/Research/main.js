@@ -31,6 +31,7 @@ import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingS
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
+import CfdeSingleSearch from "@/components/researchPortal/customComponents/CfdeSingleSearch.vue";
 
 import ResearchCitation from "@/components/researchPortal/ResearchCitation.vue";
 
@@ -81,6 +82,7 @@ new Vue({
         ResearchSingleSearch,
         ResearchSingleSearchV2,
         ResearchSingleSearchCFDE,
+        CfdeSingleSearch,
         ResearchLoadingSpinner,
         ResearchCitation
     },
