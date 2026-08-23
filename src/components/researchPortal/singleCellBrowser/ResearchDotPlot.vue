@@ -356,7 +356,7 @@
                 height = plotHeight + margin.top + margin.bottom;
             }
 
-            console.log("!!!!!!!!!!!!", cellWidth);
+            llog('   cellWidth', cellWidth);
 
             this.$refs.plotWrapper.style.height = `${height + 64}px`;
 

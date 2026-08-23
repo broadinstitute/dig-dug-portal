@@ -179,15 +179,35 @@ function multiplyMatrices(a, b) {
     return out;
 }
 
-function transformPoint(matrix, point) {
-    const [x, y, z] = point;
-    return [
-        matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12],
-        matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13],
-        matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14],
-        matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15],
-    ];
+/*
+    world point -> canvas pixels, written into `out` instead of returned, so the per-cell
+    loop in projectPoints() can reuse one scratch object rather than allocating per point.
+
+    this is the only copy of the projection: projectWorldPoint() wraps it for the handful of
+    cluster labels, and projectPoints() calls it once per cell. the matrix multiply is
+    written in the same order the transformPoint() helper it replaced used, so results are
+    bit-identical to the old path - verified against it over six camera setups in node.
+    returns false when the point cannot be projected (no matrix, or a degenerate w).
+*/
+function projectToCanvas(matrix, x, y, z, canvasWidth, canvasHeight, out) {
+    const clipX = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12];
+    const clipY = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13];
+    const clipZ = matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14];
+    const w = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15];
+    if (Math.abs(w) < EPSILON) return false;
+
+    const ndcX = clipX / w;
+    const ndcY = clipY / w;
+    const ndcZ = clipZ / w;
+
+    out.x = (ndcX * 0.5 + 0.5) * canvasWidth;
+    out.y = (1 - (ndcY * 0.5 + 0.5)) * canvasHeight;
+    out.depth = ndcZ;
+    out.visible = ndcX >= -1 && ndcX <= 1 && ndcY >= -1 && ndcY <= 1 && ndcZ >= -1 && ndcZ <= 1;
+    return true;
 }
+
+const projectionScratch = { x: 0, y: 0, depth: 0, visible: false };
 
 function colorToRgba(color, alpha = 255) {
     const rgb = d3.color(color || "#000000").rgb();
@@ -200,8 +220,10 @@ export default Vue.component('research-umap-plot-gl', {
             type: String,
             required: true,
         },
+        //typed array bundle from scUtils.parseCoordinates:
+        //{ count, X: Float32Array, Y: Float32Array, Z: Float32Array|null }
         points: {
-            type: Array,
+            type: Object,
             required: true,
         },
         labels: {
@@ -244,10 +266,32 @@ export default Vue.component('research-umap-plot-gl', {
             type: Array,
             default: null,
         },
+        /*
+            optional cell filter from scUtils.buildCellFilter - a Uint8Array with one byte
+            per cell, 1 to draw and 0 to hide. null means every cell is drawn.
+
+            no `type` here on purpose: Vue's Object check reads toRawType, which is
+            'Uint8Array' rather than 'Object', and would warn on every valid value.
+
+            it is deliberately NOT folded into a_isHighlight: that channel already carries
+            two meanings at once (the two-pass draw shrinks non-highlighted points to 0.2x
+            and then paints the highlighted ones over them), and a filtered-out cell has to
+            disappear from both passes.
+        */
+        visibleMask: {
+            default: null,
+        },
         expressionColorScale: {
             type: String,
             required: false,
             default: "blue"
+        },
+        //name for the png download, without the extension. the parent owns it because it is
+        //the only thing that knows which panel this is - the label-coloured one or the gene
+        //one - and it names every other export on the page the same way
+        downloadFilename: {
+            type: String,
+            default: "umap"
         }
     },
     data() {
@@ -309,7 +353,9 @@ export default Vue.component('research-umap-plot-gl', {
                 red: d3.interpolateReds,
                 blue: d3.interpolate("lightgrey", "blue")
             },
-            projectedPoints: [],
+            //projectedPoints is deliberately NOT here - see projectPoints(). it holds one
+            //entry per cell, and a reactive property made Vue observe every one of them on
+            //every render. it is initialised in created() as a plain field instead
             projectedLabels: [],
             renderMatrix: null,
             viewMatrix: IDENTITY_MATRIX,
@@ -332,7 +378,9 @@ export default Vue.component('research-umap-plot-gl', {
     },
     computed: {
         is3dMode() {
-            return this.points.some(point => (point.Z ?? 0) !== 0);
+            //parseCoordinates only keeps Z when the file has one with a non-zero
+            //value, which is the same test this used to run over every point
+            return !!this.points.Z;
         },
         currColorOption(){
             return this.colorOptions[this.expressionColorScale];
@@ -364,6 +412,26 @@ export default Vue.component('research-umap-plot-gl', {
                 rebuildColors: true,
                 rebuildOrder: false,
                 rebuildHighlight: true,
+                rebuildVisible: false,
+                rebuildAxes: false,
+            });
+            this.requestRender(true);
+        },
+        /*
+            only the visible buffer and the cluster label positions depend on the filter.
+            the camera deliberately does not: pointBounds and resetCameraFromBounds are left
+            alone, so the embedding holds still while the filter changes instead of jumping
+            and rescaling on every toggle.
+        */
+        visibleMask() {
+            if (!this.points) return;
+            this.calculateClusterCenters();
+            this.setupBuffers({
+                rebuildPositions: false,
+                rebuildColors: false,
+                rebuildOrder: false,
+                rebuildHighlight: false,
+                rebuildVisible: true,
                 rebuildAxes: false,
             });
             this.requestRender(true);
@@ -378,15 +446,25 @@ export default Vue.component('research-umap-plot-gl', {
         },
         expression() {
             this.updateExpressionScale();
+            //the draw order is fixed per dataset now, so selecting a gene only changes
+            //colours - positions, order and highlight were only rebuilt here because
+            //the order used to depend on the expression values
             this.setupBuffers({
-                rebuildPositions: !this.is3dMode,
+                rebuildPositions: false,
                 rebuildColors: true,
-                rebuildOrder: !this.is3dMode,
-                rebuildHighlight: !this.is3dMode,
+                rebuildOrder: false,
+                rebuildHighlight: false,
+                rebuildVisible: false,
                 rebuildAxes: false,
             });
             this.requestRender(true);
         },
+    },
+    created() {
+        //a plain field, not reactive data: one entry per cell, rebuilt every render in 3D
+        this.projectedPoints = null;
+        //floats per point in the position buffer - 2 in 2D, 3 in 3D. see buildPositionBuffer
+        this.pointPositionComponents = 3;
     },
     mounted() {
         EventBus.$on('view-transform-change', this.handleUpdateViewTransform);
@@ -423,7 +501,7 @@ export default Vue.component('research-umap-plot-gl', {
         init() {
             llog("---glUMAP init");
 
-            if (!this.$refs.umapContainer || !this.points || this.points.length === 0) return;
+            if (!this.$refs.umapContainer || !this.points || this.points.count === 0) return;
 
             if (this.sharedGroupAttached) {
                 sharedUmapData.release(this.group);
@@ -517,15 +595,18 @@ export default Vue.component('research-umap-plot-gl', {
                 maxZ: -Infinity,
             };
 
-            this.points.forEach(point => {
-                const z = point.Z ?? 0;
-                if (point.X < bounds.minX) bounds.minX = point.X;
-                if (point.X > bounds.maxX) bounds.maxX = point.X;
-                if (point.Y < bounds.minY) bounds.minY = point.Y;
-                if (point.Y > bounds.maxY) bounds.maxY = point.Y;
+            const { count, X, Y, Z } = this.points;
+            for (let i = 0; i < count; i++) {
+                const x = X[i];
+                const y = Y[i];
+                const z = Z ? Z[i] : 0;
+                if (x < bounds.minX) bounds.minX = x;
+                if (x > bounds.maxX) bounds.maxX = x;
+                if (y < bounds.minY) bounds.minY = y;
+                if (y > bounds.maxY) bounds.maxY = y;
                 if (z < bounds.minZ) bounds.minZ = z;
                 if (z > bounds.maxZ) bounds.maxZ = z;
-            });
+            }
 
             const size = [
                 Math.max(bounds.maxX - bounds.minX, 1),
@@ -554,17 +635,23 @@ export default Vue.component('research-umap-plot-gl', {
             const metadataLabels = this.labels.metadata_labels[labelField];
 
             const sums = {};
-            this.points.forEach((point, index) => {
+            const { count, X, Y, Z } = this.points;
+            const use3d = this.is3dMode;
+            //a centroid over cells that are no longer drawn would put the label somewhere
+            //with nothing under it
+            const mask = this.visibleMask && this.visibleMask.length === count ? this.visibleMask : null;
+            for (let index = 0; index < count; index++) {
+                if (mask && !mask[index]) continue;
                 const labelIndex = metadata[index];
                 const label = metadataLabels[labelIndex] || 'Unlabeled';
                 if (!sums[label]) {
                     sums[label] = { xSum: 0, ySum: 0, zSum: 0, count: 0 };
                 }
-                sums[label].xSum += point.X;
-                sums[label].ySum += point.Y;
-                sums[label].zSum += this.is3dMode ? (point.Z ?? 0) : 0;
+                sums[label].xSum += X[index];
+                sums[label].ySum += Y[index];
+                sums[label].zSum += use3d ? Z[index] : 0;
                 sums[label].count++;
-            });
+            }
 
             Object.entries(sums).forEach(([label, info]) => {
                 this.clusterCenters.push({
@@ -652,7 +739,15 @@ export default Vue.component('research-umap-plot-gl', {
 
         initializeWebGL() {
             const canvas = this.$refs.umapCanvas;
-            const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
+            /*
+                preserveDrawingBuffer is deliberately off. it existed so download() could
+                read the canvas at any time, but it makes the browser keep a copy of the
+                whole framebuffer after every composite - on two panels, every frame, for
+                the entire session, to serve an export that happens rarely if ever.
+                download() renders synchronously before reading instead, which is the same
+                guarantee for the one moment it is needed.
+            */
+            const gl = canvas.getContext('webgl');
             if (!gl) {
                 console.error('WebGL not supported');
                 return;
@@ -664,6 +759,7 @@ export default Vue.component('research-umap-plot-gl', {
                 attribute vec3 a_position;
                 attribute vec4 a_color;
                 attribute float a_isHighlight;
+                attribute float a_isVisible;
 
                 uniform mat4 u_matrix;
                 uniform float u_pointSize;
@@ -677,6 +773,16 @@ export default Vue.component('research-umap-plot-gl', {
                 varying float v_renderPoints;
 
                 void main() {
+                    //a cell excluded by the filter leaves both highlight passes. buffer
+                    //sets without a visible buffer read a constant 1.0 (see bindAttributes)
+                    if (a_isVisible < 0.5) {
+                        gl_Position = vec4(-2.0, -2.0, 0.0, 1.0);
+                        gl_PointSize = 0.0;
+                        v_color = vec4(0.0);
+                        v_renderPoints = u_renderPoints;
+                        return;
+                    }
+
                     if (u_highlightMode < 1.5 && a_isHighlight < 0.5) {
                         gl_Position = vec4(-2.0, -2.0, 0.0, 1.0);
                         gl_PointSize = 0.0;
@@ -726,6 +832,7 @@ export default Vue.component('research-umap-plot-gl', {
                 position: gl.getAttribLocation(this.program, 'a_position'),
                 color: gl.getAttribLocation(this.program, 'a_color'),
                 highlight: gl.getAttribLocation(this.program, 'a_isHighlight'),
+                visible: gl.getAttribLocation(this.program, 'a_isVisible'),
                 matrix: gl.getUniformLocation(this.program, 'u_matrix'),
                 pointSize: gl.getUniformLocation(this.program, 'u_pointSize'),
                 renderPoints: gl.getUniformLocation(this.program, 'u_renderPoints'),
@@ -770,30 +877,33 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         buildPointOrder() {
-            const count = this.points.length;
-            const indices = Array.from({ length: count }, (_, index) => index);
-
-            if (!this.is3dMode && this.expression) {
-                indices.sort((a, b) => {
-                    const va = this.expression[a] ?? -Infinity;
-                    const vb = this.expression[b] ?? -Infinity;
-                    return va - vb;
-                });
-            }
-
-            return indices;
+            //one fixed shuffle per dataset, shared with the other panel. it used to sort
+            //by expression, which made a lightly expressing region look broadly positive
+            //- see the note in sharedUmapData
+            return sharedUmapData.getDrawOrder(this.group);
         },
 
-        buildPositionBuffer(indices) {
+        /*
+            2 floats per point on a 2D dataset, 3 on a 3D one.
+
+            this always wrote 3 and stored a literal 0 for Z in 2D - 4 bytes per cell of
+            nothing, in the gl buffer and again in this staging copy, on both panels. at
+            1.5M cells that is ~6 MB per panel. a_position is a vec3 in the shader and
+            WebGL defaults the components an attribute does not supply to (0, 0, 0, 1), so
+            a 2-component attribute arrives in the shader as exactly the vec3(x, y, 0) the
+            old buffer spelled out. bindAttributes reads the count off the buffer set.
+        */
+        buildPositionBuffer(indices, components) {
             const count = indices.length;
-            const originalPositions = sharedUmapData.getPositions(this.group);
-            const positions = new Float32Array(count * 3);
+            const { X, Y, Z } = this.points;
+            const positions = new Float32Array(count * components);
 
             for (let drawIndex = 0; drawIndex < count; drawIndex++) {
                 const index = indices[drawIndex];
-                positions[drawIndex * 3] = originalPositions[index * 3];
-                positions[drawIndex * 3 + 1] = originalPositions[index * 3 + 1];
-                positions[drawIndex * 3 + 2] = this.is3dMode ? originalPositions[index * 3 + 2] : 0;
+                const at = drawIndex * components;
+                positions[at] = X[index];
+                positions[at + 1] = Y[index];
+                if (components > 2) positions[at + 2] = Z ? Z[index] : 0;
             }
 
             return positions;
@@ -866,18 +976,27 @@ export default Vue.component('research-umap-plot-gl', {
                 rebuildColors = true,
                 rebuildOrder = true,
                 rebuildHighlight = true,
+                rebuildVisible = true,
                 rebuildAxes = true,
             } = options;
 
-            if (rebuildOrder || this.pointDrawOrder.length !== this.points.length) {
+            if (rebuildOrder || this.pointDrawOrder.length !== this.points.count) {
                 this.pointDrawOrder = this.buildPointOrder();
             }
+            //the order comes from the shared group, so there is nothing to draw until
+            //this panel has attached to one
+            if (!this.pointDrawOrder) return;
 
-            this.vertexCount = this.points.length;
+            this.vertexCount = this.points.count;
 
             if (rebuildPositions) {
-                const positions = this.buildPositionBuffer(this.pointDrawOrder);
+                //set together, so the attribute layout can never disagree with the buffer.
+                //kept off this.buffers.points - everything in there is deleted as a
+                //WebGLBuffer on teardown, so a plain number cannot live in it
+                const components = this.is3dMode ? 3 : 2;
+                const positions = this.buildPositionBuffer(this.pointDrawOrder, components);
                 this.buffers.points.position = this.makeBuffer(positions, this.buffers.points.position);
+                this.pointPositionComponents = components;
             }
 
             if (rebuildColors) {
@@ -887,6 +1006,10 @@ export default Vue.component('research-umap-plot-gl', {
 
             if (rebuildHighlight) {
                 this.updateHighlightBuffer(this.pointDrawOrder);
+            }
+
+            if (rebuildVisible) {
+                this.updateVisibleBuffer(this.pointDrawOrder);
             }
 
             if (rebuildAxes) {
@@ -909,16 +1032,17 @@ export default Vue.component('research-umap-plot-gl', {
                 return;
             }
 
-            const point = this.points[this.hoveredPointIndex];
-            if (!point) {
+            const index = this.hoveredPointIndex;
+            const { count, X, Y, Z } = this.points;
+            if (index >= count) {
                 this.hoverVertexCount = 0;
                 return;
             }
 
             const positions = new Float32Array([
-                point.X,
-                point.Y,
-                this.is3dMode ? (point.Z ?? 0) : 0,
+                X[index],
+                Y[index],
+                Z ? Z[index] : 0,
             ]);
             const colors = new Uint8Array([0, 0, 0, 255]);
             const highlight = new Uint8Array([255]);
@@ -953,6 +1077,42 @@ export default Vue.component('research-umap-plot-gl', {
             }
 
             this.buffers.points.highlight = this.makeBuffer(highlight, this.buffers.points.highlight);
+        },
+
+        /*
+            the filter, reordered into draw order. one byte per cell per panel.
+
+            this is the whole cost of filtering the embedding: positions, colours and the
+            shared seeded draw order are all untouched, so a filter change uploads ~1.7 MB
+            at 1.7M cells instead of rebuilding the ~18 MB of position buffer that changing
+            the draw order used to force.
+
+            when there is no filter the buffer is deleted rather than filled with ones, so
+            bindAttributes falls back to the constant and nothing per-cell is uploaded at
+            all.
+        */
+        updateVisibleBuffer(sortedIndices = null) {
+            const gl = this.gl;
+            if (!gl) return;
+
+            const mask = this.visibleMask;
+            if (!mask || mask.length !== this.points.count) {
+                if (this.buffers.points.visible) {
+                    gl.deleteBuffer(this.buffers.points.visible);
+                    this.buffers.points.visible = null;
+                }
+                return;
+            }
+
+            const indices = sortedIndices || this.pointDrawOrder;
+            if (!indices) return;
+
+            const visible = new Uint8Array(indices.length);
+            for (let drawIndex = 0; drawIndex < indices.length; drawIndex++) {
+                visible[drawIndex] = mask[indices[drawIndex]] ? 255 : 0;
+            }
+
+            this.buffers.points.visible = this.makeBuffer(visible, this.buffers.points.visible);
         },
 
         getEyePosition() {
@@ -1013,28 +1173,86 @@ export default Vue.component('research-umap-plot-gl', {
         projectWorldPoint(point) {
             if (!this.renderMatrix) return null;
 
-            const clip = transformPoint(this.renderMatrix, point);
-            const w = clip[3];
-            if (Math.abs(w) < EPSILON) return null;
-
-            const ndcX = clip[0] / w;
-            const ndcY = clip[1] / w;
-            const ndcZ = clip[2] / w;
-
             const canvas = this.$refs.umapCanvas;
+            if (!projectToCanvas(this.renderMatrix, point[0], point[1], point[2],
+                canvas.width, canvas.height, projectionScratch)) {
+                return null;
+            }
+            //a fresh object: cluster labels are few and are held across renders
             return {
-                x: (ndcX * 0.5 + 0.5) * canvas.width,
-                y: (1 - (ndcY * 0.5 + 0.5)) * canvas.height,
-                depth: ndcZ,
-                visible: ndcX >= -1 && ndcX <= 1 && ndcY >= -1 && ndcY <= 1 && ndcZ >= -1 && ndcZ <= 1,
+                x: projectionScratch.x,
+                y: projectionScratch.y,
+                depth: projectionScratch.depth,
+                visible: projectionScratch.visible,
             };
+        },
+
+        /*
+            the 3D hover test needs every cell in canvas space. this used to build one
+            {x,y,depth,visible} object per cell into a plain Array and assign it to
+            this.projectedPoints - which was declared in data(), so Vue deep-observed all of
+            them, attaching an Observer and a Dep per object. on a 1.5M cell dataset that is
+            A1's ~467 bytes per cell of pure reactivity, paid again on every render, on top
+            of an array literal and an object per point.
+
+            now three typed arrays, allocated once and overwritten in place, on a plain
+            non-reactive field: 9 bytes per cell, no per-point allocation, nothing for Vue to
+            walk. depth is not kept - nothing reads it.
+
+            UNTESTED AGAINST A REAL 3D DATASET. there was none in the portal when this was
+            written; the maths is verified bit-identical to the old path in node, but if 3D
+            hover ever misbehaves this is the first place to look. to debug: the old code
+            skipped a point when projectWorldPoint returned null (no matrix, or |w| < EPSILON)
+            OR when visible was false; here both cases are folded into visible[i] === 0, so a
+            point that is silently never hoverable most likely has visible stuck at 0.
+        */
+        projectPoints() {
+            const { count, X, Y, Z } = this.points;
+            let projected = this.projectedPoints;
+            if (!projected || projected.count !== count) {
+                projected = {
+                    count,
+                    x: new Float32Array(count),
+                    y: new Float32Array(count),
+                    visible: new Uint8Array(count),
+                };
+            }
+
+            const matrix = this.renderMatrix;
+            const canvas = this.$refs.umapCanvas;
+            if (!matrix || !canvas) {
+                projected.visible.fill(0);
+                return projected;
+            }
+
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const scratch = projectionScratch;
+            //visible[] is what the 3D hover scan reads, so clearing it for filtered cells
+            //is also what keeps hover off points that are not drawn
+            const mask = this.visibleMask && this.visibleMask.length === count ? this.visibleMask : null;
+            for (let i = 0; i < count; i++) {
+                if (mask && !mask[i]) {
+                    projected.visible[i] = 0;
+                    continue;
+                }
+                if (projectToCanvas(matrix, X[i], Y[i], Z ? Z[i] : 0,
+                    canvasWidth, canvasHeight, scratch) && scratch.visible) {
+                    projected.x[i] = scratch.x;
+                    projected.y[i] = scratch.y;
+                    projected.visible[i] = 1;
+                } else {
+                    projected.visible[i] = 0;
+                }
+            }
+            return projected;
         },
 
         updateProjectedGeometry() {
             if (this.is3dMode) {
-                this.projectedPoints = this.points.map(point => this.projectWorldPoint([point.X, point.Y, point.Z ?? 0]));
+                this.projectedPoints = this.projectPoints();
             } else {
-                this.projectedPoints = [];
+                this.projectedPoints = null;
             }
             this.projectedLabels = this.clusterCenters
                 .map(cluster => {
@@ -1132,12 +1350,13 @@ export default Vue.component('research-umap-plot-gl', {
             });
         },
 
-        bindAttributes(bufferSet) {
+        //positionComponents defaults to 3: only the points buffer drops Z, and only in 2D
+        bindAttributes(bufferSet, positionComponents = 3) {
             const gl = this.gl;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, bufferSet.position);
             gl.enableVertexAttribArray(this.locations.position);
-            gl.vertexAttribPointer(this.locations.position, 3, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(this.locations.position, positionComponents, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, bufferSet.color);
             gl.enableVertexAttribArray(this.locations.color);
@@ -1146,6 +1365,18 @@ export default Vue.component('research-umap-plot-gl', {
             gl.bindBuffer(gl.ARRAY_BUFFER, bufferSet.highlight);
             gl.enableVertexAttribArray(this.locations.highlight);
             gl.vertexAttribPointer(this.locations.highlight, 1, gl.UNSIGNED_BYTE, true, 0, 0);
+
+            //only the points set is ever filtered. the axes and the hover marker have no
+            //visible buffer, so their attribute falls back to a constant 1 - a disabled
+            //attribute array reads the value set by vertexAttrib1f
+            if (bufferSet.visible) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, bufferSet.visible);
+                gl.enableVertexAttribArray(this.locations.visible);
+                gl.vertexAttribPointer(this.locations.visible, 1, gl.UNSIGNED_BYTE, true, 0, 0);
+            } else {
+                gl.disableVertexAttribArray(this.locations.visible);
+                gl.vertexAttrib1f(this.locations.visible, 1);
+            }
         },
 
         renderPoints() {
@@ -1179,7 +1410,7 @@ export default Vue.component('research-umap-plot-gl', {
                 gl.drawArrays(gl.LINES, 0, this.axisVertexCount);
             }
 
-            this.bindAttributes(this.buffers.points);
+            this.bindAttributes(this.buffers.points, this.pointPositionComponents);
             gl.uniform1f(this.locations.renderPoints, 1);
             gl.uniform1f(this.locations.pointSize, baseSize * (window.devicePixelRatio || 1));
             gl.uniform1f(this.locations.hoverScale, 1);
@@ -1329,17 +1560,22 @@ export default Vue.component('research-umap-plot-gl', {
             let nearestDist = Infinity;
             const maxDist = 12 * (window.devicePixelRatio || 1);
 
-            for (let i = 0; i < this.projectedPoints.length; i++) {
-                const projected = this.projectedPoints[i];
-                if (!projected || !projected.visible) continue;
+            //visible[i] === 0 covers both cases the old code skipped: a point that failed to
+            //project at all, and one that projected outside the view
+            const projected = this.projectedPoints;
+            if (projected) {
+                const { count, x: projectedX, y: projectedY, visible } = projected;
+                for (let i = 0; i < count; i++) {
+                    if (!visible[i]) continue;
 
-                const dx = projected.x - mouseX;
-                const dy = projected.y - mouseY;
-                const dist = Math.hypot(dx, dy);
+                    const dx = projectedX[i] - mouseX;
+                    const dy = projectedY[i] - mouseY;
+                    const dist = Math.hypot(dx, dy);
 
-                if (dist < maxDist && dist < nearestDist) {
-                    nearestDist = dist;
-                    nearestIdx = i;
+                    if (dist < maxDist && dist < nearestDist) {
+                        nearestDist = dist;
+                        nearestIdx = i;
+                    }
                 }
             }
 
@@ -1362,10 +1598,9 @@ export default Vue.component('research-umap-plot-gl', {
                 ((this.orthoBounds.top - this.orthoBounds.bottom) / canvas.height) * 8
             );
 
-            const point = sharedUmapData.getQuadtree(this.group)?.find(dataX, dataY, radius);
-            if (!point) return -1;
-            const index = sharedUmapData.getPointIndex(this.group, point);
-            return index == null ? -1 : index;
+            //the grid is built over every cell and stays valid across filter changes; the
+            //mask is applied to the candidates it returns instead
+            return sharedUmapData.findNearest(this.group, dataX, dataY, radius, this.visibleMask);
         },
 
         updateHoveredPoint(nextIndex) {
@@ -1382,7 +1617,11 @@ export default Vue.component('research-umap-plot-gl', {
 
             Object.keys(this.labels.metadata_labels).forEach(field => {
                 if (!this.isHoverField(field)) return;
-                const value = this.labels.metadata_labels[field][this.labels.metadata[field][index]];
+                //a field dropped as a duplicate of NAME keeps its key but loses its index
+                //array - its row was the Cell ID row above, repeated
+                const indices = this.labels.metadata[field];
+                if (!indices) return;
+                const value = this.labels.metadata_labels[field][indices[index]];
                 if (value && value !== "") {
                     hoverHTML += `<div style="font-weight:bold;">${field}</div><div>${value}</div>`;
                 }
@@ -1486,6 +1725,14 @@ export default Vue.component('research-umap-plot-gl', {
         },
 
         download() {
+            /*
+                without preserveDrawingBuffer the gl drawing buffer is undefined once the
+                browser has composited, so the export has to draw and read in one task -
+                render synchronously here, then drawImage below with nothing in between.
+                a rAF render may still be queued; an extra redraw after this is harmless.
+            */
+            this.renderUMAP();
+
             const canvas1 = this.$refs.umapCanvas;
             const canvas2 = this.$refs.umapLabelCanvas;
             const scaleFactor = 2;
@@ -1501,7 +1748,7 @@ export default Vue.component('research-umap-plot-gl', {
             ctx.drawImage(canvas2, 0, 0, combinedCanvas.width, combinedCanvas.height);
 
             const link = document.createElement('a');
-            link.download = 'umap.png';
+            link.download = `${this.downloadFilename}.png`;
             link.href = combinedCanvas.toDataURL('image/png');
             link.click();
         },
