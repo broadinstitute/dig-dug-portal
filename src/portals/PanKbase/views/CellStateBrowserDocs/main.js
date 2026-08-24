@@ -18,7 +18,6 @@ new Vue({
              liger_config: {
                 prodHost: "https://bioindex.pankbase.org",
                 devHost: "https://bioindex-dev.pankbase.org",
-                documentationUrl: "/cell-states-docs.html",
                 exampleGenes: ["CFTR", "PDX1", "INS"],
                 primaryColor: "#219197",
                 secondaryColor: "#219197",

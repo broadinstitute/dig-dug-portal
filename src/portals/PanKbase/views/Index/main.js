@@ -100,6 +100,15 @@ new Vue({
                         */
                     ],[
                         {
+                            title: "Cell State Browser",
+                            body: "Explore where a gene is expressed in the pacreas and the cell states and gene programs associated with its expression.",
+                            linkLabel: "Learn More",
+                            linkUrl: "/cell-states.html",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-cell-states.png",
+                            type: "medium",
+                            comingSoon: false,
+                        },
+                        {
                             title: "Differential Expression Browser",
                             body: "Interactive visualizations of differentially expressed genes in bulk and pseudobulk RNA-seq datasets from human islet donors.",
                             linkLabel: "Learn More",
