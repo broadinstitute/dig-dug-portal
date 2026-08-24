@@ -1,6 +1,6 @@
 # CRDC Gene Page Context API Calculation Guide
 
-This guide defines the two calculations triggered by the Gene Page HPO context input. The implementation is intentionally small and versioned because the burden-test covariates and final regression method may change after validation.
+This guide defines the HPO-context residual PheRS input and variant-level Match Score used by the Gene Page. The single-gene burden test is a separate analysis performed outside the browser; the page displays its returned result.
 
 Start with `docs/pb_gene_live_handoff.md` for the BioIndex-to-frontend mapping.
 Use `docs/pb_gene_context_api_review_checklist.md` for production approval gaps.
@@ -64,7 +64,7 @@ Result example:
 
 If one or more carrier scores are missing, return `match_score: null` and `status: "incomplete_scores"`.
 
-## Calculation 2: Gene-level real-time Burden Test
+## Separate analysis: single-gene burden test [Updated 2026-08-24]
 
 ### X: per-sample gene burden
 
@@ -82,42 +82,29 @@ Use the existing private BioIndex `gene-samples` query as the source. Query by H
 |---|---|
 | `sample_id` | Align the carrier with the full CRDC sample/Y vector |
 | `variant_id` | Deduplicate one contribution per sample and distinct variant |
-| `LoF` / `LOFTEE` | LoFTEE HC evidence used to reconstruct Burden Pathogenic Score |
-| `Alphamissense` / `AlphaMissense` | Second-priority Burden Pathogenic Score evidence |
-| `REVEL` | Extended display evidence only; never contributes to X |
-| `pathogenicity_score` | Existing Extended Pathogenic Score for display validation only |
+| `LoF` / `LOFTEE` | LoFTEE HC evidence for the table Pathogenic Score and upper-right Extended score |
+| `Alphamissense` / `AlphaMissense` | AlphaMissense evidence for the table Pathogenic Score and upper-right Extended score |
+| `REVEL` | REVEL evidence for the upper-right Extended Pathogenic Score only |
+| `pathogenicity_score` | Existing Extended display value for validation |
 | `score_source` | Existing Extended score provenance |
-| `GT`, `alt_dosage`, `weighted_score` | Available for provenance/QA, but not used to calculate portal v1 X |
+| `GT`, `alt_dosage`, `weighted_score` | Genotype dosage and burden-input provenance |
 
-`gene-variants2` can continue to supplement display annotations. The burden
-calculation must reconstruct its own score from LoFTEE HC and AlphaMissense; it
-must not reuse the Extended `gene-samples.pathogenicity_score` because that
-field can contain a REVEL fallback.
-
-The two score contracts are intentionally separate:
-
-1. Extended Pathogenic Score `loftee_hc_alphamissense_revel_v1`:
-   `LoFTEE HC -> AlphaMissense -> REVEL -> No_score`.
-2. Burden Pathogenic Score `loftee_hc_alphamissense_v1`:
-   `LoFTEE HC -> AlphaMissense -> excluded`.
-
-A REVEL-only variant remains visible and is counted as
-`REVEL_only_excluded`, but contributes nothing to X. A defined AlphaMissense
-zero remains a scored value.
+`gene-variants2` can continue to supplement the variant display annotations.
+The burden test is a separate analysis and is not recalculated by the browser.
 
 ```text
-X_i = sum(I(sample i carries variant v) * Pathogenic_Score_v)
+X_i = sum(Pathogenic_Score_v * genotype_dosage_iv)
 ```
 
 Rules:
 
-- Carrier presence is binary: both `0/1` and `1/1` contribute the variant's Burden Pathogenic Score once.
-- A sample carrying multiple distinct variants receives the sum of their LoFTEE HC/AlphaMissense Burden Pathogenic Scores.
+- Genotype dosage is included in the burden-test input.
+- A sample carrying multiple distinct variants receives the sum of each variant's Pathogenic Score multiplied by its genotype dosage.
 - Duplicate rows for the same sample and variant contribute only once.
 - Samples without a qualifying carrier record receive X=0.
-- Genotype dosage and zygosity are not weights in portal model v1.
+- This dosage-weighted burden construction is separate from the frontend display of Pathogenic Score and Extended Pathogenic Score.
 - Do not add a second ClinVar, consequence, or rarity filter in the burden function. The upstream gene-result variant set is the source of truth.
-- A `No_score` variant is excluded from X and must be counted in `n_variants_unscored`.
+- Variants without the required Pathogenic Score remain unavailable in the burden-analysis input and must be reported by the analysis output.
 
 Python interface:
 
@@ -129,7 +116,7 @@ burden_input = gene_burden_scores(
 x = burden_input["values"]
 ```
 
-### Portal model v2
+### Burden-analysis output details [Updated 2026-08-24]
 
 ```text
 Y ~ X + age + age_missing + sex_male + sex_unknown + PC1 + ... + PC10
@@ -197,7 +184,6 @@ Result example:
   "status": "ok",
   "model_version": "portal_huber_rlm_covariate_v2",
   "extended_pathogenic_score_version": "loftee_hc_alphamissense_revel_v1",
-  "burden_pathogenic_score_version": "loftee_hc_alphamissense_v1",
   "model": "Huber RLM",
   "formula": "Y ~ X + age + age_missing + sex_male + sex_unknown + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10",
   "covariates": ["age", "age_missing", "sex_male", "sex_unknown", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10"],
@@ -210,7 +196,9 @@ Result example:
 
 ## Recommended HTTP response
 
-The two calculations should share one Y calculation per `Go` request. A single endpoint can return two result blocks:
+The Match Score calculation uses the HPO-context residual PheRS vector. The
+single-gene burden result is calculated separately and may be returned or loaded
+as an analysis result for display; it is not recalculated in the browser.
 
 ```json
 {
@@ -275,9 +263,11 @@ For a single-gene Gene Page request, the test family contains one test, so BH-FD
 
 ## Method versioning
 
-`portal_huber_rlm_covariate_v2` uses LoFTEE HC/AlphaMissense-only burden X and
-the fixed age, age-missingness, three-level sex, and PC1-PC10 covariates above.
-REVEL remains available only in Extended display scoring.
+The separately calculated single-gene burden analysis uses the approved
+Pathogenic Score multiplied by genotype dosage and summed per sample. REVEL is
+available only in Extended display scoring; the table Pathogenic Score uses
+LoFTEE HC and AlphaMissense. The browser consumes the analysis result rather
+than recalculating it.
 
 When the method changes:
 

@@ -57,7 +57,7 @@ absent.
 
 ---
 
-## 3. Evidence Semantics
+## 3. Evidence Semantics [Updated 2026-08-24]
 
 Use the same evidence hierarchy as the shared portal architecture guide.
 
@@ -77,14 +77,15 @@ Rules:
 - Co-carrier genotype profiles are computed from the selected carrier set.
 - Broad HPO anchors should not be displayed as evidence terms: `HP:0000001` and `HP:0000118`.
 - ClinVar is classification context, not part of the variant severity score.
-- Variant severity score is annotation-only: `LoFTEE HC -> 1`, else AlphaMissense, else REVEL.
-- Genotype dosage can be used for sample-level gene burden, but variant score displays should not multiply by genotype.
+- The upper-right display uses Extended Pathogenic Score: `LoFTEE HC -> 1`, else AlphaMissense, else REVEL.
+- The Variant Evidence table uses the label `Pathogenic Score`.
+- The single-gene burden test is separate from both display areas. Its current input uses pathogenic score times genotype dosage and sums multiple variants within a sample.
 
 ---
 
 ## 4. Page Contract
 
-### 4.1 Top Block
+### 4.1 Top Block [Updated 2026-08-24]
 
 Purpose:
 
@@ -103,7 +104,7 @@ Expected evidence:
 | Carrier, affected, proband, GenDx diagnosed counts | CRDC cohort carrier tables |
 | Carrier phenotype profile | HPO terms among current gene carriers |
 | Most severe observed variant / score | Variant annotations among current gene variants |
-| Mean carrier burden | Mean of carrier-level max gene burden scores |
+| Gene burden result | Result of the separately run single-gene burden test |
 
 The gene identity block shows source labels inline:
 
@@ -118,8 +119,10 @@ The locus title carries the build, genomic range, cytogenetic location, and span
 PGD gene locus (GRCh38) chr1:10,399,064-10,420,511 (1p36.22; 21.4 kb)
 ```
 
-Mean carrier burden is a gene burden summary. Match score is separate and is
-not defined without an explicit phenotype or outcome context.
+The single-gene burden result is calculated separately from the variant score
+display and returned to the page. Its current input uses pathogenic score times
+genotype dosage and sums multiple variants within a sample. Match Score is the
+residual PheRS value for the selected HPO context and is a separate result.
 
 `GenDx diagnosed` is a top metric based on sample metadata
 `diagnosed_flag`. The expanded carrier sample table also has a `GenDx` detail
@@ -209,8 +212,8 @@ Backend responsibilities:
 - Add carrier-sample GenDx detail from `crdc_diagnosed_20240716.tsv` and flag
   metadata/detail conflicts with `*`.
 - Compute per-position carrier density for the locus view.
-- Compute or return variant severity scores using `LoFTEE HC -> AlphaMissense -> REVEL`.
-- Compute carrier-only mean gene burden if the burden metric is shown.
+- Compute or return Extended Pathogenic Score using `LoFTEE HC -> AlphaMissense -> REVEL`; the table Pathogenic Score uses `LoFTEE HC -> AlphaMissense` and does not include REVEL.
+- Return the separately calculated single-gene burden-test result if the burden result is shown; do not calculate a carrier-level mean in the browser.
 - Paginate or limit expanded carrier sample rows for production-scale cohorts.
 - Return explicit unavailable values for data that cannot be calculated.
 
@@ -233,7 +236,7 @@ Current mockup limitations:
 - Gene symbol alias resolution is not part of the current page contract.
 - A searched gene can only render full CRDC evidence if carrier and variant data exist for that gene.
 - Match score remains unavailable without an outcome or phenotype context.
-- Full reference FASTA/GTF/TSV/BED-like artifacts are local or server-side reference inputs, not browser assets.
-- Prepared reference tables already exist under `data/reference_db/`; production work should use them instead of adding browser-side downloads.
+- Full reference FASTA/GTF/TSV/BED-like artifacts were prepared for the prototype or are local/server-side reference inputs, not browser assets.
+- Prototype reference tables under `data/reference_db/` need a separately owned, versioned production source and update process.
 
 Production implementation should preserve the page semantics while replacing the fixture bridge with an API-backed data path.

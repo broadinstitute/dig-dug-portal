@@ -39,19 +39,18 @@ disease, PheRS, percentile, investigator, or ClinVar values are production data.
   count. These summaries use the full eligible set, not only the displayed top
   50 samples.
 
-### Genotype profile: All
+### Genotype profile: All [Updated 2026-08-24]
 
 - Groups the sample's variant calls by gene and expands to Gene-page-compatible
   variant rows.
 - Shows variant, GT, CRDC carrier frequency, classification/consequence,
   Pathogenic Score, and mean carrier residual PheRS.
 - Links directly to the Gene page and to the Variant page.
-- Pathogenic Score follows the existing PB Gene display contract: LoFTEE HC is
-  `1.00`; otherwise AlphaMissense is used; REVEL-only values are displayed as
-  `—*` and excluded from this score.
-- Mean carrier residual PheRS is the mean score among carriers when the current
-  sample's HPO set is used as the reference phenotype. It is not the old generic
-  context-based match score.
+- Pathogenic Score is a variant-level table value. The Gene page's upper-right
+  display separately uses Extended Pathogenic Score.
+- Mean carrier residual PheRS is calculated using the current sample's HPO set as
+  the reference phenotype. It is separate from the Gene/Variant page Match
+  Score, which uses the selected HPO context.
 
 ### Genotype profile: Type findings
 

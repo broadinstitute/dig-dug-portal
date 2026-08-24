@@ -45,11 +45,12 @@ flowchart LR
 
 The frontend should receive a page-shaped JSON response. It should not join raw VCF, HPO, and sample tables in the browser.
 
-The reference tables needed by this page already live under `data/reference_db/`
-in this repository. Production work should use those files or the equivalent
-server-side reference database. Do not ask the browser or the frontend engineer
-to download HGNC, NCBI, DDG2P, PanelApp, HPO, pathway, Ensembl, FASTA/GTF, or
-coordinate resources at runtime.
+The reference tables used by the prototype were prepared for this prototype
+under `data/reference_db/`. They are not evidence that the original browser or
+production server already owned these databases. Production work needs a
+separately owned, versioned source or equivalent server-side reference database.
+Do not ask the browser or the frontend engineer to download HGNC, NCBI, DDG2P,
+PanelApp, HPO, pathway, Ensembl, FASTA/GTF, or coordinate resources at runtime.
 
 ---
 
@@ -240,12 +241,13 @@ frequency in this VCF.
 | `gene_exon_coords` | Gene locus range, exon model, base-level reference sequence |
 | `hpo_term`, `hpo_edge`, `hpo_ancestor` | HPO labels and root-category grouping |
 
-Prepared reference resources:
+Prepared reference resources [Updated 2026-08-24]:
 
-These resources exist in the local/server-side data area used to build the
-current fixture and production API payloads. Large or sensitive raw/cache files
-do not need to be committed to the shared UI branch; the backend should read
-them from the server-side reference database or data area.
+These resources were prepared for the current prototype. Some source tables and
+raw/cache files are local or ignored, while generated browser modules or derived
+tables may be tracked. They are not original browser databases. Production needs
+a separately owned, versioned source and update process; large or sensitive files
+should be kept server-side rather than bundled into the browser.
 
 | Resource | Current file |
 |---|---|
@@ -326,7 +328,7 @@ Required behavior:
 
 ---
 
-## 5. Top Block
+## 5. Top Block [Updated 2026-08-24]
 
 ### **Goal:**
 
@@ -350,7 +352,7 @@ Identify the searched gene and summarize the strongest gene-level cohort evidenc
 | Variants in this gene | `crdcEvidence.variantCount` | count distinct `sample_variant.variant_id` for gene |
 | Carrier phenotype profile | `geneLevelPhenotypeCategories` | HPO terms among gene carriers |
 | Most severe observed variant | derived from `variantRows` | highest annotation-only variant severity score |
-| Mean carrier burden | `crdcEvidence.meanCarrierBurden` or equivalent | mean of per-carrier max gene burden score |
+| Gene burden result | `crdcEvidence.geneBurdenResult` or equivalent | Result of the separately run single-gene burden test |
 
 Gene identity display:
 
@@ -378,27 +380,26 @@ Gene basic info source policy:
 - `geneInfo.description` must come from NCBI Gene ESummary summary, trimmed to one or two deterministic sentences.
 - Do not use OMIM prose for the basic description. OMIM can be used as an ID/link if present.
 
-Scoring semantics:
+Scoring semantics [Updated 2026-08-24]:
 
 - `variant_severity_score` is annotation-only and must not be multiplied by genotype.
-- Variant severity score priority:
+- Extended Pathogenic Score priority for the upper-right display:
   1. `LoFTEE/LoF == HC` -> `1`
   2. else `AlphaMissense`
   3. else `REVEL`
-  4. else unavailable / `0` only if a numeric fallback is required
+  4. else unavailable; do not replace missing evidence with biological zero
 - ClinVar should be displayed as classification context only. Do not include ClinVar in `variant_severity_score`.
-- Sample-level gene burden score can use `variant_severity_score * genotype_dosage`.
-- `GT 0/1` or `1/0` dosage is `1`; `1/1` dosage is `2`.
-- Gene-level burden for one sample is the max burden score across that sample's variants in the searched gene.
-- Overall/mean carrier burden on this page should be the mean of the sample-level gene burden among carriers, not the mean across the entire cohort.
-- Match score is different from burden score and should stay `no context` until a real phenotype or outcome context is supplied.
+- The Variant Evidence table uses `Pathogenic Score`: LoFTEE HC -> 1, otherwise AlphaMissense. REVEL is not displayed in this table score.
+- The single-gene burden test is separate from the variant score display. Its current input is `pathogenic_score * genotype_dosage`, and multiple variants in one sample are summed, not reduced by `max`.
+- The burden test is calculated outside the browser. The page displays the returned single-gene burden result; the frontend does not recompute the test.
+- Match Score is the residual PheRS value for the selected HPO context and is separate from the single-gene burden-test result.
 
 UI behavior:
 
 - Pathway `more` should expand within the row.
 - HPO category labels should be readable even when long.
-- Mean carrier burden can be shown because it is computed from carrier genotypes and variant severity scores.
-- Match score should show `no context` until a real phenotype or outcome context exists.
+- Display the returned single-gene burden-test result; do not calculate a carrier-level mean in the browser.
+- Match Score is populated from the selected HPO context's residual PheRS calculation.
 
 HPO profile calculation:
 
@@ -444,7 +445,7 @@ UI behavior:
 
 ---
 
-## 7. Bottom Evidence Block
+## 7. Bottom Evidence Block [Updated 2026-08-24]
 
 Goal:
 
@@ -458,8 +459,8 @@ Show gene-level carrier evidence by default and switch to variant-level evidence
 | CRDC AF | `variantRows[].crdcAF` | variant carrier count / cohort VCF sample count |
 | Classification | `variantRows[].clinvar` | `clinvar_clnsig` |
 | Consequence | `variantRows[].consequence`, `csq_detail` | VEP consequence / HGVSp |
-| Variant score | `variantRows[].variantSeverityScore` or equivalent | LoFTEE HC, else AlphaMissense, else REVEL |
-| Match score | explicit unavailable value | requires phenotype or outcome context |
+| Pathogenic Score | `variantRows[].pathogenicScore` or equivalent | Variant-level LoFTEE/AlphaMissense value; REVEL is not included in this table score |
+| Match score | `variantRows[].matchScore` | Residual PheRS for the selected HPO context, aggregated for the variant carriers |
 | Expanded carrier samples | `variantRows[].carrierSamples[]` | joined sample + variant + HPO counts |
 
 Carrier sample row fields:
@@ -534,7 +535,7 @@ UI behavior:
 | Known gene, no carriers | typed empty response or `404` | Show no carrier evidence state |
 | Missing DDG2P/PanelApp/pathway | empty annotation object | Display `No entry`, `No green panels`, or `No annotation` |
 | Missing variant scores | `null` or `"-"` | Display `-` |
-| No phenotype context | `matchScore: null` with reason | Display `no context` |
+| HPO context residual unavailable | `matchScore: null` with reason | Display an unavailable state |
 | Missing reference sequence | empty `sequence` | Hide base letters or show unavailable state |
 | High AF variant | warning metadata | Show `*` and high-AF review note |
 
@@ -551,8 +552,8 @@ For a valid gene with cohort evidence:
 - Variant rows only include variants in the searched gene.
 - CRDC AF uses the internal cohort denominator.
 - External gnomAD AF uses `CSQ/gnomADe_AF`, not VCF `INFO/AF`.
-- Variant severity score follows `LoFTEE HC -> AlphaMissense -> REVEL` and does not use ClinVar or GT.
-- Mean carrier burden uses carrier-only sample-level max burden scores.
+- Extended Pathogenic Score follows `LoFTEE HC -> AlphaMissense -> REVEL`. The Variant Evidence table Pathogenic Score uses `LoFTEE HC -> AlphaMissense` and does not show REVEL in that score.
+- The page displays the separately calculated single-gene burden-test result; it does not calculate a carrier-level maximum or mean.
 - Gene-level phenotype profile summarizes all current gene carriers.
 - Variant-level phenotype profile summarizes only carriers of the selected variant.
 - Variant-level phenotype profile percentages use the selected variant carrier count as denominator.
@@ -562,7 +563,7 @@ For a valid gene with cohort evidence:
 - Top `GenDx diagnosed` metric counts `sample.diagnosed_flag`, not diagnosis TSV detail rows.
 - Carrier sample `GenDx` detail comes from `crdc_diagnosed_20240716.tsv` by `sample_id`.
 - GenDx metadata/detail mismatches display `*` with hover explanation but do not change top metrics.
-- Match score is not shown as a real calculated value unless a context is provided.
+- Match Score is shown only for the selected HPO context and is unavailable when that context calculation is not available.
 - Variants with CRDC or gnomAD AF `>= 0.10` show a high-AF review flag.
 
 For implementation testing, use at least two genes with different chromosome

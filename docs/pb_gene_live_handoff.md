@@ -24,9 +24,9 @@ Reference code:
 | File | Role |
 |---|---|
 | `scripts/rphers_fast.py` | Calculate one `phenotype_match_score_resid` value for every analysis sample. |
-| `scripts/context_api_fast.py` | Calculate variant Match Scores, construct gene burden X, fit the provisional burden model, and calculate BH-FDR. |
+| `scripts/context_api_fast.py` | Calculate variant Match Scores and support context-result integration; the single-gene burden result is supplied by the separate analysis output. |
 | `scripts/test_rphers_fast.py` | HPO scoring and residual tests. |
-| `scripts/test_context_api_fast.py` | Variant mean, binary-carrier burden, RLM, and BH tests. |
+| `scripts/test_context_api_fast.py` | Variant Match Score, burden-input, RLM, and BH tests. |
 
 `scripts/pb_gene_context_validation.py` and its tests are local validation
 support. They are useful for method review but are not the production API.
@@ -64,7 +64,7 @@ The development Gene Page proxies `/phenotype-analyzer-api` to
 `PHENOTYPE_ANALYZER_HOST_PRIVATE` before starting Vue to use another approved
 service. The four input files remain private and must not be committed.
 
-## End-to-end data flow
+## End-to-end data flow [Updated 2026-08-24]
 
 ```text
 HGNC gene query
@@ -78,9 +78,8 @@ HPO list
 complete gene-samples rows + full ordered Y
   -> variant carrier means
   -> Match Score (Context-based), one value per variant
-  -> binary-carrier LoFTEE HC/AlphaMissense Burden Pathogenic Score sums (X)
-  -> Huber RLM Y ~ X + age + age_missing + sex + PC1-PC10
-  -> gene-level Beta, P-value, FDR/status
+  -> gene burden analysis input: Pathogenic Score * genotype dosage, summed per sample
+  -> separately calculated single-gene burden result
 
 aggregate response only
   -> /phenotype-analyzer-api/analyze
@@ -97,7 +96,7 @@ the context endpoint.
 | BioIndex dev proxy | `vue.config.js` | Proxies `/__bioindex_private__` when `BIOINDEX_HOST_PRIVATE` is set. |
 | BioIndex client | `src/utils/bioIndexUtils.js` | Queries private BioIndex and follows `/api/bio/cont` continuations. |
 | Gene Page adapter | `src/views/PbGene/pbGeneBioIndexAdapter.js` | Joins carrier evidence with matching annotation rows and creates page state. |
-| Context route | `POST /phenotype-analyzer-api/analyze` | Accepts gene, HPO terms, and Advanced options; returns aggregate Match Scores and gene burden statistics. |
+| Context route | `POST /phenotype-analyzer-api/analyze` | Accepts gene and HPO terms and returns aggregate Match Scores; the page separately displays the approved single-gene burden result. |
 | Page state | `src/views/PbGene/pageModel.js` | Sends the context request and merges aggregate scores into existing live variant rows. |
 | Rendering | `src/views/PbGene/Template.vue`, `style.css` | Displays HPO controls, results, BioIndex evidence, and context-dependent Match Scores. |
 
@@ -115,7 +114,7 @@ The shared BioIndex helper must consume all continuation pages. A first-page or
 UI pagination subset is not a valid input for counts, Match Scores, or gene
 burden.
 
-## UI field mapping
+## UI field mapping [Updated 2026-08-24]
 
 | UI field | Source or calculation |
 |---|---|
@@ -129,9 +128,10 @@ burden.
 | Variants in this gene | Distinct carrier variant IDs from complete `gene-samples` results. |
 | CRDC carrier frequency | Person-level carrier frequency supplied or derived by the backend. Do not label it allele frequency. |
 | Classification | ClinVar clinical significance fields only; keep the external ClinVar link when unavailable. |
-| Extended Pathogenic Score | Top-card display score: LoFTEE HC = 1, else AlphaMissense, else REVEL. |
-| Burden Pathogenic Score | Variant-table and regression score: LoFTEE HC = 1, else AlphaMissense; REVEL-only is displayed as `—*` and excluded from X. |
-| Match Score (Context-based) | Mean `phenotype_match_score_resid` across all unique carriers of each variant. |
+| Extended Pathogenic Score | Upper-right display score: LoFTEE HC = 1, else AlphaMissense, else REVEL. |
+| Pathogenic Score | Variant-table score: LoFTEE HC = 1, otherwise AlphaMissense. REVEL is not included in this table score. This is a variant-level display value, not the single-gene burden-test result. |
+| Match Score (HPO context) | Residual PheRS value for the selected HPO context, aggregated across the unique carriers of each variant. |
+| Gene burden result | Separately calculated single-gene burden-test result displayed on the page. |
 | Beta / P-value | Gene-level context burden regression result returned by the context endpoint. |
 
 Tracked reference data remains separate from BioIndex:
@@ -152,7 +152,7 @@ Request:
   "advanced": {
     "significance_metric": "p_value",
     "significance_threshold": 0.05,
-    "min_carriers": 5
+    "min_carriers": 10
   }
 }
 ```
@@ -172,11 +172,10 @@ Response shape:
     "fdr": 0.00124,
     "n_samples": 12438,
     "n_positive_burden": 84,
-    "min_carriers": 5,
+    "min_carriers": 10,
     "status": "ok",
     "model_version": "portal_huber_rlm_covariate_v2",
-    "extended_pathogenic_score_version": "loftee_hc_alphamissense_revel_v1",
-    "burden_pathogenic_score_version": "loftee_hc_alphamissense_v1"
+    "extended_pathogenic_score_version": "loftee_hc_alphamissense_revel_v1"
   }
 }
 ```
@@ -191,10 +190,10 @@ service and not a statistically approved final model.
 
 The following decisions remain open and must not be hidden during handoff:
 
-1. `portal_huber_rlm_covariate_v2` uses LoFTEE HC/AlphaMissense-only burden X, MASS `summary.rlm`-style standard errors, and a two-sided normal approximation. It is not HC3.
+1. The single-gene burden result is calculated separately from the browser and is displayed as an analysis output. Its current input uses Pathogenic Score multiplied by genotype dosage and summed per sample.
 2. Covariates are age, age-missingness, Female-reference sex indicators, and PC1-PC10; the versioned colleague-provided table must pass one-to-one sample alignment.
 3. `min_carriers` currently gates on samples with X > 0. This may differ from the number of actual carriers when scores are zero or missing.
-4. Extended and Burden Pathogenic Score versions are separate; production BioIndex provenance still requires data-owner sign-off.
+4. Extended Pathogenic Score is the upper-right display value and Pathogenic Score is the variant-table value; production BioIndex provenance still requires data-owner sign-off.
 5. The FDR family must be request-scoped and explicitly returned. The BH helper exists, but production response assembly is not implemented here.
 6. Production uses the complete current Gene Page carrier-variant set from BioIndex. The private CEP152/DMD validation used a nonsynonymous evidence subset and must not silently redefine the production variant universe.
 

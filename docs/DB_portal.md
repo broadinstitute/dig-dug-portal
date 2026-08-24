@@ -48,12 +48,13 @@ Layer 2. CRDC cohort database
 
 The reference database is sample-free. CRDC samples are attached later.
 
-The shared reference database is materialized in the development/server-side
-data area under `data/reference_db/` or an equivalent production reference
-database. Engineers should use those prepared tables as the source of truth. Do
-not add browser-side download logic for HGNC, NCBI, HPO, DDG2P, PanelApp,
-pathway, Ensembl, FASTA/GTF, BED, or coordinate resources. Large or sensitive
-raw/cache files do not need to be committed to the shared UI branch.
+The prototype reference tables under `data/reference_db/` were prepared for this
+work; their presence does not mean that the original browser or production
+server already owned these databases. Production needs a separately owned,
+versioned reference source or equivalent backend database. Do not add
+browser-side download logic for HGNC, NCBI, HPO, DDG2P, PanelApp, pathway,
+Ensembl, FASTA/GTF, BED, or coordinate resources. Large or sensitive raw/cache
+files do not need to be committed to the shared UI branch.
 
 ---
 
@@ -99,14 +100,12 @@ reference_source_manifest.rds / reference_source_manifest.tsv
 
 The UI does not read RDS files directly. Exporters or backend endpoints should transform these tables into the page contracts below.
 
-Reference availability notes:
+Reference availability notes [Updated 2026-08-24]:
 
-- `gene_basic_info` contains HGNC approved symbol/name, HGNC cytogenetic location, NCBI Gene ID, Ensembl Gene ID, and a deterministic one- or two-sentence NCBI Gene summary.
-- `gene_annotation_summary` is the collapsed DDG2P / PanelApp / Reactome / WikiPathways reference table.
-- `hpo_term`, `hpo_edge`, and `hpo_ancestor` are present and should be used for HPO labels, ancestor traversal, broad-root exclusion, and root-category grouping.
-- `gene_exon_coords.tsv` is present and should be used for gene locus range, exon model, and base-level reference sequence display.
-- `_ensembl.gtf.gz` is a local Ensembl GTF cache used by reference-build scripts.
-- `crdc_diagnosed_20240716.tsv` is present and should be used for sample-level GenDx diagnosis detail display.
+- `gene_basic_info`, `gene_annotation_summary`, the processed HPO/disease references, and `gene_exon_coords.tsv` were prepared for the prototype and require an owned update process for production.
+- `gene_exon_coords.tsv` was built from the matching Ensembl GTF and primary-assembly FASTA; the original GTF/FASTA are not implied to be production server assets.
+- `_ensembl.gtf.gz` is a local source/cache used by the reference-build scripts.
+- `crdc_diagnosed_20240716.tsv` is prototype-prepared sample-level GenDx detail and requires a maintained production source if it remains part of the page.
 - WES capture BED or coverage resources, when used, belong in the same server-side reference layer. They should not be requested by the browser.
 
 ---

@@ -1,5 +1,8 @@
 # REVEL Pathogenic Score Fallback Validation (2026-07-15)
 
+> Historical Step4 validation. This document is not the Gene Page display or
+> single-gene burden-test contract. [Reviewed 2026-08-24]
+
 ## Result
 
 The 2025 nonsynonymous burden and evidence were regenerated and promoted to

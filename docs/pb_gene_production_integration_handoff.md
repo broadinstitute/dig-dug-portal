@@ -20,7 +20,7 @@ The current UI revision and this handoff are recorded together in the latest
 local commit after the baseline above. The branch is not pushed automatically;
 verify `git log` and share the required commits explicitly.
 
-## What the production page must preserve
+## What the production page must preserve [Updated 2026-08-24]
 
 | Area | Required behavior | Source of truth |
 |---|---|---|
@@ -28,8 +28,8 @@ verify `git log` and share the required commits explicitly.
 | External portal | Show a subtle orange **A2FKP** link to `https://a2f.hugeamp.org/` in a new tab | `Template.vue` |
 | Gene loading | Show an orange spinner, three activity dots, and a left-to-right orange text sweep while complete continuations load; respect reduced-motion settings | `Template.vue` and `style.css` |
 | Top score | **Extended Pathogenic Score** uses LoFTEE HC, then AlphaMissense, then REVEL | `extendedVariantScoreValue()` |
-| Variant-table score | **Burden Pathogenic Score** uses only LoFTEE HC, then AlphaMissense | `variantScoreValue()` |
-| REVEL-only rows | Display red `—*`; sort after numeric burden scores and before complete missing values; repeat the star and explanation in expanded evidence | `hasRevelOnlyScore()` and `sortedVariantRows()` |
+| Variant-table score | **Pathogenic Score** is the variant-level LoFTEE HC or AlphaMissense score shown for the observed variant; REVEL is not included in this table score | `variantScoreValue()` |
+| REVEL-only rows | Preserve the existing missing/evidence state and explanation for variants with only REVEL evidence | `hasRevelOnlyScore()` and `sortedVariantRows()` |
 | ClinVar emphasis | Mark Pathogenic with a restrained red badge and Likely pathogenic with orange in both the collapsed classification and expanded evidence | `pathogenicityClass()` |
 | Evidence count | Show variants with any LoFTEE, AlphaMissense, or REVEL value over all observed variants, for example `20 / 870` | `pathogenicEvidenceVariantCount` |
 | Match Score | Mean residual PheRS across all unique carriers of that variant | Context API `variant_match_scores` |
@@ -37,8 +37,11 @@ verify `git log` and share the required commits explicitly.
 | Phenotype profile | Keep the current panel because it switches from all gene carriers to the selected variant carriers | Existing active carrier-set state |
 | Table layout | Optimize for desktop/laptop; use horizontal overflow rather than a separate mobile card UI | `style.css` |
 
-The two pathogenic scores are intentionally different. Do not reuse the
-Extended score as the burden input because it can contain a REVEL fallback.
+The upper-right Extended Pathogenic Score and the table Pathogenic Score are
+display values. The single-gene burden test is a separate analysis: its current
+input uses pathogenic score multiplied by genotype dosage, with multiple variants
+summed within each sample. The page displays the returned burden-test result and
+does not recalculate it.
 
 ## Runtime flow
 
@@ -110,7 +113,7 @@ for the complete response.
 | `src/views/PbGene/pbGeneBioIndexAdapter.js` | BioIndex queries, deduplication, progressive state, and five-gene tab cache |
 | `src/views/PbGene/style.css` | Page tokens, accessible loading motion, desktop table overflow, and evidence states |
 | `src/views/PbGene/geneIdReference.generated.js` | Generated gene-level Ensembl and OMIM lookup |
-| `scripts/context_api_fast.py` | Reference Match Score and burden model |
+| `scripts/context_api_fast.py` | Reference Match Score and context-result integration |
 | `scripts/pb_gene_context_api_server.py` | Local reference HTTP service, not the production deployment |
 
 Regenerate the gene ID module with
@@ -118,7 +121,7 @@ Regenerate the gene ID module with
 by hand. Its inputs are `data/reference_db/gene.tsv` and
 `data/reference_db/hgnc_complete_set.txt`.
 
-## Context API contract
+## Context API contract [Updated 2026-08-24]
 
 The browser sends one request when the user selects **Go**:
 
@@ -148,9 +151,7 @@ The calculations are:
 ```text
 MatchScore_v = mean(residual PheRS_i for every unique carrier i of variant v)
 
-X_i = sum(I(sample i carries variant v) * BurdenPathogenicScore_v)
-
-rlm(residual PheRS ~ X + age + age_missing + sex_male + sex_unknown + PC1-PC10)
+Gene burden test result = separately calculated analysis output
 ```
 
 Only finite ages from 0 through 99 are retained. Every other age is Unknown,
@@ -176,8 +177,9 @@ Keep it only while it remains a useful approved residual-PheRS reference.
 4. Keep all patient-level joins and calculations on the backend.
 5. Preserve explicit unavailable states when BioIndex lacks affected, proband,
    cohort, demographic, or phenotype fields.
-6. Preserve the progressive gene-summary render, but calculate final metrics
-   from complete continuations.
+6. Preserve the progressive gene-summary render, but calculate final carrier
+   metrics from complete continuations. Display the separately calculated
+   single-gene burden result supplied by the approved analysis output.
 
 Development uses:
 
@@ -206,10 +208,8 @@ For `DMD`, verify the following in the integrated page:
 - The top card says **Extended Pathogenic Score**.
 - The metric says **Pathogenic variants in this gene** and displays
   `evidence-bearing variants / all observed variants`.
-- The variant table says **Burden Pathogenic Score**.
-- Numeric burden scores sort first, red REVEL-only `—*` rows sort next, and
-  complete missing `—` rows sort last.
-- Expanded REVEL-only evidence repeats the red star and exclusion explanation.
+- The variant table says **Pathogenic Score**.
+- Pathogenic Score values preserve the documented missing/evidence states.
 - ClinVar Pathogenic uses restrained red emphasis and Likely pathogenic uses
   orange without coloring the entire row.
 - A variant row opens and closes without changing the established carrier
@@ -217,9 +217,8 @@ For `DMD`, verify the following in the integrated page:
 - The Match Score help marker explains the unique-carrier residual-PheRS mean.
 - HPO submission returns an aggregate result row and fills per-variant Match
   Scores without exposing patient-level values.
-- The HPO result table includes a Note column. Results below 10
-  positive-burden carriers show a red warning that the result must not be
-  interpreted or relied upon.
+- The HPO result table includes a Note column. The separately calculated
+  single-gene burden result is displayed with its analysis status and threshold.
 - Repeated searches for a recently loaded gene reuse the tab-local cache.
 - A narrow laptop viewport scrolls the variant table horizontally without
   collapsing columns.

@@ -16,7 +16,7 @@ still belong in the production service.
    - Intended R reference: `rPheRS_for_portal_20250512.R`.
 2. `scripts/context_api_fast.py`
    - `variant_match_scores()`: mean residual score across unique carriers of each variant.
-   - `gene_burden_scores()`: binary-carrier weighted sum of LoFTEE HC/AlphaMissense Burden Pathogenic Scores per sample.
+   - `gene_burden_scores()`: dosage-weighted sum of Pathogenic Scores per sample.
    - `gene_burden_test()`: provisional Huber RLM for `Y ~ X + C`.
    - `benjamini_hochberg()`: BH-adjusted P-values for a defined test family.
 3. Tests
@@ -37,7 +37,7 @@ python3 scripts/rphers_fast.py
 python3 scripts/context_api_fast.py
 ```
 
-## Already checked in the reference implementation
+## Already checked in the reference implementation [Updated 2026-08-24]
 
 - [x] `Wp = log((N + 1) / (n_p + 1))` is implemented.
 - [x] `Fi = 1` for entered HPO terms is implemented.
@@ -48,11 +48,11 @@ python3 scripts/context_api_fast.py
 - [x] Variant carrier IDs are deduplicated before taking the mean.
 - [x] A partial variant mean is not returned when any carrier score is missing.
 - [x] Negative residual scores are retained and can produce a negative variant mean.
-- [x] Gene burden uses carrier presence, not genotype dosage; `0/1` and `1/1` each contribute once.
+- [x] Gene burden input uses Pathogenic Score multiplied by genotype dosage.
 - [x] Multiple distinct carried variants are summed and duplicate sample-variant rows are deduplicated.
-- [x] Gene burden X is built directly from existing `gene-samples` BioIndex rows; `alt_dosage` and `weighted_score` are ignored.
+- [x] Gene burden input uses the approved Pathogenic Score, `alt_dosage`, and corresponding `weighted_score` provenance.
 - [x] Extended display priority is `LoFTEE HC -> AlphaMissense -> REVEL -> No_score`.
-- [x] Burden priority is `LoFTEE HC -> AlphaMissense`; REVEL-only variants are explicitly counted and excluded from X.
+- [x] The upper-right display is Extended Pathogenic Score, while the variant table uses Pathogenic Score. The single-gene burden result is a separate analysis output.
 - [x] The Huber RLM implementation matches one fixed `MASS::rlm`/`summary.rlm` reference example for Beta, standard error, and P-value.
 - [x] Constant, singular, under-supported, invalid-SE, and non-converged fits return an explicit status rather than silently switching models.
 - [x] BH adjustment matches a fixed known example and preserves input order.
@@ -75,17 +75,16 @@ python3 scripts/context_api_fast.py
 - [ ] Record the approved PCA algorithm and materialize complete PC1-PC10 values aligned by sample ID.
 - [ ] Return the exact model formula, covariates, sample count, and model version with every result.
 
-### 3. Construction of gene burden X — data/method blocker
+### 3. Construction of gene burden X — data/method blocker [Updated 2026-08-24]
 
 - [ ] Confirm that the variant set is every variant returned by the complete current gene search, including continuation pages.
 - [ ] Confirm that the private CEP152/DMD nonsynonymous validation subset does not redefine the production BioIndex variant universe.
 - [ ] Confirm the production BioIndex client follows every `/api/bio/cont` token before calculating X.
-- [x] Portal v1 uses binary carrier presence; genotype dosage and zygosity do not change the weight.
+- [x] The single-gene burden input uses genotype dosage; the frontend only displays the returned burden-test result.
 - [ ] Confirm carrier classification for haploid/hemizygous, multi-allelic, no-call, and low-quality genotype records at the upstream carrier API boundary.
-- [x] Use Burden Pathogenic Score version `loftee_hc_alphamissense_v1`; LoFTEE HC is 1 and AlphaMissense is finite in `[0,1]`.
-- [x] Exclude `No_score` variants from X and report the number unscored; do not treat them as biological score zero.
-- [ ] Confirm that production `gene-samples` rows were generated with this exact score version.
-- [ ] Verify on individual samples that `X_i = sum(I(carrier_iv) * Pathogenic Score_v)` without duplicated sample-variant contributions.
+- [x] Use the approved variant Pathogenic Score and genotype dosage in the single-gene burden analysis.
+- [ ] Confirm the score version, dosage rules, and unavailable-score handling in the analysis output.
+- [ ] Verify on individual samples that `X_i = sum(Pathogenic_Score_v * genotype_dosage_iv)` without duplicated sample-variant contributions.
 
 ### 4. Minimum carrier rule
 
@@ -145,6 +144,6 @@ python3 scripts/context_api_fast.py
 
 - [ ] Phenotype-method owner signs off on R/Python parity.
 - [ ] Statistical reviewer signs off on the P-value/SE method, covariates, threshold, and FDR family.
-- [ ] CRDC data owner signs off on carrier deduplication, binary carrier classification, variant set, and Pathogenic Score provenance.
+- [ ] CRDC data owner signs off on carrier deduplication, genotype-dosage classification, variant set, and Pathogenic Score provenance.
 - [ ] Privacy owner confirms the small-cell rule.
 - [ ] Backend owner demonstrates one end-to-end request whose sample counts and selected variant/gene results can be independently reproduced.
