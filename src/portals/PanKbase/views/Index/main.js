@@ -101,7 +101,7 @@ new Vue({
                     ],[
                         {
                             title: "Cell State Browser",
-                            body: "Explore where a gene is expressed in the pacreas and the cell states and gene programs associated with its expression.",
+                            body: "Explore where a gene is expressed in the pancreas and the cell states and gene programs associated with its expression.",
                             linkLabel: "Learn More",
                             linkUrl: "/cell-states.html",
                             bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-cell-states.png",
