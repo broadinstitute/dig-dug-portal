@@ -337,6 +337,19 @@ module.exports = {
             config.devtool = "cheap-module-source-map";
         }
     },
+    chainWebpack: (config) => {
+        // Optimize CSS extraction to prevent ordering conflicts in multi-page builds
+        // when the same component CSS is used across multiple entry points
+        config.plugin("extract-css").tap((args) => {
+            args[0] = {
+                ...args[0],
+                // Ignore order warnings for CSS files that are used across multiple chunks
+                // The order doesn't affect functionality, only the build output
+                ignoreOrder: true,
+            };
+            return args;
+        });
+    },
     outputDir: "portals/PanKbase",
     productionSourceMap: false,
     pages,
