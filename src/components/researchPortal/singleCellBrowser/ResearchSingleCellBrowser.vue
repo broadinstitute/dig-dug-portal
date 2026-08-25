@@ -82,8 +82,32 @@
         </div>
 
 
-        <div v-if="datasetId && !dataLoaded" style="margin: 0 auto">
-            Loading {{ preloadItem }}...
+        <!--
+            the same spinner the gene search uses, so a slow section reads as working rather
+            than stalled. hidden once an error is set, otherwise a failed load would sit
+            there spinning under the error message
+        -->
+        <div v-if="datasetId && !dataLoaded && !loadError"
+            style="display:flex; align-items:center; gap:8px; margin: 0 auto">
+            <div class="geneLoader"></div>
+            <div>Loading {{ preloadItem }}...</div>
+        </div>
+
+        <!--
+            a section whose data cannot be fetched used to leave the page on "Loading
+            markers..." forever - the fetch helpers return null on failure and the callers
+            walked straight into it. now the load stops at the first required section that is
+            missing and says which one.
+        -->
+        <div v-if="loadError"
+            style="display:flex; flex-direction:column; gap:5px; margin: 0 auto; max-width:600px; padding:15px; border:1px solid #e0b4b4; background:#fff6f6; border-radius:3px;">
+            <div style="font-weight:bold; color:#912d2b;">This dataset could not be loaded</div>
+            <div style="font-size:14px;">{{ loadError.message }}</div>
+            <div v-if="loadError.detail" style="font-size:12px; opacity:0.7;">{{ loadError.detail }}</div>
+            <div v-if="isDev && loadError.url" style="font-size:11px; opacity:0.6; word-break:break-all;">
+                {{ loadError.url }}
+            </div>
+            <div v-if="showDatasetSelect" style="font-size:13px;">Select another tissue above to continue.</div>
         </div>
 
 
@@ -101,9 +125,10 @@
                             <div style="display:flex; flex-direction: column; width: min-content; flex: 1;">
                                 <div style="display:flex; justify-content: space-between; align-items: baseline; margin: 0 0 5px;">
                                     <div><strong style="font-size: 16px;">Embedding</strong> {{ embeddingType }}</div>
-                                    <div>{{ totalCells.toLocaleString() }} cells</div>
+                                    <div>{{ cellCountLabel }}</div>
                                 </div>
                                 <research-umap-plot-gl 
+                                    :downloadFilename="umapDownloadFilename"
                                     :group="datasetId"
                                     :points="coordinates"
                                     :labels="fields"
@@ -113,6 +138,7 @@
                                     :hoverFields="[]"
                                     :highlightLabel="cellCompositionVars.highlightLabel"
                                     :highlightLabels="cellCompositionVars.highlightLabels"
+                                    :visibleMask="cellFilterMask"
                                     :width="400"
                                     :height="400"
                                 />
@@ -144,10 +170,11 @@
                             <div style="display:flex; flex-direction: column; width: min-content;  flex: 1;">
                                 <div style="display:flex; justify-content: space-between; align-items: baseline; margin: 0 0 5px;">
                                     <div><strong style="font-size: 16px;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : 'Gene' }} Expression</strong> {{ embeddingType }}</div>
-                                    <div>{{ totalCells.toLocaleString() }} cells</div>
+                                    <div>{{ cellCountLabel }}</div>
                                 </div>
                                 <div style="position:relative; width:100%">
                                     <research-umap-plot-gl 
+                                        :downloadFilename="umapExpressionDownloadFilename"
                                         :group="datasetId"
                                         :points="coordinates"
                                         :labels="fields"
@@ -158,6 +185,7 @@
                                         :hoverFields="[]"
                                         :highlightLabel="cellCompositionVars.highlightLabel"
                                         :highlightLabels="cellCompositionVars.highlightLabels"
+                                        :visibleMask="cellFilterMask"
                                         :width="400"
                                         :height="400"
                                     />
@@ -204,28 +232,181 @@
 
                     <!-- Trait plots -->
                     <div style="display:flex; flex-direction: column; gap:5px;">
-                        <!-- Trait select -->
-                        <div style="display: flex; flex-direction: row; padding:20px; background: white; gap:20px;">
+                        <!--
+                            Trait select: two rows - the filters on the first, then the
+                            group/stratify selects on the second.
+                        -->
+                        <div style="display: flex; flex-direction: column; padding:20px; background: white; gap:15px;">
 
-                            <div v-if="displayGroups && displayGroups.cellType && displayGroups.cellType.length>1"
-                                style="display: flex; flex-direction: column; gap:5px; width:300px;">
-                                <div style="display: flex; gap:5px; align-items: center;">
-                                    <div style="font-weight:bold; font-size: 16px; white-space:nowrap;">Group By</div> 
-                                    <select v-model="activeGroup" @change="handleSampleChange" style="width: 100%; max-width: 500px;">
-                                        <option v-for="option in displayGroups.cellType" :value="option">{{ displayLabel(option) }}</option>
-                                    </select>
-                                    <b-icon icon="info-circle-fill" variant="secondary" @mouseover="showTooltip('Select primary annotation<br/>by which to group the data.')" @mouseout="hideTooltip()"></b-icon>
-                                </div>
+                            <!--
+                                cell filters. every filterable field can carry a set of
+                                allowed values, and the sets are ANDed across fields, so
+                                "male AND healthy" is two fields with one value each. there
+                                is no and/or control because within one field the values are
+                                a disjunction by construction - a cell has exactly one value
+                                per field.
+                            -->
+                            <!--
+                                position:relative anchors the floating value picker below.
+                                the z-index is on this wrapper rather than only on the panel:
+                                the filter row is an EARLIER sibling than the plots, so with
+                                auto stacking the overlay would paint underneath them.
+                            -->
+                            <!--
+                                row one, all of it: the label, the toggle, the cell count,
+                                the active filters and Clear all. flex-wrap is the fallback
+                                for enough chips to overflow the width rather than a second
+                                row by design.
+                            -->
+                            <div v-if="filterableFields.length" class="cell-filter" ref="cellFilter"
+                                style="display: flex; flex-wrap: wrap; gap:8px; align-items: center; min-width:0;">
+                                <div style="font-weight:bold; font-size: 16px; white-space:nowrap;">Filter</div>
+                                <b-icon icon="info-circle-fill" variant="secondary" @mouseover="showTooltip(filterTooltip)" @mouseout="hideTooltip()"></b-icon>
                                 <!--
-                                <div style="font-size:13px;">
-                                    Select primary annotation by which to group the data.
-                                </div>
+                                    the toggle needs a ref: a mousedown on it counts as
+                                    inside the control, or the outside-click handler would
+                                    close the panel and the button would reopen it in the
+                                    same gesture, so Hide would never work
                                 -->
+                                <button ref="cellFilterToggle" @click="filterPanelOpen = !filterPanelOpen" style="white-space:nowrap;">
+                                    {{ filterPanelOpen ? 'Hide' : 'Add filter' }}
+                                </button>
+                                <div v-if="cellFilter" style="font-size:13px; white-space:nowrap;">
+                                    <strong>{{ filteredCellCount.toLocaleString() }}</strong>
+                                    of {{ cellFilter.totalCount.toLocaleString() }}
+                                    {{ cellNoun }}
+                                </div>
+
+                                <!--
+                                    active filters, as removable chips. keyed on the
+                                    selections rather than on cellFilter: selecting every
+                                    value of a field is not a filter, so cellFilter can be
+                                    null while chips are still shown.
+                                -->
+                                <div v-if="activeFilterFields.length" style="display:flex; flex-wrap:wrap; gap:5px; min-width:0;">
+                                    <div v-for="field in activeFilterFields" :key="`chip-${field}`"
+                                        style="display:flex; gap:4px; align-items:center; font-size:12px; background:#eef3f8; border:1px solid #cfdbe6; border-radius:12px; padding:1px 8px; max-width:100%;">
+                                        <span style="font-weight:bold; white-space:nowrap;">{{ displayLabel(field) }}</span>
+                                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                            {{ filterSummaryFor(field) }}
+                                        </span>
+                                        <span @click="clearFieldFilter(field)" style="cursor:pointer; font-weight:bold; opacity:0.6;" title="Remove this filter">&times;</span>
+                                    </div>
+                                </div>
+
+                                <button v-if="activeFilterFields.length" @click="clearAllFilters()" style="white-space:nowrap;">Clear all</button>
+
+                                <!--
+                                    out of flow, so opening it overlays the plots instead of
+                                    pushing them down. it needs its own opaque background and
+                                    a shadow now that there is content behind it.
+                                -->
+                                <div v-if="filterPanelOpen" class="cell-filter-panel" ref="cellFilterPanel"
+                                    style="display:flex; gap:10px; align-items:flex-start;">
+                                    <!-- the filterable fields -->
+                                    <div style="display:flex; flex-direction:column; gap:2px; max-height:260px; overflow:auto; min-width:180px;">
+                                        <div v-for="field in filterableFields" :key="`field-${field}`"
+                                            @click="toggleFilterField(field)"
+                                            :style="`cursor:pointer; font-size:13px; padding:2px 5px; white-space:nowrap; ${openFilterField===field ? 'background:#eef3f8; font-weight:bold;' : ''}`">
+                                            {{ displayLabel(field) }}
+                                            <span v-if="cellFilterSelections[field]" style="opacity:0.6;">&bull;</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- the open field: a slider if it is numeric, else a value list -->
+                                    <div v-if="openFilterField" style="display:flex; flex-direction:column; gap:4px; min-width:0;">
+
+                                        <!--
+                                            a numeric field gets a two-thumb range instead of
+                                            a checkbox per value. see numericRangeFor for what
+                                            counts as numeric - deliberately not the 'cont'
+                                            plotting inference, which calls every field over
+                                            the label cap categorical even when it is numbers.
+
+                                            the filter is applied on @change, not @input: the
+                                            mask rebuild plus a full re-aggregation on every
+                                            pixel of a drag would be seconds of work per
+                                            gesture on a large dataset.
+                                        -->
+                                        <template v-if="isRangeFilterField(openFilterField)">
+                                            <div style="display:flex; gap:5px; align-items:center; font-size:11px; opacity:0.6;">
+                                                {{ numericRangeFor(openFilterField).valueCount.toLocaleString() }} distinct values
+                                            </div>
+                                            <research-range-slider
+                                                :key="`range-${openFilterField}`"
+                                                :min="numericRangeFor(openFilterField).min"
+                                                :max="numericRangeFor(openFilterField).max"
+                                                :step="numericRangeFor(openFilterField).step"
+                                                :decimals="numericRangeFor(openFilterField).decimals"
+                                                :value="rangeValueFor(openFilterField)"
+                                                @change="setFilterRange(openFilterField, $event)"
+                                            />
+                                        </template>
+
+                                        <template v-else>
+                                            <div style="display:flex; gap:5px; align-items:center;">
+                                                <input v-model="filterSearch" placeholder="Search values" style="font-size:12px; width:160px;"/>
+                                                <button v-if="cellFilterSelections[openFilterField]" @click="clearFieldFilter(openFilterField)">Clear</button>
+                                                <div style="font-size:11px; opacity:0.6; white-space:nowrap;">
+                                                    {{ openFilterLabels.length.toLocaleString() }} of
+                                                    {{ filterLabelsFor(openFilterField).length.toLocaleString() }} values
+                                                    <span v-if="hiddenFilterLabelCount">
+                                                        &mdash; search to reach the other {{ hiddenFilterLabelCount.toLocaleString() }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <!--
+                                                the count beside each value is what the filter
+                                                would keep if that value were picked, with this
+                                                field's own constraint left out. without that,
+                                                every value you did not pick reads zero and there
+                                                is no way to see what switching to it would give.
+                                            -->
+                                            <div style="display:flex; flex-direction:column; max-height:220px; overflow:auto; min-width:220px;">
+                                                <label v-for="label in openFilterLabels" :key="`val-${label}`"
+                                                    style="display:flex; gap:5px; align-items:center; font-size:12px; font-weight:normal; margin:0; padding:1px 0; cursor:pointer;">
+                                                    <input type="checkbox"
+                                                        :checked="isFilterLabelSelected(openFilterField, label)"
+                                                        @change="toggleFilterValue(openFilterField, label)"/>
+                                                    <span :style="isMissingLabel(label) ? 'font-style:italic; opacity:0.7;' : ''"
+                                                        style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                                        {{ filterLabelDisplay(label) }}
+                                                    </span>
+                                                    <span v-if="facetCountFor(openFilterField, label) !== null"
+                                                        :style="`margin-left:auto; opacity:${facetCountFor(openFilterField, label) ? 0.6 : 0.35}; white-space:nowrap;`">
+                                                        {{ facetCountFor(openFilterField, label).toLocaleString() }}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div v-else style="font-size:12px; opacity:0.6; padding:5px;">
+                                        Select a field to filter by.
+                                    </div>
+                                </div>
                             </div>
 
-                            <div style="display: flex; flex-direction: column; gap:5px; width:300px;">
-                                <div style="display: flex; gap:5px; align-items: center;">
-                                    <div style="font-weight:bold; font-size: 16px; white-space:nowrap;">Stratify By</div> 
+                            <!-- row two: the group and stratify selects -->
+                            <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap:20px;">
+
+                                <!--
+                                    Group By is always available, unlike before: it used to
+                                    appear only when the config listed more than one candidate
+                                    in groups.cellType. the options are every categorical field
+                                    rather than that config list - grouping by a continuous one
+                                    would mean a bar per distinct value.
+                                -->
+                                <div style="display: flex; gap:5px; align-items: center; width:300px;">
+                                    <div style="font-weight:bold; font-size: 16px; white-space:nowrap;">Group By</div>
+                                    <b-icon icon="info-circle-fill" variant="secondary" @mouseover="showTooltip('Select primary annotation<br/>by which to group the data.')" @mouseout="hideTooltip()"></b-icon>
+                                    <select v-model="activeGroup" @change="handleSampleChange" style="width: 100%; max-width: 500px;">
+                                        <option v-for="option in groupByFields" :key="`group-${option}`" :value="option">{{ displayLabel(option) }}</option>
+                                    </select>
+                                </div>
+
+                                <div style="display: flex; gap:5px; align-items: center; width:300px;">
+                                    <div style="font-weight:bold; font-size: 16px; white-space:nowrap;">Stratify By</div>
+                                    <b-icon icon="info-circle-fill" variant="secondary" @mouseover="showTooltip('Select secondary annotation<br/>by which to stratify grouped data.')" @mouseout="hideTooltip()"></b-icon>
                                     <select style="width: 100%; width:200px" @change="selectSegmentBy(cellCompositionVars.displayByLabel, $event.target.value)">
                                         <option value="">--Select--</option>
                                         <option v-for="(value, key) of traitFields.show" :value="key">
@@ -237,13 +418,8 @@
                                             </option>
                                         </optgroup>
                                     </select>
-                                    <b-icon icon="info-circle-fill" variant="secondary" @mouseover="showTooltip('Select secondary annotation<br/>by which to stratify grouped data.')" @mouseout="hideTooltip()"></b-icon>
                                 </div>
-                                <!--
-                                <div style="font-size:13px;">
-                                    Select secondary annotation by which to stratify grouped data.
-                                </div>
-                                -->
+
                             </div>
 
                         </div>
@@ -281,6 +457,7 @@
                                         class="download"
                                         :chartId="countDownloadChartId"
                                         :titleText="countSectionTitle"
+                                        :filename="countDownloadFilename"
                                         style="width: 125px; align-self: flex-start;"
                                         :style="`${countDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
                                     />
@@ -384,6 +561,7 @@
                                             class="download"
                                             :chartId="expressionDownloadChartId"
                                             :titleText="expressionSectionTitle"
+                                            :filename="expressionDownloadFilename"
                                             style="width: 125px; align-self: flex-start;"
                                             :style="`${expressionDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
                                         />
@@ -457,7 +635,7 @@
                                     <template v-else>
                                         <research-dot-plot v-if="stratifyPlotType==='dot'"
                                             style="display:flex; align-self: center"
-                                            :data="getAllStats()"
+                                            :data="allSegmentStats"
                                             :xKey="cellCompositionVars.segmentByLabel"
                                             :yKey="geneExpressionVars.selectedLabel"
                                             :xLabel="displayLabel(cellCompositionVars.segmentByLabel)"
@@ -487,12 +665,46 @@
                                         />
                                         <div id="sc_violin_plot_group" v-else>
                                             <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
-                                            <div v-for="value in getPlotMetadataLabels(cellCompositionVars.segmentByLabel)" :key="value">
+                                            <!--
+                                                one full violin plot per stratify value,
+                                                ~290 svg nodes each - 13,228 nodes and ~1.5 s
+                                                of a 3.0 s render at 45 values, far more at
+                                                750. content-visibility lets the browser skip
+                                                layout, style and paint for the ones scrolled
+                                                out of view, and the plot itself defers its
+                                                draw until it is asked for (see the
+                                                availableWidth guard in ResearchViolinPlot),
+                                                so an off screen entry holds no svg at all.
+
+                                                two things this depends on, both handled -
+                                                do not remove either:
+                                                - these plots size themselves by measuring
+                                                  their own labels with getBBox(), which
+                                                  returns zeros inside a skipped subtree. the
+                                                  plot detects that and waits for
+                                                  contentvisibilityautostatechange instead of
+                                                  drawing itself too short.
+                                                - the png/svg export collects labels with
+                                                  innerText and measures them with
+                                                  getBoundingClientRect, both empty for
+                                                  skipped content. DownloadChart forces the
+                                                  subtree visible while it walks it; without
+                                                  that, a 752 entry export kept 1 of 753
+                                                  labels.
+
+                                                contain-intrinsic-size is the placeholder
+                                                height for entries not yet drawn; 'auto'
+                                                means the real measured height is used once
+                                                it has been seen, which matters here because
+                                                long labels make the real height vary.
+                                            -->
+                                            <div v-for="value in getPlotMetadataLabels(cellCompositionVars.segmentByLabel)" :key="value"
+                                                style="content-visibility: auto; contain-intrinsic-size: auto 340px;">
                                                 <div style="display:flex; gap:3px; align-items: baseline;">
                                                     <div style="font-weight: bold;">{{ value }}</div>
                                                 </div>
                                                 <research-violin-plot
-                                                    :data="getStatsByPropValue(geneExpressionVars.expressionStats, cellCompositionVars.segmentByLabel, value)"
+                                                    :data="statsFor(value)"
                                                     :primaryKey="geneExpressionVars.selectedLabel" 
                                                     :highlightKey="cellCompositionVars.highlightLabel"
                                                     :height="300"
@@ -557,6 +769,7 @@
                                     class="download"
                                     chartId="sc_marker_dot_plot"
                                     :titleText="markerDotPlotTitle"
+                                    :filename="markerDownloadFilename"
                                     style="width: 125px; align-self: flex-start;"
                                     />
                                 </div>
@@ -657,10 +870,11 @@
                     <div class="" style="display:flex; gap:20p; width:400px">
                         <div v-if="coordinates" style="display:flex; flex-direction: column; flex: 1">
                             <div style="display:flex; justify-content: space-between; align-items: baseline;">
-                                <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">{{ embeddingType }}</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ totalCells.toLocaleString() }} cells
+                                <span style="font-size: 16px; margin: 0 0 5px;"><span style="font-weight: bold">{{ embeddingType }}</span> <span style="font-style: italic;">{{ geneExpressionVars.selectedGene ? `${geneExpressionVars.selectedGene}` : '' }}</span></span> {{ cellCountLabel }}
                             </div>
                             <div style="display:flex; position: relative;">
                                 <research-umap-plot-gl 
+                                    :downloadFilename="umapExpressionDownloadFilename"
                                     :group="datasetId"
                                     :points="coordinates"
                                     :labels="fields"
@@ -671,6 +885,7 @@
                                     :hoverFields="[]"
                                     :highlightLabel="cellCompositionVars.highlightLabel"
                                     :highlightLabels="cellCompositionVars.highlightLabels"
+                                    :visibleMask="cellFilterMask"
                                     :width="400"
                                     :height="400"
                                 />
@@ -752,9 +967,10 @@
                             <div style="display:flex; flex-direction: column; width: min-content; flex: 1">
                                 <div style="display:flex; justify-content: space-between; align-items: baseline; margin: 0 0 5px;">
                                     <div><strong style="font-size: 16px;">Embedding</strong> {{ embeddingType }}</div>
-                                    <div>{{ totalCells.toLocaleString() }} cells</div>
+                                    <div>{{ cellCountLabel }}</div>
                                 </div>
                                 <research-umap-plot-gl 
+                                    :downloadFilename="umapDownloadFilename"
                                     :group="datasetId"
                                     :points="coordinates"
                                     :labels="fields"
@@ -764,6 +980,7 @@
                                     :hoverFields="[]"
                                     :highlightLabel="cellCompositionVars.highlightLabel"
                                     :highlightLabels="cellCompositionVars.highlightLabels"
+                                    :visibleMask="cellFilterMask"
                                     :width="400"
                                     :height="400"
                                 />
@@ -807,6 +1024,7 @@
                                     class="download"
                                     :chartId="countDownloadChartId"
                                     :titleText="countSectionTitle"
+                                    :filename="countDownloadFilename"
                                     style="width: 125px; align-self: flex-start;"
                                     :style="`${countDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
                                 />
@@ -870,6 +1088,7 @@
                                             <download-chart 
                                                 class="download"
                                                 chartId="sc_dot_plot"
+                                                :filename="markerDownloadFilename"
                                                 style="width: 125px; align-self: flex-start;"
                                             />
                                         </div>
@@ -1039,17 +1258,39 @@
     import {llog} from "./llog.js";
     import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
     import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
+    import sharedUmapData from "@/components/researchPortal/singleCellBrowser/sharedUmapData.js";
+    import { reportSingleCellMemory } from "@/components/researchPortal/singleCellBrowser/memoryReport.js";
     import ResearchUmapPlotGL from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlotGL.vue";
     import ResearchStackedBarPlot from "@/components/researchPortal/singleCellBrowser/ResearchStackedBarPlot.vue";
-    import ResearchStackedBarPlot2 from "@/components/researchPortal/singleCellBrowser/ResearchStackedBarPlot2.vue";
     import ResearchDotPlot from "@/components/researchPortal/singleCellBrowser/ResearchDotPlot.vue";
     import ResearchViolinPlot from "@/components/researchPortal/singleCellBrowser/ResearchViolinPlot.vue";
     import ResearchScatterPlot from "@/components/researchPortal/singleCellBrowser/ResearchScatterPlot.vue";
     import ResearchSingleCellSelector from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellSelector.vue";
     import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
     import DownloadChart from "@/components/researchPortal/singleCellBrowser/DownloadChart.vue"
+    import ResearchRangeSlider from "@/components/researchPortal/singleCellBrowser/ResearchRangeSlider.vue";
 
     const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"]
+
+    //raw expression is one double per cell per gene and nothing used to evict it, so a
+    //session that searched twenty genes on a 1.5M cell dataset carried ~240 MB of it.
+    //the budget is a byte total rather than a gene count, so a small dataset keeps
+    //everything a user is likely to load and only the large ones start evicting:
+    //54 genes at 242k cells, 29 at 449k, 8 at 1.5M, 5 at 2.2M.
+    const EXPRESSION_CACHE_BYTES = 100 * 1024 * 1024;
+    const EXPRESSION_CACHE_MIN_GENES = 3;
+
+    //one collator, reused. calling a.localeCompare(b, undefined, {numeric:true}) resolves
+    //the collation on every comparison, which measured 51-72x slower than a shared
+    //Intl.Collator over the same data for identical ordering.
+    const naturalCollator = new Intl.Collator(undefined, { numeric: true });
+
+    //one shared empty array for stratify values with no stats - see statsFor()
+    const EMPTY_STATS = Object.freeze([]);
+
+    //how many filter values to render at once. a filterable field can have one value per
+    //cell, so this is a hard cap on the DOM, not a preference - see openFilterLabels
+    const FILTER_LABELS_SHOWN = 200;
 
     export default Vue.component('research-single-cell-browser', {
         components: {
@@ -1060,6 +1301,7 @@
             ResearchScatterPlot,
             ResearchSingleCellSelector,
             ResearchSingleCellInfo,
+            ResearchRangeSlider,
             DownloadChart
         },
         props: {
@@ -1153,6 +1395,29 @@
                 contCountResults: null,
                 contExprResults: null,
 
+                /*
+                    combinatorial cell filtering.
+
+                    cellFilterSelections is the user's picks, { fieldKey: [labels] }, ANDed
+                    across fields. cellFilter is the built result from
+                    scUtils.buildCellFilter - null whenever nothing is constrained, which
+                    is what makes every unfiltered code path identical to before this
+                    existed rather than merely equivalent.
+
+                    facetCounts holds "how many cells would survive if you picked this",
+                    for the one field whose values are on screen - it is a sweep over the
+                    cells, so it is not computed for fields nobody is looking at.
+                */
+                cellFilterSelections: {},
+                cellFilter: null,
+                filterPanelOpen: false,
+                openFilterField: null,
+                facetCounts: {},
+                filterSearch: "",
+                //numericRangeFor() per field, memoised - it walks the label list, and the
+                //template asks on every render of the open field
+                numericRanges: {},
+
                 viewType: 1,
                 
                 baseTableColumns: [
@@ -1190,7 +1455,18 @@
                 geneNames: [], //list of loaded gene names
                 sortedGeneNames: [],
                 expressionData: {}, //obj, keys are gene names, values are arrays of raw expression per cell
+                expressionExtents: {}, //obj, keys are gene names, values are {min, max} of the above
                 expressionStatsAll: [], //array of objects, each obj is gene, mean expr., pct. expressing
+                //per gene calcExpressionStats results, so loading a gene does not recompute the
+                //genes already loaded. a Map because Vue 2 does not walk Map contents, and the
+                //values are already frozen by the aggregation functions
+                expressionStatsCache: new Map(),
+                //the (fields, labelColors, cellTypeField) the cache was built against - stats
+                //depend on all three, so if any changes every entry is stale
+                expressionStatsCacheKey: null,
+                //gene names in least-recently-used order, most recent last. only genes whose
+                //raw expression is currently held appear here
+                expressionLRU: [],
                 geneToSearch: "",
                 geneLoading: null,
                 genesNotFound: [],
@@ -1254,6 +1530,9 @@
                 dataLoaded: false,
                 preloadItem: '',
                 dataReady: false,
+                //{ item, message, detail, url } when a required section could not be
+                //fetched, otherwise null. see failLoad
+                loadError: null,
 
                 highlightHoverTimeout: null,
 
@@ -1281,12 +1560,7 @@
         },
         watch: {
             expressionData(){
-                const expressionStats = [];
-                Object.keys(this.expressionData).forEach(gene => {
-                    expressionStats.push(...scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true))
-                })
-                this.expressionStatsAll = expressionStats;
-                //llog('updated expression stats', this.expressionStatsAll);
+                this.rebuildExpressionStatsAll();
             },
             geneNames(){
                 this.sortedGeneNames = [...this.geneNames].sort();
@@ -1302,15 +1576,157 @@
             llog('data', this.data);
             
             EventBus.$on('on-select',this.handleSelectEvent);
+            document.addEventListener('mousedown', this.handleFilterOutsideClick);
             this.init();
         },
         beforeDestroy(){
             EventBus.$off('on-select',this.handleSelectEvent);
+            document.removeEventListener('mousedown', this.handleFilterOutsideClick);
             this.stopColumnResize();
         },
         computed: {
             isDev(){
                 return keyParams['dev']===1;
+            },
+            //null when nothing is filtered, so every consumer takes its original path
+            cellFilterMask(){
+                return this.cellFilter ? this.cellFilter.mask : null;
+            },
+            activeFilterFields(){
+                return Object.keys(this.cellFilterSelections);
+            },
+            /*
+                what can be filtered is NOT what can be grouped or stratified. a field over
+                MAX_PLOTTABLE_LABELS cannot be an axis but is a perfectly good filter target
+                ("one donor out of 2000"), so this starts from the fields themselves rather
+                than from traitFields.show. isFilterableField does the structural exclusions:
+                a field A7 emptied has no labels and no index array, and a single-valued one
+                is a no-op.
+            */
+            filterableFields(){
+                if(!this.fields?.metadata_labels) return [];
+                return Object.keys(this.fields.metadata_labels)
+                    .filter(key => scUtils.isFilterableField(this.fields, key))
+                    .filter(key => this.displayFields?.[key]?.excludeReason !== 'ontologyID')
+                    .sort(naturalCollator.compare);
+            },
+            filteredCellCount(){
+                return this.cellFilter ? this.cellFilter.keptCount : this.totalCells;
+            },
+            /*
+                the count shown above each embedding. one computed rather than the same
+                ternary in four places - the same readout appears in every layout.
+
+                the denominator when filtered is the filter's own totalCount, not
+                this.totalCells: totalCells prefers the dataset metadata and only falls back
+                to the real cell count, so pairing a kept count with it could show
+                "12,000 of 11,645" if the metadata is stale. the filter's totalCount is the
+                number the mask was actually built over, so the pair is always consistent.
+            */
+            //an ATAC dataset counts nuclei, not cells - the same swap the composition plot
+            //titles and axis labels make
+            cellNoun(){
+                return this.isATACseq ? 'nuclei' : 'cells';
+            },
+            cellCountLabel(){
+                if(!this.cellFilter){
+                    return `${(this.totalCells || 0).toLocaleString()} ${this.cellNoun}`;
+                }
+                return `${this.cellFilter.keptCount.toLocaleString()} of ` +
+                    `${this.cellFilter.totalCount.toLocaleString()} ${this.cellNoun}`;
+            },
+            filterTooltip(){
+                return `Restrict every plot to ${this.cellNoun} matching<br/>all of the ` +
+                    `selected values.<br/>Filtering a field excludes ${this.cellNoun} with` +
+                    `<br/>no value for it unless you include it.`;
+            },
+            /*
+                the Group By options: every displayable CATEGORICAL field.
+
+                continuous fields are excluded because grouping by one means a bar, a violin
+                and a legend entry per distinct value - the composition plots read the group
+                as a category throughout.
+
+                cellTypeField is unioned in unconditionally. it is the default and comes from
+                findCellTypeField or the config's groups.cellType, neither of which is
+                obliged to agree with the dataType inference - and a select whose v-model is
+                not among its options renders blank.
+            */
+            groupByFields(){
+                if(!this.fields?.metadata_labels) return [];
+
+                const usable = key => this.fields.metadata_labels[key]?.length > 1
+                    && !!this.fields.metadata[key];
+
+                const fields = Object.keys(this.displayFields || {})
+                    .filter(key => usable(key))
+                    .filter(key => this.displayFields[key].dataType === 'cat')
+                    .filter(key => this.displayFields[key].display !== false
+                        && !this.displayFields[key].excludeReason);
+
+                if(this.cellTypeField && !fields.includes(this.cellTypeField)){
+                    fields.push(this.cellTypeField);
+                }
+
+                return fields.sort(naturalCollator.compare);
+            },
+            //the options for the open field, narrowed by the search box
+            matchingFilterLabels(){
+                if(!this.openFilterField) return [];
+                const labels = this.filterLabelsFor(this.openFilterField);
+                const term = this.filterSearch.trim().toLowerCase();
+                if(!term) return labels;
+                return labels.filter(label => String(label).toLowerCase().includes(term));
+            },
+            /*
+                what is actually rendered. the cap is not cosmetic: a filterable field can
+                be over MAX_PLOTTABLE_LABELS - a donor or barcode column has one value per
+                cell - and rendering a checkbox each would be a 1.7M node list and a frozen
+                tab, which is the same trap B4 was. the count of what is hidden is shown
+                next to the search box rather than truncating silently.
+            */
+            openFilterLabels(){
+                return this.matchingFilterLabels.slice(0, FILTER_LABELS_SHOWN);
+            },
+            hiddenFilterLabelCount(){
+                return Math.max(0, this.matchingFilterLabels.length - FILTER_LABELS_SHOWN);
+            },
+            /*
+                expression stats bucketed by the stratify field, in one pass.
+
+                the violin list used to call getStatsByPropValue(stats, field, value) from
+                the template, once per stratify value - O(values x rows), the same shape B1
+                removed from calcCellCounts.
+
+                the bigger cost was that a method call in a template returns a *new* array on
+                every parent re-render, and each violin watches its data prop and redraws on
+                any change. so anything that re-rendered this component - hovering a label in
+                the selector, which only needs the highlightKey watcher - rebuilt the svg for
+                every violin in the list. as a computed, the arrays keep their identity until
+                the stats or the field actually change, and those redraws stop happening.
+            */
+            statsBySegmentValue(){
+                const grouped = new Map();
+                const property = this.cellCompositionVars.segmentByLabel;
+                const stats = this.geneExpressionVars.expressionStats;
+                if(!property || !Array.isArray(stats)) return grouped;
+
+                for(const item of stats){
+                    const bucket = grouped.get(item[property]);
+                    if(bucket) bucket.push(item);
+                    else grouped.set(item[property], [item]);
+                }
+                return grouped;
+            },
+            //same rows, same order as the old getAllStats(): every stratify value in display
+            //order, flattened
+            allSegmentStats(){
+                const data = [];
+                for(const value of this.getPlotMetadataLabels(this.cellCompositionVars.segmentByLabel)){
+                    const rows = this.statsBySegmentValue.get(value);
+                    if(rows) data.push(...rows);
+                }
+                return data;
             },
             portalGroup(){
                 const hostname = window.location.hostname;
@@ -1410,6 +1826,49 @@
             },
             countDownloadDisabled() {
                 return false;
+            },
+            /*
+                download filenames: <datasetId>[_<gene>]_<what the plot is>.
+
+                each of these mirrors the *DownloadChartId computed above it, because that is
+                what picks the dom node the export actually walks - if the two disagreed the
+                file would be named after a plot it does not contain. the chart id itself is
+                not reused as the name: sc_dot_plot serves both the stratified expression dot
+                plot and the marker dot plot in different layouts, so it would name two
+                different figures the same thing.
+
+                the metric and the gene are also rendered into the exported image by
+                titleText, so the filename is a label rather than the only record of what
+                the figure is.
+            */
+            countDownloadFilename() {
+                const what = this.contCountResults
+                    ? `${this.cellNoun}_proportion_scatter`
+                    : `${this.cellNoun}_${this.isNormalized ? 'proportion' : 'count'}`;
+                return scUtils.buildDownloadFilename([this.datasetId, what]);
+            },
+            expressionDownloadFilename() {
+                let what = 'expression_violin';
+                if(this.contExprResults){
+                    what = 'expression_scatter';
+                }else if(this.cellCompositionVars.segmentByLabel){
+                    if(this.stratifyPlotType === 'dot') what = 'expression_dot_plot';
+                    else if(this.stratifyPlotType === 'combined') what = 'expression_violin_combined';
+                    else what = 'expression_violin_by_stratification';
+                }
+                return scUtils.buildDownloadFilename([
+                    this.datasetId, this.geneExpressionVars.selectedGene, what]);
+            },
+            //no single gene here - the figure is many genes at once
+            markerDownloadFilename() {
+                return scUtils.buildDownloadFilename([this.datasetId, 'marker_genes_dot_plot']);
+            },
+            umapDownloadFilename() {
+                return scUtils.buildDownloadFilename([this.datasetId, 'umap']);
+            },
+            umapExpressionDownloadFilename() {
+                return scUtils.buildDownloadFilename([
+                    this.datasetId, this.geneExpressionVars.selectedGene, 'umap_expression']);
             },
             plotMetadataLabels() {
                 if (!this.fields) return {};
@@ -1555,13 +2014,35 @@
                 return scUtils.preprocessBoxPlotData(this.fields.metadata, this.fields.metadata_labels, groupKey, contKey)
             },
             parseCellCountScatterData(groupKey, contKey, aggregateKey){
-                return scUtils.parseCellCountScatterData(this.fields.metadata, this.fields.metadata_labels, groupKey, contKey, aggregateKey)
+                return scUtils.parseCellCountScatterData(this.fields.metadata, this.fields.metadata_labels, groupKey, contKey, aggregateKey, this.cellFilterMask)
             },
             parseFacetedScatterData(groupKey, contKey, gene, aggregateKey){
-                return scUtils.parseFacetedScatterData(this.fields.metadata, this.fields.metadata_labels, groupKey, contKey, this.expressionData[gene], gene, aggregateKey)
+                return scUtils.parseFacetedScatterData(this.fields.metadata, this.fields.metadata_labels, groupKey, contKey, this.expressionData[gene], gene, aggregateKey, this.cellFilterMask)
             },
             calcCellCounts(a,b,c){
-                return scUtils.calcCellCounts2(this.fields,this.labelColors,a,b,c);
+                return scUtils.calcCellCounts2(this.fields,this.labelColors,a,b,c, this.cellFilter);
+            },
+            /*
+                stop the load and say which section failed.
+
+                the fetch helpers in singleCellUtils all swallow their errors and return
+                null, which is why a 404 used to surface as a hang: the caller carried on
+                with null and either threw somewhere unrelated (fields, in
+                filterDisplayFields) or threw inside the fetch chain and left preloadItem
+                stuck on the section that failed (markers, in initMarkers).
+
+                so every required section is checked at the point of the fetch, and this is
+                the single exit. dataLoaded is deliberately left false - the layout below
+                reads fields, coordinates and labelColors unguarded, so rendering it without
+                them would just be a different crash.
+            */
+            failLoad(item, message, url, detail = null){
+                llog(`load failed at ${item}`, {url, detail});
+                this.loadError = { item, message, url, detail };
+                this.preloadItem = '';
+                this.dataLoaded = false;
+                this.dataReady = false;
+                return false;
             },
             clean(){
                 this.allMetadata = null;
@@ -1580,9 +2061,14 @@
 
                 this.dataLoaded = false;
                 this.dataReady = false;
+                this.loadError = null;
                 this.expressionData = {};
+                this.expressionExtents = {};
                 this.geneNames = [];
                 this.expressionStatsAll = [];
+                this.expressionStatsCache.clear();
+                this.expressionStatsCacheKey = null;
+                this.expressionLRU = [];
                 this.genesNotFound = [];
                 this.dotPlotCellType = "";
                 this.markerFileOptions = [];
@@ -1617,8 +2103,39 @@
 
                 this.contCountResults = null;
                 this.contExprResults = null;
+
+                this.cellFilterSelections = {};
+                this.cellFilter = null;
+                this.filterPanelOpen = false;
+                this.openFilterField = null;
+                this.facetCounts = {};
+                this.filterSearch = "";
+                this.numericRanges = {};
             },
+            /*
+                the load is an async chain with a dozen awaits in it, and an unhandled throw
+                anywhere inside just rejects the promise: nothing catches it, so the page
+                keeps whatever partial state it had and sits on the last preloadItem it set.
+                that is the shape of every "the page hangs" report here.
+
+                so the whole thing runs behind this, and anything the explicit per-section
+                checks did not anticipate still ends up as a visible error naming the section
+                it happened in.
+            */
             async init(){
+                try {
+                    await this.loadDataset();
+                } catch (error) {
+                    const item = this.preloadItem || 'data';
+                    //not llog: an unexpected throw should be visible without dev=1
+                    console.error('single cell browser: load failed', error);
+                    this.failLoad(item,
+                        'Something went wrong while loading this dataset.',
+                        null,
+                        String(error?.message || error));
+                }
+            },
+            async loadDataset(){
                 this.presetsConfig = this.renderConfig["presets"];
                 llog('presets', this.presetsConfig);
                 this.showDatasetSelect = this.presetsConfig?.["showDatasetSelect"] || false;
@@ -1656,8 +2173,11 @@
                 const metadataEnpoint = this.selectedBI+this.BIendpoints.metadata;
                 this.allMetadata = await scUtils.fetchMetadata(metadataEnpoint);
                 if(!this.allMetadata){
-                    llog('there was an error getting metadata');
-                    return;
+                    //used to be a bare return, which left the page on "Loading metadata..."
+                    return this.failLoad('metadata',
+                        'The dataset catalogue could not be loaded.',
+                        metadataEnpoint,
+                        'This affects every dataset, so it is likely the data service rather than this dataset.');
                 }
                 llog('allMetadata', this.allMetadata);
 
@@ -1755,30 +2275,55 @@
                 this.preloadItem = 'fields';
                 //const fieldsUrl = this.renderConfig["data points"].find(x => x.role === "fields");
                 const fieldsEnpoint = this.selectedBI+this.BIendpoints.fields;
-                this.fields = await scUtils.fetchFields(fieldsEnpoint, this.datasetId);
-                if(this.fields){
-                    this.fields.metadata_labels_sorted = {};
-                    Object.keys(this.fields.metadata_labels).forEach(key => {
+                //build the fields object fully before assigning it, so it can be frozen first.
+                //metadata holds one index per cell per annotation (tens of millions of values on
+                //large datasets) - freezing makes Vue's observe() skip the whole tree instead of
+                //walking it. fields is read-only after this block.
+                const fields = await scUtils.fetchFields(fieldsEnpoint, this.datasetId);
+                if(fields){
+                    fields.metadata_labels_sorted = {};
+                    Object.keys(fields.metadata_labels).forEach(key => {
                         const customSortOrder = this.displayFields?.[key]?.customSortOrder;
-                        const values = this.fields.metadata_labels[key];
+                        const values = fields.metadata_labels[key];
 
                         if (
                             customSortOrder &&
                             arraysHaveSameElements(customSortOrder, values)
                         ) {
-                            this.fields.metadata_labels_sorted[key] = [...customSortOrder];
+                            fields.metadata_labels_sorted[key] = [...customSortOrder];
+                        } else if (values.length > scUtils.MAX_PLOTTABLE_LABELS
+                            && this.displayFields?.[key]?.display !== true) {
+                            //an id-like field (a barcode or cell id, one label per cell) is
+                            //marked tooManyValues by filterDisplayFields - it can never be
+                            //grouped, stratified, coloured or plotted, so nothing ever reads
+                            //its order. sorting it measured 15 s at 250k labels and 67 s at
+                            //1M, all of it a frozen tab. the entry is kept, pointing at the
+                            //unsorted array, so every consumer still finds a list per field
+                            //and no copy of one string per cell is made.
+                            //a config that explicitly displays such a field still gets it
+                            //sorted, since then the order can actually be seen
+                            fields.metadata_labels_sorted[key] = values;
                         } else {
-                            this.fields.metadata_labels_sorted[key] = [...values].sort((a, b) =>
-                                a.localeCompare(b, undefined, { numeric: true })
-                            );
+                            fields.metadata_labels_sorted[key] = [...values].sort(naturalCollator.compare);
                         }
                     });
+                    this.fields = Object.freeze(fields);
                     if(!this.totalCells){
                         this.totalCells = this.fields.NAME?.length | this.fields.ID?.length;
                     }
                     llog('fields', this.fields);
                 }else{
-                    llog('there was an error getting fields');
+                    /*
+                        this is the case that was reported: a dataset whose fields.json.gz
+                        404s. it used to only llog and carry on, and the throw surfaced much
+                        later in filterDisplayFields, after dataLoaded had already been set.
+                        nothing works without fields - every plot, colour and annotation
+                        comes from them - so stop here.
+                    */
+                    return this.failLoad('annotations',
+                        'The cell annotations for this dataset are unavailable.',
+                        fieldsEnpoint.replace('$datasetId', this.datasetId),
+                        'Without them none of the plots can be drawn.');
                 }
 
                 //fetch coordinates
@@ -1789,7 +2334,11 @@
                     if(this.coordinates){
                         llog('coordinates', this.coordinates);
                     }else{
-                        llog('there was an error getting coordinates');
+                        //every layout except 3 renders an embedding, and the panels read
+                        //points.count unguarded
+                        return this.failLoad('embedding',
+                            'The embedding coordinates for this dataset are unavailable.',
+                            coordinatesEnpoint.replace('$datasetId', this.datasetId));
                     }
                 }
 
@@ -1916,46 +2465,63 @@
 
                 //return;
                 
-                //check if a gene was requested in config or url key params
-                let geneRequested = false;
+                /*
+                    exactly one gene's expression is loaded at startup, whichever source
+                    names it - a url key param, a config preset, or the markers file.
+
+                    each of these used to loop and await a fetch per gene. at 1.5M cells one
+                    gene is ~12.4 MB of doubles plus a full stats pass, and the markersList
+                    branch was reachable with every gene in the marker list in it (111 on
+                    FNIH_Pancreas_scRNA_v2.2), fetched serially before the page finished
+                    loading. the markers file's job is to name the gene to show, not to
+                    drive a bulk load.
+
+                    names beyond the first are dropped rather than listed: getGeneExpression
+                    only pushes to geneNames after a successful fetch, so a gene that is
+                    never fetched never appears in the gene list.
+                */
+                let requestedGene = null;
                 if(this.renderConfig["parameters"]?.gene){
-                    //load genes from url key params
                     const paramGenes = decodeURIComponent(keyParams[this.renderConfig["parameters"].gene]);
                     if(paramGenes && paramGenes !== 'undefined'){
-                        llog('loading param genes');
-                        const paramGenesArray = paramGenes.split(',');
-                        for (const gene of paramGenesArray) {
-                            await this.getGeneExpression(gene.toUpperCase(), false);
-                            await Vue.nextTick();
-                            geneRequested = true;
-                        }
-                    }else if(this.presetsConfig?.["genes"]){
-                        //load genes from config
-                        llog('loading config genes');
-                        for (const gene of this.presetsConfig["genes"]) {
-                            await this.getGeneExpression(gene.toUpperCase(), false);
-                            await Vue.nextTick();
-                            geneRequested = true;
-                        }
+                        //first non-empty, so a stray leading comma does not request ''
+                        requestedGene = paramGenes.split(',').map(g => g.trim()).find(Boolean);
+                        if(requestedGene) llog('loading param gene', requestedGene);
+                    }else if(this.presetsConfig?.["genes"]?.length){
+                        //NOTE: config preset genes are only consulted when the url param is
+                        //also configured, which looks unintended but is left as it was
+                        requestedGene = this.presetsConfig["genes"][0];
+                        if(requestedGene) llog('loading config gene', requestedGene);
                     }
                 }
 
-                //if no specific gene was requested
-                if(!geneRequested){
-                    //but we have marker genes
-                    if(this.markerGenes){
-                        //just load the first in the list
-                        await this.getGeneExpression(this.markerGenes[0].gene.toUpperCase(), false);
-                    }else if(this.markersList){
-                        //no marker genes given, try loading genes from config list
-                        llog('loading marker genes');
-                        for(const gene of this.markersList){
-                            await this.getGeneExpression(gene.toUpperCase(), false);
-                            await Vue.nextTick();
-                        }
-                    }
+                if(!requestedGene){
+                    //markerGenes is the current markers format, markersList the older one
+                    if(this.markerGenes?.length) requestedGene = this.markerGenes[0].gene;
+                    else if(this.markersList?.length) requestedGene = this.markersList[0];
+                    if(requestedGene) llog('loading marker gene', requestedGene);
                 }
-                
+
+                if(requestedGene){
+                    await this.getGeneExpression(String(requestedGene).trim().toUpperCase(), false);
+                }
+
+                //debug only, mem=1 in the url. see memoryReport.js
+                await Vue.nextTick();
+                reportSingleCellMemory({
+                    datasetId: this.datasetId,
+                    fields: this.fields,
+                    coordinates: this.coordinates,
+                    expressionData: this.expressionData,
+                    expressionStatsAll: this.expressionStatsAll,
+                    expressionStatsCache: this.expressionStatsCache,
+                    expressionLRU: this.expressionLRU,
+                    listedGenes: this.geneNames?.length,
+                    markers: this.markers,
+                    cellFilter: this.cellFilter,
+                    facetCounts: this.facetCounts,
+                    sharedUmapData,
+                });
             },
 
 
@@ -1964,14 +2530,46 @@
                 if(markersEnpoint){
                     const url = markersEnpoint;
                     const markersRaw = await scUtils.fetchMarkers(url, this.datasetId);
-                    const markersCleaned =  markersRaw.filter(v => v !== null);
-                    //remap params to handle older/newer versions
-                    const markersNormalized = markersCleaned.map(m => ({
-                        ...m,
-                        mean_expression: m.mean_expression ?? m.mean_expression_raw ?? 0,
-                        pct_cells_expression: m.pct_cells_expression ?? m.pct_nz_group ?? 0,
-                        // Add other fallback mappings here if needed
-                    }));
+                    /*
+                        marker genes are optional - not every dataset ships a file, and every
+                        marker section is gated on `markers` being set. fetchMarkers returns
+                        null when the file is missing or unparseable, and this used to go
+                        straight into markersRaw.filter(), so the throw happened inside the
+                        load and left the page on "Loading markers..." forever with
+                        everything else already fetched and usable. a missing file now just
+                        means no marker sections.
+                    */
+                    if(!markersRaw || typeof markersRaw !== 'object'){
+                        llog('no usable marker genes for this dataset', url);
+                        this.markers = null;
+                        this.markersList = null;
+                        this.markerGenes = null;
+                        this.markerGenesTable = null;
+                        return;
+                    }
+
+                    /*
+                        two shapes reach here. the current one is a list of per-gene records,
+                        which gets the stat-name remapping below. the older one is
+                        { cellType: [genes] } with no stats to remap - the branch further
+                        down builds its gene list from Object.values, but nothing could ever
+                        reach it, because .filter() threw on a non-array first. so that
+                        format was not "supported with a fallback", it was broken; passing
+                        the object through unmodified is what actually reaches the fallback.
+                    */
+                    let markersNormalized;
+                    if(Array.isArray(markersRaw)){
+                        const markersCleaned = markersRaw.filter(v => v !== null);
+                        //remap params to handle older/newer versions
+                        markersNormalized = markersCleaned.map(m => ({
+                            ...m,
+                            mean_expression: m.mean_expression ?? m.mean_expression_raw ?? 0,
+                            pct_cells_expression: m.pct_cells_expression ?? m.pct_nz_group ?? 0,
+                            // Add other fallback mappings here if needed
+                        }));
+                    }else{
+                        markersNormalized = markersRaw;
+                    }
                     this.markers = markersNormalized;
                     llog('markers', this.markers);
                     if(this.markers){
@@ -1980,28 +2578,6 @@
                             this.markersList = [...new Set(this.markers.map(x=>x.gene.toUpperCase()))];
                             //this.markerCellTypes = [...new Set(this.markers.map(x=>x[markerFile.markerKey]))];
                             
-
-                            /*
-                            //sort metadata_labels naturally (alpha/num)
-                    Object.keys(this.fields.metadata_labels).forEach(key => {
-                        const customSortOrder = this.displayFields?.[key]?.customSortOrder;
-                        const values = this.fields.metadata_labels[key];
-                        //if config specifies a custom sort order
-                        //and the config array is like the fields arrays
-                        if (
-                            customSortOrder &&
-                            arraysHaveSameElements(customSortOrder, values)
-                        ) {
-                            //replace field sort order with custom sort order
-                            this.fields.metadata_labels[key] = [...customSortOrder];
-                        } else {
-                            //otherwise, by default, sort naturally
-                            this.fields.metadata_labels[key] = [...values].sort((a, b) =>
-                                a.localeCompare(b, undefined, { numeric: true })
-                            );
-                        }
-                    });
-                            */
 
                            this.markersByGene = scUtils.groupByKey(this.markers, 'gene');
                            //this.markersByCellType = scUtils.groupByKey(this.markers, 'cell_type');
@@ -2032,7 +2608,7 @@
                                     label: markerFile.markerKey
                                 })
                             }
-                            console.log("%%%%%%", this.markerTableColumns);
+                            llog('marker table columns', this.markerTableColumns);
                             this.markersHaveZscores = this.markerGenes.some(row => row.z_score !== null && row.z_score !== undefined);
                             llog('markers', {markersByGene:this.markersByGene, markersByCellType:this.markersByCellType, markerGenes:this.markerGenes, markersList:this.markersList});
                             
@@ -2045,6 +2621,31 @@
                     }else{
                         llog('no markers returned');
                     }
+                }
+            },
+
+            //mark a gene as the most recently used, so eviction takes the coldest one
+            touchGene(gene){
+                const at = this.expressionLRU.indexOf(gene);
+                if(at !== -1) this.expressionLRU.splice(at, 1);
+                this.expressionLRU.push(gene);
+            },
+
+            //drop the raw expression of the coldest genes once the held arrays exceed the
+            //byte budget. the gene stays in the list and keeps its dot plot row - clicking
+            //it refetches, which geneClick already handled for genes that never loaded
+            evictExpressionData(cellCount){
+                const perGene = Math.max(1, cellCount) * 8; //raw expression arrives as doubles
+                const limit = Math.max(EXPRESSION_CACHE_MIN_GENES, Math.floor(EXPRESSION_CACHE_BYTES / perGene));
+
+                while(this.expressionLRU.length > limit){
+                    //never evict what is on screen
+                    const index = this.expressionLRU.findIndex(g => g !== this.geneExpressionVars.selectedGene);
+                    if(index === -1) break;
+                    const [evicted] = this.expressionLRU.splice(index, 1);
+                    Vue.delete(this.expressionData, evicted);
+                    Vue.delete(this.expressionExtents, evicted);
+                    llog(`evicted ${evicted} expression, keeping ${limit} genes`);
                 }
             },
 
@@ -2065,10 +2666,20 @@
                 this.geneLoading = null;
 
                 if(expressionResult){
-                    if((this.markerGenes && !this.markersList.includes(gene)) || !this.markerGenes) {
+                    //a gene can already be listed and still reach here, because eviction
+                    //drops its expression but leaves it in the list to be clicked again
+                    if(((this.markerGenes && !this.markersList.includes(gene)) || !this.markerGenes)
+                        && !this.geneNames.includes(gene)) {
                         this.geneNames.push(gene);
                     }
                     Vue.set(this.expressionData, gene, expressionResult);
+                    this.touchGene(gene);
+                    this.evictExpressionData(expressionResult.length);
+                    //same d3 calls the template used to make per violin, run once here
+                    Vue.set(this.expressionExtents, gene, {
+                        min: d3.min(expressionResult),
+                        max: d3.max(expressionResult)
+                    });
 
                     llog('getGeneExpression', gene);
                     //llog(addToKeyParams);
@@ -2107,13 +2718,32 @@
                 //llog('max', max);
                 return max;
             },
+            //these are called from inside the v-for over stratify values, so they used to
+            //run a full d3 scan of every cell's expression once per violin. the extent is
+            //computed once when the gene loads instead
             minExpressionValue(gene){
-                return d3.min(this.expressionData[gene])
+                return this.expressionExtents[gene]?.min;
             },
             maxExpressionValue(gene){
-                //llog(gene, this.expressionData);
-                return d3.max(this.expressionData[gene])
+                return this.expressionExtents[gene]?.max;
             },
+            /*
+                the labels a plot should draw for a field, in display order.
+
+                a field that is filtered contributes only its selected values: the rest are
+                empty by construction - stratify by disease while filtered to healthy and
+                every other disease can only ever be an empty violin - and the aggregation
+                drops those rows for the same reason, so the two have to agree or the violin
+                list renders an entry with no stats.
+
+                this is NOT the list the filter control offers (that is filterLabelsFor):
+                narrowing the control by its own selection would make an unpicked value
+                impossible to pick again.
+
+                a value that survives the filter but has no cells still appears, with an
+                empty plot. that is the data saying something, and it also keeps the axis
+                from reordering as filters change.
+            */
             getPlotMetadataLabels(field) {
                 if (!field || !this.fields) return [];
                 const labels =
@@ -2121,19 +2751,28 @@
                     this.fields['metadata_labels']?.[field] ||
                     [];
 
-                return labels.filter(label => !scUtils.isMissingMetadataValue(label));
-            },
-            getStatsByPropValue(data, property, value){
-                return data.filter(item => item[property] === value);
-            },
-            getAllStats(){
-                const data = [];
-                const displayLabels = this.getPlotMetadataLabels(this.cellCompositionVars.segmentByLabel);
-                for(const value of displayLabels){
-                    const row = this.getStatsByPropValue(this.geneExpressionVars.expressionStats, this.cellCompositionVars.segmentByLabel, value);
-                    data.push(...row);
+                //mirrors buildAllowTable's two selection shapes. if these two ever disagree
+                //the violin list renders an entry with no stats, or hides one that has some
+                const selected = this.cellFilterSelections[field];
+                let admits = null;
+                if(Array.isArray(selected) && selected.length){
+                    const allowed = new Set(selected);
+                    admits = label => allowed.has(label);
+                }else if(selected && Number.isFinite(selected.min)){
+                    admits = label => {
+                        const value = Number(label);
+                        return Number.isFinite(value) && value >= selected.min && value <= selected.max;
+                    };
                 }
-                return data;
+
+                return labels.filter(label =>
+                    !scUtils.isMissingMetadataValue(label) && (!admits || admits(label)));
+            },
+            //the stats for one stratify value, out of the statsBySegmentValue buckets.
+            //EMPTY_STATS is shared rather than a fresh [], so a value with no rows does not
+            //hand its violin a new array identity on every render and trigger a redraw
+            statsFor(value){
+                return this.statsBySegmentValue.get(value) || EMPTY_STATS;
             },
             stratifyPlotTypeLabel(type){
                 const labels = {
@@ -2310,6 +2949,15 @@
                                 display: false,
                                 excludeReason: 'ontologyID'
                             };
+                        }else if(value.length > scUtils.MAX_PLOTTABLE_LABELS){
+                            //hide id-like fields (barcode, cell id). grouping by one would
+                            //mean a bar per cell, and they have no label colors
+                            rawDisplayFields[key] = {
+                                displayName: key,
+                                dataType: 'cat',
+                                display: false,
+                                excludeReason: 'tooManyValues'
+                            };
                         }else{
                             //show all others
                             rawDisplayFields[key] = {
@@ -2364,6 +3012,226 @@
 
 
             
+
+            /*
+                fires once per gene loaded, and on a filter change. it used to recompute the
+                stats for every gene already loaded as well - O(cells x genes) per search, so
+                the cost of searching a gene grew with the number already searched. only the
+                genes whose stats are not cached are computed now.
+            */
+            rebuildExpressionStatsAll(){
+                if(!this.fields || !this.labelColors) return;
+                //all four feed the stats, and all four change at runtime - cellTypeField via
+                //handleSampleChange, cellFilter via the filter panel - so a narrower key
+                //would serve stats grouped or filtered by the previous state
+                const key = Object.freeze([this.fields, this.labelColors, this.cellTypeField, this.cellFilter]);
+                const staleKey = !this.expressionStatsCacheKey ||
+                    key.some((value, i) => value !== this.expressionStatsCacheKey[i]);
+                if(staleKey){
+                    this.expressionStatsCache.clear();
+                    this.expressionStatsCacheKey = key;
+                }
+
+                //the cache deliberately outlives the raw arrays: evicting a gene's
+                //expression must not drop its row from the dot plot, and a row is a
+                //handful of objects against one value per cell. it is bounded by the
+                //number of genes searched, and cleared with the dataset
+                Object.keys(this.expressionData).forEach(gene => {
+                    if(this.expressionStatsCache.has(gene)) return;
+                    this.expressionStatsCache.set(gene, scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, this.cellTypeField, null, true, this.cellFilter));
+                })
+
+                const expressionStats = [];
+                this.expressionStatsCache.forEach(stats => expressionStats.push(...stats));
+                //frozen for the same reason the grouped results are - this feeds the marker
+                //dot plot, and Vue would walk it on every read during a render
+                this.expressionStatsAll = Object.freeze(expressionStats);
+                //llog('updated expression stats', this.expressionStatsAll);
+            },
+
+            /* cell filters */
+            /*
+                the label options for one field's filter control. filterLabelsFor keeps the
+                missing-value labels, unlike getPlotMetadataLabels: once a field is filtered
+                at all, cells with no value for it are excluded, so "no value" has to be
+                selectable rather than silently dropped.
+            */
+            filterLabelsFor(field){
+                return scUtils.filterLabelsFor(this.fields, field);
+            },
+            isMissingLabel(label){
+                return scUtils.isMissingMetadataValue(label);
+            },
+            /*
+                a numeric field is filtered with a slider rather than a list of checkboxes.
+                the extent is memoised per field because numericRangeFor walks the label
+                list, and the template asks for it on every render of the open field.
+            */
+            numericRangeFor(field){
+                if(!field || !this.fields) return null;
+                if(!(field in this.numericRanges)){
+                    this.$set(this.numericRanges, field, scUtils.numericRangeFor(this.fields, field));
+                }
+                return this.numericRanges[field];
+            },
+            isRangeFilterField(field){
+                return !!this.numericRangeFor(field);
+            },
+            //[low, high] for the slider, or null to mean the full extent
+            rangeValueFor(field){
+                const selected = this.cellFilterSelections[field];
+                if(!selected || Array.isArray(selected)) return null;
+                return [selected.min, selected.max];
+            },
+            /*
+                a range that covers the whole extent is not a filter, so the key is dropped
+                rather than stored - otherwise dragging back to full width would leave the
+                field's missing-value cells excluded with nothing on screen to say why.
+            */
+            setFilterRange(field, [low, high]){
+                const extent = this.numericRangeFor(field);
+                if(!extent) return;
+
+                const selections = {...this.cellFilterSelections};
+                if(low <= extent.min && high >= extent.max) delete selections[field];
+                else selections[field] = {min: low, max: high};
+
+                this.applyCellFilters(selections);
+            },
+            //one short string for both selection shapes, for the chips and the field list
+            filterSummaryFor(field){
+                const selected = this.cellFilterSelections[field];
+                if(!selected) return '';
+                if(Array.isArray(selected)){
+                    return selected.length > 3
+                        ? `${selected.length} values`
+                        : selected.map(this.filterLabelDisplay).join(', ');
+                }
+                const decimals = this.numericRangeFor(field)?.decimals ?? 0;
+                return `${selected.min.toFixed(decimals)} – ${selected.max.toFixed(decimals)}`;
+            },
+            filterLabelDisplay(label){
+                return scUtils.isMissingMetadataValue(label) ? 'No value' : label;
+            },
+            isFilterLabelSelected(field, label){
+                return (this.cellFilterSelections[field] || []).includes(label);
+            },
+            facetCountFor(field, label){
+                return this.facetCounts[field]?.[label] ?? null;
+            },
+            /*
+                counts are only needed for the field whose values are on screen, so this is
+                one sweep over the cells rather than one per filterable field.
+
+                the field being counted may itself be filtered, and then its own constraint
+                has to be left out - otherwise every value you did not pick reads 0 and
+                there is no way to see what switching to it would give, which is how a
+                compounding filter turns into a dead end. computeFacetCounts does that
+                leave-one-out from the filter's failCount/firstFail.
+            */
+            refreshFacetCounts(){
+                //a range field shows a slider, not a value list, so there is nothing to put
+                //a count beside and no reason to sweep the cells for one
+                if(!this.fields || !this.openFilterField || this.isRangeFilterField(this.openFilterField)){
+                    this.facetCounts = {};
+                    return;
+                }
+                this.facetCounts = scUtils.computeFacetCounts(
+                    this.fields, this.cellFilter, [this.openFilterField]);
+            },
+            toggleFilterField(field){
+                this.openFilterField = this.openFilterField === field ? null : field;
+                this.filterSearch = "";
+                this.refreshFacetCounts();
+            },
+            /*
+                close the floating panel on a click outside it.
+
+                "outside" means outside the PANEL, not outside the whole filter control -
+                clicking the header row or the blank space beside it is outside as far as
+                anyone using it is concerned, and guarding on the wrapper made those clicks
+                do nothing.
+
+                the toggle button is the one exception, and it is not cosmetic: without it a
+                mousedown on the button would close the panel here and the button's click
+                would reopen it in the same gesture, so Hide could never work.
+
+                bound on mousedown rather than click because a click fires after mouseup, so
+                releasing a slider drag that ended outside the panel would read as an outside
+                click and close it mid-gesture.
+            */
+            handleFilterOutsideClick(event){
+                if(!this.filterPanelOpen) return;
+                const panel = this.$refs.cellFilterPanel;
+                if(panel && panel.contains(event.target)) return;
+                const toggle = this.$refs.cellFilterToggle;
+                if(toggle && toggle.contains(event.target)) return;
+                this.filterPanelOpen = false;
+            },
+            toggleFilterValue(field, label){
+                const current = this.cellFilterSelections[field] || [];
+                const next = current.includes(label)
+                    ? current.filter(value => value !== label)
+                    : [...current, label];
+
+                //an empty selection means "no constraint on this field", so drop the key
+                //rather than leave an empty array behind
+                const selections = {...this.cellFilterSelections};
+                if(next.length) selections[field] = next;
+                else delete selections[field];
+
+                this.applyCellFilters(selections);
+            },
+            clearFieldFilter(field){
+                if(!this.cellFilterSelections[field]) return;
+                const selections = {...this.cellFilterSelections};
+                delete selections[field];
+                this.applyCellFilters(selections);
+            },
+            clearAllFilters(){
+                if(!this.activeFilterFields.length) return;
+                this.applyCellFilters({});
+            },
+            /*
+                the single entry point for a filter change: rebuild the mask, then redo
+                every aggregation through the paths that already exist.
+
+                selectSegmentBy is deliberately reused rather than duplicated - it is
+                already the one place that recomputes the counts, the continuous variants
+                and the expression stats for the current group/stratify pair, so a filter
+                change and a stratify change take exactly the same route.
+            */
+            applyCellFilters(selections){
+                this.cellFilterSelections = selections;
+                this.cellFilter = scUtils.buildCellFilter(this.fields, selections);
+                this.refreshFacetCounts();
+
+                //the per-gene stats cache is keyed on the filter, so this invalidates it.
+                //only the selected gene is recomputed eagerly: it is the only one on
+                //screen, and rebuilding all of the LRU-held genes would cost ~237 ms each
+                //at 1.5M cells on every toggle
+                this.invalidateExpressionStats();
+
+                if(this.dataReady){
+                    this.selectSegmentBy(
+                        this.cellCompositionVars.displayByLabel,
+                        this.cellCompositionVars.segmentByLabel
+                    );
+                }
+            },
+            /*
+                expressionStatsAll only feeds the marker dot plot as a fallback for when a
+                dataset ships no marker genes (`:data="markerGenes || expressionStatsAll"`),
+                so when markers exist there is nothing to rebuild and the whole pass is
+                skipped. when it is in use, only the genes still holding raw expression can
+                be recomputed anyway - C1 evicts the rest.
+            */
+            invalidateExpressionStats(){
+                this.expressionStatsCache.clear();
+                this.expressionStatsCacheKey = null;
+                if(this.markerGenes) return;
+                this.rebuildExpressionStatsAll();
+            },
 
             /* handlers */
             handleSampleChange(){
@@ -2437,10 +3305,10 @@
                     this.stratifyPlotType = "violin";
                 }
                 if(segment===""){
-                    g.segmentByCounts2 = scUtils.calcCellCounts(this.fields, this.labelColors, g.displayByLabel, g.segmentByLabel);
+                    g.segmentByCounts2 = scUtils.calcCellCounts(this.fields, this.labelColors, g.displayByLabel, g.segmentByLabel, this.cellFilter);
                 }else{
                     if(this.displayFields && this.displayFields[g.segmentByLabel].dataType==='cat'){
-                        g.segmentByCounts2 = scUtils.calcCellCounts(this.fields, this.labelColors, g.segmentByLabel, g.displayByLabel);
+                        g.segmentByCounts2 = scUtils.calcCellCounts(this.fields, this.labelColors, g.segmentByLabel, g.displayByLabel, this.cellFilter);
                     }else if(this.displayFields && this.displayFields[g.segmentByLabel].dataType==='cont'){
                         this.contCountResults = this.parseCellCountScatterData(g.displayByLabel, g.segmentByLabel, this.donorsField);
                         llog('contCountResults', this.contCountResults)
@@ -2472,7 +3340,8 @@
                 llog('expression by:', {display, segment});
                 g.selectedLabel = display;
                 g.subsetLabel = segment;
-                g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[g.selectedGene], g.selectedGene, g.selectedLabel, g.subsetLabel);
+                if(!g.selectedGene || !this.expressionData[g.selectedGene]) return;
+                g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[g.selectedGene], g.selectedGene, g.selectedLabel, g.subsetLabel, false, this.cellFilter);
             },
             searchGene(e){
                 const parts = e.split(/[,\s]+/);
@@ -2491,8 +3360,9 @@
                     this.getGeneExpression(gene, false, true);
                     return;
                 }
+                this.touchGene(gene);
                 const g = this.geneExpressionVars;
-                g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, g.selectedLabel, g.subsetLabel);
+                g.expressionStats = scUtils.calcExpressionStats(this.fields, this.labelColors, this.expressionData[gene], gene, g.selectedLabel, g.subsetLabel, false, this.cellFilter);
                 g.selectedGene = gene;
 
                 if(this.cellCompositionVars.segmentByLabel===""){
@@ -2537,6 +3407,39 @@
     border-radius: 50%;
 }
 
+
+/*
+    the filter's value picker floats: opening it must not reflow the plots below it.
+
+    position:relative on the wrapper is what the panel anchors to. the z-index is here
+    rather than only on the panel because the filter row is an EARLIER sibling than the
+    plots - under auto stacking, a later sibling paints over an earlier one, so the overlay
+    would end up behind the charts and canvases.
+*/
+.cell-filter{
+    position: relative;
+    z-index: 30;
+}
+
+/*
+    top:100% puts the panel under the whole control, so it clears the active-filter chips
+    even as they wrap onto more lines. width is content driven with a viewport cap, rather
+    than the 100% it would otherwise resolve against an anchor only as wide as the label
+    and the button.
+*/
+.cell-filter-panel{
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    width: max-content;
+    max-width: min(90vw, 720px);
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+    padding: 8px;
+}
 
 .tabs-group{
     display:flex;
