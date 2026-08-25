@@ -161,6 +161,7 @@
                         :global-enrichment-state="globalEnrichmentState"
                         :workspace-mapping-filter="workspaceMappingFilter"
                         :search-session="searchSession"
+                        :selected-phenotypes="selectedPhenotypes"
                         :region="searchSession?.region"
                         :view-region="viewRegion"
                         :region-zoom="regionZoom"

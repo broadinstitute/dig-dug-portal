@@ -22,6 +22,7 @@ export const VKS_PHENOTYPE_SERIES_LOAD_STEPS = [
     "associations",
     "ld",
     "credibleSets",
+    "globalEnrichment",
 ];
 
 /**

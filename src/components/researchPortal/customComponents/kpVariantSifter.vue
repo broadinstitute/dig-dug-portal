@@ -323,6 +323,8 @@ import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
 import {
     fetchGlobalEnrichment,
     fetchLocusAnnotations,
+    mergeGeRowsByPhenotype,
+    removeGeRowsForPhenotype,
 } from "./kpVariantSifter/variantSifterGlobalEnrichmentApi.js";
 import { fetchGeneLinks } from "./kpVariantSifter/variantSifterV2gApi.js";
 import { fetchVariantLinks } from "./kpVariantSifter/variantSifterS2gApi.js";
@@ -1285,6 +1287,7 @@ export default Vue.component("kp-variant-sifter", {
             associationsOk = true,
             ldOk = true,
             credibleSetsOk = true,
+            globalEnrichmentOk = true,
         } = {}) {
             if (!this.regionLoadProgress?.active) {
                 return;
@@ -1328,6 +1331,21 @@ export default Vue.component("kp-variant-sifter", {
                 this.setRegionLoadStep(
                     "credibleSets",
                     credibleSetsOk
+                        ? VKS_REGION_LOAD_STATUS.DONE
+                        : VKS_REGION_LOAD_STATUS.FAILED
+                );
+            }
+            const globalEnrichmentStep = this.regionLoadProgress.steps.find(
+                (step) => step.id === "globalEnrichment"
+            );
+            if (
+                globalEnrichmentStep &&
+                globalEnrichmentStep.status !== VKS_REGION_LOAD_STATUS.DONE &&
+                globalEnrichmentStep.status !== VKS_REGION_LOAD_STATUS.FAILED
+            ) {
+                this.setRegionLoadStep(
+                    "globalEnrichment",
+                    globalEnrichmentOk
                         ? VKS_REGION_LOAD_STATUS.DONE
                         : VKS_REGION_LOAD_STATUS.FAILED
                 );
@@ -2530,6 +2548,55 @@ export default Vue.component("kp-variant-sifter", {
                 this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.FAILED);
                 return false;
             }
+        },
+        async mergeGlobalEnrichmentForPhenotype(phenotype) {
+            const phenotypeName = String(phenotype?.name || "").trim();
+            if (!phenotypeName || !this.searchSession) {
+                return false;
+            }
+
+            const geHost = this.bioIndexHostFor("global-enrichment");
+            if (!geHost) {
+                return false;
+            }
+
+            const session = {
+                ...this.searchSession,
+                phenotype,
+                region: this.dataRegion || this.searchSession.region,
+            };
+
+            try {
+                const geRows = await fetchGlobalEnrichment(session, geHost);
+                this.globalEnrichmentState = {
+                    ...this.globalEnrichmentState,
+                    geRows: mergeGeRowsByPhenotype(
+                        this.globalEnrichmentState.geRows,
+                        geRows,
+                        phenotypeName
+                    ),
+                };
+                return true;
+            } catch (error) {
+                console.warn(
+                    `Variant Sifter ${phenotypeName} global enrichment load failed`,
+                    error
+                );
+                return false;
+            }
+        },
+        removeGlobalEnrichmentForPhenotype(phenotypeName) {
+            const target = String(phenotypeName || "").trim();
+            if (!target) {
+                return;
+            }
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                geRows: removeGeRowsForPhenotype(
+                    this.globalEnrichmentState.geRows,
+                    target
+                ),
+            };
         },
         resetSearch() {
             this.associationsRequestToken += 1;
@@ -4411,10 +4478,38 @@ export default Vue.component("kp-variant-sifter", {
                             ? VKS_REGION_LOAD_STATUS.DONE
                             : VKS_REGION_LOAD_STATUS.FAILED
                     );
+                    this.setRegionLoadStep(
+                        "globalEnrichment",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                }
+                let globalEnrichmentOk = true;
+                try {
+                    globalEnrichmentOk = await this.mergeGlobalEnrichmentForPhenotype(
+                        phenotype
+                    );
+                } catch (geError) {
+                    globalEnrichmentOk = false;
+                    console.warn(
+                        `Variant Sifter ${phenotypeName} global enrichment merge failed`,
+                        geError
+                    );
+                }
+                if (token !== this.associationsRequestToken) {
+                    return false;
+                }
+                if (ownsProgress) {
+                    this.setRegionLoadStep(
+                        "globalEnrichment",
+                        globalEnrichmentOk
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
                     this.finishAdditivePhenotypeLoadProgress({
                         associationsOk: true,
                         ldOk,
                         credibleSetsOk,
+                        globalEnrichmentOk,
                     });
                 }
                 if (syncUrl) {
@@ -4446,6 +4541,7 @@ export default Vue.component("kp-variant-sifter", {
                         associationsOk: false,
                         ldOk: false,
                         credibleSetsOk: false,
+                        globalEnrichmentOk: false,
                     });
                 }
                 return false;
@@ -4505,6 +4601,7 @@ export default Vue.component("kp-variant-sifter", {
                     this.searchSession
                 );
                 this.removeCredibleSetsForPhenotype(primaryName);
+                this.removeGlobalEnrichmentForPhenotype(primaryName);
             } else {
                 const nextRows = (this.associationsState.rows || []).filter((row) => {
                     const rowPhenotype = associationRowPhenotype(row, primaryName);
@@ -4536,6 +4633,7 @@ export default Vue.component("kp-variant-sifter", {
                         availabilityErrorByPhenotype,
                 };
                 this.removeCredibleSetsForPhenotype(target);
+                this.removeGlobalEnrichmentForPhenotype(target);
             }
 
             this.syncUrlSearchParams(this.searchSession);

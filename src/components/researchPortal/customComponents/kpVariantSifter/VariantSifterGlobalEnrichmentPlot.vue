@@ -60,6 +60,15 @@ export default {
             type: Object,
             default: null,
         },
+        /** Override phenotype used for GE points (defaults to searchSession.phenotype). */
+        phenotype: {
+            type: String,
+            default: "",
+        },
+        plotTitle: {
+            type: String,
+            default: "",
+        },
         selectedAnnotations: {
             type: Array,
             default: () => [],
@@ -86,15 +95,22 @@ export default {
         };
     },
     computed: {
+        plotPhenotype() {
+            return (
+                String(this.phenotype || "").trim() ||
+                this.searchSession?.phenotype?.name ||
+                ""
+            );
+        },
         plotModel() {
-            if (!this.searchSession?.phenotype?.name) {
+            if (!this.plotPhenotype) {
                 return null;
             }
             return buildGePlotModel({
                 geRows: this.globalEnrichmentState?.geRows || [],
                 annoData: this.globalEnrichmentState?.annoData || {},
-                phenotype: this.searchSession.phenotype.name,
-                ancestry: this.searchSession.ancestry || "Mixed",
+                phenotype: this.plotPhenotype,
+                ancestry: this.searchSession?.ancestry || "Mixed",
             });
         },
         selectedTissueKeys() {
@@ -126,6 +142,9 @@ export default {
                 this.$nextTick(() => this.renderPlot());
             },
             deep: true,
+        },
+        plotPhenotype() {
+            this.$nextTick(() => this.renderPlot());
         },
         selectedAnnotations: {
             handler() {
@@ -197,6 +216,7 @@ export default {
                 plotModel: this.plotModel,
                 canvasWidth,
                 canvasHeight,
+                title: this.plotTitle || "",
                 selectedAnnotations: this.selectedAnnotations,
                 selectedTissueKeys: this.selectedTissueKeySet,
                 utils: this.utils,
