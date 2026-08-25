@@ -45,13 +45,16 @@
                         :ld-loading="associationsState.ldLoading"
                         :ld-error="associationsState.ldError"
                         :ancestry-bubbles="ancestryBubbles"
+                        :ancestry-bubble-groups="ancestryBubbleGroups"
                         :primary-ancestry="primaryAncestry"
                         :selected-ancestries="associationsState.selectedAncestries"
+                        :selected-phenotypes="associationsState.selectedPhenotypes"
                         :ancestry-series-loading="associationsState.ancestrySeriesLoading"
                         :ancestry-availability-loading="
                             associationsState.ancestryAvailabilityLoading
                         "
                         :ancestry-availability-error="associationsState.ancestryAvailabilityError"
+                        :project-id="projectId"
                         :plot-overlays-state="plotOverlaysState"
                         :plot-markers="plotMarkers"
                         :starred-variant-ids="starredVariantIds"
@@ -168,8 +171,10 @@
 import { drawerTabLabel, drawerTabHeight, sectionById } from "./variantSifterSections.js";
 import {
     availableAncestryBubbles,
+    buildAncestryBubbleGroups,
     primaryAssociationAncestry,
 } from "./variantSifterAssociationsApi.js";
+import { VKS_PROJECT_DEFAULT_ID } from "./variantSifterProjects.js";
 import VariantSifterAssociationsDrawer from "./VariantSifterAssociationsDrawer.vue";
 
 import VariantSifterCredibleSetsDrawer from "./VariantSifterCredibleSetsDrawer.vue";
@@ -201,6 +206,10 @@ export default {
             type: Object,
             default: null,
         },
+        projectId: {
+            type: String,
+            default: VKS_PROJECT_DEFAULT_ID,
+        },
         associationsState: {
             type: Object,
             default: () => ({
@@ -213,10 +222,14 @@ export default {
                 query: null,
                 filtersIndex: null,
                 ancestryAvailability: [],
+                ancestryAvailabilityByPhenotype: {},
                 ancestryAvailabilityLoading: false,
+                ancestryAvailabilityLoadingByPhenotype: {},
                 ancestryAvailabilityError: null,
+                ancestryAvailabilityErrorByPhenotype: {},
                 selectedAncestries: [],
                 ancestrySeriesLoading: {},
+                selectedPhenotypes: [],
             }),
         },
         plotOverlaysState: {
@@ -360,6 +373,24 @@ export default {
                 this.associationsState?.ancestryAvailability,
                 this.primaryAncestry
             );
+        },
+        ancestryBubbleGroups() {
+            return buildAncestryBubbleGroups({
+                ancestryAvailabilityByPhenotype:
+                    this.associationsState?.ancestryAvailabilityByPhenotype || {},
+                primaryAncestry: this.primaryAncestry,
+                primaryPhenotype: this.searchSession?.phenotype || null,
+                selectedPhenotypes: this.associationsState?.selectedPhenotypes || [],
+                selectedAncestries: this.associationsState?.selectedAncestries || [],
+                ancestrySeriesLoading:
+                    this.associationsState?.ancestrySeriesLoading || {},
+                ancestryAvailabilityLoadingByPhenotype:
+                    this.associationsState?.ancestryAvailabilityLoadingByPhenotype ||
+                    {},
+                ancestryAvailabilityErrorByPhenotype:
+                    this.associationsState?.ancestryAvailabilityErrorByPhenotype ||
+                    {},
+            });
         },
     },
     methods: {

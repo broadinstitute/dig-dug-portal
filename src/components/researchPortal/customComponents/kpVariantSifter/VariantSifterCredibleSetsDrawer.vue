@@ -435,7 +435,8 @@ export default {
         optionKey(entry) {
             return makeCredibleSetSelectionKey(
                 entry.credibleSetId,
-                entry.ancestry || "Mixed"
+                entry.ancestry || "Mixed",
+                entry.phenotype || ""
             );
         },
         optionValue(entry) {
@@ -462,7 +463,8 @@ export default {
                 entry.selectionKey ||
                 makeCredibleSetSelectionKey(
                     entry.credibleSetId,
-                    entry.ancestry || "Mixed"
+                    entry.ancestry || "Mixed",
+                    entry.phenotype || ""
                 )
             );
         },

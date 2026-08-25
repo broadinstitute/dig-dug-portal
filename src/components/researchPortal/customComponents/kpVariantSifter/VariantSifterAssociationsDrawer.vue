@@ -43,6 +43,7 @@
                         :rows="filteredRows"
                         :primary-ancestry="primaryAncestry"
                         :selected-ancestries="selectedAncestries"
+                        :selected-phenotypes="selectedPhenotypes"
                         :search-session="searchSession"
                         :plot-overlays-state="plotOverlaysState"
                         :plot-markers="plotMarkers"
@@ -65,6 +66,7 @@
                     </p>
                     <VariantSifterAncestryBubbles
                         :bubbles="ancestryBubbles"
+                        :groups="ancestryBubbleGroups"
                         :primary-ancestry="primaryAncestry"
                         :selected-ancestries="selectedAncestries"
                         :series-loading="ancestrySeriesLoading"
@@ -84,6 +86,8 @@
                     <VariantSifterAssociationsFilters
                         :rows="rows"
                         :filters-index="filtersIndex"
+                        :include-project="showProjectColumn"
+                        :include-phenotype="showPhenotypeColumn"
                         @update:filtersIndex="$emit('update:filtersIndex', $event)"
                     />
                 </div>
@@ -227,7 +231,10 @@
 </template>
 
 <script>
-import { ASSOCIATIONS_TABLE_FORMAT } from "./variantSifterAssociationsTableFormat.js";
+import {
+    ASSOCIATIONS_TABLE_FORMAT,
+    resolveAssociationsTopRows,
+} from "./variantSifterAssociationsTableFormat.js";
 import { sortAssociationRowsByPValueAndVariantId } from "./variantSifterAssociationsTable.js";
 import { applyAssociationsFilters } from "./variantSifterAssociationsFilters.js";
 import {
@@ -248,6 +255,7 @@ import {
     VKS_S2G_COLUMN,
     hasMultipleCredSets,
 } from "./variantSifterMappingData.js";
+import { VKS_PROJECT_DEFAULT_ID } from "./variantSifterProjects.js";
 import VariantSifterAssociationsFilters from "./VariantSifterAssociationsFilters.vue";
 import VariantSifterAssociationsLdPlot from "./VariantSifterAssociationsLdPlot.vue";
 import VariantSifterAncestryBubbles from "./VariantSifterAncestryBubbles.vue";
@@ -290,11 +298,19 @@ export default {
             type: Array,
             default: () => [],
         },
+        ancestryBubbleGroups: {
+            type: Array,
+            default: () => [],
+        },
         primaryAncestry: {
             type: String,
             default: "Mixed",
         },
         selectedAncestries: {
+            type: Array,
+            default: () => [],
+        },
+        selectedPhenotypes: {
             type: Array,
             default: () => [],
         },
@@ -309,6 +325,10 @@ export default {
         ancestryAvailabilityError: {
             type: String,
             default: null,
+        },
+        projectId: {
+            type: String,
+            default: VKS_PROJECT_DEFAULT_ID,
         },
         ldLoading: {
             type: Boolean,
@@ -384,16 +404,9 @@ export default {
         },
     },
     data() {
-        const topRows = ASSOCIATIONS_TABLE_FORMAT["top rows"];
-        const visibleColumns = {};
-        topRows.forEach((column) => {
-            visibleColumns[column] = true;
-        });
-
         return {
             tableFormat: ASSOCIATIONS_TABLE_FORMAT,
-            topRows,
-            visibleColumns,
+            visibleColumns: {},
             perPageNumber: "10",
             currentPage: 1,
             sortKey: "P-Value",
@@ -409,6 +422,18 @@ export default {
         };
     },
     computed: {
+        showProjectColumn() {
+            return Boolean(String(this.projectId || "").trim());
+        },
+        showPhenotypeColumn() {
+            return (this.selectedPhenotypes || []).length > 0;
+        },
+        topRows() {
+            return resolveAssociationsTopRows({
+                includeProject: this.showProjectColumn,
+                includePhenotype: this.showPhenotypeColumn,
+            });
+        },
         selectedCategoryIds() {
             return normalizeMappingState(this.mappingState).selectedCategoryIds;
         },
@@ -441,6 +466,8 @@ export default {
                 mappingCategories: this.mappingCategories,
                 selectedCategoryIds: this.selectedCategoryIds,
                 mappingMode: this.mappingMode,
+                includeProjectColumn: this.showProjectColumn,
+                includePhenotypeColumn: this.showPhenotypeColumn,
             });
         },
         mappedTopRows() {

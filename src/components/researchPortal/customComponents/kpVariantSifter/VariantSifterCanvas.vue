@@ -18,6 +18,7 @@
                         :key="section.id"
                         :rows="associationPlotRows"
                         :selected-ancestries="associationsState.selectedAncestries || []"
+                        :selected-phenotypes="associationsState.selectedPhenotypes || []"
                         :loading="associationsState.loading"
                         :hide-loading-status="regionLoadProgressActive"
                         :ld-loading="associationsState.ldLoading"
@@ -73,6 +74,8 @@
             <VariantSifterDataTableModal
                 :open="dataTableOpen"
                 :association-rows="associationsState.rows"
+                :selected-phenotypes="associationsState.selectedPhenotypes || []"
+                :project-id="projectId"
                 :credible-sets-state="credibleSetsState"
                 :global-enrichment-state="globalEnrichmentState"
                 :v2g-state="v2gState"

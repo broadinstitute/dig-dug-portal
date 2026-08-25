@@ -70,6 +70,12 @@ export function validateSessionExportReady({
     ) {
         throw new Error("Ancestry association data is still loading. Wait before exporting.");
     }
+    if (
+        associationsState?.phenotypeSeriesLoading &&
+        Object.values(associationsState.phenotypeSeriesLoading).some(Boolean)
+    ) {
+        throw new Error("Phenotype association data is still loading. Wait before exporting.");
+    }
     if (!associationsState?.rows?.length) {
         throw new Error("No association data to export. Wait for data to load first.");
     }
@@ -206,6 +212,27 @@ export function exportVariantSifterSession({
             query: associationsState.query,
             ldError: associationsState.ldError || null,
             selectedAncestries: [...(associationsState.selectedAncestries || [])],
+            selectedPhenotypes: (associationsState.selectedPhenotypes || [])
+                .map((entry) => {
+                    if (typeof entry === "string") {
+                        return {
+                            name: entry,
+                            description: null,
+                            selectedAncestries: [],
+                        };
+                    }
+                    if (!entry?.name) {
+                        return null;
+                    }
+                    return {
+                        name: entry.name,
+                        description: entry.description || null,
+                        selectedAncestries: [
+                            ...(entry.selectedAncestries || []),
+                        ],
+                    };
+                })
+                .filter(Boolean),
             filtersIndex: cloneFiltersIndex(
                 associationsState.filtersIndex || createFiltersIndex()
             ),
@@ -510,6 +537,32 @@ export function importVariantSifterSession(payload, phenotypes = []) {
               (code) => code && code !== primaryAncestry
           )
         : inferredSelectedAncestries;
+    const primaryPhenotypeName = searchSession.phenotype?.name || null;
+    const selectedPhenotypes = Array.isArray(exportedAssociations.selectedPhenotypes)
+        ? exportedAssociations.selectedPhenotypes
+              .map((entry) => {
+                  if (typeof entry === "string") {
+                      return {
+                          name: entry,
+                          description: null,
+                          selectedAncestries: [],
+                      };
+                  }
+                  if (!entry?.name || entry.name === primaryPhenotypeName) {
+                      return null;
+                  }
+                  return {
+                      name: entry.name,
+                      description: entry.description || null,
+                      selectedAncestries: Array.isArray(entry.selectedAncestries)
+                          ? entry.selectedAncestries.filter(
+                                (code) => code && code !== primaryAncestry
+                            )
+                          : [],
+                  };
+              })
+              .filter(Boolean)
+        : [];
 
     const associationsState = {
         loading: false,
@@ -521,11 +574,17 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         query: exportedAssociations.query ?? null,
         filtersIndex: normalizeFiltersIndex(exportedAssociations.filtersIndex),
         ancestryAvailability: [],
+        ancestryAvailabilityByPhenotype: {},
         ancestryAvailabilityLoading: false,
+        ancestryAvailabilityLoadingByPhenotype: {},
         ancestryAvailabilityError: null,
+        ancestryAvailabilityErrorByPhenotype: {},
         selectedAncestries,
         ancestrySeriesLoading: {},
         ancestrySeriesErrors: {},
+        selectedPhenotypes,
+        phenotypeSeriesLoading: {},
+        phenotypeSeriesErrors: {},
     };
 
     const ui = payload.ui || {};

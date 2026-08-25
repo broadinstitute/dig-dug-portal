@@ -19,7 +19,10 @@
  *    with selections from (2) unchanged.
  */
 
-import { ASSOCIATIONS_TABLE_FORMAT } from "./variantSifterAssociationsTableFormat.js";
+import {
+    ASSOCIATIONS_TABLE_FORMAT,
+    resolveAssociationsTopRows,
+} from "./variantSifterAssociationsTableFormat.js";
 import { resolveSelectedTissuesByAnnotation } from "./variantSifterGlobalEnrichmentData.js";
 import {
     normalizeV2gSelectedLinks,
@@ -1474,11 +1477,30 @@ export function buildMappedVariantDataTableView(
         mappingCategories = [],
         selectedCategoryIds = [],
         mappingMode = "or",
+        includeProjectColumn = false,
+        includePhenotypeColumn = false,
     } = {}
 ) {
     const selectedSet = new Set(selectedCategoryIds || []);
     const selectedCategories = (mappingCategories || []).filter((category) =>
         selectedSet.has(category.id)
     );
-    return applyMappingFilter(associationRows, selectedCategories, mappingMode);
+    const view = applyMappingFilter(associationRows, selectedCategories, mappingMode);
+    const topRows = resolveAssociationsTopRows({
+        baseRows: view.topRows,
+        includeProject: includeProjectColumn,
+        includePhenotype: includePhenotypeColumn,
+    });
+    return {
+        ...view,
+        topRows,
+        tableFormat: {
+            ...view.tableFormat,
+            "top rows": topRows,
+            "tool tips": {
+                ...view.tableFormat?.["tool tips"],
+                Phenotype: "Phenotype series for the association row",
+            },
+        },
+    };
 }

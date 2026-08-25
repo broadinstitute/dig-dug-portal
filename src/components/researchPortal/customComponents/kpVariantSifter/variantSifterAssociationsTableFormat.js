@@ -70,6 +70,7 @@ export const ASSOCIATIONS_TABLE_FORMAT = {
         "Z Score": "Beta / Standard error",
         Consequence:
             "Impact of the variant for overlapping genes or transcripts, as predicted by the Ensembl Variant Effect Predictor (VEP)",
+        Phenotype: "Phenotype series for the association row",
         Ancestry: "Ancestry series for the association row",
         Project: "Data source project (KP portal associations or GWAS-CE overlay)",
         "Credible Set":
@@ -104,3 +105,26 @@ export const ASSOCIATIONS_TABLE_FORMAT = {
         },
     },
 };
+
+/**
+ * Resolve associations table columns for the current search context.
+ * Project is shown only when a non-default project is active; Phenotype when
+ * more than one phenotype series is on the canvas.
+ */
+export function resolveAssociationsTopRows({
+    baseRows = ASSOCIATIONS_TABLE_FORMAT["top rows"],
+    includeProject = false,
+    includePhenotype = false,
+} = {}) {
+    let rows = (baseRows || []).filter(
+        (column) => includeProject || column !== "Project"
+    );
+    if (includePhenotype && !rows.includes("Phenotype")) {
+        const ancestryIdx = rows.indexOf("Ancestry");
+        rows = [...rows];
+        rows.splice(ancestryIdx >= 0 ? ancestryIdx : rows.length, 0, "Phenotype");
+    } else if (!includePhenotype) {
+        rows = rows.filter((column) => column !== "Phenotype");
+    }
+    return rows;
+}

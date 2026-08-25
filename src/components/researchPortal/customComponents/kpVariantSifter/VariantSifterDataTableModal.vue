@@ -73,6 +73,14 @@ export default {
             type: Array,
             default: () => [],
         },
+        selectedPhenotypes: {
+            type: Array,
+            default: () => [],
+        },
+        projectId: {
+            type: String,
+            default: "",
+        },
         credibleSetsState: {
             type: Object,
             default: () => ({
@@ -130,11 +138,19 @@ export default {
         mappingCategoryIds() {
             return this.mappingCategories.map((category) => category.id).join("|");
         },
+        showProjectColumn() {
+            return Boolean(String(this.projectId || "").trim());
+        },
+        showPhenotypeColumn() {
+            return (this.selectedPhenotypes || []).length > 0;
+        },
         tableView() {
             return buildMappedVariantDataTableView(this.associationRows, {
                 mappingCategories: this.mappingCategories,
                 selectedCategoryIds: this.selectedCategoryIds,
                 mappingMode: this.mappingMode,
+                includeProjectColumn: this.showProjectColumn,
+                includePhenotypeColumn: this.showPhenotypeColumn,
             });
         },
         tableNote() {
