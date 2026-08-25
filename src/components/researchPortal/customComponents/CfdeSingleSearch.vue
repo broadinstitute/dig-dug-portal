@@ -23,6 +23,14 @@
 			>
 				Clear search <b-icon icon="x-circle-fill"></b-icon>
 			</span>
+			<span
+				v-else
+				class="btn btn-default reset-search"
+				:class="{ active: displayExamples }"
+				@click="toggleExamples"
+			>
+				Examples
+			</span>
 
 			<div
 				class="byor-single-search-results-wrapper"
@@ -31,8 +39,68 @@
 				<div
 					id="byor_single_search_results"
 					class="byor-single-search-results-groups"
-					v-if="visibleCategories.length > 0 || showFreeTextPending"
+					v-if="visibleCategories.length > 0 || showFreeTextPending || isFreeTextQuery || displayExamples"
 				>
+					<div v-if="displayExamples" class="ss-examples">
+						<strong class="ss-examples-title">Find multi-omic Common Fund data, analyses, and program knowledge.</strong>
+						<div
+							v-for="group in exampleGroups"
+							:key="group.id"
+							class="ss-example-group"
+						>
+							<strong>{{ group.lead }}</strong>
+							<div class="ss-example-list">
+								<div
+									v-for="example in group.examples"
+									:key="example"
+									class="ss-example"
+									@click="useExample(example)"
+								>
+									{{ example }}
+								</div>
+							</div>
+						</div>
+					</div>
+					<div
+						v-if="showSearchSteps"
+						class="ss-search-steps"
+						:class="{ 'is-free-text': isFreeTextFallback }"
+					>
+						<div class="ss-search-steps-guide">
+							<span class="ss-step">
+								<span class="ss-step-num">1</span>
+								Select an entity
+							</span>
+							<span class="ss-step">
+								<span class="ss-step-num">2</span>
+								Choose an action
+							</span>
+							<template v-if="!isFreeTextFallback">
+								<div
+									v-for="action in guideActions"
+									:key="'inline-' + action.id"
+									class="ss-guide-bubble"
+									:class="{ selected: isQuestionSelected(action) }"
+									@click="selectGuideAction(action)"
+								>
+									{{ action['url label'] }}
+									<span class="ss-step-num ss-ai-icon">AI</span>
+								</div>
+							</template>
+						</div>
+						<div v-if="isFreeTextFallback" class="ss-guide-actions">
+							<div
+								v-for="action in guideActions"
+								:key="'row-' + action.id"
+								class="ss-guide-bubble"
+								:class="{ selected: isQuestionSelected(action) }"
+								@click="selectGuideAction(action)"
+							>
+								{{ action['url label'] }}
+								<span class="ss-step-num ss-ai-icon">AI</span>
+							</div>
+						</div>
+					</div>
 					<div
 						v-for="cat in visibleCategories"
 						:key="cat.id"
@@ -59,6 +127,7 @@
 								</div>
 							</div>
 							<div
+								v-if="categoryQuestions(cat).length"
 								class="ss-questions"
 								:class="{ locked: isQuestionLocked(cat) }"
 							>
@@ -283,6 +352,29 @@ export default Vue.component("cfde-single-search", {
 			geneLookupId: 0,
 			geneLookupPending: false,
 			pendingListLoads: 0,
+			displayExamples: false,
+			exampleGroups: [
+				{
+					id: "entity",
+					lead: "Search by entity. Try a gene, phenotype, tissue, or disease:",
+					examples: [
+						"PPARG",
+						"FTO",
+						"Bipolar disorder",
+						"Alzheimer's disease",
+					],
+				},
+				{
+					id: "llm",
+					lead: "Ask a research question. Describe a mechanism, tissue, or disease in a complete sentence:",
+					examples: [
+						"How is PPARG expressed in adipose tissue in type 2 diabetes?",
+						"What gene expression signatures are associated with exercise in skeletal muscle?",
+						"What molecular mechanisms underlie insulin resistance in liver?",
+						"Which CFDE programs have single-cell maps of human kidney?",
+					],
+				},
+			],
 			programLinks: {
 				"4DN": "https://data.4dnucleome.org/",
 				"A2CPS": "https://a2cps.org/researchers/accessing-our-data/",
@@ -360,7 +452,7 @@ export default Vue.component("cfde-single-search", {
 					entityType: "gene",
 					label: (geneConfig && geneConfig.label) || "Gene",
 					entities: this.singleSearchResult.genes.map((g) => ({ value: g, label: g })),
-					questions: this.withLlmQuestions(this.geneParam.options),
+					questions: this.geneParam.options || [],
 				});
 			}
 
@@ -374,7 +466,7 @@ export default Vue.component("cfde-single-search", {
 						value: p.name,
 						label: p.description,
 					})),
-					questions: this.withLlmQuestions(this.phenotypeParam.options),
+					questions: this.phenotypeParam.options || [],
 				});
 			}
 
@@ -384,7 +476,7 @@ export default Vue.component("cfde-single-search", {
 					entityType: "phenotype",
 					label: this.cfdePhenotypeLabel,
 					entities: this.singleSearchResult.cfdePhenotypes,
-					questions: this.withLlmQuestions(this.cfdePhenotypeOptions),
+					questions: this.cfdePhenotypeOptions || [],
 				});
 			}
 
@@ -397,26 +489,11 @@ export default Vue.component("cfde-single-search", {
 					entityType: entityTypeFromParam(param),
 					label: param.label,
 					entities: entities.map((item) => ({ value: item.value, label: item.label })),
-					questions: this.withLlmQuestions(meta.options),
+					questions: meta.options || [],
 				});
 			});
 
-			if (cats.length === 0 && this.isFreeTextQuery) {
-				cats.push(this.freeTextCategory);
-			}
-
 			return cats;
-		},
-		freeTextCategory() {
-			const query = (this.singleSearchParam || "").trim();
-			return {
-				id: "freeText",
-				label: "Query",
-				isFreeText: true,
-				entityType: "freeText",
-				entities: [{ value: query, label: query }],
-				questions: LLM_QUESTIONS.slice(),
-			};
 		},
 		isLookupsPending() {
 			return this.geneLookupPending || this.pendingListLoads > 0;
@@ -425,18 +502,26 @@ export default Vue.component("cfde-single-search", {
 			const query = (this.singleSearchParam || "").trim();
 			return query.length >= 2 && !this.isLookupsPending;
 		},
+		isFreeTextFallback() {
+			return this.isFreeTextQuery && this.searchCategories.length === 0;
+		},
 		showFreeTextPending() {
 			const query = (this.singleSearchParam || "").trim();
 			return query.length >= 2 && this.isLookupsPending && this.searchCategories.length === 0;
 		},
 		visibleCategories() {
-			if (this.lockedCategoryId === "freeText") {
-				return [this.freeTextCategory];
-			}
-			if (this.lockedCategoryId) {
+			if (this.lockedCategoryId && this.lockedCategoryId !== "freeText") {
 				return this.searchCategories.filter((c) => c.id === this.lockedCategoryId);
 			}
 			return this.searchCategories;
+		},
+		showSearchSteps() {
+			const query = (this.singleSearchParam || "").trim();
+			if (query.length < 2) return false;
+			return this.visibleCategories.length > 0 || this.isFreeTextQuery;
+		},
+		guideActions() {
+			return LLM_QUESTIONS;
 		},
 		activeDiscoveryQuery() {
 			return this.selectedDiscoveryQuery || (this.llmResults && this.llmResults.discovery) || "";
@@ -474,6 +559,7 @@ export default Vue.component("cfde-single-search", {
 			},
 		},
 		singleSearchParam(PARAM) {
+			if (PARAM) this.displayExamples = false;
 			this.resetLock();
 			if (PARAM && PARAM.length >= 2) {
 				this.runAutocomplete(PARAM);
@@ -487,6 +573,15 @@ export default Vue.component("cfde-single-search", {
 
 	methods: {
 		onSearch() {},
+		toggleExamples() {
+			this.displayExamples = !this.displayExamples;
+			if (this.displayExamples) this.onFocus();
+		},
+		useExample(example) {
+			this.displayExamples = false;
+			this.singleSearchParam = example;
+			this.onFocus();
+		},
 		asParamArray(raw) {
 			if (Array.isArray(raw)) return raw;
 			if (raw && Array.isArray(raw.parameters)) return raw.parameters;
@@ -626,7 +721,7 @@ export default Vue.component("cfde-single-search", {
 			return cat.entities;
 		},
 		categoryQuestions(cat) {
-			if (this.lockedCategoryId === cat.id && this.lockedQuestion) {
+			if (this.lockedCategoryId === cat.id && this.lockedQuestion && !this.isLlmQuestion(this.lockedQuestion)) {
 				return [this.lockedQuestion];
 			}
 			return cat.questions;
@@ -635,7 +730,7 @@ export default Vue.component("cfde-single-search", {
 			return this.lockedCategoryId === cat.id && !!this.lockedEntity;
 		},
 		isQuestionLocked(cat) {
-			return this.lockedCategoryId === cat.id && !!this.lockedQuestion;
+			return this.lockedCategoryId === cat.id && !!this.lockedQuestion && !this.isLlmQuestion(this.lockedQuestion);
 		},
 		isEntitySelected(entity) {
 			return !!(this.lockedEntity && this.lockedEntity.value === entity.value);
@@ -690,24 +785,44 @@ export default Vue.component("cfde-single-search", {
 			this.lockCategory(cat);
 			this.lockedQuestion = question;
 		},
+		isLlmQuestion(question) {
+			return !!(question && (question.id === "llm-programs" || question.id === "llm-discovery"));
+		},
+		selectGuideAction(question) {
+			if (this.isQuestionSelected(question)) {
+				this.abortLlms();
+				this.llmPath = null;
+				this.llmResults = null;
+				this.discoveryQuestions = [];
+				this.selectedDiscoveryQuery = null;
+				this.isLoading = false;
+				this.lockedQuestion = null;
+				return;
+			}
+			this.lockedQuestion = question;
+			const entity = this.lockedEntity || {
+				value: (this.singleSearchParam || "").trim(),
+				label: (this.singleSearchParam || "").trim(),
+			};
+			this.goTo(question, entity);
+		},
 		goTo(question, entity) {
 			if (question && question.id === "llm-programs") {
 				this.runProgramsLlm(entity);
 				return;
 			}
 			if (question && question.id === "llm-discovery") {
-				if (this.lockedCategoryId === "freeText") {
-					this.runDiscoveryLlm(entity);
-				} else {
+				if (this.lockedEntity) {
 					this.showDefaultDiscovery(entity);
+				} else {
+					this.runDiscoveryLlm(entity);
 				}
 				return;
 			}
 			if (!question || !question.url || !entity) return;
-			window.location.href = question.url + entity.value;
-		},
-		withLlmQuestions(options) {
-			return [...(options || []), ...LLM_QUESTIONS];
+			const useLabel = question["label as value"] === true || question["label as value"] === "true";
+			const param = useLabel ? (entity.label || entity.value) : entity.value;
+			window.location.href = question.url + (useLabel ? encodeURIComponent(param) : param);
 		},
 		queryPrompt(entity) {
 			const parts = [];
@@ -805,6 +920,7 @@ export default Vue.component("cfde-single-search", {
 				if (this.fromNav) wrapper.classList.add("hidden");
 			}
 			this.hasFocus = false;
+			this.displayExamples = false;
 		},
 		isParameterActive(PARAM) {
 			const returnParam = { active: null, url: "", options: null };
@@ -984,7 +1100,8 @@ export default Vue.component("cfde-single-search", {
 	color: #999999;
 	font-size: 14px;
 }
-.reset-search:hover {
+.reset-search:hover,
+.reset-search.active {
 	color: #333333;
 }
 .byor-single-search-results-wrapper {
@@ -1010,6 +1127,115 @@ export default Vue.component("cfde-single-search", {
 	max-height: 70vh;
 	overflow-y: auto;
 	border-radius: 10px;
+}
+.ss-examples {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	background: #ffffff;
+	border-radius: 10px;
+	padding: 16px 18px;
+	color: #333333;
+	font-size: 14px;
+}
+.ss-examples-title {
+	font-size: 1.2em;
+	color: #f26822;
+	margin-bottom: 4px;
+}
+.ss-example-group {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-top: 12px;
+}
+.ss-example-list {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	padding: 10px 0 0;
+}
+.ss-example {
+	background: #dddddd;
+	padding: 3px 10px;
+	border-radius: 10px;
+	cursor: pointer;
+	color: #000000;
+}
+.ss-example:hover {
+	background: #cccccc;
+}
+.ss-search-steps {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 8px;
+	box-sizing: border-box;
+	min-height: 36px;
+	height: auto;
+	margin: -10px -10px -10px;
+	padding: 8px 10px 6px;
+	flex-shrink: 0;
+	font-size: 13px;
+	color: #666666;
+}
+.ss-search-steps-guide,
+.ss-guide-actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px 14px;
+}
+.ss-search-steps.is-free-text .ss-guide-bubble {
+	font-size: 16px;
+	padding: 6px 10px 6px 14px;
+}
+.ss-step {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+.ss-guide-bubble {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 8px 3px 12px;
+	border: 1px solid #dddddd;
+	border-radius: 20px;
+	background: #ffffff;
+	cursor: pointer;
+	line-height: 1.2;
+	font-size: 14px;
+	color: #666666;
+}
+.ss-guide-bubble:hover {
+	border-color: #FA6600;
+	color: #333333;
+}
+.ss-guide-bubble.selected {
+	border-color: #FA6600;
+	color: #FA6600;
+}
+.ss-step-num {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background: #FA6600;
+	color: #ffffff;
+	font-size: 11px;
+	font-weight: bold;
+	line-height: 1;
+	flex-shrink: 0;
+}
+.ss-ai-icon {
+	width: auto;
+	min-width: 22px;
+	padding: 0 5px;
+	font-size: 9px;
+	letter-spacing: 0.02em;
 }
 .ss-category {
 	background-color: white;
@@ -1049,8 +1275,7 @@ export default Vue.component("cfde-single-search", {
 }
 .ss-questions {
 	flex: 6;
-	justify-content: center;
-	font-size: 16px;
+	font-size: 14px;
 }
 .ss-category.is-free-text .ss-questions {
 	flex: 1;
@@ -1070,10 +1295,10 @@ export default Vue.component("cfde-single-search", {
 	max-width: 100%;
 }
 .ss-question {
-	border-bottom: solid 0.3px #FA6600;
+	/*border-bottom: solid 0.3px #FA6600;*/
 }
 .ss-question:not(:last-child) {
-	border-radius: 0;
+	/*border-radius: 0;*/
 }
 .ss-entity,
 .ss-question {
