@@ -21,9 +21,11 @@
                 :search-session="searchSession"
                 :project-id="projectId"
                 :phenotypes-in-use="phenotypesInUse || []"
+                :selected-phenotypes="associationsState.selectedPhenotypes || []"
                 :utils="utilsBox"
                 :bio-index-host="bioIndexHostFor('gene')"
                 @apply-search="onSessionParamApply"
+                @remove-phenotype="onRemoveAssociationPhenotype"
             />
             <VariantSifterViewportControls
                 v-if="canvasActive"
@@ -153,6 +155,7 @@
                     :sections="visibleSections"
                     :open-drawer-id="openDrawerId"
                     :search-session="searchSession"
+                    :project-id="projectId"
                     :associations-state="associationsState"
                     :plot-overlays-state="plotOverlaysState"
                     :plot-markers="plotMarkersState"
@@ -176,6 +179,7 @@
                     @toggle-association-ancestry="onToggleAssociationAncestry"
                     @add-credible-set="onAddCredibleSet"
                     @remove-credible-set="onRemoveCredibleSet"
+                    @update:credibleSetsPanelFilters="onCredibleSetsPanelFiltersUpdate"
                     @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
                     @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
                     @update:geEnabledMutedAnnotationTissues="
@@ -258,9 +262,11 @@ import {
     isSectionVisible,
     normalizeVisibleSectionIds,
 } from "./kpVariantSifter/variantSifterToolSettings.js";
-import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAncestriesParam, parseSubAncestriesParam } from "./kpVariantSifter/variantSifterSearchUtils.js";
+import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAncestriesParam, parseSubAncestriesParam, formatPhenotypesParam, parsePhenotypesParam } from "./kpVariantSifter/variantSifterSearchUtils.js";
 import {
     associationRowAncestry,
+    associationRowPhenotype,
+    ancestrySeriesLoadingKey,
     fetchAssociations,
     fetchGwasCeAssociations,
     filterAssociationRowsByProject,
@@ -269,7 +275,7 @@ import {
     fetchGlobalAssociations,
 } from "./kpVariantSifter/variantSifterAssociationsApi.js";
 import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
-import { createFiltersIndex } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
+import { createFiltersIndex, applyAssociationsFilters } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
 import { enrichAssociationRowsWithLdScores, enrichAssociationRowsWithLdScoresForRef } from "./kpVariantSifter/variantSifterLdServer.js";
 import {
     emptyPlotMarkersState,
@@ -318,6 +324,8 @@ import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
 import {
     fetchGlobalEnrichment,
     fetchLocusAnnotations,
+    mergeGeRowsByPhenotype,
+    removeGeRowsForPhenotype,
 } from "./kpVariantSifter/variantSifterGlobalEnrichmentApi.js";
 import { fetchGeneLinks } from "./kpVariantSifter/variantSifterV2gApi.js";
 import { fetchVariantLinks } from "./kpVariantSifter/variantSifterS2gApi.js";
@@ -438,15 +446,21 @@ import {
     credibleSetShortLabel,
     formatCredibleVariantRows,
     makeCredibleSetSelectionKey,
+    parseCredibleSetSelectionKey,
 } from "./kpVariantSifter/variantSifterCredibleSetsFormat.js";
 import { buildCredibleSetColorMap } from "./kpVariantSifter/variantSifterCredibleSetsColors.js";
 import { pruneCredibleSetsForRegion } from "./kpVariantSifter/variantSifterCredibleSetsRegion.js";
+import {
+    cloneCredibleSetsPanelFilters,
+    createCredibleSetsPanelFilters,
+} from "./kpVariantSifter/variantSifterCredibleSetsFilters.js";
 import {
     normalizeSelectedGeneTypes,
     resolveSelectedGeneTypesForData,
     VKS_DEFAULT_GENE_TYPES,
 } from "./kpVariantSifter/variantSifterGenesFilter.js";
 import {
+    completeDeferredPhenotypeSeriesSteps,
     emptyRegionLoadProgress,
     finishRegionLoadProgress,
     patchRegionLoadStep,
@@ -468,11 +482,17 @@ function emptyAssociationsState() {
         query: null,
         filtersIndex: createFiltersIndex(),
         ancestryAvailability: [],
+        ancestryAvailabilityByPhenotype: {},
         ancestryAvailabilityLoading: false,
+        ancestryAvailabilityLoadingByPhenotype: {},
         ancestryAvailabilityError: null,
+        ancestryAvailabilityErrorByPhenotype: {},
         selectedAncestries: [],
         ancestrySeriesLoading: {},
         ancestrySeriesErrors: {},
+        selectedPhenotypes: [],
+        phenotypeSeriesLoading: {},
+        phenotypeSeriesErrors: {},
     };
 }
 
@@ -506,6 +526,7 @@ function emptyCredibleSetsState() {
         variantsBySet: {},
         variantsLoading: false,
         variantsError: null,
+        panelFilters: createCredibleSetsPanelFilters(),
     };
 }
 
@@ -598,6 +619,7 @@ export default Vue.component("kp-variant-sifter", {
             v2gRequestToken: 0,
             s2gRequestToken: 0,
             pendingSubAncestries: [],
+            pendingPhenotypes: [],
             lastCredibleSetsListRegion: null,
             exportSessionOpen: false,
             exportSessionBusy: false,
@@ -654,6 +676,15 @@ export default Vue.component("kp-variant-sifter", {
             );
             const geneCount = this.genesState?.data?.length || 0;
             const parts = [`${rows.toLocaleString()} association rows`];
+            const extraPhenotypes =
+                (this.associationsState?.selectedPhenotypes || []).length;
+            if (extraPhenotypes > 0) {
+                parts.push(
+                    extraPhenotypes === 1
+                        ? "1 additional phenotype"
+                        : `${extraPhenotypes} additional phenotypes`
+                );
+            }
             if (geneCount > 0) {
                 parts.push(`${geneCount.toLocaleString()} genes`);
             }
@@ -1259,6 +1290,86 @@ export default Vue.component("kp-variant-sifter", {
                 status
             );
         },
+        beginAdditivePhenotypeLoadProgress() {
+            if (this.regionLoadDismissTimer) {
+                clearTimeout(this.regionLoadDismissTimer);
+                this.regionLoadDismissTimer = null;
+            }
+            this.regionLoadProgress = startRegionLoadProgress();
+            this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
+        },
+        finishAdditivePhenotypeLoadProgress({
+            associationsOk = true,
+            ldOk = true,
+            credibleSetsOk = true,
+            globalEnrichmentOk = true,
+        } = {}) {
+            if (!this.regionLoadProgress?.active) {
+                return;
+            }
+            const associationsStep = this.regionLoadProgress.steps.find(
+                (step) => step.id === "associations"
+            );
+            if (
+                associationsStep &&
+                associationsStep.status !== VKS_REGION_LOAD_STATUS.DONE &&
+                associationsStep.status !== VKS_REGION_LOAD_STATUS.FAILED
+            ) {
+                this.setRegionLoadStep(
+                    "associations",
+                    associationsOk
+                        ? VKS_REGION_LOAD_STATUS.DONE
+                        : VKS_REGION_LOAD_STATUS.FAILED
+                );
+            }
+            const ldStep = this.regionLoadProgress.steps.find(
+                (step) => step.id === "ld"
+            );
+            if (
+                ldStep &&
+                ldStep.status !== VKS_REGION_LOAD_STATUS.DONE &&
+                ldStep.status !== VKS_REGION_LOAD_STATUS.FAILED
+            ) {
+                this.setRegionLoadStep(
+                    "ld",
+                    ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                );
+            }
+            const credibleSetsStep = this.regionLoadProgress.steps.find(
+                (step) => step.id === "credibleSets"
+            );
+            if (
+                credibleSetsStep &&
+                credibleSetsStep.status !== VKS_REGION_LOAD_STATUS.DONE &&
+                credibleSetsStep.status !== VKS_REGION_LOAD_STATUS.FAILED
+            ) {
+                this.setRegionLoadStep(
+                    "credibleSets",
+                    credibleSetsOk
+                        ? VKS_REGION_LOAD_STATUS.DONE
+                        : VKS_REGION_LOAD_STATUS.FAILED
+                );
+            }
+            const globalEnrichmentStep = this.regionLoadProgress.steps.find(
+                (step) => step.id === "globalEnrichment"
+            );
+            if (
+                globalEnrichmentStep &&
+                globalEnrichmentStep.status !== VKS_REGION_LOAD_STATUS.DONE &&
+                globalEnrichmentStep.status !== VKS_REGION_LOAD_STATUS.FAILED
+            ) {
+                this.setRegionLoadStep(
+                    "globalEnrichment",
+                    globalEnrichmentOk
+                        ? VKS_REGION_LOAD_STATUS.DONE
+                        : VKS_REGION_LOAD_STATUS.FAILED
+                );
+            }
+            this.regionLoadProgress = completeDeferredPhenotypeSeriesSteps(
+                this.regionLoadProgress
+            );
+            this.closeRegionLoadProgressIfSettled();
+        },
         closeRegionLoadProgressIfSettled() {
             if (
                 !this.regionLoadProgress.active ||
@@ -1439,6 +1550,111 @@ export default Vue.component("kp-variant-sifter", {
                                     `Variant Sifter ${ancestry} association gap fetch failed`,
                                     ancestryError
                                 );
+                            }
+                        }
+
+                        for (const entry of this.associationsState.selectedPhenotypes || []) {
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            const phenotypeName =
+                                typeof entry === "string" ? entry : entry?.name;
+                            if (
+                                !phenotypeName ||
+                                phenotypeName === this.searchSession?.phenotype?.name
+                            ) {
+                                continue;
+                            }
+                            try {
+                                const phenotypeSession = {
+                                    ...gapSession,
+                                    phenotype:
+                                        typeof entry === "string"
+                                            ? { name: entry }
+                                            : entry,
+                                    ancestry: primaryAssociationAncestry(
+                                        this.searchSession
+                                    ),
+                                };
+                                const phenotypeResult = await fetchAssociations(
+                                    phenotypeSession,
+                                    associationsHost,
+                                    this.projectId
+                                );
+                                const phenotypeRows = formatAssociationRows(
+                                    phenotypeResult.rows,
+                                    phenotypeSession,
+                                    { project: VKS_ASSOCIATION_PROJECT_KP }
+                                );
+                                if (phenotypeRows.length) {
+                                    extendedAssociationRows = true;
+                                }
+                                mergedRows = mergeAssociationRowsByVariantAndAncestry(
+                                    mergedRows,
+                                    phenotypeRows,
+                                    primaryAssociationAncestry(this.searchSession)
+                                );
+                                this.flushStreamedAssociationRows(
+                                    mergedRows,
+                                    activeRegion,
+                                    gapRegion
+                                );
+                            } catch (phenotypeError) {
+                                console.warn(
+                                    `Variant Sifter ${phenotypeName} association gap fetch failed`,
+                                    phenotypeError
+                                );
+                            }
+
+                            for (const ancestry of entry?.selectedAncestries || []) {
+                                if (token !== this.regionExtendToken) {
+                                    return;
+                                }
+                                if (
+                                    !ancestry ||
+                                    ancestry ===
+                                        primaryAssociationAncestry(this.searchSession)
+                                ) {
+                                    continue;
+                                }
+                                try {
+                                    const ancestrySession = {
+                                        ...gapSession,
+                                        phenotype:
+                                            typeof entry === "string"
+                                                ? { name: entry }
+                                                : entry,
+                                        ancestry,
+                                    };
+                                    const ancestryResult = await fetchAssociations(
+                                        ancestrySession,
+                                        associationsHost,
+                                        this.projectId
+                                    );
+                                    const ancestryRows = formatAssociationRows(
+                                        ancestryResult.rows,
+                                        ancestrySession,
+                                        { project: VKS_ASSOCIATION_PROJECT_KP }
+                                    );
+                                    if (ancestryRows.length) {
+                                        extendedAssociationRows = true;
+                                    }
+                                    mergedRows = mergeAssociationRowsByVariantAndAncestry(
+                                        mergedRows,
+                                        ancestryRows,
+                                        primaryAssociationAncestry(this.searchSession)
+                                    );
+                                    this.flushStreamedAssociationRows(
+                                        mergedRows,
+                                        activeRegion,
+                                        gapRegion
+                                    );
+                                } catch (ancestryError) {
+                                    console.warn(
+                                        `Variant Sifter ${phenotypeName}/${ancestry} association gap fetch failed`,
+                                        ancestryError
+                                    );
+                                }
                             }
                         }
                     } catch (assocError) {
@@ -1843,7 +2059,10 @@ export default Vue.component("kp-variant-sifter", {
                     searchSession: this.searchSession,
                     projectId: this.projectId,
                     viewRegion: this.viewRegion || this.searchSession.region,
-                    associationRows: this.associationsState?.rows || [],
+                    associationRows: applyAssociationsFilters(
+                        this.associationsState?.rows || [],
+                        this.associationsState?.filtersIndex
+                    ),
                     mappingState: this.mappingState,
                     credibleSetsState: this.credibleSetsState,
                     globalEnrichmentState: this.globalEnrichmentState,
@@ -2032,14 +2251,71 @@ export default Vue.component("kp-variant-sifter", {
             this.afterSessionRestored(restored);
         },
         afterSessionRestored(restored) {
+            const selectedPhenotypes =
+                restored.associationsState?.selectedPhenotypes || [];
             if (restored.searchSession) {
-                this.probeAncestryAssociationAvailabilityForSession(restored.searchSession);
+                this.probeAncestryAssociationAvailabilityForSession(
+                    restored.searchSession
+                );
+                selectedPhenotypes.forEach((entry) => {
+                    if (!entry?.name) {
+                        return;
+                    }
+                    this.probeAncestryAssociationAvailabilityForPhenotype(
+                        entry,
+                        restored.searchSession
+                    );
+                });
             }
             if (restored.globalEnrichmentState) {
-                this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.DONE);
+                this.setRegionLoadStep(
+                    "globalEnrichment",
+                    VKS_REGION_LOAD_STATUS.DONE
+                );
+                this.hydrateCompanionLayersForRestoredPhenotypes(
+                    selectedPhenotypes
+                );
                 return;
             }
-            this.loadGlobalEnrichmentForSession(restored.searchSession);
+            Promise.resolve(
+                this.loadGlobalEnrichmentForSession(restored.searchSession)
+            ).finally(() => {
+                this.hydrateCompanionLayersForRestoredPhenotypes(
+                    selectedPhenotypes
+                );
+            });
+        },
+        /**
+         * Older or partial session files may restore additive phenotypes without
+         * GE / CS companion rows. Fetch missing layers without clearing snapshot data.
+         */
+        hydrateCompanionLayersForRestoredPhenotypes(selectedPhenotypes) {
+            (selectedPhenotypes || []).forEach((entry) => {
+                const phenotypeName = String(entry?.name || "").trim();
+                if (!phenotypeName) {
+                    return;
+                }
+                const phenotype = {
+                    name: phenotypeName,
+                    description: entry.description || null,
+                };
+                const geRows = this.globalEnrichmentState?.geRows || [];
+                const hasGe = geRows.some(
+                    (row) =>
+                        String(row?.phenotype || "").trim() === phenotypeName
+                );
+                if (!hasGe) {
+                    this.mergeGlobalEnrichmentForPhenotype(phenotype);
+                }
+                const available = this.credibleSetsState?.available || [];
+                const hasCs = available.some(
+                    (cs) =>
+                        String(cs?.phenotype || "").trim() === phenotypeName
+                );
+                if (!hasCs) {
+                    this.mergeCredibleSetsForPhenotype(phenotype);
+                }
+            });
         },
         offerGeTissueClassifyAction(session, catalog) {
             if (!session || !catalog?.tissues?.length) {
@@ -2335,6 +2611,57 @@ export default Vue.component("kp-variant-sifter", {
                 return false;
             }
         },
+        async mergeGlobalEnrichmentForPhenotype(phenotype) {
+            const phenotypeName = String(phenotype?.name || "").trim();
+            if (!phenotypeName || !this.searchSession) {
+                return false;
+            }
+
+            const geHost = this.bioIndexHostFor("global-enrichment");
+            if (!geHost) {
+                return false;
+            }
+
+            const session = {
+                ...this.searchSession,
+                phenotype,
+                region: this.dataRegion || this.searchSession.region,
+            };
+
+            try {
+                const geRows = await fetchGlobalEnrichment(session, geHost);
+                // V2G tissue pickers read the full geRows list (no phenotype filter),
+                // so merged additive rows must land here for new tissues to appear.
+                this.globalEnrichmentState = {
+                    ...this.globalEnrichmentState,
+                    geRows: mergeGeRowsByPhenotype(
+                        this.globalEnrichmentState.geRows,
+                        geRows,
+                        phenotypeName
+                    ),
+                };
+                return true;
+            } catch (error) {
+                console.warn(
+                    `Variant Sifter ${phenotypeName} global enrichment load failed`,
+                    error
+                );
+                return false;
+            }
+        },
+        removeGlobalEnrichmentForPhenotype(phenotypeName) {
+            const target = String(phenotypeName || "").trim();
+            if (!target) {
+                return;
+            }
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                geRows: removeGeRowsForPhenotype(
+                    this.globalEnrichmentState.geRows,
+                    target
+                ),
+            };
+        },
         resetSearch() {
             this.associationsRequestToken += 1;
             this.genesRequestToken += 1;
@@ -2357,6 +2684,7 @@ export default Vue.component("kp-variant-sifter", {
             this.aiAssistantOpen = false;
             this.lastCredibleSetsListRegion = null;
             this.pendingSubAncestries = [];
+            this.pendingPhenotypes = [];
             this.dataRegion = null;
             this.regionShiftBp = 0;
             this.regionLoadProgress = emptyRegionLoadProgress();
@@ -2384,7 +2712,7 @@ export default Vue.component("kp-variant-sifter", {
             });
             this.syncUrlProjectParam();
         },
-        onSessionParamApply({ session, projectId } = {}) {
+        onSessionParamApply({ session, projectId, addPhenotype = false, phenotype = null } = {}) {
             if (!session) {
                 return;
             }
@@ -2393,12 +2721,16 @@ export default Vue.component("kp-variant-sifter", {
                 this.projectId = nextProjectId;
                 this.syncUrlProjectParam();
             }
+            if (addPhenotype && phenotype) {
+                this.loadAssociationPhenotypeSeries(phenotype);
+                return;
+            }
             const subAncestries = [
                 ...(this.associationsState?.selectedAncestries || []),
             ];
             this.onStartSearch(session, { subAncestries });
         },
-        onStartSearch(session, { subAncestries = [] } = {}) {
+        onStartSearch(session, { subAncestries = [], additionalPhenotypes = [] } = {}) {
             let searchSession = session;
             if (session?.region) {
                 const ensured = ensureRegionWithinActiveDataLimit(session.region);
@@ -2429,6 +2761,9 @@ export default Vue.component("kp-variant-sifter", {
             this.pendingSubAncestries = parseSubAncestriesParam(
                 subAncestries,
                 searchSession.ancestry || "Mixed"
+            );
+            this.pendingPhenotypes = parsePhenotypesParam(additionalPhenotypes).filter(
+                (name) => name !== searchSession?.phenotype?.name
             );
             this.assistantActionToken += 1;
             this.assistantState = emptyAssistantState();
@@ -2513,13 +2848,26 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             try {
-                const selectedAncestries =
-                    this.associationsState.selectedAncestries || [];
-                const available = await fetchCredibleSetsListForAncestries(
-                    session,
-                    host,
-                    selectedAncestries
+                const phenotypes =
+                    this.associationPhenotypesOnCanvas().length > 0
+                        ? this.associationPhenotypesOnCanvas()
+                        : session.phenotype
+                          ? [session.phenotype]
+                          : [];
+                const lists = await Promise.all(
+                    phenotypes.map(async (phenotype) => {
+                        const phenotypeSession = {
+                            ...session,
+                            phenotype,
+                        };
+                        return fetchCredibleSetsListForAncestries(
+                            phenotypeSession,
+                            host,
+                            this.selectedAncestriesForPhenotype(phenotype.name)
+                        );
+                    })
                 );
+                const available = mergeCredibleSetAvailableLists(lists);
                 if (token !== this.credibleSetsRequestToken) {
                     return false;
                 }
@@ -2569,20 +2917,36 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             const resolvedAncestry = ancestry || "Mixed";
+            const requestedPhenotype = String(phenotype || "").trim();
             const availableEntry =
                 this.credibleSetsState.available.find(
                     (entry) =>
                         entry.credibleSetId === credibleSetId &&
-                        (entry.ancestry || "Mixed") === resolvedAncestry
+                        (entry.ancestry || "Mixed") === resolvedAncestry &&
+                        (!requestedPhenotype ||
+                            String(entry.phenotype || "").trim() ===
+                                requestedPhenotype)
+                ) ||
+                this.credibleSetsState.available.find(
+                    (entry) =>
+                        entry.credibleSetId === credibleSetId &&
+                        (!requestedPhenotype ||
+                            String(entry.phenotype || "").trim() ===
+                                requestedPhenotype)
                 ) ||
                 this.credibleSetsState.available.find(
                     (entry) => entry.credibleSetId === credibleSetId
                 );
-            const resolvedPhenotype = phenotype || availableEntry?.phenotype || null;
+            const resolvedPhenotype =
+                requestedPhenotype ||
+                availableEntry?.phenotype ||
+                this.searchSession.phenotype?.name ||
+                null;
             const entryAncestry = availableEntry?.ancestry || resolvedAncestry;
             const selectionKey = makeCredibleSetSelectionKey(
                 credibleSetId,
-                entryAncestry
+                entryAncestry,
+                resolvedPhenotype
             );
 
             if (this.credibleSetsState.selectedIds.includes(selectionKey)) {
@@ -2595,6 +2959,13 @@ export default Vue.component("kp-variant-sifter", {
                 ancestry: entryAncestry,
             };
             const label = credibleSetShortLabel(metaEntry);
+            const phenotypeSession = {
+                ...this.searchSession,
+                phenotype:
+                    this.resolveAssociationPhenotype(resolvedPhenotype) ||
+                    this.searchSession.phenotype,
+                region: this.dataRegion || this.searchSession.region,
+            };
 
             this.credibleSetsState = {
                 ...this.credibleSetsState,
@@ -2605,12 +2976,26 @@ export default Vue.component("kp-variant-sifter", {
 
             try {
                 const rawVariants = await fetchCredibleSetVariants(
-                    this.searchSession,
+                    phenotypeSession,
                     credibleSetId,
                     host,
                     { ancestry: entryAncestry }
                 );
-                const formattedVariants = formatCredibleVariantRows(rawVariants);
+                const stampedRaw = (rawVariants || []).map((row) => ({
+                    ...row,
+                    phenotype: row.phenotype || resolvedPhenotype || "",
+                }));
+                const formattedVariants = formatCredibleVariantRows(stampedRaw).map(
+                    (row) => ({
+                        ...row,
+                        Phenotype:
+                            row.Phenotype ||
+                            row.phenotype ||
+                            resolvedPhenotype ||
+                            "",
+                        phenotype: row.phenotype || resolvedPhenotype || "",
+                    })
+                );
                 this.credibleSetsState = {
                     ...this.credibleSetsState,
                     variantsLoading: false,
@@ -2625,7 +3010,7 @@ export default Vue.component("kp-variant-sifter", {
                                 label,
                                 optionLabel: credibleSetOptionLabel(metaEntry),
                             },
-                            rawVariants,
+                            rawVariants: stampedRaw,
                             formattedVariants,
                         },
                     },
@@ -2642,8 +3027,53 @@ export default Vue.component("kp-variant-sifter", {
                 };
             }
         },
-        async mergeCredibleSetsForAncestry(ancestry) {
-            if (!ancestry || ancestry === "Mixed" || !this.searchSession) {
+        async mergeCredibleSetsForPhenotype(phenotype) {
+            const phenotypeName = String(phenotype?.name || "").trim();
+            if (!phenotypeName || !this.searchSession) {
+                return false;
+            }
+
+            const host = this.bioIndexHostFor("credible-sets");
+            if (!host) {
+                return false;
+            }
+
+            const session = {
+                ...this.searchSession,
+                phenotype,
+                region: this.dataRegion || this.searchSession.region,
+            };
+
+            try {
+                const tagged = await fetchCredibleSetsListForAncestries(
+                    session,
+                    host,
+                    this.selectedAncestriesForPhenotype(phenotypeName)
+                );
+                this.credibleSetsState = {
+                    ...this.credibleSetsState,
+                    available: mergeCredibleSetAvailableLists([
+                        this.credibleSetsState.available,
+                        tagged,
+                    ]),
+                };
+                return true;
+            } catch (error) {
+                console.warn(
+                    `Variant Sifter ${phenotypeName} credible sets list failed`,
+                    error
+                );
+                return false;
+            }
+        },
+        async mergeCredibleSetsForPhenotypeAncestry(phenotype, ancestry) {
+            const phenotypeName = String(phenotype?.name || "").trim();
+            if (
+                !phenotypeName ||
+                !ancestry ||
+                ancestry === "Mixed" ||
+                !this.searchSession
+            ) {
                 return;
             }
 
@@ -2654,45 +3084,123 @@ export default Vue.component("kp-variant-sifter", {
 
             const session = {
                 ...this.searchSession,
+                phenotype,
                 region: this.dataRegion || this.searchSession.region,
             };
 
             try {
                 const tagged = tagCredibleSetEntries(
                     await fetchCredibleSetsList(session, host, { ancestry }),
-                    ancestry
+                    ancestry,
+                    phenotypeName
                 );
-                const withoutAncestry = (this.credibleSetsState.available || []).filter(
-                    (entry) => (entry.ancestry || "Mixed") !== ancestry
+                const withoutMatching = (
+                    this.credibleSetsState.available || []
+                ).filter(
+                    (entry) =>
+                        !(
+                            (entry.ancestry || "Mixed") === ancestry &&
+                            String(entry.phenotype || "").trim() === phenotypeName
+                        )
                 );
                 this.credibleSetsState = {
                     ...this.credibleSetsState,
-                    available: mergeCredibleSetAvailableLists([withoutAncestry, tagged]),
+                    available: mergeCredibleSetAvailableLists([
+                        withoutMatching,
+                        tagged,
+                    ]),
                 };
             } catch (error) {
                 console.warn(
-                    `Variant Sifter ${ancestry} credible sets list failed`,
+                    `Variant Sifter ${phenotypeName}/${ancestry} credible sets list failed`,
                     error
                 );
             }
         },
-        removeCredibleSetsForAncestry(ancestry) {
+        async mergeCredibleSetsForAncestry(ancestry) {
+            if (!ancestry || ancestry === "Mixed" || !this.searchSession) {
+                return;
+            }
+            await this.mergeCredibleSetsForPhenotypeAncestry(
+                this.searchSession.phenotype,
+                ancestry
+            );
+        },
+        removeCredibleSetsForAncestry(ancestry, phenotypeName = null) {
             if (!ancestry || ancestry === "Mixed") {
                 return;
             }
 
+            const primaryName = String(
+                this.searchSession?.phenotype?.name || ""
+            ).trim();
+            const targetPhenotype = String(
+                phenotypeName || primaryName || ""
+            ).trim();
+
             const available = (this.credibleSetsState.available || []).filter(
-                (entry) => (entry.ancestry || "Mixed") !== ancestry
+                (entry) => {
+                    if ((entry.ancestry || "Mixed") !== ancestry) {
+                        return true;
+                    }
+                    if (!targetPhenotype) {
+                        return false;
+                    }
+                    return (
+                        String(entry.phenotype || "").trim() !== targetPhenotype
+                    );
+                }
             );
             const nextVariantsBySet = { ...this.credibleSetsState.variantsBySet };
             const selectedIds = (this.credibleSetsState.selectedIds || []).filter(
                 (selectionKey) => {
                     const meta = nextVariantsBySet[selectionKey]?.meta;
-                    if ((meta?.ancestry || "Mixed") === ancestry) {
-                        delete nextVariantsBySet[selectionKey];
-                        return false;
+                    const parsed = parseCredibleSetSelectionKey(selectionKey);
+                    const entryAncestry = meta?.ancestry || parsed.ancestry;
+                    const entryPhenotype =
+                        meta?.phenotype || parsed.phenotype || "";
+                    if ((entryAncestry || "Mixed") !== ancestry) {
+                        return true;
                     }
-                    return true;
+                    if (
+                        targetPhenotype &&
+                        String(entryPhenotype).trim() !== targetPhenotype
+                    ) {
+                        return true;
+                    }
+                    delete nextVariantsBySet[selectionKey];
+                    return false;
+                }
+            );
+
+            this.credibleSetsState = {
+                ...this.credibleSetsState,
+                available,
+                selectedIds,
+                variantsBySet: nextVariantsBySet,
+            };
+        },
+        removeCredibleSetsForPhenotype(phenotypeName) {
+            const target = String(phenotypeName || "").trim();
+            if (!target) {
+                return;
+            }
+
+            const available = (this.credibleSetsState.available || []).filter(
+                (entry) => String(entry.phenotype || "").trim() !== target
+            );
+            const nextVariantsBySet = { ...this.credibleSetsState.variantsBySet };
+            const selectedIds = (this.credibleSetsState.selectedIds || []).filter(
+                (selectionKey) => {
+                    const meta = nextVariantsBySet[selectionKey]?.meta;
+                    const parsed = parseCredibleSetSelectionKey(selectionKey);
+                    const entryPhenotype =
+                        meta?.phenotype || parsed.phenotype || "";
+                    if (String(entryPhenotype).trim() !== target) {
+                        return true;
+                    }
+                    delete nextVariantsBySet[selectionKey];
+                    return false;
                 }
             );
 
@@ -3220,7 +3728,8 @@ export default Vue.component("kp-variant-sifter", {
                     try {
                         const available = tagCredibleSetEntries(
                             await fetchCredibleSetsList(session, host),
-                            "Mixed"
+                            "Mixed",
+                            session.phenotype?.name
                         );
                         if (credibleSetsToken !== this.credibleSetsRequestToken) {
                             return;
@@ -3312,50 +3821,206 @@ export default Vue.component("kp-variant-sifter", {
             if (!associationFailed) {
                 this.probeAncestryAssociationAvailabilityForSession(session);
             }
-            // Primary page data is loaded; now fetch URL/session sub-ancestries.
-            this.loadPendingSubAncestries();
+            // Primary page data is loaded; now fetch URL/session sub-ancestries
+            // and additive phenotypes.
+            this.loadPendingAssociationExtras();
         },
-        async loadPendingSubAncestries() {
+        async loadPendingAssociationExtras() {
+            const pendingAncestries = parseSubAncestriesParam(
+                this.pendingSubAncestries,
+                primaryAssociationAncestry(this.searchSession)
+            );
+            // Consume ancestry queue up front so later URL sync does not re-apply.
+            this.pendingSubAncestries = [];
+
+            const pendingPhenotypeNames = parsePhenotypesParam(
+                this.pendingPhenotypes
+            ).filter((name) => name !== this.searchSession?.phenotype?.name);
+            const showProgress =
+                pendingPhenotypeNames.length > 0 || pendingAncestries.length > 0;
+
+            if (showProgress) {
+                this.beginAdditivePhenotypeLoadProgress();
+            }
+
+            let associationsOk = true;
+            try {
+                // Additive phenotypes first (primary ancestry), then apply URL
+                // sub-ancestries to every phenotype on the canvas.
+                await this.loadPendingPhenotypes({
+                    syncUrl: false,
+                    showProgress: false,
+                });
+                await this.loadPendingSubAncestriesForPhenotypes(pendingAncestries, {
+                    syncUrl: false,
+                });
+            } catch (error) {
+                associationsOk = false;
+                console.warn("Variant Sifter pending association extras failed", error);
+            }
+
+            if (showProgress) {
+                this.finishAdditivePhenotypeLoadProgress({
+                    associationsOk,
+                    ldOk: associationsOk,
+                });
+            }
+
+            if (this.searchSession) {
+                this.syncUrlSearchParams(this.searchSession);
+            }
+        },
+        associationPhenotypesOnCanvas() {
+            const phenotypes = [];
+            const primary = this.searchSession?.phenotype;
+            const primaryName = String(primary?.name || "").trim();
+            if (primaryName) {
+                phenotypes.push(primary);
+            }
+            (this.associationsState.selectedPhenotypes || []).forEach((entry) => {
+                const name = typeof entry === "string" ? entry : entry?.name;
+                const trimmed = String(name || "").trim();
+                if (!trimmed || trimmed === primaryName) {
+                    return;
+                }
+                if (phenotypes.some((item) => item?.name === trimmed)) {
+                    return;
+                }
+                phenotypes.push(
+                    typeof entry === "string"
+                        ? { name: entry }
+                        : {
+                              name: entry.name,
+                              description: entry.description || null,
+                          }
+                );
+            });
+            return phenotypes;
+        },
+        async loadPendingSubAncestries({ syncUrl = true } = {}) {
             const pending = parseSubAncestriesParam(
                 this.pendingSubAncestries,
                 primaryAssociationAncestry(this.searchSession)
             );
             this.pendingSubAncestries = [];
+            await this.loadPendingSubAncestriesForPhenotypes(pending, { syncUrl });
+        },
+        async loadPendingSubAncestriesForPhenotypes(
+            pendingAncestries = [],
+            { syncUrl = true } = {}
+        ) {
+            const pending = parseSubAncestriesParam(
+                pendingAncestries,
+                primaryAssociationAncestry(this.searchSession)
+            );
             if (!pending.length || !this.searchSession) {
-                this.syncUrlSearchParams(this.searchSession);
+                if (syncUrl) {
+                    this.syncUrlSearchParams(this.searchSession);
+                }
                 return;
             }
 
             const token = this.associationsRequestToken;
+            const phenotypes = this.associationPhenotypesOnCanvas();
             for (const ancestry of pending) {
+                for (const phenotype of phenotypes) {
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+                    await this.loadAssociationAncestrySeries(ancestry, phenotype);
+                }
+            }
+            if (syncUrl && token === this.associationsRequestToken) {
+                this.syncUrlSearchParams(this.searchSession);
+            }
+        },
+        async loadPendingPhenotypes({ syncUrl = true, showProgress = false } = {}) {
+            const pending = parsePhenotypesParam(this.pendingPhenotypes).filter(
+                (name) => name !== this.searchSession?.phenotype?.name
+            );
+            this.pendingPhenotypes = [];
+            if (!pending.length || !this.searchSession) {
+                if (syncUrl) {
+                    this.syncUrlSearchParams(this.searchSession);
+                }
+                return;
+            }
+
+            const token = this.associationsRequestToken;
+            for (const name of pending) {
                 if (token !== this.associationsRequestToken) {
                     return;
                 }
-                if ((this.associationsState.selectedAncestries || []).includes(ancestry)) {
+                if (
+                    (this.associationsState.selectedPhenotypes || []).some(
+                        (entry) => entry?.name === name
+                    )
+                ) {
                     continue;
                 }
-                await this.loadAssociationAncestrySeries(ancestry);
+                const phenotype =
+                    (this.phenotypesInUse || this.phenotypes || []).find(
+                        (entry) => entry.name === name
+                    ) || { name, description: null };
+                await this.loadAssociationPhenotypeSeries(phenotype, {
+                    syncUrl: false,
+                    showProgress,
+                });
             }
-            if (token === this.associationsRequestToken) {
+            if (syncUrl && token === this.associationsRequestToken) {
                 this.syncUrlSearchParams(this.searchSession);
             }
         },
         async probeAncestryAssociationAvailabilityForSession(session) {
+            if (!session?.phenotype) {
+                return;
+            }
+            await this.probeAncestryAssociationAvailabilityForPhenotype(
+                session.phenotype,
+                session
+            );
+        },
+        async probeAncestryAssociationAvailabilityForPhenotype(
+            phenotype,
+            session = null
+        ) {
             const host = this.bioIndexHostFor("ancestry-associations");
             const token = this.associationsRequestToken;
-            if (!session?.phenotype || !session?.region || !host) {
+            const phenotypeName = String(phenotype?.name || "").trim();
+            const baseSession = session || this.searchSession;
+            if (!phenotypeName || !baseSession?.region || !host) {
                 return;
             }
 
+            const primaryName = String(baseSession?.phenotype?.name || "").trim();
+            const isPrimary = phenotypeName === primaryName;
+
             this.associationsState = {
                 ...this.associationsState,
-                ancestryAvailabilityLoading: true,
-                ancestryAvailabilityError: null,
+                ancestryAvailabilityLoading: isPrimary
+                    ? true
+                    : this.associationsState.ancestryAvailabilityLoading,
+                ancestryAvailabilityError: isPrimary
+                    ? null
+                    : this.associationsState.ancestryAvailabilityError,
+                ancestryAvailabilityLoadingByPhenotype: {
+                    ...this.associationsState.ancestryAvailabilityLoadingByPhenotype,
+                    [phenotypeName]: true,
+                },
+                ancestryAvailabilityErrorByPhenotype: {
+                    ...this.associationsState.ancestryAvailabilityErrorByPhenotype,
+                    [phenotypeName]: null,
+                },
             };
 
             try {
+                const probeSession = {
+                    ...baseSession,
+                    phenotype,
+                    region: this.dataRegion || baseSession.region,
+                };
                 const availability = await probeAncestryAssociationAvailability(
-                    session,
+                    probeSession,
                     host,
                     this.projectId
                 );
@@ -3364,57 +4029,178 @@ export default Vue.component("kp-variant-sifter", {
                 }
                 this.associationsState = {
                     ...this.associationsState,
-                    ancestryAvailability: availability,
-                    ancestryAvailabilityLoading: false,
-                    ancestryAvailabilityError: null,
+                    ancestryAvailability: isPrimary
+                        ? availability
+                        : this.associationsState.ancestryAvailability,
+                    ancestryAvailabilityLoading: isPrimary
+                        ? false
+                        : this.associationsState.ancestryAvailabilityLoading,
+                    ancestryAvailabilityError: isPrimary
+                        ? null
+                        : this.associationsState.ancestryAvailabilityError,
+                    ancestryAvailabilityByPhenotype: {
+                        ...this.associationsState.ancestryAvailabilityByPhenotype,
+                        [phenotypeName]: availability,
+                    },
+                    ancestryAvailabilityLoadingByPhenotype: {
+                        ...this.associationsState.ancestryAvailabilityLoadingByPhenotype,
+                        [phenotypeName]: false,
+                    },
+                    ancestryAvailabilityErrorByPhenotype: {
+                        ...this.associationsState.ancestryAvailabilityErrorByPhenotype,
+                        [phenotypeName]: null,
+                    },
                 };
             } catch (error) {
                 if (token !== this.associationsRequestToken) {
                     return;
                 }
-                console.warn("Variant Sifter ancestry availability probe failed", error);
+                console.warn(
+                    `Variant Sifter ancestry availability probe failed for ${phenotypeName}`,
+                    error
+                );
                 this.associationsState = {
                     ...this.associationsState,
-                    ancestryAvailability: [],
-                    ancestryAvailabilityLoading: false,
-                    ancestryAvailabilityError:
-                        "Could not check ancestry-specific association availability.",
+                    ancestryAvailability: isPrimary
+                        ? []
+                        : this.associationsState.ancestryAvailability,
+                    ancestryAvailabilityLoading: isPrimary
+                        ? false
+                        : this.associationsState.ancestryAvailabilityLoading,
+                    ancestryAvailabilityError: isPrimary
+                        ? "Could not check ancestry-specific association availability."
+                        : this.associationsState.ancestryAvailabilityError,
+                    ancestryAvailabilityByPhenotype: {
+                        ...this.associationsState.ancestryAvailabilityByPhenotype,
+                        [phenotypeName]: [],
+                    },
+                    ancestryAvailabilityLoadingByPhenotype: {
+                        ...this.associationsState.ancestryAvailabilityLoadingByPhenotype,
+                        [phenotypeName]: false,
+                    },
+                    ancestryAvailabilityErrorByPhenotype: {
+                        ...this.associationsState.ancestryAvailabilityErrorByPhenotype,
+                        [phenotypeName]:
+                            "Could not check ancestry-specific association availability.",
+                    },
                 };
             }
         },
-        async onToggleAssociationAncestry(ancestry) {
-            const primary = primaryAssociationAncestry(this.searchSession);
-            if (!ancestry || ancestry === primary || !this.searchSession) {
+        resolveAssociationPhenotype(phenotypeName) {
+            const primary = this.searchSession?.phenotype;
+            const primaryName = String(primary?.name || "").trim();
+            const target = String(phenotypeName || "").trim() || primaryName;
+            if (!target || target === primaryName) {
+                return primary || null;
+            }
+            const entry = (this.associationsState.selectedPhenotypes || []).find(
+                (item) => String(item?.name || "").trim() === target
+            );
+            return entry
+                ? {
+                      name: entry.name,
+                      description: entry.description || null,
+                  }
+                : { name: target };
+        },
+        selectedAncestriesForPhenotype(phenotypeName) {
+            const primaryName = String(this.searchSession?.phenotype?.name || "").trim();
+            const target = String(phenotypeName || "").trim() || primaryName;
+            if (!target || target === primaryName) {
+                return this.associationsState.selectedAncestries || [];
+            }
+            const entry = (this.associationsState.selectedPhenotypes || []).find(
+                (item) => String(item?.name || "").trim() === target
+            );
+            return entry?.selectedAncestries || [];
+        },
+        async onToggleAssociationAncestry(payload) {
+            const ancestry =
+                typeof payload === "string" ? payload : payload?.ancestry;
+            const phenotypeName =
+                typeof payload === "string" || !payload?.phenotype
+                    ? this.searchSession?.phenotype?.name
+                    : payload.phenotype;
+            const primaryAncestry = primaryAssociationAncestry(this.searchSession);
+            if (!ancestry || ancestry === primaryAncestry || !this.searchSession) {
                 return;
             }
 
-            const selected = this.associationsState.selectedAncestries || [];
+            const phenotype = this.resolveAssociationPhenotype(phenotypeName);
+            const resolvedName = String(phenotype?.name || "").trim();
+            const primaryName = String(this.searchSession?.phenotype?.name || "").trim();
+            const isPrimary = !resolvedName || resolvedName === primaryName;
+            const selected = this.selectedAncestriesForPhenotype(resolvedName);
+
             if (selected.includes(ancestry)) {
-                this.associationsState = {
-                    ...this.associationsState,
-                    selectedAncestries: selected.filter((code) => code !== ancestry),
-                    rows: this.associationsState.rows.filter(
-                        (row) => associationRowAncestry(row, primary) !== ancestry
-                    ),
-                    ancestrySeriesErrors: {
-                        ...this.associationsState.ancestrySeriesErrors,
-                        [ancestry]: null,
-                    },
-                };
-                this.removeCredibleSetsForAncestry(ancestry);
+                const nextRows = this.associationsState.rows.filter((row) => {
+                    if (associationRowAncestry(row, primaryAncestry) !== ancestry) {
+                        return true;
+                    }
+                    const rowPhenotype = associationRowPhenotype(row, primaryName);
+                    if (isPrimary) {
+                        return rowPhenotype && rowPhenotype !== primaryName;
+                    }
+                    return rowPhenotype !== resolvedName;
+                });
+
+                if (isPrimary) {
+                    this.associationsState = {
+                        ...this.associationsState,
+                        selectedAncestries: selected.filter(
+                            (code) => code !== ancestry
+                        ),
+                        rows: nextRows,
+                        ancestrySeriesErrors: {
+                            ...this.associationsState.ancestrySeriesErrors,
+                            [ancestrySeriesLoadingKey(primaryName, ancestry)]: null,
+                            [ancestry]: null,
+                        },
+                    };
+                    this.removeCredibleSetsForAncestry(ancestry);
+                } else {
+                    this.associationsState = {
+                        ...this.associationsState,
+                        selectedPhenotypes: (
+                            this.associationsState.selectedPhenotypes || []
+                        ).map((entry) =>
+                            entry?.name === resolvedName
+                                ? {
+                                      ...entry,
+                                      selectedAncestries: (
+                                          entry.selectedAncestries || []
+                                      ).filter((code) => code !== ancestry),
+                                  }
+                                : entry
+                        ),
+                        rows: nextRows,
+                        ancestrySeriesErrors: {
+                            ...this.associationsState.ancestrySeriesErrors,
+                            [ancestrySeriesLoadingKey(resolvedName, ancestry)]: null,
+                        },
+                    };
+                    this.removeCredibleSetsForAncestry(ancestry, resolvedName);
+                }
                 this.syncUrlSearchParams(this.searchSession);
                 return;
             }
 
-            await this.loadAssociationAncestrySeries(ancestry);
+            await this.loadAssociationAncestrySeries(ancestry, phenotype);
             this.syncUrlSearchParams(this.searchSession);
         },
-        async loadAssociationAncestrySeries(ancestry) {
-            const primary = primaryAssociationAncestry(this.searchSession);
-            if (!ancestry || ancestry === primary || !this.searchSession) {
+        async loadAssociationAncestrySeries(ancestry, phenotype = null) {
+            const primaryAncestry = primaryAssociationAncestry(this.searchSession);
+            const phenotypeObj =
+                phenotype || this.searchSession?.phenotype || null;
+            const phenotypeName = String(phenotypeObj?.name || "").trim();
+            const primaryName = String(
+                this.searchSession?.phenotype?.name || ""
+            ).trim();
+            const isPrimary = !phenotypeName || phenotypeName === primaryName;
+            if (!ancestry || ancestry === primaryAncestry || !this.searchSession) {
                 return false;
             }
-            if ((this.associationsState.selectedAncestries || []).includes(ancestry)) {
+            if (this.selectedAncestriesForPhenotype(phenotypeName).includes(ancestry)) {
                 return true;
             }
 
@@ -3424,26 +4210,37 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             const token = this.associationsRequestToken;
-            const selected = this.associationsState.selectedAncestries || [];
+            const loadingKey = ancestrySeriesLoadingKey(
+                isPrimary ? primaryName : phenotypeName,
+                ancestry
+            );
+            const selected = this.selectedAncestriesForPhenotype(phenotypeName);
             this.associationsState = {
                 ...this.associationsState,
                 ancestrySeriesLoading: {
                     ...this.associationsState.ancestrySeriesLoading,
-                    [ancestry]: true,
+                    [loadingKey]: true,
+                    ...(isPrimary ? { [ancestry]: true } : {}),
                 },
                 ancestrySeriesErrors: {
                     ...this.associationsState.ancestrySeriesErrors,
-                    [ancestry]: null,
+                    [loadingKey]: null,
+                    ...(isPrimary ? { [ancestry]: null } : {}),
                 },
             };
 
             try {
                 const ancestrySession = {
                     ...this.searchSession,
+                    phenotype: phenotypeObj,
                     ancestry,
                     region: this.dataRegion || this.searchSession.region,
                 };
-                const result = await fetchAssociations(ancestrySession, host, this.projectId);
+                const result = await fetchAssociations(
+                    ancestrySession,
+                    host,
+                    this.projectId
+                );
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
@@ -3487,25 +4284,61 @@ export default Vue.component("kp-variant-sifter", {
                 const mergedRows = mergeAssociationRowsByVariantAndAncestry(
                     this.associationsState.rows,
                     formattedRows,
-                    primary
+                    primaryAncestry
                 );
-                this.associationsState = {
-                    ...this.associationsState,
-                    selectedAncestries: [...selected, ancestry],
-                    rows: mergedRows,
-                    ancestrySeriesLoading: {
-                        ...this.associationsState.ancestrySeriesLoading,
-                        [ancestry]: false,
-                    },
-                    ancestrySeriesErrors: {
-                        ...this.associationsState.ancestrySeriesErrors,
-                        [ancestry]: formattedRows.length
-                            ? null
-                            : "No associations returned for this ancestry.",
-                    },
-                };
-                await this.mergeCredibleSetsForAncestry(ancestry);
-                this.offerUnderstudiedForAncestry(ancestry);
+                const emptyMessage = formattedRows.length
+                    ? null
+                    : "No associations returned for this ancestry.";
+
+                if (isPrimary) {
+                    this.associationsState = {
+                        ...this.associationsState,
+                        selectedAncestries: [...selected, ancestry],
+                        rows: mergedRows,
+                        ancestrySeriesLoading: {
+                            ...this.associationsState.ancestrySeriesLoading,
+                            [loadingKey]: false,
+                            [ancestry]: false,
+                        },
+                        ancestrySeriesErrors: {
+                            ...this.associationsState.ancestrySeriesErrors,
+                            [loadingKey]: emptyMessage,
+                            [ancestry]: emptyMessage,
+                        },
+                    };
+                    await this.mergeCredibleSetsForAncestry(ancestry);
+                    this.offerUnderstudiedForAncestry(ancestry);
+                } else {
+                    this.associationsState = {
+                        ...this.associationsState,
+                        selectedPhenotypes: (
+                            this.associationsState.selectedPhenotypes || []
+                        ).map((entry) =>
+                            entry?.name === phenotypeName
+                                ? {
+                                      ...entry,
+                                      selectedAncestries: [
+                                          ...(entry.selectedAncestries || []),
+                                          ancestry,
+                                      ],
+                                  }
+                                : entry
+                        ),
+                        rows: mergedRows,
+                        ancestrySeriesLoading: {
+                            ...this.associationsState.ancestrySeriesLoading,
+                            [loadingKey]: false,
+                        },
+                        ancestrySeriesErrors: {
+                            ...this.associationsState.ancestrySeriesErrors,
+                            [loadingKey]: emptyMessage,
+                        },
+                    };
+                    await this.mergeCredibleSetsForPhenotypeAncestry(
+                        phenotypeObj,
+                        ancestry
+                    );
+                }
                 return true;
             } catch (error) {
                 if (token !== this.associationsRequestToken) {
@@ -3516,15 +4349,358 @@ export default Vue.component("kp-variant-sifter", {
                     ...this.associationsState,
                     ancestrySeriesLoading: {
                         ...this.associationsState.ancestrySeriesLoading,
-                        [ancestry]: false,
+                        [loadingKey]: false,
+                        ...(isPrimary ? { [ancestry]: false } : {}),
                     },
                     ancestrySeriesErrors: {
                         ...this.associationsState.ancestrySeriesErrors,
-                        [ancestry]: "Failed to load associations for this ancestry.",
+                        [loadingKey]: "Failed to load associations for this ancestry.",
+                        ...(isPrimary
+                            ? {
+                                  [ancestry]:
+                                      "Failed to load associations for this ancestry.",
+                              }
+                            : {}),
                     },
                 };
                 return false;
             }
+        },
+        async loadAssociationPhenotypeSeries(
+            phenotype,
+            { syncUrl = true, showProgress = true } = {}
+        ) {
+            const primary = this.searchSession?.phenotype;
+            const phenotypeName = String(phenotype?.name || "").trim();
+            if (!phenotypeName || !this.searchSession) {
+                return false;
+            }
+            if (phenotypeName === String(primary?.name || "").trim()) {
+                return false;
+            }
+            const selected = this.associationsState.selectedPhenotypes || [];
+            if (selected.some((entry) => entry?.name === phenotypeName)) {
+                return true;
+            }
+
+            const host = this.bioIndexHostFor("associations");
+            if (!host) {
+                return false;
+            }
+
+            const token = this.associationsRequestToken;
+            const primaryAncestry = primaryAssociationAncestry(this.searchSession);
+            const ownsProgress = Boolean(showProgress);
+            if (ownsProgress) {
+                this.beginAdditivePhenotypeLoadProgress();
+            }
+
+            this.associationsState = {
+                ...this.associationsState,
+                phenotypeSeriesLoading: {
+                    ...this.associationsState.phenotypeSeriesLoading,
+                    [phenotypeName]: true,
+                },
+                phenotypeSeriesErrors: {
+                    ...this.associationsState.phenotypeSeriesErrors,
+                    [phenotypeName]: null,
+                },
+            };
+
+            let associationsOk = false;
+            let ldOk = true;
+            try {
+                if (ownsProgress) {
+                    this.setRegionLoadStep(
+                        "associations",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                }
+                const phenotypeSession = {
+                    ...this.searchSession,
+                    phenotype,
+                    ancestry: primaryAncestry,
+                    region: this.dataRegion || this.searchSession.region,
+                };
+                const result = await fetchAssociations(
+                    phenotypeSession,
+                    host,
+                    this.projectId
+                );
+                if (token !== this.associationsRequestToken) {
+                    return false;
+                }
+
+                let formattedRows = formatAssociationRows(result.rows, phenotypeSession, {
+                    project: VKS_ASSOCIATION_PROJECT_KP,
+                });
+                if (ownsProgress) {
+                    this.setRegionLoadStep(
+                        "associations",
+                        VKS_REGION_LOAD_STATUS.DONE
+                    );
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                }
+                try {
+                    const refRow = resolveLdReferenceRow(
+                        filterAssociationRowsByProject(
+                            this.associationsState.rows,
+                            VKS_ASSOCIATION_PROJECT_KP
+                        ),
+                        {
+                            refVariant: this.plotOverlaysState?.refVariant,
+                            refVariantUserSet: this.plotOverlaysState?.refVariantUserSet,
+                        }
+                    );
+                    if (refRow) {
+                        formattedRows = await enrichAssociationRowsWithLdScoresForRef(
+                            formattedRows,
+                            phenotypeSession,
+                            refRow,
+                            phenotypeSession.region
+                        );
+                    } else {
+                        const ldResult = await enrichAssociationRowsWithLdScores(
+                            formattedRows,
+                            phenotypeSession
+                        );
+                        formattedRows = ldResult.rows;
+                    }
+                } catch (ldError) {
+                    ldOk = false;
+                    console.warn(
+                        `Variant Sifter ${phenotypeName} LD enrich failed`,
+                        ldError
+                    );
+                }
+
+                if (token !== this.associationsRequestToken) {
+                    return false;
+                }
+
+                const mergedRows = mergeAssociationRowsByVariantAndAncestry(
+                    this.associationsState.rows,
+                    formattedRows,
+                    primaryAncestry
+                );
+                const phenotypeEntry = {
+                    name: phenotypeName,
+                    description: phenotype.description || null,
+                    selectedAncestries: [],
+                };
+                this.associationsState = {
+                    ...this.associationsState,
+                    selectedPhenotypes: [...selected, phenotypeEntry],
+                    rows: mergedRows,
+                    phenotypeSeriesLoading: {
+                        ...this.associationsState.phenotypeSeriesLoading,
+                        [phenotypeName]: false,
+                    },
+                    phenotypeSeriesErrors: {
+                        ...this.associationsState.phenotypeSeriesErrors,
+                        [phenotypeName]: formattedRows.length
+                            ? null
+                            : "No associations returned for this phenotype.",
+                    },
+                };
+                this.probeAncestryAssociationAvailabilityForPhenotype(
+                    phenotype,
+                    this.searchSession
+                );
+                associationsOk = true;
+                if (ownsProgress) {
+                    this.setRegionLoadStep(
+                        "ld",
+                        ldOk
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                    this.setRegionLoadStep(
+                        "credibleSets",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                }
+                let credibleSetsOk = true;
+                try {
+                    credibleSetsOk = await this.mergeCredibleSetsForPhenotype(
+                        phenotype
+                    );
+                } catch (csError) {
+                    credibleSetsOk = false;
+                    console.warn(
+                        `Variant Sifter ${phenotypeName} credible sets merge failed`,
+                        csError
+                    );
+                }
+                if (token !== this.associationsRequestToken) {
+                    return false;
+                }
+                if (ownsProgress) {
+                    this.setRegionLoadStep(
+                        "credibleSets",
+                        credibleSetsOk
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                    this.setRegionLoadStep(
+                        "globalEnrichment",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                }
+                let globalEnrichmentOk = true;
+                try {
+                    globalEnrichmentOk = await this.mergeGlobalEnrichmentForPhenotype(
+                        phenotype
+                    );
+                } catch (geError) {
+                    globalEnrichmentOk = false;
+                    console.warn(
+                        `Variant Sifter ${phenotypeName} global enrichment merge failed`,
+                        geError
+                    );
+                }
+                if (token !== this.associationsRequestToken) {
+                    return false;
+                }
+                if (ownsProgress) {
+                    this.setRegionLoadStep(
+                        "globalEnrichment",
+                        globalEnrichmentOk
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                    this.finishAdditivePhenotypeLoadProgress({
+                        associationsOk: true,
+                        ldOk,
+                        credibleSetsOk,
+                        globalEnrichmentOk,
+                    });
+                }
+                if (syncUrl) {
+                    this.syncUrlSearchParams(this.searchSession);
+                }
+                return true;
+            } catch (error) {
+                if (token !== this.associationsRequestToken) {
+                    return false;
+                }
+                console.warn(
+                    `Variant Sifter ${phenotypeName} associations load failed`,
+                    error
+                );
+                this.associationsState = {
+                    ...this.associationsState,
+                    phenotypeSeriesLoading: {
+                        ...this.associationsState.phenotypeSeriesLoading,
+                        [phenotypeName]: false,
+                    },
+                    phenotypeSeriesErrors: {
+                        ...this.associationsState.phenotypeSeriesErrors,
+                        [phenotypeName]:
+                            "Failed to load associations for this phenotype.",
+                    },
+                };
+                if (ownsProgress) {
+                    this.finishAdditivePhenotypeLoadProgress({
+                        associationsOk: false,
+                        ldOk: false,
+                        credibleSetsOk: false,
+                        globalEnrichmentOk: false,
+                    });
+                }
+                return false;
+            }
+        },
+        onRemoveAssociationPhenotype(phenotypeName) {
+            const target = String(phenotypeName || "").trim();
+            if (!target || !this.searchSession?.phenotype) {
+                return;
+            }
+
+            const primaryName = String(this.searchSession.phenotype.name || "").trim();
+            const selected = [...(this.associationsState.selectedPhenotypes || [])];
+            const totalCount = (primaryName ? 1 : 0) + selected.length;
+            if (totalCount <= 1) {
+                return;
+            }
+
+            const primaryAncestry = primaryAssociationAncestry(this.searchSession);
+
+            if (target === primaryName) {
+                const [nextEntry, ...rest] = selected;
+                if (!nextEntry?.name) {
+                    return;
+                }
+                const nextPhenotype =
+                    (this.phenotypesInUse || this.phenotypes || []).find(
+                        (entry) => entry.name === nextEntry.name
+                    ) || {
+                        name: nextEntry.name,
+                        description: nextEntry.description || null,
+                    };
+
+                // Drop association rows for the removed primary phenotype.
+                const nextRows = (this.associationsState.rows || []).filter((row) => {
+                    const rowPhenotype = associationRowPhenotype(row, primaryName);
+                    return rowPhenotype !== primaryName;
+                });
+
+                this.searchSession = {
+                    ...this.searchSession,
+                    phenotype: nextPhenotype,
+                };
+                this.associationsState = {
+                    ...this.associationsState,
+                    rows: nextRows,
+                    selectedPhenotypes: rest,
+                    // Ancestry series belonged to the previous primary track.
+                    selectedAncestries: [],
+                    ancestryAvailability:
+                        this.associationsState.ancestryAvailabilityByPhenotype?.[
+                            nextEntry.name
+                        ] || [],
+                };
+                this.probeAncestryAssociationAvailabilityForPhenotype(
+                    nextPhenotype,
+                    this.searchSession
+                );
+                this.removeCredibleSetsForPhenotype(primaryName);
+                this.removeGlobalEnrichmentForPhenotype(primaryName);
+            } else {
+                const nextRows = (this.associationsState.rows || []).filter((row) => {
+                    const rowPhenotype = associationRowPhenotype(row, primaryName);
+                    return rowPhenotype !== target;
+                });
+                const {
+                    [target]: _availability,
+                    ...availabilityByPhenotype
+                } = this.associationsState.ancestryAvailabilityByPhenotype || {};
+                const {
+                    [target]: _loading,
+                    ...availabilityLoadingByPhenotype
+                } = this.associationsState.ancestryAvailabilityLoadingByPhenotype || {};
+                const {
+                    [target]: _error,
+                    ...availabilityErrorByPhenotype
+                } = this.associationsState.ancestryAvailabilityErrorByPhenotype || {};
+
+                this.associationsState = {
+                    ...this.associationsState,
+                    rows: nextRows,
+                    selectedPhenotypes: selected.filter(
+                        (entry) => entry?.name !== target
+                    ),
+                    ancestryAvailabilityByPhenotype: availabilityByPhenotype,
+                    ancestryAvailabilityLoadingByPhenotype:
+                        availabilityLoadingByPhenotype,
+                    ancestryAvailabilityErrorByPhenotype:
+                        availabilityErrorByPhenotype,
+                };
+                this.removeCredibleSetsForPhenotype(target);
+                this.removeGlobalEnrichmentForPhenotype(target);
+            }
+
+            this.syncUrlSearchParams(this.searchSession);
         },
         applyUrlSearchParams() {
             if (this.canvasActive || this.searchSession) {
@@ -3556,12 +4732,15 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
+            const phenotypeNames = parsePhenotypesParam(params.phenotype);
+            const primaryName = phenotypeNames[0] || String(params.phenotype).trim();
+            const additionalPhenotypes = phenotypeNames.slice(1);
             const phenotype = (this.phenotypes || []).find(
-                (entry) => entry.name === params.phenotype
+                (entry) => entry.name === primaryName
             );
             if (!phenotype) {
                 this.welcomeInitialValues = {
-                    phenotype: params.phenotype,
+                    phenotype: primaryName || params.phenotype,
                     ancestry: params.ancestry || "",
                     geneOrVariantQuery: params.region,
                 };
@@ -3582,6 +4761,7 @@ export default Vue.component("kp-variant-sifter", {
                         params.sub_ancestries,
                         params.ancestry || "Mixed"
                     ),
+                    additionalPhenotypes,
                 }
             );
         },
@@ -3590,8 +4770,14 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
+            const phenotypeParam =
+                formatPhenotypesParam(
+                    session.phenotype.name,
+                    this.associationsState?.selectedPhenotypes || []
+                ) || session.phenotype.name;
+
             const nextParams = {
-                phenotype: session.phenotype.name,
+                phenotype: phenotypeParam,
                 region: session.regionLabel,
                 project: this.projectId || undefined,
             };
@@ -3601,7 +4787,16 @@ export default Vue.component("kp-variant-sifter", {
                 nextParams.ancestry = undefined;
             }
 
-            const selected = this.associationsState?.selectedAncestries || [];
+            const selected = [
+                ...(this.associationsState?.selectedAncestries || []),
+            ];
+            (this.associationsState?.selectedPhenotypes || []).forEach((entry) => {
+                (entry?.selectedAncestries || []).forEach((code) => {
+                    if (code && !selected.includes(code)) {
+                        selected.push(code);
+                    }
+                });
+            });
             const pending = this.pendingSubAncestries || [];
             const subAncestries = parseSubAncestriesParam(
                 [...selected, ...pending],
@@ -3616,6 +4811,12 @@ export default Vue.component("kp-variant-sifter", {
             this.associationsState = {
                 ...this.associationsState,
                 filtersIndex,
+            };
+        },
+        onCredibleSetsPanelFiltersUpdate(panelFilters) {
+            this.credibleSetsState = {
+                ...this.credibleSetsState,
+                panelFilters: cloneCredibleSetsPanelFilters(panelFilters),
             };
         },
         onGenesSelectedTypesUpdate(selectedTypes) {
@@ -5171,12 +6372,21 @@ export default Vue.component("kp-variant-sifter", {
                 globalEnrichmentState: this.globalEnrichmentState,
                 v2gState: this.v2gState,
                 s2gState: this.s2gState,
+                region: this.searchSession?.region || null,
+                phenotype: this.searchSession?.phenotype?.name || "",
+                ancestry: this.searchSession?.ancestry || "Mixed",
             });
-            const filter = buildWorkspaceMappingFilter(this.associationsState.rows, {
-                mappingCategories: categories,
-                selectedCategoryIds: this.mappingState.selectedCategoryIds,
-                mappingMode: this.mappingState.mappingMode,
-            });
+            const filter = buildWorkspaceMappingFilter(
+                applyAssociationsFilters(
+                    this.associationsState.rows || [],
+                    this.associationsState.filtersIndex
+                ),
+                {
+                    mappingCategories: categories,
+                    selectedCategoryIds: this.mappingState.selectedCategoryIds,
+                    mappingMode: this.mappingState.mappingMode,
+                }
+            );
             if (!filter) {
                 this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
                 if (!quiet) {

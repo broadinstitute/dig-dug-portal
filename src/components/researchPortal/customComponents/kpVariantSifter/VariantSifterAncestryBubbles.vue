@@ -1,7 +1,7 @@
 <template>
     <div class="vks-ancestry-bubbles">
         <div
-            v-if="loading || error || !bubbles.length"
+            v-if="showGlobalStatus"
             class="vks-ancestry-bubbles-head"
         >
             <span v-if="loading" class="vks-ancestry-bubbles-status">Checking availability…</span>
@@ -13,33 +13,81 @@
                 No ancestry-specific association data for this locus.
             </span>
         </div>
-        <div v-if="bubbles.length" class="vks-ancestry-bubbles-list" role="group" aria-label="Available ancestries">
-            <button
-                v-for="bubble in bubbles"
-                :key="bubble.code"
-                type="button"
-                class="vks-ancestry-bubble"
-                :class="{
-                    'is-active': isActive(bubble.code),
-                    'is-primary': isPrimary(bubble.code),
-                    'is-loading': isSeriesLoading(bubble.code),
-                }"
-                :aria-pressed="isActive(bubble.code) ? 'true' : 'false'"
-                :disabled="isPrimary(bubble.code) || isSeriesLoading(bubble.code)"
-                :title="bubbleTitle(bubble)"
-                @click="$emit('toggle-ancestry', bubble.code)"
+
+        <div
+            v-for="group in resolvedGroups"
+            :key="group.phenotype || 'primary'"
+            class="vks-ancestry-bubble-group"
+        >
+            <h5
+                v-if="showGroupHeaders"
+                class="vks-ancestry-bubble-group-title"
             >
-                <span class="vks-ancestry-bubble-label">{{ bubble.label }}</span>
-                <span class="vks-ancestry-bubble-code">{{ bubble.code }}</span>
-                <span v-if="bubble.count != null" class="vks-ancestry-bubble-count">
-                    {{ formatCount(bubble.count) }}
+                {{ group.label }}
+            </h5>
+            <div
+                v-if="group.loading || group.error || !group.bubbles.length"
+                class="vks-ancestry-bubbles-head"
+            >
+                <span
+                    v-if="group.loading"
+                    class="vks-ancestry-bubbles-status"
+                >
+                    Checking availability…
                 </span>
-            </button>
+                <span
+                    v-else-if="group.error"
+                    class="vks-ancestry-bubbles-status is-error"
+                >
+                    {{ group.error }}
+                </span>
+                <span
+                    v-else
+                    class="vks-ancestry-bubbles-status"
+                >
+                    No ancestry-specific association data
+                    <template v-if="showGroupHeaders">
+                        for {{ group.label }}
+                    </template>
+                    .
+                </span>
+            </div>
+            <div
+                v-if="group.bubbles.length"
+                class="vks-ancestry-bubbles-list"
+                role="group"
+                :aria-label="`Available ancestries for ${group.label}`"
+            >
+                <button
+                    v-for="bubble in group.bubbles"
+                    :key="`${group.phenotype}-${bubble.code}`"
+                    type="button"
+                    class="vks-ancestry-bubble"
+                    :class="{
+                        'is-active': isActive(group, bubble.code),
+                        'is-primary': isPrimary(bubble.code),
+                        'is-loading': isSeriesLoading(group, bubble.code),
+                    }"
+                    :aria-pressed="isActive(group, bubble.code) ? 'true' : 'false'"
+                    :disabled="isPrimary(bubble.code) || isSeriesLoading(group, bubble.code)"
+                    :title="bubbleTitle(group, bubble)"
+                    @click="onToggle(group, bubble.code)"
+                >
+                    <span class="vks-ancestry-bubble-label">{{ bubble.label }}</span>
+                    <span class="vks-ancestry-bubble-code">{{ bubble.code }}</span>
+                    <span v-if="bubble.count != null" class="vks-ancestry-bubble-count">
+                        {{ formatCount(bubble.count) }}
+                    </span>
+                </button>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
+import {
+    ancestrySeriesLoadingKey,
+} from "./variantSifterAssociationsApi.js";
 import { ancestryLabel } from "./variantSifterSearchUtils.js";
 
 export default {
@@ -48,6 +96,10 @@ export default {
         bubbles: {
             type: Array,
             default: () => [],
+        },
+        groups: {
+            type: Array,
+            default: null,
         },
         primaryAncestry: {
             type: String,
@@ -70,34 +122,71 @@ export default {
             default: null,
         },
     },
+    computed: {
+        resolvedGroups() {
+            if (Array.isArray(this.groups) && this.groups.length) {
+                return this.groups;
+            }
+            return [
+                {
+                    phenotype: null,
+                    label: "Associations",
+                    isPrimary: true,
+                    bubbles: this.bubbles || [],
+                    selectedAncestries: this.selectedAncestries || [],
+                    seriesLoading: this.seriesLoading,
+                    loading: this.loading,
+                    error: this.error,
+                },
+            ];
+        },
+        showGroupHeaders() {
+            return this.resolvedGroups.length > 1;
+        },
+        showGlobalStatus() {
+            if (this.groups?.length) {
+                return false;
+            }
+            return this.loading || this.error || !this.bubbles.length;
+        },
+    },
     methods: {
         isPrimary(code) {
             return code === this.primaryAncestry;
         },
-        isActive(code) {
+        isActive(group, code) {
             if (this.isPrimary(code)) {
                 return true;
             }
-            return (this.selectedAncestries || []).includes(code);
+            return (group.selectedAncestries || []).includes(code);
         },
-        isSeriesLoading(code) {
-            return Boolean(this.seriesLoading?.[code]);
+        isSeriesLoading(group, code) {
+            const loadingMap = group.seriesLoading || this.seriesLoading || {};
+            const keyed = ancestrySeriesLoadingKey(group.phenotype, code);
+            return Boolean(loadingMap[keyed] || loadingMap[code]);
         },
         formatCount(count) {
             return Number(count).toLocaleString();
         },
-        bubbleTitle(bubble) {
+        bubbleTitle(group, bubble) {
             const label = bubble.label || ancestryLabel(bubble.code);
+            const phenotypeSuffix = group?.label ? ` · ${group.label}` : "";
             if (this.isPrimary(bubble.code)) {
-                return `${label} (primary search ancestry)`;
+                return `${label} (primary search ancestry)${phenotypeSuffix}`;
             }
-            if (this.isSeriesLoading(bubble.code)) {
-                return `Loading ${label}…`;
+            if (this.isSeriesLoading(group, bubble.code)) {
+                return `Loading ${label}${phenotypeSuffix}…`;
             }
-            if (this.isActive(bubble.code)) {
-                return `Remove ${label} associations`;
+            if (this.isActive(group, bubble.code)) {
+                return `Remove ${label} associations${phenotypeSuffix}`;
             }
-            return `Add ${label} associations`;
+            return `Add ${label} associations${phenotypeSuffix}`;
+        },
+        onToggle(group, ancestry) {
+            this.$emit("toggle-ancestry", {
+                ancestry,
+                phenotype: group.phenotype,
+            });
         },
     },
 };
@@ -107,6 +196,17 @@ export default {
 .vks-ancestry-bubbles {
     margin: 0;
     padding: 0;
+}
+
+.vks-ancestry-bubble-group + .vks-ancestry-bubble-group {
+    margin-top: 14px;
+}
+
+.vks-ancestry-bubble-group-title {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cfde-blue, #2c5c97);
 }
 
 .vks-ancestry-bubbles-head {

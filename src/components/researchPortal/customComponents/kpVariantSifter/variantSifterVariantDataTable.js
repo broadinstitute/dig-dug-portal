@@ -155,8 +155,15 @@ export function buildCredibleVariantsPanelRows(credibleSetsState, region = null)
             if (region && !variantOverlapsRegion(regionSource, region)) {
                 return;
             }
+            const phenotype =
+                meta.phenotype ||
+                variantRow.Phenotype ||
+                variantRow.phenotype ||
+                "";
             rows.push({
                 ...variantRow,
+                Phenotype: phenotype,
+                phenotype,
                 credibleSetId,
                 credibleSetLabel: meta.label || credibleSetId,
                 selectionKey,

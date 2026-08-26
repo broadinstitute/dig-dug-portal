@@ -647,10 +647,11 @@ export function associationRowMergeKey(row, primaryAncestry = "Mixed") {
     const id = row?.["Variant ID"] || row?.varId || "";
     const ancestry = row?.Ancestry || primaryAncestry;
     const project = row?.Project || "KP";
-    return `${id}@@${ancestry}@@${project}`;
+    const phenotype = row?.PhenotypeKey || row?.Phenotype || "";
+    return `${id}@@${ancestry}@@${project}@@${phenotype}`;
 }
 
-/** Merge association rows preserving one record per Variant ID × Ancestry × Project. */
+/** Merge association rows preserving one record per Variant ID × Ancestry × Project × Phenotype. */
 export function mergeAssociationRowsByVariantAndAncestry(
     existingRows,
     incomingRows,

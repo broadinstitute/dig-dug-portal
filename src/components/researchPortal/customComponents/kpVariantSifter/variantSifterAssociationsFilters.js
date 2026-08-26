@@ -49,6 +49,18 @@ export const ASSOCIATIONS_FILTERS = [
         "label in bubble": "true",
     },
     {
+        field: "Phenotype",
+        label: "Phenotype",
+        type: "checkbox",
+        "label in bubble": "true",
+    },
+    {
+        field: "__overlappingVariants",
+        label: "Show only overlapping variants",
+        type: "boolean",
+        "label in bubble": "true",
+    },
+    {
         field: "Ancestry",
         label: "Ancestry",
         type: "checkbox",
@@ -75,6 +87,11 @@ export const ASSOCIATIONS_FILTER_GROUPS = [
         fields: ["P-Value", "LDS", "EAF", "Beta", "Z Score"],
     },
     {
+        id: "phenotype",
+        label: "Phenotype",
+        fields: ["Phenotype", "__overlappingVariants"],
+    },
+    {
         id: "ancestry",
         label: "Ancestry",
         fields: ["Ancestry"],
@@ -85,6 +102,8 @@ export const ASSOCIATIONS_FILTER_GROUPS = [
         fields: ["Project"],
     },
 ];
+
+export const OVERLAPPING_VARIANTS_FILTER_FIELD = "__overlappingVariants";
 
 function hasFieldValue(value) {
     return value != null && value !== "";
@@ -117,6 +136,13 @@ function rowMatchesGreaterThan(row, field, search) {
 }
 
 function rowMatchesExact(row, field, search) {
+    if (field === "Phenotype") {
+        const key = row?.PhenotypeKey || row?.Phenotype;
+        if (!hasFieldValue(key)) {
+            return false;
+        }
+        return String(key) === String(search);
+    }
     const value = row[field];
     if (!hasFieldValue(value)) {
         return false;
@@ -136,10 +162,113 @@ function rowMatchesFilter(row, filterDef, searchValues) {
             case "dropdown":
             case "checkbox":
                 return rowMatchesExact(row, filterDef.field, search);
+            case "boolean":
+                return true;
             default:
                 return true;
         }
     });
+}
+
+function variantIdForOverlap(row) {
+    return String(row?.["Variant ID"] || row?.varId || "").trim();
+}
+
+function phenotypeKeyForOverlap(row) {
+    return String(row?.PhenotypeKey || row?.Phenotype || "").trim();
+}
+
+/**
+ * Keep rows whose Variant ID appears in every phenotype present in `rows`
+ * (or in `phenotypeNames` when provided).
+ */
+export function filterOverlappingAssociationVariants(rows, phenotypeNames = null) {
+    if (!Array.isArray(rows) || !rows.length) {
+        return [];
+    }
+
+    const phenotypes = Array.isArray(phenotypeNames) && phenotypeNames.length
+        ? phenotypeNames.map((name) => String(name || "").trim()).filter(Boolean)
+        : Array.from(
+              new Set(
+                  rows
+                      .map((row) => phenotypeKeyForOverlap(row))
+                      .filter(Boolean)
+              )
+          );
+
+    if (phenotypes.length < 2) {
+        return rows;
+    }
+
+    const phenotypesByVariant = new Map();
+    rows.forEach((row) => {
+        const variantId = variantIdForOverlap(row);
+        const phenotype = phenotypeKeyForOverlap(row);
+        if (!variantId || !phenotype) {
+            return;
+        }
+        if (!phenotypesByVariant.has(variantId)) {
+            phenotypesByVariant.set(variantId, new Set());
+        }
+        phenotypesByVariant.get(variantId).add(phenotype);
+    });
+
+    const overlappingIds = new Set();
+    phenotypesByVariant.forEach((set, variantId) => {
+        if (phenotypes.every((phenotype) => set.has(phenotype))) {
+            overlappingIds.add(variantId);
+        }
+    });
+
+    return rows.filter((row) => overlappingIds.has(variantIdForOverlap(row)));
+}
+
+export function isOverlappingVariantsFilterActive(filtersIndex) {
+    const search = filtersIndex?.[OVERLAPPING_VARIANTS_FILTER_FIELD]?.search || [];
+    return search.some((value) => value === true || value === "true");
+}
+
+/**
+ * Filters available for the current associations context.
+ */
+export function associationsFiltersForContext({
+    includeProject = false,
+    includePhenotype = false,
+} = {}) {
+    return ASSOCIATIONS_FILTERS.filter((filter) => {
+        if (filter.field === "Project") {
+            return includeProject;
+        }
+        if (
+            filter.field === "Phenotype" ||
+            filter.field === OVERLAPPING_VARIANTS_FILTER_FIELD
+        ) {
+            return includePhenotype;
+        }
+        return true;
+    });
+}
+
+export function associationsFilterGroupsForContext({
+    includeProject = false,
+    includePhenotype = false,
+} = {}) {
+    return ASSOCIATIONS_FILTER_GROUPS.map((group) => ({
+        ...group,
+        fields: group.fields.filter((field) => {
+            if (field === "Project") {
+                return includeProject;
+            }
+            if (
+                field === "Phenotype" ||
+                field === OVERLAPPING_VARIANTS_FILTER_FIELD
+            ) {
+                return includePhenotype;
+            }
+            return true;
+        }),
+    })).filter((group) => group.fields.length > 0);
 }
 
 /**
@@ -151,8 +280,12 @@ export function applyAssociationsFilters(rows, filtersIndex) {
     }
 
     let filtered = rows;
+    const overlappingActive = isOverlappingVariantsFilterActive(filtersIndex);
 
-    Object.keys(filtersIndex).forEach((field) => {
+    Object.keys(filtersIndex || {}).forEach((field) => {
+        if (field === OVERLAPPING_VARIANTS_FILTER_FIELD) {
+            return;
+        }
         const filterDef = filtersIndex[field];
         const searches = (filterDef.search || []).filter(
             (value, index, array) => value !== "" && value != null && array.indexOf(value) === index
@@ -165,12 +298,35 @@ export function applyAssociationsFilters(rows, filtersIndex) {
         filtered = filtered.filter((row) => rowMatchesFilter(row, filterDef, searches));
     });
 
+    if (overlappingActive) {
+        filtered = filterOverlappingAssociationVariants(filtered);
+    }
+
     return filtered;
 }
 
 export function buildFilterOptions(rows, field) {
     if (!Array.isArray(rows) || !rows.length) {
         return [];
+    }
+
+    if (field === "Phenotype") {
+        const byKey = new Map();
+        rows.forEach((row) => {
+            const key = String(row?.PhenotypeKey || row?.Phenotype || "").trim();
+            if (!key) {
+                return;
+            }
+            const label =
+                String(row?.PhenotypeLabel || row?.Phenotype || "").trim() ||
+                key;
+            if (!byKey.has(key)) {
+                byKey.set(key, label);
+            }
+        });
+        return Array.from(byKey.entries())
+            .map(([value, label]) => ({ value, label }))
+            .sort((a, b) => String(a.label).localeCompare(String(b.label)));
     }
 
     const options = new Set();

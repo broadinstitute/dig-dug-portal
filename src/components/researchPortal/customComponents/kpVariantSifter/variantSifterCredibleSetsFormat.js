@@ -21,6 +21,7 @@ export const CREDIBLE_VARIANTS_TABLE_COLUMNS = [
     "Position",
     "PPA",
     "P-Value",
+    "Phenotype",
 ];
 
 export function formatCredibleVariantRows(rawRows) {
@@ -42,6 +43,7 @@ export function formatCredibleVariantRows(rawRows) {
         }
         if (raw.phenotype) {
             formatted.phenotype = raw.phenotype;
+            formatted.Phenotype = raw.phenotype;
         }
         if (formatted.PPA == null && raw.posteriorProbability != null) {
             formatted.PPA = raw.posteriorProbability;
@@ -57,25 +59,40 @@ export function normalizeCredibleSetAncestry(ancestry) {
 
 /**
  * Stable key for a selected credible set. Same credibleSetId can exist under
- * Mixed and ancestry-specific lists (e.g. SA), so ancestry is part of the key.
+ * Mixed / ancestry-specific lists and across phenotypes, so both are part of the key.
+ * Legacy keys are `id::ancestry` (no phenotype); new keys append `::phenotype`.
  */
-export function makeCredibleSetSelectionKey(credibleSetId, ancestry = "Mixed") {
+export function makeCredibleSetSelectionKey(
+    credibleSetId,
+    ancestry = "Mixed",
+    phenotype = ""
+) {
     if (!credibleSetId) {
         return "";
     }
-    return `${credibleSetId}::${normalizeCredibleSetAncestry(ancestry)}`;
+    const base = `${credibleSetId}::${normalizeCredibleSetAncestry(ancestry)}`;
+    const pheno = String(phenotype || "").trim();
+    return pheno ? `${base}::${pheno}` : base;
 }
 
 export function parseCredibleSetSelectionKey(selectionKey) {
     const raw = String(selectionKey || "");
-    const sep = raw.lastIndexOf("::");
-    if (sep < 0) {
-        return { credibleSetId: raw, ancestry: "Mixed" };
+    const parts = raw.split("::");
+    if (parts.length >= 3) {
+        return {
+            credibleSetId: parts[0],
+            ancestry: normalizeCredibleSetAncestry(parts[1]),
+            phenotype: parts.slice(2).join("::"),
+        };
     }
-    return {
-        credibleSetId: raw.slice(0, sep),
-        ancestry: normalizeCredibleSetAncestry(raw.slice(sep + 2)),
-    };
+    if (parts.length === 2) {
+        return {
+            credibleSetId: parts[0],
+            ancestry: normalizeCredibleSetAncestry(parts[1]),
+            phenotype: "",
+        };
+    }
+    return { credibleSetId: raw, ancestry: "Mixed", phenotype: "" };
 }
 
 export function credibleSetOptionLabel(entry) {
@@ -89,7 +106,11 @@ export function credibleSetOptionLabel(entry) {
     const method = entry.method ? `Method: ${entry.method}` : null;
     const pmid = entry.pmid ? `PMID: ${entry.pmid}` : null;
     const suffix = [ancestry, method, pmid].filter(Boolean).join(", ");
-    return suffix ? `${entry.credibleSetId} (${suffix})` : entry.credibleSetId;
+    const base = suffix
+        ? `${entry.credibleSetId} (${suffix})`
+        : entry.credibleSetId;
+    const phenotype = String(entry.phenotype || "").trim();
+    return phenotype ? `${base} (${phenotype})` : base;
 }
 
 /** Compact label for pills, tooltips, and table columns. */

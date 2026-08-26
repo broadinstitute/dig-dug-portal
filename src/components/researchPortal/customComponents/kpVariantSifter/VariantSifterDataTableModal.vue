@@ -57,6 +57,7 @@ import {
     normalizeMappingMode,
     normalizeMappingState,
 } from "./variantSifterMappingData.js";
+import { isGwasCeProject } from "./variantSifterProjects.js";
 
 export default {
     name: "VariantSifterDataTableModal",
@@ -72,6 +73,18 @@ export default {
         associationRows: {
             type: Array,
             default: () => [],
+        },
+        searchSession: {
+            type: Object,
+            default: null,
+        },
+        selectedPhenotypes: {
+            type: Array,
+            default: () => [],
+        },
+        projectId: {
+            type: String,
+            default: "",
         },
         credibleSetsState: {
             type: Object,
@@ -125,30 +138,41 @@ export default {
                 globalEnrichmentState: this.globalEnrichmentState,
                 v2gState: this.v2gState,
                 s2gState: this.s2gState,
+                region: this.searchSession?.region || null,
+                phenotype: this.searchSession?.phenotype?.name || "",
+                ancestry: this.searchSession?.ancestry || "Mixed",
             });
         },
         mappingCategoryIds() {
             return this.mappingCategories.map((category) => category.id).join("|");
+        },
+        showProjectColumn() {
+            return isGwasCeProject(this.projectId);
+        },
+        showPhenotypeColumn() {
+            return (this.selectedPhenotypes || []).length > 0;
         },
         tableView() {
             return buildMappedVariantDataTableView(this.associationRows, {
                 mappingCategories: this.mappingCategories,
                 selectedCategoryIds: this.selectedCategoryIds,
                 mappingMode: this.mappingMode,
+                includeProjectColumn: this.showProjectColumn,
+                includePhenotypeColumn: this.showPhenotypeColumn,
             });
         },
         tableNote() {
             if (!this.tableView.filtered) {
                 if (this.mappingCategories.length) {
-                    return "All loaded association variants. Select mapping categories above to intersect associations with workspace features.";
+                    return "Association variants currently shown in the Associations drawer (including its filters). Select mapping categories above to intersect with workspace features.";
                 }
-                return "All loaded association variants. Load credible sets, enrichment tissues, or gene-link tracks to enable mapping.";
+                return "Association variants currently shown in the Associations drawer (including its filters). Load credible sets, enrichment tissues, or gene-link tracks to enable mapping.";
             }
             const selectedCount = this.selectedCategoryIds.length;
             const modeLabel = normalizeMappingMode(this.mappingMode) === "and" ? "And" : "Or";
             return `Showing ${this.tableView.rows.length.toLocaleString()} variant(s) mapped with ${selectedCount} selected categor${
                 selectedCount === 1 ? "y" : "ies"
-            } (${modeLabel}).`;
+            } (${modeLabel}), from the Associations drawer current filter set.`;
         },
     },
     watch: {

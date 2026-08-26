@@ -22,13 +22,15 @@ export async function fetchCredibleSetsList(session, host, options = {}) {
 }
 
 /**
- * Tag list rows with the ancestry used for the query (for dropdown / cleanup).
+ * Tag list rows with the ancestry (and optional phenotype) used for the query.
  */
-export function tagCredibleSetEntries(entries, ancestry) {
+export function tagCredibleSetEntries(entries, ancestry, phenotypeName = null) {
     const code = ancestry || "Mixed";
+    const phenotype = String(phenotypeName || "").trim();
     return (entries || []).map((entry) => ({
         ...entry,
         ancestry: code,
+        phenotype: entry.phenotype || phenotype || "",
     }));
 }
 
@@ -62,9 +64,11 @@ export async function fetchCredibleSetsListForAncestries(
     host,
     ancestries = []
 ) {
+    const phenotypeName = session?.phenotype?.name || null;
     const primary = tagCredibleSetEntries(
         await fetchCredibleSetsList(session, host),
-        "Mixed"
+        "Mixed",
+        phenotypeName
     );
     const subCodes = [
         ...new Set(
@@ -75,7 +79,8 @@ export async function fetchCredibleSetsListForAncestries(
         subCodes.map(async (ancestry) =>
             tagCredibleSetEntries(
                 await fetchCredibleSetsList(session, host, { ancestry }),
-                ancestry
+                ancestry,
+                phenotypeName
             )
         )
     );
