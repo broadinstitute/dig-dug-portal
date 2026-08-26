@@ -49,305 +49,447 @@
         </header>
 
         <div class="bn-body">
-            <div class="bn-search-panel">
-                <label class="bn-label" for="bn-disease-input">Mechanism</label>
-                <div class="bn-search-row">
-                    <div class="bn-input-wrap">
-                        <input
-                            id="bn-disease-input"
-                            ref="diseaseInput"
-                            type="text"
-                            class="form-control"
-                            :class="{ 'bn-query-input--clearable': showSearchClear }"
-                            v-model="userQuery"
-                            placeholder="Search a CFDE REVEAL mechanism (e.g. IL-12 signaling)"
-                            autocomplete="off"
-                            @input="onQueryInput"
-                            @keydown.down.prevent="moveSuggestion(1)"
-                            @keydown.up.prevent="moveSuggestion(-1)"
-                            @keydown.enter.prevent="onEnter"
-                            @keydown.esc="closeSuggestions"
-                        />
+            <div v-if="error && !loading && !biomarkerLoading" class="alert alert-danger py-2 mb-3">
+                {{ error }}
+            </div>
+
+            <div class="bn-accordions">
+                <section
+                    class="bn-accordion bn-accordion--mechanism"
+                    :class="{
+                        'bn-accordion--open': mechanismAccordionOpen,
+                        'bn-accordion--suggesting': suggestionsOpen,
+                    }"
+                >
+                    <div class="bn-accordion-header">
                         <button
-                            v-if="showSearchClear"
                             type="button"
-                            class="bn-clear-bubble"
-                            aria-label="Clear search input"
-                            title="Clear search input"
-                            @click="clearSearchInput"
+                            class="bn-accordion-trigger"
+                            :aria-expanded="mechanismAccordionOpen ? 'true' : 'false'"
+                            @click="mechanismAccordionOpen = !mechanismAccordionOpen"
                         >
-                            <b-icon icon="x" aria-hidden="true" />
+                            <span class="bn-accordion-title">
+                                <span class="bn-accordion-step">1</span>
+                                Mechanism
+                            </span>
+                            <span class="bn-accordion-chevron" aria-hidden="true" />
                         </button>
-                        <ul
-                            v-if="suggestionsOpen && (flatSuggestions.length || suggestionsLoading)"
-                            class="bn-suggestions"
-                            role="listbox"
+                    </div>
+                    <div v-show="mechanismAccordionOpen" class="bn-accordion-panel">
+                        <div class="bn-search-panel">
+                            <div class="bn-search-row">
+                                <div class="bn-input-wrap">
+                                    <input
+                                        id="bn-disease-input"
+                                        ref="diseaseInput"
+                                        type="text"
+                                        class="form-control"
+                                        :class="{ 'bn-query-input--clearable': showSearchClear }"
+                                        v-model="userQuery"
+                                        placeholder="Search a CFDE REVEAL mechanism (e.g. IL-12 signaling)"
+                                        autocomplete="off"
+                                        aria-label="Mechanism"
+                                        @input="onQueryInput"
+                                        @keydown.down.prevent="moveSuggestion(1)"
+                                        @keydown.up.prevent="moveSuggestion(-1)"
+                                        @keydown.enter.prevent="onEnter"
+                                        @keydown.esc="closeSuggestions"
+                                    />
+                                    <button
+                                        v-if="showSearchClear"
+                                        type="button"
+                                        class="bn-clear-bubble"
+                                        aria-label="Clear search input"
+                                        title="Clear search input"
+                                        @click="clearSearchInput"
+                                    >
+                                        <b-icon icon="x" aria-hidden="true" />
+                                    </button>
+                                    <ul
+                                        v-if="suggestionsOpen && (flatSuggestions.length || suggestionsLoading)"
+                                        class="bn-suggestions"
+                                        role="listbox"
+                                    >
+                                        <li
+                                            v-if="suggestionsLoading && !flatSuggestions.length"
+                                            class="bn-suggestion bn-suggestion--muted"
+                                        >
+                                            Searching mechanisms…
+                                        </li>
+                                        <li
+                                            v-for="s in flatSuggestions"
+                                            :key="'m-' + s.iri"
+                                            class="bn-suggestion"
+                                            :class="{ 'bn-suggestion--active': s.flatIndex === suggestionIndex }"
+                                            role="option"
+                                            @mousedown.prevent="selectSuggestion(s)"
+                                        >
+                                            <span class="bn-suggestion-label">{{ s.label }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section
+                    class="bn-accordion"
+                    :class="{ 'bn-accordion--open': diseasesAccordionOpen }"
+                >
+                    <div class="bn-accordion-header">
+                        <button
+                            type="button"
+                            class="bn-accordion-trigger"
+                            :aria-expanded="diseasesAccordionOpen ? 'true' : 'false'"
+                            @click="diseasesAccordionOpen = !diseasesAccordionOpen"
                         >
-                            <li v-if="suggestionsLoading && !flatSuggestions.length" class="bn-suggestion bn-suggestion--muted">
-                                Searching mechanisms…
-                            </li>
-                            <li
-                                v-for="s in flatSuggestions"
-                                :key="'m-' + s.iri"
-                                class="bn-suggestion"
-                                :class="{ 'bn-suggestion--active': s.flatIndex === suggestionIndex }"
-                                role="option"
-                                @mousedown.prevent="selectSuggestion(s)"
+                            <span class="bn-accordion-title">
+                                <span class="bn-accordion-step">2</span>
+                                Associated diseases
+                                <span v-if="associatedDiseases.length" class="bn-accordion-count">
+                                    {{ associatedDiseases.length }}
+                                </span>
+                            </span>
+                            <span class="bn-accordion-chevron" aria-hidden="true" />
+                        </button>
+                        <div class="bn-accordion-actions" @click.stop>
+                            <button
+                                type="button"
+                                class="btn btn-cfde btn-sm bn-find-diseases-btn"
+                                :disabled="loading || !searchNeedle"
+                                @click="runSearch"
                             >
-                                <span class="bn-suggestion-label">{{ s.label }}</span>
-                            </li>
-                        </ul>
+                                {{
+                                    loading
+                                        ? "Finding associated diseases…"
+                                        : "Find associated diseases"
+                                }}
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        type="button"
-                        class="btn btn-cfde bn-search-btn"
-                        :disabled="loading || !searchNeedle"
-                        @click="runSearch"
-                    >
-                        Search
-                    </button>
-                </div>
-            </div>
-
-            <div v-if="loading" class="bn-status bn-status--loading" role="status">
-                <span class="bn-spinner" aria-hidden="true" />
-                {{ loadingMessage }}
-            </div>
-            <div v-else-if="error" class="alert alert-danger py-2 mb-3">{{ error }}</div>
-
-            <div v-if="counts && !loading" class="bn-counts">
-                <span v-if="searchedFactorLabel" class="bn-disease-bubble">{{ searchedFactorLabel }}</span>
-                <span
-                    ><strong>{{ counts.biomarkerCount }}</strong> biomarkers</span
-                >
-                <span class="bn-counts-sep">·</span>
-                <span
-                    ><strong>{{ counts.diseaseCount }}</strong> associated diseases</span
-                >
-                <span v-if="truncatedFetch" class="bn-counts-sep">·</span>
-                <span v-if="truncatedFetch" class="text-muted"
-                    >list truncated at limit {{ fetchLimit }}</span
-                >
-            </div>
-
-            <div v-if="showResultTabs && !loading" class="bn-results">
-                <div class="bn-tabs" role="tablist">
-                    <button
-                        type="button"
-                        class="bn-tab"
-                        :class="{ 'bn-tab--active': activeTab === 'biomarkers' }"
-                        role="tab"
-                        :aria-selected="activeTab === 'biomarkers' ? 'true' : 'false'"
-                        @click="activeTab = 'biomarkers'"
-                    >
-                        Biomarkers
-                    </button>
-                    <button
-                        type="button"
-                        class="bn-tab"
-                        :class="{ 'bn-tab--active': activeTab === 'mechanisms' }"
-                        role="tab"
-                        :aria-selected="activeTab === 'mechanisms' ? 'true' : 'false'"
-                        @click="activeTab = 'mechanisms'"
-                    >
-                        Associated diseases
-                    </button>
-                </div>
-
-                <div v-show="activeTab === 'biomarkers'" class="bn-table-wrap" role="tabpanel">
-                    <div
-                        v-if="uniqueRoleLabels.length"
-                        class="bn-type-filters"
-                        role="group"
-                        aria-label="Filter by biomarker role"
-                    >
-                        <span class="bn-type-filters-label">Roles:</span>
-                        <button
-                            v-for="label in uniqueRoleLabels"
-                            :key="label"
-                            type="button"
-                            class="bn-type-bubble"
-                            :class="{ 'bn-type-bubble--off': !isTypeVisible(label) }"
-                            :aria-pressed="isTypeVisible(label) ? 'true' : 'false'"
-                            @click="toggleTypeFilter(label)"
+                    <div v-show="diseasesAccordionOpen" class="bn-accordion-panel">
+                        <div
+                            v-if="loading"
+                            class="bn-status bn-status--loading"
+                            role="status"
                         >
-                            <b-icon
-                                :icon="isTypeVisible(label) ? 'eye-fill' : 'eye-slash'"
-                                aria-hidden="true"
-                            />
-                            {{ label }}
-                        </button>
-                    </div>
-                    <div
-                        v-if="showBiomarkerDiseaseFilters"
-                        class="bn-type-filters"
-                        role="group"
-                        aria-label="Filter biomarkers by disease"
-                    >
-                        <span class="bn-type-filters-label">Diseases:</span>
-                        <button
-                            v-for="d in uniqueBiomarkerDiseaseFilters"
-                            :key="'bio-' + d.iri"
-                            type="button"
-                            class="bn-type-bubble"
-                            :class="{ 'bn-type-bubble--off': !isDiseaseVisible(d.iri) }"
-                            :aria-pressed="isDiseaseVisible(d.iri) ? 'true' : 'false'"
-                            @click="toggleDiseaseFilter(d.iri)"
-                        >
-                            <b-icon
-                                :icon="isDiseaseVisible(d.iri) ? 'eye-fill' : 'eye-slash'"
-                                aria-hidden="true"
-                            />
-                            {{ d.label }}
-                        </button>
-                    </div>
-                    <p v-if="!rows.length" class="bn-filter-empty">
-                        No biomarkers found for “{{ lastNeedle }}”.
-                    </p>
-                    <p v-else-if="!filteredRows.length" class="bn-filter-empty">
-                        No rows for the selected filters.
-                    </p>
-                    <table v-else class="table table-sm table-hover bn-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Biomarker</th>
-                                <th scope="col">Roles</th>
-                                <th scope="col">Diseases</th>
-                                <th scope="col">
-                                    Records
-                                    <b-icon
-                                        icon="info-circle"
-                                        class="bn-th-info"
-                                        v-b-tooltip.hover.top="'Number of distinct BiomarkerKB assertion records linking this biomarker to the input diseases via any role (diagnostic, monitoring, prognostic, or susceptibility/risk).'"
+                            <span class="bn-spinner" aria-hidden="true" />
+                            {{ loadingMessage || "Finding associated diseases…" }}
+                        </div>
+                        <template v-else-if="!searched">
+                            <p class="bn-filter-empty">
+                                Choose a mechanism in step 1, then click Find associated diseases.
+                            </p>
+                        </template>
+                        <template v-else-if="!associatedDiseases.length">
+                            <p class="bn-filter-empty">
+                                No associated MONDO diseases for this mechanism.
+                            </p>
+                        </template>
+                        <template v-else>
+                                <div
+                                    v-if="mechanismGraph.nodes.length"
+                                    class="bn-mechanism-network"
+                                >
+                                    <biomarker-network-graph
+                                        ref="mechNetwork"
+                                        :key="'mech-net-' + mechanismNetworkKey"
+                                        :graph="mechanismGraph"
+                                        :height="480"
+                                        :type-labels="mechanismLegendLabels"
+                                        :genes-fetched-disease-ids="genesFetchedDiseaseIds"
+                                        @view-shared-genes="onViewSharedGenesInNetwork"
+                                        @hide-genes="onHideGenesInNetwork"
                                     />
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            <tr v-for="(row, idx) in pageRows" :key="row.biomarker + '-' + idx">
-                                <td>
-                                    <a
-                                        v-if="row.biomarker"
-                                        :href="row.biomarker"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >{{ biomarkerDisplayLabel(row) }}</a>
-                                    <span v-else>{{ biomarkerDisplayLabel(row) }}</span>
-                                </td>
-                                <td>{{ row.roles || "—" }}</td>
-                                <td>{{ row.diseases || "—" }}</td>
-                                <td>{{ row.recordCount || "—" }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <b-pagination
-                        v-if="filteredRows.length > perPage"
-                        class="pagination-sm justify-content-center mt-2"
-                        v-model="currentPage"
-                        :total-rows="filteredRows.length"
-                        :per-page="perPage"
-                        size="sm"
-                    />
-                </div>
-
-                <div v-if="activeTab === 'mechanisms'" class="bn-table-wrap" role="tabpanel">
-                    <p v-if="!associatedDiseases.length" class="bn-filter-empty">
-                        No associated MONDO diseases for this mechanism.
-                    </p>
-                    <template v-else>
-                    <div
-                        v-if="mechanismGraph.nodes.length"
-                        class="bn-mechanism-network"
-                    >
-                        <biomarker-network-graph
-                            ref="mechNetwork"
-                            :key="'mech-net-' + mechanismNetworkKey"
-                            :graph="mechanismGraph"
-                            :height="480"
-                            :type-labels="mechanismLegendLabels"
-                            :genes-fetched-disease-ids="genesFetchedDiseaseIds"
-                            @view-shared-genes="onViewSharedGenesInNetwork"
-                            @hide-genes="onHideGenesInNetwork"
-                        />
+                                </div>
+                                <p class="bn-step-hint">
+                                    Review associated diseases, then use Find biomarkers
+                                    in step 3 for the checked ones.
+                                </p>
+                                <table class="table table-sm table-hover bn-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="bn-check-col">
+                                                <input
+                                                    type="checkbox"
+                                                    :checked="allDiseasesSelected"
+                                                    :indeterminate.prop="someDiseasesSelected && !allDiseasesSelected"
+                                                    aria-label="Select all diseases"
+                                                    @change="toggleAllDiseases($event.target.checked)"
+                                                />
+                                            </th>
+                                            <th scope="col">Disease</th>
+                                            <th scope="col">
+                                                Shared genes
+                                                <b-icon
+                                                    icon="info-circle"
+                                                    class="bn-th-info"
+                                                    v-b-tooltip.hover.top="'Number of the factor\'s top-loading genes that are also associated with this disease (via PIGEAN gene-to-trait scores).'"
+                                                />
+                                            </th>
+                                            <th scope="col">Aggregated Pigean score</th>
+                                            <th scope="col">Highest gene loading</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template v-for="row in diseasePageRows">
+                                            <tr :key="row.disease">
+                                                <td class="bn-check-col">
+                                                    <input
+                                                        type="checkbox"
+                                                        :checked="isDiseaseSelected(row.disease)"
+                                                        :aria-label="'Select ' + (row.diseaseLabel || row.disease)"
+                                                        @change="setDiseaseSelected(row.disease, $event.target.checked)"
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <a
+                                                        v-if="row.disease"
+                                                        :href="row.disease"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >{{ row.diseaseLabel || row.disease }}</a>
+                                                    <span v-else>{{ row.diseaseLabel || "—" }}</span>
+                                                </td>
+                                                <td>
+                                                    <a
+                                                        href="#"
+                                                        class="bn-shared-gene-toggle"
+                                                        @click.prevent="toggleDiseaseGenes(row)"
+                                                    >{{ row.sharedGeneCount }}</a>
+                                                </td>
+                                                <td>{{ formatScore(row.aggregatePigeanScore) }}</td>
+                                                <td>{{ formatScore(row.highestFactorGeneLoading, 4) }}</td>
+                                            </tr>
+                                            <tr
+                                                v-if="expandedDiseases[row.disease]"
+                                                :key="row.disease + '-genes'"
+                                                class="bn-subtable-row"
+                                            >
+                                                <td colspan="5">
+                                                    <div
+                                                        v-if="diseaseGenes[row.disease] === 'loading'"
+                                                        class="text-center text-muted py-2"
+                                                    >
+                                                        Loading genes…
+                                                    </div>
+                                                    <div
+                                                        v-else-if="diseaseGenes[row.disease] && diseaseGenes[row.disease].length"
+                                                        class="bn-subtable-wrap"
+                                                    >
+                                                        <table class="table table-sm table-borderless table-striped mb-0 bn-subtable">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Gene</th>
+                                                                    <th>Factor loading</th>
+                                                                    <th>PIGEAN score</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr
+                                                                    v-for="g in diseaseGenes[row.disease]"
+                                                                    :key="g.gene"
+                                                                >
+                                                                    <td>{{ g.geneLabel || g.gene }}</td>
+                                                                    <td>{{ formatScore(g.factorLoading, 4) }}</td>
+                                                                    <td>{{ formatScore(g.pigeanScore) }}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <p v-else class="text-muted mb-0 py-1">
+                                                        No gene data available.
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                                <b-pagination
+                                    v-if="associatedDiseases.length > perPage"
+                                    class="pagination-sm justify-content-center mt-2"
+                                    v-model="mechanismPage"
+                                    :total-rows="associatedDiseases.length"
+                                    :per-page="perPage"
+                                    size="sm"
+                                />
+                        </template>
                     </div>
-                    <table class="table table-sm table-hover bn-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Disease</th>
-                                <th scope="col">
-                                    Shared genes
-                                    <b-icon
-                                        icon="info-circle"
-                                        class="bn-th-info"
-                                        v-b-tooltip.hover.top="'Number of the factor\'s top-loading genes that are also associated with this disease (via PIGEAN gene-to-trait scores).'"
-                                    />
-                                </th>
-                                <th scope="col">Aggregated Pigean score</th>
-                                <th scope="col">Highest gene loading</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template v-for="row in diseasePageRows">
-                            <tr :key="row.disease">
-                                <td>
-                                    <a
-                                        v-if="row.disease"
-                                        :href="row.disease"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >{{ row.diseaseLabel || row.disease }}</a>
-                                    <span v-else>{{ row.diseaseLabel || "—" }}</span>
-                                </td>
-                                <td>
-                                    <a
-                                        href="#"
-                                        class="bn-shared-gene-toggle"
-                                        @click.prevent="toggleDiseaseGenes(row)"
-                                    >{{ row.sharedGeneCount }}</a>
-                                </td>
-                                <td>{{ formatScore(row.aggregatePigeanScore) }}</td>
-                                <td>{{ formatScore(row.highestFactorGeneLoading, 4) }}</td>
-                            </tr>
-                            <tr v-if="expandedDiseases[row.disease]" :key="row.disease + '-genes'" class="bn-subtable-row">
-                                <td colspan="4">
-                                    <div v-if="diseaseGenes[row.disease] === 'loading'" class="text-center text-muted py-2">
-                                        Loading genes…
-                                    </div>
-                                    <div v-else-if="diseaseGenes[row.disease] && diseaseGenes[row.disease].length" class="bn-subtable-wrap">
-                                        <table class="table table-sm table-borderless table-striped mb-0 bn-subtable">
-                                            <thead>
-                                                <tr>
-                                                    <th>Gene</th>
-                                                    <th>Factor loading</th>
-                                                    <th>PIGEAN score</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="g in diseaseGenes[row.disease]" :key="g.gene">
-                                                    <td>{{ g.geneLabel || g.gene }}</td>
-                                                    <td>{{ formatScore(g.factorLoading, 4) }}</td>
-                                                    <td>{{ formatScore(g.pigeanScore) }}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <p v-else class="text-muted mb-0 py-1">No gene data available.</p>
-                                </td>
-                            </tr>
+                </section>
+
+                <section
+                    class="bn-accordion"
+                    :class="{ 'bn-accordion--open': biomarkersAccordionOpen }"
+                >
+                        <div class="bn-accordion-header">
+                            <button
+                                type="button"
+                                class="bn-accordion-trigger"
+                                :aria-expanded="biomarkersAccordionOpen ? 'true' : 'false'"
+                                @click="biomarkersAccordionOpen = !biomarkersAccordionOpen"
+                            >
+                                <span class="bn-accordion-title">
+                                    <span class="bn-accordion-step">3</span>
+                                    Biomarkers
+                                    <span v-if="biomarkersFetched" class="bn-accordion-count">
+                                        {{ rows.length }}
+                                    </span>
+                                </span>
+                                <span class="bn-accordion-chevron" aria-hidden="true" />
+                            </button>
+                            <div class="bn-accordion-actions" @click.stop>
+                                <span
+                                    v-if="associatedDiseases.length"
+                                    class="bn-fetch-meta text-muted"
+                                >
+                                    {{ selectedDiseaseCount }} of
+                                    {{ associatedDiseases.length }} diseases selected
+                                </span>
+                                <button
+                                    type="button"
+                                    class="btn btn-cfde btn-sm bn-find-biomarkers-btn"
+                                    :disabled="biomarkerLoading || !selectedDiseaseCount"
+                                    @click="fetchBiomarkers"
+                                >
+                                    {{ biomarkerLoading ? "Finding biomarkers…" : "Find biomarkers" }}
+                                </button>
+                            </div>
+                        </div>
+                        <div v-show="biomarkersAccordionOpen" class="bn-accordion-panel">
+                            <div v-if="counts" class="bn-counts">
+                                <span v-if="searchedFactorLabel" class="bn-disease-bubble">{{
+                                    searchedFactorLabel
+                                }}</span>
+                                <span
+                                    ><strong>{{ counts.diseaseCount }}</strong> associated
+                                    diseases</span
+                                >
+                                <template v-if="biomarkersFetched">
+                                    <span class="bn-counts-sep">·</span>
+                                    <span
+                                        ><strong>{{ counts.biomarkerCount }}</strong>
+                                        biomarkers</span
+                                    >
+                                    <span v-if="truncatedFetch" class="bn-counts-sep">·</span>
+                                    <span v-if="truncatedFetch" class="text-muted"
+                                        >list truncated at limit {{ fetchLimit }}</span
+                                    >
+                                </template>
+                            </div>
+                            <div
+                                v-if="biomarkerLoading"
+                                class="bn-status bn-status--loading"
+                                role="status"
+                            >
+                                <span class="bn-spinner" aria-hidden="true" />
+                                {{ loadingMessage || "Finding biomarkers…" }}
+                            </div>
+                            <template v-else-if="!biomarkersFetched">
+                                <p class="bn-filter-empty">
+                                    Select diseases above, then click Find biomarkers.
+                                </p>
                             </template>
-                        </tbody>
-                    </table>
-                    <b-pagination
-                        v-if="associatedDiseases.length > perPage"
-                        class="pagination-sm justify-content-center mt-2"
-                        v-model="mechanismPage"
-                        :total-rows="associatedDiseases.length"
-                        :per-page="perPage"
-                        size="sm"
-                    />
-                    </template>
-                </div>
+                            <template v-else>
+                                <div
+                                    v-if="uniqueRoleLabels.length"
+                                    class="bn-type-filters"
+                                    role="group"
+                                    aria-label="Filter by biomarker role"
+                                >
+                                    <span class="bn-type-filters-label">Roles:</span>
+                                    <button
+                                        v-for="label in uniqueRoleLabels"
+                                        :key="label"
+                                        type="button"
+                                        class="bn-type-bubble"
+                                        :class="{ 'bn-type-bubble--off': !isTypeVisible(label) }"
+                                        :aria-pressed="isTypeVisible(label) ? 'true' : 'false'"
+                                        @click="toggleTypeFilter(label)"
+                                    >
+                                        <b-icon
+                                            :icon="isTypeVisible(label) ? 'eye-fill' : 'eye-slash'"
+                                            aria-hidden="true"
+                                        />
+                                        {{ label }}
+                                    </button>
+                                </div>
+                                <div
+                                    v-if="showBiomarkerDiseaseFilters"
+                                    class="bn-type-filters"
+                                    role="group"
+                                    aria-label="Filter biomarkers by disease"
+                                >
+                                    <span class="bn-type-filters-label">Diseases:</span>
+                                    <button
+                                        v-for="d in uniqueBiomarkerDiseaseFilters"
+                                        :key="'bio-' + d.iri"
+                                        type="button"
+                                        class="bn-type-bubble"
+                                        :class="{ 'bn-type-bubble--off': !isDiseaseVisible(d.iri) }"
+                                        :aria-pressed="isDiseaseVisible(d.iri) ? 'true' : 'false'"
+                                        @click="toggleDiseaseFilter(d.iri)"
+                                    >
+                                        <b-icon
+                                            :icon="isDiseaseVisible(d.iri) ? 'eye-fill' : 'eye-slash'"
+                                            aria-hidden="true"
+                                        />
+                                        {{ d.label }}
+                                    </button>
+                                </div>
+                                <p v-if="!rows.length" class="bn-filter-empty">
+                                    No biomarkers found for the selected diseases.
+                                </p>
+                                <p v-else-if="!filteredRows.length" class="bn-filter-empty">
+                                    No rows for the selected filters.
+                                </p>
+                                <table v-else class="table table-sm table-hover bn-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Biomarker</th>
+                                            <th scope="col">Roles</th>
+                                            <th scope="col">Diseases</th>
+                                            <th scope="col">
+                                                Records
+                                                <b-icon
+                                                    icon="info-circle"
+                                                    class="bn-th-info"
+                                                    v-b-tooltip.hover.top="'Number of distinct BiomarkerKB assertion records linking this biomarker to the input diseases via any role (diagnostic, monitoring, prognostic, or susceptibility/risk).'"
+                                                />
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="(row, idx) in pageRows"
+                                            :key="row.biomarker + '-' + idx"
+                                        >
+                                            <td>
+                                                <a
+                                                    v-if="row.biomarker"
+                                                    :href="row.biomarker"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >{{ biomarkerDisplayLabel(row) }}</a>
+                                                <span v-else>{{ biomarkerDisplayLabel(row) }}</span>
+                                            </td>
+                                            <td>{{ row.roles || "—" }}</td>
+                                            <td>{{ row.diseases || "—" }}</td>
+                                            <td>{{ row.recordCount || "—" }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <b-pagination
+                                    v-if="filteredRows.length > perPage"
+                                    class="pagination-sm justify-content-center mt-2"
+                                    v-model="currentPage"
+                                    :total-rows="filteredRows.length"
+                                    :per-page="perPage"
+                                    size="sm"
+                                />
+                            </template>
+                        </div>
+                    </section>
             </div>
         </div>
     </div>
@@ -402,20 +544,26 @@ export default Vue.component("biomarker-network", {
             suggestionAbort: null,
             loading: false,
             loadingMessage: "",
+            biomarkerLoading: false,
             error: "",
             searched: false,
+            biomarkersFetched: false,
             counts: null,
             rows: [],
             associatedDiseases: [],
+            selectedDiseaseIds: {},
             fetchLimit: 0,
             truncatedFetch: false,
             currentPage: 1,
             perPage: PER_PAGE,
             hiddenTypes: {},
             hiddenDiseases: {},
-            activeTab: "biomarkers",
+            diseasesAccordionOpen: false,
+            mechanismAccordionOpen: true,
+            biomarkersAccordionOpen: false,
             mechanismPage: 1,
             abortController: null,
+            biomarkerAbortController: null,
             expandedDiseases: {},
             diseaseGenes: {},
             networkExpandedDiseases: {},
@@ -477,18 +625,21 @@ export default Vue.component("biomarker-network", {
             return (this.associatedDiseases || []).slice(start, start + this.perPage);
         },
         /**
-         * The complete graph, derived from the disease list plus the gene
-         * registry. Because the whole node/edge set is recomputed from state,
-         * each gene symbol yields exactly one node carrying its own metrics.
+         * Graph for step 2: only checked diseases (plus gene layer linked to them).
+         * Unchecking a disease removes its node; checking adds it back.
          */
         mechanismGraph() {
             const factorLabel = this.searchedFactorLabel || this.lastNeedle || "Mechanism";
             const factorId = this.selectedFactorIri || "factor:root";
             const nodes = [{ id: factorId, label: factorLabel, type: "Factor" }];
             const edges = [];
+            // Touch selection map so Vue tracks checkbox changes.
+            const selection = this.selectedDiseaseIds || {};
 
             (this.associatedDiseases || []).forEach((d) => {
                 const diseaseId = d.disease || `disease:${d.diseaseLabel}`;
+                if (!diseaseId || selection[diseaseId] === false) return;
+
                 nodes.push({
                     id: diseaseId,
                     label: d.diseaseLabel || d.disease,
@@ -509,17 +660,22 @@ export default Vue.component("biomarker-network", {
                 }
             });
 
-            const diseaseIds = new Set(nodes.map((n) => String(n.id)));
+            const diseaseIds = new Set(
+                nodes.filter((n) => n.type === "Phenotype").map((n) => String(n.id))
+            );
             Object.keys(this.geneRegistry).forEach((symKey) => {
                 const entry = this.geneRegistry[symKey];
                 if (!entry || !entry.diseases.length) return;
+                const linked = entry.diseases.filter((d) => diseaseIds.has(String(d.disease)));
+                if (!linked.length) return;
+
                 const symbol = entry.symbol || symKey;
                 const geneId = canonicalGeneNodeId(symbol);
                 if (!geneId) return;
 
                 let factorLoading = null;
                 let topPigeanScore = null;
-                entry.diseases.forEach((d) => {
+                linked.forEach((d) => {
                     factorLoading = this.maxAbsMetric(factorLoading, d.factorLoading);
                     topPigeanScore = this.maxAbsMetric(topPigeanScore, d.pigeanScore);
                 });
@@ -532,7 +688,7 @@ export default Vue.component("biomarker-network", {
                         geneSymbol: symbol,
                         factorLoading,
                         pigeanScore: topPigeanScore,
-                        diseaseCount: entry.diseases.length,
+                        diseaseCount: linked.length,
                     },
                 });
                 edges.push({
@@ -540,8 +696,7 @@ export default Vue.component("biomarker-network", {
                     target: geneId,
                     metadata: { edgeStrength: factorLoading },
                 });
-                entry.diseases.forEach((d) => {
-                    if (!diseaseIds.has(String(d.disease))) return;
+                linked.forEach((d) => {
                     edges.push({
                         source: geneId,
                         target: d.disease,
@@ -571,8 +726,17 @@ export default Vue.component("biomarker-network", {
             const start = (this.currentPage - 1) * this.perPage;
             return this.filteredRows.slice(start, start + this.perPage);
         },
-        showResultTabs() {
-            return this.searched && (this.rows.length > 0 || this.associatedDiseases.length > 0);
+        selectedDiseaseCount() {
+            return (this.associatedDiseases || []).filter((d) =>
+                this.isDiseaseSelected(d.disease)
+            ).length;
+        },
+        allDiseasesSelected() {
+            const list = this.associatedDiseases || [];
+            return list.length > 0 && list.every((d) => this.isDiseaseSelected(d.disease));
+        },
+        someDiseasesSelected() {
+            return (this.associatedDiseases || []).some((d) => this.isDiseaseSelected(d.disease));
         },
         showSearchClear() {
             return Boolean((this.userQuery || "").trim());
@@ -596,6 +760,10 @@ export default Vue.component("biomarker-network", {
             if (this.abortController) {
                 this.abortController.abort();
                 this.abortController = null;
+            }
+            if (this.biomarkerAbortController) {
+                this.biomarkerAbortController.abort();
+                this.biomarkerAbortController = null;
             }
         },
         cancelSuggestionLookup() {
@@ -702,11 +870,14 @@ export default Vue.component("biomarker-network", {
             this.factorSuggestions = [];
             this.loading = false;
             this.loadingMessage = "";
+            this.biomarkerLoading = false;
             this.error = "";
             this.searched = false;
+            this.biomarkersFetched = false;
             this.counts = null;
             this.rows = [];
             this.associatedDiseases = [];
+            this.selectedDiseaseIds = {};
             this.fetchLimit = 0;
             this.truncatedFetch = false;
             this.currentPage = 1;
@@ -717,7 +888,9 @@ export default Vue.component("biomarker-network", {
             this.diseaseGenes = {};
             this.networkExpandedDiseases = {};
             this.geneRegistry = {};
-            this.activeTab = "biomarkers";
+            this.mechanismAccordionOpen = true;
+            this.diseasesAccordionOpen = false;
+            this.biomarkersAccordionOpen = false;
             keyParams.set({ disease: "", factor: "" });
             this.$nextTick(() => {
                 if (this.$refs.diseaseInput) this.$refs.diseaseInput.focus();
@@ -785,6 +958,26 @@ export default Vue.component("biomarker-network", {
                 return;
             }
             this.runSearch();
+        },
+        isDiseaseSelected(diseaseIri) {
+            const key = String(diseaseIri || "");
+            if (!key) return false;
+            return this.selectedDiseaseIds[key] !== false;
+        },
+        setDiseaseSelected(diseaseIri, checked) {
+            const key = String(diseaseIri || "");
+            if (!key) return;
+            this.$set(this.selectedDiseaseIds, key, !!checked);
+        },
+        toggleAllDiseases(checked) {
+            const next = {};
+            (this.associatedDiseases || []).forEach((d) => {
+                if (d && d.disease) next[d.disease] = !!checked;
+            });
+            this.selectedDiseaseIds = next;
+        },
+        selectAllAssociatedDiseases() {
+            this.toggleAllDiseases(true);
         },
         isTypeVisible(label) {
             return !this.hiddenTypes[label];
@@ -1045,9 +1238,11 @@ export default Vue.component("biomarker-network", {
             if (!factor || !factor.iri) {
                 this.error = "Pick a mechanism from the list.";
                 this.searched = false;
+                this.biomarkersFetched = false;
                 this.counts = null;
                 this.rows = [];
                 this.associatedDiseases = [];
+                this.selectedDiseaseIds = {};
                 this.searchedFactorLabel = "";
                 this.suggestionsOpen = true;
                 this.loading = false;
@@ -1066,12 +1261,15 @@ export default Vue.component("biomarker-network", {
 
             this.closeSuggestions();
             this.loading = true;
+            this.biomarkerLoading = false;
             this.error = "";
             this.searched = true;
+            this.biomarkersFetched = false;
             this.lastNeedle = needle;
             this.counts = null;
             this.rows = [];
             this.associatedDiseases = [];
+            this.selectedDiseaseIds = {};
             this.truncatedFetch = false;
             this.fetchLimit = BIOMARKER_LIMIT;
             this.currentPage = 1;
@@ -1082,7 +1280,9 @@ export default Vue.component("biomarker-network", {
             this.diseaseGenes = {};
             this.networkExpandedDiseases = {};
             this.geneRegistry = {};
-            this.activeTab = "biomarkers";
+            this.mechanismAccordionOpen = false;
+            this.diseasesAccordionOpen = true;
+            this.biomarkersAccordionOpen = false;
 
             try {
                 this.loadingMessage = "Finding associated diseases…";
@@ -1091,23 +1291,9 @@ export default Vue.component("biomarker-network", {
                 });
                 if (ac.signal.aborted) return;
                 this.associatedDiseases = diseases;
-                const diseaseIris = diseases.map((d) => d.disease).filter(Boolean);
-
-                if (!diseaseIris.length) {
-                    this.counts = { biomarkerCount: 0, diseaseCount: 0 };
-                    return;
-                }
-
-                this.loadingMessage = "Fetching biomarkers…";
-                const rows = await listBiomarkersForMondoDiseases(diseaseIris, {
-                    limit: BIOMARKER_LIMIT,
-                    signal: ac.signal,
-                });
-                if (ac.signal.aborted) return;
-                this.truncatedFetch = rows.length >= BIOMARKER_LIMIT;
-                this.rows = rows;
+                this.selectAllAssociatedDiseases();
                 this.counts = {
-                    biomarkerCount: rows.length,
+                    biomarkerCount: 0,
                     diseaseCount: diseases.length,
                 };
             } catch (e) {
@@ -1116,9 +1302,68 @@ export default Vue.component("biomarker-network", {
                 this.counts = null;
                 this.rows = [];
                 this.associatedDiseases = [];
+                this.selectedDiseaseIds = {};
             } finally {
                 if (this.abortController === ac) this.abortController = null;
                 this.loading = false;
+                this.loadingMessage = "";
+            }
+        },
+        async fetchBiomarkers() {
+            if (this.biomarkerLoading || this.loading) return;
+            const diseaseIris = (this.associatedDiseases || [])
+                .map((d) => d.disease)
+                .filter((iri) => iri && this.isDiseaseSelected(iri));
+            if (!diseaseIris.length) {
+                this.error = "Select at least one associated disease.";
+                return;
+            }
+
+            if (this.biomarkerAbortController) {
+                this.biomarkerAbortController.abort();
+            }
+            const ac = new AbortController();
+            this.biomarkerAbortController = ac;
+
+            this.error = "";
+            this.biomarkerLoading = true;
+            this.loadingMessage = "Finding biomarkers…";
+            this.diseasesAccordionOpen = false;
+            this.biomarkersAccordionOpen = true;
+            this.rows = [];
+            this.biomarkersFetched = false;
+            this.truncatedFetch = false;
+            this.currentPage = 1;
+            this.hiddenTypes = {};
+            this.hiddenDiseases = {};
+
+            try {
+                const rows = await listBiomarkersForMondoDiseases(diseaseIris, {
+                    limit: BIOMARKER_LIMIT,
+                    signal: ac.signal,
+                });
+                if (ac.signal.aborted) return;
+                this.truncatedFetch = rows.length >= BIOMARKER_LIMIT;
+                this.rows = rows;
+                this.biomarkersFetched = true;
+                this.counts = {
+                    biomarkerCount: rows.length,
+                    diseaseCount: (this.associatedDiseases || []).length,
+                };
+            } catch (e) {
+                if (e && e.name === "AbortError") return;
+                this.error = (e && e.message) || "Could not fetch biomarkers.";
+                this.rows = [];
+                this.biomarkersFetched = false;
+                if (this.counts) {
+                    this.counts = {
+                        ...this.counts,
+                        biomarkerCount: 0,
+                    };
+                }
+            } finally {
+                if (this.biomarkerAbortController === ac) this.biomarkerAbortController = null;
+                this.biomarkerLoading = false;
                 this.loadingMessage = "";
             }
         },
@@ -1140,7 +1385,7 @@ export default Vue.component("biomarker-network", {
     background: #fff;
     border: 1px solid var(--cfde-border);
     border-radius: 6px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .rkw-header {
@@ -1287,8 +1532,8 @@ export default Vue.component("biomarker-network", {
     height: 14px;
 }
 
-.bn-search-btn {
-    min-width: 110px;
+.bn-find-diseases-btn,
+.bn-find-biomarkers-btn {
     white-space: nowrap;
 }
 
@@ -1371,7 +1616,7 @@ export default Vue.component("biomarker-network", {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    margin: 12px 0 14px;
+    margin: 0 0 14px;
     font-size: 0.95rem;
 }
 
@@ -1392,40 +1637,140 @@ export default Vue.component("biomarker-network", {
     line-height: 1.3;
 }
 
-.bn-results {
-    margin-top: 4px;
+.bn-accordions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.bn-tabs {
+.bn-accordion {
+    border: 1px solid var(--cfde-border);
+    border-radius: 6px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.bn-accordion--mechanism.bn-accordion--open {
+    overflow: visible;
+    position: relative;
+    z-index: 5;
+}
+
+.bn-accordion--mechanism.bn-accordion--suggesting {
+    z-index: 30;
+}
+
+.bn-accordion-header {
     display: flex;
-    gap: 0;
-    margin: 0 0 14px;
+    align-items: center;
+    gap: 10px;
+    background: #faf9f7;
+}
+
+.bn-accordion--open .bn-accordion-header {
     border-bottom: 1px solid var(--cfde-border);
 }
 
-.bn-tab {
-    background: none;
+.bn-accordion-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    min-width: 0;
+    padding: 11px 14px;
     border: 0;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    padding: 8px 14px;
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: var(--cfde-muted);
+    background: transparent;
+    text-align: left;
     cursor: pointer;
 }
 
-.bn-tab--active {
-    color: var(--cfde-orange);
-    border-bottom-color: var(--cfde-orange);
+.bn-accordion-trigger:hover {
+    background: #f3f1ec;
 }
 
-.bn-table-wrap {
-    margin-top: 4px;
+.bn-accordion--open .bn-accordion-trigger {
+    border-bottom: 0;
+}
+
+.bn-accordion-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 8px 14px 8px 0;
+}
+
+.bn-accordion-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cfde-blue);
+}
+
+.bn-accordion-step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--cfde-orange);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.bn-accordion-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #e8eef5;
+    color: var(--cfde-blue);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.bn-accordion-chevron {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #888;
+    border-bottom: 2px solid #888;
+    transform: rotate(45deg);
+    transition: transform 0.15s ease;
+}
+
+.bn-accordion--open .bn-accordion-chevron {
+    transform: rotate(-135deg);
+}
+
+.bn-accordion-panel {
+    padding: 14px 14px 16px;
+}
+
+.bn-step-hint {
+    margin: 0 0 12px;
+    font-size: 0.86rem;
+    color: var(--cfde-muted);
+}
+
+.bn-check-col {
+    width: 36px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.bn-fetch-meta {
+    font-size: 0.8rem;
+    white-space: nowrap;
 }
 
 .bn-mechanism-network {
-    margin: 35px 0 16px;
+    margin: 8px 0 16px;
 }
 
 .bn-type-filters {

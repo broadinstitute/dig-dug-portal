@@ -7,7 +7,7 @@ import userUtils from "@/utils/userUtils";
  */
 
 export const BIOMARKER_SESSION_KIND = "biomarker-network-session";
-export const BIOMARKER_SESSION_SCHEMA_VERSION = 1;
+export const BIOMARKER_SESSION_SCHEMA_VERSION = 2;
 
 function cloneJson(value, fallback) {
     try {
@@ -70,16 +70,20 @@ export function buildBiomarkerSessionExport(vm) {
                     ? Number(vm.selectedFactorId)
                     : null,
             searched: !!(vm && vm.searched),
+            biomarkersFetched: !!(vm && vm.biomarkersFetched),
             counts: cloneJson((vm && vm.counts) || null, null),
             rows: cloneJson((vm && vm.rows) || [], []),
             associatedDiseases: cloneJson((vm && vm.associatedDiseases) || [], []),
+            selectedDiseaseIds: cloneJson((vm && vm.selectedDiseaseIds) || {}, {}),
             fetchLimit: Number((vm && vm.fetchLimit) || 0),
             truncatedFetch: !!(vm && vm.truncatedFetch),
             currentPage: Number((vm && vm.currentPage) || 1),
             mechanismPage: Number((vm && vm.mechanismPage) || 1),
             hiddenTypes: cloneJson((vm && vm.hiddenTypes) || {}, {}),
             hiddenDiseases: cloneJson((vm && vm.hiddenDiseases) || {}, {}),
-            activeTab: String((vm && vm.activeTab) || "biomarkers"),
+            diseasesAccordionOpen: vm && vm.diseasesAccordionOpen !== false,
+            mechanismAccordionOpen: vm && vm.mechanismAccordionOpen !== false,
+            biomarkersAccordionOpen: !!(vm && vm.biomarkersAccordionOpen),
             expandedDiseases: cloneJson((vm && vm.expandedDiseases) || {}, {}),
             diseaseGenes: serializeDiseaseGenes(vm && vm.diseaseGenes),
             networkExpandedDiseases: cloneJson((vm && vm.networkExpandedDiseases) || {}, {}),
@@ -223,21 +227,53 @@ export function applyBiomarkerSessionImport(vm, payload, { setKeyParams } = {}) 
     assign(vm, "selectedFactorIri", factorIri);
     assign(vm, "selectedFactorId", factorId);
     assign(vm, "searched", session.searched !== false);
+    assign(
+        vm,
+        "biomarkersFetched",
+        session.biomarkersFetched != null
+            ? !!session.biomarkersFetched
+            : Array.isArray(session.rows) && session.rows.length > 0
+    );
     assign(vm, "counts", cloneJson(session.counts, null));
     assign(vm, "rows", cloneJson(session.rows, []));
     assign(vm, "associatedDiseases", cloneJson(session.associatedDiseases, []));
+    const selectedDiseaseIds = cloneJson(session.selectedDiseaseIds, {});
+    if (
+        (!selectedDiseaseIds || !Object.keys(selectedDiseaseIds).length) &&
+        Array.isArray(session.associatedDiseases)
+    ) {
+        session.associatedDiseases.forEach((d) => {
+            if (d && d.disease) selectedDiseaseIds[d.disease] = true;
+        });
+    }
+    assign(vm, "selectedDiseaseIds", selectedDiseaseIds);
     assign(vm, "fetchLimit", Number(session.fetchLimit) || 0);
     assign(vm, "truncatedFetch", !!session.truncatedFetch);
     assign(vm, "currentPage", Math.max(1, Number(session.currentPage) || 1));
     assign(vm, "mechanismPage", Math.max(1, Number(session.mechanismPage) || 1));
     assign(vm, "hiddenTypes", cloneJson(session.hiddenTypes, {}));
     assign(vm, "hiddenDiseases", cloneJson(session.hiddenDiseases, {}));
-    assign(vm, "activeTab", String(session.activeTab || "biomarkers"));
+    assign(vm, "diseasesAccordionOpen", session.diseasesAccordionOpen !== false);
+    assign(
+        vm,
+        "mechanismAccordionOpen",
+        session.mechanismAccordionOpen != null
+            ? !!session.mechanismAccordionOpen
+            : !session.searched
+    );
+    assign(
+        vm,
+        "biomarkersAccordionOpen",
+        session.biomarkersAccordionOpen != null
+            ? !!session.biomarkersAccordionOpen
+            : session.activeTab === "biomarkers"
+    );
     assign(vm, "expandedDiseases", cloneJson(session.expandedDiseases, {}));
     assign(vm, "diseaseGenes", serializeDiseaseGenes(session.diseaseGenes));
     assign(vm, "networkExpandedDiseases", cloneJson(session.networkExpandedDiseases, {}));
     assign(vm, "geneRegistry", cloneJson(session.geneRegistry, {}));
     assign(vm, "loading", false);
+    assign(vm, "biomarkerLoading", false);
     assign(vm, "loadingMessage", "");
     assign(vm, "error", "");
 
