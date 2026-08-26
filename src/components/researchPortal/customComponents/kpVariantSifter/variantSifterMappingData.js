@@ -23,9 +23,20 @@ import {
     ASSOCIATIONS_TABLE_FORMAT,
     resolveAssociationsTopRows,
 } from "./variantSifterAssociationsTableFormat.js";
-import { resolveSelectedTissuesByAnnotation } from "./variantSifterGlobalEnrichmentData.js";
+import {
+    applyCredibleSetsPanelFilters,
+    createCredibleSetsPanelFilters,
+} from "./variantSifterCredibleSetsFilters.js";
+import { variantOverlapsRegion } from "./variantSifterCredibleSetsRegion.js";
+import {
+    buildGeTissueStatsForAnnotation,
+    isGeTissueShownOnTrack,
+    normalizeGeTrackPValueMax,
+    resolveSelectedTissuesByAnnotation,
+} from "./variantSifterGlobalEnrichmentData.js";
 import {
     normalizeV2gSelectedLinks,
+    v2gBiosampleFilterKey,
     v2gLinkSelectionKey,
 } from "./variantSifterV2gData.js";
 
@@ -834,9 +845,22 @@ function collectRegionsFromLinkRows(rows = [], defaults = {}) {
         .filter(Boolean);
 }
 
-function filterLinkRows(rows = [], deselectedMethods = [], deselectedGenes = []) {
+function filterLinkRows(
+    rows = [],
+    deselectedMethods = [],
+    deselectedGenes = [],
+    {
+        tissue = null,
+        deselectedTissues = [],
+        deselectedBiosamples = [],
+    } = {}
+) {
+    if (tissue && new Set(deselectedTissues || []).has(tissue)) {
+        return [];
+    }
     const removedMethods = new Set(deselectedMethods || []);
     const removedGenes = new Set(deselectedGenes || []);
+    const removedBiosamples = new Set(deselectedBiosamples || []);
     return (Array.isArray(rows) ? rows : []).filter((row) => {
         if (!row || typeof row !== "object") {
             return false;
@@ -849,6 +873,17 @@ function filterLinkRows(rows = [], deselectedMethods = [], deselectedGenes = [])
         if (method && removedMethods.has(method)) {
             return false;
         }
+        const biosample =
+            row?.biosample == null || String(row.biosample).trim() === ""
+                ? null
+                : String(row.biosample);
+        if (
+            tissue &&
+            biosample &&
+            removedBiosamples.has(v2gBiosampleFilterKey(tissue, biosample))
+        ) {
+            return false;
+        }
         return Number.isFinite(Number(row.start)) && Number.isFinite(Number(row.end));
     });
 }
@@ -859,6 +894,8 @@ function appendLinkTrackCategories(
         tissueData = {},
         deselectedMethods = [],
         deselectedGenes = [],
+        deselectedTissues = [],
+        deselectedBiosamples = [],
         selectedLinks = null,
         idPrefix,
         group,
@@ -881,7 +918,12 @@ function appendLinkTrackCategories(
             const rows = filterLinkRows(
                 tissueData[tissue],
                 deselectedMethods,
-                deselectedGenes
+                deselectedGenes,
+                {
+                    tissue,
+                    deselectedTissues,
+                    deselectedBiosamples,
+                }
             );
             const byKey = new Map();
             rows.forEach((row) => {
@@ -956,8 +998,8 @@ function appendLinkTrackCategories(
 }
 
 /**
- * Build available mapping categories from layers 1 + 2 only
- * (loaded workspace data + current track/feature selections).
+ * Build mappable chips from the drawers' *current* filtered views
+ * (loaded workspace data + track/feature selections + drawer filters).
  * Never reads the workspace mapping filter view (layer 3).
  */
 export function collectMappingCategories({
@@ -965,20 +1007,41 @@ export function collectMappingCategories({
     globalEnrichmentState = null,
     v2gState = null,
     s2gState = null,
+    region = null,
+    phenotype = "",
+    ancestry = "Mixed",
 } = {}) {
     const categories = [];
+    const panelFilters =
+        credibleSetsState?.panelFilters || createCredibleSetsPanelFilters();
 
     (credibleSetsState?.selectedIds || []).forEach((selectionKey) => {
         const setState = credibleSetsState.variantsBySet?.[selectionKey];
         const meta = setState?.meta || {};
         const formatted = setState?.formattedVariants || [];
+        const raw = setState?.rawVariants || [];
         if (!formatted.length) {
             return;
         }
+        const panelRows = formatted.map((csRow, index) => ({
+            ...csRow,
+            selectionKey,
+            credibleSetId: meta.credibleSetId || selectionKey,
+            __regionSource: raw[index] || csRow,
+        }));
+        const regionScoped = region
+            ? panelRows.filter((row) =>
+                  variantOverlapsRegion(row.__regionSource || row, region)
+              )
+            : panelRows;
+        const filteredRows = applyCredibleSetsPanelFilters(
+            regionScoped,
+            panelFilters
+        );
         const variantIds = new Set();
         const ppaByVariant = {};
         const pValueByVariant = {};
-        formatted.forEach((csRow) => {
+        filteredRows.forEach((csRow) => {
             const keys = [];
             if (csRow?.[CS_KEY_FIELD]) {
                 keys.push(String(csRow[CS_KEY_FIELD]));
@@ -1020,9 +1083,42 @@ export function collectMappingCategories({
         selectedTissues: globalEnrichmentState?.selectedTissues,
         activeAnnotation: globalEnrichmentState?.activeAnnotation,
     });
+    const phenotypeName = String(phenotype || "").trim();
+    const ancestryCode = ancestry || "Mixed";
+    const pValueMax = normalizeGeTrackPValueMax(
+        globalEnrichmentState?.geTrackPValueMax
+    );
+    const llmRelevance = globalEnrichmentState?.llmRelevance || null;
+    const enabledMutedAnnotationTissues =
+        globalEnrichmentState?.enabledMutedAnnotationTissues || {};
+    const disabledAnnotationTissues =
+        globalEnrichmentState?.disabledAnnotationTissues || {};
+    const geRows = globalEnrichmentState?.geRows || [];
+
     Object.keys(selectedTissuesByAnnotation).forEach((annotation) => {
         const tissues = selectedTissuesByAnnotation[annotation] || [];
+        const geTissueStats = phenotypeName
+            ? buildGeTissueStatsForAnnotation({
+                  geRows,
+                  annotation,
+                  phenotype: phenotypeName,
+                  ancestry: ancestryCode,
+              })
+            : {};
         tissues.forEach((tissue) => {
+            if (
+                phenotypeName &&
+                !isGeTissueShownOnTrack(tissue, {
+                    annotation,
+                    geTissueStats,
+                    llmRelevance,
+                    enabledMutedAnnotationTissues,
+                    disabledAnnotationTissues,
+                    pValueMax,
+                })
+            ) {
+                return;
+            }
             const regions = collectRegionsFromAnnoAnnotationTissue(
                 annoData,
                 annotation,
@@ -1056,6 +1152,26 @@ export function collectMappingCategories({
             const biosample = selectionKey.slice(separator + 3);
             if (!tissue || !biosample) {
                 return;
+            }
+            if (phenotypeName) {
+                const geTissueStats = buildGeTissueStatsForAnnotation({
+                    geRows,
+                    annotation: activeAnnotation,
+                    phenotype: phenotypeName,
+                    ancestry: ancestryCode,
+                });
+                if (
+                    !isGeTissueShownOnTrack(tissue, {
+                        annotation: activeAnnotation,
+                        geTissueStats,
+                        llmRelevance,
+                        enabledMutedAnnotationTissues,
+                        disabledAnnotationTissues,
+                        pValueMax,
+                    })
+                ) {
+                    return;
+                }
             }
             const storedRows =
                 globalEnrichmentState?.biosampleRegionsByAnnotation?.[
@@ -1137,6 +1253,8 @@ export function collectMappingCategories({
         tissueData: v2gState?.tissueData,
         deselectedMethods: v2gState?.deselectedMethods,
         deselectedGenes: v2gState?.deselectedGenes,
+        deselectedTissues: v2gState?.deselectedTissues,
+        deselectedBiosamples: v2gState?.deselectedBiosamples,
         selectedLinks: v2gState?.selectedLinks,
         idPrefix: "v2g",
         group: "Variant-to-gene",
@@ -1148,6 +1266,8 @@ export function collectMappingCategories({
         tissueData: s2gState?.tissueData,
         deselectedMethods: s2gState?.deselectedMethods,
         deselectedGenes: s2gState?.deselectedGenes,
+        deselectedTissues: s2gState?.deselectedTissues,
+        deselectedBiosamples: s2gState?.deselectedBiosamples,
         selectedLinks: s2gState?.selectedLinks,
         idPrefix: "s2g",
         group: "SNP 2 gene",

@@ -108,7 +108,7 @@ export const ASSOCIATIONS_TABLE_FORMAT = {
 
 /**
  * Resolve associations table columns for the current search context.
- * Project is shown only when a non-default project is active; Phenotype when
+ * Project is shown only for GWAS-CE (KP + CE overlay); Phenotype when
  * more than one phenotype series is on the canvas.
  */
 export function resolveAssociationsTopRows({

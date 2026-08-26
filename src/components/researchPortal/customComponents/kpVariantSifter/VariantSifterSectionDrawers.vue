@@ -69,10 +69,6 @@
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                         @set-reference-variant="$emit('set-reference-variant', $event)"
                         @update:mappingState="$emit('update:mappingState', $event)"
-                        @update:workspaceFilterActive="
-                            $emit('update:workspaceFilterActive', $event)
-                        "
-                        @remove-mapping-category="$emit('remove-mapping-category', $event)"
                     />
                     <VariantSifterCredibleSetsDrawer
                         v-else-if="openSection.id === 'credible-sets'"
@@ -84,6 +80,7 @@
                         @add-set="$emit('add-credible-set', $event)"
                         @remove-set="$emit('remove-credible-set', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                        @update:panelFilters="$emit('update:credibleSetsPanelFilters', $event)"
                     />
                     <VariantSifterGenesDrawer
                         v-else-if="openSection.id === 'genes'"

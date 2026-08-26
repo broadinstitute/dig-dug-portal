@@ -87,7 +87,7 @@ kpVariantSifter.vue
 │   └── VariantSifterAiAssistantPanel
 ├── VariantSifterSectionDrawers
 │   ├── Associations / CredibleSets / Genes / GE / V2G / S2G drawers
-│   └── (Associations: filters, LD plot, ancestry bubbles, MappingBar)
+│   └── (Associations: filters, LD plot, ancestry bubbles)
 ├── VariantSifterRegionLoadBubble
 ├── VariantSifterExportSessionModal
 └── VariantSifterSettingsPanel
@@ -121,7 +121,7 @@ Props in: `sectionConfigs`, `phenotypesInUse`, `utilsBox` (portal BioIndex host 
 
 | Action | Module | Notes |
 |--------|--------|-------|
-| Export / import session | `variantSifterSession.js` | `VKS_SESSION_VERSION = 10`, `VKS_SESSION_APP = "kp-variant-sifter"` |
+| Export / import session | `variantSifterSession.js` | `VKS_SESSION_VERSION = 11`, `VKS_SESSION_APP = "kp-variant-sifter"` (multi-phenotype associations + companion layers) |
 | Recent searches | `variantSifterRecentSearches.js` | localStorage, limit 5 |
 | HTML report | `variantSifterHtmlReport.js` | Read-only snapshot |
 

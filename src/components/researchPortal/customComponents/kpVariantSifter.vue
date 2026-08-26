@@ -179,6 +179,7 @@
                     @toggle-association-ancestry="onToggleAssociationAncestry"
                     @add-credible-set="onAddCredibleSet"
                     @remove-credible-set="onRemoveCredibleSet"
+                    @update:credibleSetsPanelFilters="onCredibleSetsPanelFiltersUpdate"
                     @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
                     @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
                     @update:geEnabledMutedAnnotationTissues="
@@ -274,7 +275,7 @@ import {
     fetchGlobalAssociations,
 } from "./kpVariantSifter/variantSifterAssociationsApi.js";
 import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
-import { createFiltersIndex } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
+import { createFiltersIndex, applyAssociationsFilters } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
 import { enrichAssociationRowsWithLdScores, enrichAssociationRowsWithLdScoresForRef } from "./kpVariantSifter/variantSifterLdServer.js";
 import {
     emptyPlotMarkersState,
@@ -450,6 +451,10 @@ import {
 import { buildCredibleSetColorMap } from "./kpVariantSifter/variantSifterCredibleSetsColors.js";
 import { pruneCredibleSetsForRegion } from "./kpVariantSifter/variantSifterCredibleSetsRegion.js";
 import {
+    cloneCredibleSetsPanelFilters,
+    createCredibleSetsPanelFilters,
+} from "./kpVariantSifter/variantSifterCredibleSetsFilters.js";
+import {
     normalizeSelectedGeneTypes,
     resolveSelectedGeneTypesForData,
     VKS_DEFAULT_GENE_TYPES,
@@ -521,6 +526,7 @@ function emptyCredibleSetsState() {
         variantsBySet: {},
         variantsLoading: false,
         variantsError: null,
+        panelFilters: createCredibleSetsPanelFilters(),
     };
 }
 
@@ -670,6 +676,15 @@ export default Vue.component("kp-variant-sifter", {
             );
             const geneCount = this.genesState?.data?.length || 0;
             const parts = [`${rows.toLocaleString()} association rows`];
+            const extraPhenotypes =
+                (this.associationsState?.selectedPhenotypes || []).length;
+            if (extraPhenotypes > 0) {
+                parts.push(
+                    extraPhenotypes === 1
+                        ? "1 additional phenotype"
+                        : `${extraPhenotypes} additional phenotypes`
+                );
+            }
             if (geneCount > 0) {
                 parts.push(`${geneCount.toLocaleString()} genes`);
             }
@@ -2044,7 +2059,10 @@ export default Vue.component("kp-variant-sifter", {
                     searchSession: this.searchSession,
                     projectId: this.projectId,
                     viewRegion: this.viewRegion || this.searchSession.region,
-                    associationRows: this.associationsState?.rows || [],
+                    associationRows: applyAssociationsFilters(
+                        this.associationsState?.rows || [],
+                        this.associationsState?.filtersIndex
+                    ),
                     mappingState: this.mappingState,
                     credibleSetsState: this.credibleSetsState,
                     globalEnrichmentState: this.globalEnrichmentState,
@@ -2233,27 +2251,71 @@ export default Vue.component("kp-variant-sifter", {
             this.afterSessionRestored(restored);
         },
         afterSessionRestored(restored) {
+            const selectedPhenotypes =
+                restored.associationsState?.selectedPhenotypes || [];
             if (restored.searchSession) {
                 this.probeAncestryAssociationAvailabilityForSession(
                     restored.searchSession
                 );
-                (restored.associationsState?.selectedPhenotypes || []).forEach(
-                    (entry) => {
-                        if (!entry?.name) {
-                            return;
-                        }
-                        this.probeAncestryAssociationAvailabilityForPhenotype(
-                            entry,
-                            restored.searchSession
-                        );
+                selectedPhenotypes.forEach((entry) => {
+                    if (!entry?.name) {
+                        return;
                     }
-                );
+                    this.probeAncestryAssociationAvailabilityForPhenotype(
+                        entry,
+                        restored.searchSession
+                    );
+                });
             }
             if (restored.globalEnrichmentState) {
-                this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.DONE);
+                this.setRegionLoadStep(
+                    "globalEnrichment",
+                    VKS_REGION_LOAD_STATUS.DONE
+                );
+                this.hydrateCompanionLayersForRestoredPhenotypes(
+                    selectedPhenotypes
+                );
                 return;
             }
-            this.loadGlobalEnrichmentForSession(restored.searchSession);
+            Promise.resolve(
+                this.loadGlobalEnrichmentForSession(restored.searchSession)
+            ).finally(() => {
+                this.hydrateCompanionLayersForRestoredPhenotypes(
+                    selectedPhenotypes
+                );
+            });
+        },
+        /**
+         * Older or partial session files may restore additive phenotypes without
+         * GE / CS companion rows. Fetch missing layers without clearing snapshot data.
+         */
+        hydrateCompanionLayersForRestoredPhenotypes(selectedPhenotypes) {
+            (selectedPhenotypes || []).forEach((entry) => {
+                const phenotypeName = String(entry?.name || "").trim();
+                if (!phenotypeName) {
+                    return;
+                }
+                const phenotype = {
+                    name: phenotypeName,
+                    description: entry.description || null,
+                };
+                const geRows = this.globalEnrichmentState?.geRows || [];
+                const hasGe = geRows.some(
+                    (row) =>
+                        String(row?.phenotype || "").trim() === phenotypeName
+                );
+                if (!hasGe) {
+                    this.mergeGlobalEnrichmentForPhenotype(phenotype);
+                }
+                const available = this.credibleSetsState?.available || [];
+                const hasCs = available.some(
+                    (cs) =>
+                        String(cs?.phenotype || "").trim() === phenotypeName
+                );
+                if (!hasCs) {
+                    this.mergeCredibleSetsForPhenotype(phenotype);
+                }
+            });
         },
         offerGeTissueClassifyAction(session, catalog) {
             if (!session || !catalog?.tissues?.length) {
@@ -2568,6 +2630,8 @@ export default Vue.component("kp-variant-sifter", {
 
             try {
                 const geRows = await fetchGlobalEnrichment(session, geHost);
+                // V2G tissue pickers read the full geRows list (no phenotype filter),
+                // so merged additive rows must land here for new tissues to appear.
                 this.globalEnrichmentState = {
                     ...this.globalEnrichmentState,
                     geRows: mergeGeRowsByPhenotype(
@@ -4749,6 +4813,12 @@ export default Vue.component("kp-variant-sifter", {
                 filtersIndex,
             };
         },
+        onCredibleSetsPanelFiltersUpdate(panelFilters) {
+            this.credibleSetsState = {
+                ...this.credibleSetsState,
+                panelFilters: cloneCredibleSetsPanelFilters(panelFilters),
+            };
+        },
         onGenesSelectedTypesUpdate(selectedTypes) {
             this.genesState = {
                 ...this.genesState,
@@ -6302,12 +6372,21 @@ export default Vue.component("kp-variant-sifter", {
                 globalEnrichmentState: this.globalEnrichmentState,
                 v2gState: this.v2gState,
                 s2gState: this.s2gState,
+                region: this.searchSession?.region || null,
+                phenotype: this.searchSession?.phenotype?.name || "",
+                ancestry: this.searchSession?.ancestry || "Mixed",
             });
-            const filter = buildWorkspaceMappingFilter(this.associationsState.rows, {
-                mappingCategories: categories,
-                selectedCategoryIds: this.mappingState.selectedCategoryIds,
-                mappingMode: this.mappingState.mappingMode,
-            });
+            const filter = buildWorkspaceMappingFilter(
+                applyAssociationsFilters(
+                    this.associationsState.rows || [],
+                    this.associationsState.filtersIndex
+                ),
+                {
+                    mappingCategories: categories,
+                    selectedCategoryIds: this.mappingState.selectedCategoryIds,
+                    mappingMode: this.mappingState.mappingMode,
+                }
+            );
             if (!filter) {
                 this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
                 if (!quiet) {

@@ -95,18 +95,6 @@
 
             <section class="vks-drawer-section vks-drawer-section--table">
                 <div class="vks-assoc-table-section">
-                    <VariantSifterMappingBar
-                        :categories="mappingCategories"
-                        :selected-category-ids="selectedCategoryIds"
-                        :mapping-mode="mappingMode"
-                        :workspace-filter-active="Boolean(workspaceMappingFilter?.active)"
-                        :workspace-filter-row-count="workspaceMappingFilter?.rowCount || 0"
-                        @update:selectedCategoryIds="onSelectedCategoryIdsUpdate"
-                        @update:mappingMode="onMappingModeUpdate"
-                        @update:workspaceFilterActive="$emit('update:workspaceFilterActive', $event)"
-                        @remove-category="$emit('remove-mapping-category', $event)"
-                    />
-
                     <VariantSifterTableSettings
                         :per-page="Number(perPageNumber)"
                         :columns="mappedTopRows"
@@ -246,7 +234,6 @@ import {
     mappingGroupColor,
     mappingGroupIdForColumn,
     mappingGroupLabel,
-    normalizeMappingMode,
     normalizeMappingState,
     VKS_ANNOTATION_OVERLAP_COLUMN,
     VKS_BIOSAMPLE_OVERLAP_COLUMN,
@@ -255,11 +242,10 @@ import {
     VKS_S2G_COLUMN,
     hasMultipleCredSets,
 } from "./variantSifterMappingData.js";
-import { VKS_PROJECT_DEFAULT_ID } from "./variantSifterProjects.js";
+import { isGwasCeProject, VKS_PROJECT_DEFAULT_ID } from "./variantSifterProjects.js";
 import VariantSifterAssociationsFilters from "./VariantSifterAssociationsFilters.vue";
 import VariantSifterAssociationsLdPlot from "./VariantSifterAssociationsLdPlot.vue";
 import VariantSifterAncestryBubbles from "./VariantSifterAncestryBubbles.vue";
-import VariantSifterMappingBar from "./VariantSifterMappingBar.vue";
 import VariantSifterMappingRowDetails from "./VariantSifterMappingRowDetails.vue";
 import VariantSifterTableSettings from "./VariantSifterTableSettings.vue";
 
@@ -269,7 +255,6 @@ export default {
         VariantSifterAssociationsFilters,
         VariantSifterAssociationsLdPlot,
         VariantSifterAncestryBubbles,
-        VariantSifterMappingBar,
         VariantSifterMappingRowDetails,
         VariantSifterTableSettings,
     },
@@ -423,7 +408,7 @@ export default {
     },
     computed: {
         showProjectColumn() {
-            return Boolean(String(this.projectId || "").trim());
+            return isGwasCeProject(this.projectId);
         },
         showPhenotypeColumn() {
             return (this.selectedPhenotypes || []).length > 0;
@@ -446,6 +431,9 @@ export default {
                 globalEnrichmentState: this.globalEnrichmentState,
                 v2gState: this.v2gState,
                 s2gState: this.s2gState,
+                region: this.searchSession?.region || null,
+                phenotype: this.searchSession?.phenotype?.name || "",
+                ancestry: this.searchSession?.ancestry || "Mixed",
             });
         },
         columnFilteredRows() {
@@ -641,14 +629,6 @@ export default {
                     ...patch,
                 })
             );
-        },
-        onSelectedCategoryIdsUpdate(selectedCategoryIds) {
-            this.emitMappingState({ selectedCategoryIds });
-        },
-        onMappingModeUpdate(mappingMode) {
-            this.emitMappingState({
-                mappingMode: normalizeMappingMode(mappingMode),
-            });
         },
         pruneSelectedCategories() {
             const availableIds = new Set(
