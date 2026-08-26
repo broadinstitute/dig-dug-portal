@@ -218,6 +218,7 @@ import {
     credibleSetOptionLabel,
     credibleSetShortLabel,
     makeCredibleSetSelectionKey,
+    normalizeCredibleSetProject,
 } from "./variantSifterCredibleSetsFormat.js";
 import {
     applyCredibleSetsPanelFilters,
@@ -447,15 +448,20 @@ export default {
             return makeCredibleSetSelectionKey(
                 entry.credibleSetId,
                 entry.ancestry || "Mixed",
-                entry.phenotype || ""
+                entry.phenotype || "",
+                entry.project || ""
             );
         },
         optionValue(entry) {
-            return [
+            const parts = [
                 entry.credibleSetId || "",
                 entry.phenotype || "",
                 entry.ancestry || "Mixed",
-            ].join(",");
+            ];
+            if (entry.project) {
+                parts.push(entry.project);
+            }
+            return parts.join(",");
         },
         pillLabel(entry) {
             return entry.label || credibleSetShortLabel(entry);
@@ -475,7 +481,8 @@ export default {
                 makeCredibleSetSelectionKey(
                     entry.credibleSetId,
                     entry.ancestry || "Mixed",
-                    entry.phenotype || ""
+                    entry.phenotype || "",
+                    entry.project || ""
                 )
             );
         },
@@ -491,11 +498,32 @@ export default {
             if (!value) {
                 return;
             }
-            const [credibleSetId, phenotype, ancestry] = value.split(",");
+            const parts = value.split(",");
+            let project = "";
+            let ancestry = "Mixed";
+            let phenotype = "";
+            let credibleSetId = parts[0] || "";
+            if (parts.length >= 4) {
+                const maybeProject = normalizeCredibleSetProject(
+                    parts[parts.length - 1]
+                );
+                if (maybeProject) {
+                    project = maybeProject;
+                    ancestry = parts[parts.length - 2] || "Mixed";
+                    phenotype = parts.slice(1, -2).join(",");
+                } else {
+                    phenotype = parts[1] || "";
+                    ancestry = parts[2] || "Mixed";
+                }
+            } else {
+                phenotype = parts[1] || "";
+                ancestry = parts[2] || "Mixed";
+            }
             this.$emit("add-set", {
                 credibleSetId,
                 phenotype,
-                ancestry: ancestry || "Mixed",
+                ancestry,
+                project,
             });
         },
         onVariantSearchChange(event) {

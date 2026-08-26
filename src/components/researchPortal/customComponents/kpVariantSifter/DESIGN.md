@@ -42,9 +42,9 @@ Settings and Actions live in **viewport controls**, not the menu bar.
 |----|-------|-----------|----------|-------|
 | `""` | Default (KP) | Phenotype + Ancestry | Portal host | Full sections |
 | `giant` | GIANT | Curated phenotypes + ancestries | `https://giant.hugeampkpnbi.org` | Subset of indexes on Giant; others fall back to portal |
-| `gwas-ce` | GWAS-CE | **Token** + Phenotype + Ancestry | Portal host for default VS; CE host for additive GWAS-CE associations | Default KP associations + GE/CS/…; CE overlay plot/table rows tagged `Project=GWAS-CE` |
+| `gwas-ce` | GWAS-CE | **Token** + Phenotype + Ancestry | Portal host for default VS; CE host for additive GWAS-CE associations / credible sets | Default KP associations + GE/CS/…; CE overlay plot/table rows tagged `Project=GWAS-CE`; CE credible sets merged into the CS list as `(GWAS-CE)` (KP sets labeled `(KP)`) |
 
-**GWAS-CE query shape:** additive overlay — keep default KP `associations` / `ancestry-associations` for the selected phenotype + ancestry. Also fetch CE `associations-{token}`, `q={token},{chr:start-end}`, `fmt=row`, via **HTTP GET**. Welcome **Fetch metadata** calls `https://api.ldserver.kpndataregistry.org/api/metadata/{token}` to prefill phenotype/ancestry (manual set if unmatched). Canvas shows a **GWAS-CE associations** plot above the default **Associations** plot. Table rows include a **Project** column (`KP` / `GWAS-CE`) and a **Project** filter under Ancestry. Do **not** put the token in the page URL. Session / HTML export replaces the token with `$token`.
+**GWAS-CE query shape:** additive overlay — keep default KP `associations` / `ancestry-associations` for the selected phenotype + ancestry. Also fetch CE `associations-{token}`, `q={token},{chr:start-end}`, `fmt=row`, via **HTTP GET**. When present, also fetch CE `credible-sets-{token}` (`q={token},{region}`) and merge into the credible-sets picker; selecting a CE set loads `credible-variants-{token}` (`q={token},{credibleSetId}`). Labels append `(KP)` / `(GWAS-CE)`. Welcome **Fetch metadata** calls `https://api.ldserver.kpndataregistry.org/api/metadata/{token}` to prefill phenotype/ancestry (manual set if unmatched). Canvas shows a **GWAS-CE associations** plot above the default **Associations** plot. Table rows include a **Project** column (`KP` / `GWAS-CE`) and a **Project** filter under Ancestry. Do **not** put the token in the page URL. Session / HTML export replaces the token with `$token`.
 
 ### Canvas vs drawers
 
@@ -238,6 +238,7 @@ Reference pattern: `VariantSifterGenesTrack.vue` + `variantSifterGenesTrackRende
 
 | Date | Note |
 |------|------|
+| 2026-08-26 | GWAS-CE credible sets: merge `credible-sets-{token}` into CS list; labels `(KP)` / `(GWAS-CE)` |
 | 2026-08-26 | Mapping uses drawer-filtered sources (associations filters, CS panel filters, GE shown tissues, V2G/S2G deselections); Mapping UI on Data table panel only |
 | 2026-08-26 | Mapping UI (`VariantSifterMappingBar`) lives on the Data table panel only — removed from Associations drawer |
 | 2026-08-11 | Initial DESIGN.md for agent handoff (canvas-first VS rebuild on `dk-ai-based-VS`) |
