@@ -438,12 +438,16 @@ import {
     fetchCredibleSetsList,
     fetchCredibleSetsListForAncestries,
     fetchCredibleSetVariants,
+    fetchGwasCeCredibleSetsList,
+    fetchGwasCeCredibleSetVariants,
+    isGwasCeCredibleSetEntry,
     mergeCredibleSetAvailableLists,
     tagCredibleSetEntries,
 } from "./kpVariantSifter/variantSifterCredibleSetsApi.js";
 import {
     credibleSetOptionLabel,
     credibleSetShortLabel,
+    formatCredibleVariantPhenotypeDisplay,
     formatCredibleVariantRows,
     makeCredibleSetSelectionKey,
     parseCredibleSetSelectionKey,
@@ -2854,6 +2858,7 @@ export default Vue.component("kp-variant-sifter", {
                         : session.phenotype
                           ? [session.phenotype]
                           : [];
+                const tagKpProject = isGwasCeProject(this.projectId);
                 const lists = await Promise.all(
                     phenotypes.map(async (phenotype) => {
                         const phenotypeSession = {
@@ -2863,11 +2868,23 @@ export default Vue.component("kp-variant-sifter", {
                         return fetchCredibleSetsListForAncestries(
                             phenotypeSession,
                             host,
-                            this.selectedAncestriesForPhenotype(phenotype.name)
+                            this.selectedAncestriesForPhenotype(phenotype.name),
+                            {
+                                project: tagKpProject
+                                    ? VKS_ASSOCIATION_PROJECT_KP
+                                    : null,
+                            }
                         );
                     })
                 );
-                const available = mergeCredibleSetAvailableLists(lists);
+                let available = mergeCredibleSetAvailableLists(lists);
+                if (tagKpProject && resolveGwasCeToken(session)) {
+                    const ceAvailable = await fetchGwasCeCredibleSetsList(session);
+                    available = mergeCredibleSetAvailableLists([
+                        available,
+                        ceAvailable,
+                    ]);
+                }
                 if (token !== this.credibleSetsRequestToken) {
                     return false;
                 }
@@ -2906,18 +2923,14 @@ export default Vue.component("kp-variant-sifter", {
                 return false;
             }
         },
-        async onAddCredibleSet({ credibleSetId, phenotype, ancestry }) {
+        async onAddCredibleSet({ credibleSetId, phenotype, ancestry, project }) {
             if (!credibleSetId || !this.searchSession) {
-                return;
-            }
-
-            const host = this.bioIndexHostFor("credible-variants");
-            if (!host) {
                 return;
             }
 
             const resolvedAncestry = ancestry || "Mixed";
             const requestedPhenotype = String(phenotype || "").trim();
+            const requestedProject = String(project || "").trim();
             const availableEntry =
                 this.credibleSetsState.available.find(
                     (entry) =>
@@ -2925,38 +2938,73 @@ export default Vue.component("kp-variant-sifter", {
                         (entry.ancestry || "Mixed") === resolvedAncestry &&
                         (!requestedPhenotype ||
                             String(entry.phenotype || "").trim() ===
-                                requestedPhenotype)
+                                requestedPhenotype) &&
+                        (!requestedProject ||
+                            String(entry.project || "").trim() ===
+                                requestedProject)
                 ) ||
                 this.credibleSetsState.available.find(
                     (entry) =>
                         entry.credibleSetId === credibleSetId &&
                         (!requestedPhenotype ||
                             String(entry.phenotype || "").trim() ===
-                                requestedPhenotype)
+                                requestedPhenotype) &&
+                        (!requestedProject ||
+                            String(entry.project || "").trim() ===
+                                requestedProject)
+                ) ||
+                this.credibleSetsState.available.find(
+                    (entry) =>
+                        entry.credibleSetId === credibleSetId &&
+                        (!requestedProject ||
+                            String(entry.project || "").trim() ===
+                                requestedProject)
                 ) ||
                 this.credibleSetsState.available.find(
                     (entry) => entry.credibleSetId === credibleSetId
                 );
+            const resolvedProject =
+                requestedProject ||
+                availableEntry?.project ||
+                (isGwasCeProject(this.projectId)
+                    ? VKS_ASSOCIATION_PROJECT_KP
+                    : "");
+            const isCeSet =
+                resolvedProject === VKS_ASSOCIATION_PROJECT_GWAS_CE ||
+                isGwasCeCredibleSetEntry(availableEntry);
+            const host = isCeSet
+                ? null
+                : this.bioIndexHostFor("credible-variants");
+            if (!isCeSet && !host) {
+                return;
+            }
+
             const resolvedPhenotype =
                 requestedPhenotype ||
                 availableEntry?.phenotype ||
-                this.searchSession.phenotype?.name ||
+                (isCeSet
+                    ? resolveGwasCeToken(this.searchSession)
+                    : this.searchSession.phenotype?.name) ||
                 null;
             const entryAncestry = availableEntry?.ancestry || resolvedAncestry;
             const selectionKey = makeCredibleSetSelectionKey(
                 credibleSetId,
                 entryAncestry,
-                resolvedPhenotype
+                resolvedPhenotype,
+                resolvedProject
             );
 
             if (this.credibleSetsState.selectedIds.includes(selectionKey)) {
                 return;
             }
 
-            const metaEntry = availableEntry || {
-                credibleSetId,
-                phenotype: resolvedPhenotype,
-                ancestry: entryAncestry,
+            const metaEntry = {
+                ...(availableEntry || {
+                    credibleSetId,
+                    phenotype: resolvedPhenotype,
+                    ancestry: entryAncestry,
+                }),
+                project: resolvedProject || availableEntry?.project || "",
             };
             const label = credibleSetShortLabel(metaEntry);
             const phenotypeSession = {
@@ -2975,25 +3023,34 @@ export default Vue.component("kp-variant-sifter", {
             };
 
             try {
-                const rawVariants = await fetchCredibleSetVariants(
-                    phenotypeSession,
-                    credibleSetId,
-                    host,
-                    { ancestry: entryAncestry }
-                );
+                const rawVariants = isCeSet
+                    ? await fetchGwasCeCredibleSetVariants(
+                          this.searchSession,
+                          credibleSetId
+                      )
+                    : await fetchCredibleSetVariants(
+                          phenotypeSession,
+                          credibleSetId,
+                          host,
+                          { ancestry: entryAncestry }
+                      );
                 const stampedRaw = (rawVariants || []).map((row) => ({
                     ...row,
                     phenotype: row.phenotype || resolvedPhenotype || "",
+                    project: resolvedProject || "",
                 }));
                 const formattedVariants = formatCredibleVariantRows(stampedRaw).map(
                     (row) => ({
                         ...row,
-                        Phenotype:
+                        Phenotype: formatCredibleVariantPhenotypeDisplay(
                             row.Phenotype ||
-                            row.phenotype ||
-                            resolvedPhenotype ||
-                            "",
+                                row.phenotype ||
+                                resolvedPhenotype ||
+                                "",
+                            resolvedProject
+                        ),
                         phenotype: row.phenotype || resolvedPhenotype || "",
+                        project: resolvedProject || "",
                     })
                 );
                 this.credibleSetsState = {
@@ -3007,6 +3064,7 @@ export default Vue.component("kp-variant-sifter", {
                                 credibleSetId,
                                 phenotype: resolvedPhenotype,
                                 ancestry: entryAncestry,
+                                project: resolvedProject || "",
                                 label,
                                 optionLabel: credibleSetOptionLabel(metaEntry),
                             },
@@ -3048,7 +3106,12 @@ export default Vue.component("kp-variant-sifter", {
                 const tagged = await fetchCredibleSetsListForAncestries(
                     session,
                     host,
-                    this.selectedAncestriesForPhenotype(phenotypeName)
+                    this.selectedAncestriesForPhenotype(phenotypeName),
+                    {
+                        project: isGwasCeProject(this.projectId)
+                            ? VKS_ASSOCIATION_PROJECT_KP
+                            : null,
+                    }
                 );
                 this.credibleSetsState = {
                     ...this.credibleSetsState,
@@ -3092,7 +3155,10 @@ export default Vue.component("kp-variant-sifter", {
                 const tagged = tagCredibleSetEntries(
                     await fetchCredibleSetsList(session, host, { ancestry }),
                     ancestry,
-                    phenotypeName
+                    phenotypeName,
+                    isGwasCeProject(this.projectId)
+                        ? VKS_ASSOCIATION_PROJECT_KP
+                        : null
                 );
                 const withoutMatching = (
                     this.credibleSetsState.available || []
@@ -3100,7 +3166,8 @@ export default Vue.component("kp-variant-sifter", {
                     (entry) =>
                         !(
                             (entry.ancestry || "Mixed") === ancestry &&
-                            String(entry.phenotype || "").trim() === phenotypeName
+                            String(entry.phenotype || "").trim() === phenotypeName &&
+                            !isGwasCeCredibleSetEntry(entry)
                         )
                 );
                 this.credibleSetsState = {
@@ -3648,7 +3715,6 @@ export default Vue.component("kp-variant-sifter", {
             const plotConfig = buildAssociationsRegionPlotConfig(session);
             const genesToken = ++this.genesRequestToken;
             const recombToken = ++this.plotOverlaysRequestToken;
-            const credibleSetsToken = ++this.credibleSetsRequestToken;
             const globalEnrichmentToken = ++this.globalEnrichmentRequestToken;
 
             this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
@@ -3721,35 +3787,17 @@ export default Vue.component("kp-variant-sifter", {
                     }
                 })(),
                 (async () => {
-                    this.credibleSetsState = {
-                        ...emptyCredibleSetsState(),
-                        listLoading: true,
-                    };
-                    try {
-                        const available = tagCredibleSetEntries(
-                            await fetchCredibleSetsList(session, host),
-                            "Mixed",
-                            session.phenotype?.name
+                    const ok = await this.loadCredibleSetsList(session);
+                    if (ok) {
+                        this.setRegionLoadStep(
+                            "credibleSets",
+                            VKS_REGION_LOAD_STATUS.DONE
                         );
-                        if (credibleSetsToken !== this.credibleSetsRequestToken) {
-                            return;
-                        }
-                        this.credibleSetsState = {
-                            ...emptyCredibleSetsState(),
-                            available,
-                        };
-                        this.lastCredibleSetsListRegion = cloneGenomicRegion(session.region);
-                        this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.DONE);
-                    } catch (error) {
-                        if (credibleSetsToken !== this.credibleSetsRequestToken) {
-                            return;
-                        }
-                        console.warn("Variant Sifter credible sets list failed", error);
-                        this.credibleSetsState = {
-                            ...emptyCredibleSetsState(),
-                            listError: "Failed to load credible sets for this locus.",
-                        };
-                        this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.FAILED);
+                    } else if (this.credibleSetsState?.listError) {
+                        this.setRegionLoadStep(
+                            "credibleSets",
+                            VKS_REGION_LOAD_STATUS.FAILED
+                        );
                     }
                 })(),
                 (async () => {
