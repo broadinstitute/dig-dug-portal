@@ -16,18 +16,17 @@
                 <div class="f-col fill-width">
 
                     <research-single-search-cfde
+                        v-if="singleSearchVersion === 'cfde'"
                         :single-search-config="sectionConfigs['content']"
                         :phenotypes="phenotypesInUse"
                         :utils="utilsBox"
                     />
-
-                    <!--
-                    <research-single-search-cfde-llm
+                    <cfde-single-search
+                        v-if="singleSearchVersion === 'cfde hybrid' || !singleSearchVersion"
                         :single-search-config="sectionConfigs['content']"
                         :phenotypes="phenotypesInUse"
                         :utils="utilsBox"
                     />
-                    -->
 
 
 
@@ -590,10 +589,16 @@
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import CfdeSingleSearch from "@/components/researchPortal/customComponents/CfdeSingleSearch.vue";
+import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("cfde-landing-2", {
+    components: {
+        CfdeSingleSearch,
+        ResearchSingleSearchCFDE,
+    },
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox", "keyParams"],
     data() {
         return {
@@ -671,7 +676,12 @@ export default Vue.component("cfde-landing-2", {
         window.removeEventListener("resize", this.handleResize);
         window.addEventListener("scroll", this.highlightTopmostTitle);
     },
-    computed: {},
+    computed: {
+        singleSearchVersion() {
+            const content = this.sectionConfigs && this.sectionConfigs["content"];
+            return (content && content["single search version"]) || "";
+        },
+    },
     watch: {},
     updated() {},
     methods: {

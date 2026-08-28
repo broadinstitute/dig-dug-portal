@@ -33,7 +33,13 @@
                         :single-search-config="sectionConfigs['content']['single search']"
                         :phenotypes="phenotypesInUse"
                         :utils="utilsBox"
-                    ></research-single-search-cfde>                      
+                    ></research-single-search-cfde>
+                    <cfde-single-search
+                        v-if="!!sectionConfigs['content']['single search version'] && sectionConfigs['content']['single search version'] == 'cfde hybrid'"
+                        :single-search-config="sectionConfigs['content']"
+                        :phenotypes="phenotypesInUse"
+                        :utils="utilsBox"
+                    ></cfde-single-search>                      
                 </div>
                 <div v-if="!!sectionConfigs['content']['search examples']" class="fp-search-examples">
                     <span v-html="'examples: '"></span>
@@ -60,6 +66,7 @@ import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSear
 import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 import ResearchSingleSearchCFDEllm from "@/components/researchPortal/ResearchSingleSearchCFDEllm.vue";
+import CfdeSingleSearch from "@/components/researchPortal/customComponents/CfdeSingleSearch.vue";
 
 export default Vue.component("research-front-page", {
 	props: ["sectionConfigs","pageDescription", "utilsBox","phenotypeMap","phenotypesInUse"],
@@ -68,7 +75,8 @@ export default Vue.component("research-front-page", {
         ResearchSingleSearch,
         ResearchSingleSearchV2,
         ResearchSingleSearchCFDE,
-        ResearchSingleSearchCFDEllm
+        ResearchSingleSearchCFDEllm,
+        CfdeSingleSearch
     },
 
 	data() {
