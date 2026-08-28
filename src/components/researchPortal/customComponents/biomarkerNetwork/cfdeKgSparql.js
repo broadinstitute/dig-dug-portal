@@ -201,6 +201,126 @@ ORDER BY DESC(ABS(?factorGeneLoading))
     return Array.from(byGene.values());
 }
 
+function uniqueIriTerms(iris) {
+    const list = Array.isArray(iris) ? iris : [iris];
+    const terms = [];
+    const seen = {};
+    list.forEach((iri) => {
+        const term = toIriTerm(iri);
+        if (!term || seen[term]) return;
+        seen[term] = true;
+        terms.push(term);
+    });
+    return terms;
+}
+
+function mergeSharedGeneEntry(byGene, key, entry) {
+    const existing = byGene.get(key);
+    if (!existing) {
+        byGene.set(key, { ...entry });
+        return;
+    }
+    if (
+        entry.factorLoading != null &&
+        (existing.factorLoading == null ||
+            Math.abs(entry.factorLoading) > Math.abs(existing.factorLoading))
+    ) {
+        existing.factorLoading = entry.factorLoading;
+    }
+    if (
+        entry.pigeanScore != null &&
+        (existing.pigeanScore == null ||
+            Math.abs(entry.pigeanScore) > Math.abs(existing.pigeanScore))
+    ) {
+        existing.pigeanScore = entry.pigeanScore;
+    }
+    if (!existing.geneLabel && entry.geneLabel) existing.geneLabel = entry.geneLabel;
+    if (!existing.gene && entry.gene) existing.gene = entry.gene;
+}
+
+function parseSharedGeneBindings(bindings) {
+    const byDisease = {};
+    bindings.forEach((b) => {
+        const disease = (b.disease && b.disease.value) || "";
+        if (!disease) return;
+        const gene = (b.gene && b.gene.value) || "";
+        let geneLabel = (b.geneLabel && b.geneLabel.value) || "";
+        if (!geneLabel && gene) {
+            const parts = String(gene).split(/[/#]/);
+            const last = parts[parts.length - 1] || gene;
+            geneLabel = last.replace(/^NCBIGene:/i, "").replace(/^HGNC:/i, "") || last;
+        }
+        const factorLoading = num(b.factorGeneLoading);
+        const pigeanScore = num(b.geneTraitScore);
+        const key = geneLabel ? canonicalGeneNodeId(geneLabel) : gene;
+        if (!key) return;
+        if (!byDisease[disease]) byDisease[disease] = new Map();
+        mergeSharedGeneEntry(byDisease[disease], key, {
+            gene,
+            geneLabel,
+            factorLoading,
+            pigeanScore,
+        });
+    });
+    const out = {};
+    Object.keys(byDisease).forEach((disease) => {
+        out[disease] = Array.from(byDisease[disease].values());
+    });
+    return out;
+}
+
+/**
+ * Preload shared genes for many diseases in one SPARQL round trip.
+ *
+ * @param {string} factorRef
+ * @param {string|string[]} diseaseIris
+ * @param {{ geneLimit?: number, signal?: AbortSignal }} [opts]
+ * @returns {Promise<Record<string, Array<{ gene: string, geneLabel: string, factorLoading: number|null, pigeanScore: number|null }>>>}
+ */
+export async function listSharedGenesByDiseaseForFactor(factorRef, diseaseIris, opts = {}) {
+    const factorTerm = toIriTerm(toFactorIri(factorRef));
+    const terms = uniqueIriTerms(diseaseIris);
+    if (!factorTerm || !terms.length) return {};
+    const geneLimit = Math.max(1, Number(opts.geneLimit) || 25);
+    const q = `${PREFIXES}
+SELECT ?disease ?gene ?geneLabel ?factorGeneLoading ?geneTraitScore
+WHERE {
+  GRAPH <${CFDE_KG_GRAPH}> {
+    {
+      SELECT ?gene ?factorGeneLoading
+      WHERE {
+        ?factorGeneStatement
+          rdf:subject ?gene ;
+          rdf:predicate reveal:geneToFactor ;
+          rdf:object ${factorTerm} ;
+          reveal:weight ?factorGeneLoading .
+      }
+      ORDER BY DESC(ABS(?factorGeneLoading))
+      LIMIT ${geneLimit}
+    }
+
+    VALUES ?disease { ${terms.join(" ")} }
+
+    ?geneTraitStatement
+      rdf:subject ?gene ;
+      rdf:predicate reveal:geneToTrait ;
+      rdf:object ?disease ;
+      reveal:weight ?geneTraitScore .
+
+    OPTIONAL { ?gene rdfs:label ?geneLabel . }
+  }
+}
+ORDER BY ?disease DESC(ABS(?factorGeneLoading))
+`;
+    const { bindings } = await fetchCfdeKgSparql(q, opts);
+    const grouped = parseSharedGeneBindings(bindings);
+    terms.forEach((term) => {
+        const iri = term.slice(1, -1);
+        if (!grouped[iri]) grouped[iri] = [];
+    });
+    return grouped;
+}
+
 function sparqlEscape(value) {
     return String(value || "")
         .replace(/\\/g, "\\\\")

@@ -415,27 +415,61 @@
                                     </button>
                                 </div>
                                 <div
-                                    v-if="showBiomarkerDiseaseFilters"
-                                    class="bn-type-filters"
-                                    role="group"
-                                    aria-label="Filter biomarkers by disease"
+                                    v-if="showBiomarkerDiseaseFilters || sharedGeneMappingBubbleLabel"
+                                    class="bn-disease-filters-block"
                                 >
-                                    <span class="bn-type-filters-label">Diseases:</span>
-                                    <button
-                                        v-for="d in uniqueBiomarkerDiseaseFilters"
-                                        :key="'bio-' + d.iri"
-                                        type="button"
-                                        class="bn-type-bubble"
-                                        :class="{ 'bn-type-bubble--off': !isDiseaseVisible(d.iri) }"
-                                        :aria-pressed="isDiseaseVisible(d.iri) ? 'true' : 'false'"
-                                        @click="toggleDiseaseFilter(d.iri)"
+                                    <div
+                                        v-if="showBiomarkerDiseaseFilters"
+                                        class="bn-type-filters"
+                                        role="group"
+                                        aria-label="Filter biomarkers by disease"
                                     >
-                                        <b-icon
-                                            :icon="isDiseaseVisible(d.iri) ? 'eye-fill' : 'eye-slash'"
-                                            aria-hidden="true"
-                                        />
-                                        {{ d.label }}
-                                    </button>
+                                        <span class="bn-type-filters-label">Diseases:</span>
+                                        <button
+                                            v-for="d in uniqueBiomarkerDiseaseFilters"
+                                            :key="'bio-' + d.iri"
+                                            type="button"
+                                            class="bn-type-bubble"
+                                            :class="{ 'bn-type-bubble--off': !isDiseaseVisible(d.iri) }"
+                                            :aria-pressed="isDiseaseVisible(d.iri) ? 'true' : 'false'"
+                                            @click="toggleDiseaseFilter(d.iri)"
+                                        >
+                                            <b-icon
+                                                :icon="isDiseaseVisible(d.iri) ? 'eye-fill' : 'eye-slash'"
+                                                aria-hidden="true"
+                                            />
+                                            {{ d.label }}
+                                        </button>
+                                    </div>
+                                    <div
+                                        v-if="sharedGeneMappingBubbleLabel"
+                                        class="bn-type-filters"
+                                        role="group"
+                                        aria-label="Filter biomarkers by shared gene overlap"
+                                    >
+                                        <span class="bn-type-filters-label">
+                                            Associated gene to shared gene mapping:
+                                        </span>
+                                        <button
+                                            type="button"
+                                            class="bn-type-bubble"
+                                            :class="{
+                                                'bn-type-bubble--off': !mappedGeneOverlapFilter,
+                                            }"
+                                            :aria-pressed="mappedGeneOverlapFilter ? 'true' : 'false'"
+                                            @click="toggleMappedGeneOverlapFilter"
+                                        >
+                                            <b-icon
+                                                :icon="
+                                                    mappedGeneOverlapFilter
+                                                        ? 'eye-fill'
+                                                        : 'eye-slash'
+                                                "
+                                                aria-hidden="true"
+                                            />
+                                            {{ sharedGeneMappingBubbleLabel }}
+                                        </button>
+                                    </div>
                                 </div>
                                 <p v-if="!rows.length" class="bn-filter-empty">
                                     No biomarkers found for the selected diseases.
@@ -447,6 +481,7 @@
                                     <thead>
                                         <tr>
                                             <th scope="col">Biomarker</th>
+                                            <th scope="col">Associated gene</th>
                                             <th scope="col">Roles</th>
                                             <th scope="col">Diseases</th>
                                             <th scope="col">
@@ -473,6 +508,30 @@
                                                 >{{ biomarkerDisplayLabel(row) }}</a>
                                                 <span v-else>{{ biomarkerDisplayLabel(row) }}</span>
                                             </td>
+                                            <td
+                                                class="bn-gene-cell"
+                                                :class="{
+                                                    'bn-gene-cell--interactive':
+                                                        rowAssociatedGenes(row).length,
+                                                }"
+                                                @mouseenter="onGeneCellEnter(row, $event)"
+                                                @mouseleave="onGeneCellLeave"
+                                            >
+                                                <template v-if="rowAssociatedGenes(row).length">
+                                                    <span
+                                                        v-for="(gene, geneIdx) in rowAssociatedGenes(row)"
+                                                        :key="row.biomarker + '-gene-' + gene + '-' + geneIdx"
+                                                    >
+                                                        <span v-if="geneIdx"> | </span>
+                                                        <span
+                                                            :class="{
+                                                                'bn-gene-mapped': isRowGeneShared(row, gene),
+                                                            }"
+                                                        >{{ gene }}</span>
+                                                    </span>
+                                                </template>
+                                                <span v-else>—</span>
+                                            </td>
                                             <td>{{ row.roles || "—" }}</td>
                                             <td>{{ row.diseases || "—" }}</td>
                                             <td>{{ row.recordCount || "—" }}</td>
@@ -492,6 +551,17 @@
                     </section>
             </div>
         </div>
+
+        <biomarker-linkage-popup
+            v-if="linkagePopup.visible"
+            :graph="linkagePopup.graph"
+            :title="linkagePopup.title"
+            :subtitle="linkagePopup.subtitle"
+            :left="linkagePopup.left"
+            :top="linkagePopup.top"
+            @mouseenter="onLinkagePopupEnter"
+            @mouseleave="onLinkagePopupLeave"
+        />
     </div>
 </template>
 
@@ -500,8 +570,17 @@ import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import {
     canonicalGeneNodeId,
+    normalizeGeneSymbol,
 } from "./biomarkerNetwork/geneNodeIds.js";
 import BiomarkerNetworkGraph from "./biomarkerNetwork/BiomarkerNetworkGraph.vue";
+import BiomarkerLinkagePopup from "./biomarkerNetwork/BiomarkerLinkagePopup.vue";
+import {
+    buildBiomarkerLinkageGraph,
+    buildDiseaseLabelIndex,
+    formatSharedGeneMappingLabel,
+    formatSharedGeneMappingBubble,
+    getRowSharedGeneMapping,
+} from "./biomarkerNetwork/biomarkerLinkageGraph.js";
 import {
     applyBiomarkerSessionImport,
     exportBiomarkerSession,
@@ -513,6 +592,7 @@ import { searchBiomarkerFactors } from "./biomarkerNetwork/biomarkerFactorSearch
 import keyParams from "@/utils/keyParams";
 import {
     listMondoDiseasesForFactor,
+    listSharedGenesByDiseaseForFactor,
     listSharedGenesForFactorDisease,
 } from "./biomarkerNetwork/cfdeKgSparql.js";
 import { listBiomarkersForMondoDiseases } from "./biomarkerNetwork/biomarkerKbSparql.js";
@@ -526,7 +606,7 @@ const SUGGESTION_DEBOUNCE_MS = 280;
 const BIOMARKER_LIMIT = 100;
 
 export default Vue.component("biomarker-network", {
-    components: { BiomarkerNetworkGraph },
+    components: { BiomarkerNetworkGraph, BiomarkerLinkagePopup },
     props: ["phenotypesInUse", "utilsBox", "sectionConfigs"],
     data() {
         return {
@@ -558,6 +638,7 @@ export default Vue.component("biomarker-network", {
             perPage: PER_PAGE,
             hiddenTypes: {},
             hiddenDiseases: {},
+            mappedGeneOverlapFilter: false,
             diseasesAccordionOpen: false,
             mechanismAccordionOpen: true,
             biomarkersAccordionOpen: false,
@@ -566,7 +647,20 @@ export default Vue.component("biomarker-network", {
             biomarkerAbortController: null,
             expandedDiseases: {},
             diseaseGenes: {},
+            sharedGenesLoading: false,
+            sharedGenesPreloadPromise: null,
             networkExpandedDiseases: {},
+            linkagePopup: {
+                visible: false,
+                graph: { nodes: [], edges: [] },
+                title: "Associated ↔ shared gene map",
+                subtitle: "",
+                left: 0,
+                top: 0,
+            },
+            linkagePopupHover: false,
+            linkageHoverTimer: null,
+            linkageHideTimer: null,
             /**
              * Gene-centric registry rebuilt into the network on every fetch:
              * { SYMBOL: { symbol, diseases: [{ disease, factorLoading, pigeanScore }] } }
@@ -609,6 +703,13 @@ export default Vue.component("biomarker-network", {
             return this.uniqueBiomarkerDiseaseFilters.length > 1;
         },
         filteredRows() {
+            let rows = this.roleAndDiseaseFilteredRows;
+            if (this.mappedGeneOverlapFilter) {
+                rows = rows.filter((row) => this.rowSharedGeneMapping(row).mappedCount > 0);
+            }
+            return rows;
+        },
+        roleAndDiseaseFilteredRows() {
             return (this.rows || []).filter((row) => {
                 if (this.uniqueRoleLabels.length) {
                     const roles = row.roleList || [];
@@ -744,6 +845,32 @@ export default Vue.component("biomarker-network", {
         canExportSession() {
             return sessionHasExportableContent(this);
         },
+        diseaseByLabel() {
+            return buildDiseaseLabelIndex(this.associatedDiseases);
+        },
+        aggregateSharedGeneMapping() {
+            const associated = new Set();
+            const mapped = new Set();
+            (this.roleAndDiseaseFilteredRows || []).forEach((row) => {
+                const mapping = getRowSharedGeneMapping(this.rowSharedGeneMappingInput(row));
+                mapping.associatedGenes.forEach((gene) => {
+                    const key = normalizeGeneSymbol(gene);
+                    if (key) associated.add(key);
+                });
+                mapping.mappedGenes.forEach((gene) => {
+                    const key = normalizeGeneSymbol(gene);
+                    if (key) mapped.add(key);
+                });
+            });
+            return {
+                mappedCount: mapped.size,
+                totalCount: associated.size,
+            };
+        },
+        sharedGeneMappingBubbleLabel() {
+            const { mappedCount, totalCount } = this.aggregateSharedGeneMapping;
+            return formatSharedGeneMappingBubble(mappedCount, totalCount);
+        },
     },
     mounted() {
         const factorFromUrl = keyParams.factor != null ? String(keyParams.factor).trim() : "";
@@ -754,6 +881,8 @@ export default Vue.component("biomarker-network", {
         this.cancelInFlight();
         this.cancelSuggestionLookup();
         if (this.suggestionTimer) clearTimeout(this.suggestionTimer);
+        if (this.linkageHoverTimer) clearTimeout(this.linkageHoverTimer);
+        if (this.linkageHideTimer) clearTimeout(this.linkageHideTimer);
     },
     methods: {
         cancelInFlight() {
@@ -884,10 +1013,14 @@ export default Vue.component("biomarker-network", {
             this.mechanismPage = 1;
             this.hiddenTypes = {};
             this.hiddenDiseases = {};
+            this.mappedGeneOverlapFilter = false;
             this.expandedDiseases = {};
             this.diseaseGenes = {};
+            this.sharedGenesLoading = false;
+            this.sharedGenesPreloadPromise = null;
             this.networkExpandedDiseases = {};
             this.geneRegistry = {};
+            this.hideLinkagePopup();
             this.mechanismAccordionOpen = true;
             this.diseasesAccordionOpen = false;
             this.biomarkersAccordionOpen = false;
@@ -1010,6 +1143,10 @@ export default Vue.component("biomarker-network", {
             }
             this.clampPages();
         },
+        toggleMappedGeneOverlapFilter() {
+            this.mappedGeneOverlapFilter = !this.mappedGeneOverlapFilter;
+            this.clampPages();
+        },
         writeSearchParams(factorId) {
             const nextFactor =
                 factorId != null && Number.isFinite(Number(factorId)) && Number(factorId) > 0
@@ -1035,12 +1172,49 @@ export default Vue.component("biomarker-network", {
             if (Array.isArray(this.diseaseGenes[key])) {
                 return this.diseaseGenes[key];
             }
+            if (this.sharedGenesPreloadPromise) {
+                await this.sharedGenesPreloadPromise.catch(() => {});
+            }
+            if (Array.isArray(this.diseaseGenes[key])) {
+                return this.diseaseGenes[key];
+            }
             const genes = await listSharedGenesForFactorDisease(
                 this.selectedFactorIri,
                 diseaseIri
             );
             this.$set(this.diseaseGenes, key, genes);
             return genes;
+        },
+        async preloadSharedGenes(diseaseIris, signal) {
+            const list = (diseaseIris || []).filter(Boolean);
+            if (!this.selectedFactorIri || !list.length) return;
+
+            this.sharedGenesLoading = true;
+            const run = listSharedGenesByDiseaseForFactor(this.selectedFactorIri, list, {
+                signal,
+            })
+                .then((grouped) => {
+                    list.forEach((iri) => {
+                        this.$set(this.diseaseGenes, iri, grouped[iri] || []);
+                    });
+                })
+                .catch((e) => {
+                    if (e && e.name === "AbortError") throw e;
+                    list.forEach((iri) => {
+                        if (!Array.isArray(this.diseaseGenes[iri])) {
+                            this.$set(this.diseaseGenes, iri, []);
+                        }
+                    });
+                })
+                .finally(() => {
+                    this.sharedGenesLoading = false;
+                    if (this.sharedGenesPreloadPromise === run) {
+                        this.sharedGenesPreloadPromise = null;
+                    }
+                });
+
+            this.sharedGenesPreloadPromise = run;
+            await run;
         },
         async toggleDiseaseGenes(row) {
             const key = row.disease;
@@ -1062,6 +1236,41 @@ export default Vue.component("biomarker-network", {
             if (Array.isArray(genes) && genes.length) {
                 this.addGenesForDisease(key, genes);
             }
+        },
+        rowAssociatedGenes(row) {
+            if (row && Array.isArray(row.geneList) && row.geneList.length) {
+                return row.geneList;
+            }
+            return String((row && row.genes) || "")
+                .split(" | ")
+                .map((s) => s.trim())
+                .filter(Boolean);
+        },
+        rowRoleList(row) {
+            if (row && Array.isArray(row.roleList) && row.roleList.length) {
+                return row.roleList;
+            }
+            return String((row && row.roles) || "")
+                .split(" | ")
+                .map((s) => s.trim())
+                .filter(Boolean);
+        },
+        rowSharedGeneMappingInput(row) {
+            return {
+                associatedGenes: this.rowAssociatedGenes(row),
+                diseaseLabels: (row && row.diseaseList) || [],
+                diseaseByLabel: this.diseaseByLabel,
+                diseaseGenes: this.diseaseGenes,
+                geneDisplayLabel: (entry) => this.geneDisplayLabel(entry),
+            };
+        },
+        rowSharedGeneMapping(row) {
+            return getRowSharedGeneMapping(this.rowSharedGeneMappingInput(row));
+        },
+        isRowGeneShared(row, gene) {
+            const symKey = normalizeGeneSymbol(gene);
+            if (!symKey) return false;
+            return this.rowSharedGeneMapping(row).mappedSymbolSet.has(symKey);
         },
         normalizeGeneId(g) {
             const label = this.geneDisplayLabel(g);
@@ -1180,6 +1389,93 @@ export default Vue.component("biomarker-network", {
 
             this.$set(this.networkExpandedDiseases, diseaseId, false);
         },
+        buildLinkageGraphForRow(row) {
+            return buildBiomarkerLinkageGraph({
+                biomarkerId: row.biomarker || `biomarker:${row.biomarkerIdentifier || "unknown"}`,
+                biomarkerLabel: this.biomarkerDisplayLabel(row),
+                factorId: this.selectedFactorIri || "factor:root",
+                factorLabel: this.searchedFactorLabel || this.lastNeedle || "Mechanism",
+                associatedGenes: this.rowAssociatedGenes(row),
+                diseaseLabels: row.diseaseList || [],
+                roles: this.rowRoleList(row),
+                diseaseByLabel: this.diseaseByLabel,
+                diseaseGenes: this.diseaseGenes,
+                geneDisplayLabel: (entry) => this.geneDisplayLabel(entry),
+            });
+        },
+        positionLinkagePopup(pointer) {
+            const height = 260;
+            const margin = 12;
+            const x = pointer && pointer.clientX != null ? pointer.clientX : 0;
+            const y = pointer && pointer.clientY != null ? pointer.clientY : 0;
+
+            const left = x + 30;
+            let top = y - Math.round(height / 2);
+
+            if (top < margin) {
+                top = margin;
+            }
+            if (top + height + margin > window.innerHeight) {
+                top = Math.max(margin, window.innerHeight - height - margin);
+            }
+
+            return { left, top };
+        },
+        showLinkagePopup(row, pointer) {
+            if (!this.rowAssociatedGenes(row).length) return;
+            const built = this.buildLinkageGraphForRow(row);
+            const { left, top } = this.positionLinkagePopup(pointer);
+            const { mappedCount, totalCount } = built.mapping || this.rowSharedGeneMapping(row);
+            this.linkagePopup = {
+                visible: true,
+                graph: { nodes: built.nodes, edges: built.edges },
+                title: "Associated ↔ shared gene map",
+                subtitle: formatSharedGeneMappingLabel(mappedCount, totalCount),
+                left,
+                top,
+            };
+        },
+        hideLinkagePopup() {
+            this.linkagePopup = {
+                visible: false,
+                graph: { nodes: [], edges: [] },
+                title: "Associated ↔ shared gene map",
+                subtitle: "",
+                left: 0,
+                top: 0,
+            };
+        },
+        onGeneCellEnter(row, event) {
+            if (!this.rowAssociatedGenes(row).length) return;
+            const pointer = { clientX: event.clientX, clientY: event.clientY };
+            if (this.linkageHideTimer) {
+                clearTimeout(this.linkageHideTimer);
+                this.linkageHideTimer = null;
+            }
+            this.linkageHoverTimer = setTimeout(() => {
+                this.showLinkagePopup(row, pointer);
+            }, 200);
+        },
+        onGeneCellLeave() {
+            if (this.linkageHoverTimer) {
+                clearTimeout(this.linkageHoverTimer);
+                this.linkageHoverTimer = null;
+            }
+            this.linkageHideTimer = setTimeout(() => {
+                if (!this.linkagePopupHover) this.hideLinkagePopup();
+            }, 300);
+        },
+        onLinkagePopupEnter() {
+            this.linkagePopupHover = true;
+            if (this.linkageHideTimer) {
+                clearTimeout(this.linkageHideTimer);
+                this.linkageHideTimer = null;
+            }
+        },
+        onLinkagePopupLeave() {
+            this.linkagePopupHover = false;
+            this.linkageHideTimer = setTimeout(() => this.hideLinkagePopup(), 300);
+        },
         async resolveSelectedFactor(needle) {
             if (this.selectedFactorIri) {
                 const match = (this.factorSuggestions || []).find(
@@ -1276,10 +1572,14 @@ export default Vue.component("biomarker-network", {
             this.mechanismPage = 1;
             this.hiddenTypes = {};
             this.hiddenDiseases = {};
+            this.mappedGeneOverlapFilter = false;
             this.expandedDiseases = {};
             this.diseaseGenes = {};
+            this.sharedGenesLoading = false;
+            this.sharedGenesPreloadPromise = null;
             this.networkExpandedDiseases = {};
             this.geneRegistry = {};
+            this.hideLinkagePopup();
             this.mechanismAccordionOpen = false;
             this.diseasesAccordionOpen = true;
             this.biomarkersAccordionOpen = false;
@@ -1296,6 +1596,11 @@ export default Vue.component("biomarker-network", {
                     biomarkerCount: 0,
                     diseaseCount: diseases.length,
                 };
+                this.loadingMessage = "Loading shared genes…";
+                await this.preloadSharedGenes(
+                    diseases.map((d) => d.disease).filter(Boolean),
+                    ac.signal
+                );
             } catch (e) {
                 if (e && e.name === "AbortError") return;
                 this.error = (e && e.message) || "Search failed.";
@@ -1336,6 +1641,7 @@ export default Vue.component("biomarker-network", {
             this.currentPage = 1;
             this.hiddenTypes = {};
             this.hiddenDiseases = {};
+            this.mappedGeneOverlapFilter = false;
 
             try {
                 const rows = await listBiomarkersForMondoDiseases(diseaseIris, {
@@ -1864,6 +2170,26 @@ export default Vue.component("biomarker-network", {
 .bn-shared-gene-toggle:hover,
 .bn-shared-gene-toggle:focus {
     text-decoration: none;
+}
+
+.bn-gene-cell--interactive {
+    cursor: pointer;
+    color: var(--cfde-blue);
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+}
+
+.bn-gene-cell--interactive:hover {
+    color: #163a5c;
+}
+
+.bn-gene-mapped {
+    color: var(--cfde-orange);
+    font-weight: 600;
+}
+
+.bn-disease-filters-block {
+    margin-bottom: 4px;
 }
 
 .bn-table td {

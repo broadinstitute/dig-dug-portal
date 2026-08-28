@@ -81,6 +81,7 @@ export function buildBiomarkerSessionExport(vm) {
             mechanismPage: Number((vm && vm.mechanismPage) || 1),
             hiddenTypes: cloneJson((vm && vm.hiddenTypes) || {}, {}),
             hiddenDiseases: cloneJson((vm && vm.hiddenDiseases) || {}, {}),
+            mappedGeneOverlapFilter: !!(vm && vm.mappedGeneOverlapFilter),
             diseasesAccordionOpen: vm && vm.diseasesAccordionOpen !== false,
             mechanismAccordionOpen: vm && vm.mechanismAccordionOpen !== false,
             biomarkersAccordionOpen: !!(vm && vm.biomarkersAccordionOpen),
@@ -253,6 +254,7 @@ export function applyBiomarkerSessionImport(vm, payload, { setKeyParams } = {}) 
     assign(vm, "mechanismPage", Math.max(1, Number(session.mechanismPage) || 1));
     assign(vm, "hiddenTypes", cloneJson(session.hiddenTypes, {}));
     assign(vm, "hiddenDiseases", cloneJson(session.hiddenDiseases, {}));
+    assign(vm, "mappedGeneOverlapFilter", !!session.mappedGeneOverlapFilter);
     assign(vm, "diseasesAccordionOpen", session.diseasesAccordionOpen !== false);
     assign(
         vm,

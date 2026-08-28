@@ -197,8 +197,10 @@ function splitPipe(value) {
  *   recordCount: number,
  *   diseases: string,
  *   roles: string,
+ *   genes: string,
  *   diseaseList: string[],
  *   roleList: string[],
+ *   geneList: string[],
  * }>>}
  */
 export async function listBiomarkersForMondoDiseases(diseaseIris, opts = {}) {
@@ -216,6 +218,7 @@ SELECT
   (COUNT(DISTINCT ?biomarkerRecord) AS ?recordCount)
   (GROUP_CONCAT(DISTINCT ?diseaseLabel; SEPARATOR=" | ") AS ?diseases)
   (GROUP_CONCAT(DISTINCT ?roleLabel; SEPARATOR=" | ") AS ?roles)
+  (GROUP_CONCAT(DISTINCT ?geneSymbol; SEPARATOR=" | ") AS ?genes)
 WHERE {
   GRAPH <${BIOMARKER_KG_GRAPH}> {
     VALUES ?disease {
@@ -241,11 +244,15 @@ WHERE {
 
     OPTIONAL { ?disease rdfs:label ?diseaseNodeLabel . }
     OPTIONAL { ?biomarker rdfs:label ?biomarkerNodeLabel . }
+    OPTIONAL { ?biomarkerRecord rdfs:label ?recordLabel . }
   }
 
   BIND(COALESCE(?diseaseNodeLabel, STR(?disease)) AS ?diseaseLabel)
   BIND(REPLACE(STR(?biomarker), "^.*/", "") AS ?biomarkerIdentifier)
   BIND(COALESCE(?biomarkerNodeLabel, STR(?biomarker)) AS ?biomarkerLabel)
+  BIND(COALESCE(?recordLabel, ?biomarkerLabel) AS ?geneSourceLabel)
+  BIND(REPLACE(STR(?geneSourceLabel), "^.*\\\\bgene\\\\s+([A-Za-z0-9-]+)/NCBI:.*$", "$1", "i") AS ?geneCandidate)
+  BIND(IF(CONTAINS(?geneSourceLabel, "/NCBI:") && !CONTAINS(?geneCandidate, " "), ?geneCandidate, "") AS ?geneSymbol)
 }
 GROUP BY ?biomarker ?biomarkerIdentifier ?biomarkerLabel
 ORDER BY DESC(?diseaseCount) DESC(?recordCount) ?biomarkerLabel
@@ -255,6 +262,8 @@ LIMIT ${limit}
     return bindings.map((b) => {
         const diseases = (b.diseases && b.diseases.value) || "";
         const roles = (b.roles && b.roles.value) || "";
+        const genes = (b.genes && b.genes.value) || "";
+        const geneList = splitPipe(genes).filter(Boolean);
         return {
             biomarker: (b.biomarker && b.biomarker.value) || "",
             biomarkerIdentifier: (b.biomarkerIdentifier && b.biomarkerIdentifier.value) || "",
@@ -263,8 +272,10 @@ LIMIT ${limit}
             recordCount: Number(b.recordCount && b.recordCount.value) || 0,
             diseases,
             roles,
+            genes: geneList.length ? geneList.join(" | ") : "",
             diseaseList: splitPipe(diseases),
             roleList: splitPipe(roles),
+            geneList,
         };
     });
 }
