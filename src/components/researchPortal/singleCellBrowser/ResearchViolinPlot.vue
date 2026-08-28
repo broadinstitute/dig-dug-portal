@@ -8,8 +8,30 @@
   import * as d3 from 'd3';
   import Vue from 'vue';
   import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
+  import EventBus from "@/utils/eventBus";
   import {llog} from "./llog.js";
-  
+
+  /*
+    in facet-rows mode a violin's height is one facet row, but its width comes from the x
+    band - and the x axis there is the stratification, which is often just two or three
+    categories, so a band is a third to a half of the whole plot. uncapped that gave a glyph
+    ~350px wide inside a 55px row: the density axis had six times the room the value axis
+    did, and every violin read as a horizontal smear rather than a distribution.
+
+    so the box width is capped at a fraction of the row height, which bounds the aspect
+    ratio rather than the pixel count. the violin comes out 1.33x the box width (see
+    violinWidth in drawEntry), so 0.5 draws one about two thirds as wide as it is tall -
+    narrow and upright.
+
+    the row height is deliberately NOT raised to compensate. this plot type exists to be
+    compact next to the violin list, which spends a full 300px row per stratify value; the
+    fix here is to stop the violins spreading sideways, not to give them more room.
+
+    the cap only binds when there are few categories. stratify by something with 191 values
+    and the band is already far narrower than the cap, so nothing changes.
+  */
+  const FACET_BOX_WIDTH_TO_ROW_HEIGHT = 0.5;
+
   export default Vue.component('research-violin-plot', {
     props: {
       data: {                           
@@ -63,6 +85,9 @@
         type: Boolean,
         default: false
       },
+      //kept deliberately short - a compact row per facet is the point of this plot type.
+      //the violin width is capped against it, so lowering this narrows the violins in step
+      //rather than squashing them - see FACET_BOX_WIDTH_TO_ROW_HEIGHT
       facetRowHeight: {
         type: Number,
         default: 55
@@ -92,6 +117,13 @@
             eventElements: [],
             resizeTimeout: null,
             resizeObserver: null,
+            //width drawChart last ran at, so the resize observer can ignore height-only
+            //changes - see initResizeObserver
+            lastDrawnWidth: null,
+            //set when a draw was skipped because nothing was rendered to measure
+            drawPending: false,
+            contentVisibilityTarget: null,
+            onContentVisibilityChange: null,
         }
     },
     watch: {
@@ -119,10 +151,16 @@
         }
         window.addEventListener('resize', this.handleResize);
         this.initResizeObserver();
+        this.initContentVisibilityWatch();
+        //DownloadChart makes the whole subtree visible then asks every chart to catch up,
+        //synchronously, before it reads the dom
+        EventBus.$on('chart-export-prepare', this.drawIfPending);
     },
     beforeDestroy(){
         window.removeEventListener('resize', this.handleResize);
         this.teardownResizeObserver();
+        this.teardownContentVisibilityWatch();
+        EventBus.$off('chart-export-prepare', this.drawIfPending);
         if(this.eventElements.length>0) {
             this.removeAllListeners(this.eventElements);
         }
@@ -132,10 +170,76 @@
             if (typeof ResizeObserver === 'undefined') return;
             const target = this.$refs.chartWrapper?.parentElement || this.$refs.chartWrapper;
             if (!target) return;
+            /*
+                only a width change needs a redraw. the height is this component's own
+                output - drawChart sets chartWrapper.style.height from the height prop or the
+                facet row count, after measuring the labels - so reacting to a height change
+                is reacting to ourselves.
+
+                ResizeObserver also delivers an initial notification when observation starts,
+                so every chart used to redraw ~100 ms after mounting, at the same width it had
+                just drawn at. in a stratified violin list that was one wasted full rebuild
+                per stratify value.
+            */
             this.resizeObserver = new ResizeObserver(() => {
+                //a deferred draw always wins: this is the fallback path for browsers without
+                //contentvisibilityautostatechange, where becoming visible arrives as a resize
+                if (this.drawPending) {
+                    this.handleResize();
+                    return;
+                }
+                const width = target.offsetWidth;
+                if (this.lastDrawnWidth !== null && Math.abs(width - this.lastDrawnWidth) < 1) return;
                 this.handleResize();
             });
             this.resizeObserver.observe(target);
+        },
+        /*
+            is this chart inside a subtree the browser is skipping for rendering?
+
+            checkVisibility({contentVisibilityAuto: true}) is the API built for exactly this
+            question. where it is unavailable, fall back to measuring: chartWrapper has
+            width:100%, so it only has zero width when it has no box at all.
+        */
+        isRenderSkipped(){
+            const host = this.$refs.chartWrapper;
+            if(!host) return true;
+            if(typeof host.checkVisibility === 'function'){
+                return !host.checkVisibility({ contentVisibilityAuto: true });
+            }
+            return host.offsetWidth === 0;
+        },
+        //called by the export before it walks the dom, so an entry that never scrolled into
+        //view still contributes a drawn chart rather than an empty div
+        drawIfPending(){
+            if(this.drawPending) this.drawChart();
+        },
+        /*
+            content-visibility: auto tells us when it starts and stops skipping this subtree.
+            a chart that deferred its draw because it had no boxes to measure draws here, the
+            moment it becomes relevant to the user.
+
+            this is also why deferring beats drawing anyway: an off screen entry holds no svg
+            at all, rather than ~290 nodes the browser is merely declining to lay out.
+        */
+        initContentVisibilityWatch(){
+            const target = this.$refs.chartWrapper?.parentElement;
+            if(!target || typeof target.addEventListener !== 'function') return;
+
+            this.onContentVisibilityChange = (event) => {
+                if(event.skipped) return;
+                if(this.drawPending) this.drawChart();
+            };
+            target.addEventListener('contentvisibilityautostatechange', this.onContentVisibilityChange);
+            this.contentVisibilityTarget = target;
+        },
+        teardownContentVisibilityWatch(){
+            if(this.contentVisibilityTarget && this.onContentVisibilityChange){
+                this.contentVisibilityTarget.removeEventListener(
+                    'contentvisibilityautostatechange', this.onContentVisibilityChange);
+            }
+            this.contentVisibilityTarget = null;
+            this.onContentVisibilityChange = null;
         },
         teardownResizeObserver(){
             if(this.resizeObserver){
@@ -155,6 +259,30 @@
             llog("   data", this.data);
 
             if(!this.data) return;
+
+            /*
+                this chart sizes itself by measuring its own labels - the temp svg below
+                reads getBBox() on the rotated primary labels to work out how much bottom
+                margin they need. inside a subtree the browser is skipping for rendering
+                (an ancestor with content-visibility: auto scrolled out of view, or a hidden
+                tab) there are no boxes, so those measurements come back zero and the chart
+                would draw itself too short with its labels clipped.
+
+                defer instead, and draw when it becomes visible - see
+                initContentVisibilityWatch, the drawPending bypass in the resize observer for
+                browsers without that event, and drawIfPending, which the export calls.
+
+                note the width cannot be used to detect this. the element carrying
+                content-visibility is chartWrapper's *parent*, and that element still
+                generates a box - only its contents are skipped - so its offsetWidth is
+                perfectly normal while everything inside it is unmeasurable.
+            */
+            if(this.isRenderSkipped()){
+                this.drawPending = true;
+                llog('   deferring draw, not currently rendered');
+                return;
+            }
+            this.drawPending = false;
 
             //clear previous event listeners
             if(this.eventElements.length>0) {
@@ -229,6 +357,7 @@
 
             //calculate sizes and margins
             const parentWidth = this.$refs.chartWrapper.parentElement.offsetWidth;
+            this.lastDrawnWidth = parentWidth;
             //llog("parentWidth", parentWidth);
 
             let width = parentWidth;
@@ -389,7 +518,13 @@
             }
 
             const baseBandwidth = useFacetRows ? x.bandwidth() : (hasSubsetKey && xGrouped ? xGrouped.bandwidth() : x.bandwidth());
-            const boxWidth = baseBandwidth * 0.6;
+            //capped against the row height in facet mode - see FACET_BOX_WIDTH_TO_ROW_HEIGHT.
+            //boxWidth drives the violin, the box, the whiskers and the median line, and
+            //xCenter is independent of it, so capping narrows the whole glyph and leaves it
+            //centred in its band
+            const boxWidth = useFacetRows
+                ? Math.min(baseBandwidth * 0.6, this.facetRowHeight * FACET_BOX_WIDTH_TO_ROW_HEIGHT)
+                : baseBandwidth * 0.6;
 
             //add background boxes to separate primaryKey sections
             //when they have subsetKey items

@@ -18,6 +18,7 @@
                         :key="section.id"
                         :rows="associationPlotRows"
                         :selected-ancestries="associationsState.selectedAncestries || []"
+                        :selected-phenotypes="associationsState.selectedPhenotypes || []"
                         :loading="associationsState.loading"
                         :hide-loading-status="regionLoadProgressActive"
                         :ld-loading="associationsState.ldLoading"
@@ -72,7 +73,10 @@
             </div>
             <VariantSifterDataTableModal
                 :open="dataTableOpen"
-                :association-rows="associationsState.rows"
+                :association-rows="associationTableRows"
+                :search-session="searchSession"
+                :selected-phenotypes="associationsState.selectedPhenotypes || []"
+                :project-id="projectId"
                 :credible-sets-state="credibleSetsState"
                 :global-enrichment-state="globalEnrichmentState"
                 :v2g-state="v2gState"
@@ -295,6 +299,14 @@ export default {
                 filtered,
                 this.workspaceMappingFilter
             );
+        },
+        /** Same association-filter view as the Associations drawer table (before mapping chips). */
+        associationTableRows() {
+            const { rows, filtersIndex } = this.associationsState;
+            if (!rows?.length) {
+                return [];
+            }
+            return applyAssociationsFilters(rows, filtersIndex);
         },
         viewportStyle() {
             return {

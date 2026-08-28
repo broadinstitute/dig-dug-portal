@@ -26,7 +26,7 @@ export const VKS_GWAS_CE_BIOINDEX_HOST =
 /** Placeholder written into exported session JSON instead of the real token. */
 export const VKS_GWAS_CE_TOKEN_REDACTION = "$token";
 
-/** Only associations are served from the GWAS-CE BioIndex host. */
+/** Only associations (+ optional CS) are served from the GWAS-CE BioIndex host. */
 export const VKS_GWAS_CE_BIOINDEX_INDEXES = new Set(["associations"]);
 
 /** Association row `Project` column values (additive CE overlay on default KP). */
@@ -175,6 +175,18 @@ export function normalizeGwasCeToken(token) {
 export function gwasCeAssociationsIndex(token) {
     const id = normalizeGwasCeToken(token);
     return id ? `associations-${id}` : "associations";
+}
+
+/** Index name for GWAS-CE credible sets: credible-sets-{token}. */
+export function gwasCeCredibleSetsIndex(token) {
+    const id = normalizeGwasCeToken(token);
+    return id ? `credible-sets-${id}` : "credible-sets";
+}
+
+/** Index name for GWAS-CE credible variants: credible-variants-{token}. */
+export function gwasCeCredibleVariantsIndex(token) {
+    const id = normalizeGwasCeToken(token);
+    return id ? `credible-variants-${id}` : "credible-variants";
 }
 
 /** Resolve the GWAS-CE token stored on a search session. */

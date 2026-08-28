@@ -296,7 +296,10 @@ export default {
             return Boolean(this.globalEnrichmentState?.loading);
         },
         tissueOptions() {
-            return collectTissueOptionsFromGeRows(this.globalEnrichmentState?.geRows);
+            // Full multi-phenotype geRows (mergeGlobalEnrichmentForPhenotype appends here).
+            // Do not filter by primary phenotype — new GE tissues must appear in this list.
+            const geRows = this.globalEnrichmentState?.geRows || [];
+            return collectTissueOptionsFromGeRows(geRows);
         },
         selectedTissues() {
             return Array.isArray(this.v2gState?.selectedTissues)

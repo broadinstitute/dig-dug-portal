@@ -21,7 +21,10 @@
                     v-for="filter in group.filters"
                     :key="filter.field"
                     class="vks-assoc-filter-field"
-                    :class="{ 'is-checkbox': filter.type === 'checkbox' }"
+                    :class="{
+                        'is-checkbox':
+                            filter.type === 'checkbox' || filter.type === 'boolean',
+                    }"
                 >
                     <div
                         v-if="showFieldLabel(group, filter)"
@@ -67,15 +70,26 @@
                         >
                             <label
                                 v-for="option in checkboxOptions(filter.field)"
-                                :key="`${filter.field}-${option}`"
+                                :key="`${filter.field}-${optionValue(option)}`"
                                 class="vks-assoc-filter-check"
                             >
                                 <input
                                     type="checkbox"
-                                    :checked="isCheckboxSelected(filter.field, option)"
-                                    @change="onCheckboxToggle(filter, option, $event)"
+                                    :checked="
+                                        isCheckboxSelected(
+                                            filter.field,
+                                            optionValue(option)
+                                        )
+                                    "
+                                    @change="
+                                        onCheckboxToggle(
+                                            filter,
+                                            optionValue(option),
+                                            $event
+                                        )
+                                    "
                                 />
-                                <span>{{ option }}</span>
+                                <span>{{ optionLabel(option) }}</span>
                             </label>
                             <p
                                 v-if="!checkboxOptions(filter.field).length"
@@ -85,6 +99,16 @@
                             </p>
                         </div>
                     </template>
+                    <template v-else-if="filter.type === 'boolean'">
+                        <label class="vks-assoc-filter-check">
+                            <input
+                                type="checkbox"
+                                :checked="isBooleanSelected(filter.field)"
+                                @change="onBooleanToggle(filter, $event)"
+                            />
+                            <span>{{ filter.label }}</span>
+                        </label>
+                    </template>
                 </div>
             </section>
         </div>
@@ -93,12 +117,13 @@
 
 <script>
 import {
-    ASSOCIATIONS_FILTERS,
-    ASSOCIATIONS_FILTER_GROUPS,
     applyAssociationsFilters,
+    associationsFilterGroupsForContext,
+    associationsFiltersForContext,
     buildFilterOptions,
     cloneFiltersIndex,
     createFiltersIndex,
+    OVERLAPPING_VARIANTS_FILTER_FIELD,
 } from "./variantSifterAssociationsFilters.js";
 
 export default {
@@ -110,16 +135,33 @@ export default {
         },
         filters: {
             type: Array,
-            default: () => ASSOCIATIONS_FILTERS,
+            default: null,
         },
         filtersIndex: {
             type: Object,
             default: null,
         },
+        includeProject: {
+            type: Boolean,
+            default: false,
+        },
+        includePhenotype: {
+            type: Boolean,
+            default: false,
+        },
     },
     computed: {
+        resolvedFilters() {
+            if (Array.isArray(this.filters) && this.filters.length) {
+                return this.filters;
+            }
+            return associationsFiltersForContext({
+                includeProject: this.includeProject,
+                includePhenotype: this.includePhenotype,
+            });
+        },
         activeFiltersIndex() {
-            const base = createFiltersIndex(this.filters);
+            const base = createFiltersIndex(this.resolvedFilters);
             const incoming = this.filtersIndex || {};
             Object.keys(base).forEach((field) => {
                 if (!incoming[field]) {
@@ -135,13 +177,16 @@ export default {
         },
         filterByField() {
             const map = {};
-            this.filters.forEach((filter) => {
+            this.resolvedFilters.forEach((filter) => {
                 map[filter.field] = filter;
             });
             return map;
         },
         filterGroups() {
-            return ASSOCIATIONS_FILTER_GROUPS.map((group) => ({
+            return associationsFilterGroupsForContext({
+                includeProject: this.includeProject,
+                includePhenotype: this.includePhenotype,
+            }).map((group) => ({
                 ...group,
                 filters: group.fields
                     .map((field) => this.filterByField[field])
@@ -152,11 +197,19 @@ export default {
             return applyAssociationsFilters(this.rows, this.activeFiltersIndex);
         },
         activeFilterCount() {
-            return Object.values(this.activeFiltersIndex).reduce(
-                (count, filter) =>
-                    count + ((filter.search || []).length > 0 ? 1 : 0),
-                0
-            );
+            return Object.values(this.activeFiltersIndex).reduce((count, filter) => {
+                if (filter.field === OVERLAPPING_VARIANTS_FILTER_FIELD) {
+                    return (
+                        count +
+                        ((filter.search || []).some(
+                            (value) => value === true || value === "true"
+                        )
+                            ? 1
+                            : 0)
+                    );
+                }
+                return count + ((filter.search || []).length > 0 ? 1 : 0);
+            }, 0);
         },
     },
     watch: {
@@ -178,7 +231,17 @@ export default {
             return label.replace(/\W/g, "").toLowerCase();
         },
         showFieldLabel(group, filter) {
+            if (filter.type === "boolean") {
+                return false;
+            }
             if (filter.type === "checkbox" && group.fields.length === 1) {
+                return false;
+            }
+            if (
+                filter.type === "checkbox" &&
+                group.id === "phenotype" &&
+                filter.field === "Phenotype"
+            ) {
                 return false;
             }
             return true;
@@ -186,11 +249,30 @@ export default {
         checkboxOptions(field) {
             return buildFilterOptions(this.rows, field);
         },
+        optionValue(option) {
+            if (option && typeof option === "object") {
+                return option.value;
+            }
+            return option;
+        },
+        optionLabel(option) {
+            if (option && typeof option === "object") {
+                return option.label || option.value;
+            }
+            return option;
+        },
         searchSuggestions(field) {
-            return buildFilterOptions(this.rows, field).slice(0, 500);
+            return buildFilterOptions(this.rows, field)
+                .map((option) => this.optionValue(option))
+                .slice(0, 500);
         },
         isCheckboxSelected(field, option) {
             return (this.activeFiltersIndex[field]?.search || []).includes(option);
+        },
+        isBooleanSelected(field) {
+            return (this.activeFiltersIndex[field]?.search || []).some(
+                (value) => value === true || value === "true"
+            );
         },
         textFilterValue(filter) {
             const values = this.activeFiltersIndex[filter.field]?.search || [];
@@ -242,6 +324,12 @@ export default {
 
             this.emitFiltersIndex(nextIndex);
         },
+        onBooleanToggle(filter, event) {
+            const nextIndex = cloneFiltersIndex(this.activeFiltersIndex);
+            const filterState = nextIndex[filter.field];
+            filterState.search = event?.target?.checked ? [true] : [];
+            this.emitFiltersIndex(nextIndex);
+        },
         clearAllFilters() {
             const nextIndex = cloneFiltersIndex(this.activeFiltersIndex);
             Object.keys(nextIndex).forEach((field) => {
@@ -255,103 +343,73 @@ export default {
 
 <style scoped>
 .vks-assoc-filters {
-    margin-bottom: 4px;
+    margin: 0;
 }
 
 .vks-assoc-filter-reset-row {
     display: flex;
-    justify-content: flex-start;
-    margin-bottom: 10px;
-}
-
-.vks-assoc-filter-reset {
-    font-size: 13px;
-    font-weight: 700;
-    padding: 6px 14px;
+    justify-content: flex-end;
+    margin-bottom: 8px;
 }
 
 .vks-assoc-filter-columns {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px 24px;
-    margin-bottom: 10px;
-}
-
-.vks-assoc-filter-column {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-left: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px 16px;
 }
 
 .vks-assoc-filter-column-title {
-    margin: 0;
-    font-size: 13px;
+    margin: 0 0 8px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--cfde-blue, #2c5c97);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
-.vks-assoc-filter-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+.vks-assoc-filter-field + .vks-assoc-filter-field {
+    margin-top: 10px;
 }
 
 .vks-assoc-filter-label {
+    margin-bottom: 4px;
     font-size: 12px;
     font-weight: 600;
     color: var(--cfde-ink, #33363d);
 }
 
 .vks-assoc-filter-input {
-    width: 100%;
-    max-width: 180px;
-    height: 30px;
-    font-size: 13px;
-    padding: 2px 6px;
+    font-size: 12px;
+    min-height: 30px;
+    padding: 4px 8px;
 }
 
 .vks-assoc-filter-checkboxes {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 220px;
-    overflow: auto;
-    padding: 2px 0;
+    max-height: 180px;
+    overflow-y: auto;
 }
 
 .vks-assoc-filter-check {
-    display: flex;
+    display: inline-flex;
     align-items: flex-start;
     gap: 6px;
     margin: 0;
     font-size: 12px;
-    line-height: 1.35;
+    font-weight: 500;
     color: var(--cfde-ink, #33363d);
     cursor: pointer;
 }
 
 .vks-assoc-filter-check input {
-    margin: 2px 0 0;
-    flex: 0 0 auto;
+    margin-top: 2px;
 }
 
 .vks-assoc-filter-empty {
     margin: 0;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--cfde-muted, #6b6b6b);
-}
-
-@media (max-width: 1200px) {
-    .vks-assoc-filter-columns {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 900px) {
-    .vks-assoc-filter-columns {
-        grid-template-columns: 1fr;
-    }
 }
 </style>

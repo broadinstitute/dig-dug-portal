@@ -68,6 +68,33 @@
             </div>
 
             <div v-else-if="openParam === 'phenotype'" class="vks-session-param-panel-body">
+                <div
+                    v-if="panelPhenotypeBubbles.length"
+                    class="vks-session-param-phenotype-bubbles"
+                    role="list"
+                    aria-label="Active phenotypes"
+                >
+                    <span
+                        v-for="bubble in panelPhenotypeBubbles"
+                        :key="bubble.name"
+                        class="vks-session-param-phenotype-bubble"
+                        role="listitem"
+                    >
+                        <span class="vks-session-param-phenotype-bubble-label">
+                            {{ bubble.label }}
+                        </span>
+                        <button
+                            v-if="canRemovePanelPhenotype"
+                            type="button"
+                            class="vks-session-param-phenotype-bubble-remove"
+                            :aria-label="`Remove ${bubble.label}`"
+                            :title="`Remove ${bubble.label}`"
+                            @click="onRemovePhenotypeBubble(bubble)"
+                        >
+                            ×
+                        </button>
+                    </span>
+                </div>
                 <label class="vks-session-param-label" :for="phenotypeInputId">
                     Phenotype
                 </label>
@@ -79,7 +106,7 @@
                         class="vks-session-param-input"
                         autocomplete="off"
                         placeholder="Search phenotype"
-                        @focus="phenotypeListOpen = true"
+                        @focus="onPhenotypeFocus"
                         @input="onPhenotypeInput"
                     />
                     <div
@@ -107,6 +134,14 @@
                         </button>
                     </div>
                 </div>
+                <label class="vks-session-param-checkbox" :for="addPhenotypeId">
+                    <input
+                        :id="addPhenotypeId"
+                        v-model="addPhenotype"
+                        type="checkbox"
+                    />
+                    <span>Add phenotype</span>
+                </label>
             </div>
 
             <div v-else-if="openParam === 'ancestry'" class="vks-session-param-panel-body">
@@ -243,6 +278,10 @@ export default {
             type: Array,
             default: () => [],
         },
+        selectedPhenotypes: {
+            type: Array,
+            default: () => [],
+        },
         utils: {
             type: Object,
             default: null,
@@ -260,6 +299,7 @@ export default {
             projectSelectId: `vks-session-param-project-${suffix}`,
             tokenInputId: `vks-session-param-token-${suffix}`,
             phenotypeInputId: `vks-session-param-phenotype-${suffix}`,
+            addPhenotypeId: `vks-session-param-add-phenotype-${suffix}`,
             ancestrySelectId: `vks-session-param-ancestry-${suffix}`,
             locusInputId: `vks-session-param-locus-${suffix}`,
             expandSelectId: `vks-session-param-expand-${suffix}`,
@@ -269,6 +309,7 @@ export default {
             draftAncestry: "Mixed",
             draftExpandBp: null,
             selectedPhenotype: null,
+            addPhenotype: false,
             phenotypeQuery: "",
             phenotypeListOpen: false,
             locusQuery: "",
@@ -296,7 +337,43 @@ export default {
             return projectAncestryOptions(this.projectId);
         },
         phenotypeSuggestions() {
+            if (!String(this.phenotypeQuery || "").trim()) {
+                return [];
+            }
             return filterPhenotypes(this.draftPhenotypes, this.phenotypeQuery);
+        },
+        panelPhenotypeBubbles() {
+            const bubbles = [];
+            const primary = this.searchSession?.phenotype;
+            const primaryName = String(primary?.name || "").trim();
+            if (primaryName) {
+                bubbles.push({
+                    name: primaryName,
+                    label: this.phenotypeSuggestionLabel(primary),
+                    isPrimary: true,
+                });
+            }
+            (this.selectedPhenotypes || []).forEach((entry) => {
+                const name = typeof entry === "string" ? entry : entry?.name;
+                const trimmed = String(name || "").trim();
+                if (!trimmed || trimmed === primaryName) {
+                    return;
+                }
+                if (bubbles.some((bubble) => bubble.name === trimmed)) {
+                    return;
+                }
+                bubbles.push({
+                    name: trimmed,
+                    label: this.phenotypeSuggestionLabel(
+                        typeof entry === "string" ? { name: entry } : entry
+                    ),
+                    isPrimary: false,
+                });
+            });
+            return bubbles;
+        },
+        canRemovePanelPhenotype() {
+            return this.panelPhenotypeBubbles.length > 1;
         },
         bubbles() {
             const session = this.searchSession || {};
@@ -320,7 +397,10 @@ export default {
                 {
                     id: "phenotype",
                     title: "Phenotype",
-                    value: phenotype,
+                    value:
+                        this.additionalPhenotypeCount > 0
+                            ? `${phenotype} + ${this.additionalPhenotypeCount}`
+                            : phenotype,
                 },
             ];
             if (!projectHidesAncestry(this.projectId)) {
@@ -337,10 +417,16 @@ export default {
             });
             return items;
         },
+        additionalPhenotypeCount() {
+            return (this.selectedPhenotypes || []).filter((entry) => {
+                const name = typeof entry === "string" ? entry : entry?.name;
+                return Boolean(String(name || "").trim());
+            }).length;
+        },
         activePanelTitle() {
             const titles = {
                 project: "Change project",
-                phenotype: "Change phenotype",
+                phenotype: "Change / add phenotype",
                 ancestry: "Change ancestry",
                 region: "Change region",
             };
@@ -395,6 +481,7 @@ export default {
             this.errorMessage = "";
             this.phenotypeListOpen = false;
             this.geneListOpen = false;
+            this.addPhenotype = false;
             this.applying = false;
         },
         syncDraftFromSession(paramId) {
@@ -405,9 +492,17 @@ export default {
             this.draftExpandBp =
                 session.regionExpandBp != null ? session.regionExpandBp : null;
             this.selectedPhenotype = session.phenotype || null;
-            this.phenotypeQuery = this.selectedPhenotype
-                ? this.phenotypeSuggestionLabel(this.selectedPhenotype)
-                : "";
+            this.addPhenotype = false;
+            if (paramId === "phenotype") {
+                this.selectedPhenotype = null;
+                this.phenotypeQuery = "";
+                this.phenotypeListOpen = false;
+            } else {
+                this.phenotypeQuery = this.selectedPhenotype
+                    ? this.phenotypeSuggestionLabel(this.selectedPhenotype)
+                    : "";
+                this.phenotypeListOpen = false;
+            }
             this.locusQuery =
                 session.geneOrVariantQuery ||
                 session.regionLabel ||
@@ -415,8 +510,27 @@ export default {
                 "";
             this.geneSuggestions = [];
             this.geneSuggestionSuppressed = false;
-            this.phenotypeListOpen = paramId === "phenotype";
             this.geneListOpen = false;
+        },
+        phenotypeAlreadyOnCanvas(phenotype) {
+            const name = String(phenotype?.name || "").trim();
+            if (!name) {
+                return false;
+            }
+            const primaryName = String(this.searchSession?.phenotype?.name || "").trim();
+            if (name === primaryName) {
+                return true;
+            }
+            return (this.selectedPhenotypes || []).some((entry) => {
+                const entryName = typeof entry === "string" ? entry : entry?.name;
+                return String(entryName || "").trim() === name;
+            });
+        },
+        onRemovePhenotypeBubble(bubble) {
+            if (!this.canRemovePanelPhenotype || !bubble?.name) {
+                return;
+            }
+            this.$emit("remove-phenotype", bubble.name);
         },
         onDocumentClick(event) {
             if (!this.openParam || !this.$refs.root) {
@@ -431,8 +545,11 @@ export default {
                 this.closePanel();
             }
         },
+        onPhenotypeFocus() {
+            this.phenotypeListOpen = String(this.phenotypeQuery || "").trim().length > 0;
+        },
         onPhenotypeInput() {
-            this.phenotypeListOpen = true;
+            this.phenotypeListOpen = String(this.phenotypeQuery || "").trim().length > 0;
             this.selectedPhenotype = null;
             this.errorMessage = "";
         },
@@ -565,6 +682,24 @@ export default {
                     return;
                 }
 
+                const shouldAddPhenotype =
+                    this.openParam === "phenotype" && this.addPhenotype;
+                if (shouldAddPhenotype) {
+                    if (this.phenotypeAlreadyOnCanvas(phenotype)) {
+                        this.errorMessage =
+                            "That phenotype is already on the associations canvas.";
+                        return;
+                    }
+                    this.$emit("apply-search", {
+                        session: this.searchSession,
+                        projectId: nextProjectId,
+                        addPhenotype: true,
+                        phenotype,
+                    });
+                    this.closePanel();
+                    return;
+                }
+
                 let ancestry = this.searchSession.ancestry || "Mixed";
                 if (this.openParam === "ancestry") {
                     ancestry = this.draftAncestry || "Mixed";
@@ -639,6 +774,7 @@ export default {
                 this.$emit("apply-search", {
                     session: nextSession,
                     projectId: nextProjectId,
+                    addPhenotype: false,
                 });
                 this.closePanel();
             } finally {
@@ -761,8 +897,77 @@ export default {
     color: var(--cfde-ink, #33363d);
 }
 
+.vks-session-param-panel-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.vks-session-param-phenotype-bubbles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 12px;
+}
+
+.vks-session-param-phenotype-bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    padding: 3px 6px 3px 8px;
+    border-radius: 999px;
+    background: var(--cfde-blue, #2c5c97);
+    color: #ffffff;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.vks-session-param-phenotype-bubble-label {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.vks-session-param-phenotype-bubble-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.vks-session-param-phenotype-bubble-remove:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
 .vks-session-param-typeahead {
     position: relative;
+}
+
+.vks-session-param-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+    cursor: pointer;
+    user-select: none;
+}
+
+.vks-session-param-checkbox input {
+    margin: 0;
 }
 
 .vks-session-param-suggestions {

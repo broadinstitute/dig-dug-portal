@@ -218,6 +218,7 @@ import {
     credibleSetOptionLabel,
     credibleSetShortLabel,
     makeCredibleSetSelectionKey,
+    normalizeCredibleSetProject,
 } from "./variantSifterCredibleSetsFormat.js";
 import {
     applyCredibleSetsPanelFilters,
@@ -271,10 +272,15 @@ export default {
                 { id: "credible-sets", label: "Credible sets" },
                 { id: "filters", label: "Filters" },
             ],
-            panelFilters: createCredibleSetsPanelFilters(),
         };
     },
     computed: {
+        panelFilters() {
+            return (
+                this.credibleSetsState?.panelFilters ||
+                createCredibleSetsPanelFilters()
+            );
+        },
         listLoading() {
             return Boolean(this.credibleSetsState?.listLoading);
         },
@@ -421,29 +427,41 @@ export default {
                 ) {
                     return;
                 }
-                this.panelFilters = {
+                this.emitPanelFilters({
                     ...this.panelFilters,
                     selectedSetKeys: nextKeys,
-                };
+                });
             },
         },
     },
     methods: {
+        emitPanelFilters(next) {
+            this.$emit(
+                "update:panelFilters",
+                cloneCredibleSetsPanelFilters(next)
+            );
+        },
         optionLabel(entry) {
             return credibleSetOptionLabel(entry);
         },
         optionKey(entry) {
             return makeCredibleSetSelectionKey(
                 entry.credibleSetId,
-                entry.ancestry || "Mixed"
+                entry.ancestry || "Mixed",
+                entry.phenotype || "",
+                entry.project || ""
             );
         },
         optionValue(entry) {
-            return [
+            const parts = [
                 entry.credibleSetId || "",
                 entry.phenotype || "",
                 entry.ancestry || "Mixed",
-            ].join(",");
+            ];
+            if (entry.project) {
+                parts.push(entry.project);
+            }
+            return parts.join(",");
         },
         pillLabel(entry) {
             return entry.label || credibleSetShortLabel(entry);
@@ -462,7 +480,9 @@ export default {
                 entry.selectionKey ||
                 makeCredibleSetSelectionKey(
                     entry.credibleSetId,
-                    entry.ancestry || "Mixed"
+                    entry.ancestry || "Mixed",
+                    entry.phenotype || "",
+                    entry.project || ""
                 )
             );
         },
@@ -478,30 +498,51 @@ export default {
             if (!value) {
                 return;
             }
-            const [credibleSetId, phenotype, ancestry] = value.split(",");
+            const parts = value.split(",");
+            let project = "";
+            let ancestry = "Mixed";
+            let phenotype = "";
+            let credibleSetId = parts[0] || "";
+            if (parts.length >= 4) {
+                const maybeProject = normalizeCredibleSetProject(
+                    parts[parts.length - 1]
+                );
+                if (maybeProject) {
+                    project = maybeProject;
+                    ancestry = parts[parts.length - 2] || "Mixed";
+                    phenotype = parts.slice(1, -2).join(",");
+                } else {
+                    phenotype = parts[1] || "";
+                    ancestry = parts[2] || "Mixed";
+                }
+            } else {
+                phenotype = parts[1] || "";
+                ancestry = parts[2] || "Mixed";
+            }
             this.$emit("add-set", {
                 credibleSetId,
                 phenotype,
-                ancestry: ancestry || "Mixed",
+                ancestry,
+                project,
             });
         },
         onVariantSearchChange(event) {
-            this.panelFilters = {
+            this.emitPanelFilters({
                 ...this.panelFilters,
                 variantSearch: event.target.value.trim(),
-            };
+            });
         },
         onPpaMinChange(event) {
-            this.panelFilters = {
+            this.emitPanelFilters({
                 ...this.panelFilters,
                 ppaMin: event.target.value.trim(),
-            };
+            });
         },
         onPValueMaxChange(event) {
-            this.panelFilters = {
+            this.emitPanelFilters({
                 ...this.panelFilters,
                 pValueMax: event.target.value.trim(),
-            };
+            });
         },
         onFilterSetToggle(selectionKey, event) {
             const next = cloneCredibleSetsPanelFilters(this.panelFilters);
@@ -512,10 +553,10 @@ export default {
             } else if (!checked && index >= 0) {
                 next.selectedSetKeys.splice(index, 1);
             }
-            this.panelFilters = next;
+            this.emitPanelFilters(next);
         },
         clearAllFilters() {
-            this.panelFilters = createCredibleSetsPanelFilters();
+            this.emitPanelFilters(createCredibleSetsPanelFilters());
         },
     },
 };
