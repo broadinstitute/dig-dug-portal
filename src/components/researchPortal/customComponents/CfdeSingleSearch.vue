@@ -64,40 +64,25 @@
 					<div
 						v-if="showSearchSteps"
 						class="ss-search-steps"
-						:class="{ 'is-free-text': isFreeTextFallback }"
 					>
 						<div class="ss-search-steps-guide">
-							<span class="ss-step">
-								<span class="ss-step-num">1</span>
-								Select an entity
-							</span>
-							<span class="ss-step">
-								<span class="ss-step-num">2</span>
-								Choose an action
-							</span>
-							<template v-if="!isFreeTextFallback">
-								<div
-									v-for="action in guideActions"
-									:key="'inline-' + action.id"
-									class="ss-guide-bubble"
-									:class="{ selected: isQuestionSelected(action) }"
-									@click="selectGuideAction(action)"
+							<div class="ss-step-entity">
+								<span
+									class="ss-step"
+									:class="{ selected: isEntityStepSelected }"
 								>
-									{{ action['url label'] }}
-									<span class="ss-step-num ss-ai-icon">AI</span>
-								</div>
-							</template>
-						</div>
-						<div v-if="isFreeTextFallback" class="ss-guide-actions">
-							<div
-								v-for="action in guideActions"
-								:key="'row-' + action.id"
-								class="ss-guide-bubble"
-								:class="{ selected: isQuestionSelected(action) }"
-								@click="selectGuideAction(action)"
-							>
-								{{ action['url label'] }}
-								<span class="ss-step-num ss-ai-icon">AI</span>
+									<span class="ss-step-num">1</span>
+									Select an entity
+								</span>
+							</div>
+							<div class="ss-step-action">
+								<span
+									class="ss-step"
+									:class="{ selected: isActionStepSelected }"
+								>
+									<span class="ss-step-num">2</span>
+									Choose an action
+								</span>
 							</div>
 						</div>
 					</div>
@@ -141,6 +126,22 @@
 									{{ question['url label'] }}
 								</div>
 							</div>
+						</div>
+					</div>
+					<div
+						v-if="showSearchSteps"
+						class="ss-guide-actions"
+						:class="{ 'is-free-text': isFreeTextFallback }"
+					>
+						<div
+							v-for="action in guideActions"
+							:key="'row-' + action.id"
+							class="ss-guide-bubble"
+							:class="{ selected: isQuestionSelected(action) }"
+							@click="selectGuideAction(action)"
+						>
+							{{ action['url label'] }}
+							<span class="ss-step-num ss-ai-icon">AI</span>
 						</div>
 					</div>
 					<div v-if="showFreeTextPending && visibleCategories.length === 0" class="ss-llm-loading">
@@ -522,6 +523,12 @@ export default Vue.component("cfde-single-search", {
 		},
 		guideActions() {
 			return LLM_QUESTIONS;
+		},
+		isEntityStepSelected() {
+			return !!this.lockedEntity;
+		},
+		isActionStepSelected() {
+			return !!this.lockedQuestion && !this.isLlmQuestion(this.lockedQuestion);
 		},
 		activeDiscoveryQuery() {
 			return this.selectedDiscoveryQuery || (this.llmResults && this.llmResults.discovery) || "";
@@ -1169,37 +1176,63 @@ export default Vue.component("cfde-single-search", {
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
-	gap: 8px;
 	box-sizing: border-box;
-	min-height: 36px;
-	height: auto;
-	margin: -10px -10px -10px;
-	padding: 8px 10px 6px;
+	margin: 0;
+	padding: 0 14px;
 	flex-shrink: 0;
 	font-size: 13px;
 	color: #666666;
 }
-.ss-search-steps-guide,
-.ss-guide-actions {
+.ss-search-steps-guide {
 	display: flex;
 	align-items: center;
-	flex-wrap: wrap;
-	gap: 10px 14px;
-}
-.ss-search-steps.is-free-text .ss-guide-bubble {
-	font-size: 16px;
-	padding: 6px 10px 6px 14px;
+	gap: 24px;
 }
 .ss-step {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
+	width: fit-content;
+	max-width: 100%;
+	padding: 3px 10px 3px 4px;
+	border-radius: 20px;
+	line-height: 1.2;
+}
+.ss-step-entity {
+	flex: 4;
+	min-width: 0;
+}
+.ss-step-action {
+	flex: 6;
+	min-width: 0;
+}
+.ss-step.selected {
+	background: #FA6600;
+	color: #ffffff;
+}
+.ss-step.selected .ss-step-num {
+	background: #ffffff;
+	color: #000000;
+}
+.ss-guide-actions {
+	display: flex;
+	align-items: center;
+	gap: 5%;
+	padding: 0;
+}
+.ss-guide-actions.is-free-text .ss-guide-bubble {
+	font-size: 16px;
+	padding: 8px 10px 8px 14px;
 }
 .ss-guide-bubble {
 	display: inline-flex;
 	align-items: center;
+	justify-content: space-between;
 	gap: 6px;
-	padding: 3px 8px 3px 12px;
+	box-sizing: border-box;
+	flex: 0 0 47.5%;
+	width: 47.5%;
+	padding: 5px 8px 5px 12px;
 	border: 1px solid #dddddd;
 	border-radius: 20px;
 	background: #ffffff;
