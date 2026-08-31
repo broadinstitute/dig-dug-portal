@@ -7,7 +7,7 @@ import userUtils from "@/utils/userUtils";
  */
 
 export const BIOMARKER_SESSION_KIND = "biomarker-network-session";
-export const BIOMARKER_SESSION_SCHEMA_VERSION = 2;
+export const BIOMARKER_SESSION_SCHEMA_VERSION = 4;
 
 function cloneJson(value, fallback) {
     try {
@@ -34,6 +34,26 @@ function serializeDiseaseGenes(diseaseGenes) {
         if (Array.isArray(value)) out[key] = cloneJson(value, []);
     });
     return out;
+}
+
+function serializeMechanismLinkSummary(summary) {
+    const entry = summary || {};
+    if (entry.status !== "done" || !entry.data || typeof entry.data !== "object") {
+        return {
+            status: "idle",
+            data: null,
+            error: "",
+            rowCount: 0,
+            generatedAt: null,
+        };
+    }
+    return {
+        status: "done",
+        data: cloneJson(entry.data, null),
+        error: "",
+        rowCount: Number(entry.rowCount) || 0,
+        generatedAt: entry.generatedAt ? String(entry.generatedAt) : null,
+    };
 }
 
 export function sessionHasExportableContent(vm) {
@@ -89,6 +109,8 @@ export function buildBiomarkerSessionExport(vm) {
             diseaseGenes: serializeDiseaseGenes(vm && vm.diseaseGenes),
             networkExpandedDiseases: cloneJson((vm && vm.networkExpandedDiseases) || {}, {}),
             geneRegistry: cloneJson((vm && vm.geneRegistry) || {}, {}),
+            mechanismLinkSummary: serializeMechanismLinkSummary(vm && vm.mechanismLinkSummary),
+            mechanismLinkAccordionOpen: !!(vm && vm.mechanismLinkAccordionOpen),
         },
     };
 }
@@ -274,6 +296,20 @@ export function applyBiomarkerSessionImport(vm, payload, { setKeyParams } = {}) 
     assign(vm, "diseaseGenes", serializeDiseaseGenes(session.diseaseGenes));
     assign(vm, "networkExpandedDiseases", cloneJson(session.networkExpandedDiseases, {}));
     assign(vm, "geneRegistry", cloneJson(session.geneRegistry, {}));
+    assign(
+        vm,
+        "mechanismLinkSummary",
+        session.mechanismLinkSummary
+            ? serializeMechanismLinkSummary(session.mechanismLinkSummary)
+            : {
+                  status: "idle",
+                  data: null,
+                  error: "",
+                  rowCount: 0,
+                  generatedAt: null,
+              }
+    );
+    assign(vm, "mechanismLinkAccordionOpen", !!session.mechanismLinkAccordionOpen);
     assign(vm, "loading", false);
     assign(vm, "biomarkerLoading", false);
     assign(vm, "loadingMessage", "");

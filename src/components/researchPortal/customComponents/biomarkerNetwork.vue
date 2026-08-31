@@ -477,7 +477,30 @@
                                 <p v-else-if="!filteredRows.length" class="bn-filter-empty">
                                     No rows for the selected filters.
                                 </p>
-                                <table v-else class="table table-sm table-hover bn-table">
+                                <div
+                                    v-else
+                                    class="bn-table-toolbar"
+                                >
+                                    <span class="bn-table-toolbar-label">Download table:</span>
+                                    <button
+                                        type="button"
+                                        class="bn-table-download-btn"
+                                        @click="downloadBiomarkerTable('csv')"
+                                    >
+                                        CSV
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="bn-table-download-btn"
+                                        @click="downloadBiomarkerTable('tsv')"
+                                    >
+                                        TSV
+                                    </button>
+                                    <span class="bn-table-toolbar-meta text-muted">
+                                        {{ filteredRows.length }} row{{ filteredRows.length === 1 ? "" : "s" }}
+                                    </span>
+                                </div>
+                                <table v-if="filteredRows.length" class="table table-sm table-hover bn-table">
                                     <thead>
                                         <tr>
                                             <th scope="col">Biomarker</th>
@@ -508,15 +531,7 @@
                                                 >{{ biomarkerDisplayLabel(row) }}</a>
                                                 <span v-else>{{ biomarkerDisplayLabel(row) }}</span>
                                             </td>
-                                            <td
-                                                class="bn-gene-cell"
-                                                :class="{
-                                                    'bn-gene-cell--interactive':
-                                                        rowAssociatedGenes(row).length,
-                                                }"
-                                                @mouseenter="onGeneCellEnter(row, $event)"
-                                                @mouseleave="onGeneCellLeave"
-                                            >
+                                            <td class="bn-gene-cell">
                                                 <template v-if="rowAssociatedGenes(row).length">
                                                     <span
                                                         v-for="(gene, geneIdx) in rowAssociatedGenes(row)"
@@ -549,19 +564,88 @@
                             </template>
                         </div>
                     </section>
+
+                <section
+                    class="bn-accordion"
+                    :class="{ 'bn-accordion--open': mechanismLinkAccordionOpen }"
+                >
+                    <div class="bn-accordion-header">
+                        <button
+                            type="button"
+                            class="bn-accordion-trigger"
+                            :aria-expanded="mechanismLinkAccordionOpen ? 'true' : 'false'"
+                            @click="toggleMechanismLinkAccordion"
+                        >
+                            <span class="bn-accordion-title">
+                                <span class="bn-accordion-step">4</span>
+                                Mechanistic feedback loop
+                            </span>
+                            <span class="bn-accordion-chevron" aria-hidden="true" />
+                        </button>
+                        <div class="bn-accordion-actions" @click.stop>
+                            <button
+                                type="button"
+                                class="btn btn-cfde btn-sm"
+                                :disabled="
+                                    mechanismLinkLoading ||
+                                    !biomarkersFetched ||
+                                    !filteredRows.length
+                                "
+                                @click="generateMechanismLinkSummary"
+                            >
+                                {{
+                                    mechanismLinkLoading
+                                        ? "Generating…"
+                                        : mechanismLinkSummary.status === "done"
+                                          ? "Regenerate summary"
+                                          : "Generate summary"
+                                }}
+                            </button>
+                        </div>
+                    </div>
+                    <div v-show="mechanismLinkAccordionOpen" class="bn-accordion-panel">
+                        <p v-if="!biomarkersFetched" class="bn-filter-empty">
+                            Complete step 3 to generate a mechanistic feedback summary.
+                        </p>
+                        <p v-else-if="!filteredRows.length" class="bn-filter-empty">
+                            No biomarker rows match the current filters.
+                        </p>
+                        <template v-else>
+                            <div
+                                v-if="mechanismLinkLoading"
+                                class="bn-status bn-status--loading mb-2"
+                                role="status"
+                            >
+                                <span class="bn-spinner" aria-hidden="true" />
+                                {{ mechanismLinkStatus || "Generating mechanistic summary…" }}
+                            </div>
+                            <div
+                                v-else-if="mechanismLinkSummary.status === 'error'"
+                                class="alert alert-danger py-2 bn-mechanism-link-error"
+                            >
+                                {{ mechanismLinkSummary.error || "Summary generation failed." }}
+                            </div>
+                            <div
+                                v-else-if="mechanismLinkSummary.status === 'done' && mechanismLinkSummary.data"
+                                class="bn-mechanism-link-result-wrap"
+                            >
+                                <biomarker-mechanism-link-summary
+                                    :summary="mechanismLinkSummary.data"
+                                    :mechanism-label="searchedFactorLabel || lastNeedle || 'Mechanism'"
+                                />
+                            </div>
+                            <p
+                                v-else
+                                class="bn-filter-empty mb-0"
+                            >
+                                Click Generate summary to run one LLM analysis over the full
+                                filtered biomarker table.
+                            </p>
+                        </template>
+                    </div>
+                </section>
             </div>
         </div>
-
-        <biomarker-linkage-popup
-            v-if="linkagePopup.visible"
-            :graph="linkagePopup.graph"
-            :title="linkagePopup.title"
-            :subtitle="linkagePopup.subtitle"
-            :left="linkagePopup.left"
-            :top="linkagePopup.top"
-            @mouseenter="onLinkagePopupEnter"
-            @mouseleave="onLinkagePopupLeave"
-        />
     </div>
 </template>
 
@@ -573,11 +657,9 @@ import {
     normalizeGeneSymbol,
 } from "./biomarkerNetwork/geneNodeIds.js";
 import BiomarkerNetworkGraph from "./biomarkerNetwork/BiomarkerNetworkGraph.vue";
-import BiomarkerLinkagePopup from "./biomarkerNetwork/BiomarkerLinkagePopup.vue";
+import BiomarkerMechanismLinkSummary from "./biomarkerNetwork/BiomarkerMechanismLinkSummary.vue";
 import {
-    buildBiomarkerLinkageGraph,
     buildDiseaseLabelIndex,
-    formatSharedGeneMappingLabel,
     formatSharedGeneMappingBubble,
     getRowSharedGeneMapping,
 } from "./biomarkerNetwork/biomarkerLinkageGraph.js";
@@ -596,6 +678,13 @@ import {
     listSharedGenesForFactorDisease,
 } from "./biomarkerNetwork/cfdeKgSparql.js";
 import { listBiomarkersForMondoDiseases } from "./biomarkerNetwork/biomarkerKbSparql.js";
+import uiUtils from "@/utils/uiUtils";
+import { createLLMClient } from "@/utils/llmClient";
+import {
+    BIOMARKER_MECHANISM_LINK_SYSTEM_PROMPT,
+    buildMechanismLinkBatchInputFromVm,
+} from "./biomarkerNetwork/biomarkerMechanismLinkPrompt.js";
+import { fetchBiomarkerMechanismLinkSummary } from "./biomarkerNetwork/biomarkerMechanismLinkLlm.js";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -606,7 +695,7 @@ const SUGGESTION_DEBOUNCE_MS = 280;
 const BIOMARKER_LIMIT = 100;
 
 export default Vue.component("biomarker-network", {
-    components: { BiomarkerNetworkGraph, BiomarkerLinkagePopup },
+    components: { BiomarkerNetworkGraph, BiomarkerMechanismLinkSummary },
     props: ["phenotypesInUse", "utilsBox", "sectionConfigs"],
     data() {
         return {
@@ -650,23 +739,22 @@ export default Vue.component("biomarker-network", {
             sharedGenesLoading: false,
             sharedGenesPreloadPromise: null,
             networkExpandedDiseases: {},
-            linkagePopup: {
-                visible: false,
-                graph: { nodes: [], edges: [] },
-                title: "Associated ↔ shared gene map",
-                subtitle: "",
-                left: 0,
-                top: 0,
-            },
-            linkagePopupHover: false,
-            linkageHoverTimer: null,
-            linkageHideTimer: null,
             /**
              * Gene-centric registry rebuilt into the network on every fetch:
              * { SYMBOL: { symbol, diseases: [{ disease, factorLoading, pigeanScore }] } }
              */
             geneRegistry: {},
             exportSessionBusy: false,
+            mechanismLinkAccordionOpen: false,
+            mechanismLinkLoading: false,
+            mechanismLinkStatus: "",
+            mechanismLinkSummary: {
+                status: "idle",
+                data: null,
+                error: "",
+                rowCount: 0,
+                generatedAt: null,
+            },
         };
     },
     computed: {
@@ -827,6 +915,22 @@ export default Vue.component("biomarker-network", {
             const start = (this.currentPage - 1) * this.perPage;
             return this.filteredRows.slice(start, start + this.perPage);
         },
+        biomarkerTableExportRows() {
+            return this.filteredRows.map((row) => {
+                const genes = this.rowAssociatedGenes(row);
+                const mapping = this.rowSharedGeneMapping(row);
+                return {
+                    Biomarker: this.biomarkerDisplayLabel(row),
+                    "Associated gene": genes.length ? genes.join(" | ") : "",
+                    "Mapped shared genes": mapping.mappedGenes.length
+                        ? mapping.mappedGenes.join(" | ")
+                        : "",
+                    Roles: row.roles || "",
+                    Diseases: row.diseases || "",
+                    Records: row.recordCount != null ? row.recordCount : "",
+                };
+            });
+        },
         selectedDiseaseCount() {
             return (this.associatedDiseases || []).filter((d) =>
                 this.isDiseaseSelected(d.disease)
@@ -871,6 +975,51 @@ export default Vue.component("biomarker-network", {
             const { mappedCount, totalCount } = this.aggregateSharedGeneMapping;
             return formatSharedGeneMappingBubble(mappedCount, totalCount);
         },
+        topMechanismGenesLabel() {
+            const symbols = [];
+            const seen = {};
+            const add = (sym) => {
+                const key = normalizeGeneSymbol(sym);
+                if (!key || seen[key]) return;
+                seen[key] = true;
+                symbols.push(key);
+            };
+
+            Object.keys(this.geneRegistry || {}).forEach((symKey) => {
+                const entry = this.geneRegistry[symKey];
+                add(entry && entry.symbol ? entry.symbol : symKey);
+            });
+
+            const ranked = [];
+            Object.values(this.diseaseGenes || {}).forEach((entries) => {
+                (entries || []).forEach((entry) => {
+                    const sym = this.geneDisplayLabel(entry);
+                    if (!sym) return;
+                    ranked.push({
+                        sym,
+                        loading: Math.abs(Number(entry && entry.factorGeneLoading) || 0),
+                    });
+                });
+            });
+            ranked.sort((a, b) => b.loading - a.loading);
+            ranked.forEach((row) => add(row.sym));
+
+            if (!symbols.length) return "None provided";
+            return symbols.slice(0, 20).join(", ");
+        },
+    },
+    created() {
+        this.llmMechanismLink = createLLMClient({
+            system_prompt: BIOMARKER_MECHANISM_LINK_SYSTEM_PROMPT,
+            expectJson: true,
+        });
+    },
+    watch: {
+        mechanismLinkAccordionOpen(open) {
+            if (open) {
+                this.biomarkersAccordionOpen = false;
+            }
+        },
     },
     mounted() {
         const factorFromUrl = keyParams.factor != null ? String(keyParams.factor).trim() : "";
@@ -881,8 +1030,9 @@ export default Vue.component("biomarker-network", {
         this.cancelInFlight();
         this.cancelSuggestionLookup();
         if (this.suggestionTimer) clearTimeout(this.suggestionTimer);
-        if (this.linkageHoverTimer) clearTimeout(this.linkageHoverTimer);
-        if (this.linkageHideTimer) clearTimeout(this.linkageHideTimer);
+        if (this.llmMechanismLink && typeof this.llmMechanismLink.abort === "function") {
+            this.llmMechanismLink.abort();
+        }
     },
     methods: {
         cancelInFlight() {
@@ -1020,7 +1170,8 @@ export default Vue.component("biomarker-network", {
             this.sharedGenesPreloadPromise = null;
             this.networkExpandedDiseases = {};
             this.geneRegistry = {};
-            this.hideLinkagePopup();
+            this.resetMechanismLinkSummary();
+            this.mechanismLinkAccordionOpen = false;
             this.mechanismAccordionOpen = true;
             this.diseasesAccordionOpen = false;
             this.biomarkersAccordionOpen = false;
@@ -1163,6 +1314,88 @@ export default Vue.component("biomarker-network", {
             }
             return label || (row && row.biomarkerIdentifier) || "—";
         },
+        biomarkerTableExportFilename() {
+            const slug = String(this.searchedFactorLabel || this.lastNeedle || "biomarkers")
+                .trim()
+                .replace(/[^\w.-]+/g, "_")
+                .replace(/^_+|_+$/g, "")
+                .slice(0, 48);
+            const date = new Date().toISOString().slice(0, 10);
+            return `biomarker_network_${slug || "biomarkers"}_${date}`;
+        },
+        downloadBiomarkerTable(format) {
+            const rows = this.biomarkerTableExportRows;
+            if (!rows.length) return;
+            const filename = this.biomarkerTableExportFilename();
+            if (format === "tsv") {
+                uiUtils.convertJson2Tsv(rows, filename);
+            } else {
+                uiUtils.convertJson2Csv(rows, filename);
+            }
+        },
+        resetMechanismLinkSummary() {
+            this.mechanismLinkSummary = {
+                status: "idle",
+                data: null,
+                error: "",
+                rowCount: 0,
+                generatedAt: null,
+            };
+            this.mechanismLinkStatus = "";
+            this.mechanismLinkLoading = false;
+        },
+        toggleMechanismLinkAccordion() {
+            this.mechanismLinkAccordionOpen = !this.mechanismLinkAccordionOpen;
+        },
+        async generateMechanismLinkSummary() {
+            if (
+                this.mechanismLinkLoading ||
+                !this.biomarkersFetched ||
+                !this.filteredRows.length
+            ) {
+                return;
+            }
+
+            this.mechanismLinkAccordionOpen = true;
+            this.mechanismLinkLoading = true;
+            this.mechanismLinkSummary = {
+                status: "loading",
+                data: null,
+                error: "",
+                rowCount: this.filteredRows.length,
+                generatedAt: null,
+            };
+
+            try {
+                const batchInput = buildMechanismLinkBatchInputFromVm(this);
+                const result = await fetchBiomarkerMechanismLinkSummary(this, batchInput, {
+                    onStatus: (msg) => {
+                        this.mechanismLinkStatus = msg;
+                    },
+                });
+                if (!result.ok) {
+                    throw result.error || new Error("Mechanistic summary request failed.");
+                }
+                this.mechanismLinkSummary = {
+                    status: "done",
+                    data: result.summary,
+                    error: "",
+                    rowCount: this.filteredRows.length,
+                    generatedAt: new Date().toISOString(),
+                };
+            } catch (e) {
+                this.mechanismLinkSummary = {
+                    status: "error",
+                    data: null,
+                    error: (e && e.message) || "Mechanistic summary request failed.",
+                    rowCount: this.filteredRows.length,
+                    generatedAt: null,
+                };
+            } finally {
+                this.mechanismLinkLoading = false;
+                this.mechanismLinkStatus = "";
+            }
+        },
         formatScore(value, digits = 2) {
             if (value == null || value === "" || Number.isNaN(Number(value))) return "—";
             return Number(value).toFixed(digits);
@@ -1242,15 +1475,6 @@ export default Vue.component("biomarker-network", {
                 return row.geneList;
             }
             return String((row && row.genes) || "")
-                .split(" | ")
-                .map((s) => s.trim())
-                .filter(Boolean);
-        },
-        rowRoleList(row) {
-            if (row && Array.isArray(row.roleList) && row.roleList.length) {
-                return row.roleList;
-            }
-            return String((row && row.roles) || "")
                 .split(" | ")
                 .map((s) => s.trim())
                 .filter(Boolean);
@@ -1389,93 +1613,6 @@ export default Vue.component("biomarker-network", {
 
             this.$set(this.networkExpandedDiseases, diseaseId, false);
         },
-        buildLinkageGraphForRow(row) {
-            return buildBiomarkerLinkageGraph({
-                biomarkerId: row.biomarker || `biomarker:${row.biomarkerIdentifier || "unknown"}`,
-                biomarkerLabel: this.biomarkerDisplayLabel(row),
-                factorId: this.selectedFactorIri || "factor:root",
-                factorLabel: this.searchedFactorLabel || this.lastNeedle || "Mechanism",
-                associatedGenes: this.rowAssociatedGenes(row),
-                diseaseLabels: row.diseaseList || [],
-                roles: this.rowRoleList(row),
-                diseaseByLabel: this.diseaseByLabel,
-                diseaseGenes: this.diseaseGenes,
-                geneDisplayLabel: (entry) => this.geneDisplayLabel(entry),
-            });
-        },
-        positionLinkagePopup(pointer) {
-            const height = 260;
-            const margin = 12;
-            const x = pointer && pointer.clientX != null ? pointer.clientX : 0;
-            const y = pointer && pointer.clientY != null ? pointer.clientY : 0;
-
-            const left = x + 30;
-            let top = y - Math.round(height / 2);
-
-            if (top < margin) {
-                top = margin;
-            }
-            if (top + height + margin > window.innerHeight) {
-                top = Math.max(margin, window.innerHeight - height - margin);
-            }
-
-            return { left, top };
-        },
-        showLinkagePopup(row, pointer) {
-            if (!this.rowAssociatedGenes(row).length) return;
-            const built = this.buildLinkageGraphForRow(row);
-            const { left, top } = this.positionLinkagePopup(pointer);
-            const { mappedCount, totalCount } = built.mapping || this.rowSharedGeneMapping(row);
-            this.linkagePopup = {
-                visible: true,
-                graph: { nodes: built.nodes, edges: built.edges },
-                title: "Associated ↔ shared gene map",
-                subtitle: formatSharedGeneMappingLabel(mappedCount, totalCount),
-                left,
-                top,
-            };
-        },
-        hideLinkagePopup() {
-            this.linkagePopup = {
-                visible: false,
-                graph: { nodes: [], edges: [] },
-                title: "Associated ↔ shared gene map",
-                subtitle: "",
-                left: 0,
-                top: 0,
-            };
-        },
-        onGeneCellEnter(row, event) {
-            if (!this.rowAssociatedGenes(row).length) return;
-            const pointer = { clientX: event.clientX, clientY: event.clientY };
-            if (this.linkageHideTimer) {
-                clearTimeout(this.linkageHideTimer);
-                this.linkageHideTimer = null;
-            }
-            this.linkageHoverTimer = setTimeout(() => {
-                this.showLinkagePopup(row, pointer);
-            }, 200);
-        },
-        onGeneCellLeave() {
-            if (this.linkageHoverTimer) {
-                clearTimeout(this.linkageHoverTimer);
-                this.linkageHoverTimer = null;
-            }
-            this.linkageHideTimer = setTimeout(() => {
-                if (!this.linkagePopupHover) this.hideLinkagePopup();
-            }, 300);
-        },
-        onLinkagePopupEnter() {
-            this.linkagePopupHover = true;
-            if (this.linkageHideTimer) {
-                clearTimeout(this.linkageHideTimer);
-                this.linkageHideTimer = null;
-            }
-        },
-        onLinkagePopupLeave() {
-            this.linkagePopupHover = false;
-            this.linkageHideTimer = setTimeout(() => this.hideLinkagePopup(), 300);
-        },
         async resolveSelectedFactor(needle) {
             if (this.selectedFactorIri) {
                 const match = (this.factorSuggestions || []).find(
@@ -1579,7 +1716,8 @@ export default Vue.component("biomarker-network", {
             this.sharedGenesPreloadPromise = null;
             this.networkExpandedDiseases = {};
             this.geneRegistry = {};
-            this.hideLinkagePopup();
+            this.resetMechanismLinkSummary();
+            this.mechanismLinkAccordionOpen = false;
             this.mechanismAccordionOpen = false;
             this.diseasesAccordionOpen = true;
             this.biomarkersAccordionOpen = false;
@@ -1642,6 +1780,8 @@ export default Vue.component("biomarker-network", {
             this.hiddenTypes = {};
             this.hiddenDiseases = {};
             this.mappedGeneOverlapFilter = false;
+            this.resetMechanismLinkSummary();
+            this.mechanismLinkAccordionOpen = false;
 
             try {
                 const rows = await listBiomarkersForMondoDiseases(diseaseIris, {
@@ -1732,6 +1872,15 @@ export default Vue.component("biomarker-network", {
     position: relative;
 }
 
+.bn-ops-menu::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 8px;
+}
+
 .bn-ops-menu-toggle {
     padding: 4px 10px;
     border: 1px solid var(--cfde-border);
@@ -1741,17 +1890,16 @@ export default Vue.component("biomarker-network", {
     font-size: 0.85rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    cursor: default;
+    cursor: pointer;
 }
 
 .bn-ops-menu-list {
     display: none;
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     right: 0;
     z-index: 40;
     min-width: 168px;
-    margin-top: 2px;
     padding: 4px;
     border: 1px solid #d5d5d5;
     border-radius: 5px;
@@ -2130,6 +2278,76 @@ export default Vue.component("biomarker-network", {
     font-size: 0.9rem;
 }
 
+.bn-table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-bottom: 8px;
+}
+
+.bn-table-toolbar-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+}
+
+.bn-table-toolbar-meta {
+    font-size: 11px;
+}
+
+.bn-table-download-btn {
+    border: solid 1px #aaa;
+    background-color: #fff;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #333;
+}
+
+.bn-table-download-btn:hover {
+    cursor: pointer;
+    background-color: #eee;
+}
+
+.bn-mechanism-link-card {
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    background: #fafafa;
+}
+
+.bn-mechanism-link-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.bn-mechanism-link-genes {
+    font-size: 12px;
+}
+
+.bn-mechanism-link-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--cfde-muted);
+}
+
+.bn-mechanism-link-result-wrap {
+    margin-top: 4px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background: #fff;
+    border: 1px solid #ececec;
+}
+
 .bn-table th {
     border-top: 0;
     white-space: nowrap;
@@ -2170,17 +2388,6 @@ export default Vue.component("biomarker-network", {
 .bn-shared-gene-toggle:hover,
 .bn-shared-gene-toggle:focus {
     text-decoration: none;
-}
-
-.bn-gene-cell--interactive {
-    cursor: pointer;
-    color: var(--cfde-blue);
-    text-decoration: underline dotted;
-    text-underline-offset: 2px;
-}
-
-.bn-gene-cell--interactive:hover {
-    color: #163a5c;
 }
 
 .bn-gene-mapped {
