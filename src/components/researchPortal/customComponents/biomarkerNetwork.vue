@@ -579,6 +579,7 @@
                             <span class="bn-accordion-title">
                                 <span class="bn-accordion-step">4</span>
                                 Mechanistic feedback loop
+                                <span class="bn-ai-bubble" title="Uses Claude (Bedrock)">AI</span>
                             </span>
                             <span class="bn-accordion-chevron" aria-hidden="true" />
                         </button>
@@ -2187,6 +2188,24 @@ export default Vue.component("biomarker-network", {
     color: var(--cfde-blue);
     font-size: 0.75rem;
     font-weight: 600;
+}
+
+.bn-ai-bubble {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 28px;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 1px solid #c4b5fd;
+    background: #f3efff;
+    color: #6d28d9;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1;
 }
 
 .bn-accordion-chevron {
