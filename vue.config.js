@@ -348,6 +348,13 @@ let pages = {
         title: "LIGER",
         chunks: ["chunk-vendors", "chunk-common", "liger"],
     },
+    eaggl: {
+        entry: "src/views/EAGGL/main.js",
+        template: "public/index.html",
+        filename: "EAGGL.html",
+        title: "EAGGL (What EAGGL stands for)",
+        chunks: ["chunk-vendors", "chunk-common", "eaggl"],
+    },
 };
 
 const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
