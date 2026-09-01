@@ -42,6 +42,7 @@ export default Vue.component("msskp-landing-header", {
     display: flex;
     align-items: center;
     height: 50px;
+    padding-left: 20px;
 }
 
 .msskp-landing-header-logo img {

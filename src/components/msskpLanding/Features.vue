@@ -53,6 +53,7 @@ export default Vue.component("msskp-landing-features", {
     background-color: #dddddd;
     padding: 35px 50px;
     box-sizing: border-box;
+    text-align: center;
 }
 
 .msskp-landing-features-header {
@@ -73,6 +74,7 @@ export default Vue.component("msskp-landing-features", {
 
 .msskp-landing-features-row {
     display: flex;
+    justify-content: center;
     gap: 15px;
 }
 

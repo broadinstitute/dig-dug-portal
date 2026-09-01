@@ -58,7 +58,7 @@ export default Vue.component("msskp-landing-hero-banner", {
     font-size: 18px;
     font-weight: 300;
     max-width: 680px;
-    margin: 12px 0 18px;
+    margin: 27px 0 33px;
     line-height: 1.35;
 }
 
