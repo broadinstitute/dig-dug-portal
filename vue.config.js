@@ -10,6 +10,13 @@ let pages = {
         title: "Home",
         chunks: ["chunk-vendors", "chunk-common", "index"],
     },
+    msskpindex: {
+        entry: "src/views/MsskpIndex/main.js",
+        template: "public/index.html",
+        filename: "msskpindex.html",
+        title: "MSSKP Home",
+        chunks: ["chunk-vendors", "chunk-common", "msskpindex"],
+    },
     debug: {
         entry: "src/views/Debug/main.js",
         template: "public/index.html",
