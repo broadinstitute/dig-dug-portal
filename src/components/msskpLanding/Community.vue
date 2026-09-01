@@ -33,11 +33,17 @@
                     <span class="msskp-landing-community-link">see more</span>
                 </div>
                 <div
-                    v-for="(item, index) in newsItems"
-                    :key="index"
+                    v-for="item in latestNews"
+                    :key="item.nid"
                     class="msskp-landing-community-news-item"
                 >
-                    <div class="msskp-landing-community-news-thumb"></div>
+                    <div class="msskp-landing-community-news-thumb">
+                        <img
+                            v-if="item.field_image"
+                            :src="item.field_image"
+                            :alt="item.title"
+                        />
+                    </div>
                     <div class="msskp-landing-community-news-copy">
                         <div class="msskp-landing-community-news-title">
                             {{ item.title }}
@@ -57,26 +63,11 @@ import Vue from "vue";
 
 export default Vue.component("msskp-landing-community", {
     props: ["diseaseGroup", "newsFeed", "frontContents"],
-    data() {
-        return {
-            newsItems: [
-                {
-                    title: "Title",
-                    body:
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                },
-                {
-                    title: "Title",
-                    body:
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                },
-                {
-                    title: "Title",
-                    body:
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                },
-            ],
-        };
+    computed: {
+        latestNews() {
+            const feed = Array.isArray(this.newsFeed) ? this.newsFeed : [];
+            return feed.slice(0, 3);
+        },
     },
 });
 </script>
@@ -143,6 +134,14 @@ export default Vue.component("msskp-landing-community", {
     height: 80px;
     flex: 0 0 80px;
     background-color: #ffffff;
+    overflow: hidden;
+}
+
+.msskp-landing-community-news-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .msskp-landing-community-news-copy {
@@ -158,5 +157,9 @@ export default Vue.component("msskp-landing-community", {
 .msskp-landing-community-news-body {
     font-size: 14px;
     line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 </style>

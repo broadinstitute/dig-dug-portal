@@ -100,15 +100,9 @@ new Vue({
             return contents[0];
         },
         pageStats() {
-            if (this.diseaseGroup) {
-                return (
-                    this.stats.find(
-                        (s) => s["Portal ID"] == this.diseaseGroup.name
-                    ) || {}
-                );
-            } else {
-                return {};
-            }
+            return (
+                this.stats.find((s) => s["Portal ID"] == "msk") || {}
+            );
         },
         statsArray() {
             return this.statsKeys.map((stat) => ({
@@ -120,9 +114,9 @@ new Vue({
     },
 
     watch: {
-        diseaseGroup(group) {
-            this.$store.dispatch("kp4cd/getNewsFeed", group.name);
-            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        diseaseGroup() {
+            this.$store.dispatch("kp4cd/getNewsFeed", "msk");
+            this.$store.dispatch("kp4cd/getFrontContents", "msk");
         },
     },
 
@@ -131,6 +125,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("kp4cd/getNewsFeed", "msk");
         this.getStats();
     },
 
