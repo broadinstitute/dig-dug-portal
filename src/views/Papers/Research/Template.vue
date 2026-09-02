@@ -45,7 +45,13 @@
 				:single-search-config="$parent.sectionConfigs['single search']"
 				:phenotypes="$parent.phenotypesInSession" 
 				:utils="$parent.utilsBox"
-			></research-single-search-cfde>    
+			></research-single-search-cfde>
+			<cfde-single-search
+				v-if="!!$parent.sectionConfigs['single search']['version'] && $parent.sectionConfigs['single search']['version'] == 'cfde hybrid'"
+				:single-search-config="$parent.sectionConfigs['single search']"
+				:phenotypes="$parent.phenotypesInSession"
+				:utils="$parent.utilsBox"
+			></cfde-single-search>    
 		 <div v-if="!!$parent.sectionConfigs['single search']['search examples']" class="fp-search-examples">
 			<span v-html="'examples: '"></span>
 			<!--<span v-for="example in $parent.sectionConfigs['single search']['search examples']" :key="example.value"

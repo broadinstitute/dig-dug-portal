@@ -1,0 +1,18 @@
+---
+description: Human-readable UI text must be at least 14px; viz labels and legends may be smaller.
+globs: src/components/researchPortal/customComponents/biomarkerNetwork/**
+alwaysApply: false
+---
+
+# Readable text size
+
+Any text a person is expected to read in the biomarker network UI must be at least **14px**.
+
+## Exception
+
+Visualization labels and legends (network node/edge labels, chart axis ticks, color keys on plots) may stay smaller.
+
+## Do not
+
+- Use 10–12px for body copy, headings, summaries, table cell text, form labels, empty states, or error messages.
+- Treat summary badges, confidence chips, or metadata lines as “legends” to dodge the 14px floor.

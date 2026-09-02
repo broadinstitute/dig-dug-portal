@@ -40,6 +40,25 @@
                 :style="{ left: hoverTooltip.x + 'px', top: hoverTooltip.y + 'px' }"
                 v-html="hoverTooltip.content"
             ></div>
+            <div
+                v-if="diseaseNodeMenu.visible"
+                class="network-disease-action-menu"
+                :style="{ left: diseaseNodeMenu.x + 'px', top: diseaseNodeMenu.y + 'px' }"
+                role="menu"
+                :aria-label="diseaseNodeMenuLabel"
+                @mouseenter="cancelDiseaseMenuHide"
+                @mouseleave="scheduleDiseaseMenuHide"
+                @click.stop
+            >
+                <button
+                    type="button"
+                    class="network-disease-action-btn"
+                    role="menuitem"
+                    @click="onDiseaseMenuViewSharedGenes"
+                >
+                    View shared genes
+                </button>
+            </div>
             <div v-if="visNetwork" class="zoom-slider-outer">
                 <div class="zoom-slider-block">
                     <label class="zoom-slider-label">Zoom</label>
@@ -158,6 +177,7 @@ function colorFromBiolinkClass(biolinkClass) {
 }
 const DEFAULT_NODE_COLOR = "#999";
 const DEFAULT_GENE_COLOR = DEFAULT_GENE_NODE_COLOR;
+const GENES_FETCHED_DISEASE_BORDER = "#e67e22";
 
 export default {
     name: "FactorBaseRevealNetwork",
@@ -181,6 +201,8 @@ export default {
          * Default Data-tab networks freeze after stabilize for a static layout.
          */
         keepPhysicsEnabled: { type: Boolean, default: false },
+        /** Keep source→target as given (skip Phenotype/Factor rank reorder). */
+        preserveEdgeDirection: { type: Boolean, default: false },
         /** When true, render Biolink-oriented legend labels/colors for mechanism flow maps. */
         isBiolinkMap: { type: Boolean, default: false },
         /** Show “Original map” checkbox between zoom and fullscreen (when Biolink network exists). */
@@ -191,6 +213,8 @@ export default {
         geneNodeMetricKey: { type: String, default: "" },
         /** Optional: scale Pathway (gene set) node size by this numeric metadata key (e.g., "gene_set_score"). */
         geneSetNodeMetricKey: { type: String, default: "" },
+        /** Optional: scale Phenotype (disease) node size by this numeric metadata key. */
+        phenotypeNodeMetricKey: { type: String, default: "" },
         /** When true, color Gene nodes by metadata.gwas_support tiers (data-tab network view). */
         geneColorByGwasSupport: { type: Boolean, default: false },
         /** Optional: map edge distance from this numeric metadata key (e.g., "functional_support"). */
@@ -213,6 +237,16 @@ export default {
          * Paint search-anchor genes (candidate_genes[].is_input) with the Selected / Anchor color.
          */
         highlightAnchorGenes: { type: Boolean, default: false },
+        /**
+         * Remap node-type legend labels (e.g. Phenotype → Disease). Empty keeps REVEAL names.
+         */
+        legendTypeLabels: { type: Object, default: () => ({}) },
+        /** Hide the Selected / Anchor swatch (biomarker network has no selection). */
+        showSelectedAnchorLegend: { type: Boolean, default: true },
+        /** Show a hover action menu on Phenotype (disease) nodes. */
+        diseaseNodeMenuEnabled: { type: Boolean, default: false },
+        /** Disease node ids that already have shared genes loaded in the network. */
+        genesFetchedDiseaseIds: { type: Array, default: () => [] },
     },
     data() {
         return {
@@ -220,7 +254,7 @@ export default {
             nodesDataSet: null,
             edgesDataSet: null,
             zoomLevel: 1,
-            zoomMin: 0.2,
+            zoomMin: 0.05,
             zoomMax: 2,
             zoomStep: 0.05,
             nodeMap: {},
@@ -239,9 +273,29 @@ export default {
             lastNetworkSignature: "",
             pendingSelectionNodes: null,
             selectionRefreshRafId: null,
+            resizeObserver: null,
+            resizeFitTimer: null,
+            lastContainerWidth: 0,
+            isRendering: false,
+            pendingResize: false,
+            layoutFitTimer: null,
+            diseaseNodeMenu: {
+                visible: false,
+                x: 0,
+                y: 0,
+                nodeId: "",
+            },
+            diseaseMenuHideTimer: null,
         };
     },
     computed: {
+        diseaseNodeMenuLabel() {
+            const node = this.nodeMap[this.diseaseNodeMenu.nodeId];
+            return node && node.label ? `Actions for ${node.label}` : "Disease actions";
+        },
+        genesFetchedDiseaseIdSet() {
+            return new Set((this.genesFetchedDiseaseIds || []).map((id) => String(id)));
+        },
         networkNodeMenuIsSelected() {
             const sel = this.networkNodeMenuTarget && this.networkNodeMenuTarget.node;
             if (!sel) return false;
@@ -291,32 +345,45 @@ export default {
                 ];
             }
             // Supporting / factorization network: legend tracks types present + Selected / Anchor.
+            const typeLabel = (type, fallback) => {
+                const custom = this.legendTypeLabels && this.legendTypeLabels[type];
+                return custom ? String(custom) : fallback;
+            };
             const typesPresent = new Set();
             (this.network.nodes || []).forEach((n) => {
                 const t = n && n.type != null ? String(n.type).trim() : "";
                 if (t) typesPresent.add(t);
             });
             const items = [];
+            if (typesPresent.has("Entity")) {
+                items.push({ label: typeLabel("Entity", "Entity"), color: NODE_COLORS.Entity });
+            }
             if (typesPresent.has("Phenotype")) {
-                items.push({ label: "Phenotype", color: NODE_COLORS.Phenotype });
+                items.push({ label: typeLabel("Phenotype", "Phenotype"), color: NODE_COLORS.Phenotype });
             }
             if (typesPresent.has("Factor") || !typesPresent.size) {
-                items.push({ label: "Gene set cluster", color: NODE_COLORS.Factor });
+                items.push({ label: typeLabel("Factor", "Gene set cluster"), color: NODE_COLORS.Factor });
             }
             if (typesPresent.has("Pathway") || !typesPresent.size) {
-                items.push({ label: "Gene set", color: NODE_COLORS.Pathway });
+                items.push({ label: typeLabel("Pathway", "Gene set"), color: NODE_COLORS.Pathway });
             }
             if (typesPresent.has("Gene") || !typesPresent.size) {
-                items.push({ label: "Gene", color: DEFAULT_GENE_COLOR });
+                items.push({ label: typeLabel("Gene", "Gene"), color: DEFAULT_GENE_COLOR });
             }
-            items.push({
-                label: "Selected / Anchor",
-                color: SELECTION_HIGHLIGHT_ORANGE.nodeBackground,
-            });
+            if (this.showSelectedAnchorLegend) {
+                items.push({
+                    label: "Selected / Anchor",
+                    color: SELECTION_HIGHLIGHT_ORANGE.nodeBackground,
+                });
+            }
             return items;
         },
         showNodeSizeLegend() {
-            return !!(String(this.geneNodeMetricKey || "").trim() || String(this.geneSetNodeMetricKey || "").trim());
+            return !!(
+                String(this.geneNodeMetricKey || "").trim() ||
+                String(this.geneSetNodeMetricKey || "").trim() ||
+                String(this.phenotypeNodeMetricKey || "").trim()
+            );
         },
         showEdgeLengthLegend() {
             return !!String(this.edgeDistanceMetricKey || "").trim();
@@ -327,16 +394,26 @@ export default {
         nodeSizeLegendText() {
             const geneKey = String(this.geneNodeMetricKey || "").trim();
             const geneSetKey = String(this.geneSetNodeMetricKey || "").trim();
+            const phenotypeKey = String(this.phenotypeNodeMetricKey || "").trim();
+            if (phenotypeKey === "aggregatePigeanScore") {
+                return "Larger disease node = higher aggregated PIGEAN score";
+            }
             if (geneKey === "node_score" && geneSetKey === "node_score") {
                 return "Larger node = higher gene / gene-set score";
             }
             if (geneKey === "combined_score") {
                 return "Larger gene node = higher combined score";
             }
+            if (geneKey === "pigeanScore") {
+                return "Larger gene node = higher PIGEAN score";
+            }
             return "Larger node = higher score";
         },
         edgeLengthLegendText() {
             const key = String(this.edgeDistanceMetricKey || "").trim();
+            if (key === "edgeStrength") {
+                return "Shorter edge = higher gene loading / PIGEAN score";
+            }
             if (key === "factor_value") {
                 return "Shorter edge = higher Overall gene set cluster value";
             }
@@ -368,6 +445,9 @@ export default {
         geneColorByGwasSupport() {
             this.$nextTick(() => this.render());
         },
+        keepPhysicsEnabled() {
+            this.$nextTick(() => this.render());
+        },
         selectedNodes: {
             handler(next) {
                 this.pendingSelectionNodes = next;
@@ -378,11 +458,19 @@ export default {
         suppressSelectionHighlight() {
             this.$nextTick(() => this.applySelectionHighlights());
         },
+        genesFetchedDiseaseIds: {
+            handler() {
+                this.$nextTick(() => this.applyDiseaseFetchedBorders());
+            },
+            deep: true,
+        },
     },
     mounted() {
-        this.render();
+        this.bindResizeObserver();
+        this.$nextTick(() => this.render());
     },
     beforeDestroy() {
+        this.unbindResizeObserver();
         this.cleanup();
     },
     methods: {
@@ -523,6 +611,10 @@ export default {
             });
         },
         cleanup() {
+            if (this.layoutFitTimer) {
+                clearTimeout(this.layoutFitTimer);
+                this.layoutFitTimer = null;
+            }
             if (this.selectionRefreshRafId != null && typeof cancelAnimationFrame === "function") {
                 cancelAnimationFrame(this.selectionRefreshRafId);
             }
@@ -535,8 +627,11 @@ export default {
             this.edgesDataSet = null;
             this.baseVisNodeStyles = {};
             this.baseVisEdgeStyles = {};
+            this.lastContainerWidth = 0;
             this.closeNetworkNodeMenu();
             this.hideHoverTooltip();
+            this.hideDiseaseNodeMenu();
+            this.nodeMap = {};
         },
         refreshSelectionStylesSoon() {
             if (!this.nodeSelectionEnabled) return;
@@ -733,34 +828,213 @@ export default {
                 .filter(Boolean)
                 .join("<br>");
         },
+        resolveNodeMenuPosition(nodeId) {
+            const menuWidth = 168;
+            const menuHeight = 40;
+            if (this.visNetwork && nodeId != null) {
+                try {
+                    const positions = this.visNetwork.getPositions([nodeId]);
+                    const canvasPos = positions && positions[nodeId];
+                    if (canvasPos) {
+                        const dom = this.visNetwork.canvasToDOM({
+                            x: canvasPos.x,
+                            y: canvasPos.y,
+                        });
+                        if (dom && Number.isFinite(dom.x) && Number.isFinite(dom.y)) {
+                            const visNode = this.nodesDataSet && this.nodesDataSet.get(nodeId);
+                            const nodeRadius = (visNode && visNode.size) || 20;
+                            return this.clampOverlayPosition(
+                                dom.x - menuWidth / 2,
+                                dom.y + nodeRadius + 6,
+                                menuWidth,
+                                menuHeight
+                            );
+                        }
+                    }
+                } catch (e) {
+                    /* ignore */
+                }
+            }
+            return { x: 14, y: 14 };
+        },
+        clampOverlayPosition(x, y, width = 0, height = 0) {
+            const container = this.$refs.container;
+            const pad = 8;
+            if (!container) return { x, y };
+            const maxX = Math.max(pad, container.clientWidth - width - pad);
+            const maxY = Math.max(pad, container.clientHeight - height - pad);
+            return {
+                x: Math.min(Math.max(pad, x), maxX),
+                y: Math.min(Math.max(pad, y), maxY),
+            };
+        },
+        resolveOverlayPosition(nodeId, pointer, offset = { x: 14, y: 14 }) {
+            if (this.visNetwork && nodeId != null) {
+                try {
+                    const positions = this.visNetwork.getPositions([nodeId]);
+                    const canvasPos = positions && positions[nodeId];
+                    if (canvasPos) {
+                        const dom = this.visNetwork.canvasToDOM({
+                            x: canvasPos.x,
+                            y: canvasPos.y,
+                        });
+                        if (dom && Number.isFinite(dom.x) && Number.isFinite(dom.y)) {
+                            const visNode = this.nodesDataSet && this.nodesDataSet.get(nodeId);
+                            const nodeRadius = (visNode && visNode.size) || 20;
+                            return {
+                                x: dom.x + nodeRadius + offset.x,
+                                y: dom.y - nodeRadius + offset.y,
+                            };
+                        }
+                    }
+                } catch (e) {
+                    /* ignore */
+                }
+            }
+            if (
+                pointer &&
+                Number.isFinite(Number(pointer.x)) &&
+                Number.isFinite(Number(pointer.y))
+            ) {
+                return {
+                    x: Number(pointer.x) + offset.x,
+                    y: Number(pointer.y) + offset.y,
+                };
+            }
+            return { x: offset.x, y: offset.y };
+        },
         showHoverTooltip(params) {
             if (!params || params.node == null || !this.nodesDataSet) return;
             const node = this.nodesDataSet.get(params.node);
             if (!node) return;
+            const graphNode = this.nodeMap[params.node];
             const html = this.formatTooltipHtml(node.title || "");
-            if (!html) return;
             const pointer = params.event && params.event.pointer && params.event.pointer.DOM
                 ? params.event.pointer.DOM
                 : null;
-            this.hoverTooltip.visible = true;
-            this.hoverTooltip.x = pointer ? Number(pointer.x) + 14 : 14;
-            this.hoverTooltip.y = pointer ? Number(pointer.y) + 14 : 14;
-            this.hoverTooltip.content = html;
+            if (html) {
+                this.hoverTooltip.visible = true;
+                if (this.diseaseNodeMenuEnabled) {
+                    const tipPos = this.clampOverlayPosition(8, 8, 280, 120);
+                    this.hoverTooltip.x = tipPos.x;
+                    this.hoverTooltip.y = tipPos.y;
+                } else {
+                    const tipPos = this.resolveOverlayPosition(params.node, pointer, { x: 14, y: 14 });
+                    this.hoverTooltip.x = tipPos.x;
+                    this.hoverTooltip.y = tipPos.y;
+                }
+                this.hoverTooltip.content = html;
+            }
+            if (
+                this.diseaseNodeMenuEnabled &&
+                graphNode &&
+                graphNode.type === "Phenotype"
+            ) {
+                this.showDiseaseNodeMenu(params.node);
+            }
         },
         moveHoverTooltip(params) {
-            if (!this.hoverTooltip.visible) return;
+            if (this.diseaseNodeMenuEnabled) {
+                if (this.hoverTooltip.visible) {
+                    const tipPos = this.clampOverlayPosition(8, 8, 280, 120);
+                    this.hoverTooltip.x = tipPos.x;
+                    this.hoverTooltip.y = tipPos.y;
+                }
+                if (this.diseaseNodeMenu.visible && this.diseaseNodeMenu.nodeId) {
+                    const menuPos = this.resolveNodeMenuPosition(this.diseaseNodeMenu.nodeId);
+                    this.diseaseNodeMenu.x = menuPos.x;
+                    this.diseaseNodeMenu.y = menuPos.y;
+                }
+                return;
+            }
             const pointer = params && params.pointer && params.pointer.DOM
                 ? params.pointer.DOM
                 : (params && params.event && params.event.pointer && params.event.pointer.DOM
                     ? params.event.pointer.DOM
                     : null);
-            if (!pointer) return;
-            this.hoverTooltip.x = Number(pointer.x) + 14;
-            this.hoverTooltip.y = Number(pointer.y) + 14;
+            if (this.hoverTooltip.visible && params && params.node != null) {
+                const tipPos = this.resolveOverlayPosition(params.node, pointer, { x: 14, y: 14 });
+                this.hoverTooltip.x = tipPos.x;
+                this.hoverTooltip.y = tipPos.y;
+            } else if (pointer && this.hoverTooltip.visible) {
+                this.hoverTooltip.x = Number(pointer.x) + 14;
+                this.hoverTooltip.y = Number(pointer.y) + 14;
+            }
         },
         hideHoverTooltip() {
             this.hoverTooltip.visible = false;
             this.hoverTooltip.content = "";
+        },
+        cancelDiseaseMenuHide() {
+            if (this.diseaseMenuHideTimer) {
+                clearTimeout(this.diseaseMenuHideTimer);
+                this.diseaseMenuHideTimer = null;
+            }
+        },
+        scheduleDiseaseMenuHide() {
+            this.cancelDiseaseMenuHide();
+            this.diseaseMenuHideTimer = setTimeout(() => {
+                this.diseaseMenuHideTimer = null;
+                this.hideDiseaseNodeMenu();
+            }, 350);
+        },
+        showDiseaseNodeMenu(nodeId) {
+            this.cancelDiseaseMenuHide();
+            const menuPos = this.resolveNodeMenuPosition(nodeId);
+            this.diseaseNodeMenu.visible = true;
+            this.diseaseNodeMenu.nodeId = nodeId;
+            this.diseaseNodeMenu.x = menuPos.x;
+            this.diseaseNodeMenu.y = menuPos.y;
+        },
+        hideDiseaseNodeMenu() {
+            this.cancelDiseaseMenuHide();
+            this.diseaseNodeMenu.visible = false;
+            this.diseaseNodeMenu.nodeId = "";
+        },
+        onDiseaseMenuViewSharedGenes() {
+            const nodeId = this.diseaseNodeMenu.nodeId;
+            const graphNode = nodeId ? this.nodeMap[nodeId] : null;
+            if (graphNode) {
+                this.$emit("view-shared-genes", {
+                    nodeId,
+                    node: graphNode,
+                });
+            }
+            this.hideDiseaseNodeMenu();
+            this.hideHoverTooltip();
+        },
+        applyDiseaseFetchedBorders() {
+            if (!this.nodesDataSet) return;
+            const fetched = this.genesFetchedDiseaseIdSet;
+            const updates = [];
+            Object.values(this.nodeMap).forEach((n) => {
+                if (!n || n.type !== "Phenotype") return;
+                const isFetched = fetched.has(String(n.id));
+                const visNode = this.nodesDataSet.get(n.id);
+                if (!visNode) return;
+                const base = this.baseVisNodeStyles[n.id] || {};
+                const borderColor = isFetched
+                    ? GENES_FETCHED_DISEASE_BORDER
+                    : (base.color && base.color.border) || "#fff";
+                const borderWidth = isFetched ? 3 : base.borderWidth || 1.5;
+                updates.push({
+                    id: n.id,
+                    color: {
+                        ...(visNode.color || {}),
+                        border: borderColor,
+                    },
+                    borderWidth,
+                });
+                this.baseVisNodeStyles[n.id] = {
+                    ...base,
+                    color: {
+                        ...(base.color || {}),
+                        border: borderColor,
+                    },
+                    borderWidth,
+                };
+            });
+            if (updates.length) this.nodesDataSet.update(updates);
         },
         /** First GO:####### found in metadata or node fields (Biolink tooltips). */
         extractGoIdForBiolinkTooltip(meta, n) {
@@ -781,14 +1055,17 @@ export default {
             }
             return id;
         },
-        buildVisNodes(nodes) {
+        buildVisNodes(nodes, metricScopeNodes = null) {
             const geneToGroup = this.geneNameToGroup;
             const geneMetricKey = String(this.geneNodeMetricKey || "").trim();
             const geneSetMetricKey = String(this.geneSetNodeMetricKey || "").trim();
+            const phenotypeMetricKey = String(this.phenotypeNodeMetricKey || "").trim();
             const geneMetricValues = [];
             const geneSetMetricValues = [];
-            if (geneMetricKey || geneSetMetricKey) {
-                (nodes || []).forEach((n) => {
+            const phenotypeMetricValues = [];
+            const metricNodes = metricScopeNodes || nodes;
+            if (geneMetricKey || geneSetMetricKey || phenotypeMetricKey) {
+                (metricNodes || []).forEach((n) => {
                     if (!n) return;
                     if (geneMetricKey && n.type === "Gene") {
                         const v = this.readNumericMetric(n.metadata || {}, geneMetricKey);
@@ -798,12 +1075,22 @@ export default {
                         const v = this.readNumericMetric(n.metadata || {}, geneSetMetricKey);
                         if (v != null) geneSetMetricValues.push(Math.abs(v));
                     }
+                    if (phenotypeMetricKey && n.type === "Phenotype") {
+                        const v = this.readNumericMetric(n.metadata || {}, phenotypeMetricKey);
+                        if (v != null) phenotypeMetricValues.push(Math.abs(v));
+                    }
                 });
             }
             const geneMetricMin = geneMetricValues.length ? Math.min(...geneMetricValues) : null;
             const geneMetricMax = geneMetricValues.length ? Math.max(...geneMetricValues) : null;
             const geneSetMetricMin = geneSetMetricValues.length ? Math.min(...geneSetMetricValues) : null;
             const geneSetMetricMax = geneSetMetricValues.length ? Math.max(...geneSetMetricValues) : null;
+            const phenotypeMetricMin = phenotypeMetricValues.length
+                ? Math.min(...phenotypeMetricValues)
+                : null;
+            const phenotypeMetricMax = phenotypeMetricValues.length
+                ? Math.max(...phenotypeMetricValues)
+                : null;
             return (nodes || []).map((n) => {
                 const type = n.type || "Gene";
                 let color = NODE_COLORS[type] || DEFAULT_NODE_COLOR;
@@ -819,7 +1106,7 @@ export default {
                 const parts = [`Full label: ${headlineLabel}`, `Type: ${type}`];
                 let geneBorder = meta.biolink_unmapped ? "#6b7280" : "#fff";
                 if (type === "Gene") {
-                    const geneName = (n.label || n.id || "")
+                    const geneName = headlineLabel
                         .toString()
                         .trim()
                         .replace(/^gene:/i, "");
@@ -839,6 +1126,12 @@ export default {
                     parts.push(`Functional support: ${funcVal != null ? Number(funcVal).toFixed(2) : "—"}`);
                     if (geneScoreVal != null && !Number.isNaN(Number(geneScoreVal))) {
                         parts.push(`Gene score: ${Number(geneScoreVal).toFixed(3)}`);
+                    }
+                    if (meta.pigeanScore != null && !Number.isNaN(Number(meta.pigeanScore))) {
+                        parts.push(`PIGEAN score: ${Number(meta.pigeanScore).toFixed(2)}`);
+                    }
+                    if (meta.factorLoading != null && !Number.isNaN(Number(meta.factorLoading))) {
+                        parts.push(`Factor loading: ${Number(meta.factorLoading).toFixed(4)}`);
                     }
                     if (this.geneColorByGwasSupport) {
                         color = DATA_TAB_GENE_COLOR.background;
@@ -874,6 +1167,14 @@ export default {
                         parts.push(`Overall gene set cluster value: ${Number(meta.factor_value).toFixed(3)}`);
                     }
                 }
+                if (type === "Phenotype") {
+                    if (meta.aggregatePigeanScore != null && !Number.isNaN(Number(meta.aggregatePigeanScore))) {
+                        parts.push(`Aggregated PIGEAN score: ${Number(meta.aggregatePigeanScore).toFixed(2)}`);
+                    }
+                    if (meta.sharedGeneCount != null && !Number.isNaN(Number(meta.sharedGeneCount))) {
+                        parts.push(`Shared genes: ${Number(meta.sharedGeneCount)}`);
+                    }
+                }
                 if (biolinkClass) {
                     parts.push(`Biolink class: ${biolinkClass}`);
                 }
@@ -900,13 +1201,15 @@ export default {
                 const title = parts.join(" | ");
                 const rawLabel = headlineLabel.toString();
                 const label =
-                    this.isMechanismFlowMap
+                    type === "Gene" || this.isMechanismFlowMap
                         ? rawLabel
                         : rawLabel.length > 12
                           ? `${rawLabel.slice(0, 10)}…`
                           : rawLabel;
                 let size = 20;
-                if (type === "Gene") {
+                if (type === "Factor") {
+                    size = 26;
+                } else if (type === "Gene") {
                     if (!geneMetricKey) size = 16;
                     else {
                         const v = this.readNumericMetric(meta, geneMetricKey);
@@ -914,7 +1217,7 @@ export default {
                             v != null ? Math.abs(v) : null,
                             geneMetricMin,
                             geneMetricMax,
-                            12,
+                            16,
                             30
                         );
                     }
@@ -927,25 +1230,49 @@ export default {
                         12,
                         28
                     );
+                } else if (type === "Phenotype" && phenotypeMetricKey) {
+                    const v = this.readNumericMetric(meta, phenotypeMetricKey);
+                    size = this.scaleLinear(
+                        v != null ? Math.abs(v) : null,
+                        phenotypeMetricMin,
+                        phenotypeMetricMax,
+                        16,
+                        36
+                    );
                 }
+                const genesFetched =
+                    type === "Phenotype" && this.genesFetchedDiseaseIdSet.has(String(n.id));
+                let borderColor =
+                    type === "Gene" && this.geneColorByGwasSupport
+                        ? geneBorder
+                        : meta.biolink_unmapped
+                          ? "#6b7280"
+                          : "#fff";
+                if (genesFetched) borderColor = GENES_FETCHED_DISEASE_BORDER;
+                const borderWidth = genesFetched
+                    ? 3
+                    : meta.biolink_unmapped
+                      ? 3
+                      : 1.5;
                 return {
                     id: n.id,
                     label,
                     title,
                     color: {
                         background: color,
-                        border: type === "Gene" && this.geneColorByGwasSupport ? geneBorder : (meta.biolink_unmapped ? "#6b7280" : "#fff"),
+                        border: borderColor,
                     },
                     font: {
                         size: 14,
                         color: "#333",
                     },
-                    borderWidth: meta.biolink_unmapped ? 3 : 1.5,
+                    borderWidth,
                     size,
+                    ...(Number.isFinite(n.x) && Number.isFinite(n.y) ? { x: n.x, y: n.y } : {}),
                 };
             });
         },
-        buildVisEdges(edges) {
+        buildVisEdges(edges, metricScopeEdges = null) {
             const typeOrder = {
                 Gene: 0,
                 Pathway: 1,
@@ -954,8 +1281,9 @@ export default {
             };
             const distanceMetricKey = String(this.edgeDistanceMetricKey || "").trim();
             const edgeMetricValues = [];
+            const metricEdges = metricScopeEdges || edges;
             if (distanceMetricKey) {
-                (edges || []).forEach((e) => {
+                (metricEdges || []).forEach((e) => {
                     const v = this.readNumericMetric(e.metadata || {}, distanceMetricKey);
                     if (v != null) edgeMetricValues.push(Math.abs(v));
                 });
@@ -969,7 +1297,7 @@ export default {
                 let from = e.source;
                 let to = e.target;
 
-                if (!this.isMechanismFlowMap && sourceNode && targetNode) {
+                if (!this.isMechanismFlowMap && !this.preserveEdgeDirection && sourceNode && targetNode) {
                     const sourceRank = typeOrder[sourceNode.type] ?? 0;
                     const targetRank = typeOrder[targetNode.type] ?? 0;
                     if (sourceRank > targetRank) {
@@ -981,7 +1309,7 @@ export default {
                 const action = String(e.predicate || e.label || "").trim();
 
                 const edge = {
-                    id: `e-${i}-${from}-${to}`,
+                    id: `e-${from}-${to}`,
                     from,
                     to,
                     title: action,
@@ -1020,11 +1348,26 @@ export default {
             });
         },
         render() {
+            if (this.isRendering) {
+                this.pendingResize = true;
+                return;
+            }
+            this.isRendering = true;
+            try {
+                this.renderNetwork();
+            } finally {
+                this.isRendering = false;
+                if (this.pendingResize) {
+                    this.pendingResize = false;
+                    this.$nextTick(() => this.onContainerResize());
+                }
+            }
+        },
+        renderNetwork() {
             this.cleanup();
+            this.bindResizeObserver();
             const container = this.$refs.container;
             if (!container) return;
-
-            console.log('Graph: network', this.network);
 
             const nodes = (this.network.nodes || []).map((n) => ({ ...n }));
             const edges = (this.network.edges || []).map((e) => ({
@@ -1041,7 +1384,12 @@ export default {
                 return;
             }
 
-            nodes.forEach(n => {
+            if (container.clientWidth < 8 || container.clientHeight < 8) {
+                return;
+            }
+
+            this.nodeMap = {};
+            nodes.forEach((n) => {
                 this.nodeMap[n.id] = n;
             });
 
@@ -1074,6 +1422,9 @@ export default {
             };
 
             const options = {
+                autoResize: true,
+                width: `${container.clientWidth}px`,
+                height: `${container.clientHeight}px`,
                 nodes: {
                     shape: "dot",
                     borderWidth: 1.5,
@@ -1099,6 +1450,7 @@ export default {
                           }
                         : {}),
                 },
+                layout: { randomSeed: 2 },
                 physics: {
                     enabled: true,
                     stabilization: {
@@ -1106,14 +1458,23 @@ export default {
                         iterations: 200,
                         fit: true,
                     },
-                    barnesHut: {
-                        gravitationalConstant: -1200,
-                        centralGravity: 0.06,
-                        springLength: 120,
-                        springConstant: 0.04,
-                        damping: 0.3,
-                        avoidOverlap: 0.5
-                    },
+                    barnesHut: this.keepPhysicsEnabled || this.isMechanismFlowMap
+                        ? {
+                              gravitationalConstant: -2200,
+                              centralGravity: 0.015,
+                              springLength: 160,
+                              springConstant: 0.018,
+                              damping: 0.5,
+                              avoidOverlap: 0.85,
+                          }
+                        : {
+                              gravitationalConstant: -1200,
+                              centralGravity: 0.06,
+                              springLength: 120,
+                              springConstant: 0.04,
+                              damping: 0.3,
+                              avoidOverlap: 0.5,
+                          },
                 },
                 interaction: {
                     hover: true,
@@ -1129,6 +1490,8 @@ export default {
             };
 
             this.visNetwork = new Network(container, data, options);
+            this.lastContainerWidth = container.clientWidth;
+            this.visNetwork.setSize(`${container.clientWidth}px`, `${container.clientHeight}px`);
             let readyEmitted = false;
             const emitNetworkReady = () => {
                 if (readyEmitted || !this.visNetwork) return;
@@ -1138,17 +1501,30 @@ export default {
                 if (!this.isMechanismFlowMap && !this.keepPhysicsEnabled) {
                     this.visNetwork.setOptions({ physics: false });
                 }
-                const scale = this.visNetwork.getScale();
-                if (typeof scale === "number" && !Number.isNaN(scale)) {
-                    this.zoomLevel = Math.max(this.zoomMin, Math.min(this.zoomMax, scale));
+                this.fitNetworkToViewport();
+                if (this.keepPhysicsEnabled) {
+                    if (this.layoutFitTimer) clearTimeout(this.layoutFitTimer);
+                    this.layoutFitTimer = window.setTimeout(() => {
+                        this.layoutFitTimer = null;
+                        this.fitNetworkToViewport();
+                    }, 700);
                 }
                 this.applySelectionHighlights();
+                this.applyDiseaseFetchedBorders();
                 this.$emit("network-ready");
             };
 
             this.visNetwork.on("hoverNode", (params) => this.showHoverTooltip(params));
-            this.visNetwork.on("blurNode", () => this.hideHoverTooltip());
-            this.visNetwork.on("dragStart", () => this.hideHoverTooltip());
+            this.visNetwork.on("blurNode", () => {
+                this.hideHoverTooltip();
+                this.scheduleDiseaseMenuHide();
+            });
+            this.visNetwork.on("dragStart", (params) => {
+                this.hideHoverTooltip();
+                this.hideDiseaseNodeMenu();
+                this.onNodeDragStart(params);
+            });
+            this.visNetwork.on("dragEnd", (params) => this.onNodeDragEnd(params));
             this.visNetwork.on("zoom", (params) => this.moveHoverTooltip(params));
             this.visNetwork.on("dragging", (params) => this.moveHoverTooltip(params));
             this.visNetwork.on("selectEdge", () => this.refreshSelectionStylesSoon());
@@ -1163,13 +1539,104 @@ export default {
             this.visNetwork.on("stabilizationIterationsDone", emitNetworkReady);
             this.visNetwork.on("stabilized", emitNetworkReady);
             setTimeout(emitNetworkReady, 2500);
-
-            this.visNetwork.fit({
-                animation: {
-                    duration: 600,
-                    easingFunction: "easeInOutQuad",
-                },
+        },
+        bindResizeObserver() {
+            if (this.resizeObserver || typeof ResizeObserver === "undefined") return;
+            const el = this.$refs.container;
+            if (!el) return;
+            this.resizeObserver = new ResizeObserver(() => {
+                if (this.resizeFitTimer) clearTimeout(this.resizeFitTimer);
+                this.resizeFitTimer = setTimeout(() => {
+                    this.resizeFitTimer = null;
+                    this.onContainerResize();
+                }, 80);
             });
+            this.resizeObserver.observe(el);
+        },
+        unbindResizeObserver() {
+            if (this.resizeFitTimer) {
+                clearTimeout(this.resizeFitTimer);
+                this.resizeFitTimer = null;
+            }
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect();
+                this.resizeObserver = null;
+            }
+        },
+        onContainerResize() {
+            if (this.isRendering) {
+                this.pendingResize = true;
+                return;
+            }
+            const container = this.$refs.container;
+            if (!container) return;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            if (width < 8 || height < 8) {
+                this.lastContainerWidth = width;
+                return;
+            }
+            const becameVisible = this.lastContainerWidth < 8;
+            this.lastContainerWidth = width;
+            if (!this.visNetwork) {
+                this.render();
+                return;
+            }
+            this.visNetwork.setSize(`${width}px`, `${height}px`);
+            this.visNetwork.redraw();
+            if (becameVisible) this.fitNetworkToViewport();
+        },
+        fitNetworkToViewport() {
+            if (!this.visNetwork) return;
+            const container = this.$refs.container;
+            if (container && container.clientWidth >= 8 && container.clientHeight >= 8) {
+                this.visNetwork.setSize(`${container.clientWidth}px`, `${container.clientHeight}px`);
+                this.visNetwork.redraw();
+            }
+            this.visNetwork.fit({
+                padding: 48,
+                animation: false,
+            });
+            const scale = this.visNetwork.getScale();
+            if (typeof scale === "number" && !Number.isNaN(scale)) {
+                this.zoomLevel = Math.max(this.zoomMin, Math.min(this.zoomMax, scale));
+            }
+        },
+        physicsRemainsEnabled() {
+            return !!(this.keepPhysicsEnabled || this.isMechanismFlowMap);
+        },
+        onNodeDragStart(params) {
+            if (!this.physicsRemainsEnabled() || !this.nodesDataSet) return;
+            const ids = (params && params.nodes) || [];
+            if (!ids.length) return;
+            // Temporarily release any prior pin so the node can move freely while dragging.
+            this.nodesDataSet.update(
+                ids.map((id) => ({
+                    id,
+                    fixed: { x: false, y: false },
+                    physics: true,
+                }))
+            );
+        },
+        onNodeDragEnd(params) {
+            if (!this.physicsRemainsEnabled() || !this.visNetwork || !this.nodesDataSet) return;
+            const ids = (params && params.nodes) || [];
+            if (!ids.length) return;
+            const positions = this.visNetwork.getPositions(ids);
+            const updates = ids
+                .map((id) => {
+                    const pos = positions[id];
+                    if (!pos) return null;
+                    return {
+                        id,
+                        x: pos.x,
+                        y: pos.y,
+                        fixed: { x: true, y: true },
+                        physics: false,
+                    };
+                })
+                .filter(Boolean);
+            if (updates.length) this.nodesDataSet.update(updates);
         },
         onNetworkClick(params) {
             if (!this.nodeSelectionEnabled || !params) return;
@@ -1285,6 +1752,39 @@ export default {
 .network-wrapper {
     position: relative;
     width: 100%;
+}
+.network-disease-action-menu {
+    position: absolute;
+    z-index: 35;
+    min-width: 10.5rem;
+    padding: 0.35rem;
+    border-radius: 8px;
+    border: 1px solid #ead9c8;
+    background: #fffef9;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    pointer-events: auto;
+}
+.network-disease-action-btn {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: #fffdfa;
+    color: #3d342c;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+}
+.network-disease-action-btn:hover,
+.network-disease-action-btn:focus {
+    background: #fff5eb;
+    border-color: #efc39c;
+    outline: none;
 }
 .network-hover-tooltip {
     position: absolute;
