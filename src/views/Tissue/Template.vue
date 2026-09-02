@@ -390,7 +390,10 @@
                             :per-page="10"
                         >
                             <template #cell(GO_terms)="row">
-                                <button @click="row.toggleDetails()">View GO terms</button>
+                                <button class="btn btn-outline-primary btn-sm"
+                                    @click="row.toggleDetails()">
+                                    {{ row.detailsShowing ? "Hide" : "Show" }}
+                                </button>
                             </template>
                             <template #row-details="row">
                                 <div v-if="row.item.GO_terms !== null">

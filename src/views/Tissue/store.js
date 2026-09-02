@@ -56,7 +56,6 @@ export default new Vuex.Store({
         setTopPhenotype(state, phenotype) {
             state.topPhenotype = phenotype || state.topPhenotype;
             if (!state.selectedPhenotype){
-                console.log("no phenotype here");
                 state.selectedPhenotype = phenotype;
             }
         },
@@ -81,16 +80,13 @@ export default new Vuex.Store({
                 return;
             }
             let key0 = typeof connectivityKey === "string" ? connectivityKey : connectivityKey[0];
-            console.log(key0);
-                await context.dispatch("connectivity/query", {q: key0});
-                await context.dispatch("connectivityDrug/query", {q: key0});
+                context.dispatch("connectivity/query", {q: key0});
+                context.dispatch("connectivityDrug/query", {q: key0});
             if (typeof connectivityKey !== "string"){
                 let key1 = connectivityKey[1];
-                await context.dispatch("connectivity1/query", {q: key1});
-                await context.dispatch("connectivityDrug1/query", {q: key1});
+                context.dispatch("connectivity1/query", {q: key1});
+                context.dispatch("connectivityDrug1/query", {q: key1});
             }
-            console.log(JSON.stringify(context.state.connectivity.data));
-            console.log(JSON.stringify(context.state.connectivity1.data));
         },
         async getEvidence(context, { q }) {
             //Do we neeed this?
@@ -110,7 +106,6 @@ export default new Vuex.Store({
                 queryString = `${context.state.selectedAncestry},${queryString}`;
             }
             queryString = `${context.state.selectedPhenotype.name},${queryString}`;
-            console.log(queryString);
             context.dispatch("cs2ct/query", { q : queryString });
         },
         onPhenotypeChange(context, phenotype){
@@ -128,7 +123,6 @@ export default new Vuex.Store({
 					}
 					return json.keys.map(key => key[0])
 				});
-            console.log(annotations);
             context.state.annotationOptions = annotations;
             context.state.selectedAnnotation = annotations[0];
 		},

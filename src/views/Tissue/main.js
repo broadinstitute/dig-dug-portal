@@ -168,7 +168,6 @@ new Vue({
                 this.$store.state.mouseSummary.data.length > 0;
         },
         hasMatchingSingleCellTissue(){
-            console.log('!!', this.$store.state.singleCellDatasets);
             if(!this.$store.state.singleCellDatasets) return false;
             if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
             if(!this.tissue) return false;
