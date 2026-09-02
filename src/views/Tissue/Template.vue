@@ -382,6 +382,29 @@
                         ></tissue-heritability-table>
                     </div>
                 </div>
+                <div class="card mdkp-card" v-if="!!$store.state.connectivity.data">
+                    <div class="card-body">
+                        <h4>Connectivity mapping data</h4>
+                        <b-table :items="$store.state.connectivity.data"
+                            :current-page="$parent.connectivityPage"
+                            :per-page="10"
+                        >
+                            <template #cell(GO_terms)="row">
+                                <button @click="row.toggleDetails()">View GO terms</button>
+                            </template>
+                            <template #row-details="row">
+                                <div v-if="row.item.GO_terms !== null">
+                                    {{ row.item.GO_terms }}
+                                </div>
+                            </template>
+                        </b-table>
+                        <b-pagination 
+                            v-model="$parent.connectivityPage"
+                            :total-rows="$store.state.connectivity.data.length"
+                            :per-page="10">
+                        </b-pagination>
+                    </div>
+                </div>
             </div>
         </template>
 

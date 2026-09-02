@@ -105,7 +105,8 @@ new Vue({
 
                 bioIndex: "https://bioindex.hugeamp.org",
                 bioIndexDev: "https://bioindex-dev.hugeamp.org"
-            }
+            },
+            connectivityPage: 1,
         };
     },
     computed: {
@@ -125,11 +126,13 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        connectivity(){
-            return this.$store.state.connectivity.data;
-        },
-        connectivityDrug(){
-            return this.$store.state.connectivityDrug.data;
+        connectivityFields(){
+            let allData = this.$store.state.connectivity.data;
+            if (!allData){
+                return [];
+            }
+            let fields = Object.keys(allData[0]);
+            return fields.filter(f => f !== 'GO_terms');
         },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
