@@ -125,6 +125,12 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
+        connectivity(){
+            return this.$store.state.connectivity.data;
+        },
+        connectivityDrug(){
+            return this.$store.state.connectivityDrug.data;
+        },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
                 return this.$store.state.bioPortal.phenotypes;

@@ -8,6 +8,19 @@ import keyParams from "@/utils/keyParams";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { query } from "@/utils/bioIndexUtils";
 
+const CONNECTIVITY_KEYS = {
+    adipose_tissue: ["adipose_subcutaneous", "adipose_visceral"],
+    cardiovascular_system: "artery",
+    heart: "heart",
+    neural_tissue: "hypothalamus",
+    kidney: "kidney",
+    liver: "liver",
+    muscle_tissue: "muscle",
+    skeletal_muscle_tissue: "muscle",
+    muscle_structure: "muscle",
+    pancreas: "pancreas"
+}
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -19,6 +32,10 @@ export default new Vuex.Store({
         geneLinks: bioIndex("gene-links"),
         mouseSummary: bioIndex("diff-exp-summary-tissue"),
         cs2ct: bioIndex("c2ct-tissue"),
+        connectivity: bioIndex("connectivity-map-de"),
+        connectivityDrug: bioIndex("connectivity-map-drug"),
+        connectivity1: bioIndex("connectivity-map-de"),
+        connectivityDrug1: bioIndex("connectivity-map-drug")
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -48,17 +65,32 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        getTissue(context) {
+        async getTissue(context) {
             context.state.tissueName = context.state.selectedTissue || context.state.tissueName;
             context.dispatch("tissue/query", {
                 q: context.state.tissueName.replaceAll(" ", "_"), limit: 1000
             });
             let name = context.state.tissueName;
+            let connectivityKey = CONNECTIVITY_KEYS[name];
             // TODO FIX BIOINDICES
             if (name === 'adipose_tissue'){
                 name = 'adipose';
             }
             context.dispatch("mouseSummary/query", {q: name});
+            if (!connectivityKey){
+                return;
+            }
+            let key0 = typeof connectivityKey === "string" ? connectivityKey : connectivityKey[0];
+            console.log(key0);
+                await context.dispatch("connectivity/query", {q: key0});
+                await context.dispatch("connectivityDrug/query", {q: key0});
+            if (typeof connectivityKey !== "string"){
+                let key1 = connectivityKey[1];
+                await context.dispatch("connectivity1/query", {q: key1});
+                await context.dispatch("connectivityDrug1/query", {q: key1});
+            }
+            console.log(JSON.stringify(context.state.connectivity.data));
+            console.log(JSON.stringify(context.state.connectivity1.data));
         },
         async getEvidence(context, { q }) {
             //Do we neeed this?
