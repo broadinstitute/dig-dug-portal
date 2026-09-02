@@ -685,6 +685,12 @@ function readScoreMap(raw) {
     return out;
 }
 
+/** True when |factor_value| exceeds the gene render floor (overall gene set cluster value). */
+function isSignificantGeneFactorValue(factorValue, minAbs = DEFAULT_MIN_FACTORIZATION_SCORE) {
+    if (factorValue == null || Number.isNaN(Number(factorValue))) return false;
+    return Math.abs(Number(factorValue)) > Number(minAbs);
+}
+
 /** True when |score| meets the factorization render floor. */
 function isSignificantFactorizationScore(score, minScore = DEFAULT_MIN_FACTORIZATION_SCORE) {
     if (score == null || Number.isNaN(Number(score))) return false;
@@ -725,13 +731,13 @@ function readGeneSetPValueMap(raw) {
  * One phenotype bucket per Factor (Factor0…); heatmap uses row-label-mode=factor.
  * Cell values are Overall factor value (`factor_value`); no Combined/GWAS/gene-set scores.
  *
- * Genes with |gene_score| < 0.01 are omitted.
+ * Genes with |gene_score| < 0.01 are omitted (unless `minGeneFactorValue` is set, then |factor_value| is used).
  * Gene sets with enrichment p ≥ 0.05 (or missing p) are omitted; `gene_set_score` stores -log10(p)
  * for network node size. Overall factor value is not used for those thresholds.
  *
  * @param {Object} pigeanJson - raw bayes_gene/pigean response
  * @param {string[]} inputGenes - search genes
- * @param {{ maxGenesPerFactor?: number, maxGeneSetsPerFactor?: number, minScore?: number, maxGeneSetPValue?: number }} [options]
+ * @param {{ maxGenesPerFactor?: number, maxGeneSetsPerFactor?: number, minScore?: number, minGeneFactorValue?: number, maxGeneSetPValue?: number }} [options]
  */
 function buildFactorDataFromBayesPigean(pigeanJson, inputGenes = [], options = {}) {
     const maxGenesPerFactor = Math.max(
@@ -746,6 +752,10 @@ function buildFactorDataFromBayesPigean(pigeanJson, inputGenes = [], options = {
         options.minScore != null && !Number.isNaN(Number(options.minScore))
             ? Number(options.minScore)
             : DEFAULT_MIN_FACTORIZATION_SCORE;
+    const minGeneFactorValue =
+        options.minGeneFactorValue != null && !Number.isNaN(Number(options.minGeneFactorValue))
+            ? Number(options.minGeneFactorValue)
+            : null;
     const maxGeneSetP =
         options.maxGeneSetPValue != null && !Number.isNaN(Number(options.maxGeneSetPValue))
             ? Number(options.maxGeneSetPValue)
@@ -799,6 +809,14 @@ function buildFactorDataFromBayesPigean(pigeanJson, inputGenes = [], options = {
         const geneRows = sortRowsByAbsFactorValueDesc(geneFactor[factorId] || []).filter((row) => {
             const gene = row && row.gene != null ? String(row.gene) : "";
             if (!gene) return false;
+            if (searchSet.has(gene.toUpperCase())) return true;
+            if (minGeneFactorValue != null) {
+                const fv =
+                    row.factor_value != null && !isNaN(Number(row.factor_value))
+                        ? Number(row.factor_value)
+                        : null;
+                return isSignificantGeneFactorValue(fv, minGeneFactorValue);
+            }
             return isSignificantFactorizationScore(geneScoreByGene[gene], minScore);
         });
         const geneSetRows = sortRowsByAbsFactorValueDesc(geneSetFactor[factorId] || []).filter((row) => {
@@ -916,6 +934,7 @@ export {
     filterFactorDataToSearchGenes,
     filterSignificantGeneSetRows,
     isSignificantFactorizationScore,
+    isSignificantGeneFactorValue,
     isSignificantGeneSetBeta,
     isSignificantGeneSetPValue,
     negLog10P,

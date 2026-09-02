@@ -468,4 +468,35 @@ describe("buildFactorDataFromBayesPigean", () => {
         expect(f.geneSets.GS_Y).toBeUndefined();
         expect(f.geneSets.GS_NO_P).toBeUndefined();
     });
+
+    test("minGeneFactorValue filters context genes by |factor_value|; search genes always kept", () => {
+        const { buildFactorDataFromBayesPigean } = require("@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneSetEntryFactorData.js");
+        const json = {
+            input_genes: ["LDLR"],
+            gene_scores: { LDLR: 0.4, WEAK: 0.9, STRONG: 0.9 },
+            gene_sets: [{ gene_set: "HP_X", p_value: 1e-8 }],
+            "pigean-factor": {
+                data: [{ factor: "Factor0", label: "L", gene_score: 0.4, gene_set_score: 1.0 }],
+            },
+            "gene-factor": {
+                Factor0: [
+                    { gene: "LDLR", factor_value: 0.15, label: "L", label_factor: "Factor0" },
+                    { gene: "WEAK", factor_value: 0.1, label: "L", label_factor: "Factor0" },
+                    { gene: "STRONG", factor_value: 0.5, label: "L", label_factor: "Factor0" },
+                ],
+            },
+            "gene-set-factor": {
+                Factor0: [{ gene_set: "HP_X", factor_value: 1.0, label: "L", label_factor: "Factor0" }],
+            },
+        };
+        const factorData = buildFactorDataFromBayesPigean(json, ["LDLR"], {
+            minGeneFactorValue: 0.2,
+            maxGenesPerFactor: 100,
+            maxGeneSetsPerFactor: 100,
+        });
+        const f = factorData.Factor0.factors[0];
+        expect(f.genes.LDLR.includedFromRequest).toBe(true);
+        expect(f.genes.STRONG).toBeDefined();
+        expect(f.genes.WEAK).toBeUndefined();
+    });
 });
