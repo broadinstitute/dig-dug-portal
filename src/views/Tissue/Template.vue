@@ -478,6 +478,42 @@
                         </b-pagination>
                     </div>
                 </div>
+                <div class="card mdkp-card" v-if="!!$parent.connectivity1DrugData.length > 0">
+                    <div class="card-body">
+                        <h4>Connectivity drug data for 
+                            {{ $parent.tissueFormatter($parent.connectivity1DrugData[0].tissue) }}
+                        </h4>
+                        <b-table :items="$parent.connectivity1DrugData"
+                            :current-page="$parent.connectivity1DrugPage"
+                            :per-page="10"
+                            :fields="$parent.connectivityDrugFields"
+                        >
+                            <template #cell(drug_chembl_id)="row">
+                                <a target="_blank" :href="row.item.drug_link">{{ row.item.drug_chembl_id }}</a>
+                            </template>
+                            <template #cell(target_chembl_id)="row">
+                                <a target="_blank" :href="row.item.target_link">{{ row.item.target_chembl_id }}</a>
+                            </template>
+                            <template #cell(GO_terms)="row">
+                                <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
+                                    @click="row.toggleDetails()">
+                                    {{ row.detailsShowing ? "Hide" : "Show" }}
+                                </button>
+                                <span v-else>N/A</span>
+                            </template>
+                            <template #row-details="row">
+                                <div>
+                                    {{ row.item.GO_terms }}
+                                </div>
+                            </template>
+                        </b-table>
+                        <b-pagination 
+                            v-model="$parent.connectivity1DrugPage"
+                            :total-rows="$parent.connectivity1DrugData.length"
+                            :per-page="10">
+                        </b-pagination>
+                    </div>
+                </div>
             </div>
         </template>
 

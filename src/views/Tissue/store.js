@@ -35,7 +35,7 @@ export default new Vuex.Store({
         connectivity: bioIndex("connectivity-map-de"),
         connectivityDrug: bioIndex("connectivity-map-drug"),
         connectivity1: bioIndex("connectivity-map-de"),
-        connectivityDrug1: bioIndex("connectivity-map-drug")
+        connectivity1Drug: bioIndex("connectivity-map-drug")
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -85,7 +85,7 @@ export default new Vuex.Store({
             if (typeof connectivityKey !== "string"){
                 let key1 = connectivityKey[1];
                 await context.dispatch("connectivity1/query", {q: key1});
-                await context.dispatch("connectivityDrug1/query", {q: key1});
+                await context.dispatch("connectivity1Drug/query", {q: key1});
             }
             let cData = context.state.connectivityDrug.data[0];
             console.log("here's the drug data:", JSON.stringify(cData));
