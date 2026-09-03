@@ -416,49 +416,54 @@
                     <div class="card-body">
                         <h4>Connectivity drug mapping
                         </h4>
-                        <div class="col filter-col-md">
-                            <div class="label">
-                                Cell Type
-                            </div>
-                            <select
-                                v-model="$parent.connectivityCellType"
-                                class="form-control"
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                field="tissue"
+                                :options="$parent.connectivityDrugData.map(c => c.tissue)"
                             >
-                                <option v-for="type in $parent.cellTypes" :value="type">{{ type }}</option>
-                            </select>
-                        </div>
+                                <div class="label">Tissue</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                field="cell_type"
+                                :options="$parent.connectivityDrugData.map(c => c.cell_type)"
+                            >
+                                <div class="label">Cell type</div>
+                            </filter-enumeration-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <b-table :items="$parent.connectivityDrugData"
+                                    :filter="filter"
+                                    :current-page="$parent.connectivityDrugPage"
+                                    :per-page="10"
+                                    :fields="$parent.connectivityDrugFields"
+                                    small
+                                >
+                                    <template #cell(drug_chembl_id)="row">
+                                        <a target="_blank" :href="row.item.drug_link">{{ row.item.drug_chembl_id }}</a>
+                                    </template>
+                                    <template #cell(target_chembl_id)="row">
+                                        <a target="_blank" :href="row.item.target_link">{{ row.item.target_chembl_id }}</a>
+                                    </template>
+                                    <template #cell(GO_terms)="row">
+                                        <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
+                                            @click="row.toggleDetails()">
+                                            {{ row.detailsShowing ? "Hide" : "Show" }}
+                                        </button>
+                                        <span v-else>N/A</span>
+                                    </template>
+                                    <template #row-details="row">
+                                        <div>
+                                            {{ row.item.GO_terms }}
+                                        </div>
+                                    </template>
+                                </b-table>
+                                <b-pagination 
+                                    v-model="$parent.connectivityDrugPage"
+                                    :total-rows="$parent.connectivityDrugData.length"
+                                    :per-page="10">
+                                </b-pagination>
+                            </template>
+                        </criterion-function-group>
                         
-                        <!-- TODO add a criterion function group/filter here-->
-                        <b-table :items="$parent.connectivityDrugData"
-                            :current-page="$parent.connectivityDrugPage"
-                            :per-page="10"
-                            :fields="$parent.connectivityDrugFields"
-                            small
-                        >
-                            <template #cell(drug_chembl_id)="row">
-                                <a target="_blank" :href="row.item.drug_link">{{ row.item.drug_chembl_id }}</a>
-                            </template>
-                            <template #cell(target_chembl_id)="row">
-                                <a target="_blank" :href="row.item.target_link">{{ row.item.target_chembl_id }}</a>
-                            </template>
-                            <template #cell(GO_terms)="row">
-                                <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
-                                    @click="row.toggleDetails()">
-                                    {{ row.detailsShowing ? "Hide" : "Show" }}
-                                </button>
-                                <span v-else>N/A</span>
-                            </template>
-                            <template #row-details="row">
-                                <div>
-                                    {{ row.item.GO_terms }}
-                                </div>
-                            </template>
-                        </b-table>
-                        <b-pagination 
-                            v-model="$parent.connectivityDrugPage"
-                            :total-rows="$parent.connectivityDrugData.length"
-                            :per-page="10">
-                        </b-pagination>
                     </div>
                 </div>
             </div>

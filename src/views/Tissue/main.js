@@ -110,7 +110,6 @@ new Vue({
             },
             connectivityPage: 1,
             connectivityDrugPage: 1,
-            connectivityCellType: null,
             connectivityDrugFields: [
                 { key: "tissue", sortable: true},
                 { key: "cell_type", sortable: true},
@@ -244,10 +243,6 @@ new Vue({
             };
             return config;
         },
-        cellTypes(){
-            let types = this.connectivityData.map(c => c.cell_type);
-            return Array.from(new Set(types));
-        }
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -290,6 +285,7 @@ new Vue({
                 if(cDatum.GO_terms === null){
                     cDatum.GO_terms = "";
                 }
+                cDatum.cell_type = cDatum.cell_type.toUpperCase();
             }
             return cData;
         }
@@ -301,11 +297,6 @@ new Vue({
         "$store.state.selectedAncestry"(){
             this.$store.dispatch("getCs2ct");
         },
-        cellTypes(newTypes){
-            if (this.connectivityCellType === null){
-                this.connectivityCellType = newTypes[0];
-            }
-        }
     },
     render: (h) => h(Template),
 }).$mount("#app");
