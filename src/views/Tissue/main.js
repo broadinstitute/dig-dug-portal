@@ -122,8 +122,6 @@ new Vue({
                 { key: "target_chembl_id"},
                 { key: "mechanism_of_action"},
                 { key: "source"},
-                { key: "drug_link"},
-                { key: "target_link"},
                 //{ key: "source_file"},
                 { key: "target_type"},
                 { key: "comparison"},
