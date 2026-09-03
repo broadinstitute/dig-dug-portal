@@ -107,6 +107,23 @@ new Vue({
                 bioIndexDev: "https://bioindex-dev.hugeamp.org"
             },
             connectivityPage: 1,
+            connectivityFields: [
+                { key: "cell_type"},
+                { key: "pathway"},
+                { key: "comparison"},
+                { key: "reversed_p_adj", formatter: Formatters.pValueFormatter,},
+                { key: "NES_difference", formatter: Formatters.tpmFormatter},
+                { key: "log2FC_in_disease", formatter: Formatters.tpmFormatter},
+                { key: "padj_in_disease", formatter: Formatters.pValueFormatter,},
+                { key: "disease_direction"},
+                { key: "mean_tpm", formatter: Formatters.tpmFormatter,},
+                { key: "median_tpm", formatter: Formatters.tpmFormatter,},
+                { key: "pct_expressed", formatter: Formatters.tpmFormatter},
+                { key: "tpm_category"},
+                { key: "expressed"},
+                { key: "GO_terms"},
+                { key: "best_GO_padj", formatter: Formatters.pValueFormatter,}
+            ]
         };
     },
     computed: {
@@ -125,14 +142,6 @@ new Vue({
         },
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
-        },
-        connectivityFields(){
-            let allData = this.$store.state.connectivity.data;
-            if (!allData){
-                return [];
-            }
-            let fields = Object.keys(allData[0]);
-            return fields.filter(f => f !== 'GO_terms');
         },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {

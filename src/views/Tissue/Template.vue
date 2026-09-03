@@ -388,6 +388,7 @@
                         <b-table :items="$store.state.connectivity.data"
                             :current-page="$parent.connectivityPage"
                             :per-page="10"
+                            :fields="$parent.connectivityFields"
                         >
                             <template #cell(GO_terms)="row">
                                 <button class="btn btn-outline-primary btn-sm"

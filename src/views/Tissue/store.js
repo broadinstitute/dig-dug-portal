@@ -80,13 +80,16 @@ export default new Vuex.Store({
                 return;
             }
             let key0 = typeof connectivityKey === "string" ? connectivityKey : connectivityKey[0];
-                context.dispatch("connectivity/query", {q: key0});
-                context.dispatch("connectivityDrug/query", {q: key0});
+                await context.dispatch("connectivity/query", {q: key0});
+                await context.dispatch("connectivityDrug/query", {q: key0});
             if (typeof connectivityKey !== "string"){
                 let key1 = connectivityKey[1];
-                context.dispatch("connectivity1/query", {q: key1});
-                context.dispatch("connectivityDrug1/query", {q: key1});
+                await context.dispatch("connectivity1/query", {q: key1});
+                await context.dispatch("connectivityDrug1/query", {q: key1});
             }
+            let cData = context.state.connectivity.data[0];
+            console.log("here's the data:", JSON.stringify(cData));
+            console.log(JSON.stringify(Object.keys(cData)));
         },
         async getEvidence(context, { q }) {
             //Do we neeed this?
