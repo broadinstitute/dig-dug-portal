@@ -87,8 +87,8 @@ export default new Vuex.Store({
                 await context.dispatch("connectivity1/query", {q: key1});
                 await context.dispatch("connectivityDrug1/query", {q: key1});
             }
-            let cData = context.state.connectivity.data[0];
-            console.log("here's the data:", JSON.stringify(cData));
+            let cData = context.state.connectivityDrug.data[0];
+            console.log("here's the drug data:", JSON.stringify(cData));
             console.log(JSON.stringify(Object.keys(cData)));
         },
         async getEvidence(context, { q }) {
