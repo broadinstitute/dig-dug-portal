@@ -34,8 +34,6 @@ export default new Vuex.Store({
         cs2ct: bioIndex("c2ct-tissue"),
         connectivity: bioIndex("connectivity-map-de"),
         connectivityDrug: bioIndex("connectivity-map-drug"),
-        connectivity1: bioIndex("connectivity-map-de"),
-        connectivity1Drug: bioIndex("connectivity-map-drug")
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -45,7 +43,9 @@ export default new Vuex.Store({
         selectedPhenotype: null,
         annotationOptions: [],
         selectedAnnotation: "",
-        singleCellDatasets: null
+        singleCellDatasets: null,
+        connectivityData: [],
+        connectivityDrugData: []
     },
 
     mutations: {
@@ -61,6 +61,12 @@ export default new Vuex.Store({
         },
         setSelectedAnnotation(state, annotation){
             state.selectedAnnotation = annotation || state.selectedAnnotation;
+        },
+        setConnectivityData(state, data){
+            state.connectivityData = data || state.connectivityData;
+        },
+        setConnectivityDrugData(state, data){
+            state.connectivityDrugData = data || state.connectivityDrugData;
         }
     },
     actions: {
@@ -80,16 +86,20 @@ export default new Vuex.Store({
                 return;
             }
             let key0 = typeof connectivityKey === "string" ? connectivityKey : connectivityKey[0];
-                await context.dispatch("connectivity/query", {q: key0});
-                await context.dispatch("connectivityDrug/query", {q: key0});
+            await context.dispatch("connectivity/query", {q: key0});
+            await context.dispatch("connectivityDrug/query", {q: key0});
+
+            let connect = structuredClone(context.state.connectivity.data);
+            let connectDrug = structuredClone(context.state.connectivityDrug.data);
             if (typeof connectivityKey !== "string"){
                 let key1 = connectivityKey[1];
-                await context.dispatch("connectivity1/query", {q: key1});
-                await context.dispatch("connectivity1Drug/query", {q: key1});
+                await context.dispatch("connectivity/query", {q: key1});
+                await context.dispatch("connectivityDrug/query", {q: key1});
+                connect = connect.concat(context.state.connectivity.data);
+                connectDrug = connectDrug.concat(context.state.connectivityDrug.data);
             }
-            let cData = context.state.connectivityDrug.data[0];
-            console.log("here's the drug data:", JSON.stringify(cData));
-            console.log(JSON.stringify(Object.keys(cData)));
+            context.state.connectivityData = connect;
+            context.state.connectivityDrugData = connectDrug;
         },
         async getEvidence(context, { q }) {
             //Do we neeed this?

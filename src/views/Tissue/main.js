@@ -109,10 +109,10 @@ new Vue({
                 bioIndexDev: "https://bioindex-dev.hugeamp.org"
             },
             connectivityPage: 1,
-            connectivity1Page: 1,
             connectivityDrugPage: 1,
-            connectivity1DrugPage: 1,
+            connectivityCellType: null,
             connectivityDrugFields: [
+                { key: "tissue", sortable: true},
                 { key: "cell_type", sortable: true},
                 { key: "pathway", sortable: true},
                 { key: "drug_name", sortable: true},
@@ -205,16 +205,10 @@ new Vue({
             }
         },
         connectivityData(){
-            return this.processConnectivityData(this.$store.state.connectivity.data);
+            return this.processConnectivityData(this.$store.state.connectivityData);
         },
         connectivityDrugData(){
-            return this.processConnectivityData(this.$store.state.connectivityDrug.data);
-        },
-        connectivity1Data(){
-            return this.processConnectivityData(this.$store.state.connectivity1.data);
-        },
-        connectivity1DrugData(){
-            return this.processConnectivityData(this.$store.state.connectivity1Drug.data);
+            return this.processConnectivityData(this.$store.state.connectivityDrugData);
         },
         connectivityFields(){
             let cdFields = this.connectivityDrugFields;
@@ -223,6 +217,36 @@ new Vue({
                 return [];
             }
             return cdFields.filter(f => cKeys.includes(f.key));
+        },
+        volcanoConfig() {
+            // TODO adapt this from matkp
+            let config = {
+                "type": "volcano plot",
+                "label": "This is a Test",
+                "legend": "This is a Test",
+                "render by": "gene",
+                "x axis field": "logFoldChange",
+                "x axis label": "log2 Fold Change",
+                "y axis field": "-logP10", // Formerly -log10P
+                "y axis label": "-log10(FDR adj. p)",
+                "width": 600,
+                "height": this.plotHeight,
+                "x condition": { 
+                    "combination": "or", 
+                    "greater than": this.volcanoXConditionGreater, 
+                    "lower than": this.volcanoXConditionLower },
+                //combination for condition can be "greater than", "lower than", "or" and "and."
+                "y condition": { 
+                    "combination": "greater than", 
+                    "greater than": parseFloat(this.volcanoYCondition) },
+                "dot label score": 2
+                //number of conditions that the value of each dot to meet to have labeled
+            };
+            return config;
+        },
+        cellTypes(){
+            let types = this.connectivityData.map(c => c.cell_type);
+            return Array.from(new Set(types));
         }
     },
     created() {
@@ -277,6 +301,11 @@ new Vue({
         "$store.state.selectedAncestry"(){
             this.$store.dispatch("getCs2ct");
         },
+        cellTypes(newTypes){
+            if (this.connectivityCellType === null){
+                this.connectivityCellType = newTypes[0];
+            }
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");
