@@ -107,6 +107,7 @@ new Vue({
                 bioIndexDev: "https://bioindex-dev.hugeamp.org"
             },
             connectivityPage: 1,
+            connectivity1Page: 1,
             connectivityFields: [
                 { key: "cell_type"},
                 { key: "pathway"},
@@ -121,8 +122,8 @@ new Vue({
                 { key: "pct_expressed", formatter: Formatters.tpmFormatter},
                 { key: "tpm_category"},
                 { key: "expressed"},
+                { key: "best_GO_padj", formatter: Formatters.pValueFormatter,},
                 { key: "GO_terms"},
-                { key: "best_GO_padj", formatter: Formatters.pValueFormatter,}
             ]
         };
     },
@@ -188,6 +189,12 @@ new Vue({
             }else{
                 return false;
             }
+        },
+        connectivityData(){
+            return this.processConnectivityData(this.$store.state.connectivity.data);
+        },
+        connectivity1Data(){
+            return this.processConnectivityData(this.$store.state.connectivity1.data);
         }
     },
     created() {
@@ -223,6 +230,16 @@ new Vue({
         onAnnotationSelected(){
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");
+        },
+        processConnectivityData(data){
+            let cData = structuredClone(data);
+            for(let i = 0; i < cData.length; i++){
+                let cDatum = cData[i];
+                if(cDatum.GO_terms === null){
+                    cDatum.GO_terms = "";
+                }
+            }
+            return cData;
         }
     },
     watch: {

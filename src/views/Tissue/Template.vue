@@ -382,31 +382,62 @@
                         ></tissue-heritability-table>
                     </div>
                 </div>
-                <div class="card mdkp-card" v-if="!!$store.state.connectivity.data">
+                <div class="card mdkp-card" v-if="!!$parent.connectivityData">
                     <div class="card-body">
-                        <h4>Connectivity mapping data</h4>
-                        <b-table :items="$store.state.connectivity.data"
+                        <h4>Connectivity mapping data for 
+                            {{ $parent.connectivityData[0].tissue }}
+                        </h4>
+                        <b-table :items="$parent.connectivityData"
                             :current-page="$parent.connectivityPage"
                             :per-page="10"
                             :fields="$parent.connectivityFields"
                         >
                             <template #cell(GO_terms)="row">
-                                <button class="btn btn-outline-primary btn-sm"
+                                <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
                                     @click="row.toggleDetails()">
                                     {{ row.detailsShowing ? "Hide" : "Show" }}
                                 </button>
+                                <span v-else>N/A</span>
                             </template>
                             <template #row-details="row">
-                                <div v-if="row.item.GO_terms !== null">
+                                <div>
                                     {{ row.item.GO_terms }}
                                 </div>
                             </template>
                         </b-table>
                         <b-pagination 
                             v-model="$parent.connectivityPage"
-                            :total-rows="$store.state.connectivity.data.length"
+                            :total-rows="$parent.connectivityData.length"
                             :per-page="10">
                         </b-pagination>
+                        <div v-if="!!$parent.connectivity1Data">
+                            <h4>Connectivity mapping data for 
+                                {{ $store.state.connectivity1.data[0].tissue }}
+                            </h4>
+                            <b-table :items="$parent.connectivity1Data"
+                                :current-page="$parent.connectivity1Page"
+                                :per-page="10"
+                                :fields="$parent.connectivityFields"
+                            >
+                                <template #cell(GO_terms)="row">
+                                    <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
+                                        @click="row.toggleDetails()">
+                                        {{ row.detailsShowing ? "Hide" : "Show" }}
+                                    </button>
+                                    <span v-else>N/A</span>
+                                </template>
+                                <template #row-details="row">
+                                    <div>
+                                        {{ row.item.GO_terms }}
+                                    </div>
+                                </template>
+                            </b-table>
+                            <b-pagination 
+                                v-model="$parent.connectivity1Page"
+                                :total-rows="$parent.connectivity1Data.length"
+                                :per-page="10">
+                            </b-pagination>
+                        </div>
                     </div>
                 </div>
             </div>
