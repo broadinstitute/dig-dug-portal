@@ -16,6 +16,7 @@ import C2ctTable from "@/components/C2ctTable.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import ResearchSingleCellBrowser from "../../components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import VolcanoPlot from "@/components/eglt/VolcanoPlot";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -47,6 +48,7 @@ new Vue({
         PhenotypeSelectPicker,
         AncestrySelectPicker,
         ResearchSingleCellBrowser,
+        VolcanoPlot
     },
     mixins: [pageMixin],
     data() {
