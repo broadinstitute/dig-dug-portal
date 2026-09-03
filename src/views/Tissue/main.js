@@ -105,7 +105,40 @@ new Vue({
 
                 bioIndex: "https://bioindex.hugeamp.org",
                 bioIndexDev: "https://bioindex-dev.hugeamp.org"
-            }
+            },
+            connectivityPage: 1,
+            connectivity1Page: 1,
+            connectivityDrugPage: 1,
+            connectivity1DrugPage: 1,
+            connectivityDrugFields: [
+                { key: "cell_type"},
+                { key: "pathway"},
+                { key: "drug_name"},
+                { key: "drug_chembl_id"},
+                { key: "action_type"},
+                { key: "max_phase"},
+                { key: "candidate_score"},
+                { key: "target_name"},
+                { key: "target_chembl_id"},
+                { key: "mechanism_of_action"},
+                { key: "source"},
+                //{ key: "source_file"},
+                { key: "target_type"},
+                { key: "comparison"},
+                { key: "reversed_p_adj", formatter: Formatters.pValueFormatter,},
+                { key: "NES_difference", formatter: Formatters.tpmFormatter},
+                { key: "log2FC_in_disease", formatter: Formatters.tpmFormatter},
+                { key: "padj_in_disease", formatter: Formatters.pValueFormatter,},
+                { key: "disease_direction"},
+                { key: "mean_tpm", formatter: Formatters.tpmFormatter,},
+                { key: "median_tpm", formatter: Formatters.tpmFormatter,},
+                { key: "pct_expressed", formatter: Formatters.tpmFormatter},
+                { key: "tpm_category"},
+                { key: "expressed"},
+                { key: "best_GO_padj", formatter: Formatters.pValueFormatter,},
+                { key: "GO_terms"},
+                // TODO make them sortable
+            ],
         };
     },
     computed: {
@@ -159,7 +192,6 @@ new Vue({
                 this.$store.state.mouseSummary.data.length > 0;
         },
         hasMatchingSingleCellTissue(){
-            console.log('!!', this.$store.state.singleCellDatasets);
             if(!this.$store.state.singleCellDatasets) return false;
             if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
             if(!this.tissue) return false;
@@ -171,6 +203,26 @@ new Vue({
             }else{
                 return false;
             }
+        },
+        connectivityData(){
+            return this.processConnectivityData(this.$store.state.connectivity.data);
+        },
+        connectivityDrugData(){
+            return this.processConnectivityData(this.$store.state.connectivityDrug.data);
+        },
+        connectivity1Data(){
+            return this.processConnectivityData(this.$store.state.connectivity1.data);
+        },
+        connectivity1DrugData(){
+            return this.processConnectivityData(this.$store.state.connectivity1Drug.data);
+        },
+        connectivityFields(){
+            let cdFields = this.connectivityDrugFields;
+            let cKeys = Object.keys(this.connectivityData[0]);
+            if (!cKeys){
+                return [];
+            }
+            return cdFields.filter(f => cKeys.includes(f.key));
         }
     },
     created() {
@@ -206,6 +258,16 @@ new Vue({
         onAnnotationSelected(){
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");
+        },
+        processConnectivityData(data){
+            let cData = structuredClone(data);
+            for(let i = 0; i < cData.length; i++){
+                let cDatum = cData[i];
+                if(cDatum.GO_terms === null){
+                    cDatum.GO_terms = "";
+                }
+            }
+            return cData;
         }
     },
     watch: {

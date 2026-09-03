@@ -8,6 +8,19 @@ import keyParams from "@/utils/keyParams";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { query } from "@/utils/bioIndexUtils";
 
+const CONNECTIVITY_KEYS = {
+    adipose_tissue: ["adipose_subcutaneous", "adipose_visceral"],
+    cardiovascular_system: "artery",
+    heart: "heart",
+    neural_tissue: "hypothalamus",
+    kidney: "kidney",
+    liver: "liver",
+    muscle_tissue: "muscle",
+    skeletal_muscle_tissue: "muscle",
+    muscle_structure: "muscle",
+    pancreas: "pancreas"
+}
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -19,6 +32,10 @@ export default new Vuex.Store({
         geneLinks: bioIndex("gene-links"),
         mouseSummary: bioIndex("diff-exp-summary-tissue"),
         cs2ct: bioIndex("c2ct-tissue"),
+        connectivity: bioIndex("connectivity-map-de"),
+        connectivityDrug: bioIndex("connectivity-map-drug"),
+        connectivity1: bioIndex("connectivity-map-de"),
+        connectivity1Drug: bioIndex("connectivity-map-drug")
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -39,7 +56,6 @@ export default new Vuex.Store({
         setTopPhenotype(state, phenotype) {
             state.topPhenotype = phenotype || state.topPhenotype;
             if (!state.selectedPhenotype){
-                console.log("no phenotype here");
                 state.selectedPhenotype = phenotype;
             }
         },
@@ -48,17 +64,32 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        getTissue(context) {
+        async getTissue(context) {
             context.state.tissueName = context.state.selectedTissue || context.state.tissueName;
             context.dispatch("tissue/query", {
                 q: context.state.tissueName.replaceAll(" ", "_"), limit: 1000
             });
             let name = context.state.tissueName;
+            let connectivityKey = CONNECTIVITY_KEYS[name];
             // TODO FIX BIOINDICES
             if (name === 'adipose_tissue'){
                 name = 'adipose';
             }
             context.dispatch("mouseSummary/query", {q: name});
+            if (!connectivityKey){
+                return;
+            }
+            let key0 = typeof connectivityKey === "string" ? connectivityKey : connectivityKey[0];
+                await context.dispatch("connectivity/query", {q: key0});
+                await context.dispatch("connectivityDrug/query", {q: key0});
+            if (typeof connectivityKey !== "string"){
+                let key1 = connectivityKey[1];
+                await context.dispatch("connectivity1/query", {q: key1});
+                await context.dispatch("connectivity1Drug/query", {q: key1});
+            }
+            let cData = context.state.connectivityDrug.data[0];
+            console.log("here's the drug data:", JSON.stringify(cData));
+            console.log(JSON.stringify(Object.keys(cData)));
         },
         async getEvidence(context, { q }) {
             //Do we neeed this?
@@ -78,7 +109,6 @@ export default new Vuex.Store({
                 queryString = `${context.state.selectedAncestry},${queryString}`;
             }
             queryString = `${context.state.selectedPhenotype.name},${queryString}`;
-            console.log(queryString);
             context.dispatch("cs2ct/query", { q : queryString });
         },
         onPhenotypeChange(context, phenotype){
@@ -96,7 +126,6 @@ export default new Vuex.Store({
 					}
 					return json.keys.map(key => key[0])
 				});
-            console.log(annotations);
             context.state.annotationOptions = annotations;
             context.state.selectedAnnotation = annotations[0];
 		},
