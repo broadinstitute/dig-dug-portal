@@ -37,7 +37,7 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("volcano-plot", {
-    props: ["plotData", "renderConfig", "geneOfInterest"],
+    props: ["plotData", "renderConfig", "geneOfInterest", "filter"],
     data() {
         return {};
     },
@@ -144,6 +144,9 @@ export default Vue.component("volcano-plot", {
             this.clearPlot();
             this.renderPlot();
         },
+        filter(newFilter){
+            console.log(JSON.stringify(newFilter));
+        }
     },
     methods: {
         ...uiUtils,

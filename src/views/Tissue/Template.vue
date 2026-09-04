@@ -384,7 +384,7 @@
                 </div>
                 <div class="card mdkp-card" v-if="!!$parent.connectivityData.length > 0">
                     <div class="card-body">
-                        <h4>Connectivity mapping
+                        <h4>Connectivity mapping: Differential Expression
                         </h4>
                         <criterion-function-group>
                             <filter-enumeration-control
@@ -407,6 +407,13 @@
                                 <div class="label">Comparison</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
+                                <div>
+                                    <volcano-plot
+                                        :filter="filter"
+                                        :renderConfig="$parent.volcanoConfig"
+                                        :plotData="$parent.connectivityData.filter(filter)">
+                                    </volcano-plot>
+                                </div>
                                 <div class="table-total-rows">
                                     Total rows: {{ $parent.connectivityData.filter(filter).length }}
                                 </div>
@@ -440,7 +447,7 @@
                 </div>
                 <div class="card mdkp-card" v-if="!!$parent.connectivityDrugData.length > 0">
                     <div class="card-body">
-                        <h4>Connectivity drug mapping
+                        <h4>Connectivity mapping: Differential Expression (Drug)
                         </h4>
                         <criterion-function-group>
                             <filter-enumeration-control

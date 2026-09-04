@@ -222,21 +222,21 @@ new Vue({
                 "type": "volcano plot",
                 "label": "This is a Test",
                 "legend": "This is a Test",
-                "render by": "gene",
-                "x axis field": "logFoldChange",
-                "x axis label": "log2 Fold Change",
-                "y axis field": "-logP10", // Formerly -log10P
-                "y axis label": "-log10(FDR adj. p)",
+                "renderBy": "pathway",
+                "xAxisField": "NES_difference",
+                "xAxisLabel": "NES_difference",
+                "yAxisField": "minusLogRevPAdj",
+                "yAxisLabel": "-log10(reversed_p_adj)",
                 "width": 600,
-                "height": this.plotHeight,
-                "x condition": { 
+                "height": 400,
+                "xCondition": { 
                     "combination": "or", 
-                    "greater than": this.volcanoXConditionGreater, 
-                    "lower than": this.volcanoXConditionLower },
+                    "greater than": 0, 
+                    "lower than": 0 },
                 //combination for condition can be "greater than", "lower than", "or" and "and."
-                "y condition": { 
+                "yCondition": { 
                     "combination": "greater than", 
-                    "greater than": parseFloat(this.volcanoYCondition) },
+                    "greater than": 0 },
                 "dot label score": 2
                 //number of conditions that the value of each dot to meet to have labeled
             };
@@ -286,6 +286,8 @@ new Vue({
                 }
                 cDatum.cell_type = cDatum.cell_type.toUpperCase();
                 cDatum.comparison = cDatum.comparison.toUpperCase();
+                cDatum.minusLogRevPAdj = - Math.log10(cDatum.reversed_p_adj);
+                cDatum.identifier = `${cDatum.cell_type}___${cDatum.pathway}`;
             }
             return cData;
         }
