@@ -216,32 +216,6 @@ new Vue({
             }
             return cdFields.filter(f => cKeys.includes(f.key));
         },
-        volcanoConfig() {
-            // TODO adapt this from matkp
-            let config = {
-                "type": "volcano plot",
-                "label": "",
-                "legend": "",
-                "renderBy": "pathway",
-                "xAxisField": "NES_difference",
-                "xAxisLabel": "NES_difference",
-                "yAxisField": "minusLogRevPAdj",
-                "yAxisLabel": "-log10(reversed_p_adj)",
-                "width": 600,
-                "height": 400,
-                "xCondition": { 
-                    "combination": "or", 
-                    "greater than": 0, 
-                    "lower than": 0 },
-                //combination for condition can be "greater than", "lower than", "or" and "and."
-                "yCondition": { 
-                    "combination": "greater than", 
-                    "greater than": 0 },
-                "dot label score": 2
-                //number of conditions that the value of each dot to meet to have labeled
-            };
-            return config;
-        },
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -290,7 +264,33 @@ new Vue({
                 cDatum.identifier = `${cDatum.cell_type}___${cDatum.pathway}`;
             }
             return cData;
-        }
+        },
+        volcanoConfig(isDrug=false) {
+            // TODO adapt this from matkp
+            let config = {
+                "type": "volcano plot",
+                "label": "",
+                "legend": "",
+                "renderBy": isDrug ? "drug_chembl_id" : "pathway",
+                "xAxisField": "NES_difference",
+                "xAxisLabel": "NES_difference",
+                "yAxisField": "minusLogRevPAdj",
+                "yAxisLabel": "-log10(reversed_p_adj)",
+                "width": 600,
+                "height": 400,
+                "xCondition": { 
+                    "combination": "or", 
+                    "greater than": 0, 
+                    "lower than": 0 },
+                //combination for condition can be "greater than", "lower than", "or" and "and."
+                "yCondition": { 
+                    "combination": "greater than", 
+                    "greater than": 0 },
+                "dot label score": 2
+                //number of conditions that the value of each dot to meet to have labeled
+            };
+            return config;
+        },
     },
     watch: {
         "$store.state.annotationOptions"(data) {
