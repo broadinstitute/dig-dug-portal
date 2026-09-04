@@ -396,7 +396,7 @@
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 field="cell_type"
-                                :options="$parent.connectivityData.map(c => c.cell_type)"
+                                :options="$parent.connectivityData.map(c => c.cell_type).filter(ct => !!ct)"
                             >
                                 <div class="label">Cell type</div>
                             </filter-enumeration-control>
