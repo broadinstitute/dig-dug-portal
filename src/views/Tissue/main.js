@@ -248,7 +248,7 @@ new Vue({
             this.$store.dispatch("getCs2ct");
         },
         processConnectivityData(data){
-            let cData = structuredClone(data);
+            let cData = structuredClone(data).filter(d => !!d.cell_type);
             for(let i = 0; i < cData.length; i++){
                 let cDatum = cData[i];
                 if(cDatum.GO_terms === null){

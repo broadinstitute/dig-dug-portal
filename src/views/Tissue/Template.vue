@@ -407,10 +407,22 @@
                                 <div class="label">Comparison</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <volcano-plot
-                                    :renderConfig="$parent.volcanoConfig()"
-                                    :plotData="$parent.connectivityData.filter(filter)">
-                                </volcano-plot>
+                                <div v-if="new Set($parent.connectivityData.filter(filter).map(d => d.cell_type)).size > 1 ||
+                                    new Set($parent.connectivityData.filter(filter).map(d => d.comparison)).size > 1 ||
+                                    new Set($parent.connectivityData.filter(filter).map(d => d.tissue)).size > 1
+                                " style="text-align: center; margin: 20px;"> 
+                                    Select a tissue type, cell type, and comparison to view the differential expression plot.
+                                </div>
+                                <div v-else-if="$parent.connectivityData.filter(filter).length === 0"
+                                    style="text-align: center; margin: 20px;">
+                                    No data found for the selected filters.
+                                </div>
+                                <div v-else>
+                                    <volcano-plot
+                                        :renderConfig="$parent.volcanoConfig()"
+                                        :plotData="$parent.connectivityData.filter(filter)">
+                                    </volcano-plot>
+                                </div>
                                 <div class="table-total-rows">
                                     Total rows: {{ $parent.connectivityData.filter(filter).length }}
                                 </div>
