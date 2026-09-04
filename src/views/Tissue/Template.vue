@@ -407,6 +407,9 @@
                                 <div class="label">Comparison</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
+                                <div class="table-total-rows">
+                                    Total rows: {{ $parent.connectivityData.filter(filter).length }}
+                                </div>
                                 <b-table :items="$parent.connectivityData.filter(filter)"
                                     :current-page="$parent.connectivityPage"
                                     :per-page="10"
@@ -460,7 +463,11 @@
                                 <div class="label">Comparison</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <b-table :items="$parent.connectivityDrugData.filter(filter)"
+                                <div class="table-total-rows">
+                                    Total rows: {{ $parent.connectivityDrugData.filter(filter).length }}
+                                </div>
+                                <b-table
+                                    :items="$parent.connectivityDrugData.filter(filter)"
                                     :current-page="$parent.connectivityDrugPage"
                                     :per-page="10"
                                     :fields="$parent.connectivityDrugFields"
