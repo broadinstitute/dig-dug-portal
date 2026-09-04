@@ -86,15 +86,15 @@ export default new Vuex.Store({
                 return;
             }
             let key0 = typeof connectivityKey === "string" ? connectivityKey : connectivityKey[0];
-            await context.dispatch("connectivity/query", {q: key0, limit:1000});
-            await context.dispatch("connectivityDrug/query", {q: key0, limit:1000});
+            await context.dispatch("connectivity/query", {q: key0});
+            await context.dispatch("connectivityDrug/query", {q: key0});
 
             let connect = structuredClone(context.state.connectivity.data);
             let connectDrug = structuredClone(context.state.connectivityDrug.data);
             if (typeof connectivityKey !== "string"){
                 let key1 = connectivityKey[1];
-                await context.dispatch("connectivity/query", {q: key1, limit:1000});
-                await context.dispatch("connectivityDrug/query", {q: key1, limit:1000});
+                await context.dispatch("connectivity/query", {q: key1});
+                await context.dispatch("connectivityDrug/query", {q: key1});
                 connect = connect.concat(context.state.connectivity.data);
                 connectDrug = connectDrug.concat(context.state.connectivityDrug.data);
             }

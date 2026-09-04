@@ -220,8 +220,8 @@ new Vue({
             // TODO adapt this from matkp
             let config = {
                 "type": "volcano plot",
-                "label": "This is a Test",
-                "legend": "This is a Test",
+                "label": "",
+                "legend": "",
                 "renderBy": "pathway",
                 "xAxisField": "NES_difference",
                 "xAxisLabel": "NES_difference",

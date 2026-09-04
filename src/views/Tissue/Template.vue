@@ -407,13 +407,11 @@
                                 <div class="label">Comparison</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div>
-                                    <volcano-plot
-                                        :filter="filter"
-                                        :renderConfig="$parent.volcanoConfig"
-                                        :plotData="$parent.connectivityData.filter(filter)">
-                                    </volcano-plot>
-                                </div>
+                                <volcano-plot
+                                    :filter="filter"
+                                    :renderConfig="$parent.volcanoConfig"
+                                    :plotData="$parent.connectivityData.filter(filter)">
+                                </volcano-plot>
                                 <div class="table-total-rows">
                                     Total rows: {{ $parent.connectivityData.filter(filter).length }}
                                 </div>
