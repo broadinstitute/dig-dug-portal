@@ -94,6 +94,28 @@
                             and edit before clicking through.
                         </span>
                     </button>
+                    <button
+                        type="button"
+                        class="scp-welcome-option scp-welcome-option-action"
+                        :disabled="!hypothesisText.trim()"
+                        @click="onOptionSelect('evaluateAndSearchKg')"
+                    >
+                        <span class="scp-welcome-option-title">Evaluate hypothesis + Search CFDE KG</span>
+                        <span class="scp-welcome-option-desc">
+                            Scores the hypothesis first, then searches the CFDE knowledge graph
+                            for gene–trait evidence using the parsed target and outcome.
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        class="scp-welcome-option scp-welcome-option-import"
+                        @click="onImportSessionClick"
+                    >
+                        <span class="scp-welcome-option-title">Import session</span>
+                        <span class="scp-welcome-option-desc">
+                            Load a previously exported session and pick up where you left off.
+                        </span>
+                    </button>
                 </div>
             </div>
 
@@ -202,6 +224,9 @@ export default {
             }
             this.$emit("select-option", { optionId, hypothesisText: text });
             this.$emit("close");
+        },
+        onImportSessionClick() {
+            this.$emit("import-session");
         },
         onBackdropClick(event) {
             if (event.target !== event.currentTarget || !this.dismissible) {
@@ -364,6 +389,21 @@ export default {
 .scp-welcome-option-action:disabled {
     opacity: 0.5;
     cursor: default;
+}
+
+.scp-welcome-option-import {
+    background: #fff;
+    border: 1px solid var(--cfde-blue, #2c5c97);
+    cursor: pointer;
+}
+
+.scp-welcome-option-import:hover {
+    background: var(--cfde-blue, #2c5c97);
+}
+
+.scp-welcome-option-import:hover .scp-welcome-option-title,
+.scp-welcome-option-import:hover .scp-welcome-option-desc {
+    color: #fff;
 }
 
 .scp-welcome-option-title {

@@ -5,9 +5,9 @@ const SYSTEM_PROMPT =
     "Respond with strict JSON only, matching exactly this shape:\n" +
     "{\n" +
     '  "slots": {\n' +
-    '    "target": {"value": string|null, "confidence": "high"|"medium"|"low"},\n' +
-    '    "perturbation": {"value": string|null, "confidence": "high"|"medium"|"low"},\n' +
-    '    "outcome": {"value": string|null, "confidence": "high"|"medium"|"low"},\n' +
+    '    "target": {"value": string|null, "confidence": "high"|"medium"|"low", "resolved_id": string|null},\n' +
+    '    "perturbation": {"value": string|null, "confidence": "high"|"medium"|"low", "resolved_id": string|null},\n' +
+    '    "outcome": {"value": string|null, "confidence": "high"|"medium"|"low", "resolved_id": string|null},\n' +
     '    "modifiers": {\n' +
     '      "cell_line": {"value": string|null, "confidence": "high"|"medium"|"low"},\n' +
     '      "genetic_background": {"value": string|null, "confidence": "high"|"medium"|"low"},\n' +
@@ -35,6 +35,13 @@ const SYSTEM_PROMPT =
     "in missing_required_slots.\n" +
     "- outcome: the measured biological output or phenotype (reduced OCR, apoptosis, proliferation).\n" +
     'If a hypothesis names more than one target, perturbation, or outcome, join them into one comma-separated string value (e.g. "SIRT1, AMPK") rather than picking just one.\n\n' +
+    "resolved_id — for target and perturbation, the canonical name a genomics knowledge graph would index this entity under, " +
+    'if you can confidently supply one; null otherwise. For a gene/protein, this MUST be the official HGNC gene symbol, not a common ' +
+    'alias or brand/drug name — e.g. value "PD-1" -> resolved_id "PDCD1", value "HER2" -> resolved_id "ERBB2", value ' +
+    '"Keytruda"/"Pembrolizumab" -> resolved_id "PDCD1" (the gene the drug targets, since that is what a gene-centric KG indexes). ' +
+    "For outcome, resolved_id is the shortest canonical disease/phenotype name implied by the outcome if one exists (e.g. value " +
+    '"restores IFN-gamma secretion in exhausted T cells" -> resolved_id "T cell exhaustion"); null if the outcome is a lab-measured ' +
+    "readout with no corresponding disease/phenotype concept — do not force one.\n\n" +
     "Rules:\n" +
     "1. Precision = whether the hypothesis names specific, measurable entities rather than vague/qualitative language. A missing " +
     '(null) target or perturbation is strong evidence precision cannot be rated "high" — score it "low" or "medium" and say why, ' +
@@ -55,11 +62,13 @@ const MODIFIER_IDS = ["cell_line", "genetic_background", "dose_timepoint", "tiss
 
 function normalizeSlot(slot) {
     if (!slot || typeof slot !== "object") {
-        return { value: null, confidence: "low" };
+        return { value: null, confidence: "low", resolvedId: null };
     }
     const value = typeof slot.value === "string" && slot.value.trim() ? slot.value.trim() : null;
     const confidence = ["high", "medium", "low"].includes(slot.confidence) ? slot.confidence : "low";
-    return { value, confidence };
+    const resolvedId =
+        typeof slot.resolved_id === "string" && slot.resolved_id.trim() ? slot.resolved_id.trim() : null;
+    return { value, confidence, resolvedId };
 }
 
 function normalizeRubricAxis(axis) {

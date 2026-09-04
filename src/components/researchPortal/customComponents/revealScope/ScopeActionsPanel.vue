@@ -57,10 +57,17 @@ export default {
             type: Array,
             default: () => [],
         },
+        initialTab: {
+            type: String,
+            default: "next",
+            validator(value) {
+                return value === "next" || value === "catalog";
+            },
+        },
     },
     data() {
         return {
-            activeTab: "next",
+            activeTab: this.initialTab,
         };
     },
     computed: {

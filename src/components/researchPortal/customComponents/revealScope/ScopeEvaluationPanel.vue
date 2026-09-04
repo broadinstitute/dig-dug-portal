@@ -1,16 +1,6 @@
 <template>
     <div class="scp-eval">
-        <div class="scp-eval-axis scp-eval-hypothesis">
-            <div class="scp-eval-axis-head">
-                <span class="scp-eval-axis-title">Hypothesis</span>
-                <button type="button" class="scp-eval-edit" @click="$emit('edit')">Edit</button>
-            </div>
-            <p class="scp-eval-axis-rationale">{{ hypothesisText }}</p>
-        </div>
-
-        <div class="scp-eval-status" v-if="loading">Evaluating hypothesis…</div>
-
-        <template v-else>
+        <template v-if="!loading">
             <div v-if="evaluation.missingRequiredSlots.length" class="scp-eval-callout" role="status">
                 Missing {{ missingRequiredSlotsLabel }}
             </div>
@@ -33,7 +23,15 @@
             <div class="scp-eval-slots">
                 <div v-for="slot in requiredSlots" :key="slot.id" class="scp-eval-slot">
                     <span class="scp-eval-slot-label">{{ slot.label }}</span>
-                    <span class="scp-eval-slot-value">{{ slot.data.value || "—" }}</span>
+                    <span class="scp-eval-slot-value">
+                        {{ slot.data.value || "—" }}
+                        <span
+                            v-if="slot.data.resolvedId && slot.data.resolvedId !== slot.data.value"
+                            class="scp-eval-slot-resolved"
+                        >
+                            → {{ slot.data.resolvedId }}
+                        </span>
+                    </span>
                     <span class="scp-eval-slot-confidence" :class="`is-${slot.data.confidence}`">
                         {{ slot.data.confidence }}
                     </span>
@@ -126,6 +124,7 @@ export default {
     methods: {
         async loadEvaluation() {
             this.loading = true;
+            this.$emit("loading", true);
             try {
                 this.evaluation = await extractHypothesisEvaluation(this.hypothesisText);
             } catch (error) {
@@ -134,6 +133,7 @@ export default {
                 this.evaluation = emptyHypothesisEvaluation("Evaluation could not be completed.");
             } finally {
                 this.loading = false;
+                this.$emit("loading", false);
                 this.$emit("evaluated", this.evaluation);
             }
         },
@@ -149,24 +149,6 @@ export default {
 .scp-eval-status {
     font-size: 13px;
     color: var(--cfde-muted, #6b6b6b);
-}
-
-.scp-eval-hypothesis {
-    margin-bottom: 12px;
-}
-
-.scp-eval-edit {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--cfde-blue, #2c5c97);
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-}
-
-.scp-eval-edit:hover {
-    color: var(--cfde-orange, #e07b39);
 }
 
 .scp-eval-callout {
@@ -265,5 +247,9 @@ export default {
 
 .scp-eval-slot-confidence.is-high {
     color: var(--cfde-blue, #2c5c97);
+}
+
+.scp-eval-slot-resolved {
+    color: var(--cfde-muted, #6b6b6b);
 }
 </style>

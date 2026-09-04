@@ -1,31 +1,41 @@
 <template>
     <div class="scp-menubar">
         <div class="scp-menu-group">
-            <b-dropdown
-                v-for="menu in menus"
-                :key="menu.id"
-                :text="menu.label"
-                variant="outline-secondary"
-                size="sm"
-                class="scp-menu"
-                menu-class="scp-menu-list"
-                toggle-class="scp-menu-toggle"
-            >
-                <b-dropdown-item
-                    v-for="item in menu.items"
-                    :key="item.id"
-                    @click="onSelect(menu, item)"
+            <template v-for="menu in menus">
+                <b-button
+                    v-if="!menu.items"
+                    :key="menu.id"
+                    variant="outline-secondary"
+                    size="sm"
+                    class="scp-menu-button"
+                    @click="onButtonClick(menu)"
                 >
-                    {{ item.label }}
-                </b-dropdown-item>
-            </b-dropdown>
+                    {{ menu.label }}
+                </b-button>
+                <b-dropdown
+                    v-else
+                    :key="menu.id"
+                    :text="menu.label"
+                    variant="outline-secondary"
+                    size="sm"
+                    class="scp-menu"
+                    menu-class="scp-menu-list"
+                    toggle-class="scp-menu-toggle"
+                >
+                    <b-dropdown-item
+                        v-for="item in menu.items"
+                        :key="item.id"
+                        @click="onSelect(menu, item)"
+                    >
+                        {{ item.label }}
+                    </b-dropdown-item>
+                </b-dropdown>
+            </template>
         </div>
     </div>
 </template>
 
 <script>
-import { ACTION_CATALOG } from "./scopeActionsCatalog.js";
-
 export default {
     name: "ScopeMenuBar",
     data() {
@@ -43,7 +53,6 @@ export default {
                 {
                     id: "actions",
                     label: "Actions",
-                    items: ACTION_CATALOG.map((action) => ({ id: action.id, label: action.label })),
                 },
                 {
                     id: "help",
@@ -62,6 +71,13 @@ export default {
                 menu: menu.id,
                 action: item.id,
                 label: item.label,
+            });
+        },
+        onButtonClick(menu) {
+            this.$emit("action", {
+                menu: menu.id,
+                action: "open",
+                label: menu.label,
             });
         },
     },
@@ -83,7 +99,8 @@ export default {
     gap: 10px;
 }
 
-.scp-menu >>> .scp-menu-toggle {
+.scp-menu >>> .scp-menu-toggle,
+.scp-menu-button {
     font-weight: 600;
     letter-spacing: 0.01em;
     border-radius: 6px;
@@ -93,7 +110,10 @@ export default {
 }
 
 .scp-menu >>> .scp-menu-toggle:hover,
-.scp-menu >>> .show > .scp-menu-toggle {
+.scp-menu >>> .show > .scp-menu-toggle,
+.scp-menu-button:hover,
+.scp-menu-button:focus,
+.scp-menu-button:active {
     color: #ffffff;
     background: var(--cfde-blue, #2c5c97);
     border-color: var(--cfde-blue, #2c5c97);

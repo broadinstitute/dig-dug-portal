@@ -1,7 +1,6 @@
 <template>
     <div class="scp-lit">
-        <div class="scp-lit-status" v-if="loading">Generating search terms…</div>
-        <div class="scp-lit-sources">
+        <div v-if="!loading" class="scp-lit-sources">
             <div v-for="source in sources" :key="source.id" class="scp-lit-source">
                 <span class="scp-lit-source-label">{{ source.label }}</span>
                 <input
@@ -61,6 +60,7 @@ export default {
     methods: {
         async loadQuery() {
             this.loading = true;
+            this.$emit("loading", true);
             try {
                 const query = await extractLiteratureQuery(this.hypothesisText);
                 this.sources.forEach((source) => {
@@ -71,6 +71,7 @@ export default {
                 console.warn("[ScopeLiteratureLauncher] falling back to raw hypothesis text", error);
             } finally {
                 this.loading = false;
+                this.$emit("loading", false);
             }
         },
         onOpen(source) {
@@ -84,12 +85,6 @@ export default {
 <style scoped>
 .scp-lit {
     padding: 18px;
-}
-
-.scp-lit-status {
-    font-size: 13px;
-    color: var(--cfde-muted, #6b6b6b);
-    margin-bottom: 12px;
 }
 
 .scp-lit-sources {
