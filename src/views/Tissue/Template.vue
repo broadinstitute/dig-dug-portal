@@ -386,30 +386,53 @@
                     <div class="card-body">
                         <h4>Connectivity mapping
                         </h4>
-                        <b-table :items="$parent.connectivityData"
-                            :current-page="$parent.connectivityPage"
-                            :per-page="10"
-                            :fields="$parent.connectivityFields"
-                            small
-                        >
-                            <template #cell(GO_terms)="row">
-                                <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
-                                    @click="row.toggleDetails()">
-                                    {{ row.detailsShowing ? "Hide" : "Show" }}
-                                </button>
-                                <span v-else>N/A</span>
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                v-if="new Set($parent.connectivityData.map(c => c.tissue)).size > 1"
+                                field="tissue"
+                                :options="$parent.connectivityData.map(c => c.tissue)"
+                            >
+                                <div class="label">Tissue</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                field="cell_type"
+                                :options="$parent.connectivityData.map(c => c.cell_type)"
+                            >
+                                <div class="label">Cell type</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                field="comparison"
+                                :options="$parent.connectivityData.map(c => c.comparison)"
+                            >
+                                <div class="label">Comparison</div>
+                            </filter-enumeration-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <b-table :items="$parent.connectivityData.filter(filter)"
+                                    :current-page="$parent.connectivityPage"
+                                    :per-page="10"
+                                    :fields="$parent.connectivityFields"
+                                    small
+                                >
+                                    <template #cell(GO_terms)="row">
+                                        <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
+                                            @click="row.toggleDetails()">
+                                            {{ row.detailsShowing ? "Hide" : "Show" }}
+                                        </button>
+                                        <span v-else>N/A</span>
+                                    </template>
+                                    <template #row-details="row">
+                                        <div style="text-align: right;">
+                                            <strong>{{ row.item.GO_terms }}</strong>
+                                        </div>
+                                    </template>
+                                </b-table>
+                                <b-pagination 
+                                    v-model="$parent.connectivityPage"
+                                    :total-rows="$parent.connectivityData.length"
+                                    :per-page="10">
+                                </b-pagination>        
                             </template>
-                            <template #row-details="row">
-                                <div>
-                                    {{ row.item.GO_terms }}
-                                </div>
-                            </template>
-                        </b-table>
-                        <b-pagination 
-                            v-model="$parent.connectivityPage"
-                            :total-rows="$parent.connectivityData.length"
-                            :per-page="10">
-                        </b-pagination>
+                        </criterion-function-group>
                     </div>
                 </div>
                 <div class="card mdkp-card" v-if="!!$parent.connectivityDrugData.length > 0">
