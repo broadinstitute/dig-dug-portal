@@ -114,13 +114,10 @@ new Vue({
                 { key: "tissue", sortable: true},
                 { key: "cell_type", sortable: true},
                 { key: "pathway", sortable: true},
-                { key: "drug_chembl_id", sortable: true},
+                { key: "drug_chembl_id", label: "Drug CHEMBL ID", sortable: true},
                 { key: "max_phase", sortable: true},
                 { key: "candidate_score", sortable: true},
-                { key: "target_name", sortable: true},
-                { key: "target_chembl_id", sortable: true},
-                { key: "action_type", sortable: true},
-                { key: "target_type", sortable: true},
+                { key: "target_name", label: "Target Info"},
                 { key: "comparison", sortable: true},
                 { key: "reversed_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
                 { key: "NES_difference", formatter: Formatters.tpmFormatter, sortable: true},
@@ -132,10 +129,14 @@ new Vue({
                 { key: "pct_expressed", formatter: Formatters.tpmFormatter, sortable: true},
                 { key: "tpm_category", sortable: true},
                 { key: "expressed", sortable: true},
-                { key: "best_GO_padj", formatter: Formatters.pValueFormatter, sortable: true},
-                { key: "GO_terms"},
-                // TODO make them sortable
             ],
+            connectivityTargetFields: [
+                { key: "target_name"},
+                { key: "target_chembl_id", label: "Target CHEMBL ID"},
+                { key: "action_type"},
+                { key: "target_type"},
+                
+            ]
         };
     },
     computed: {

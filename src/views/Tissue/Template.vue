@@ -413,7 +413,7 @@
                                     :fields="$parent.connectivityFields"
                                     small
                                 >
-                                    <template #cell(GO_terms)="row">
+                                    <template #cell(target_name)="row">
                                         <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
                                             @click="row.toggleDetails()">
                                             {{ row.detailsShowing ? "Hide" : "Show" }}
@@ -469,20 +469,21 @@
                                     <template #cell(drug_chembl_id)="row">
                                         <a target="_blank" :href="row.item.drug_link">{{ row.item.drug_chembl_id }}</a>
                                     </template>
-                                    <template #cell(target_chembl_id)="row">
-                                        <a target="_blank" :href="row.item.target_link">{{ row.item.target_chembl_id }}</a>
-                                    </template>
-                                    <template #cell(GO_terms)="row">
-                                        <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
+                                    <template #cell(target_name)="row">
+                                        <button class="btn btn-outline-primary btn-sm"
                                             @click="row.toggleDetails()">
                                             {{ row.detailsShowing ? "Hide" : "Show" }}
                                         </button>
-                                        <span v-else>N/A</span>
                                     </template>
                                     <template #row-details="row">
-                                        <div>
-                                            {{ row.item.GO_terms }}
-                                        </div>
+                                        <b-table style="font-size: smaller; background-color: #efefef;" 
+                                            small
+                                            :items="[row.item]"
+                                            :fields="$parent.connectivityTargetFields">
+                                            <template #cell(target_chembl_id)="row">
+                                                <a target="_blank" :href="row.item.target_link">{{ row.item.target_chembl_id }}</a>
+                                            </template>
+                                        </b-table>
                                     </template>
                                 </b-table>
                                 <b-pagination 
