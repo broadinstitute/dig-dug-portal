@@ -53,6 +53,8 @@ export default Vue.component("volcano-plot", {
             return this.geneOfInterest;
         },
         renderData() {
+            console.log("We got new data!");
+            console.log(JSON.stringify(this.plotData));
             let rawData = this.plotData;
             let massagedData = [];
 

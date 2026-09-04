@@ -422,26 +422,14 @@
                                 </select>
                             </div>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div v-if="new Set($parent.connectivityData.filter(filter).map(d => d.cell_type)).size > 1 ||
-                                    new Set($parent.connectivityData.filter(filter).map(d => d.comparison)).size > 1 ||
-                                    new Set($parent.connectivityData.filter(filter).map(d => d.tissue)).size > 1
-                                " style="text-align: center; margin: 20px;"> 
-                                    Select a tissue type, cell type, and comparison to view the differential expression plot.
-                                </div>
-                                <div v-else-if="$parent.connectivityData.filter(filter).length === 0"
-                                    style="text-align: center; margin: 20px;">
-                                    No data found for the selected filters.
-                                </div>
-                                <div v-else>
-                                    <volcano-plot
-                                        :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityData.filter(filter)">
-                                    </volcano-plot>
-                                </div>
+                                <volcano-plot
+                                    :renderConfig="$parent.volcanoConfig()"
+                                    :plotData="$parent.filteredConnectivityData">
+                                </volcano-plot>
                                 <div class="table-total-rows">
-                                    Total rows: {{ $parent.connectivityData.filter(filter).length }}
+                                    Total rows: {{ $parent.filteredConnectivityData.length }}
                                 </div>
-                                <b-table :items="$parent.connectivityData.filter(filter)"
+                                <b-table :items="$parent.filteredConnectivityData"
                                     :current-page="$parent.connectivityPage"
                                     :per-page="10"
                                     :fields="$parent.connectivityFields"
@@ -462,7 +450,7 @@
                                 </b-table>
                                 <b-pagination 
                                     v-model="$parent.connectivityPage"
-                                    :total-rows="$parent.connectivityData.length"
+                                    :total-rows="$parent.filteredConnectivityData.length"
                                     :per-page="10">
                                 </b-pagination>        
                             </template>
@@ -509,27 +497,15 @@
                                 </select>
                             </div>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div v-if="new Set($parent.connectivityDrugData.filter(filter).map(d => d.cell_type)).size > 1 ||
-                                    new Set($parent.connectivityDrugData.filter(filter).map(d => d.comparison)).size > 1 ||
-                                    new Set($parent.connectivityDrugData.filter(filter).map(d => d.tissue)).size > 1
-                                " style="text-align: center; margin: 20px;"> 
-                                    Select a tissue type, cell type, and comparison to view the differential expression plot.
-                                </div>
-                                <div v-else-if="$parent.connectivityDrugData.filter(filter).length === 0"
-                                    style="text-align: center; margin: 20px;">
-                                    No data found for the selected filters.
-                                </div>
-                                <div v-else>
-                                    <volcano-plot
-                                        :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityDrugData.filter(filter)">
-                                    </volcano-plot>
-                                </div>
+                                <volcano-plot
+                                    :renderConfig="$parent.volcanoConfig()"
+                                    :plotData="$parent.filteredConnectivityDrugData">
+                                </volcano-plot>
                                 <div class="table-total-rows">
-                                    Total rows: {{ $parent.connectivityDrugData.filter(filter).length }}
+                                    Total rows: {{ $parent.filteredConnectivityDrugData.length }}
                                 </div>
                                 <b-table
-                                    :items="$parent.connectivityDrugData.filter(filter)"
+                                    :items="$parent.filteredConnectivityDrugData"
                                     :current-page="$parent.connectivityDrugPage"
                                     :per-page="10"
                                     :fields="$parent.connectivityDrugFields"
@@ -557,7 +533,7 @@
                                 </b-table>
                                 <b-pagination 
                                     v-model="$parent.connectivityDrugPage"
-                                    :total-rows="$parent.connectivityDrugData.length"
+                                    :total-rows="$parent.filteredConnectivityDrugData.length"
                                     :per-page="10">
                                 </b-pagination>
                             </template>

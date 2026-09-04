@@ -218,6 +218,18 @@ new Vue({
             }
             return cdFields.filter(f => cKeys.includes(f.key));
         },
+        filteredConnectivityData(){
+            return this.connectivityData.filter(
+                d => d.tissue === this.cdeTissue
+                && d.cell_type === this.cdeCellType
+                && d.comparison === this.cdeComparison);
+        },
+        filteredConnectivityDrugData(){
+            return this.connectivityDrugData.filter(
+                d => d.tissue === this.cdeDrugTissue
+                && d.cell_type === this.cdeDrugCellType
+                && d.comparison === this.cdeDrugComparison);
+        }
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -301,6 +313,20 @@ new Vue({
         "$store.state.selectedAncestry"(){
             this.$store.dispatch("getCs2ct");
         },
+        connectivityData(newData){
+            // TODO make the plot refresh upon receipt of new data
+            // or honestly maybe rollback to how it was before with the filter slot
+            let datum = newData[0];
+            this.cdeTissue = datum.tissue;
+            this.cdeCellType = datum.cell_type;
+            this.cdeComparison = datum.comparison;
+        },
+        connectivityDrugData(newData){
+            let datum = newData[0];
+            this.cdeDrugTissue = datum.tissue;
+            this.cdeDrugCellType = datum.cell_type;
+            this.cdeDrugComparison = datum.comparison;
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");
