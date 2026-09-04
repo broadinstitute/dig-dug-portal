@@ -418,6 +418,7 @@
                         </h4>
                         <criterion-function-group>
                             <filter-enumeration-control
+                                v-if="new Set($parent.connectivityDrugData.map(c => c.tissue)).size > 1"
                                 field="tissue"
                                 :options="$parent.connectivityDrugData.map(c => c.tissue)"
                             >
@@ -429,9 +430,14 @@
                             >
                                 <div class="label">Cell type</div>
                             </filter-enumeration-control>
+                            <filter-enumeration-control
+                                field="comparison"
+                                :options="$parent.connectivityDrugData.map(c => c.comparison)"
+                            >
+                                <div class="label">Comparison</div>
+                            </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <b-table :items="$parent.connectivityDrugData"
-                                    :filter="filter"
+                                <b-table :items="$parent.connectivityDrugData.filter(filter)"
                                     :current-page="$parent.connectivityDrugPage"
                                     :per-page="10"
                                     :fields="$parent.connectivityDrugFields"

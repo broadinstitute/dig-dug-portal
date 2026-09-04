@@ -114,14 +114,12 @@ new Vue({
                 { key: "tissue", sortable: true},
                 { key: "cell_type", sortable: true},
                 { key: "pathway", sortable: true},
-                { key: "drug_name", sortable: true},
                 { key: "drug_chembl_id", sortable: true},
                 { key: "max_phase", sortable: true},
                 { key: "candidate_score", sortable: true},
                 { key: "target_name", sortable: true},
                 { key: "target_chembl_id", sortable: true},
                 { key: "action_type", sortable: true},
-                { key: "source", sortable: true},
                 { key: "target_type", sortable: true},
                 { key: "comparison", sortable: true},
                 { key: "reversed_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
@@ -286,6 +284,7 @@ new Vue({
                     cDatum.GO_terms = "";
                 }
                 cDatum.cell_type = cDatum.cell_type.toUpperCase();
+                cDatum.comparison = cDatum.comparison.toUpperCase();
             }
             return cData;
         }
