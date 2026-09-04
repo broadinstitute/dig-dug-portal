@@ -132,7 +132,13 @@ new Vue({
                 { key: "action_type"},
                 { key: "target_type"},
                 
-            ]
+            ],
+            cdeTissue: "",
+            cdeCellType: "",
+            cdeComparison: "",
+            cdeDrugTissue: "",
+            cdeDrugCellType: "",
+            cdeDrugComparison: "",
         };
     },
     computed: {
@@ -248,6 +254,7 @@ new Vue({
             this.$store.dispatch("getCs2ct");
         },
         processConnectivityData(data){
+            // TODO adapt the entire connectivity setup to be filtered here in main, using simple dropdowns not templates
             let cData = structuredClone(data).filter(d => !!d.cell_type);
             for(let i = 0; i < cData.length; i++){
                 let cDatum = cData[i];
@@ -262,7 +269,6 @@ new Vue({
             return cData;
         },
         volcanoConfig(isDrug=false) {
-            // TODO adapt this from matkp
             let config = {
                 "type": "volcano plot",
                 "label": "",
@@ -272,8 +278,8 @@ new Vue({
                 "xAxisLabel": "NES_difference",
                 "yAxisField": "minusLogRevPAdj",
                 "yAxisLabel": "-log10(reversed_p_adj)",
-                "width": 600,
-                "height": 400,
+                "width": 450,
+                "height": 300,
                 "xCondition": { 
                     "combination": "or", 
                     "greater than": 0, 

@@ -387,25 +387,40 @@
                         <h4>Connectivity mapping: Differential Expression
                         </h4>
                         <criterion-function-group>
-                            <filter-enumeration-control
-                                v-if="new Set($parent.connectivityData.map(c => c.tissue)).size > 1"
-                                field="tissue"
-                                :options="$parent.connectivityData.map(c => c.tissue)"
-                            >
+                            <div class="col filter-col-md"
+                                v-if="new Set($parent.connectivityData.map(c => c.tissue)).size > 1">
                                 <div class="label">Tissue</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                field="cell_type"
-                                :options="$parent.connectivityData.map(c => c.cell_type).filter(ct => !!ct)"
-                            >
-                                <div class="label">Cell type</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                field="comparison"
-                                :options="$parent.connectivityData.map(c => c.comparison)"
-                            >
+                                <select
+                                    v-model="$parent.cdeTissue"
+                                    class="form-control"
+                                >
+                                    <option v-for="item in Array.from(new Set($parent.connectivityData.map(c => c.tissue)))" 
+                                        :value="item">{{ item }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col filter-col-md">
+                                <div class="label">Cell Type</div>
+                                <select
+                                    v-model="$parent.cdeCellType"
+                                    class="form-control"
+                                >
+                                    <option v-for="item in Array.from(new Set($parent.connectivityData.map(c => c.cell_type)))" 
+                                        :value="item">{{ item }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col filter-col-md">
                                 <div class="label">Comparison</div>
-                            </filter-enumeration-control>
+                                <select
+                                    v-model="$parent.cdeComparison"
+                                    class="form-control"
+                                >
+                                    <option v-for="item in Array.from(new Set($parent.connectivityData.map(c => c.comparison)))" 
+                                        :value="item">{{ item }}
+                                    </option>
+                                </select>
+                            </div>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div v-if="new Set($parent.connectivityData.filter(filter).map(d => d.cell_type)).size > 1 ||
                                     new Set($parent.connectivityData.filter(filter).map(d => d.comparison)).size > 1 ||
@@ -459,25 +474,40 @@
                         <h4>Connectivity mapping: Differential Expression (Drug)
                         </h4>
                         <criterion-function-group>
-                            <filter-enumeration-control
-                                v-if="new Set($parent.connectivityDrugData.map(c => c.tissue)).size > 1"
-                                field="tissue"
-                                :options="$parent.connectivityDrugData.map(c => c.tissue)"
-                            >
+                            <div class="col filter-col-md"
+                                v-if="new Set($parent.connectivityDrugData.map(c => c.tissue)).size > 1">
                                 <div class="label">Tissue</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                field="cell_type"
-                                :options="$parent.connectivityDrugData.map(c => c.cell_type)"
-                            >
-                                <div class="label">Cell type</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                field="comparison"
-                                :options="$parent.connectivityDrugData.map(c => c.comparison)"
-                            >
+                                <select
+                                    v-model="$parent.cdeDrugTissue"
+                                    class="form-control"
+                                >
+                                    <option v-for="item in Array.from(new Set($parent.connectivityDrugData.map(c => c.tissue)))" 
+                                        :value="item">{{ item }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col filter-col-md">
+                                <div class="label">Cell Type</div>
+                                <select
+                                    v-model="$parent.cdeDrugCellType"
+                                    class="form-control"
+                                >
+                                    <option v-for="item in Array.from(new Set($parent.connectivityDrugData.map(c => c.cell_type)))" 
+                                        :value="item">{{ item }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col filter-col-md">
                                 <div class="label">Comparison</div>
-                            </filter-enumeration-control>
+                                <select
+                                    v-model="$parent.cdeDrugComparison"
+                                    class="form-control"
+                                >
+                                    <option v-for="item in Array.from(new Set($parent.connectivityDrugData.map(c => c.comparison)))" 
+                                        :value="item">{{ item }}
+                                    </option>
+                                </select>
+                            </div>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div v-if="new Set($parent.connectivityDrugData.filter(filter).map(d => d.cell_type)).size > 1 ||
                                     new Set($parent.connectivityDrugData.filter(filter).map(d => d.comparison)).size > 1 ||
