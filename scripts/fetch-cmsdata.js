@@ -192,8 +192,16 @@ const SITE_PAGE_RE = new RegExp(`(["'(,\\s])\\/(${SITE_PAGES})\\.html`, "g");
 // `https://sysbio.hugeamp.org/about.html?page=access`). Behind a sub-path
 // proxy those break exactly like a leading slash does, so reduce them to the
 // same relative form.
-const SELF_ABS_PAGE_RE = new RegExp(
-    `https?:\\/\\/[a-z0-9.-]*sysbio[a-z0-9.-]*\\/(${SITE_PAGES})\\.html`,
+//
+// The host segment is optional because stripping the host by hand tends to
+// leave the scheme behind, yielding `https://about.html?page=access` — which
+// the browser reads as a host literally named `about.html`, so it 404s on
+// every deployment rather than just the sub-path ones. Same fix either way.
+//
+// The trailing lookahead keeps `.html` from matching inside a longer
+// hostname (e.g. `https://index.html.example.com/x` is left alone).
+const ABS_PAGE_URL_RE = new RegExp(
+    `https?:\\/\\/(?:[a-z0-9.-]*sysbio[a-z0-9.-]*\\/)?(${SITE_PAGES})\\.html(?![a-z0-9.-])`,
     "gi"
 );
 
@@ -210,7 +218,7 @@ function rewriteString(s) {
         return local || m;
     });
     out = out.replace(SITE_PAGE_RE, (_m, pre, name) => `${pre}${name}.html`);
-    out = out.replace(SELF_ABS_PAGE_RE, (_m, name) => `${name}.html`);
+    out = out.replace(ABS_PAGE_URL_RE, (_m, name) => `${name}.html`);
     return out;
 }
 

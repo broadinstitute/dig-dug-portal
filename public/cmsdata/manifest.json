@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-07T18:37:19.773Z",
+  "generatedAt": "2026-09-07T18:46:56.880Z",
   "gitSha": null,
   "counts": {
     "json": 19,
@@ -9,15 +9,9 @@
   "urls": [
     {
       "kind": "byor_content",
-      "id": "sysBio_help",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysBio_help",
-      "local": "cmsdata/rest/byor_content/sysBio_help.json"
-    },
-    {
-      "kind": "byor_content",
-      "id": "matkp_enrichrlibraries",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=matkp_enrichrlibraries",
-      "local": "cmsdata/rest/byor_content/matkp_enrichrlibraries.json"
+      "id": "sysbio_data_summary",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_data_summary",
+      "local": "cmsdata/rest/byor_content/sysbio_data_summary.json"
     },
     {
       "kind": "byor_content",
@@ -27,27 +21,9 @@
     },
     {
       "kind": "byor_content",
-      "id": "sysbio_data_summary",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_data_summary",
-      "local": "cmsdata/rest/byor_content/sysbio_data_summary.json"
-    },
-    {
-      "kind": "byor_content",
-      "id": "sysbio_singlecell",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_singlecell",
-      "local": "cmsdata/rest/byor_content/sysbio_singlecell.json"
-    },
-    {
-      "kind": "byor_content",
-      "id": "sysbiofairplex_geneexpressionbrowser",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_geneexpressionbrowser",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_geneexpressionbrowser.json"
-    },
-    {
-      "kind": "byor_content",
-      "id": "sysbiofairplex_people",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_people",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_people.json"
+      "id": "sysbiofairplex_contact",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_contact",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_contact.json"
     },
     {
       "kind": "byor_content",
@@ -57,9 +33,15 @@
     },
     {
       "kind": "byor_content",
-      "id": "sysbiofairplex_contact",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_contact",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_contact.json"
+      "id": "sysBio_help",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysBio_help",
+      "local": "cmsdata/rest/byor_content/sysBio_help.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_people",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_people",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_people.json"
     },
     {
       "kind": "byor_content",
@@ -75,15 +57,15 @@
     },
     {
       "kind": "byor_content",
-      "id": "sysbiofairplex_howtoaccessampdatadirectly",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_howtoaccessampdatadirectly",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_howtoaccessampdatadirectly.json"
-    },
-    {
-      "kind": "byor_content",
       "id": "sysbiofairplex_glossary",
       "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_glossary",
       "local": "cmsdata/rest/byor_content/sysbiofairplex_glossary.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_howtoaccessampdatadirectly",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_howtoaccessampdatadirectly",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_howtoaccessampdatadirectly.json"
     },
     {
       "kind": "byor_content",
@@ -120,6 +102,24 @@
       "id": "sysbio_data_summary",
       "remote": "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary",
       "local": "cmsdata/rest/directcsv/sysbio_data_summary.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "matkp_enrichrlibraries",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=matkp_enrichrlibraries",
+      "local": "cmsdata/rest/byor_content/matkp_enrichrlibraries.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_geneexpressionbrowser",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_geneexpressionbrowser",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_geneexpressionbrowser.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbio_singlecell",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_singlecell",
+      "local": "cmsdata/rest/byor_content/sysbio_singlecell.json"
     }
   ],
   "assets": [
