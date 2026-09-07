@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-17T15:48:51.785Z",
+  "generatedAt": "2026-09-07T18:37:19.773Z",
   "gitSha": null,
   "counts": {
     "json": 19,
@@ -9,39 +9,15 @@
   "urls": [
     {
       "kind": "byor_content",
-      "id": "matkp_enrichrlibraries",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=matkp_enrichrlibraries",
-      "local": "cmsdata/rest/byor_content/matkp_enrichrlibraries.json"
-    },
-    {
-      "kind": "byor_content",
       "id": "sysBio_help",
       "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysBio_help",
       "local": "cmsdata/rest/byor_content/sysBio_help.json"
     },
     {
       "kind": "byor_content",
-      "id": "sysbio_data_summary",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_data_summary",
-      "local": "cmsdata/rest/byor_content/sysbio_data_summary.json"
-    },
-    {
-      "kind": "byor_content",
-      "id": "sysbiofairplex_geneexpressionbrowser",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_geneexpressionbrowser",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_geneexpressionbrowser.json"
-    },
-    {
-      "kind": "byor_content",
-      "id": "sysbiofairplex_contact",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_contact",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_contact.json"
-    },
-    {
-      "kind": "byor_content",
-      "id": "sysbio_singlecell",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_singlecell",
-      "local": "cmsdata/rest/byor_content/sysbio_singlecell.json"
+      "id": "matkp_enrichrlibraries",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=matkp_enrichrlibraries",
+      "local": "cmsdata/rest/byor_content/matkp_enrichrlibraries.json"
     },
     {
       "kind": "byor_content",
@@ -51,9 +27,21 @@
     },
     {
       "kind": "byor_content",
-      "id": "sysbiofairplex_collaborate",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_collaborate",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_collaborate.json"
+      "id": "sysbio_data_summary",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_data_summary",
+      "local": "cmsdata/rest/byor_content/sysbio_data_summary.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbio_singlecell",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_singlecell",
+      "local": "cmsdata/rest/byor_content/sysbio_singlecell.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_geneexpressionbrowser",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_geneexpressionbrowser",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_geneexpressionbrowser.json"
     },
     {
       "kind": "byor_content",
@@ -63,15 +51,21 @@
     },
     {
       "kind": "byor_content",
-      "id": "sysbiofairplex_policies",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_policies",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_policies.json"
+      "id": "sysbiofairplex_collaborate",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_collaborate",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_collaborate.json"
     },
     {
       "kind": "byor_content",
-      "id": "sysbiofairplex_glossary",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_glossary",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_glossary.json"
+      "id": "sysbiofairplex_contact",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_contact",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_contact.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_policies",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_policies",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_policies.json"
     },
     {
       "kind": "byor_content",
@@ -81,15 +75,21 @@
     },
     {
       "kind": "byor_content",
-      "id": "sysbiofairplex_ampdata",
-      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_ampdata",
-      "local": "cmsdata/rest/byor_content/sysbiofairplex_ampdata.json"
-    },
-    {
-      "kind": "byor_content",
       "id": "sysbiofairplex_howtoaccessampdatadirectly",
       "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_howtoaccessampdatadirectly",
       "local": "cmsdata/rest/byor_content/sysbiofairplex_howtoaccessampdatadirectly.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_glossary",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_glossary",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_glossary.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_ampdata",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_ampdata",
+      "local": "cmsdata/rest/byor_content/sysbiofairplex_ampdata.json"
     },
     {
       "kind": "byor_content",
@@ -104,12 +104,6 @@
       "local": "cmsdata/rest/byor_content/sysbiofairplex_harmonization.json"
     },
     {
-      "kind": "directcsv",
-      "id": "sysbio_data_summary",
-      "remote": "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary",
-      "local": "cmsdata/rest/directcsv/sysbio_data_summary.json"
-    },
-    {
       "kind": "news_list",
       "id": "sysbio",
       "remote": "https://hugeampkpncms.org/rest/news_list?project=sysbio",
@@ -120,6 +114,12 @@
       "id": "sysbiofairplex_datasets",
       "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_datasets",
       "local": "cmsdata/rest/byor_content/sysbiofairplex_datasets.json"
+    },
+    {
+      "kind": "directcsv",
+      "id": "sysbio_data_summary",
+      "remote": "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary",
+      "local": "cmsdata/rest/directcsv/sysbio_data_summary.json"
     }
   ],
   "assets": [
