@@ -1,7 +1,7 @@
 <template>
     <div class="header-container f-col">
         <div class="header-message">
-            Welcome to SysBio FAIRplex. This platform is newly launched and actively scaling. Stay updated or <a href="https://www.google.com/url?q=https://redcap.vumc.org/surveys/?s%3D4FPLKJEYAWFCHRNL&sa=D&source=docs&ust=1785261217863919&usg=AOvVaw0ITAMCZZOUnNYgecifYavD" target="_blank">send feedback</a>.
+            Welcome to SysBio FAIRplex. This platform is newly launched and actively scaling. Stay updated or <a href="https://redcap.vumc.org/surveys/?s=4FPLKJEYAWFCHRNL" target="_blank">send feedback</a>.
         </div>
         <div v-if="showBeta" class="betaBanner"><strong>Beta Release Notice:</strong> 
             The SysBio FAIRplex platform is currently in Beta
@@ -89,7 +89,6 @@ import Vue from "vue";
 
 import sysbioMenu from "@/portals/SysBio/assets/sysbioMenu.json";
 import { SHOW_LOGIN } from "@/utils/runtimeConfig";
-let menuItemActive = false;
 
 export default Vue.component("sysbio-header", {
     components: {},
@@ -102,7 +101,11 @@ export default Vue.component("sysbio-header", {
             toggleMenu: false,
         };
     },
-    computed: {},
+    computed: {
+        currentPath() {
+            return this.normalizePath(window.location);
+        },
+    },
     mounted() {
         if (!this.showLogin) return;
         fetch("runtime-config.js", { method: "HEAD" })
@@ -137,16 +140,21 @@ export default Vue.component("sysbio-header", {
             document.head.appendChild(linkTag);
             linkTag.onload = () => {};
         },
+        normalizePath(location) {
+            //treat /dir/ and /dir/index.html as the same page
+            return (
+                location.pathname.replace(/index\.html$/, "") + location.search
+            );
+        },
         isActive(path) {
-            //compare menu item's path to current path to set active
-            //but only the first instance
-            if (menuItemActive) return false;
-            const currentPath =
-                window.location.pathname + "" + window.location.search;
-            if (path === currentPath) {
-                menuItemActive = true;
-                return true;
-            } else {
+            //menu paths are relative to <base href>, which the container sets
+            //to BASE_URL (eg /portal/), so resolve before comparing
+            if (!path) return false;
+            try {
+                const url = new URL(path, document.baseURI);
+                if (url.origin !== window.location.origin) return false;
+                return this.normalizePath(url) === this.currentPath;
+            } catch (e) {
                 return false;
             }
         },

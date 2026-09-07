@@ -421,7 +421,11 @@ module.exports = {
         // Add the rule for handling .js/.mjs/.cjs files with babel-loader
         config.module.rules.push({
             test: /\.(js|mjs|cjs)$/,
-            include: [/node_modules[\\/]vis-network/, /node_modules[\\/]vis-data/],
+            include: [
+                /node_modules[\\/]vis-network/,
+                /node_modules[\\/]vis-data/,
+                /node_modules[\\/]marked/,
+            ],
             use: {
                 loader: "babel-loader",
                 options: {

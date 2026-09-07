@@ -115,8 +115,7 @@
                         <div class="amp">AMP Alzheimer's Disease (AD)</div>
                         <div class="amp">AMP Common Metabolic Diseases (CMD)</div>
                         <div class="amp">AMP Parkinson's Disease and Related Disorders (PDRD)</div>
-                        <div class="amp">AMP Rheumatoid Arthritis</div>
-                        <div class="amp">Systemic Lupus Erythematosus (RA/SLE)</div>
+                        <div class="amp">AMP Rheumatoid Arthritis and Systemic Lupus Erythematosus (AMP RA/SLE)</div>
                     </div>
                 </div>
             </div>
@@ -138,10 +137,10 @@
                                 Learn about datasets that are currently available, track active data standardization 
                                 and harmonization across participating program repositories (such as AMP projects), 
                                 and find direct pathways to request partner repository data access.<br/>
-                                <a href="/about.html?page=access" style="font-size: 0.9em;">How to Directly Access Partner Repository Data</a>
+                                <a href="about.html?page=access" style="font-size: 0.9em;">How to Directly Access Partner Repository Data</a>
                             </div>
                             <div class="item-btn">
-                                <a role="button" class="loud" href="/about.html?page=datasets">View Datasets</a>
+                                <a role="button" class="loud" href="about.html?page=datasets">View Datasets</a>
                             </div>
                         </div>
                         <div class="item-bg contain">
@@ -158,7 +157,7 @@
                                 repositories. 
                             </div>
                             <div class="item-btn">
-                                <a role="button" class="loud" href="/datasetsSummary.html">View Data Summary Browser</a>
+                                <a role="button" class="loud" href="datasetsSummary.html">View Data Summary Browser</a>
                             </div>
                         </div>
                         <div class="item-bg contain">
@@ -175,7 +174,7 @@
                                 tissues derived across participating program repositories. 
                             </div>
                             <div class="item-btn">
-                                <a role="button" class="loud" href="/diffexp.html">View Gene Expression Browser</a>
+                                <a role="button" class="loud" href="diffexp.html">View Gene Expression Browser</a>
                             </div>
                         </div>
                         <div class="item-bg contain">
@@ -192,7 +191,7 @@
                                 Genome-Wide Association Studies (GWAS) across distinct diseases. 
                             </div>
                             <div class="item-btn">
-                                <a role="button" class="loud" href="/gwas.html">View Genetic Studies</a>
+                                <a role="button" class="loud" href="gwas.html">View Genetic Studies</a>
                             </div>
                         </div>
                         <div class="item-bg contain">
@@ -452,7 +451,7 @@
                     </div>
                     <div class="muted" style="padding:0 40px">
                         <strong>Are you currently publishing a manuscript using data derivatives from SysBio FAIRplex?</strong><br/>
-                        Formal attribution is required by policy. <a href="/about.html?page=policies">View Policies Page</a>
+                        Formal attribution is required by policy. <a href="about.html?page=policies">View Policies Page</a>
                     </div>
                 </div>
             </div>
@@ -465,7 +464,7 @@
                             As we scale our data standardization and harmonization pipelines across our network of participating program repositories, we want to tailor our interface to your specific investigative workflows. Your insights can directly influence our engineering roadmap and maximize the platform's utility for your future cross-disease discovery projects.
                         </div>
                     </div>
-                    <a role="button" class="loud" href="https://www.google.com/url?q=https://redcap.vumc.org/surveys/?s%3D4FPLKJEYAWFCHRNL&sa=D&source=docs&ust=1785261217863919&usg=AOvVaw0ITAMCZZOUnNYgecifYavD" style="width:fit-content">Share Your Feedback</a>
+                    <a role="button" class="loud" href="https://redcap.vumc.org/surveys/?s=4FPLKJEYAWFCHRNL" style="width:fit-content">Share Your Feedback</a>
                 </div>
                 <div class="f-col" style="gap:20px; flex:1 1 400px">
                     <div class="f-col" style="gap:5px; flex:1">
@@ -474,7 +473,7 @@
                             The SysBio FAIRplex Ecosystem is engineered, governed, and managed by a multidisciplinary consortium of domain experts with an established international track record of building premier data platforms. Our infrastructure operates in strict adherence to federal and institutional data compliance frameworks, accelerating public-interest science while preserving the absolute data sovereignty of our participating program repositories.
                         </div>
                     </div>
-                    <a role="button" class="loud" href="/about.html?page=team" style="width:fit-content">View About Us</a>
+                    <a role="button" class="loud" href="about.html?page=team" style="width:fit-content">View About Us</a>
                 </div>
             </div>
             

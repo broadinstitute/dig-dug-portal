@@ -77,10 +77,13 @@ jobs:
           docker push "${{ steps.tags.outputs.image }}:${{ steps.tags.outputs.sha }}"
           docker push "${{ steps.tags.outputs.image }}:dev-latest"
 
-      # Flags kept in step with
-      # cicd/env-deployer/cloudbuild/cloudbuild-sysbio-portal.yaml so dev
-      # behaves identically to staging/demo/prod. If you change one, change both.
+      # Resource flags kept in step with
+      # cicd/env-deployer/cloudbuild/cloudbuild-sysbio-portal.yaml. If you
+      # change one, change both.
       # BASE_URL and SHOW_LOGIN are read at runtime by docker-entrypoint.sh.
+      # SHOW_LOGIN deliberately differs per env: dev and staging are true (the
+      # only envs where fairkit is reachable behind the auth proxy), demo and
+      # prod are false. The promoted envs set it from $_ENV in the cloudbuild.
       - name: Deploy to dev Cloud Run
         run: |
           gcloud run deploy "${CLOUD_RUN_SERVICE}" \

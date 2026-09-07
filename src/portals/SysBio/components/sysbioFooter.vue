@@ -15,7 +15,7 @@
                         {{ item.label }}
                     </a>
                     <div v-if="item.subMenuItems" class="submenu">
-                        <a v-for="subItem in item.subMenuItems.filter(i => !i.hide)" 
+                        <a v-for="subItem in item.subMenuItems.filter(i => !i.hide && !(i.requiresLogin && !showLogin))"
                            class="submenu-item" 
                            :href="subItem.path || null"
                            :target="subItem.external ? '_blank' : null"
@@ -30,7 +30,7 @@
             </div>
         </div>
         <div class="colophon">
-            Sysbio FAIRplex is supported by the NIH Common Fund under Award Number OT2OD037975 as part of the Common Fund's Venture Program SysBio Initiative. 
+            SysBio FAIRplex is supported by the NIH Common Fund under Award Number OT2OD037975 as part of the Common Fund's Venture Program SysBio Initiative. 
         </div>
     </div>
 </template>
@@ -38,14 +38,16 @@
 <script>
 import Vue from "vue";
 import sysbioMenu from "@/portals/SysBio/assets/sysbioMenu.json";
+import { SHOW_LOGIN } from "@/utils/runtimeConfig";
 
 export default Vue.component("sysbioFooter", {
     components: {},
     props: {},
-    data() { 
+    data() {
         return {
-            nav: sysbioMenu
-        } 
+            nav: sysbioMenu,
+            showLogin: SHOW_LOGIN
+        }
     },
     computed: {},
     created() {},

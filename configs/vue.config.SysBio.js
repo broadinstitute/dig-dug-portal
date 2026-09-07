@@ -67,6 +67,22 @@ module.exports = {
     },
     publicPath: "",
     configureWebpack: (config) => {
+        // Add the rule for handling .js/.mjs/.cjs files with babel-loader
+        config.module.rules.push({
+            test: /\.(js|mjs|cjs)$/,
+            include: [
+                /node_modules[\\/]vis-network/,
+                /node_modules[\\/]vis-data/,
+                /node_modules[\\/]marked/,
+            ],
+            use: {
+                loader: "babel-loader",
+                options: {
+                    presets: ["@babel/preset-env"],
+                    plugins: ["@babel/plugin-transform-runtime"],
+                },
+            },
+        });
         // create inline maps for dev builds
         if (process.env.NODE_ENV !== "production") {
             //config.devtool = "inline-source-map";

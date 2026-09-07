@@ -185,8 +185,17 @@ function extractRemotePath(remoteAssetUrl) {
 // are sometimes authored with a leading slash (e.g. `<a href="/gwas.html">`),
 // which bypasses the runtime <base href> and breaks sub-path deployments.
 // Drop the leading slash so they resolve relative to BASE_URL.
-const SITE_PAGE_RE =
-    /(["'(,\s])\/(index|404|about|gwas|singlecell|diffexp|comp|datasetsSummary)\.html/g;
+const SITE_PAGES =
+    "index|404|about|gwas|singlecell|diffexp|comp|datasetsSummary";
+const SITE_PAGE_RE = new RegExp(`(["'(,\\s])\\/(${SITE_PAGES})\\.html`, "g");
+// Editors also paste the full deployed-site URL (e.g.
+// `https://sysbio.hugeamp.org/about.html?page=access`). Behind a sub-path
+// proxy those break exactly like a leading slash does, so reduce them to the
+// same relative form.
+const SELF_ABS_PAGE_RE = new RegExp(
+    `https?:\\/\\/[a-z0-9.-]*sysbio[a-z0-9.-]*\\/(${SITE_PAGES})\\.html`,
+    "gi"
+);
 
 function rewriteString(s) {
     // CMS responses embed URLs inside string fields (HTML bodies, CSV values).
@@ -201,6 +210,7 @@ function rewriteString(s) {
         return local || m;
     });
     out = out.replace(SITE_PAGE_RE, (_m, pre, name) => `${pre}${name}.html`);
+    out = out.replace(SELF_ABS_PAGE_RE, (_m, name) => `${name}.html`);
     return out;
 }
 
