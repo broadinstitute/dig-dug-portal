@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED. Do not edit. -->
-<!-- Version: 1.0.17 | Generated: 2026-08-13T18:40:14Z | Hash: 7e5659f510a2 -->
+<!-- Version: 1.0.18 | Generated: 2026-09-07T17:46:12Z | Hash: 82e8d26941af -->
 <!-- Sources: dig-dug-portal/sysbio-main/AGENTS.md + dig-dug-portal/AGENTS.md -->
 
 # dig-dug-portal — sysbio-main
@@ -86,7 +86,7 @@ Use this after `npm run build` for smoke tests of generated HTML/assets.
 
 - Do not duplicate parent guidance; record only variant-specific differences here.
 - Use uppercase `AGENTS.md` for any nested agent docs.
-- Static links are relative to this folder; avoid absolute paths to maintain portability.
+- Use relative URLs for all internal portal links; do not use root-absolute paths such as `/about` because this portal is deployed under `/portal/` on the SysBio network and across multiple domains.
 - **CMS data is mandatory for production builds.** Always run `npm run fetch:cmsdata` (or `node scripts/fetch-cmsdata.js` if the npm script is not listed) before final build if manifest is stale or missing. Live CMS data is opt-in via `USE_REMOTE_CMS=1` for development only.
 - Keep local static preview scripts available upstream (`preview`, `preview:dir`) and use `preview:dir` for SysBio's non-`dist/` output.
 - This portal use runtime configs for environment-specific values; do not hardcode env vars or deploy targets in source docs.
