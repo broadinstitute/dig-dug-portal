@@ -430,6 +430,12 @@
                                 <div class="table-total-rows">
                                     Total rows: {{ $parent.connectivityData.filter(filter).length }}
                                 </div>
+                                <div class="text-right mb-2">
+                                    <data-download
+                                        :data="$parent.connectivityData.filter(filter)"
+                                        :filename="`data_${$parent.chartName($parent.connectivityData.filter(filter)[0])}`"
+                                    ></data-download>
+                                </div>
                                 <b-table :items="$parent.connectivityData.filter(filter)"
                                     :current-page="$parent.connectivityPage"
                                     :per-page="10"
@@ -505,6 +511,12 @@
                                 </div>
                                 <div class="table-total-rows">
                                     Total rows: {{ $parent.connectivityDrugData.filter(filter).length }}
+                                </div>
+                                <div class="text-right mb-2">
+                                    <data-download
+                                        :data="$parent.connectivityDrugData.filter(filter)"
+                                        :filename="`data_${$parent.chartName($parent.connectivityDrugData.filter(filter)[0])}`"
+                                    ></data-download>
                                 </div>
                                 <b-table
                                     :items="$parent.connectivityDrugData.filter(filter)"
