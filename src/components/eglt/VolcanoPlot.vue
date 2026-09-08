@@ -1,5 +1,10 @@
 <template>
     <div class="volcano-plot-content">
+        <download-chart v-if="!!chartName"
+            :filename="chartName"
+            :chartId="plotId"
+            >
+        </download-chart>
         <div :id="clicked_dot_value" class="clicked_dot_value hidden"></div>
 
         <div
@@ -37,7 +42,7 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("volcano-plot", {
-    props: ["plotData", "renderConfig", "geneOfInterest"],
+    props: ["plotData", "renderConfig", "geneOfInterest", "chartName"],
     data() {
         return {
             plotId: `volcanoPlot${Math.random() * 1e9}`,

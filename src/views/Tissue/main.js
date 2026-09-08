@@ -288,6 +288,12 @@ new Vue({
             };
             return config;
         },
+        chartName(dataPoint){
+            let prefix = !!dataPoint.drug_chembl_id 
+                ? "drug_connectivity_diff_exp" 
+                : "connectivity_diff_exp";
+            return `${prefix}_${dataPoint.tissue}_${dataPoint.cell_type}_${dataPoint.comparison}`;
+        }
     },
     watch: {
         "$store.state.annotationOptions"(data) {

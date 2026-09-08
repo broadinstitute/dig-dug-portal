@@ -423,7 +423,8 @@
                                 <div v-else>
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityData.filter(filter)">
+                                        :plotData="$parent.connectivityData.filter(filter)"
+                                        :chartName="$parent.chartName($parent.connectivityData.filter(filter)[0])">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">
@@ -498,7 +499,8 @@
                                 <div v-else>
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig(true)"
-                                        :plotData="$parent.connectivityDrugData.filter(filter)">
+                                        :plotData="$parent.connectivityDrugData.filter(filter)"
+                                        :chartName="$parent.chartName($parent.connectivityDrugData.filter(filter)[0])">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">
