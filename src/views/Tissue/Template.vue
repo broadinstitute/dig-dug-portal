@@ -398,12 +398,14 @@
                             <filter-enumeration-control
                                 field="cell_type"
                                 :options="$parent.connectivityData.map(c => c.cell_type).filter(ct => !!ct)"
+                                :fillFirstItem="true"
                             >
                                 <div class="label">Cell type</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 field="comparison"
                                 :options="$parent.connectivityData.map(c => c.comparison)"
+                                :fillFirstItem="true"
                             >
                                 <div class="label">Comparison</div>
                             </filter-enumeration-control>
@@ -464,26 +466,41 @@
                                 v-if="new Set($parent.connectivityDrugData.map(c => c.tissue)).size > 1"
                                 field="tissue"
                                 :options="$parent.connectivityDrugData.map(c => c.tissue)"
+                                :fillFirstItem="true"
                             >
                                 <div class="label">Tissue</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 field="cell_type"
                                 :options="$parent.connectivityDrugData.map(c => c.cell_type)"
+                                :fillFirstItem="true"
                             >
                                 <div class="label">Cell type</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 field="comparison"
                                 :options="$parent.connectivityDrugData.map(c => c.comparison)"
+                                :fillFirstItem="true"
                             >
                                 <div class="label">Comparison</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <volcano-plot
-                                    :renderConfig="$parent.volcanoConfig(true)"
-                                    :plotData="$parent.connectivityDrugData.filter(filter)">
-                                </volcano-plot>
+                                <div v-if="new Set($parent.connectivityDrugData.filter(filter).map(d => d.cell_type)).size > 1 ||
+                                    new Set($parent.connectivityDrugData.filter(filter).map(d => d.comparison)).size > 1 ||
+                                    new Set($parent.connectivityDrugData.filter(filter).map(d => d.tissue)).size > 1
+                                " style="text-align: center; margin: 20px;"> 
+                                    Select a tissue type, cell type, and comparison to view the differential expression plot.
+                                </div>
+                                <div v-else-if="$parent.connectivityData.filter(filter).length === 0"
+                                    style="text-align: center; margin: 20px;">
+                                    No data found for the selected filters.
+                                </div>
+                                <div v-else>
+                                    <volcano-plot
+                                        :renderConfig="$parent.volcanoConfig(true)"
+                                        :plotData="$parent.connectivityDrugData.filter(filter)">
+                                    </volcano-plot>
+                                </div>
                                 <div class="table-total-rows">
                                     Total rows: {{ $parent.connectivityDrugData.filter(filter).length }}
                                 </div>
