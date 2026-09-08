@@ -3,6 +3,8 @@
         <div v-if="blockedReason" class="scp-kg-callout" role="status">{{ blockedReason }}</div>
 
         <template v-else-if="evidence">
+            <ScopeKgNetworkGraph v-if="networkGraph && networkGraph.nodes.length" :graph="networkGraph" />
+
             <div class="scp-kg-coverage">
                 {{ evidence.coverage.kg }} — {{ evidence.coverage.scope }}
             </div>
@@ -14,12 +16,6 @@
             <div v-for="route in evidence.routes" :key="route.id" class="scp-kg-route">
                 <div class="scp-kg-route-head">
                     <span class="scp-kg-route-title">Hop {{ route.hop }} · {{ route.label }}</span>
-                    <span
-                        class="scp-kg-route-state"
-                        :class="{ 'is-unexplored': route.state !== 'VERIFIED' }"
-                    >
-                        {{ route.state }}
-                    </span>
                 </div>
 
                 <table v-if="route.edges.length" class="scp-kg-table">
@@ -36,15 +32,17 @@
                         </tr>
                     </tbody>
                 </table>
-                <p v-else class="scp-kg-route-empty">
+                <div v-else class="scp-kg-route-flag" role="status">
                     Not found in {{ evidence.coverage.kg }} for this route.
-                </p>
+                </div>
             </div>
         </template>
     </div>
 </template>
 
 <script>
+import ScopeKgNetworkGraph from "@/components/researchPortal/customComponents/revealScope/ScopeKgNetworkGraph.vue";
+
 const RELEVANCE_COLUMNS = [
     { key: "relevanceLabel", label: "Relevance" },
     { key: "relevanceRationale", label: "Relevance rationale" },
@@ -98,6 +96,9 @@ function relevanceRank(edge) {
 
 export default {
     name: "ScopeKgEvidenceTable",
+    components: {
+        ScopeKgNetworkGraph,
+    },
     props: {
         evidence: {
             type: Object,
@@ -110,6 +111,10 @@ export default {
         relevanceLoading: {
             type: Boolean,
             default: false,
+        },
+        networkGraph: {
+            type: Object,
+            default: null,
         },
     },
     methods: {
@@ -207,20 +212,14 @@ export default {
     color: var(--cfde-blue, #2c5c97);
 }
 
-.scp-kg-route-state {
+.scp-kg-route-flag {
+    display: inline-block;
+    background: var(--cfde-orange, #e07b39);
+    color: #fff;
     font-size: 13px;
-    font-weight: 600;
-    color: var(--cfde-ink, #33363d);
-}
-
-.scp-kg-route-state.is-unexplored {
-    color: var(--cfde-muted, #6b6b6b);
-}
-
-.scp-kg-route-empty {
-    margin: 0;
-    font-size: 13px;
-    color: var(--cfde-muted, #6b6b6b);
+    line-height: 1.35;
+    padding: 8px 14px;
+    border-radius: 999px;
 }
 
 .scp-kg-table {

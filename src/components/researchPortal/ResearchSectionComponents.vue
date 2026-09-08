@@ -27,6 +27,7 @@ import revealKgWorkspace from "@/components/researchPortal/customComponents/reve
 import geneSetCart2KC from "@/components/researchPortal/customComponents/geneSetCart2KC.vue";
 import biomarkerNetwork from "@/components/researchPortal/customComponents/biomarkerNetwork.vue";
 import revealScope from "@/components/researchPortal/customComponents/revealScope.vue";
+import cfdeScope2Design from "@/components/researchPortal/customComponents/cfdeScope2Design.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
@@ -43,7 +44,8 @@ export default Vue.component("research-section-components", {
 		revealKgWorkspace,
 		geneSetCart2KC,
 		biomarkerNetwork,
-		revealScope
+		revealScope,
+		cfdeScope2Design
 	},
 	data() {
 		return {
@@ -99,6 +101,9 @@ console.log('this.component', this.component);
 				break;
 			case 'revealScope':
 				this.currentComponent = revealScope;
+				break;
+			case 'cfdeScope2Design':
+				this.currentComponent = cfdeScope2Design;
 				break;
 		}
 	},

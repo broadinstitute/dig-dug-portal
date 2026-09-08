@@ -70,6 +70,7 @@
                     :evidence="kgEvidence"
                     :blocked-reason="kgEvidenceBlockedReason"
                     :relevance-loading="kgRelevanceLoading"
+                    :network-graph="kgNetworkGraph"
                 />
                 <ScopeBiomarkerEvidenceTable
                     v-if="hasBiomarkerContent"
@@ -132,6 +133,7 @@ import ScopeBiomarkerEvidenceTable from "@/components/researchPortal/customCompo
 import ScopeProgressOverlay from "@/components/researchPortal/customComponents/revealScope/ScopeProgressOverlay.vue";
 import { ACTION_CATALOG } from "@/components/researchPortal/customComponents/revealScope/scopeActionsCatalog.js";
 import { findKgEvidence } from "@/components/researchPortal/customComponents/revealScope/scopeKgEvidence.js";
+import { buildKgNetworkGraph } from "@/components/researchPortal/customComponents/revealScope/scopeKgNetworkGraph.js";
 import {
     classifyKgEvidenceRelevance,
     mergeRelevanceIntoRoutes,
@@ -147,6 +149,7 @@ import {
     defaultSessionFilename,
     parseSessionImport,
 } from "@/components/researchPortal/customComponents/revealScope/scopeSessionFile.js";
+import { buildDesignHandoffUrl } from "@/components/researchPortal/customComponents/revealScope/scopeDesignHandoff.js";
 
 export default Vue.component("reveal-scope", {
     components: {
@@ -190,6 +193,7 @@ export default Vue.component("reveal-scope", {
             kgEvidence: null,
             kgEvidenceBlockedReason: null,
             kgRelevanceLoading: false,
+            kgNetworkGraph: null,
             biomarkerEvidence: null,
             biomarkerEvidenceBlockedReason: null,
             biomarkerRelevanceLoading: false,
@@ -223,6 +227,9 @@ export default Vue.component("reveal-scope", {
                 if (action.id === "runBiomarkerSearch") {
                     return !this.hasBiomarkerContent;
                 }
+                if (action.id === "designExperimentProtocol") {
+                    return this.isEvaluateDone;
+                }
                 return true;
             });
         },
@@ -240,6 +247,9 @@ export default Vue.component("reveal-scope", {
                 }
                 if (action.id === "runEvaluate") {
                     return !this.isEvaluateDone;
+                }
+                if (action.id === "designExperimentProtocol") {
+                    return this.isEvaluateDone;
                 }
                 return true;
             });
@@ -294,6 +304,7 @@ export default Vue.component("reveal-scope", {
                 this.kgEvidence = null;
                 this.kgEvidenceBlockedReason = null;
                 this.kgRelevanceLoading = false;
+                this.kgNetworkGraph = null;
                 this.biomarkerEvidence = null;
                 this.biomarkerEvidenceBlockedReason = null;
                 this.biomarkerRelevanceLoading = false;
@@ -335,6 +346,7 @@ export default Vue.component("reveal-scope", {
                 this.cachedLiteratureQuery = null;
                 this.kgEvidence = null;
                 this.kgEvidenceBlockedReason = null;
+                this.kgNetworkGraph = null;
                 this.biomarkerEvidence = null;
                 this.biomarkerEvidenceBlockedReason = null;
             }
@@ -368,9 +380,23 @@ export default Vue.component("reveal-scope", {
                 this.runBiomarkerSearchFromCache();
                 return;
             }
+            if (actionId === "designExperimentProtocol") {
+                this.openDesignExperimentProtocol();
+                return;
+            }
             if (actionId === "exportSession") {
                 this.exportSession();
             }
+        },
+        openDesignExperimentProtocol() {
+            if (!this.cachedEvaluation) {
+                return;
+            }
+            const url = buildDesignHandoffUrl({
+                hypothesisText: this.activeHypothesisText,
+                evaluation: this.cachedEvaluation,
+            });
+            window.open(url, "_blank", "noopener");
         },
         runSearchKgFromCache() {
             if (!this.cachedEvaluation) {
@@ -406,6 +432,7 @@ export default Vue.component("reveal-scope", {
             this.kgEvidence = null;
             this.kgEvidenceBlockedReason = null;
             this.kgRelevanceLoading = false;
+            this.kgNetworkGraph = null;
             this.biomarkerEvidence = null;
             this.biomarkerEvidenceBlockedReason = null;
             this.biomarkerRelevanceLoading = false;
@@ -483,9 +510,11 @@ export default Vue.component("reveal-scope", {
                 return;
             }
             this.kgEvidenceBlockedReason = null;
+            this.kgNetworkGraph = null;
             this.beginProgress([
                 { id: "resolveFactors", label: "Resolving mechanism via biomarker search…" },
                 { id: "queryRoutes", label: "Querying CFDE KG (3 evidence routes)…" },
+                { id: "buildNetwork", label: "Building Gene/Gene set/Factor/Trait network…" },
             ]);
             try {
                 this.kgEvidence = await findKgEvidence({
@@ -502,6 +531,14 @@ export default Vue.component("reveal-scope", {
                 this.endProgress();
                 return;
             }
+            try {
+                this.kgNetworkGraph = await buildKgNetworkGraph(this.kgEvidence);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.warn("[reveal-scope] KG network graph build failed, showing routes without it", error);
+                this.kgNetworkGraph = null;
+            }
+            this.setStepStatus("buildNetwork", "done");
             // Table renders now (kgEvidence is set) — the relevance triage below runs
             // as a background enrichment pass, not inside the blocking progress overlay.
             this.endProgress();

@@ -226,7 +226,7 @@ function dedupeNonEmpty(values) {
  * mechanism-level phrase with no matching trait label to find by substring alone.
  *
  * @param {{ targetText: string, targetResolvedId?: string, outcomeText: string, outcomeResolvedId?: string, limit?: number, signal?: AbortSignal, onStep?: (stepId: string, status: string) => void }} params
- * @returns {Promise<{ routes: Array<{ id: string, hop: number, label: string, state: "VERIFIED"|"UNEXPLORED", edges: object[] }>, coverage: object, resolvedFactors: object[] }>}
+ * @returns {Promise<{ routes: Array<{ id: string, hop: number, label: string, edges: object[] }>, coverage: object, resolvedFactors: object[] }>}
  */
 export async function findKgEvidence({
     targetText,
@@ -288,17 +288,14 @@ export async function findKgEvidence({
         routes: [
             {
                 ...EVIDENCE_ROUTES[0],
-                state: directEdges.length ? "VERIFIED" : "UNEXPLORED",
                 edges: directEdges,
             },
             {
                 ...EVIDENCE_ROUTES[1],
-                state: factorEdges.length ? "VERIFIED" : "UNEXPLORED",
                 edges: factorEdges,
             },
             {
                 ...EVIDENCE_ROUTES[2],
-                state: geneSetEdges.length ? "VERIFIED" : "UNEXPLORED",
                 edges: geneSetEdges,
             },
         ],

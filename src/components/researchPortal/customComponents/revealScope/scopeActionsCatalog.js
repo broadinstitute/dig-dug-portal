@@ -18,6 +18,11 @@ export const ACTION_CATALOG = [
             "Bridges the resolved mechanism to shared-gene diseases, then searches BiomarkerKB for biomarkers on those diseases.",
     },
     {
+        id: "designExperimentProtocol",
+        label: "Design experiment protocol",
+        description: "Sends the evaluated hypothesis and its components to REVEAL DESIGN, in a new tab.",
+    },
+    {
         id: "runLiterature",
         label: "Search literature",
         description: "Turns the hypothesis into an editable PubMed search query you can open and review.",

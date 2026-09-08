@@ -9,6 +9,7 @@ export function buildSessionExport({
     literatureQuery,
     kgEvidence,
     kgBlockedReason,
+    kgNetworkGraph,
     biomarkerEvidence,
     biomarkerBlockedReason,
 }) {
@@ -21,6 +22,7 @@ export function buildSessionExport({
         literature_query: literatureQuery || null,
         kg_evidence: kgEvidence || null,
         kg_blocked_reason: kgBlockedReason || null,
+        kg_network_graph: kgNetworkGraph || null,
         biomarker_evidence: biomarkerEvidence || null,
         biomarker_blocked_reason: biomarkerBlockedReason || null,
     };
@@ -95,6 +97,8 @@ export function parseSessionImport(rawText) {
         kgEvidence: parsed.kg_evidence && typeof parsed.kg_evidence === "object" ? parsed.kg_evidence : null,
         kgBlockedReason:
             typeof parsed.kg_blocked_reason === "string" && parsed.kg_blocked_reason ? parsed.kg_blocked_reason : null,
+        kgNetworkGraph:
+            parsed.kg_network_graph && typeof parsed.kg_network_graph === "object" ? parsed.kg_network_graph : null,
         biomarkerEvidence:
             parsed.biomarker_evidence && typeof parsed.biomarker_evidence === "object"
                 ? parsed.biomarker_evidence
