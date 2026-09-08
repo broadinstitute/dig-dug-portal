@@ -75,7 +75,6 @@ export default Vue.component("volcano-plot", {
 
                 massagedData.push(tempObj);
             });
-            console.log(JSON.stringify(massagedData));
             return massagedData;
         },
         volcanoDotPos() {
@@ -137,9 +136,6 @@ export default Vue.component("volcano-plot", {
                     ] = d[this.renderConfig.renderBy];
                 }
             });
-
-            //console.log("dotPos", dotPos);
-
             return dotPos;
         },
     },
@@ -197,7 +193,6 @@ export default Vue.component("volcano-plot", {
                 for (let v = -3; v <= 3; v++) {
                     if (this.volcanoDotPos[x + h] != undefined) {
                         if (this.volcanoDotPos[x + h][y + v] != undefined) {
-                            //console.log(this.volcanoDotPos[x + h][y + v]);
                             let tempObj = {};
                             tempObj["x"] = x + h;
                             tempObj["y"] = y + v;
@@ -484,7 +479,6 @@ export default Vue.component("volcano-plot", {
             });
 
             // reder hovering dots in red
-            //console.log(!!this.volcanoDotPos);
 
             if (REDDOTS != undefined) {
                 REDDOTS.map((dot) => {
@@ -657,7 +651,6 @@ export default Vue.component("volcano-plot", {
                     );
                 }
             }
-            console.log("Did we make it here?");
         },
         renderDash(X1, X2, Y1, Y2, COLOR, WIDTH, DASH) {
             var d = document.getElementById(this.plotId);
