@@ -1,9 +1,9 @@
 import { findFactorTraitLinks, findFactorGeneSetLinks } from "./scopeKgFactorLinks.js";
 
 /**
- * Builds the 4-row Gene / Gene Set / Factor / Trait network graph shown at the top of the
- * CFDE KG tab, from `findKgEvidence()`'s existing 3 routes plus the 2 new factor-side edge
- * types (`scopeKgFactorLinks.js`) that those routes never queried.
+ * Builds the 4-column Gene / Gene set / Factor / Trait network (left → right) shown at the
+ * top of the CFDE KG tab, from `findKgEvidence()`'s existing 3 routes plus the 2 new
+ * factor-side edge types (`scopeKgFactorLinks.js`) that those routes never queried.
  *
  * Deliberately only fetches factor-trait/factor-geneSet links for factors that already have
  * a *confirmed* gene->factor edge in the factor route's own results — a resolved-but-

@@ -507,6 +507,7 @@ export default Vue.component("reveal-scope", {
                 this.kgEvidenceBlockedReason =
                     "Can't search the CFDE KG yet — the evaluation didn't identify a specific " +
                     "target and outcome. Fix the hypothesis (Edit) and try again.";
+                this.kgNetworkGraph = null;
                 return;
             }
             this.kgEvidenceBlockedReason = null;
@@ -641,10 +642,23 @@ export default Vue.component("reveal-scope", {
                 literatureQuery: this.cachedLiteratureQuery,
                 kgEvidence: this.kgEvidence,
                 kgBlockedReason: this.kgEvidenceBlockedReason,
+                kgNetworkGraph: this.kgNetworkGraph,
                 biomarkerEvidence: this.biomarkerEvidence,
                 biomarkerBlockedReason: this.biomarkerEvidenceBlockedReason,
             });
             saveSessionFile(sessionData, defaultSessionFilename());
+        },
+        async rebuildKgNetworkGraphFromEvidence() {
+            const evidenceAtStart = this.kgEvidence;
+            try {
+                const graph = await buildKgNetworkGraph(evidenceAtStart);
+                if (this.kgEvidence === evidenceAtStart) {
+                    this.kgNetworkGraph = graph;
+                }
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.warn("[reveal-scope] KG network graph rebuild on import failed", error);
+            }
         },
         triggerImport() {
             this.$refs.importFileInput.click();
@@ -665,8 +679,12 @@ export default Vue.component("reveal-scope", {
                     this.cachedLiteratureQuery = session.literatureQuery;
                     this.kgEvidence = session.kgEvidence;
                     this.kgEvidenceBlockedReason = session.kgBlockedReason;
+                    this.kgNetworkGraph = session.kgNetworkGraph;
                     this.biomarkerEvidence = session.biomarkerEvidence;
                     this.biomarkerEvidenceBlockedReason = session.biomarkerBlockedReason;
+                    if (!this.kgNetworkGraph && this.kgEvidence) {
+                        this.rebuildKgNetworkGraphFromEvidence();
+                    }
                     this.evaluateContentTab =
                         session.biomarkerEvidence || session.biomarkerBlockedReason
                             ? "biomarker"
