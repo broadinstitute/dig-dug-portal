@@ -6,6 +6,7 @@ import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterEnumerationPreset from "@/components/criterion/FilterEnumerationPreset.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
@@ -37,6 +38,7 @@ new Vue({
         CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
+        FilterEnumerationPreset,
         FilterGreaterThan,
         FilterLessThan,
         SearchHeaderWrapper,

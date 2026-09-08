@@ -387,13 +387,14 @@
                         <h4>Connectivity mapping: Differential Expression
                         </h4>
                         <criterion-function-group>
-                            <filter-enumeration-control
+                            <filter-enumeration-preset
                                 v-if="new Set($parent.connectivityData.map(c => c.tissue)).size > 1"
                                 field="tissue"
                                 :options="$parent.connectivityData.map(c => c.tissue)"
+                                :fillFirstItem="true"
                             >
                                 <div class="label">Tissue</div>
-                            </filter-enumeration-control>
+                            </filter-enumeration-preset>
                             <filter-enumeration-control
                                 field="cell_type"
                                 :options="$parent.connectivityData.map(c => c.cell_type).filter(ct => !!ct)"
