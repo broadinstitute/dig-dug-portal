@@ -144,6 +144,9 @@ export default {
 <style scoped>
 .scp-eval {
     padding: 18px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    border-top: solid 1px #dddddd;
 }
 
 .scp-eval-status {
@@ -172,7 +175,7 @@ export default {
 .scp-eval-axis {
     padding: 14px 16px;
     border-radius: 10px;
-    background: #fff;
+    background: rgb(246, 245, 242);
 }
 
 .scp-eval-axis-head {
@@ -222,7 +225,7 @@ export default {
     align-items: center;
     gap: 10px;
     padding: 10px 16px;
-    background: #fff;
+    background: rgb(246, 245, 242);
 }
 
 .scp-eval-slot-label {

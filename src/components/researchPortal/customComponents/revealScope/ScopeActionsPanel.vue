@@ -80,12 +80,13 @@ export default {
 
 <style scoped>
 .scp-actions-popup {
-    position: absolute;
+    position: fixed;
+    top: 16px;
     right: 16px;
-    bottom: 16px;
-    z-index: 20;
+    z-index: 2100;
     width: 320px;
-    max-height: min(70%, 520px);
+    height: auto;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
     padding: 16px 18px 18px;

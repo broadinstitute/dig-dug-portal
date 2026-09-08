@@ -117,13 +117,6 @@
             @import-session="triggerImport"
             @close="welcomeOpen = false"
         />
-
-        <ScopeExportSessionModal
-            :open="exportModalOpen"
-            :default-filename="defaultExportFilename"
-            @save="onConfirmExport"
-            @close="exportModalOpen = false"
-        />
     </div>
 </template>
 
@@ -134,7 +127,6 @@ import ScopeWelcomePanel from "@/components/researchPortal/customComponents/reve
 import ScopeLiteratureLauncher from "@/components/researchPortal/customComponents/revealScope/ScopeLiteratureLauncher.vue";
 import ScopeEvaluationPanel from "@/components/researchPortal/customComponents/revealScope/ScopeEvaluationPanel.vue";
 import ScopeActionsPanel from "@/components/researchPortal/customComponents/revealScope/ScopeActionsPanel.vue";
-import ScopeExportSessionModal from "@/components/researchPortal/customComponents/revealScope/ScopeExportSessionModal.vue";
 import ScopeKgEvidenceTable from "@/components/researchPortal/customComponents/revealScope/ScopeKgEvidenceTable.vue";
 import ScopeBiomarkerEvidenceTable from "@/components/researchPortal/customComponents/revealScope/ScopeBiomarkerEvidenceTable.vue";
 import ScopeProgressOverlay from "@/components/researchPortal/customComponents/revealScope/ScopeProgressOverlay.vue";
@@ -163,7 +155,6 @@ export default Vue.component("reveal-scope", {
         ScopeLiteratureLauncher,
         ScopeEvaluationPanel,
         ScopeActionsPanel,
-        ScopeExportSessionModal,
         ScopeKgEvidenceTable,
         ScopeBiomarkerEvidenceTable,
         ScopeProgressOverlay,
@@ -206,31 +197,49 @@ export default Vue.component("reveal-scope", {
             actionsPopupDismissed: false,
             actionsPanelForcedOpen: false,
             actionsPanelInitialTab: "next",
-            exportModalOpen: false,
-            defaultExportFilename: "",
             progressOverlayOpen: false,
             progressSteps: [],
         };
     },
     mounted: function () {},
     computed: {
+        isEvaluateDone() {
+            return Boolean(this.cachedEvaluation);
+        },
+        isLiteratureDone() {
+            return this.ranModules.includes("literature");
+        },
         catalogActions() {
-            return ACTION_CATALOG;
+            return ACTION_CATALOG.filter((action) => {
+                if (action.id === "runEvaluate") {
+                    return !this.isEvaluateDone;
+                }
+                if (action.id === "runLiterature") {
+                    return !this.isLiteratureDone;
+                }
+                if (action.id === "runKgSearch") {
+                    return !this.hasKgContent;
+                }
+                if (action.id === "runBiomarkerSearch") {
+                    return !this.hasBiomarkerContent;
+                }
+                return true;
+            });
         },
         nextStepActions() {
-            const canSearchKg = this.ranModules.includes("evaluate") && !this.hasMissingSlots;
-            const canSearchBiomarker = Boolean(
-                this.kgEvidence && this.kgEvidence.resolvedFactors && this.kgEvidence.resolvedFactors.length
-            );
+            const canSearchKg = this.ranModules.includes("evaluate") && !this.hasMissingSlots && !this.hasKgContent;
+            const canSearchBiomarker =
+                Boolean(this.kgEvidence && this.kgEvidence.resolvedFactors && this.kgEvidence.resolvedFactors.length) &&
+                !this.hasBiomarkerContent;
             const list = ACTION_CATALOG.filter((action) => {
                 if (action.id === "runKgSearch" || action.id === "runBiomarkerSearch") {
                     return false;
                 }
                 if (action.id === "runLiterature") {
-                    return !this.ranModules.includes("literature");
+                    return !this.isLiteratureDone;
                 }
                 if (action.id === "runEvaluate") {
-                    return !this.ranModules.includes("evaluate");
+                    return !this.isEvaluateDone;
                 }
                 return true;
             });
@@ -317,11 +326,19 @@ export default Vue.component("reveal-scope", {
             console.log("reveal-scope menu action", payload);
         },
         onWelcomeSelectOption(payload) {
-            this.activeHypothesisText = payload.hypothesisText;
-            if (payload.optionId === "searchLiterature") {
-                this.runModule("literature");
-                return;
+            // A hypothesis-text edit invalidates every prior module output — without this,
+            // an edited hypothesis would keep hiding Actions-panel options as "already done"
+            // for a hypothesis that no longer matches what's on screen.
+            if (payload.hypothesisText !== this.activeHypothesisText) {
+                this.ranModules = [];
+                this.cachedEvaluation = null;
+                this.cachedLiteratureQuery = null;
+                this.kgEvidence = null;
+                this.kgEvidenceBlockedReason = null;
+                this.biomarkerEvidence = null;
+                this.biomarkerEvidenceBlockedReason = null;
             }
+            this.activeHypothesisText = payload.hypothesisText;
             if (payload.optionId === "evaluateHypothesis") {
                 this.runModule("evaluate");
                 return;
@@ -580,10 +597,6 @@ export default Vue.component("reveal-scope", {
             this.cachedLiteratureQuery = query;
         },
         exportSession() {
-            this.defaultExportFilename = defaultSessionFilename();
-            this.exportModalOpen = true;
-        },
-        onConfirmExport(filename) {
             const sessionData = buildSessionExport({
                 hypothesisText: this.activeHypothesisText,
                 ranModules: this.ranModules,
@@ -594,8 +607,7 @@ export default Vue.component("reveal-scope", {
                 biomarkerEvidence: this.biomarkerEvidence,
                 biomarkerBlockedReason: this.biomarkerEvidenceBlockedReason,
             });
-            saveSessionFile(sessionData, filename);
-            this.exportModalOpen = false;
+            saveSessionFile(sessionData, defaultSessionFilename());
         },
         triggerImport() {
             this.$refs.importFileInput.click();
@@ -764,6 +776,7 @@ export default Vue.component("reveal-scope", {
 
 .scp-module-tab {
     margin: 0;
+    margin-bottom: -1px;
     border: 1px solid var(--cfde-border);
     border-radius: 6px 6px 0 0;
     background: var(--cfde-bg);

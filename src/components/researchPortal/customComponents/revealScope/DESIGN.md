@@ -101,7 +101,7 @@ See **`ARCHITECTURE.md`** for the full data model, module specs, and build seque
 | `revealScope/ScopeEvaluationPanel.vue` + `scopeHypothesisEvaluation.js` | Module A v0 |
 | `revealScope/ScopeLiteratureLauncher.vue` + `scopeLiteratureQuery.js` + `scopeLiteratureSources.js` | Module B v0 |
 | `revealScope/ScopeActionsPanel.vue` + `scopeActionsCatalog.js` | "Actions" — floating popup, "Next steps" (filtered) / "Actions" (full catalog) tabs |
-| `revealScope/scopeSessionFile.js` + `ScopeExportSessionModal.vue` | Session export (filename prompt, Save-As where supported) / import |
+| `revealScope/scopeSessionFile.js` | Session export (straight to the browser's native Save-As dialog where supported, plain download fallback) / import |
 | `revealScope/scopeKgEvidence.js` + `ScopeKgEvidenceTable.vue` + `scopeBiomarkerFactorSearch.js` | Module C v0 — evidence routes + transitional raw-data table |
 | `revealScope/scopeKgRelevance.js` | Post-retrieval relevance triage for CFDE KG evidence |
 | `revealScope/scopeBiomarkerKbSparql.js` + `scopeBiomarkerBridge.js` + `scopeBiomarkerRelevance.js` + `ScopeBiomarkerEvidenceTable.vue` | "Search Biomarker KB" — separate action bridging a resolved Factor to shared-gene diseases to BiomarkerKB, own relevance triage |

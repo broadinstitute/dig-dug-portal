@@ -58,6 +58,17 @@
                 aria-labelledby="scp-welcome-tab-start"
                 class="scp-welcome-panel"
             >
+                <button
+                    type="button"
+                    class="scp-welcome-option scp-welcome-option-import scp-welcome-import-top"
+                    @click="onImportSessionClick"
+                >
+                    <span class="scp-welcome-option-title">Import session</span>
+                    <span class="scp-welcome-option-desc">
+                        Load a previously exported session and pick up where you left off.
+                    </span>
+                </button>
+
                 <div class="scp-welcome-option scp-welcome-search-wrapper">
                     <span class="scp-welcome-option-title">Hypothesis</span>
                     <textarea
@@ -86,34 +97,12 @@
                         type="button"
                         class="scp-welcome-option scp-welcome-option-action"
                         :disabled="!hypothesisText.trim()"
-                        @click="onOptionSelect('searchLiterature')"
-                    >
-                        <span class="scp-welcome-option-title">Search literature</span>
-                        <span class="scp-welcome-option-desc">
-                            Turns the hypothesis into an editable PubMed search query. You review
-                            and edit before clicking through.
-                        </span>
-                    </button>
-                    <button
-                        type="button"
-                        class="scp-welcome-option scp-welcome-option-action"
-                        :disabled="!hypothesisText.trim()"
                         @click="onOptionSelect('evaluateAndSearchKg')"
                     >
                         <span class="scp-welcome-option-title">Evaluate hypothesis + Search CFDE KG</span>
                         <span class="scp-welcome-option-desc">
                             Scores the hypothesis first, then searches the CFDE knowledge graph
                             for gene–trait evidence using the parsed target and outcome.
-                        </span>
-                    </button>
-                    <button
-                        type="button"
-                        class="scp-welcome-option scp-welcome-option-import"
-                        @click="onImportSessionClick"
-                    >
-                        <span class="scp-welcome-option-title">Import session</span>
-                        <span class="scp-welcome-option-desc">
-                            Load a previously exported session and pick up where you left off.
                         </span>
                     </button>
                 </div>
@@ -395,6 +384,10 @@ export default {
     background: #fff;
     border: 1px solid var(--cfde-blue, #2c5c97);
     cursor: pointer;
+}
+
+.scp-welcome-import-top {
+    margin-bottom: 15px;
 }
 
 .scp-welcome-option-import:hover {

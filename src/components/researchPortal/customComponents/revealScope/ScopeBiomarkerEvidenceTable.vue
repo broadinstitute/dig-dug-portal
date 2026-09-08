@@ -339,6 +339,9 @@ export default {
 <style scoped>
 .scp-bm {
     padding: 18px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    border-top: solid 1px #dddddd;
 }
 
 .scp-bm-callout {

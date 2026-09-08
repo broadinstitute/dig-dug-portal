@@ -137,6 +137,9 @@ export default {
 <style scoped>
 .scp-kg {
     padding: 18px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    border-top: solid 1px #dddddd;
 }
 
 .scp-kg-callout {
@@ -187,7 +190,7 @@ export default {
     margin-bottom: 16px;
     padding: 14px 16px;
     border-radius: 10px;
-    background: #fff;
+    background: rgb(246, 245, 242);
 }
 
 .scp-kg-route-head {
