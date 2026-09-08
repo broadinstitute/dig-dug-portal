@@ -268,6 +268,7 @@ new Vue({
                 "label": "",
                 "legend": "",
                 "renderBy": isDrug ? "drug_chembl_id" : "pathway",
+                //"renderBy": "pathway",
                 "xAxisField": "NES_difference",
                 "xAxisLabel": "NES_difference",
                 "yAxisField": "minusLogRevPAdj",
