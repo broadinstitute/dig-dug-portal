@@ -30,6 +30,10 @@
             {
                 "label": "Gene Browser",
                 "path": "/gene.html?gene=ADIPOQ" 
+            },
+            {
+                "label": "Cross-Study Comparator",
+                "path": "/transcriptomics.html?gene=LEP"
             }
         ]
     },
