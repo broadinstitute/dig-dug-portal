@@ -29,13 +29,46 @@
                 </button>
             </div>
         </div>
-        <div ref="canvasWrap" class="scp-kgnet-canvas-wrap">
+        <div
+            ref="canvasWrap"
+            class="scp-kgnet-canvas-wrap"
+            @pointerleave="onCanvasPointerLeave"
+        >
             <div
                 ref="container"
                 class="scp-kgnet-canvas"
                 role="img"
                 aria-label="Gene, gene set, factor, and trait network"
             />
+            <button
+                v-if="isHighlightView"
+                type="button"
+                class="scp-kgnet-back"
+                title="Full network"
+                aria-label="Full network"
+                @click="showFullNetwork"
+            >
+                ←
+            </button>
+            <div
+                v-if="hoverTooltip.visible"
+                class="scp-kgnet-tooltip"
+                :style="tooltipStyle"
+                role="dialog"
+                :aria-label="hoverTooltip.label"
+                @pointerenter="onTooltipEnter"
+                @pointerleave="onTooltipLeave"
+            >
+                <p class="scp-kgnet-tooltip-label">{{ hoverTooltip.label }}</p>
+                <button
+                    v-if="!isHighlightView"
+                    type="button"
+                    class="scp-kgnet-tooltip-action"
+                    @click.stop="onHighlightAction"
+                >
+                    Highlight connected nodes
+                </button>
+            </div>
         </div>
     </div>
 </template>
@@ -43,14 +76,9 @@
 <script>
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
+import { neighborhoodOf, toDisplayNetwork } from "./scopeKgNetworkGraph.js";
 
 const COLUMN_ORDER = ["gene", "geneSet", "factor", "trait"];
-const COLUMN_LEVEL = {
-    gene: 0,
-    geneSet: 1,
-    factor: 2,
-    trait: 3,
-};
 const COLUMN_LABELS = {
     gene: "Genes",
     geneSet: "Gene sets",
@@ -63,13 +91,7 @@ const COLUMN_COLORS = {
     factor: "#7c5ec9",
     trait: "#6b6b6b",
 };
-const LABEL_PLACEMENT = {
-    gene: "left",
-    geneSet: "left",
-    factor: "right",
-    trait: "right",
-};
-const EDGE_COLOR = "#b0a890";
+const EDGE_HEX = "#b0a890";
 const NODE_SIZE = 9;
 const LABEL_GAP = 6;
 const LABEL_FONT = '13px Inter, "Segoe UI", system-ui, sans-serif';
@@ -77,6 +99,7 @@ const ZOOM_MIN = 0.35;
 const ZOOM_MAX = 2.5;
 const ZOOM_STEP = 0.1;
 const CANVAS_HEIGHT = 520;
+const LEVEL_SEPARATION = Math.round(220 * 1.1);
 const MAX_NODES_BY_TYPE = {
     gene: 8,
     geneSet: 12,
@@ -84,13 +107,23 @@ const MAX_NODES_BY_TYPE = {
     trait: 12,
 };
 
+function visEdgeColor() {
+    return {
+        color: EDGE_HEX,
+        highlight: EDGE_HEX,
+        hover: EDGE_HEX,
+        inherit: false,
+        opacity: 1,
+    };
+}
+
 function truncateLabel(text, max = 22) {
     const value = String(text || "");
     if (value.length <= max) return value;
     return `${value.slice(0, max - 1)}…`;
 }
 
-function createNodeCtxRenderer({ displayLabel, backgroundColor, borderColor, size, labelPlacement }) {
+function createNodeCtxRenderer({ displayLabel, backgroundColor, borderColor, size }) {
     const dimensions = { width: size * 2, height: size * 2 };
     return function nodeCtxRenderer({ ctx, x, y, state }) {
         return {
@@ -108,18 +141,6 @@ function createNodeCtxRenderer({ displayLabel, backgroundColor, borderColor, siz
                 if (!displayLabel) return;
                 ctx.font = LABEL_FONT;
                 ctx.fillStyle = "#33363d";
-                if (labelPlacement === "left") {
-                    ctx.textAlign = "right";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText(displayLabel, x - size - LABEL_GAP, y);
-                    return;
-                }
-                if (labelPlacement === "right") {
-                    ctx.textAlign = "left";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText(displayLabel, x + size + LABEL_GAP, y);
-                    return;
-                }
                 ctx.textAlign = "center";
                 ctx.textBaseline = "top";
                 ctx.fillText(displayLabel, x, y + size + LABEL_GAP);
@@ -139,6 +160,9 @@ export default {
     data() {
         return {
             visNetwork: null,
+            nodeDataSet: null,
+            edgeDataSet: null,
+            displayNetwork: { nodes: [], edges: [] },
             resizeObserver: null,
             zoomLevel: 1,
             zoomMin: ZOOM_MIN,
@@ -146,6 +170,16 @@ export default {
             zoomStep: ZOOM_STEP,
             suppressZoomSync: false,
             viewportReady: false,
+            highlightedNodeId: null,
+            tooltipPinned: false,
+            tooltipHideTimer: null,
+            hoverTooltip: {
+                visible: false,
+                nodeId: null,
+                label: "",
+                left: 0,
+                top: 0,
+            },
             legendItems: COLUMN_ORDER.map((type) => ({
                 type,
                 label: COLUMN_LABELS[type],
@@ -157,6 +191,8 @@ export default {
         graph: {
             deep: true,
             handler() {
+                this.highlightedNodeId = null;
+                this.hideTooltip();
                 this.renderNetwork();
             },
         },
@@ -166,17 +202,17 @@ export default {
         this.renderNetwork();
     },
     beforeDestroy() {
+        this.clearTooltipTimer();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
         }
-        this.detachNetworkEvents();
-        if (this.visNetwork) {
-            this.visNetwork.destroy();
-            this.visNetwork = null;
-        }
+        this.destroyNetwork();
     },
     computed: {
+        isHighlightView() {
+            return Boolean(this.highlightedNodeId);
+        },
         degreeById() {
             const degree = {};
             (this.graph && this.graph.edges ? this.graph.edges : []).forEach((edge) => {
@@ -205,152 +241,153 @@ export default {
             });
             return ids;
         },
+        tooltipStyle() {
+            return {
+                left: `${this.hoverTooltip.left}px`,
+                top: `${this.hoverTooltip.top}px`,
+            };
+        },
     },
     methods: {
-        nodeLevel(node) {
-            return Object.prototype.hasOwnProperty.call(COLUMN_LEVEL, node.type)
-                ? COLUMN_LEVEL[node.type]
-                : 0;
+        visLevel(node) {
+            if (Number.isFinite(node && node.level)) return node.level;
+            const typeIndex = COLUMN_ORDER.indexOf(node && node.type);
+            return typeIndex >= 0 ? typeIndex : 0;
         },
-        toVisNodes() {
-            const visible = this.visibleNodeIds;
-            return (this.graph.nodes || [])
-                .filter((node) => visible.has(node.id))
-                .map((node) => {
-                    const color = COLUMN_COLORS[node.type] || COLUMN_COLORS.trait;
-                    const fullLabel = node.label || node.id;
-                    const displayLabel = truncateLabel(fullLabel);
-                    const labelPlacement = LABEL_PLACEMENT[node.type] || "right";
-                    return {
-                        id: node.id,
-                        label: "",
-                        title: fullLabel,
-                        level: this.nodeLevel(node),
-                        shape: "custom",
+        toVisNodes(displayNodes) {
+            return (displayNodes || []).map((node) => {
+                const color = COLUMN_COLORS[node.type] || COLUMN_COLORS.trait;
+                const fullLabel = node.label || node.id;
+                const displayLabel = truncateLabel(fullLabel);
+                return {
+                    id: node.id,
+                    label: "",
+                    fullLabel,
+                    level: this.visLevel(node),
+                    shape: "custom",
+                    size: NODE_SIZE,
+                    width: NODE_SIZE * 2,
+                    height: NODE_SIZE * 2,
+                    borderWidth: 0,
+                    color: {
+                        background: color,
+                        border: color,
+                        highlight: { background: color, border: color },
+                        hover: { background: color, border: color },
+                    },
+                    font: {
+                        size: 13,
+                        color: "#33363d",
+                        face: "Inter, Segoe UI, system-ui, sans-serif",
+                        strokeWidth: 0,
+                    },
+                    ctxRenderer: createNodeCtxRenderer({
+                        displayLabel,
+                        backgroundColor: color,
+                        borderColor: color,
                         size: NODE_SIZE,
-                        width: NODE_SIZE * 2,
-                        height: NODE_SIZE * 2,
-                        borderWidth: 0,
-                        color: {
-                            background: color,
-                            border: color,
-                            highlight: { background: color, border: color },
-                            hover: { background: color, border: color },
-                        },
-                        font: {
-                            size: 13,
-                            color: "#33363d",
-                            face: "Inter, Segoe UI, system-ui, sans-serif",
-                            strokeWidth: 0,
-                        },
-                        ctxRenderer: createNodeCtxRenderer({
-                            displayLabel,
-                            backgroundColor: color,
-                            borderColor: color,
-                            size: NODE_SIZE,
-                            labelPlacement,
-                        }),
-                    };
-                });
-        },
-        toVisEdges() {
-            const visible = this.visibleNodeIds;
-            const levelById = {};
-            (this.graph.nodes || []).forEach((node) => {
-                levelById[node.id] = this.nodeLevel(node);
+                    }),
+                };
             });
-            return (this.graph.edges || [])
-                .filter(
-                    (edge) =>
-                        edge.source &&
-                        edge.target &&
-                        edge.source !== edge.target &&
-                        visible.has(edge.source) &&
-                        visible.has(edge.target)
-                )
-                .map((edge, index) => {
-                    const sourceLevel = levelById[edge.source];
-                    const targetLevel = levelById[edge.target];
-                    const reverse =
-                        sourceLevel != null && targetLevel != null && sourceLevel > targetLevel;
-                    const from = reverse ? edge.target : edge.source;
-                    const to = reverse ? edge.source : edge.target;
-                    const weight = edge.weight == null ? "" : ` (weight ${edge.weight})`;
-                    return {
-                        id: `${edge.type || "edge"}|${from}|${to}|${index}`,
-                        from,
-                        to,
-                        title: `${edge.type || "link"}${weight}`,
-                        arrows: { to: { enabled: true, scaleFactor: 0.65 } },
-                        color: {
-                            color: EDGE_COLOR,
-                            highlight: EDGE_COLOR,
-                            hover: EDGE_COLOR,
-                        },
-                        width: 1,
-                    };
-                });
         },
-        renderNetwork() {
-            if (!this.$refs.container) return;
+        toVisEdges(displayEdges, displayNodes) {
+            const levelById = {};
+            (displayNodes || []).forEach((node) => {
+                levelById[node.id] = this.visLevel(node);
+            });
+            let curvedCount = 0;
+            return (displayEdges || []).map((edge) => {
+                const fromLevel = levelById[edge.from];
+                const toLevel = levelById[edge.to];
+                const span =
+                    Number.isFinite(fromLevel) && Number.isFinite(toLevel)
+                        ? Math.abs(toLevel - fromLevel)
+                        : 1;
+                const visEdge = {
+                    id: edge.id,
+                    from: edge.from,
+                    to: edge.to,
+                    arrows: { to: { enabled: true, scaleFactor: 0.65 } },
+                    color: visEdgeColor(),
+                    width: 1,
+                };
+                // A straight edge that skips a column runs through whatever node sits
+                // in the skipped column, so it reads as two connections that don't exist.
+                if (span > 1) {
+                    curvedCount += 1;
+                    visEdge.smooth = {
+                        enabled: true,
+                        type: curvedCount % 2 === 1 ? "curvedCW" : "curvedCCW",
+                        roundness: Math.min(0.6, 0.2 + 0.15 * (span - 1)),
+                    };
+                }
+                return visEdge;
+            });
+        },
+        networkOptions() {
+            return {
+                layout: {
+                    hierarchical: {
+                        enabled: true,
+                        direction: "LR",
+                        sortMethod: "directed",
+                        levelSeparation: LEVEL_SEPARATION,
+                        nodeSpacing: 68,
+                        treeSpacing: 72,
+                        blockShifting: true,
+                        edgeMinimization: true,
+                        parentCentralization: true,
+                    },
+                },
+                physics: { enabled: false },
+                interaction: {
+                    dragNodes: false,
+                    dragView: true,
+                    zoomView: false,
+                    hover: true,
+                    hoverConnectedEdges: false,
+                    selectable: false,
+                },
+                edges: {
+                    chosen: false,
+                    arrowStrikethrough: false,
+                    color: visEdgeColor(),
+                    width: 1,
+                    smooth: {
+                        type: "cubicBezier",
+                        forceDirection: "horizontal",
+                        roundness: 0.35,
+                    },
+                },
+                nodes: {
+                    chosen: false,
+                    margin: 8,
+                    widthConstraint: false,
+                },
+                height: `${CANVAS_HEIGHT}px`,
+            };
+        },
+        destroyNetwork() {
             this.detachNetworkEvents();
             if (this.visNetwork) {
                 this.visNetwork.destroy();
                 this.visNetwork = null;
             }
+            this.nodeDataSet = null;
+            this.edgeDataSet = null;
             this.viewportReady = false;
-            if (!this.graph || !this.graph.nodes || !this.graph.nodes.length) return;
-
-            const nodes = new DataSet(this.toVisNodes());
-            const edges = new DataSet(this.toVisEdges());
+        },
+        mountNetwork(displayNodes, displayEdges) {
+            if (!this.$refs.container) return;
+            this.destroyNetwork();
+            const nodes = new DataSet(this.toVisNodes(displayNodes));
+            const edges = new DataSet(this.toVisEdges(displayEdges, displayNodes));
+            this.nodeDataSet = nodes;
+            this.edgeDataSet = edges;
             this.visNetwork = new Network(
                 this.$refs.container,
                 { nodes, edges },
-                {
-                    layout: {
-                        hierarchical: {
-                            enabled: true,
-                            direction: "LR",
-                            sortMethod: "directed",
-                            levelSeparation: 220,
-                            nodeSpacing: 48,
-                            treeSpacing: 56,
-                            blockShifting: true,
-                            edgeMinimization: true,
-                            parentCentralization: true,
-                        },
-                    },
-                    physics: { enabled: false },
-                    interaction: {
-                        dragNodes: false,
-                        dragView: true,
-                        zoomView: true,
-                        hover: true,
-                        hoverConnectedEdges: false,
-                        selectable: false,
-                    },
-                    edges: {
-                        chosen: false,
-                        arrowStrikethrough: false,
-                        color: {
-                            color: EDGE_COLOR,
-                            highlight: EDGE_COLOR,
-                            hover: EDGE_COLOR,
-                        },
-                        width: 1,
-                        smooth: {
-                            type: "cubicBezier",
-                            forceDirection: "horizontal",
-                            roundness: 0.35,
-                        },
-                    },
-                    nodes: {
-                        chosen: false,
-                        margin: 8,
-                        widthConstraint: false,
-                    },
-                    height: `${CANVAS_HEIGHT}px`,
-                }
+                this.networkOptions()
             );
             this.attachNetworkEvents();
             this.visNetwork.once("stabilized", () => {
@@ -360,9 +397,38 @@ export default {
                 requestAnimationFrame(() => this.fitNetworkView());
             });
         },
+        renderNetwork() {
+            if (!this.$refs.container) return;
+            this.destroyNetwork();
+            this.displayNetwork = { nodes: [], edges: [] };
+            this.highlightedNodeId = null;
+            if (!this.graph || !this.graph.nodes || !this.graph.nodes.length) return;
+            this.displayNetwork = toDisplayNetwork(this.graph, this.visibleNodeIds);
+            this.mountNetwork(this.displayNetwork.nodes, this.displayNetwork.edges);
+        },
+        showHighlightNetwork(nodeId) {
+            if (!nodeId || !this.displayNetwork.nodes.length) return;
+            const { keepNodes, keepEdges } = neighborhoodOf(this.displayNetwork, nodeId);
+            const nodes = this.displayNetwork.nodes.filter((node) => keepNodes.has(node.id));
+            const edges = this.displayNetwork.edges.filter((edge) => keepEdges.has(edge.id));
+            if (!nodes.length) return;
+            this.highlightedNodeId = nodeId;
+            this.hideTooltip();
+            this.mountNetwork(nodes, edges);
+        },
+        showFullNetwork() {
+            if (!this.isHighlightView) return;
+            this.highlightedNodeId = null;
+            this.hideTooltip();
+            if (!this.graph || !this.graph.nodes || !this.graph.nodes.length) return;
+            this.displayNetwork = toDisplayNetwork(this.graph, this.visibleNodeIds);
+            this.mountNetwork(this.displayNetwork.nodes, this.displayNetwork.edges);
+        },
         detachNetworkEvents() {
             if (!this.visNetwork) return;
             this.visNetwork.off("zoom");
+            this.visNetwork.off("hoverNode");
+            this.visNetwork.off("blurNode");
         },
         attachNetworkEvents() {
             if (!this.visNetwork) return;
@@ -373,6 +439,93 @@ export default {
                     this.zoomLevel = Math.min(this.zoomMax, Math.max(this.zoomMin, scale));
                 }
             });
+            this.visNetwork.on("hoverNode", (params) => {
+                this.clearTooltipTimer();
+                const nodeId = params && params.node;
+                if (!nodeId) return;
+                const node = this.nodeDataSet && this.nodeDataSet.get(nodeId);
+                const label = (node && (node.fullLabel || node.label)) || String(nodeId);
+                const coords = this.pointerClientCoords(params);
+                this.showTooltip(nodeId, label, coords.clientX, coords.clientY);
+            });
+            this.visNetwork.on("blurNode", () => {
+                if (this.tooltipPinned) return;
+                this.scheduleHideTooltip();
+            });
+        },
+        pointerClientCoords(params) {
+            const event =
+                params && params.event && params.event.srcEvent
+                    ? params.event.srcEvent
+                    : params && params.event;
+            const container = this.$refs.container;
+            const rect = container ? container.getBoundingClientRect() : { left: 0, top: 0 };
+            const pointer = params && params.pointer && params.pointer.DOM;
+            return {
+                clientX:
+                    event && event.clientX != null
+                        ? event.clientX
+                        : rect.left + (pointer ? pointer.x : 0),
+                clientY:
+                    event && event.clientY != null
+                        ? event.clientY
+                        : rect.top + (pointer ? pointer.y : 0),
+            };
+        },
+        positionTooltip(clientX, clientY) {
+            const wrap = this.$refs.canvasWrap;
+            if (!wrap) return;
+            const rect = wrap.getBoundingClientRect();
+            const maxLeft = Math.max(8, rect.width - 280);
+            const maxTop = Math.max(8, rect.height - 88);
+            this.hoverTooltip.left = Math.min(Math.max(8, clientX - rect.left + 12), maxLeft);
+            this.hoverTooltip.top = Math.min(Math.max(8, clientY - rect.top + 12), maxTop);
+        },
+        showTooltip(nodeId, label, clientX, clientY) {
+            this.hoverTooltip.visible = true;
+            this.hoverTooltip.nodeId = nodeId;
+            this.hoverTooltip.label = label;
+            this.positionTooltip(clientX, clientY);
+        },
+        hideTooltip() {
+            this.clearTooltipTimer();
+            this.tooltipPinned = false;
+            this.hoverTooltip.visible = false;
+            this.hoverTooltip.nodeId = null;
+            this.hoverTooltip.label = "";
+        },
+        scheduleHideTooltip() {
+            this.clearTooltipTimer();
+            this.tooltipHideTimer = setTimeout(() => {
+                if (!this.tooltipPinned) this.hideTooltip();
+            }, 160);
+        },
+        clearTooltipTimer() {
+            if (this.tooltipHideTimer) {
+                clearTimeout(this.tooltipHideTimer);
+                this.tooltipHideTimer = null;
+            }
+        },
+        onCanvasPointerLeave(event) {
+            const wrap = this.$refs.canvasWrap;
+            const next = event.relatedTarget;
+            if (wrap && next && wrap.contains(next)) return;
+            if (!this.tooltipPinned) this.scheduleHideTooltip();
+        },
+        onTooltipEnter() {
+            this.clearTooltipTimer();
+            this.tooltipPinned = true;
+        },
+        onTooltipLeave() {
+            this.tooltipPinned = false;
+            this.scheduleHideTooltip();
+        },
+        onHighlightAction() {
+            if (this.isHighlightView) return;
+            const nodeId = this.hoverTooltip.nodeId;
+            if (!nodeId) return;
+            this.hideTooltip();
+            this.showHighlightNetwork(nodeId);
         },
         onZoomInput() {
             this.applyZoom(this.zoomLevel);
@@ -486,6 +639,34 @@ export default {
     background: var(--cfde-bg, #f6f5f2);
 }
 
+.scp-kgnet-back {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 24px;
+    padding: 0 8px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    color: var(--cfde-blue, #2c5c97);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.scp-kgnet-back:hover {
+    color: #fff;
+    background: var(--cfde-blue, #2c5c97);
+    border-color: var(--cfde-blue, #2c5c97);
+}
+
 .scp-kgnet-zoom {
     display: inline-flex;
     align-items: center;
@@ -526,5 +707,42 @@ export default {
     margin: 0;
     accent-color: var(--cfde-blue, #2c5c97);
     cursor: pointer;
+}
+
+.scp-kgnet-tooltip {
+    position: absolute;
+    z-index: 3;
+    max-width: 260px;
+    padding: 8px 10px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    pointer-events: auto;
+}
+
+.scp-kgnet-tooltip-label {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--cfde-ink, #33363d);
+    overflow-wrap: anywhere;
+}
+
+.scp-kgnet-tooltip-action {
+    display: block;
+    margin: 8px 0 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--cfde-blue, #2c5c97);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    cursor: pointer;
+}
+
+.scp-kgnet-tooltip-action:hover {
+    color: var(--cfde-orange, #e07b39);
 }
 </style>

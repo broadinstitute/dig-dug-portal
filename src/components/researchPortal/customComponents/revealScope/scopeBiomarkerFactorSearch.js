@@ -10,7 +10,7 @@
  * descriptions with no direct trait node of their own).
  */
 
-const BIOMARKER_FACTOR_SEARCH_URL = "https://search.hugeamp.org/api/search/pgvector/biomarker-factors";
+const BIOMARKER_FACTOR_SEARCH_URL = "https://search.hugeamp.org/api/search/pgvector/kc-factors-all";
 
 /**
  * @param {string} needle

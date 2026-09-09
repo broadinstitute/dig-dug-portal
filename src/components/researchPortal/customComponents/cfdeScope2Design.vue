@@ -310,26 +310,123 @@
             <div
                 v-if="hasGeneratedProtocol"
                 v-show="activeConfigTab === 'protocol'"
-                class="hypothesis-container section-wrapper"
+                id="planner-search-draft"
+                class="section-wrapper"
+                :class="{ collapsed: !reviewAccordionOpen }"
             >
-                <p class="rd-protocol-empty">Protocol generation is not implemented yet.</p>
+                <div
+                    class="section-header rd-review-header"
+                    role="button"
+                    tabindex="0"
+                    :aria-expanded="reviewAccordionOpen ? 'true' : 'false'"
+                    aria-controls="rd-review-content"
+                    @click="toggleReviewAccordion"
+                    @keydown.enter.prevent="toggleReviewAccordion"
+                    @keydown.space.prevent="toggleReviewAccordion"
+                >
+                    <h4>Review Your Selections &amp; Generate Experiment Plan</h4>
+                    <span class="collapse-icon" aria-hidden="true">{{ reviewAccordionOpen ? "▼" : "▶" }}</span>
+                </div>
+                <div id="rd-review-content" class="section-content" v-show="reviewAccordionOpen">
+                    <div class="search-summary">
+                        <div class="summary-card">
+                            <div class="config-summary">
+                                <h6>Configuration Summary</h6>
+                                <div class="config-grid">
+                                    <div v-if="hypothesisText.trim()" class="config-item">
+                                        <strong>Hypothesis:</strong> {{ hypothesisText }}
+                                    </div>
+                                    <div v-if="genesText.trim()" class="config-item">
+                                        <strong>Genes:</strong> {{ genesText }}
+                                    </div>
+                                    <div v-if="experimentConstraints.trim()" class="config-item">
+                                        <strong>Experiment Constraints:</strong>
+                                        <pre class="rd-review-pre">{{ experimentConstraints }}</pre>
+                                    </div>
+                                    <div v-if="selectedAssayTypes.length" class="config-item">
+                                        <strong>Assay Types:</strong>
+                                        {{ selectedAssayTypes.map((at) => at.split(":")[1] || "").join(", ") }}
+                                    </div>
+                                    <div v-if="selectedCellTypes.length" class="config-item">
+                                        <strong>Cell Types:</strong>
+                                        {{ selectedCellTypes.map((ct) => ct.split(":").pop() || "").join(", ") }}
+                                    </div>
+                                    <div v-if="selectedReadouts.length" class="config-item">
+                                        <strong>Readouts:</strong> {{ selectedReadouts.join(", ") }}
+                                    </div>
+                                    <div
+                                        v-if="selectedThroughput || selectedSpecies || selectedTimeBudget"
+                                        class="config-item"
+                                    >
+                                        <strong>Constraints:</strong>
+                                        {{ advancedConstraintSummary }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="experiment-actions">
+                                <button
+                                    type="button"
+                                    class="btn btn-primary"
+                                    :disabled="!canGenerateExperiment || isGenerating"
+                                    @click="generateExperiment"
+                                >
+                                    {{
+                                        isGenerating
+                                            ? `Generating Experiment (${elapsedTime})`
+                                            : "Generate Experiment"
+                                    }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <DesignExperimentResults
+                v-if="hasGeneratedProtocol && activeConfigTab === 'protocol'"
+                :experiments="experimentResults"
+                :is-generating="isGenerating"
+                :elapsed-time="elapsedTime"
+                :error-message="generationError"
+                @download="downloadExperiment"
+            />
         </div>
+
+        <input
+            ref="importFileInput"
+            type="file"
+            accept="application/json"
+            class="rd-import-input"
+            @change="onImportFileChange"
+        />
     </div>
 </template>
 
 <script>
 import Vue from "vue";
 import DesignMenuBar from "@/components/researchPortal/customComponents/cfdeScope2Design/DesignMenuBar.vue";
+import DesignExperimentResults from "@/components/researchPortal/customComponents/cfdeScope2Design/DesignExperimentResults.vue";
 import {
     ASSAY_TYPES,
     CELL_TYPES,
     ASSAY_READOUTS,
 } from "@/components/researchPortal/customComponents/cfdeScope2Design/designExperimentParams.js";
+import {
+    generateExperimentPlan,
+    formatExperimentForDownload,
+} from "@/components/researchPortal/customComponents/cfdeScope2Design/designExperimentGenerate.js";
+import {
+    buildSessionExport,
+    defaultSessionFilename,
+    saveSessionFile,
+    parseSessionImport,
+} from "@/components/researchPortal/customComponents/cfdeScope2Design/designSessionFile.js";
 
 export default Vue.component("cfde-scope2-design", {
     components: {
         DesignMenuBar,
+        DesignExperimentResults,
     },
     props: {
         phenotypesInUse: {
@@ -352,6 +449,13 @@ export default Vue.component("cfde-scope2-design", {
             experimentConstraints: "",
             activeConfigTab: "config",
             hasGeneratedProtocol: false,
+            reviewAccordionOpen: true,
+            isGenerating: false,
+            generationStartTime: null,
+            generationTimer: null,
+            elapsedTime: "0:00",
+            experimentResults: [],
+            generationError: "",
             showConfigurationSection: false,
             showDropdowns: {
                 assayTypes: false,
@@ -379,6 +483,54 @@ export default Vue.component("cfde-scope2-design", {
             },
         },
     },
+    computed: {
+        throughputLabel() {
+            const labels = {
+                low: "Low (1-5 conditions)",
+                medium: "Medium (6-30)",
+                high: "High (30+)",
+            };
+            return labels[this.selectedThroughput] || this.selectedThroughput;
+        },
+        speciesLabel() {
+            const labels = {
+                human: "Human",
+                rodents: "Rodents",
+                "human-rodents": "Human + Rodents",
+            };
+            return labels[this.selectedSpecies] || this.selectedSpecies;
+        },
+        timeBudgetLabel() {
+            const labels = {
+                "2-3weeks": "2-3 weeks",
+                "1-2months": "1-2 months",
+                quarter: "Quarter-long",
+            };
+            return labels[this.selectedTimeBudget] || this.selectedTimeBudget;
+        },
+        advancedConstraintSummary() {
+            return [this.throughputLabel, this.speciesLabel, this.timeBudgetLabel].filter(Boolean).join(" • ");
+        },
+        canGenerateExperiment() {
+            return Boolean(this.hypothesisText.trim() || this.genesText.trim());
+        },
+        experimentConfigPayload() {
+            return {
+                hypothesisText: this.hypothesisText,
+                genesText: this.genesText,
+                experimentConstraints: this.experimentConstraints,
+                selectedAssayTypes: this.selectedAssayTypes,
+                selectedCellTypes: this.selectedCellTypes,
+                selectedReadouts: this.selectedReadouts,
+                selectedThroughput: this.selectedThroughput,
+                selectedSpecies: this.selectedSpecies,
+                selectedTimeBudget: this.selectedTimeBudget,
+            };
+        },
+    },
+    beforeDestroy() {
+        this.clearGenerationTimer();
+    },
     methods: {
         initializeFromKeyParams() {
             const keyParams = this.utilsBox && this.utilsBox.keyParams;
@@ -394,8 +546,102 @@ export default Vue.component("cfde-scope2-design", {
             }
         },
         onMenuAction(payload) {
+            if (payload.menu === "session" && payload.action === "resetSession") {
+                this.resetSession();
+                return;
+            }
+            if (payload.menu === "session" && payload.action === "exportSession") {
+                this.exportSession();
+                return;
+            }
+            if (payload.menu === "session" && payload.action === "importSession") {
+                this.triggerImport();
+                return;
+            }
             // eslint-disable-next-line no-console
             console.log("cfde-scope2-design menu action", payload);
+        },
+        resetSession() {
+            this.clearGenerationTimer();
+            this.hypothesisText = "";
+            this.genesText = "";
+            this.experimentConstraints = "";
+            this.activeConfigTab = "config";
+            this.hasGeneratedProtocol = false;
+            this.reviewAccordionOpen = true;
+            this.isGenerating = false;
+            this.experimentResults = [];
+            this.generationError = "";
+            this.showConfigurationSection = false;
+            this.showDropdowns = {
+                assayTypes: false,
+                cellTypes: false,
+                readouts: false,
+            };
+            this.selectedAssayTypes = [];
+            this.selectedCellTypes = [];
+            this.selectedReadouts = [];
+            this.selectedThroughput = "";
+            this.selectedSpecies = "";
+            this.selectedTimeBudget = "";
+        },
+        exportSession() {
+            const sessionData = buildSessionExport({
+                hypothesisText: this.hypothesisText,
+                genesText: this.genesText,
+                experimentConstraints: this.experimentConstraints,
+                selectedAssayTypes: this.selectedAssayTypes,
+                selectedCellTypes: this.selectedCellTypes,
+                selectedReadouts: this.selectedReadouts,
+                selectedThroughput: this.selectedThroughput,
+                selectedSpecies: this.selectedSpecies,
+                selectedTimeBudget: this.selectedTimeBudget,
+                showConfigurationSection: this.showConfigurationSection,
+                hasGeneratedProtocol: this.hasGeneratedProtocol,
+                activeConfigTab: this.activeConfigTab,
+                reviewAccordionOpen: this.reviewAccordionOpen,
+                experimentResults: this.experimentResults,
+            });
+            saveSessionFile(sessionData, defaultSessionFilename());
+        },
+        triggerImport() {
+            if (this.$refs.importFileInput) {
+                this.$refs.importFileInput.click();
+            }
+        },
+        onImportFileChange(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const session = parseSessionImport(reader.result);
+                    this.clearGenerationTimer();
+                    this.isGenerating = false;
+                    this.generationError = "";
+                    this.hypothesisText = session.hypothesisText;
+                    this.genesText = session.genesText;
+                    this.experimentConstraints = session.experimentConstraints;
+                    this.selectedAssayTypes = session.selectedAssayTypes;
+                    this.selectedCellTypes = session.selectedCellTypes;
+                    this.selectedReadouts = session.selectedReadouts;
+                    this.selectedThroughput = session.selectedThroughput;
+                    this.selectedSpecies = session.selectedSpecies;
+                    this.selectedTimeBudget = session.selectedTimeBudget;
+                    this.showConfigurationSection = session.showConfigurationSection;
+                    this.hasGeneratedProtocol = session.hasGeneratedProtocol;
+                    this.activeConfigTab = session.activeConfigTab;
+                    this.reviewAccordionOpen = session.reviewAccordionOpen;
+                    this.experimentResults = session.experimentResults;
+                } catch (error) {
+                    // eslint-disable-next-line no-console
+                    console.warn("[cfde-scope2-design] failed to import session", error);
+                    window.alert("Could not import that session file. Check that it is a DESIGN session JSON.");
+                } finally {
+                    event.target.value = "";
+                }
+            };
+            reader.readAsText(file);
         },
         toggleConfigurationSection() {
             this.showConfigurationSection = !this.showConfigurationSection;
@@ -410,20 +656,97 @@ export default Vue.component("cfde-scope2-design", {
             this.selectedReadouts = this.selectedReadouts.filter((r) => r !== readout);
         },
         reviewAndGenerate() {
-            // eslint-disable-next-line no-console
-            console.log("cfde-scope2-design review & generate", {
-                hypothesisText: this.hypothesisText,
-                genesText: this.genesText,
-                experimentConstraints: this.experimentConstraints,
-                selectedAssayTypes: this.selectedAssayTypes,
-                selectedCellTypes: this.selectedCellTypes,
-                selectedReadouts: this.selectedReadouts,
-                selectedThroughput: this.selectedThroughput,
-                selectedSpecies: this.selectedSpecies,
-                selectedTimeBudget: this.selectedTimeBudget,
-            });
+            if (!this.hypothesisText.trim() && !this.genesText.trim()) {
+                window.alert("Please provide a hypothesis and/or genes to generate experiment plans.");
+                return;
+            }
             this.hasGeneratedProtocol = true;
+            this.reviewAccordionOpen = true;
             this.activeConfigTab = "protocol";
+            this.$nextTick(() => {
+                const draftSection = document.getElementById("planner-search-draft");
+                if (draftSection) {
+                    draftSection.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                        inline: "nearest",
+                    });
+                }
+            });
+        },
+        toggleReviewAccordion() {
+            this.reviewAccordionOpen = !this.reviewAccordionOpen;
+        },
+        clearGenerationTimer() {
+            if (this.generationTimer) {
+                clearInterval(this.generationTimer);
+                this.generationTimer = null;
+            }
+            this.generationStartTime = null;
+            this.elapsedTime = "0:00";
+        },
+        startGenerationTimer() {
+            this.clearGenerationTimer();
+            this.generationStartTime = Date.now();
+            this.elapsedTime = "0:00";
+            this.generationTimer = setInterval(() => {
+                if (!this.isGenerating || !this.generationStartTime) return;
+                const elapsed = Math.floor((Date.now() - this.generationStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                this.elapsedTime = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+            }, 1000);
+        },
+        async generateExperiment() {
+            if (!this.canGenerateExperiment || this.isGenerating) return;
+            this.reviewAccordionOpen = false;
+            this.generationError = "";
+            this.experimentResults = [];
+            this.isGenerating = true;
+            this.startGenerationTimer();
+            try {
+                const results = await generateExperimentPlan(this.experimentConfigPayload);
+                this.experimentResults = results;
+                this.$nextTick(() => {
+                    const resultsSection = document.getElementById("planner-search-results");
+                    if (resultsSection) {
+                        resultsSection.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                            inline: "nearest",
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error("[cfde-scope2-design] experiment generation failed", error);
+                this.generationError =
+                    (error && error.message) || "Error generating experiment. Please try again.";
+                this.reviewAccordionOpen = true;
+            } finally {
+                this.isGenerating = false;
+                this.clearGenerationTimer();
+            }
+        },
+        downloadExperiment() {
+            try {
+                const content = formatExperimentForDownload(
+                    this.experimentConfigPayload,
+                    this.experimentResults
+                );
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                const timestamp = new Date().toISOString().split("T")[0];
+                link.download = `experiment-plan-${timestamp}.txt`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error("[cfde-scope2-design] download failed", error);
+                window.alert("Error downloading experiment plan. Please try again.");
+            }
         },
     },
 });
@@ -892,9 +1215,111 @@ export default Vue.component("cfde-scope2-design", {
     color: var(--cfde-orange, #e07b39);
 }
 
-.rd-protocol-empty {
+#planner-search-draft {
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: #ffffff;
+}
+
+.rd-review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    padding: 10px 0;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.rd-review-header h4 {
     margin: 0;
+}
+
+.collapse-icon {
     font-size: 13px;
     color: var(--cfde-muted, #6b6b6b);
+    transition: transform 0.2s ease;
+}
+
+.collapsed .rd-review-header {
+    margin-bottom: 0;
+}
+
+.section-content {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.search-summary {
+    margin-top: 0;
+}
+
+.summary-card {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.config-summary {
+    margin-bottom: 20px;
+}
+
+.config-summary h6 {
+    color: #333333;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    padding-bottom: 8px;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px;
+}
+
+.config-item {
+    background: white;
+    padding: 12px;
+    border-left: 3px solid #55aaee;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.config-item strong {
+    color: #333333;
+    font-weight: 600;
+}
+
+.rd-review-pre {
+    display: block;
+    margin: 6px 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.experiment-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.btn:disabled,
+.btn-primary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.rd-import-input {
+    display: none;
 }
 </style>

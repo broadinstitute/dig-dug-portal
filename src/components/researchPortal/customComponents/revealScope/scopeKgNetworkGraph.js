@@ -103,3 +103,67 @@ export async function buildKgNetworkGraph(kgEvidence) {
         rowOrder: ROW_ORDER,
     };
 }
+
+const DISPLAY_LEVEL = { gene: 0, geneSet: 1, factor: 2, trait: 3 };
+
+/**
+ * Display-only network used by the vis-network canvas and by highlight.
+ * Edges are oriented left → right (lower column level → higher) and carry stable
+ * `id` / `from` / `to` so highlight never has to ask vis-network for neighbors.
+ *
+ * @param {{ nodes?: Array, edges?: Array }} graph
+ * @param {Set<string>} visibleNodeIds
+ * @returns {{ nodes: Array<{id: string, label: string, type: string, level: number}>, edges: Array<{id: string, from: string, to: string, type: string}> }}
+ */
+export function toDisplayNetwork(graph, visibleNodeIds) {
+    const visible = visibleNodeIds instanceof Set ? visibleNodeIds : new Set(visibleNodeIds || []);
+    const nodes = (graph && graph.nodes ? graph.nodes : [])
+        .filter((node) => node && node.id && visible.has(node.id))
+        .map((node) => ({
+            id: node.id,
+            label: node.label || node.id,
+            type: node.type,
+            level: Object.prototype.hasOwnProperty.call(DISPLAY_LEVEL, node.type)
+                ? DISPLAY_LEVEL[node.type]
+                : 0,
+        }));
+    const levelById = {};
+    nodes.forEach((node) => {
+        levelById[node.id] = node.level;
+    });
+    const edges = [];
+    (graph && graph.edges ? graph.edges : []).forEach((edge, index) => {
+        if (!edge || !edge.source || !edge.target || edge.source === edge.target) return;
+        if (!visible.has(edge.source) || !visible.has(edge.target)) return;
+        const sourceLevel = levelById[edge.source];
+        const targetLevel = levelById[edge.target];
+        const reverse =
+            sourceLevel != null && targetLevel != null && sourceLevel > targetLevel;
+        const from = reverse ? edge.target : edge.source;
+        const to = reverse ? edge.source : edge.target;
+        edges.push({
+            id: `${edge.type || "edge"}|${from}|${to}|${index}`,
+            from,
+            to,
+            type: edge.type || "edge",
+        });
+    });
+    return { nodes, edges };
+}
+
+/**
+ * Strict 1-hop neighborhood from the display network: the node, nodes sharing an
+ * edge with it, and only those incident edges.
+ */
+export function neighborhoodOf(displayNetwork, nodeId) {
+    const keepNodes = new Set([nodeId]);
+    const keepEdges = new Set();
+    (displayNetwork && displayNetwork.edges ? displayNetwork.edges : []).forEach((edge) => {
+        if (edge.from === nodeId || edge.to === nodeId) {
+            keepEdges.add(edge.id);
+            keepNodes.add(edge.from);
+            keepNodes.add(edge.to);
+        }
+    });
+    return { keepNodes, keepEdges };
+}

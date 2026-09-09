@@ -70,9 +70,12 @@ See **`ARCHITECTURE.md`** for scope decisions, the draft handoff contract, and o
 
 | Path | Purpose |
 |------|---------|
-| `../cfdeScope2Design.vue` | Shell: header (REVEAL/DESIGN brand + `DesignMenuBar`), folder-tab bar (Experiment Configuration / Experiment protocol), config panel (Hypothesis/Genes/Experiment Constraints, Advanced Experiment Parameters, Review & Generate button), protocol panel (placeholder) |
+| `../cfdeScope2Design.vue` | Shell: header, folder tabs, config panel, review accordion, Generate wiring, Session menu |
 | `cfdeScope2Design/DesignMenuBar.vue` | Session / Actions / Help top menus — direct port of `revealScope/ScopeMenuBar.vue` |
 | `cfdeScope2Design/designExperimentParams.js` | Assay Types / Cell Types / Assay Readouts reference data, copied from `cfdeDesign.vue` |
+| `cfdeScope2Design/designExperimentGenerate.js` | Bedrock protocol generation + download formatter (from `cfdeDesign.vue`) |
+| `cfdeScope2Design/DesignExperimentResults.vue` | Generated protocol cards, disclaimer, citation popup, download actions |
+| `cfdeScope2Design/designSessionFile.js` | Session export/import (`design-session-v0`) |
 
 ---
 
@@ -85,3 +88,6 @@ See **`ARCHITECTURE.md`** for scope decisions, the draft handoff contract, and o
 | 2026-09-08 | Added the three input fields (Hypothesis, Genes, Experiment Constraints), copying `cfdeDesign.vue`'s own markup/class names directly per explicit user instruction (Genes simplified to a plain text input, no chip/edit-mode UI) — see the "Deliberate exception" note above |
 | 2026-09-08 | Removed `background: #ffffff` from `.hypothesis-container`; added the Advanced Experiment Parameters UI and "Review & Generate Experiment Plan" button, copying `cfdeDesign.vue`'s markup/class names directly (same "deliberate exception" as the three main fields) |
 | 2026-09-08 | Fixed a copied-CSS overlap bug (`.configuration-header`'s `margin-top: -15px`, calibrated for a wrapper `cfdeDesign.vue` has that this component doesn't). Restructured "Experiment Configuration" into a folder-tab bar with a second "Experiment protocol" tab that appears once `hasGeneratedProtocol` is true — new `rd-module-tabs`/`rd-module-tab` classes, documented as this product's own UI (not a "deliberate exception" copy) |
+| 2026-09-09 | Experiment protocol tab hosts a collapsible review accordion (cfdeDesign's Configuration Summary card + Generate Experiment). Header toggles open/closed; Generate collapses it. Advanced params only appear in the summary when set |
+| 2026-09-09 | Generate Experiment now produces a real protocol via Bedrock (`designExperimentGenerate.js`) and renders it with `DesignExperimentResults.vue` (card layout, disclaimer, citation, `.txt` download) — same schema as legacy `cfdeDesign.vue` |
+| 2026-09-09 | Session menu: Reset / Import / Export — export captures config + generated protocols as `design-session-v0` JSON; import restores them; reset clears the workspace |
