@@ -63,6 +63,11 @@
                         <div style="font-size:16px; font-weight:bold">Adipogenesis</div>
                         <div>Investigate gene expression programs underlying adipogenesis using interactive time-course datasets.</div>
                     </a>
+                    <a class="f-col white-blur-bg yes-events" style="gap:5px; flex:1" href="/transcriptomics.html?gene=LEP">
+                        <div style="width:100%; height:125px; padding:20px;"><img class="fit-img" src="https://hugeampkpncms.org/sites/default/files/images/matkp/matkp_csc.png"/></div>
+                        <div style="font-size:16px; font-weight:bold">Cross-Study Comparator</div>
+                        <div>Explore differential expression across meta-analyzed curated bulk RNA-seq studies in humans and mice.</div>
+                    </a>
                 </div>
 
                 <div class="f-row align-v-center" style="gap:20px; min-width: 1160px;">
