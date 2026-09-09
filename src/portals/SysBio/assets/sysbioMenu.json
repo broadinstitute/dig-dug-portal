@@ -36,6 +36,10 @@
         {
           "label": "Genetic Studies",
           "path": "gwas.html"
+        },
+        {
+          "label": "Phenotype Comparator Browser",
+          "path": "comp.html"
         }
       ]
     },

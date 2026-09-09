@@ -5,7 +5,7 @@
           <sysbio-header></sysbio-header>
           <!-- BODY -->
           <div class="sysbio-body f-col">
-            <h2>Differential Gene Expression Comparator</h2>
+            <h2>Phenotype Comparator Browser</h2>
             <div v-html="$parent.docs" class="docs">
             </div>
             <div class="flex-column flex-small-gap">
