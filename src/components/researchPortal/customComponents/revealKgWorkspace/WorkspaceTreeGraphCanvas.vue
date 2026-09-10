@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { select } from "d3-selection";
+import * as d3Selection from "d3-selection";
 import {
     HIERARCHY_LAYERS,
     TREE_VIEW_ANCHOR_NODE_COLOR,
@@ -19,6 +19,7 @@ import {
     ACTIVE_SET_NODE_COLOR,
     TREE_VIEW_EDGE_COLOR,
     TREE_VIEW_KEY_NODE_COLOR,
+    TREE_VIEW_EXTERNAL_NODE_COLOR,
 } from "./revealKgGraphColors.js";
 import {
     buildRowLayout,
@@ -28,6 +29,15 @@ import {
     treeRowY,
 } from "./revealKgHierarchyGraphData.js";
 
+const { select } = d3Selection;
+
+/**
+ * d3-selection@1 (D3 v5) stores the active DOM event on the module.
+ * Read via namespace each time — named imports can be snapshotted as null by webpack.
+ */
+function domEvent() {
+    return d3Selection.event;
+}
 const MARGIN_ROW = { top: 80, right: 140, bottom: 72, left: 168 };
 const ROW_GAP_FIRST = 100;
 const ROW_GAP_DEFAULT = 200;
@@ -65,6 +75,10 @@ function nodeShapeRadius(layer, isAnchor) {
 
 function anchorDiamondPoints(radius) {
     return `0,${-radius} ${radius},0 0,${radius} ${-radius},0`;
+}
+
+function externalSquarePoints(radius) {
+    return `${-radius},${-radius} ${radius},${-radius} ${radius},${radius} ${-radius},${radius}`;
 }
 
 function truncateLabel(text, max = 28) {
@@ -274,6 +288,9 @@ function keyNodeIdSet(ids) {
 }
 
 function nodeFillColor(entry, keyNodeIds) {
+    if (entry.meta?.isExternal) {
+        return TREE_VIEW_EXTERNAL_NODE_COLOR;
+    }
     if (keyNodeIds.has(entry.id)) {
         return TREE_VIEW_KEY_NODE_COLOR;
     }
@@ -451,8 +468,9 @@ export default {
                 this._graphInteraction.updateHighlightVisuals();
             }
         },
-        handlePointerLeaveInteractiveTarget(event) {
-            const related = event.relatedTarget;
+        handlePointerLeaveInteractiveTarget() {
+            const event = domEvent();
+            const related = event?.relatedTarget;
             if (related && event.currentTarget?.contains?.(related)) {
                 return;
             }
@@ -461,9 +479,10 @@ export default {
             }
             this.clearGraphHover();
         },
-        handlePointerLeaveViewport(event) {
+        handlePointerLeaveViewport() {
+            const event = domEvent();
             const root = this.$refs.root;
-            if (root && event.relatedTarget && root.contains(event.relatedTarget)) {
+            if (root && event?.relatedTarget && root.contains(event.relatedTarget)) {
                 return;
             }
             this.clearGraphHover();
@@ -511,8 +530,9 @@ export default {
                     .style("cursor", active ? "grabbing" : "grab");
             }
         },
-        onPanPointerDown(event) {
-            if (event.button !== 0) {
+        onPanPointerDown() {
+            const event = domEvent();
+            if (!event || event.button !== 0) {
                 return;
             }
             event.preventDefault();
@@ -547,7 +567,7 @@ export default {
             this.teardownPanDrag();
             svg.select(".wkb-tree-graph-pan-bg")
                 .style("cursor", "grab")
-                .on("pointerdown", (event) => this.onPanPointerDown(event));
+                .on("pointerdown", () => this.onPanPointerDown());
         },
         scheduleRender() {
             this.$nextTick(() => {
@@ -600,19 +620,20 @@ export default {
         },
         showTooltip(event, text) {
             const root = this.$refs.root;
-            if (!root || !text) {
+            const ev = event || domEvent();
+            if (!root || !text || !ev || ev.clientX == null || ev.clientY == null) {
                 return;
             }
             const rect = root.getBoundingClientRect();
             this.hoverTooltip.visible = true;
             this.hoverTooltip.text = text;
             this.hoverTooltip.left = Math.min(
-                Math.max(8, event.clientX - rect.left + 12),
-                rect.width - 240
+                Math.max(8, ev.clientX - rect.left + 12),
+                Math.max(8, rect.width - 240)
             );
             this.hoverTooltip.top = Math.min(
-                Math.max(8, event.clientY - rect.top + 12),
-                rect.height - 40
+                Math.max(8, ev.clientY - rect.top + 12),
+                Math.max(8, rect.height - 40)
             );
         },
         renderGraph() {
@@ -795,6 +816,9 @@ export default {
                 .join("g")
                 .attr("class", (entry) => {
                     const classes = ["wkb-tree-graph-node"];
+                    if (entry.meta?.isExternal) {
+                        classes.push("is-external");
+                    }
                     if (entry.meta?.isAnchor) {
                         classes.push("is-anchor");
                     }
@@ -901,7 +925,8 @@ export default {
                 );
             }
 
-            function handleNodePointerEnter(event, entry) {
+            function handleNodePointerEnter(_datum, entry) {
+                const event = domEvent();
                 vm._hoveredNodeId = entry.id;
                 vm._highlight = { nodeId: entry.id, edgeKey: null };
                 vm.showTooltip(event, entry.meta?.label || entry.id);
@@ -937,8 +962,11 @@ export default {
                     });
             }
 
-            function handleEdgeClick(event, entry) {
-                event.stopPropagation();
+            function handleEdgeClick(entry) {
+                const event = domEvent();
+                if (event?.stopPropagation) {
+                    event.stopPropagation();
+                }
                 vm.clearGraphHover({ skipVisuals: true });
                 const sourceMeta = nodeMetaById.get(entry.sourceId);
                 const targetMeta = nodeMetaById.get(entry.targetId);
@@ -951,19 +979,20 @@ export default {
                     label: `${sourceLabel} → ${targetLabel}`,
                     isContextual: Boolean(entry.isContextual),
                     edge: entry.edge,
-                    left: event.clientX + 10,
-                    top: event.clientY + 10,
+                    left: (event?.clientX || 0) + 10,
+                    top: (event?.clientY || 0) + 10,
                 });
             }
 
-            function handleEdgePointerEnter(event, entry) {
+            function handleEdgePointerEnter(entry) {
+                const event = domEvent();
                 vm._hoveredNodeId = null;
                 vm._highlight = { nodeId: null, edgeKey: hierarchyEdgeKey(entry) };
                 vm.showTooltip(event, hierarchyEdgeTooltip(entry, nodeMetaById));
                 updateHighlightVisuals();
             }
 
-            const pointerLeave = (event) => vm.handlePointerLeaveInteractiveTarget(event);
+            const pointerLeave = () => vm.handlePointerLeaveInteractiveTarget();
 
             nodeGroups.each(function renderNodeShape(entry) {
                 const group = select(this);
@@ -973,25 +1002,37 @@ export default {
                 const keyNodeIds = keyNodeIdSet(vm.keyNodeIds);
                 const fill = nodeFillColor(entry, keyNodeIds);
 
-                const onClick = (event) => {
-                    event.stopPropagation();
+                const onClick = () => {
+                    const event = domEvent();
+                    if (event?.stopPropagation) {
+                        event.stopPropagation();
+                    }
                     vm.$emit("node-menu-open", {
                         nodeId: entry.id,
                         label: entry.meta?.label || entry.id,
                         isAnchor: Boolean(entry.meta?.isAnchor),
-                        left: event.clientX + 10,
-                        top: event.clientY + 10,
+                        left: (event?.clientX || 0) + 10,
+                        top: (event?.clientY || 0) + 10,
                     });
                 };
 
-                if (entry.meta?.isAnchor) {
+                if (entry.meta?.isExternal) {
+                    group
+                        .append("polygon")
+                        .attr("class", "wkb-tree-graph-node-shape")
+                        .attr("points", externalSquarePoints(radius))
+                        .attr("fill", fill)
+                        .on("click", onClick)
+                        .on("mouseenter", () => handleNodePointerEnter(null, entry))
+                        .on("mouseleave", pointerLeave);
+                } else if (entry.meta?.isAnchor) {
                     group
                         .append("polygon")
                         .attr("class", "wkb-tree-graph-node-shape")
                         .attr("points", anchorDiamondPoints(anchorRadius))
                         .attr("fill", fill)
                         .on("click", onClick)
-                        .on("mouseenter", (event) => handleNodePointerEnter(event, entry))
+                        .on("mouseenter", () => handleNodePointerEnter(null, entry))
                         .on("mouseleave", pointerLeave);
                 } else {
                     group
@@ -1000,7 +1041,7 @@ export default {
                         .attr("r", radius)
                         .attr("fill", fill)
                         .on("click", onClick)
-                        .on("mouseenter", (event) => handleNodePointerEnter(event, entry))
+                        .on("mouseenter", () => handleNodePointerEnter(null, entry))
                         .on("mouseleave", pointerLeave);
                 }
 
@@ -1017,15 +1058,15 @@ export default {
                     .attr("transform", `rotate(${placement.angle},${placement.x},${placement.y})`)
                     .style("cursor", "pointer")
                     .on("click", onClick)
-                    .on("mouseenter", (event) => handleNodePointerEnter(event, entry))
+                    .on("mouseenter", () => handleNodePointerEnter(null, entry))
                     .on("mouseleave", pointerLeave);
             });
 
             g.selectAll("path.wkb-tree-graph-link-hit")
-                .on("mouseenter", (event, entry) => handleEdgePointerEnter(event, entry))
+                .on("mouseenter", (entry) => handleEdgePointerEnter(entry))
                 .on("mouseleave", pointerLeave);
 
-            svg.on("mouseleave", (event) => vm.handlePointerLeaveViewport(event));
+            svg.on("mouseleave", () => vm.handlePointerLeaveViewport());
 
             this._graphInteraction = {
                 applyEdgeVisibility,
@@ -1139,7 +1180,8 @@ export default {
 
 .wkb-tree-graph-label {
     fill: var(--cfde-ink, #33363d);
-    pointer-events: stroke;
+    /* Labels sit offset from the shape; fill must accept clicks so the node menu opens. */
+    pointer-events: fill;
 }
 
 .wkb-tree-graph-edge.is-selected .wkb-tree-graph-link,

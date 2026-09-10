@@ -158,3 +158,4 @@ Record every design/UI-convention decision or change here, with enough context t
 | 2026-09-10 | CFDE KG mechanism pick: LLM chooses 1–5 relevant Factors (max 5) from top-25 semantic candidates |
 | 2026-09-10 | CFDE KG: optional relevance action; how-it-works diagram; gene-set labels wrap at underscores |
 | 2026-09-10 | After Evaluate, **Search CFDE KG** and **Discover mechanism-linked biomarkers** both appear in Next steps (parallel, not sequential). Biomarker resolves mechanisms itself via `resolveMechanismFactors` when CFDE KG has not run |
+| 2026-09-10 | CFDE KG → CANVAS: export handoff file from Actions, then open Canvas and use existing Import graph — catalog hits are normal nodes; unresolved entities are light-gray squares |

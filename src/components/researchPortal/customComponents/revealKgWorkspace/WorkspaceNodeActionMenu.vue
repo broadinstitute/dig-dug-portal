@@ -96,7 +96,13 @@ export default {
         open(isOpen) {
             if (isOpen) {
                 document.addEventListener("keydown", this.onKeyDown);
-                document.addEventListener("click", this.onDocumentClick, true);
+                // Defer so the opening click cannot immediately close the menu.
+                this.$nextTick(() => {
+                    if (!this.open) {
+                        return;
+                    }
+                    document.addEventListener("click", this.onDocumentClick, true);
+                });
             } else {
                 document.removeEventListener("keydown", this.onKeyDown);
                 document.removeEventListener("click", this.onDocumentClick, true);

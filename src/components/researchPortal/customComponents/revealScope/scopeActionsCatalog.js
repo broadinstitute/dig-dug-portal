@@ -35,6 +35,18 @@ export const ACTION_CATALOG = [
         description: "Sends the evaluated hypothesis and its components to REVEAL DESIGN, in a new tab.",
     },
     {
+        id: "exportCfdeKgForCanvas",
+        label: "Export CFDE KG for REVEAL CANVAS",
+        description:
+            "Downloads the CFDE KG network as a handoff file you can Import graph into REVEAL CANVAS.",
+    },
+    {
+        id: "openRevealCanvas",
+        label: "Open REVEAL CANVAS for node inspection",
+        description:
+            "Opens REVEAL CANVAS in a new tab — use Manage → Import graph with the handoff file you just saved.",
+    },
+    {
         id: "runLiterature",
         label: "Search literature",
         description: "Turns the hypothesis into several editable PubMed search combinations you can open and review.",

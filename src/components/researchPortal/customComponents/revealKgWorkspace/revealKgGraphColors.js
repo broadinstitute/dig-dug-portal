@@ -7,6 +7,8 @@ export const TREE_VIEW_ANCHOR_NODE_COLOR = "#888888";
 /** Selected nodes — blue circle or blue diamond. */
 export const TREE_VIEW_KEY_NODE_COLOR = "#488bf7";
 export const TREE_VIEW_EDGE_COLOR = "#b0a890";
+/** SCOPE handoff nodes not found in the Canvas catalog. */
+export const TREE_VIEW_EXTERNAL_NODE_COLOR = "#cccccc";
 /** Inspector connected bubbles — 1-hop (prominent). */
 export const INSPECTOR_DIRECT_NEIGHBOR_COLOR = "#e07b39";
 /** Inspector connected bubbles — 2-hop only (muted). */

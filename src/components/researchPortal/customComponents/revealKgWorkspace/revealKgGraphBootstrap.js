@@ -53,6 +53,7 @@ function normalizeGraphNode(raw, { forceAnchor = false, originTag = null } = {})
         label: raw.label || id,
         subtitle: raw.subtitle || "",
         is_anchor: isAnchor,
+        is_external: Boolean(raw.is_external),
         origin_tags: mergeOriginTags(raw.origin_tags, [
             ...(originTag ? [originTag] : []),
             ...(isAnchor ? ["anchor"] : []),

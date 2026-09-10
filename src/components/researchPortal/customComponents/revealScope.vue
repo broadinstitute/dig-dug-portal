@@ -165,6 +165,12 @@ import {
     parseSessionImport,
 } from "@/components/researchPortal/customComponents/revealScope/scopeSessionFile.js";
 import { buildDesignHandoffUrl } from "@/components/researchPortal/customComponents/revealScope/scopeDesignHandoff.js";
+import {
+    toCanvasHandoff,
+    saveCanvasHandoffFile,
+    defaultCanvasHandoffFilename,
+    buildCanvasOpenUrl,
+} from "@/components/researchPortal/customComponents/revealScope/scopeCanvasHandoff.js";
 
 export default Vue.component("reveal-scope", {
     components: {
@@ -209,6 +215,7 @@ export default Vue.component("reveal-scope", {
             kgEvidenceBlockedReason: null,
             kgRelevanceLoading: false,
             kgNetworkGraph: null,
+            canvasHandoffExported: false,
             biomarkerEvidence: null,
             biomarkerEvidenceBlockedReason: null,
             biomarkerRelevanceLoading: false,
@@ -227,6 +234,13 @@ export default Vue.component("reveal-scope", {
         },
         isLiteratureDone() {
             return this.ranModules.includes("literature");
+        },
+        hasKgNetworkGraph() {
+            return Boolean(
+                this.kgNetworkGraph &&
+                    Array.isArray(this.kgNetworkGraph.nodes) &&
+                    this.kgNetworkGraph.nodes.length
+            );
         },
         catalogActions() {
             return ACTION_CATALOG.filter((action) => {
@@ -251,6 +265,12 @@ export default Vue.component("reveal-scope", {
                 if (action.id === "designExperimentProtocol") {
                     return this.isEvaluateDone;
                 }
+                if (action.id === "exportCfdeKgForCanvas") {
+                    return this.hasKgNetworkGraph;
+                }
+                if (action.id === "openRevealCanvas") {
+                    return this.canvasHandoffExported && this.hasKgNetworkGraph;
+                }
                 return true;
             });
         },
@@ -263,7 +283,9 @@ export default Vue.component("reveal-scope", {
                     action.id === "runKgSearch" ||
                     action.id === "runBiomarkerSearch" ||
                     action.id === "classifyKgRelevance" ||
-                    action.id === "classifyBiomarkerRelevance"
+                    action.id === "classifyBiomarkerRelevance" ||
+                    action.id === "exportCfdeKgForCanvas" ||
+                    action.id === "openRevealCanvas"
                 ) {
                     return false;
                 }
@@ -300,6 +322,18 @@ export default Vue.component("reveal-scope", {
                 const classifyAction = ACTION_CATALOG.find((action) => action.id === "classifyBiomarkerRelevance");
                 if (classifyAction) {
                     list.unshift(classifyAction);
+                }
+            }
+            if (this.hasKgNetworkGraph) {
+                const exportCanvasAction = ACTION_CATALOG.find((action) => action.id === "exportCfdeKgForCanvas");
+                if (exportCanvasAction) {
+                    list.unshift(exportCanvasAction);
+                }
+            }
+            if (this.canvasHandoffExported && this.hasKgNetworkGraph) {
+                const openCanvasAction = ACTION_CATALOG.find((action) => action.id === "openRevealCanvas");
+                if (openCanvasAction) {
+                    list.unshift(openCanvasAction);
                 }
             }
             return list;
@@ -388,6 +422,7 @@ export default Vue.component("reveal-scope", {
                 this.kgEvidenceBlockedReason = null;
                 this.kgRelevanceLoading = false;
                 this.kgNetworkGraph = null;
+                this.canvasHandoffExported = false;
                 this.biomarkerEvidence = null;
                 this.biomarkerEvidenceBlockedReason = null;
                 this.biomarkerRelevanceLoading = false;
@@ -430,6 +465,7 @@ export default Vue.component("reveal-scope", {
                 this.kgEvidence = null;
                 this.kgEvidenceBlockedReason = null;
                 this.kgNetworkGraph = null;
+                this.canvasHandoffExported = false;
                 this.biomarkerEvidence = null;
                 this.biomarkerEvidenceBlockedReason = null;
             }
@@ -475,6 +511,14 @@ export default Vue.component("reveal-scope", {
                 this.openDesignExperimentProtocol();
                 return;
             }
+            if (actionId === "exportCfdeKgForCanvas") {
+                this.exportCfdeKgForCanvas();
+                return;
+            }
+            if (actionId === "openRevealCanvas") {
+                this.openRevealCanvas();
+                return;
+            }
             if (actionId === "exportSession") {
                 this.exportSession();
             }
@@ -488,6 +532,26 @@ export default Vue.component("reveal-scope", {
                 evaluation: this.cachedEvaluation,
             });
             window.open(url, "_blank", "noopener");
+        },
+        async exportCfdeKgForCanvas() {
+            if (!this.hasKgNetworkGraph) {
+                return;
+            }
+            const handoff = toCanvasHandoff({
+                kgNetworkGraph: this.kgNetworkGraph,
+                hypothesisText: this.activeHypothesisText,
+                title: "SCOPE CFDE KG",
+            });
+            if (!handoff.nodes.length) {
+                return;
+            }
+            const result = await saveCanvasHandoffFile(handoff, defaultCanvasHandoffFilename());
+            if (result && result.ok) {
+                this.canvasHandoffExported = true;
+            }
+        },
+        openRevealCanvas() {
+            window.open(buildCanvasOpenUrl(), "_blank", "noopener");
         },
         runSearchKgFromCache() {
             if (!this.cachedEvaluation) {
@@ -545,6 +609,7 @@ export default Vue.component("reveal-scope", {
             this.kgEvidenceBlockedReason = null;
             this.kgRelevanceLoading = false;
             this.kgNetworkGraph = null;
+            this.canvasHandoffExported = false;
             this.biomarkerEvidence = null;
             this.biomarkerEvidenceBlockedReason = null;
             this.biomarkerRelevanceLoading = false;
@@ -620,10 +685,12 @@ export default Vue.component("reveal-scope", {
                     "Can't search the CFDE KG yet — the evaluation didn't identify a specific " +
                     "target and outcome. Fix the hypothesis (Edit) and try again.";
                 this.kgNetworkGraph = null;
+                this.canvasHandoffExported = false;
                 return;
             }
             this.kgEvidenceBlockedReason = null;
             this.kgNetworkGraph = null;
+            this.canvasHandoffExported = false;
             this.beginProgress([
                 { id: "resolveFactors", label: "Finding the top 25 mechanism candidates for the hypothesis outcome." },
                 { id: "selectFactor", label: "Selecting up to 5 mechanisms most relevant to the hypothesis." },
@@ -652,6 +719,7 @@ export default Vue.component("reveal-scope", {
                 // eslint-disable-next-line no-console
                 console.warn("[reveal-scope] KG network graph build failed, showing routes without it", error);
                 this.kgNetworkGraph = null;
+                this.canvasHandoffExported = false;
             }
             this.setStepStatus("buildNetwork", "done");
             this.endProgress();
@@ -896,6 +964,7 @@ export default Vue.component("reveal-scope", {
                     this.kgEvidence = session.kgEvidence;
                     this.kgEvidenceBlockedReason = session.kgBlockedReason;
                     this.kgNetworkGraph = session.kgNetworkGraph;
+                    this.canvasHandoffExported = false;
                     this.biomarkerEvidence = session.biomarkerEvidence;
                     this.biomarkerEvidenceBlockedReason = session.biomarkerBlockedReason;
                     if (!this.kgNetworkGraph && this.kgEvidence) {
