@@ -5,13 +5,13 @@
           <sysbio-header></sysbio-header>
           <!-- BODY -->
           <div class="sysbio-body f-col">
-            <h2>Differential Gene Expression Comparator</h2>
+            <h2>Phenotype Comparator Browser</h2>
             <div v-html="$parent.docs" class="docs">
             </div>
             <div class="flex-column flex-small-gap">
                 <div id="center-width" class="flex-gap flex-column">
                     <div class="flex-gap flex-column" id="center-content">
-                        <div v-if="$parent.dataReady" id="menu">
+                        <div v-if="$parent.bulkData19K.length > 0" id="menu">
                             <!--left tab group-->
                             <div class="tabs-group">
                                 <div class="tabs-wrapper">
@@ -55,7 +55,7 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="$parent.dataReady" class="tabs-outer">
+                    <div v-if="$parent.bulkData19K.length > 0" class="tabs-outer">
                         <criterion-function-group>
                         <filter-absolute
                             key="logFoldChange_1"
@@ -237,114 +237,115 @@
                             </div>
                         </template>
                     </criterion-function-group>
-                        
-                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.enrichrReady && $parent.dataReady">
-                                    <div class="tabs-group">
-                                        <div class="tabs-wrapper">
-                                            <div class="tab">
-                                                ENRICHR: Top pathways for differentially expressed genes
-                                            </div>
+                        <div class="flex-gap" id="enrichr-legend" v-if="!!$parent.enrichrDown && $parent.enrichrDown.length > 0">
+                            <div class="tabs-group">
+                                <div class="tabs-wrapper">
+                                    <div class="tab">
+                                        ENRICHR: Top pathways for differentially expressed genes
+                                    </div>
+                                </div>
+                                <div class="tabs-section-wrapper">
+                                    <div class="tab-section">
+                                    <div class="row">
+                                        <p id="enrichr-explain">The top 10 pathways from the selected gene set library are provided
+                                        for all differentially expressed genes from the table above.
+                                        If you use data from this tool, please review our <a href="about.html?page=policies">Citation
+                                        Policies</a> to ensure proper citation of the underlying resource(s)
+                                        used to generate these analyses.</p>
+                                    </div>
+                                    <div class="row select-library">
+                                        <div class="col-md-3">
+                                            <div class="label">Select a library type</div>
+                                            <select v-model="$parent.selectedLibraryType" class="form-control">
+                                                <option :value="''">
+                                                    Select a library type
+                                                </option>
+                                                <option v-for="libraryType in $parent.enrichrLibraryTypes"
+                                                    :value="libraryType">
+                                                    {{ libraryType }}
+                                                </option>
+                                            </select>
                                         </div>
-                                        <div class="tabs-section-wrapper">
-                                          <div class="tab-section">
-                                            <div class="row">
-                                                <p id="enrichr-explain">The top 10 pathways from the selected gene set library are provided
-                                                for all differentially expressed genes from the table above.
-                                                If you use data from this tool, please review our <a href="about.html?page=policies">Citation
-                                                Policies</a> to ensure proper citation of the underlying resource(s)
-                                                used to generate these analyses.</p>
-                                            </div>
-                                            <div class="row select-library">
-                                                <div class="col-md-3">
-                                                    <div class="label">Select a library type</div>
-                                                    <select v-model="$parent.selectedLibraryType" class="form-control">
-                                                        <option :value="''">
-                                                            Select a library type
-                                                        </option>
-                                                        <option v-for="libraryType in $parent.enrichrLibraryTypes"
-                                                            :value="libraryType">
-                                                            {{ libraryType }}
-                                                        </option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-4"></div>
-                                                <div class="col-md-5">
-                                                    <div style="display:flex; gap:5px" class="legends">
-                                                        <div style="display:inline-block" class="legend">
-                                                        <strong>-log10(P adj.)</strong>
-                                                            <div style="display:flex; margin-top:10px" class="marks">
-                                                                <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
-                                                                <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
-                                                                </div>
-                                                                <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
-                                                            </div>
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-5">
+                                            <div style="display:flex; gap:5px" class="legends">
+                                                <div style="display:inline-block" class="legend">
+                                                <strong>-log10(P adj.)</strong>
+                                                    <div style="display:flex; margin-top:10px" class="marks">
+                                                        <span>{{ $parent.colorScaleEndpoints[0]?.toFixed(4) }}</span>
+                                                        <div class="gradient" :style="`background: linear-gradient(to right, ${$parent.colorScaleArray});`">
                                                         </div>
-                                                    </div>
-                                                    <div id="note">
-                                                        Combined score = log(p) * z, where z represents deviation from expected rank.
+                                                        <span>{{ $parent.colorScaleEndpoints[1]?.toFixed(4) }}</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="row" v-if="!!$parent.selectedLibraryType">
-                                                <div class="col-md-12">
-                                                    <b-table
-                                                    :hidden="$parent.tableHidden"
-                                                    id="select-library-table"
-                                                    small
-                                                    :items="$parent.librariesForType"
-                                                    :current-page="$parent.libraryPage"
-                                                    :per-page="5"
-                                                    :tbody-tr-class="(library) => $parent.getClass(library)"
-                                                    >
-                                                        <template #head(type)="item">
-                                                            Select
-                                                            <button class="btn btn-sm hide-table"
-                                                                @click="$parent.hideTable()">
-                                                                &#x2715;
-                                                            </button>
-                                                        </template>
-                                                        <template #cell(type)="item">
-                                                            <button class="btn btn-sm btn-primary select-library"
-                                                                @click="$parent.selectLibrary(item)">
-                                                                Select library
-                                                            </button>
-                                                        </template>
-                                                    </b-table>
-                                                    <b-pagination v-if="$parent.librariesForType.length > 5"
-                                                        small
-                                                        v-model="$parent.libraryPage"
-                                                        :total-rows="$parent.librariesForType.length"
-                                                        :per-page="5"
-                                                        aria-controls="select-library-table"
-                                                    ></b-pagination>
-                                                </div>
+                                            <div id="note">
+                                                Combined score = log(p) * z, where z represents deviation from expected rank.
                                             </div>
-                                          </div>
-                                        <h4 id="enrichrResults">Results for gene set library {{ $parent.enrichrLibrary }}</h4>
+                                        </div>
+                                    </div>
+                                    <div class="row" v-if="!!$parent.selectedLibraryType">
+                                        <div class="col-md-12">
+                                            <b-table
+                                            :hidden="$parent.tableHidden"
+                                            id="select-library-table"
+                                            small
+                                            :items="$parent.librariesForType"
+                                            :current-page="$parent.libraryPage"
+                                            :per-page="5"
+                                            :tbody-tr-class="(library) => $parent.getClass(library)"
+                                            >
+                                                <template #head(type)="item">
+                                                    Select
+                                                    <button class="btn btn-sm hide-table"
+                                                        @click="$parent.hideTable()">
+                                                        &#x2715;
+                                                    </button>
+                                                </template>
+                                                <template #cell(type)="item">
+                                                    <button class="btn btn-sm btn-primary select-library"
+                                                        @click="$parent.selectLibrary(item)">
+                                                        Select library
+                                                    </button>
+                                                </template>
+                                            </b-table>
+                                            <b-pagination v-if="$parent.librariesForType.length > 5"
+                                                small
+                                                v-model="$parent.libraryPage"
+                                                :total-rows="$parent.librariesForType.length"
+                                                :per-page="5"
+                                                aria-controls="select-library-table"
+                                            ></b-pagination>
+                                        </div>
+                                    </div>
+                                    </div>
+                                <h4 id="enrichrResults">Results for gene set library {{ $parent.enrichrLibrary }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="enrichr">
+                            <div class="tabs-group">
+                                <div class="tabs-section-wrapper">
+                                    <div class="tab-section">
+                                        <enrichr-plot
+                                            v-if="!!$parent.enrichrDown && $parent.enrichrDown.length > 0"
+                                            :phenotypesData="$parent.enrichrDown"
+                                            :colors="$parent.colors"
+                                            :colorScale="$parent.enrichrColorScale"
+                                            canvasId="Top"
+                                            :utils="$parent.utils"
+                                            :truncate="$parent.truncateEnrichr"
+                                        ></enrichr-plot>
+                                        <div v-else-if="$parent.enrichrDown !== null">
+                                            Loading ENRICHR data...
+                                        </div>
+                                        <div v-else class="error">
+                                            The ENRICHR server has encountered an error.
                                         </div>
                                     </div>
                                 </div>
-                                <div id="enrichr">
-                                    <div class="tabs-group">
-                                        <div class="tabs-section-wrapper">
-                                            <div class="tab-section">
-                                                <enrichr-plot
-                                                    v-if="$parent.enrichrReady && $parent.dataReady"
-                                                    :phenotypesData="$parent.enrichrDown"
-                                                    :colors="$parent.colors"
-                                                    :colorScale="$parent.enrichrColorScale"
-                                                    canvasId="Top"
-                                                    :utils="$parent.utils"
-                                                    :truncate="$parent.truncateEnrichr"
-                                                ></enrichr-plot>
-                                                        <div v-else>
-                                                            Loading ENRICHR data...
-                                                        </div>
-                                                    
-                                                </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div v-else>
                         Loading...
