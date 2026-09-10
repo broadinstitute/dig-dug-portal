@@ -85,6 +85,10 @@ export async function getEnrichr(genesList, library) {
             body: JSON.stringify(enrichrRequest),
         });
         let jsonData = await response.json();
+        if (!Array.isArray(jsonData)){
+            console.error("ENRICHR error ", jsonData?.detail);
+            return null;
+        }
         jsonData.forEach((d) => {
             let rank = `${d["Rank"]}`.padStart(3, "0");
             d.rankLabel = `${rank}_${d["Term name"]}`;
@@ -92,6 +96,6 @@ export async function getEnrichr(genesList, library) {
         return jsonData;
     } catch (error) {
         console.error(error.message);
-        return [];
+        return null;
     }
 }

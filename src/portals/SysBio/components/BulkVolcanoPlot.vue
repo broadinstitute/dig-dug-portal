@@ -188,7 +188,6 @@ export default Vue.component("bulk-volcano-plot", {
 				let comp = index === "1" 
 					? this.$store.state.selectedComp1 
 						: this.$store.state.selectedComp2;
-				console.log(JSON.stringify(this.$store.state.currentComparisons));
 				comp = this.$store.state.selectedComparison || comp;
 				amp = this.$store.state.currentComparisons[comp].label;
 			}

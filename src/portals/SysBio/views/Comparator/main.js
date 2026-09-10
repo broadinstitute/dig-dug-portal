@@ -151,7 +151,7 @@ new Vue({
             };
         },
         colorScaleEndpoints(){
-            let allEnrichr = this.enrichrUp.concat(this.enrichrDown);
+            let allEnrichr = this.enrichrUp.concat(this.enrichrDown === null ? [] : this.enrichrDown);
             if (allEnrichr.length === 0){
                 return[null, null];
             }
@@ -420,7 +420,6 @@ new Vue({
         },
         async getAllGenes(genes){
             this.allGenes = genes;
-            console.log("Genes received", JSON.stringify(genes));
             await this.populateEnrichr();
         }
     },
