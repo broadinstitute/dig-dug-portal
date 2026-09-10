@@ -176,7 +176,7 @@ export async function saveCanvasHandoffFile(handoff, filename) {
     return { ok: true };
 }
 
-/** Environment-appropriate URL to open REVEAL CANVAS in a new tab. */
+/** Environment-appropriate URL to open REVEAL CANVAS in a new tab (same kcURL pattern as DESIGN). */
 export function buildCanvasOpenUrl() {
     return kcURL(CANVAS_PAGE_PATH);
 }

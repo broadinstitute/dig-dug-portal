@@ -44,7 +44,7 @@ export const ACTION_CATALOG = [
         id: "openRevealCanvas",
         label: "Open REVEAL CANVAS for node inspection",
         description:
-            "Opens REVEAL CANVAS in a new tab — use Manage → Import graph with the handoff file you just saved.",
+            "Opens REVEAL CANVAS in a new tab — use Manage → Import graph with a SCOPE handoff file you exported earlier.",
     },
     {
         id: "runLiterature",

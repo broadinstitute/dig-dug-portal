@@ -243,36 +243,9 @@ export default Vue.component("reveal-scope", {
             );
         },
         catalogActions() {
-            return ACTION_CATALOG.filter((action) => {
-                if (action.id === "runEvaluate") {
-                    return !this.isEvaluateDone;
-                }
-                if (action.id === "runLiterature") {
-                    return !this.isLiteratureDone;
-                }
-                if (action.id === "runKgSearch") {
-                    return !this.hasKgContent;
-                }
-                if (action.id === "runBiomarkerSearch") {
-                    return !this.hasBiomarkerContent;
-                }
-                if (action.id === "classifyKgRelevance") {
-                    return this.canClassifyKgRelevance;
-                }
-                if (action.id === "classifyBiomarkerRelevance") {
-                    return this.canClassifyBiomarkerRelevance;
-                }
-                if (action.id === "designExperimentProtocol") {
-                    return this.isEvaluateDone;
-                }
-                if (action.id === "exportCfdeKgForCanvas") {
-                    return this.hasKgNetworkGraph;
-                }
-                if (action.id === "openRevealCanvas") {
-                    return this.canvasHandoffExported && this.hasKgNetworkGraph;
-                }
-                return true;
-            });
+            // Actions tab: full catalog so any step can be re-run (including Open CANVAS
+            // without exporting again). Next steps stays the curated short list.
+            return ACTION_CATALOG;
         },
         nextStepActions() {
             const canSearchKg = this.ranModules.includes("evaluate") && !this.hasMissingSlots && !this.hasKgContent;
