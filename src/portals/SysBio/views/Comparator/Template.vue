@@ -339,8 +339,8 @@
                                         <div v-else-if="$parent.enrichrDown !== null">
                                             Loading ENRICHR data...
                                         </div>
-                                        <div v-else>
-                                            ENRICHR server error.
+                                        <div v-else class="error">
+                                            The ENRICHR server has encountered an error.
                                         </div>
                                     </div>
                                 </div>
