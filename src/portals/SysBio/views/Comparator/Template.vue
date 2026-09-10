@@ -11,7 +11,7 @@
             <div class="flex-column flex-small-gap">
                 <div id="center-width" class="flex-gap flex-column">
                     <div class="flex-gap flex-column" id="center-content">
-                        <div v-if="$parent.dataReady" id="menu">
+                        <div v-if="$parent.bulkData19K.length > 0" id="menu">
                             <!--left tab group-->
                             <div class="tabs-group">
                                 <div class="tabs-wrapper">
@@ -55,7 +55,7 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="$parent.dataReady" class="tabs-outer">
+                    <div v-if="$parent.bulkData19K.length > 0" class="tabs-outer">
                         <criterion-function-group>
                         <filter-absolute
                             key="logFoldChange_1"
@@ -238,7 +238,7 @@
                         </template>
                     </criterion-function-group>
                         
-                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.enrichrReady && $parent.dataReady">
+                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.enrichrDown.length > 0">
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
@@ -329,7 +329,7 @@
                                         <div class="tabs-section-wrapper">
                                             <div class="tab-section">
                                                 <enrichr-plot
-                                                    v-if="$parent.enrichrReady && $parent.dataReady"
+                                                    v-if="$parent.enrichrDown.length > 0"
                                                     :phenotypesData="$parent.enrichrDown"
                                                     :colors="$parent.colors"
                                                     :colorScale="$parent.enrichrColorScale"

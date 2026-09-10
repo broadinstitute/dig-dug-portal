@@ -16,8 +16,13 @@ export async function getTextContent(
     getAll = false
 ) {
     let resourceUrl = cmsUrl("byor_content", contentId);
-    let jsonContent = await fetch(resourceUrl).then((resp) => resp.json());
-    if (jsonContent.length === 0) {
+    let jsonContent = {}
+    try {
+        jsonContent = await fetch(resourceUrl).then((resp) => resp.json());
+    } catch {
+        console.error("CMS content not found.")
+    }
+    if (jsonContent.length === 0 || Object.keys(jsonContent).length === 0) {
         return null;
     }
     if (getBody) {

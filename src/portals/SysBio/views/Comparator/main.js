@@ -63,6 +63,7 @@ new Vue({
             enrichrDown: [],
             enrichrLibraries: [],
             enrichrByor: "matkp_enrichrlibraries", // Using MATKP list until further notice
+            byor_docs: "sysbiofairplex_phenotypecomparatorbrowser",
             docs: "",
             enrichrLibrary: "KEGG_2015", //hardcoding default
             libraryPage: 1,
@@ -264,6 +265,8 @@ new Vue({
         }
     },
     async mounted() {
+        const pageDesc = await getTextContent(this.byor_docs, false, true);
+        this.docs = pageDesc?.body || "";
         this.init();
     },
     created() {
@@ -278,8 +281,8 @@ new Vue({
             }
             this.getParams();
             this.enrichrLibraries = await getTextContent(this.enrichrByor);
-            await this.$store.dispatch("queryBulkFile");
-            await this.populateEnrichr();
+            this.$store.dispatch("queryBulkFile");
+            this.populateEnrichr();
             this.dataReady = true;
         },
         async populateEnrichr(){
