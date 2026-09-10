@@ -150,3 +150,11 @@ Record every design/UI-convention decision or change here, with enough context t
 | 2026-09-09 | Highlight no longer restyles vis edges. Full node/edge arrays stay in memory; "Highlight connected nodes" swaps the vis DataSets to the 1-hop star only. Toolbar **←** restores the full network and Fits. Hover tooltip omits the highlight action while already in the star view |
 | 2026-09-09 | Both the 1-hop star and the **←** return render through the same 4-column Genes → Gene sets → Factors → Traits layout, because each view rebuilds the whole vis `Network` from the display graph instead of refilling the existing DataSets (a DataSet swap left the old node coordinates in place and flattened the graph into one vertical chain) |
 | 2026-09-09 | Column-skipping edges arc instead of running straight: a gene set → trait edge drawn straight passes through the factor column and looks like two separate hops, which misread the graph — the highlight star made it obvious because the skipped node sits alone on the same line |
+| 2026-09-10 | Literature launcher shows multiple PubMed query rows (facet label + editable AND query + Open), instead of one overcrowded all-terms search |
+| 2026-09-10 | Each literature search option shows a one-sentence LLM rationale under its facet label |
+| 2026-09-10 | PubMed / literature results sit in an **Explore options** folder tab with Evaluation / CFDE KG / Biomarker KB — running Search literature no longer replaces those panels |
+| 2026-09-10 | Biomarker action renamed to **Discover mechanism-linked biomarkers**; relevance classification is optional via Actions; Biomarker tab documents the mechanism → disease → biomarker pipeline |
+| 2026-09-10 | Mechanism pick: top-25 semantic candidates + LLM closest-match; Biomarker gene mapping UI is target→associated genes |
+| 2026-09-10 | CFDE KG mechanism pick: LLM chooses 1–5 relevant Factors (max 5) from top-25 semantic candidates |
+| 2026-09-10 | CFDE KG: optional relevance action; how-it-works diagram; gene-set labels wrap at underscores |
+| 2026-09-10 | After Evaluate, **Search CFDE KG** and **Discover mechanism-linked biomarkers** both appear in Next steps (parallel, not sequential). Biomarker resolves mechanisms itself via `resolveMechanismFactors` when CFDE KG has not run |

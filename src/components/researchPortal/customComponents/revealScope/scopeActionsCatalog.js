@@ -12,10 +12,22 @@ export const ACTION_CATALOG = [
             "Searches the CFDE knowledge graph for gene–trait evidence using the parsed target and outcome.",
     },
     {
-        id: "runBiomarkerSearch",
-        label: "Search Biomarker KB",
+        id: "classifyKgRelevance",
+        label: "Classify CFDE KG relevance",
         description:
-            "Bridges the resolved mechanism to shared-gene diseases, then searches BiomarkerKB for biomarkers on those diseases.",
+            "Optional LLM pass that labels each CFDE KG evidence edge as on-topic, mismatched context, or unrelated to the hypothesis.",
+    },
+    {
+        id: "runBiomarkerSearch",
+        label: "Discover mechanism-linked biomarkers",
+        description:
+            "Resolves hypothesis mechanisms (or reuses CFDE KG selection), finds shared-gene diseases, then lists BiomarkerKB biomarkers — can run independently of Search CFDE KG.",
+    },
+    {
+        id: "classifyBiomarkerRelevance",
+        label: "Classify biomarker relevance",
+        description:
+            "Optional LLM pass that labels each fetched biomarker as on-topic, mismatched context, or unrelated to the hypothesis.",
     },
     {
         id: "designExperimentProtocol",
@@ -25,7 +37,7 @@ export const ACTION_CATALOG = [
     {
         id: "runLiterature",
         label: "Search literature",
-        description: "Turns the hypothesis into an editable PubMed search query you can open and review.",
+        description: "Turns the hypothesis into several editable PubMed search combinations you can open and review.",
     },
     {
         id: "exportSession",

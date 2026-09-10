@@ -46,6 +46,7 @@ export default {
     flex-direction: column;
     gap: 10px;
     min-width: 280px;
+    max-width: min(560px, calc(100vw - 48px));
     padding: 20px 24px;
     background: #fff;
     border-radius: 12px;
@@ -54,7 +55,7 @@ export default {
 
 .scp-progress-step {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
 }
 
@@ -62,6 +63,7 @@ export default {
     flex: 0 0 18px;
     height: 18px;
     width: 18px;
+    margin-top: 1px;
     border-radius: 999px;
     display: flex;
     align-items: center;
@@ -85,7 +87,10 @@ export default {
 }
 
 .scp-progress-label {
+    flex: 1;
+    min-width: 0;
     font-size: 13px;
+    line-height: 1.4;
     color: var(--cfde-ink, #33363d);
 }
 

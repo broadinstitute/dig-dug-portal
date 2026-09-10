@@ -185,6 +185,7 @@ export async function findSharedGenesForFactor(factorIri, diseaseIris, { geneLim
  *   }>,
  *   diseases: Array<{ disease: string, diseaseLabel: string, factorLabel: string, factorIri: string, geneConfirmed: boolean }>,
  *   sharedGeneSymbols: string[],
+ *   targetGeneSymbol: string|null,
  *   truncated: boolean,
  * }>}
  */
@@ -193,12 +194,9 @@ export async function findBiomarkerBridgeEvidence({ resolvedFactors, targetGeneS
     const factors = Array.isArray(resolvedFactors) ? resolvedFactors : [];
     const normalizedTarget = normalizeGeneSymbol(targetGeneSymbol);
 
+    // Stage 1 — diseases that share top-loading genes with each mechanism Factor.
     emitStep("findDiseases", "active");
-    const diseaseByIri = new Map();
-    const sharedGenesByDisease = new Map();
-    const sharedGeneSymbols = new Set();
-
-    await Promise.all(
+    const diseasesByFactor = await Promise.all(
         factors.map(async (factor) => {
             let diseases = [];
             try {
@@ -206,8 +204,20 @@ export async function findBiomarkerBridgeEvidence({ resolvedFactors, targetGeneS
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.warn("[scopeBiomarkerBridge] disease lookup failed for factor", factor.iri, error);
-                return;
             }
+            return { factor, diseases };
+        })
+    );
+    emitStep("findDiseases", "done");
+
+    // Stage 2 — which genes actually link each Factor to its candidate diseases.
+    emitStep("mapSharedGenes", "active");
+    const diseaseByIri = new Map();
+    const sharedGenesByDisease = new Map();
+    const sharedGeneSymbols = new Set();
+
+    await Promise.all(
+        diseasesByFactor.map(async ({ factor, diseases }) => {
             if (!diseases.length) return;
 
             let sharedGenes = [];
@@ -252,7 +262,7 @@ export async function findBiomarkerBridgeEvidence({ resolvedFactors, targetGeneS
             });
         })
     );
-    emitStep("findDiseases", "done");
+    emitStep("mapSharedGenes", "done");
 
     const diseases = Array.from(diseaseByIri.values())
         .sort((a, b) => {
@@ -261,6 +271,7 @@ export async function findBiomarkerBridgeEvidence({ resolvedFactors, targetGeneS
         })
         .slice(0, MAX_TOTAL_DISEASES);
 
+    // Stage 3 — BiomarkerKB records linked to those MONDO diseases.
     emitStep("queryBiomarkers", "active");
     let rows = [];
     if (diseases.length) {
@@ -278,7 +289,9 @@ export async function findBiomarkerBridgeEvidence({ resolvedFactors, targetGeneS
 
     const biomarkers = rows.map((row) => ({
         ...row,
-        geneSharedWithFactor: row.geneList.some((g) => sharedGeneSymbols.has(normalizeGeneSymbol(g))),
+        includesTargetGene: Boolean(
+            normalizedTarget && row.geneList.some((g) => normalizeGeneSymbol(g) === normalizedTarget)
+        ),
     }));
 
     return {
@@ -291,6 +304,7 @@ export async function findBiomarkerBridgeEvidence({ resolvedFactors, targetGeneS
             geneConfirmed: d.geneConfirmed,
         })),
         sharedGeneSymbols: Array.from(sharedGeneSymbols),
+        targetGeneSymbol: normalizedTarget || null,
         truncated: rows.length >= MAX_BIOMARKERS_TOTAL,
     };
 }

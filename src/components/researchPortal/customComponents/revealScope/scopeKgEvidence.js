@@ -7,6 +7,10 @@ import {
     sparqlString,
 } from "./scopeKgSparql.js";
 import { searchBiomarkerFactors } from "./scopeBiomarkerFactorSearch.js";
+import { MAX_SELECTED_FACTORS, selectClosestFactors } from "./scopeKgFactorSelect.js";
+
+/** Semantic search candidate pool before LLM picks the closest mechanisms. */
+const FACTOR_CANDIDATE_LIMIT = 25;
 
 /**
  * Module C v0 — evidence routes, not literal spec "hops" of one mechanistic path.
@@ -212,6 +216,70 @@ function dedupeNonEmpty(values) {
 }
 
 /**
+ * Semantic Factor search (top 25) + LLM pick of 1–5 mechanisms for the hypothesis outcome.
+ * Shared by CFDE KG search and Biomarker discovery so either action can run after Evaluate.
+ *
+ * @returns {Promise<{ resolvedFactors: object[], factorCandidates: object[], selectedFactorRationale: string|null }>}
+ */
+export async function resolveMechanismFactors({
+    hypothesisText,
+    targetText,
+    targetResolvedId,
+    outcomeText,
+    outcomeResolvedId,
+    signal,
+    onStep,
+} = {}) {
+    const emitStep = typeof onStep === "function" ? onStep : () => {};
+
+    emitStep("resolveFactors", "active");
+    let factorCandidates = [];
+    try {
+        factorCandidates = await searchBiomarkerFactors(outcomeResolvedId || outcomeText, {
+            limit: FACTOR_CANDIDATE_LIMIT,
+            signal,
+        });
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn("[scopeKgEvidence] semantic factor search failed, continuing without it", error);
+    }
+    emitStep("resolveFactors", "done");
+
+    emitStep("selectFactor", "active");
+    let resolvedFactors = [];
+    let selectedFactorRationale = null;
+    if (factorCandidates.length) {
+        try {
+            const selected = await selectClosestFactors({
+                hypothesisText,
+                targetText,
+                targetResolvedId,
+                outcomeText,
+                outcomeResolvedId,
+                candidates: factorCandidates,
+                maxSelect: MAX_SELECTED_FACTORS,
+            });
+            if (selected && selected.factors && selected.factors.length) {
+                resolvedFactors = selected.factors;
+                selectedFactorRationale = selected.rationale;
+            }
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                "[scopeKgEvidence] LLM mechanism selection failed, falling back to top semantic hits",
+                error
+            );
+            resolvedFactors = factorCandidates.slice(0, Math.min(MAX_SELECTED_FACTORS, factorCandidates.length));
+            selectedFactorRationale =
+                "LLM selection unavailable — using the top semantic-search mechanism candidates.";
+        }
+    }
+    emitStep("selectFactor", "done");
+
+    return { resolvedFactors, factorCandidates, selectedFactorRationale };
+}
+
+/**
  * Runs all three evidence routes for a target/outcome pair against the CFDE REVEAL KG.
  * Always runs all three (never short-circuits on an earlier match) so every route gets
  * its own explicit state, per the spec's per-hop reporting rule.
@@ -225,14 +293,15 @@ function dedupeNonEmpty(values) {
  * (`scopeBiomarkerFactorSearch.js`) before querying, since outcome text is often a
  * mechanism-level phrase with no matching trait label to find by substring alone.
  *
- * @param {{ targetText: string, targetResolvedId?: string, outcomeText: string, outcomeResolvedId?: string, limit?: number, signal?: AbortSignal, onStep?: (stepId: string, status: string) => void }} params
- * @returns {Promise<{ routes: Array<{ id: string, hop: number, label: string, edges: object[] }>, coverage: object, resolvedFactors: object[] }>}
+ * @param {{ targetText: string, targetResolvedId?: string, outcomeText: string, outcomeResolvedId?: string, hypothesisText?: string, limit?: number, signal?: AbortSignal, onStep?: (stepId: string, status: string) => void }} params
+ * @returns {Promise<{ routes: Array<{ id: string, hop: number, label: string, edges: object[] }>, coverage: object, resolvedFactors: object[], factorCandidates: object[], selectedFactorRationale: string|null }>}
  */
 export async function findKgEvidence({
     targetText,
     targetResolvedId,
     outcomeText,
     outcomeResolvedId,
+    hypothesisText,
     limit = 10,
     signal,
     onStep,
@@ -240,18 +309,15 @@ export async function findKgEvidence({
     const geneText = targetResolvedId || targetText;
     const emitStep = typeof onStep === "function" ? onStep : () => {};
 
-    emitStep("resolveFactors", "active");
-    let resolvedFactors = [];
-    try {
-        resolvedFactors = await searchBiomarkerFactors(outcomeResolvedId || outcomeText, {
-            limit: 5,
-            signal,
-        });
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn("[scopeKgEvidence] semantic factor search failed, continuing without it", error);
-    }
-    emitStep("resolveFactors", "done");
+    const { resolvedFactors, factorCandidates, selectedFactorRationale } = await resolveMechanismFactors({
+        hypothesisText,
+        targetText,
+        targetResolvedId,
+        outcomeText,
+        outcomeResolvedId,
+        signal,
+        onStep,
+    });
 
     const traitCandidates = dedupeNonEmpty([
         outcomeText,
@@ -261,9 +327,12 @@ export async function findKgEvidence({
 
     emitStep("queryRoutes", "active");
     const factorsById = new Map(resolvedFactors.map((f) => [f.iri, f]));
+    // Scale hop-2 LIMIT with how many Factors were selected so one strong edge does not
+    // crowd out the others under a single shared cap.
+    const factorEdgeLimit = Math.min(50, Math.max(limit, limit * Math.max(1, resolvedFactors.length)));
     const factorPromise = resolvedFactors.length
         ? fetchCfdeKgSparql(
-              factorByIriQuery(geneText, resolvedFactors.map((f) => f.iri), limit),
+              factorByIriQuery(geneText, resolvedFactors.map((f) => f.iri), factorEdgeLimit),
               { signal }
           ).then((res) => ({ strategy: "iri", res }))
         : fetchCfdeKgSparql(factorByJoinQuery(geneText, traitCandidates, limit), { signal }).then(
@@ -301,5 +370,13 @@ export async function findKgEvidence({
         ],
         coverage: cfdeKgCoverage(),
         resolvedFactors,
+        factorCandidates,
+        selectedFactorRationale,
+        queryContext: {
+            targetGene: geneText || null,
+            mechanismQuery: String(outcomeResolvedId || outcomeText || "").trim() || null,
+            hop2Strategy: resolvedFactors.length ? "selected_factor_iris" : "trait_label_join",
+            traitCandidates,
+        },
     };
 }

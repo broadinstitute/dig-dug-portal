@@ -1,6 +1,44 @@
 const SCHEMA_VERSION = "scope-session-v0";
 const VALID_MODULES = ["evaluate", "literature"];
 
+/** Normalize literature query payload for export/import (legacy string or multi-query list). */
+function normalizeLiteratureQueryForExport(literatureQuery) {
+    if (literatureQuery == null) return null;
+    if (typeof literatureQuery === "string") {
+        const text = literatureQuery.trim();
+        return text || null;
+    }
+    if (Array.isArray(literatureQuery)) {
+        const queries = literatureQuery
+            .map((item) => {
+                if (typeof item === "string") {
+                    const query = item.trim();
+                    return query ? { label: "", reason: "", query } : null;
+                }
+                if (item && typeof item === "object") {
+                    const query = String(item.query || "").trim();
+                    if (!query) return null;
+                    return {
+                        label: String(item.label || "").trim(),
+                        reason: String(item.reason || item.concept || "").trim(),
+                        query,
+                    };
+                }
+                return null;
+            })
+            .filter(Boolean);
+        return queries.length ? queries : null;
+    }
+    if (typeof literatureQuery === "object" && Array.isArray(literatureQuery.queries)) {
+        return normalizeLiteratureQueryForExport(literatureQuery.queries);
+    }
+    return null;
+}
+
+function normalizeLiteratureQueryForImport(value) {
+    return normalizeLiteratureQueryForExport(value);
+}
+
 /** Builds the exportable session object. v0 shortcut: no hub, so this is hand-assembled from whatever the shell has cached rather than read from a Central Hypothesis State. */
 export function buildSessionExport({
     hypothesisText,
@@ -19,7 +57,7 @@ export function buildSessionExport({
         hypothesis_text: hypothesisText || "",
         modules_run: Array.isArray(ranModules) ? ranModules.filter((id) => VALID_MODULES.includes(id)) : [],
         evaluation: evaluation || null,
-        literature_query: literatureQuery || null,
+        literature_query: normalizeLiteratureQueryForExport(literatureQuery),
         kg_evidence: kgEvidence || null,
         kg_blocked_reason: kgBlockedReason || null,
         kg_network_graph: kgNetworkGraph || null,
@@ -93,7 +131,7 @@ export function parseSessionImport(rawText) {
             ? parsed.modules_run.filter((id) => VALID_MODULES.includes(id))
             : [],
         evaluation: parsed.evaluation && typeof parsed.evaluation === "object" ? parsed.evaluation : null,
-        literatureQuery: typeof parsed.literature_query === "string" ? parsed.literature_query : null,
+        literatureQuery: normalizeLiteratureQueryForImport(parsed.literature_query),
         kgEvidence: parsed.kg_evidence && typeof parsed.kg_evidence === "object" ? parsed.kg_evidence : null,
         kgBlockedReason:
             typeof parsed.kg_blocked_reason === "string" && parsed.kg_blocked_reason ? parsed.kg_blocked_reason : null,

@@ -54,7 +54,8 @@ function describeBiomarker(biomarker) {
         genes: biomarker.genes || null,
         roles: biomarker.roles || null,
         diseases: biomarker.diseases || null,
-        geneSharedWithFactor: Boolean(biomarker.geneSharedWithFactor),
+        geneSharedWithFactor: Boolean(biomarker.includesTargetGene),
+        includesTargetGene: Boolean(biomarker.includesTargetGene),
     };
 }
 

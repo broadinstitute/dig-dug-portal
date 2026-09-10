@@ -19,12 +19,13 @@
                 </div>
 
                 <div
-                    v-if="hasKgContent || hasBiomarkerContent"
+                    v-if="showContentTabs"
                     class="scp-module-tabs"
                     role="tablist"
                     aria-label="Module content"
                 >
                     <button
+                        v-if="showEvaluationTab"
                         type="button"
                         role="tab"
                         class="scp-module-tab"
@@ -35,6 +36,7 @@
                         Evaluation
                     </button>
                     <button
+                        v-if="hasKgContent"
                         type="button"
                         role="tab"
                         class="scp-module-tab"
@@ -55,10 +57,22 @@
                     >
                         Biomarker KB
                     </button>
+                    <button
+                        v-if="hasLiteratureContent"
+                        type="button"
+                        role="tab"
+                        class="scp-module-tab"
+                        :class="{ 'is-active': evaluateContentTab === 'explore' }"
+                        :aria-selected="evaluateContentTab === 'explore' ? 'true' : 'false'"
+                        @click="evaluateContentTab = 'explore'"
+                    >
+                        Explore options
+                    </button>
                 </div>
 
                 <ScopeEvaluationPanel
-                    v-show="!hasKgContent || evaluateContentTab === 'evaluation'"
+                    v-if="showEvaluationTab"
+                    v-show="!showContentTabs || evaluateContentTab === 'evaluation'"
                     :hypothesis-text="activeHypothesisText"
                     :preloaded-evaluation="pendingImportedEvaluation"
                     @evaluated="onEvaluated"
@@ -79,14 +93,15 @@
                     :blocked-reason="biomarkerEvidenceBlockedReason"
                     :relevance-loading="biomarkerRelevanceLoading"
                 />
+                <ScopeLiteratureLauncher
+                    v-if="hasLiteratureContent"
+                    v-show="!showContentTabs || evaluateContentTab === 'explore'"
+                    :hypothesis-text="activeHypothesisText"
+                    :preloaded-query="pendingImportedLiteratureQuery"
+                    @query-change="onLiteratureQueryChange"
+                    @loading="onLiteratureLoading"
+                />
             </template>
-            <ScopeLiteratureLauncher
-                v-if="activeModule === 'literature'"
-                :hypothesis-text="activeHypothesisText"
-                :preloaded-query="pendingImportedLiteratureQuery"
-                @query-change="onLiteratureQueryChange"
-                @loading="onLiteratureLoading"
-            />
             <!-- Central Hypothesis State Hub + Modules A-D mount here -->
 
             <ScopeActionsPanel
@@ -132,7 +147,7 @@ import ScopeKgEvidenceTable from "@/components/researchPortal/customComponents/r
 import ScopeBiomarkerEvidenceTable from "@/components/researchPortal/customComponents/revealScope/ScopeBiomarkerEvidenceTable.vue";
 import ScopeProgressOverlay from "@/components/researchPortal/customComponents/revealScope/ScopeProgressOverlay.vue";
 import { ACTION_CATALOG } from "@/components/researchPortal/customComponents/revealScope/scopeActionsCatalog.js";
-import { findKgEvidence } from "@/components/researchPortal/customComponents/revealScope/scopeKgEvidence.js";
+import { findKgEvidence, resolveMechanismFactors } from "@/components/researchPortal/customComponents/revealScope/scopeKgEvidence.js";
 import { buildKgNetworkGraph } from "@/components/researchPortal/customComponents/revealScope/scopeKgNetworkGraph.js";
 import {
     classifyKgEvidenceRelevance,
@@ -227,6 +242,12 @@ export default Vue.component("reveal-scope", {
                 if (action.id === "runBiomarkerSearch") {
                     return !this.hasBiomarkerContent;
                 }
+                if (action.id === "classifyKgRelevance") {
+                    return this.canClassifyKgRelevance;
+                }
+                if (action.id === "classifyBiomarkerRelevance") {
+                    return this.canClassifyBiomarkerRelevance;
+                }
                 if (action.id === "designExperimentProtocol") {
                     return this.isEvaluateDone;
                 }
@@ -236,10 +257,14 @@ export default Vue.component("reveal-scope", {
         nextStepActions() {
             const canSearchKg = this.ranModules.includes("evaluate") && !this.hasMissingSlots && !this.hasKgContent;
             const canSearchBiomarker =
-                Boolean(this.kgEvidence && this.kgEvidence.resolvedFactors && this.kgEvidence.resolvedFactors.length) &&
-                !this.hasBiomarkerContent;
+                this.ranModules.includes("evaluate") && !this.hasMissingSlots && !this.hasBiomarkerContent;
             const list = ACTION_CATALOG.filter((action) => {
-                if (action.id === "runKgSearch" || action.id === "runBiomarkerSearch") {
+                if (
+                    action.id === "runKgSearch" ||
+                    action.id === "runBiomarkerSearch" ||
+                    action.id === "classifyKgRelevance" ||
+                    action.id === "classifyBiomarkerRelevance"
+                ) {
                     return false;
                 }
                 if (action.id === "runLiterature") {
@@ -265,6 +290,18 @@ export default Vue.component("reveal-scope", {
                     list.unshift(kgAction);
                 }
             }
+            if (this.canClassifyKgRelevance) {
+                const classifyKgAction = ACTION_CATALOG.find((action) => action.id === "classifyKgRelevance");
+                if (classifyKgAction) {
+                    list.unshift(classifyKgAction);
+                }
+            }
+            if (this.canClassifyBiomarkerRelevance) {
+                const classifyAction = ACTION_CATALOG.find((action) => action.id === "classifyBiomarkerRelevance");
+                if (classifyAction) {
+                    list.unshift(classifyAction);
+                }
+            }
             return list;
         },
         hasMissingSlots() {
@@ -277,8 +314,54 @@ export default Vue.component("reveal-scope", {
         hasKgContent() {
             return Boolean(this.kgEvidence || this.kgEvidenceBlockedReason);
         },
+        hasKgRelevance() {
+            const routes = this.kgEvidence && this.kgEvidence.routes;
+            if (!Array.isArray(routes)) return false;
+            return routes.some(
+                (route) =>
+                    Array.isArray(route.edges) && route.edges.some((edge) => edge && edge.relevance)
+            );
+        },
+        canClassifyKgRelevance() {
+            const routes = this.kgEvidence && this.kgEvidence.routes;
+            const hasEdges =
+                Array.isArray(routes) &&
+                routes.some((route) => Array.isArray(route.edges) && route.edges.length);
+            return Boolean(hasEdges && !this.hasKgRelevance && !this.kgRelevanceLoading);
+        },
         hasBiomarkerContent() {
             return Boolean(this.biomarkerEvidence || this.biomarkerEvidenceBlockedReason);
+        },
+        hasBiomarkerRelevance() {
+            const biomarkers = this.biomarkerEvidence && this.biomarkerEvidence.biomarkers;
+            return Boolean(Array.isArray(biomarkers) && biomarkers.some((b) => b && b.relevance));
+        },
+        canClassifyBiomarkerRelevance() {
+            const biomarkers = this.biomarkerEvidence && this.biomarkerEvidence.biomarkers;
+            return (
+                Boolean(Array.isArray(biomarkers) && biomarkers.length) &&
+                !this.hasBiomarkerRelevance &&
+                !this.biomarkerRelevanceLoading
+            );
+        },
+        hasLiteratureContent() {
+            return this.ranModules.includes("literature") || Boolean(this.cachedLiteratureQuery);
+        },
+        showEvaluationTab() {
+            return (
+                this.ranModules.includes("evaluate") ||
+                Boolean(this.cachedEvaluation) ||
+                this.hasKgContent ||
+                this.hasBiomarkerContent
+            );
+        },
+        showContentTabs() {
+            const tabCount =
+                (this.showEvaluationTab ? 1 : 0) +
+                (this.hasKgContent ? 1 : 0) +
+                (this.hasBiomarkerContent ? 1 : 0) +
+                (this.hasLiteratureContent ? 1 : 0);
+            return tabCount >= 2;
         },
         showActionsPanel() {
             if (this.actionsPanelForcedOpen) {
@@ -369,15 +452,23 @@ export default Vue.component("reveal-scope", {
                 return;
             }
             if (actionId === "runLiterature") {
-                this.runModule("literature");
+                this.runLiteratureSearch();
                 return;
             }
             if (actionId === "runKgSearch") {
                 this.runSearchKgFromCache();
                 return;
             }
+            if (actionId === "classifyKgRelevance") {
+                this.runKgRelevanceFromCache();
+                return;
+            }
             if (actionId === "runBiomarkerSearch") {
                 this.runBiomarkerSearchFromCache();
+                return;
+            }
+            if (actionId === "classifyBiomarkerRelevance") {
+                this.runBiomarkerRelevanceFromCache();
                 return;
             }
             if (actionId === "designExperimentProtocol") {
@@ -413,8 +504,8 @@ export default Vue.component("reveal-scope", {
             this.startKgEvidenceSearch(this.cachedEvaluation);
         },
         runBiomarkerSearchFromCache() {
-            if (!this.kgEvidence || !this.kgEvidence.resolvedFactors || !this.kgEvidence.resolvedFactors.length) {
-                this.biomarkerEvidenceBlockedReason = "Run Search CFDE KG first.";
+            if (!this.cachedEvaluation) {
+                this.biomarkerEvidenceBlockedReason = "Run Evaluate hypothesis first.";
                 return;
             }
             if (this.activeModule !== "evaluate") {
@@ -425,6 +516,27 @@ export default Vue.component("reveal-scope", {
                 });
             }
             this.startBiomarkerSearch(this.cachedEvaluation);
+        },
+        runLiteratureSearch() {
+            // Keep Evaluation / CFDE KG / Biomarker KB in place — literature is an Explore
+            // options tab inside the evaluate workspace, not a module swap that clears them.
+            this.hasGeneratedContent = true;
+            if (!this.ranModules.includes("literature")) {
+                this.ranModules.push("literature");
+            }
+            if (this.activeModule !== "evaluate") {
+                if (this.cachedEvaluation) {
+                    this.pendingImportedEvaluation = this.cachedEvaluation;
+                }
+                this.activeModule = "evaluate";
+                this.$nextTick(() => {
+                    this.pendingImportedEvaluation = null;
+                });
+            }
+            this.evaluateContentTab = "explore";
+            this.actionsPopupDismissed = false;
+            this.actionsPanelForcedOpen = false;
+            this.actionsPanelInitialTab = "next";
         },
         runModule(moduleId) {
             this.hasGeneratedContent = true;
@@ -463,14 +575,14 @@ export default Vue.component("reveal-scope", {
         },
         onEvaluateLoading(isLoading) {
             if (isLoading) {
-                this.beginProgress([{ id: "evaluate", label: "Evaluating hypothesis…" }]);
+                this.beginProgress([{ id: "evaluate", label: "Evaluating the hypothesis." }]);
             } else {
                 this.endProgress();
             }
         },
         onLiteratureLoading(isLoading) {
             if (isLoading) {
-                this.beginProgress([{ id: "literature", label: "Generating search terms…" }]);
+                this.beginProgress([{ id: "literature", label: "Generating PubMed search terms." }]);
             } else {
                 this.endProgress();
             }
@@ -513,9 +625,10 @@ export default Vue.component("reveal-scope", {
             this.kgEvidenceBlockedReason = null;
             this.kgNetworkGraph = null;
             this.beginProgress([
-                { id: "resolveFactors", label: "Resolving mechanism via biomarker search…" },
-                { id: "queryRoutes", label: "Querying CFDE KG (3 evidence routes)…" },
-                { id: "buildNetwork", label: "Building Gene/Gene set/Factor/Trait network…" },
+                { id: "resolveFactors", label: "Finding the top 25 mechanism candidates for the hypothesis outcome." },
+                { id: "selectFactor", label: "Selecting up to 5 mechanisms most relevant to the hypothesis." },
+                { id: "queryRoutes", label: "Querying the CFDE KG across the three evidence routes." },
+                { id: "buildNetwork", label: "Building the Gene / Gene set / Factor / Trait network." },
             ]);
             try {
                 this.kgEvidence = await findKgEvidence({
@@ -523,6 +636,7 @@ export default Vue.component("reveal-scope", {
                     targetResolvedId,
                     outcomeText,
                     outcomeResolvedId,
+                    hypothesisText: this.activeHypothesisText,
                     onStep: this.setStepStatus,
                 });
             } catch (error) {
@@ -540,14 +654,33 @@ export default Vue.component("reveal-scope", {
                 this.kgNetworkGraph = null;
             }
             this.setStepStatus("buildNetwork", "done");
-            // Table renders now (kgEvidence is set) — the relevance triage below runs
-            // as a background enrichment pass, not inside the blocking progress overlay.
             this.endProgress();
-            this.runKgRelevanceTriage(evaluation);
+            // Relevance triage is optional — offer it as a top Next step after fetch.
+            this.actionsPopupDismissed = false;
+            this.actionsPanelForcedOpen = true;
+            this.actionsPanelInitialTab = "next";
+        },
+        runKgRelevanceFromCache() {
+            if (!this.canClassifyKgRelevance || !this.cachedEvaluation) {
+                return;
+            }
+            this.evaluateContentTab = "kg";
+            this.runKgRelevanceTriage(this.cachedEvaluation);
         },
         async runKgRelevanceTriage(evaluation) {
             const kgEvidenceAtStart = this.kgEvidence;
+            if (
+                !kgEvidenceAtStart ||
+                !Array.isArray(kgEvidenceAtStart.routes) ||
+                !kgEvidenceAtStart.routes.some((route) => route.edges && route.edges.length)
+            ) {
+                return;
+            }
             this.kgRelevanceLoading = true;
+            this.beginProgress([
+                { id: "classifyKgRelevance", label: "Classifying CFDE KG evidence relevance to the hypothesis." },
+            ]);
+            this.setStepStatus("classifyKgRelevance", "active");
             try {
                 const classifications = await classifyKgEvidenceRelevance({
                     hypothesisText: this.activeHypothesisText,
@@ -567,28 +700,87 @@ export default Vue.component("reveal-scope", {
                     ...this.kgEvidence,
                     routes: mergeRelevanceIntoRoutes(this.kgEvidence.routes, classifications),
                 };
+                this.setStepStatus("classifyKgRelevance", "done");
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.warn("[reveal-scope] KG relevance triage failed, showing unlabeled results", error);
+                this.setStepStatus("classifyKgRelevance", "error");
             } finally {
                 this.kgRelevanceLoading = false;
+                this.endProgress();
             }
         },
         async startBiomarkerSearch(evaluation) {
             this.evaluateContentTab = "biomarker";
-            const resolvedFactors = this.kgEvidence && this.kgEvidence.resolvedFactors;
-            if (!resolvedFactors || !resolvedFactors.length) {
-                this.biomarkerEvidenceBlockedReason =
-                    "Can't search Biomarker KB yet — no mechanism factor was resolved by the CFDE KG search. " +
-                    "Run Search CFDE KG first.";
-                return;
-            }
             this.biomarkerEvidenceBlockedReason = null;
             const targetGeneSymbol = evaluation.slots.target.resolvedId || evaluation.slots.target.value;
-            this.beginProgress([
-                { id: "findDiseases", label: "Finding diseases sharing genes with the resolved mechanism…" },
-                { id: "queryBiomarkers", label: "Querying Biomarker KB…" },
-            ]);
+            const outcomeText = evaluation.slots.outcome && evaluation.slots.outcome.value;
+            if (!targetGeneSymbol || !outcomeText) {
+                this.biomarkerEvidenceBlockedReason =
+                    "Can't discover mechanism-linked biomarkers yet — the evaluation didn't identify a specific " +
+                    "target and outcome. Fix the hypothesis (Edit) and try again.";
+                return;
+            }
+
+            let resolvedFactors = this.kgEvidence && this.kgEvidence.resolvedFactors;
+            const progressSteps = [];
+            const needsMechanismResolve = !(resolvedFactors && resolvedFactors.length);
+            if (needsMechanismResolve) {
+                progressSteps.push(
+                    {
+                        id: "resolveFactors",
+                        label: "Finding the top 25 mechanism candidates for the hypothesis outcome.",
+                    },
+                    {
+                        id: "selectFactor",
+                        label: "Selecting up to 5 mechanisms most relevant to the hypothesis.",
+                    }
+                );
+            }
+            progressSteps.push(
+                {
+                    id: "findDiseases",
+                    label: "Finding diseases that share genes with the hypothesis mechanism.",
+                },
+                {
+                    id: "mapSharedGenes",
+                    label: "Mapping shared genes between the mechanism and those diseases.",
+                },
+                {
+                    id: "queryBiomarkers",
+                    label: "Fetching BiomarkerKB biomarkers linked to those diseases.",
+                }
+            );
+            this.beginProgress(progressSteps);
+
+            if (needsMechanismResolve) {
+                try {
+                    const resolved = await resolveMechanismFactors({
+                        hypothesisText: this.activeHypothesisText,
+                        targetText: evaluation.slots.target.value,
+                        targetResolvedId: evaluation.slots.target.resolvedId,
+                        outcomeText,
+                        outcomeResolvedId: evaluation.slots.outcome.resolvedId,
+                        onStep: this.setStepStatus,
+                    });
+                    resolvedFactors = resolved.resolvedFactors;
+                } catch (error) {
+                    // eslint-disable-next-line no-console
+                    console.warn("[reveal-scope] Mechanism resolve for Biomarker search failed", error);
+                    this.biomarkerEvidenceBlockedReason =
+                        "Couldn't resolve a mechanism for biomarker discovery. Try again.";
+                    this.endProgress();
+                    return;
+                }
+            }
+
+            if (!resolvedFactors || !resolvedFactors.length) {
+                this.biomarkerEvidenceBlockedReason =
+                    "Can't discover mechanism-linked biomarkers — no mechanism Factor matched the hypothesis outcome.";
+                this.endProgress();
+                return;
+            }
+
             try {
                 this.biomarkerEvidence = await findBiomarkerBridgeEvidence({
                     resolvedFactors,
@@ -598,16 +790,37 @@ export default Vue.component("reveal-scope", {
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.warn("[reveal-scope] Biomarker KB search failed", error);
-                this.biomarkerEvidenceBlockedReason = "Biomarker KB search failed. Try again.";
+                this.biomarkerEvidenceBlockedReason = "Mechanism-linked biomarker search failed. Try again.";
                 this.endProgress();
                 return;
             }
             this.endProgress();
-            this.runBiomarkerRelevanceTriage(evaluation);
+            // Relevance triage is optional — offer it as the top Next step after fetch.
+            this.actionsPopupDismissed = false;
+            this.actionsPanelForcedOpen = true;
+            this.actionsPanelInitialTab = "next";
+        },
+        runBiomarkerRelevanceFromCache() {
+            if (!this.canClassifyBiomarkerRelevance || !this.cachedEvaluation) {
+                return;
+            }
+            this.evaluateContentTab = "biomarker";
+            this.runBiomarkerRelevanceTriage(this.cachedEvaluation);
         },
         async runBiomarkerRelevanceTriage(evaluation) {
             const biomarkerEvidenceAtStart = this.biomarkerEvidence;
+            if (
+                !biomarkerEvidenceAtStart ||
+                !Array.isArray(biomarkerEvidenceAtStart.biomarkers) ||
+                !biomarkerEvidenceAtStart.biomarkers.length
+            ) {
+                return;
+            }
             this.biomarkerRelevanceLoading = true;
+            this.beginProgress([
+                { id: "classifyRelevance", label: "Classifying biomarker relevance to the hypothesis." },
+            ]);
+            this.setStepStatus("classifyRelevance", "active");
             try {
                 const classifications = await classifyBiomarkerRelevance({
                     hypothesisText: this.activeHypothesisText,
@@ -624,11 +837,14 @@ export default Vue.component("reveal-scope", {
                     ...this.biomarkerEvidence,
                     biomarkers: mergeBiomarkerRelevance(this.biomarkerEvidence.biomarkers, classifications),
                 };
+                this.setStepStatus("classifyRelevance", "done");
             } catch (error) {
                 // eslint-disable-next-line no-console
                 console.warn("[reveal-scope] Biomarker relevance triage failed, showing unlabeled results", error);
+                this.setStepStatus("classifyRelevance", "error");
             } finally {
                 this.biomarkerRelevanceLoading = false;
+                this.endProgress();
             }
         },
         onLiteratureQueryChange(query) {
@@ -690,14 +906,22 @@ export default Vue.component("reveal-scope", {
                             ? "biomarker"
                             : session.kgEvidence || session.kgBlockedReason
                             ? "kg"
+                            : session.literatureQuery
+                            ? "explore"
                             : "evaluation";
                     this.pendingImportedEvaluation = session.evaluation;
                     this.pendingImportedLiteratureQuery = session.literatureQuery;
-                    if (session.ranModules.includes("evaluate")) {
+                    if (
+                        session.ranModules.includes("evaluate") ||
+                        session.evaluation ||
+                        session.kgEvidence ||
+                        session.kgBlockedReason ||
+                        session.biomarkerEvidence ||
+                        session.biomarkerBlockedReason ||
+                        session.literatureQuery ||
+                        session.ranModules.includes("literature")
+                    ) {
                         this.activeModule = "evaluate";
-                        this.welcomeOpen = false;
-                    } else if (session.ranModules.includes("literature")) {
-                        this.activeModule = "literature";
                         this.welcomeOpen = false;
                     } else {
                         this.activeModule = null;

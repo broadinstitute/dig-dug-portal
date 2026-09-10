@@ -70,6 +70,11 @@ export default {
             activeTab: this.initialTab,
         };
     },
+    watch: {
+        initialTab(value) {
+            this.activeTab = value;
+        },
+    },
     computed: {
         visibleActions() {
             return this.activeTab === "next" ? this.nextSteps : this.catalogActions;
