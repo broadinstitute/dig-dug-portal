@@ -6,6 +6,13 @@
         <div class="sysbio-body">
             <h2>Genetic Studies</h2>
             <div v-html="$parent.docs"></div>
+            <div class="filter-col-md">
+                <select v-model="$parent.dataset">
+                    <option v-for="dataset in $parent.datasets" :value="dataset">
+                        {{ dataset }}
+                    </option>
+                </select>
+            </div>
             <div class="f-row gwas-plots" style="margin:20px 0 40px 0">
                 <div style="flex:1">
                     <img :src="'images/sysbio/images/manhattan.png'" />
