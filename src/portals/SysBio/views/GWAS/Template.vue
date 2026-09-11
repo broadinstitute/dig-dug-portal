@@ -6,16 +6,34 @@
         <div class="sysbio-body">
             <h2>Genetic Studies</h2>
             <div v-html="$parent.docs"></div>
-            <div class="f-row gwas-plots" style="margin:20px 0 40px 0">
+            <criterion-function-group>
+                <div class="col filter-col-md">
+                    <div class="label">Select a dataset</div>
+                    <select v-model="$parent.dataset">
+                        <option v-for="dataset in $parent.datasets" :value="dataset">
+                            {{ dataset }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col filter-col-md">
+                    <div class="label">Select a subset</div>
+                    <select v-model="$parent.subset">
+                        <option v-for="subset in $parent.subsets" :value="subset">
+                            {{ subset }}
+                        </option>
+                    </select>
+            </div>
+            </criterion-function-group>
+            <div class="f-row gwas-plots" v-if="!!$parent.dataset && !!$parent.subset" style="margin:20px 0 40px 0">
                 <div style="flex:1">
-                    <img :src="'images/sysbio/images/manhattan.png'" />
+                    <img :src="$parent.manhattanImage" />
                 </div>
                 <div style="flex:1">
-                    <img :src="'images/sysbio/images/qq.png'" />
+                    <img :src="$parent.qqImage" />
                 </div>
             </div>
             <div v-if="$parent.tableData" class="f-col" style="gap:10px">
-                <h4>Top single-variant association signals for AD versus PDRD: European Ancestry</h4>
+                <h4>Top single-variant association signals for {{ $parent.subset }}</h4>
                 <!-- FILTERS GO HERE -->
                 <criterion-function-group
                     @update:filter-list="$event = $parent.filtersUpdated($event)">

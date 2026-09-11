@@ -21,7 +21,7 @@ import { getTextContent } from "@/portals/SysBio/utils/content.js";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 
-const DEFAULT_DATASET = "SysBio_Nalls2025_ADvPD_EU";
+const BI = DATASET_ASSOC_URL || `${SYSBIO_HOST}/api/bio/query/dataset-associations`;
 
 new Vue({
     mixins: [sysbioMixin],
@@ -96,10 +96,28 @@ new Vue({
             chromosomeFilterSet: false,
             byorDocs: "sysbio_GWAS",
             docs: "",
+            datasetKeys: [],
+            dataset: null,
+            subset: null,
         };
     },
 
     watch: {
+        datasets(newDatasets){
+            if (this.dataset === null){
+                this.dataset = newDatasets[0];
+            }
+        },
+        subsets(newSubsets){
+            console.log("we are here");
+            this.subset = newSubsets[0];
+        },
+        dataset(){
+            this.fetchData();
+        },
+        subset(){
+            this.fetchData();
+        }
     },
 
     computed: {
@@ -124,31 +142,46 @@ new Vue({
         disableRegionFilter(){
             return !this.chromosomeFilterSet;
         },
-        dataset(){
-            // TODO when more datasets are added, make this reflect user choice.
-            return DEFAULT_DATASET;
+        subsets(){
+            if (this.dataset === null){
+                return [];
+            }
+            let applicableSubsets = this.datasetKeys.filter(d => d[1] === this.dataset);
+            return applicableSubsets.map(d => d[0]);
+        },
+        datasets(){
+            return Array.from(new Set(this.datasetKeys.map(d => d[1])));
+        },
+        manhattanImage(){
+            return `${SYSBIO_HOST}/api/raw/plot/dataset/GWAS/${this.subset}/${this.dataset}/manhattan.png`
+        },
+        qqImage(){
+            return `${SYSBIO_HOST}/api/raw/plot/dataset/GWAS/${this.subset}/${this.dataset}/qq.png`
         }
     },
 
     mounted() {},
 
     async created() {
-        this.fetchData();
+        this.datasetKeys = await this.fetchKeys();
         const documentation = await getTextContent(this.byorDocs, true);
         this.docs = documentation;
     },
     methods: {
+        async fetchKeys(){
+            const keysUrl = BI.replace("query","keys").concat("/2");
+            console.log(keysUrl);
+            const getKeys = await fetch(keysUrl);
+            let keysJson = await getKeys.json();
+            return keysJson.keys;
+        },
         async fetchData() {
-            const bi =
-                DATASET_ASSOC_URL ||
-                `${SYSBIO_HOST}/api/bio/query/dataset-associations`;
             const limit = 500;
-            const phenotype = "SysBio_ADvPD";
-            const url = `${bi}?limit=${limit}&q=${this.dataset},${phenotype}`;;
+            const url = `${BI}?limit=${limit}&q=${this.subset},${this.dataset}`;;
             const response = await fetch(url);
             const json = await response.json();
             this.tableData = json.data;
-            console.log(JSON.stringify(this.tableData[0]));
+            console.log(JSON.stringify)
         },
         async fetchInfo() {
             this.pageInfo = await getTextContent(

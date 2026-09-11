@@ -28,7 +28,7 @@ let pages = {
         entry: "src/portals/SysBio/views/GWAS/main.js",
         template: "src/portals/SysBio/views/index.html",
         filename: "gwas.html",
-        title: "Genetic Studues",
+        title: "Genetic Studies",
         chunks: ["chunk-vendors", "chunk-common", "gwas"],
     },
     singlecell: {
