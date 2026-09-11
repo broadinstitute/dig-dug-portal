@@ -97,7 +97,8 @@ new Vue({
             byorDocs: "sysbio_GWAS",
             docs: "",
             datasetKeys: [],
-            dataset: null
+            dataset: null,
+            subset: null,
         };
     },
 
@@ -106,6 +107,16 @@ new Vue({
             if (this.dataset === null){
                 this.dataset = newDatasets[0];
             }
+        },
+        subsets(newSubsets){
+            console.log("we are here");
+            this.subset = newSubsets[0];
+        },
+        dataset(){
+            this.fetchData();
+        },
+        subset(){
+            this.fetchData();
         }
     },
 
@@ -139,7 +150,13 @@ new Vue({
             return applicableSubsets.map(d => d[0]);
         },
         datasets(){
-            return this.datasetKeys.map(d => d[1]);
+            return Array.from(new Set(this.datasetKeys.map(d => d[1])));
+        },
+        manhattanImage(){
+            return `${SYSBIO_HOST}/api/raw/plot/dataset/GWAS/${this.subset}/${this.dataset}/manhattan.png`
+        },
+        qqImage(){
+            return `${SYSBIO_HOST}/api/raw/plot/dataset/GWAS/${this.subset}/${this.dataset}/qq.png`
         }
     },
 
@@ -147,7 +164,6 @@ new Vue({
 
     async created() {
         this.datasetKeys = await this.fetchKeys();
-        this.fetchData();
         const documentation = await getTextContent(this.byorDocs, true);
         this.docs = documentation;
     },
@@ -161,8 +177,7 @@ new Vue({
         },
         async fetchData() {
             const limit = 500;
-            const phenotype = "SysBio_ADvPD";
-            const url = `${BI}?limit=${limit}&q=${this.dataset},${phenotype}`;;
+            const url = `${BI}?limit=${limit}&q=${this.dataset},${this.subset}`;;
             const response = await fetch(url);
             const json = await response.json();
             this.tableData = json.data;
