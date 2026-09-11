@@ -236,6 +236,7 @@
             :default-bio-index-host="defaultBioIndexHost"
             :project-id="projectId"
             :resolve-host-for-index="bioIndexHostFor"
+            :tool-name="'GP2 Browser'"
             @close="settingsOpen = false"
             @update:visibleSectionIds="onVisibleSectionIdsUpdate"
             @update:projectId="onProjectIdUpdate"
@@ -247,23 +248,23 @@
 import Vue from "vue";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 
-import VariantSifterMenuBar from "./gp2Browser/VariantSifterMenuBar.vue";
-import VariantSifterSessionParamBubbles from "./gp2Browser/VariantSifterSessionParamBubbles.vue";
-import VariantSifterWorkspaceGuide from "./gp2Browser/VariantSifterWorkspaceGuide.vue";
-import VariantSifterViewportControls from "./gp2Browser/VariantSifterViewportControls.vue";
-import VariantSifterCanvas from "./gp2Browser/VariantSifterCanvas.vue";
-import VariantSifterSectionDrawers from "./gp2Browser/VariantSifterSectionDrawers.vue";
-import VariantSifterAiAssistantPanel from "./gp2Browser/VariantSifterAiAssistantPanel.vue";
-import VariantSifterExportSessionModal from "./gp2Browser/VariantSifterExportSessionModal.vue";
-import VariantSifterRegionLoadBubble from "./gp2Browser/VariantSifterRegionLoadBubble.vue";
-import VariantSifterSettingsPanel from "./gp2Browser/VariantSifterSettingsPanel.vue";
-import { VARIANT_SIFTER_SECTIONS } from "./gp2Browser/variantSifterSections.js";
+import VariantSifterMenuBar from "./kpVariantSifter/VariantSifterMenuBar.vue";
+import VariantSifterSessionParamBubbles from "./kpVariantSifter/VariantSifterSessionParamBubbles.vue";
+import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
+import VariantSifterViewportControls from "./kpVariantSifter/VariantSifterViewportControls.vue";
+import VariantSifterCanvas from "./kpVariantSifter/VariantSifterCanvas.vue";
+import VariantSifterSectionDrawers from "./kpVariantSifter/VariantSifterSectionDrawers.vue";
+import VariantSifterAiAssistantPanel from "./kpVariantSifter/VariantSifterAiAssistantPanel.vue";
+import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
+import VariantSifterRegionLoadBubble from "./kpVariantSifter/VariantSifterRegionLoadBubble.vue";
+import VariantSifterSettingsPanel from "./kpVariantSifter/VariantSifterSettingsPanel.vue";
+import { VARIANT_SIFTER_SECTIONS } from "./kpVariantSifter/variantSifterSections.js";
 import {
     defaultVisibleSectionIds,
     isSectionVisible,
     normalizeVisibleSectionIds,
-} from "./gp2Browser/variantSifterToolSettings.js";
-import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAncestriesParam, parseSubAncestriesParam, formatPhenotypesParam, parsePhenotypesParam } from "./gp2Browser/variantSifterSearchUtils.js";
+} from "./kpVariantSifter/variantSifterToolSettings.js";
+import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAncestriesParam, parseSubAncestriesParam, formatPhenotypesParam, parsePhenotypesParam } from "./kpVariantSifter/variantSifterSearchUtils.js";
 import {
     associationRowAncestry,
     associationRowPhenotype,
@@ -274,17 +275,17 @@ import {
     primaryAssociationAncestry,
     probeAncestryAssociationAvailability,
     fetchGlobalAssociations,
-} from "./gp2Browser/variantSifterAssociationsApi.js";
-import { formatAssociationRows } from "./gp2Browser/variantSifterAssociationsTable.js";
-import { createFiltersIndex, applyAssociationsFilters } from "./gp2Browser/variantSifterAssociationsFilters.js";
-import { enrichAssociationRowsWithLdScores, enrichAssociationRowsWithLdScoresForRef } from "./gp2Browser/variantSifterLdServer.js";
+} from "./kpVariantSifter/variantSifterAssociationsApi.js";
+import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
+import { createFiltersIndex, applyAssociationsFilters } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
+import { enrichAssociationRowsWithLdScores, enrichAssociationRowsWithLdScoresForRef } from "./kpVariantSifter/variantSifterLdServer.js";
 import {
     emptyPlotMarkersState,
     createStarredVariant,
     isVariantStarred,
     togglePositionMarker,
     toggleStarredVariant,
-} from "./gp2Browser/variantSifterPlotMarkers.js";
+} from "./kpVariantSifter/variantSifterPlotMarkers.js";
 import {
     buildSessionExportFilename,
     countActiveAssociationFilters,
@@ -292,7 +293,7 @@ import {
     importVariantSifterSession,
     readSessionFile,
     saveJsonBundle,
-} from "./gp2Browser/variantSifterSession.js";
+} from "./kpVariantSifter/variantSifterSession.js";
 import {
     clampRegionZoom,
     clampRegionViewArea,
@@ -300,7 +301,7 @@ import {
     zoomFromSliderValue,
     VKS_REGION_ZOOM_SLIDER_MAX,
     VKS_REGION_ZOOM_SLIDER_MIN,
-} from "./gp2Browser/variantSifterRegionZoom.js";
+} from "./kpVariantSifter/variantSifterRegionZoom.js";
 import {
     cloneGenomicRegion,
     computeActiveRegion,
@@ -320,28 +321,28 @@ import {
     unionGenomicRegions,
     activeRegionTrimmedMessage,
     ensureRegionWithinActiveDataLimit,
-} from "./gp2Browser/variantSifterRegionPan.js";
-import { fetchGenesTrackData } from "./gp2Browser/variantSifterGenes.js";
+} from "./kpVariantSifter/variantSifterRegionPan.js";
+import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
 import {
     fetchGlobalEnrichment,
     fetchLocusAnnotations,
     mergeGeRowsByPhenotype,
     removeGeRowsForPhenotype,
-} from "./gp2Browser/variantSifterGlobalEnrichmentApi.js";
-import { fetchGeneLinks } from "./gp2Browser/variantSifterV2gApi.js";
-import { fetchVariantLinks } from "./gp2Browser/variantSifterS2gApi.js";
+} from "./kpVariantSifter/variantSifterGlobalEnrichmentApi.js";
+import { fetchGeneLinks } from "./kpVariantSifter/variantSifterV2gApi.js";
+import { fetchVariantLinks } from "./kpVariantSifter/variantSifterS2gApi.js";
 import {
     collectGenesFromTissueData,
     collectMethodsFromTissueData,
     emptyV2gState,
     normalizeV2gViewMode,
-} from "./gp2Browser/variantSifterV2gData.js";
+} from "./kpVariantSifter/variantSifterV2gData.js";
 import {
     buildS2gTissueData,
     emptyS2gState,
     hasS2gTrackData,
     VKS_S2G_TISSUE_LABEL,
-} from "./gp2Browser/variantSifterS2gData.js";
+} from "./kpVariantSifter/variantSifterS2gData.js";
 import {
     applyGlobalEnrichmentAnnoRows,
     buildAnnoDataFromRows,
@@ -359,7 +360,7 @@ import {
     selectedTissuesForAnnotation,
     setSelectedTissuesForAnnotation,
     upsertGeBiosampleTissueRegions,
-} from "./gp2Browser/variantSifterGlobalEnrichmentData.js";
+} from "./kpVariantSifter/variantSifterGlobalEnrichmentData.js";
 import {
     emptyMappingState,
     normalizeMappingState,
@@ -368,7 +369,7 @@ import {
     buildWorkspaceMappingFilter,
     collectMappingCategories,
     parseMappingCategoryId,
-} from "./gp2Browser/variantSifterMappingData.js";
+} from "./kpVariantSifter/variantSifterMappingData.js";
 import {
     isGwasCeProject,
     normalizeProjectId,
@@ -380,21 +381,21 @@ import {
     VKS_ASSOCIATION_PROJECT_GWAS_CE,
     VKS_ASSOCIATION_PROJECT_KP,
     VKS_PROJECT_DEFAULT_ID,
-} from "./gp2Browser/variantSifterProjects.js";
+} from "./kpVariantSifter/variantSifterProjects.js";
 import {
     loadRecentSearches,
     pushRecentSearch,
-} from "./gp2Browser/variantSifterRecentSearches.js";
-import { exportVariantSifterHtmlReport } from "./gp2Browser/variantSifterHtmlReport.js";
-import { normalizeV2gSelectedLinks } from "./gp2Browser/variantSifterV2gData.js";
-import { fetchInteractiveLlmHealth } from "./gp2Browser/variantSifterGeRelevanceLlm.js";
+} from "./kpVariantSifter/variantSifterRecentSearches.js";
+import { exportVariantSifterHtmlReport } from "./kpVariantSifter/variantSifterHtmlReport.js";
+import { normalizeV2gSelectedLinks } from "./kpVariantSifter/variantSifterV2gData.js";
+import { fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
 import {
     buildCs2ctStarPromptMessage,
     buildGeRelevanceIntroMessage,
     buildGeRelevanceOfferMessage,
     buildGeRelevanceReportMessage,
     buildGeRelevanceRunningMessage,
-} from "./gp2Browser/variantSifterAssistantGeRelevance.js";
+} from "./kpVariantSifter/variantSifterAssistantGeRelevance.js";
 import {
     buildUnderstudiedIntroMessage,
     buildUnderstudiedNoneFoundMessage,
@@ -403,7 +404,7 @@ import {
     buildUnderstudiedRunningMessage,
     buildUnderstudiedStarPrompt,
     filterUnderstudiedBottomLineInRegion,
-} from "./gp2Browser/variantSifterAssistantUnderstudied.js";
+} from "./kpVariantSifter/variantSifterAssistantUnderstudied.js";
 import {
     buildGeneticCorrelationIntroMessage,
     buildGeneticCorrelationPhenotypeGroups,
@@ -411,8 +412,8 @@ import {
     buildGeneticCorrelationRunningMessage,
     fetchGeneticCorrelation,
     filterSignificantGeneticCorrelations,
-} from "./gp2Browser/variantSifterAssistantGeneticCorrelation.js";
-import { runCs2ctTissueClassification } from "./gp2Browser/variantSifterCs2ctClassify.js";
+} from "./kpVariantSifter/variantSifterAssistantGeneticCorrelation.js";
+import { runCs2ctTissueClassification } from "./kpVariantSifter/variantSifterCs2ctClassify.js";
 import {
     appendAssistantEntries,
     createAssistantMessage,
@@ -423,18 +424,18 @@ import {
     emptyAssistantState,
     replacePendingAssistantEntry,
     clearAssistantResultEntries,
-} from "./gp2Browser/variantSifterAssistantConversation.js";
+} from "./kpVariantSifter/variantSifterAssistantConversation.js";
 import {
     findAssistantAction,
     matchVksAssistantRequest,
-} from "./gp2Browser/variantSifterAssistantActionCatalog.js";
-import { fetchRecombinationRate } from "./gp2Browser/variantSifterPlotShared.js";
+} from "./kpVariantSifter/variantSifterAssistantActionCatalog.js";
+import { fetchRecombinationRate } from "./kpVariantSifter/variantSifterPlotShared.js";
 import {
     pickLeadVariantRow,
     resolveLdReferenceRow,
     rowToLdVariant,
-} from "./gp2Browser/variantSifterLdServer.js";
-import { buildAssociationsRegionPlotConfig } from "./gp2Browser/variantSifterAssociationsPlotConfig.js";
+} from "./kpVariantSifter/variantSifterLdServer.js";
+import { buildAssociationsRegionPlotConfig } from "./kpVariantSifter/variantSifterAssociationsPlotConfig.js";
 import {
     fetchCredibleSetsList,
     fetchCredibleSetsListForAncestries,
@@ -444,7 +445,7 @@ import {
     isGwasCeCredibleSetEntry,
     mergeCredibleSetAvailableLists,
     tagCredibleSetEntries,
-} from "./gp2Browser/variantSifterCredibleSetsApi.js";
+} from "./kpVariantSifter/variantSifterCredibleSetsApi.js";
 import {
     credibleSetOptionLabel,
     credibleSetShortLabel,
@@ -452,18 +453,18 @@ import {
     formatCredibleVariantRows,
     makeCredibleSetSelectionKey,
     parseCredibleSetSelectionKey,
-} from "./gp2Browser/variantSifterCredibleSetsFormat.js";
-import { buildCredibleSetColorMap } from "./gp2Browser/variantSifterCredibleSetsColors.js";
-import { pruneCredibleSetsForRegion } from "./gp2Browser/variantSifterCredibleSetsRegion.js";
+} from "./kpVariantSifter/variantSifterCredibleSetsFormat.js";
+import { buildCredibleSetColorMap } from "./kpVariantSifter/variantSifterCredibleSetsColors.js";
+import { pruneCredibleSetsForRegion } from "./kpVariantSifter/variantSifterCredibleSetsRegion.js";
 import {
     cloneCredibleSetsPanelFilters,
     createCredibleSetsPanelFilters,
-} from "./gp2Browser/variantSifterCredibleSetsFilters.js";
+} from "./kpVariantSifter/variantSifterCredibleSetsFilters.js";
 import {
     normalizeSelectedGeneTypes,
     resolveSelectedGeneTypesForData,
     VKS_DEFAULT_GENE_TYPES,
-} from "./gp2Browser/variantSifterGenesFilter.js";
+} from "./kpVariantSifter/variantSifterGenesFilter.js";
 import {
     completeDeferredPhenotypeSeriesSteps,
     emptyRegionLoadProgress,
@@ -473,8 +474,8 @@ import {
     regionLoadProgressCanAutoDismiss,
     startRegionLoadProgress,
     VKS_REGION_LOAD_STATUS,
-} from "./gp2Browser/variantSifterRegionLoadProgress.js";
-import "./gp2Browser/vksSharedStyles.css";
+} from "./kpVariantSifter/variantSifterRegionLoadProgress.js";
+import "./kpVariantSifter/vksSharedStyles.css";
 
 function emptyAssociationsState() {
     return {

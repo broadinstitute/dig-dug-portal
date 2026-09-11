@@ -236,7 +236,11 @@ export function buildToolApis(
     });
 }
 
-export function buildToolInformation({ searchSession = null, genomeBuild = VKS_DEFAULT_GENOME_BUILD } = {}) {
+export function buildToolInformation({
+    searchSession = null,
+    genomeBuild = VKS_DEFAULT_GENOME_BUILD,
+    toolName = "KP Variant Sifter",
+} = {}) {
     const region = searchSession?.region;
     const regionLabel = searchSession?.regionLabel
         || (region
@@ -246,7 +250,7 @@ export function buildToolInformation({ searchSession = null, genomeBuild = VKS_D
     return [
         {
             label: "Tool",
-            value: "KP Variant Sifter",
+            value: toolName,
         },
         {
             label: "Genome build",

@@ -224,6 +224,10 @@ export default {
             type: Function,
             default: null,
         },
+        toolName: {
+            type: String,
+            default: "KP Variant Sifter",
+        },
     },
     data() {
         return {
@@ -249,7 +253,10 @@ export default {
                             (project) => project.id === this.projectId
                         )?.label || "Default (KP)",
                 },
-                ...buildToolInformation({ searchSession: this.searchSession }),
+                ...buildToolInformation({
+                    searchSession: this.searchSession,
+                    toolName: this.toolName,
+                }),
             ];
         },
     },

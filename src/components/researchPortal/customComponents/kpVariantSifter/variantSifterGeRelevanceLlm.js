@@ -1,11 +1,24 @@
-import {
-    classifyInteractiveCandidates,
-    getInteractiveHealth,
-} from "@/utils/revealKgApi.js";
+/**
+ * Phenotype→tissue relevance via DIG Bedrock gateway (`llm.hugeamp.org/bedrock`).
+ * Replaces the previous cfde-reveal `/api/interactive/classify-candidates` (OpenAI) path.
+ */
+import { createLLMClient } from "@/utils/llmClient";
+import { parseLlmJsonResponse } from "@/utils/llmUsageUtils";
 import { sortedAnnotationKeys } from "./variantSifterGlobalEnrichmentData.js";
-export const GE_RELEVANCE_LLM_MODEL = "gpt-4.1-nano";
+
+/** Bedrock uses the gateway default Claude model when omitted. */
+export const GE_RELEVANCE_LLM_PROVIDER = "bedrock";
 
 const CLASSIFY_BATCH_SIZE = 60;
+
+const GE_RELEVANCE_SYSTEM_PROMPT = `You classify which broad tissue categories are biologically relevant to a human disease or trait phenotype.
+Return JSON only with this shape:
+{"relevant_tissues":["tissue_a","tissue_b"]}
+Rules:
+- Only include tissues from the provided list.
+- Do not invent tissue names.
+- Do not classify annotation types.
+- If none are relevant, return {"relevant_tissues":[]}.`;
 
 export function buildGeAnnotationTissuePairs(annoData = {}) {
     const pairs = [];
@@ -43,91 +56,75 @@ export function buildGeRelevancePrompt(session, tissueLabels = []) {
         parts.push(`Phenotype description: ${description}.`);
     }
     parts.push(`Tissues: ${JSON.stringify(tissueLabels)}.`);
+    parts.push('Respond with JSON only: {"relevant_tissues":["..."]}');
     return parts.join(" ");
 }
 
-export function buildGeTissueCandidates(tissueLabels = []) {
-    return tissueLabels.map((tissue) => ({
-        candidate: {
-            node_id: tissue,
-            label: tissue,
-            node_type: "tissue",
-            type: "tissue",
-        },
-    }));
-}
-
-function parseTissueRelevanceResults(items = [], tissueLabels = []) {
+function parseRelevantTissuesFromResponse(raw, tissueLabels = []) {
     const tissueLabelSet = new Set(tissueLabels);
-    const relevantTissues = [];
-
-    items.forEach((item) => {
-        const tissueLabel = item?.display_name || item?.candidate_id;
-        if (!tissueLabel || !tissueLabelSet.has(tissueLabel)) {
-            return;
-        }
-        if (item?.relevance_label === "relevant") {
-            relevantTissues.push(tissueLabel);
-        }
-    });
-
-    return { relevantTissues };
-}
-
-async function classifyTissueBatch({
-    session,
-    prompt,
-    tissueLabels,
-    candidates,
-    batchIndex,
-    totalBatches,
-}) {
-    return classifyInteractiveCandidates({
-        anchor_items: [
-            {
-                label: session?.phenotype?.name || "phenotype",
-                node_type: "trait",
-                type: "trait",
-            },
-        ],
-        context: prompt,
-        target_type: "mixed",
-        reducer: "mean",
-        connection_scope: "direct",
-        candidates,
-        classify_novelty: false,
-        classify_relevance: true,
-        relevance_mode: "llm",
-        relevance_threshold: 0.3,
-        requested_label: "ge_relevance_tissue",
-        // VS has no novelty scores for these tissues; relevance-only classify path.
-        llm_model: GE_RELEVANCE_LLM_MODEL,
-        batch_index: batchIndex,
-        total_batches: totalBatches,
-        tissue_labels: tissueLabels,
-    });
-}
-
-export async function fetchInteractiveLlmHealth() {
-    try {
-        return await getInteractiveHealth();
-    } catch (error) {
-        const message = String(error?.message || "");
-        if (message.includes("502") || message.toLowerCase().includes("bad gateway")) {
-            return {
-                llm_available: false,
-                error:
-                    "Interactive API proxy failed (502). Ensure dig-dug-server revealKg.apiBaseUrl or webpack devServer proxy points to a running cfde-reveal host.",
-            };
-        }
-        return { llm_available: false, error: message || "Interactive API unavailable" };
+    const { ok, json } = parseLlmJsonResponse(raw);
+    if (!ok || !json || typeof json !== "object") {
+        return { relevantTissues: [], parseOk: false };
     }
+
+    const list = Array.isArray(json.relevant_tissues)
+        ? json.relevant_tissues
+        : Array.isArray(json.relevantTissues)
+          ? json.relevantTissues
+          : [];
+
+    const relevantTissues = list
+        .map((value) => String(value || "").trim())
+        .filter((tissue) => tissueLabelSet.has(tissue));
+
+    return { relevantTissues, parseOk: true };
+}
+
+function askBedrockJson({ systemPrompt, userPrompt }) {
+    return new Promise((resolve, reject) => {
+        const client = createLLMClient({
+            llm: GE_RELEVANCE_LLM_PROVIDER,
+            expectJson: true,
+            system_prompt: systemPrompt,
+        });
+        client.sendPrompt({
+            userPrompt,
+            onResponse: (raw) => resolve(raw),
+            onError: (err) =>
+                reject(err instanceof Error ? err : new Error(String(err || "Bedrock request failed"))),
+        });
+    });
 }
 
 /**
- * Ask the interactive LLM which broad tissue categories are relevant for the
- * searched phenotype. Variant Sifter GE data has no novelty scores; filtering is
- * phenotype↔tissue relevance only. Annotation types stay unfiltered.
+ * Bedrock gateway health for the assistant UI.
+ * Avoid a live model call on every open; treat the shared DIG Bedrock path as available
+ * and surface call-time failures in the GE relevance result instead.
+ */
+export async function fetchInteractiveLlmHealth() {
+    return {
+        llm_available: true,
+        provider: GE_RELEVANCE_LLM_PROVIDER,
+        endpoint: "https://llm.hugeamp.org/bedrock",
+    };
+}
+
+async function classifyTissueBatch({ session, tissueLabels }) {
+    const prompt = buildGeRelevancePrompt(session, tissueLabels);
+    const raw = await askBedrockJson({
+        systemPrompt: GE_RELEVANCE_SYSTEM_PROMPT,
+        userPrompt: prompt,
+    });
+    const parsed = parseRelevantTissuesFromResponse(raw, tissueLabels);
+    if (!parsed.parseOk) {
+        throw new Error("Could not parse Bedrock tissue-relevance JSON.");
+    }
+    return parsed.relevantTissues;
+}
+
+/**
+ * Ask Bedrock which broad tissue categories are relevant for the searched phenotype.
+ * Variant Sifter GE data has no novelty scores; filtering is phenotype↔tissue relevance only.
  */
 export async function fetchGeRelevanceFromLlm({
     session,
@@ -173,38 +170,36 @@ export async function fetchGeRelevanceFromLlm({
         };
     }
 
-    const prompt = buildGeRelevancePrompt(session, tissueLabels);
-    const candidateBatches = [];
-    const tissueCandidates = buildGeTissueCandidates(tissueLabels);
-    for (let index = 0; index < tissueCandidates.length; index += CLASSIFY_BATCH_SIZE) {
-        candidateBatches.push(tissueCandidates.slice(index, index + CLASSIFY_BATCH_SIZE));
-    }
-
-    const mergedItems = [];
-    let llmUsed = false;
-
-    for (let batchIndex = 0; batchIndex < candidateBatches.length; batchIndex += 1) {
-        const payload = await classifyTissueBatch({
-            session,
-            prompt,
-            tissueLabels,
-            candidates: candidateBatches[batchIndex],
-            batchIndex: batchIndex + 1,
-            totalBatches: candidateBatches.length,
-        });
-        if (payload?.llm_used) {
-            llmUsed = true;
+    try {
+        const relevant = new Set();
+        for (let index = 0; index < tissueLabels.length; index += CLASSIFY_BATCH_SIZE) {
+            const batch = tissueLabels.slice(index, index + CLASSIFY_BATCH_SIZE);
+            const batchRelevant = await classifyTissueBatch({
+                session,
+                tissueLabels: batch,
+            });
+            batchRelevant.forEach((tissue) => relevant.add(tissue));
         }
-        mergedItems.push(...(payload?.items || []));
-    }
 
-    const parsed = parseTissueRelevanceResults(mergedItems, tissueLabels);
-    return {
-        llmUsed,
-        tissueOnly: true,
-        filterComplete: true,
-        relevantAnnotations: annotationLabels,
-        relevantTissues: parsed.relevantTissues,
-        rationaleById: {},
-    };
+        return {
+            llmUsed: true,
+            tissueOnly: true,
+            filterComplete: true,
+            relevantAnnotations: annotationLabels,
+            relevantTissues: [...relevant].sort(),
+            rationaleById: {},
+        };
+    } catch (error) {
+        return {
+            llmUsed: false,
+            tissueOnly: true,
+            filterComplete: true,
+            relevantAnnotations: annotationLabels,
+            relevantTissues: [],
+            rationaleById: {},
+            error:
+                error?.message ||
+                "Bedrock tissue-relevance classification failed.",
+        };
+    }
 }
