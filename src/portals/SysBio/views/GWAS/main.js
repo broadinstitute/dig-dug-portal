@@ -177,10 +177,11 @@ new Vue({
         },
         async fetchData() {
             const limit = 500;
-            const url = `${BI}?limit=${limit}&q=${this.dataset},${this.subset}`;;
+            const url = `${BI}?limit=${limit}&q=${this.subset},${this.dataset}`;;
             const response = await fetch(url);
             const json = await response.json();
             this.tableData = json.data;
+            console.log(JSON.stringify)
         },
         async fetchInfo() {
             this.pageInfo = await getTextContent(
