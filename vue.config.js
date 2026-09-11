@@ -348,6 +348,13 @@ let pages = {
         title: "LIGER",
         chunks: ["chunk-vendors", "chunk-common", "liger"],
     },
+    gp2browser: {
+        entry: "src/views/GP2Browser/main.js",
+        template: "public/index.html",
+        filename: "gp2browser.html",
+        title: "GP2 Browser",
+        chunks: ["chunk-vendors", "chunk-common", "gp2browser"],
+    },
 };
 
 const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
