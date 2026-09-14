@@ -1,0 +1,324 @@
+:root {
+    --bg-color: #f9fafb;
+    --border-color: #d1d5db;
+    --primary-color: #3b82f6;
+    --text-main: #111827;
+    --text-muted: #4b5563;
+}
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 20px;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+}
+
+@media (max-width: 600px) {
+    body {
+        margin: 10px;
+    }
+}
+
+/* Layout & Controls */
+.controls {
+    display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;
+    background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 600px) {
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .controls > div {
+        max-width: none !important;
+    }
+}
+input[type="file"], input[type="text"] {
+    padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;
+}
+#status { color: var(--text-muted); font-size: 0.9em; font-weight: 500; }
+
+/* Tabs */
+.tabs {
+    display: flex; gap: 5px; border-bottom: 2px solid var(--border-color); margin-bottom: 20px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+.tab-btn {
+    padding: 10px 20px; border: none; background: transparent; cursor: pointer;
+    font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent;
+    margin-bottom: -2px; transition: all 0.2s;
+}
+.tab-btn:hover:not(:disabled) { color: var(--primary-color); }
+.tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+.tab-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* View Containers */
+.view-section { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+@media (max-width: 600px) {
+    .view-section {
+        padding: 15px 10px;
+    }
+}
+.view-section.active { display: block; }
+
+/* Table Specifics */
+.table-wrapper { overflow-x: auto; max-height: 60vh; border: 1px solid var(--border-color); margin-bottom: 15px;}
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e5e7eb; white-space: nowrap; font-size: 0.9em;}
+th { background-color: #f3f4f6; cursor: pointer; position: sticky; top: 0; z-index: 10; }
+th:hover { background-color: #e5e7eb; }
+
+.pagination { display: flex; gap: 10px; align-items: center; justify-content: flex-end; }
+button.page-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: white; cursor: pointer; border-radius: 4px; }
+button.page-btn:hover:not(:disabled) { background: #f3f4f6; }
+button.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Plot Specifics */
+#scatter-plot-container { width: 100%; height: 600px; border: 1px solid var(--border-color); border-radius: 4px; }
+
+/* =========================================
+   Genomic Filter Card & Animations
+   ========================================= */
+.filter-card {
+    background: white; border: 1px solid var(--border-color); border-radius: 8px;
+    margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden;
+}
+.filter-header {
+    padding: 12px 20px; background: #f9fafb; border-bottom: 1px solid var(--border-color);
+    display: flex; justify-content: space-between; align-items: center;
+}
+.filter-header h4 { margin: 0; color: #111827; display: flex; align-items: center; gap: 8px;}
+.filter-body { padding: 20px; transition: all 0.3s ease; }
+
+.reset-btn {
+    padding: 4px 10px; font-size: 0.8em; background: #fee2e2; color: #b91c1c;
+    border: 1px solid #f87171; border-radius: 4px; cursor: pointer; transition: 0.2s;
+}
+.reset-btn:hover { background: #fecaca; }
+
+/* Chromosome Grid Buttons */
+.chr-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chr-btn {
+    padding: 6px 12px; border: 1px solid var(--border-color); background: white;
+    border-radius: 20px; cursor: pointer; font-weight: 500; color: var(--text-muted);
+    transition: all 0.2s ease;
+}
+.chr-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.chr-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3); }
+
+/* Elegant Dual Range Slider */
+.region-selector {
+    margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border-color);
+    animation: fadeInDown 0.4s ease forwards;
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.range-slider { position: relative; width: 100%; height: 40px; }
+.slider-track { position: absolute; width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; top: 50%; transform: translateY(-50%); z-index: 1; }
+.slider-range { position: absolute; height: 6px; background: var(--primary-color); border-radius: 3px; top: 50%; transform: translateY(-50%); z-index: 2; }
+
+.range-slider input[type="range"] {
+    position: absolute; width: 100%; height: 100%; top: 0; -webkit-appearance: none; background: transparent; pointer-events: none; z-index: 3; margin: 0;
+}
+.range-slider input[type="range"]::-webkit-slider-thumb {
+    pointer-events: auto; -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: white; border: 2px solid var(--primary-color); box-shadow: 0 1px 3px rgba(0,0,0,0.3); cursor: grab;
+}
+.range-slider input[type="range"]::-webkit-slider-thumb:active { cursor: grabbing; background: var(--primary-color); }
+
+.region-inputs { display: flex; gap: 15px; align-items: flex-end; margin-top: 15px; flex-wrap: wrap;}
+.input-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.input-group label { font-size: 0.8em; font-weight: bold; color: var(--text-muted); }
+.input-group input { padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; }
+
+/* =========================================
+   Trait Card Styles (Expandable Row)
+   ========================================= */
+.trait-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    /* Forces long citations/URLs to wrap instead of overflowing */
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.trait-citation {
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+/* FALCON Zoom Controls */
+.zoom-controls {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 20px;
+    background: #f9fafb;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+.zoom-section {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.zoom-section:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+.zoom-section h4 {
+    margin: 0 0 10px 0;
+    color: #111827;
+    font-size: 0.95em;
+}
+.zoom-field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    align-items: end;
+}
+.zoom-field-grid .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.zoom-field-grid input,
+.zoom-field-grid select {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+.autocomplete-field {
+    position: relative;
+}
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: none;
+    z-index: 1000;
+    max-height: 220px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.run-field button,
+.zoom-actions button {
+    padding: 9px 14px;
+    border: none;
+    border-radius: 4px;
+    background: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+.zoom-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.zoom-actions #btn-show-ld {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+.ld-controls {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.ld-controls input[type="number"] {
+    width: 70px;
+    padding: 4px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+}
+.zoom-tables {
+    display: grid;
+    gap: 18px;
+    margin-top: 18px;
+}
+.zoom-table-card {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: white;
+    overflow: hidden;
+}
+.zoom-table-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    background: #f9fafb;
+    border-bottom: 1px solid var(--border-color);
+}
+.zoom-table-header h4 {
+    margin: 0;
+}
+.zoom-table-header input {
+    width: min(260px, 100%);
+    padding: 7px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+.zoom-table-wrapper {
+    overflow: auto;
+    max-height: 320px;
+}
+.zoom-table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88em;
+}
+.zoom-table-wrapper th,
+.zoom-table-wrapper td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    white-space: nowrap;
+}
+.zoom-table-wrapper th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f3f4f6;
+    cursor: pointer;
+}
+.zoom-table-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px 12px;
+}
+.zoom-table-pagination button {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+}
+@media (max-width: 768px) {
+    .ld-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    #zoom-scatter-plot-container {
+        min-height: 440px;
+    }
+    .zoom-table-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

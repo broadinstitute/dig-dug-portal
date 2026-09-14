@@ -1,0 +1,1369 @@
+Idx	IdName	Description	Unknown	Category
+8	CerebellarVol	Total cerebellar volume	0	NEUROLOGICAL
+286	Thyroid	Hypothyroidism	1	GLYCEMIC
+287	SmokingFGint	Smoking-fasting glucose interaction	0	GLYCEMIC
+288	SmokingFGjoint	Smoking-fasting glucose interaction, joint 2-degree-of-freedom test	0	GLYCEMIC
+289	SmokingFGmain	Smoking-fasting glucose interaction, main effect model	0	GLYCEMIC
+290	SmokingT2Dint	Smoking-T2D interaction	0	GLYCEMIC
+291	SmokingT2Djoint	Smoking-T2D interaction, joint 2-degree-of-freedom test	0	GLYCEMIC
+292	SmokingT2Dmain	Smoking-T2D interaction, main effect model	0	GLYCEMIC
+293	AllergicRhinitis	Allergic rhinitis	1	IMMUNOLOGICAL
+294	Asthma	Asthma	1	LUNG
+295	Cancer	Any cancer	1	CANCER
+296	Dermatophytosis	Dermatophytosis	1	OTHER
+297	Dyslipid	Dyslipidemia	1	LIPIDS
+298	Hemorrhoids	Hemorrhoids	1	DIGESTIVE
+299	HerniaAbdomin	Hernia abdominopelvic cavity	1	MUSCULOSKELETAL
+300	IBS	Irritable bowel syndrome (IBS)	1	DIGESTIVE
+301	IronDef	Iron deficiency	1	NUTRITIONAL
+302	Osteoporosis	EHR-defined osteoporosis	1	MUSCULOSKELETAL
+303	PVD	Peripheral vascular disease	1	CARDIOVASCULAR
+305	Psychiatric	Psychiatric disorders	1	PSYCHIATRIC
+306	Stress	Acute reaction to stress	1	PSYCHIATRIC
+307	VaricoseVeins	Varicose veins	1	CARDIOVASCULAR
+308	SCOOPvSTILTS	Obese vs thin	1	ANTHROPOMETRIC
+309	SCOOPvUKHLS	Obese vs controls	1	ANTHROPOMETRIC
+310	STILTSvUKHLS	Controls vs thin	1	ANTHROPOMETRIC
+311	AFR	Arm fat ratio	0	ANTHROPOMETRIC
+312	LFR	Leg fat ratio	0	ANTHROPOMETRIC
+313	TFR	Trunk fat ratio	0	ANTHROPOMETRIC
+314	RA	Low relative amplitude cases vs controls	1	SLEEP AND CIRCADIAN
+315	RAQT	Relative amplitude	0	SLEEP AND CIRCADIAN
+316	Snoring	Snoring	1	SLEEP AND CIRCADIAN
+317	SnoringAdjBMI	Snoring adj BMI	1	SLEEP AND CIRCADIAN
+318	EaseOfWakingUp	Ease of waking up	0	SLEEP AND CIRCADIAN
+319	mRS012v3456	Modified Rankin scale score 0-2 vs 3-6	1	STROKE
+320	mRS012v3456AdjSever	Modified Rankin scale score 0-2 vs 3-6 adj stroke severity	1	STROKE
+321	mRS01v23456	Modified Rankin scale score 0-1 vs 2-6	1	STROKE
+322	mRS01v23456AdjSever	Modified Rankin scale score 0-1 vs 2-6 adj stroke severity	1	STROKE
+323	mRSOrdinal	Modified Rankin scale score	0	STROKE
+324	mRSOrdinalAdjSever	Modified Rankin scale score adj stroke severity	0	STROKE
+325	IPF	Idiopathic pulmonary fibrosis	1	LUNG
+326	ALBUMIN	Urinary albumin	0	RENAL
+329	LDL_CALCULATED	Calculated LDL cholesterol	0	LIPIDS
+331	AnyCVD	Any cardiovascular disease (CVD)	1	CARDIOVASCULAR
+334	ChildSleepDurationAdjBMI	Sleep duration in children adj BMI	0	SLEEP AND CIRCADIAN
+335	ClaudicationinT2D	Claudication in type 2 diabetes	1	DIABETIC COMPLICATIONS
+336	DiabeticNephro	Diabetic nephropathy	1	DIABETIC COMPLICATIONS
+337	DiabeticRetino	Diabetic retinopathy	1	DIABETIC COMPLICATIONS
+338	DRvNoDR	Diabetic retinopathy (DR) vs no DR	1	DIABETIC COMPLICATIONS
+339	DRvNoDRwDoD	Diabetic retinopathy (DR) vs no DR acct DoD-GC	1	DIABETIC COMPLICATIONS
+340	FGovertime	Fasting glucose change over time	0	GLYCEMIC
+341	HIPKNEEOA	Knee and-or hip osteoarthritis	1	MUSCULOSKELETAL
+342	HIPOA	Hip osteoarthritis	1	MUSCULOSKELETAL
+343	HYPERTENSION	Hypertension	1	CARDIOVASCULAR
+344	HypertensioninT2D	Hypertension in type 2 diabetes	1	DIABETIC COMPLICATIONS
+345	KNEEOA	Knee osteoarthritis	1	MUSCULOSKELETAL
+346	LVEDV	Left ventricular end-diastolic volume	0	CARDIOVASCULAR
+347	LVEDVI	Left ventricular end-diastolic volume (BSA-indexed)	0	CARDIOVASCULAR
+348	LVEF	Left ventricular ejection fraction	0	CARDIOVASCULAR
+349	LVESV	Left ventricular end-systolic volume	0	CARDIOVASCULAR
+350	LVESVI	Left ventricular end-systolic volume (BSA-indexed)	0	CARDIOVASCULAR
+351	MIinT2D	Myocardial infarction in type 2 diabetes	1	DIABETIC COMPLICATIONS
+352	NPDRvNoDR	Non-proliferative diabetic retinopathy vs no DR	1	DIABETIC COMPLICATIONS
+353	NPDRvNoDRwDoD	Non-proliferative diabetic retinopathy vs no DR acct DoD-GC	1	DIABETIC COMPLICATIONS
+354	Obesity	Obesity	1	ANTHROPOMETRIC
+355	PDRvNoDR	Proliferative diabetic retinopathy vs no DR	1	DIABETIC COMPLICATIONS
+356	PDRvNoDRwDoD	Proliferative diabetic retinopathy vs no DR acct DoD-GC	1	DIABETIC COMPLICATIONS
+357	PDRvNoPDR	Proliferative diabetic retinopathy (PDR) vs no PDR	1	DIABETIC COMPLICATIONS
+358	PDRvNoPDRwDoD	Proliferative diabetic retinopathy (PDR) vs no PDR acct DoD-GC	1	DIABETIC COMPLICATIONS
+359	PVDinT2D	Peripheral vascular disease in type 2 diabetes	1	DIABETIC COMPLICATIONS
+360	RedCount	Red blood cell count	0	HEMATOLOGICAL
+361	StrokeinT2D	Stroke in type 2 diabetes	1	DIABETIC COMPLICATIONS
+362	SVI	Left ventricular stroke volume (BSA-indexed)	0	CARDIOVASCULAR
+363	SVL	Left ventricular stroke volume	0	CARDIOVASCULAR
+364	T1D	Type 1 diabetes (T1D)	1	TYPE 1 DIABETES
+3068	2hrG	Two-hour (2hr) glucose	0	GLYCEMIC
+3069	2hrI	Two-hour (2hr) insulin	0	GLYCEMIC
+3070	Adiponectin	Adiponectin	0	GLYCEMIC
+3071	AD	Alzheimer's disease	1	NEUROLOGICAL
+3072	AF	Atrial fibrillation	1	ATRIAL FIBRILLATION
+3073	AFxAGE	AF-SNP age interaction	1	ATRIAL FIBRILLATION
+3074	AFxAGEo65	AF-over age 65	1	ATRIAL FIBRILLATION
+3075	AFxAGEy65	AF-age 65 and under	1	ATRIAL FIBRILLATION
+3076	AFxBMI	AF-SNP BMI interaction	1	ATRIAL FIBRILLATION
+3077	AFxHTN	AF-SNP hypertension interaction	1	ATRIAL FIBRILLATION
+3078	AFxSEX	AF-SNP sex interaction	1	ATRIAL FIBRILLATION
+3080	allDKD	All diabetic kidney disease (DKD)	1	RENAL
+3082	ALP	Alkaline phosphatase (ALP)	0	HEPATIC
+3083	ALS	Amyotrophic lateral sclerosis (ALS)	1	NEUROLOGICAL
+3084	ALT	Alanine transaminase (ALT)	0	HEPATIC
+3085	AMD	Age-related macular degeneration (AMD)	1	OCULAR
+3086	AST	Aspartate aminotransferase (AST)	0	HEPATIC
+3087	AUCins	Area under the curve (AUC) for insulin	0	GLYCEMIC
+3088	AUCinsAUCgluc	AUCins over AUCgluc	0	GLYCEMIC
+3089	BFP	Body fat percentage	0	ANTHROPOMETRIC
+3090	BIP	Bipolar disorder	1	PSYCHIATRIC
+3091	BMI	Body mass index (BMI)	0	ANTHROPOMETRIC
+3092	CAD	Coronary artery disease (CAD)	1	CARDIOVASCULAR
+3103	CD	Crohn's disease	1	INFLAMMATORY BOWEL
+3104	ChildObesity	Childhood obesity	1	ANTHROPOMETRIC
+3105	CHOL	Total cholesterol	0	LIPIDS
+3106	CIR	Corrected insulin response (CIR)	0	GLYCEMIC
+3107	CIRadjISI	Corrected insulin response adj Matsuda ISI	0	GLYCEMIC
+3108	CKD	Chronic kidney disease (CKD)	1	RENAL
+3112	CKDpDKD	Chronic kidney disease and diabetic kidney disease (CKD and DKD)	1	RENAL
+3114	Creatinine	Serum creatinine	0	RENAL
+3115	DBP	Diastolic blood pressure	0	CARDIOVASCULAR
+3116	DI	Disposition index	0	GLYCEMIC
+3118	eGFRcrea	eGFRcreat (serum creatinine)	0	RENAL
+3119	eGFRcys	eGFRcys (serum cystatin C)	0	RENAL
+3130	FG	Fasting glucose	0	GLYCEMIC
+3132	FGadjBMI	Fasting glucose adj BMI	0	GLYCEMIC
+3133	FI	Fasting insulin	0	GLYCEMIC
+3134	FIadjBMI	Fasting insulin adj BMI	0	GLYCEMIC
+3135	GA	Geographic atrophy	1	OCULAR
+3137	GGT	Gamma-glutamyl transferase (GGT)	0	HEPATIC
+3138	HBA1C	Hemoglobin A1c	0	GLYCEMIC
+3141	HDL	HDL cholesterol	0	LIPIDS
+3142	HEIGHT	Height	0	ANTHROPOMETRIC
+3143	HF	Heart failure	1	CARDIOVASCULAR
+3144	HIPC	Hip circumference	0	ANTHROPOMETRIC
+3145	HIPCadjBMI	Hip circumference adj BMI	0	ANTHROPOMETRIC
+3146	HOMAB	HOMA-B	0	GLYCEMIC
+3147	HOMAIR	HOMA-IR	0	GLYCEMIC
+3148	HR	Heart rate	0	CARDIOVASCULAR
+3149	IBD	Inflammatory bowel disease (IBD)	1	INFLAMMATORY BOWEL
+3150	IGI	Insulinogenic index	0	GLYCEMIC
+3151	Incr30	Incremental insulin at 30 min OGTT	0	GLYCEMIC
+3152	Ins30	Insulin at 30 min OGTT	0	GLYCEMIC
+3153	Ins30adjBMI	Insulin at 30 min OGTT adj BMI	0	GLYCEMIC
+3154	ISen	Insulin sensitivity	0	GLYCEMIC
+3155	ISenBMI	Insulin sensitivity adj BMI	0	GLYCEMIC
+3156	ISI	Matsuda insulin sensitivity index (ISI)	0	GLYCEMIC
+3157	ISIadjAgeSex	Modified Stumvoll ISI adj age-sex	0	GLYCEMIC
+3158	ISIadjAgeSexBMI	Modified Stumvoll ISI adj age-sex-BMI	0	GLYCEMIC
+3159	ISIadjBMIinterGenoBMI	Modified Stumvoll ISI adj genotype-BMI interaction	0	GLYCEMIC
+3160	lateDKD	Late diabetic kidney disease	1	RENAL
+3162	LDL	LDL cholesterol	0	LIPIDS
+3163	LEP	Leptin	0	LIPIDS
+3164	LEPadjBMI	Leptin adj BMI	0	LIPIDS
+3165	MA	Microalbuminuria	1	RENAL
+3167	MacrovControl	Macroalbuminuria vs. controls	1	RENAL
+3169	MDD	Major depressive disorder, strict definition (ICD and equivalent)	1	PSYCHIATRIC
+3170	MI	Myocardial infarction	1	CARDIOVASCULAR
+3171	n6FA182	Linoleic acid	0	LIPIDS
+3177	ND	Neovascular age-related macular degeneration	1	OCULAR
+3178	NICM	Nonischemic cardiomyopathy	1	CARDIOVASCULAR
+3179	PACG	Primary angle-closure glaucoma	1	OCULAR
+3182	PI	Fasting proinsulin	0	GLYCEMIC
+3183	PRI	PR interval	0	ECG TRAITS
+3185	Pwave_duration	P-wave duration	0	ECG TRAITS
+3186	QRS	QRS interval	0	ECG TRAITS
+3189	SBP	Systolic blood pressure	0	CARDIOVASCULAR
+3190	SCZ	Schizophrenia	1	PSYCHIATRIC
+3191	SleepChronotype	Chronotype (morningness)	0	SLEEP AND CIRCADIAN
+3192	SleepDuration	Sleep duration	0	SLEEP AND CIRCADIAN
+3193	SleepEDS	Excessive daytime sleepiness	1	SLEEP AND CIRCADIAN
+3194	SleepInsomnia	Frequent insomnia symptoms	1	SLEEP AND CIRCADIAN
+3195	SleepLong	Long sleep duration	1	SLEEP AND CIRCADIAN
+3196	SleepNaps	Daytime napping	0	SLEEP AND CIRCADIAN
+3197	SleepShort	Short sleep duration	1	SLEEP AND CIRCADIAN
+3199	Stroke_deep	Non-lobar intracranial hemorrhage	1	STROKE
+3200	Stroke_hemorrhagic	All intracranial hemorrhage	1	STROKE
+3201	Stroke_ischemic	All ischemic stroke	1	STROKE
+3202	Stroke_lobar	Lobar intracranial hemorrhage	1	STROKE
+3203	Stroke	Any stroke	1	STROKE
+3204	allSVS	Intracerebral hemorrhage or small vessel ischemic stroke	1	STROKE
+3205	lobarSVS	Lobar intracerebral hemorrhage or small vessel ischemic stroke	1	STROKE
+3206	nonlobarSVS	Non-lobar intracerebral hemorrhage or small vessel ischemic stroke	1	STROKE
+3207	T2D	Type 2 diabetes (T2D)	1	GLYCEMIC
+3208	T2DadjBMI	Type 2 diabetes (T2D) adj BMI	1	GLYCEMIC
+3209	TG	Triglycerides	0	LIPIDS
+3210	toastCE	TOAST cardio-aortic embolism	1	STROKE
+3211	toastDETER	TOAST other determined	1	STROKE
+3212	toastLAA	TOAST large artery atherosclerosis	1	STROKE
+3213	toastSAO	TOAST small artery occlusion	1	STROKE
+3214	toastUNDETER	TOAST other undetermined	1	STROKE
+3215	UACR	Urinary albumin-to-creatinine ratio (UACR)	0	RENAL
+3216	UC	Ulcerative colitis	1	INFLAMMATORY BOWEL
+3217	Urate	Serum urate	0	RENAL
+3223	WAIST	Waist circumference	0	ANTHROPOMETRIC
+3224	WAISTadjBMI	Waist circumference adj BMI	0	ANTHROPOMETRIC
+3225	WHR	Waist-hip ratio	0	ANTHROPOMETRIC
+3226	WHRadjBMI	Waist-hip ratio adj BMI	0	ANTHROPOMETRIC
+3227	WMH	Cerebral white matter hyperintensity volume	0	CEREBROVASCULAR MRI TRAITS
+3228	BS	Random glucose	0	GLYCEMIC
+3229	CK	Creatine kinase	0	CARDIOVASCULAR
+3230	MAP	Mean arterial pressure	0	CARDIOVASCULAR
+3231	Ca	Calcium	0	METABOLITE
+3232	Cl	Chloride	0	METABOLITE
+3233	K	Potassium	0	METABOLITE
+3234	Sodium	Sodium	0	METABOLITE
+3235	P	Phosphorus	0	METABOLITE
+3236	BUN	Blood urea nitrogen	0	RENAL
+3237	UA	Uric acid	0	RENAL
+3238	POAG	Primary open-angle glaucoma	1	OCULAR
+3239	Men	Age at menarche	0	REPRODUCTIVE TRAITS
+3240	MP	Age at natural menopause (ANM)	0	REPRODUCTIVE TRAITS
+3241	Fbg	Fibrinogen	0	HEMATOLOGICAL
+3242	Hb	Hemoglobin	0	HEMATOLOGICAL
+3243	LDH	Lactate dehydrogenase (LDH)	0	METABOLITE
+3245	AHI	Apnea-Hypopnea Index (AHI)	0	SLEEP AND CIRCADIAN
+3246	AHIinNREM	Apnea-Hypopnea Index (AHI) in NREM sleep	0	SLEEP AND CIRCADIAN
+3247	AHIinREM	Apnea-Hypopnea Index (AHI) in REM sleep	0	SLEEP AND CIRCADIAN
+3248	SpO2min	Minimum oxyhemoglobin saturation (SpO2) during sleep	0	SLEEP AND CIRCADIAN
+3249	SpO2per90	Percentage of sleep with oxyhemoglobin saturation (SpO2) under 90%	0	SLEEP AND CIRCADIAN
+3250	SpO2avg	Average oxyhemoglobin saturation during sleep	0	SLEEP AND CIRCADIAN
+3252	MeanSleepDiurnalInactRN	Diurnal inactivity duration, rank-normalized	0	SLEEP AND CIRCADIAN
+3254	MeanSleepDurationRN	Mean sleep duration, rank-normalized	0	SLEEP AND CIRCADIAN
+3256	MeanSleepEfficiencyRN	Sleep efficiency, rank-normalized	0	SLEEP AND CIRCADIAN
+3258	MeanSleepL5timeRN	Least-active 5 hour timing, rank-normalized	0	SLEEP AND CIRCADIAN
+3260	MeanSleepM10timeRN	Most-active 10 hour timing, rank-normalized	0	SLEEP AND CIRCADIAN
+3262	MeanSleepMidPointRN	Sleep midpoint timing, rank-normalized	0	SLEEP AND CIRCADIAN
+3264	MeanSleepNumEpisodesRN	Number of sleep episodes, rank-normalized	0	SLEEP AND CIRCADIAN
+3266	StDevSleepDurationRN	Standard deviation of sleep duration, rank-normalized	0	SLEEP AND CIRCADIAN
+3267	2hrFFA	2hr plasma free fatty acids	0	LIPIDS
+3268	AcAce	Acetoacetate	0	METABOLITE
+3269	Ace	Acetate	0	METABOLITE
+3270	Ala	Alanine	0	METABOLITE
+3271	Alb	Serum albumin	0	HEPATIC
+3272	ApoA1	Serum ApoA1	0	LIPIDS
+3273	ApoB	Serum ApoB	0	LIPIDS
+3274	BILIRUBIN	Total bilirubin	0	HEPATIC
+3275	CKDinT2D	Chronic kidney disease (CKD) in type 2 diabetes (T2D)	1	DIABETIC COMPLICATIONS
+3276	COPD	Chronic obstructive pulmonary disease (COPD)	1	LUNG
+3277	CRP	Plasma C-reactive protein	0	CARDIOVASCULAR
+3278	Cit	Citrate	0	METABOLITE
+3279	DHA	Docosahexaenoic acid	0	LIPIDS
+3280	ESRDinT2D	End-stage renal disease in type 2 diabetes (ESRD in T2D)	1	DIABETIC COMPLICATIONS
+3281	EtOH	Alcohol consumption	0	NUTRITIONAL
+3282	FAw3	Omega-3 fatty acids	0	LIPIDS
+3283	FAw6	Omega-6 fatty acids	0	LIPIDS
+3284	FastFFA	Fasting plasma free fatty acids	0	LIPIDS
+3285	Fracture	Bone fracture	1	MUSCULOSKELETAL
+3286	Gln	Glutamine	0	METABOLITE
+3287	Glol	Glycerol	0	METABOLITE
+3288	Gly	Glycine	0	METABOLITE
+3289	Gp	Glycoproteins	0	METABOLITE
+3290	HDL2chol	HDL2 cholesterol	0	LIPIDS
+3291	HDL3chol	HDL3 cholesterol	0	LIPIDS
+3292	His	Histidine	0	METABOLITE
+3293	IDLchol	IDL cholesterol	0	LIPIDS
+3294	IDLpart	Concentration of IDL particles	0	LIPIDS
+3295	Ile	Isoleucine	0	METABOLITE
+3296	Leu	Leucine	0	METABOLITE
+3297	MUFA	Total monounsaturated fatty acids	0	LIPIDS
+3298	NeuropathyinT2D	Neuropathy in type 2 diabetes	1	DIABETIC COMPLICATIONS
+3299	PC	Phosphocholines	0	METABOLITE
+3300	PUFA	Total polyunsaturated fatty acids	0	LIPIDS
+3301	Phe	Phenylalanine	0	METABOLITE
+3302	PulsePress	Pulse pressure	0	CARDIOVASCULAR
+3303	Pyr	Pyruvate	0	METABOLITE
+3304	RemnantC	Remnant cholesterol	0	LIPIDS
+3305	SFA	Total saturated fatty acids	0	LIPIDS
+3306	SM	Sphingomyelins	0	LIPIDS
+3307	TotCho	Total cholines	0	METABOLITE
+3308	TotPG	Total phosphoglycerides	0	LIPIDS
+3309	Tyr	Tyrosine	0	METABOLITE
+3310	VLDLchol	VLDL cholesterol	0	LIPIDS
+3311	Val	Valine	0	METABOLITE
+3312	VitD	Vitamin D levels	0	METABOLITE
+3313	WEIGHT	Weight	0	ANTHROPOMETRIC
+3314	XXLVLDLpart	Chylomicrons and XXL-VLDL cholesterol	0	LIPIDS
+3315	bOHBut	Beta-hydroxybutyric acid	0	METABOLITE
+3316	eBMD	Heel quantitative ultrasound estimated bone mineral density (eBMD)	0	MUSCULOSKELETAL
+3317	HBA1CadjBMI	HbA1c adj BMI	0	GLYCEMIC
+3318	2hrCPEP	Two-hour (2hr) C-peptide	0	GLYCEMIC
+3319	CPEP_FAST	Fasting C-peptide	0	GLYCEMIC
+3320	DIadjBMI	Disposition index adj BMI	0	GLYCEMIC
+3321	PEAKadjSI	Peak insulin response adj SI	0	GLYCEMIC
+3322	AIRadjBMInSI	Acute insulin response adj BMI-SI	0	GLYCEMIC
+3323	ISR	Insulin secretion rate	0	GLYCEMIC
+3324	PEAKadjBMInSI	Peak insulin response adj BMI-SI	0	GLYCEMIC
+3325	ISRadjBMI	Insulin secretion rate adj BMI	0	GLYCEMIC
+3326	PEAK	Peak insulin response	0	GLYCEMIC
+3327	AIR	Acute insulin response	0	GLYCEMIC
+3328	AIRadjSI	Acute insulin response adj SI	0	GLYCEMIC
+3329	TGtoHDL	Triglyceride-to-HDL ratio	0	LIPIDS
+3330	CreatinineUrinary	Urinary creatinine	0	RENAL
+3331	FEV1	Forced expired volume in 1 second (FEV1)	0	LUNG
+3332	FVC	Forced vital capacity (FVC)	0	LUNG
+3333	FEV1toFVC	FEV1 to FVC ratio	0	LUNG
+3334	PEF	Peak expiratory flow	0	LUNG
+3335	LSarea	Lumbar spine area	0	MUSCULOSKELETAL
+3336	TrochanterArea	Trochanter area	0	MUSCULOSKELETAL
+3337	IntertrochArea	Intertrochanteric-shaft area	0	MUSCULOSKELETAL
+3338	TotHipArea	Total hip area	0	MUSCULOSKELETAL
+3339	FNarea	Femoral neck area	0	MUSCULOSKELETAL
+3340	LSBMD	Lumbar spine bone mineral density	0	MUSCULOSKELETAL
+3341	FNBMD	Femoral neck bone mineral density	0	MUSCULOSKELETAL
+3342	CADinT2D	Coronary artery disease in type 2 diabetes (CAD in T2D)	1	DIABETIC COMPLICATIONS
+3343	CADinNonT2D	Coronary artery disease (CAD) in subjects without diabetes	1	CARDIOVASCULAR
+3344	CVDinT2D	Coronary heart disease or stroke or peripheral vascular disease in type 2 diabetes (T2D)	1	DIABETIC COMPLICATIONS
+3345	BMIadjSMK	BMI adj smoking status	0	ANTHROPOMETRIC
+3346	WCadjBMISMK	Waist circumference adj BMI-smoking status	0	ANTHROPOMETRIC
+3347	WHRadjBMISMK	Waist-hip ratio adj BMI-smoking status	0	ANTHROPOMETRIC
+3348	freshfruit	Fresh fruit consumption	0	NUTRITIONAL
+3349	oilyfish	Oily fish consumption	0	NUTRITIONAL
+3350	saltconsumption	Salt addition to food	0	NUTRITIONAL
+3351	PC1diet	PC1 dietary pattern	0	NUTRITIONAL
+3352	PC3diet	PC3 dietary pattern	0	NUTRITIONAL
+3579	PepticUlcers	Peptic ulcers	1	DIGESTIVE
+3580	USPR	Urinary sodium-to-potassium ratio	0	RENAL
+3581	FG_plus_diab	Fasting plasma glucose in subjects with and without diabetes	0	GLYCEMIC
+3582	USCR	Urinary sodium-to-creatinine ratio	0	RENAL
+3583	UPCR	Urinary potassium-to-creatinine ratio	0	RENAL
+3586	Parkinsons	Parkinson's disease	1	NEUROLOGICAL
+3589	MultipleSclerosis	Multiple sclerosis	1	IMMUNOLOGICAL
+3593	TB-BMD	Total body bone mineral density	0	MUSCULOSKELETAL
+3594	TBLH-BMD	Total body (less head) bone mineral density 	0	MUSCULOSKELETAL
+3595	TB-LM	Total body lean mass	0	MUSCULOSKELETAL
+3596	Ap-LM	Appendicular lean body mass	0	MUSCULOSKELETAL
+3597	IA	Intracranial aneurysm	1	STROKE
+3598	IAU	Unruptured intracranial aneurysm	1	STROKE
+3599	SAH	Aneurysmal subarachnoid hemorrhage	1	STROKE
+3600	ForearmBMD	Forearm bone mineral density	0	MUSCULOSKELETAL
+3601	ChronotypeSingle	Chronotype (single question)	1	SLEEP AND CIRCADIAN
+3602	smeq_binary	Chronotype (binary sMEQ score)	1	SLEEP AND CIRCADIAN
+3603	smeq_cont	Chronotype (continuous sMEQ score)	0	SLEEP AND CIRCADIAN
+3606	SeverevNonHospC19	Very severe respiratory confirmed vs non-hospitalized COVID-19	1	COVID-19
+3607	SevereC19vAll	Very severe respiratory confirmed COVID-19 vs population	1	COVID-19
+3608	HospvNonHospC19	Hospitalized vs non-hospitalized COVID-19	1	COVID-19
+3609	HospC19vAll	Hospitalized COVID-19 vs population	1	COVID-19
+3610	C19vNeg	COVID-19 vs no COVID-19	1	COVID-19
+3611	C19vAll	COVID-19 vs population	1	COVID-19
+3612	PredC19vPredNoC19	Predicted COVID-19 vs predicted COVID-19 negative	1	COVID-19
+3613	LateAD	Late-onset Alzheimer's disease	1	NEUROLOGICAL
+3614	NaExcretion	Urinary sodium excretion	0	RENAL
+3615	KExcretion	Urinary potassium excretion	0	RENAL
+3616	MN	Membranous nephropathy	1	RENAL
+3617	LADA	Latent autoimmune diabetes in adults	1	IMMUNOLOGICAL
+3618	CADinT1D	Coronary artery disease in type 1 diabetes	1	DIABETIC COMPLICATIONS
+3619	UACR_DM	Urinary albumin-to-creatinine ratio (UACR) in subjects with diabetes	0	RENAL
+3620	UACR_nonDM	Urinary albumin-to-creatinine ratio (UACR) in subjects without diabetes	0	RENAL
+3621	HbConc	Hemoglobin concentration	0	HEMATOLOGICAL
+3622	Hematocrit	Hematocrit	0	HEMATOLOGICAL
+3623	MeanCorpHb	Mean corpuscular hemoglobin	0	HEMATOLOGICAL
+3624	MeanCorpVol	Mean corpuscular volume	0	HEMATOLOGICAL
+3625	MeanCorpHbConc	Mean corpuscular hemoglobin concentration	0	HEMATOLOGICAL
+3626	RBCDistWidth	Red blood cell distribution width	0	HEMATOLOGICAL
+3627	WBC	White blood cell count	0	HEMATOLOGICAL
+3628	NeutCount	Neutrophil count	0	HEMATOLOGICAL
+3629	LymphoCount	Lymphocyte count	0	HEMATOLOGICAL
+3630	MonoCount	Monocyte count	0	HEMATOLOGICAL
+3631	BasoCount	Basophil count	0	HEMATOLOGICAL
+3632	EosinCount	Eosinophil count	0	HEMATOLOGICAL
+3633	PlatCount	Platelet count	0	HEMATOLOGICAL
+3634	PlatVol	Mean platelet volume	0	HEMATOLOGICAL
+3650	LowGripEWGSOP	Low hand grip strength (EWGSOP definition)	1	MUSCULOSKELETAL
+3652	LowGripFNIH	Low hand grip strength (FNIH definition)	1	MUSCULOSKELETAL
+3654	AST_ALT_ratio	AST-ALT ratio	0	HEPATIC
+3655	AlbInT2D	Albuminuria in type 2 diabetes	1	DIABETIC COMPLICATIONS
+3656	CKDpDKDinT2D	CKD and DKD in type 2 diabetes	1	RENAL
+3657	CKD_DNinT2D	Chronic kidney disease (CKD) and diabetic nephropathy in type 2 diabetes	1	DIABETIC COMPLICATIONS
+3658	CKD_EXT_vGFRinT2D	Extreme chronic kidney disease (CKD) vs. eGFR >= 60 in type 2 diabetes	1	RENAL
+3659	AnyCVDinT2D	Cardiovascular disease in type 2 diabetes (T2D)	1	DIABETIC COMPLICATIONS
+3660	ESRDvControlinT2D	End-stage renal disease (ESRD) vs. controls in type 2 diabetes (T2D)	1	RENAL
+3661	ESRDvMacroinT2D	End-stage renal disease (ESRD) vs. macroalbuminuria in type 2 diabetes (T2D)	1	RENAL
+3662	ESRDvNonESRDinT2D	End-stage renal disease vs. no ESRD in type 2 diabetes (T2D)	1	RENAL
+3663	MacroInT2D	Macroalbuminuria in type 2 diabetes (T2D)	1	DIABETIC COMPLICATIONS
+3664	MicroInT2D	Microalbuminuria in type 2 diabetes (T2D)	1	DIABETIC COMPLICATIONS
+3665	NAFLDinT2D	NAFLD in type 2 diabetes (T2D)	1	DIABETIC COMPLICATIONS
+3666	AscAortaDiam	Ascending aorta diameter	0	CARDIOVASCULAR
+3667	DescAortaDiam	Descending aorta diameter	0	CARDIOVASCULAR
+3668	LongQT	Long QT syndrome	1	ECG TRAITS
+3669	BMB_any_noexclusions	Brain microbleeds, any	1	CEREBROVASCULAR MRI TRAITS
+3670	BMB_mixed_or_strictlydeep_withexclusions	Brain microbleeds, mixed or strictly deep, excluding dementia and stroke cases	1	CEREBROVASCULAR MRI TRAITS
+3671	BMB_any_withexclusions	Brain microbleeds, any, excluding dementia and stroke cases	1	CEREBROVASCULAR MRI TRAITS
+3672	BMB_strictlylobar_noexclusions	Brain microbleeds, strictly lobar	1	CEREBROVASCULAR MRI TRAITS
+3673	BMB_mixed_or_strictlydeep_noexclusions	Brain microbleeds, mixed or strictly deep	1	CEREBROVASCULAR MRI TRAITS
+3674	BMB_strictlylobar_withexclusions	Brain microbleeds, strictly lobar, excluding dementia and stroke cases	1	CEREBROVASCULAR MRI TRAITS
+3675	BreakfastSkipping	Frequency of breakfast skipping	0	NUTRITIONAL
+3676	AllergicRhinitis_dom	Allergic rhinitis (dominant model)	1	NON-ADDITIVE MODELS
+3677	AllergicRhinitis_rec	Allergic rhinitis (recessive model)	1	NON-ADDITIVE MODELS
+3678	AllergicRhinitis_het	Allergic rhinitis (heterodominant model)	1	NON-ADDITIVE MODELS
+3680	Asthma_dom	Asthma (dominant model)	1	NON-ADDITIVE MODELS
+3681	Asthma_rec	Asthma (recessive model)	1	NON-ADDITIVE MODELS
+3682	Asthma_het	Asthma (heterodominant model)	1	NON-ADDITIVE MODELS
+3684	Cancer_dom	Any cancer (dominant model)	1	NON-ADDITIVE MODELS
+3685	Cancer_rec	Any cancer (recessive model)	1	NON-ADDITIVE MODELS
+3686	Cancer_het	Any cancer (heterodominant model)	1	NON-ADDITIVE MODELS
+3688	AnyCVD_dom	Any cardiovascular disease (dominant model)	1	NON-ADDITIVE MODELS
+3689	AnyCVD_rec	Any cardiovascular disease (recessive model)	1	NON-ADDITIVE MODELS
+3690	AnyCVD_het	Any cardiovascular disease (heterodominant model)	1	NON-ADDITIVE MODELS
+3692	MDD_dom	Major depressive disorder (dominant model)	1	NON-ADDITIVE MODELS
+3693	MDD_rec	Major depressive disorder (recessive model)	1	NON-ADDITIVE MODELS
+3694	MDD_het	Major depressive disorder (heterodominant model)	1	NON-ADDITIVE MODELS
+3696	Dermatophytosis_dom	Dermatophytosis (dominant model)	1	NON-ADDITIVE MODELS
+3697	Dermatophytosis_rec	Dermatophytosis (recessive model)	1	NON-ADDITIVE MODELS
+3698	Dermatophytosis_het	Dermatophytosis (heterodominant model)	1	NON-ADDITIVE MODELS
+3700	T2D_dom	Type 2 diabetes (dominant model)	1	NON-ADDITIVE MODELS
+3701	T2D_rec	Type 2 diabetes (recessive model)	1	NON-ADDITIVE MODELS
+3702	T2D_het	Type 2 diabetes (heterodominant model)	1	NON-ADDITIVE MODELS
+3704	Dyslipid_dom	Dyslipidemia (dominant model)	1	NON-ADDITIVE MODELS
+3705	Dyslipid_rec	Dyslipidemia (recessive model)	1	NON-ADDITIVE MODELS
+3706	Dyslipid_het	Dyslipidemia (heterodominant model)	1	NON-ADDITIVE MODELS
+3708	Hemorrhoids_dom	Hemorrhoids (dominant model)	1	NON-ADDITIVE MODELS
+3709	Hemorrhoids_rec	Hemorrhoids (recessive model)	1	NON-ADDITIVE MODELS
+3711	Hemorrhoids_het	Hemorrhoids (Heterodominant model)	1	NON-ADDITIVE MODELS
+3712	HerniaAbdomin_dom	Hernia abdominopelvic cavity (dominant model)	1	NON-ADDITIVE MODELS
+3713	HerniaAbdomin_rec	Hernia abdominopelvic cavity (recessive model)	1	NON-ADDITIVE MODELS
+3714	HerniaAbdomin_het	Hernia abdominopelvic cavity (heterodominant model)	1	NON-ADDITIVE MODELS
+3716	HYPERTENSION_dom	Hypertension (dominant model)	1	NON-ADDITIVE MODELS
+3717	HYPERTENSION_rec	Hypertension (recessive model)	1	NON-ADDITIVE MODELS
+3718	HYPERTENSION_het	Hypertension (heterodominant model)	1	NON-ADDITIVE MODELS
+3720	SleepInsomnia_dom	Frequent insomnia symptoms (dominant model)	1	NON-ADDITIVE MODELS
+3721	SleepInsomnia_rec	Frequent insomnia symptoms (recessive model)	1	NON-ADDITIVE MODELS
+3722	SleepInsomnia_het	Frequent insomnia symptoms (heterodominant model)	1	NON-ADDITIVE MODELS
+3724	IronDef_dom	Iron deficiency (dominant model)	1	NON-ADDITIVE MODELS
+3725	IronDef_rec	Iron deficiency (recessive model)	1	NON-ADDITIVE MODELS
+3726	IronDef_het	Iron deficiency (heterodominant model)	1	NON-ADDITIVE MODELS
+3728	IBS_dom	Irritable bowel syndrome (dominant model)	1	NON-ADDITIVE MODELS
+3729	IBS_rec	Irritable bowel syndrome (recessive model)	1	NON-ADDITIVE MODELS
+3730	IBS_het	Irritable bowel syndrome (heterodominant model)	1	NON-ADDITIVE MODELS
+3732	AMD_dom	Age-related macular degeneration (dominant model)	1	NON-ADDITIVE MODELS
+3733	AMD_het	Age-related macular degeneration (heterodominant model)	1	NON-ADDITIVE MODELS
+3734	AMD_rec	Age-related macular degeneration (recessive model)	1	NON-ADDITIVE MODELS
+3736	ALLOA_dom	Any osteoarthritis (dominant model)	1	NON-ADDITIVE MODELS
+3737	ALLOA_rec	Any osteoarthritis (recessive model)	1	NON-ADDITIVE MODELS
+3738	ALLOA_het	Any osteoarthritis (heterodominant model)	1	NON-ADDITIVE MODELS
+3740	Osteoporosis_dom	EHR-defined osteoporosis (dominant model)	1	NON-ADDITIVE MODELS
+3741	Osteoporosis_rec	EHR-defined osteoporosis (recessive model)	1	NON-ADDITIVE MODELS
+3742	Osteoporosis_het	EHR-defined osteoporosis (heterodominant model)	1	NON-ADDITIVE MODELS
+3744	PepticUlcers_dom	Peptic ulcers (dominant model)	1	NON-ADDITIVE MODELS
+3745	PepticUlcers_rec	Peptic ulcers (recessive model)	1	NON-ADDITIVE MODELS
+3746	PepticUlcers_het	Peptic ulcers (heterodominant model)	1	NON-ADDITIVE MODELS
+3748	Psychiatric_dom	Psychiatric disorders (dominant model)	1	NON-ADDITIVE MODELS
+3749	Psychiatric_rec	Psychiatric disorders (recessive model)	1	NON-ADDITIVE MODELS
+3750	Psychiatric_het	Psychiatric disorders (heterodominant model)	1	NON-ADDITIVE MODELS
+3752	PVD_dom	Peripheral vascular disease (dominant model)	1	NON-ADDITIVE MODELS
+3753	PVD_rec	Peripheral vascular disease (recessive model)	1	NON-ADDITIVE MODELS
+3754	PVD_het	Peripheral vascular disease (heterodominant model)	1	NON-ADDITIVE MODELS
+3756	Stress_dom	Acute reaction to stress (dominant model)	1	NON-ADDITIVE MODELS
+3757	Stress_rec	Acute reaction to stress (recessive model)	1	NON-ADDITIVE MODELS
+3758	Stress_het	Acute reaction to stress (heterodominant model)	1	NON-ADDITIVE MODELS
+3760	VaricoseVeins_dom	Varicose veins (dominant model)	1	NON-ADDITIVE MODELS
+3761	VaricoseVeins_rec	Varicose veins (recessive model)	1	NON-ADDITIVE MODELS
+3762	VaricoseVeins_het	Varicose veins (heterodominant model)	1	NON-ADDITIVE MODELS
+3768	AllergicRhinitis_add	Allergic rhinitis (additive model)	1	NON-ADDITIVE MODELS
+3769	Asthma_add	Asthma (additive model)	1	NON-ADDITIVE MODELS
+3771	AnyCVD_add	Any cardiovascular disease (additive model)	1	NON-ADDITIVE MODELS
+3772	MDD_add	Major depressive disorder (additive model)	1	NON-ADDITIVE MODELS
+3773	Dermatophytosis_add	Dermatophytosis (additive model)	1	NON-ADDITIVE MODELS
+3774	T2D_add	Type 2 diabetes (additive model)	1	NON-ADDITIVE MODELS
+3775	Dyslipid_add	Dyslipidemia (additive model)	1	NON-ADDITIVE MODELS
+3776	Hemorrhoids_add	Hemorrhoids (additive model)	1	NON-ADDITIVE MODELS
+3777	HerniaAbdomin_add	Hernia abdominopelvic cavity (additive model)	1	NON-ADDITIVE MODELS
+3778	HYPERTENSION_add	Hypertension (additive model)	1	NON-ADDITIVE MODELS
+3779	SleepInsomnia_add	 Frequent insomnia symptoms (additive model)	1	NON-ADDITIVE MODELS
+3780	IronDef_add	 Iron deficiency (additive model)	1	NON-ADDITIVE MODELS
+3781	IBS_add	 Irritable bowel syndrome (additive model)	1	NON-ADDITIVE MODELS
+3782	AMD_add	 Age-related macular degeneration (additive model)	1	NON-ADDITIVE MODELS
+3783	ALLOA_add	Any osteoarthritis (additive model)	1	NON-ADDITIVE MODELS
+3784	Osteoporosis_add	EHR-defined osteoporosis (additive model)	1	NON-ADDITIVE MODELS
+3785	PepticUlcers_add	Peptic ulcers (additive model)	1	NON-ADDITIVE MODELS
+3787	PVD_add	Peripheral vascular disease (additive model)	1	NON-ADDITIVE MODELS
+3788	Psychiatric_add	Psychiatric disorders (additive model)	1	NON-ADDITIVE MODELS
+3789	Stress_add	Acute reaction to stress (additive model)	1	NON-ADDITIVE MODELS
+3790	VaricoseVeins_add	Varicose veins (additive model)	1	NON-ADDITIVE MODELS
+3795	TJR	Total knee and-or hip replacement	1	MUSCULOSKELETAL
+3796	THR	Total hip replacement	1	MUSCULOSKELETAL
+3797	TKR	Total knee replacement	1	MUSCULOSKELETAL
+3798	SpineOA	Spine osteoarthritis	1	MUSCULOSKELETAL
+3799	FingerOA	Finger osteoarthritis	1	MUSCULOSKELETAL
+3800	ThumbOA	Thumb osteoarthritis	1	MUSCULOSKELETAL
+3801	HandOA	Hand osteoarthritis	1	MUSCULOSKELETAL
+3802	2hrGadjBMI	Two-hour glucose adj BMI	0	GLYCEMIC
+3803	AvgDesaturation	Average oxyhemoglobin desaturation per hypopnea event	0	SLEEP AND CIRCADIAN
+3804	VFD	Retinal vascular fractal dimension	0	OCULAR
+3805	OcularVD	Retinal vascular density	0	OCULAR
+3806	GCC	GCC retinal layer thickness	0	OCULAR
+3807	RNFL	RNFL retinal layer thickness	0	OCULAR
+3808	GCL	GCL retinal layer thickness	0	OCULAR
+3809	IPL	IPL retinal layer thickness	0	OCULAR
+3810	INL	INL retinal layer thickness	0	OCULAR
+3811	OPL	OPL retinal layer thickness	0	OCULAR
+3813	RPE	RPE retinal layer thickness	0	OCULAR
+3814	CSI	CSI retinal layer thickness	0	OCULAR
+3815	Early_ALLOA	Early-onset osteoarthritis	1	MUSCULOSKELETAL
+3817	PS	PS retinal layer thickness	0	OCULAR
+3818	nonHDL	Non-HDL cholesterol	0	LIPIDS
+3819	Cirrhosis	Cirrhosis	1	HEPATIC
+3820	NAFLD	NAFLD	1	HEPATIC
+3821	PAD	Peripheral artery disease	1	CARDIOVASCULAR
+3822	PADinT2D	Peripheral artery disease in type 2 diabetes (T2D)	1	CARDIOVASCULAR
+3823	PADnonT2D	Peripheral artery disease in subjects without diabetes	1	CARDIOVASCULAR
+3825	PAD_neversmk	Peripheral artery disease in never smokers	1	CARDIOVASCULAR
+3826	PAD_eversmk	Peripheral artery disease in ever smokers	1	CARDIOVASCULAR
+3828	NAFLDscore	NAFLD Activity Score (NAS)	0	HEPATIC
+3829	NAFLDfibrosis	Liver fibrosis score in NAFLD	0	HEPATIC
+3832	SevereDKD	Severe diabetic kidney disease	1	RENAL
+3833	LiverFat	Liver fat content	0	HEPATIC
+3834	ESRD	End-stage renal disease	1	RENAL
+3835	GDM	Gestational diabetes	1	REPRODUCTIVE TRAITS
+3836	GDM_abnormal_gluc	Gestational diabetes or abnormal glucose tolerance in pregnancy	1	REPRODUCTIVE TRAITS
+3838	MomTotalGWG	Maternal total gestational weight gain, maternal genotype effect	0	REPRODUCTIVE TRAITS
+3839	MomEarlyGWG	Maternal early gestational weight gain, maternal genotype effect	0	REPRODUCTIVE TRAITS
+3840	MomLateGWG	Maternal late gestational weight gain, maternal genotype effect	0	REPRODUCTIVE TRAITS
+3841	BabyTotalGWG	Maternal total gestational weight gain, fetal genotype effect	0	REPRODUCTIVE TRAITS
+3842	BabyEarlyGWG	Maternal early gestational weight gain, fetal genotype effect	0	REPRODUCTIVE TRAITS
+3843	BabyLateGWG	Maternal late gestational weight gain, fetal genotype effect	0	REPRODUCTIVE TRAITS
+3844	LVmass	Left ventricular mass	0	CARDIOVASCULAR
+3845	LVmass-EDVratio	Left ventricular mass to end-diastolic volume ratio	0	CARDIOVASCULAR
+3846	AMDprogression	AMD progression	0	OCULAR
+3870	AdiponectinadjBMI	Adiponectin adj BMI	0	GLYCEMIC
+3873	RRinterval	RR interval	0	ECG TRAITS
+3874	QTc	Corrected QT interval (QTc)	0	ECG TRAITS
+3877	MVP	Mitral valve prolapse	1	CARDIOVASCULAR
+3878	YouthT2D	Youth-onset type 2 diabetes (T2D)	1	GLYCEMIC
+3879	LBD	Lewy body dementia	1	NEUROLOGICAL
+3880	Allergy	Allergic disease (asthma, hay fever, or eczema)	1	IMMUNOLOGICAL
+3884	RhA	Rheumatoid arthritis	1	IMMUNOLOGICAL
+3885	SLE	Systemic lupus erythematosus (SLE)	1	IMMUNOLOGICAL
+3886	Celiac	Celiac disease	1	IMMUNOLOGICAL
+3887	ALLOA	Any osteoarthritis	1	MUSCULOSKELETAL
+3888	ChildSleepDuration	Sleep duration in children	0	SLEEP AND CIRCADIAN
+3889	AscAortaDiamInd	Maximum ascending aorta diameter, BSA indexed	0	CARDIOVASCULAR
+3890	PAtoARdia	Pulmonary artery to aorta ratio, diastole	0	CARDIOVASCULAR
+3891	PAtoARsys	Pulmonary artery to aorta ratio, systole	0	CARDIOVASCULAR
+3892	RAFAC	Right atrial fractional change	0	CARDIOVASCULAR
+3893	RAMaxAreaInd	Right atrial maximum area, BSA indexed	0	CARDIOVASCULAR
+3894	RAMaxArea	Right atrial maximum area	0	CARDIOVASCULAR
+3895	RAMinAreaInd	Right atrial minimum area, BSA indexed	0	CARDIOVASCULAR
+3896	RAMinArea	Right atrial minimum area	0	CARDIOVASCULAR
+3897	RVEDVI	Right ventricular end-diastolic volume, BSA indexed	0	CARDIOVASCULAR
+3898	RVEDVtoLVEDV	Right ventricular end-diastolic volume to left ventricular end-diastolic volume ratio	0	CARDIOVASCULAR
+3899	RVEDV	Right ventricular end-diastolic volume	0	CARDIOVASCULAR
+3900	RVEFtoLVEF	Right ventricular ejection fraction to left ventricular ejection fraction ratio	0	CARDIOVASCULAR
+3901	RVEF	Right ventricular ejection fraction	0	CARDIOVASCULAR
+3902	RVESVI	Right ventricular end-systolic volume, BSA indexed	0	CARDIOVASCULAR
+3903	RVESVtoLVESV	Right ventricular end-systolic volume to left ventricular end-systolic volume ratio	0	CARDIOVASCULAR
+3904	RVESV	Right ventricular end-systolic volume	0	CARDIOVASCULAR
+3905	RVSVI	Right ventricular stroke volume, BSA indexed	0	CARDIOVASCULAR
+3906	RVSVtoLVSV	Right ventricular stroke volume to left ventricular stroke volume ratio	0	CARDIOVASCULAR
+3907	RVSV	Right ventricular stroke volume	0	CARDIOVASCULAR
+3908	DPAcmInd	Short-axis diastolic pulmonary artery (cm), BSA indexed	0	CARDIOVASCULAR
+3909	DPAcm	Short-axis diastolic pulmonary artery (cm)	0	CARDIOVASCULAR
+3910	PAcmInd	Short-axis pulmonary artery (cm), BSA indexed	0	CARDIOVASCULAR
+3911	PAStraincm	Short-axis pulmonary artery strain (cm)	0	CARDIOVASCULAR
+3912	RootcmInd	Short-axis root (cm), BSA indexed	0	CARDIOVASCULAR
+3913	Rootcm	Short-axis root (cm)	0	CARDIOVASCULAR
+3914	PAcm	Short-axis pulmonary artery (cm)	0	CARDIOVASCULAR
+3915	LacunarStroke	Lacunar stroke	1	STROKE
+3916	AbAge	Abdominal age	0	OTHER
+3917	PanAge	Pancreas age	0	OTHER
+3918	LiverAge	Liver age	0	HEPATIC
+3920	ASAT	Abdominal subcutaneous adipose tissue volume	0	ANTHROPOMETRIC
+3922	VATadjBMIHeight	VAT adjusted for BMI and height	0	ANTHROPOMETRIC
+3923	ASATadjBMIHeight	ASAT adjusted for BMI and height	0	ANTHROPOMETRIC
+3924	GFATadjBMIHeight	GFAT adjusted for BMI and height	0	ANTHROPOMETRIC
+3925	VATtoASAT	VAT to ASAT ratio	0	ANTHROPOMETRIC
+3926	VATtoGFAT	VAT to GFAT ratio	0	ANTHROPOMETRIC
+3927	ASATtoGFAT	ASAT to GFAT ratio	0	ANTHROPOMETRIC
+3928	Eczema	Atopic dermatitis	1	SKIN CONDITIONS
+3929	Graves	Graves' disease	1	IMMUNOLOGICAL
+3930	Pollinosis	Pollinosis	1	IMMUNOLOGICAL
+3931	BackPain	Back pain	1	MUSCULOSKELETAL
+3932	KneePain	Knee pain	1	MUSCULOSKELETAL
+3934	SCS	Spinal canal stenosis	1	MUSCULOSKELETAL
+3935	NeckCir	Neck circumference	0	SLEEP AND CIRCADIAN
+3936	NeckCiradjBMI	neck circumference, BMI adjusted	0	SLEEP AND CIRCADIAN
+3937	ConstipationInPD	Constipation in Parkinson's disease	1	NEUROLOGICAL
+3938	DementiaInPD	Dementia in Parkinson's disease	1	NEUROLOGICAL
+3939	DepressionInPD	Depression in Parkinson's disease	1	NEUROLOGICAL
+3940	DyskinesiasInPD	Dyskinesias in Parkinson's disease	1	NEUROLOGICAL
+3941	HY3inPD	Hoehn and Yahr score of 3 or more in Parkinson's disease	1	NEUROLOGICAL
+3942	HyposmiaInPD	Hyposmia in Parkinson's disease	1	NEUROLOGICAL
+3943	InsomniaInPD	Insomnia in Parkinson's disease	1	NEUROLOGICAL
+3944	MotorFlucInPD	Motor fluctuations in Parkinson's disease	1	NEUROLOGICAL
+3945	RBDinPD	REM sleep behavior disorder in Parkinson's disease	1	NEUROLOGICAL
+3946	RLinPD	Restless legs syndrome in Parkinson's disease	1	NEUROLOGICAL
+3947	SEADL70inPD	Modified Schwab and England Activities of Daily Living Scale (SEADL) of 70 or less in Parkinson's disease	1	NEUROLOGICAL
+3948	DaySleepInPD	Daytime sleepiness in Parkinson's disease	1	NEUROLOGICAL
+3949	HyinPD	Hoehn and Yahr score in Parkinson's disease	0	NEUROLOGICAL
+3950	MMSEinPD	Mini-mental state examination in Parkinson's disease	0	NEUROLOGICAL
+3951	MOCAinPD	Montreal cognitive assessment in Parkinson's disease	0	NEUROLOGICAL
+3952	SEADLinPD	Modified Schwab and England Activities of Daily Living Scale (SEADL) in Parkinson's disease	0	NEUROLOGICAL
+3953	UPDRS1	Unified Parkinson’s Disease Rating Scale OR the Movement Disorder Society revised - Part 1	0	NEUROLOGICAL
+3954	UPDRS2	Unified Parkinson’s Disease Rating Scale OR the Movement Disorder Society revised - Part 2	0	NEUROLOGICAL
+3955	UPDRS3	Unified Parkinson’s Disease Rating Scale OR the Movement Disorder Society revised - Part 3	0	NEUROLOGICAL
+3956	UPDRS4	Unified Parkinson’s Disease Rating Scale OR the Movement Disorder Society revised - Part 4	0	NEUROLOGICAL
+3957	UPDRS	Unified Parkinson’s Disease Rating Scale OR the Movement Disorder Society revised - Total	0	NEUROLOGICAL
+3958	PCOSadjAge	Polycystic ovary syndrome, age-adjusted	1	REPRODUCTIVE TRAITS
+3959	FVCinIPF	Forced vital capacity (FVC) in idiopathic pulmonary fibrosis	0	LUNG
+3960	DLCOInIPF	Diffusing capacity for lung of carbon monoxide (DLco) in idiopathic pulmonary fibrosis	0	LUNG
+3961	IPFSurvival	Idiopathic pulmonary fibrosis survival 	0	LUNG
+3962	Perc15HUinCOPD	Emphysema in COPD (15th percentile HU) 	0	LUNG
+3963	PercLAA950inCOPD	Emphysema in COPD (percentage low attenuation area −950 HU)	0	LUNG
+3964	Pi10mminCOPD	Airway wall area in COPD	0	LUNG
+3965	WAPinCOPD	Airway wall area percent in COPD	0	LUNG
+3966	TGinT2D	Triglyceride levels in individuals with type 2 diabetes	0	LIPIDS
+3967	TGnonT2D	Triglyceride levels in individuals without type 2 diabetes	0	LIPIDS
+3968	WMHinCSVD	White matter hyperintensities in cerebral small vessel disease	0	CEREBROVASCULAR MRI TRAITS
+3969	FAinCSVD	Fractional anisotropy in cerebral small vessel disease	0	CEREBROVASCULAR MRI TRAITS
+3970	MDinCSVD	Mean diffusivity in cerebral small vessel disease	0	CEREBROVASCULAR MRI TRAITS
+3971	Cardiomyopathy	Hypertrophic cardiomyopathy	1	CARDIOVASCULAR
+3972	FBW	Fetal genetic effect on own birth weight	0	REPRODUCTIVE TRAITS
+3973	MyocardialT1	Native myocardial T1 time	0	CARDIOVASCULAR
+3974	PIadjBMI	Fasting proinsulin adj BMI	0	GLYCEMIC
+3975	SAT	Subcutaneous adipose tissue volume	0	ANTHROPOMETRIC
+3976	VAT	Visceral adipose tissue volume	0	ANTHROPOMETRIC
+3977	BMIbirth	Body mass index (BMI) at birth	0	ANTHROPOMETRIC
+3978	BMI6wks	Body mass index (BMI) at 6 weeks	0	ANTHROPOMETRIC
+3979	BMI3mons	Body mass index (BMI) at 3 months	0	ANTHROPOMETRIC
+3980	BMI6mons	Body mass index (BMI) at 6 months	0	ANTHROPOMETRIC
+3981	BMI8mons	Body mass index (BMI) at 8 months	0	ANTHROPOMETRIC
+3982	BMI1yr	Body mass index (BMI) at 1 year	0	ANTHROPOMETRIC
+3983	BMI1_5yrs	Body mass index (BMI) at 1.5 years	0	ANTHROPOMETRIC
+3984	BMI2yrs	Body mass index (BMI) at 2 years	0	ANTHROPOMETRIC
+3985	BMI3yrs	Body mass index (BMI) at 3 years	0	ANTHROPOMETRIC
+3986	BMI5yrs	Body mass index (BMI) at 5 years	0	ANTHROPOMETRIC
+3987	BMI7yrs	Body mass index (BMI) at 7 years	0	ANTHROPOMETRIC
+3988	BMI8yrs	Body mass index (BMI) at 8 years	0	ANTHROPOMETRIC
+3990	MBW	Maternal genetic effect on offspring birth weight	0	REPRODUCTIVE TRAITS
+3991	ApoA	Serum ApoA	0	LIPIDS
+3992	BasoPerc	Basophil percentage	0	HEMATOLOGICAL
+3993	CystatinC	Cystatin C	0	RENAL
+3994	DirectBilirubin	Direct bilirubin	0	HEPATIC
+3995	EosinPerc	Eosinophil percentage	0	HEMATOLOGICAL
+3996	HighScatReticuloCount	Highlight scatter reticulocyte count	0	HEMATOLOGICAL
+3997	HighScatReticuloPerc	Highlight scatter reticulocyte percentage	0	HEMATOLOGICAL
+3998	HmPerc	Hematocrit percentage	0	HEMATOLOGICAL
+3999	IGF1	Insulin-like growth factor (IGF-1)	0	OTHER
+4000	ImReticuloFrac	Immature reticulocyte fraction	0	HEMATOLOGICAL
+4001	LipoproteinA	Lipoprotein(a) 	0	LIPIDS
+4002	LymphoPerc	Lymphocyte percentage	0	HEMATOLOGICAL
+4003	MeanReticuloVol	Mean reticulocyte volume	0	HEMATOLOGICAL
+4004	MeanSpheredVol	Mean sphered cell volume	0	HEMATOLOGICAL
+4005	MonoPerc	Monocyte percentage	0	HEMATOLOGICAL
+4006	NeutroPerc	Neutrophil percentage	0	HEMATOLOGICAL
+4007	NucleatedRedCount	Nucleated red blood cell count	0	HEMATOLOGICAL
+4008	NucleatedRedPerc	Nucleated red blood cell percentage	0	HEMATOLOGICAL
+4009	Phosphate	Phosphate	0	METABOLITE
+4010	PlatCrit	Plateletcrit (PCT)	0	HEMATOLOGICAL
+4011	PlatDistWidth	Platelet distribution width	0	HEMATOLOGICAL
+4012	ReticuloCount	Reticulocyte count	0	HEMATOLOGICAL
+4013	ReticuloPerc	Reticulocyte percentage	0	HEMATOLOGICAL
+4014	SHBG	Sex hormone binding globulin (SHBG) levels	0	REPRODUCTIVE TRAITS
+4015	Testosterone_total	Total testosterone levels	0	REPRODUCTIVE TRAITS
+4016	TotalProtein	Total plasma protein	0	HEMATOLOGICAL
+4019	FBWadjMGen	Fetal genetic effect on own birth weight adj maternal genotype	0	REPRODUCTIVE TRAITS
+4020	MBWadjFGen	Maternal genetic effect on offspring birth weight adj fetal genotype	0	REPRODUCTIVE TRAITS
+4021	GFAT	Gluteofemoral adipose tissue volume	0	ANTHROPOMETRIC
+4022	HSM1	Hip shape mode 1	0	MUSCULOSKELETAL
+4023	HSM2	Hip shape mode 2	0	MUSCULOSKELETAL
+4024	HSM3	Hip shape mode 3	0	MUSCULOSKELETAL
+4025	HSM4	Hip shape mode 4	0	MUSCULOSKELETAL
+4026	HSM5	Hip shape mode 5	0	MUSCULOSKELETAL
+4027	HSM6	Hip shape mode 6	0	MUSCULOSKELETAL
+4028	HSM7	Hip shape mode 7	0	MUSCULOSKELETAL
+4029	HSM8	Hip shape mode 8	0	MUSCULOSKELETAL
+4030	HSM9	Hip shape mode 9	0	MUSCULOSKELETAL
+4031	HSM10	Hip shape mode 10	0	MUSCULOSKELETAL
+4032	PulseRate	Pulse rate	0	CARDIOVASCULAR
+4054	CarbIntakeBMIadj	Dietary carbohydrate intake adj BMI	0	NUTRITIONAL
+4055	CarbIntake	Dietary carbohydrate intake	0	NUTRITIONAL
+4056	FatIntakeBMIadj	Dietary fat intake adj BMI	0	NUTRITIONAL
+4057	FatIntake	Dietary fat intake	0	NUTRITIONAL
+4058	ProteinIntakeBMIadj	Dietary protein intake adj BMI	0	NUTRITIONAL
+4059	ProteinIntake	Dietary protein intake	0	NUTRITIONAL
+4060	LVmassBSAindexed	Left ventricular mass, BSA indexed	0	CARDIOVASCULAR
+4061	GestationalDur	Gestational duration, maternal genotype effect	0	REPRODUCTIVE TRAITS
+4062	PreEclampsia	Preeclampsia	1	REPRODUCTIVE TRAITS
+4063	GestationalHypertension	Gestational hypertension	1	REPRODUCTIVE TRAITS
+4064	CCScCEmajor	CCS causative cardio-aortic embolism major	1	STROKE
+4065	CCScCRYPTCE	CCS causative cryptogenic with cardioembolism minor	1	STROKE
+4066	CCScINCUNC	CCS causative incomplete and unclassified	1	STROKE
+4067	CCScLAA	CCS causative large artery atherosclerosis	1	STROKE
+4068	CCScSAO	CCS causative small artery occlusion	1	STROKE
+4069	CCScUNDETER	CCS causative undetermined	1	STROKE
+4070	CCSpCEmajincl	CCS phenotypic cardio-aortic embolism major	1	STROKE
+4071	CCSpCryptoincl	CCS phenotypic cryptogenic 	1	STROKE
+4072	CCSpLAAmajincl	CCS phenotypic cryptogenic large artery atherosclerosis major	1	STROKE
+4073	CCSpSAOmajincl	CCS phenotypic cryptogenic small artery occlusion major	1	STROKE
+4074	CataractSenile	Senile cataract	1	OCULAR
+4075	AfibFlutter	Atrial fibrillation or flutter	1	ATRIAL FIBRILLATION
+4076	Psoriasis	Psoriasis	1	SKIN CONDITIONS
+4077	SeropositiveRhA	Seropositive rheumatoid arthritis	1	IMMUNOLOGICAL
+4078	AnkylosingSpondylitis	Ankylosing spondylitis	1	MUSCULOSKELETAL
+4084	DiverticularDisease	Diverticular disease	1	DIGESTIVE
+4085	Neuroticism_DepressedAffect	Depressed affect	0	PSYCHIATRIC
+4087	Neuroticism_Worry	Worry	0	PSYCHIATRIC
+4090	Epilepsy_GeneralizedTCS	Epilepsy (generalized, with tonic-clonic seizures alone)	1	NEUROLOGICAL
+4091	Epilepsy_FocalLN	Focal epilepsy (lesion negative)	1	NEUROLOGICAL
+4092	Epilepsy_FocalHS	Focal epilepsy (with hippocampal sclerosis)	1	NEUROLOGICAL
+4096	CTS	Carpal tunnel syndrome	1	NEUROLOGICAL
+4097	Asthma_AdultOnset	Adult-onset asthma	1	LUNG
+4098	Asthma_ChildhoodOnset	Childhood-onset asthma	1	LUNG
+4099	MDD_Trauma	Major depressive disorder in trauma-exposed individuals	1	PSYCHIATRIC
+4100	MDD_NoTrauma	Major depressive disorder in trauma-unexposed individuals	1	PSYCHIATRIC
+4101	EarlyAMD	Early age-related macular degeneration	1	OCULAR
+4102	GERD	Gastroesophageal reflux disease (GERD)	1	DIGESTIVE
+4103	BarretsEsophagus	Barrett's esophagus	1	DIGESTIVE
+4104	ICP	Intrahepatic cholestasis of pregnancy	1	REPRODUCTIVE TRAITS
+4105	Stroke_cardioembolic	Cardioembolic stroke	1	STROKE
+4106	Stroke_smallvessel	Small vessel stroke	1	STROKE
+4107	Stroke_largeartery	Large artery stroke	1	STROKE
+4108	ONLthickness	Photoreceptor cell outer nuclear layer thickness	0	OCULAR
+4109	ISthickness	Photoreceptor cell inner segment thickness	0	OCULAR
+4110	OSthickness	Photoreceptor cell outer segment thickness	0	OCULAR
+4111	AUC_insulin_OGTT_metformin	Area under the curve of insulin at V2 adj fasting insulin at V2	0	METFORMIN RESPONSE
+4112	Fasting_glucose_metformin_adjusted_baseline_glucose	Fasting glucose at V2	0	METFORMIN RESPONSE
+4113	Glucose_120_min_OGTT_metformin_adjusted_baseline_glucose	Glucose at 120 min at V2	0	METFORMIN RESPONSE
+4114	Glucose_30_min_OGTT_metformin_adjusted_baseline_glucose	Glucose at 30 min at V2	0	METFORMIN RESPONSE
+4115	Glucose_60_min_OGTT_metformin_adjusted_baseline_glucose	Glucose at 60 min at V2	0	METFORMIN RESPONSE
+4117	Change_in_fasting_glucose_after_metformin_adjusted_baseline_glucose	Fasting glucose at V2 minus fasting glucose at V1	0	METFORMIN RESPONSE
+4118	Change_in_fasting_insulin_after_metformin_adjusted_baseline_insulin	Fasting insulin at V2 minus fasting insulin at V1	0	METFORMIN RESPONSE
+4119	Fasting_insulin_metformin	Log of fasting insulin at V2	0	METFORMIN RESPONSE
+4120	Insulin_120_min_OGTT_metformin	Log of insulin at 120 min at V2	0	METFORMIN RESPONSE
+4121	Insulin_30_min_OGTT_metformin	Log of insulin at 30 min at V2	0	METFORMIN RESPONSE
+4122	Insulin_60_min_OGTT_metformin	Log of insulin at 60 min at V2	0	METFORMIN RESPONSE
+4123	Change_in_HOMA_B_after_metformin	HOMA-B at V2 minus HOMA-B at V1	0	METFORMIN RESPONSE
+4124	Change_in_HOMA_IR_after_metformin	HOMA-IR at V2 minus HOMA-IR at V1	0	METFORMIN RESPONSE
+4125	Glucose_120_min_glipizide_adjusted_baseline_glucose	Glucose at 120 min at V1	0	SULFONYLUREA RESPONSE
+4126	Glucose_180_min_glipizide_adjusted_baseline_glucose	Glucose at 180 min at V1	0	SULFONYLUREA RESPONSE
+4127	Glucose_240_min_glipizide_adjusted_baseline_glucose	Glucose at 240 min at V1	0	SULFONYLUREA RESPONSE
+4128	Glucose_30_min_glipizide_adjusted_baseline_glucose	Glucose at 30 min at V1	0	SULFONYLUREA RESPONSE
+4129	Glucose_60_min_glipizide_adjusted_baseline_glucose	Glucose at 60 min at V1	0	SULFONYLUREA RESPONSE
+4130	Glucose_90_min_glipizide_adjusted_baseline_glucose	Glucose at 90 min at V1	0	SULFONYLUREA RESPONSE
+4131	Slope_to_glucose_trough_glipizide_adjusted_baseline_glucose	Log (fasting glucose at V1 - trough glucose) over (time to glucose trough)	0	SULFONYLUREA RESPONSE
+4132	Slope_to_glucose_recovery_glipizide_adjusted_baseline_glucose	Log (glucose at 240 min - trough glucose) over (time to glucose trough)	0	SULFONYLUREA RESPONSE
+4133	Insulin_120_min_glipizide	Log of insulin at 120 min at V1	0	SULFONYLUREA RESPONSE
+4134	Insulin_180_min_glipizide	Log of insulin at 180 min at V1	0	SULFONYLUREA RESPONSE
+4135	Insulin_240_min_glipizide	Log of insulin at 240 min at V1	0	SULFONYLUREA RESPONSE
+4136	Insulin_30_min_glipizide	Log of insulin at 30 min at V1	0	SULFONYLUREA RESPONSE
+4137	Insulin_60_min_glipizide	Log of insulin at 60 min at V1	0	SULFONYLUREA RESPONSE
+4138	Insulin_90_min_glipizide	Log of insulin at 90 min at V1	0	SULFONYLUREA RESPONSE
+4139	Peak_insulin_glipizide_adjusted_baseline_insulin	Log of peak insulin at V1	0	SULFONYLUREA RESPONSE
+4140	Glucose_trough_glipizide_adjusted_baseline_glucose	Glucose minimum after glipizide treament	0	SULFONYLUREA RESPONSE
+4141	Time_to_peak_insulin_glipizide	Time to insulin peak after glipizide treatment	0	SULFONYLUREA RESPONSE
+4142	Time_to_glucose_trough_glipizide	Time to glucose minimum after glipizide treatment	0	SULFONYLUREA RESPONSE
+4143	PCOS	Polycystic ovary syndrome (PCOS)	1	REPRODUCTIVE TRAITS
+4188	HCC	Hepatocellular carcinoma	1	CANCER
+4189	SporadicMiscarriage	Sporadic miscarriage	1	REPRODUCTIVE TRAITS
+4190	PSMR	Post-stroke motor recovery	1	STROKE
+4191	AIpredictedAF	ECG-AI model predicted atrial fibrillation risk	0	ATRIAL FIBRILLATION
+4192	AorticStenosis	Calcific aortic stenosis	1	CARDIOVASCULAR
+4193	BSadjFastingTime	Random glucose adj fasting time	0	GLYCEMIC
+4194	BSandFG	Random and fasting glucose	0	GLYCEMIC
+4195	KneeOAreplacement	Knee osteoarthritis with joint replacement	1	MUSCULOSKELETAL
+4196	KneeOAnoreplacement	Knee osteoarthritis without joint replacement	1	MUSCULOSKELETAL
+4197	HipOAnoreplacement	Hip osteoarthritis without joint replacement	1	MUSCULOSKELETAL
+4198	eGFRcreaCKDi25	eGFRcreat decline, CKDi25 definition	1	RENAL
+4199	eGFRcreaRapid3	eGFRcreat decline, Rapid3 definition	1	RENAL
+4200	eGFRcrea_med_DeclineAdjDM	eGFRcreat median annual decline adj diabetes status	0	RENAL
+4201	eGFRcreaInDiabetes	eGFRcreat in individuals with diabetes	0	RENAL
+4204	eGFRcreaNoDiabetes	eGFRcreat in individuals without diabetes	0	RENAL
+4205	eGFRcrea_med_DeclineAdjBL	eGFRcreat median annual decline adj baseline eGFR	0	RENAL
+4206	eGFRcrea_med_DeclineInDM	eGFRcreat median annual decline in individuals with diabetes	0	RENAL
+4207	eGFRcrea_med_DeclineInCKD	eGFRcreat median annual decline in individuals with chronic kidney disease	0	RENAL
+4208	IgAN	IgA nephropathy (IgAN)	1	RENAL
+4209	UMOD_aptamer	Circulating uromodulin, aptamer-based measurement	0	RENAL
+4210	UMOD_antibody	Circulating uromodulin, antibody-based measurement	0	RENAL
+4211	CCthickness	Central corneal thickness	0	OCULAR
+4212	PAH	Pulmonary arterial hypertension	1	CARDIOVASCULAR
+4213	StoolFreq	Stool frequency	0	DIGESTIVE
+4214	PUV	Posterior urethral valves	1	RENAL
+4215	AAC	Abdominal aortic calcification	0	CARDIOVASCULAR
+4219	ADHD	Attention-deficit hyperactivity disorder (ADHD)	1	PSYCHIATRIC
+4238	Myasthenia_gravis	Myasthenia gravis	1	IMMUNOLOGICAL
+4239	Myasthenia_gravis_early	Early-onset myasthenia gravis	1	IMMUNOLOGICAL
+4240	Myasthenia_gravis_late	Late-onset myasthenia gravis	1	IMMUNOLOGICAL
+4241	Neuroticism	Neuroticism	0	PSYCHIATRIC
+4242	PA_AvgAcc	Accelerometer-based physical activity measurement (average acceleration)	0	PHYSICAL ACTIVITY
+4243	PA_FracTimeAcc425MG	Accelerometer-based physical activity measurement (fraction of time with accelerations >425 milli-gravities)	0	PHYSICAL ACTIVITY
+4244	AD_or_AD_history	Alzheimer's disease or family history of Alzheimer's disease	1	NEUROLOGICAL
+4245	Handedness	Ambidextrousness	1	NEUROLOGICAL
+4246	Addison	Autoimmune Addison's disease	1	IMMUNOLOGICAL
+4247	cIMT	Carotid intima-media thickness (mean of the maximum cIMT)	0	CARDIOVASCULAR
+4248	Testosterone_bioavailable	Bioavailable testosterone levels	0	REPRODUCTIVE TRAITS
+4249	CogPerformance	Cognitive performance	0	COGNITIVE
+4254	DHEAS	Dehydroepiandrosterone sulfate levels	0	REPRODUCTIVE TRAITS
+4255	MDD_symptoms	Depression	0	PSYCHIATRIC
+4256	EAA_Grim	DNA methylation GrimAge acceleration	0	AGING AND LONGEVITY
+4257	EAA_Hannum	DNA methylation Hannum age acceleration	0	AGING AND LONGEVITY
+4258	EAA_Pheno	DNA methylation PhenoAge acceleration	0	AGING AND LONGEVITY
+4259	DNAme_PAI1	DNA methylation-estimated plasminogen activator inhibitor-1 levels	0	AGING AND LONGEVITY
+4260	Estradiol	Estradiol levels	0	REPRODUCTIVE TRAITS
+4262	Ferritin	Ferritin levels	0	METABOLITE
+4263	GCIPL	Ganglion cell inner plexiform layer (GCIPL) thickness	0	OCULAR
+4264	Intelligence	Intelligence	0	COGNITIVE
+4266	Intraocular_pressure	Intraocular pressure	0	OCULAR
+4267	EAA_Intrinsic	Intrinsic epigenetic age acceleration	0	AGING AND LONGEVITY
+4268	Kidney_volume	Kidney volume	0	RENAL
+4269	LiverIron	Liver iron content	0	HEPATIC
+4270	Liver_volume	Liver volume	0	HEPATIC
+4271	ExtremeLongevity_90thPerc	Longevity (age >90th survival percentile)	1	AGING AND LONGEVITY
+4272	ExtremeLongevity_99thPerc	Longevity (age >99th survival percentile)	1	AGING AND LONGEVITY
+4273	Lung_disease_inCF	Lung disease severity in cystic fibrosis	0	LUNG
+4274	Lung_volume	Lung volume	0	LUNG
+4275	Maternal_AD_history	Maternal history of Alzheimer's disease	1	NEUROLOGICAL
+4276	MemPerformance	Memory performance	0	COGNITIVE
+4277	T2D_age-related	Mild age-related type 2 diabetes	1	GLYCEMIC
+4278	T2D_obesity-related	Mild obesity-related type 2 diabetes	1	GLYCEMIC
+4279	PA_ModerateToVigorous	Moderate to vigorous physical activity levels	0	PHYSICAL ACTIVITY
+4280	Neuromyelitis_optica	Neuromyelitis optica	1	OCULAR
+4281	Neuromyelitis_optica_IgG_minus	Neuromyelitis optica (AQP4-IgG-negative)	1	OCULAR
+4282	Neuromyelitis_optica_IgG_plus	Neuromyelitis optica (AQP4-IgG-positive)	1	OCULAR
+4283	Optic_cup_area	Optic cup area	0	OCULAR
+4285	Optic_disc_area	Optic disc area	0	OCULAR
+4286	PancreasFat	Pancreas fat	0	GLYCEMIC
+4287	PancreasIron	Pancreas iron content	0	GLYCEMIC
+4288	ParentalExtremeLongevity_95yrs	Parental extreme longevity (95 years and older)	1	AGING AND LONGEVITY
+4289	ParentalLifespan	Parental lifespan	0	AGING AND LONGEVITY
+4290	ParentalExtremeLongevity_10pct	Parental longevity (both parents in top 10%)	1	AGING AND LONGEVITY
+4291	ParentalLongevity_AtDeath	Parental longevity (combined parental age at death)	0	AGING AND LONGEVITY
+4296	PaternalLongevity_AtDeath	Parental longevity (father's age at death)	0	AGING AND LONGEVITY
+4298	ParentalLongevity_Attained	Parental longevity (combined parental attained age, Martingale residuals)	0	AGING AND LONGEVITY
+4299	MaternalLongevity_AtDeath	Parental longevity (mother's age at death)	0	AGING AND LONGEVITY
+4300	MaternalLongevity_Attained	Parental longevity (mother's attained age)	0	AGING AND LONGEVITY
+4304	Paternal_AD_history	Paternal history of Alzheimer's disease	1	NEUROLOGICAL
+4305	PA_ModerateDur	Physical activity (moderate intensity activity duration)	0	PHYSICAL ACTIVITY
+4306	PA_OverallDur	Physical activity (overall physical activity time)	0	PHYSICAL ACTIVITY
+4307	PSC	Primary sclerosing cholangitis	1	HEPATIC
+4308	ReactionTime	Reaction time	0	NEUROLOGICAL
+4309	PA_SedentaryDur	Sedentary behavior duration	0	PHYSICAL ACTIVITY
+4310	T2D_autoimmune	Severe autoimmune type 2 diabetes	1	GLYCEMIC
+4311	T2D_insulin-deficient	Severe insulin-deficient type 2 diabetes	1	GLYCEMIC
+4312	Lithium_response_inBIP_continuous	Response to lithium treatment in bipolar disorder (continuous phenotype)	0	PSYCHIATRIC
+4313	Lithium_response_inBIP_binary	Response to lithium treatment in bipolar disorder (dichotomous phenotype)	1	PSYCHIATRIC
+4314	SHBGadjBMI	Sex hormone-binding globulin levels adj BMI	0	REPRODUCTIVE TRAITS
+4315	Spleen_volume	Spleen volume	0	GLYCEMIC
+4316	SubjectiveWellbeing	Subjective well-being	0	COGNITIVE
+4317	VerbNumReasoning	Verbal-numerical reasoning	0	COGNITIVE
+4318	VCDR	Vertical cup-disc ratio	0	OCULAR
+4319	PA_Vigorous	Vigorous physical activity	1	PHYSICAL ACTIVITY
+4320	eGFRcrea_perc_DeclineInDM	eGFRcreat relative annualized decline in individuals with diabetes	0	RENAL
+4321	eGFRcrea_perc_DeclineNoDM	eGFRcreat relative annualized decline in individuals without diabetes	0	RENAL
+4322	PaternalLongevity_Attained	Parental longevity (father's attained age)	0	AGING AND LONGEVITY
+4323	Healthspan	Healthspan	0	AGING AND LONGEVITY
+4324	PBC	Primary biliary cholangitis	1	HEPATIC
+4325	Pancreas_volume	Pancreas volume	0	GLYCEMIC
+4326	T2D_insulin-resistant	Severe insulin-resistant type 2 diabetes	1	GLYCEMIC
+4327	PerceivedAge	Perceived age	0	AGING AND LONGEVITY
+4328	FriedFrailtyScore	Fried frailty score	0	AGING AND LONGEVITY
+4329	AgingGIP1	Aging-GIP1 principal component	0	AGING AND LONGEVITY
+4330	AgingGIP1AdjSocioEcon	Aging-GIP1 principal component adj socioeconomic status	0	AGING AND LONGEVITY
+4331	PA_UsualWalkPace	Usual walking pace	0	MUSCULOSKELETAL
+4332	LTL	Leukocyte telomere length	0	AGING AND LONGEVITY
+4333	SRH	Self-rated health	0	AGING AND LONGEVITY
+4334	ThyroidCancer	Thyroid cancer	1	CANCER
+4335	RectalCancer	Rectal cancer	1	CANCER
+4336	ProstateCancer	Prostate cancer	1	CANCER
+4337	PancreaticCancer	Pancreatic cancer	1	CANCER
+4338	OvarianCancer	Ovarian cancer	1	CANCER
+4339	OCPCancer	Oral cavity and pharyngeal cancer	1	CANCER
+4340	NonHodgkinsLymphoma	Non-Hodgkin's lymphoma	1	CANCER
+4341	Melanoma	Melanoma	1	CANCER
+4342	LymphLeukemia	Lymphocytic leukemia	1	CANCER
+4343	LungCancer	Lung cancer	1	CANCER
+4344	KidneyCancer	Kidney cancer	1	CANCER
+4345	EsoStomachCancer	Esophageal or stomach cancer	1	CANCER
+4346	EndometrialCancer	Endometrial cancer	1	CANCER
+4347	ColonCancer	Colon cancer	1	CANCER
+4348	CervicalCancer	Cervical cancer	1	CANCER
+4349	BreastCancer	Breast cancer	1	CANCER
+4350	BladderCancer	Bladder cancer	1	CANCER
+4351	FrailtyIndex	Frailty index	0	AGING AND LONGEVITY
+4352	GripR	Right hand grip strength	0	MUSCULOSKELETAL
+4353	GripL	Left hand grip strength	0	MUSCULOSKELETAL
+4354	TL	Telomere length	0	AGING AND LONGEVITY
+4355	mCAY	Mosaic chromosomal alteration of the Y chromosome	1	AGING AND LONGEVITY
+4356	mCAX	Mosaic chromosomal alteration of the X chromosome	1	AGING AND LONGEVITY
+4357	mCAA	Mosaic chromosomal alteration of the autosomes	1	AGING AND LONGEVITY
+4358	CHIPwithoutmCA	Clonal haematopoiesis of indeterminate potential (without mosaic chromosomal alteration)	1	AGING AND LONGEVITY
+4359	CHIP	Clonal haematopoiesis of indeterminate potential (with or without mosaic chromosomal alteration)	1	AGING AND LONGEVITY
+4360	CHIP_TP53	Clonal haematopoiesis of indeterminate potential (TP53 mutation)	1	AGING AND LONGEVITY
+4361	CHIP_TET2	Clonal haematopoiesis of indeterminate potential (TET2 mutation)	1	AGING AND LONGEVITY
+4362	CHIP_SRSF2	Clonal haematopoiesis of indeterminate potential (SRSF2 mutation)	1	AGING AND LONGEVITY
+4363	CHIP_SF3B1	Clonal haematopoiesis of indeterminate potential (SF3B1 mutation)	1	AGING AND LONGEVITY
+4364	CHIP_PPM1D	Clonal haematopoiesis of indeterminate potential (PPM1D mutation)	1	AGING AND LONGEVITY
+4365	CHIP_JAK2	Clonal haematopoiesis of indeterminate potential (JAK2 mutation)	1	AGING AND LONGEVITY
+4366	CHIP_DNMT3A	Clonal haematopoiesis of indeterminate potential (DNMT3A mutation)	1	AGING AND LONGEVITY
+4367	CHIP_ASXL1	Clonal haematopoiesis of indeterminate potential (ASXL1 mutation)	1	AGING AND LONGEVITY
+4374	CKD_DM	Chronic kidney disease in diabetes	1	RENAL
+4375	MA_DM	Microalbuminuria in diabetes	1	RENAL
+4376	ESRDvNonESRD_DM	End-stage renal disease (ESRD) vs. no ESRD in diabetes	1	RENAL
+4377	eGFRcrea_DM	eGFRcreat (serum creatinine) in diabetes	0	RENAL
+4378	ESRDvControl_DM	End-stage renal disease (ESRD) vs. controls in diabetes	1	RENAL
+4379	ESRDvControl_T1D	End-stage renal disease (ESRD) vs. controls in type 1 diabetes	1	RENAL
+4381	CKD_T2D	Chronic kidney disease in type 2 diabetes	1	RENAL
+4383	Family_AD_history	Family history of Alzheimer's Disease	1	PSYCHIATRIC
+4384	allDKD_T2D	 All diabetic kidney disease (DKD) in type 2 diabetes	1	RENAL
+4385	lateDKD_T2D	Late diabetic kidney disease (DKD) in type 2 diabetes	1	RENAL
+4386	CKD_T1D	 Chronic kidney disease in type 1 diabetes	1	RENAL
+4387	AllDKDvControl_DM	 All diabetic kidney disease vs. controls in diabetes	1	RENAL
+4388	CKDextremes_DM	Extreme chronic kidney disease (CKD) in diabetes	1	RENAL
+4389	CKDpDKD_DM	Chronic kidney disease and diabetic kidney disease (CKD and DKD) in diabetes	1	RENAL
+4390	ESRD_DM	End-stage renal disease (ESRD) in diabetes	1	RENAL
+4391	ESRDvMacro_DM	End-stage renal disease (ESRD) vs. macroalbuminuria in diabetes	1	RENAL
+4392	allDKD_T1D	All diabetic kidney disease (DKD) in type 1 diabetes	1	RENAL
+4393	allDKDadjHbA1cBMI_T1D	All diabetic kidney disease (DKD) adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4394	CKDadjHbA1cBMI_T1D	Chronic kidney disease (CKD) adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4395	CKDextremes_T1D	Extreme chronic kidney disease (CKD) in type 1 diabetes	1	RENAL
+4396	CKDextremesadjHbA1cBMI_T1D	Extreme chronic kidney disease adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4397	CKDpDKD_T1D	Chronic kidney disease and diabetic kidney disease (CKD and DKD) in type 1 diabetes	1	RENAL
+4398	CKDpDKDadjHbA1cBMI_T1D	Chronic kidney disease and diabetic kidney disease (CKD and DKD) adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4399	eGFRcrea_T2D	eGFRcreat (serum creatinine) in type 2 diabetes	0	RENAL
+4400	ESRDvControladjHbA1cBMI_T1D	End-stage renal disease (ESRD) vs. controls adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4401	ESRDvMacro_T1D	End-stage renal disease (ESRD) vs. macroalbuminuria in type 1 diabetes	1	RENAL
+4402	ESRDvMacroadjHbA1cBMI_T1D	End-stage renal disease (ESRD) vs. macroalbuminuria adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4403	ESRDvNonESRD_T1D	End-stage renal disease (ESRD) vs. no ESRD in type 1 diabetes	1	RENAL
+4404	ESRDvNonESRDadjHbA1cBMI_T1D	End-stage renal disease (ESRD) vs. no ESRD adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4405	lateDKD_T1D	Late diabetic kidney disease (DKD) in type 1 diabetes	1	RENAL
+4406	lateDKDadjHbA1cBMI_T1D	Late diabetic kidney disease adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4407	MA_T1D	Microalbuminuria in type 1 diabetes	1	RENAL
+4408	MA_T2D	Microalbuminuria in type 2 diabetes	1	RENAL
+4409	MAadjHbA1cBMI_T1D	Microalbuminuria adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4410	Macroalbuminuria_DM	Macroalbuminuria in diabetes	1	RENAL
+4411	MacrovControl_T1D	Macroalbuminuria vs. controls in type 1 diabetes	1	RENAL
+4412	MacrovControladjHbA1cBMI_T1D	Macroalbuminuria vs. controls adj HbA1c-BMI in type 1 diabetes	1	RENAL
+4413	eGFRcrea_T1D	eGFRcreat (serum creatinine) in type 1 diabetes	0	RENAL
+4414	Parkinson_progression_cognitive	Parkinson's disease progression (cognitive)	0	NEUROLOGICAL
+4415	Parkinson_progression_composite	Parkinson's disease progression (composite)	0	NEUROLOGICAL
+4416	Parkinson_progression_motor	Parkinson's disease progression (motor)	0	NEUROLOGICAL
+4429	PDAndFirstDegree	Parkinson's disease with proxy cases	1	NEUROLOGICAL
+4430	COPD_ICD	COPD (ICD defined)	1	LUNG
+4431	SleepInsomnia_ICD	Insomnia (ICD defined)	1	SLEEP AND CIRCADIAN
+4432	Insomnia	Insomnia	1	SLEEP AND CIRCADIAN
+4433	ao_regurgitation_fraction	Aortic regurgitation fraction	0	CARDIOVASCULAR
+4434	ao_regurgitation_volume	Aortic regurgitation volume	0	CARDIOVASCULAR
+4435	fLVSV	Forward left ventricular stroke volume	0	CARDIOVASCULAR
+4436	iaorta_area	BSA-indexed aortic area	0	CARDIOVASCULAR
+4437	imitral_regurgitation	BSA-indexed mitral valve regurgitation volume	0	CARDIOVASCULAR
+4438	netLVSV	Net left ventricular stroke volume	0	CARDIOVASCULAR
+4439	tLVSV	Total left ventricular stroke volume	0	CARDIOVASCULAR
+4440	aortic_velocity_vmax_ao_adjusted	Peak forward aortic velocity adj aortic area	0	CARDIOVASCULAR
+4441	aortic_velocity_vmax	Peak forward aortic velocity	0	CARDIOVASCULAR
+4442	aortic_velocity_vmin	Peak regurgitant aortic velocity	0	CARDIOVASCULAR
+4443	AbAA	Abdominal aortic aneurysm	1	CARDIOVASCULAR
+4444	YnEOPD	Young- and early-onset Parkinson's disease	1	NEUROLOGICAL
+4445	PDAgeO	Age of Parkinson's disease onset	0	NEUROLOGICAL
+4446	EO_Stroke_ischemic	Early onset ischemic stroke	1	STROKE
+4447	C10_0	Capric acid	0	LIPIDS
+4448	C12_0	Lauric acid	0	LIPIDS
+4449	C14_0	Myristic acid	0	LIPIDS
+4450	C16_0	Palmitic acid	0	LIPIDS
+4451	C18_0	Stearic acid	0	LIPIDS
+4452	C20_0	Arachidic acid	0	LIPIDS
+4453	C16_1n_7	Palmitoleic acid	0	LIPIDS
+4454	C18_1n_7	Vaccenic acid	0	LIPIDS
+4455	C18_1n_9	Oleic acid	0	LIPIDS
+4456	C18_1trans	Elaidic and trans-vaccenic acids	0	LIPIDS
+4457	C18_3n_3	Alpha-linolenic acid (ALA)	0	LIPIDS
+4458	C20_5n_3	Eicosapentaenoic acid (EPA)	0	LIPIDS
+4459	C22_5n_3	Docosapentaenoic acid (DPA)	0	LIPIDS
+4460	C20_3n_6	Dihomo-gamma-linolenic acid (DGLA)	0	LIPIDS
+4461	C20_4n_6	Arachidonic acid (AA)	0	LIPIDS
+4462	C22_4n_6	Adrenic acid	0	LIPIDS
+4463	vitDBP_GChapAdj	Vitamin D-binding protein levels adj GC haplotype	0	METABOLITE
+4464	KSD	Kidney stone disease	1	RENAL
+4465	vitDBP	Vitamin D-binding protein levels	0	METABOLITE
+4466	DME	Diabetic macular edema	1	DIABETIC COMPLICATIONS
+4467	CAC	Conorary artery calcification	0	CARDIOVASCULAR
+4468	pSSNS	Pediatric steroid-sensitive nephrotic syndrome	1	RENAL
+4469	CRF	Corneal resistance factor	0	OCULAR
+4470	FMD	Fibromuscular dysplasia	1	MUSCULOSKELETAL
+4471	Keratoconus	Keratoconus	1	OCULAR
+4472	OPLL	Ossification of the spinal posterior longitudinal ligament	1	MUSCULOSKELETAL
+4473	HospC19vAllandMild	Hospitalized COVID-19 vs population and mild COVID-19 cases	1	COVID-19
+4474	SevereC19vAllandMild	Very severe COVID-19 vs population and mild COVID-19 cases	1	COVID-19
+4475	mvAging	Multi-variate aging	0	AGING AND LONGEVITY
+4476	AmyloidBeta	Amyloid beta	0	NEUROLOGICAL
+4477	p_Tau	Phosphorylated tau	0	NEUROLOGICAL
+4478	t_Tau	Total tau	0	NEUROLOGICAL
+4479	DiverticularDiseaseAgeO	Diverticular disease age of onset	0	DIGESTIVE
+4480	NT1	Narcolepsy type 1	1	SLEEP AND CIRCADIAN
+4481	RBD	REM sleep behavior disorder	1	SLEEP AND CIRCADIAN
+4482	KleineLevinSynd	Kleine-Levin syndrome	1	SLEEP AND CIRCADIAN
+4483	TibiaToHeight	Tibia length to body height ratio	0	MUSCULOSKELETAL
+4484	HumerusToHeight	Humerus length to body height ratio	0	MUSCULOSKELETAL
+4485	HiptoHeight	Hip width to body height ratio	0	MUSCULOSKELETAL
+4486	ShoulderToHeight	Shoulder width to body height ratio	0	MUSCULOSKELETAL
+4487	TorsoToHeight	Torso length to body height ratio	0	MUSCULOSKELETAL
+4488	Extraversion	Extraversion	0	PSYCHIATRIC
+4489	ARHI	Age-related hearing impairment	1	AGING AND LONGEVITY
+4490	CSSNS	Childhood steroid-sensitive nephrotic syndrome	1	RENAL
+4492	Meconium_ileus_inCF	Meconium ileus in cystic fibrosis	1	DIGESTIVE
+4493	GestationalDurationFetal	Gestational age at birth (fetal GWAS)	0	REPRODUCTIVE TRAITS
+4494	PosttermBirthFetal	Post-term birth (fetal GWAS)	1	REPRODUCTIVE TRAITS
+4495	EarlyPretermBirthFetal	Early spontaneous preterm birth (fetal GWAS)	1	REPRODUCTIVE TRAITS
+4496	PretermBirthFetal	Spontaneous preterm birth (fetal GWAS)	1	REPRODUCTIVE TRAITS
+4497	UterineFibroids_HMB	Uterine fibroids and heavy menstrual bleeding	1	REPRODUCTIVE TRAITS
+4498	HMB	Heavy menstrual bleeding	1	REPRODUCTIVE TRAITS
+4499	UterineFibroids	Uterine fibroids	1	REPRODUCTIVE TRAITS
+4500	TSH	Thyroid-stimulating hormone levels	0	GLYCEMIC
+4501	CFH_levels	Complement factor H levels	0	OTHER
+4502	CFH1_levels	Complement factor H-related protein 1 levels	0	OTHER
+4503	CFH2_levels	Complement factor H-related protein 2 levels	0	OTHER
+4504	CFH3_levels	Complement factor H-related protein 3 levels	0	OTHER
+4505	CFH4_levels	Complement factor H-related protein 4A levels	0	OTHER
+4506	CFH5_levels	Complement factor H-related protein 5 levels	0	OTHER
+4507	HipFracture	Hip fracture	1	MUSCULOSKELETAL
+4508	SleepApnea	Sleep apnea syndrome	1	SLEEP AND CIRCADIAN
+4509	WM_PVS	Extensive white matter perivascular space burden	1	CEREBROVASCULAR MRI TRAITS
+4510	BG_PVS	Extensive basal ganglia perivascular space burden	1	CEREBROVASCULAR MRI TRAITS
+4511	HIP_PVS	Extensive hippocampal perivascular space burden	1	CEREBROVASCULAR MRI TRAITS
+4514	SCAD	Spontaneous coronary artery dissection	1	CARDIOVASCULAR
+4515	IFCadjBMI	Insulin fold change during OGTT adj BMI	0	GLYCEMIC
+4516	IFC	Insulin fold change during OGTT	0	GLYCEMIC
+4517	FemurToHeight	Femur length to body height ratio	0	MUSCULOSKELETAL
+4518	ForearmToHeight	Forearm length to body height ratio	0	MUSCULOSKELETAL
+4519	TibiofemoralAngle	Tibiofemoral angle	0	MUSCULOSKELETAL
+4520	ForearmFracture	Forearm fracture	1	MUSCULOSKELETAL
+4521	SleepApneaAdjBMI	Sleep apnea adj BMI	1	SLEEP AND CIRCADIAN
+4522	BIP1	Bipolar I disorder	1	PSYCHIATRIC
+4523	BIP_Psychosis	Bipolar disorder with psychosis	1	PSYCHIATRIC
+4524	BIP_NoPsychosis	Bipolar disorder without psychosis	1	PSYCHIATRIC
+4525	BIP2	Bipolar II disorder	1	PSYCHIATRIC
+4530	BIP_Schizoaffective	Schizoaffective disorder bipolar type	1	PSYCHIATRIC
+4588	LAmax	Indexed left atrial maximum volume	0	CARDIOVASCULAR
+4589	LAmin	Indexed left atrial minimum volume	0	CARDIOVASCULAR
+4590	LAAEF	Left atrial active emptying fraction	0	CARDIOVASCULAR
+4591	LAPEF	Left atrial passive emptying fraction	0	CARDIOVASCULAR
+4592	LATEF	Left atrial total emptying fraction	0	CARDIOVASCULAR
+4593	WeightLossTotal	Total weight loss (kg)	0	ANTHROPOMETRIC
+4594	WeightLossRate	Rate of weight loss (kg/week)	0	ANTHROPOMETRIC
+4595	Naps	Daytime napping (usually vs. never/rarely/sometimes)	1	SLEEP AND CIRCADIAN
+4596	DayDozing	Daytime dozing (often/all the time vs. never/rarely/sometimes)	1	SLEEP AND CIRCADIAN
+4597	BrainVol_TownsendHeightCorr	Brain volume adj TDI and height	0	NEUROLOGICAL
+4598	liverT1time	Liver T1 time	0	HEPATIC
+4599	pancreasT1time	Pancreas T1 time	0	GLYCEMIC
+4601	renalcortexT1time	Renal cortex T1 time	0	RENAL
+4602	EPATarea	Combined epicardial and pericardial adipose tissue (EPAT) area	0	CARDIOVASCULAR
+4603	Gout	Gout	1	IMMUNOLOGICAL
+4604	FT4	Free thyroxine (FT4)	0	GLYCEMIC
+4605	AM_int_low	Int vs. Low alcohol consumption	1	NUTRITIONAL
+4606	FT3	Free triiodothyronine (FT3)	0	GLYCEMIC
+4607	TT3	Total triiodothyronine (TT3)	0	GLYCEMIC
+4608	FT3overFT4	Free triiodothyronine to free thyroxine ratio	0	GLYCEMIC
+4609	TT3overFT4	Total triiodothyronine to free thyroxine ratio	0	GLYCEMIC
+4610	HyperThyroid	Hyperthyroidism	1	GLYCEMIC
+4611	AM_heavy_low	Heavy vs. Low alcohol consumption	1	NUTRITIONAL
+4612	AM_broad_low	Broad vs. Low alcohol consumption	1	NUTRITIONAL
+4613	AM_heavy_int	Heavy vs. Int alcohol consumption	1	NUTRITIONAL
+4614	AM_broad_int	Broad vs. Int alcohol consumption	1	NUTRITIONAL
+4615	AM_broad_heavy	Broad vs. Heavy alcohol consumption	1	NUTRITIONAL
+4616	broadASB	Antisocial behavior, broad definition	1	PSYCHIATRIC
+4617	CerebralVol	Total cerebral volume	0	NEUROLOGICAL
+4618	SubcorticalVol	Total brain subcortical volume	0	NEUROLOGICAL
+4619	BirthHeadCir	Head circumference at birth	0	ANTHROPOMETRIC
+4620	InfantHeadCir	Head circumference at 6-30 months	0	ANTHROPOMETRIC
+4622	DCM_broad	Dilated cardiomyopathy, broad definition	1	CARDIOVASCULAR
+4623	DCM	Dilated cardiomyopathy, strict definition	1	CARDIOVASCULAR
+4624	RecurrentStroke	Recurrent stroke	1	STROKE
+4625	BVchangeMS	Brain volume change in multiple sclerosis progression	0	IMMUNOLOGICAL
+4626	T2LVchangeMS	T2 lesion volume change in multiple sclerosis progression	0	IMMUNOLOGICAL
+4627	AlcoholConsumption	Alcoholic drinks per week	0	NUTRITIONAL
+4628	Smoke_AgeFirst	Age of initiation of regular smoking	0	LUNG
+4629	Smoke_Cessation	Smoking cessation	1	LUNG
+4630	Smoke_CigPerDay	Number of cigarettes per day	0	LUNG
+4631	Smoke_Ever	Regular smoking at any time	1	LUNG
+4632	AsthmaExacerbation	Asthma exacerbations	1	LUNG
+4633	AIS	Adolescent idiopathic scoliosis	1	MUSCULOSKELETAL
+4634	CSC	Central serous chorioretinopathy	1	OCULAR
+4635	ATMV	Anterior thigh muscle volume	0	MUSCULOSKELETAL
+4636	ATMFI	Anterior thigh muscle fat infiltration percentage	0	MUSCULOSKELETAL
+4637	LPDFF	Liver proton density fat fraction	0	HEPATIC
+4638	PTMV	Posterior thigh muscle volume	0	MUSCULOSKELETAL
+4639	PTMFI	Posterior thigh muscle fat infiltration percentage	0	MUSCULOSKELETAL
+4640	TTMVz	Total thigh muscle volume z-score	0	MUSCULOSKELETAL
+4641	WMR	Weight-to-muscle ratio	0	MUSCULOSKELETAL
+4642	AbFR	Abdominal fat ratio	0	ANTHROPOMETRIC
+4643	LVESIS	Left ventricular end systole inferoseptal wall thickness	0	CARDIOVASCULAR
+4644	LVESI	Left ventricular end systole inferior wall thickness	0	CARDIOVASCULAR
+4645	LVESIL	Left ventricular end systole inferolateral wall thickness	0	CARDIOVASCULAR
+4646	LVESAL	Left ventricular end systole anterolateral wall thickness	0	CARDIOVASCULAR
+4647	LVESA	Left ventricular end systole anterior wall thickness	0	CARDIOVASCULAR
+4648	LVESAS	Left ventricular end systole anterospetal wall thickness	0	CARDIOVASCULAR
+4649	LVEDIS	Left ventricular end diastole inferoseptal wall thickness	0	CARDIOVASCULAR
+4650	LVEDI	Left ventricular end diastole inferior wall thickness	0	CARDIOVASCULAR
+4651	LVEDIL	Left ventricular end diastole inferolateral wall thickness	0	CARDIOVASCULAR
+4652	LVEDAL	Left ventricular end diastole anterolateral wall thickness	0	CARDIOVASCULAR
+4653	LVEDA	Left ventricular end diastole anterior wall thickness	0	CARDIOVASCULAR
+4654	LVEDAS	Left ventricular end diastole anterospetal wall thickness	0	CARDIOVASCULAR
+4656	PulmonaryHT	Pulmonary hypertension	1	CARDIOVASCULAR
+4657	T2D_preg	Type 2 diabetes (with history of pregnancy)	1	GLYCEMIC
+4658	T2D_nopreg	Type 2 diabetes (with no history of pregnancy)	1	GLYCEMIC
+4660	adj_density_mesa	Lung density, MESA sponge model adjusted	0	LUNG
+4661	adj_density_plethy	Lung density, adjusted for depth of inspiration assessed by phlethysmography	0	LUNG
+4662	AO_Diameter_Avg	Aorta average diameter	0	LUNG
+4663	AWT_seg	Airway wall thickness, segmental (main 6)	0	LUNG
+4664	BV10	Aggregate vessel volume, vessels <10 mm2	0	LUNG
+4665	BV10_15	Aggregate vessel volume, vessels 10-15 mm2	0	LUNG
+4666	bv10_TBV	Ratio of aggregate vessel volume (vessels <10 mm2) to total blood vessel volume	0	LUNG
+4667	BV15_20	Aggregate vessel volume, vessels 15-20 mm2	0	LUNG
+4668	BV20_25	Aggregate vessel volume, vessels 20-25 mm2	0	LUNG
+4669	BV25_30	Aggregate vessel volume, vessels 25-30 mm2	0	LUNG
+4670	BV30_35	Aggregate vessel volume, vessels 30-35 mm2	0	LUNG
+4671	BV35_40	Aggregate vessel volume, vessels 35-40 mm2	0	LUNG
+4672	BV40_45	Aggregate vessel volume, vessels 40-45 mm2	0	LUNG
+4673	BV45_50	Aggregate vessel volume, vessels 45-50 mm2	0	LUNG
+4674	BV5	Aggregate vessel volume, vessels <5 mm2	0	LUNG
+4675	BV5_10	Aggregate vessel volume, vessels 5-10 mm2	0	LUNG
+4676	bv5_TBV	Ratio of aggregate vessel volume (vessels <5 mm2) to total blood vessel volume	0	LUNG
+4677	BV50_55	Aggregate vessel volume, vessels 50-55 mm2	0	LUNG
+4678	BV55_60	Aggregate vessel volume, vessels 55-60 mm2	0	LUNG
+4679	BV60_65	Aggregate vessel volume, vessels 60-65 mm2	0	LUNG
+4680	BV65_70	Aggregate vessel volume, vessels 65-70 mm2	0	LUNG
+4681	BV70_75	Aggregate vessel volume, vessels 70-75 mm2	0	LUNG
+4682	BV75_80	Aggregate vessel volume, vessels 75-80 mm2	0	LUNG
+4683	CT_Visual_Emph_Paraseptal	CT visual scoring, emphysema paraseptal	0	LUNG
+4684	CT_Visual_Emph_Severity	CT visual scoring, emphysema severity	0	LUNG
+4685	CT_Visual_Wall_Thickening	CT visual scoring, wall thickening	0	LUNG
+4686	exp_histo_mode	Slicer Exp Intensity Hu Mode	0	LUNG
+4687	Exp_LAA856_LLL	Exp percent below 856 LLL	0	LUNG
+4688	Exp_LAA856_LUL	Exp percent below 856 LUL	0	LUNG
+4689	Exp_LAA856_RLL	Exp percent below 856 RLL	0	LUNG
+4690	Exp_LAA856_RML	Exp percent below 856 RML	0	LUNG
+4691	Exp_LAA856_RUL	Exp percent below 856 RUL	0	LUNG
+4692	exp_lung_mass	Slicer Exp Lung Mass g	0	LUNG
+4693	exp_skewness	Slicer Exp Skewness	0	LUNG
+4694	ExpInspMeanAtten_ratio	Exp/Insp Mean Atten ratio Slicer	0	LUNG
+4695	FRC	Functional residual capacity, Thirona	0	LUNG
+4696	FRC_TLC_ratio	FRC to TLC ratio, Thirona	0	LUNG
+4697	Insp_Histo_Mode	Slicer Insp Intensity Hu Mode	0	LUNG
+4698	Insp_LAA950_LLL	Insp percent below 950 LLL	0	LUNG
+4699	Insp_LAA950_LUL	Insp percent below 950 LUL	0	LUNG
+4700	Insp_LAA950_RLL	Insp percent below 950 RLL	0	LUNG
+4701	Insp_LAA950_RML	Insp percent below 950 RML	0	LUNG
+4702	Insp_LAA950_RUL	Insp percent below 950 RUL	0	LUNG
+4703	Insp_Lung_Mass	Slicer Insp Lung Mass g	0	LUNG
+4704	Insp_Skewness	Slicer Insp Skewness	0	LUNG
+4705	IntensityStdDev_Ex	Ex Atten StdDev Slicer	0	LUNG
+4706	IntensityStdDev_In	In Atten StdDev Slicer	0	LUNG
+4707	LocalHistogramMildCentilobular	Subtle regions of emphysema within secondary pulmonary lobule	0	LUNG
+4708	LocalHistogramModerateCentilobular	More confluent regions of emphysema within the secondary pulmonary lobule	0	LUNG
+4709	LocalHistogramNormal	Normal lung architecture	0	LUNG
+4710	LocalHistogramSevereCentilobular	Emphysematous destruction of the secondary pulmonary lobule including the central bronchovascular bundle	0	LUNG
+4711	MeanAtten_Exp	Mean Attenuation, Exp, total lung	0	LUNG
+4712	MeanAtten_Exp_LLL	Exp MeanAtten LLL	0	LUNG
+4713	MeanAtten_Exp_LUL	Exp MeanAtten LUL	0	LUNG
+4714	MeanAtten_Exp_RLL	Exp MeanAtten RLL	0	LUNG
+4715	MeanAtten_Exp_RML	Exp MeanAtten RML	0	LUNG
+4716	MeanAtten_Exp_RUL	Exp MeanAtten RUL	0	LUNG
+4717	MeanAtten_Insp	Mean Attenuation, Insp, total lung, Full-dose	0	LUNG
+4718	MeanAtten_Insp_LLL	Insp MeanAtten LLL	0	LUNG
+4719	MeanAtten_Insp_LUL	Insp MeanAtten LUL	0	LUNG
+4720	MeanAtten_Insp_RLL	Insp MeanAtten RLL	0	LUNG
+4721	MeanAtten_Insp_RML	Insp MeanAtten RML	0	LUNG
+4722	MeanAtten_Insp_RUL	Insp MeanAtten RUL	0	LUNG
+4723	PA_A_Ratio	Ratio of pulmonary artery diameter to aorta diameter	0	LUNG
+4724	PA_Diameter	Pulmonary artery diameter at the bifurcation	0	LUNG
+4725	Panlobular	Complete effacement of parenchyma, including septae and bronchovascular bundles	0	LUNG
+4726	pctEmph	Percent emphysema, total lung, Thirona	0	LUNG
+4727	pctEmph_LowerLobes	Percent emphysema, lower lobes, Thirona	0	LUNG
+4728	pctEmph_LowerThird	Percent emphysema, lower third Slicer	0	LUNG
+4729	pctEmph_UL_LL_ratio	Upper lobe/Lower lobe ratio, Thirona	0	LUNG
+4730	pctEmph_UpperLobes	Percent emphysema, upper lobes, Thirona	0	LUNG
+4731	pctEmph_UpperThird	Percent emphysema, upper third Slicer	0	LUNG
+4732	pctGasTrap	Percent gas trapping, Slicer	0	LUNG
+4733	Perc15_Exp	Hu 15th Percentile, Exp	0	LUNG
+4734	Perc15_Exp_LLL	CT Histogram, Expiratory, 15th Percentile in Hu, LLL	0	LUNG
+4735	Perc15_Exp_LUL	CT Histogram, Expiratory, 15th Percentile in Hu, LUL	0	LUNG
+4736	Perc15_Exp_RLL	CT Histogram, Expiratory, 15th Percentile in Hu, RLL	0	LUNG
+4737	Perc15_Exp_RML	CT Histogram, Expiratory, 15th Percentile in Hu, RML	0	LUNG
+4738	Perc15_Exp_RUL	CT Histogram, Expiratory, 15th Percentile in Hu, RUL	0	LUNG
+4739	Perc15_Insp	Hu 15th Percentile, Inspiratory, Full-dose	0	LUNG
+4740	Perc15_Insp_LLL	CT Histogram, Inspiratory, 15th Percentile in Hu, LLL	0	LUNG
+4741	Perc15_Insp_LUL	CT Histogram, Inspiratory, 15th Percentile in Hu, LUL	0	LUNG
+4742	Perc15_Insp_RLL	CT Histogram, Inspiratory, 15th Percentile in Hu, RLL	0	LUNG
+4743	Perc15_Insp_RML	CT Histogram, Inspiratory, 15th Percentile in Hu, RML	0	LUNG
+4744	Perc15_Insp_RUL	CT Histogram, Inspiratory, 15th Percentile in Hu, RUL	0	LUNG
+4745	Pi10_SRWA_Thirona	Square root of wall area for a hypothetical 10-mm internal perimeter airway, Thirona	0	LUNG
+4746	Pi10_SRWA_Vida	Square root of wall area for a hypothetical 10-mm internal perimeter airway, Vida	0	LUNG
+4747	Pi15_SRWA_Vida	Square root of wall area for a hypothetical 15-mm internal perimeter airway, Vida	0	LUNG
+4748	PRM_pct_airtrapping	Parametric Response Mapping: Percent air trapping	0	LUNG
+4749	PRM_pct_emphysema	Parametric Response Mapping: Percent emphysema	0	LUNG
+4750	PRM_pct_normal	Parametric Response Mapping: Percent normal	0	LUNG
+4751	PRM_pct_other	Parametric Response Mapping: Percent other	0	LUNG
+4752	TBV_Slicer	Total blood volume	0	LUNG
+4753	TLC_Slicer	Total lung capacity, Slicer	0	LUNG
+4754	TLC_Thirona	Total lung capacity, Thirona	0	LUNG
+4755	UpperThird_LowerThird	Upper third to lower third ratio, Slicer	0	LUNG
+4756	WallAreaPct_seg_Thirona	Wall area percent, segmental (main 6), Thirona	0	LUNG
+4757	WallAreaPct_seg_Vida	Wall area percent, segmental (main 6), Vida	0	LUNG
+4758	PretermBirthMaternal	Pre-term delivery, maternal GWAS	1	REPRODUCTIVE TRAITS
+4759	PosttermBirthMaternal	Post-term delivery, maternal GWAS	1	REPRODUCTIVE TRAITS
+4768	Acne	Acne	1	SKIN CONDITIONS
+4769	EssentialTremor	Essential tremor	1	NEUROLOGICAL
+4770	CT_Visual_Emph_Severity_P1_binary	CT Visual Scoring, emphysema severity (binary)	1	LUNG
+4771	AVAP_AVRT	Atrioventricular accessory pathways or atrioventricular reciprocating tachycardia (AVAPs/AVRT)	1	CARDIOVASCULAR
+4772	CT_Visual_Emph_Paraseptal_P1_binary	CT Visual Scoring, emphysema paraseptal (binary)	1	LUNG
+4773	CT_Visual_Wall_Thickening_P1_binary	CT Visual Scoring, wall thickening (binary)	1	LUNG
+4774	T1DAgeO	Age of type 1 diabetes onset	0	TYPE 1 DIABETES
+4775	AVNRT	Atrioventricular nodal reentrant tachycardia (AVNRT)	1	CARDIOVASCULAR
+4782	AscAortaDisten	Ascending aorta distensibility	0	CARDIOVASCULAR
+4783	AscAortaStrain	Ascending aorta strain	0	CARDIOVASCULAR
+4784	DescAortaDisten	Descending aorta distensibility	0	CARDIOVASCULAR
+4785	DescAortaStrain	Descending aorta strain	0	CARDIOVASCULAR
+4786	cIMTmean	Mean carotid intima-media thickness	0	CARDIOVASCULAR
+4787	cIMTmax	Maximum carotid intima-media thickness	0	CARDIOVASCULAR
+4788	AntepartumBleed	Antepartum bleeding in pregnancy	1	REPRODUCTIVE TRAITS
+4789	EarlyBleedLiveBirth	Early bleeding in pregnancy, ending in live birth	1	REPRODUCTIVE TRAITS
+4790	EarlyBleed	Early bleeding in pregnancy, with any outcome	1	REPRODUCTIVE TRAITS
+4791	PPHAtony	Postpartum hemorrhage due to uterine atony	1	REPRODUCTIVE TRAITS
+4792	PPHRetainedPlacenta	Postpartum hemorrhage due to retained placenta	1	REPRODUCTIVE TRAITS
+4793	PPH	Postpartum hemorrhage	1	REPRODUCTIVE TRAITS
+4794	niHF	Non-ischemic heart failure	1	CARDIOVASCULAR
+4795	niHFrEF	Non-ischemic heart failure with reduced ejection fraction	1	CARDIOVASCULAR
+4796	niHFpEF	Non-ischemic heart failure with preserved ejection fraction	1	CARDIOVASCULAR
+4797	ThoracicAA	Thoracic aortic aneurysm	1	CARDIOVASCULAR
+4798	HOMABadjBMI	HOMA-B adjusted for BMI	0	GLYCEMIC
+4799	HOMAIRadjBMI	HOMA-IR adjusted for BMI	0	GLYCEMIC
+4800	BIGTT-AIR	BIGTT acute insulin response	0	GLYCEMIC
+4801	Stumvoll	Stumvoll first-phase secretion	0	GLYCEMIC
+4802	xinsdG30	Insulinogenic index	0	GLYCEMIC
+4803	xinsG30	Modified insulinogenic index	0	GLYCEMIC
+4804	DI_Kadowaki_Matsuda	Disposition index calculated by modified insulinogenic and Matsuda insulin sensitivity indexes	0	GLYCEMIC
+4805	DIBIG	Disposition index calculated by BIGTT-AIR and BIGTT-S	0	GLYCEMIC
+4806	Bicarbonate	Bicarbonate levels	0	METABOLITE
+4807	BNP	Brain natriuretic peptide levels	0	CARDIOVASCULAR
+4808	CKFrac	Creatine kinase-MB fraction	0	CARDIOVASCULAR
+4809	ESR	Erythrocyte sedimentation rate	0	HEMATOLOGICAL
+4810	SecHypoThyroid	Secondary hypothyroidism	1	GLYCEMIC
+4811	AcqHypoThyroid	Acquired hypothyroidism	1	GLYCEMIC
+4816	T2DwKA	Type 2 diabetes with ketoacidosis	1	GLYCEMIC
+4817	T2DwRM	Type 2 diabetes with renal manifestations	1	GLYCEMIC
+4818	T2DwOM	Type 2 diabetes with ophthalmic manifestations	1	GLYCEMIC
+4819	T2DwNM	Type 2 diabetes with neurological manifestations	1	GLYCEMIC
+4820	T2DwPC	Type 2 diabetes with peripheral circulatory manifestations	1	GLYCEMIC
+4821	PolyneuropathyDM	Polyneuropathy in diabetes	1	DIABETIC COMPLICATIONS
+4822	HyperParaThyroid	Hyperparathyroidism	1	GLYCEMIC
+4823	PituitaryHyper	Pituitary hyperfunction	1	GLYCEMIC
+4824	PituitaryHypo	Pituitary hypofunction	1	GLYCEMIC
+4825	GluCorticoidDef	Glucocorticoid deficiency	1	GLYCEMIC
+4826	Hyperaldosteronism	Hyperaldosteronism	1	GLYCEMIC
+4827	AdrenalHyper	Adrenal hyperfunction	1	GLYCEMIC
+4828	AdrenalHypo	Adrenal hypofunction	1	GLYCEMIC
+4829	TestiHypo	Testicular hypofunction	1	REPRODUCTIVE TRAITS
+4830	HypoThyroidNOS	Hypothyroidism, not otherwise specified	1	GLYCEMIC
+4831	eGFRcrcys	eGFRcr-cys (serum creatinine and cystatin C)	0	RENAL
+4832	AnorexiaNervosa	Anorexia nervosa	1	PSYCHIATRIC
+4833	OCS	Obsessive-compulsive symptoms	0	PSYCHIATRIC
+4835	spQRSTa	Spatial QRS-T angles 	0	ECG TRAITS
+4836	fQRSTa	Frontal QRS-T angles 	0	ECG TRAITS
+4837	BreastCancer_ERN	Breast cancer (estrogen-receptor negative)	1	CANCER
+4838	EndometrialCancer_EH	Endometrial cancer (endometrioid histology)	1	CANCER
+4840	EndometrialCancer_NonEH	Endometrial cancer (Non-endometrioid histology)	1	CANCER
+4867	CKMB	Creatinine kinase MB	0	CARDIOVASCULAR
+4868	MDD_broad	Major depressive disorder, broad definition	1	PSYCHIATRIC
+4869	MDD_probable	Major depressive disorder, probable definition (stricter than MDD_broad)	1	PSYCHIATRIC
+4870	MDD1_depressed	MDD1: Depressed mood most of the day, nearly every day	1	PSYCHIATRIC
+4871	MDD2_anhedonia	MDD2: Markedly diminished interest or pleasure in all, or almost all, activities most of the day, nearly every day	1	PSYCHIATRIC
+4872	MDD3a_weightLoss	MDD3a: Significant weight loss or decrease in appetite	1	PSYCHIATRIC
+4873	MDD3b_weightGain	MDD3b: Significant weight gain or increase in appetite	1	PSYCHIATRIC
+4874	MDD4a_sleepProb	MDD4a: Insomnia nearly every day	1	PSYCHIATRIC
+4875	MDD4b_sleepMore	MDD4b: Hypersomnia nearly every day	1	PSYCHIATRIC
+4876	MDD5a_psychomotorFast	MDD5a: Psychomotor agitation nearly every day	1	PSYCHIATRIC
+4877	MDD5b_psychomotorSlow	MDD5b: Psychomotor slowing nearly every day	1	PSYCHIATRIC
+4878	MDD6_fatigue	MDD6: Fatigue or loss of energy nearly every day	1	PSYCHIATRIC
+4879	MDD7_worthless	MDD7: Feelings of worthlessness or excessive or inappropriate guilt	1	PSYCHIATRIC
+4880	MDD8_concentration	MDD8: Diminished ability to think or concentrate, or indecisiveness	1	PSYCHIATRIC
+4881	MDD9_death	MDD9: Recurrent thoughts of death or suicide or a suicide attempt or a specific plan for attempting suicide	1	PSYCHIATRIC
+4894	VenousThromboembolism	Venous Thromboembolism	1	CARDIOVASCULAR
+4896	AutoimmuneThyroid	Venous Thromboembolism	1	IMMUNOLOGICAL
+4897	PsoriaticArthritis	Psoriatic Arthritis	1	MUSCULOSKELETAL
+4898	SHS	Sleep health scores (additive from all sleep assessment scores)	0	SLEEP AND CIRCADIAN
+4899	SHS_PC1	Sleep health scores (additive from all sleep assessment scores), PC1	0	SLEEP AND CIRCADIAN
+4900	SHS_PC2	Sleep health scores (additive from all sleep assessment scores), PC2	0	SLEEP AND CIRCADIAN
+4901	SHS_PC3	Sleep health scores (additive from all sleep assessment scores), PC3	0	SLEEP AND CIRCADIAN
+4902	SHS_PC4	Sleep health scores (additive from all sleep assessment scores), PC4	0	SLEEP AND CIRCADIAN
+4903	SHS_PC5	Sleep health scores (additive from all sleep assessment scores), PC5	0	SLEEP AND CIRCADIAN
+4904	PPD	Postpartum depression	1	REPRODUCTIVE TRAITS
+4912	VitiligoEarly	Vitiligo (early onset)	1	SKIN CONDITIONS
+4913	VitiligoLate	Vitiligo (late onset)	1	SKIN CONDITIONS
+4914	APTT	Activated partial thromboplastin time	0	HEMATOLOGICAL
+4915	AG	Albumine globulin ratio	0	RENAL
+4916	EA	E/A ratio	0	CARDIOVASCULAR
+4917	EF	Ejection Fraction	0	CARDIOVASCULAR
+4918	EGFR	Estimated glomerular filtration ratio	0	RENAL
+4919	FS	Fractional shortening	0	CARDIOVASCULAR
+4921	IVS	Interventricular septum	0	CARDIOVASCULAR
+4922	LVDD	Left ventricular diastolic dimension	0	CARDIOVASCULAR
+4923	LVmassIndex	Left ventricular mass index	0	CARDIOVASCULAR
+4924	LVSD	Left ventricular systolic dimension	0	CARDIOVASCULAR
+4925	MgMeasure	Magnesium	0	METABOLITE
+4927	NAP	Non albmin protein	0	RENAL
+4928	PWT	Posterior wall thickness	0	CARDIOVASCULAR
+4929	PTTime	Prothrombin time	0	HEMATOLOGICAL
+4930	RWT	Relative wall thickness	0	CARDIOVASCULAR
+4931	SEG	Segment count	0	HEMATOLOGICAL
+4932	ZST	Zinc sulfate turbidity test	0	HEPATIC
+4934	PTSD	Posttraumatic stress disorder	1	PSYCHIATRIC
+4941	MetS_cont	Metabolic syndrome derived from gSEM latent factor, continuous as only n_eff is provided	0	OTHER
+4942	MetS	Metabolic syndrome derived from gSEM latent factor	1	OTHER
+4944	LumbarDiscHerniation	Lumbar disc herniation	1	MUSCULOSKELETAL
+4945	LDH_M51_1	Lumbar disc herniation (ICD-10:M51.1)	1	MUSCULOSKELETAL
+4946	LDH_Surgical	Lumbar disc herniation (has undergone surgery)	1	MUSCULOSKELETAL
+4947	Insomnia_cont	Insomnia (continuous scale, e.g. 1;2;3)	0	SLEEP AND CIRCADIAN
+4950	ProBNP	pro-brain  natriuretic peptide (proBNP, mean, inv-norm transformed)	0	CARDIOVASCULAR
+4951	HyperChol	High cholesterol	1	LIPIDS
+4952	IronDefAnemias	Iron deficiency anemias (PheCode 280)	1	HEMATOLOGICAL
+4953	Palpitations	Palpitations (PheCode 427.9)	1	CARDIOVASCULAR
+4954	SubduralHemorrhage	Subdural hemorrhage (PheCode 430.3)	1	STROKE
+4955	Vitiligo	Vitiligo (PheCode 694.1)	1	SKIN CONDITIONS
+4956	Alopecia	Alopecia (PheCode 704.1)	1	SKIN CONDITIONS
+4957	AFlutter	Atrial flutter (PheCode 427.22)	1	CARDIOVASCULAR
+4958	BIPSibling	Biological Sibling: Bipolar Disorder	1	PSYCHIATRIC
+4959	OcculusionCerebralArteries	Occlusion of cerebral arteries (PheCode 433.2)	1	STROKE
+4960	Cholelithiasis	Cholelithiasis (PheCode 574.1)	1	DIGESTIVE
+4961	HypertensiveCKD	Hypertensive chronic kidney disease (PheCode 401.22)	1	RENAL
+4962	ChronicPulmoHeartDisease	Chronic pulmonary heart disease (PheCode 415.2)	1	CARDIOVASCULAR
+4963	CongestiveHeartFail	Congestive heart failure	1	CARDIOVASCULAR
+4964	DeepVeinThrombosis	Blood clot / pulmonary embolism / deep vein thrombosis (DVT)	1	CARDIOVASCULAR
+4965	DDFather	Biological Father: Depression	1	PSYCHIATRIC
+4966	DDSibling	Biological Sibling: Depression	1	PSYCHIATRIC
+4967	DiastolicHeartFail	Heart failure with preserved EF [Diastolic heart failure] (PheCode 428.4)	1	CARDIOVASCULAR
+4968	Diverticulosis	Diverticulosis (PheCode 562.1)	1	DIGESTIVE
+4969	Diverticulitis	Diverticulitis (PheCode 562.2)	1	DIGESTIVE
+4970	Emphysema	Emphysema (PheCode 496.1)	1	LUNG
+4971	Epilepsy	Epilepsy (PheCode 345.1)	1	NEUROLOGICAL
+4972	EssentialHYPERTENSION	Essential hypertension (PheCode 401.1)	1	CARDIOVASCULAR
+4973	Hyperglyceridemia	Hyperglyceridemia (PheCode 272.12)	1	LIPIDS
+4974	ADFather	Biological Father: Alzheimer's / Other Dementia	1	NEUROLOGICAL
+4975	AcidRefluxGERD	Acid reflux/GERD	1	DIGESTIVE
+4976	Glaucoma	Glaucoma	1	OCULAR
+4977	OpenAngleGlaucoma	Open-angle glaucoma (PheCode 365.1)	1	OCULAR
+4978	LocalOA	Osteoarthritis, localized (PheCode 740.1)	1	MUSCULOSKELETAL
+4979	ParoxysmalTachycardia	Paroxysmal tachycardia, unspecified (PheCode 427.1)	1	CARDIOVASCULAR
+4980	ProstateAntigen	prostate-specific antigen (PSA, mean, inv-norm transformed)	0	CANCER
+4981	Iron	iron (mean, inv-norm transformed)	0	METABOLITE
+4982	SupraventricularPremaBeats	Supraventricular premature beats (PheCode 427.61)	1	CARDIOVASCULAR
+4994	ASCVD	ASCVD (PheCode 414.2)	1	CARDIOVASCULAR
+4996	CerebralAtherosclerosis	Cerebral atherosclerosis (PheCode 433.12)	1	STROKE
+5000	CircadianSleep	Circadian rhythm sleep disorder (PheCode 327.6)	1	SLEEP AND CIRCADIAN
+5013	IntracerebralHemorrhage	Intracerebral hemorrhage (PheCode 430.2)	1	STROKE
+5014	ObstructiveApnea	Obstructive sleep apnea (PheCode 327.32)	1	SLEEP AND CIRCADIAN
+5018	TroponinMeasure	total troponin (mean, inv-norm transformed)	0	CARDIOVASCULAR
+5019	RheumatoidFactor	rheumatoid factor (RF, mean, inv-norm transformed)	0	IMMUNOLOGICAL
+5020	Rosacea	Rosacea (PheCode 695.3)	1	SKIN CONDITIONS
+5021	SCZFather	Biological Father: Schizophrenia	1	PSYCHIATRIC
+5022	SCZMother	Biological Mother: Schizophrenia	1	PSYCHIATRIC
+5024	TotalIron	total iron (mean, inv-norm transformed)	0	METABOLITE
+5025	SubarachnoidHemorrhage	Subarachnoid hemorrhage (PheCode 430.1)	1	STROKE
+5038	DDMother	Biological Mother: Depression	1	PSYCHIATRIC
+5053	CysticKD	Cystic kidney disease (PheCode 751.21)	1	RENAL
+5060	BIPMother	Biological Mother: Bipolar Disorder	1	PSYCHIATRIC
+5062	CardiacTropoOneMeasure	troponin I (mean, inv-norm transformed)	0	CARDIOVASCULAR
+5074	GenConvulsiveEpilepsy	Generalized convulsive epilepsy (PheCode 345.11)	1	NEUROLOGICAL
+5084	RestlessLegs	Restless legs syndrome (PheCode 327.71)	1	NEUROLOGICAL
+5090	SystolicHeartFail	Heart failure with reduced EF [Systolic or combined heart failure] (PheCode 428.3)	1	CARDIOVASCULAR
+5092	SND_REST	Sinus node dysfunction (restrictive)	1	CARDIOVASCULAR
+5093	SND_INC	Sinus node dysfunction (inclusive)	1	CARDIOVASCULAR
+5094	DCD_REST	distal conduction disease (restrictive)	1	CARDIOVASCULAR
+5095	DCD_INC	distal conduction disease (inclusive_	1	CARDIOVASCULAR
+5096	PaceMaker	Pacemaker implantation	1	CARDIOVASCULAR
+5346	Parasomnia	Parasomnia (PheCode 327.5)	1	SLEEP AND CIRCADIAN
+5350	Atherosclerosis	Atherosclerosis (PheCode 440)	1	CARDIOVASCULAR
+5354	LocalSystemicLupus	Lupus (localized and systemic) (PheCode 695.4)	1	IMMUNOLOGICAL
+5356	CutaneousLE	Cutaneous lupus erythematosus (PheCode 695.41)	1	IMMUNOLOGICAL
+5358	BIPFather	Biological Father: Bipolar Disorder	1	PSYCHIATRIC
+5360	CardiacArrest	Cardiac arrest (PheCode 427.42)	1	CARDIOVASCULAR
+5362	CardiacArrhythmia	Arrhythmia (cardiac) NOS (PheCode 427.5)	1	CARDIOVASCULAR
+5366	Cardiomegaly	Cardiomegaly (PheCode 416)	1	CARDIOVASCULAR
+5370	ADMother	Biological Mother: Alzheimer's / Other Dementia	1	NEUROLOGICAL
+5374	ADSibling	Biological Sibling: Alzheimer's / Other Dementia	1	NEUROLOGICAL
+5377	HCVRnaViralLoad	hepatitis C virus RNA viral load (HCV_RNAVL, mean, inv-norm transformed)	0	HEPATIC
+5379	Hyperlipidemia	Hyperlipidemia (PheCode 272.1)	1	LIPIDS
+5384	Hypotension	Hypotension (PheCode 458)	1	CARDIOVASCULAR
+5388	AcuteRenalFail	Acute renal failure (PheCode 585.1)	1	RENAL
+5392	HeartAttack	Heart attack	1	CARDIOVASCULAR
+5396	PTINR	PT international normalized ratio (INR, mean, inv-norm transformed)	0	HEMATOLOGICAL
+5400	PsoriasisVulgaris	Psoriasis vulgaris (PheCode 696.41)	1	SKIN CONDITIONS
+5404	SCZSibling	Biological Sibling: Schizophrenia	1	PSYCHIATRIC
+5407	CentralSleepApnea	Central/nonobstroctive sleep apnea (PheCode 327.31)	1	SLEEP AND CIRCADIAN
+5410	TransferrinSaturation	transferrin saturation (TSAT, mean, inv-norm transformed)	0	HEMATOLOGICAL
+5414	VFibFlutter	Ventricular fibrillation and flutter (PheCode 427.41)	1	CARDIOVASCULAR
+5415	PsoriaticArthropathy	Psoriatic arthropathy (PheCode 696.42)	1	MUSCULOSKELETAL

@@ -1,0 +1,353 @@
+/* ============================================================
+   FALCON Design System — "Light Frosted"
+   Palette derived from the falcon logo (src/images/logo_40_40.svg).
+   iOS reference: transparency, floating glass, soft depth, large radii.
+   Loaded AFTER any page's own stylesheet so it wins the cascade.
+   ============================================================ */
+
+:root {
+  /* ---- Brand palette (from the logo) ---- */
+  /* Dark → light blue ramp (navy anchors from the logo, extended with mid & light blues) */
+  --navy-900:#0c1c34; --navy-800:#12294a; --navy-700:#2a4269; --navy-600:#35507d; --navy-500:#456394;
+  --blue-400:#5b7fb0; --blue-300:#8aa8cf; --blue-200:#b6cce6; --blue-100:#dce8f5; --blue-50:#eef4fb;
+  --slate-500:#7989a0; --slate-400:#98a6c0;
+  /* Muted (less bright) warm tones */
+  --orange-500:#d9813a; --orange-400:#e3a24a; --gold-400:#e2be3f; --gold-500:#e8c452;
+  --coral-500:#f15b51; --red-500:#e64f59;
+  --ice-300:#a9d4dd; --ice-200:#cae5e8; --ice-100:#e6f2f4;  --paper-0:#fefdfc;
+
+  /* ---- Semantic roles ---- */
+  --brand:            var(--orange-500);
+  --brand-gradient:   linear-gradient(135deg,#e3a24a 0%,#d4772e 100%);
+  --brand-soft:       rgba(217,129,58,.13);
+  --accent:           var(--coral-500);
+  --info:             var(--navy-600);          /* dark-blue accent */
+  --info-soft:        rgba(53,80,125,.12);
+  --ink:              var(--navy-900);
+  --ink-2:            #2f456a;                   /* blue-leaning secondary text */
+  --ink-3:            var(--slate-500);
+  --line:             rgba(20,40,74,.13);
+  --line-strong:      rgba(20,40,74,.22);
+
+  /* Ambient app background (painted in the shell behind transparent iframes) */
+  --bg-app:
+     radial-gradient(1100px 640px at 8% -12%, rgba(217,129,58,.12), transparent 58%),
+     radial-gradient(1150px 820px at 100% -8%, rgba(138,168,207,.42), transparent 56%),
+     radial-gradient(950px 780px at 60% 118%, rgba(69,99,148,.20), transparent 60%),
+     radial-gradient(720px 560px at 16% 106%, rgba(202,229,232,.45), transparent 60%),
+     linear-gradient(180deg,#f4f8fd 0%, #e8eff8 55%, #dfe8f4 100%);
+
+  /* ---- Evidence-class colors ---- */
+  --ev-clinical:#e08a12;      --ev-clinical-bg:rgba(224,138,18,.14);
+  --ev-effector:#0f9d6b;      --ev-effector-bg:rgba(15,157,107,.14);
+  --ev-novel:#6d4bd8;         --ev-novel-bg:rgba(109,75,216,.14);
+  --ev-repurposable:#f15b51;  --ev-repurposable-bg:rgba(241,91,81,.14);
+  --ev-associated:var(--navy-700); --ev-associated-bg:rgba(42,66,105,.12);
+
+  /* ---- Spacing (4/8) ---- */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-8:48px;
+
+  /* ---- Radius ---- */
+  --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-pill:999px;
+
+  /* ---- Elevation ---- */
+  --e-1:0 1px 2px rgba(12,28,52,.06), 0 1px 1px rgba(12,28,52,.04);
+  --e-2:0 6px 18px rgba(12,28,52,.08), 0 2px 5px rgba(12,28,52,.05);
+  --e-3:0 14px 38px rgba(12,28,52,.14), 0 4px 12px rgba(12,28,52,.08);
+  --e-float:0 20px 56px rgba(12,28,52,.22);
+
+  /* ---- Glass (glossier + more transparent, faint cool-blue frost) ---- */
+  --glass-bg:rgba(238,244,252,.40);
+  --glass-bg-strong:rgba(243,247,253,.64);
+  --glass-border:1px solid rgba(255,255,255,.55);
+  --glass-blur:saturate(190%) blur(26px);
+  /* specular sheen laid over the translucent fill, and a bright inner top edge */
+  --glass-sheen:linear-gradient(157deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,.14) 26%, rgba(255,255,255,0) 58%);
+  --glass-hi:inset 0 1px 0 rgba(255,255,255,.70), inset 0 0 0 1px rgba(255,255,255,.16);
+  --glass-tint-navy:rgba(12,28,52,.55);
+
+  /* ---- Type ---- */
+  --font-sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",system-ui,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,monospace;
+
+  /* ---- Motion ---- */
+  --dur-fast:.15s; --dur:.24s; --dur-slow:.4s;
+  --ease-out:cubic-bezier(.22,.61,.36,1);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+
+  /* ---- Legacy remap: existing pages upgrade for free ---- */
+  --primary-color:var(--brand);
+  --bg-color:transparent;
+  --border-color:var(--line);
+  --text-main:var(--ink);
+  --text-muted:var(--ink-3);
+  --header-bg:var(--glass-tint-navy);
+  --header-text:var(--paper-0);
+
+  /* ---- Surfaces that were hardcoded light literals ---- */
+  --surface-header:rgba(240,244,250,.9);
+  --surface-header-hover:rgba(226,232,242,.95);
+  --surface-card:#fff;
+  --row-hover:rgba(202,229,232,.22);
+  --table-line:rgba(12,28,52,.07);
+  --track-bg:rgba(120,130,160,.16);
+  --heading-strong:var(--ink);
+  /* Panels/menus that app.js paints via inline styles (can't be reached by a
+     stylesheet rule), so they must resolve through a variable to theme at all.
+     --surface-raised stays opaque: it backs floating menus and <select>s. */
+  --surface-panel:var(--blue-50);
+  --surface-raised:var(--blue-50);
+  --ok:#15803d;
+  --ok-2:#047857;
+  --ok-line:#bbf7d0;
+  /* Tinted expanded-row surfaces in the traits table: blue = clinical trials,
+     green = effector-gene list. */
+  --tint-info-row:#f0f9ff;  --tint-info-head:#e0f2fe;  --tint-info-line:#bae6fd;
+  --tint-ok-row:#f0fdf4;    --tint-ok-head:#dcfce7;    --tint-ok-line:#86efac;
+}
+
+/* ============================================================
+   Dark theme — toggled via <html data-theme="dark">.
+   Re-declares the semantic roles above; component rules that
+   reference them (not raw hex) repaint automatically.
+   ============================================================ */
+:root[data-theme="dark"]{
+  --ink:              #eef3fb;
+  --ink-2:            #b9c6dc;
+  --ink-3:            #8b9bbc;
+  --line:             rgba(210,222,244,.14);
+  --line-strong:      rgba(210,222,244,.24);
+
+  --bg-app:
+     radial-gradient(1100px 640px at 8% -12%, rgba(217,129,58,.10), transparent 58%),
+     radial-gradient(1150px 820px at 100% -8%, rgba(53,80,125,.38), transparent 56%),
+     radial-gradient(950px 780px at 60% 118%, rgba(12,28,52,.55), transparent 60%),
+     radial-gradient(720px 560px at 16% 106%, rgba(42,66,105,.30), transparent 60%),
+     linear-gradient(180deg,#0a1526 0%, #0c1c34 55%, #0a1930 100%);
+
+  --glass-bg:rgba(20,32,54,.46);
+  --glass-bg-strong:rgba(18,30,52,.72);
+  --glass-border:1px solid rgba(255,255,255,.08);
+  --glass-sheen:linear-gradient(157deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.03) 26%, rgba(255,255,255,0) 58%);
+  --glass-hi:inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 0 1px rgba(255,255,255,.05);
+  --glass-tint-navy:rgba(4,10,20,.65);
+
+  --brand-soft:       rgba(227,162,74,.18);
+  --info-soft:        rgba(138,168,207,.16);
+
+  --e-1:0 1px 2px rgba(0,0,0,.30), 0 1px 1px rgba(0,0,0,.20);
+  --e-2:0 6px 18px rgba(0,0,0,.36), 0 2px 5px rgba(0,0,0,.24);
+  --e-3:0 14px 38px rgba(0,0,0,.44), 0 4px 12px rgba(0,0,0,.28);
+  --e-float:0 20px 56px rgba(0,0,0,.55);
+
+  --surface-header:rgba(255,255,255,.05);
+  --surface-header-hover:rgba(255,255,255,.09);
+  --surface-card:#0f1e36;
+  --row-hover:rgba(138,168,207,.10);
+  --table-line:rgba(210,222,244,.10);
+  --track-bg:rgba(210,222,244,.16);
+  --heading-strong:var(--ink);
+  --surface-panel:rgba(255,255,255,.05);
+  --surface-raised:#17283f;
+  /* Lightened so they clear contrast against the dark surfaces */
+  --ok:#4ade80;
+  --ok-2:#34d399;
+  --ok-line:rgba(52,211,153,.28);
+  /* Tints drop to low-opacity washes — a light pastel fill would strand the
+     near-white body text sitting on it. */
+  --tint-info-row:rgba(56,148,255,.09);  --tint-info-head:rgba(56,148,255,.16);  --tint-info-line:rgba(125,211,252,.28);
+  --tint-ok-row:rgba(52,211,153,.09);    --tint-ok-head:rgba(52,211,153,.16);    --tint-ok-line:rgba(52,211,153,.30);
+
+  /* Foregrounds lifted toward the light end of each hue so they stay legible
+     on the dark surfaces; the -bg fills get a touch more opacity to compensate. */
+  --ev-clinical:#f0ad4e;      --ev-clinical-bg:rgba(224,138,18,.20);
+  --ev-effector:#34d399;      --ev-effector-bg:rgba(15,157,107,.20);
+  --ev-novel:#a78bfa;         --ev-novel-bg:rgba(109,75,216,.24);
+  --ev-repurposable:#fb8177;  --ev-repurposable-bg:rgba(241,91,81,.20);
+  --ev-associated:#8aa8cf;    --ev-associated-bg:rgba(138,168,207,.18);
+}
+
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+@media (prefers-reduced-motion:reduce){
+  :root{--dur-fast:0s;--dur:0s;--dur-slow:0s;}
+  *{scroll-behavior:auto!important;}
+}
+
+/* Fallback where backdrop-filter is unsupported: make glass more opaque */
+@supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+  :root{--glass-bg:rgba(240,246,253,.93);--glass-bg-strong:rgba(244,248,253,.97);}
+}
+
+body{ font-family:var(--font-sans); color:var(--ink); }
+
+/* Clearance for the shell's floating nav (top) / mobile tab bar (bottom).
+   Applies to the app-driven pages (traits/zoom carry data-page). */
+body[data-page]{ padding-top:76px; box-sizing:border-box; }
+@media (max-width:820px){ body[data-page]{ padding-top:64px; padding-bottom:96px; } }
+
+/* ============================================================
+   Components
+   ============================================================ */
+
+.glass-card{
+  position:relative;
+  background:var(--glass-sheen), var(--glass-bg); border:var(--glass-border);
+  border-radius:var(--r-lg); box-shadow:var(--e-2), var(--glass-hi);
+  -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur);
+  padding:var(--sp-5);
+}
+.glass-card--solid{ background:var(--glass-sheen), var(--glass-bg-strong); }
+
+.ds-btn{
+  font:600 15px/1 var(--font-sans);
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:11px 18px; min-height:44px; border:none; border-radius:var(--r-md);
+  cursor:pointer; color:var(--ink); background:var(--glass-bg-strong);
+  border:1px solid var(--line);
+  transition:transform var(--dur-fast) var(--ease-out), box-shadow var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+.ds-btn:hover{ box-shadow:var(--e-2); }
+.ds-btn:active{ transform:scale(.97); }
+.ds-btn-primary{ color:#fff; background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 46%), var(--brand-gradient); border:none; box-shadow:var(--e-2), inset 0 1px 0 rgba(255,255,255,.35); }
+.ds-btn-primary:hover{ box-shadow:var(--e-3), inset 0 1px 0 rgba(255,255,255,.42); }
+.ds-btn-ghost{ background:transparent; border:1px solid var(--line); }
+
+.ds-pill{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 14px; border-radius:var(--r-pill);
+  font:600 13px var(--font-sans); color:var(--ink-2);
+  background:var(--glass-bg); border:1px solid var(--line);
+  cursor:pointer; transition:all var(--dur) var(--ease-out);
+}
+.ds-pill:hover{ color:var(--ink); border-color:var(--line-strong); }
+.ds-pill[aria-pressed="true"], .ds-pill.active{
+  background:var(--brand-gradient); color:#fff; border-color:transparent; box-shadow:var(--e-1);
+}
+
+/* iOS segmented control */
+.ds-segmented{ display:inline-flex; background:rgba(120,130,160,.16); border-radius:var(--r-md); padding:3px; gap:3px; }
+.ds-segmented button{
+  border:none; background:transparent; font:600 13px var(--font-sans);
+  color:var(--ink-2); padding:8px 15px; border-radius:calc(var(--r-md) - 3px); cursor:pointer;
+  transition:all var(--dur) var(--ease-out); min-height:36px;
+}
+.ds-segmented button[aria-selected="true"], .ds-segmented button.active{
+  background:var(--paper-0); color:var(--ink); box-shadow:var(--e-1);
+}
+
+/* Modern search field */
+.ds-search{ position:relative; display:flex; align-items:center; }
+.ds-search input{
+  width:100%; box-sizing:border-box; min-height:44px;
+  padding:11px 16px 11px 42px; border-radius:var(--r-pill);
+  border:1px solid var(--line); background:var(--glass-bg-strong);
+  font:500 15px var(--font-sans); color:var(--ink);
+  -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur);
+  transition:box-shadow var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+.ds-search input:focus{ outline:none; border-color:var(--brand); box-shadow:0 0 0 4px var(--brand-soft); }
+.ds-search::before{
+  content:""; position:absolute; left:16px; width:16px; height:16px; opacity:.5;
+  background:no-repeat center/contain url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%230c1c34" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>');
+}
+
+/* Evidence badges */
+.evidence-badge{ display:inline-flex; align-items:center; gap:6px; font:600 12px var(--font-sans); padding:4px 10px; border-radius:var(--r-pill); }
+.evidence-badge.clinical{ color:var(--ev-clinical); background:var(--ev-clinical-bg); }
+.evidence-badge.effector{ color:var(--ev-effector); background:var(--ev-effector-bg); }
+.evidence-badge.novel{ color:var(--ev-novel); background:var(--ev-novel-bg); }
+.evidence-badge.repurposable{ color:var(--ev-repurposable); background:var(--ev-repurposable-bg); }
+.evidence-badge.associated{ color:var(--ev-associated); background:var(--ev-associated-bg); }
+.evidence-badge.below{ color:var(--ink-3); background:rgba(120,130,160,.16); }
+
+/* Category chip */
+.cat-chip{ display:inline-flex; align-items:center; gap:6px; font:600 11px var(--font-sans); letter-spacing:.02em;
+  padding:3px 9px; border-radius:var(--r-pill); color:var(--navy-700); background:rgba(202,229,232,.5); }
+
+/* Skeleton loader */
+.skeleton{ background:linear-gradient(90deg, rgba(12,28,52,.06) 25%, rgba(12,28,52,.11) 37%, rgba(12,28,52,.06) 63%);
+  background-size:400% 100%; animation:ds-shimmer 1.4s ease infinite; border-radius:var(--r-sm); }
+@keyframes ds-shimmer{ 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+
+.ds-fade-in{ animation:ds-fade var(--dur-slow) var(--ease-out) both; }
+@keyframes ds-fade{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)} }
+
+/* ============================================================
+   Overrides for EXISTING shared selectors (styles.css / pages)
+   These modernize traits.html + falcon_zoom.html with no markup change.
+   ============================================================ */
+
+.controls{ background:transparent!important; box-shadow:none!important; padding:0!important; }
+
+.view-section{
+  background:var(--glass-sheen), var(--glass-bg)!important; border:var(--glass-border);
+  border-radius:var(--r-lg)!important; box-shadow:var(--e-2), var(--glass-hi)!important; padding:var(--sp-5)!important;
+  -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur);
+}
+@media (max-width:600px){ .view-section{ padding:var(--sp-4)!important; } }
+
+/* Tables */
+.table-wrapper, .zoom-table-wrapper{ border:1px solid var(--line)!important; border-radius:var(--r-md); background:var(--glass-bg); }
+table th{ background:var(--surface-header)!important; color:var(--ink-2); font-weight:700; border-bottom:1px solid var(--line)!important; }
+table th:hover{ background:var(--surface-header-hover)!important; }
+table td{ border-bottom:1px solid var(--table-line)!important; color:var(--ink-2); }
+table tbody tr{ transition:background var(--dur-fast) var(--ease-out); }
+table tbody tr:hover{ background:var(--row-hover); }
+
+/* Straggler light-literal selectors from styles.css that design-system doesn't
+   otherwise touch — kept theme-aware so dark mode doesn't leave them stranded. */
+.filter-header h4, .zoom-section h4{ color:var(--heading-strong)!important; }
+.trait-card{ background:var(--glass-sheen), var(--glass-bg)!important; border:var(--glass-border)!important;
+  box-shadow:var(--glass-hi); }
+.zoom-actions #btn-show-ld{ color:var(--ink-2)!important; }
+.slider-track{ background:var(--track-bg)!important; }
+
+/* Pagination + generic page buttons */
+button.page-btn, .zoom-table-pagination button{
+  border:1px solid var(--line)!important; background:var(--glass-bg-strong)!important;
+  border-radius:var(--r-pill)!important; min-height:36px; padding:7px 14px!important; color:var(--ink-2); font-weight:600;
+  transition:all var(--dur-fast) var(--ease-out);
+}
+button.page-btn:hover:not(:disabled), .zoom-table-pagination button:hover{ box-shadow:var(--e-1); border-color:var(--line-strong)!important; }
+
+/* Inputs */
+input[type="text"], input[type="number"], input[type="file"], select{
+  border:1px solid var(--line)!important; border-radius:var(--r-md)!important;
+  background:var(--glass-bg-strong); color:var(--ink); font-family:var(--font-sans);
+  transition:box-shadow var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+input[type="text"]:focus, input[type="number"]:focus, select:focus{
+  outline:none; border-color:var(--brand)!important; box-shadow:0 0 0 4px var(--brand-soft);
+}
+
+/* Filter card / genomic filter */
+.filter-card{ background:var(--glass-sheen), var(--glass-bg)!important; border:var(--glass-border)!important; border-radius:var(--r-lg)!important;
+  box-shadow:var(--e-2), var(--glass-hi)!important; -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur); }
+.filter-header{ background:transparent!important; border-bottom:1px solid var(--line)!important; }
+.chr-btn{ border:1px solid var(--line)!important; background:var(--glass-bg-strong)!important; color:var(--ink-2)!important; border-radius:var(--r-pill)!important; }
+.chr-btn:hover{ border-color:var(--brand)!important; color:var(--brand)!important; }
+.chr-btn.active{ background:var(--brand-gradient)!important; color:#fff!important; border-color:transparent!important; box-shadow:var(--e-1)!important; }
+.slider-range{ background:var(--brand)!important; }
+.range-slider input[type="range"]::-webkit-slider-thumb{ border-color:var(--brand)!important; }
+.reset-btn{ background:var(--ev-repurposable-bg)!important; color:var(--coral-500)!important; border:1px solid rgba(241,91,81,.4)!important; border-radius:var(--r-pill)!important; }
+
+/* Zoom control panel → floating glass */
+.zoom-controls{ background:var(--glass-sheen), var(--glass-bg)!important; border:var(--glass-border)!important; border-radius:var(--r-lg)!important;
+  box-shadow:var(--e-2), var(--glass-hi)!important; padding:var(--sp-5)!important;
+  -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur); }
+.zoom-section{ border-bottom:1px solid var(--line)!important; }
+.zoom-table-card{ background:var(--glass-sheen), var(--glass-bg)!important; border:var(--glass-border)!important; border-radius:var(--r-md)!important;
+  box-shadow:var(--e-1), var(--glass-hi); overflow:hidden; }
+.zoom-table-header{ background:transparent!important; border-bottom:1px solid var(--line)!important; }
+.run-field button, .zoom-actions button{ background:var(--brand-gradient)!important; border:none!important; border-radius:var(--r-md)!important;
+  min-height:44px; box-shadow:var(--e-2); font-weight:700; }
+.zoom-actions #btn-show-ld{ background:var(--glass-bg-strong)!important; color:var(--navy-700)!important; border:1px solid var(--line)!important; box-shadow:none; }
+#zoom-scatter-plot-container{ background:transparent!important; border:1px solid var(--line)!important; border-radius:var(--r-md)!important; }
+#scatter-plot-container{ background:transparent!important; border:1px solid var(--line)!important; border-radius:var(--r-md)!important; }
+
+/* Autocomplete dropdowns → glass */
+.autocomplete-suggestions{ background:var(--glass-bg-strong)!important; border:var(--glass-border)!important; border-radius:var(--r-md)!important;
+  box-shadow:var(--e-3)!important; -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur); margin-top:4px; overflow:hidden; }
+.suggestion-item{ padding:10px 14px!important; }
+.suggestion-item:hover{ background:rgba(202,229,232,.4)!important; }

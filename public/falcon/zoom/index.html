@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FALCON Zoom</title>
+    <script src="theme.js"></script>
+    <script>
+        // Pin light. theme.js resolves from localStorage then the OS
+        // prefers-color-scheme, which means a visitor on a dark-mode machine
+        // would otherwise get the dark palette inside the portal's white card.
+        // Setting the attribute (rather than FalconTheme.set) avoids writing
+        // localStorage. falcon-plotly-theme.js reads this same attribute, so
+        // the Plotly charts come out light too.
+        document.documentElement.dataset.theme = 'light';
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="design-system.css">
+    <script src="falcon-plotly-theme.js"></script>
+    <script src="trait-index.js"></script>
+    <style>
+        /* ------------------------------------------------------------------
+           Embed overrides for this vendored copy. Upstream falcon_zoom.html
+           is laid out for FALCON's own app shell; this copy is embedded in a
+           Knowledge Portal card instead, so:
+           - there's no fixed shell navbar to clear (the 76px reserve and the
+             always-hidden control bar above the card both become dead space)
+           - the surrounding card already supplies the heading, chrome and
+             padding, so the inner glass card and its duplicate "FALCON zoom"
+             heading would read as a card inside a card
+           - all the controls are wanted on one row
+           ------------------------------------------------------------------ */
+        body[data-page] {
+            padding-top: 0 !important;
+        }
+
+        .controls {
+            display: none;
+        }
+
+        #view-zoom-plot > h3 {
+            display: none;
+        }
+
+        .view-section {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+
+        /* One continuous row of controls. Horizontal scroll rather than wrap,
+           so a narrower portal card can never push them onto a second line. */
+        .zoom-controls {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            align-items: end;
+            padding: 12px;
+            gap: 10px;
+        }
+
+        /* Shrinkable (0 1 auto + min-width:0), not 0 0 auto: a non-shrinking
+           section is sized by its max-content width, so the fields inside
+           would ignore their min-widths and push the row into a horizontal
+           scroll even when there was room to compress. */
+        .zoom-section {
+            display: flex;
+            align-items: end;
+            gap: 8px;
+            flex: 0 1 auto;
+            min-width: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .zoom-section h4 {
+            display: none;
+        }
+
+        .zoom-field-grid {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        /* Tightened so all nine controls fit the portal card's ~940px without
+           needing the horizontal scroll. The two search fields keep more room
+           (and grow when there's spare width) since they hold full trait and
+           gene names; the numeric options only ever hold a few characters. */
+        .zoom-field-grid .input-group {
+            min-width: 80px;
+        }
+
+        .zoom-field-grid .autocomplete-field {
+            flex: 1 1 130px;
+            min-width: 110px;
+        }
+
+        .zoom-field-grid input,
+        .zoom-field-grid select {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .zoom-controls label {
+            font-size: 0.72em;
+            white-space: nowrap;
+        }
+
+        .zoom-actions {
+            flex: 0 0 auto;
+            margin-left: auto;
+            gap: 8px;
+        }
+
+        .zoom-actions button {
+            white-space: nowrap;
+            padding: 9px 11px;
+        }
+    </style>
+</head>
+<body data-page="zoom" style="background:transparent;">
+
+    <div class="controls">
+        <span id="folder-name-text" style="display: none;"></span>
+        <div id="status" style="display: none;"></div>
+    </div>
+
+    <div id="view-zoom-plot" class="view-section active">
+        <h3 style="margin-bottom: 15px;">FALCON zoom</h3>
+
+        <div class="zoom-controls">
+            <div class="zoom-section">
+                <h4>Trait and Gene Selection</h4>
+                <div class="zoom-field-grid">
+                    <div class="input-group autocomplete-field">
+                        <label>Trait Selection</label>
+                        <input type="text" id="phenotype-search" placeholder="Search Phenotype (e.g., T2D)">
+                        <div id="autocomplete-list" class="autocomplete-suggestions"></div>
+                    </div>
+                    <div class="input-group autocomplete-field">
+                        <label>Target Gene</label>
+                        <input type="text" id="zoom-gene" placeholder="e.g., CETP">
+                        <div id="gene-autocomplete-list" class="autocomplete-suggestions"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="zoom-section">
+                <h4>Plot Options</h4>
+                <div class="zoom-field-grid">
+                    <div class="input-group">
+                        <label>Min Prob:</label>
+                        <input type="number" id="global-prob-input" step="0.01" min="0" max="1" value="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>Min NegP:</label>
+                        <input type="number" id="global-negp-input" step="0.5" min="0" value="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Boundary (BP)</label>
+                        <input type="number" id="zoom-boundary" value="500000" step="50000">
+                    </div>
+                    <div class="input-group">
+                        <label>Focus</label>
+                        <select id="zoom-focus">
+                            <option value="region" selected>Region</option>
+                            <option value="gene">Gene Only</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Plot Type</label>
+                        <select id="zoom-plot-type">
+                            <option value="falcon">FALCON</option>
+                            <option value="raw">Raw input</option>
+                            <option value="overlay" selected>Overlay</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="zoom-actions">
+                <button id="btn-show-ld" type="button">Show LD</button>
+                <button id="btn-run-zoom" type="button">Run Analysis</button>
+            </div>
+        </div>
+
+        <div id="zoom-status" style="margin-bottom: 15px; color: var(--primary-color); font-weight: bold;"></div>
+
+        <div id="zoom-scatter-plot-container" style="width: 100%; height: 640px; border: 1px solid var(--border-color); border-radius: 4px; background: white;"></div>
+
+        <div style="margin-top: 10px; margin-bottom: 20px; display: flex; justify-content: flex-end;">
+            <button id="btn-toggle-gene-tracks" class="ds-btn ds-btn-ghost" style="font-size: 13px; padding: 6px 12px;">Hide Gene Tracks</button>
+        </div>
+
+        <div id="zoom-tables" class="zoom-tables">
+            <div class="zoom-table-card" data-table="genes">
+                <div class="zoom-table-header">
+                    <h4>Gene Data</h4>
+                    <input type="text" id="zoom-table-search-genes" placeholder="Search genes...">
+                </div>
+                <div class="zoom-table-wrapper"><table id="zoom-table-genes"></table></div>
+                <div class="zoom-table-pagination" id="zoom-table-page-genes"></div>
+            </div>
+            <div class="zoom-table-card" data-table="variants">
+                <div class="zoom-table-header">
+                    <h4>Variant Data</h4>
+                    <input type="text" id="zoom-table-search-variants" placeholder="Search variants...">
+                </div>
+                <div class="zoom-table-wrapper"><table id="zoom-table-variants"></table></div>
+                <div class="zoom-table-pagination" id="zoom-table-page-variants"></div>
+            </div>
+            <div class="zoom-table-card" data-table="ld">
+                <div class="zoom-table-header">
+                    <h4>LD Partner Data</h4>
+                    <input type="text" id="zoom-table-search-ld" placeholder="Search LD partners...">
+                </div>
+                <div class="zoom-table-wrapper"><table id="zoom-table-ld"></table></div>
+                <div class="zoom-table-pagination" id="zoom-table-page-ld"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="data-inspector" style="display: none; position: fixed; bottom: 30px; right: 30px; width: min(520px, calc(100vw - 40px)); max-height: calc(100vh - 80px); background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 9999; overflow: hidden;">
+        <div id="inspector-header" style="padding: 12px 15px; background: #f3f4f6; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+            <h4 style="margin: 0; color: #111827; font-size: 1em;">🔍 Selection Details</h4>
+            <button id="inspector-close-btn" style="background: none; border: none; font-size: 1.2em; color: #6b7280; cursor: pointer;">&times;</button>
+        </div>
+        <div id="inspector-body" style="padding: 15px; max-height: calc(100vh - 155px); overflow: auto;">
+            <div id="inspector-content" style="font-family: monospace; font-size: 0.95em; line-height: 1.6; color: #374151; margin-bottom: 15px; user-select: text;"></div>
+            <button id="inspector-copy-btn" style="width: 100%; padding: 8px; background: white; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; font-weight: bold; color: #374151; transition: background 0.2s;">
+                📋 Copy to Clipboard
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
