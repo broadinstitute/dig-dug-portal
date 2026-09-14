@@ -436,6 +436,16 @@ async function main() {
     }
 
     // Phase 7: manifest.json
+    //
+    // Both lists are sorted before writing. Fetches finish out of order (see
+    // CONCURRENCY), so unsorted lists reshuffle on every run and churn the
+    // committed manifest by ~50 lines even when no content changed, which
+    // buries the real diff. Sorting leaves `generatedAt` as the only expected
+    // line to move on a no-op refresh.
+    //
+    // Plain relational compare, not localeCompare: ordering must not depend on
+    // the ICU locale of whatever machine runs the fetch (dev box vs CI).
+    const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
     const manifestPath = path.join(STAGE_DIR, "manifest.json");
     const out = {
         generatedAt: new Date().toISOString(),
@@ -445,15 +455,19 @@ async function main() {
             assets: assetList.length,
             leftoverRemoteRefs: leftover,
         },
-        urls: fetched.map((f) => ({
-            kind: f.kind,
-            id: f.id,
-            remote: f.remoteUrl,
-            local: f.filePath
-                .replace(STAGE_DIR, "cmsdata")
-                .replace(/\\/g, "/"),
-        })),
-        assets: assetList.map((u) => extractRemotePath(u)),
+        urls: [...fetched]
+            .sort((a, b) => cmp(a.kind, b.kind) || cmp(a.id, b.id))
+            .map((f) => ({
+                kind: f.kind,
+                id: f.id,
+                remote: f.remoteUrl,
+                local: f.filePath
+                    .replace(STAGE_DIR, "cmsdata")
+                    .replace(/\\/g, "/"),
+            })),
+        assets: assetList
+            .map((u) => extractRemotePath(u))
+            .sort((a, b) => cmp(a, b)),
     };
     fs.writeFileSync(manifestPath, JSON.stringify(out, null, 2));
 
