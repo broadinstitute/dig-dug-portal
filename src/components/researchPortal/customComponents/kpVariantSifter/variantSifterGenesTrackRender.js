@@ -25,46 +25,86 @@ function geneXSpan(gene, xMin, xMax, xStart, xPosByPixel) {
 }
 
 function spansOverlap(leftStart, leftEnd, rightStart, rightEnd) {
-    return (
-        (leftStart >= rightStart && leftStart <= rightEnd) ||
-        (leftEnd >= rightStart && leftEnd <= rightEnd)
-    );
+    return leftStart < rightEnd && rightStart < leftEnd;
 }
 
 /**
- * Assign each visible gene to a horizontal lane to reduce label overlap.
+ * Pack visible genes into the fewest horizontal lanes without overlapping
+ * gene bodies (plus label collision padding).
  * Returns [{ gene, lane, xStartPos, xEndPos }, ...] and laneCount.
  */
 export function layoutGenesInLanes(genes, xMin, xMax, xStart, xPosByPixel) {
-    const layouts = [];
-    let takenGeneRegions = [];
-    let lane = 0;
+    const candidates = [];
 
-    genes.forEach((gene) => {
+    (genes || []).forEach((gene) => {
         if (!geneOverlapsRegion(gene, xMin, xMax)) {
             return;
         }
-
-        const { xStartPos, xEndPos } = geneXSpan(gene, xMin, xMax, xStart, xPosByPixel);
-        const collision = takenGeneRegions.some((region) =>
-            spansOverlap(xStartPos, xEndPos, region.start, region.end)
+        const { xStartPos, xEndPos } = geneXSpan(
+            gene,
+            xMin,
+            xMax,
+            xStart,
+            xPosByPixel
         );
-
-        if (takenGeneRegions.length > 0 && collision) {
-            takenGeneRegions = [];
-            lane += 1;
-        }
-
-        takenGeneRegions.push({
-            start: xStartPos - LANE_COLLISION_PADDING,
-            end: xEndPos + LANE_COLLISION_PADDING,
+        const bodyLeft = Math.min(xStartPos, xEndPos);
+        const bodyRight = Math.max(xStartPos, xEndPos);
+        candidates.push({
+            gene,
+            xStartPos,
+            xEndPos,
+            occupyStart: bodyLeft - LANE_COLLISION_PADDING,
+            occupyEnd: bodyRight + LANE_COLLISION_PADDING,
         });
-
-        layouts.push({ gene, lane, xStartPos, xEndPos });
     });
 
-    const laneCount = layouts.length ? lane + 1 : 0;
-    return { layouts, laneCount };
+    // Left-to-right packing finds denser layouts than input order alone.
+    candidates.sort((a, b) => {
+        if (a.occupyStart !== b.occupyStart) {
+            return a.occupyStart - b.occupyStart;
+        }
+        return a.occupyEnd - b.occupyEnd;
+    });
+
+    /** @type {{ start: number, end: number }[][]} */
+    const laneOccupancy = [];
+    const layouts = [];
+
+    candidates.forEach((candidate) => {
+        let lane = laneOccupancy.findIndex(
+            (regions) =>
+                !regions.some((region) =>
+                    spansOverlap(
+                        candidate.occupyStart,
+                        candidate.occupyEnd,
+                        region.start,
+                        region.end
+                    )
+                )
+        );
+
+        if (lane < 0) {
+            lane = laneOccupancy.length;
+            laneOccupancy.push([]);
+        }
+
+        laneOccupancy[lane].push({
+            start: candidate.occupyStart,
+            end: candidate.occupyEnd,
+        });
+
+        layouts.push({
+            gene: candidate.gene,
+            lane,
+            xStartPos: candidate.xStartPos,
+            xEndPos: candidate.xEndPos,
+        });
+    });
+
+    return {
+        layouts,
+        laneCount: laneOccupancy.length,
+    };
 }
 
 function formatGeneLabel(gene) {

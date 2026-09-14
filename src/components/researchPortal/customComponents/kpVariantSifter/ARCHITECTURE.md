@@ -57,7 +57,8 @@ External dependencies:
 
 - **`@/utils/bioIndexUtils`** — BioIndex `query` / `match` / hosts
 - **LD server** — UMich 1000G via `variantSifterLdServer.js` (lz beta constants)
-- **`@/utils/revealKgApi`** — interactive LLM health + optional GE relevance classify (not `llmClient.js` directly)
+- **`@/utils/llmClient`** — Bedrock gateway (`https://llm.hugeamp.org/bedrock`) for optional GE relevance classify
+- **`@/utils/revealKgApi`** — retained for other CFDE interactive routes if needed; GE LLM path no longer uses it
 - **portaldev.sph.umich.edu** — gene annotations, recombination overlay
 - **`@/utils/variantUtils`**, **`plotUtils`**, **`dataConvert`** — ids, drawing, table formatting
 
@@ -250,7 +251,7 @@ Not a full REVEAL Canvas LLM planner. Catalog and matching live in:
 | `variantSifterAssistantActionSuggest.js` | Suggest / match helpers |
 | `variantSifterAssistantConversation.js` | Thread entry helpers |
 | `variantSifterAssistantGeRelevance.js` | CS2CT tissue relevance research step |
-| `variantSifterGeRelevanceLlm.js` | Optional LLM classify via `revealKgApi` |
+| `variantSifterGeRelevanceLlm.js` | Optional LLM classify via Bedrock (`llmClient`) |
 | `variantSifterCs2ctApi.js` / `variantSifterCs2ctClassify.js` | c2ct-credible-set fetch + classify |
 | `variantSifterAssistantUnderstudied.js` | Bottom-line-only variants in locus |
 | `variantSifterAssistantGeneticCorrelation.js` | LDSC genetic correlations → open phenotype in new tab |
@@ -277,7 +278,7 @@ Props passed from Research: `phenotypesInUse`, `utilsBox`, `sectionConfigs`.
 
 1. **Registry drift** — `trackImplemented` / `TrackStrip` / `sectionHasCanvasTrack` do not fully describe the nested-track architecture.
 2. **Assistant** — keyword matching only; LLM planner not wired like REVEAL KG Canvas.
-3. **GE relevance** — CS2CT is the primary catalog path; LLM classify path still present via `revealKgApi`.
+3. **GE relevance** — CS2CT is the primary catalog path; optional LLM classify uses Bedrock via `llmClient`.
 4. **S2G** — manual load; not part of initial search parallel fetch.
 5. **Session** — assistant thread and some chrome not exported; export requires genes + associations ready.
 6. **Giant** — subset of indexes on Giant BioIndex; document new Giant indexes in `VKS_GIANT_BIOINDEX_INDEXES` when adding them.
