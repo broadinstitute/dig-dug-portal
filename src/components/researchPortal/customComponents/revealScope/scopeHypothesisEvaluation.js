@@ -7,7 +7,7 @@ const SYSTEM_PROMPT =
     '  "slots": {\n' +
     '    "target": {"value": string|null, "confidence": "high"|"medium"|"low", "resolved_id": string|null},\n' +
     '    "perturbation": {"value": string|null, "confidence": "high"|"medium"|"low", "resolved_id": string|null},\n' +
-    '    "outcome": {"value": string|null, "confidence": "high"|"medium"|"low", "resolved_id": string|null},\n' +
+    '    "outcome": {"value": string|null, "confidence": "high"|"medium"|"low", "resolved_id": string|null, "factor_search_query": string|null},\n' +
     '    "modifiers": {\n' +
     '      "cell_line": {"value": string|null, "confidence": "high"|"medium"|"low"},\n' +
     '      "genetic_background": {"value": string|null, "confidence": "high"|"medium"|"low"},\n' +
@@ -42,6 +42,22 @@ const SYSTEM_PROMPT =
     "For outcome, resolved_id is the shortest canonical disease/phenotype name implied by the outcome if one exists (e.g. value " +
     '"restores IFN-gamma secretion in exhausted T cells" -> resolved_id "T cell exhaustion"); null if the outcome is a lab-measured ' +
     "readout with no corresponding disease/phenotype concept — do not force one.\n\n" +
+    "factor_search_query — outcome only. A short phrase used as the ONLY input to a semantic (embedding) Factor search. " +
+    "It is NOT resolved_id. Put the canonical disease/phenotype name in outcome.resolved_id; put the retrieval phrase here.\n" +
+    "Hard requirements (violations are wrong):\n" +
+    "- Exactly 3 or 4 words. No commas, no semicolon lists, no stacked synonyms.\n" +
+    "- Shape: [anatomical/cellular site] + [pathological process] when possible " +
+    '(best: "proximal tubule transport disorder"). If the phenotype is already embedding-safe, a short phenotype phrase is OK ' +
+    '(e.g. "T cell exhaustion").\n' +
+    "- MUST NOT contain gene/protein symbols (CLCN5, PDCD1, …). Those belong only in target.resolved_id.\n" +
+    "- MUST NOT contain ambiguous eponyms or their root words (Dent, Still, Hunter, …). Replace with physiology; never append the eponym.\n" +
+    "- MUST NOT concatenate disease name + gene + tissue + synonyms into one string.\n" +
+    "Worked example for Dent disease / proximal-tubule Fanconi-like outcome:\n" +
+    '- GOOD factor_search_query: "proximal tubule transport disorder" ' +
+    "(matches Factor labels closely; high similarity).\n" +
+    '- BAD factor_search_query: "Dent disease CLCN5 proximal tubule renal Fanconi nephropathy" ' +
+    "(kitchen-sink; keeps Dent + gene; dilutes the vector — never do this).\n" +
+    "- If outcome value is null, set factor_search_query to null.\n\n" +
     "Rules:\n" +
     "1. Precision = whether the hypothesis names specific, measurable entities rather than vague/qualitative language. A missing " +
     '(null) target or perturbation is strong evidence precision cannot be rated "high" — score it "low" or "medium" and say why, ' +
@@ -67,8 +83,28 @@ function normalizeSlot(slot) {
     const value = typeof slot.value === "string" && slot.value.trim() ? slot.value.trim() : null;
     const confidence = ["high", "medium", "low"].includes(slot.confidence) ? slot.confidence : "low";
     const resolvedId =
-        typeof slot.resolved_id === "string" && slot.resolved_id.trim() ? slot.resolved_id.trim() : null;
+        typeof slot.resolved_id === "string" && slot.resolved_id.trim()
+            ? slot.resolved_id.trim()
+            : typeof slot.resolvedId === "string" && slot.resolvedId.trim()
+              ? slot.resolvedId.trim()
+              : null;
     return { value, confidence, resolvedId };
+}
+
+function normalizeOutcomeSlot(slot) {
+    const base = normalizeSlot(slot);
+    if (!slot || typeof slot !== "object") {
+        return { ...base, factorSearchQuery: null };
+    }
+    const fromSnake =
+        typeof slot.factor_search_query === "string" && slot.factor_search_query.trim()
+            ? slot.factor_search_query.trim()
+            : null;
+    const fromCamel =
+        typeof slot.factorSearchQuery === "string" && slot.factorSearchQuery.trim()
+            ? slot.factorSearchQuery.trim()
+            : null;
+    return { ...base, factorSearchQuery: fromSnake || fromCamel };
 }
 
 function normalizeRubricAxis(axis) {
@@ -112,7 +148,7 @@ function normalizeEvaluation(parsed) {
         slots: {
             target: normalizeSlot(slots.target),
             perturbation: normalizeSlot(slots.perturbation),
-            outcome: normalizeSlot(slots.outcome),
+            outcome: normalizeOutcomeSlot(slots.outcome),
             modifiers,
         },
         missingRequiredSlots,

@@ -219,6 +219,9 @@ function dedupeNonEmpty(values) {
  * Semantic Factor search (top 25) + LLM pick of 1–5 mechanisms for the hypothesis outcome.
  * Shared by CFDE KG search and Biomarker discovery so either action can run after Evaluate.
  *
+ * Prefers Module A's `outcome.factor_search_query` for the embedding needle (disambiguated
+ * retrieval phrase); falls back to resolved_id / raw outcome text for older evaluations.
+ *
  * @returns {Promise<{ resolvedFactors: object[], factorCandidates: object[], selectedFactorRationale: string|null }>}
  */
 export async function resolveMechanismFactors({
@@ -227,15 +230,19 @@ export async function resolveMechanismFactors({
     targetResolvedId,
     outcomeText,
     outcomeResolvedId,
+    outcomeFactorSearchQuery,
     signal,
     onStep,
 } = {}) {
     const emitStep = typeof onStep === "function" ? onStep : () => {};
+    const mechanismQuery = String(
+        outcomeFactorSearchQuery || outcomeResolvedId || outcomeText || ""
+    ).trim();
 
     emitStep("resolveFactors", "active");
     let factorCandidates = [];
     try {
-        factorCandidates = await searchBiomarkerFactors(outcomeResolvedId || outcomeText, {
+        factorCandidates = await searchBiomarkerFactors(mechanismQuery, {
             limit: FACTOR_CANDIDATE_LIMIT,
             signal,
         });
@@ -276,7 +283,7 @@ export async function resolveMechanismFactors({
     }
     emitStep("selectFactor", "done");
 
-    return { resolvedFactors, factorCandidates, selectedFactorRationale };
+    return { resolvedFactors, factorCandidates, selectedFactorRationale, mechanismQuery: mechanismQuery || null };
 }
 
 /**
@@ -293,7 +300,7 @@ export async function resolveMechanismFactors({
  * (`scopeBiomarkerFactorSearch.js`) before querying, since outcome text is often a
  * mechanism-level phrase with no matching trait label to find by substring alone.
  *
- * @param {{ targetText: string, targetResolvedId?: string, outcomeText: string, outcomeResolvedId?: string, hypothesisText?: string, limit?: number, signal?: AbortSignal, onStep?: (stepId: string, status: string) => void }} params
+ * @param {{ targetText: string, targetResolvedId?: string, outcomeText: string, outcomeResolvedId?: string, outcomeFactorSearchQuery?: string, hypothesisText?: string, limit?: number, signal?: AbortSignal, onStep?: (stepId: string, status: string) => void }} params
  * @returns {Promise<{ routes: Array<{ id: string, hop: number, label: string, edges: object[] }>, coverage: object, resolvedFactors: object[], factorCandidates: object[], selectedFactorRationale: string|null }>}
  */
 export async function findKgEvidence({
@@ -301,6 +308,7 @@ export async function findKgEvidence({
     targetResolvedId,
     outcomeText,
     outcomeResolvedId,
+    outcomeFactorSearchQuery,
     hypothesisText,
     limit = 10,
     signal,
@@ -309,15 +317,17 @@ export async function findKgEvidence({
     const geneText = targetResolvedId || targetText;
     const emitStep = typeof onStep === "function" ? onStep : () => {};
 
-    const { resolvedFactors, factorCandidates, selectedFactorRationale } = await resolveMechanismFactors({
-        hypothesisText,
-        targetText,
-        targetResolvedId,
-        outcomeText,
-        outcomeResolvedId,
-        signal,
-        onStep,
-    });
+    const { resolvedFactors, factorCandidates, selectedFactorRationale, mechanismQuery } =
+        await resolveMechanismFactors({
+            hypothesisText,
+            targetText,
+            targetResolvedId,
+            outcomeText,
+            outcomeResolvedId,
+            outcomeFactorSearchQuery,
+            signal,
+            onStep,
+        });
 
     const traitCandidates = dedupeNonEmpty([
         outcomeText,
@@ -374,7 +384,7 @@ export async function findKgEvidence({
         selectedFactorRationale,
         queryContext: {
             targetGene: geneText || null,
-            mechanismQuery: String(outcomeResolvedId || outcomeText || "").trim() || null,
+            mechanismQuery,
             hop2Strategy: resolvedFactors.length ? "selected_factor_iris" : "trait_label_join",
             traitCandidates,
         },

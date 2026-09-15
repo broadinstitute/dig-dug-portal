@@ -31,6 +31,12 @@
                         >
                             → {{ slot.data.resolvedId }}
                         </span>
+                        <span
+                            v-if="slot.id === 'outcome' && slot.data.factorSearchQuery"
+                            class="scp-eval-slot-factor-query"
+                        >
+                            Factor search: {{ slot.data.factorSearchQuery }}
+                        </span>
                     </span>
                     <span class="scp-eval-slot-confidence" :class="`is-${slot.data.confidence}`">
                         {{ slot.data.confidence }}
@@ -241,6 +247,18 @@ export default {
     color: var(--cfde-ink, #33363d);
 }
 
+.scp-eval-slot-resolved {
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.scp-eval-slot-factor-query {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
 .scp-eval-slot-confidence {
     flex: 0 0 auto;
     font-size: 13px;
@@ -250,9 +268,5 @@ export default {
 
 .scp-eval-slot-confidence.is-high {
     color: var(--cfde-blue, #2c5c97);
-}
-
-.scp-eval-slot-resolved {
-    color: var(--cfde-muted, #6b6b6b);
 }
 </style>

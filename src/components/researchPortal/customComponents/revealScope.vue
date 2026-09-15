@@ -652,6 +652,7 @@ export default Vue.component("reveal-scope", {
             const targetResolvedId = evaluation.slots.target.resolvedId;
             const outcomeText = evaluation.slots.outcome.value;
             const outcomeResolvedId = evaluation.slots.outcome.resolvedId;
+            const outcomeFactorSearchQuery = evaluation.slots.outcome.factorSearchQuery;
             this.evaluateContentTab = "kg";
             if (!targetText || !outcomeText) {
                 this.kgEvidenceBlockedReason =
@@ -676,6 +677,7 @@ export default Vue.component("reveal-scope", {
                     targetResolvedId,
                     outcomeText,
                     outcomeResolvedId,
+                    outcomeFactorSearchQuery,
                     hypothesisText: this.activeHypothesisText,
                     onStep: this.setStepStatus,
                 });
@@ -802,6 +804,7 @@ export default Vue.component("reveal-scope", {
                         targetResolvedId: evaluation.slots.target.resolvedId,
                         outcomeText,
                         outcomeResolvedId: evaluation.slots.outcome.resolvedId,
+                        outcomeFactorSearchQuery: evaluation.slots.outcome.factorSearchQuery,
                         onStep: this.setStepStatus,
                     });
                     resolvedFactors = resolved.resolvedFactors;

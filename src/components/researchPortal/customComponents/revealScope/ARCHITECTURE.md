@@ -68,7 +68,7 @@ The hub converts free text into a structured, versioned JSON object. This is the
   "slots": {
     "target": { "value": "string", "confidence": "high|medium|low", "resolved_id": "canonical ID or null" },
     "perturbation": { "value": "string", "confidence": "high|medium|low", "resolved_id": "canonical ID or null" },
-    "outcome": { "value": "string", "confidence": "high|medium|low", "resolved_id": "canonical ID or null" },
+    "outcome": { "value": "string", "confidence": "high|medium|low", "resolved_id": "canonical ID or null", "factor_search_query": "embedding search phrase or null" },
     "modifiers": {
       "cell_line": { "value": "string|null", "confidence": "high|medium|low" },
       "genetic_background": { "value": "string|null", "confidence": "high|medium|low" },
@@ -86,6 +86,7 @@ The hub converts free text into a structured, versioned JSON object. This is the
 **Notes for implementation:**
 - `modifiers` is an **open, extensible map** — new modifier types can be added without a schema migration breaking existing hypotheses. Do not hardcode a fixed triple; treat `target`/`perturbation`/`outcome` as required, everything else as optional and expandable.
 - `resolved_id` fields are populated by entity linkage (Ensembl, MONDO, ChEMBL, etc.) and may be `null` if resolution failed — this is a valid, expected state, not an error.
+- `outcome.factor_search_query` is a retrieval-only phrase for semantic Factor search (pgvector). It may differ from `resolved_id` when the canonical disease name is an eponym/homograph (e.g. Dent disease → include renal/tubule context so dental Factors are not retrieved).
 - `hub_version` is the mechanism that powers staleness detection (§7.1). Every module output must record which `hub_version` it was computed against.
 
 ### 4. Module Specifications
@@ -417,3 +418,6 @@ Record every architecture-affecting decision here — new module behavior, schem
 | 2026-09-10 | Extracted `resolveMechanismFactors()` for shared 25→LLM 1–5 selection. After Evaluate, CFDE KG and Biomarker actions are both Next-step options; Biomarker no longer requires a prior CFDE KG run |
 | 2026-09-10 | SCOPE→CANVAS CFDE KG handoff: after a network graph exists, Actions offers **Export CFDE KG for REVEAL CANVAS** (`scopeCanvasHandoff.js`, `kind: "reveal-scope-canvas-handoff"`). Save dialog mirrors session export; once download is triggered, **Open REVEAL CANVAS for node inspection** stays available until hypothesis/KG reset. Canvas **Import graph** detects the handoff kind, catalog-resolves nodes (Factor labels split on `trait context:`), draws misses as `#cccccc` squares, and reconnects SCOPE edges |
 | 2026-09-10 | Actions tab (opened from the top menu) again shows the **full** action catalog so any step can be re-run — including **Open REVEAL CANVAS** without exporting again. Next steps stays the curated short list |
+| 2026-09-14 | Module A outcome slot gained `factor_search_query` (separate from `resolved_id`) so semantic Factor search can use a disambiguated embedding phrase — fixes eponym false friends like "Dent disease" → dental Factors. `resolveMechanismFactors` / `findKgEvidence` prefer it, with fallback to `resolved_id` / outcome text for older sessions |
+| 2026-09-14 | Tightened `factor_search_query` prompt: short site+process phrase (~2–5 words), no gene symbols, strip eponyms entirely (replace with physiological wording) — avoids kitchen-sink dilution and Dent→dental / CLCN5→CLN5 embedding traps |
+| 2026-09-14 | Further hardened `factor_search_query` after live Dent-disease A/B: model still emitted kitchen-sink `"Dent disease CLCN5 …"` (scores ~0.58). Prompt now requires 3–4 words, forbids gene/eponym, and contrasts GOOD `"proximal tubule transport disorder"` (~0.86) vs that BAD string |
