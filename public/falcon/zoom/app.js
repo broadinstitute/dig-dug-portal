@@ -153,6 +153,38 @@ function wireTraitAutocomplete(inputEl, listEl, onSelectCode) {
 const FALCON_API_ORIGIN = "https://d26k96aakgfksz.cloudfront.net";
 const FALCON_ENGINE = localStorage.getItem('falconEngine') === 'rs' ? 'falcon-rs' : 'falcon';
 const BIOINDEX = FALCON_API_ORIGIN + "/" + FALCON_ENGINE + "/api/bio";
+
+// VENDORED COPY — second deliberate divergence from upstream falcon-web.
+// Plotly's 'scattergl' renderer hard-requires WebGL: where WebGL is missing the
+// plot does not degrade, it renders blank with "WebGL is not supported". That
+// happens more often than it sounds — hardware acceleration switched off,
+// older or locked-down Safari, VMs and remote desktops, and (easiest to hit) a
+// browser that has exhausted its per-process WebGL context limit after a few
+// reloads. Upstream can live with that; a page embedded in the portal and seen
+// by its whole audience cannot.
+// The SVG 'scatter' renderer needs no WebGL and accepts every attribute used
+// on these traces (mode / hoverinfo / customdata / marker symbol+size+color+
+// opacity+line), so it is a drop-in. It is slower at very high point counts,
+// which is why the fast path is kept whenever WebGL is actually present — a
+// zoom region is typically hundreds of markers, well inside what SVG handles.
+const SCATTER_TYPE = (() => {
+    try {
+        const probe = document.createElement('canvas');
+        const gl = probe.getContext('webgl') || probe.getContext('experimental-webgl');
+        if (!gl) return 'scatter';
+        // Hand the probe's context straight back. Browsers cap live WebGL
+        // contexts per process (~16 in Chrome) and discard the oldest once the
+        // cap is passed, so holding this one would count against the plot's own
+        // budget — self-defeating in exactly the context-exhaustion case this
+        // detection exists to survive.
+        const lose = gl.getExtension('WEBGL_lose_context');
+        if (lose) lose.loseContext();
+        return 'scattergl';
+    } catch (err) {
+        return 'scatter';
+    }
+})();
+
 const BioIndexLoader = {
     baseUrl: `${BIOINDEX}/query/`,
     contUrl: `${BIOINDEX}/cont`,
@@ -753,7 +785,7 @@ const PlotModule = {
                     text: plotData.text,
                     name: clumpId,
                     mode: 'markers',
-                    type: 'scattergl',
+                    type: SCATTER_TYPE,
                     hoverinfo: 'text',
                     marker: {
                         symbol: plotData.symbols,
@@ -772,7 +804,7 @@ const PlotModule = {
                     text: topTraceData.text,
                     name: isVariants ? 'Top Variants' : 'Top Genes',
                     mode: 'markers',
-                    type: 'scattergl',
+                    type: SCATTER_TYPE,
                     hoverinfo: 'text',
                     marker: { symbol: 'circle-open', size: 22, color: FEC().Novel, line: { width: 3 } }
                 });
@@ -2808,7 +2840,7 @@ const FalconZoomModule = {
                 traces.push({
                     x: tracesData.raw.x, y: tracesData.raw.y, text: tracesData.raw.text,
                     customdata: tracesData.raw.customdata,
-                    name: 'Raw input', mode: 'markers', type: 'scattergl', hoverinfo: 'text',
+                    name: 'Raw input', mode: 'markers', type: SCATTER_TYPE, hoverinfo: 'text',
                     marker: { size: 6, color: FPC().ink2, opacity: 0.7 }
                 });
             }
@@ -2817,7 +2849,7 @@ const FalconZoomModule = {
                 traces.push({
                     x: tracesData.unlinked.x, y: tracesData.unlinked.y, text: tracesData.unlinked.text,
                     customdata: tracesData.unlinked.customdata,
-                    name: 'FALCON (Unlinked)', mode: 'markers', type: 'scattergl', hoverinfo: 'text',
+                    name: 'FALCON (Unlinked)', mode: 'markers', type: SCATTER_TYPE, hoverinfo: 'text',
                     marker: { size: tracesData.unlinked.sizes, symbol: tracesData.unlinked.symbols, color: '#a1a1aa' }
                 });
                 Object.keys(tracesData.genes).forEach(gName => {
@@ -2826,7 +2858,7 @@ const FalconZoomModule = {
                         traces.push({
                             x: gTrace.x, y: gTrace.y, text: gTrace.text, name: gName,
                             customdata: gTrace.customdata,
-                            mode: 'markers', type: 'scattergl', hoverinfo: 'text',
+                            mode: 'markers', type: SCATTER_TYPE, hoverinfo: 'text',
                             marker: { size: gTrace.sizes, symbol: gTrace.symbols, color: geneColors[gName] }
                         });
                     }
