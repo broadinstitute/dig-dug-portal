@@ -1,51 +1,92 @@
 <template>
-    <div class="scp-actions-popup" role="dialog" aria-labelledby="scp-actions-title">
+    <div
+        class="scp-actions-popup"
+        :class="{ 'is-collapsed': collapsed }"
+        :style="popupStyle"
+        role="dialog"
+        aria-labelledby="scp-actions-title"
+    >
         <div class="scp-actions-head">
             <span id="scp-actions-title" class="scp-actions-title">Actions</span>
-            <button type="button" class="scp-actions-close" aria-label="Close" @click="$emit('close')">
-                &times;
-            </button>
+            <div class="scp-actions-head-btns">
+                <button
+                    type="button"
+                    class="scp-actions-icon-btn"
+                    :aria-label="collapsed ? 'Expand Actions panel' : 'Collapse Actions panel'"
+                    :aria-expanded="collapsed ? 'false' : 'true'"
+                    :title="collapsed ? 'Expand' : 'Collapse'"
+                    @click="collapsed = !collapsed"
+                >
+                    <span class="scp-actions-collapse-glyph" aria-hidden="true">{{
+                        collapsed ? "▸" : "▾"
+                    }}</span>
+                </button>
+                <button
+                    type="button"
+                    class="scp-actions-icon-btn scp-actions-close"
+                    aria-label="Close"
+                    title="Close"
+                    @click="$emit('close')"
+                >
+                    &times;
+                </button>
+            </div>
         </div>
 
-        <div class="scp-actions-tabs" role="tablist" aria-label="Actions sections">
-            <button
-                type="button"
-                role="tab"
-                class="scp-actions-tab"
-                :class="{ 'is-active': activeTab === 'next' }"
-                :aria-selected="activeTab === 'next' ? 'true' : 'false'"
-                @click="activeTab = 'next'"
-            >
-                Next steps
-            </button>
-            <button
-                type="button"
-                role="tab"
-                class="scp-actions-tab"
-                :class="{ 'is-active': activeTab === 'catalog' }"
-                :aria-selected="activeTab === 'catalog' ? 'true' : 'false'"
-                @click="activeTab = 'catalog'"
-            >
-                Actions
-            </button>
-        </div>
+        <template v-if="!collapsed">
+            <div class="scp-actions-tabs" role="tablist" aria-label="Actions sections">
+                <button
+                    type="button"
+                    role="tab"
+                    class="scp-actions-tab"
+                    :class="{ 'is-active': activeTab === 'next' }"
+                    :aria-selected="activeTab === 'next' ? 'true' : 'false'"
+                    @click="activeTab = 'next'"
+                >
+                    Next steps
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    class="scp-actions-tab"
+                    :class="{ 'is-active': activeTab === 'catalog' }"
+                    :aria-selected="activeTab === 'catalog' ? 'true' : 'false'"
+                    @click="activeTab = 'catalog'"
+                >
+                    Actions
+                </button>
+            </div>
 
-        <div class="scp-actions-list">
-            <button
-                v-for="action in visibleActions"
-                :key="action.id"
-                type="button"
-                class="scp-actions-item"
-                @click="$emit('run', action.id)"
-            >
-                <span class="scp-actions-item-label">{{ action.label }}</span>
-                <span class="scp-actions-item-desc">{{ action.description }}</span>
-            </button>
-        </div>
+            <div class="scp-actions-list">
+                <button
+                    v-for="action in visibleActions"
+                    :key="action.id"
+                    type="button"
+                    class="scp-actions-item"
+                    @click="$emit('run', action.id)"
+                >
+                    <span class="scp-actions-item-label">{{ action.label }}</span>
+                    <span class="scp-actions-item-desc">{{ action.description }}</span>
+                </button>
+            </div>
+        </template>
     </div>
 </template>
 
 <script>
+const BUMP_PX = 16;
+
+function measureFooterOverlapPx() {
+    if (typeof document === "undefined") return 0;
+    const footer =
+        document.querySelector('[class*="kp-footer"]') ||
+        document.querySelector("footer");
+    if (!footer || !(footer instanceof HTMLElement)) return 0;
+    const rect = footer.getBoundingClientRect();
+    // Only reserve space the footer currently covers at the bottom of the viewport.
+    return Math.max(0, Math.round(window.innerHeight - rect.top));
+}
+
 export default {
     name: "ScopeActionsPanel",
     props: {
@@ -68,6 +109,9 @@ export default {
     data() {
         return {
             activeTab: this.initialTab,
+            collapsed: false,
+            // windowHeight - (bump * 2) - footerHeight
+            panelMaxHeightPx: null,
         };
     },
     watch: {
@@ -79,31 +123,68 @@ export default {
         visibleActions() {
             return this.activeTab === "next" ? this.nextSteps : this.catalogActions;
         },
+        popupStyle() {
+            if (this.collapsed || !this.panelMaxHeightPx) {
+                return {};
+            }
+            return { maxHeight: `${this.panelMaxHeightPx}px` };
+        },
+    },
+    mounted() {
+        this.updatePanelMaxHeight();
+        window.addEventListener("resize", this.updatePanelMaxHeight);
+        window.addEventListener("scroll", this.updatePanelMaxHeight, { passive: true });
+    },
+    beforeDestroy() {
+        window.removeEventListener("resize", this.updatePanelMaxHeight);
+        window.removeEventListener("scroll", this.updatePanelMaxHeight);
+    },
+    methods: {
+        updatePanelMaxHeight() {
+            const footerHeight = measureFooterOverlapPx();
+            // Available height: viewport minus top+bottom bump, minus overlapping page footer.
+            // (windowHeight - (bump * 2) - footerHeight)
+            this.panelMaxHeightPx = Math.max(
+                160,
+                window.innerHeight - BUMP_PX * 2 - footerHeight
+            );
+        },
     },
 };
 </script>
 
 <style scoped>
 .scp-actions-popup {
+    --scp-actions-bump: 16px;
     position: fixed;
-    top: 16px;
-    right: 16px;
+    top: var(--scp-actions-bump);
+    right: var(--scp-actions-bump);
     z-index: 2100;
     width: 320px;
     height: auto;
-    max-height: 100%;
     display: flex;
     flex-direction: column;
     padding: 16px 18px 18px;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 16px 48px rgba(20, 22, 30, 0.18);
+    box-sizing: border-box;
+}
+
+.scp-actions-popup.is-collapsed {
+    padding-bottom: 16px;
 }
 
 .scp-actions-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 0;
+    flex: 0 0 auto;
+}
+
+.scp-actions-popup:not(.is-collapsed) .scp-actions-head {
     margin-bottom: 12px;
 }
 
@@ -113,14 +194,32 @@ export default {
     color: var(--cfde-ink, #33363d);
 }
 
-.scp-actions-close {
+.scp-actions-head-btns {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 0 0 auto;
+}
+
+.scp-actions-icon-btn {
     border: none;
     background: transparent;
-    font-size: 1.4rem;
+    font-size: 1.15rem;
     line-height: 1;
     color: var(--cfde-orange, #e07b39);
     cursor: pointer;
     padding: 2px 6px;
+}
+
+.scp-actions-close {
+    font-size: 1.4rem;
+}
+
+.scp-actions-collapse-glyph {
+    display: inline-block;
+    font-size: 2rem;
+    margin-top: -0.25rem;
+    font-weight: 700;
 }
 
 .scp-actions-tabs {
@@ -130,6 +229,7 @@ export default {
     border-radius: 8px;
     background: #f6f5f2;
     margin-bottom: 14px;
+    flex: 0 0 auto;
 }
 
 .scp-actions-tab {
@@ -154,6 +254,8 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
 }
 
