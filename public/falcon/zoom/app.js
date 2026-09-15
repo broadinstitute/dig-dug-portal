@@ -154,19 +154,19 @@ const FALCON_API_ORIGIN = "https://d26k96aakgfksz.cloudfront.net";
 const FALCON_ENGINE = localStorage.getItem('falconEngine') === 'rs' ? 'falcon-rs' : 'falcon';
 const BIOINDEX = FALCON_API_ORIGIN + "/" + FALCON_ENGINE + "/api/bio";
 
-// VENDORED COPY — second deliberate divergence from upstream falcon-web.
-// Plotly's 'scattergl' renderer hard-requires WebGL: where WebGL is missing the
-// plot does not degrade, it renders blank with "WebGL is not supported". That
-// happens more often than it sounds — hardware acceleration switched off,
-// older or locked-down Safari, VMs and remote desktops, and (easiest to hit) a
-// browser that has exhausted its per-process WebGL context limit after a few
-// reloads. Upstream can live with that; a page embedded in the portal and seen
-// by its whole audience cannot.
-// The SVG 'scatter' renderer needs no WebGL and accepts every attribute used
-// on these traces (mode / hoverinfo / customdata / marker symbol+size+color+
-// opacity+line), so it is a drop-in. It is slower at very high point counts,
-// which is why the fast path is kept whenever WebGL is actually present — a
-// zoom region is typically hundreds of markers, well inside what SVG handles.
+// Which Plotly renderer the scatter traces use. 'scattergl' is the fast one but
+// hard-requires WebGL, and where WebGL is missing it does not degrade — the plot
+// renders blank with "WebGL is not supported". That is reachable on real
+// machines: hardware acceleration switched off, older or locked-down Safari,
+// VMs and remote desktops, and (easiest to hit) a browser that has passed its
+// per-process WebGL context limit after a few reloads.
+// The SVG 'scatter' renderer needs no WebGL and accepts every attribute used on
+// these traces (mode / hoverinfo / customdata / marker symbol+size+color+
+// opacity+line), so it is a drop-in. It is only slower at point counts well
+// above what a zoom region produces, so the fast path is kept wherever WebGL
+// actually works.
+// NOT a divergence: upstream falcon-web carries this same fix verbatim. Keep
+// the two in step if either is touched.
 const SCATTER_TYPE = (() => {
     try {
         const probe = document.createElement('canvas');
