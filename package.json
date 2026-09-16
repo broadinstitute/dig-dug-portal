@@ -26,6 +26,7 @@
     "jquery": "3.7.1",
     "json-query": "2.2.2",
     "jszip": "3.10.1",
+    "katex": "0.18.7",
     "locuszoom": "0.13.4",
     "marked": "15.0.12",
     "query-string": "7.1.3",
