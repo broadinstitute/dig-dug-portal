@@ -99,6 +99,14 @@ new Vue({
             datasetKeys: [],
             dataset: null,
             subset: null,
+            ancestryCodes: {
+                "AAC" : "African Admixed",
+                "AFR": "African",
+                "AJ" : "Ashkenazi Jewish",
+                "AMR" : "Admixed American",
+                "CAH" : "Complex Admixture History",
+                "EUR" : "European"
+            }
         };
     },
 
@@ -181,7 +189,6 @@ new Vue({
             const response = await fetch(url);
             const json = await response.json();
             this.tableData = json.data;
-            console.log(JSON.stringify)
         },
         async fetchInfo() {
             this.pageInfo = await getTextContent(
@@ -201,6 +208,12 @@ new Vue({
                 }
             }
             this.chromosomeFilterSet = false;
+        },
+        formatAncestry(fullDatasetName){
+            let slices = fullDatasetName.split("_");
+            let ancestryCode = slices[slices.length - 1];
+            console.log(ancestryCode);
+            return this.ancestryCodes[ancestryCode];
         }
     },
 
