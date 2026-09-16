@@ -10,8 +10,8 @@
                 <div class="col filter-col-md">
                     <div class="label">Select a dataset</div>
                     <select v-model="$parent.dataset">
-                        <option v-for="dataset in $parent.datasets" :value="dataset">
-                            {{ dataset }}
+                        <option v-for="dataset in $parent.datasets" :value="dataset.key">
+                            {{ dataset.label }}
                         </option>
                     </select>
                 </div>

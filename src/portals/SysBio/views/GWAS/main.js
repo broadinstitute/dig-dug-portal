@@ -106,14 +106,21 @@ new Vue({
                 "AMR" : "Admixed American",
                 "CAH" : "Complex Admixture History",
                 "EUR" : "European"
-            }
+            },
+            excludeDatasets: [
+                "SysBio_ADvother",
+                "SysBio_control_amppdvcontrol_ampad",
+                "SysBio_PD_amppdvcontrol_amppd",
+                "SysBio_PDvother",
+                "SysBio_ADvPD"
+            ]
         };
     },
 
     watch: {
         datasets(newDatasets){
             if (this.dataset === null){
-                this.dataset = newDatasets[0];
+                this.dataset = newDatasets[0].key;
             }
         },
         subsets(newSubsets){
@@ -158,7 +165,16 @@ new Vue({
             return applicableSubsets.map(d => d[0]);
         },
         datasets(){
-            return Array.from(new Set(this.datasetKeys.map(d => d[1])));
+            let allDatasets = Array.from(new Set(this.datasetKeys.map(d => d[1])));
+            allDatasets = allDatasets.filter(d => !this.excludeDatasets.includes(d));
+            allDatasets = allDatasets.map(d => {
+                return { key: d};
+            });
+            allDatasets.forEach(d => {
+                let label = d.key.replace("SysBio_", "");
+                d.label = label;
+            })
+            return allDatasets;
         },
         manhattanImage(){
             return `${SYSBIO_HOST}/api/raw/plot/dataset/GWAS/${this.subset}/${this.dataset}/manhattan.png`
@@ -212,7 +228,6 @@ new Vue({
         formatAncestry(fullDatasetName){
             let slices = fullDatasetName.split("_");
             let ancestryCode = slices[slices.length - 1];
-            console.log(ancestryCode);
             return this.ancestryCodes[ancestryCode];
         }
     },
