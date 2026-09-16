@@ -11,6 +11,27 @@ export async function fetchGlobalEnrichment(session, host) {
     return Array.isArray(data) ? data : [];
 }
 
+/**
+ * Replace rows for one phenotype while keeping other phenotypes' GE rows.
+ */
+export function mergeGeRowsByPhenotype(existingRows, nextRows, phenotypeName) {
+    const target = String(phenotypeName || "").trim();
+    const kept = (existingRows || []).filter(
+        (row) => String(row?.phenotype || "").trim() !== target
+    );
+    return [...kept, ...(Array.isArray(nextRows) ? nextRows : [])];
+}
+
+export function removeGeRowsForPhenotype(existingRows, phenotypeName) {
+    const target = String(phenotypeName || "").trim();
+    if (!target) {
+        return Array.isArray(existingRows) ? [...existingRows] : [];
+    }
+    return (existingRows || []).filter(
+        (row) => String(row?.phenotype || "").trim() !== target
+    );
+}
+
 export async function fetchLocusAnnotations(region, host) {
     const regionQuery = formatRegion(region);
     if (!regionQuery) {

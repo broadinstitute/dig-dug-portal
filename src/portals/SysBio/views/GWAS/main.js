@@ -99,13 +99,28 @@ new Vue({
             datasetKeys: [],
             dataset: null,
             subset: null,
+            ancestryCodes: {
+                "AAC" : "African Admixed",
+                "AFR": "African",
+                "AJ" : "Ashkenazi Jewish",
+                "AMR" : "Admixed American",
+                "CAH" : "Complex Admixture History",
+                "EUR" : "European"
+            },
+            excludeDatasets: [
+                "SysBio_ADvother",
+                "SysBio_control_amppdvcontrol_ampad",
+                "SysBio_PD_amppdvcontrol_amppd",
+                "SysBio_PDvother",
+                "SysBio_ADvPD"
+            ]
         };
     },
 
     watch: {
         datasets(newDatasets){
             if (this.dataset === null){
-                this.dataset = newDatasets[0];
+                this.dataset = newDatasets[0].key;
             }
         },
         subsets(newSubsets){
@@ -150,7 +165,25 @@ new Vue({
             return applicableSubsets.map(d => d[0]);
         },
         datasets(){
-            return Array.from(new Set(this.datasetKeys.map(d => d[1])));
+            let allDatasets = Array.from(new Set(this.datasetKeys.map(d => d[1])));
+            allDatasets = allDatasets.filter(d => !this.excludeDatasets.includes(d));
+            allDatasets = allDatasets.map(d => {
+                return { key: d};
+            });
+            allDatasets.forEach(d => {
+                let label = d.key.replace("SysBio_", "")
+                    .replace("ADv", "Alzheimer's Disease vs ")
+                    .replace("control", "Control")
+                    .replace("DLB", "Dementia with Lewy Bodies")
+                    .replace("MCI", "Mild Cognitive Impairment")
+                    .replace("PSP", "Progressive Supranuclear Palsy")
+                    .replace("PDv", "Parkinson's Disease vs ")
+                    .replace("AD", "Alzheimer's Disease")
+                    .replace("Alzheimer's Disease_ampadv", "AMP AD-Case vs ")
+                    .replace("_ampad", "");
+                d.label = label;
+            })
+            return allDatasets;
         },
         manhattanImage(){
             return `${SYSBIO_HOST}/api/raw/plot/dataset/GWAS/${this.subset}/${this.dataset}/manhattan.png`
@@ -181,7 +214,6 @@ new Vue({
             const response = await fetch(url);
             const json = await response.json();
             this.tableData = json.data;
-            console.log(JSON.stringify)
         },
         async fetchInfo() {
             this.pageInfo = await getTextContent(
@@ -201,6 +233,11 @@ new Vue({
                 }
             }
             this.chromosomeFilterSet = false;
+        },
+        formatAncestry(fullDatasetName){
+            let slices = fullDatasetName.split("_");
+            let ancestryCode = slices[slices.length - 1];
+            return this.ancestryCodes[ancestryCode];
         }
     },
 

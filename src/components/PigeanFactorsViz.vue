@@ -4,7 +4,51 @@
       {{ error }}
     </div>
     <b-tabs v-model="activeTab" class="heatmap-tabs">
-      <b-tab title="Factors × Genes" active>
+      <b-tab title="Factors × Top genes & gene sets" active>
+        <div class="viz-legend" v-if="!loading && hasTopCombinedHeatmapData">
+          <div class="legend-content">
+            <div class="legend-item">
+              <span class="legend-label">Phenotype associations:</span>
+              <span class="legend-color-item">
+                <span class="legend-color very-strong"></span>
+                <span class="legend-color-text">Very Strong (&gt; 3)</span>
+              </span>
+              <span class="legend-color-item">
+                <span class="legend-color strongly-suggestive"></span>
+                <span class="legend-color-text">Strongly Suggestive (2-3)</span>
+              </span>
+              <span class="legend-color-item">
+                <span class="legend-color nominally-significant"></span>
+                <span class="legend-color-text">Nominally Significant (1-2)</span>
+              </span>
+              <span class="legend-color-item">
+                <span class="legend-color not-significant"></span>
+                <span class="legend-color-text">Not Significant (&lt; 1)</span>
+              </span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">Factor relevance:</span>
+              <span class="legend-color factor-relevance"></span>
+              <span class="legend-text">Darker = more relevant</span>
+            </div>
+          </div>
+          <div class="legend-actions">
+            <button class="btn btn-sm btn-outline-primary" @click="downloadTopCombinedHeatmap">
+              Download
+            </button>
+          </div>
+        </div>
+        <div class="heatmap-container">
+          <div v-if="!hasTopCombinedHeatmapData" class="text-center p-3 text-muted">
+            Loading heatmap data...
+          </div>
+          <div v-else class="heatmap-scrollable-wrapper">
+            <div class="heatmap-labels-fixed" ref="topCombinedHeatmapLabelsContainer"></div>
+            <div class="heatmap-content-scrollable" ref="topCombinedHeatmapContainer"></div>
+          </div>
+        </div>
+      </b-tab>
+      <b-tab title="Factors × Genes">
         <div class="viz-legend" v-if="!loading && heatmapData && heatmapData.genes && heatmapData.genes.length > 0">
           <div class="legend-content">
             <div class="legend-item">
@@ -102,6 +146,10 @@ export default Vue.component("pigean-factors-viz", {
     geneSetsHeatmapData: {
       type: Object,
       default: () => ({ geneSets: [], factors: [], data: [] })
+    },
+    topCombinedHeatmapData: {
+      type: Object,
+      default: () => ({ genes: [], geneSets: [], factors: [], data: [] })
     }
   },
   data() {
@@ -139,6 +187,13 @@ export default Vue.component("pigean-factors-viz", {
         position: "relative",
         background: "#fff"
       };
+    },
+    hasTopCombinedHeatmapData() {
+      const data = this.topCombinedHeatmapData;
+      if (!data) return false;
+      const geneCount = data.genes && data.genes.length ? data.genes.length : 0;
+      const geneSetCount = data.geneSets && data.geneSets.length ? data.geneSets.length : 0;
+      return geneCount > 0 || geneSetCount > 0;
     }
   },
   watch: {
@@ -149,6 +204,18 @@ export default Vue.component("pigean-factors-viz", {
         this.$nextTick(() => {
           setTimeout(() => {
             this.renderHeatmap();
+          }, 100);
+        });
+      },
+      deep: true,
+      immediate: true
+    },
+    topCombinedHeatmapData: {
+      handler() {
+        this.cleanupTooltips();
+        this.$nextTick(() => {
+          setTimeout(() => {
+            this.renderTopCombinedHeatmap();
           }, 100);
         });
       },
@@ -176,12 +243,26 @@ export default Vue.component("pigean-factors-viz", {
       immediate: true
     },
     activeTab() {
-      // Clean up tooltips when switching tabs
+      // Clean up tooltips when switching tabs, then render the visible heatmap
       this.cleanupTooltips();
+      this.$nextTick(() => {
+        if (this.activeTab === 0) {
+          this.renderTopCombinedHeatmap();
+        } else if (this.activeTab === 1) {
+          this.renderHeatmap();
+        } else if (this.activeTab === 2) {
+          this.renderGeneSetsHeatmap();
+        }
+      });
     }
   },
   mounted() {
     this.$nextTick(() => {
+      if (this.hasTopCombinedHeatmapData) {
+        setTimeout(() => {
+          this.renderTopCombinedHeatmap();
+        }, 200);
+      }
       // Render heatmap if data is available
       if (this.heatmapData && this.heatmapData.genes && this.heatmapData.genes.length > 0) {
         setTimeout(() => {
@@ -239,15 +320,37 @@ export default Vue.component("pigean-factors-viz", {
         return { background: "#cccccc", border: "#999999" };
       }
     },
-    renderHeatmap() {
-      console.log('renderHeatmap called', this.heatmapData);
+    renderTopCombinedHeatmap(retryCount) {
+      if (!this.hasTopCombinedHeatmapData) {
+        return;
+      }
+      if (!this.$refs.topCombinedHeatmapContainer || !this.$refs.topCombinedHeatmapLabelsContainer) {
+        if ((retryCount || 0) < 10) {
+          setTimeout(() => {
+            this.renderTopCombinedHeatmap((retryCount || 0) + 1);
+          }, 100);
+        }
+        return;
+      }
+      this.renderHeatmap(
+        this.topCombinedHeatmapData,
+        this.$refs.topCombinedHeatmapLabelsContainer,
+        this.$refs.topCombinedHeatmapContainer
+      );
+    },
+    renderHeatmap(source, labelsContainer, heatmapContainer) {
+      const heatmap = source || this.heatmapData;
+      const labelsEl = labelsContainer || this.$refs.heatmapLabelsContainer;
+      const contentEl = heatmapContainer || this.$refs.heatmapContainer;
       
-      if (!this.heatmapData || !this.heatmapData.genes || this.heatmapData.genes.length === 0) {
-        console.log('No heatmap data or empty genes array');
+      console.log('renderHeatmap called', heatmap);
+      
+      if (!heatmap || !heatmap.factors || heatmap.factors.length === 0) {
+        console.log('No heatmap data or empty factors array');
         return;
       }
       
-      if (!this.$refs.heatmapContainer || !this.$refs.heatmapLabelsContainer) {
+      if (!contentEl || !labelsEl) {
         console.log('heatmapContainer or heatmapLabelsContainer ref not found');
         return;
       }
@@ -266,23 +369,23 @@ export default Vue.component("pigean-factors-viz", {
       });
       
       // Clear previous heatmap
-      this.$refs.heatmapContainer.innerHTML = '';
-      this.$refs.heatmapLabelsContainer.innerHTML = '';
+      contentEl.innerHTML = '';
+      labelsEl.innerHTML = '';
       
-      let { genes, factors, factorLabels, factorScores, data, gwasData, geneSetData, combinedScores, gwasScores, geneSetScores } = this.heatmapData;
+      let { genes = [], factors, factorLabels, factorScores, data, gwasData, geneSetData, combinedScores, gwasScores, geneSetScores, geneSets = [], geneSetFactorData = [] } = heatmap;
       const labels = factorLabels || factors; // Use labels if available, otherwise use factor IDs
       
       // Factors are already sorted by relevance score in PigeanFactors.vue, but ensure we have scores
       const relevanceScores = factorScores || factors.map(() => 0);
       
-      console.log('Heatmap data:', { genes: genes.length, factors: factors.length, data: data ? data.length : 0 });
+      console.log('Heatmap data:', { genes: genes.length, geneSets: geneSets.length, factors: factors.length, data: data ? data.length : 0 });
       
-      if (genes.length === 0 || factors.length === 0) {
-        console.log('Empty genes or factors array');
+      if (genes.length === 0 && geneSets.length === 0) {
+        console.log('Empty genes and gene sets arrays');
         return;
       }
       
-      if (!data || data.length === 0) {
+      if (genes.length > 0 && (!data || data.length === 0)) {
         console.log('No data array');
         return;
       }
@@ -323,13 +426,17 @@ export default Vue.component("pigean-factors-viz", {
       // Add 1 extra column for factor relevance score in y-axis labels
       const numSpecialRows = 3;
       const relevanceColumnWidth = 20; // Fixed width for relevance score column in y-axis labels
-      const cellWidth = Math.max(30, 300 / genes.length); // Dynamic width based on number of genes
+      const totalColumns = genes.length + geneSets.length;
+      const cellWidth = Math.max(30, 300 / Math.max(totalColumns, 1)); // Dynamic width based on number of columns
       const cellHeight = 20;
+      const columnGap = genes.length > 0 && geneSets.length > 0 ? 10 : 0;
+      const geneSetXOffset = genes.length * cellWidth + columnGap;
       const labelWidth = 200 + relevanceColumnWidth; // Width for fixed factor labels + relevance column
-      const margin = { top: 100, right: 20, bottom: 20, left: 0 }; // Increased top margin for x-axis labels and rotated relevance label
-      const labelMargin = { top: 100, right: 0, bottom: 20, left: 10 }; // Match top margin - increased to accommodate rotated label
+      const topMargin = geneSets.length > 0 ? 160 : 100; // Extra space for longer gene-set labels
+      const margin = { top: topMargin, right: 20, bottom: 20, left: 0 }; // Increased top margin for x-axis labels and rotated relevance label
+      const labelMargin = { top: topMargin, right: 0, bottom: 20, left: 10 }; // Match top margin - increased to accommodate rotated label
       
-      const scrollableWidth = Math.max(600, genes.length * cellWidth + margin.left + margin.right);
+      const scrollableWidth = Math.max(600, totalColumns * cellWidth + columnGap + margin.left + margin.right);
       const totalRows = numSpecialRows + factors.length;
       const height = totalRows * cellHeight + margin.top + margin.bottom;
       
@@ -554,7 +661,7 @@ export default Vue.component("pigean-factors-viz", {
       
       labelsSvg.appendChild(labelsG);
       labelsSvg.appendChild(relevanceG);
-      this.$refs.heatmapLabelsContainer.appendChild(labelsSvg);
+      labelsEl.appendChild(labelsSvg);
       
       // Create scrollable heatmap SVG (cells and x-axis labels)
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -728,13 +835,31 @@ export default Vue.component("pigean-factors-viz", {
           
           g.appendChild(cellGroup);
         });
+
+        geneSets.forEach((geneSet, geneSetIndex) => {
+          const x = geneSetXOffset + geneSetIndex * cellWidth;
+          const y = rowIndex * cellHeight;
+          const cellGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          cellGroup.setAttribute('class', 'heatmap-cell-group');
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', x);
+          rect.setAttribute('y', y);
+          rect.setAttribute('width', cellWidth);
+          rect.setAttribute('height', cellHeight);
+          rect.setAttribute('fill', '#f5f5f5');
+          rect.setAttribute('stroke', '#fff');
+          rect.setAttribute('stroke-width', '1');
+          rect.setAttribute('class', 'heatmap-cell-bg');
+          cellGroup.appendChild(rect);
+          g.appendChild(cellGroup);
+        });
       });
       
       // Draw heatmap cells for factors (swapped: factors on y-axis, genes on x-axis)
       factors.forEach((factor, factorIndex) => {
         // Draw gene columns for this factor
         genes.forEach((gene, geneIndex) => {
-          const value = data[geneIndex][factorIndex]; // Note: data is still [gene][factor]
+          const value = data && data[geneIndex] ? data[geneIndex][factorIndex] : null;
           
           const x = geneIndex * cellWidth; // No offset needed, relevance column is in y-axis labels
           const y = (numSpecialRows + factorIndex) * cellHeight; // Offset by special rows
@@ -843,6 +968,110 @@ export default Vue.component("pigean-factors-viz", {
           
           g.appendChild(cellGroup);
         });
+
+        geneSets.forEach((geneSet, geneSetIndex) => {
+          const value = geneSetFactorData && geneSetFactorData[factorIndex]
+            ? geneSetFactorData[factorIndex][geneSetIndex]
+            : null;
+          const x = geneSetXOffset + geneSetIndex * cellWidth;
+          const y = (numSpecialRows + factorIndex) * cellHeight;
+
+          const cellGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          cellGroup.setAttribute('class', 'heatmap-cell-group');
+
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', x);
+          rect.setAttribute('y', y);
+          rect.setAttribute('width', cellWidth);
+          rect.setAttribute('height', cellHeight);
+          rect.setAttribute('fill', getBackgroundColor(value));
+          rect.setAttribute('stroke', '#fff');
+          rect.setAttribute('stroke-width', '1');
+          rect.setAttribute('class', 'heatmap-cell-bg');
+          cellGroup.appendChild(rect);
+
+          const cellValue = value;
+          const cellGeneSet = geneSet;
+          const cellFactorLabel = labels[factorIndex] || factor;
+
+          const showGeneSetTooltip = (event) => {
+            if (cellValue !== null && cellValue !== undefined) {
+              if (cellGroup._tooltip) {
+                try {
+                  if (cellGroup._tooltip.parentNode) {
+                    cellGroup._tooltip.parentNode.removeChild(cellGroup._tooltip);
+                  }
+                } catch (e) {
+                  // Tooltip already removed
+                }
+              }
+
+              const tooltip = document.createElement('div');
+              tooltip.className = 'heatmap-tooltip';
+              tooltip.innerHTML = `${cellGeneSet} - ${cellFactorLabel}<br>Relevance: ${cellValue.toFixed(2)}`;
+              tooltip.style.position = 'fixed';
+              tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+              tooltip.style.color = '#fff';
+              tooltip.style.padding = '6px 10px';
+              tooltip.style.borderRadius = '4px';
+              tooltip.style.fontSize = '12px';
+              tooltip.style.pointerEvents = 'none';
+              tooltip.style.whiteSpace = 'nowrap';
+              tooltip.style.zIndex = '10000';
+              tooltip.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
+              tooltip.style.lineHeight = '1.4';
+              tooltip.style.display = 'block';
+              tooltip.style.visibility = 'visible';
+              tooltip.style.opacity = '1';
+
+              document.body.appendChild(tooltip);
+
+              const getMousePos = (e) => {
+                if (e && typeof e === 'object') {
+                  if (e.clientX !== undefined && e.clientY !== undefined) {
+                    return { x: e.clientX, y: e.clientY };
+                  }
+                  if (e.touches && e.touches[0]) {
+                    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                  }
+                }
+                return { x: window.event && window.event.clientX ? window.event.clientX : 0, y: window.event && window.event.clientY ? window.event.clientY : 0 };
+              };
+
+              const initialPos = getMousePos(event);
+              tooltip.style.left = (initialPos.x + 10) + 'px';
+              tooltip.style.top = (initialPos.y - 10) + 'px';
+
+              const mousemoveHandler = (e) => {
+                const pos = getMousePos(e);
+                if (pos.x > 0 || pos.y > 0) {
+                  tooltip.style.left = (pos.x + 10) + 'px';
+                  tooltip.style.top = (pos.y - 10) + 'px';
+                }
+              };
+              window.addEventListener('mousemove', mousemoveHandler);
+
+              cellGroup._tooltip = tooltip;
+              cellGroup._mousemoveHandler = mousemoveHandler;
+            }
+          };
+
+          const hideGeneSetTooltip = () => {
+            if (cellGroup._tooltip) {
+              document.body.removeChild(cellGroup._tooltip);
+              if (cellGroup._mousemoveHandler) {
+                window.removeEventListener('mousemove', cellGroup._mousemoveHandler);
+              }
+              delete cellGroup._tooltip;
+              delete cellGroup._mousemoveHandler;
+            }
+          };
+
+          rect.addEventListener('mouseenter', showGeneSetTooltip);
+          rect.addEventListener('mouseleave', hideGeneSetTooltip);
+
+          g.appendChild(cellGroup);
+        });
       });
       
       // Draw gene labels (x-axis) - positioned higher to avoid overlap
@@ -860,9 +1089,39 @@ export default Vue.component("pigean-factors-viz", {
         text.textContent = gene;
         g.appendChild(text);
       });
+
+      if (columnGap > 0) {
+        const separator = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        separator.setAttribute('x1', genes.length * cellWidth + columnGap / 2);
+        separator.setAttribute('x2', genes.length * cellWidth + columnGap / 2);
+        separator.setAttribute('y1', 0);
+        separator.setAttribute('y2', totalRows * cellHeight);
+        separator.setAttribute('stroke', '#bbb');
+        separator.setAttribute('stroke-width', '1');
+        g.appendChild(separator);
+      }
+
+      geneSets.forEach((geneSet, geneSetIndex) => {
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        const labelY = -15;
+        const labelX = geneSetXOffset + geneSetIndex * cellWidth;
+        text.setAttribute('x', labelX);
+        text.setAttribute('y', labelY);
+        text.setAttribute('text-anchor', 'start');
+        text.setAttribute('alignment-baseline', 'middle');
+        text.setAttribute('class', 'heatmap-label');
+        text.setAttribute('font-size', '10px');
+        text.setAttribute('font-family', 'Arial');
+        text.setAttribute('transform', `rotate(-45, ${labelX}, ${labelY})`);
+        text.textContent = this.truncateLabel(geneSet, 40);
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = geneSet;
+        text.appendChild(title);
+        g.appendChild(text);
+      });
       
       svg.appendChild(g);
-      this.$refs.heatmapContainer.appendChild(svg);
+      contentEl.appendChild(svg);
     },
     renderGeneSetsHeatmap() {
       console.log('renderGeneSetsHeatmap called', this.geneSetsHeatmapData);
@@ -1141,12 +1400,25 @@ export default Vue.component("pigean-factors-viz", {
       svg.appendChild(g);
       this.$refs.geneSetsHeatmapContainer.appendChild(svg);
     },
+    downloadTopCombinedHeatmap() {
+      this.downloadHeatmapFrom(
+        this.$refs.topCombinedHeatmapLabelsContainer,
+        this.$refs.topCombinedHeatmapContainer,
+        this.topCombinedHeatmapData,
+        'top_genes_gene_sets_heatmap'
+      );
+    },
     downloadHeatmap() {
+      this.downloadHeatmapFrom(
+        this.$refs.heatmapLabelsContainer,
+        this.$refs.heatmapContainer,
+        this.heatmapData,
+        'heatmap'
+      );
+    },
+    downloadHeatmapFrom(labelsContainer, heatmapContainer, heatmapData, filePrefix) {
       try {
         // Get both SVG elements
-        const labelsContainer = this.$refs.heatmapLabelsContainer;
-        const heatmapContainer = this.$refs.heatmapContainer;
-        
         if (!labelsContainer || !heatmapContainer) {
           console.error('Heatmap containers not found');
           return;
@@ -1252,7 +1524,7 @@ export default Vue.component("pigean-factors-viz", {
         }
         
         // Create ZIP file with SVG and data
-        this.downloadAsZip(combinedSvg);
+        this.downloadAsZip(combinedSvg, heatmapData, filePrefix);
       } catch (error) {
         console.error('Error downloading heatmap:', error);
       }
@@ -1524,51 +1796,60 @@ export default Vue.component("pigean-factors-viz", {
         console.error('Error downloading SVG:', error);
       }
     },
-    async downloadAsZip(combinedSvg) {
+    async downloadAsZip(combinedSvg, dataSource, filePrefix) {
       try {
         const zip = new JSZip();
         const timestamp = new Date().getTime();
-        const baseName = `heatmap_${this.phenotypeName || 'pigean'}_${timestamp}`;
+        const heatmap = dataSource || this.heatmapData;
+        const prefix = filePrefix || 'heatmap';
+        const baseName = `${prefix}_${this.phenotypeName || 'pigean'}_${timestamp}`;
         
         // Add SVG file to ZIP
         const svgData = new XMLSerializer().serializeToString(combinedSvg);
         zip.file(`${baseName}.svg`, svgData);
         
         // Prepare data for JSON file
-        if (this.heatmapData && this.heatmapData.genes && this.heatmapData.genes.length > 0) {
+        if (heatmap && ((heatmap.genes && heatmap.genes.length > 0) || (heatmap.geneSets && heatmap.geneSets.length > 0))) {
           const dataObject = {
             metadata: {
               phenotype: this.phenotypeName || '',
               timestamp: new Date().toISOString(),
-              description: 'Heatmap data for PIGEAN factors visualization'
+              description: heatmap.geneSets && heatmap.geneSets.length > 0
+                ? 'Factors × Top genes & gene sets heatmap data'
+                : 'Heatmap data for PIGEAN factors visualization'
             },
-            genes: this.heatmapData.genes || [],
-            factors: this.heatmapData.factors || [],
-            factorLabels: this.heatmapData.factorLabels || [],
-            factorScores: this.heatmapData.factorScores || [],
+            genes: heatmap.genes || [],
+            geneSets: heatmap.geneSets || [],
+            factors: heatmap.factors || [],
+            factorLabels: heatmap.factorLabels || [],
+            factorScores: heatmap.factorScores || [],
             data: {
               description: '2D array [gene][factor] of gene relevance to factor',
-              values: this.heatmapData.data || []
+              values: heatmap.data || []
+            },
+            geneSetFactorData: {
+              description: '2D array [factor][geneSet] of gene set relevance to factor',
+              values: heatmap.geneSetFactorData || []
             },
             gwasData: {
               description: '2D array [gene][factor] of GWAS support scores (log_bf)',
-              values: this.heatmapData.gwasData || []
+              values: heatmap.gwasData || []
             },
             geneSetData: {
               description: '2D array [gene][factor] of gene set support scores (prior)',
-              values: this.heatmapData.geneSetData || []
+              values: heatmap.geneSetData || []
             },
             combinedScores: {
               description: 'Array of combined scores per gene',
-              values: this.heatmapData.combinedScores || []
+              values: heatmap.combinedScores || []
             },
             gwasScores: {
               description: 'Array of GWAS scores per gene',
-              values: this.heatmapData.gwasScores || []
+              values: heatmap.gwasScores || []
             },
             geneSetScores: {
               description: 'Array of gene set scores per gene',
-              values: this.heatmapData.geneSetScores || []
+              values: heatmap.geneSetScores || []
             }
           };
           

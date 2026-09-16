@@ -10,16 +10,16 @@
                 <div class="col filter-col-md">
                     <div class="label">Select a dataset</div>
                     <select v-model="$parent.dataset">
-                        <option v-for="dataset in $parent.datasets" :value="dataset">
-                            {{ dataset }}
+                        <option v-for="dataset in $parent.datasets" :value="dataset.key">
+                            {{ dataset.label }}
                         </option>
                     </select>
                 </div>
                 <div class="col filter-col-md">
-                    <div class="label">Select a subset</div>
+                    <div class="label">Select an ancestry</div>
                     <select v-model="$parent.subset">
                         <option v-for="subset in $parent.subsets" :value="subset">
-                            {{ subset }}
+                            {{ $parent.formatAncestry(subset) }}
                         </option>
                     </select>
             </div>

@@ -1,4 +1,8 @@
 import { createFiltersIndex, cloneFiltersIndex } from "./variantSifterAssociationsFilters.js";
+import {
+    cloneCredibleSetsPanelFilters,
+    createCredibleSetsPanelFilters,
+} from "./variantSifterCredibleSetsFilters.js";
 import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.js";
 import { clampRegionZoomOut, regionShiftBpFromLegacyViewArea } from "./variantSifterRegionPan.js";
 import { emptyPlotMarkersState } from "./variantSifterPlotMarkers.js";
@@ -31,10 +35,10 @@ import {
     VKS_GWAS_CE_TOKEN_REDACTION,
 } from "./variantSifterProjects.js";
 
-export const VKS_SESSION_VERSION = 10;
+export const VKS_SESSION_VERSION = 11;
 export const VKS_SESSION_APP = "kp-variant-sifter";
 
-const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
 function emptyPlotOverlaysSnapshot() {
     return {
@@ -69,6 +73,12 @@ export function validateSessionExportReady({
         Object.values(associationsState.ancestrySeriesLoading).some(Boolean)
     ) {
         throw new Error("Ancestry association data is still loading. Wait before exporting.");
+    }
+    if (
+        associationsState?.phenotypeSeriesLoading &&
+        Object.values(associationsState.phenotypeSeriesLoading).some(Boolean)
+    ) {
+        throw new Error("Phenotype association data is still loading. Wait before exporting.");
     }
     if (!associationsState?.rows?.length) {
         throw new Error("No association data to export. Wait for data to load first.");
@@ -201,11 +211,35 @@ export function exportVariantSifterSession({
             gwasCeToken: searchSession.gwasCeToken || null,
         },
         associationsState: {
-            rows: associationsState.rows,
+            rows: stampAssociationRowsPhenotypeForSession(
+                associationsState.rows,
+                searchSession.phenotype
+            ),
             index: associationsState.index,
             query: associationsState.query,
             ldError: associationsState.ldError || null,
             selectedAncestries: [...(associationsState.selectedAncestries || [])],
+            selectedPhenotypes: (associationsState.selectedPhenotypes || [])
+                .map((entry) => {
+                    if (typeof entry === "string") {
+                        return {
+                            name: entry,
+                            description: null,
+                            selectedAncestries: [],
+                        };
+                    }
+                    if (!entry?.name) {
+                        return null;
+                    }
+                    return {
+                        name: entry.name,
+                        description: entry.description || null,
+                        selectedAncestries: [
+                            ...(entry.selectedAncestries || []),
+                        ],
+                    };
+                })
+                .filter(Boolean),
             filtersIndex: cloneFiltersIndex(
                 associationsState.filtersIndex || createFiltersIndex()
             ),
@@ -228,6 +262,9 @@ export function exportVariantSifterSession({
                   available: credibleSetsState.available ?? [],
                   selectedIds: credibleSetsState.selectedIds ?? [],
                   variantsBySet: credibleSetsState.variantsBySet ?? {},
+                  panelFilters: cloneCredibleSetsPanelFilters(
+                      credibleSetsState.panelFilters
+                  ),
               }
             : null,
         globalEnrichment: snapshotGlobalEnrichmentForExport(globalEnrichmentState),
@@ -273,6 +310,151 @@ function sanitizeFilenamePart(value, fallback) {
         return fallback;
     }
     return text.replace(/[^\w.-]+/g, "_");
+}
+
+/**
+ * Untagged association rows become the primary phenotype so multi-phenotype
+ * plots/filters keep working after import (including older session files).
+ */
+export function stampAssociationRowsPhenotypeForSession(
+    rows,
+    primaryPhenotype = null
+) {
+    const primaryName = String(primaryPhenotype?.name || "").trim();
+    const primaryLabel =
+        String(primaryPhenotype?.description || "").trim() || primaryName;
+    return (Array.isArray(rows) ? rows : []).map((row) => {
+        if (!row || typeof row !== "object") {
+            return row;
+        }
+        const key = String(row.PhenotypeKey || "").trim();
+        const label = String(row.Phenotype || row.PhenotypeLabel || "").trim();
+        if (key) {
+            return {
+                ...row,
+                Phenotype: row.Phenotype || row.PhenotypeLabel || key,
+                PhenotypeLabel: row.PhenotypeLabel || row.Phenotype || key,
+            };
+        }
+        if (label) {
+            const resolvedKey =
+                primaryName &&
+                (label === primaryName || label === primaryLabel)
+                    ? primaryName
+                    : label;
+            return {
+                ...row,
+                PhenotypeKey: resolvedKey,
+                Phenotype: label,
+                PhenotypeLabel: row.PhenotypeLabel || label,
+            };
+        }
+        if (!primaryName) {
+            return row;
+        }
+        return {
+            ...row,
+            PhenotypeKey: primaryName,
+            Phenotype: primaryLabel || primaryName,
+            PhenotypeLabel: primaryLabel || primaryName,
+        };
+    });
+}
+
+function associationRowPhenotypeName(row) {
+    return String(row?.PhenotypeKey || row?.Phenotype || "").trim();
+}
+
+function inferSelectedAncestriesForPhenotype(
+    rows,
+    phenotypeName,
+    primaryAncestry = "Mixed"
+) {
+    const target = String(phenotypeName || "").trim();
+    const primary = primaryAncestry || "Mixed";
+    const codes = new Set();
+    (rows || []).forEach((row) => {
+        if (associationRowPhenotypeName(row) !== target) {
+            return;
+        }
+        const ancestry = String(row?.Ancestry || "").trim();
+        if (ancestry && ancestry !== primary && ancestry !== "Mixed") {
+            codes.add(ancestry);
+        }
+    });
+    return Array.from(codes);
+}
+
+/**
+ * Prefer exported selectedPhenotypes; otherwise infer additive phenotypes from
+ * association row PhenotypeKey values (backward-compatible with older sessions).
+ */
+export function normalizeSelectedPhenotypesForSession(
+    exportedSelectedPhenotypes,
+    rows,
+    primaryPhenotypeName,
+    primaryAncestry = "Mixed"
+) {
+    const primaryName = String(primaryPhenotypeName || "").trim();
+    const fromExport = Array.isArray(exportedSelectedPhenotypes)
+        ? exportedSelectedPhenotypes
+              .map((entry) => {
+                  if (typeof entry === "string") {
+                      return {
+                          name: entry,
+                          description: null,
+                          selectedAncestries: [],
+                      };
+                  }
+                  if (!entry?.name || entry.name === primaryName) {
+                      return null;
+                  }
+                  return {
+                      name: entry.name,
+                      description: entry.description || null,
+                      selectedAncestries: Array.isArray(entry.selectedAncestries)
+                          ? entry.selectedAncestries.filter(
+                                (code) => code && code !== primaryAncestry
+                            )
+                          : [],
+                  };
+              })
+              .filter(Boolean)
+        : [];
+
+    const byName = new Map();
+    fromExport.forEach((entry) => {
+        byName.set(entry.name, entry);
+    });
+
+    (rows || []).forEach((row) => {
+        const name = associationRowPhenotypeName(row);
+        if (!name || name === primaryName || byName.has(name)) {
+            return;
+        }
+        byName.set(name, {
+            name,
+            description: String(row.PhenotypeLabel || row.Phenotype || "").trim() || null,
+            selectedAncestries: [],
+        });
+    });
+
+    return Array.from(byName.values()).map((entry) => {
+        const inferred = inferSelectedAncestriesForPhenotype(
+            rows,
+            entry.name,
+            primaryAncestry
+        );
+        const selectedAncestries =
+            entry.selectedAncestries?.length > 0
+                ? entry.selectedAncestries
+                : inferred;
+        return {
+            name: entry.name,
+            description: entry.description || null,
+            selectedAncestries,
+        };
+    });
 }
 
 export function buildSessionExportFilename(searchSession, { projectId } = {}) {
@@ -440,6 +622,7 @@ function normalizeCredibleSetsState(payload) {
             variantsBySet: {},
             variantsLoading: false,
             variantsError: null,
+            panelFilters: createCredibleSetsPanelFilters(),
         };
     }
     return {
@@ -453,6 +636,7 @@ function normalizeCredibleSetsState(payload) {
                 : {},
         variantsLoading: false,
         variantsError: null,
+        panelFilters: cloneCredibleSetsPanelFilters(exported.panelFilters),
     };
 }
 
@@ -498,34 +682,55 @@ export function importVariantSifterSession(payload, phenotypes = []) {
     };
 
     const primaryAncestry = searchSession.ancestry || "Mixed";
-    const inferredSelectedAncestries = Array.from(
-        new Set(
-            (exportedAssociations.rows || [])
-                .map((row) => row?.Ancestry)
-                .filter((code) => code && code !== primaryAncestry && code !== "Mixed")
-        )
+    const primaryPhenotypeName = searchSession.phenotype?.name || null;
+    const stampedRows = stampAssociationRowsPhenotypeForSession(
+        exportedAssociations.rows,
+        searchSession.phenotype
+    );
+    const inferredSelectedAncestries = inferSelectedAncestriesForPhenotype(
+        stampedRows,
+        primaryPhenotypeName,
+        primaryAncestry
     );
     const selectedAncestries = Array.isArray(exportedAssociations.selectedAncestries)
         ? exportedAssociations.selectedAncestries.filter(
               (code) => code && code !== primaryAncestry
           )
         : inferredSelectedAncestries;
+    const selectedPhenotypes = normalizeSelectedPhenotypesForSession(
+        exportedAssociations.selectedPhenotypes,
+        stampedRows,
+        primaryPhenotypeName,
+        primaryAncestry
+    ).map((entry) => {
+        const match = (phenotypes || []).find((p) => p.name === entry.name);
+        return {
+            ...entry,
+            description: entry.description || match?.description || null,
+        };
+    });
 
     const associationsState = {
         loading: false,
         ldLoading: false,
         error: null,
         ldError: exportedAssociations.ldError || null,
-        rows: exportedAssociations.rows,
+        rows: stampedRows,
         index: exportedAssociations.index ?? null,
         query: exportedAssociations.query ?? null,
         filtersIndex: normalizeFiltersIndex(exportedAssociations.filtersIndex),
         ancestryAvailability: [],
+        ancestryAvailabilityByPhenotype: {},
         ancestryAvailabilityLoading: false,
+        ancestryAvailabilityLoadingByPhenotype: {},
         ancestryAvailabilityError: null,
+        ancestryAvailabilityErrorByPhenotype: {},
         selectedAncestries,
         ancestrySeriesLoading: {},
         ancestrySeriesErrors: {},
+        selectedPhenotypes,
+        phenotypeSeriesLoading: {},
+        phenotypeSeriesErrors: {},
     };
 
     const ui = payload.ui || {};

@@ -13,7 +13,7 @@ Visualizer / track conventions for agents also live in `.cursor/rules/kp-variant
 - **Canvas-first** locus workspace, not a linear stepper. The shared genomic plot stack is home.
 - **Search → explore → map.** Users pick phenotype / ancestry / locus, then explore associations and related evidence on aligned tracks, optionally map variants across sections.
 - **No forced end state** — exploration stays open-ended; export a session or HTML report when useful.
-- **Single persistence concept for full work:** session JSON (`app: kp-variant-sifter`, schema v10). Recent searches are a lightweight localStorage list (≤5), not full sessions.
+- **Single persistence concept for full work:** session JSON (`app: kp-variant-sifter`, schema v11). Recent searches are a lightweight localStorage list (≤5), not full sessions.
 - **Parent-owned state.** `kpVariantSifter.vue` owns search session and all data layers; children emit intents and receive props.
 
 ### Top bar (left → right)
@@ -42,9 +42,9 @@ Settings and Actions live in **viewport controls**, not the menu bar.
 |----|-------|-----------|----------|-------|
 | `""` | Default (KP) | Phenotype + Ancestry | Portal host | Full sections |
 | `giant` | GIANT | Curated phenotypes + ancestries | `https://giant.hugeampkpnbi.org` | Subset of indexes on Giant; others fall back to portal |
-| `gwas-ce` | GWAS-CE | **Token** + Phenotype + Ancestry | Portal host for default VS; CE host for additive GWAS-CE associations | Default KP associations + GE/CS/…; CE overlay plot/table rows tagged `Project=GWAS-CE` |
+| `gwas-ce` | GWAS-CE | **Token** + Phenotype + Ancestry | Portal host for default VS; CE host for additive GWAS-CE associations / credible sets | Default KP associations + GE/CS/…; CE overlay plot/table rows tagged `Project=GWAS-CE`; CE credible sets merged into the CS list as `(GWAS-CE)` (KP sets labeled `(KP)`) |
 
-**GWAS-CE query shape:** additive overlay — keep default KP `associations` / `ancestry-associations` for the selected phenotype + ancestry. Also fetch CE `associations-{token}`, `q={token},{chr:start-end}`, `fmt=row`, via **HTTP GET**. Welcome **Fetch metadata** calls `https://api.ldserver.kpndataregistry.org/api/metadata/{token}` to prefill phenotype/ancestry (manual set if unmatched). Canvas shows a **GWAS-CE associations** plot above the default **Associations** plot. Table rows include a **Project** column (`KP` / `GWAS-CE`) and a **Project** filter under Ancestry. Do **not** put the token in the page URL. Session / HTML export replaces the token with `$token`.
+**GWAS-CE query shape:** additive overlay — keep default KP `associations` / `ancestry-associations` for the selected phenotype + ancestry. Also fetch CE `associations-{token}`, `q={token},{chr:start-end}`, `fmt=row`, via **HTTP GET**. When present, also fetch CE `credible-sets-{token}` (`q={token},{region}`) and merge into the credible-sets picker; selecting a CE set loads `credible-variants-{token}` (`q={token},{credibleSetId}`). Labels append `(KP)` / `(GWAS-CE)`. Welcome **Fetch metadata** calls `https://api.ldserver.kpndataregistry.org/api/metadata/{token}` to prefill phenotype/ancestry (manual set if unmatched). Canvas shows a **GWAS-CE associations** plot above the default **Associations** plot. Table rows include a **Project** column (`KP` / `GWAS-CE`) and a **Project** filter under Ancestry. Do **not** put the token in the page URL. Session / HTML export replaces the token with `$token`.
 
 ### Canvas vs drawers
 
@@ -58,7 +58,7 @@ Order and labels live in `variantSifterSections.js`:
 
 | Section id | Drawer | Canvas track |
 |------------|--------|--------------|
-| `associations` | Filters, LD, ancestry, mapping bar | Top-level association + LD plot |
+| `associations` | Filters, LD, ancestry | Top-level association + LD plot |
 | `credible-sets` | Select sets | Nested under Associations when sets selected |
 | `global-enrichment` | Annotations / tissues / biosamples | Nested annotations workspace track when data present |
 | `variant-to-gene-links` | Tissue / link selection | Nested V2G track when loaded |
@@ -77,7 +77,7 @@ Mapping has **three layers** (`variantSifterMappingData.js`). Mapping / workspac
 2. **Mappable option state** — chips from track selections; `mappingState.selectedCategoryIds` + And/Or mode
 3. **Derived filter** — optional `workspaceMappingFilter` when “Filter workspace to mapped data” is on
 
-UI: `VariantSifterMappingBar` in the Associations drawer and Data table modal. Extra table columns: Cred. sets, Annotation/Biosample Overlap, V2G, S2G.
+UI: `VariantSifterMappingBar` on the Data table panel only (not in section drawers). Mapping chips and the mapping table use each drawer’s **current filtered view**: Associations `filtersIndex`, Credible Sets `panelFilters` + search-region overlap, GE tissues shown on track (p-value / mute / disable filters) plus selected tissues/biosamples, and V2G/S2G method/gene/tissue/biosample deselections. Extra table columns: Cred. sets, Annotation/Biosample Overlap, V2G, S2G.
 
 ### Plot markers
 
@@ -155,8 +155,8 @@ Font stack: `"Inter", "Segoe UI", system-ui, -apple-system, sans-serif`.
 
 | Action | Storage | Contents |
 |--------|---------|----------|
-| **Export session** | JSON download | Full layers when available. `version` 10, `app` `kp-variant-sifter`. **GWAS-CE:** token replaced with `$token` everywhere in the payload. |
-| **Import session** | JSON file | Restores snapshot; may skip live API when `importedFromSnapshot` is complete. GWAS-CE exports with `$token` are view-only for re-fetch. |
+| **Export session** | JSON download | Full layers when available. `version` 11, `app` `kp-variant-sifter`. Includes additive `selectedPhenotypes` (+ per-phenotype ancestries), phenotype-stamped association rows, multi-phenotype GE `geRows`, and phenotype-scoped credible sets. **GWAS-CE:** token replaced with `$token` everywhere in the payload. |
+| **Import session** | JSON file | Restores snapshot; stamps / infers multi-phenotype associations when older files omit keys; rehydrates missing GE/CS for additive phenotypes. GWAS-CE exports with `$token` are view-only for re-fetch. |
 | **Export HTML report** | Self-contained HTML | Canvas PNG snapshots + mapping options + mapped variants table (read-only). **GWAS-CE:** token redacted to `$token`. |
 | **Recent searches** | Browser `localStorage` | Phenotype / region / ancestry / project / sub-ancestries / timestamp — full token is stored for GWAS-CE so re-run works; labels show `GWAS-CE` not the token. |
 
@@ -238,6 +238,9 @@ Reference pattern: `VariantSifterGenesTrack.vue` + `variantSifterGenesTrackRende
 
 | Date | Note |
 |------|------|
+| 2026-08-26 | GWAS-CE credible sets: merge `credible-sets-{token}` into CS list; labels `(KP)` / `(GWAS-CE)` |
+| 2026-08-26 | Mapping uses drawer-filtered sources (associations filters, CS panel filters, GE shown tissues, V2G/S2G deselections); Mapping UI on Data table panel only |
+| 2026-08-26 | Mapping UI (`VariantSifterMappingBar`) lives on the Data table panel only — removed from Associations drawer |
 | 2026-08-11 | Initial DESIGN.md for agent handoff (canvas-first VS rebuild on `dk-ai-based-VS`) |
 | 2026-08-11 | GWAS-CE: Token + Phenotype + Ancestry; associations via token, companion layers via phenotype on portal BioIndex |
 | 2026-08-11 | GWAS-CE: skip ancestry-association availability probes; LD falls back past I/D lead variants |

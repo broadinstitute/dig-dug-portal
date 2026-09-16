@@ -177,6 +177,9 @@ export function buildHtmlReportTableSnapshot({
     v2gState = null,
     s2gState = null,
     workspaceMappingFilter = null,
+    region = null,
+    phenotype = "",
+    ancestry = "Mixed",
 } = {}) {
     const mapping = normalizeMappingState(mappingState);
     const categories = collectMappingCategories({
@@ -184,6 +187,9 @@ export function buildHtmlReportTableSnapshot({
         globalEnrichmentState,
         v2gState,
         s2gState,
+        region,
+        phenotype,
+        ancestry,
     });
     const selectedSet = new Set(mapping.selectedCategoryIds);
     const groups = groupMappingCategories(categories).map((group) => ({
@@ -569,6 +575,9 @@ export async function exportVariantSifterHtmlReport({
         v2gState,
         s2gState,
         workspaceMappingFilter,
+        region: searchSession?.region || viewRegion || null,
+        phenotype: searchSession?.phenotype?.name || "",
+        ancestry: searchSession?.ancestry || "Mixed",
     });
     const html = buildVariantSifterHtmlReport({
         searchSession,

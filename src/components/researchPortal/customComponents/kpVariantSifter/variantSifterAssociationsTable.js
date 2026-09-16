@@ -27,12 +27,12 @@ function deriveZScore(row, raw) {
  * Convert raw BioIndex association rows into GEM package table rows.
  * @param {object[]} rawRows
  * @param {object|null} searchSession
- * @param {{ project?: string }} [options]
+ * @param {{ project?: string, phenotypeName?: string, phenotypeLabel?: string }} [options]
  */
 export function formatAssociationRows(
     rawRows,
     searchSession = null,
-    { project = "KP" } = {}
+    { project = "KP", phenotypeName = null, phenotypeLabel = null } = {}
 ) {
     if (!Array.isArray(rawRows) || !rawRows.length) {
         return [];
@@ -45,6 +45,16 @@ export function formatAssociationRows(
 
     const sessionAncestry = searchSession?.ancestry || null;
     const projectLabel = String(project || "KP");
+    const resolvedPhenotypeName =
+        String(phenotypeName || searchSession?.phenotype?.name || "").trim() ||
+        null;
+    const resolvedPhenotypeLabel =
+        String(
+            phenotypeLabel ||
+                searchSession?.phenotype?.description ||
+                resolvedPhenotypeName ||
+                ""
+        ).trim() || resolvedPhenotypeName;
 
     return converted.map((row, index) => {
         const raw = rawRows[index] || {};
@@ -74,6 +84,11 @@ export function formatAssociationRows(
         }
 
         formatted.Project = projectLabel;
+        if (resolvedPhenotypeName) {
+            formatted.PhenotypeKey = resolvedPhenotypeName;
+            formatted.Phenotype = resolvedPhenotypeLabel || resolvedPhenotypeName;
+            formatted.PhenotypeLabel = resolvedPhenotypeLabel || resolvedPhenotypeName;
+        }
 
         const zScore = deriveZScore(formatted, raw);
         if (zScore != null && zScore !== "") {
