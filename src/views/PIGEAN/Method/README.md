@@ -9,8 +9,9 @@ between clean URLs and the existing `/pigean/index.html` on case-insensitive hos
 ## Pull, build, and serve locally
 
 Run these commands from your DIG-DUG checkout. The branch is
-`chase/pigean-page`, based on the bird-method template branch. Keep any local
-work committed or stashed before switching branches.
+`chase/pigean-page` in [yakaboskic/dig-dug-portal](https://github.com/yakaboskic/dig-dug-portal/tree/chase/pigean-page),
+based on the upstream `dk-bird-methods-kp` bird-method template branch. Keep any
+local work committed or stashed before switching branches.
 
 Prerequisites: Git, Node.js **22.12.0 or newer**, and npm. The locked KaTeX CLI
 dependency requires Node >=22.12.0. This portal was built and checked with
@@ -21,16 +22,19 @@ installation, or separate search service is needed to serve this page.
 ### macOS, Linux, or Windows with WSL / a POSIX npm script shell
 
 ```sh
-git fetch origin
-git switch chase/pigean-page
-git pull --ff-only origin chase/pigean-page
+git remote add pigean https://github.com/yakaboskic/dig-dug-portal.git
+git fetch pigean
+git switch --track pigean/chase/pigean-page
+git pull --ff-only pigean chase/pigean-page
 npm ci
 npm run build
 npm run preview
 ```
 
-If the branch has not been checked out locally before, replace the `git switch`
-line with `git switch --track origin/chase/pigean-page`.
+Add the `pigean` remote only once; if it already exists, verify its URL with
+`git remote -v` and skip that line. If the branch is already checked out locally,
+replace the `git switch --track` line with `git switch chase/pigean-page`.
+For later updates, fetch and pull from `pigean`, then rerun `npm ci` and the build.
 
 Keep the preview process running, then open:
 
@@ -45,7 +49,7 @@ Opening the file directly with `file://` is unsupported.
 For a fresh clone, start with:
 
 ```sh
-git clone --branch chase/pigean-page https://github.com/broadinstitute/dig-dug-portal.git
+git clone --branch chase/pigean-page https://github.com/yakaboskic/dig-dug-portal.git
 cd dig-dug-portal
 npm ci
 npm run build
@@ -57,6 +61,10 @@ do not omit development dependencies on the machine doing the build. The
 committed JSON catalogs, example data, articles, figure, and videos are ready
 to serve. The sibling research repositories and original manuscript files are
 not needed for these steps.
+
+For an upstream pull request, the matching template branch is
+`broadinstitute/dig-dug-portal:dk-bird-methods-kp`; the head is
+`yakaboskic/dig-dug-portal:chase/pigean-page`.
 
 ### Native Windows PowerShell
 
