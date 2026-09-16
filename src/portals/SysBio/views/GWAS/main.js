@@ -171,7 +171,16 @@ new Vue({
                 return { key: d};
             });
             allDatasets.forEach(d => {
-                let label = d.key.replace("SysBio_", "");
+                let label = d.key.replace("SysBio_", "")
+                    .replace("ADv", "Alzheimer's Disease vs ")
+                    .replace("control", "Control")
+                    .replace("DLB", "Dementia with Lewy Bodies")
+                    .replace("MCI", "Mild Cognitive Impairment")
+                    .replace("PSP", "Progressive Supranuclear Palsy")
+                    .replace("PDv", "Parkinson's Disease vs ")
+                    .replace("AD", "Alzheimer's Disease")
+                    .replace("Alzheimer's Disease_ampadv", "AMP AD-Case vs ")
+                    .replace("_ampad", "");
                 d.label = label;
             })
             return allDatasets;
