@@ -192,11 +192,22 @@
             //if we have subsetKey
             //calculate the totals for each primaryKey
             let primaryCounts = [];
+            /*
+                the same single pass also buckets the rows by primary key. the draw loops
+                below used to re-filter all of this.data once per primary key, which is
+                O(primaries x rows) - the same shape B1 removed from calcCellCounts. pushing
+                in data order gives arrays identical to what filter() returned.
+            */
+            const rowsByPrimary = new Map();
             //if(hasSubsetKey){
                 const counts = {};
                 this.data.forEach(item => {
                     if (!counts[item[primaryKey]]) counts[item[primaryKey]] = 0;
                     counts[item[primaryKey]] += item.count;
+
+                    const bucket = rowsByPrimary.get(item[primaryKey]);
+                    if(bucket) bucket.push(item);
+                    else rowsByPrimary.set(item[primaryKey], [item]);
                 });
                 primaryCounts = Object.entries(counts).map(([primaryLabel, count]) => ({ [primaryKey]:primaryLabel, count }));
             //}
@@ -228,6 +239,7 @@
                     hasSubsetKey,
                     primaryKeys,
                     primaryCounts,
+                    rowsByPrimary,
                     primarySum,
                     min,
                     max,
@@ -354,14 +366,14 @@
 
                     //draw stacked bars
                     primaryCounts.forEach(entry => {
-                        const subsetKeys = this.data.filter(row => row[primaryKey] === entry[primaryKey]);
+                        const subsetKeys = rowsByPrimary.get(entry[primaryKey]) || [];
                         //llog('subsetKeys', entry[primaryKey], subsetKeys);
 
                         const xCenter = x2(entry[primaryKey]) + x2.bandwidth() / 2;
 
                         let lastCount = 0;
                         subsetKeys.forEach(subEntry => {
-                            const subCount = this.isNormalized ? (subEntry.count / entry.count) * 100 : subEntry.count;
+                            const subCount = this.isNormalized ? this.normalizedPct(subEntry.count, entry.count) : subEntry.count;
                             const subHeight = y2(0) - y2(subCount);
                             const subY = y2(lastCount + subCount);
                             
@@ -376,7 +388,7 @@
                             
                             const barNode = bar.node();
                             //add pct value to entry for hover
-                            const entryInfo = !this.isNormalized ? subEntry : {...subEntry, ...{pct: ((subEntry.count / entry.count) * 100).toFixed(2)+'%'}}
+                            const entryInfo = !this.isNormalized ? subEntry : {...subEntry, ...{pct: (this.normalizedPct(subEntry.count, entry.count)).toFixed(2)+'%'}}
                             this.addListener(barNode, entryInfo);
 
                             lastCount += subCount;
@@ -390,7 +402,7 @@
                     this.data.forEach((entry) => {
                         const xCenter = x(entryKey(entry)) + x.bandwidth() / 2;
                         const primaryVal = primaryCounts.find(obj => obj[primaryKey] === entry[primaryKey]).count;
-                        const entryVal = this.isNormalized ? (entry.count / primaryVal) * 100 : entry.count;
+                        const entryVal = this.isNormalized ? this.normalizedPct(entry.count, primaryVal) : entry.count;
 
                         const bar = plot.append("rect")
                             .attr("x", xCenter - boxWidth / 2)
@@ -402,7 +414,7 @@
                             .attr('data-label', `${entry[primaryKey]},${entry[subsetKey]}`)
 
                         const barNode = bar.node();
-                        const entryInfo = !this.isNormalized ? entry : {...entry, ...{pct: ((entry.count / primaryVal) * 100).toFixed(2)+'%'}}
+                        const entryInfo = !this.isNormalized ? entry : {...entry, ...{pct: (this.normalizedPct(entry.count, primaryVal)).toFixed(2)+'%'}}
                         this.addListener(barNode, entryInfo);
                     });
                 }
@@ -414,7 +426,7 @@
                 if(this.isStacked){
                     let lastCount = 0;
                     this.data.forEach(entry => {
-                        const subCount = this.isNormalized ? (entry.count / primarySum) * 100 : entry.count;
+                        const subCount = this.isNormalized ? this.normalizedPct(entry.count, primarySum) : entry.count;
                         const subHeight = y(0) - y(subCount);
                         const subY = y(lastCount + subCount);
                         const xCenter = x(primaryKey) + x.bandwidth() / 2;
@@ -430,7 +442,7 @@
                         
                         const barNode = bar.node();
                         //add pct value to entry for hover
-                        const entryInfo = !this.isNormalized ? entry : {...entry, ...{pct: ((entry.count / primarySum) * 100).toFixed(2)+'%'}}
+                        const entryInfo = !this.isNormalized ? entry : {...entry, ...{pct: (this.normalizedPct(entry.count, primarySum)).toFixed(2)+'%'}}
                         this.addListener(barNode, entryInfo);
 
                         lastCount += subCount;
@@ -439,7 +451,7 @@
                     //draw bars
                     this.data.forEach((entry) => {
                         const xCenter = x(entryKey(entry)) + x.bandwidth() / 2;
-                        const entryVal = this.isNormalized ? (entry.count / primarySum) * 100 : entry.count;
+                        const entryVal = this.isNormalized ? this.normalizedPct(entry.count, primarySum) : entry.count;
     
                         const bar = plot.append("rect")
                             .attr("x", xCenter - boxWidth / 2)
@@ -451,7 +463,7 @@
                             .attr('data-label', `${entry[primaryKey]}`)
     
                         const barNode = bar.node();
-                        const entryInfo = !this.isNormalized ? entry : {...entry, ...{pct: ((entry.count / primarySum) * 100).toFixed(2)+'%'}}
+                        const entryInfo = !this.isNormalized ? entry : {...entry, ...{pct: (this.normalizedPct(entry.count, primarySum)).toFixed(2)+'%'}}
                         this.addListener(barNode, entryInfo);
                     });
                 }
@@ -464,6 +476,7 @@
             hasSubsetKey,
             primaryKeys,
             primaryCounts,
+            rowsByPrimary,
             primarySum,
             min,
             max,
@@ -572,12 +585,12 @@
                     const boxHeight = y.bandwidth() * 0.75;
 
                     primaryCounts.forEach(entry => {
-                        const subsetKeys = this.data.filter(row => row[primaryKey] === entry[primaryKey]);
+                        const subsetKeys = rowsByPrimary.get(entry[primaryKey]) || [];
                         const yCenter = y(entry[primaryKey]) + (y.bandwidth() / 2);
                         let lastCount = 0;
 
                         subsetKeys.forEach(subEntry => {
-                            const subCount = this.isNormalized ? (subEntry.count / entry.count) * 100 : subEntry.count;
+                            const subCount = this.isNormalized ? this.normalizedPct(subEntry.count, entry.count) : subEntry.count;
                             const barWidth = x(subCount);
 
                             const bar = plot.append("rect")
@@ -590,7 +603,7 @@
                                 .attr('data-label', `${subEntry[primaryKey]},${subEntry[subsetKey]}`);
 
                             const barNode = bar.node();
-                            const entryInfo = !this.isNormalized ? subEntry : { ...subEntry, ...{ pct: ((subEntry.count / entry.count) * 100).toFixed(2) + '%' } };
+                            const entryInfo = !this.isNormalized ? subEntry : { ...subEntry, ...{ pct: (this.normalizedPct(subEntry.count, entry.count)).toFixed(2) + '%' } };
                             this.addListener(barNode, entryInfo);
 
                             lastCount += subCount;
@@ -601,7 +614,7 @@
 
                     this.data.forEach((entry) => {
                         const primaryVal = primaryCounts.find(obj => obj[primaryKey] === entry[primaryKey]).count;
-                        const entryVal = this.isNormalized ? (entry.count / primaryVal) * 100 : entry.count;
+                        const entryVal = this.isNormalized ? this.normalizedPct(entry.count, primaryVal) : entry.count;
 
                         const bar = plot.append("rect")
                             .attr("x", 0)
@@ -613,7 +626,7 @@
                             .attr('data-label', `${entry[primaryKey]},${entry[subsetKey]}`);
 
                         const barNode = bar.node();
-                        const entryInfo = !this.isNormalized ? entry : { ...entry, ...{ pct: ((entry.count / primaryVal) * 100).toFixed(2) + '%' } };
+                        const entryInfo = !this.isNormalized ? entry : { ...entry, ...{ pct: (this.normalizedPct(entry.count, primaryVal)).toFixed(2) + '%' } };
                         this.addListener(barNode, entryInfo);
                     });
                 }
@@ -623,7 +636,7 @@
                 if (this.isStacked) {
                     let lastCount = 0;
                     this.data.forEach(entry => {
-                        const subCount = this.isNormalized ? (entry.count / primarySum) * 100 : entry.count;
+                        const subCount = this.isNormalized ? this.normalizedPct(entry.count, primarySum) : entry.count;
 
                         const bar = plot.append("rect")
                             .attr("x", x(lastCount))
@@ -635,14 +648,14 @@
                             .attr('data-label', `${entry[primaryKey]},${entry[subsetKey]}`);
 
                         const barNode = bar.node();
-                        const entryInfo = !this.isNormalized ? entry : { ...entry, ...{ pct: ((entry.count / primarySum) * 100).toFixed(2) + '%' } };
+                        const entryInfo = !this.isNormalized ? entry : { ...entry, ...{ pct: (this.normalizedPct(entry.count, primarySum)).toFixed(2) + '%' } };
                         this.addListener(barNode, entryInfo);
 
                         lastCount += subCount;
                     });
                 } else {
                     this.data.forEach((entry) => {
-                        const entryVal = this.isNormalized ? (entry.count / primarySum) * 100 : entry.count;
+                        const entryVal = this.isNormalized ? this.normalizedPct(entry.count, primarySum) : entry.count;
 
                         const bar = plot.append("rect")
                             .attr("x", 0)
@@ -654,11 +667,23 @@
                             .attr('data-label', `${entry[primaryKey]}`);
 
                         const barNode = bar.node();
-                        const entryInfo = !this.isNormalized ? entry : { ...entry, ...{ pct: ((entry.count / primarySum) * 100).toFixed(2) + '%' } };
+                        const entryInfo = !this.isNormalized ? entry : { ...entry, ...{ pct: (this.normalizedPct(entry.count, primarySum)).toFixed(2) + '%' } };
                         this.addListener(barNode, entryInfo);
                     });
                 }
             }
+        },
+        /*
+            a group's share of its total, as a percentage.
+
+            the guard is what makes cell filtering safe here: a filter can leave a group
+            with zero cells, and the plain (count / total) * 100 is then 0/0 = NaN, which
+            reaches d3 as a rect height and drops the bar without an error. an empty group
+            normalises to 0, so the bar is drawn with no height and the category keeps its
+            slot on the axis instead of the axis silently reordering.
+        */
+        normalizedPct(count, total){
+            return total ? (count / total) * 100 : 0;
         },
         addListener(el, entry){
             const mouseOver = this.mouseOverHandler.bind(this, entry);

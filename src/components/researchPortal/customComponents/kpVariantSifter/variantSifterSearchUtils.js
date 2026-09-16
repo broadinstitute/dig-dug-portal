@@ -78,6 +78,50 @@ export function formatSubAncestriesParam(codes = []) {
     return parseSubAncestriesParam(codes).join(",");
 }
 
+/**
+ * Parse `phenotype` URL values (`T2D,T1D` or `+`/`|`/`;` separated).
+ * First name is the primary phenotype; the rest are additive association tracks.
+ */
+export function parsePhenotypesParam(value) {
+    const raw = Array.isArray(value)
+        ? value
+        : String(value || "")
+              .split(/[,+|;\s]+/)
+              .map((part) => part.trim())
+              .filter(Boolean);
+
+    const seen = new Set();
+    const names = [];
+    raw.forEach((part) => {
+        if (!part || seen.has(part)) {
+            return;
+        }
+        seen.add(part);
+        names.push(part);
+    });
+    return names;
+}
+
+/**
+ * Encode primary + additional phenotype names for the `phenotype` URL param.
+ */
+export function formatPhenotypesParam(primaryName, selectedPhenotypes = []) {
+    const names = [];
+    const primary = String(primaryName || "").trim();
+    if (primary) {
+        names.push(primary);
+    }
+    (selectedPhenotypes || []).forEach((entry) => {
+        const name = typeof entry === "string" ? entry : entry?.name;
+        const trimmed = String(name || "").trim();
+        if (!trimmed || trimmed === primary || names.includes(trimmed)) {
+            return;
+        }
+        names.push(trimmed);
+    });
+    return names.join(",");
+}
+
 export const REGION_EXPAND_OPTIONS = [
     { value: null, label: "Gene / variant bounds only" },
     { value: 50000, label: "± 50 kb" },

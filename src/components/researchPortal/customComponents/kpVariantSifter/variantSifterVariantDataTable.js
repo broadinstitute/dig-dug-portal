@@ -1,5 +1,6 @@
 import { ASSOCIATIONS_TABLE_FORMAT } from "./variantSifterAssociationsTableFormat.js";
 import { variantOverlapsRegion } from "./variantSifterCredibleSetsRegion.js";
+import { formatCredibleVariantPhenotypeDisplay } from "./variantSifterCredibleSetsFormat.js";
 
 const CS_KEY_FIELD = ASSOCIATIONS_TABLE_FORMAT["custom table"]["Credible Set"]["key field"];
 const CS_PPA_FIELD = ASSOCIATIONS_TABLE_FORMAT["custom table"]["Credible Set"]["PPA"];
@@ -155,8 +156,17 @@ export function buildCredibleVariantsPanelRows(credibleSetsState, region = null)
             if (region && !variantOverlapsRegion(regionSource, region)) {
                 return;
             }
+            const phenotype = formatCredibleVariantPhenotypeDisplay(
+                meta.phenotype ||
+                    variantRow.Phenotype ||
+                    variantRow.phenotype ||
+                    "",
+                meta.project || variantRow.project || ""
+            );
             rows.push({
                 ...variantRow,
+                Phenotype: phenotype,
+                phenotype,
                 credibleSetId,
                 credibleSetLabel: meta.label || credibleSetId,
                 selectionKey,

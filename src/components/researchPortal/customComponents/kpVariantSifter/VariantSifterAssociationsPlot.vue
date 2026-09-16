@@ -65,11 +65,22 @@
                     </header>
                     <div
                         v-for="series in plotSeries"
-                        :key="`assoc-${series.ancestry}`"
+                        :key="`assoc-${series.phenotype || 'primary'}-${series.ancestry}`"
                         class="vks-associations-plot-series"
                     >
                         <div
-                            v-if="showAncestryHeaders"
+                            v-if="series.showPhenotypeHeader"
+                            class="vks-associations-phenotype-header"
+                        >
+                            <span
+                                class="vks-associations-phenotype-bubble"
+                                :title="`${series.phenotypeLabel} · ${series.rows.length.toLocaleString()} associations`"
+                            >
+                                {{ series.phenotypeLabel }}
+                            </span>
+                        </div>
+                        <div
+                            v-if="series.showAncestryHeader"
                             class="vks-associations-ancestry-header"
                         >
                             <span
@@ -92,7 +103,10 @@
                         <VariantSifterAssociationRegionPlot
                             v-else
                             :plot-rows="series.plotData"
-                            :show-legend="series.ancestry === firstPlotSeriesAncestry"
+                            :show-legend="
+                                series.ancestry === firstPlotSeriesAncestry &&
+                                    series.phenotype === firstPlotSeriesPhenotype
+                            "
                             :recomb-peak-intervals="recombPeakIntervals"
                             :region="searchSession?.region"
                             :search-session="searchSession"
@@ -147,6 +161,7 @@
                         :global-enrichment-state="globalEnrichmentState"
                         :workspace-mapping-filter="workspaceMappingFilter"
                         :search-session="searchSession"
+                        :selected-phenotypes="selectedPhenotypes"
                         :region="searchSession?.region"
                         :view-region="viewRegion"
                         :region-zoom="regionZoom"
@@ -334,6 +349,10 @@ export default {
             type: Array,
             default: () => [],
         },
+        selectedPhenotypes: {
+            type: Array,
+            default: () => [],
+        },
         loading: {
             type: Boolean,
             default: false,
@@ -475,6 +494,8 @@ export default {
                 rows: this.rows,
                 primaryAncestry: this.primaryAncestry,
                 selectedAncestries: this.selectedAncestries,
+                primaryPhenotype: this.searchSession?.phenotype || null,
+                selectedPhenotypes: this.selectedPhenotypes,
                 project: VKS_ASSOCIATION_PROJECT_KP,
             }).map((series) => ({
                 ...series,
@@ -504,15 +525,17 @@ export default {
         showKpAssociationsSection() {
             return (
                 this.showAssociationsSection &&
-                this.plotSeries.some((series) => series.rows.length > 0)
+                (this.plotSeries.some((series) => series.rows.length > 0) ||
+                    this.selectedPhenotypes.length > 0)
             );
-        },
-        showAncestryHeaders() {
-            return this.plotSeries.length > 1;
         },
         firstPlotSeriesAncestry() {
             const firstWithRows = this.plotSeries.find((series) => series.rows.length > 0);
             return firstWithRows?.ancestry || null;
+        },
+        firstPlotSeriesPhenotype() {
+            const firstWithRows = this.plotSeries.find((series) => series.rows.length > 0);
+            return firstWithRows?.phenotype || null;
         },
         plotData() {
             return associationRowsToPlotData(this.rows);
@@ -521,7 +544,8 @@ export default {
             return (
                 this.plotSeries.some((series) => series.rows.length > 0) ||
                 this.gwasCePlotRows.length > 0 ||
-                this.showGwasCeAssociationsSection
+                this.showGwasCeAssociationsSection ||
+                this.selectedPhenotypes.length > 0
             );
         },
         plotMargin() {
@@ -834,6 +858,24 @@ export default {
 
 .vks-associations-plot-series + .vks-associations-plot-series {
     margin-top: 10px;
+}
+
+.vks-associations-phenotype-header {
+    margin: 0 0 8px;
+    padding: 0;
+}
+
+.vks-associations-phenotype-bubble {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--cfde-blue, #2c5c97);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
 }
 
 .vks-associations-ancestry-header {

@@ -50,7 +50,7 @@
                         <em style="font-size: 13px">{{
                             data["authors"] || ""
                         }}</em>
-                        <div>{{ data["summary"] || "" }}</div>
+                        <div style="min-height:50px;">{{ data["summary"] || "" }}</div>
                     </div>
                 </div>
             </div>

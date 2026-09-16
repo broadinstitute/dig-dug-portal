@@ -106,7 +106,7 @@ new Vue({
                 CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
-            activeTab: "hugeScorePheWASPlot",
+            activeTab: "commonVariantPheWASPlot",
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
@@ -384,6 +384,9 @@ new Vue({
             let data = this.$store.state.pigeanGene.data;
             return data;
         },
+        falconGeneAssociations() {
+            return this.$store.state.falconGeneAssociations.data || [];
+        },
 
         associations52k() {
             let data = this.$store.state.associations52k.data;
@@ -609,6 +612,7 @@ new Vue({
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
             this.$store.dispatch("getPigeanGeneData");
+            this.$store.dispatch("getFalconGeneAssociations");
             this.$store.dispatch("getMouseData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
@@ -627,6 +631,7 @@ new Vue({
         "$store.state.geneName"(NAME) {
             this.$store.dispatch("getHugeScoresData");
             this.$store.dispatch("getPigeanGeneData");
+            this.$store.dispatch("getFalconGeneAssociations");
             if (NAME) {
                 this.$store.dispatch("cellStateExpression/query", { q: NAME });
             }

@@ -16,6 +16,7 @@ import C2ctTable from "@/components/C2ctTable.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import ResearchSingleCellBrowser from "../../components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import VolcanoPlot from "@/components/eglt/VolcanoPlot";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -47,6 +48,7 @@ new Vue({
         PhenotypeSelectPicker,
         AncestrySelectPicker,
         ResearchSingleCellBrowser,
+        VolcanoPlot
     },
     mixins: [pageMixin],
     data() {
@@ -105,7 +107,32 @@ new Vue({
 
                 bioIndex: "https://bioindex.hugeamp.org",
                 bioIndexDev: "https://bioindex-dev.hugeamp.org"
-            }
+            },
+            connectivityPage: 1,
+            connectivityDrugPage: 1,
+            connectivityDrugFields: [
+                { key: "tissue", sortable: true},
+                { key: "cell_type", sortable: true},
+                { key: "pathway", sortable: true},
+                { key: "drug_chembl_id", label: "Drug CHEMBL ID", sortable: true},
+                { key: "target_name", label: "Target Info"},
+                { key: "comparison", sortable: true},
+                { key: "reversed_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
+                { key: "NES_difference", formatter: Formatters.tpmFormatter, sortable: true},
+                { key: "disease_direction", sortable: true},
+                { key: "mean_tpm", formatter: Formatters.tpmFormatter, sortable: true},
+                { key: "median_tpm", formatter: Formatters.tpmFormatter, sortable: true},
+                { key: "pct_expressed", formatter: Formatters.tpmFormatter, sortable: true},
+                { key: "tpm_category", sortable: true},
+                { key: "expressed", sortable: true},
+            ],
+            connectivityTargetFields: [
+                { key: "target_name"},
+                { key: "target_chembl_id", label: "Target CHEMBL ID"},
+                { key: "action_type"},
+                { key: "target_type"},
+                
+            ]
         };
     },
     computed: {
@@ -159,7 +186,6 @@ new Vue({
                 this.$store.state.mouseSummary.data.length > 0;
         },
         hasMatchingSingleCellTissue(){
-            console.log('!!', this.$store.state.singleCellDatasets);
             if(!this.$store.state.singleCellDatasets) return false;
             if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
             if(!this.tissue) return false;
@@ -171,7 +197,21 @@ new Vue({
             }else{
                 return false;
             }
-        }
+        },
+        connectivityData(){
+            return this.processConnectivityData(this.$store.state.connectivityData);
+        },
+        connectivityDrugData(){
+            return this.processConnectivityData(this.$store.state.connectivityDrugData);
+        },
+        connectivityFields(){
+            let cdFields = this.connectivityDrugFields;
+            let cKeys = Object.keys(this.connectivityData[0]);
+            if (!cKeys){
+                return [];
+            }
+            return cdFields.filter(f => cKeys.includes(f.key));
+        },
     },
     created() {
         // get the disease group and set of phenotypes available
@@ -206,6 +246,53 @@ new Vue({
         onAnnotationSelected(){
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");
+        },
+        processConnectivityData(data){
+            let cData = structuredClone(data).filter(d => !!d.cell_type);
+            for(let i = 0; i < cData.length; i++){
+                let cDatum = cData[i];
+                if(cDatum.GO_terms === null){
+                    cDatum.GO_terms = "";
+                }
+                cDatum.cell_type = cDatum.cell_type.toUpperCase();
+                cDatum.comparison = cDatum.comparison.toUpperCase();
+                cDatum.minusLogRevPAdj = - Math.log10(cDatum.reversed_p_adj);
+                cDatum.identifier = `${cDatum.cell_type}___${cDatum.pathway}`;
+            }
+            return cData;
+        },
+        volcanoConfig(isDrug=false) {
+            // TODO adapt this from matkp
+            let config = {
+                "type": "volcano plot",
+                "label": "",
+                "legend": "",
+                "renderBy": isDrug ? "drug_chembl_id" : "pathway",
+                //"renderBy": "pathway",
+                "xAxisField": "NES_difference",
+                "xAxisLabel": "NES_difference",
+                "yAxisField": "minusLogRevPAdj",
+                "yAxisLabel": "-log10(reversed_p_adj)",
+                "width": 600,
+                "height": 400,
+                "xCondition": { 
+                    "combination": "or", 
+                    "greater than": 0, 
+                    "lower than": 0 },
+                //combination for condition can be "greater than", "lower than", "or" and "and."
+                "yCondition": { 
+                    "combination": "greater than", 
+                    "greater than": 0 },
+                "dot label score": 2
+                //number of conditions that the value of each dot to meet to have labeled
+            };
+            return config;
+        },
+        chartName(dataPoint){
+            let prefix = !!dataPoint.drug_chembl_id 
+                ? "drug_connectivity_diff_exp" 
+                : "connectivity_diff_exp";
+            return `${prefix}_${dataPoint.tissue}_${dataPoint.cell_type}_${dataPoint.comparison}`;
         }
     },
     watch: {

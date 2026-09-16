@@ -30,11 +30,7 @@
             small
             responsive
             :items="tableDataWithDetails"
-            :fields="
-                leadTableField !== 'phenotype'
-                    ? fields.filter((f) => f.key !== 'group')
-                    : fields
-            "
+            :fields="visibleFields"
             :per-page="perPage"
             :current-page="currentPage"
             detail-key="_rowKey"
@@ -335,6 +331,7 @@ export default Vue.component("HugeScoresTable", {
         "hugeScores",
         "phenotypeMap",
         "filter",
+        "hideCfdeGeneSets",
     ],
     data() {
         return {
@@ -410,6 +407,17 @@ export default Vue.component("HugeScoresTable", {
     computed: {
         rows() {
             return this.tableData.length;
+        },
+        visibleFields() {
+            return this.fields.filter((f) => {
+                if (this.leadTableField !== "phenotype" && f.key === "group") {
+                    return false;
+                }
+                if (this.hideCfdeGeneSets && f.key === "cfde_gene_set") {
+                    return false;
+                }
+                return true;
+            });
         },
         tableDataWithDetails() {
             const key = this.expandedRowKey;
