@@ -382,9 +382,13 @@
                         ></tissue-heritability-table>
                     </div>
                 </div>
-                <div class="card mdkp-card" v-if="!!$parent.connectivityData.length > 0 || true">
+                <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
                     <div class="card-body">
                         <h4>Connectivity mapping: Differential Expression
+                            <span v-if="$store.state.connectivity.data.length > 0">
+                                for {{ $store.state.connectivity.data[0].tissue }} - 
+                                {{ $store.state.connectivity.data[0].comparison }}
+                            </span>
                         </h4>
                         <criterion-function-group>
                             <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
@@ -449,9 +453,13 @@
                         </criterion-function-group>
                     </div>
                 </div>
-                <div class="card mdkp-card" v-if="!!$parent.connectivityCrisprData.length > 0">
+                <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
                     <div class="card-body">
                         <h4>Connectivity mapping: Differential Expression (CRISPR)
+                            <span v-if="$store.state.connectivityCrispr.data.length > 0">
+                                for {{ $store.state.connectivityCrispr.data[0].tissue }} - 
+                                {{ $store.state.connectivityCrispr.data[0].comparison }}
+                            </span>
                         </h4>
                         <criterion-function-group>
                             <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
@@ -464,7 +472,7 @@
                             <div class="col filter-col-md">
                                 <div class="label">Cell type comparison</div>
                                 <select v-model="$store.state.selectedComparisonCrispr">
-                                    <option v-for="comp in $store.state.comparisons" :value="comp">
+                                    <option v-for="comp in $store.state.crisprComparisons" :value="comp">
                                         {{ comp }}
                                     </option>
                                 </select>

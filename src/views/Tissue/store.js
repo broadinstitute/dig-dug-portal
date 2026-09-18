@@ -184,7 +184,7 @@ export default new Vuex.Store({
         },
         async getConnectivityCrisprData(context){
             let useTissue = context.state.queryTissue === "adipose" 
-                ? context.state.adiposeType : context.state.queryTissue;
+                ? context.state.adiposeTypeCrispr : context.state.queryTissue;
             await context.dispatch("connectivityCrispr/query", 
                 {q: `${useTissue},${context.state.selectedComparisonCrispr}`});
         }
