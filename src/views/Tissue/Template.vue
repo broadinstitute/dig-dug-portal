@@ -407,11 +407,11 @@
                                 </select>
                             </div>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div v-if="false">
+                                <div v-if="$parent.connectivityData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityData.filter(filter)"
-                                        :chartName="$parent.chartName($parent.connectivityData.filter(filter)[0])">
+                                        :plotData="$parent.connectivityData"
+                                        :chartName="$parent.chartName($parent.connectivityData[0])">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">
@@ -478,11 +478,11 @@
                                 </select>
                             </div>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div v-if="false">
+                                <div v-if="$parent.connectivityCrisprData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityData.filter(filter)"
-                                        :chartName="$parent.chartName($parent.connectivityData.filter(filter)[0])">
+                                        :plotData="$parent.connectivityCrisprData"
+                                        :chartName="$parent.chartName($parent.connectivityCrisprData[0])">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">
@@ -496,7 +496,7 @@
                                 </div>
                                 <div style="display: block; overflow-x: scroll;">
                                     <b-table :items="$parent.connectivityCrisprData.filter(filter)"
-                                        :current-page="$parent.connectivityPage"
+                                        :current-page="$parent.connectivityCrisprPage"
                                         :per-page="10"
                                         :fields="$parent.connectivityCrisprFields"
                                         small

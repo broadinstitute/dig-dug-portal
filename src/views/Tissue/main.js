@@ -188,10 +188,10 @@ new Vue({
             }
         },
         connectivityData(){
-            return this.$store.state.connectivity.data;
+            return this.processConnectivityData(this.$store.state.connectivity.data);
         },
         connectivityCrisprData(){
-            return this.$store.state.connectivityCrispr.data;
+            return this.processConnectivityData(this.$store.state.connectivityCrispr.data);
         },
     },
     async created() {
@@ -229,20 +229,18 @@ new Vue({
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");
         },
-        volcanoConfig(isDrug=false) {
-            // TODO adapt this from matkp
+        volcanoConfig() {
             let config = {
                 "type": "volcano plot",
                 "label": "",
                 "legend": "",
-                "renderBy": isDrug ? "drug_chembl_id" : "pathway",
-                //"renderBy": "pathway",
+                "renderBy": "pathway",
                 "xAxisField": "NES_difference",
                 "xAxisLabel": "NES_difference",
-                "yAxisField": "minusLogRevPAdj",
-                "yAxisLabel": "-log10(reversed_p_adj)",
-                "width": 600,
-                "height": 400,
+                "yAxisField": "minusLogAdjP",
+                "yAxisLabel": "-log10(adjusted p-value)",
+                "width": 300,
+                "height": 200,
                 "xCondition": { 
                     "combination": "or", 
                     "greater than": 0, 
@@ -257,12 +255,23 @@ new Vue({
             return config;
         },
         chartName(dataPoint){
-            return "This_is_a_test";
-            let prefix = !!dataPoint.drug_chembl_id 
-                ? "drug_connectivity_diff_exp" 
-                : "connectivity_diff_exp";
-            return `${prefix}_${dataPoint.tissue}_${dataPoint.cell_type}_${dataPoint.comparison}`;
+            if (!dataPoint){
+                return "";
+            }
+            // TODO make it crispr specific
+            let prefix = "connectivity_diff_exp";
+            return `${prefix}_${dataPoint.tissue}_${dataPoint.comparison}`;
         },
+        processConnectivityData(inputData){
+            let data = structuredClone(inputData);
+            data.forEach(d => {
+                let pValField = d.best_direction === "reversed"
+                    ? "reversed_p_adj" : "concordant_p_adj";
+                let p = d[pValField];
+                d.minusLogAdjP = -Math.log10(p);
+            });
+            return data;
+        }
     },
     watch: {
         "$store.state.annotationOptions"(data) {
