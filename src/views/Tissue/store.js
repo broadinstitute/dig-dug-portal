@@ -88,6 +88,7 @@ export default new Vuex.Store({
             }
             context.state.queryTissue = connectivityKey;
             await context.dispatch("getRelevantComparisons");
+            await context.dispatch("getRelevantCrisprComparisons");
             await context.dispatch("getConnectivityData");
             await context.dispatch("getConnectivityCrisprData");
         },
@@ -165,7 +166,10 @@ export default new Vuex.Store({
             comps = Array.from(new Set(comps.map(ck => ck[1])));
             context.state.selectedComparison = comps[0];
             context.state.comparisons = comps;
-
+        },
+        async getRelevantCrisprComparisons(context){
+            let useTissue = context.state.queryTissue === "adipose" 
+                ? context.state.adiposeTypeCrispr : context.state.queryTissue;
             let crisprComps = context.state.connectCrisprKeys.filter(ck => ck[0] === useTissue);
             crisprComps = Array.from(new Set(crisprComps.map(ck => ck[1])));
             context.state.selectedComparisonCrispr = crisprComps[0];

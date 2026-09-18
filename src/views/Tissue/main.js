@@ -271,6 +271,20 @@ new Vue({
         "$store.state.selectedAncestry"(){
             this.$store.dispatch("getCs2ct");
         },
+        "$store.state.adiposeType"(){
+            this.$store.dispatch("getRelevantComparisons");
+            this.$store.dispatch("getConnectivityData");
+        },
+        "$store.state.adiposeTypeCrispr"(){
+            this.$store.dispatch("getRelevantCrisprComparisons");
+            this.$store.dispatch("getConnectivityCrisprData");
+        },
+        "$store.state.selectedComparison"(){
+            this.$store.dispatch("getConnectivityData");
+        },
+        "$store.state.selectedComparisonCrispr"(){
+            this.$store.dispatch("getConnectivityCrisprData");
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");

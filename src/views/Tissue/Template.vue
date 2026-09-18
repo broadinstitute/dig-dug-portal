@@ -456,7 +456,7 @@
                         <criterion-function-group>
                             <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
                                 <div class="label">Tissue type</div>
-                                <select v-model="$store.state.adiposeType">
+                                <select v-model="$store.state.adiposeTypeCrispr">
                                     <option value="adipose_subcutaneous">Adipose - Subcutaneous</option>
                                     <option value="adipose_visceral">Adipose - Visceral</option>
                                 </select>
