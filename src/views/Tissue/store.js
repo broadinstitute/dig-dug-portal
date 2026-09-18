@@ -168,20 +168,26 @@ export default new Vuex.Store({
             let isString = typeof connectivityKey === "string";
             let key0 = isString ? connectivityKey : connectivityKey[0];
             let comps = context.state.connectKeys.filter(ck => ck[0] === key0);
+            comps = Array.from(new Set(comps.map(ck => ck[1])));
             context.state.selectedComparison = comps[0];
+            context.state.comparisons = comps;
 
-            context.state.comparisons = Array.from(new Set(comps.map(ck => ck[1])));
             let crisprComps = context.state.connectCrisprKeys.filter(ck => ck[0] === key0);
-            context.state.crisprComparisons = Array.from(new Set(crisprComps.map(ck => ck[1])));
+            crisprComps = Array.from(new Set(crisprComps.map(ck => ck[1])));
             context.state.selectedComparisonCrispr = crisprComps[0];
+            context.state.crisprComparisons = crisprComps;
         },
         async getConnectivityData(context, connectivityKey){
+            console.log("Getting connectivity data");
             let isAdipose = typeof connectivityKey !== "string";
             let queryTissue = isAdipose ? context.state.adiposeType : connectivityKey;
+            let queryKey = `${queryTissue},${context.state.selectedComparison}`;
+            console.log(queryKey);
             await context.dispatch("connectivity/query", 
-                {q: `${queryTissue},${context.state.selectedComparison}`});
+                {q: queryKey});
             await context.dispatch("connectivityCrispr/query", 
                 {q: `${queryTissue},${context.state.selectedComparisonCrispr}`});
+            console.log(JSON.stringify(context.state.connectivity.data));
         }
     },
     getters: {
