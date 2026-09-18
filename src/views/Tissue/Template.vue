@@ -382,51 +382,36 @@
                         ></tissue-heritability-table>
                     </div>
                 </div>
-                <div class="card mdkp-card" v-if="!!$parent.connectivityData.length > 0">
+                <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
                     <div class="card-body">
                         <h4>Connectivity mapping: Differential Expression
+                            <span v-if="$store.state.connectivity.data.length > 0">
+                                for {{ $parent.tissueFormatter($store.state.connectivity.data[0].tissue) }} - 
+                                {{ $parent.tissueFormatter($store.state.connectivity.data[0].comparison) }}
+                            </span>
                         </h4>
                         <criterion-function-group>
-                            <filter-enumeration-control
-                                v-if="new Set($parent.connectivityData.map(c => c.tissue)).size > 1"
-                                field="tissue"
-                                :options="$parent.connectivityData.map(c => c.tissue)"
-                                :fillFirstItem="true"
-                            >
-                                <div class="label">Tissue</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                field="cell_type"
-                                :options="$parent.connectivityData.map(c => c.cell_type).filter(ct => !!ct)"
-                                :fillFirstItem="true"
-                            >
-                                <div class="label">Cell type</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                field="comparison"
-                                :options="$parent.connectivityData.map(c => c.comparison)"
-                                :fillFirstItem="true"
-                            >
-                                <div class="label">Comparison</div>
-                            </filter-enumeration-control>
+                            <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
+                                <div class="label">Tissue type</div>
+                                <select v-model="$store.state.adiposeType">
+                                    <option value="adipose_subcutaneous">Adipose - Subcutaneous</option>
+                                    <option value="adipose_visceral">Adipose - Visceral</option>
+                                </select>
+                            </div>
+                            <div class="col filter-col-md">
+                                <div class="label">Cell type comparison</div>
+                                <select v-model="$store.state.selectedComparison">
+                                    <option v-for="comp in $store.state.comparisons" :value="comp">
+                                        {{ comp }}
+                                    </option>
+                                </select>
+                            </div>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div v-if="new Set($parent.connectivityData.filter(filter).map(d => d.cell_type)).size > 1 ||
-                                    new Set($parent.connectivityData.filter(filter).map(d => d.comparison)).size > 1 ||
-                                    new Set($parent.connectivityData.filter(filter).map(d => d.tissue)).size > 1
-                                " style="text-align: center; margin: 20px;"> 
-                                    Select a {{ new Set($parent.connectivityData.map(c => c.tissue)).size > 1 
-                                        ? "tissue type, " : ""}}
-                                    cell type and comparison to view the differential expression plot.
-                                </div>
-                                <div v-else-if="$parent.connectivityData.filter(filter).length === 0"
-                                    style="text-align: center; margin: 20px;">
-                                    No data found for the selected filters.
-                                </div>
-                                <div v-else>
+                                <div v-if="$parent.connectivityData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityData.filter(filter)"
-                                        :chartName="$parent.chartName($parent.connectivityData.filter(filter)[0])">
+                                        :plotData="$parent.connectivityData"
+                                        :chartName="$parent.chartName($parent.connectivityData[0])">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">
@@ -442,7 +427,7 @@
                                     <b-table :items="$parent.connectivityData.filter(filter)"
                                         :current-page="$parent.connectivityPage"
                                         :per-page="10"
-                                        :fields="$parent.connectivityFields"
+                                        :fields="$parent.connectivityCrisprFields.filter(f => !f.crisprOnly)"
                                         small
                                     >
                                         <template #cell(target_name)="row">
@@ -468,99 +453,75 @@
                         </criterion-function-group>
                     </div>
                 </div>
-                <div class="card mdkp-card" v-if="!!$parent.connectivityDrugData.length > 0">
+                <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
                     <div class="card-body">
-                        <h4>Connectivity mapping: Differential Expression (Drug)
+                        <h4>Connectivity mapping: Differential Expression (CRISPR)
+                            <span v-if="$store.state.connectivityCrispr.data.length > 0">
+                                for {{ $parent.tissueFormatter($store.state.connectivityCrispr.data[0].tissue) }} - 
+                                {{ $parent.tissueFormatter($store.state.connectivityCrispr.data[0].comparison) }}
+                            </span>
                         </h4>
                         <criterion-function-group>
-                            <filter-enumeration-control
-                                v-if="new Set($parent.connectivityDrugData.map(c => c.tissue)).size > 1"
-                                field="tissue"
-                                :options="$parent.connectivityDrugData.map(c => c.tissue)"
-                                :fillFirstItem="true"
-                            >
-                                <div class="label">Tissue</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                field="cell_type"
-                                :options="$parent.connectivityDrugData.map(c => c.cell_type)"
-                                :fillFirstItem="true"
-                            >
-                                <div class="label">Cell type</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                field="comparison"
-                                :options="$parent.connectivityDrugData.map(c => c.comparison)"
-                                :fillFirstItem="true"
-                            >
-                                <div class="label">Comparison</div>
-                            </filter-enumeration-control>
+                            <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
+                                <div class="label">Tissue type</div>
+                                <select v-model="$store.state.adiposeTypeCrispr">
+                                    <option value="adipose_subcutaneous">Adipose - Subcutaneous</option>
+                                    <option value="adipose_visceral">Adipose - Visceral</option>
+                                </select>
+                            </div>
+                            <div class="col filter-col-md">
+                                <div class="label">Cell type comparison</div>
+                                <select v-model="$store.state.selectedComparisonCrispr">
+                                    <option v-for="comp in $store.state.crisprComparisons" :value="comp">
+                                        {{ comp }}
+                                    </option>
+                                </select>
+                            </div>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div v-if="new Set($parent.connectivityDrugData.filter(filter).map(d => d.cell_type)).size > 1 ||
-                                    new Set($parent.connectivityDrugData.filter(filter).map(d => d.comparison)).size > 1 ||
-                                    new Set($parent.connectivityDrugData.filter(filter).map(d => d.tissue)).size > 1
-                                " style="text-align: center; margin: 20px;"> 
-                                    Select a {{ new Set($parent.connectivityDrugData.map(c => c.tissue)).size > 1 
-                                        ? "tissue type, " : ""}}
-                                    cell type and comparison to view the differential expression plot.
-                                </div>
-                                <div v-else-if="$parent.connectivityData.filter(filter).length === 0"
-                                    style="text-align: center; margin: 20px;">
-                                    No data found for the selected filters.
-                                </div>
-                                <div v-else>
+                                <div v-if="$parent.connectivityCrisprData.length > 0">
                                     <volcano-plot
-                                        :renderConfig="$parent.volcanoConfig(true)"
-                                        :plotData="$parent.connectivityDrugData.filter(filter)"
-                                        :chartName="$parent.chartName($parent.connectivityDrugData.filter(filter)[0])">
+                                        :renderConfig="$parent.volcanoConfig()"
+                                        :plotData="$parent.connectivityCrisprData"
+                                        :chartName="$parent.chartName($parent.connectivityCrisprData[0], true)">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">
-                                    Total rows: {{ $parent.connectivityDrugData.filter(filter).length }}
+                                    Total rows: {{ $parent.connectivityCrisprData.filter(filter).length }}
                                 </div>
                                 <div class="text-right mb-2">
                                     <data-download
-                                        :data="$parent.connectivityDrugData.filter(filter)"
-                                        :filename="`data_${$parent.chartName($parent.connectivityDrugData.filter(filter)[0])}`"
+                                        :data="$parent.connectivityCrisprData.filter(filter)"
+                                        :filename="`data_${$parent.chartName($parent.connectivityData.filter(filter)[0])}`"
                                     ></data-download>
                                 </div>
                                 <div style="display: block; overflow-x: scroll;">
-                                    <b-table
-                                        :items="$parent.connectivityDrugData.filter(filter)"
-                                        :current-page="$parent.connectivityDrugPage"
+                                    <b-table :items="$parent.connectivityCrisprData.filter(filter)"
+                                        :current-page="$parent.connectivityCrisprPage"
                                         :per-page="10"
-                                        :fields="$parent.connectivityDrugFields"
+                                        :fields="$parent.connectivityCrisprFields"
                                         small
                                     >
-                                        <template #cell(drug_chembl_id)="row">
-                                            <a target="_blank" :href="row.item.drug_link">{{ row.item.drug_chembl_id }}</a>
-                                        </template>
                                         <template #cell(target_name)="row">
-                                            <button class="btn btn-outline-primary btn-sm"
+                                            <button v-if="row.item.GO_terms.length > 0" class="btn btn-outline-primary btn-sm"
                                                 @click="row.toggleDetails()">
                                                 {{ row.detailsShowing ? "Hide" : "Show" }}
                                             </button>
+                                            <span v-else>N/A</span>
                                         </template>
                                         <template #row-details="row">
-                                            <b-table style="font-size: smaller; background-color: #efefef;" 
-                                                small
-                                                :items="[row.item]"
-                                                :fields="$parent.connectivityTargetFields">
-                                                <template #cell(target_chembl_id)="row">
-                                                    <a target="_blank" :href="row.item.target_link">{{ row.item.target_chembl_id }}</a>
-                                                </template>
-                                            </b-table>
+                                            <div style="text-align: right;">
+                                                <strong>{{ row.item.GO_terms }}</strong>
+                                            </div>
                                         </template>
                                     </b-table>
                                 </div>
                                 <b-pagination 
-                                    v-model="$parent.connectivityDrugPage"
-                                    :total-rows="$parent.connectivityDrugData.length"
+                                    v-model="$parent.connectivityCrisprPage"
+                                    :total-rows="$parent.connectivityCrisprData.length"
                                     :per-page="10">
-                                </b-pagination>
+                                </b-pagination>        
                             </template>
                         </criterion-function-group>
-                        
                     </div>
                 </div>
             </div>
