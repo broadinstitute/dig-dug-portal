@@ -26,6 +26,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
@@ -109,8 +110,8 @@ new Vue({
                 bioIndexDev: "https://bioindex-dev.hugeamp.org"
             },
             connectivityPage: 1,
-            connectivityDrugPage: 1,
-            connectivityDrugFields: [
+            connectivityCrisprPage: 1,
+            connectivityCrisprFields: [
                 { key: "tissue", sortable: true},
                 { key: "cell_type", sortable: true},
                 { key: "pathway", sortable: true},
@@ -132,7 +133,7 @@ new Vue({
                 { key: "action_type"},
                 { key: "target_type"},
                 
-            ]
+            ],
         };
     },
     computed: {
@@ -201,11 +202,11 @@ new Vue({
         connectivityData(){
             return this.processConnectivityData(this.$store.state.connectivityData);
         },
-        connectivityDrugData(){
-            return this.processConnectivityData(this.$store.state.connectivityDrugData);
+        connectivityCrisprData(){
+            return this.processConnectivityData(this.$store.state.connectivityCrisprData);
         },
         connectivityFields(){
-            let cdFields = this.connectivityDrugFields;
+            let cdFields = this.connectivityCrisprFields;
             let cKeys = Object.keys(this.connectivityData[0]);
             if (!cKeys){
                 return [];
@@ -213,12 +214,13 @@ new Vue({
             return cdFields.filter(f => cKeys.includes(f.key));
         },
     },
-    created() {
+    async created() {
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
+        await this.$store.dispatch("getConnectKeys");
         if (this.tissue) {
             this.$store.dispatch("getTissue");
         }
@@ -289,11 +291,12 @@ new Vue({
             return config;
         },
         chartName(dataPoint){
+            return "This_is_a_test";
             let prefix = !!dataPoint.drug_chembl_id 
                 ? "drug_connectivity_diff_exp" 
                 : "connectivity_diff_exp";
             return `${prefix}_${dataPoint.tissue}_${dataPoint.cell_type}_${dataPoint.comparison}`;
-        }
+        },
     },
     watch: {
         "$store.state.annotationOptions"(data) {

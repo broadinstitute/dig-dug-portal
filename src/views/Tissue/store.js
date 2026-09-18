@@ -32,8 +32,8 @@ export default new Vuex.Store({
         geneLinks: bioIndex("gene-links"),
         mouseSummary: bioIndex("diff-exp-summary-tissue"),
         cs2ct: bioIndex("c2ct-tissue"),
-        connectivity: bioIndex("connectivity-map-de"),
-        connectivityDrug: bioIndex("connectivity-map-drug"),
+        connectivity: bioIndex("connectivity-map-cp"),
+        connectivityCrispr: bioIndex("connectivity-map-crispr"),
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -45,7 +45,15 @@ export default new Vuex.Store({
         selectedAnnotation: "",
         singleCellDatasets: null,
         connectivityData: [],
-        connectivityDrugData: []
+        connectivityCrisprData: [],
+        connectKeys: [],
+        connectCrisprKeys: [],
+        comparisons: [],
+        crisprComparisons: [],
+        adiposeType: CONNECTIVITY_KEYS["adipose_tissue"][0],
+        adiposeTypeCrispr: CONNECTIVITY_KEYS["adipose_tissue"][0],
+        selectedComparison: "",
+        selectedComparisonCrispr: "",
     },
 
     mutations: {
@@ -65,8 +73,8 @@ export default new Vuex.Store({
         setConnectivityData(state, data){
             state.connectivityData = data || state.connectivityData;
         },
-        setConnectivityDrugData(state, data){
-            state.connectivityDrugData = data || state.connectivityDrugData;
+        setConnectivityCrisprData(state, data){
+            state.connectivityCrisprData = data || state.connectivityCrisprData;
         }
     },
     actions: {
@@ -85,21 +93,8 @@ export default new Vuex.Store({
             if (!connectivityKey){
                 return;
             }
-            let key0 = typeof connectivityKey === "string" ? connectivityKey : connectivityKey[0];
-            await context.dispatch("connectivity/query", {q: key0});
-            await context.dispatch("connectivityDrug/query", {q: key0});
-
-            let connect = structuredClone(context.state.connectivity.data);
-            let connectDrug = structuredClone(context.state.connectivityDrug.data);
-            if (typeof connectivityKey !== "string"){
-                let key1 = connectivityKey[1];
-                await context.dispatch("connectivity/query", {q: key1});
-                await context.dispatch("connectivityDrug/query", {q: key1});
-                connect = connect.concat(context.state.connectivity.data);
-                connectDrug = connectDrug.concat(context.state.connectivityDrug.data);
-            }
-            context.state.connectivityData = connect;
-            context.state.connectivityDrugData = connectDrug;
+            await context.dispatch("getRelevantComparisons", connectivityKey);
+            await context.dispatch("getConnectivityData", connectivityKey);
         },
         async getEvidence(context, { q }) {
             //Do we neeed this?
@@ -159,6 +154,34 @@ export default new Vuex.Store({
                 metadata =  metadata.filter(item => item.data_type === 'single_cell');
             }
             context.state.singleCellDatasets = metadata;
+        },
+        async getConnectKeys(context){
+            let allKeys = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/connectivity-map-cp/2`)
+				.then(resp => resp.json());
+            console.log(JSON.stringify(allKeys));
+            context.state.connectKeys = allKeys.keys;
+            let allKeys1 = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/connectivity-map-crispr/2`)
+				.then(resp => resp.json());
+            context.state.connectCrisprKeys = allKeys1.keys;
+        },
+        async getRelevantComparisons(context, connectivityKey){
+            let isString = typeof connectivityKey === "string";
+            let key0 = isString ? connectivityKey : connectivityKey[0];
+            let comps = context.state.connectKeys.filter(ck => ck[0] === key0);
+            context.state.selectedComparison = comps[0];
+
+            context.state.comparisons = Array.from(new Set(comps.map(ck => ck[1])));
+            let crisprComps = context.state.connectCrisprKeys.filter(ck => ck[0] === key0);
+            context.state.crisprComparisons = Array.from(new Set(crisprComps.map(ck => ck[1])));
+            context.state.selectedComparisonCrispr = crisprComps[0];
+        },
+        async getConnectivityData(context, connectivityKey){
+            let isAdipose = typeof connectivityKey !== "string";
+            let queryTissue = isAdipose ? context.state.adiposeType : connectivityKey;
+            await context.dispatch("connectivity/query", 
+                {q: `${queryTissue},${context.state.selectedComparison}`});
+            await context.dispatch("connectivityCrispr/query", 
+                {q: `${queryTissue},${context.state.selectedComparisonCrispr}`});
         }
     },
     getters: {
