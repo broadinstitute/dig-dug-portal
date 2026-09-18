@@ -423,6 +423,7 @@
                                     <b-table :items="$parent.connectivityData.filter(filter)"
                                         :current-page="$parent.connectivityPage"
                                         :per-page="10"
+                                        :fields="$parent.connectivityCrisprFields.filter(f => !f.crisprOnly)"
                                         small
                                     >
                                         <template #cell(target_name)="row">
@@ -489,6 +490,7 @@
                                     <b-table :items="$parent.connectivityCrisprData.filter(filter)"
                                         :current-page="$parent.connectivityPage"
                                         :per-page="10"
+                                        :fields="$parent.connectivityCrisprFields"
                                         small
                                     >
                                         <template #cell(target_name)="row">

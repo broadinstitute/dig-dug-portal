@@ -112,28 +112,16 @@ new Vue({
             connectivityPage: 1,
             connectivityCrisprPage: 1,
             connectivityCrisprFields: [
-                { key: "tissue", sortable: true},
-                { key: "cell_type", sortable: true},
                 { key: "pathway", sortable: true},
-                { key: "drug_chembl_id", label: "Drug CHEMBL ID", sortable: true},
-                { key: "target_name", label: "Target Info"},
-                { key: "comparison", sortable: true},
-                { key: "reversed_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
+                { key: "best_direction", sortable: true},
                 { key: "NES_difference", formatter: Formatters.tpmFormatter, sortable: true},
-                { key: "disease_direction", sortable: true},
-                { key: "mean_tpm", formatter: Formatters.tpmFormatter, sortable: true},
-                { key: "median_tpm", formatter: Formatters.tpmFormatter, sortable: true},
-                { key: "pct_expressed", formatter: Formatters.tpmFormatter, sortable: true},
-                { key: "tpm_category", sortable: true},
-                { key: "expressed", sortable: true},
-            ],
-            connectivityTargetFields: [
-                { key: "target_name"},
-                { key: "target_chembl_id", label: "Target CHEMBL ID"},
-                { key: "action_type"},
-                { key: "target_type"},
-                
-            ],
+                { key: "concordant_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
+                { key: "reversed_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
+                { key: "mean_tpm", formatter: Formatters.tpmFormatter, sortable: true, crisprOnly: true},
+                { key: "pct_expressed", formatter: Formatters.tpmFormatter, sortable: true, crisprOnly: true},
+                { key: "tpm_category", sortable: true, crisprOnly: true},
+                { key: "expressed", sortable: true, crisprOnly: true},
+            ]
         };
     },
     computed: {
@@ -204,14 +192,6 @@ new Vue({
         },
         connectivityCrisprData(){
             return this.$store.state.connectivityCrispr.data;
-        },
-        connectivityFields(){
-            let cdFields = this.connectivityCrisprFields;
-            let cKeys = Object.keys(this.connectivityData[0]);
-            if (!cKeys){
-                return [];
-            }
-            return cdFields.filter(f => cKeys.includes(f.key));
         },
     },
     async created() {
