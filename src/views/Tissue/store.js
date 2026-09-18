@@ -158,7 +158,6 @@ export default new Vuex.Store({
         async getConnectKeys(context){
             let allKeys = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/connectivity-map-cp/2`)
 				.then(resp => resp.json());
-            console.log(JSON.stringify(allKeys));
             context.state.connectKeys = allKeys.keys;
             let allKeys1 = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/connectivity-map-crispr/2`)
 				.then(resp => resp.json());
@@ -178,16 +177,13 @@ export default new Vuex.Store({
             context.state.crisprComparisons = crisprComps;
         },
         async getConnectivityData(context, connectivityKey){
-            console.log("Getting connectivity data");
             let isAdipose = typeof connectivityKey !== "string";
             let queryTissue = isAdipose ? context.state.adiposeType : connectivityKey;
             let queryKey = `${queryTissue},${context.state.selectedComparison}`;
-            console.log(queryKey);
             await context.dispatch("connectivity/query", 
                 {q: queryKey});
             await context.dispatch("connectivityCrispr/query", 
                 {q: `${queryTissue},${context.state.selectedComparisonCrispr}`});
-            console.log(JSON.stringify(context.state.connectivity.data));
         }
     },
     getters: {

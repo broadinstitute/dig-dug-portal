@@ -200,10 +200,10 @@ new Vue({
             }
         },
         connectivityData(){
-            return this.processConnectivityData(this.$store.state.connectivityData);
+            return this.$store.state.connectivity.data;
         },
         connectivityCrisprData(){
-            return this.processConnectivityData(this.$store.state.connectivityCrisprData);
+            return this.$store.state.connectivityCrispr.data;
         },
         connectivityFields(){
             let cdFields = this.connectivityCrisprFields;
@@ -250,17 +250,11 @@ new Vue({
             this.$store.dispatch("getCs2ct");
         },
         processConnectivityData(data){
-            let cData = structuredClone(data).filter(d => !!d.cell_type);
-            for(let i = 0; i < cData.length; i++){
-                let cDatum = cData[i];
-                if(cDatum.GO_terms === null){
-                    cDatum.GO_terms = "";
-                }
-                cDatum.cell_type = cDatum.cell_type.toUpperCase();
-                cDatum.comparison = cDatum.comparison.toUpperCase();
-                cDatum.minusLogRevPAdj = - Math.log10(cDatum.reversed_p_adj);
-                cDatum.identifier = `${cDatum.cell_type}___${cDatum.pathway}`;
-            }
+            let cData = structuredClone(data);
+            //TODO add identifier if necessary
+            //for(let i = 0; i < cData.length; i++){
+                //cDatum.identifier = `${cDatum.cell_type}___${cDatum.pathway}`;
+            //}
             return cData;
         },
         volcanoConfig(isDrug=false) {
