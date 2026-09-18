@@ -9,7 +9,7 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { query } from "@/utils/bioIndexUtils";
 
 const CONNECTIVITY_KEYS = {
-    adipose_tissue: ["adipose_subcutaneous", "adipose_visceral"],
+    adipose_tissue: "adipose",
     cardiovascular_system: "artery",
     heart: "heart",
     neural_tissue: "hypothalamus",
@@ -20,6 +20,7 @@ const CONNECTIVITY_KEYS = {
     muscle_structure: "muscle",
     pancreas: "pancreas"
 }
+const ADIPOSE_TYPES = ["adipose_subcutaneous", "adipose_visceral"]
 
 Vue.use(Vuex);
 
@@ -44,16 +45,15 @@ export default new Vuex.Store({
         annotationOptions: [],
         selectedAnnotation: "",
         singleCellDatasets: null,
-        connectivityData: [],
-        connectivityCrisprData: [],
         connectKeys: [],
         connectCrisprKeys: [],
         comparisons: [],
         crisprComparisons: [],
-        adiposeType: CONNECTIVITY_KEYS["adipose_tissue"][0],
-        adiposeTypeCrispr: CONNECTIVITY_KEYS["adipose_tissue"][0],
+        adiposeType: ADIPOSE_TYPES[0],
+        adiposeTypeCrispr: ADIPOSE_TYPES[0],
         selectedComparison: "",
         selectedComparisonCrispr: "",
+        queryTissue: ""
     },
 
     mutations: {
@@ -70,12 +70,6 @@ export default new Vuex.Store({
         setSelectedAnnotation(state, annotation){
             state.selectedAnnotation = annotation || state.selectedAnnotation;
         },
-        setConnectivityData(state, data){
-            state.connectivityData = data || state.connectivityData;
-        },
-        setConnectivityCrisprData(state, data){
-            state.connectivityCrisprData = data || state.connectivityCrisprData;
-        }
     },
     actions: {
         async getTissue(context) {
@@ -85,7 +79,6 @@ export default new Vuex.Store({
             });
             let name = context.state.tissueName;
             let connectivityKey = CONNECTIVITY_KEYS[name];
-            // TODO FIX BIOINDICES
             if (name === 'adipose_tissue'){
                 name = 'adipose';
             }
@@ -93,8 +86,10 @@ export default new Vuex.Store({
             if (!connectivityKey){
                 return;
             }
-            await context.dispatch("getRelevantComparisons", connectivityKey);
-            await context.dispatch("getConnectivityData", connectivityKey);
+            context.state.queryTissue = connectivityKey;
+            await context.dispatch("getRelevantComparisons");
+            await context.dispatch("getConnectivityData");
+            await context.dispatch("getConnectivityCrisprData");
         },
         async getEvidence(context, { q }) {
             //Do we neeed this?
@@ -163,27 +158,31 @@ export default new Vuex.Store({
 				.then(resp => resp.json());
             context.state.connectCrisprKeys = allKeys1.keys;
         },
-        async getRelevantComparisons(context, connectivityKey){
-            let isString = typeof connectivityKey === "string";
-            let key0 = isString ? connectivityKey : connectivityKey[0];
-            let comps = context.state.connectKeys.filter(ck => ck[0] === key0);
+        async getRelevantComparisons(context){
+            let useTissue = context.state.queryTissue === "adipose" 
+                ? context.state.adiposeType : context.state.queryTissue;
+            let comps = context.state.connectKeys.filter(ck => ck[0] === useTissue);
             comps = Array.from(new Set(comps.map(ck => ck[1])));
             context.state.selectedComparison = comps[0];
             context.state.comparisons = comps;
 
-            let crisprComps = context.state.connectCrisprKeys.filter(ck => ck[0] === key0);
+            let crisprComps = context.state.connectCrisprKeys.filter(ck => ck[0] === useTissue);
             crisprComps = Array.from(new Set(crisprComps.map(ck => ck[1])));
             context.state.selectedComparisonCrispr = crisprComps[0];
             context.state.crisprComparisons = crisprComps;
         },
-        async getConnectivityData(context, connectivityKey){
-            let isAdipose = typeof connectivityKey !== "string";
-            let queryTissue = isAdipose ? context.state.adiposeType : connectivityKey;
-            let queryKey = `${queryTissue},${context.state.selectedComparison}`;
+        async getConnectivityData(context){
+            let useTissue = context.state.queryTissue === "adipose" 
+                ? context.state.adiposeType : context.state.queryTissue;
+            let queryKey = `${useTissue},${context.state.selectedComparison}`;
             await context.dispatch("connectivity/query", 
                 {q: queryKey});
+        },
+        async getConnectivityCrisprData(context){
+            let useTissue = context.state.queryTissue === "adipose" 
+                ? context.state.adiposeType : context.state.queryTissue;
             await context.dispatch("connectivityCrispr/query", 
-                {q: `${queryTissue},${context.state.selectedComparisonCrispr}`});
+                {q: `${useTissue},${context.state.selectedComparisonCrispr}`});
         }
     },
     getters: {

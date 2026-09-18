@@ -229,14 +229,6 @@ new Vue({
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");
         },
-        processConnectivityData(data){
-            let cData = structuredClone(data);
-            //TODO add identifier if necessary
-            //for(let i = 0; i < cData.length; i++){
-                //cDatum.identifier = `${cDatum.cell_type}___${cDatum.pathway}`;
-            //}
-            return cData;
-        },
         volcanoConfig(isDrug=false) {
             // TODO adapt this from matkp
             let config = {

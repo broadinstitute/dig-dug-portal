@@ -396,7 +396,7 @@
                             </div>
                             <div class="col filter-col-md">
                                 <div class="label">Cell type comparison</div>
-                                <select v-model="$store.state.comparison">
+                                <select v-model="$store.state.selectedComparison">
                                     <option v-for="comp in $store.state.comparisons" :value="comp">
                                         {{ comp }}
                                     </option>
@@ -463,7 +463,7 @@
                             </div>
                             <div class="col filter-col-md">
                                 <div class="label">Cell type comparison</div>
-                                <select v-model="$store.state.comparison">
+                                <select v-model="$store.state.selectedComparisonCrispr">
                                     <option v-for="comp in $store.state.comparisons" :value="comp">
                                         {{ comp }}
                                     </option>
