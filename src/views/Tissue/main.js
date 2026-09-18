@@ -241,16 +241,7 @@ new Vue({
                 "yAxisLabel": "-log10(adjusted p-value)",
                 "width": 300,
                 "height": 200,
-                "xCondition": { 
-                    "combination": "or", 
-                    "greater than": 0, 
-                    "lower than": 0 },
-                //combination for condition can be "greater than", "lower than", "or" and "and."
-                "yCondition": { 
-                    "combination": "greater than", 
-                    "greater than": 0 },
-                "dot label score": 2
-                //number of conditions that the value of each dot to meet to have labeled
+                "diffExpVolcano": "true"
             };
             return config;
         },
@@ -263,12 +254,14 @@ new Vue({
             return `${prefix}_${dataPoint.tissue}_${dataPoint.comparison}`;
         },
         processConnectivityData(inputData){
+            let directions = Array.from(new Set(inputData.map(d => d.best_direction)));
+            console.log(JSON.stringify(directions));
             let data = structuredClone(inputData);
             data.forEach(d => {
                 let pValField = d.best_direction === "reversed"
-                    ? "reversed_p_adj" : "concordant_p_adj";
-                let p = d[pValField];
-                d.minusLogAdjP = -Math.log10(p);
+                    ? "reversed_p_adj" : d.best_direction === "concordant" 
+                    ? "concordant_p_adj" : null;
+                d.minusLogAdjP = pValField === null ? 0 : -Math.log10(d[pValField]);
             });
             return data;
         }
