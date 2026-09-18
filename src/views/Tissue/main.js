@@ -245,12 +245,12 @@ new Vue({
             };
             return config;
         },
-        chartName(dataPoint){
+        chartName(dataPoint, crispr){
             if (!dataPoint){
                 return "";
             }
             // TODO make it crispr specific
-            let prefix = "connectivity_diff_exp";
+            let prefix = crispr ? "connectivity_crispr" : "connectivity_diff_exp";
             return `${prefix}_${dataPoint.tissue}_${dataPoint.comparison}`;
         },
         processConnectivityData(inputData){

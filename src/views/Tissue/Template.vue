@@ -386,8 +386,8 @@
                     <div class="card-body">
                         <h4>Connectivity mapping: Differential Expression
                             <span v-if="$store.state.connectivity.data.length > 0">
-                                for {{ $store.state.connectivity.data[0].tissue }} - 
-                                {{ $store.state.connectivity.data[0].comparison }}
+                                for {{ $parent.tissueFormatter($store.state.connectivity.data[0].tissue) }} - 
+                                {{ $parent.tissueFormatter($store.state.connectivity.data[0].comparison) }}
                             </span>
                         </h4>
                         <criterion-function-group>
@@ -457,8 +457,8 @@
                     <div class="card-body">
                         <h4>Connectivity mapping: Differential Expression (CRISPR)
                             <span v-if="$store.state.connectivityCrispr.data.length > 0">
-                                for {{ $store.state.connectivityCrispr.data[0].tissue }} - 
-                                {{ $store.state.connectivityCrispr.data[0].comparison }}
+                                for {{ $parent.tissueFormatter($store.state.connectivityCrispr.data[0].tissue) }} - 
+                                {{ $parent.tissueFormatter($store.state.connectivityCrispr.data[0].comparison) }}
                             </span>
                         </h4>
                         <criterion-function-group>
@@ -482,7 +482,7 @@
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
                                         :plotData="$parent.connectivityCrisprData"
-                                        :chartName="$parent.chartName($parent.connectivityCrisprData[0])">
+                                        :chartName="$parent.chartName($parent.connectivityCrisprData[0], true)">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">
