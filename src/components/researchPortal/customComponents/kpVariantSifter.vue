@@ -370,6 +370,7 @@ import {
 } from "./kpVariantSifter/variantSifterMappingData.js";
 import {
     isGwasCeProject,
+    normalizeGwasCeToken,
     normalizeProjectId,
     projectAncestryOptions,
     projectAssociationsOnly,
@@ -379,6 +380,7 @@ import {
     resolveProjectPrimaryBioIndexHost,
     VKS_ASSOCIATION_PROJECT_GWAS_CE,
     VKS_ASSOCIATION_PROJECT_KP,
+    VKS_GWAS_CE_TOKEN_REDACTION,
     VKS_PROJECT_DEFAULT_ID,
 } from "./kpVariantSifter/variantSifterProjects.js";
 import {
@@ -390,11 +392,6 @@ import {
     fetchGwasCeTokenMetadata,
     resolveGwasCeMetadataAncestry,
 } from "./kpVariantSifter/variantSifterGwasCeMetadataApi.js";
-import {
-    announceHandoffReady,
-    handoffAllowedOrigins,
-    parseHandoffMessage,
-} from "./kpVariantSifter/variantSifterTokenHandoff.js";
 import { exportVariantSifterHtmlReport } from "./kpVariantSifter/variantSifterHtmlReport.js";
 import { normalizeV2gSelectedLinks } from "./kpVariantSifter/variantSifterV2gData.js";
 import { fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
@@ -600,11 +597,9 @@ export default Vue.component("kp-variant-sifter", {
             searchSession: null,
             welcomeInitialValues: null,
             projectId: VKS_PROJECT_DEFAULT_ID,
-            // GWAS-CE token handed over by the datasets page via postMessage
-            // (see variantSifterTokenHandoff.js). Never written to the URL.
-            handoffListening: false,
-            handoffReadyTimer: null,
-            handoffPendingToken: null,
+            // GWAS-CE token read from the `token` URL param, applied once
+            // (the phenotypes watcher re-enters applyUrlSearchParams).
+            urlTokenApplied: false,
             recentSearches: loadRecentSearches(),
             regionZoom: 0,
             regionZoomOut: 0,
@@ -797,7 +792,6 @@ export default Vue.component("kp-variant-sifter", {
     mounted() {
         this.applyProjectFromUrl();
         this.applyUrlSearchParams();
-        this.setupTokenHandoff();
         this.$nextTick(() => this.setupChromePin());
         this.refreshAssistantLlmHealth();
     },
@@ -806,7 +800,6 @@ export default Vue.component("kp-variant-sifter", {
             clearTimeout(this.regionPanSyncTimer);
             this.regionPanSyncTimer = null;
         }
-        this.teardownTokenHandoff();
         this.teardownChromePin();
         if (this.regionLoadDismissTimer) {
             clearTimeout(this.regionLoadDismissTimer);
@@ -817,7 +810,6 @@ export default Vue.component("kp-variant-sifter", {
         phenotypes() {
             this.applyProjectFromUrl();
             this.applyUrlSearchParams();
-            this.applyPendingHandoffToken();
         },
         canvasActive() {
             this.$nextTick(() => {
@@ -2732,6 +2724,7 @@ export default Vue.component("kp-variant-sifter", {
                 region: undefined,
                 ancestry: undefined,
                 sub_ancestries: undefined,
+                token: undefined,
             });
             this.syncUrlProjectParam();
         },
@@ -4770,85 +4763,15 @@ export default Vue.component("kp-variant-sifter", {
             this.syncUrlSearchParams(this.searchSession);
         },
         /**
-         * GWAS-CE only: when opened from the datasets page (window.opener is
-         * set), listen for the token handoff and announce that we are ready.
-         * The token arrives via postMessage and is never placed in the URL.
+         * Resolve phenotype / ancestry for a token from the URL and either
+         * start the search (URL carries a region) or prefill the Welcome panel.
+         * @param {string} urlToken GWAS-CE token from the `token` URL param
          */
-        setupTokenHandoff() {
-            if (this.handoffListening) {
-                return;
-            }
-            if (typeof window === "undefined" || !window.opener) {
-                return;
-            }
-            const params = this.utilsBox?.keyParams;
-            if (!isGwasCeProject(this.projectId) && !isGwasCeProject(params?.project)) {
-                return;
-            }
-            window.addEventListener("message", this.onHandoffMessage);
-            this.handoffListening = true;
-            this.announceTokenHandoffReady();
-            // The opener registers its listener before window.open, so one
-            // announce normally suffices; retry once for slow handlers.
-            this.handoffReadyTimer = setTimeout(() => {
-                this.handoffReadyTimer = null;
-                if (this.handoffListening) {
-                    this.announceTokenHandoffReady();
-                }
-            }, 1500);
-        },
-        announceTokenHandoffReady() {
-            announceHandoffReady({
-                opener: window.opener,
-                origins: handoffAllowedOrigins(window.location),
-            });
-        },
-        teardownTokenHandoff() {
-            if (this.handoffReadyTimer) {
-                clearTimeout(this.handoffReadyTimer);
-                this.handoffReadyTimer = null;
-            }
-            if (this.handoffListening && typeof window !== "undefined") {
-                window.removeEventListener("message", this.onHandoffMessage);
-            }
-            this.handoffListening = false;
-        },
-        onHandoffMessage(event) {
-            const message = parseHandoffMessage(event, {
-                opener: window.opener,
-                origins: handoffAllowedOrigins(window.location),
-            });
-            if (!message) {
-                return;
-            }
-            // Single-shot: the first valid token wins.
-            this.teardownTokenHandoff();
-            if (!(this.phenotypes || []).length) {
-                // Phenotype list not loaded yet; the phenotypes watcher
-                // applies the stashed token once it fills.
-                this.handoffPendingToken = message;
-                return;
-            }
-            this.applyHandoffToken(message);
-        },
-        applyPendingHandoffToken() {
-            const pending = this.handoffPendingToken;
-            if (!pending || !(this.phenotypes || []).length) {
-                return;
-            }
-            this.handoffPendingToken = null;
-            this.applyHandoffToken(pending);
-        },
-        /**
-         * Resolve phenotype / ancestry for a handed-over token and either start
-         * the search (URL carries a region) or prefill the Welcome panel.
-         * @param {{token: string, ancestry?: string|null}} message
-         */
-        async applyHandoffToken(message) {
+        async applyGwasCeUrlToken(urlToken) {
             if (this.searchSession || this.canvasActive) {
                 return;
             }
-            const token = message?.token;
+            const token = normalizeGwasCeToken(urlToken);
             if (!token) {
                 return;
             }
@@ -4874,12 +4797,12 @@ export default Vue.component("kp-variant-sifter", {
                 return; // the user started a search while metadata was loading
             }
 
-            // Prefer the metadata ancestry; fall back to what the datasets
-            // page sent (an LD-server code such as EUR).
+            // Prefer the metadata ancestry; fall back to the `ancestry` URL
+            // param (an LD-server code such as EUR).
             const ancestry =
                 applied?.ancestry ||
                 resolveGwasCeMetadataAncestry(
-                    message.ancestry,
+                    params?.ancestry,
                     projectAncestryOptions(this.projectId)
                 );
 
@@ -4914,20 +4837,36 @@ export default Vue.component("kp-variant-sifter", {
             if (this.canvasActive || this.searchSession) {
                 return;
             }
-
             const params = this.utilsBox?.keyParams;
-            if (!params?.region) {
-                return;
-            }
+            const gwasCe =
+                isGwasCeProject(this.projectId) || isGwasCeProject(params?.project);
 
-            // GWAS-CE needs a token that is never stored in the URL — prefills welcome only.
-            if (isGwasCeProject(this.projectId) || isGwasCeProject(params.project)) {
+            if (gwasCe) {
+                const token = normalizeGwasCeToken(params?.token);
+                if (token) {
+                    // Metadata → phenotype matching needs the phenotype list; the
+                    // phenotypes watcher re-enters here once it fills.
+                    if (!(this.phenotypes || []).length || this.urlTokenApplied) {
+                        return;
+                    }
+                    this.urlTokenApplied = true;
+                    this.applyGwasCeUrlToken(token);
+                    return;
+                }
+                if (!params?.region) {
+                    return;
+                }
+                // No token in the URL: prefill Welcome and let the user paste one.
                 this.welcomeInitialValues = {
                     phenotype: params.phenotype || "",
                     ancestry: params.ancestry || "Mixed",
                     geneOrVariantQuery: params.region,
                     gwasCeToken: "",
                 };
+                return;
+            }
+
+            if (!params?.region) {
                 return;
             }
 
@@ -4989,6 +4928,16 @@ export default Vue.component("kp-variant-sifter", {
                 region: session.regionLabel,
                 project: this.projectId || undefined,
             };
+            // Keep the token in the URL so a reload or a shared link
+            // re-enters with it; still redacted from session exports. Cleared
+            // outside GWAS-CE and never written as the redaction placeholder.
+            const gwasCeToken = normalizeGwasCeToken(session.gwasCeToken);
+            nextParams.token =
+                isGwasCeProject(this.projectId) &&
+                gwasCeToken &&
+                gwasCeToken !== VKS_GWAS_CE_TOKEN_REDACTION
+                    ? gwasCeToken
+                    : undefined;
             if (session.ancestry) {
                 nextParams.ancestry = session.ancestry;
             } else {
@@ -5986,6 +5935,9 @@ export default Vue.component("kp-variant-sifter", {
                 url.searchParams.set("ancestry", "Mixed");
             }
             url.searchParams.delete("sub_ancestries");
+            // The new tab is a different dataset's phenotype: drop the GWAS-CE
+            // token so it prefills Welcome instead of re-running this dataset.
+            url.searchParams.delete("token");
             window.open(url.toString(), "_blank", "noopener,noreferrer");
         },
         onGeSelectedAnnotationsUpdate(selectedAnnotations) {
