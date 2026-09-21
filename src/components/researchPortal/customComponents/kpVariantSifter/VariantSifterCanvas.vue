@@ -8,6 +8,7 @@
                 :initial-values="welcomeInitialValues"
                 :project-id="projectId"
                 :bio-index-host="geneLookupBioIndexHost"
+                :welcome-title="welcomeTitle"
                 @start-search="$emit('start-search', $event)"
                 @import-session="$emit('import-session')"
             />
@@ -124,6 +125,10 @@ export default {
         welcomeOpen: {
             type: Boolean,
             default: true,
+        },
+        welcomeTitle: {
+            type: String,
+            default: "Welcome to Variant Sifter",
         },
         phenotypes: {
             type: Array,

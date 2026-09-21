@@ -57,7 +57,8 @@ External dependencies:
 
 - **`@/utils/bioIndexUtils`** — BioIndex `query` / `match` / hosts
 - **LD server** — UMich 1000G via `variantSifterLdServer.js` (lz beta constants)
-- **`@/utils/revealKgApi`** — interactive LLM health + optional GE relevance classify (not `llmClient.js` directly)
+- **`@/utils/llmClient`** — Bedrock gateway (`https://llm.hugeamp.org/bedrock`) for optional GE relevance classify
+- **`@/utils/revealKgApi`** — retained for other CFDE interactive routes if needed; GE LLM path no longer uses it
 - **portaldev.sph.umich.edu** — gene annotations, recombination overlay
 - **`@/utils/variantUtils`**, **`plotUtils`**, **`dataConvert`** — ids, drawing, table formatting
 
@@ -207,11 +208,11 @@ S2G is **manual** Load/Clear in its drawer (not auto-fetched on search).
 
 - **Default** (`projectId === ""`) — portal BioIndex + full phenotype list + KP ancestries
 - **GIANT** (`projectId === "giant"`) — host `https://giant.hugeampkpnbi.org` for indexes in `VKS_GIANT_BIOINDEX_INDEXES`; curated phenotypes/ancestries; other indexes fall back to the portal host
-- **GWAS-CE** (`projectId === "gwas-ce"`) — default KP associations + companion layers on the portal BioIndex; additive CE overlay from `https://gwas-ce.kpndataregistry.org/bioidx` via `session.gwasCeToken` (`associations-{token}`, optional `credible-sets-{token}` / `credible-variants-{token}`); welcome requires Token + Phenotype + Ancestry; CE rows tagged `Project=GWAS-CE` with a separate canvas plot above Associations; CS picker merges KP `(KP)` and CE `(GWAS-CE)` sets; token omitted from page URL and redacted to `$token` on export
+- **GWAS-CE** (`projectId === "gwas-ce"`) — default KP associations + companion layers on the portal BioIndex; additive CE overlay from `https://gwas-ce.kpndataregistry.org/bioidx` via `session.gwasCeToken` (`associations-{token}`, optional `credible-sets-{token}` / `credible-variants-{token}`); welcome requires Token + Phenotype + Ancestry; CE rows tagged `Project=GWAS-CE` with a separate canvas plot above Associations; CS picker merges KP `(KP)` and CE `(GWAS-CE)` sets; token omitted from page URL and redacted to `$token` on export; when opened from the GWAS-CE datasets page (`window.opener` set) the shell announces `vks:ready` to the allowlisted origin `https://gwas-ce.kpndataregistry.org` and accepts one `vks:gwas-ce-token` postMessage (origin + source checked, `variantSifterTokenHandoff.js`), fetches token metadata, then auto-starts the search if the URL has `region` or prefills Welcome with the token
 
 Shell helper: `bioIndexHostFor(index)` → `resolveProjectBioIndexHost`.
 
-Helpers: `isGwasCeProject`, `projectAssociationsOnly`, `projectUsesTokenSearch`, `normalizeGwasCeToken`, `resolveGwasCeToken`, `gwasCeAssociationsIndex`, `gwasCeCredibleSetsIndex`, `gwasCeCredibleVariantsIndex`, `fetchGwasCeAssociations`, `fetchGwasCeCredibleSetsList`, `fetchGwasCeCredibleSetVariants`.
+Helpers: `isGwasCeProject`, `projectAssociationsOnly`, `projectUsesTokenSearch`, `normalizeGwasCeToken`, `resolveGwasCeToken`, `gwasCeAssociationsIndex`, `gwasCeCredibleSetsIndex`, `gwasCeCredibleVariantsIndex`, `fetchGwasCeAssociations`, `fetchGwasCeCredibleSetsList`, `fetchGwasCeCredibleSetVariants`; handoff: `handoffAllowedOrigins`, `announceHandoffReady`, `parseHandoffMessage` (shell methods `setupTokenHandoff`, `onHandoffMessage`, `applyHandoffToken`).
 
 ---
 
@@ -250,7 +251,7 @@ Not a full REVEAL Canvas LLM planner. Catalog and matching live in:
 | `variantSifterAssistantActionSuggest.js` | Suggest / match helpers |
 | `variantSifterAssistantConversation.js` | Thread entry helpers |
 | `variantSifterAssistantGeRelevance.js` | CS2CT tissue relevance research step |
-| `variantSifterGeRelevanceLlm.js` | Optional LLM classify via `revealKgApi` |
+| `variantSifterGeRelevanceLlm.js` | Optional LLM classify via Bedrock (`llmClient`) |
 | `variantSifterCs2ctApi.js` / `variantSifterCs2ctClassify.js` | c2ct-credible-set fetch + classify |
 | `variantSifterAssistantUnderstudied.js` | Bottom-line-only variants in locus |
 | `variantSifterAssistantGeneticCorrelation.js` | LDSC genetic correlations → open phenotype in new tab |
@@ -277,7 +278,7 @@ Props passed from Research: `phenotypesInUse`, `utilsBox`, `sectionConfigs`.
 
 1. **Registry drift** — `trackImplemented` / `TrackStrip` / `sectionHasCanvasTrack` do not fully describe the nested-track architecture.
 2. **Assistant** — keyword matching only; LLM planner not wired like REVEAL KG Canvas.
-3. **GE relevance** — CS2CT is the primary catalog path; LLM classify path still present via `revealKgApi`.
+3. **GE relevance** — CS2CT is the primary catalog path; optional LLM classify uses Bedrock via `llmClient`.
 4. **S2G** — manual load; not part of initial search parallel fetch.
 5. **Session** — assistant thread and some chrome not exported; export requires genes + associations ready.
 6. **Giant** — subset of indexes on Giant BioIndex; document new Giant indexes in `VKS_GIANT_BIOINDEX_INDEXES` when adding them.
@@ -299,6 +300,7 @@ Props passed from Research: `phenotypesInUse`, `utilsBox`, `sectionConfigs`.
 
 | Date | Note |
 |------|------|
+| 2026-09-14 | GWAS-CE token handoff from the datasets page via `postMessage` (`variantSifterTokenHandoff.js`); token still never in the URL |
 | 2026-08-26 | GWAS-CE credible sets overlay (`credible-sets-{token}` / `credible-variants-{token}`) merged with KP CS list |
 | 2026-08-11 | Initial architecture doc for agent handoff (`dk-ai-based-VS`) |
 | 2026-08-11 | GWAS-CE: token on session for associations; phenotype/ancestry restored for portal companion layers |

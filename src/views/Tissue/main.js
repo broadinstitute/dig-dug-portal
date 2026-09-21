@@ -16,6 +16,7 @@ import C2ctTable from "@/components/C2ctTable.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import ResearchSingleCellBrowser from "../../components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import VolcanoPlot from "@/components/eglt/VolcanoPlot";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -25,6 +26,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
@@ -47,6 +49,7 @@ new Vue({
         PhenotypeSelectPicker,
         AncestrySelectPicker,
         ResearchSingleCellBrowser,
+        VolcanoPlot
     },
     mixins: [pageMixin],
     data() {
@@ -105,7 +108,20 @@ new Vue({
 
                 bioIndex: "https://bioindex.hugeamp.org",
                 bioIndexDev: "https://bioindex-dev.hugeamp.org"
-            }
+            },
+            connectivityPage: 1,
+            connectivityCrisprPage: 1,
+            connectivityCrisprFields: [
+                { key: "pathway", sortable: true},
+                { key: "best_direction", sortable: true},
+                { key: "NES_difference", formatter: Formatters.tpmFormatter, sortable: true},
+                { key: "concordant_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
+                { key: "reversed_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
+                { key: "mean_tpm", formatter: Formatters.tpmFormatter, sortable: true, crisprOnly: true},
+                { key: "pct_expressed", formatter: Formatters.tpmFormatter, sortable: true, crisprOnly: true},
+                { key: "tpm_category", sortable: true, crisprOnly: true},
+                { key: "expressed", sortable: true, crisprOnly: true},
+            ]
         };
     },
     computed: {
@@ -159,7 +175,6 @@ new Vue({
                 this.$store.state.mouseSummary.data.length > 0;
         },
         hasMatchingSingleCellTissue(){
-            console.log('!!', this.$store.state.singleCellDatasets);
             if(!this.$store.state.singleCellDatasets) return false;
             if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
             if(!this.tissue) return false;
@@ -171,14 +186,21 @@ new Vue({
             }else{
                 return false;
             }
-        }
+        },
+        connectivityData(){
+            return this.processConnectivityData(this.$store.state.connectivity.data);
+        },
+        connectivityCrisprData(){
+            return this.processConnectivityData(this.$store.state.connectivityCrispr.data);
+        },
     },
-    created() {
+    async created() {
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
+        await this.$store.dispatch("getConnectKeys");
         if (this.tissue) {
             this.$store.dispatch("getTissue");
         }
@@ -206,6 +228,42 @@ new Vue({
         onAnnotationSelected(){
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");
+        },
+        volcanoConfig() {
+            let config = {
+                "type": "volcano plot",
+                "label": "",
+                "legend": "",
+                "renderBy": "pathway",
+                "xAxisField": "NES_difference",
+                "xAxisLabel": "NES_difference",
+                "yAxisField": "minusLogAdjP",
+                "yAxisLabel": "-log10(adjusted p-value)",
+                "width": 300,
+                "height": 200,
+                "diffExpVolcano": "true"
+            };
+            return config;
+        },
+        chartName(dataPoint, crispr){
+            if (!dataPoint){
+                return "";
+            }
+            // TODO make it crispr specific
+            let prefix = crispr ? "connectivity_crispr" : "connectivity_diff_exp";
+            return `${prefix}_${dataPoint.tissue}_${dataPoint.comparison}`;
+        },
+        processConnectivityData(inputData){
+            let directions = Array.from(new Set(inputData.map(d => d.best_direction)));
+            console.log(JSON.stringify(directions));
+            let data = structuredClone(inputData);
+            data.forEach(d => {
+                let pValField = d.best_direction === "reversed"
+                    ? "reversed_p_adj" : d.best_direction === "concordant" 
+                    ? "concordant_p_adj" : null;
+                d.minusLogAdjP = pValField === null ? 0 : -Math.log10(d[pValField]);
+            });
+            return data;
         }
     },
     watch: {
@@ -215,6 +273,20 @@ new Vue({
         "$store.state.selectedAncestry"(){
             this.$store.dispatch("getCs2ct");
         },
+        "$store.state.adiposeType"(){
+            this.$store.dispatch("getRelevantComparisons");
+            this.$store.dispatch("getConnectivityData");
+        },
+        "$store.state.adiposeTypeCrispr"(){
+            this.$store.dispatch("getRelevantCrisprComparisons");
+            this.$store.dispatch("getConnectivityCrisprData");
+        },
+        "$store.state.selectedComparison"(){
+            this.$store.dispatch("getConnectivityData");
+        },
+        "$store.state.selectedComparisonCrispr"(){
+            this.$store.dispatch("getConnectivityCrisprData");
+        }
     },
     render: (h) => h(Template),
 }).$mount("#app");

@@ -8,8 +8,8 @@
         >
             <div class="vks-header-start">
                 <div class="vks-brand">
-                    <span class="vks-mark">KP</span>
-                    <span class="vks-title">Variant Sifter</span>
+                    <span class="vks-mark">GP2</span>
+                    <span class="vks-title">Browser</span>
                 </div>
                 <VariantSifterMenuBar
                     :recent-searches="recentSearches"
@@ -73,6 +73,7 @@
                     :visible-section-ids="visibleSectionIds"
                     :canvas-active="canvasActive"
                     :welcome-open="welcomeOpen"
+                    :welcome-title="'Welcome to GP2 Browser'"
                     :phenotypes="phenotypes"
                     :utils="utilsBox"
                     :welcome-initial-values="welcomeInitialValues"
@@ -235,6 +236,7 @@
             :default-bio-index-host="defaultBioIndexHost"
             :project-id="projectId"
             :resolve-host-for-index="bioIndexHostFor"
+            :tool-name="'GP2 Browser'"
             @close="settingsOpen = false"
             @update:visibleSectionIds="onVisibleSectionIdsUpdate"
             @update:projectId="onProjectIdUpdate"
@@ -371,7 +373,6 @@ import {
 import {
     isGwasCeProject,
     normalizeProjectId,
-    projectAncestryOptions,
     projectAssociationsOnly,
     projectPhenotypes,
     resolveGwasCeToken,
@@ -385,16 +386,6 @@ import {
     loadRecentSearches,
     pushRecentSearch,
 } from "./kpVariantSifter/variantSifterRecentSearches.js";
-import {
-    applyGwasCeMetadataToSearchFields,
-    fetchGwasCeTokenMetadata,
-    resolveGwasCeMetadataAncestry,
-} from "./kpVariantSifter/variantSifterGwasCeMetadataApi.js";
-import {
-    announceHandoffReady,
-    handoffAllowedOrigins,
-    parseHandoffMessage,
-} from "./kpVariantSifter/variantSifterTokenHandoff.js";
 import { exportVariantSifterHtmlReport } from "./kpVariantSifter/variantSifterHtmlReport.js";
 import { normalizeV2gSelectedLinks } from "./kpVariantSifter/variantSifterV2gData.js";
 import { fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
@@ -576,7 +567,7 @@ function emptyGlobalEnrichmentState() {
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("kp-variant-sifter", {
+export default Vue.component("gp2-browser", {
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
     components: {
         VariantSifterMenuBar,
@@ -600,11 +591,6 @@ export default Vue.component("kp-variant-sifter", {
             searchSession: null,
             welcomeInitialValues: null,
             projectId: VKS_PROJECT_DEFAULT_ID,
-            // GWAS-CE token handed over by the datasets page via postMessage
-            // (see variantSifterTokenHandoff.js). Never written to the URL.
-            handoffListening: false,
-            handoffReadyTimer: null,
-            handoffPendingToken: null,
             recentSearches: loadRecentSearches(),
             regionZoom: 0,
             regionZoomOut: 0,
@@ -797,7 +783,6 @@ export default Vue.component("kp-variant-sifter", {
     mounted() {
         this.applyProjectFromUrl();
         this.applyUrlSearchParams();
-        this.setupTokenHandoff();
         this.$nextTick(() => this.setupChromePin());
         this.refreshAssistantLlmHealth();
     },
@@ -806,7 +791,6 @@ export default Vue.component("kp-variant-sifter", {
             clearTimeout(this.regionPanSyncTimer);
             this.regionPanSyncTimer = null;
         }
-        this.teardownTokenHandoff();
         this.teardownChromePin();
         if (this.regionLoadDismissTimer) {
             clearTimeout(this.regionLoadDismissTimer);
@@ -817,7 +801,6 @@ export default Vue.component("kp-variant-sifter", {
         phenotypes() {
             this.applyProjectFromUrl();
             this.applyUrlSearchParams();
-            this.applyPendingHandoffToken();
         },
         canvasActive() {
             this.$nextTick(() => {
@@ -4768,147 +4751,6 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             this.syncUrlSearchParams(this.searchSession);
-        },
-        /**
-         * GWAS-CE only: when opened from the datasets page (window.opener is
-         * set), listen for the token handoff and announce that we are ready.
-         * The token arrives via postMessage and is never placed in the URL.
-         */
-        setupTokenHandoff() {
-            if (this.handoffListening) {
-                return;
-            }
-            if (typeof window === "undefined" || !window.opener) {
-                return;
-            }
-            const params = this.utilsBox?.keyParams;
-            if (!isGwasCeProject(this.projectId) && !isGwasCeProject(params?.project)) {
-                return;
-            }
-            window.addEventListener("message", this.onHandoffMessage);
-            this.handoffListening = true;
-            this.announceTokenHandoffReady();
-            // The opener registers its listener before window.open, so one
-            // announce normally suffices; retry once for slow handlers.
-            this.handoffReadyTimer = setTimeout(() => {
-                this.handoffReadyTimer = null;
-                if (this.handoffListening) {
-                    this.announceTokenHandoffReady();
-                }
-            }, 1500);
-        },
-        announceTokenHandoffReady() {
-            announceHandoffReady({
-                opener: window.opener,
-                origins: handoffAllowedOrigins(window.location),
-            });
-        },
-        teardownTokenHandoff() {
-            if (this.handoffReadyTimer) {
-                clearTimeout(this.handoffReadyTimer);
-                this.handoffReadyTimer = null;
-            }
-            if (this.handoffListening && typeof window !== "undefined") {
-                window.removeEventListener("message", this.onHandoffMessage);
-            }
-            this.handoffListening = false;
-        },
-        onHandoffMessage(event) {
-            const message = parseHandoffMessage(event, {
-                opener: window.opener,
-                origins: handoffAllowedOrigins(window.location),
-            });
-            if (!message) {
-                return;
-            }
-            // Single-shot: the first valid token wins.
-            this.teardownTokenHandoff();
-            if (!(this.phenotypes || []).length) {
-                // Phenotype list not loaded yet; the phenotypes watcher
-                // applies the stashed token once it fills.
-                this.handoffPendingToken = message;
-                return;
-            }
-            this.applyHandoffToken(message);
-        },
-        applyPendingHandoffToken() {
-            const pending = this.handoffPendingToken;
-            if (!pending || !(this.phenotypes || []).length) {
-                return;
-            }
-            this.handoffPendingToken = null;
-            this.applyHandoffToken(pending);
-        },
-        /**
-         * Resolve phenotype / ancestry for a handed-over token and either start
-         * the search (URL carries a region) or prefill the Welcome panel.
-         * @param {{token: string, ancestry?: string|null}} message
-         */
-        async applyHandoffToken(message) {
-            if (this.searchSession || this.canvasActive) {
-                return;
-            }
-            const token = message?.token;
-            if (!token) {
-                return;
-            }
-            if (!isGwasCeProject(this.projectId)) {
-                this.projectId = normalizeProjectId("gwas-ce");
-                this.syncUrlProjectParam();
-            }
-            const params = this.utilsBox?.keyParams;
-            const regionParam = params?.region ? String(params.region) : "";
-
-            let applied = null;
-            let fetchError = "";
-            try {
-                const metadata = await fetchGwasCeTokenMetadata(token);
-                applied = applyGwasCeMetadataToSearchFields(metadata, {
-                    phenotypes: this.phenotypes || [],
-                    ancestryOptions: projectAncestryOptions(this.projectId),
-                });
-            } catch (error) {
-                fetchError = error?.message || "Could not fetch token metadata.";
-            }
-            if (this.searchSession || this.canvasActive) {
-                return; // the user started a search while metadata was loading
-            }
-
-            // Prefer the metadata ancestry; fall back to what the datasets
-            // page sent (an LD-server code such as EUR).
-            const ancestry =
-                applied?.ancestry ||
-                resolveGwasCeMetadataAncestry(
-                    message.ancestry,
-                    projectAncestryOptions(this.projectId)
-                );
-
-            const region = regionParam ? parseRegionParam(regionParam) : null;
-            if (applied?.phenotypeMatched && region) {
-                this.onStartSearch(
-                    {
-                        phenotype: applied.phenotype,
-                        ancestry: ancestry || null,
-                        region,
-                        regionLabel: formatRegion(region),
-                        geneOrVariantQuery: regionParam,
-                        regionExpandBp: null,
-                        gwasCeToken: token,
-                    },
-                    { subAncestries: [] }
-                );
-                return;
-            }
-
-            this.welcomeInitialValues = {
-                phenotype: applied?.phenotype?.name || applied?.metadata?.phenotype || "",
-                ancestry: ancestry || "Mixed",
-                geneOrVariantQuery: regionParam,
-                regionExpandBp: null,
-                gwasCeToken: token,
-                errorMessage: applied?.mismatchMessage || fetchError || "",
-            };
-            this.welcomeOpen = true;
         },
         applyUrlSearchParams() {
             if (this.canvasActive || this.searchSession) {
