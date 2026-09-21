@@ -7,7 +7,7 @@
                 to help prioritize genes and mechanisms underlying
                 musculoskeletal disease.
             </div>
-            <msskp-landing-results-primer></msskp-landing-results-primer>
+            <!-- <msskp-landing-results-primer></msskp-landing-results-primer> -->
         </div>
     </section>
 </template>
@@ -33,13 +33,16 @@ export default Vue.component("msskp-landing-main", {
 }
 
 .msskp-landing-main-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 50px;
-    align-items: start;
+    display: block;
+    text-align: center;
+    width: 75%;
+    margin: auto;
 }
 
 .msskp-landing-main-about {
+    font-family: "Roboto Slab", serif;
+    color: #6060a4;
+    font-weight: 600;
     font-size: 30px;
     line-height: 1.5;
     padding: 50px;

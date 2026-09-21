@@ -91,7 +91,7 @@ export default Vue.component("msskp-landing-community", {
 .msskp-landing-community h2 {
     font-size: 20px;
     font-weight: 700;
-    color: #ffffff;
+    color: #6060a4;
     margin: 0 0 12px;
 }
 

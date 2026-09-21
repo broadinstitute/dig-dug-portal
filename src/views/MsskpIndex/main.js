@@ -1,9 +1,10 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
 Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
 import MsskpLandingHeader from "@/components/msskpLanding/Header.vue";
@@ -125,6 +126,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("bioPortal/getDocumentations");
         this.$store.dispatch("kp4cd/getNewsFeed", "msk");
         this.getStats();
     },

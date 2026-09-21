@@ -12,10 +12,20 @@
             <div class="msskp-landing-features-row">
                 <div
                     v-for="resource in group.resources"
-                    :key="resource"
+                    :key="resource.title"
                     class="msskp-landing-features-box"
                 >
-                    {{ resource }}
+                    <img
+                        class="msskp-landing-features-icon"
+                        :src="resource.icon"
+                        :alt="resource.title"
+                    />
+                    <div class="msskp-landing-features-title">
+                        {{ resource.title }}
+                    </div>
+                    <p class="msskp-landing-features-description">
+                        {{ resource.description }}
+                    </p>
                 </div>
             </div>
         </div>
@@ -32,14 +42,42 @@ export default Vue.component("msskp-landing-features", {
                 {
                     subheader: "Human Genetic and Genomic Resources",
                     resources: [
-                        "Variant Sifter",
-                        "HuGE Calculator",
-                        "Human > Mouse comparator",
+                        {
+                            title: "Variant Sifter",
+                            icon: "/images/msskp_icons/variant_sifter.svg",
+                            description:
+                                "Explore genetic associations and prioritize variants across musculoskeletal phenotypes. Filter signals by locus, ancestry, and supporting evidence in one view.",
+                        },
+                        {
+                            title: "HuGE Calculator",
+                            icon: "/images/msskp_icons/huge.svg",
+                            description:
+                                "Estimate human genetic evidence for a gene across relevant traits. Combine association strength and supporting studies into a clear HuGE score.",
+                        },
+                        {
+                            title: "Human > Mouse comparator",
+                            icon: "/images/msskp_icons/human_mouse.svg",
+                            description:
+                                "Compare gene expression and biological context between human and mouse. Identify conserved and divergent patterns that inform translational hypotheses.",
+                        },
                     ],
                 },
                 {
                     subheader: "Single Cell Resources",
-                    resources: ["Single Cell Browser", "Cell State Browser"],
+                    resources: [
+                        {
+                            title: "Single Cell Browser",
+                            icon: "/images/msskp_icons/single_cell.svg",
+                            description:
+                                "Browse single-cell expression profiles across musculoskeletal cell types. Map genes to clusters and explore tissue-specific expression patterns.",
+                        },
+                        {
+                            title: "Cell State Browser",
+                            icon: "/images/msskp_icons/cell_state.svg",
+                            description:
+                                "Investigate cell-state transitions and gene programs linked to disease biology. Connect expression states with pathways and candidate effector mechanisms.",
+                        },
+                    ],
                 },
             ],
         };
@@ -86,5 +124,30 @@ export default Vue.component("msskp-landing-features", {
     border-radius: 5px;
     text-align: center;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.msskp-landing-features-icon {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.msskp-landing-features-title {
+    font-family: "Roboto Slab", serif;
+    font-weight: 600;
+    color: #6060a4;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.msskp-landing-features-description {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #333333;
 }
 </style>

@@ -36,6 +36,8 @@
     </div>
 </template>
 <style>
+@import url("https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&family=Roboto+Slab:wght@100..900&display=swap");
+
 html,
 body,
 #app,
@@ -46,5 +48,10 @@ body,
 
 body.kp-default {
     background-color: #fff;
+}
+
+.msskp-landing h2 {
+    font-family: "Roboto Slab", serif;
+    color: #6060a4;
 }
 </style>
