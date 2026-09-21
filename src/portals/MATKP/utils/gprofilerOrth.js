@@ -1,5 +1,6 @@
 const GPROFILER_ORTH_URL =
     "https://biit.cs.ut.ee/gprofiler/api/orth/orth/";
+const NA = "N/A";
 
 export async function fetchOrthologRow(query, organism, target) {
     const trimmed = String(query || "").trim();
@@ -8,21 +9,41 @@ export async function fetchOrthologRow(query, organism, target) {
         return null;
     }
 
-    const response = await fetch(GPROFILER_ORTH_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    let body = JSON.stringify({
             organism,
             target,
             query: [trimmed],
-        }),
+        });
+    const response = await fetch(GPROFILER_ORTH_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body,
     });
 
     if (!response.ok) {
         return null;
     }
 
-    const data = await response.json();
+    let data = await response.json();
+    if (data.result[0].converted === NA){
+        // Format mouse-to-human query
+        let newBody = JSON.stringify({
+            "organism": target,
+            "target": organism,
+            query: [trimmed]
+        });
+        const newResponse = await fetch(GPROFILER_ORTH_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: newBody
+        });
+        let newData = await newResponse.json();
+        if (newData.result[0].converted !== NA){
+            data = newData;
+            data.result.isMouse = true;
+        }
+    }
+    console.log(JSON.stringify(data));
     const rows = data.result || [];
 
     return (
