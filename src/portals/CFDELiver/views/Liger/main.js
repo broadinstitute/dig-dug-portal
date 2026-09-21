@@ -23,9 +23,10 @@ new Vue({
             },
             ligerConfig: {
                 pageTitle: "Liver Cell State & Program Explorer",
-                documentationUrl: "/research.html?pageid=kp_liger_documentation",
+                documentationUrl: "https://knowledge-portal-network.gitbook.io/knowledge-portal-network-docs/5lsQ2czOVhDBVTAi0MCc",
                 tissues: ["liver"],
-                hideTissueCardIfOneOption: true,
+                exampleGenes: ["GCKR", "EPCAM", "HFE"],
+                hideTissueCardIfOneOption: false,
             },
         };
     },

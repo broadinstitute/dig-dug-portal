@@ -27,7 +27,7 @@ let pages = {
     liger: {
         entry: "src/portals/CFDELiver/views/Liger/main.js",
         template: "src/portals/CFDELiver/views/index.html",
-        filename: "gene-expression.html",
+        filename: "cell-states.html",
         title: "Cell State & Program Browser",
         chunks: ["chunk-vendors", "chunk-common", "liger"],
     },

@@ -4,12 +4,10 @@ Uses flex boxes to manage layout
 .f-col{
     display: flex;
     flex-direction: column;
-    flex-basis: 0;
 }
 .f-row{
     display: flex;
     flex-direction: row;
-    flex-basis: 0;
 }
 .f-col.align-v-center{
     justify-content: center;
