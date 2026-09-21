@@ -50,7 +50,7 @@
                         <em style="font-size: 13px">{{
                             data["authors"] || ""
                         }}</em>
-                        <div>{{ data["summary"] || "" }}</div>
+                        <div style="min-height:50px;">{{ data["summary"] || "" }}</div>
                     </div>
                 </div>
             </div>
@@ -126,7 +126,7 @@
                     </div>
                     <div class="metadata-item" v-if="data['totalSamples']">
                         <div style="font-weight: bold; min-width: 100px">
-                            Samples
+                            Cells
                         </div>
                         <div>
                             {{
