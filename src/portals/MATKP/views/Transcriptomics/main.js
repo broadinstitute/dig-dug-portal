@@ -906,28 +906,7 @@ new Vue({
             if (!query) {
                 return;
             }
-
-            // Try as human gene first, then fall back to mouse ortholog lookup
             let canonicalGene = query.toUpperCase();
-            let loaded = await this.fetchGenePayload(canonicalGene);
-
-            if (!loaded) {
-                const ortholog = await fetchOrthologSymbol(query, "mmusculus", "hsapiens");
-                if (ortholog) {
-                    canonicalGene = ortholog.toUpperCase();
-                    loaded = await this.fetchGenePayload(canonicalGene);
-                }
-            }
-
-            if (!loaded) {
-                this.showGeneResults = true;
-                this.geneNotFound = true;
-                this.activeGenePayload = null;
-                this.selectedGene = query.toUpperCase();
-                this.geneOrthologSymbols = { human: null, mouse: null };
-                this.syncParams();
-                return;
-            }
 
             this.showGeneResults = true;
             this.selectedGene = canonicalGene;
@@ -939,9 +918,16 @@ new Vue({
             } else if (symbols.mouse === NA && symbols.human !== NA){
                 this.setViewSpecies("human")
             }
-            if (canonicalGene.toUpperCase() !== symbols[this.viewSpecies].toUpperCase()){
-                let desiredGene = symbols[this.viewSpecies];
-                await this.fetchGenePayload(desiredGene);
+            let desiredGene = symbols[this.viewSpecies];
+            let loaded = await this.fetchGenePayload(desiredGene);
+            if (!loaded) {
+                this.showGeneResults = true;
+                this.geneNotFound = true;
+                this.activeGenePayload = null;
+                this.selectedGene = query.toUpperCase();
+                this.geneOrthologSymbols = { human: null, mouse: null };
+                this.syncParams();
+                return;
             }
 
             this.onGeneChange(symbols[this.viewSpecies], { updateQuery: false });
