@@ -217,7 +217,7 @@ new Vue({
                 if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
             });
         },
-        viewSpecies(newSpecies, oldSpecies){
+        async viewSpecies(newSpecies, oldSpecies){
             if (newSpecies === oldSpecies){
                 return;
             }
@@ -226,7 +226,11 @@ new Vue({
                     return;
             }
             let desiredGene = this.geneOrthologSymbols[newSpecies];
+            if (desiredGene === NA){
+                return;
+            }
             keyParams.set({ gene: desiredGene });
+            let loaded = await this.fetchGenePayload(desiredGene);
         }
     },
 
@@ -911,7 +915,6 @@ new Vue({
                 const ortholog = await fetchOrthologSymbol(query, "mmusculus", "hsapiens");
                 if (ortholog) {
                     canonicalGene = ortholog.toUpperCase();
-                    console.log("CANONICAL GENE:", canonicalGene);
                     loaded = await this.fetchGenePayload(canonicalGene);
                 }
             }
@@ -935,7 +938,7 @@ new Vue({
                 this.setViewSpecies("mouse")
             }
 
-            this.onGeneChange(symbols.human, { updateQuery: false });
+            this.onGeneChange(symbols[this.viewSpecies], { updateQuery: false });
         },
         onGeneChange(gene, options = {}) {
             this.selectedGene = gene;
