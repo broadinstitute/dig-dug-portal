@@ -1,5 +1,5 @@
 <template>
-    <footer class="msskp-landing-footer">
+    <footer class="mskkp-landing-footer">
         The MSK-KP is supported by the US National Institutes of Health
         National Institute of Arthritis and Musculoskeletal and Skin Diseases
         (NIH/NIAMS) grant AR085003.
@@ -9,13 +9,13 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("msskp-landing-footer", {
+export default Vue.component("mskkp-landing-footer", {
     props: ["diseaseGroup"],
 });
 </script>
 
 <style>
-.msskp-landing-footer {
+.mskkp-landing-footer {
     width: 100%;
     background-color: #918bc3;
     color: #ffffff;

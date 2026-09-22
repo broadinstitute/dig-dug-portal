@@ -1,20 +1,20 @@
 <template>
-    <section class="msskp-landing-support">
-        <h2 class="msskp-landing-support-header">Our Partners</h2>
-        <p class="msskp-landing-support-intro">
+    <section class="mskkp-landing-support">
+        <h2 class="mskkp-landing-support-header">Our Partners</h2>
+        <p class="mskkp-landing-support-intro">
             The MSK-KP is a collaboration among the following organizations,
             which also provide funding and/or governance:
         </p>
-        <div class="msskp-landing-support-logos">
+        <div class="mskkp-landing-support-logos">
             <div
                 v-for="(row, rowIndex) in logoRows"
                 :key="rowIndex"
-                class="msskp-landing-support-logo-row"
+                class="mskkp-landing-support-logo-row"
             >
                 <div
                     v-for="logo in row"
                     :key="logo.src"
-                    class="msskp-landing-support-logo"
+                    class="mskkp-landing-support-logo"
                 >
                     <a
                         v-if="logo.href"
@@ -43,7 +43,7 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("msskp-landing-support", {
+export default Vue.component("mskkp-landing-support", {
     data() {
         return {
             logos: [
@@ -139,7 +139,7 @@ export default Vue.component("msskp-landing-support", {
 </script>
 
 <style>
-.msskp-landing-support {
+.mskkp-landing-support {
     width: 100%;
     background-color: #ffffff;
     padding: 35px 50px;
@@ -147,33 +147,33 @@ export default Vue.component("msskp-landing-support", {
     text-align: center;
 }
 
-.msskp-landing-support-header {
+.mskkp-landing-support-header {
     font-size: 20px;
     font-weight: 700;
     margin: 0 0 12px;
     text-align: center;
 }
 
-.msskp-landing-support-intro {
+.mskkp-landing-support-intro {
     font-size: 16px;
     margin: 0 0 24px;
 }
 
-.msskp-landing-support-logos {
+.mskkp-landing-support-logos {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
 }
 
-.msskp-landing-support-logo-row {
+.mskkp-landing-support-logo-row {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 20px;
 }
 
-.msskp-landing-support-logo img {
+.mskkp-landing-support-logo img {
     width: auto;
     max-width: 100%;
     display: block;

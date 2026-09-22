@@ -1,39 +1,39 @@
 <template>
-    <div class="msskp-landing">
+    <div class="mskkp-landing">
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
             page="front"
         ></page-header>
 
-        <msskp-landing-hero-banner
+        <mskkp-landing-hero-banner
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
             :phenotypes="$parent.phenotypesInSession"
             :utils="$parent.utilsBox"
-        ></msskp-landing-hero-banner>
+        ></mskkp-landing-hero-banner>
 
-        <msskp-landing-metrics
+        <mskkp-landing-metrics
             :stats="$parent.statsArray"
-        ></msskp-landing-metrics>
+        ></mskkp-landing-metrics>
 
-        <msskp-landing-main
+        <mskkp-landing-main
             :front-contents="$parent.frontContents"
-        ></msskp-landing-main>
+        ></mskkp-landing-main>
 
-        <msskp-landing-features></msskp-landing-features>
+        <mskkp-landing-features></mskkp-landing-features>
 
-        <msskp-landing-community
+        <mskkp-landing-community
             :disease-group="$parent.diseaseGroup"
             :news-feed="$store.state.kp4cd.newsFeed"
             :front-contents="$parent.frontContents"
-        ></msskp-landing-community>
+        ></mskkp-landing-community>
 
-        <msskp-landing-support></msskp-landing-support>
+        <mskkp-landing-support></mskkp-landing-support>
 
-        <msskp-landing-footer
+        <mskkp-landing-footer
             :disease-group="$parent.diseaseGroup"
-        ></msskp-landing-footer>
+        ></mskkp-landing-footer>
     </div>
 </template>
 <style>
@@ -42,7 +42,7 @@
 html,
 body,
 #app,
-.msskp-landing {
+.mskkp-landing {
     margin: 0;
     padding: 0;
 }
@@ -51,7 +51,7 @@ body.kp-default {
     background-color: #fff;
 }
 
-.msskp-landing h2 {
+.mskkp-landing h2 {
     font-family: "Roboto Slab", serif;
     color: #6060a4;
 }

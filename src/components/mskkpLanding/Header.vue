@@ -1,12 +1,12 @@
 <template>
-    <header class="msskp-landing-header">
-        <div class="msskp-landing-header-logo">
+    <header class="mskkp-landing-header">
+        <div class="mskkp-landing-header-logo">
             <img
                 src="//kp4cd.org/sites/default/files/vueportal/mskkp_header_logo.png"
                 alt="MSK-KP"
             />
         </div>
-        <nav class="msskp-landing-header-menu">
+        <nav class="mskkp-landing-header-menu">
             <span
                 v-for="item in menuItems"
                 :key="item"
@@ -18,7 +18,7 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("msskp-landing-header", {
+export default Vue.component("mskkp-landing-header", {
     props: ["diseaseGroup", "frontContents"],
     data() {
         return {
@@ -29,7 +29,7 @@ export default Vue.component("msskp-landing-header", {
 </script>
 
 <style>
-.msskp-landing-header {
+.mskkp-landing-header {
     height: 50px;
     width: 100%;
     background-color: #bcafd6;
@@ -38,26 +38,26 @@ export default Vue.component("msskp-landing-header", {
     justify-content: space-between;
 }
 
-.msskp-landing-header-logo {
+.mskkp-landing-header-logo {
     display: flex;
     align-items: center;
     height: 50px;
     padding-left: 20px;
 }
 
-.msskp-landing-header-logo img {
+.mskkp-landing-header-logo img {
     height: 50px;
     width: auto;
     display: block;
 }
 
-.msskp-landing-header-menu {
+.mskkp-landing-header-menu {
     margin-right: 50px;
     display: flex;
     align-items: center;
 }
 
-.msskp-landing-header-menu span {
+.mskkp-landing-header-menu span {
     color: #fff;
     padding: 0 10px;
     font-size: 16px;

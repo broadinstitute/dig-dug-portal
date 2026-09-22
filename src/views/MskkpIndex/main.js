@@ -10,13 +10,13 @@ Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
 import PageHeader from "@/components/PageHeader.vue";
-import MsskpLandingHeroBanner from "@/components/msskpLanding/HeroBanner.vue";
-import MsskpLandingMetrics from "@/components/msskpLanding/Metrics.vue";
-import MsskpLandingMain from "@/components/msskpLanding/Main.vue";
-import MsskpLandingFeatures from "@/components/msskpLanding/Features.vue";
-import MsskpLandingCommunity from "@/components/msskpLanding/Community.vue";
-import MsskpLandingSupport from "@/components/msskpLanding/Support.vue";
-import MsskpLandingFooter from "@/components/msskpLanding/Footer.vue";
+import MskkpLandingHeroBanner from "@/components/mskkpLanding/HeroBanner.vue";
+import MskkpLandingMetrics from "@/components/mskkpLanding/Metrics.vue";
+import MskkpLandingMain from "@/components/mskkpLanding/Main.vue";
+import MskkpLandingFeatures from "@/components/mskkpLanding/Features.vue";
+import MskkpLandingCommunity from "@/components/mskkpLanding/Community.vue";
+import MskkpLandingSupport from "@/components/mskkpLanding/Support.vue";
+import MskkpLandingFooter from "@/components/mskkpLanding/Footer.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -40,13 +40,13 @@ new Vue({
     components: {
         Alert,
         PageHeader,
-        MsskpLandingHeroBanner,
-        MsskpLandingMetrics,
-        MsskpLandingMain,
-        MsskpLandingFeatures,
-        MsskpLandingCommunity,
-        MsskpLandingSupport,
-        MsskpLandingFooter,
+        MskkpLandingHeroBanner,
+        MskkpLandingMetrics,
+        MskkpLandingMain,
+        MskkpLandingFeatures,
+        MskkpLandingCommunity,
+        MskkpLandingSupport,
+        MskkpLandingFooter,
     },
 
     data: {
