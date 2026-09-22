@@ -10,10 +10,16 @@
                 {{ group.subheader }}
             </h3>
             <div class="msskp-landing-features-row">
-                <div
+                <component
+                    :is="resource.href ? 'a' : 'div'"
                     v-for="resource in group.resources"
                     :key="resource.title"
                     class="msskp-landing-features-box"
+                    v-bind="
+                        resource.href
+                            ? { href: resource.href }
+                            : {}
+                    "
                 >
                     <img
                         class="msskp-landing-features-icon"
@@ -26,7 +32,7 @@
                     <p class="msskp-landing-features-description">
                         {{ resource.description }}
                     </p>
-                </div>
+                </component>
             </div>
         </div>
     </section>
@@ -45,18 +51,21 @@ export default Vue.component("msskp-landing-features", {
                         {
                             title: "Variant Sifter",
                             icon: "/images/msskp_icons/variant_sifter.svg",
+                            href: "/r/kp_variant_sifter",
                             description:
                                 "Explore genetic associations and prioritize variants across musculoskeletal phenotypes. Filter signals by locus, ancestry, and supporting evidence in one view.",
                         },
                         {
                             title: "HuGE Calculator",
                             icon: "/images/msskp_icons/huge.svg",
+                            href: "/hugecalculator.html",
                             description:
                                 "Estimate human genetic evidence for a gene across relevant traits. Combine association strength and supporting studies into a clear HuGE score.",
                         },
                         {
                             title: "Human > Mouse comparator",
                             icon: "/images/msskp_icons/human_mouse.svg",
+                            href: "/mouse_diff_exp.html",
                             description:
                                 "Compare gene expression and biological context between human and mouse. Identify conserved and divergent patterns that inform translational hypotheses.",
                         },
@@ -68,12 +77,14 @@ export default Vue.component("msskp-landing-features", {
                         {
                             title: "Single Cell Browser",
                             icon: "/images/msskp_icons/single_cell.svg",
+                            href: "/r/scb",
                             description:
                                 "Browse single-cell expression profiles across musculoskeletal cell types. Map genes to clusters and explore tissue-specific expression patterns.",
                         },
                         {
                             title: "Cell State Browser",
                             icon: "/images/msskp_icons/cell_state.svg",
+                            href: "/liger.html",
                             description:
                                 "Investigate cell-state transitions and gene programs linked to disease biology. Connect expression states with pathways and candidate effector mechanisms.",
                         },
@@ -127,6 +138,12 @@ export default Vue.component("msskp-landing-features", {
     display: flex;
     flex-direction: column;
     align-items: center;
+    color: inherit;
+    text-decoration: none;
+}
+
+a.msskp-landing-features-box:hover {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
 }
 
 .msskp-landing-features-icon {

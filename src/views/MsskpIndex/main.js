@@ -1,5 +1,7 @@
 import Vue from "vue";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -7,7 +9,7 @@ Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
-import MsskpLandingHeader from "@/components/msskpLanding/Header.vue";
+import PageHeader from "@/components/PageHeader.vue";
 import MsskpLandingHeroBanner from "@/components/msskpLanding/HeroBanner.vue";
 import MsskpLandingMetrics from "@/components/msskpLanding/Metrics.vue";
 import MsskpLandingMain from "@/components/msskpLanding/Main.vue";
@@ -37,7 +39,7 @@ new Vue({
 
     components: {
         Alert,
-        MsskpLandingHeader,
+        PageHeader,
         MsskpLandingHeroBanner,
         MsskpLandingMetrics,
         MsskpLandingMain,
@@ -128,6 +130,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("bioPortal/getDocumentations");
         this.$store.dispatch("kp4cd/getNewsFeed", "msk");
+        this.$store.dispatch("kp4cd/getFrontContents", "msk");
         this.getStats();
     },
 

@@ -1,9 +1,10 @@
 <template>
     <div class="msskp-landing">
-        <msskp-landing-header
+        <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
-        ></msskp-landing-header>
+            page="front"
+        ></page-header>
 
         <msskp-landing-hero-banner
             :disease-group="$parent.diseaseGroup"
