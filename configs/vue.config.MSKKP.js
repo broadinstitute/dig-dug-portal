@@ -9,7 +9,7 @@ module.exports = {
             entry: "src/views/MskkpIndex/main.js",
             filename: "index.html",
             title: "MSKKP Home",
-            chunks: ["chunk-vendors", "chunk-common", "mskkpindex"],
+            chunks: ["chunk-vendors", "chunk-common", "index"],
         },
     },
 };
