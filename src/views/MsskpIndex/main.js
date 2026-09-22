@@ -52,11 +52,31 @@ new Vue({
     data: {
         stats: [],
         statsKeys: [
-            { icon: "phenotypes", label: "Phenotypes" },
-            { icon: "genetic_datasets", label: "Genetic datasets" },
-            { icon: "genomic_datasets", label: "Genomic datasets" },
-            { icon: "bioinfomatics_methods", label: "Bioinformatic methods" },
-            { icon: "curated_datasets", label: "Curated datasets" },
+            {
+                icon: "phenotypes",
+                label: "Phenotypes",
+                href: "/r/kp_phenotypes",
+            },
+            {
+                icon: "genetic_datasets",
+                label: "Genetic datasets",
+                href: "/datasets.html",
+            },
+            {
+                icon: "genomic_datasets",
+                label: "Genomic datasets",
+                href: "/r/cmdga_205",
+            },
+            {
+                icon: "bioinfomatics_methods",
+                label: "Bioinformatic methods",
+                href: "/method.html",
+            },
+            {
+                icon: "curated_datasets",
+                label: "Curated datasets",
+                href: "/downloads.html",
+            },
         ],
     },
 

@@ -30,7 +30,11 @@
             <div class="msskp-landing-community-news">
                 <div class="msskp-landing-community-news-header">
                     <h2>News</h2>
-                    <span class="msskp-landing-community-link">see more</span>
+                    <a
+                        class="msskp-landing-community-link"
+                        href="/news.html"
+                        >See more</a
+                    >
                 </div>
                 <div
                     v-for="item in latestNews"
@@ -108,7 +112,7 @@ export default Vue.component("msskp-landing-community", {
 }
 
 .msskp-landing-community-link {
-    color: #ffffff;
+    color: #ffffff !important;
     text-decoration: underline;
 }
 

@@ -1,10 +1,12 @@
 <template>
     <section class="msskp-landing-metrics">
         <div class="msskp-landing-metrics-row">
-            <div
+            <component
+                :is="stat.href ? 'a' : 'div'"
                 v-for="(stat, index) in stats"
                 :key="index"
                 class="msskp-landing-metrics-item"
+                v-bind="stat.href ? { href: stat.href } : {}"
             >
                 <div class="msskp-landing-metrics-icon">
                     <img :src="`/images/icons/stats/${stat.icon}.svg`" />
@@ -17,7 +19,7 @@
                         {{ stat.display }}
                     </div>
                 </div>
-            </div>
+            </component>
         </div>
     </section>
 </template>
@@ -49,10 +51,18 @@ export default Vue.component("msskp-landing-metrics", {
     gap: 40px;
 }
 
-.msskp-landing-metrics-item {
+.msskp-landing-metrics-item,
+a.msskp-landing-metrics-item {
     display: flex;
     align-items: center;
     gap: 10px;
+    color: #6060a4 !important;
+    text-decoration: none;
+}
+
+a.msskp-landing-metrics-item:hover {
+    opacity: 0.85;
+    color: #6060a4 !important;
 }
 
 .msskp-landing-metrics-icon {
