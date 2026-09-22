@@ -15,6 +15,7 @@ import VolcanoPlot from "./VolcanoPlot.vue";
 Vue.component("volcano-plot", VolcanoPlot);
 
 const VOLCANO_OUTCOME_FALLBACK_IDS = new Set(["genotype_status"]);
+const NA = "N/A";
 
 const FILTER_DROPDOWN_POPPER_OPTS = {
     placement: "right",
@@ -918,6 +919,9 @@ new Vue({
 
             const symbols = await resolveHumanMouseSymbols(canonicalGene, "human");
             this.geneOrthologSymbols = symbols;
+            if (symbols.human === NA && symbols.mouse !== NA){
+                this.setViewSpecies("mouse")
+            }
 
             /* this.geneOrthologSymbols = {
                 human: canonicalGene,
