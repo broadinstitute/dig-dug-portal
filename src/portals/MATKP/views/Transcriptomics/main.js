@@ -217,6 +217,17 @@ new Vue({
                 if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
             });
         },
+        viewSpecies(newSpecies, oldSpecies){
+            if (newSpecies === oldSpecies){
+                return;
+            }
+            if (this.geneOrthologSymbols.human.toUpperCase() 
+                === this.geneOrthologSymbols.mouse.toUpperCase()){
+                    return;
+            }
+            let desiredGene = this.geneOrthologSymbols[newSpecies];
+            keyParams.set({ gene: desiredGene });
+        }
     },
 
     methods: {
@@ -551,11 +562,11 @@ new Vue({
                 this.geneOrthologSymbols = symbols;
             }
         },
-        async fetchGenePayload(canonicalGene) {
+        async fetchGenePayload(cGene) {
             this.geneLoading = true;
 
             try {
-                const payload = await fetchForestGenePayload(canonicalGene);
+                const payload = await fetchForestGenePayload(cGene);
 
                 if (!payload || !payload.outcomes.length) {
                     this.activeGenePayload = null;
@@ -900,6 +911,7 @@ new Vue({
                 const ortholog = await fetchOrthologSymbol(query, "mmusculus", "hsapiens");
                 if (ortholog) {
                     canonicalGene = ortholog.toUpperCase();
+                    console.log("CANONICAL GENE:", canonicalGene);
                     loaded = await this.fetchGenePayload(canonicalGene);
                 }
             }
@@ -923,12 +935,7 @@ new Vue({
                 this.setViewSpecies("mouse")
             }
 
-            /* this.geneOrthologSymbols = {
-                human: canonicalGene,
-                mouse: symbols.mouse || query,
-            }; */
-            this.onGeneChange(canonicalGene, { updateQuery: false });
-            this.geneQuery = canonicalGene;
+            this.onGeneChange(symbols.human, { updateQuery: false });
         },
         onGeneChange(gene, options = {}) {
             this.selectedGene = gene;
