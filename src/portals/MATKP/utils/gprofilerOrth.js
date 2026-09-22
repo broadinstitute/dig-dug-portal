@@ -25,25 +25,6 @@ export async function fetchOrthologRow(query, organism, target) {
     }
 
     let data = await response.json();
-    if (data.result[0].converted === NA){
-        // Format mouse-to-human query
-        let newBody = JSON.stringify({
-            "organism": target,
-            "target": organism,
-            query: [trimmed]
-        });
-        const newResponse = await fetch(GPROFILER_ORTH_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: newBody
-        });
-        let newData = await newResponse.json();
-        if (newData.result[0].converted !== NA){
-            data = newData;
-            data.result.isMouse = true;
-        }
-    }
-    console.log(JSON.stringify(data));
     const rows = data.result || [];
 
     return (
@@ -57,7 +38,7 @@ export async function fetchOrthologRow(query, organism, target) {
 
 export async function fetchOrthologSymbol(query, organism, target) {
     const row = await fetchOrthologRow(query, organism, target);
-
+    
     if (!row?.name || row.n_result < 1) {
         return null;
     }
@@ -97,7 +78,14 @@ export async function resolveHumanMouseSymbols(query, searchSpecies) {
         const mouse =
             (await fetchOrthologSymbol(human, "hsapiens", "mmusculus")) ||
             human;
-
+        if (mouse === NA){
+            const mouseToHuman = await fetchOrthologRow(human, "mmusculus", "hsapiens");
+            if (mouseToHuman.converted !== NA){
+                let formatMouseName = mouseToHuman.incoming;
+                formatMouseName = formatMouseName.slice(0,1).concat(formatMouseName.slice(1).toLowerCase());
+                return { human: mouseToHuman.name, mouse: formatMouseName}
+            }
+        }
         return { human, mouse };
     }
 

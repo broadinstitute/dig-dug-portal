@@ -917,11 +917,12 @@ new Vue({
             this.selectedGene = canonicalGene;
 
             const symbols = await resolveHumanMouseSymbols(canonicalGene, "human");
+            this.geneOrthologSymbols = symbols;
 
-            this.geneOrthologSymbols = {
+            /* this.geneOrthologSymbols = {
                 human: canonicalGene,
                 mouse: symbols.mouse || query,
-            };
+            }; */
             this.onGeneChange(canonicalGene, { updateQuery: false });
             this.geneQuery = canonicalGene;
         },
