@@ -3,12 +3,18 @@
         <template v-if="isStacked">
             <div
                 v-for="series in plotSeries"
-                :key="series.ancestry"
+                :key="seriesKey(series)"
                 class="vks-assoc-ld-stack-item"
             >
                 <header class="vks-assoc-ld-stack-head">
                     <h4 class="vks-assoc-ld-stack-title">
-                        {{ series.label }}
+                        <template v-if="multiPhenotype && series.phenotypeLabel">
+                            <span class="vks-assoc-ld-stack-phenotype">
+                                {{ series.phenotypeLabel }}
+                            </span>
+                            <span class="vks-assoc-ld-stack-sep">·</span>
+                        </template>
+                        {{ ancestryTitle(series) }}
                         <span class="vks-assoc-ld-stack-code">({{ series.ancestry }})</span>
                     </h4>
                     <span class="vks-assoc-ld-stack-count">
@@ -30,33 +36,43 @@
                         @set-reference-variant="$emit('set-reference-variant', $event)"
                     />
                     <p v-else class="vks-assoc-ld-empty">
-                        No LD points for {{ series.label }}.
+                        No LD points for {{ seriesDisplayLabel(series) }}.
                     </p>
                 </div>
             </div>
         </template>
         <template v-else>
             <div v-if="showTabs" class="vks-assoc-ld-tab-bar">
-                <div class="vks-assoc-ld-tabs" role="tablist" aria-label="Ancestry LD plots">
+                <div class="vks-assoc-ld-tabs" role="tablist" aria-label="Association LD plots">
                     <button
                         v-for="series in plotSeries"
-                        :key="series.ancestry"
+                        :key="seriesKey(series)"
                         type="button"
                         class="vks-assoc-ld-tab"
-                        :class="{ 'is-active': series.ancestry === activeAncestry }"
+                        :class="{ 'is-active': seriesKey(series) === activeSeriesKey }"
                         role="tab"
-                        :aria-selected="series.ancestry === activeAncestry ? 'true' : 'false'"
-                        :title="`${series.label} · ${series.rows.length.toLocaleString()} associations`"
-                        @click="activeAncestry = series.ancestry"
+                        :aria-selected="seriesKey(series) === activeSeriesKey ? 'true' : 'false'"
+                        :title="`${seriesDisplayLabel(series)} · ${series.rows.length.toLocaleString()} associations`"
+                        @click="activeSeriesKey = seriesKey(series)"
                     >
+                        <span
+                            v-if="multiPhenotype && series.phenotypeLabel"
+                            class="vks-assoc-ld-tab-phenotype"
+                        >
+                            {{ series.phenotypeLabel }}
+                        </span>
                         <span class="vks-assoc-ld-tab-code">{{ series.ancestry }}</span>
-                        <span class="vks-assoc-ld-tab-label">{{ series.label }}</span>
+                        <span class="vks-assoc-ld-tab-label">{{ ancestryTitle(series) }}</span>
                         <span class="vks-assoc-ld-tab-count">{{ series.rows.length.toLocaleString() }}</span>
                     </button>
                 </div>
             </div>
             <p v-else-if="activeSeries" class="vks-assoc-ld-single-label">
-                {{ activeSeries.label }}
+                <template v-if="multiPhenotype && activeSeries.phenotypeLabel">
+                    {{ activeSeries.phenotypeLabel }}
+                    <span class="vks-assoc-ld-stack-sep">·</span>
+                </template>
+                {{ ancestryTitle(activeSeries) }}
                 <span class="vks-assoc-ld-single-count">
                     ({{ activeSeries.rows.length.toLocaleString() }})
                 </span>
@@ -68,7 +84,7 @@
             >
                 <VariantSifterLdRegionPlot
                     v-if="activePlotData"
-                    :key="activeAncestry"
+                    :key="activeSeriesKey"
                     :plot-rows="activePlotData"
                     :search-session="searchSession"
                     :plot-overlays-state="plotOverlaysState"
@@ -81,7 +97,7 @@
                     @set-reference-variant="$emit('set-reference-variant', $event)"
                 />
                 <p v-else class="vks-assoc-ld-empty">
-                    No LD points for {{ activeSeries?.label || "this ancestry" }}.
+                    No LD points for {{ seriesDisplayLabel(activeSeries) || "this series" }}.
                 </p>
             </div>
         </template>
@@ -94,6 +110,7 @@ import {
     buildAssociationPlotSeries,
     primaryAssociationAncestry,
 } from "./variantSifterAssociationsApi.js";
+import { ancestryLabel } from "./variantSifterSearchUtils.js";
 import { associationRowsToPlotData } from "./variantSifterAssociationsPlotData.js";
 import { VARIANT_SIFTER_PLOT_MARGIN } from "./variantSifterAssociationsPlotConfig.js";
 
@@ -112,6 +129,10 @@ export default {
             default: null,
         },
         selectedAncestries: {
+            type: Array,
+            default: () => [],
+        },
+        selectedPhenotypes: {
             type: Array,
             default: () => [],
         },
@@ -147,7 +168,7 @@ export default {
     },
     data() {
         return {
-            activeAncestry: null,
+            activeSeriesKey: null,
             hoveredVariantId: null,
         };
     },
@@ -158,11 +179,16 @@ export default {
         resolvedPrimaryAncestry() {
             return this.primaryAncestry || primaryAssociationAncestry(this.searchSession);
         },
+        multiPhenotype() {
+            return (this.selectedPhenotypes || []).length > 0;
+        },
         plotSeries() {
             return buildAssociationPlotSeries({
                 rows: this.rows,
                 primaryAncestry: this.resolvedPrimaryAncestry,
                 selectedAncestries: this.selectedAncestries,
+                primaryPhenotype: this.searchSession?.phenotype || null,
+                selectedPhenotypes: this.selectedPhenotypes,
                 project: "KP",
             }).filter((series) => series.rows.length > 0);
         },
@@ -174,7 +200,9 @@ export default {
         },
         activeSeries() {
             return (
-                this.plotSeries.find((series) => series.ancestry === this.activeAncestry) ||
+                this.plotSeries.find(
+                    (series) => this.seriesKey(series) === this.activeSeriesKey
+                ) ||
                 this.plotSeries[0] ||
                 null
             );
@@ -190,18 +218,38 @@ export default {
         plotSeries: {
             immediate: true,
             handler(series) {
-                const codes = series.map((entry) => entry.ancestry);
-                if (!codes.length) {
-                    this.activeAncestry = null;
+                const keys = series.map((entry) => this.seriesKey(entry));
+                if (!keys.length) {
+                    this.activeSeriesKey = null;
                     return;
                 }
-                if (!codes.includes(this.activeAncestry)) {
-                    this.activeAncestry = codes[0];
+                if (!keys.includes(this.activeSeriesKey)) {
+                    this.activeSeriesKey = keys[0];
                 }
             },
         },
     },
     methods: {
+        seriesKey(series) {
+            return `${series?.phenotype || "primary"}@@${series?.ancestry || ""}`;
+        },
+        ancestryTitle(series) {
+            if (!series) {
+                return "";
+            }
+            // Prefer ancestry wording even when series.label is a phenotype name.
+            return ancestryLabel(series.ancestry) || series.label || series.ancestry;
+        },
+        seriesDisplayLabel(series) {
+            if (!series) {
+                return "";
+            }
+            const ancestry = this.ancestryTitle(series);
+            if (this.multiPhenotype && series.phenotypeLabel) {
+                return `${series.phenotypeLabel} · ${ancestry}`;
+            }
+            return ancestry;
+        },
         plotDataForSeries(series) {
             if (!series?.rows?.length) {
                 return null;
@@ -246,6 +294,16 @@ export default {
     font-size: 13px;
     font-weight: 700;
     color: var(--cfde-ink, #33363d);
+}
+
+.vks-assoc-ld-stack-phenotype {
+    color: var(--cfde-blue, #2c5c97);
+}
+
+.vks-assoc-ld-stack-sep {
+    margin: 0 4px;
+    font-weight: 600;
+    color: var(--cfde-muted, #6b6b6b);
 }
 
 .vks-assoc-ld-stack-code {
@@ -305,6 +363,14 @@ export default {
 .vks-assoc-ld-tab-code {
     font-weight: 700;
     letter-spacing: 0.02em;
+}
+
+.vks-assoc-ld-tab-phenotype {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
 }
 
 .vks-assoc-ld-tab-label {

@@ -8,8 +8,8 @@
         >
             <div class="vks-header-start">
                 <div class="vks-brand">
-                    <span class="vks-mark">KP</span>
-                    <span class="vks-title">Variant Sifter</span>
+                    <span class="vks-mark">GP2</span>
+                    <span class="vks-title">Browser</span>
                 </div>
                 <VariantSifterMenuBar
                     :recent-searches="recentSearches"
@@ -73,6 +73,7 @@
                     :visible-section-ids="visibleSectionIds"
                     :canvas-active="canvasActive"
                     :welcome-open="welcomeOpen"
+                    :welcome-title="'Welcome to GP2 Browser'"
                     :phenotypes="phenotypes"
                     :utils="utilsBox"
                     :welcome-initial-values="welcomeInitialValues"
@@ -235,6 +236,7 @@
             :default-bio-index-host="defaultBioIndexHost"
             :project-id="projectId"
             :resolve-host-for-index="bioIndexHostFor"
+            :tool-name="'GP2 Browser'"
             @close="settingsOpen = false"
             @update:visibleSectionIds="onVisibleSectionIdsUpdate"
             @update:projectId="onProjectIdUpdate"
@@ -370,9 +372,7 @@ import {
 } from "./kpVariantSifter/variantSifterMappingData.js";
 import {
     isGwasCeProject,
-    normalizeGwasCeToken,
     normalizeProjectId,
-    projectAncestryOptions,
     projectAssociationsOnly,
     projectPhenotypes,
     resolveGwasCeToken,
@@ -380,18 +380,12 @@ import {
     resolveProjectPrimaryBioIndexHost,
     VKS_ASSOCIATION_PROJECT_GWAS_CE,
     VKS_ASSOCIATION_PROJECT_KP,
-    VKS_GWAS_CE_TOKEN_REDACTION,
     VKS_PROJECT_DEFAULT_ID,
 } from "./kpVariantSifter/variantSifterProjects.js";
 import {
     loadRecentSearches,
     pushRecentSearch,
 } from "./kpVariantSifter/variantSifterRecentSearches.js";
-import {
-    applyGwasCeMetadataToSearchFields,
-    fetchGwasCeTokenMetadata,
-    resolveGwasCeMetadataAncestry,
-} from "./kpVariantSifter/variantSifterGwasCeMetadataApi.js";
 import { exportVariantSifterHtmlReport } from "./kpVariantSifter/variantSifterHtmlReport.js";
 import { normalizeV2gSelectedLinks } from "./kpVariantSifter/variantSifterV2gData.js";
 import { fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
@@ -573,7 +567,7 @@ function emptyGlobalEnrichmentState() {
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("kp-variant-sifter", {
+export default Vue.component("gp2-browser", {
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
     components: {
         VariantSifterMenuBar,
@@ -597,9 +591,6 @@ export default Vue.component("kp-variant-sifter", {
             searchSession: null,
             welcomeInitialValues: null,
             projectId: VKS_PROJECT_DEFAULT_ID,
-            // GWAS-CE token read from the `token` URL param, applied once
-            // (the phenotypes watcher re-enters applyUrlSearchParams).
-            urlTokenApplied: false,
             recentSearches: loadRecentSearches(),
             regionZoom: 0,
             regionZoomOut: 0,
@@ -2724,7 +2715,6 @@ export default Vue.component("kp-variant-sifter", {
                 region: undefined,
                 ancestry: undefined,
                 sub_ancestries: undefined,
-                token: undefined,
             });
             this.syncUrlProjectParam();
         },
@@ -4762,111 +4752,24 @@ export default Vue.component("kp-variant-sifter", {
 
             this.syncUrlSearchParams(this.searchSession);
         },
-        /**
-         * Resolve phenotype / ancestry for a token from the URL and either
-         * start the search (URL carries a region) or prefill the Welcome panel.
-         * @param {string} urlToken GWAS-CE token from the `token` URL param
-         */
-        async applyGwasCeUrlToken(urlToken) {
-            if (this.searchSession || this.canvasActive) {
-                return;
-            }
-            const token = normalizeGwasCeToken(urlToken);
-            if (!token) {
-                return;
-            }
-            if (!isGwasCeProject(this.projectId)) {
-                this.projectId = normalizeProjectId("gwas-ce");
-                this.syncUrlProjectParam();
-            }
-            const params = this.utilsBox?.keyParams;
-            const regionParam = params?.region ? String(params.region) : "";
-
-            let applied = null;
-            let fetchError = "";
-            try {
-                const metadata = await fetchGwasCeTokenMetadata(token);
-                applied = applyGwasCeMetadataToSearchFields(metadata, {
-                    phenotypes: this.phenotypes || [],
-                    ancestryOptions: projectAncestryOptions(this.projectId),
-                });
-            } catch (error) {
-                fetchError = error?.message || "Could not fetch token metadata.";
-            }
-            if (this.searchSession || this.canvasActive) {
-                return; // the user started a search while metadata was loading
-            }
-
-            // Prefer the metadata ancestry; fall back to the `ancestry` URL
-            // param (an LD-server code such as EUR).
-            const ancestry =
-                applied?.ancestry ||
-                resolveGwasCeMetadataAncestry(
-                    params?.ancestry,
-                    projectAncestryOptions(this.projectId)
-                );
-
-            const region = regionParam ? parseRegionParam(regionParam) : null;
-            if (applied?.phenotypeMatched && region) {
-                this.onStartSearch(
-                    {
-                        phenotype: applied.phenotype,
-                        ancestry: ancestry || null,
-                        region,
-                        regionLabel: formatRegion(region),
-                        geneOrVariantQuery: regionParam,
-                        regionExpandBp: null,
-                        gwasCeToken: token,
-                    },
-                    { subAncestries: [] }
-                );
-                return;
-            }
-
-            this.welcomeInitialValues = {
-                phenotype: applied?.phenotype?.name || applied?.metadata?.phenotype || "",
-                ancestry: ancestry || "Mixed",
-                geneOrVariantQuery: regionParam,
-                regionExpandBp: null,
-                gwasCeToken: token,
-                errorMessage: applied?.mismatchMessage || fetchError || "",
-            };
-            this.welcomeOpen = true;
-        },
         applyUrlSearchParams() {
             if (this.canvasActive || this.searchSession) {
                 return;
             }
-            const params = this.utilsBox?.keyParams;
-            const gwasCe =
-                isGwasCeProject(this.projectId) || isGwasCeProject(params?.project);
 
-            if (gwasCe) {
-                const token = normalizeGwasCeToken(params?.token);
-                if (token) {
-                    // Metadata → phenotype matching needs the phenotype list; the
-                    // phenotypes watcher re-enters here once it fills.
-                    if (!(this.phenotypes || []).length || this.urlTokenApplied) {
-                        return;
-                    }
-                    this.urlTokenApplied = true;
-                    this.applyGwasCeUrlToken(token);
-                    return;
-                }
-                if (!params?.region) {
-                    return;
-                }
-                // No token in the URL: prefill Welcome and let the user paste one.
+            const params = this.utilsBox?.keyParams;
+            if (!params?.region) {
+                return;
+            }
+
+            // GWAS-CE needs a token that is never stored in the URL — prefills welcome only.
+            if (isGwasCeProject(this.projectId) || isGwasCeProject(params.project)) {
                 this.welcomeInitialValues = {
                     phenotype: params.phenotype || "",
                     ancestry: params.ancestry || "Mixed",
                     geneOrVariantQuery: params.region,
                     gwasCeToken: "",
                 };
-                return;
-            }
-
-            if (!params?.region) {
                 return;
             }
 
@@ -4928,16 +4831,6 @@ export default Vue.component("kp-variant-sifter", {
                 region: session.regionLabel,
                 project: this.projectId || undefined,
             };
-            // Keep the token in the URL so a reload or a shared link
-            // re-enters with it; still redacted from session exports. Cleared
-            // outside GWAS-CE and never written as the redaction placeholder.
-            const gwasCeToken = normalizeGwasCeToken(session.gwasCeToken);
-            nextParams.token =
-                isGwasCeProject(this.projectId) &&
-                gwasCeToken &&
-                gwasCeToken !== VKS_GWAS_CE_TOKEN_REDACTION
-                    ? gwasCeToken
-                    : undefined;
             if (session.ancestry) {
                 nextParams.ancestry = session.ancestry;
             } else {
@@ -5935,9 +5828,6 @@ export default Vue.component("kp-variant-sifter", {
                 url.searchParams.set("ancestry", "Mixed");
             }
             url.searchParams.delete("sub_ancestries");
-            // The new tab is a different dataset's phenotype: drop the GWAS-CE
-            // token so it prefills Welcome instead of re-running this dataset.
-            url.searchParams.delete("token");
             window.open(url.toString(), "_blank", "noopener,noreferrer");
         },
         onGeSelectedAnnotationsUpdate(selectedAnnotations) {

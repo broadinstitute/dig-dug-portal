@@ -2,7 +2,14 @@
     <div ref="container" class="vks-anno-workspace-track">
         <p v-if="annotations.length" class="vks-anno-workspace-guide">
             <template v-if="isAnnotationsOverview">
-                Global enrichment by annotation type for the searched phenotype and locus.
+                Global enrichment by annotation type for
+                <template v-if="showGePlotTitles">
+                    each phenotype on the canvas
+                </template>
+                <template v-else>
+                    the searched phenotype and locus
+                </template>
+                .
                 Tabs list annotation types that have tissues shown under
                 <strong>Global enrich. → Tissues</strong>.
                 Use
@@ -84,7 +91,7 @@
                                 @change="onToggleAnnotation(annotation, $event)"
                             />
                             <span class="vks-ge-legend-label">
-                                {{ annotationTabLabel(annotation) }}
+                                {{ overviewAnnotationLabel(annotation) }}
                             </span>
                         </label>
                     </li>
@@ -95,14 +102,33 @@
                 <strong>Select tissue</strong>
                 to add it on that annotation track and load biosample tracks.
             </p>
-            <VariantSifterGlobalEnrichmentPlot
-                :global-enrichment-state="globalEnrichmentState"
-                :search-session="searchSession"
-                :selected-annotations="selectedAnnotations"
-                :selected-tissues-by-annotation="selectedTissuesByAnnotation"
-                :utils="utils"
-                @toggle-tissue-selection="onToggleTissueSelectionFromPlot"
-            />
+            <div
+                class="vks-anno-workspace-plots"
+                :class="{ 'is-multi': showGePlotTitles }"
+                :style="gePlotGridStyle"
+            >
+                <div
+                    v-for="entry in gePlotPhenotypes"
+                    :key="entry.name"
+                    class="vks-anno-workspace-plot-cell"
+                >
+                    <p
+                        v-if="showGePlotTitles"
+                        class="vks-anno-workspace-plot-title"
+                    >
+                        {{ entry.label }}
+                    </p>
+                    <VariantSifterGlobalEnrichmentPlot
+                        :global-enrichment-state="globalEnrichmentState"
+                        :search-session="searchSession"
+                        :phenotype="entry.name"
+                        :selected-annotations="selectedAnnotations"
+                        :selected-tissues-by-annotation="selectedTissuesByAnnotation"
+                        :utils="utils"
+                        @toggle-tissue-selection="onToggleTissueSelectionFromPlot"
+                    />
+                </div>
+            </div>
         </div>
         <template v-else>
             <div ref="trackPanel" class="vks-anno-workspace-panel">
@@ -288,6 +314,7 @@ import { formatRegion } from "./variantSifterSearchUtils.js";
 import { positionAnchoredPopupElement } from "./variantSifterPopupPosition.js";
 import VariantSifterGlobalEnrichmentPlot from "./VariantSifterGlobalEnrichmentPlot.vue";
 import VariantSifterZoomCenterMarker from "./VariantSifterZoomCenterMarker.vue";
+import { phenotypeSeriesLabel } from "./variantSifterAssociationsApi.js";
 
 export default {
     name: "VariantSifterAnnotationsWorkspaceTrack",
@@ -306,6 +333,10 @@ export default {
         searchSession: {
             type: Object,
             default: null,
+        },
+        selectedPhenotypes: {
+            type: Array,
+            default: () => [],
         },
         region: {
             type: Object,
@@ -553,6 +584,46 @@ export default {
         },
         ancestry() {
             return this.searchSession?.ancestry || "Mixed";
+        },
+        gePlotPhenotypes() {
+            const phenotypes = [];
+            const primary = this.searchSession?.phenotype;
+            const primaryName = String(primary?.name || "").trim();
+            if (primaryName) {
+                phenotypes.push({
+                    name: primaryName,
+                    label: phenotypeSeriesLabel(primary) || primaryName,
+                });
+            }
+            (this.selectedPhenotypes || []).forEach((entry) => {
+                const name =
+                    typeof entry === "string" ? entry : entry?.name;
+                const trimmed = String(name || "").trim();
+                if (!trimmed || trimmed === primaryName) {
+                    return;
+                }
+                if (phenotypes.some((item) => item.name === trimmed)) {
+                    return;
+                }
+                phenotypes.push({
+                    name: trimmed,
+                    label:
+                        phenotypeSeriesLabel(
+                            typeof entry === "string" ? { name: entry } : entry
+                        ) || trimmed,
+                });
+            });
+            return phenotypes;
+        },
+        showGePlotTitles() {
+            return this.gePlotPhenotypes.length > 1;
+        },
+        gePlotGridStyle() {
+            const count = this.gePlotPhenotypes.length;
+            const cols = Math.min(3, Math.max(1, count));
+            return {
+                gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+            };
         },
         visibleRegion() {
             if (this.viewRegion) {
@@ -911,11 +982,45 @@ export default {
         shownTissueCountForAnnotation(annotation) {
             return this.annotationTrackMeta[annotation]?.displayableCount || 0;
         },
+        overviewTissueCountForAnnotation(annotation) {
+            if (this.gePlotPhenotypes.length <= 1) {
+                return this.shownTissueCountForAnnotation(annotation);
+            }
+            const tissues = new Set();
+            const llmRelevance = this.globalEnrichmentState?.llmRelevance || null;
+            const enabledMutedAnnotationTissues =
+                this.globalEnrichmentState?.enabledMutedAnnotationTissues || {};
+            const disabledAnnotationTissues =
+                this.globalEnrichmentState?.disabledAnnotationTissues || {};
+            const geRows = this.globalEnrichmentState?.geRows || [];
+            const annotationTissues = Object.keys(this.annoData[annotation] || {});
+            this.gePlotPhenotypes.forEach((entry) => {
+                const geTissueStats = buildGeTissueStatsForAnnotation({
+                    geRows,
+                    annotation,
+                    phenotype: entry.name,
+                    ancestry: this.ancestry,
+                });
+                resolveGeTissuesForDisplay(annotationTissues, {
+                    annotation,
+                    llmRelevance,
+                    enabledMutedAnnotationTissues,
+                    disabledAnnotationTissues,
+                    geTissueStats,
+                    pValueMax: this.geTrackPValueMax,
+                }).forEach((tissue) => tissues.add(tissue));
+            });
+            return tissues.size;
+        },
         hasRenderableTissues(annotation) {
-            return this.shownTissueCountForAnnotation(annotation) > 0;
+            return this.overviewTissueCountForAnnotation(annotation) > 0;
         },
         annotationTabLabel(annotation) {
             const count = this.shownTissueCountForAnnotation(annotation);
+            return `${annotation} (${count})`;
+        },
+        overviewAnnotationLabel(annotation) {
+            const count = this.overviewTissueCountForAnnotation(annotation);
             return `${annotation} (${count})`;
         },
         legendSolidColor(annotation) {
@@ -1861,6 +1966,41 @@ export default {
     color: var(--cfde-muted, #6b6b6b);
     font-size: 13px;
     line-height: 1.45;
+}
+
+.vks-anno-workspace-plots {
+    display: grid;
+    gap: 14px;
+    align-items: start;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .vks-anno-workspace-plots.is-multi {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (min-width: 901px) and (max-width: 1200px) {
+    .vks-anno-workspace-plots.is-multi {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+.vks-anno-workspace-plot-cell {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vks-anno-workspace-plot-title {
+    margin: 0;
+    padding: 0 2px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+    line-height: 1.3;
 }
 
 .vks-anno-workspace-legend .vks-ui-section-title {

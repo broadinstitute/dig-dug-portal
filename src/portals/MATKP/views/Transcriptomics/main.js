@@ -15,6 +15,7 @@ import VolcanoPlot from "./VolcanoPlot.vue";
 Vue.component("volcano-plot", VolcanoPlot);
 
 const VOLCANO_OUTCOME_FALLBACK_IDS = new Set(["genotype_status"]);
+const NA = "N/A";
 
 const FILTER_DROPDOWN_POPPER_OPTS = {
     placement: "right",
@@ -216,6 +217,21 @@ new Vue({
                 if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
             });
         },
+        async viewSpecies(newSpecies, oldSpecies){
+            if (newSpecies === oldSpecies){
+                return;
+            }
+            if (this.geneOrthologSymbols.human.toUpperCase() 
+                === this.geneOrthologSymbols.mouse.toUpperCase()){
+                    return;
+            }
+            let desiredGene = this.geneOrthologSymbols[newSpecies];
+            if (desiredGene === NA){
+                return;
+            }
+            keyParams.set({ gene: desiredGene });
+            let loaded = await this.fetchGenePayload(desiredGene);
+        }
     },
 
     methods: {
@@ -550,11 +566,11 @@ new Vue({
                 this.geneOrthologSymbols = symbols;
             }
         },
-        async fetchGenePayload(canonicalGene) {
+        async fetchGenePayload(cGene) {
             this.geneLoading = true;
 
             try {
-                const payload = await fetchForestGenePayload(canonicalGene);
+                const payload = await fetchForestGenePayload(cGene);
 
                 if (!payload || !payload.outcomes.length) {
                     this.activeGenePayload = null;
@@ -890,19 +906,20 @@ new Vue({
             if (!query) {
                 return;
             }
-
-            // Try as human gene first, then fall back to mouse ortholog lookup
             let canonicalGene = query.toUpperCase();
-            let loaded = await this.fetchGenePayload(canonicalGene);
 
-            if (!loaded) {
-                const ortholog = await fetchOrthologSymbol(query, "mmusculus", "hsapiens");
-                if (ortholog) {
-                    canonicalGene = ortholog.toUpperCase();
-                    loaded = await this.fetchGenePayload(canonicalGene);
-                }
+            this.showGeneResults = true;
+            this.selectedGene = canonicalGene;
+
+            const symbols = await resolveHumanMouseSymbols(canonicalGene, "human");
+            this.geneOrthologSymbols = symbols;
+            if (symbols.human === NA && symbols.mouse !== NA){
+                this.setViewSpecies("mouse")
+            } else if (symbols.mouse === NA && symbols.human !== NA){
+                this.setViewSpecies("human")
             }
-
+            let desiredGene = symbols[this.viewSpecies];
+            let loaded = await this.fetchGenePayload(desiredGene);
             if (!loaded) {
                 this.showGeneResults = true;
                 this.geneNotFound = true;
@@ -913,17 +930,7 @@ new Vue({
                 return;
             }
 
-            this.showGeneResults = true;
-            this.selectedGene = canonicalGene;
-
-            const symbols = await resolveHumanMouseSymbols(canonicalGene, "human");
-
-            this.geneOrthologSymbols = {
-                human: canonicalGene,
-                mouse: symbols.mouse || query,
-            };
-            this.onGeneChange(canonicalGene, { updateQuery: false });
-            this.geneQuery = canonicalGene;
+            this.onGeneChange(symbols[this.viewSpecies], { updateQuery: false });
         },
         onGeneChange(gene, options = {}) {
             this.selectedGene = gene;
