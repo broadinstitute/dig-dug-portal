@@ -185,12 +185,18 @@ export function displayV2gTissueLabel(tissue) {
     return String(tissue || "").replace(/_/g, " ");
 }
 
-/** Unique sorted tissues from global-enrichment rows (Research GL tissue source). */
+/**
+ * Unique sorted tissues from global-enrichment rows for V2G tissue pickers.
+ *
+ * Intentionally unfiltered by phenotype, ancestry, annotation, or p-value so
+ * additive-phenotype GE merges surface every tissue present in `geRows`.
+ * Keys are normalized to match `gene-links` query tissue ids.
+ */
 export function collectTissueOptionsFromGeRows(geRows = []) {
     const seen = new Set();
     const tissues = [];
     (Array.isArray(geRows) ? geRows : []).forEach((row) => {
-        const tissue = row?.tissue;
+        const tissue = normalizeV2gTissueKey(row?.tissue);
         if (!tissue || seen.has(tissue)) {
             return;
         }

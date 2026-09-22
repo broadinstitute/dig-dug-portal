@@ -17,6 +17,7 @@ import cfdeEcoSystem from "@/components/researchPortal/customComponents/cfdeEcoS
 import cfdeLanding from "@/components/researchPortal/customComponents/cfdeLanding.vue";
 import GiantGemPkg from "@/components/researchPortal/customComponents/GiantGemPkg.vue";
 import kpVariantSifter from "@/components/researchPortal/customComponents/kpVariantSifter.vue";
+import GP2Browser from "@/components/researchPortal/customComponents/GP2Browser.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
@@ -25,6 +26,7 @@ export default Vue.component("research-section-components", {
 		cfdeLanding,
 		GiantGemPkg,
 		kpVariantSifter,
+		GP2Browser,
 	},
 	data() {
 		return {
@@ -47,6 +49,9 @@ export default Vue.component("research-section-components", {
 				break;
 			case 'kpVariantSifter':
 				this.currentComponent = kpVariantSifter;
+				break;
+			case 'GP2Browser':
+				this.currentComponent = GP2Browser;
 				break;
 		}
 	},

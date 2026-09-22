@@ -295,8 +295,108 @@ export function availableAncestryBubbles(availability = [], primaryAncestry = "M
     return bubbles;
 }
 
+/**
+ * Build ancestry bubble groups for primary + additional phenotypes.
+ */
+export function buildAncestryBubbleGroups({
+    ancestryAvailabilityByPhenotype = {},
+    primaryAncestry = "Mixed",
+    primaryPhenotype = null,
+    selectedPhenotypes = [],
+    selectedAncestries = [],
+    ancestrySeriesLoading = {},
+    ancestryAvailabilityLoadingByPhenotype = {},
+    ancestryAvailabilityErrorByPhenotype = {},
+} = {}) {
+    const groups = [];
+    const primaryName =
+        typeof primaryPhenotype === "string"
+            ? primaryPhenotype
+            : primaryPhenotype?.name || null;
+    if (primaryName) {
+        groups.push({
+            phenotype: primaryName,
+            label: phenotypeSeriesLabel(primaryPhenotype) || primaryName,
+            isPrimary: true,
+            bubbles: availableAncestryBubbles(
+                ancestryAvailabilityByPhenotype[primaryName],
+                primaryAncestry
+            ),
+            selectedAncestries: selectedAncestries || [],
+            seriesLoading: ancestrySeriesLoading,
+            loading: Boolean(ancestryAvailabilityLoadingByPhenotype[primaryName]),
+            error: ancestryAvailabilityErrorByPhenotype[primaryName] || null,
+        });
+    }
+
+    (selectedPhenotypes || []).forEach((entry) => {
+        const name = typeof entry === "string" ? entry : entry?.name;
+        if (!name || name === primaryName) {
+            return;
+        }
+        groups.push({
+            phenotype: name,
+            label: phenotypeSeriesLabel(entry) || name,
+            isPrimary: false,
+            bubbles: availableAncestryBubbles(
+                ancestryAvailabilityByPhenotype[name],
+                primaryAncestry
+            ),
+            selectedAncestries:
+                typeof entry === "string" ? [] : entry?.selectedAncestries || [],
+            seriesLoading: ancestrySeriesLoading,
+            loading: Boolean(ancestryAvailabilityLoadingByPhenotype[name]),
+            error: ancestryAvailabilityErrorByPhenotype[name] || null,
+        });
+    });
+
+    return groups;
+}
+
+export function ancestrySeriesLoadingKey(phenotypeName, ancestry) {
+    return `${phenotypeName || ""}@@${ancestry || ""}`;
+}
+
 export function associationRowAncestry(row, fallback = "Mixed") {
     return row?.Ancestry || fallback;
+}
+
+export function associationRowPhenotype(row, fallback = "") {
+    return row?.PhenotypeKey || row?.Phenotype || fallback;
+}
+
+export function phenotypeSeriesLabel(phenotype) {
+    if (!phenotype) {
+        return "";
+    }
+    if (typeof phenotype === "string") {
+        return phenotype;
+    }
+    return (
+        String(phenotype.description || "").trim() ||
+        String(phenotype.name || "").trim()
+    );
+}
+
+export function filterAssociationRowsByPhenotype(
+    rows,
+    phenotypeName,
+    { treatUntaggedAsMatch = false } = {}
+) {
+    if (!Array.isArray(rows)) {
+        return [];
+    }
+    const target = String(phenotypeName || "").trim();
+    if (!target) {
+        return rows.filter((row) => !row?.Phenotype);
+    }
+    return rows.filter((row) => {
+        const rowPhenotype = associationRowPhenotype(row);
+        if (!rowPhenotype) {
+            return treatUntaggedAsMatch;
+        }
+        return rowPhenotype === target;
+    });
 }
 
 export function filterAssociationRowsByAncestry(
@@ -327,33 +427,100 @@ export function filterAssociationRowsByAncestry(
 }
 
 /**
- * Ordered association plot series: primary first, then additional selected ancestries.
- * Default KP plot uses only KP-project rows (GWAS-CE has its own plot section).
+ * Ordered KP association plot series: primary phenotype × ancestries first,
+ * then each additional phenotype with its selected ancestries.
  */
 export function buildAssociationPlotSeries({
     rows = [],
     primaryAncestry = "Mixed",
     selectedAncestries = [],
+    primaryPhenotype = null,
+    selectedPhenotypes = [],
     project = VKS_ASSOCIATION_PROJECT_KP,
 } = {}) {
     const projectRows = filterAssociationRowsByProject(rows, project);
-    const ordered = [primaryAncestry];
-    (selectedAncestries || []).forEach((code) => {
-        if (code && code !== primaryAncestry && !ordered.includes(code)) {
-            ordered.push(code);
+    const primaryName =
+        typeof primaryPhenotype === "string"
+            ? primaryPhenotype
+            : primaryPhenotype?.name || null;
+    const primaryLabel =
+        phenotypeSeriesLabel(primaryPhenotype) || primaryName || "Phenotype";
+
+    const phenotypeOrder = [];
+    if (primaryName) {
+        phenotypeOrder.push({
+            name: primaryName,
+            label: primaryLabel,
+            isPrimary: true,
+            selectedAncestries: selectedAncestries || [],
+        });
+    } else {
+        phenotypeOrder.push({
+            name: null,
+            label: "Associations",
+            isPrimary: true,
+            selectedAncestries: selectedAncestries || [],
+        });
+    }
+    (selectedPhenotypes || []).forEach((entry) => {
+        const name = typeof entry === "string" ? entry : entry?.name;
+        if (!name || name === primaryName) {
+            return;
         }
+        if (phenotypeOrder.some((item) => item.name === name)) {
+            return;
+        }
+        const entryAncestries =
+            typeof entry === "string" ? [] : entry?.selectedAncestries || [];
+        phenotypeOrder.push({
+            name,
+            label: phenotypeSeriesLabel(entry) || name,
+            isPrimary: false,
+            selectedAncestries: entryAncestries,
+        });
     });
 
-    return ordered.map((ancestry) => ({
-        ancestry,
-        label: ancestryLabel(ancestry),
-        isPrimary: ancestry === primaryAncestry,
-        project,
-        rows: filterAssociationRowsByAncestry(
+    const series = [];
+    phenotypeOrder.forEach((phenotype) => {
+        const phenotypeRows = filterAssociationRowsByPhenotype(
             projectRows,
-            ancestry,
-            primaryAncestry,
-            selectedAncestries
-        ),
-    }));
+            phenotype.name,
+            { treatUntaggedAsMatch: phenotype.isPrimary }
+        );
+        const extras = phenotype.selectedAncestries || [];
+        const ancestries = [primaryAncestry];
+        extras.forEach((code) => {
+            if (code && code !== primaryAncestry && !ancestries.includes(code)) {
+                ancestries.push(code);
+            }
+        });
+
+        ancestries.forEach((ancestry, ancestryIndex) => {
+            const ancestryRows = filterAssociationRowsByAncestry(
+                phenotypeRows,
+                ancestry,
+                primaryAncestry,
+                extras
+            );
+            const multiPhenotype = phenotypeOrder.length > 1;
+            const multiAncestry = ancestries.length > 1;
+            series.push({
+                phenotype: phenotype.name,
+                phenotypeLabel: phenotype.label,
+                ancestry,
+                label:
+                    multiPhenotype && !multiAncestry
+                        ? phenotype.label
+                        : ancestryLabel(ancestry),
+                isPrimary: phenotype.isPrimary && ancestry === primaryAncestry,
+                isPrimaryPhenotype: phenotype.isPrimary,
+                showPhenotypeHeader: multiPhenotype && ancestryIndex === 0,
+                showAncestryHeader: multiAncestry,
+                project,
+                rows: ancestryRows,
+            });
+        });
+    });
+
+    return series;
 }
