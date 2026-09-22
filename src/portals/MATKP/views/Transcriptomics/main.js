@@ -936,6 +936,12 @@ new Vue({
             this.geneOrthologSymbols = symbols;
             if (symbols.human === NA && symbols.mouse !== NA){
                 this.setViewSpecies("mouse")
+            } else if (symbols.mouse === NA && symbols.human !== NA){
+                this.setViewSpecies("human")
+            }
+            if (canonicalGene.toUpperCase() !== symbols[this.viewSpecies].toUpperCase()){
+                let desiredGene = symbols[this.viewSpecies];
+                await this.fetchGenePayload(desiredGene);
             }
 
             this.onGeneChange(symbols[this.viewSpecies], { updateQuery: false });
