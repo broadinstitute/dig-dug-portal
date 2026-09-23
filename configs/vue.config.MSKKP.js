@@ -8,7 +8,7 @@ module.exports = {
             ...baseConfig.pages.index,
             entry: "src/views/MskkpIndex/main.js",
             filename: "index.html",
-            title: "MSKKP Home",
+            title: "Home",
             chunks: ["chunk-vendors", "chunk-common", "index"],
         },
     },
