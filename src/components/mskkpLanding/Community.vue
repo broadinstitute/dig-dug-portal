@@ -4,15 +4,12 @@
             <div class="mskkp-landing-community-about">
                 <h2>About Us</h2>
                 <p>
-                    It is being developed by a team of scientists and software
-                    engineers at the
-                    <span class="mskkp-landing-community-link"
-                        >Broad Institute</span
-                    >
-                    in collaboration with the
-                    <span class="mskkp-landing-community-link"
-                        >International Federation of Musculoskeletal Research
-                        Societies (IFMRS)</span
+                    The MSK-KP is being developed by a team of scientists and
+                    software engineers at the Broad Institute’s
+                    <a
+                        class="mskkp-landing-community-link"
+                        href="https://hugeamp.org/r/kpn_home"
+                        >Knowledge Portal Network</a
                     >.
                 </p>
                 <h2>Contact</h2>
@@ -24,7 +21,7 @@
                 </p>
                 <p>
                     <span class="mskkp-landing-community-link">Sign up</span>
-                    for emailed updates, newsletters, and webinar invitations.
+                    for email updates, newsletters, and webinar invitations.
                 </p>
             </div>
             <div class="mskkp-landing-community-news">

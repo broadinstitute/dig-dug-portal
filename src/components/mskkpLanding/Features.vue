@@ -22,11 +22,22 @@
                     "
                 >
                     <img
+                        v-if="resource.icon"
                         class="mskkp-landing-features-icon"
                         :src="resource.icon"
                         :alt="resource.title"
                     />
+                    <div
+                        v-else
+                        class="mskkp-landing-features-icon mskkp-landing-features-icon-placeholder"
+                        aria-hidden="true"
+                    ></div>
                     <div class="mskkp-landing-features-title">
+                        <span
+                            v-if="resource.isNew"
+                            class="mskkp-landing-features-new"
+                            >New</span
+                        >
                         {{ resource.title }}
                     </div>
                     <p class="mskkp-landing-features-description">
@@ -49,6 +60,13 @@ export default Vue.component("mskkp-landing-features", {
                     subheader: "Human Genetic and Genomic Resources",
                     resources: [
                         {
+                            title: "GWAS Meta-analyses",
+                            icon: "/images/mskkp_icons/gwas_analyses.svg",
+                            href: "/phenotype.html?phenotype=Osteoporosis",
+                            description:
+                                "Access our sample-aware “bottom-line” meta-analyses of all human GWAS on the portal for a given trait.",
+                        },
+                        {
                             title: "Variant Sifter",
                             icon: "/images/mskkp_icons/variant_sifter.svg",
                             href: "/r/kp_variant_sifter",
@@ -56,18 +74,11 @@ export default Vue.component("mskkp-landing-features", {
                                 "Explore genetic associations and prioritize variants across musculoskeletal phenotypes. Filter signals by locus, ancestry, and supporting evidence in one view.",
                         },
                         {
-                            title: "HuGE Calculator",
-                            icon: "/images/mskkp_icons/huge.svg",
-                            href: "/hugecalculator.html",
+                            title: "Predicted effector gene (PEG) lists",
+                            icon: "/images/mskkp_icons/PEG.svg",
+                            href: "/r/pegl_app_front_PEGASUS",
                             description:
-                                "Estimate human genetic evidence for a gene across relevant traits. Combine association strength and supporting studies into a clear HuGE score.",
-                        },
-                        {
-                            title: "Human > Mouse comparator",
-                            icon: "/images/mskkp_icons/human_mouse.svg",
-                            href: "/mouse_diff_exp.html",
-                            description:
-                                "Compare gene expression and biological context between human and mouse. Identify conserved and divergent patterns that inform translational hypotheses.",
+                                "Curated PEG lists drawn from published studies across many traits and disease areas.",
                         },
                     ],
                 },
@@ -79,14 +90,23 @@ export default Vue.component("mskkp-landing-features", {
                             icon: "/images/mskkp_icons/single_cell.svg",
                             href: "/r/scb",
                             description:
-                                "Browse single-cell expression profiles across musculoskeletal cell types. Map genes to clusters and explore tissue-specific expression patterns.",
+                                "Browse integrated single cell maps for musculoskeletal tissues. Map genes to clusters and explore tissue-specific expression patterns.",
                         },
                         {
                             title: "Cell State Browser",
                             icon: "/images/mskkp_icons/cell_state.svg",
                             href: "/liger.html",
+                            isNew: true,
                             description:
                                 "Investigate cell-state transitions and gene programs linked to disease biology. Connect expression states with pathways and candidate effector mechanisms.",
+                        },
+                        {
+                            title: "Human > Mouse comparator",
+                            icon: "/images/mskkp_icons/human_mouse.svg",
+                            href: "/mouse_diff_exp.html",
+                            isNew: true,
+                            description:
+                                "Compare gene expression and biological context between human and mouse. Identify conserved and divergent patterns that inform translational hypotheses.",
                         },
                     ],
                 },
@@ -153,12 +173,30 @@ a.mskkp-landing-features-box:hover {
     display: block;
 }
 
+.mskkp-landing-features-icon-placeholder {
+    background-color: transparent;
+}
+
 .mskkp-landing-features-title {
     font-family: "Roboto Slab", serif;
     font-weight: 600;
     color: #6060a4;
     font-size: 14px;
     margin-bottom: 8px;
+}
+
+.mskkp-landing-features-new {
+    display: inline-block;
+    margin-right: 6px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background-color: #6060a4;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+    vertical-align: middle;
 }
 
 .mskkp-landing-features-description {

@@ -55,7 +55,7 @@ new Vue({
             {
                 icon: "phenotypes",
                 label: "Phenotypes",
-                href: "/r/kp_phenotypes",
+                href: "/r/kp_phenotypes?portal=msk",
             },
             {
                 icon: "genetic_datasets",
@@ -70,12 +70,12 @@ new Vue({
             {
                 icon: "bioinfomatics_methods",
                 label: "Bioinformatic methods",
-                href: "/method.html",
+                href: "/help.html",
             },
             {
                 icon: "curated_datasets",
                 label: "Curated datasets",
-                href: "/downloads.html",
+                href: "/r/pegl_app_front_PEGASUS",
             },
         ],
     },
