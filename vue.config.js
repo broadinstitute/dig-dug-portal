@@ -355,6 +355,13 @@ let pages = {
         title: "GP2 Browser",
         chunks: ["chunk-vendors", "chunk-common", "gp2browser"],
     },
+    singlecellcompare: {
+        entry: "src/views/SingleCellCompare/main.js",
+        template: "public/index.html",
+        filename: "singlecellcompare.html",
+        title: "MSKKP Single-Cell Dataset Comparison",
+        chunks: ["chunk-vendors", "chunk-common", "singlecellcompare"],
+    },
 };
 
 const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
