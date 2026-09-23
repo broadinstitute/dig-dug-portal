@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "watch": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode development --watch",
+    "serve": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service serve",    
     "build": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode development",
     "deploy": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode production",
     "preview": "serve -l 8080 dist",
