@@ -1,30 +1,34 @@
 export function kcURL(path) {
     //quality of life helper
-    //converts short kc urls from "/r/<pageid>?<query>""
-    //to "/research.html?pageid=<pageid>&<query>"" when on localhost
+    //converts short kc urls from "/r/<pageid>?<query>"
+    //to "/research.html?pageid=<pageid>&<query>" when on localhost
 
-    //example use 
+    //example use
     //kcURL("/r/kc_landing")
-    //if on localhost, returns "/r/research.html?pageid=kc_landing"
+    //if on localhost, returns "/research.html?pageid=kc_landing"
     //if on dev or prod, returns "/r/kc_landing"
 
-    const isLocalhost = window.location.hostname === 'localhost';
+    const isLocalhost = window.location.hostname === "localhost";
 
-    if (isLocalhost) {
-
-        // Extract pageid and query params
-        const match = path.match(/^\/r\/([^?]+)\?(.*)$/);
-
-        //console.log("match", match);
-        if (!match) return path;
-
-        const pageid = match[1];
-        const query = match[2];
-        return `/research.html?pageid=${pageid}&${query}`;
-    } else {
-        // Production URL
+    if (!isLocalhost) {
         return path;
     }
+
+    const withQuery = String(path || "").match(/^\/r\/([^?]+)\?(.*)$/);
+    if (withQuery) {
+        const pageid = withQuery[1];
+        const query = withQuery[2];
+        return query
+            ? `/research.html?pageid=${pageid}&${query}`
+            : `/research.html?pageid=${pageid}`;
+    }
+
+    const plain = String(path || "").match(/^\/r\/([^/?#]+)\/?$/);
+    if (plain) {
+        return `/research.html?pageid=${plain[1]}`;
+    }
+
+    return path;
 }
 
 export function setSimpleLink(path) {

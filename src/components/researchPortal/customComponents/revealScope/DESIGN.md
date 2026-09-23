@@ -1,0 +1,161 @@
+# REVEAL SCOPE — design rules
+
+This document captures UI and product conventions for **REVEAL SCOPE** in dig-dug-portal. Use it when adding or changing files under `revealScope/` and `revealScope.vue`.
+
+For system structure, data model, module specs, and cross-cutting behavior requirements, see [`ARCHITECTURE.md`](./ARCHITECTURE.md) in this folder — most of the "hard rules" for this product (bounded honesty, staleness flags, `PENDING` vs `COMPLETE_NO_RESULTS`, confidence propagation, grounding discipline) live there in §7 and are binding on any UI built here, not just on the data layer.
+
+For cross-project baseline rules (borders, minimum font size), also follow the workspace-root document at `Documents/GitHub/DESIGN.md`.
+
+Reference implementation for hub/session-style architecture docs: `../revealKgWorkspace/ARCHITECTURE.md` and `DESIGN.md` (REVEAL KG Canvas) — not a UI pattern to copy, since SCOPE is a workbench (four independent on-demand panels), not a canvas.
+
+---
+
+## Product model
+
+- **Hub-and-spoke workbench, not a linear stepper or pipeline.** Modules A–D are independent and user-invoked in any order; do not build UI that implies a required sequence beyond "hub must parse first."
+- **No forced completeness.** A user may run only Module A and stop; the UI must not nag toward running B/C/D as if they were required steps.
+- Module A/B must never visually block on or wait for Module C/D (they are sync/instant; C/D are async/on-demand).
+
+## Open items to resolve before the affected UI is built
+
+Do not silently default these in code — they are tracked in `ARCHITECTURE.md` §8 and should be raised to the product/architecture owner when the relevant module is reached:
+
+1. Whether Module C's `CONFLICT` state ships in v1 at all (recommendation: no, ship `VERIFIED`/`REFUTED`/`UNEXPLORED` only until a concrete trigger exists).
+2. Whether Module C's multi-hop traversal needs cross-KG entity linkage (determines whether entity-resolution UI/plumbing is in scope for the first Module C build).
+
+## Cross-cutting UI rules (binding, from ARCHITECTURE.md §7)
+
+- **Staleness:** any module panel whose output was computed against an older `hub_version` than the hub's current one must show a visible "stale, re-run?" flag rather than silently continuing to display outdated output.
+- **Loading vs. empty state:** async panels (Module C) must render `PENDING`, `COMPLETE_NO_RESULTS`, and `COMPLETE_WITH_RESULTS` as visually distinct states. Never let a skeleton/spinner and a confirmed-empty state look similar enough to be confused.
+- **No editorializing on absence:** `COMPLETE_NO_RESULTS` copy is a flat, scoped factual statement (e.g. "not found in KG-Oncology v3, queried 2026-09-03"). Never rephrase absence as a conclusion (e.g. "novel", "unexplored territory") in UI copy or LLM-generated summaries.
+- **Confidence flag:** any module output built from a `confidence: low` slot must visibly mark itself as based on low-confidence extraction, not present as equally authoritative as a high-confidence run.
+- **Grounding:** every evidentiary claim rendered by Module C must carry a clickable source (KG edge ID, PMID, GEO accession, canonical entity ID). Never show LLM-summarized evidence without the underlying edges alongside it.
+
+## Visual design
+
+SCOPE borrows its general look from **REVEAL KG Canvas** (`revealKgWorkspace/DESIGN.md`) rather than inventing a new visual language. Same tokens, same restraint on borders, same modal/callout/pagination patterns — applied to a workbench of panels instead of a canvas.
+
+### Borders
+
+**Do not use borders for grouping content.** Borders are visual noise in most cases.
+
+- Prefer spacing, typography (section titles, weight), and background tints only when hierarchy truly needs it.
+- Use borders only when required for affordance or structure (e.g. modal shell vs backdrop, input fields, clickable cards that must read as discrete controls).
+- Do **not** add borders to layout wrappers or panel containers (Module A/B/C/D containers, the hub header) unless explicitly required.
+
+### Typography
+
+- **Minimum font size for readable UI copy: `13px`.** Do not go below 13px for labels, body text, meta lines, or button labels.
+- Prefer explicit `13px` or `rem` values that compute to ≥ 13px at the root font size (typically 16px).
+- Headings and brand text (e.g. the `REVEAL` / `SCOPE` header mark) may be larger; decorative glyphs may be larger.
+- Font stack: `"Inter", "Segoe UI", system-ui, -apple-system, sans-serif` (same as KG Canvas).
+
+### Color (CFDE Knowledge Center palette)
+
+Define and consume the same tokens on `.reveal-scope` so child components inherit them, matching KG Canvas's `.reveal-kg-workspace` tokens:
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--cfde-orange` | `#e07b39` | Brand accent, primary actions |
+| `--cfde-orange-dark` | `#c2662b` | Hover / emphasis |
+| `--cfde-orange-soft` | `#fbeee3` | Soft highlights |
+| `--cfde-blue` | `#2c5c97` | Titles, secondary actions |
+| `--cfde-border` | `#e6e1d6` | Structural borders only (see above) |
+| `--cfde-bg` | `#f6f5f2` | Panel / subtle fills |
+| `--cfde-ink` | `#33363d` | Body text |
+| `--cfde-muted` | `#6b6b6b` | Secondary text |
+
+**Header brand mark:** `REVEAL` in `--cfde-orange` (bold, letter-spacing), product name (`SCOPE`) in `--cfde-blue` next to it — same treatment as KG Canvas's `REVEAL` / `KG Canvas` header. The current scaffold in `revealScope.vue` uses placeholder gray (`#666`) and should be updated to these tokens when the visual pass happens.
+
+### Sub-header callouts (important warnings)
+
+Use for **action-required or high-salience messages** directly under a panel or modal title — not for routine help text. This is the natural home for staleness flags (ARCHITECTURE.md §7.1) and low-confidence flags (§7.3).
+
+- **Markup:** `<div class="..._subheader-callout" role="status">…</div>` (or `<p>` if no block children).
+- **Look:** solid `--cfde-orange` background (same as primary action buttons), white `13px` copy, `line-height: 1.35`, `padding: 8px 14px`, `border-radius: 999px` (pill), left-aligned.
+- **When:** hub-version-stale panel, "based on low-confidence extraction" flag, approval gates.
+- **When not:** default panel descriptions or neutral intros (use muted body text instead).
+
+### Modals
+
+- Backdrop + elevation (shadow); avoid heavy bordered "cards inside cards."
+- Section separation via vertical rhythm (`gap`), not boxes with outlines.
+
+### Pagination (paged tables and lists)
+
+Use one consistent pill-style pagination control everywhere SCOPE shows pageable rows (e.g. Module C's Evidence Matrix, Module D's dataset/accession lists) — same pattern as KG Canvas's `WorkspaceGraphTablePagination.vue` (« ‹ page numbers … › », hides itself when only one page). **Do not** build ad hoc "Previous / Page X of Y / Next" controls per panel; build (or share, if extracted to a common location) one pagination component and wire `current-page` / `total-pages` / `@page-change` consistently, with a specific `aria-label` per surface.
+
+### Documentation / help copy
+
+Write in-panel help and generated summary text in the spirit of **Why → What → How**, woven into natural prose (why someone would use this, what it includes, how it fits a typical session) — not literal `Why:` / `What:` / `How:` labels or headers. Keep paragraphs short; one block per module (A, B, C, D).
+
+## Code layout
+
+See **`ARCHITECTURE.md`** for the full data model, module specs, and build sequencing.
+
+| Path | Purpose |
+|------|---------|
+| `../revealScope.vue` | Shell: header, stage (module + floating Actions popup), welcome/session state |
+| `revealScope/ScopeMenuBar.vue` | Session / Help top menus |
+| `revealScope/ScopeWelcomePanel.vue` | Welcome modal: Start SCOPE / Learn SCOPE tabs |
+| `revealScope/ScopeEvaluationPanel.vue` + `scopeHypothesisEvaluation.js` | Module A v0 |
+| `revealScope/ScopeLiteratureLauncher.vue` + `scopeLiteratureQuery.js` + `scopeLiteratureSources.js` | Module B v0 |
+| `revealScope/ScopeActionsPanel.vue` + `scopeActionsCatalog.js` | "Actions" — floating popup, "Next steps" (filtered) / "Actions" (full catalog) tabs |
+| `revealScope/scopeSessionFile.js` | Session export (straight to the browser's native Save-As dialog where supported, plain download fallback) / import |
+| `revealScope/scopeKgEvidence.js` + `ScopeKgEvidenceTable.vue` + `scopeBiomarkerFactorSearch.js` | Module C v0 — evidence routes + transitional raw-data table |
+| `revealScope/scopeKgFactorLinks.js` + `scopeKgNetworkGraph.js` + `ScopeKgNetworkGraph.vue` | 4-column Gene → Gene set → Factor → Trait vis-network at the top of the CFDE KG tab (zoom slider + Fit, CANVAS provenance-graph pattern) |
+| `revealScope/scopeKgRelevance.js` | Post-retrieval relevance triage for CFDE KG evidence |
+| `revealScope/scopeBiomarkerKbSparql.js` + `scopeBiomarkerBridge.js` + `scopeBiomarkerRelevance.js` + `ScopeBiomarkerEvidenceTable.vue` | "Search Biomarker KB" — separate action bridging a resolved Factor to shared-gene diseases to BiomarkerKB, own relevance triage |
+| `revealScope/ScopeProgressOverlay.vue` | Centered step-by-step progress for any in-flight action |
+
+See ARCHITECTURE.md's "Current implementation" table for build status and known gaps per file.
+
+---
+
+## Implementation checklist (new UI)
+
+- [ ] No sub-13px text
+- [ ] No decorative borders on content groups
+- [ ] Uses CFDE CSS variables from `.reveal-scope` (shared with KG Canvas palette)
+- [ ] Panel never implies a required order across Modules A–D
+- [ ] Async panels implement the 3-state machine (`PENDING` / `COMPLETE_NO_RESULTS` / `COMPLETE_WITH_RESULTS`), visually distinct
+- [ ] Stale output (`hub_version` mismatch) is flagged, not silently shown
+- [ ] Low-confidence slot inputs are visibly flagged downstream
+- [ ] Every Module C claim has a clickable source; edges shown alongside any LLM summary
+- [ ] `COMPLETE_NO_RESULTS` copy is flat and scoped, never reworded as a conclusion
+
+---
+
+## Changelog
+
+Record every design/UI-convention decision or change here, with enough context that a coding agent with no prior chat history can act on it.
+
+| Date | Note |
+|------|------|
+| 2026-09-03 | Initial design doc scaffold: product model, cross-cutting rules restated from ARCHITECTURE.md §7, open decisions carried forward, no SCOPE-specific visual conventions decided yet |
+| 2026-09-03 | Visual design borrowed from REVEAL KG Canvas (`revealKgWorkspace/DESIGN.md`): CFDE palette tokens, `Inter` font stack, borders/typography rules, sub-header callout pattern (for staleness/low-confidence flags), modal styling, shared pill pagination, Why/What/How documentation tone. `revealScope.vue` header still uses placeholder gray — not yet updated to tokens |
+| 2026-09-03 | "Actions" panel added: a persistent docked panel (right side of the stage, white bg, border-left only — the one place a structural border is warranted per this doc's own border rule) suggesting next steps as plain button chips, no descriptive text per [[feedback_no_guide_text]] — labels only, no two-sentence explanations like the welcome option cards get |
+| 2026-09-03 | "Actions" reworked into a floating popup card (CANVAS-assistant-style: title + ✕ + pill tabs "Next steps"/"Actions"), replacing the docked sidebar per direct user feedback. Action buttons now explicitly get a one-sentence description per user request (an exception to [[feedback_no_guide_text]] — asked for directly, not a default): 16px bold label, 13px normal-weight sentence below, solid orange background with white text (the one place solid-orange-fill buttons are used outside the sub-header callout pattern) |
+| 2026-09-04 | Top-menu convention: not every menu item needs to be a dropdown. "Actions" in `ScopeMenuBar.vue` is a plain button (styled identically to the dropdown toggles) that opens the Actions popup directly on its catalog tab, rather than duplicating the catalog as a submenu — avoid building a submenu when the item's only job is "open this other panel" |
+| 2026-09-04 | New pattern: `ScopeProgressOverlay.vue` — a centered, viewport-fixed (`position: fixed; inset: 0`, matching `ScopeWelcomePanel`/`ScopeExportSessionModal`'s centering, not just centered within the stage) step list for any in-flight action, per explicit user request. Step markers: gray circle (pending), pulsing orange (active), blue checkmark (done), red ✕ (error) — reuses the palette's existing semantic colors (orange = in-progress/action, blue = complete, matching e.g. the `is-high` confidence color in Module A's slot table). Superseded the per-panel inline "Evaluating…"/"Generating…"/"Searching…" text lines — one progress indicator per in-flight action, not one per panel |
+| 2026-09-04 | Fixed content-tab styling: the Evaluation/CFDE KG tab bar (`revealScope.vue`'s `.scp-module-tab`) initially reused the pill-toggle pattern (`ScopeWelcomePanel`'s Start/Learn tabs, `ScopeActionsPanel`'s Next steps/Actions) — user feedback was that this reads as buttons, not tabs, and gets visually buried by the content below. **Convention split:** the pill-toggle pattern stays for *modal-internal* section switches (welcome panel, Actions popup — small, self-contained surfaces); real content tabs sitting above a full stage panel use the **folder-tab** pattern instead, copied from `revealKgWorkspace/WorkspaceGeneSetProvenancePanel.vue`: individual bordered boxes, top-only border-radius (`6px 6px 0 0`), `gap: 4px` between tabs (not touching edge-to-edge), inactive = `--cfde-bg` fill + `--cfde-ink` text, active = white fill + `--cfde-orange` text + `border-bottom-color` matching the active background (the "merges into the panel below" illusion) |
+| 2026-09-08 | 4-row KG network (`ScopeKgNetworkGraph.vue`) sits at the top of the CFDE KG tab, inside the existing white `.scp-kg` card, with the same nested `--cfde-bg` tint as `.scp-kg-route`. Compact SVG, not a vis-network canvas — same Genes / Gene sets / Factors / Traits row order as KG Canvas, labels at 13px (the 10px first cut violated this doc's minimum). Crowded rows keep the 8 highest-degree nodes so labels stay readable; hover `title` still shows the full name |
+| 2026-09-08 | Replaced the compact SVG with a CANVAS-style **horizontal** vis-network (`layout.hierarchical.direction: "LR"`): Genes left, Gene sets / Factors in the middle, Traits right. Curved cubic-bezier edges with arrowheads (`TREE_VIEW_EDGE_COLOR`), type-colored dots, 13px labels. Zoom UI copied from `WorkspaceGeneSetProvenanceViz.vue` (slider + Fit overlay, top-right). No 8-node cap — zoom/fit is the crowding control. Fit button is 13px (SCOPE minimum), not the provenance viz's 11px |
+| 2026-09-08 | Polished the KG network toward CANVAS provenance: custom `ctxRenderer` dots with **side labels** (genes/gene sets left of the node, factors/traits right) so vertical columns stay readable; zoom slider + Fit in the legend toolbar (not canvas overlay — a full-width KG canvas parked the overlay in empty space on the far right). Same `#b0a890` cubic-bezier arrows and 9px dots. Crowded graphs still cap display nodes by degree (12 gene sets / 12 traits, 8 genes / 8 factors) — full data stays in the tables and session payload |
+| 2026-09-09 | KG network tweaks: labels sit **below** dots; column `levelSeparation` +10% (220 → 242); mouse-wheel zoom off (`zoomView: false`) so only the slider/Fit change scale; hover popup next to the pointer shows the full node name plus **Highlight connected nodes** (dims everything except the node, its neighbors, and their edges; click empty canvas or "Clear highlight" to restore) |
+| 2026-09-09 | Highlight is 1-hop only from the graph's own edges (not vis-network `getConnectedNodes`, which follows hierarchical layout links and lights up a hub gene's whole star). Kept edges use rgba so they actually dim; only edges incident to the target stay full-opacity |
+| 2026-09-09 | vis-network `overrideOpacity()` ignores `rgba()` (returns it unchanged) then its color parser strips the alpha, so every edge stayed at opacity 1. Highlight now walks a dedicated display network (`toDisplayNetwork` / `neighborhoodOf` in `scopeKgNetworkGraph.js`: stable `id`/`from`/`to`) and dims edges via hex `#b0a890` + `color.opacity` (0.16), which vis-network actually applies |
+| 2026-09-09 | Edge highlight still failed: vis-network's default `color.inherit: "from"` plus DataSet color-object bridging meant `color.opacity` never produced a visible kept-vs-dim difference. Nodes were fine because we paint them ourselves. Fix: style vis edge objects with distinct hex (`#4a4338` kept, `#e8e4dc` dim) via `setOptions`, and redraw kept edges in `afterDrawing` so they stay visible regardless of vis color merge |
+| 2026-09-09 | Highlighted edges use the normal edge color (`#b0a890`) at width 1. Dimmed edges use the canvas background (`#f6f5f2`) so they disappear into the plot instead of a faded beige |
+| 2026-09-09 | Highlight no longer restyles vis edges. Full node/edge arrays stay in memory; "Highlight connected nodes" swaps the vis DataSets to the 1-hop star only. Toolbar **←** restores the full network and Fits. Hover tooltip omits the highlight action while already in the star view |
+| 2026-09-09 | Both the 1-hop star and the **←** return render through the same 4-column Genes → Gene sets → Factors → Traits layout, because each view rebuilds the whole vis `Network` from the display graph instead of refilling the existing DataSets (a DataSet swap left the old node coordinates in place and flattened the graph into one vertical chain) |
+| 2026-09-09 | Column-skipping edges arc instead of running straight: a gene set → trait edge drawn straight passes through the factor column and looks like two separate hops, which misread the graph — the highlight star made it obvious because the skipped node sits alone on the same line |
+| 2026-09-10 | Literature launcher shows multiple PubMed query rows (facet label + editable AND query + Open), instead of one overcrowded all-terms search |
+| 2026-09-10 | Each literature search option shows a one-sentence LLM rationale under its facet label |
+| 2026-09-10 | PubMed / literature results sit in an **Explore options** folder tab with Evaluation / CFDE KG / Biomarker KB — running Search literature no longer replaces those panels |
+| 2026-09-10 | Biomarker action renamed to **Discover mechanism-linked biomarkers**; relevance classification is optional via Actions; Biomarker tab documents the mechanism → disease → biomarker pipeline |
+| 2026-09-10 | Mechanism pick: top-25 semantic candidates + LLM closest-match; Biomarker gene mapping UI is target→associated genes |
+| 2026-09-10 | CFDE KG mechanism pick: LLM chooses 1–5 relevant Factors (max 5) from top-25 semantic candidates |
+| 2026-09-10 | CFDE KG: optional relevance action; how-it-works diagram; gene-set labels wrap at underscores |
+| 2026-09-10 | After Evaluate, **Search CFDE KG** and **Discover mechanism-linked biomarkers** both appear in Next steps (parallel, not sequential). Biomarker resolves mechanisms itself via `resolveMechanismFactors` when CFDE KG has not run |
+| 2026-09-10 | CFDE KG → CANVAS: export handoff file from Actions, then open Canvas and use existing Import graph — catalog hits are normal nodes; unresolved entities are light-gray squares |

@@ -109,12 +109,9 @@ export default {
         },
 
         async getFrontContents(context, selectedDiseaseGroup) {
-            let portal = selectedDiseaseGroup || "md";
-            let json = await fetch(
-                "https://kp4cd.org/reset/views/portal_front?portal=" + portal
-            ).then((resp) => resp.json());
-            // set the data
-            context.commit("setFrontContents", json);
+            // Disabled: kp4cd portal_front feed is not used for current CFDE/REVEAL local work
+            // (was: https://kp4cd.org/reset/views/portal_front?portal=…).
+            context.commit("setFrontContents", []);
         },
 
         async getDatasetsInfo(context, selectedDiseaseGroup) {

@@ -1,0 +1,149 @@
+const SCHEMA_VERSION = "scope-session-v0";
+const VALID_MODULES = ["evaluate", "literature"];
+
+/** Normalize literature query payload for export/import (legacy string or multi-query list). */
+function normalizeLiteratureQueryForExport(literatureQuery) {
+    if (literatureQuery == null) return null;
+    if (typeof literatureQuery === "string") {
+        const text = literatureQuery.trim();
+        return text || null;
+    }
+    if (Array.isArray(literatureQuery)) {
+        const queries = literatureQuery
+            .map((item) => {
+                if (typeof item === "string") {
+                    const query = item.trim();
+                    return query ? { label: "", reason: "", query } : null;
+                }
+                if (item && typeof item === "object") {
+                    const query = String(item.query || "").trim();
+                    if (!query) return null;
+                    return {
+                        label: String(item.label || "").trim(),
+                        reason: String(item.reason || item.concept || "").trim(),
+                        query,
+                    };
+                }
+                return null;
+            })
+            .filter(Boolean);
+        return queries.length ? queries : null;
+    }
+    if (typeof literatureQuery === "object" && Array.isArray(literatureQuery.queries)) {
+        return normalizeLiteratureQueryForExport(literatureQuery.queries);
+    }
+    return null;
+}
+
+function normalizeLiteratureQueryForImport(value) {
+    return normalizeLiteratureQueryForExport(value);
+}
+
+/** Builds the exportable session object. v0 shortcut: no hub, so this is hand-assembled from whatever the shell has cached rather than read from a Central Hypothesis State. */
+export function buildSessionExport({
+    hypothesisText,
+    ranModules,
+    evaluation,
+    literatureQuery,
+    kgEvidence,
+    kgBlockedReason,
+    kgNetworkGraph,
+    biomarkerEvidence,
+    biomarkerBlockedReason,
+}) {
+    return {
+        schema_version: SCHEMA_VERSION,
+        exported_at: new Date().toISOString(),
+        hypothesis_text: hypothesisText || "",
+        modules_run: Array.isArray(ranModules) ? ranModules.filter((id) => VALID_MODULES.includes(id)) : [],
+        evaluation: evaluation || null,
+        literature_query: normalizeLiteratureQueryForExport(literatureQuery),
+        kg_evidence: kgEvidence || null,
+        kg_blocked_reason: kgBlockedReason || null,
+        kg_network_graph: kgNetworkGraph || null,
+        biomarker_evidence: biomarkerEvidence || null,
+        biomarker_blocked_reason: biomarkerBlockedReason || null,
+    };
+}
+
+/** Default filename suggestion (no extension) for a session export. */
+export function defaultSessionFilename() {
+    return `scope-session-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+}
+
+function withJsonExtension(filename) {
+    const name = filename && filename.trim() ? filename.trim() : defaultSessionFilename();
+    return name.toLowerCase().endsWith(".json") ? name : `${name}.json`;
+}
+
+/** Triggers a browser download of the session as a JSON file to the browser's default download location. */
+export function downloadSessionExport(sessionData, filename) {
+    const blob = new Blob([JSON.stringify(sessionData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = withJsonExtension(filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * Saves the session under a user-chosen name. Where the File System Access API is available
+ * (Chromium-based browsers), this opens the real OS "Save As" dialog — the user can change
+ * both name and folder there. Elsewhere (Firefox, Safari), there is no web API to choose a
+ * folder, so this falls back to a plain download using the given filename; the browser saves
+ * to its default downloads location.
+ */
+export async function saveSessionFile(sessionData, filename) {
+    const jsonText = JSON.stringify(sessionData, null, 2);
+    if (typeof window !== "undefined" && typeof window.showSaveFilePicker === "function") {
+        try {
+            const handle = await window.showSaveFilePicker({
+                suggestedName: withJsonExtension(filename),
+                types: [{ description: "SCOPE session", accept: { "application/json": [".json"] } }],
+            });
+            const writable = await handle.createWritable();
+            await writable.write(jsonText);
+            await writable.close();
+            return;
+        } catch (error) {
+            if (error && error.name === "AbortError") {
+                // User cancelled the native save dialog — respect that, don't fall back.
+                return;
+            }
+            // Any other failure (e.g. permission denied): fall through to plain download.
+        }
+    }
+    downloadSessionExport(sessionData, filename);
+}
+
+/** Parses and defensively normalizes an imported session file's text content. Throws on invalid JSON. */
+export function parseSessionImport(rawText) {
+    const parsed = JSON.parse(rawText);
+    if (!parsed || typeof parsed !== "object") {
+        throw new Error("Invalid session file");
+    }
+    return {
+        hypothesisText: typeof parsed.hypothesis_text === "string" ? parsed.hypothesis_text : "",
+        ranModules: Array.isArray(parsed.modules_run)
+            ? parsed.modules_run.filter((id) => VALID_MODULES.includes(id))
+            : [],
+        evaluation: parsed.evaluation && typeof parsed.evaluation === "object" ? parsed.evaluation : null,
+        literatureQuery: normalizeLiteratureQueryForImport(parsed.literature_query),
+        kgEvidence: parsed.kg_evidence && typeof parsed.kg_evidence === "object" ? parsed.kg_evidence : null,
+        kgBlockedReason:
+            typeof parsed.kg_blocked_reason === "string" && parsed.kg_blocked_reason ? parsed.kg_blocked_reason : null,
+        kgNetworkGraph:
+            parsed.kg_network_graph && typeof parsed.kg_network_graph === "object" ? parsed.kg_network_graph : null,
+        biomarkerEvidence:
+            parsed.biomarker_evidence && typeof parsed.biomarker_evidence === "object"
+                ? parsed.biomarker_evidence
+                : null,
+        biomarkerBlockedReason:
+            typeof parsed.biomarker_blocked_reason === "string" && parsed.biomarker_blocked_reason
+                ? parsed.biomarker_blocked_reason
+                : null,
+    };
+}

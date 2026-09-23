@@ -7,7 +7,7 @@ import userUtils from "@/utils/userUtils";
  */
 
 export const BIOMARKER_SESSION_KIND = "biomarker-network-session";
-export const BIOMARKER_SESSION_SCHEMA_VERSION = 4;
+export const BIOMARKER_SESSION_SCHEMA_VERSION = 5;
 
 function cloneJson(value, fallback) {
     try {
@@ -80,6 +80,9 @@ export function buildBiomarkerSessionExport(vm) {
         exportedAt: new Date().toISOString(),
         label: String((vm && (vm.searchedFactorLabel || vm.lastNeedle || vm.userQuery)) || ""),
         session: {
+            searchDirection: String(
+                (vm && vm.searchDirection) || "cfde-to-biomarker"
+            ),
             userQuery: String((vm && vm.userQuery) || ""),
             searchNeedle: String((vm && vm.searchNeedle) || ""),
             lastNeedle: String((vm && vm.lastNeedle) || ""),
@@ -244,6 +247,13 @@ export function applyBiomarkerSessionImport(vm, payload, { setKeyParams } = {}) 
             : null;
 
     assign(vm, "userQuery", String(session.userQuery || ""));
+    assign(
+        vm,
+        "searchDirection",
+        session.searchDirection === "biomarker-to-cfde"
+            ? "biomarker-to-cfde"
+            : "cfde-to-biomarker"
+    );
     assign(vm, "searchNeedle", String(session.searchNeedle || session.userQuery || ""));
     assign(vm, "lastNeedle", String(session.lastNeedle || ""));
     assign(vm, "searchedFactorLabel", String(session.searchedFactorLabel || ""));

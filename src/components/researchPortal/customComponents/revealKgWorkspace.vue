@@ -461,6 +461,10 @@ import {
     toggleVisibilityFilterLayer,
 } from "./revealKgWorkspace/revealKgVisibilityFilterUtils.js";
 import { resolveIntentAddNodes } from "./revealKgWorkspace/revealKgIntentAddNodes.js";
+import {
+    isScopeCanvasHandoff,
+    sessionFromScopeCanvasHandoff,
+} from "./revealKgWorkspace/revealKgScopeHandoffImport.js";
 import WorkspaceExplanationBubble from "./revealKgWorkspace/WorkspaceExplanationBubble.vue";
 import WorkspaceHypothesesBubble from "./revealKgWorkspace/WorkspaceHypothesesBubble.vue";
 import WorkspaceDatasetsBubble from "./revealKgWorkspace/WorkspaceDatasetsBubble.vue";
@@ -4332,7 +4336,31 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             try {
-                const session = await this.graphStore.parseGraphImportFile(file);
+                const text = await file.text();
+                let parsed;
+                try {
+                    parsed = JSON.parse(String(text || ""));
+                } catch (e) {
+                    throw new Error("File is not valid JSON.");
+                }
+
+                let session = null;
+                if (isScopeCanvasHandoff(parsed)) {
+                    this.showStatus("Resolving SCOPE CFDE KG handoff in Canvas catalog…", 6000);
+                    session = await sessionFromScopeCanvasHandoff(parsed, this.apiClient);
+                    this.welcomeOpen = false;
+                    this.loadSessionOntoCanvas(session, {
+                        restoreInspectorCaches: false,
+                        loadedSavedGraphId: null,
+                        statusMessage: `Imported SCOPE CFDE KG "${session.label || "graph"}"`,
+                    });
+                    return;
+                }
+
+                session = this.graphStore.parseGraphImportPayload(parsed);
+                if (!session) {
+                    throw new Error("File is not a valid KG Canvas graph export.");
+                }
                 this.welcomeOpen = false;
                 this.loadSessionOntoCanvas(session, {
                     restoreInspectorCaches: true,

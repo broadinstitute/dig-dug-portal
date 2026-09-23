@@ -490,7 +490,10 @@
                             <p>
                                 Best for moving between machines or archiving a session you
                                 may reopen in the canvas. Includes inspector caches, expansion
-                                history, and candidate caches.
+                                history, and candidate caches. Import also accepts a SCOPE CFDE
+                                KG handoff file (<code>kind: "reveal-scope-canvas-handoff"</code>):
+                                catalog matches become normal nodes; unmatched entities appear as
+                                light-gray squares.
                             </p>
                         </li>
                         <li>

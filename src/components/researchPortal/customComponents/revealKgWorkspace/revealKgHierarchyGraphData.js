@@ -117,6 +117,7 @@ function normalizeGraphNode(node) {
     nodeType: node.type || node.node_type,
     layer,
     isAnchor: Boolean(node.is_anchor),
+    isExternal: Boolean(node.is_external),
     originTags: node.origin_tags || [],
     childIds: new Set(),
   };
@@ -219,6 +220,7 @@ export function buildColumnLayout(visibleNodes, visibleEdges, options = {}) {
       {
         layer: meta.layer,
         isAnchor: meta.isAnchor,
+        isExternal: meta.isExternal,
         label: meta.label,
         nodeType: meta.nodeType,
         subtitle: meta.subtitle,
@@ -377,6 +379,7 @@ export function buildRowLayout(visibleNodes, visibleEdges, options = {}) {
       {
         layer: meta.layer,
         isAnchor: meta.isAnchor,
+        isExternal: meta.isExternal,
         label: meta.label,
         nodeType: meta.nodeType,
         subtitle: meta.subtitle,
