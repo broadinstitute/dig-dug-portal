@@ -1615,6 +1615,7 @@ function calculateExpressionStats(exprValues, partial=false) {
         }
     }else{
         return {
+            n: sortedValues.length,
             mean,
             pctExpr
         }

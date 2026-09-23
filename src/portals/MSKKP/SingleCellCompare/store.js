@@ -72,6 +72,8 @@ const SC_ENDPOINTS = {
 // doesn't fan out into hundreds of expression queries. Genes are ranked by
 // |log fold change| first, so the most dataset-defining markers survive the cap.
 const MAX_GENE_PANEL_SIZE = 60;
+// Keep cached per-cell vectors bounded on large single-cell datasets.
+const GENE_ROWS_CACHE_BYTES = 100 * 1024 * 1024;
 
 // When both are present among the discovered "msk"-portal datasets, default the two
 // pickers to this pair (bone vs. its marrow) since it's the most on-topic comparison.
@@ -199,17 +201,17 @@ function logFetch(kind, url) {
 
 // Adapts calcExpressionStats() (the same aggregation the live single-cell browser
 // uses) into the {cell_type, summary, values} shape the mockup's UI expects.
-function rowsFromExpressionStats(fields, labelColors, expression, gene, cellTypeKey) {
-    const stats = calcExpressionStats(fields, labelColors, expression, gene, cellTypeKey, null, false);
+function rowsFromExpressionStats(fields, labelColors, expression, gene, cellTypeKey, includeValues = true) {
+    const stats = calcExpressionStats(fields, labelColors, expression, gene, cellTypeKey, null, !includeValues);
     return (stats || []).map((row) => ({
         cell_type: row[cellTypeKey],
         summary: {
-            n: row.exprValues ? row.exprValues.length : 0,
+            n: row.n || (row.exprValues ? row.exprValues.length : 0),
             avg_expression: row.mean || 0,
             pct_expressing: (row.pctExpr || 0) / 100,
             median: row.median || 0,
         },
-        values: row.exprValues || [],
+        values: includeValues ? (row.exprValues || []) : [],
     }));
 }
 
@@ -265,6 +267,10 @@ export default new Vuex.Store({
         fieldsCache: {},
         // "datasetId:GENE" -> rows [{cell_type, summary, values}] | null
         geneRowsCache: {},
+        geneRowsCacheBytes: 0,
+        geneRowsCacheOrder: [],
+        geneComparisonRequest: 0,
+        cellTypeComparisonRequest: 0,
         // datasetId -> ranked gene[] from marker_genes.json.gz, or null if unavailable
         markersCache: {},
     },
@@ -354,14 +360,17 @@ export default new Vuex.Store({
             return entry;
         },
 
-        async ensureGeneRows(context, { datasetId, gene }) {
+        async ensureGeneRows(context, { datasetId, gene, includeValues = true }) {
             const state = context.state;
             const cacheKey = `${datasetId}:${gene}`;
-            if (cacheKey in state.geneRowsCache) return state.geneRowsCache[cacheKey];
+            if (includeValues && cacheKey in state.geneRowsCache) {
+                state.geneRowsCacheOrder = state.geneRowsCacheOrder.filter((key) => key !== cacheKey);
+                state.geneRowsCacheOrder.push(cacheKey);
+                return state.geneRowsCache[cacheKey];
+            }
 
             const fieldsEntry = await context.dispatch("ensureFields", datasetId);
             if (!fieldsEntry || !fieldsEntry.cellTypeKey) {
-                Vue.set(state.geneRowsCache, cacheKey, null);
                 return null;
             }
 
@@ -373,7 +382,6 @@ export default new Vuex.Store({
                 expression = null;
             }
             if (!expression) {
-                Vue.set(state.geneRowsCache, cacheKey, null);
                 return null;
             }
 
@@ -382,9 +390,25 @@ export default new Vuex.Store({
                 fieldsEntry.labelColors,
                 expression,
                 gene,
-                fieldsEntry.cellTypeKey
+                fieldsEntry.cellTypeKey,
+                includeValues
             );
-            Vue.set(state.geneRowsCache, cacheKey, rows);
+            if (includeValues) {
+                if (cacheKey in state.geneRowsCache) return state.geneRowsCache[cacheKey];
+                const bytes = rows.reduce((total, row) => total + row.values.length * 8, 0);
+                while (state.geneRowsCacheOrder.length && state.geneRowsCacheBytes + bytes > GENE_ROWS_CACHE_BYTES) {
+                    const oldest = state.geneRowsCacheOrder.shift();
+                    const evicted = state.geneRowsCache[oldest];
+                    if (evicted) state.geneRowsCacheBytes -= evicted.reduce((total, row) => total + row.values.length * 8, 0);
+                    Vue.delete(state.geneRowsCache, oldest);
+                }
+                // A single selection may exceed the budget; use it for the plot but do not retain it.
+                if (bytes <= GENE_ROWS_CACHE_BYTES) {
+                    Vue.set(state.geneRowsCache, cacheKey, rows);
+                    state.geneRowsCacheOrder.push(cacheKey);
+                    state.geneRowsCacheBytes += bytes;
+                }
+            }
             return rows;
         },
 
@@ -496,15 +520,19 @@ export default new Vuex.Store({
 
         async loadGeneComparison(context, gene) {
             const state = context.state;
+            const request = ++state.geneComparisonRequest;
+            const [leftId, rightId] = [state.leftId, state.rightId];
             const targetGene = gene || state.selectedGene;
             if (!targetGene) return;
             state.selectedGene = targetGene;
             state.geneStatus = "Loading";
 
             const [leftRows, rightRows] = await Promise.all([
-                context.dispatch("ensureGeneRows", { datasetId: state.leftId, gene: targetGene }),
-                context.dispatch("ensureGeneRows", { datasetId: state.rightId, gene: targetGene }),
+                context.dispatch("ensureGeneRows", { datasetId: leftId, gene: targetGene }),
+                context.dispatch("ensureGeneRows", { datasetId: rightId, gene: targetGene }),
             ]);
+
+            if (request !== state.geneComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
 
             if (!leftRows && !rightRows) {
                 state.geneComparison = null;
@@ -515,8 +543,8 @@ export default new Vuex.Store({
             state.geneComparison = {
                 gene: targetGene,
                 datasets: {
-                    [state.leftId]: leftRows || [],
-                    [state.rightId]: rightRows || [],
+                    [leftId]: leftRows || [],
+                    [rightId]: rightRows || [],
                 },
             };
             state.geneStatus = "";
@@ -524,6 +552,8 @@ export default new Vuex.Store({
 
         async loadCellTypeComparison(context, cellType) {
             const state = context.state;
+            const request = ++state.cellTypeComparisonRequest;
+            const [leftId, rightId] = [state.leftId, state.rightId];
             const targetCellType = cellType || state.selectedCellType;
             if (!targetCellType) return;
             state.selectedCellType = targetCellType;
@@ -533,9 +563,10 @@ export default new Vuex.Store({
             for (const gene of state.genePanel) {
                 // eslint-disable-next-line no-await-in-loop
                 const [leftRows, rightRows] = await Promise.all([
-                    context.dispatch("ensureGeneRows", { datasetId: state.leftId, gene }),
-                    context.dispatch("ensureGeneRows", { datasetId: state.rightId, gene }),
+                    context.dispatch("ensureGeneRows", { datasetId: leftId, gene, includeValues: false }),
+                    context.dispatch("ensureGeneRows", { datasetId: rightId, gene, includeValues: false }),
                 ]);
+                if (request !== state.cellTypeComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
                 const leftSummary = (leftRows || []).find((row) => row.cell_type === targetCellType)?.summary || emptySummary();
                 const rightSummary = (rightRows || []).find((row) => row.cell_type === targetCellType)?.summary || emptySummary();
                 if (!leftSummary.n && !rightSummary.n) continue;
@@ -548,7 +579,8 @@ export default new Vuex.Store({
                 });
             }
 
-            state.cellTypeComparison = { cellType: targetCellType, points };
+            if (request !== state.cellTypeComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
+            state.cellTypeComparison = { cellType: targetCellType, points, leftId, rightId };
             state.cellTypeStatus = points.length ? "" : `No expression data found for ${targetCellType} in the current gene panel.`;
         },
 

@@ -150,6 +150,9 @@ new Vue({
         },
     },
     created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("kp4cd/getNewsFeed", "msk");
+        this.$store.dispatch("kp4cd/getFrontContents", "msk");
         this.$store.dispatch("init");
     },
     mounted() {
