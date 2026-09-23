@@ -18,7 +18,8 @@
           "requiresLogin": true,
           "label": "FAIRkit",
           "path": "/fairkit",
-          "external": true
+          "external": true,
+          "hide": true
         },
         {
           "label": "Data Summary Browser",
@@ -39,7 +40,8 @@
         },
         {
           "label": "Phenotype Comparator Browser",
-          "path": "comp.html"
+          "path": "comp.html",
+          "hide": true
         }
       ]
     },
