@@ -449,19 +449,28 @@ export default Vue.component("volcano-plot", {
                         fillScore++;
                     }
                 }
-
-                switch (fillScore) {
-                    case 0:
-                        ctx.fillStyle = "#00000050";
-                        break;
-                    case 1:
-                        ctx.fillStyle = "#09910980";
-                        break;
-                    case 2:
-                        ctx.fillStyle = "#ff003780";
-                        break;
+                if (!!this.renderConfig.diffExpVolcano){
+                    if (d[this.renderConfig.xAxisField] > 0 && d[this.renderConfig.yAxisField] > 0){
+                        ctx.fillStyle = "red";
+                    } else if (d[this.renderConfig.xAxisField] < 0 && d[this.renderConfig.yAxisField] > 0){
+                        ctx.fillStyle = "blue";
+                    } else {
+                        ctx.fillStyle = "black";
+                    }
+                } else {
+                    switch (fillScore) {
+                        case 0:
+                            ctx.fillStyle = "#00000050";
+                            break;
+                        case 1:
+                            ctx.fillStyle = "#09910980";
+                            break;
+                        case 2:
+                            ctx.fillStyle = "#ff003780";
+                            break;
+                    }
                 }
-
+                
                 ctx.lineWidth = 0;
                 ctx.beginPath();
                 ctx.arc(xPos, yPos, 3, 0, 2 * Math.PI);
