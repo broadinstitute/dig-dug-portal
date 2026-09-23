@@ -79,7 +79,10 @@ new Vue({
             let pageContent = await getTextContent(byorPage, false, true);
             this.pageContent = pageContent;
             if (!!pageContent.field_data_points){
-                let dataPoints = dataConvert.csv2Json(pageContent.field_data_points);
+                let rawData = pageContent.field_data_points;
+                let dataPoints = page === this.pages.glossary 
+                    ? this.formatGlossary(rawData) 
+                    : dataConvert.csv2Json(rawData);
                 let sections = Array.from(new Set (dataPoints.map(
                     d => !!d[this.membershipLeadingSpace] ? d[this.membershipLeadingSpace] : d.Membership)));
                 sections = sections.filter(d => d !== undefined);
@@ -97,6 +100,20 @@ new Vue({
                 this.dataPoints = dataPoints;
             }
         },
+        formatGlossary(rawData){
+            let lines = rawData.split("\n").slice(1);
+            let formatted = lines.map(l => {
+                let termIndex = l.indexOf(",")
+                let term = l.slice(0, termIndex);
+                let definition = l.slice(termIndex + 1).trim();
+                definition = definition.replaceAll("\"", "");
+                return {
+                    "Term": term,
+                    "Definition": definition
+                }
+            });
+            return formatted;
+        }
     },
 
     render(createElement, context) {
