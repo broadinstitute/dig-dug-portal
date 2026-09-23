@@ -11,34 +11,60 @@
                     <p class="eyebrow">MSKKP live single-cell explorer</p>
                     <h1>Dataset vs Dataset Single-Cell Comparison</h1>
                     <p class="lede">
-                        Compare musculoskeletal single-cell datasets using live queries
-                        against the single-cell BioIndex API - no precomputed or
-                        static test data.
-                    </p>
-                    <div v-if="$store.state.metadataError" class="alert alert-warning">
-                        {{ $store.state.metadataError }}
-                    </div>
-                    <p v-else-if="!$store.state.loading && $parent.datasets.length" class="caption dataset-count-note">
-                        {{ $store.state.datasetCount }} single-cell dataset{{ $store.state.datasetCount === 1 ? "" : "s" }}
-                        available from this BioIndex host{{ $store.state.usingMskDatasets ? "" : " (none tagged for the \"msk\" portal yet)" }}.
+                        Compare musculoskeletal single-cell datasets using live
+                        queries against the single-cell BioIndex API - no
+                        precomputed or static test data.
                     </p>
                     <div
-                        v-if="!$store.state.loading && !$store.state.usingMskDatasets && $parent.datasets.length"
+                        v-if="$store.state.metadataError"
+                        class="alert alert-warning"
+                    >
+                        {{ $store.state.metadataError }}
+                    </div>
+                    <p
+                        v-else-if="
+                            !$store.state.loading && $parent.datasets.length
+                        "
+                        class="caption dataset-count-note"
+                    >
+                        {{ $store.state.datasetCount }} single-cell dataset{{
+                            $store.state.datasetCount === 1 ? "" : "s"
+                        }}
+                        available from this BioIndex host{{
+                            $store.state.usingMskDatasets
+                                ? ""
+                                : ' (none tagged for the "msk" portal yet)'
+                        }}.
+                    </p>
+                    <div
+                        v-if="
+                            !$store.state.loading &&
+                            !$store.state.usingMskDatasets &&
+                            $parent.datasets.length
+                        "
                         class="alert alert-info"
                     >
                         No dataset on this BioIndex host is tagged for the "msk"
-                        portal yet, so the pickers below default to the first two
-                        datasets available. The fuller MSK set (bone, bone marrow,
-                        tendon/ligament) currently lives on the dev BioIndex - rebuild
-                        with <code>BIOINDEX_DEV=1</code> to see it.
+                        portal yet, so the pickers below default to the first
+                        two datasets available. The fuller MSK set (bone, bone
+                        marrow, tendon/ligament) currently lives on the dev
+                        BioIndex - rebuild with <code>BIOINDEX_DEV=1</code> to
+                        see it.
                     </div>
                 </header>
 
-                <section class="section-block controls" v-if="$parent.datasets.length">
+                <section
+                    class="section-block controls"
+                    v-if="$parent.datasets.length"
+                >
                     <label class="control">
                         <span>Left dataset</span>
                         <select class="form-control" v-model="$parent.leftId">
-                            <option v-for="d in $parent.datasets" :key="'l-' + d.id" :value="d.id">
+                            <option
+                                v-for="d in $parent.datasets"
+                                :key="'l-' + d.id"
+                                :value="d.id"
+                            >
                                 {{ d.label }}
                             </option>
                         </select>
@@ -46,7 +72,11 @@
                     <label class="control">
                         <span>Right dataset</span>
                         <select class="form-control" v-model="$parent.rightId">
-                            <option v-for="d in $parent.datasets" :key="'r-' + d.id" :value="d.id">
+                            <option
+                                v-for="d in $parent.datasets"
+                                :key="'r-' + d.id"
+                                :value="d.id"
+                            >
                                 {{ d.label }}
                             </option>
                         </select>
@@ -54,17 +84,24 @@
                 </section>
                 <section class="section-block" v-else>
                     <div class="empty-state">
-                        {{ $store.state.loading ? "Loading datasets from the single-cell BioIndex..." : "No single-cell datasets are currently available." }}
+                        {{
+                            $store.state.loading
+                                ? "Loading datasets from the single-cell BioIndex..."
+                                : "No single-cell datasets are currently available."
+                        }}
                     </div>
                 </section>
 
                 <template v-if="$parent.datasets.length">
-                    <section class="section-block" aria-labelledby="sc-overview-title">
+                    <section
+                        class="section-block"
+                        aria-labelledby="sc-overview-title"
+                    >
                         <div class="section-heading">
                             <h2 id="sc-overview-title">Dataset Overview</h2>
                             <p class="caption">
-                                Display-sampled UMAP coordinates colored by cell type,
-                                fetched live per dataset.
+                                Display-sampled UMAP coordinates colored by cell
+                                type, fetched live per dataset.
                             </p>
                         </div>
                         <div class="paired-panels">
@@ -84,17 +121,28 @@
                             </article>
                         </div>
                         <div class="legend-row">
-                            <span class="legend-item" v-for="ct in $parent.cellTypes" :key="ct">
+                            <span
+                                class="legend-item"
+                                v-for="ct in $parent.cellTypes"
+                                :key="ct"
+                            >
                                 <span
                                     class="swatch"
-                                    :style="{ background: $parent.cellTypeColors[ct] || '#999' }"
+                                    :style="{
+                                        background:
+                                            $parent.cellTypeColors[ct] ||
+                                            '#999',
+                                    }"
                                 ></span>
                                 {{ $parent.formatLabel(ct) }}
                             </span>
                         </div>
                     </section>
 
-                    <section class="section-block" aria-labelledby="sc-gene-title">
+                    <section
+                        class="section-block"
+                        aria-labelledby="sc-gene-title"
+                    >
                         <div class="section-heading with-control">
                             <h2 id="sc-gene-title">Gene Comparison</h2>
                             <label class="control compact">
@@ -109,25 +157,43 @@
                                     placeholder="Type any gene symbol..."
                                 />
                                 <datalist id="sc-gene-options">
-                                    <option v-for="g in $parent.geneOptions" :key="g" :value="g"></option>
+                                    <option
+                                        v-for="g in $parent.geneOptions"
+                                        :key="g"
+                                        :value="g"
+                                    ></option>
                                 </datalist>
                             </label>
                         </div>
                         <p class="caption panel-note gene-panel-note">
                             {{ $parent.geneOptions.length }} suggested genes
-                            <template v-if="$store.state.usingLiveGenePanel">auto-loaded live from {{ $parent.leftLabel }} / {{ $parent.rightLabel }}'s own marker genes</template>
+                            <template v-if="$store.state.usingLiveGenePanel"
+                                >auto-loaded live from {{ $parent.leftLabel }} /
+                                {{ $parent.rightLabel }}'s own marker
+                                genes</template
+                            >
                             <template v-else>from a fallback list</template>
-                            - any gene symbol you type is queried live regardless.
+                            - any gene symbol you type is queried live
+                            regardless.
                         </p>
                         <div class="plot-card">
                             <div class="plot-title">
                                 <h3>Expression by cell type</h3>
                                 <div class="dataset-key">
-                                    <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
-                                    <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
+                                    <span
+                                        ><i class="chip left"></i
+                                        >{{ $parent.leftLabel }}</span
+                                    >
+                                    <span
+                                        ><i class="chip right"></i
+                                        >{{ $parent.rightLabel }}</span
+                                    >
                                 </div>
                             </div>
-                            <div class="plot-status" v-if="$parent.geneStatusDisplay">
+                            <div
+                                class="plot-status"
+                                v-if="$parent.geneStatusDisplay"
+                            >
                                 {{ $parent.geneStatusDisplay }}
                             </div>
                             <canvas ref="genePlot"></canvas>
@@ -135,7 +201,10 @@
                         <div class="paired-tables">
                             <article class="table-card">
                                 <h3>{{ $parent.leftLabel }} summaries</h3>
-                                <div v-if="!$parent.leftGeneTableRows.length" class="empty-state">
+                                <div
+                                    v-if="!$parent.leftGeneTableRows.length"
+                                    class="empty-state"
+                                >
                                     No rows available.
                                 </div>
                                 <table v-else>
@@ -148,18 +217,44 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="row in $parent.leftGeneTableRows" :key="row.label">
+                                        <tr
+                                            v-for="row in $parent.leftGeneTableRows"
+                                            :key="row.label"
+                                        >
                                             <td>{{ row.label }}</td>
-                                            <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
-                                            <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                            <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatNumber(
+                                                        row.summary
+                                                            .avg_expression
+                                                    )
+                                                }}
+                                            </td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatPercent(
+                                                        row.summary
+                                                            .pct_expressing
+                                                    )
+                                                }}
+                                            </td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatInteger(
+                                                        row.summary.n
+                                                    )
+                                                }}
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </article>
                             <article class="table-card">
                                 <h3>{{ $parent.rightLabel }} summaries</h3>
-                                <div v-if="!$parent.rightGeneTableRows.length" class="empty-state">
+                                <div
+                                    v-if="!$parent.rightGeneTableRows.length"
+                                    class="empty-state"
+                                >
                                     No rows available.
                                 </div>
                                 <table v-else>
@@ -172,11 +267,34 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="row in $parent.rightGeneTableRows" :key="row.label">
+                                        <tr
+                                            v-for="row in $parent.rightGeneTableRows"
+                                            :key="row.label"
+                                        >
                                             <td>{{ row.label }}</td>
-                                            <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
-                                            <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                            <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatNumber(
+                                                        row.summary
+                                                            .avg_expression
+                                                    )
+                                                }}
+                                            </td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatPercent(
+                                                        row.summary
+                                                            .pct_expressing
+                                                    )
+                                                }}
+                                            </td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatInteger(
+                                                        row.summary.n
+                                                    )
+                                                }}
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -184,13 +302,23 @@
                         </div>
                     </section>
 
-                    <section class="section-block" aria-labelledby="sc-celltype-title">
+                    <section
+                        class="section-block"
+                        aria-labelledby="sc-celltype-title"
+                    >
                         <div class="section-heading with-control">
                             <h2 id="sc-celltype-title">Cell-Type Comparison</h2>
                             <label class="control compact">
                                 <span>Cell type</span>
-                                <select class="form-control" v-model="$parent.cellTypeModel">
-                                    <option v-for="ct in $parent.cellTypes" :key="ct" :value="ct">
+                                <select
+                                    class="form-control"
+                                    v-model="$parent.cellTypeModel"
+                                >
+                                    <option
+                                        v-for="ct in $parent.cellTypes"
+                                        :key="ct"
+                                        :value="ct"
+                                    >
                                         {{ $parent.formatLabel(ct) }}
                                     </option>
                                 </select>
@@ -198,28 +326,52 @@
                         </div>
                         <div class="plot-card">
                             <div class="plot-title">
-                                <h3>Marker-panel genes by average expression</h3>
+                                <h3>
+                                    Marker-panel genes by average expression
+                                </h3>
                                 <div class="dataset-key">
-                                    <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
-                                    <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
+                                    <span
+                                        ><i class="chip left"></i
+                                        >{{ $parent.leftLabel }}</span
+                                    >
+                                    <span
+                                        ><i class="chip right"></i
+                                        >{{ $parent.rightLabel }}</span
+                                    >
                                 </div>
                             </div>
-                            <div class="plot-status" v-if="$parent.cellTypeStatusDisplay">
+                            <div
+                                class="plot-status"
+                                v-if="$parent.cellTypeStatusDisplay"
+                            >
                                 {{ $parent.cellTypeStatusDisplay }}
                             </div>
                             <canvas ref="cellTypePlot"></canvas>
                         </div>
                         <p class="caption panel-note">
-                            Scoped to the top {{ $parent.genePanelCount }} marker genes
-                            <template v-if="$store.state.usingLiveGenePanel">auto-loaded live from each dataset's own marker_genes file</template>
-                            <template v-else>from a fallback list (neither dataset has a live marker-gene file)</template>
+                            Scoped to the top
+                            {{ $parent.genePanelCount }} marker genes
+                            <template v-if="$store.state.usingLiveGenePanel"
+                                >auto-loaded live from each dataset's own
+                                marker_genes file</template
+                            >
+                            <template v-else
+                                >from a fallback list (neither dataset has a
+                                live marker-gene file)</template
+                            >
                             - not the whole genome, see the comments in
-                            <code>src/views/SingleCellCompare/store.js</code> for why.
+                            <code
+                                >src/portals/MSKKP/SingleCellCompare/store.js</code
+                            >
+                            for why.
                         </p>
                         <div class="paired-tables">
                             <article class="table-card">
                                 <h3>{{ $parent.leftLabel }} summaries</h3>
-                                <div v-if="!$parent.leftCellTypeTableRows.length" class="empty-state">
+                                <div
+                                    v-if="!$parent.leftCellTypeTableRows.length"
+                                    class="empty-state"
+                                >
                                     No rows available.
                                 </div>
                                 <table v-else>
@@ -232,18 +384,46 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="row in $parent.leftCellTypeTableRows" :key="row.label">
+                                        <tr
+                                            v-for="row in $parent.leftCellTypeTableRows"
+                                            :key="row.label"
+                                        >
                                             <td>{{ row.label }}</td>
-                                            <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
-                                            <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                            <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatNumber(
+                                                        row.summary
+                                                            .avg_expression
+                                                    )
+                                                }}
+                                            </td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatPercent(
+                                                        row.summary
+                                                            .pct_expressing
+                                                    )
+                                                }}
+                                            </td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatInteger(
+                                                        row.summary.n
+                                                    )
+                                                }}
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </article>
                             <article class="table-card">
                                 <h3>{{ $parent.rightLabel }} summaries</h3>
-                                <div v-if="!$parent.rightCellTypeTableRows.length" class="empty-state">
+                                <div
+                                    v-if="
+                                        !$parent.rightCellTypeTableRows.length
+                                    "
+                                    class="empty-state"
+                                >
                                     No rows available.
                                 </div>
                                 <table v-else>
@@ -256,11 +436,34 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="row in $parent.rightCellTypeTableRows" :key="row.label">
+                                        <tr
+                                            v-for="row in $parent.rightCellTypeTableRows"
+                                            :key="row.label"
+                                        >
                                             <td>{{ row.label }}</td>
-                                            <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
-                                            <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                            <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatNumber(
+                                                        row.summary
+                                                            .avg_expression
+                                                    )
+                                                }}
+                                            </td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatPercent(
+                                                        row.summary
+                                                            .pct_expressing
+                                                    )
+                                                }}
+                                            </td>
+                                            <td class="numeric">
+                                                {{
+                                                    $parent.formatInteger(
+                                                        row.summary.n
+                                                    )
+                                                }}
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>

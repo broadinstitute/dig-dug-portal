@@ -11,7 +11,7 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "index"],
     },
     mskkpindex: {
-        entry: "src/views/MskkpIndex/main.js",
+        entry: "src/portals/MSKKP/MskkpIndex/main.js",
         template: "public/index.html",
         filename: "mskkpindex.html",
         title: "MSKKP Home",
@@ -363,7 +363,7 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "gp2browser"],
     },
     singlecellcompare: {
-        entry: "src/views/SingleCellCompare/main.js",
+        entry: "src/portals/MSKKP/SingleCellCompare/main.js",
         template: "public/index.html",
         filename: "singlecellcompare.html",
         title: "MSKKP Single-Cell Dataset Comparison",
