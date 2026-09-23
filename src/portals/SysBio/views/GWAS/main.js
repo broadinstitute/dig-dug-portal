@@ -22,6 +22,7 @@ import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 
 const BI = DATASET_ASSOC_URL || `${SYSBIO_HOST}/api/bio/query/dataset-associations`;
+const OLD_DATASET = [["SysBio_Nalls2025_ADvPD_EU", "SysBio_ADvPD"]];
 
 new Vue({
     mixins: [sysbioMixin],
@@ -112,7 +113,7 @@ new Vue({
                 "SysBio_control_amppdvcontrol_ampad",
                 "SysBio_PD_amppdvcontrol_amppd",
                 "SysBio_PDvother",
-                "SysBio_ADvPD"
+                //"SysBio_ADvPD"
             ]
         };
     },
@@ -124,7 +125,6 @@ new Vue({
             }
         },
         subsets(newSubsets){
-            console.log("we are here");
             this.subset = newSubsets[0];
         },
         dataset(){
@@ -162,7 +162,8 @@ new Vue({
                 return [];
             }
             let applicableSubsets = this.datasetKeys.filter(d => d[1] === this.dataset);
-            return applicableSubsets.map(d => d[0]);
+            let results = applicableSubsets.map(d => d[0]);
+            return results;
         },
         datasets(){
             let allDatasets = Array.from(new Set(this.datasetKeys.map(d => d[1])));
@@ -196,14 +197,14 @@ new Vue({
     mounted() {},
 
     async created() {
-        this.datasetKeys = await this.fetchKeys();
+        //this.datasetKeys = await this.fetchKeys();
+        this.datasetKeys = OLD_DATASET;
         const documentation = await getTextContent(this.byorDocs, true);
         this.docs = documentation;
     },
     methods: {
         async fetchKeys(){
             const keysUrl = BI.replace("query","keys").concat("/2");
-            console.log(keysUrl);
             const getKeys = await fetch(keysUrl);
             let keysJson = await getKeys.json();
             return keysJson.keys;
@@ -225,7 +226,6 @@ new Vue({
             console.log(filterCriterion);
         },
         filtersUpdated(filters){
-            console.log("Filters are:", JSON.stringify(filters));
             for(let i = 0; i < filters.length; i++){
                 if (filters[i].field === 'chromosome'){
                     this.chromosomeFilterSet = true;
