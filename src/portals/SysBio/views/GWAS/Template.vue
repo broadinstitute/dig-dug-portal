@@ -6,7 +6,7 @@
         <div class="sysbio-body">
             <h2>Genetic Studies</h2>
             <div v-html="$parent.docs"></div>
-            <criterion-function-group>
+            <criterion-function-group v-if="$parent.datasets.length > 1">
                 <div class="col filter-col-md">
                     <div class="label">Select a dataset</div>
                     <select v-model="$parent.dataset">
@@ -22,7 +22,7 @@
                             {{ $parent.formatAncestry(subset) }}
                         </option>
                     </select>
-            </div>
+                </div>
             </criterion-function-group>
             <div class="f-row gwas-plots" v-if="!!$parent.dataset && !!$parent.subset" style="margin:20px 0 40px 0">
                 <div style="flex:1">
