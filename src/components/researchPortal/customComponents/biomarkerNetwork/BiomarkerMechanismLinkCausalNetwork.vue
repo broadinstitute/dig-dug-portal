@@ -34,6 +34,7 @@ import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import {
     buildCausalPathNetwork,
+    buildReverseCausalPathNetwork,
     causalPathNetworkHasContent,
 } from "./biomarkerMechanismLinkNetwork.js";
 
@@ -60,6 +61,15 @@ export default {
             type: String,
             default: "Mechanism",
         },
+        /** "forward" | "reverse" — reverse builds seed biomarker → gene → mechanisms */
+        variant: {
+            type: String,
+            default: "forward",
+        },
+        seedBiomarkerLabel: {
+            type: String,
+            default: "Biomarker",
+        },
         height: {
             type: Number,
             default: 320,
@@ -79,6 +89,9 @@ export default {
     },
     computed: {
         graphInput() {
+            if (this.variant === "reverse") {
+                return buildReverseCausalPathNetwork(this.summary, this.seedBiomarkerLabel);
+            }
             return buildCausalPathNetwork(this.summary, this.mechanismLabel);
         },
         hasNetwork() {

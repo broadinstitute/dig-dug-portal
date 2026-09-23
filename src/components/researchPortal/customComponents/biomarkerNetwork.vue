@@ -2,10 +2,43 @@
     <div class="reveal-kg-workspace biomarker-network">
         <header class="rkw-header">
             <div class="rkw-brand">
-                <span class="rkw-mark">CFDE KG</span>
-                <span class="rkw-title">&lt;-&gt; BiomarkerKB</span>
+                <span class="rkw-mark">{{ isReverseSearch ? "BiomarkerKB" : "CFDE KG" }}</span>
+                <span class="rkw-title">{{ searchDirectionTitle }}</span>
             </div>
             <div class="bn-header-ops">
+                <div class="bn-ops-menu">
+                    <button type="button" class="bn-ops-menu-toggle" aria-haspopup="true">
+                        Search direction
+                    </button>
+                    <div class="bn-ops-menu-list bn-ops-menu-list--direction" role="menu">
+                        <button
+                            type="button"
+                            class="bn-ops-menu-item"
+                            :class="{ 'bn-ops-menu-item--active': isForwardSearch }"
+                            role="menuitemradio"
+                            :aria-checked="isForwardSearch ? 'true' : 'false'"
+                            @click="setSearchDirection(SEARCH_DIRECTION_FORWARD)"
+                        >
+                            <span class="bn-ops-menu-check" aria-hidden="true">{{
+                                isForwardSearch ? "✓" : ""
+                            }}</span>
+                            CFDE KG → BiomarkerKB
+                        </button>
+                        <button
+                            type="button"
+                            class="bn-ops-menu-item"
+                            :class="{ 'bn-ops-menu-item--active': isReverseSearch }"
+                            role="menuitemradio"
+                            :aria-checked="isReverseSearch ? 'true' : 'false'"
+                            @click="setSearchDirection(SEARCH_DIRECTION_REVERSE)"
+                        >
+                            <span class="bn-ops-menu-check" aria-hidden="true">{{
+                                isReverseSearch ? "✓" : ""
+                            }}</span>
+                            BiomarkerKB → CFDE KG
+                        </button>
+                    </div>
+                </div>
                 <div class="bn-ops-menu">
                     <button type="button" class="bn-ops-menu-toggle" aria-haspopup="true">
                         Session
@@ -53,7 +86,16 @@
                 {{ error }}
             </div>
 
+            <div class="bn-direction-infographic">
+                <img
+                    :src="directionInfographicSrc"
+                    :alt="directionInfographicAlt"
+                    class="bn-direction-infographic__img"
+                />
+            </div>
+
             <div class="bn-accordions">
+                <template v-if="isForwardSearch">
                 <section
                     class="bn-accordion bn-accordion--mechanism"
                     :class="{
@@ -645,6 +687,550 @@
                         </template>
                     </div>
                 </section>
+                </template>
+
+                <template v-else>
+                    <section
+                        class="bn-accordion bn-accordion--mechanism"
+                        :class="{ 'bn-accordion--open': reverseBiomarkerAccordionOpen }"
+                    >
+                        <div class="bn-accordion-header">
+                            <button
+                                type="button"
+                                class="bn-accordion-trigger"
+                                :aria-expanded="reverseBiomarkerAccordionOpen ? 'true' : 'false'"
+                                @click="reverseBiomarkerAccordionOpen = !reverseBiomarkerAccordionOpen"
+                            >
+                                <span class="bn-accordion-title">
+                                    <span class="bn-accordion-step">1</span>
+                                    Biomarker
+                                </span>
+                                <span class="bn-accordion-chevron" aria-hidden="true" />
+                            </button>
+                        </div>
+                        <div v-show="reverseBiomarkerAccordionOpen" class="bn-accordion-panel">
+                            <div class="bn-search-panel">
+                                <div class="bn-search-row">
+                                    <div class="bn-input-wrap">
+                                        <input
+                                            id="bn-reverse-biomarker-input"
+                                            ref="reverseBiomarkerInput"
+                                            type="text"
+                                            class="form-control"
+                                            :class="{
+                                                'bn-query-input--clearable': !!reverseUserQuery.trim(),
+                                            }"
+                                            v-model="reverseUserQuery"
+                                            placeholder="Search a SNP or gene (e.g. rs7903146, TCF7L2)"
+                                            autocomplete="off"
+                                            aria-label="Biomarker SNP or gene"
+                                            @keydown.enter.prevent="runReverseDiseaseSearch"
+                                        />
+                                        <button
+                                            v-if="reverseUserQuery.trim()"
+                                            type="button"
+                                            class="bn-clear-bubble"
+                                            aria-label="Clear biomarker search"
+                                            title="Clear biomarker search"
+                                            @click="clearReverseBiomarkerSearch"
+                                        >
+                                            <b-icon icon="x" aria-hidden="true" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section
+                        class="bn-accordion"
+                        :class="{ 'bn-accordion--open': reverseDiseasesAccordionOpen }"
+                    >
+                        <div class="bn-accordion-header">
+                            <button
+                                type="button"
+                                class="bn-accordion-trigger"
+                                :aria-expanded="reverseDiseasesAccordionOpen ? 'true' : 'false'"
+                                @click="reverseDiseasesAccordionOpen = !reverseDiseasesAccordionOpen"
+                            >
+                                <span class="bn-accordion-title">
+                                    <span class="bn-accordion-step">2</span>
+                                    Associated diseases
+                                    <span
+                                        v-if="reverseAssociatedDiseases.length"
+                                        class="bn-accordion-count"
+                                    >
+                                        {{ reverseAssociatedDiseases.length }}
+                                    </span>
+                                </span>
+                                <span class="bn-accordion-chevron" aria-hidden="true" />
+                            </button>
+                            <div class="bn-accordion-actions" @click.stop>
+                                <button
+                                    type="button"
+                                    class="btn btn-cfde btn-sm"
+                                    :disabled="reverseLoading || !reverseUserQuery.trim()"
+                                    @click="runReverseDiseaseSearch"
+                                >
+                                    {{
+                                        reverseLoading
+                                            ? reverseLoadingMessage || "Finding associated diseases…"
+                                            : "Find associated diseases"
+                                    }}
+                                </button>
+                            </div>
+                        </div>
+                        <div v-show="reverseDiseasesAccordionOpen" class="bn-accordion-panel">
+                            <div
+                                v-if="reverseLoading"
+                                class="bn-status bn-status--loading"
+                                role="status"
+                            >
+                                <span class="bn-spinner" aria-hidden="true" />
+                                {{ reverseLoadingMessage || "Finding associated diseases…" }}
+                            </div>
+                            <div
+                                v-else-if="reverseResolved && !reverseResolved.found"
+                                class="alert alert-warning py-2 mb-0"
+                                role="alert"
+                            >
+                                No BiomarkerKB match for
+                                <strong>{{ reverseResolved.needle }}</strong>.
+                                Try another SNP rsID or gene symbol.
+                            </div>
+                            <template v-else-if="reverseResolved && reverseResolved.found">
+                                <div class="bn-counts mb-2">
+                                    <span class="bn-disease-bubble">{{ reverseResolved.needle }}</span>
+                                    <span>
+                                        {{ reverseResolved.kind === "snp" ? "SNP" : "gene" }}
+                                        ·
+                                        <strong>{{ reverseResolved.matchCount }}</strong>
+                                        BiomarkerKB
+                                        {{ reverseResolved.matchCount === 1 ? "hit" : "hits" }}
+                                    </span>
+                                    <span class="bn-counts-sep">·</span>
+                                    <span>
+                                        <strong>{{ reverseAssociatedDiseases.length }}</strong>
+                                        associated diseases
+                                    </span>
+                                    <span class="bn-counts-sep">·</span>
+                                    <span class="text-muted">
+                                        {{ reverseSelectedDiseaseCount }} selected
+                                    </span>
+                                </div>
+                                <p v-if="!reverseAssociatedDiseases.length" class="bn-filter-empty mb-0">
+                                    {{ reverseDiseasesEmptyCopy }}
+                                </p>
+                                <template v-else>
+                                    <p class="bn-step-hint">
+                                        Review BiomarkerKB diseases, then use Find mechanisms in
+                                        step 3 for the checked ones.
+                                    </p>
+                                    <table class="table table-sm table-hover bn-table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" class="bn-check-col">
+                                                    <input
+                                                        type="checkbox"
+                                                        :checked="allReverseDiseasesSelected"
+                                                        :indeterminate.prop="
+                                                            someReverseDiseasesSelected &&
+                                                            !allReverseDiseasesSelected
+                                                        "
+                                                        aria-label="Select all reverse diseases"
+                                                        @change="
+                                                            toggleAllReverseDiseases(
+                                                                $event.target.checked
+                                                            )
+                                                        "
+                                                    />
+                                                </th>
+                                                <th scope="col">Disease</th>
+                                                <th scope="col">Roles</th>
+                                                <th scope="col">
+                                                    Biomarkers
+                                                    <b-icon
+                                                        icon="info-circle"
+                                                        class="bn-th-info"
+                                                        v-b-tooltip.hover.top="
+                                                            'Distinct biomarker entities linked to this disease for the searched SNP or gene.'
+                                                        "
+                                                    />
+                                                </th>
+                                                <th scope="col">
+                                                    Records
+                                                    <b-icon
+                                                        icon="info-circle"
+                                                        class="bn-th-info"
+                                                        v-b-tooltip.hover.top="
+                                                            'BiomarkerKB assertion records linking the searched SNP or gene to this disease.'
+                                                        "
+                                                    />
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="row in reverseDiseasePageRows"
+                                                :key="'rev-dis-' + row.disease"
+                                            >
+                                                <td class="bn-check-col">
+                                                    <input
+                                                        type="checkbox"
+                                                        :checked="
+                                                            isReverseDiseaseSelected(row.disease)
+                                                        "
+                                                        :aria-label="
+                                                            'Select ' +
+                                                            (row.diseaseLabel || row.disease)
+                                                        "
+                                                        @change="
+                                                            setReverseDiseaseSelected(
+                                                                row.disease,
+                                                                $event.target.checked
+                                                            )
+                                                        "
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <a
+                                                        v-if="row.disease"
+                                                        :href="row.disease"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >{{ row.diseaseLabel || row.disease }}</a>
+                                                    <span v-else>{{
+                                                        row.diseaseLabel || "—"
+                                                    }}</span>
+                                                </td>
+                                                <td>{{ row.roles || "—" }}</td>
+                                                <td>{{ row.biomarkerCount }}</td>
+                                                <td>{{ row.recordCount }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <b-pagination
+                                        v-if="reverseAssociatedDiseases.length > perPage"
+                                        class="pagination-sm justify-content-center mt-2"
+                                        v-model="reverseDiseasePage"
+                                        :total-rows="reverseAssociatedDiseases.length"
+                                        :per-page="perPage"
+                                        size="sm"
+                                    />
+                                </template>
+                            </template>
+                            <p v-else class="bn-filter-empty mb-0">
+                                {{ reverseDiseasesEmptyCopy }}
+                            </p>
+                        </div>
+                    </section>
+
+                    <section
+                        class="bn-accordion"
+                        :class="{ 'bn-accordion--open': reverseMechanismsAccordionOpen }"
+                    >
+                        <div class="bn-accordion-header">
+                            <button
+                                type="button"
+                                class="bn-accordion-trigger"
+                                :aria-expanded="reverseMechanismsAccordionOpen ? 'true' : 'false'"
+                                @click="
+                                    reverseMechanismsAccordionOpen = !reverseMechanismsAccordionOpen
+                                "
+                            >
+                                <span class="bn-accordion-title">
+                                    <span class="bn-accordion-step">3</span>
+                                    Mechanisms
+                                    <span
+                                        v-if="reverseMechanisms.length"
+                                        class="bn-accordion-count"
+                                    >
+                                        {{ reverseMechanisms.length }}
+                                    </span>
+                                </span>
+                                <span class="bn-accordion-chevron" aria-hidden="true" />
+                            </button>
+                            <div class="bn-accordion-actions" @click.stop>
+                                <button
+                                    type="button"
+                                    class="btn btn-cfde btn-sm"
+                                    :disabled="
+                                        reverseMechanismLoading || !reverseSelectedDiseaseCount
+                                    "
+                                    @click="runReverseMechanismSearch"
+                                >
+                                    {{
+                                        reverseMechanismLoading
+                                            ? reverseMechanismLoadingMessage ||
+                                              "Finding mechanisms…"
+                                            : "Find mechanisms"
+                                    }}
+                                </button>
+                            </div>
+                        </div>
+                        <div v-show="reverseMechanismsAccordionOpen" class="bn-accordion-panel">
+                            <div
+                                v-if="reverseMechanismLoading"
+                                class="bn-status bn-status--loading"
+                                role="status"
+                            >
+                                <span class="bn-spinner" aria-hidden="true" />
+                                {{ reverseMechanismLoadingMessage || "Finding mechanisms…" }}
+                            </div>
+                            <template v-else-if="reverseMechanisms.length">
+                                <div class="bn-counts mb-2">
+                                    <span
+                                        v-if="reverseSeedGenes.length"
+                                        class="bn-disease-bubble"
+                                    >
+                                        {{ reverseSeedGenes.join(", ") }}
+                                    </span>
+                                    <span>
+                                        <strong>{{ filteredReverseMechanisms.length }}</strong>
+                                        overlapping mechanisms
+                                        <template
+                                            v-if="
+                                                filteredReverseMechanisms.length !==
+                                                    reverseMechanisms.length
+                                            "
+                                        >
+                                            of {{ reverseMechanisms.length }}
+                                        </template>
+                                    </span>
+                                    <span class="bn-counts-sep">·</span>
+                                    <span class="text-muted">
+                                        {{ reverseSelectedDiseaseCount }} selected diseases
+                                    </span>
+                                </div>
+                                <p class="bn-step-hint">
+                                    Ranked by CFDE support: gene+trait edges, gene factors whose
+                                    trait context matches a selected disease, then trait-linked
+                                    factors.
+                                </p>
+                                <div
+                                    v-if="showReverseMechanismDiseaseFilters"
+                                    class="bn-type-filters"
+                                    role="group"
+                                    aria-label="Filter mechanisms by disease"
+                                >
+                                    <span class="bn-type-filters-label">Diseases:</span>
+                                    <button
+                                        v-for="d in uniqueReverseMechanismDiseaseFilters"
+                                        :key="'rev-mech-dis-' + d.iri"
+                                        type="button"
+                                        class="bn-type-bubble"
+                                        :class="{
+                                            'bn-type-bubble--off': !isReverseMechanismDiseaseVisible(
+                                                d.iri
+                                            ),
+                                        }"
+                                        :aria-pressed="
+                                            isReverseMechanismDiseaseVisible(d.iri)
+                                                ? 'true'
+                                                : 'false'
+                                        "
+                                        @click="toggleReverseMechanismDiseaseFilter(d.iri)"
+                                    >
+                                        <b-icon
+                                            :icon="
+                                                isReverseMechanismDiseaseVisible(d.iri)
+                                                    ? 'eye-fill'
+                                                    : 'eye-slash'
+                                            "
+                                            aria-hidden="true"
+                                        />
+                                        {{ d.label }}
+                                    </button>
+                                </div>
+                                <p
+                                    v-if="!filteredReverseMechanisms.length"
+                                    class="bn-filter-empty"
+                                >
+                                    No mechanisms for the selected disease filters.
+                                </p>
+                                <template v-else>
+                                <table class="table table-sm table-hover bn-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Mechanism</th>
+                                            <th scope="col">
+                                                Support
+                                                <b-icon
+                                                    icon="info-circle"
+                                                    class="bn-th-info"
+                                                    v-b-tooltip.hover.top="
+                                                        'How this factor overlaps the seed gene(s) and selected BiomarkerKB diseases in CFDE REVEAL.'
+                                                    "
+                                                />
+                                            </th>
+                                            <th scope="col">Gene loading</th>
+                                            <th scope="col">Trait weight</th>
+                                            <th scope="col">Genes</th>
+                                            <th scope="col">Diseases</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="row in reverseMechanismPageRows"
+                                            :key="'rev-mech-' + row.factor"
+                                        >
+                                            <td>
+                                                <span class="bn-mech-label">{{
+                                                    row.factorLabel || row.factor
+                                                }}</span>
+                                                <div
+                                                    v-if="row.traitContext"
+                                                    class="bn-mech-context text-muted"
+                                                >
+                                                    Context: {{ row.traitContext }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span :class="reverseSupportBadgeClass(row)">
+                                                    {{ row.supportLabel }}
+                                                </span>
+                                            </td>
+                                            <td>{{ formatScore(row.geneWeight, 4) }}</td>
+                                            <td>{{ formatScore(row.traitWeight, 4) }}</td>
+                                            <td>
+                                                {{
+                                                    row.geneSymbols && row.geneSymbols.length
+                                                        ? row.geneSymbols.join(", ")
+                                                        : "—"
+                                                }}
+                                            </td>
+                                            <td>
+                                                <template
+                                                    v-if="
+                                                        row.supportingDiseases &&
+                                                            row.supportingDiseases.length
+                                                    "
+                                                >
+                                                    {{
+                                                        row.supportingDiseases
+                                                            .map((d) => d.diseaseLabel || d.disease)
+                                                            .join(" | ")
+                                                    }}
+                                                </template>
+                                                <template
+                                                    v-else-if="
+                                                        row.matchedDiseaseLabels &&
+                                                            row.matchedDiseaseLabels.length
+                                                    "
+                                                >
+                                                    {{ row.matchedDiseaseLabels.join(" | ") }}
+                                                    <span class="text-muted">(label)</span>
+                                                </template>
+                                                <template v-else>—</template>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <b-pagination
+                                    v-if="filteredReverseMechanisms.length > perPage"
+                                    v-model="reverseMechanismPage"
+                                    :total-rows="filteredReverseMechanisms.length"
+                                    :per-page="perPage"
+                                    size="sm"
+                                    class="bn-pagination mt-2 mb-0"
+                                />
+                                </template>
+                            </template>
+                            <p v-else class="bn-filter-empty mb-0">
+                                {{ reverseMechanismsEmptyCopy }}
+                            </p>
+                        </div>
+                    </section>
+
+                    <section
+                        class="bn-accordion"
+                        :class="{ 'bn-accordion--open': reverseAiAccordionOpen }"
+                    >
+                        <div class="bn-accordion-header">
+                            <button
+                                type="button"
+                                class="bn-accordion-trigger"
+                                :aria-expanded="reverseAiAccordionOpen ? 'true' : 'false'"
+                                @click="toggleReverseAiAccordion"
+                            >
+                                <span class="bn-accordion-title">
+                                    <span class="bn-accordion-step">4</span>
+                                    Mechanistic feedback loop
+                                    <span class="bn-ai-bubble" title="Uses Claude (Bedrock)">AI</span>
+                                </span>
+                                <span class="bn-accordion-chevron" aria-hidden="true" />
+                            </button>
+                            <div class="bn-accordion-actions" @click.stop>
+                                <button
+                                    type="button"
+                                    class="btn btn-cfde btn-sm"
+                                    :disabled="
+                                        reverseMechanismLinkLoading ||
+                                            !filteredReverseMechanisms.length
+                                    "
+                                    @click="generateReverseMechanismLinkSummary"
+                                >
+                                    {{
+                                        reverseMechanismLinkLoading
+                                            ? "Generating…"
+                                            : reverseMechanismLinkSummary.status === "done"
+                                              ? "Regenerate summary"
+                                              : "Generate summary"
+                                    }}
+                                </button>
+                            </div>
+                        </div>
+                        <div v-show="reverseAiAccordionOpen" class="bn-accordion-panel">
+                            <p v-if="!reverseMechanisms.length" class="bn-filter-empty">
+                                Complete step 3 to generate a reverse mechanistic feedback summary.
+                            </p>
+                            <p
+                                v-else-if="!filteredReverseMechanisms.length"
+                                class="bn-filter-empty"
+                            >
+                                No mechanisms match the current disease filters.
+                            </p>
+                            <template v-else>
+                                <div
+                                    v-if="reverseMechanismLinkLoading"
+                                    class="bn-status bn-status--loading mb-2"
+                                    role="status"
+                                >
+                                    <span class="bn-spinner" aria-hidden="true" />
+                                    {{
+                                        reverseMechanismLinkStatus ||
+                                            "Generating reverse mechanistic summary…"
+                                    }}
+                                </div>
+                                <div
+                                    v-else-if="reverseMechanismLinkSummary.status === 'error'"
+                                    class="alert alert-danger py-2 bn-mechanism-link-error"
+                                >
+                                    {{
+                                        reverseMechanismLinkSummary.error ||
+                                            "Summary generation failed."
+                                    }}
+                                </div>
+                                <div
+                                    v-else-if="
+                                        reverseMechanismLinkSummary.status === 'done' &&
+                                            reverseMechanismLinkSummary.data
+                                    "
+                                    class="bn-mechanism-link-result-wrap"
+                                >
+                                    <biomarker-reverse-mechanism-link-summary
+                                        :summary="reverseMechanismLinkSummary.data"
+                                        :seed-biomarker-label="reverseSeedBiomarkerLabel"
+                                    />
+                                </div>
+                                <p v-else class="bn-filter-empty mb-0">
+                                    Click Generate summary to run one LLM analysis over the seed
+                                    biomarker, selected diseases, and overlapping CFDE mechanisms.
+                                </p>
+                            </template>
+                        </div>
+                    </section>
+                </template>
             </div>
         </div>
     </div>
@@ -659,6 +1245,7 @@ import {
 } from "./biomarkerNetwork/geneNodeIds.js";
 import BiomarkerNetworkGraph from "./biomarkerNetwork/BiomarkerNetworkGraph.vue";
 import BiomarkerMechanismLinkSummary from "./biomarkerNetwork/BiomarkerMechanismLinkSummary.vue";
+import BiomarkerReverseMechanismLinkSummary from "./biomarkerNetwork/BiomarkerReverseMechanismLinkSummary.vue";
 import {
     buildDiseaseLabelIndex,
     formatSharedGeneMappingBubble,
@@ -678,7 +1265,13 @@ import {
     listSharedGenesByDiseaseForFactor,
     listSharedGenesForFactorDisease,
 } from "./biomarkerNetwork/cfdeKgSparql.js";
-import { listBiomarkersForMondoDiseases } from "./biomarkerNetwork/biomarkerKbSparql.js";
+import {
+    listBiomarkersForMondoDiseases,
+    listDiseasesForBiomarkerSearchTerm,
+    listGenesForBiomarkerSearchTerm,
+    resolveBiomarkerKbSearchTerm,
+} from "./biomarkerNetwork/biomarkerKbSparql.js";
+import { findReverseMechanisms } from "./biomarkerNetwork/biomarkerReverseMechanisms.js";
 import uiUtils from "@/utils/uiUtils";
 import { createLLMClient } from "@/utils/llmClient";
 import {
@@ -686,6 +1279,11 @@ import {
     buildMechanismLinkBatchInputFromVm,
 } from "./biomarkerNetwork/biomarkerMechanismLinkPrompt.js";
 import { fetchBiomarkerMechanismLinkSummary } from "./biomarkerNetwork/biomarkerMechanismLinkLlm.js";
+import {
+    BIOMARKER_REVERSE_MECHANISM_LINK_SYSTEM_PROMPT,
+    buildReverseMechanismLinkBatchInputFromVm,
+} from "./biomarkerNetwork/biomarkerReverseMechanismLinkPrompt.js";
+import { fetchBiomarkerReverseMechanismLinkSummary } from "./biomarkerNetwork/biomarkerReverseMechanismLinkLlm.js";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -694,12 +1292,31 @@ const PER_PAGE = 10;
 const SUGGESTION_LIMIT = 12;
 const SUGGESTION_DEBOUNCE_MS = 280;
 const BIOMARKER_LIMIT = 100;
+const SEARCH_DIRECTION_FORWARD = "cfde-to-biomarker";
+const SEARCH_DIRECTION_REVERSE = "biomarker-to-cfde";
+
+function idleMechanismLinkSummary() {
+    return {
+        status: "idle",
+        data: null,
+        error: "",
+        rowCount: 0,
+        generatedAt: null,
+    };
+}
 
 export default Vue.component("biomarker-network", {
-    components: { BiomarkerNetworkGraph, BiomarkerMechanismLinkSummary },
+    components: {
+        BiomarkerNetworkGraph,
+        BiomarkerMechanismLinkSummary,
+        BiomarkerReverseMechanismLinkSummary,
+    },
     props: ["phenotypesInUse", "utilsBox", "sectionConfigs"],
     data() {
         return {
+            SEARCH_DIRECTION_FORWARD,
+            SEARCH_DIRECTION_REVERSE,
+            searchDirection: SEARCH_DIRECTION_FORWARD,
             userQuery: "",
             searchNeedle: "",
             lastNeedle: "",
@@ -749,16 +1366,125 @@ export default Vue.component("biomarker-network", {
             mechanismLinkAccordionOpen: false,
             mechanismLinkLoading: false,
             mechanismLinkStatus: "",
-            mechanismLinkSummary: {
-                status: "idle",
-                data: null,
-                error: "",
-                rowCount: 0,
-                generatedAt: null,
-            },
+            mechanismLinkSummary: idleMechanismLinkSummary(),
+            reverseUserQuery: "",
+            reverseAssociatedDiseases: [],
+            reverseSelectedDiseaseIds: {},
+            reverseDiseasePage: 1,
+            reverseMechanisms: [],
+            reverseSeedGenes: [],
+            reverseMechanismPage: 1,
+            reverseLoading: false,
+            reverseLoadingMessage: "",
+            reverseMechanismLoading: false,
+            reverseMechanismLoadingMessage: "",
+            reverseResolved: null,
+            reverseBiomarkerAccordionOpen: true,
+            reverseDiseasesAccordionOpen: false,
+            reverseMechanismsAccordionOpen: false,
+            reverseAiAccordionOpen: false,
+            reverseMechanismLinkLoading: false,
+            reverseMechanismLinkStatus: "",
+            reverseMechanismLinkSummary: idleMechanismLinkSummary(),
+            reverseHiddenDiseases: {},
         };
     },
     computed: {
+        isForwardSearch() {
+            return this.searchDirection !== SEARCH_DIRECTION_REVERSE;
+        },
+        isReverseSearch() {
+            return this.searchDirection === SEARCH_DIRECTION_REVERSE;
+        },
+        searchDirectionTitle() {
+            return this.isReverseSearch ? "→ CFDE KG" : "→ BiomarkerKB";
+        },
+        directionInfographicSrc() {
+            return this.isReverseSearch
+                ? "/images/biomarkerNetwork/biomarker_mechanism.svg"
+                : "/images/biomarkerNetwork/mechanism_biomarker.svg";
+        },
+        directionInfographicAlt() {
+            return this.isReverseSearch
+                ? "How candidate mechanisms are nominated: from a candidate biomarker to inferred biological factors"
+                : "How candidate biomarkers are nominated: from an inferred biological factor to candidate biomarkers";
+        },
+        reverseDiseasesEmptyCopy() {
+            if (this.reverseLoading) return "";
+            if (!this.reverseUserQuery.trim()) {
+                return "Enter a SNP or gene in step 1, then click Find associated diseases.";
+            }
+            if (!this.reverseResolved) {
+                return "Click Find associated diseases to check BiomarkerKB for this SNP or gene.";
+            }
+            if (!this.reverseResolved.found) {
+                return `No BiomarkerKB match for "${this.reverseResolved.needle}".`;
+            }
+            return "No associated diseases returned for this BiomarkerKB hit.";
+        },
+        reverseDiseasePageRows() {
+            const start = (this.reverseDiseasePage - 1) * this.perPage;
+            return (this.reverseAssociatedDiseases || []).slice(start, start + this.perPage);
+        },
+        reverseSelectedDiseaseCount() {
+            return (this.reverseAssociatedDiseases || []).filter((row) =>
+                this.isReverseDiseaseSelected(row && row.disease)
+            ).length;
+        },
+        allReverseDiseasesSelected() {
+            const rows = this.reverseAssociatedDiseases || [];
+            return rows.length > 0 && rows.every((row) => this.isReverseDiseaseSelected(row.disease));
+        },
+        someReverseDiseasesSelected() {
+            const rows = this.reverseAssociatedDiseases || [];
+            return rows.some((row) => this.isReverseDiseaseSelected(row.disease));
+        },
+        reverseMechanismsEmptyCopy() {
+            if (this.reverseMechanismLoading) return "";
+            if (!this.reverseAssociatedDiseases.length) {
+                return "Complete step 2, then find overlapping CFDE mechanisms.";
+            }
+            if (!this.reverseSelectedDiseaseCount) {
+                return "Select at least one associated disease, then find mechanisms.";
+            }
+            if (!this.reverseMechanisms.length) {
+                return "No overlapping CFDE mechanisms for the selected diseases and seed gene(s).";
+            }
+            return "";
+        },
+        uniqueReverseMechanismDiseaseFilters() {
+            const seen = {};
+            const out = [];
+            (this.reverseMechanisms || []).forEach((row) => {
+                this.reverseMechanismDiseaseLabels(row).forEach((label) => {
+                    if (!label || seen[label]) return;
+                    seen[label] = true;
+                    out.push({ iri: label, label });
+                });
+            });
+            return out.sort((a, b) => a.label.localeCompare(b.label));
+        },
+        showReverseMechanismDiseaseFilters() {
+            return this.uniqueReverseMechanismDiseaseFilters.length > 1;
+        },
+        filteredReverseMechanisms() {
+            const rows = this.reverseMechanisms || [];
+            if (!this.showReverseMechanismDiseaseFilters) return rows;
+            return rows.filter((row) => {
+                const labels = this.reverseMechanismDiseaseLabels(row);
+                if (!labels.length) return false;
+                return labels.some((label) => this.isReverseMechanismDiseaseVisible(label));
+            });
+        },
+        reverseMechanismPageRows() {
+            const start = (this.reverseMechanismPage - 1) * this.perPage;
+            return this.filteredReverseMechanisms.slice(start, start + this.perPage);
+        },
+        reverseSeedBiomarkerLabel() {
+            const resolved = this.reverseResolved;
+            if (resolved && resolved.needle) return resolved.needle;
+            return String(this.reverseUserQuery || "").trim() || "Biomarker";
+        },
         flatSuggestions() {
             return (this.factorSuggestions || []).map((s, i) =>
                 Object.assign({}, s, { kind: "mechanism", flatIndex: i })
@@ -1014,11 +1740,20 @@ export default Vue.component("biomarker-network", {
             system_prompt: BIOMARKER_MECHANISM_LINK_SYSTEM_PROMPT,
             expectJson: true,
         });
+        this.llmReverseMechanismLink = createLLMClient({
+            system_prompt: BIOMARKER_REVERSE_MECHANISM_LINK_SYSTEM_PROMPT,
+            expectJson: true,
+        });
     },
     watch: {
         mechanismLinkAccordionOpen(open) {
             if (open) {
                 this.biomarkersAccordionOpen = false;
+            }
+        },
+        reverseAiAccordionOpen(open) {
+            if (open) {
+                this.reverseMechanismsAccordionOpen = false;
             }
         },
     },
@@ -1033,6 +1768,12 @@ export default Vue.component("biomarker-network", {
         if (this.suggestionTimer) clearTimeout(this.suggestionTimer);
         if (this.llmMechanismLink && typeof this.llmMechanismLink.abort === "function") {
             this.llmMechanismLink.abort();
+        }
+        if (
+            this.llmReverseMechanismLink &&
+            typeof this.llmReverseMechanismLink.abort === "function"
+        ) {
+            this.llmReverseMechanismLink.abort();
         }
     },
     methods: {
@@ -1176,10 +1917,207 @@ export default Vue.component("biomarker-network", {
             this.mechanismAccordionOpen = true;
             this.diseasesAccordionOpen = false;
             this.biomarkersAccordionOpen = false;
+            this.reverseUserQuery = "";
+            this.reverseAssociatedDiseases = [];
+            this.reverseSelectedDiseaseIds = {};
+            this.reverseDiseasePage = 1;
+            this.reverseMechanisms = [];
+            this.reverseSeedGenes = [];
+            this.reverseMechanismPage = 1;
+            this.reverseHiddenDiseases = {};
+            this.reverseLoading = false;
+            this.reverseLoadingMessage = "";
+            this.reverseMechanismLoading = false;
+            this.reverseMechanismLoadingMessage = "";
+            this.reverseResolved = null;
+            this.reverseBiomarkerAccordionOpen = true;
+            this.reverseDiseasesAccordionOpen = false;
+            this.reverseMechanismsAccordionOpen = false;
+            this.reverseAiAccordionOpen = false;
+            this.resetReverseMechanismLinkSummary();
             keyParams.set({ disease: "", factor: "" });
             this.$nextTick(() => {
+                if (this.isReverseSearch) {
+                    if (this.$refs.reverseBiomarkerInput) this.$refs.reverseBiomarkerInput.focus();
+                    return;
+                }
                 if (this.$refs.diseaseInput) this.$refs.diseaseInput.focus();
             });
+        },
+        setSearchDirection(direction) {
+            const next =
+                direction === SEARCH_DIRECTION_REVERSE
+                    ? SEARCH_DIRECTION_REVERSE
+                    : SEARCH_DIRECTION_FORWARD;
+            if (next === this.searchDirection) return;
+            this.searchDirection = next;
+            this.resetSearch();
+        },
+        clearReverseBiomarkerSearch() {
+            this.reverseUserQuery = "";
+            this.reverseResolved = null;
+            this.reverseAssociatedDiseases = [];
+            this.reverseSelectedDiseaseIds = {};
+            this.reverseDiseasePage = 1;
+            this.reverseMechanisms = [];
+            this.reverseSeedGenes = [];
+            this.reverseMechanismPage = 1;
+            this.reverseHiddenDiseases = {};
+            this.resetReverseMechanismLinkSummary();
+            this.error = "";
+        },
+        isReverseDiseaseSelected(diseaseIri) {
+            const key = String(diseaseIri || "").trim();
+            if (!key) return false;
+            return this.reverseSelectedDiseaseIds[key] !== false;
+        },
+        setReverseDiseaseSelected(diseaseIri, checked) {
+            const key = String(diseaseIri || "").trim();
+            if (!key) return;
+            this.$set(this.reverseSelectedDiseaseIds, key, !!checked);
+        },
+        toggleAllReverseDiseases(checked) {
+            const next = {};
+            (this.reverseAssociatedDiseases || []).forEach((row) => {
+                if (row && row.disease) next[row.disease] = !!checked;
+            });
+            this.reverseSelectedDiseaseIds = next;
+        },
+        selectAllReverseDiseases() {
+            this.toggleAllReverseDiseases(true);
+        },
+        async runReverseDiseaseSearch() {
+            const needle = String(this.reverseUserQuery || "").trim();
+            if (!needle || this.reverseLoading) return;
+
+            if (this.biomarkerAbortController) {
+                this.biomarkerAbortController.abort();
+            }
+            const ac = new AbortController();
+            this.biomarkerAbortController = ac;
+
+            this.error = "";
+            this.reverseResolved = null;
+            this.reverseAssociatedDiseases = [];
+            this.reverseSelectedDiseaseIds = {};
+            this.reverseDiseasePage = 1;
+            this.reverseMechanisms = [];
+            this.reverseSeedGenes = [];
+            this.reverseMechanismPage = 1;
+            this.reverseHiddenDiseases = {};
+            this.reverseDiseasesAccordionOpen = true;
+            this.reverseMechanismsAccordionOpen = false;
+            this.reverseAiAccordionOpen = false;
+            this.resetReverseMechanismLinkSummary();
+            this.reverseLoading = true;
+            this.reverseLoadingMessage = "Checking BiomarkerKB…";
+            this.reverseMechanismLoading = false;
+            this.reverseMechanismLoadingMessage = "";
+
+            try {
+                const resolved = await resolveBiomarkerKbSearchTerm(needle, {
+                    signal: ac.signal,
+                });
+                if (ac.signal.aborted) return;
+
+                this.reverseResolved = resolved;
+
+                if (!resolved.found) {
+                    this.error =
+                        resolved.error ||
+                        `No BiomarkerKB match for "${resolved.needle || needle}".`;
+                    return;
+                }
+
+                this.reverseLoadingMessage = "Finding associated diseases…";
+                const diseases = await listDiseasesForBiomarkerSearchTerm(resolved.needle, {
+                    signal: ac.signal,
+                    limit: 100,
+                });
+                if (ac.signal.aborted) return;
+
+                this.reverseAssociatedDiseases = diseases;
+                this.selectAllReverseDiseases();
+                this.error = "";
+                this.reverseBiomarkerAccordionOpen = false;
+                this.reverseDiseasesAccordionOpen = true;
+            } catch (e) {
+                if (e && e.name === "AbortError") return;
+                this.reverseResolved = null;
+                this.reverseAssociatedDiseases = [];
+                this.error = (e && e.message) || "BiomarkerKB lookup failed.";
+            } finally {
+                if (this.biomarkerAbortController === ac) this.biomarkerAbortController = null;
+                this.reverseLoading = false;
+                this.reverseLoadingMessage = "";
+            }
+        },
+        async runReverseMechanismSearch() {
+            if (!this.reverseSelectedDiseaseCount || this.reverseMechanismLoading) return;
+
+            if (this.biomarkerAbortController) {
+                this.biomarkerAbortController.abort();
+            }
+            const ac = new AbortController();
+            this.biomarkerAbortController = ac;
+
+            const selectedDiseases = (this.reverseAssociatedDiseases || []).filter((row) =>
+                this.isReverseDiseaseSelected(row && row.disease)
+            );
+            const needle =
+                (this.reverseResolved && this.reverseResolved.needle) ||
+                String(this.reverseUserQuery || "").trim();
+
+            this.error = "";
+            this.reverseMechanisms = [];
+            this.reverseSeedGenes = [];
+            this.reverseMechanismPage = 1;
+            this.reverseHiddenDiseases = {};
+            this.reverseDiseasesAccordionOpen = false;
+            this.reverseMechanismsAccordionOpen = true;
+            this.reverseAiAccordionOpen = false;
+            this.resetReverseMechanismLinkSummary();
+            this.reverseMechanismLoading = true;
+            this.reverseMechanismLoadingMessage = "Resolving seed genes…";
+
+            try {
+                const genes = await listGenesForBiomarkerSearchTerm(needle, {
+                    signal: ac.signal,
+                    limit: 25,
+                });
+                if (ac.signal.aborted) return;
+
+                this.reverseSeedGenes = genes;
+                this.reverseMechanismLoadingMessage = genes.length
+                    ? `Mapping CFDE mechanisms for ${genes.join(", ")}…`
+                    : "Mapping CFDE mechanisms from selected diseases…";
+
+                const result = await findReverseMechanisms({
+                    genes,
+                    diseases: selectedDiseases,
+                    signal: ac.signal,
+                });
+                if (ac.signal.aborted) return;
+
+                this.reverseMechanisms = result.mechanisms || [];
+                this.reverseSeedGenes = result.seedGenes || genes;
+                this.error = "";
+            } catch (e) {
+                if (e && e.name === "AbortError") return;
+                this.reverseMechanisms = [];
+                this.error = (e && e.message) || "CFDE mechanism lookup failed.";
+            } finally {
+                if (this.biomarkerAbortController === ac) this.biomarkerAbortController = null;
+                this.reverseMechanismLoading = false;
+                this.reverseMechanismLoadingMessage = "";
+            }
+        },
+        reverseSupportBadgeClass(row) {
+            const tier = row && row.supportTier;
+            if (tier === 1) return "bn-support-badge bn-support-badge--both";
+            if (tier === 2) return "bn-support-badge bn-support-badge--context";
+            if (tier === 3) return "bn-support-badge bn-support-badge--trait";
+            return "bn-support-badge bn-support-badge--gene";
         },
         async exportSession() {
             if (!this.canExportSession || this.exportSessionBusy) return;
@@ -1278,6 +2216,11 @@ export default Vue.component("biomarker-network", {
                 Math.ceil((this.associatedDiseases || []).length / this.perPage) || 1
             );
             if (this.mechanismPage > maxMech) this.mechanismPage = maxMech;
+            const maxRevMech = Math.max(
+                1,
+                Math.ceil(this.filteredReverseMechanisms.length / this.perPage) || 1
+            );
+            if (this.reverseMechanismPage > maxRevMech) this.reverseMechanismPage = maxRevMech;
         },
         toggleTypeFilter(label) {
             if (this.hiddenTypes[label]) {
@@ -1292,6 +2235,36 @@ export default Vue.component("biomarker-network", {
                 this.$delete(this.hiddenDiseases, iri);
             } else {
                 this.$set(this.hiddenDiseases, iri, true);
+            }
+            this.clampPages();
+        },
+        reverseMechanismDiseaseLabels(row) {
+            const seen = {};
+            const labels = [];
+            const push = (label) => {
+                const value = String(label || "").trim();
+                if (!value || seen[value]) return;
+                seen[value] = true;
+                labels.push(value);
+            };
+            ((row && row.supportingDiseases) || []).forEach((d) => {
+                push((d && (d.diseaseLabel || d.disease)) || "");
+            });
+            ((row && row.matchedDiseaseLabels) || []).forEach(push);
+            return labels;
+        },
+        isReverseMechanismDiseaseVisible(label) {
+            const key = String(label || "").trim();
+            if (!key) return false;
+            return !this.reverseHiddenDiseases[key];
+        },
+        toggleReverseMechanismDiseaseFilter(label) {
+            const key = String(label || "").trim();
+            if (!key) return;
+            if (this.reverseHiddenDiseases[key]) {
+                this.$delete(this.reverseHiddenDiseases, key);
+            } else {
+                this.$set(this.reverseHiddenDiseases, key, true);
             }
             this.clampPages();
         },
@@ -1335,18 +2308,20 @@ export default Vue.component("biomarker-network", {
             }
         },
         resetMechanismLinkSummary() {
-            this.mechanismLinkSummary = {
-                status: "idle",
-                data: null,
-                error: "",
-                rowCount: 0,
-                generatedAt: null,
-            };
+            this.mechanismLinkSummary = idleMechanismLinkSummary();
             this.mechanismLinkStatus = "";
             this.mechanismLinkLoading = false;
         },
+        resetReverseMechanismLinkSummary() {
+            this.reverseMechanismLinkSummary = idleMechanismLinkSummary();
+            this.reverseMechanismLinkStatus = "";
+            this.reverseMechanismLinkLoading = false;
+        },
         toggleMechanismLinkAccordion() {
             this.mechanismLinkAccordionOpen = !this.mechanismLinkAccordionOpen;
+        },
+        toggleReverseAiAccordion() {
+            this.reverseAiAccordionOpen = !this.reverseAiAccordionOpen;
         },
         async generateMechanismLinkSummary() {
             if (
@@ -1395,6 +2370,64 @@ export default Vue.component("biomarker-network", {
             } finally {
                 this.mechanismLinkLoading = false;
                 this.mechanismLinkStatus = "";
+            }
+        },
+        async generateReverseMechanismLinkSummary() {
+            if (
+                this.reverseMechanismLinkLoading ||
+                !this.filteredReverseMechanisms.length
+            ) {
+                return;
+            }
+
+            this.reverseAiAccordionOpen = true;
+            this.reverseMechanismsAccordionOpen = false;
+            this.reverseMechanismLinkLoading = true;
+            this.reverseMechanismLinkSummary = {
+                status: "loading",
+                data: null,
+                error: "",
+                rowCount: this.filteredReverseMechanisms.length,
+                generatedAt: null,
+            };
+
+            try {
+                const batchInput = buildReverseMechanismLinkBatchInputFromVm(this);
+                const result = await fetchBiomarkerReverseMechanismLinkSummary(
+                    this,
+                    batchInput,
+                    {
+                        onStatus: (msg) => {
+                            this.reverseMechanismLinkStatus = msg;
+                        },
+                    }
+                );
+                if (!result.ok) {
+                    throw (
+                        result.error ||
+                        new Error("Reverse mechanistic summary request failed.")
+                    );
+                }
+                this.reverseMechanismLinkSummary = {
+                    status: "done",
+                    data: result.summary,
+                    error: "",
+                    rowCount: this.filteredReverseMechanisms.length,
+                    generatedAt: new Date().toISOString(),
+                };
+            } catch (e) {
+                this.reverseMechanismLinkSummary = {
+                    status: "error",
+                    data: null,
+                    error:
+                        (e && e.message) ||
+                        "Reverse mechanistic summary request failed.",
+                    rowCount: this.filteredReverseMechanisms.length,
+                    generatedAt: null,
+                };
+            } finally {
+                this.reverseMechanismLinkLoading = false;
+                this.reverseMechanismLinkStatus = "";
             }
         },
         formatScore(value, digits = 2) {
@@ -1867,6 +2900,7 @@ export default Vue.component("biomarker-network", {
     margin-left: auto;
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
 .bn-ops-menu {
@@ -1908,13 +2942,19 @@ export default Vue.component("biomarker-network", {
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
 }
 
+.bn-ops-menu-list--direction {
+    min-width: 220px;
+}
+
 .bn-ops-menu:hover .bn-ops-menu-list,
 .bn-ops-menu:focus-within .bn-ops-menu-list {
     display: block;
 }
 
 .bn-ops-menu-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     width: 100%;
     padding: 7px 10px;
     border: 0;
@@ -1924,6 +2964,18 @@ export default Vue.component("biomarker-network", {
     font-size: 12px;
     color: #21618c;
     cursor: pointer;
+}
+
+.bn-ops-menu-check {
+    display: inline-flex;
+    width: 12px;
+    flex-shrink: 0;
+    font-weight: 700;
+}
+
+.bn-ops-menu-item--active {
+    background: #f0f6fb;
+    font-weight: 600;
 }
 
 .bn-ops-menu-item:hover:not(:disabled) {
@@ -2098,6 +3150,22 @@ export default Vue.component("biomarker-network", {
     gap: 10px;
 }
 
+.bn-direction-infographic {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--cfde-border);
+    border-radius: 6px;
+    background: #fff;
+}
+
+.bn-direction-infographic__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 420px;
+    object-fit: contain;
+}
+
 .bn-accordion {
     border: 1px solid var(--cfde-border);
     border-radius: 6px;
@@ -2227,8 +3295,55 @@ export default Vue.component("biomarker-network", {
 
 .bn-step-hint {
     margin: 0 0 12px;
-    font-size: 0.86rem;
+    font-size: 14px;
     color: var(--cfde-muted);
+}
+
+.bn-mech-label {
+    display: block;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.bn-mech-context {
+    margin-top: 2px;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.bn-support-badge {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.bn-support-badge--both {
+    background: #e7f3ee;
+    border-color: #9fcbb8;
+    color: #1f5c45;
+}
+
+.bn-support-badge--context {
+    background: #eaf2fb;
+    border-color: #9db8d9;
+    color: #1f4b7a;
+}
+
+.bn-support-badge--trait {
+    background: #f4f1ea;
+    border-color: #d2c6b0;
+    color: #5c4a2e;
+}
+
+.bn-support-badge--gene {
+    background: #f3f3f3;
+    border-color: #d0d0d0;
+    color: #555;
 }
 
 .bn-check-col {
