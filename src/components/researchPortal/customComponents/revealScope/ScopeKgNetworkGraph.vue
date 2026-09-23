@@ -7,26 +7,56 @@
                     {{ item.label }}
                 </span>
             </div>
-            <div class="scp-kgnet-zoom" role="toolbar" aria-label="Network graph zoom">
-                <input
-                    v-model.number="zoomLevel"
-                    type="range"
-                    class="scp-kgnet-zoom-slider"
-                    :min="zoomMin"
-                    :max="zoomMax"
-                    :step="zoomStep"
-                    aria-label="Network graph zoom"
-                    @input="onZoomInput"
-                />
-                <button
-                    type="button"
-                    class="scp-kgnet-zoom-fit"
-                    title="Fit graph"
-                    aria-label="Fit graph"
-                    @click="fitNetworkView"
+            <div class="scp-kgnet-controls">
+                <div
+                    v-if="weightFilters && weightFilterControls.length"
+                    class="scp-kgnet-weights"
+                    role="group"
+                    aria-label="KG weight filters"
                 >
-                    Fit
-                </button>
+                    <label
+                        v-for="ctrl in weightFilterControls"
+                        :key="ctrl.type"
+                        class="scp-kgnet-weight-filter"
+                    >
+                        <span class="scp-kgnet-weight-label">{{ ctrl.label }}</span>
+                        <select
+                            class="scp-kgnet-weight-select"
+                            :value="weightSelectValue(ctrl.type)"
+                            :aria-label="`${ctrl.label} minimum weight`"
+                            @change="onWeightFilterChange(ctrl.type, $event.target.value)"
+                        >
+                            <option
+                                v-for="(step, idx) in ctrl.steps"
+                                :key="`${ctrl.type}-${idx}`"
+                                :value="String(step)"
+                            >
+                                ≥ {{ formatWeightOption(step) }}
+                            </option>
+                        </select>
+                    </label>
+                </div>
+                <div class="scp-kgnet-zoom" role="toolbar" aria-label="Network graph zoom">
+                    <input
+                        v-model.number="zoomLevel"
+                        type="range"
+                        class="scp-kgnet-zoom-slider"
+                        :min="zoomMin"
+                        :max="zoomMax"
+                        :step="zoomStep"
+                        aria-label="Network graph zoom"
+                        @input="onZoomInput"
+                    />
+                    <button
+                        type="button"
+                        class="scp-kgnet-zoom-fit"
+                        title="Fit graph"
+                        aria-label="Fit graph"
+                        @click="fitNetworkView"
+                    >
+                        Fit
+                    </button>
+                </div>
             </div>
         </div>
         <div
@@ -106,6 +136,35 @@ const MAX_NODES_BY_TYPE = {
     factor: 8,
     trait: 12,
 };
+const WEIGHT_STEP_COUNT = 10;
+/** Edge types with comparable-within-type KG weights (scales differ across types). */
+const WEIGHT_FILTER_SPECS = [
+    { type: "geneToTrait", label: "Gene–trait" },
+    { type: "geneToFactor", label: "Gene–factor" },
+    { type: "traitToFactor", label: "Trait–factor" },
+    { type: "geneSetToTrait", label: "Gene set–trait" },
+    { type: "geneSetToFactor", label: "Gene set–factor" },
+];
+
+function absWeight(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.abs(n) : null;
+}
+
+function buildWeightSteps(weights) {
+    const values = weights.filter((w) => w != null && Number.isFinite(w));
+    if (!values.length) return null;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (min === max) {
+        return { min, max, steps: [min] };
+    }
+    const steps = [];
+    for (let i = 0; i < WEIGHT_STEP_COUNT; i += 1) {
+        steps.push(min + ((max - min) * i) / (WEIGHT_STEP_COUNT - 1));
+    }
+    return { min, max, steps };
+}
 
 function visEdgeColor() {
     return {
@@ -156,6 +215,19 @@ export default {
             type: Object,
             default: null,
         },
+        /**
+         * Per-type display caps. `false` disables caps (show all nodes that pass filters).
+         * Omit / undefined keeps SCOPE defaults. Pass a partial object to override types.
+         */
+        nodeCaps: {
+            type: [Object, Boolean],
+            default: undefined,
+        },
+        /** Show per-edge-type min-weight dropdowns (10 steps between min/max of that type). */
+        weightFilters: {
+            type: Boolean,
+            default: false,
+        },
     },
     data() {
         return {
@@ -173,6 +245,7 @@ export default {
             highlightedNodeId: null,
             tooltipPinned: false,
             tooltipHideTimer: null,
+            minWeightByType: {},
             hoverTooltip: {
                 visible: false,
                 nodeId: null,
@@ -193,12 +266,21 @@ export default {
             handler() {
                 this.highlightedNodeId = null;
                 this.hideTooltip();
+                this.syncWeightFilterDefaults();
                 this.renderNetwork();
             },
+        },
+        nodeCaps() {
+            this.renderNetwork();
+        },
+        weightFilters() {
+            this.syncWeightFilterDefaults();
+            this.renderNetwork();
         },
     },
     mounted() {
         this.observeResize();
+        this.syncWeightFilterDefaults();
         this.renderNetwork();
     },
     beforeDestroy() {
@@ -213,9 +295,66 @@ export default {
         isHighlightView() {
             return Boolean(this.highlightedNodeId);
         },
+        effectiveNodeCaps() {
+            if (this.nodeCaps === false) return null;
+            if (this.nodeCaps && typeof this.nodeCaps === "object") {
+                return { ...MAX_NODES_BY_TYPE, ...this.nodeCaps };
+            }
+            return MAX_NODES_BY_TYPE;
+        },
+        weightRangesByType() {
+            const byType = {};
+            (this.graph && this.graph.edges ? this.graph.edges : []).forEach((edge) => {
+                if (!edge || !edge.type) return;
+                const w = absWeight(edge.weight);
+                if (w == null) return;
+                if (!byType[edge.type]) byType[edge.type] = [];
+                byType[edge.type].push(w);
+            });
+            const ranges = {};
+            Object.keys(byType).forEach((type) => {
+                const built = buildWeightSteps(byType[type]);
+                if (built) ranges[type] = built;
+            });
+            return ranges;
+        },
+        weightFilterControls() {
+            if (!this.weightFilters) return [];
+            return WEIGHT_FILTER_SPECS.filter((spec) => this.weightRangesByType[spec.type]).map(
+                (spec) => ({
+                    ...spec,
+                    steps: this.weightRangesByType[spec.type].steps,
+                    min: this.weightRangesByType[spec.type].min,
+                    max: this.weightRangesByType[spec.type].max,
+                })
+            );
+        },
+        filteredGraph() {
+            const source = this.graph || { nodes: [], edges: [] };
+            const nodes = Array.isArray(source.nodes) ? source.nodes : [];
+            const edges = Array.isArray(source.edges) ? source.edges : [];
+            if (!this.weightFilters) {
+                return { nodes, edges, rowOrder: source.rowOrder };
+            }
+            const keptEdges = edges.filter((edge) => this.edgePassesWeightFilter(edge));
+            const keepIds = new Set();
+            keptEdges.forEach((edge) => {
+                if (edge.source) keepIds.add(edge.source);
+                if (edge.target) keepIds.add(edge.target);
+            });
+            // Always keep gene nodes from the source graph so the seed stays visible.
+            nodes.forEach((node) => {
+                if (node && node.type === "gene" && node.id) keepIds.add(node.id);
+            });
+            return {
+                nodes: nodes.filter((node) => node && keepIds.has(node.id)),
+                edges: keptEdges,
+                rowOrder: source.rowOrder,
+            };
+        },
         degreeById() {
             const degree = {};
-            (this.graph && this.graph.edges ? this.graph.edges : []).forEach((edge) => {
+            (this.filteredGraph.edges || []).forEach((edge) => {
                 if (edge.source) degree[edge.source] = (degree[edge.source] || 0) + 1;
                 if (edge.target) degree[edge.target] = (degree[edge.target] || 0) + 1;
             });
@@ -226,18 +365,20 @@ export default {
             COLUMN_ORDER.forEach((type) => {
                 byType[type] = [];
             });
-            (this.graph.nodes || []).forEach((node) => {
+            (this.filteredGraph.nodes || []).forEach((node) => {
                 const type = COLUMN_ORDER.includes(node.type) ? node.type : "trait";
                 byType[type].push(node);
             });
             const degree = this.degreeById;
+            const caps = this.effectiveNodeCaps;
             const ids = new Set();
             COLUMN_ORDER.forEach((type) => {
-                byType[type]
+                const ranked = byType[type]
                     .slice()
-                    .sort((a, b) => (degree[b.id] || 0) - (degree[a.id] || 0))
-                    .slice(0, MAX_NODES_BY_TYPE[type])
-                    .forEach((node) => ids.add(node.id));
+                    .sort((a, b) => (degree[b.id] || 0) - (degree[a.id] || 0));
+                const limited =
+                    caps && caps[type] != null ? ranked.slice(0, caps[type]) : ranked;
+                limited.forEach((node) => ids.add(node.id));
             });
             return ids;
         },
@@ -249,6 +390,76 @@ export default {
         },
     },
     methods: {
+        formatWeightOption(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return "";
+            if (Math.abs(n) >= 10) return n.toFixed(1);
+            if (Math.abs(n) >= 1) return n.toFixed(2);
+            return n.toFixed(3);
+        },
+        weightSelectValue(type) {
+            const current = this.minWeightByType[type];
+            if (current == null || !Number.isFinite(Number(current))) {
+                const range = this.weightRangesByType[type];
+                return range ? String(range.min) : "";
+            }
+            const range = this.weightRangesByType[type];
+            if (!range || !range.steps.length) return String(current);
+            // Snap to nearest step so <select> stays in sync with option values.
+            let best = range.steps[0];
+            let bestDist = Math.abs(best - Number(current));
+            range.steps.forEach((step) => {
+                const dist = Math.abs(step - Number(current));
+                if (dist < bestDist) {
+                    best = step;
+                    bestDist = dist;
+                }
+            });
+            return String(best);
+        },
+        edgePassesWeightFilter(edge) {
+            if (!this.weightFilters || !edge) return true;
+            const range = this.weightRangesByType[edge.type];
+            if (!range) return true;
+            const w = absWeight(edge.weight);
+            if (w == null) return true;
+            const minSelected = this.minWeightByType[edge.type];
+            const threshold =
+                minSelected != null && Number.isFinite(Number(minSelected))
+                    ? Number(minSelected)
+                    : range.min;
+            return w + 1e-12 >= threshold;
+        },
+        syncWeightFilterDefaults() {
+            if (!this.weightFilters) {
+                this.minWeightByType = {};
+                return;
+            }
+            const next = {};
+            Object.keys(this.weightRangesByType).forEach((type) => {
+                const range = this.weightRangesByType[type];
+                const current = this.minWeightByType[type];
+                if (
+                    current != null &&
+                    Number.isFinite(Number(current)) &&
+                    Number(current) >= range.min - 1e-12 &&
+                    Number(current) <= range.max + 1e-12
+                ) {
+                    next[type] = Number(current);
+                } else {
+                    next[type] = range.min;
+                }
+            });
+            this.minWeightByType = next;
+        },
+        onWeightFilterChange(type, rawValue) {
+            const n = Number(rawValue);
+            if (!Number.isFinite(n)) return;
+            this.$set(this.minWeightByType, type, n);
+            this.highlightedNodeId = null;
+            this.hideTooltip();
+            this.renderNetwork();
+        },
         visLevel(node) {
             if (Number.isFinite(node && node.level)) return node.level;
             const typeIndex = COLUMN_ORDER.indexOf(node && node.type);
@@ -402,8 +613,10 @@ export default {
             this.destroyNetwork();
             this.displayNetwork = { nodes: [], edges: [] };
             this.highlightedNodeId = null;
-            if (!this.graph || !this.graph.nodes || !this.graph.nodes.length) return;
-            this.displayNetwork = toDisplayNetwork(this.graph, this.visibleNodeIds);
+            if (!this.filteredGraph || !this.filteredGraph.nodes || !this.filteredGraph.nodes.length) {
+                return;
+            }
+            this.displayNetwork = toDisplayNetwork(this.filteredGraph, this.visibleNodeIds);
             this.mountNetwork(this.displayNetwork.nodes, this.displayNetwork.edges);
         },
         showHighlightNetwork(nodeId) {
@@ -420,8 +633,10 @@ export default {
             if (!this.isHighlightView) return;
             this.highlightedNodeId = null;
             this.hideTooltip();
-            if (!this.graph || !this.graph.nodes || !this.graph.nodes.length) return;
-            this.displayNetwork = toDisplayNetwork(this.graph, this.visibleNodeIds);
+            if (!this.filteredGraph || !this.filteredGraph.nodes || !this.filteredGraph.nodes.length) {
+                return;
+            }
+            this.displayNetwork = toDisplayNetwork(this.filteredGraph, this.visibleNodeIds);
             this.mountNetwork(this.displayNetwork.nodes, this.displayNetwork.edges);
         },
         detachNetworkEvents() {
@@ -604,6 +819,46 @@ export default {
     align-items: center;
     justify-content: space-between;
     gap: 8px 16px;
+}
+
+.scp-kgnet-controls {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px 14px;
+}
+
+.scp-kgnet-weights {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.scp-kgnet-weight-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 12px;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.scp-kgnet-weight-label {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.scp-kgnet-weight-select {
+    max-width: 92px;
+    padding: 3px 6px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--cfde-ink, #33363d);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
 }
 
 .scp-kgnet-legend {

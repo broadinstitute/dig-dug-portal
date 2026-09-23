@@ -1,0 +1,131 @@
+<template>
+    <div class="rv2-menubar">
+        <div class="rv2-menu-group">
+            <template v-for="menu in menus">
+                <b-button
+                    v-if="!menu.items"
+                    :key="menu.id"
+                    variant="outline-secondary"
+                    size="sm"
+                    class="rv2-menu-button"
+                    @click="onButtonClick(menu)"
+                >
+                    {{ menu.label }}
+                </b-button>
+                <b-dropdown
+                    v-else
+                    :key="`menu-${menu.id}`"
+                    :text="menu.label"
+                    variant="outline-secondary"
+                    size="sm"
+                    class="rv2-menu"
+                    menu-class="rv2-menu-list"
+                    toggle-class="rv2-menu-toggle"
+                >
+                    <b-dropdown-item
+                        v-for="item in menu.items"
+                        :key="item.id"
+                        @click="onSelect(menu, item)"
+                    >
+                        {{ item.label }}
+                    </b-dropdown-item>
+                </b-dropdown>
+            </template>
+        </div>
+    </div>
+</template>
+
+<script>
+export default {
+    name: "RevealV2MenuBar",
+    data() {
+        return {
+            menus: [
+                {
+                    id: "session",
+                    label: "Session",
+                    items: [
+                        { id: "resetSession", label: "Reset session" },
+                        { id: "importSession", label: "Import session" },
+                        { id: "exportSession", label: "Export session" },
+                    ],
+                },
+                {
+                    id: "actions",
+                    label: "Actions",
+                },
+                {
+                    id: "help",
+                    label: "Help",
+                    items: [
+                        { id: "learnReveal", label: "Learn REVEAL" },
+                        { id: "documentation", label: "Documentation" },
+                    ],
+                },
+            ],
+        };
+    },
+    methods: {
+        onSelect(menu, item) {
+            this.$emit("action", {
+                menu: menu.id,
+                action: item.id,
+                label: item.label,
+            });
+        },
+        onButtonClick(menu) {
+            this.$emit("action", {
+                menu: menu.id,
+                action: "open",
+                label: menu.label,
+            });
+        },
+    },
+};
+</script>
+
+<style scoped>
+.rv2-menubar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rv2-menu-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rv2-menu >>> .rv2-menu-toggle,
+.rv2-menu-button {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border-radius: 6px;
+    color: var(--cfde-blue, #2c5c97);
+    border-color: var(--cfde-border, #e6e1d6);
+    background: #ffffff;
+}
+
+.rv2-menu >>> .rv2-menu-toggle:hover,
+.rv2-menu >>> .show > .rv2-menu-toggle,
+.rv2-menu-button:hover,
+.rv2-menu-button:focus,
+.rv2-menu-button:active {
+    color: #ffffff;
+    background: var(--cfde-blue, #2c5c97);
+    border-color: var(--cfde-blue, #2c5c97);
+}
+
+.rv2-menu >>> .dropdown-menu {
+    z-index: 50;
+}
+
+.rv2-menu >>> .rv2-menu-list {
+    min-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(20, 22, 30, 0.12);
+}
+</style>

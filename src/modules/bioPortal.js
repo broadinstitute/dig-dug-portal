@@ -170,7 +170,7 @@ export default {
                         state.defaultPortal ||
                         process.env.VUE_APP_DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
-                        "md",
+                        "a2f",
                 },
                 { skipNull: true }
             );
