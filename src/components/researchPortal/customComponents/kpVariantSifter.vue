@@ -448,6 +448,9 @@ import {
     fetchCredibleSetVariants,
     fetchGwasCeCredibleSetsList,
     fetchGwasCeCredibleSetVariants,
+    findCredibleSetAvailableEntry,
+    credibleSetEntryQueryAncestry,
+    credibleSetEntryQueryPhenotype,
     isGwasCeCredibleSetEntry,
     mergeCredibleSetAvailableLists,
     tagCredibleSetEntries,
@@ -2935,49 +2938,30 @@ export default Vue.component("kp-variant-sifter", {
                 return false;
             }
         },
-        async onAddCredibleSet({ credibleSetId, phenotype, ancestry, project }) {
+        async onAddCredibleSet({
+            credibleSetId,
+            phenotype,
+            ancestry,
+            project,
+            selectionKey: requestedSelectionKey,
+        }) {
             if (!credibleSetId || !this.searchSession) {
                 return;
             }
 
-            const resolvedAncestry = ancestry || "Mixed";
-            const requestedPhenotype = String(phenotype || "").trim();
-            const requestedProject = String(project || "").trim();
-            const availableEntry =
-                this.credibleSetsState.available.find(
-                    (entry) =>
-                        entry.credibleSetId === credibleSetId &&
-                        (entry.ancestry || "Mixed") === resolvedAncestry &&
-                        (!requestedPhenotype ||
-                            String(entry.phenotype || "").trim() ===
-                                requestedPhenotype) &&
-                        (!requestedProject ||
-                            String(entry.project || "").trim() ===
-                                requestedProject)
-                ) ||
-                this.credibleSetsState.available.find(
-                    (entry) =>
-                        entry.credibleSetId === credibleSetId &&
-                        (!requestedPhenotype ||
-                            String(entry.phenotype || "").trim() ===
-                                requestedPhenotype) &&
-                        (!requestedProject ||
-                            String(entry.project || "").trim() ===
-                                requestedProject)
-                ) ||
-                this.credibleSetsState.available.find(
-                    (entry) =>
-                        entry.credibleSetId === credibleSetId &&
-                        (!requestedProject ||
-                            String(entry.project || "").trim() ===
-                                requestedProject)
-                ) ||
-                this.credibleSetsState.available.find(
-                    (entry) => entry.credibleSetId === credibleSetId
-                );
+            const availableEntry = findCredibleSetAvailableEntry(
+                this.credibleSetsState.available,
+                {
+                    selectionKey: requestedSelectionKey,
+                    credibleSetId,
+                    ancestry,
+                    phenotype,
+                    project,
+                }
+            );
             const resolvedProject =
-                requestedProject ||
                 availableEntry?.project ||
+                String(project || "").trim() ||
                 (isGwasCeProject(this.projectId)
                     ? VKS_ASSOCIATION_PROJECT_KP
                     : "");
@@ -2991,20 +2975,27 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
+            // Variants query keys come from the stored list row (query* fields).
             const resolvedPhenotype =
-                requestedPhenotype ||
-                availableEntry?.phenotype ||
-                (isCeSet
-                    ? resolveGwasCeToken(this.searchSession)
-                    : this.searchSession.phenotype?.name) ||
-                null;
-            const entryAncestry = availableEntry?.ancestry || resolvedAncestry;
-            const selectionKey = makeCredibleSetSelectionKey(
-                credibleSetId,
-                entryAncestry,
-                resolvedPhenotype,
-                resolvedProject
+                credibleSetEntryQueryPhenotype(
+                    availableEntry,
+                    phenotype ||
+                        (isCeSet
+                            ? resolveGwasCeToken(this.searchSession)
+                            : this.searchSession.phenotype?.name)
+                ) || null;
+            const entryAncestry = credibleSetEntryQueryAncestry(
+                availableEntry,
+                ancestry || "Mixed"
             );
+            const selectionKey =
+                requestedSelectionKey ||
+                makeCredibleSetSelectionKey(
+                    credibleSetId,
+                    entryAncestry,
+                    resolvedPhenotype,
+                    resolvedProject
+                );
 
             if (this.credibleSetsState.selectedIds.includes(selectionKey)) {
                 return;
@@ -3014,7 +3005,9 @@ export default Vue.component("kp-variant-sifter", {
                 ...(availableEntry || {
                     credibleSetId,
                     phenotype: resolvedPhenotype,
+                    queryPhenotype: resolvedPhenotype,
                     ancestry: entryAncestry,
+                    queryAncestry: entryAncestry,
                 }),
                 project: resolvedProject || availableEntry?.project || "",
             };
@@ -3022,8 +3015,10 @@ export default Vue.component("kp-variant-sifter", {
             const phenotypeSession = {
                 ...this.searchSession,
                 phenotype:
-                    this.resolveAssociationPhenotype(resolvedPhenotype) ||
-                    this.searchSession.phenotype,
+                    this.resolveAssociationPhenotype(resolvedPhenotype) || {
+                        name: resolvedPhenotype,
+                        description: resolvedPhenotype,
+                    },
                 region: this.dataRegion || this.searchSession.region,
             };
 
@@ -3075,11 +3070,14 @@ export default Vue.component("kp-variant-sifter", {
                                 selectionKey,
                                 credibleSetId,
                                 phenotype: resolvedPhenotype,
+                                queryPhenotype: resolvedPhenotype,
                                 ancestry: entryAncestry,
+                                queryAncestry: entryAncestry,
                                 project: resolvedProject || "",
                                 label,
                                 optionLabel: credibleSetOptionLabel(metaEntry),
                             },
+                            listEntry: availableEntry || metaEntry,
                             rawVariants: stampedRaw,
                             formattedVariants,
                         },
@@ -3143,13 +3141,14 @@ export default Vue.component("kp-variant-sifter", {
         },
         async mergeCredibleSetsForPhenotypeAncestry(phenotype, ancestry) {
             const phenotypeName = String(phenotype?.name || "").trim();
-            if (
-                !phenotypeName ||
-                !ancestry ||
-                ancestry === "Mixed" ||
-                !this.searchSession
-            ) {
+            if (!phenotypeName || !ancestry || !this.searchSession) {
                 return;
+            }
+            if (ancestry === "Mixed") {
+                const primary = primaryAssociationAncestry(this.searchSession);
+                if (!primary || primary === "Mixed") {
+                    return;
+                }
             }
 
             const host = this.bioIndexHostFor("credible-sets");
@@ -3197,8 +3196,15 @@ export default Vue.component("kp-variant-sifter", {
             }
         },
         async mergeCredibleSetsForAncestry(ancestry) {
-            if (!ancestry || ancestry === "Mixed" || !this.searchSession) {
+            if (!ancestry || !this.searchSession) {
                 return;
+            }
+            // Mixed is only additive when the primary search ancestry is specific.
+            if (ancestry === "Mixed") {
+                const primary = primaryAssociationAncestry(this.searchSession);
+                if (!primary || primary === "Mixed") {
+                    return;
+                }
             }
             await this.mergeCredibleSetsForPhenotypeAncestry(
                 this.searchSession.phenotype,
@@ -3206,8 +3212,14 @@ export default Vue.component("kp-variant-sifter", {
             );
         },
         removeCredibleSetsForAncestry(ancestry, phenotypeName = null) {
-            if (!ancestry || ancestry === "Mixed") {
+            if (!ancestry) {
                 return;
+            }
+            if (ancestry === "Mixed") {
+                const primary = primaryAssociationAncestry(this.searchSession);
+                if (!primary || primary === "Mixed") {
+                    return;
+                }
             }
 
             const primaryName = String(
@@ -4264,7 +4276,10 @@ export default Vue.component("kp-variant-sifter", {
                 return true;
             }
 
-            const host = this.bioIndexHostFor("ancestry-associations");
+            const host =
+                ancestry === "Mixed"
+                    ? this.bioIndexHostFor("associations")
+                    : this.bioIndexHostFor("ancestry-associations");
             if (!host) {
                 return false;
             }
@@ -4959,7 +4974,10 @@ export default Vue.component("kp-variant-sifter", {
                 [...selected, ...pending],
                 session.ancestry || "Mixed"
             );
-            const subParam = formatSubAncestriesParam(subAncestries);
+            const subParam = formatSubAncestriesParam(
+                subAncestries,
+                session.ancestry || "Mixed"
+            );
             nextParams.sub_ancestries = subParam || undefined;
 
             this.utilsBox.keyParams.set(nextParams);
