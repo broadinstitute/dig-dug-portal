@@ -7,7 +7,8 @@ import userUtils from "@/utils/userUtils";
  */
 
 export const BIOMARKER_SESSION_KIND = "biomarker-network-session";
-export const BIOMARKER_SESSION_SCHEMA_VERSION = 5;
+/** v6: full reverse (biomarker→CFDE) session fields + accordion / AI summary state. */
+export const BIOMARKER_SESSION_SCHEMA_VERSION = 6;
 
 function cloneJson(value, fallback) {
     try {
@@ -36,16 +37,20 @@ function serializeDiseaseGenes(diseaseGenes) {
     return out;
 }
 
+function idleSummary() {
+    return {
+        status: "idle",
+        data: null,
+        error: "",
+        rowCount: 0,
+        generatedAt: null,
+    };
+}
+
 function serializeMechanismLinkSummary(summary) {
     const entry = summary || {};
     if (entry.status !== "done" || !entry.data || typeof entry.data !== "object") {
-        return {
-            status: "idle",
-            data: null,
-            error: "",
-            rowCount: 0,
-            generatedAt: null,
-        };
+        return idleSummary();
     }
     return {
         status: "done",
@@ -56,33 +61,68 @@ function serializeMechanismLinkSummary(summary) {
     };
 }
 
+function isReverseDirection(vmOrDirection) {
+    const value =
+        typeof vmOrDirection === "string"
+            ? vmOrDirection
+            : (vmOrDirection && vmOrDirection.searchDirection) || "";
+    return value === "biomarker-to-cfde";
+}
+
+function reverseSessionLabel(vm) {
+    return String(
+        (vm &&
+            ((vm.reverseResolved && vm.reverseResolved.needle) ||
+                vm.reverseUserQuery)) ||
+            ""
+    ).trim();
+}
+
 export function sessionHasExportableContent(vm) {
     if (!vm) return false;
+    if (isReverseDirection(vm)) {
+        if (vm.reverseResolved && vm.reverseResolved.found) return true;
+        if (vm.reverseAssociatedDiseases && vm.reverseAssociatedDiseases.length) return true;
+        if (vm.reverseMechanisms && vm.reverseMechanisms.length) return true;
+        if (
+            vm.reverseMechanismLinkSummary &&
+            vm.reverseMechanismLinkSummary.status === "done"
+        ) {
+            return true;
+        }
+        return !!(vm.reverseUserQuery && String(vm.reverseUserQuery).trim());
+    }
     if (vm.searched) return true;
     if ((vm.rows && vm.rows.length) || (vm.associatedDiseases && vm.associatedDiseases.length)) {
         return true;
     }
+    if (vm.mechanismLinkSummary && vm.mechanismLinkSummary.status === "done") return true;
     return Object.keys(vm.geneRegistry || {}).length > 0;
 }
 
 export function defaultSessionExportFilename(vm) {
     const stamp = new Date().toISOString().slice(0, 10);
-    const slug =
-        slugFromLabel(vm && (vm.searchedFactorLabel || vm.lastNeedle || vm.userQuery)) ||
-        "session";
-    return `biomarker-network-${slug}-${stamp}.json`;
+    const label = isReverseDirection(vm)
+        ? reverseSessionLabel(vm)
+        : vm && (vm.searchedFactorLabel || vm.lastNeedle || vm.userQuery);
+    const slug = slugFromLabel(label) || "session";
+    const prefix = isReverseDirection(vm)
+        ? "biomarker-network-reverse"
+        : "biomarker-network";
+    return `${prefix}-${slug}-${stamp}.json`;
 }
 
 export function buildBiomarkerSessionExport(vm) {
+    const reverse = isReverseDirection(vm);
     return {
         kind: BIOMARKER_SESSION_KIND,
         schemaVersion: BIOMARKER_SESSION_SCHEMA_VERSION,
         exportedAt: new Date().toISOString(),
-        label: String((vm && (vm.searchedFactorLabel || vm.lastNeedle || vm.userQuery)) || ""),
+        label: reverse
+            ? reverseSessionLabel(vm)
+            : String((vm && (vm.searchedFactorLabel || vm.lastNeedle || vm.userQuery)) || ""),
         session: {
-            searchDirection: String(
-                (vm && vm.searchDirection) || "cfde-to-biomarker"
-            ),
+            searchDirection: reverse ? "biomarker-to-cfde" : "cfde-to-biomarker",
             userQuery: String((vm && vm.userQuery) || ""),
             searchNeedle: String((vm && vm.searchNeedle) || ""),
             lastNeedle: String((vm && vm.lastNeedle) || ""),
@@ -110,10 +150,25 @@ export function buildBiomarkerSessionExport(vm) {
             biomarkersAccordionOpen: !!(vm && vm.biomarkersAccordionOpen),
             expandedDiseases: cloneJson((vm && vm.expandedDiseases) || {}, {}),
             diseaseGenes: serializeDiseaseGenes(vm && vm.diseaseGenes),
-            networkExpandedDiseases: cloneJson((vm && vm.networkExpandedDiseases) || {}, {}),
             geneRegistry: cloneJson((vm && vm.geneRegistry) || {}, {}),
             mechanismLinkSummary: serializeMechanismLinkSummary(vm && vm.mechanismLinkSummary),
             mechanismLinkAccordionOpen: !!(vm && vm.mechanismLinkAccordionOpen),
+            reverseUserQuery: String((vm && vm.reverseUserQuery) || ""),
+            reverseAssociatedDiseases: cloneJson((vm && vm.reverseAssociatedDiseases) || [], []),
+            reverseSelectedDiseaseIds: cloneJson((vm && vm.reverseSelectedDiseaseIds) || {}, {}),
+            reverseDiseasePage: Number((vm && vm.reverseDiseasePage) || 1),
+            reverseMechanisms: cloneJson((vm && vm.reverseMechanisms) || [], []),
+            reverseSeedGenes: cloneJson((vm && vm.reverseSeedGenes) || [], []),
+            reverseMechanismPage: Number((vm && vm.reverseMechanismPage) || 1),
+            reverseResolved: cloneJson((vm && vm.reverseResolved) || null, null),
+            reverseBiomarkerAccordionOpen: vm && vm.reverseBiomarkerAccordionOpen !== false,
+            reverseDiseasesAccordionOpen: !!(vm && vm.reverseDiseasesAccordionOpen),
+            reverseMechanismsAccordionOpen: !!(vm && vm.reverseMechanismsAccordionOpen),
+            reverseAiAccordionOpen: !!(vm && vm.reverseAiAccordionOpen),
+            reverseMechanismLinkSummary: serializeMechanismLinkSummary(
+                vm && vm.reverseMechanismLinkSummary
+            ),
+            reverseHiddenDiseases: cloneJson((vm && vm.reverseHiddenDiseases) || {}, {}),
         },
     };
 }
@@ -236,7 +291,7 @@ function assign(vm, key, value) {
 
 /**
  * Apply an imported session after the caller has already reset the UI.
- * Restores full search/results/network/filter state from the export payload.
+ * Restores full search/results/filter/accordion state from the export payload.
  */
 export function applyBiomarkerSessionImport(vm, payload, { setKeyParams } = {}) {
     const session = (payload && payload.session) || {};
@@ -245,15 +300,14 @@ export function applyBiomarkerSessionImport(vm, payload, { setKeyParams } = {}) 
         session.selectedFactorId != null && Number.isFinite(Number(session.selectedFactorId))
             ? Number(session.selectedFactorId)
             : null;
+    const reverse = isReverseDirection(session.searchDirection);
 
-    assign(vm, "userQuery", String(session.userQuery || ""));
     assign(
         vm,
         "searchDirection",
-        session.searchDirection === "biomarker-to-cfde"
-            ? "biomarker-to-cfde"
-            : "cfde-to-biomarker"
+        reverse ? "biomarker-to-cfde" : "cfde-to-biomarker"
     );
+    assign(vm, "userQuery", String(session.userQuery || ""));
     assign(vm, "searchNeedle", String(session.searchNeedle || session.userQuery || ""));
     assign(vm, "lastNeedle", String(session.lastNeedle || ""));
     assign(vm, "searchedFactorLabel", String(session.searchedFactorLabel || ""));
@@ -304,37 +358,112 @@ export function applyBiomarkerSessionImport(vm, payload, { setKeyParams } = {}) 
     );
     assign(vm, "expandedDiseases", cloneJson(session.expandedDiseases, {}));
     assign(vm, "diseaseGenes", serializeDiseaseGenes(session.diseaseGenes));
-    assign(vm, "networkExpandedDiseases", cloneJson(session.networkExpandedDiseases, {}));
     assign(vm, "geneRegistry", cloneJson(session.geneRegistry, {}));
     assign(
         vm,
         "mechanismLinkSummary",
         session.mechanismLinkSummary
             ? serializeMechanismLinkSummary(session.mechanismLinkSummary)
-            : {
-                  status: "idle",
-                  data: null,
-                  error: "",
-                  rowCount: 0,
-                  generatedAt: null,
-              }
+            : idleSummary()
     );
     assign(vm, "mechanismLinkAccordionOpen", !!session.mechanismLinkAccordionOpen);
+
+    assign(vm, "reverseUserQuery", String(session.reverseUserQuery || ""));
+    assign(
+        vm,
+        "reverseAssociatedDiseases",
+        cloneJson(session.reverseAssociatedDiseases, [])
+    );
+    const reverseSelectedDiseaseIds = cloneJson(session.reverseSelectedDiseaseIds, {});
+    if (
+        (!reverseSelectedDiseaseIds || !Object.keys(reverseSelectedDiseaseIds).length) &&
+        Array.isArray(session.reverseAssociatedDiseases)
+    ) {
+        session.reverseAssociatedDiseases.forEach((d) => {
+            if (d && d.disease) reverseSelectedDiseaseIds[d.disease] = true;
+        });
+    }
+    assign(vm, "reverseSelectedDiseaseIds", reverseSelectedDiseaseIds);
+    assign(vm, "reverseDiseasePage", Math.max(1, Number(session.reverseDiseasePage) || 1));
+    assign(vm, "reverseMechanisms", cloneJson(session.reverseMechanisms, []));
+    assign(vm, "reverseSeedGenes", cloneJson(session.reverseSeedGenes, []));
+    assign(
+        vm,
+        "reverseMechanismPage",
+        Math.max(1, Number(session.reverseMechanismPage) || 1)
+    );
+    assign(vm, "reverseResolved", cloneJson(session.reverseResolved, null));
+    assign(
+        vm,
+        "reverseBiomarkerAccordionOpen",
+        session.reverseBiomarkerAccordionOpen != null
+            ? !!session.reverseBiomarkerAccordionOpen
+            : !session.reverseResolved
+    );
+    assign(
+        vm,
+        "reverseDiseasesAccordionOpen",
+        session.reverseDiseasesAccordionOpen != null
+            ? !!session.reverseDiseasesAccordionOpen
+            : !!(session.reverseAssociatedDiseases && session.reverseAssociatedDiseases.length)
+    );
+    assign(
+        vm,
+        "reverseMechanismsAccordionOpen",
+        session.reverseMechanismsAccordionOpen != null
+            ? !!session.reverseMechanismsAccordionOpen
+            : !!(session.reverseMechanisms && session.reverseMechanisms.length)
+    );
+    assign(vm, "reverseAiAccordionOpen", !!session.reverseAiAccordionOpen);
+    assign(
+        vm,
+        "reverseMechanismLinkSummary",
+        session.reverseMechanismLinkSummary
+            ? serializeMechanismLinkSummary(session.reverseMechanismLinkSummary)
+            : idleSummary()
+    );
+    assign(vm, "reverseHiddenDiseases", cloneJson(session.reverseHiddenDiseases, {}));
+    assign(vm, "reverseLoading", false);
+    assign(vm, "reverseLoadingMessage", "");
+    assign(vm, "reverseMechanismLoading", false);
+    assign(vm, "reverseMechanismLoadingMessage", "");
+    assign(vm, "reverseMechanismLinkLoading", false);
+    assign(vm, "reverseMechanismLinkStatus", "");
+
     assign(vm, "loading", false);
     assign(vm, "biomarkerLoading", false);
     assign(vm, "loadingMessage", "");
     assign(vm, "error", "");
 
     if (typeof setKeyParams === "function") {
+        const biomarkerNeedle = reverse
+            ? String(
+                  (session.reverseResolved && session.reverseResolved.needle) ||
+                      session.reverseUserQuery ||
+                      ""
+              ).trim()
+            : "";
         setKeyParams({
             disease: "",
-            factor: factorId != null ? String(factorId) : "",
+            factor: !reverse && factorId != null ? String(factorId) : "",
+            biomarker: biomarkerNeedle,
+            direction: reverse ? "biomarker-to-cfde" : "cfde-to-biomarker",
         });
     }
 
     return {
-        label: String((payload && payload.label) || session.searchedFactorLabel || "session"),
+        label: String(
+            (payload && payload.label) ||
+                (reverse
+                    ? reverseSessionLabel({
+                          reverseResolved: session.reverseResolved,
+                          reverseUserQuery: session.reverseUserQuery,
+                      })
+                    : session.searchedFactorLabel) ||
+                "session"
+        ),
         factorIri,
         factorId,
+        searchDirection: reverse ? "biomarker-to-cfde" : "cfde-to-biomarker",
     };
 }

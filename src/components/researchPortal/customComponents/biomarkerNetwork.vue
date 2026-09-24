@@ -112,7 +112,14 @@
                         >
                             <span class="bn-accordion-title">
                                 <span class="bn-accordion-step">1</span>
-                                Mechanism
+                                <span class="bn-accordion-title-text">Inferred biological factor</span>
+                                <span
+                                    v-if="selectedMechanismHeaderLabel"
+                                    class="bn-header-mechanism-bubble"
+                                    :title="selectedMechanismHeaderLabel"
+                                >
+                                    {{ selectedMechanismHeaderLabel }}
+                                </span>
                             </span>
                             <span class="bn-accordion-chevron" aria-hidden="true" />
                         </button>
@@ -170,6 +177,18 @@
                                         </li>
                                     </ul>
                                 </div>
+                                <button
+                                    type="button"
+                                    class="btn btn-cfde btn-sm bn-find-diseases-btn"
+                                    :disabled="loading || !searchNeedle"
+                                    @click="runSearch"
+                                >
+                                    {{
+                                        loading
+                                            ? "Finding associated diseases…"
+                                            : "Find associated diseases"
+                                    }}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -188,27 +207,16 @@
                         >
                             <span class="bn-accordion-title">
                                 <span class="bn-accordion-step">2</span>
-                                Associated diseases
-                                <span v-if="associatedDiseases.length" class="bn-accordion-count">
-                                    {{ associatedDiseases.length }}
+                                <span class="bn-accordion-title-text">Associated diseases</span>
+                                <span
+                                    v-if="associatedDiseases.length"
+                                    class="bn-accordion-count"
+                                >
+                                    {{ selectedDiseaseCount }}/{{ associatedDiseases.length }}
                                 </span>
                             </span>
                             <span class="bn-accordion-chevron" aria-hidden="true" />
                         </button>
-                        <div class="bn-accordion-actions" @click.stop>
-                            <button
-                                type="button"
-                                class="btn btn-cfde btn-sm bn-find-diseases-btn"
-                                :disabled="loading || !searchNeedle"
-                                @click="runSearch"
-                            >
-                                {{
-                                    loading
-                                        ? "Finding associated diseases…"
-                                        : "Find associated diseases"
-                                }}
-                            </button>
-                        </div>
                     </div>
                     <div v-show="diseasesAccordionOpen" class="bn-accordion-panel">
                         <div
@@ -230,25 +238,36 @@
                             </p>
                         </template>
                         <template v-else>
-                                <div
-                                    v-if="mechanismGraph.nodes.length"
-                                    class="bn-mechanism-network"
-                                >
-                                    <biomarker-network-graph
-                                        ref="mechNetwork"
-                                        :key="'mech-net-' + mechanismNetworkKey"
-                                        :graph="mechanismGraph"
-                                        :height="480"
-                                        :type-labels="mechanismLegendLabels"
-                                        :genes-fetched-disease-ids="genesFetchedDiseaseIds"
-                                        @view-shared-genes="onViewSharedGenesInNetwork"
-                                        @hide-genes="onHideGenesInNetwork"
-                                    />
+                                <div class="bn-method-note">
+                                    <div>
+                                        <strong>Disease ranking from shared genetic evidence</strong>
+                                        <p>
+                                            We compare all genes that define the selected factor with
+                                            genetically supported genes for each disease. Genes that
+                                            contribute more strongly to the factor carry more weight,
+                                            and broad overlaps expected by chance are discounted. At
+                                            least two shared genes are required.
+                                        </p>
+                                    </div>
                                 </div>
-                                <p class="bn-step-hint">
-                                    Review associated diseases, then use Find biomarkers
-                                    in step 3 for the checked ones.
-                                </p>
+                                <div class="bn-table-intro-row">
+                                    <p class="bn-table-intro">
+                                        Review the disease evidence, then choose which diseases
+                                        should be used to retrieve biomarkers.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        class="btn btn-cfde btn-sm bn-find-biomarkers-btn"
+                                        :disabled="biomarkerLoading || !selectedDiseaseCount"
+                                        @click="fetchBiomarkers"
+                                    >
+                                        {{
+                                            biomarkerLoading
+                                                ? "Finding biomarkers…"
+                                                : "Find biomarkers"
+                                        }}
+                                    </button>
+                                </div>
                                 <table class="table table-sm table-hover bn-table">
                                     <thead>
                                         <tr>
@@ -373,52 +392,15 @@
                             >
                                 <span class="bn-accordion-title">
                                     <span class="bn-accordion-step">3</span>
-                                    Biomarkers
+                                    <span class="bn-accordion-title-text">Biomarkers</span>
                                     <span v-if="biomarkersFetched" class="bn-accordion-count">
                                         {{ rows.length }}
                                     </span>
                                 </span>
                                 <span class="bn-accordion-chevron" aria-hidden="true" />
                             </button>
-                            <div class="bn-accordion-actions" @click.stop>
-                                <span
-                                    v-if="associatedDiseases.length"
-                                    class="bn-fetch-meta text-muted"
-                                >
-                                    {{ selectedDiseaseCount }} of
-                                    {{ associatedDiseases.length }} diseases selected
-                                </span>
-                                <button
-                                    type="button"
-                                    class="btn btn-cfde btn-sm bn-find-biomarkers-btn"
-                                    :disabled="biomarkerLoading || !selectedDiseaseCount"
-                                    @click="fetchBiomarkers"
-                                >
-                                    {{ biomarkerLoading ? "Finding biomarkers…" : "Find biomarkers" }}
-                                </button>
-                            </div>
                         </div>
                         <div v-show="biomarkersAccordionOpen" class="bn-accordion-panel">
-                            <div v-if="counts" class="bn-counts">
-                                <span v-if="searchedFactorLabel" class="bn-disease-bubble">{{
-                                    searchedFactorLabel
-                                }}</span>
-                                <span
-                                    ><strong>{{ counts.diseaseCount }}</strong> associated
-                                    diseases</span
-                                >
-                                <template v-if="biomarkersFetched">
-                                    <span class="bn-counts-sep">·</span>
-                                    <span
-                                        ><strong>{{ counts.biomarkerCount }}</strong>
-                                        biomarkers</span
-                                    >
-                                    <span v-if="truncatedFetch" class="bn-counts-sep">·</span>
-                                    <span v-if="truncatedFetch" class="text-muted"
-                                        >list truncated at limit {{ fetchLimit }}</span
-                                    >
-                                </template>
-                            </div>
                             <div
                                 v-if="biomarkerLoading"
                                 class="bn-status bn-status--loading"
@@ -433,6 +415,43 @@
                                 </p>
                             </template>
                             <template v-else>
+                                <div class="bn-method-note">
+                                    <div>
+                                        <strong>AI summary generation</strong>
+                                        <p>
+                                            After reviewing the biomarker table, generate one
+                                            integrative summary that closes the loop from the
+                                            selected factor through diseases and biomarkers back to
+                                            mechanistic interpretation. The summary uses the
+                                            filtered biomarker rows and top mechanism genes as
+                                            grounding.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="bn-table-intro-row">
+                                    <p class="bn-table-intro">
+                                        Review the biomarker evidence, then generate a mechanistic
+                                        feedback summary.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        class="btn btn-cfde btn-sm"
+                                        :disabled="
+                                            mechanismLinkLoading ||
+                                            !biomarkersFetched ||
+                                            !filteredRows.length
+                                        "
+                                        @click="generateMechanismLinkSummary"
+                                    >
+                                        {{
+                                            mechanismLinkLoading
+                                                ? "Generating…"
+                                                : mechanismLinkSummary.status === "done"
+                                                  ? "Regenerate summary"
+                                                  : "Generate summary"
+                                        }}
+                                    </button>
+                                </div>
                                 <div
                                     v-if="uniqueRoleLabels.length"
                                     class="bn-type-filters"
@@ -620,31 +639,11 @@
                         >
                             <span class="bn-accordion-title">
                                 <span class="bn-accordion-step">4</span>
-                                Mechanistic feedback loop
+                                <span class="bn-accordion-title-text">Mechanistic feedback loop</span>
                                 <span class="bn-ai-bubble" title="Uses Claude (Bedrock)">AI</span>
                             </span>
                             <span class="bn-accordion-chevron" aria-hidden="true" />
                         </button>
-                        <div class="bn-accordion-actions" @click.stop>
-                            <button
-                                type="button"
-                                class="btn btn-cfde btn-sm"
-                                :disabled="
-                                    mechanismLinkLoading ||
-                                    !biomarkersFetched ||
-                                    !filteredRows.length
-                                "
-                                @click="generateMechanismLinkSummary"
-                            >
-                                {{
-                                    mechanismLinkLoading
-                                        ? "Generating…"
-                                        : mechanismLinkSummary.status === "done"
-                                          ? "Regenerate summary"
-                                          : "Generate summary"
-                                }}
-                            </button>
-                        </div>
                     </div>
                     <div v-show="mechanismLinkAccordionOpen" class="bn-accordion-panel">
                         <p v-if="!biomarkersFetched" class="bn-filter-empty">
@@ -681,7 +680,7 @@
                                 v-else
                                 class="bn-filter-empty mb-0"
                             >
-                                Click Generate summary to run one LLM analysis over the full
+                                Use Generate summary in step 3 to run one LLM analysis over the full
                                 filtered biomarker table.
                             </p>
                         </template>
@@ -703,7 +702,14 @@
                             >
                                 <span class="bn-accordion-title">
                                     <span class="bn-accordion-step">1</span>
-                                    Biomarker
+                                    <span class="bn-accordion-title-text">Candidate biomarker</span>
+                                    <span
+                                        v-if="reverseResolved && reverseResolved.found"
+                                        class="bn-header-mechanism-bubble"
+                                        :title="reverseSeedBiomarkerLabel"
+                                    >
+                                        {{ reverseSeedBiomarkerLabel }}
+                                    </span>
                                 </span>
                                 <span class="bn-accordion-chevron" aria-hidden="true" />
                             </button>
@@ -737,6 +743,19 @@
                                             <b-icon icon="x" aria-hidden="true" />
                                         </button>
                                     </div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-cfde btn-sm bn-find-diseases-btn"
+                                        :disabled="reverseLoading || !reverseUserQuery.trim()"
+                                        @click="runReverseDiseaseSearch"
+                                    >
+                                        {{
+                                            reverseLoading
+                                                ? reverseLoadingMessage ||
+                                                  "Finding associated diseases…"
+                                                : "Find associated diseases"
+                                        }}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -755,30 +774,18 @@
                             >
                                 <span class="bn-accordion-title">
                                     <span class="bn-accordion-step">2</span>
-                                    Associated diseases
+                                    <span class="bn-accordion-title-text">Associated diseases</span>
                                     <span
                                         v-if="reverseAssociatedDiseases.length"
                                         class="bn-accordion-count"
                                     >
-                                        {{ reverseAssociatedDiseases.length }}
+                                        {{ reverseSelectedDiseaseCount }}/{{
+                                            reverseAssociatedDiseases.length
+                                        }}
                                     </span>
                                 </span>
                                 <span class="bn-accordion-chevron" aria-hidden="true" />
                             </button>
-                            <div class="bn-accordion-actions" @click.stop>
-                                <button
-                                    type="button"
-                                    class="btn btn-cfde btn-sm"
-                                    :disabled="reverseLoading || !reverseUserQuery.trim()"
-                                    @click="runReverseDiseaseSearch"
-                                >
-                                    {{
-                                        reverseLoading
-                                            ? reverseLoadingMessage || "Finding associated diseases…"
-                                            : "Find associated diseases"
-                                    }}
-                                </button>
-                            </div>
                         </div>
                         <div v-show="reverseDiseasesAccordionOpen" class="bn-accordion-panel">
                             <div
@@ -799,33 +806,45 @@
                                 Try another SNP rsID or gene symbol.
                             </div>
                             <template v-else-if="reverseResolved && reverseResolved.found">
-                                <div class="bn-counts mb-2">
-                                    <span class="bn-disease-bubble">{{ reverseResolved.needle }}</span>
-                                    <span>
-                                        {{ reverseResolved.kind === "snp" ? "SNP" : "gene" }}
-                                        ·
-                                        <strong>{{ reverseResolved.matchCount }}</strong>
-                                        BiomarkerKB
-                                        {{ reverseResolved.matchCount === 1 ? "hit" : "hits" }}
-                                    </span>
-                                    <span class="bn-counts-sep">·</span>
-                                    <span>
-                                        <strong>{{ reverseAssociatedDiseases.length }}</strong>
-                                        associated diseases
-                                    </span>
-                                    <span class="bn-counts-sep">·</span>
-                                    <span class="text-muted">
-                                        {{ reverseSelectedDiseaseCount }} selected
-                                    </span>
-                                </div>
                                 <p v-if="!reverseAssociatedDiseases.length" class="bn-filter-empty mb-0">
                                     {{ reverseDiseasesEmptyCopy }}
                                 </p>
                                 <template v-else>
-                                    <p class="bn-step-hint">
-                                        Review BiomarkerKB diseases, then use Find mechanisms in
-                                        step 3 for the checked ones.
-                                    </p>
+                                    <div class="bn-method-note">
+                                        <div>
+                                            <strong
+                                                >Disease links from BiomarkerKB evidence</strong
+                                            >
+                                            <p>
+                                                BiomarkerKB diseases linked to the searched SNP or
+                                                gene are listed with role and record support. Select
+                                                the diseases that should drive CFDE mechanism
+                                                overlap in the next step.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="bn-table-intro-row">
+                                        <p class="bn-table-intro">
+                                            Review the disease evidence, then choose which diseases
+                                            should be used to find mechanisms.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            class="btn btn-cfde btn-sm"
+                                            :disabled="
+                                                reverseMechanismLoading ||
+                                                    !reverseSelectedDiseaseCount
+                                            "
+                                            @click="runReverseMechanismSearch"
+                                        >
+                                            {{
+                                                reverseMechanismLoading
+                                                    ? reverseMechanismLoadingMessage ||
+                                                      "Finding mechanisms…"
+                                                    : "Find mechanisms"
+                                            }}
+                                        </button>
+                                    </div>
                                     <table class="table table-sm table-hover bn-table">
                                         <thead>
                                             <tr>
@@ -940,33 +959,16 @@
                             >
                                 <span class="bn-accordion-title">
                                     <span class="bn-accordion-step">3</span>
-                                    Mechanisms
+                                    <span class="bn-accordion-title-text">Candidate mechanisms</span>
                                     <span
                                         v-if="reverseMechanisms.length"
                                         class="bn-accordion-count"
                                     >
-                                        {{ reverseMechanisms.length }}
+                                        {{ filteredReverseMechanisms.length }}
                                     </span>
                                 </span>
                                 <span class="bn-accordion-chevron" aria-hidden="true" />
                             </button>
-                            <div class="bn-accordion-actions" @click.stop>
-                                <button
-                                    type="button"
-                                    class="btn btn-cfde btn-sm"
-                                    :disabled="
-                                        reverseMechanismLoading || !reverseSelectedDiseaseCount
-                                    "
-                                    @click="runReverseMechanismSearch"
-                                >
-                                    {{
-                                        reverseMechanismLoading
-                                            ? reverseMechanismLoadingMessage ||
-                                              "Finding mechanisms…"
-                                            : "Find mechanisms"
-                                    }}
-                                </button>
-                            </div>
                         </div>
                         <div v-show="reverseMechanismsAccordionOpen" class="bn-accordion-panel">
                             <div
@@ -978,35 +980,41 @@
                                 {{ reverseMechanismLoadingMessage || "Finding mechanisms…" }}
                             </div>
                             <template v-else-if="reverseMechanisms.length">
-                                <div class="bn-counts mb-2">
-                                    <span
-                                        v-if="reverseSeedGenes.length"
-                                        class="bn-disease-bubble"
-                                    >
-                                        {{ reverseSeedGenes.join(", ") }}
-                                    </span>
-                                    <span>
-                                        <strong>{{ filteredReverseMechanisms.length }}</strong>
-                                        overlapping mechanisms
-                                        <template
-                                            v-if="
-                                                filteredReverseMechanisms.length !==
-                                                    reverseMechanisms.length
-                                            "
-                                        >
-                                            of {{ reverseMechanisms.length }}
-                                        </template>
-                                    </span>
-                                    <span class="bn-counts-sep">·</span>
-                                    <span class="text-muted">
-                                        {{ reverseSelectedDiseaseCount }} selected diseases
-                                    </span>
+                                <div class="bn-method-note">
+                                    <div>
+                                        <strong>AI summary generation</strong>
+                                        <p>
+                                            After reviewing the overlapping CFDE mechanisms,
+                                            generate one integrative summary that closes the loop
+                                            from the seed biomarker through selected diseases back
+                                            to candidate mechanisms. The summary uses the filtered
+                                            mechanism rows and seed genes as grounding.
+                                        </p>
+                                    </div>
                                 </div>
-                                <p class="bn-step-hint">
-                                    Ranked by CFDE support: gene+trait edges, gene factors whose
-                                    trait context matches a selected disease, then trait-linked
-                                    factors.
-                                </p>
+                                <div class="bn-table-intro-row">
+                                    <p class="bn-table-intro">
+                                        Review the mechanism evidence, then generate a mechanistic
+                                        feedback summary.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        class="btn btn-cfde btn-sm"
+                                        :disabled="
+                                            reverseMechanismLinkLoading ||
+                                                !filteredReverseMechanisms.length
+                                        "
+                                        @click="generateReverseMechanismLinkSummary"
+                                    >
+                                        {{
+                                            reverseMechanismLinkLoading
+                                                ? "Generating…"
+                                                : reverseMechanismLinkSummary.status === "done"
+                                                  ? "Regenerate summary"
+                                                  : "Generate summary"
+                                        }}
+                                    </button>
+                                </div>
                                 <div
                                     v-if="showReverseMechanismDiseaseFilters"
                                     class="bn-type-filters"
@@ -1078,12 +1086,6 @@
                                                 <span class="bn-mech-label">{{
                                                     row.factorLabel || row.factor
                                                 }}</span>
-                                                <div
-                                                    v-if="row.traitContext"
-                                                    class="bn-mech-context text-muted"
-                                                >
-                                                    Context: {{ row.traitContext }}
-                                                </div>
                                             </td>
                                             <td>
                                                 <span :class="reverseSupportBadgeClass(row)">
@@ -1155,30 +1157,13 @@
                             >
                                 <span class="bn-accordion-title">
                                     <span class="bn-accordion-step">4</span>
-                                    Mechanistic feedback loop
+                                    <span class="bn-accordion-title-text"
+                                        >Mechanistic feedback loop</span
+                                    >
                                     <span class="bn-ai-bubble" title="Uses Claude (Bedrock)">AI</span>
                                 </span>
                                 <span class="bn-accordion-chevron" aria-hidden="true" />
                             </button>
-                            <div class="bn-accordion-actions" @click.stop>
-                                <button
-                                    type="button"
-                                    class="btn btn-cfde btn-sm"
-                                    :disabled="
-                                        reverseMechanismLinkLoading ||
-                                            !filteredReverseMechanisms.length
-                                    "
-                                    @click="generateReverseMechanismLinkSummary"
-                                >
-                                    {{
-                                        reverseMechanismLinkLoading
-                                            ? "Generating…"
-                                            : reverseMechanismLinkSummary.status === "done"
-                                              ? "Regenerate summary"
-                                              : "Generate summary"
-                                    }}
-                                </button>
-                            </div>
                         </div>
                         <div v-show="reverseAiAccordionOpen" class="bn-accordion-panel">
                             <p v-if="!reverseMechanisms.length" class="bn-filter-empty">
@@ -1224,8 +1209,9 @@
                                     />
                                 </div>
                                 <p v-else class="bn-filter-empty mb-0">
-                                    Click Generate summary to run one LLM analysis over the seed
-                                    biomarker, selected diseases, and overlapping CFDE mechanisms.
+                                    Use Generate summary in step 3 to run one LLM analysis over the
+                                    seed biomarker, selected diseases, and overlapping CFDE
+                                    mechanisms.
                                 </p>
                             </template>
                         </div>
@@ -1243,7 +1229,6 @@ import {
     canonicalGeneNodeId,
     normalizeGeneSymbol,
 } from "./biomarkerNetwork/geneNodeIds.js";
-import BiomarkerNetworkGraph from "./biomarkerNetwork/BiomarkerNetworkGraph.vue";
 import BiomarkerMechanismLinkSummary from "./biomarkerNetwork/BiomarkerMechanismLinkSummary.vue";
 import BiomarkerReverseMechanismLinkSummary from "./biomarkerNetwork/BiomarkerReverseMechanismLinkSummary.vue";
 import {
@@ -1307,7 +1292,6 @@ function idleMechanismLinkSummary() {
 
 export default Vue.component("biomarker-network", {
     components: {
-        BiomarkerNetworkGraph,
         BiomarkerMechanismLinkSummary,
         BiomarkerReverseMechanismLinkSummary,
     },
@@ -1356,9 +1340,8 @@ export default Vue.component("biomarker-network", {
             diseaseGenes: {},
             sharedGenesLoading: false,
             sharedGenesPreloadPromise: null,
-            networkExpandedDiseases: {},
             /**
-             * Gene-centric registry rebuilt into the network on every fetch:
+             * Gene-centric registry for shared-gene mapping / AI context:
              * { SYMBOL: { symbol, diseases: [{ disease, factorLoading, pigeanScore }] } }
              */
             geneRegistry: {},
@@ -1398,6 +1381,13 @@ export default Vue.component("biomarker-network", {
         },
         searchDirectionTitle() {
             return this.isReverseSearch ? "→ CFDE KG" : "→ BiomarkerKB";
+        },
+        selectedMechanismHeaderLabel() {
+            return String(
+                this.searchedFactorLabel ||
+                    (this.selectedFactorIri ? this.userQuery : "") ||
+                    ""
+            ).trim();
         },
         directionInfographicSrc() {
             return this.isReverseSearch
@@ -1540,104 +1530,6 @@ export default Vue.component("biomarker-network", {
             const start = (this.mechanismPage - 1) * this.perPage;
             return (this.associatedDiseases || []).slice(start, start + this.perPage);
         },
-        /**
-         * Graph for step 2: only checked diseases (plus gene layer linked to them).
-         * Unchecking a disease removes its node; checking adds it back.
-         */
-        mechanismGraph() {
-            const factorLabel = this.searchedFactorLabel || this.lastNeedle || "Mechanism";
-            const factorId = this.selectedFactorIri || "factor:root";
-            const nodes = [{ id: factorId, label: factorLabel, type: "Factor" }];
-            const edges = [];
-            // Touch selection map so Vue tracks checkbox changes.
-            const selection = this.selectedDiseaseIds || {};
-
-            (this.associatedDiseases || []).forEach((d) => {
-                const diseaseId = d.disease || `disease:${d.diseaseLabel}`;
-                if (!diseaseId || selection[diseaseId] === false) return;
-
-                nodes.push({
-                    id: diseaseId,
-                    label: d.diseaseLabel || d.disease,
-                    type: "Phenotype",
-                    metadata: {
-                        aggregatePigeanScore: d.aggregatePigeanScore,
-                        sharedGeneCount: d.sharedGeneCount,
-                    },
-                });
-                // Once genes are shown for a disease, the factor reaches it
-                // through those genes instead of a direct edge.
-                if (!this.networkExpandedDiseases[diseaseId]) {
-                    edges.push({
-                        source: factorId,
-                        target: diseaseId,
-                        metadata: { edgeStrength: d.highestFactorGeneLoading },
-                    });
-                }
-            });
-
-            const diseaseIds = new Set(
-                nodes.filter((n) => n.type === "Phenotype").map((n) => String(n.id))
-            );
-            Object.keys(this.geneRegistry).forEach((symKey) => {
-                const entry = this.geneRegistry[symKey];
-                if (!entry || !entry.diseases.length) return;
-                const linked = entry.diseases.filter((d) => diseaseIds.has(String(d.disease)));
-                if (!linked.length) return;
-
-                const symbol = entry.symbol || symKey;
-                const geneId = canonicalGeneNodeId(symbol);
-                if (!geneId) return;
-
-                let factorLoading = null;
-                let topPigeanScore = null;
-                linked.forEach((d) => {
-                    factorLoading = this.maxAbsMetric(factorLoading, d.factorLoading);
-                    topPigeanScore = this.maxAbsMetric(topPigeanScore, d.pigeanScore);
-                });
-
-                nodes.push({
-                    id: geneId,
-                    label: symbol,
-                    type: "Gene",
-                    metadata: {
-                        geneSymbol: symbol,
-                        factorLoading,
-                        pigeanScore: topPigeanScore,
-                        diseaseCount: linked.length,
-                    },
-                });
-                edges.push({
-                    source: factorId,
-                    target: geneId,
-                    metadata: { edgeStrength: factorLoading },
-                });
-                linked.forEach((d) => {
-                    edges.push({
-                        source: geneId,
-                        target: d.disease,
-                        metadata: { edgeStrength: d.pigeanScore },
-                    });
-                });
-            });
-
-            return { nodes, edges };
-        },
-        mechanismNetworkKey() {
-            return [this.selectedFactorIri || "", this.searchedFactorLabel || ""].join("|");
-        },
-        genesFetchedDiseaseIds() {
-            return Object.keys(this.networkExpandedDiseases || {}).filter(
-                (id) => this.networkExpandedDiseases[id]
-            );
-        },
-        mechanismLegendLabels() {
-            return {
-                Phenotype: "Disease",
-                Factor: "Mechanism",
-                Gene: "Gene",
-            };
-        },
         pageRows() {
             const start = (this.currentPage - 1) * this.perPage;
             return this.filteredRows.slice(start, start + this.perPage);
@@ -1758,9 +1650,7 @@ export default Vue.component("biomarker-network", {
         },
     },
     mounted() {
-        const factorFromUrl = keyParams.factor != null ? String(keyParams.factor).trim() : "";
-        if (!factorFromUrl) return;
-        setTimeout(() => this.hydrateFromUrl(factorFromUrl), 0);
+        setTimeout(() => this.hydrateFromUrlParams(), 0);
     },
     beforeDestroy() {
         this.cancelInFlight();
@@ -1792,6 +1682,34 @@ export default Vue.component("biomarker-network", {
                 this.suggestionAbort.abort();
                 this.suggestionAbort = null;
             }
+        },
+        async hydrateFromUrlParams() {
+            const directionRaw =
+                keyParams.direction != null ? String(keyParams.direction).trim() : "";
+            const factorFromUrl =
+                keyParams.factor != null ? String(keyParams.factor).trim() : "";
+            const biomarkerFromUrl =
+                keyParams.biomarker != null ? String(keyParams.biomarker).trim() : "";
+
+            const preferReverse =
+                directionRaw === SEARCH_DIRECTION_REVERSE ||
+                (!factorFromUrl && !!biomarkerFromUrl);
+
+            if (preferReverse) {
+                this.searchDirection = SEARCH_DIRECTION_REVERSE;
+                if (!biomarkerFromUrl) return;
+                this.reverseUserQuery = biomarkerFromUrl;
+                await this.runReverseDiseaseSearch();
+                return;
+            }
+
+            if (directionRaw === SEARCH_DIRECTION_FORWARD) {
+                this.searchDirection = SEARCH_DIRECTION_FORWARD;
+            }
+
+            if (!factorFromUrl) return;
+            this.searchDirection = SEARCH_DIRECTION_FORWARD;
+            await this.hydrateFromUrl(factorFromUrl);
         },
         async hydrateFromUrl(factorRef) {
             this.loading = true;
@@ -1910,7 +1828,6 @@ export default Vue.component("biomarker-network", {
             this.diseaseGenes = {};
             this.sharedGenesLoading = false;
             this.sharedGenesPreloadPromise = null;
-            this.networkExpandedDiseases = {};
             this.geneRegistry = {};
             this.resetMechanismLinkSummary();
             this.mechanismLinkAccordionOpen = false;
@@ -1935,7 +1852,7 @@ export default Vue.component("biomarker-network", {
             this.reverseMechanismsAccordionOpen = false;
             this.reverseAiAccordionOpen = false;
             this.resetReverseMechanismLinkSummary();
-            keyParams.set({ disease: "", factor: "" });
+            this.writeSearchParams({ clearTerms: true });
             this.$nextTick(() => {
                 if (this.isReverseSearch) {
                     if (this.$refs.reverseBiomarkerInput) this.$refs.reverseBiomarkerInput.focus();
@@ -1965,6 +1882,7 @@ export default Vue.component("biomarker-network", {
             this.reverseHiddenDiseases = {};
             this.resetReverseMechanismLinkSummary();
             this.error = "";
+            this.writeSearchParams({ clearTerms: true });
         },
         isReverseDiseaseSelected(diseaseIri) {
             const key = String(diseaseIri || "").trim();
@@ -2041,6 +1959,10 @@ export default Vue.component("biomarker-network", {
                 this.error = "";
                 this.reverseBiomarkerAccordionOpen = false;
                 this.reverseDiseasesAccordionOpen = true;
+                this.writeSearchParams({
+                    biomarker:
+                        (resolved && resolved.needle) || needle,
+                });
             } catch (e) {
                 if (e && e.name === "AbortError") return;
                 this.reverseResolved = null;
@@ -2272,14 +2194,47 @@ export default Vue.component("biomarker-network", {
             this.mappedGeneOverlapFilter = !this.mappedGeneOverlapFilter;
             this.clampPages();
         },
-        writeSearchParams(factorId) {
-            const nextFactor =
-                factorId != null && Number.isFinite(Number(factorId)) && Number(factorId) > 0
-                    ? String(Number(factorId))
-                    : "";
-            if (!nextFactor) return;
-            if (String(keyParams.factor || "") === nextFactor && !keyParams.disease) return;
-            keyParams.set({ disease: "", factor: nextFactor });
+        writeSearchParams(opts = {}) {
+            const clearTerms = !!(opts && opts.clearTerms);
+            const reverse = this.isReverseSearch;
+            const direction = reverse
+                ? SEARCH_DIRECTION_REVERSE
+                : SEARCH_DIRECTION_FORWARD;
+
+            let nextFactor = "";
+            let nextBiomarker = "";
+            if (!clearTerms) {
+                if (reverse) {
+                    const raw =
+                        opts.biomarker != null
+                            ? opts.biomarker
+                            : this.reverseUserQuery;
+                    nextBiomarker = String(raw || "").trim();
+                } else {
+                    const factorId =
+                        opts.factorId != null ? opts.factorId : this.selectedFactorId;
+                    nextFactor =
+                        factorId != null &&
+                        Number.isFinite(Number(factorId)) &&
+                        Number(factorId) > 0
+                            ? String(Number(factorId))
+                            : "";
+                }
+            }
+
+            const same =
+                String(keyParams.factor || "") === nextFactor &&
+                String(keyParams.biomarker || "") === nextBiomarker &&
+                String(keyParams.direction || "") === direction &&
+                !keyParams.disease;
+            if (same) return;
+
+            keyParams.set({
+                disease: "",
+                factor: nextFactor,
+                biomarker: nextBiomarker,
+                direction,
+            });
         },
         biomarkerDisplayLabel(row) {
             const label = (row && row.biomarkerLabel) || "";
@@ -2602,50 +2557,10 @@ export default Vue.component("biomarker-network", {
                 });
             });
         },
-        /**
-         * Records a disease's genes. The network re-derives itself from this
-         * state, so no direct graph manipulation is needed here.
-         */
         addGenesForDisease(diseaseIri, genes) {
             const diseaseKey = this.normalizeDiseaseKey(diseaseIri);
             if (!diseaseKey || !Array.isArray(genes) || !genes.length) return;
             this.mergeGenesIntoRegistry(diseaseKey, this.dedupeGenesById(genes));
-            this.$set(this.networkExpandedDiseases, diseaseKey, true);
-        },
-        async onViewSharedGenesInNetwork(payload) {
-            const diseaseIri = payload && payload.nodeId;
-            if (!diseaseIri) return;
-            try {
-                const genes = await this.fetchSharedGenes(diseaseIri);
-                this.addGenesForDisease(diseaseIri, genes);
-            } catch (e) {
-                /* ignore */
-            }
-        },
-        /**
-         * Collapse a disease's gene layer: drop exclusive genes, keep genes that
-         * still connect to other expanded diseases, and restore the direct
-         * factor→disease edge.
-         */
-        onHideGenesInNetwork(payload) {
-            const diseaseId = this.normalizeDiseaseKey(payload && payload.nodeId);
-            if (!diseaseId || !this.networkExpandedDiseases[diseaseId]) return;
-
-            Object.keys(this.geneRegistry).forEach((symKey) => {
-                const entry = this.geneRegistry[symKey];
-                if (!entry || !Array.isArray(entry.diseases)) return;
-                const remaining = entry.diseases.filter((d) => d.disease !== diseaseId);
-                if (!remaining.length) {
-                    this.$delete(this.geneRegistry, symKey);
-                } else if (remaining.length !== entry.diseases.length) {
-                    this.$set(this.geneRegistry, symKey, {
-                        symbol: entry.symbol,
-                        diseases: remaining,
-                    });
-                }
-            });
-
-            this.$set(this.networkExpandedDiseases, diseaseId, false);
         },
         async resolveSelectedFactor(needle) {
             if (this.selectedFactorIri) {
@@ -2720,7 +2635,7 @@ export default Vue.component("biomarker-network", {
             this.selectedFactorIri = factor.iri;
             this.selectedFactorId = factor.id != null ? Number(factor.id) : this.selectedFactorId;
             this.searchedFactorLabel = factor.label || needle;
-            this.writeSearchParams(this.selectedFactorId);
+            this.writeSearchParams({ factorId: this.selectedFactorId });
 
             this.cancelInFlight();
             const ac = new AbortController();
@@ -2748,7 +2663,6 @@ export default Vue.component("biomarker-network", {
             this.diseaseGenes = {};
             this.sharedGenesLoading = false;
             this.sharedGenesPreloadPromise = null;
-            this.networkExpandedDiseases = {};
             this.geneRegistry = {};
             this.resetMechanismLinkSummary();
             this.mechanismLinkAccordionOpen = false;
@@ -2862,6 +2776,7 @@ export default Vue.component("biomarker-network", {
     flex-direction: column;
     min-height: 520px;
     height: auto;
+    padding: 1px;
     background: #fff;
     border: 1px solid var(--cfde-border);
     border-radius: 6px;
@@ -2989,6 +2904,7 @@ export default Vue.component("biomarker-network", {
 
 .bn-body {
     padding: 18px 20px 28px;
+    background-color: #eeeeee;
 }
 
 .bn-label {
@@ -3002,6 +2918,12 @@ export default Vue.component("biomarker-network", {
     display: flex;
     gap: 10px;
     align-items: flex-start;
+}
+
+.bn-search-row .bn-find-diseases-btn {
+    flex-shrink: 0;
+    align-self: stretch;
+    white-space: nowrap;
 }
 
 .bn-input-wrap {
@@ -3226,22 +3148,29 @@ export default Vue.component("biomarker-network", {
 .bn-accordion-title {
     display: inline-flex;
     align-items: center;
+    flex: 1;
+    min-width: 0;
     gap: 8px;
-    font-size: 0.95rem;
+    font-size: 15px;
     font-weight: 700;
     color: var(--cfde-blue);
+}
+
+.bn-accordion-title-text {
+    flex-shrink: 0;
 }
 
 .bn-accordion-step {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
+    flex-shrink: 0;
+    width: 25px;
+    height: 25px;
     border-radius: 50%;
     background: var(--cfde-orange);
     color: #fff;
-    font-size: 0.75rem;
+    font-size: 13px;
     font-weight: 700;
 }
 
@@ -3249,13 +3178,30 @@ export default Vue.component("biomarker-network", {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     min-width: 22px;
     padding: 1px 7px;
     border-radius: 999px;
-    background: #e8eef5;
+    background: #eaf2f8;
     color: var(--cfde-blue);
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 600;
+}
+
+.bn-header-mechanism-bubble {
+    display: inline-block;
+    max-width: min(420px, 46vw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border: 1px solid var(--cfde-orange);
+    background: #ffffff;
+    color: var(--cfde-blue);
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.3;
 }
 
 .bn-ai-bubble {
@@ -3299,16 +3245,58 @@ export default Vue.component("biomarker-network", {
     color: var(--cfde-muted);
 }
 
+.bn-method-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--cfde-blue);
+    background: #f7f9fb;
+}
+
+.bn-method-note strong {
+    display: block;
+    margin: 0 0 4px;
+    color: var(--cfde-blue);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.bn-method-note p {
+    margin: 0;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.bn-table-intro-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 12px;
+}
+
+.bn-table-intro {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    color: var(--cfde-muted);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.bn-table-intro-row .bn-find-biomarkers-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 .bn-mech-label {
     display: block;
     font-size: 14px;
     line-height: 1.35;
-}
-
-.bn-mech-context {
-    margin-top: 2px;
-    font-size: 14px;
-    line-height: 1.3;
 }
 
 .bn-support-badge {
@@ -3350,15 +3338,6 @@ export default Vue.component("biomarker-network", {
     width: 36px;
     text-align: center;
     vertical-align: middle;
-}
-
-.bn-fetch-meta {
-    font-size: 0.8rem;
-    white-space: nowrap;
-}
-
-.bn-mechanism-network {
-    margin: 8px 0 16px;
 }
 
 .bn-type-filters {
