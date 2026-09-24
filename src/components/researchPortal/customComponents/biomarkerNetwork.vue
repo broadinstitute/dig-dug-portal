@@ -242,11 +242,10 @@
                                     <div>
                                         <strong>Disease ranking from shared genetic evidence</strong>
                                         <p>
-                                            We compare all genes that define the selected factor with
-                                            genetically supported genes for each disease. Genes that
-                                            contribute more strongly to the factor carry more weight,
-                                            and broad overlaps expected by chance are discounted. At
-                                            least two shared genes are required.
+                                            Diseases are ranked by a combined evidence score that
+                                            blends gene-profile similarity with overlap significance
+                                            (−log₁₀ hypergeometric p). Click a shared-gene count to
+                                            list the supporting genes.
                                         </p>
                                     </div>
                                 </div>
@@ -286,11 +285,33 @@
                                                 <b-icon
                                                     icon="info-circle"
                                                     class="bn-th-info"
-                                                    v-b-tooltip.hover.top="'Number of the factor\'s top-loading genes that are also associated with this disease (via PIGEAN gene-to-trait scores).'"
+                                                    v-b-tooltip.hover.top="'Number of genes supporting both the selected factor and this disease. Click the count to list them.'"
                                                 />
                                             </th>
-                                            <th scope="col">Aggregated Pigean score</th>
-                                            <th scope="col">Highest gene loading</th>
+                                            <th scope="col">
+                                                Gene-profile similarity
+                                                <b-icon
+                                                    icon="info-circle"
+                                                    class="bn-th-info"
+                                                    v-b-tooltip.hover.top="'Cosine similarity between the factor gene-evidence profile and the disease gene-evidence profile.'"
+                                                />
+                                            </th>
+                                            <th scope="col">
+                                                Overlap significance
+                                                <b-icon
+                                                    icon="info-circle"
+                                                    class="bn-th-info"
+                                                    v-b-tooltip.hover.top="'-log10 of the hypergeometric overlap p-value. Hover a cell for the exact p-value.'"
+                                                />
+                                            </th>
+                                            <th scope="col">
+                                                Combined evidence score
+                                                <b-icon
+                                                    icon="info-circle"
+                                                    class="bn-th-info"
+                                                    v-b-tooltip.hover.top="'Ranking score for diseases against the selected factor, combining gene-profile similarity with overlap significance.'"
+                                                />
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -315,53 +336,39 @@
                                                 </td>
                                                 <td>
                                                     <a
+                                                        v-if="(row.supportingGenes || []).length"
                                                         href="#"
                                                         class="bn-shared-gene-toggle"
-                                                        @click.prevent="toggleDiseaseGenes(row)"
+                                                        @click.prevent="toggleSupportingGenes(row)"
                                                     >{{ row.sharedGeneCount }}</a>
+                                                    <span v-else>{{ row.sharedGeneCount || 0 }}</span>
                                                 </td>
-                                                <td>{{ formatScore(row.aggregatePigeanScore) }}</td>
-                                                <td>{{ formatScore(row.highestFactorGeneLoading, 4) }}</td>
+                                                <td>{{ formatScore(row.geneEvidenceSimilarity, 4) }}</td>
+                                                <td
+                                                    v-b-tooltip.hover.top="
+                                                        overlapPValueTooltip(row.overlapPValue)
+                                                    "
+                                                >
+                                                    {{ formatScore(row.overlapNegLog10P, 2) }}
+                                                </td>
+                                                <td>{{ formatScore(row.combinedScore, 4) }}</td>
                                             </tr>
                                             <tr
-                                                v-if="expandedDiseases[row.disease]"
+                                                v-if="isSupportingGenesExpanded(row.disease)"
                                                 :key="row.disease + '-genes'"
                                                 class="bn-subtable-row"
                                             >
-                                                <td colspan="5">
-                                                    <div
-                                                        v-if="diseaseGenes[row.disease] === 'loading'"
-                                                        class="text-center text-muted py-2"
-                                                    >
-                                                        Loading genes…
+                                                <td colspan="6">
+                                                    <div class="bn-subtable-wrap">
+                                                        <div class="bn-supporting-genes-expand">
+                                                            <strong>Supporting genes</strong>
+                                                            <span>{{
+                                                                formatSupportingGenesList(
+                                                                    row.supportingGenes
+                                                                )
+                                                            }}</span>
+                                                        </div>
                                                     </div>
-                                                    <div
-                                                        v-else-if="diseaseGenes[row.disease] && diseaseGenes[row.disease].length"
-                                                        class="bn-subtable-wrap"
-                                                    >
-                                                        <table class="table table-sm table-borderless table-striped mb-0 bn-subtable">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Gene</th>
-                                                                    <th>Factor loading</th>
-                                                                    <th>PIGEAN score</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr
-                                                                    v-for="g in diseaseGenes[row.disease]"
-                                                                    :key="g.gene"
-                                                                >
-                                                                    <td>{{ g.geneLabel || g.gene }}</td>
-                                                                    <td>{{ formatScore(g.factorLoading, 4) }}</td>
-                                                                    <td>{{ formatScore(g.pigeanScore) }}</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    <p v-else class="text-muted mb-0 py-1">
-                                                        No gene data available.
-                                                    </p>
                                                 </td>
                                             </tr>
                                         </template>
@@ -1246,7 +1253,10 @@ import { getFactorById, looksLikeFactorId } from "./biomarkerNetwork/biomarkerFa
 import { searchBiomarkerFactors } from "./biomarkerNetwork/biomarkerFactorSearch.js";
 import keyParams from "@/utils/keyParams";
 import {
+    diseaseGenesFromSupportingLists,
     listMondoDiseasesForFactor,
+} from "./biomarkerNetwork/biomarkerFactorDiseaseApi.js";
+import {
     listSharedGenesByDiseaseForFactor,
     listSharedGenesForFactorDisease,
 } from "./biomarkerNetwork/cfdeKgSparql.js";
@@ -1337,6 +1347,7 @@ export default Vue.component("biomarker-network", {
             abortController: null,
             biomarkerAbortController: null,
             expandedDiseases: {},
+            expandedSupportingGenes: {},
             diseaseGenes: {},
             sharedGenesLoading: false,
             sharedGenesPreloadPromise: null,
@@ -1825,6 +1836,7 @@ export default Vue.component("biomarker-network", {
             this.hiddenDiseases = {};
             this.mappedGeneOverlapFilter = false;
             this.expandedDiseases = {};
+            this.expandedSupportingGenes = {};
             this.diseaseGenes = {};
             this.sharedGenesLoading = false;
             this.sharedGenesPreloadPromise = null;
@@ -2389,6 +2401,37 @@ export default Vue.component("biomarker-network", {
             if (value == null || value === "" || Number.isNaN(Number(value))) return "—";
             return Number(value).toFixed(digits);
         },
+        formatPValue(value) {
+            if (value == null || value === "" || Number.isNaN(Number(value))) return null;
+            const n = Number(value);
+            if (n === 0) return "0";
+            if (n > 0 && n < 1e-3) return n.toExponential(2);
+            return n.toPrecision(3);
+        },
+        overlapPValueTooltip(pValue) {
+            const formatted = this.formatPValue(pValue);
+            return formatted ? `Exact overlap p-value: ${formatted}` : "";
+        },
+        supportingGenesList(genes) {
+            return Array.isArray(genes) ? genes.filter(Boolean) : [];
+        },
+        formatSupportingGenesList(genes) {
+            const list = this.supportingGenesList(genes);
+            return list.length ? list.join(", ") : "—";
+        },
+        isSupportingGenesExpanded(diseaseIri) {
+            const key = String(diseaseIri || "").trim();
+            return !!(key && this.expandedSupportingGenes[key]);
+        },
+        toggleSupportingGenes(row) {
+            const key = String((row && row.disease) || "").trim();
+            if (!key) return;
+            this.$set(
+                this.expandedSupportingGenes,
+                key,
+                !this.expandedSupportingGenes[key]
+            );
+        },
         async fetchSharedGenes(diseaseIri) {
             const key = diseaseIri;
             if (Array.isArray(this.diseaseGenes[key])) {
@@ -2660,6 +2703,7 @@ export default Vue.component("biomarker-network", {
             this.hiddenDiseases = {};
             this.mappedGeneOverlapFilter = false;
             this.expandedDiseases = {};
+            this.expandedSupportingGenes = {};
             this.diseaseGenes = {};
             this.sharedGenesLoading = false;
             this.sharedGenesPreloadPromise = null;
@@ -2682,11 +2726,11 @@ export default Vue.component("biomarker-network", {
                     biomarkerCount: 0,
                     diseaseCount: diseases.length,
                 };
-                this.loadingMessage = "Loading shared genes…";
-                await this.preloadSharedGenes(
-                    diseases.map((d) => d.disease).filter(Boolean),
-                    ac.signal
-                );
+                const seeded = diseaseGenesFromSupportingLists(diseases);
+                Object.keys(seeded).forEach((iri) => {
+                    this.$set(this.diseaseGenes, iri, seeded[iri]);
+                    this.addGenesForDisease(iri, seeded[iri]);
+                });
             } catch (e) {
                 if (e && e.name === "AbortError") return;
                 this.error = (e && e.message) || "Search failed.";
@@ -3515,6 +3559,46 @@ export default Vue.component("biomarker-network", {
 .bn-table td {
     vertical-align: top;
     word-break: break-word;
+}
+
+.bn-supporting-genes {
+    max-width: 28rem;
+    font-size: 0.9em;
+    line-height: 1.35;
+}
+
+.bn-supporting-genes-expand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.35rem 0.15rem 0.5rem;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.bn-supporting-genes-expand strong {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #5a6570;
+}
+
+.bn-gene-more-btn {
+    display: inline;
+    margin-left: 0.35em;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--cfde-blue);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.bn-gene-more-btn:hover,
+.bn-gene-more-btn:focus {
+    color: #0a4a7a;
 }
 
 .bn-table a {
