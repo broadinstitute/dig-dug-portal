@@ -15,13 +15,25 @@ import {
 } from "./variantSifterProjects.js";
 
 /**
- * Ancestry codes that can be probed / loaded via ancestry-specific association queries.
- * Mixed uses the combined `associations` index without an ancestry key.
+ * Ancestry codes that can be probed / loaded as *additional* association series.
+ * Excludes the primary search ancestry. When primary is not Mixed, Mixed is included
+ * so users can load the combined associations index on top of a specific ancestry.
  */
-export function ancestryAssociationCodes(projectId = VKS_PROJECT_DEFAULT_ID) {
-    return projectAncestryOptions(projectId).filter(
-        (code) => code && code !== "Mixed"
-    );
+export function ancestryAssociationCodes(
+    projectId = VKS_PROJECT_DEFAULT_ID,
+    primaryAncestry = "Mixed"
+) {
+    const primary = primaryAncestry || "Mixed";
+    return projectAncestryOptions(projectId).filter((code) => {
+        if (!code || code === primary) {
+            return false;
+        }
+        // Mixed is only an "other" option when the search ancestry is specific.
+        if (code === "Mixed") {
+            return primary !== "Mixed";
+        }
+        return true;
+    });
 }
 
 export function primaryAssociationAncestry(session) {
@@ -231,11 +243,15 @@ export function ancestryAssociationsCountQuery(phenotype, ancestry, region) {
     if (!phenotypeName || !ancestry || !regionQuery) {
         return null;
     }
+    if (ancestry === "Mixed") {
+        return `${phenotypeName},${regionQuery}`;
+    }
     return `${phenotypeName},${ancestry},${regionQuery}`;
 }
 
 /**
- * Probe which specific ancestries have association data for this phenotype × region.
+ * Probe which additional ancestries have association data for this phenotype × region.
+ * When the search ancestry is specific, also probes Mixed via the combined associations index.
  */
 export async function probeAncestryAssociationAvailability(
     session,
@@ -248,11 +264,17 @@ export async function probeAncestryAssociationAvailability(
         return [];
     }
 
-    const codes = ancestryAssociationCodes(projectId);
-    const index = resolveProjectQueryIndex("ancestry-associations", projectId);
+    const primaryAncestry = primaryAssociationAncestry(session);
+    const codes = ancestryAssociationCodes(projectId, primaryAncestry);
+    const ancestryIndex = resolveProjectQueryIndex(
+        "ancestry-associations",
+        projectId
+    );
+    const mixedIndex = resolveProjectQueryIndex("associations", projectId);
     const results = await Promise.all(
         codes.map(async (code) => {
             const q = ancestryAssociationsCountQuery(phenotype, code, region);
+            const index = code === "Mixed" ? mixedIndex : ancestryIndex;
             try {
                 const count = await countBioIndex(index, q, host);
                 return {
@@ -279,8 +301,18 @@ export async function probeAncestryAssociationAvailability(
 }
 
 export function availableAncestryBubbles(availability = [], primaryAncestry = "Mixed") {
-    const bubbles = (availability || []).filter((entry) => entry.available);
+    let bubbles = (availability || []).filter((entry) => entry.available);
     if (primaryAncestry && primaryAncestry !== "Mixed") {
+        // Keep Mixed near the front of additive options.
+        bubbles = [...bubbles].sort((a, b) => {
+            if (a.code === "Mixed") {
+                return -1;
+            }
+            if (b.code === "Mixed") {
+                return 1;
+            }
+            return 0;
+        });
         const hasPrimary = bubbles.some((entry) => entry.code === primaryAncestry);
         if (!hasPrimary) {
             bubbles.unshift({
