@@ -71,7 +71,7 @@ export const VKS_TOOL_APIS = [
         name: "credible-variants",
         service: "KP BioIndex",
         path: "/api/bio/query/credible-variants",
-        query: "phenotype,credibleSetId",
+        query: "phenotype[,ancestry],credibleSetId",
         purpose: "Member variants for selected credible sets.",
         sections: ["credible-sets"],
     },
