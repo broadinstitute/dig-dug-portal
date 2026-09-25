@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED. Do not edit. -->
-<!-- Version: 1.0.12 | Generated: 2026-06-06T15:26:15Z | Hash: e1a7c61898c8 -->
+<!-- Version: 1.0.14 | Generated: 2026-09-14T03:46:35Z | Hash: 8e70e3884b94 -->
 <!-- Sources: dig-dug-portal/cfde-main/AGENTS.md + dig-dug-portal/AGENTS.md -->
 
 # dig-dug-portal — cfde-main
@@ -198,6 +198,8 @@ npm install
 
 On Windows, `npm install --no-optional` reduces optional macOS dependency warnings.
 
+A committed `package-lock.json` pins the dependency tree, so for a clean/reproducible install prefer `npm ci`. Installs resolve cleanly with no extra flags: `eslint` is pinned to `8.57.1`, the version every eslint plugin/config in `devDependencies` accepts (eslint-config-standard requires `^8.0.1`; the import/promise/vue plugins cap at 8). Without that explicit pin, npm auto-resolved eslint to its latest major via the plugins' open-ended `>=7` peers, which the capped plugins rejected — the `ERESOLVE` failure that previously forced `--legacy-peer-deps`.
+
 ### 2. Prototype (Watch Mode)
 
 ```bash
@@ -352,6 +354,21 @@ cfde-main  (same)
 - Provide OS-agnostic commands only where bash and PowerShell diverge.
 - Do not open PRs from portal branches targeting `master`; portal-branch changes are intentionally isolated.
 - If building a shared feature for multiple portals, follow the dev branch workflow outlined above.
+- Removed dependencies stay removed. Do not reintroduce a package listed under "Deliberately removed dependencies" unless new code actually imports it. When a merge or branch sync re-adds one, drop it again rather than keeping it.
+
+### Deliberately removed dependencies
+
+Each entry was removed on purpose. Before re-adding, confirm a real `import`/`require` exists in `src/` — a merge conflict resolution or a stale branch is not a reason.
+
+| Package        | Removed                                                                                 | Why                                                                                                                                                                                                                                                                                                                                                                                                                   | Re-add only if                                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `tabix-reader` | 2026-05-28 (`7092b95aa`), re-added by accident in `b087fdfdf`, removed again 2026-09-13 | Never imported anywhere in `src/`. The `tabix_reader` references in `src/components/lz/beta/lz-helpers.js` are a caller-supplied parameter, and `createStudyTabixSources` is exported but never called. Cost 5.4 MB / 40 packages, and pulled an unmaintained `eslint@5.16.0` into the **runtime** dependency graph, adding Dependabot alert surface for code that never ships. Upstream package last published 2022. | LocusZoom work actually starts calling `createStudyTabixSources` (or another module imports `tabix-reader` directly) |
+
+Verify with:
+
+```bash
+grep -rniE "(from|require\(|import\().{0,3}[\"']<package>" src/
+```
 
 ## Integration References
 
