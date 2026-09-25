@@ -15,11 +15,7 @@
                     v-for="resource in group.resources"
                     :key="resource.title"
                     class="mskkp-landing-features-box"
-                    v-bind="
-                        resource.href
-                            ? { href: resource.href }
-                            : {}
-                    "
+                    v-bind="resource.href ? { href: resource.href } : {}"
                 >
                     <img
                         v-if="resource.icon"
@@ -101,12 +97,12 @@ export default Vue.component("mskkp-landing-features", {
                                 "Investigate cell-state transitions and gene programs linked to disease biology. Connect expression states with pathways and candidate effector mechanisms.",
                         },
                         {
-                            title: "Human > Mouse comparator",
+                            title: "Single Cell Dataset Comparator",
                             icon: "/images/mskkp_icons/human_mouse.svg",
-                            href: "/mouse_diff_exp.html",
+                            href: "/singlecellcompare.html",
                             isNew: true,
                             description:
-                                "Compare gene expression and biological context between human and mouse. Identify conserved and divergent patterns that inform translational hypotheses.",
+                                "Compare gene expression from datasets across or within musculoskeletal tissues.",
                         },
                     ],
                 },

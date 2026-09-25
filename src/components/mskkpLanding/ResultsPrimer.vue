@@ -84,7 +84,7 @@ export default Vue.component("mskkp-landing-results-primer", {
                             "Tissue Expression",
                             "Cell States",
                             "Single Cell",
-                            "Human > Mouse Comparator",
+                            "Single Cell Dataset Comparator",
                         ],
                     },
                     {
