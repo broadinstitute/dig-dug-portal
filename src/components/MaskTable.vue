@@ -69,7 +69,7 @@
                         {{ effectFormatter(Math.exp(mask.beta)) }}
                     </b-col>
                     <b-col v-if="showStudy" class="feature-content-item">
-                        {{ mask.study }}
+                        {{ mask.source }}
                     </b-col>
                     <b-col v-if="showPmid" class="feature-content-item">
                          {{ mask.pmid }}
@@ -140,7 +140,7 @@ export default Vue.component("MaskTable", {
     watch: {
         formattedMasks(newData){
             for (let i = 0; i < newData.length; i++){
-                if (!!newData[i].study){
+                if (!!newData[i].source){
                     this.showStudy = true;
                 }
                 if (!!newData[i].pmid){

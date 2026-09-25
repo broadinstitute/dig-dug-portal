@@ -19,7 +19,7 @@ export default new Vuex.Store({
         geneassociations: bioIndex("gene-associations"),
         varassociations: bioIndex("associations"),
         ancestryAssoc: bioIndex("ancestry-associations"),
-        associations52k: bioIndex("gene-associations-52k"),
+        associations52k: bioIndex("gene-associations-rare"),
         geneToTranscript: bioIndex("gene-to-transcript"),
         transcriptAssoc: bioIndex("transcript-associations"),
         hugeScores: bioIndex("huge"),
