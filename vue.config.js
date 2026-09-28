@@ -348,6 +348,20 @@ let pages = {
         title: "LIGER",
         chunks: ["chunk-vendors", "chunk-common", "liger"],
     },
+    pigean_method: {
+        entry: "src/views/PIGEAN/Method/main.js",
+        template: "public/index.html",
+        filename: "pigean-method.html",
+        title: "PIGEAN — Priors Inferred from GEne ANnotations",
+        chunks: ["chunk-vendors", "chunk-common", "pigean_method"],
+    },
+    eaggl: {
+        entry: "src/views/EAGGL/main.js",
+        template: "public/index.html",
+        filename: "EAGGL.html",
+        title: "EAGGL (What EAGGL stands for)",
+        chunks: ["chunk-vendors", "chunk-common", "eaggl"],
+    },
     gp2browser: {
         entry: "src/views/GP2Browser/main.js",
         template: "public/index.html",
