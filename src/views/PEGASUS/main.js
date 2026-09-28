@@ -13,6 +13,7 @@ import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import DataDownload from "@/components/DataDownload.vue";
 import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
+import host from "@/utils/hostUtils";
 import JSZip from "jszip";
 import Alert, {
     postAlert,
@@ -21,7 +22,21 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-const PEGASUS_HOST = "https://api.kpndataregistry.org:8000";
+// The dev registry is the same host on port 8000; prod drops the port.
+const PEGASUS_HOST_DEV = "https://api.kpndataregistry.org:8000";
+const PEGASUS_HOST_PROD = "https://api.kpndataregistry.org";
+
+// Dev registry when served from localhost or any subdomain containing "dev"
+// (e.g. dev.hugeamp.org, md-dev.hugeamp.org); prod registry everywhere else.
+const PEGASUS_HOST = (function () {
+    if (host.domain === "localhost") {
+        return PEGASUS_HOST_DEV;
+    }
+    const isDev = (host.subDomain || "")
+        .split(".")
+        .some((label) => label.includes("dev"));
+    return isDev ? PEGASUS_HOST_DEV : PEGASUS_HOST_PROD;
+})();
 
 // PEG evidence category definitions, verbatim from
 // https://gwas-catalog.github.io/PEGASUS/docs/peg-evidence
