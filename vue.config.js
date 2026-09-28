@@ -362,6 +362,20 @@ let pages = {
         title: "EAGGL (What EAGGL stands for)",
         chunks: ["chunk-vendors", "chunk-common", "eaggl"],
     },
+    gp2browser: {
+        entry: "src/views/GP2Browser/main.js",
+        template: "public/index.html",
+        filename: "gp2browser.html",
+        title: "GP2 Browser",
+        chunks: ["chunk-vendors", "chunk-common", "gp2browser"],
+    },
+    pegasus: {
+        entry: "src/views/PEGASUS/main.js",
+        template: "public/index.html",
+        filename: "pegasus.html",
+        title: "PEGASUS",
+        chunks: ["chunk-vendors", "chunk-common", "pegasus"],
+    },
 };
 
 const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");

@@ -1,5 +1,6 @@
 import { query } from "@/utils/bioIndexUtils";
 import { formatRegion } from "./variantSifterSearchUtils.js";
+import { makeCredibleSetSelectionKey } from "./variantSifterCredibleSetsFormat.js";
 import {
     gwasCeCredibleSetsIndex,
     gwasCeCredibleVariantsIndex,
@@ -30,7 +31,9 @@ export async function fetchCredibleSetsList(session, host, options = {}) {
 }
 
 /**
- * Tag list rows with the ancestry (and optional phenotype) used for the query.
+ * Tag list rows with the ancestry/phenotype used for the list query.
+ * Keeps the full BioIndex row and stores query* fields so credible-variants
+ * can reuse the same keys that returned this option.
  */
 export function tagCredibleSetEntries(
     entries,
@@ -41,12 +44,100 @@ export function tagCredibleSetEntries(
     const code = ancestry || "Mixed";
     const phenotype = String(phenotypeName || "").trim();
     const projectLabel = String(project || "").trim();
-    return (entries || []).map((entry) => ({
-        ...entry,
-        ancestry: code,
-        phenotype: entry.phenotype || phenotype || "",
-        ...(projectLabel ? { project: projectLabel } : {}),
-    }));
+    return (entries || []).map((entry) => {
+        const queryPhenotype = phenotype || String(entry?.phenotype || "").trim();
+        return {
+            ...entry,
+            // Ancestry/phenotype that keyed the list fetch (and should key variants).
+            queryAncestry: code,
+            queryPhenotype,
+            ancestry: code,
+            phenotype: queryPhenotype,
+            ...(projectLabel ? { project: projectLabel } : {}),
+        };
+    });
+}
+
+/** Resolve list-row ancestry for a credible-variants query. */
+export function credibleSetEntryQueryAncestry(entry, fallback = "Mixed") {
+    const code = String(
+        entry?.queryAncestry || entry?.ancestry || fallback || "Mixed"
+    ).trim();
+    return code || "Mixed";
+}
+
+/** Resolve list-row phenotype for a credible-variants query. */
+export function credibleSetEntryQueryPhenotype(entry, fallback = "") {
+    return String(
+        entry?.queryPhenotype || entry?.phenotype || fallback || ""
+    ).trim();
+}
+
+/**
+ * Find a stored CS list row by selection key, then by id/ancestry/phenotype/project.
+ */
+export function findCredibleSetAvailableEntry(
+    available,
+    {
+        selectionKey = "",
+        credibleSetId = "",
+        ancestry = "",
+        phenotype = "",
+        project = "",
+    } = {}
+) {
+    const list = Array.isArray(available) ? available : [];
+    const key = String(selectionKey || "").trim();
+    if (key) {
+        const byKey = list.find(
+            (entry) =>
+                makeCredibleSetSelectionKey(
+                    entry?.credibleSetId,
+                    credibleSetEntryQueryAncestry(entry),
+                    credibleSetEntryQueryPhenotype(entry),
+                    entry?.project || ""
+                ) === key
+        );
+        if (byKey) {
+            return byKey;
+        }
+    }
+
+    const id = String(credibleSetId || "").trim();
+    if (!id) {
+        return null;
+    }
+    const resolvedAncestry = String(ancestry || "").trim() || "Mixed";
+    const resolvedPhenotype = String(phenotype || "").trim();
+    const resolvedProject = String(project || "").trim();
+
+    return (
+        list.find(
+            (entry) =>
+                entry?.credibleSetId === id &&
+                credibleSetEntryQueryAncestry(entry) === resolvedAncestry &&
+                (!resolvedPhenotype ||
+                    credibleSetEntryQueryPhenotype(entry) === resolvedPhenotype) &&
+                (!resolvedProject ||
+                    String(entry?.project || "").trim() === resolvedProject)
+        ) ||
+        list.find(
+            (entry) =>
+                entry?.credibleSetId === id &&
+                (!resolvedPhenotype ||
+                    credibleSetEntryQueryPhenotype(entry) === resolvedPhenotype) &&
+                (!resolvedProject ||
+                    String(entry?.project || "").trim() === resolvedProject)
+        ) ||
+        list.find(
+            (entry) =>
+                entry?.credibleSetId === id &&
+                (!resolvedProject ||
+                    String(entry?.project || "").trim() === resolvedProject)
+        ) ||
+        list.find((entry) => entry?.credibleSetId === id) ||
+        null
+    );
 }
 
 export function tagCredibleSetEntriesWithProject(entries, project) {
@@ -83,7 +174,8 @@ export function mergeCredibleSetAvailableLists(lists) {
 }
 
 /**
- * Mixed list plus one fetch per selected sub-ancestry.
+ * Primary ancestry list plus one fetch per selected sub-ancestry.
+ * Primary uses session.ancestry: Mixed → `phenotype,region`; else → `phenotype,ancestry,region`.
  */
 export async function fetchCredibleSetsListForAncestries(
     session,
@@ -92,15 +184,24 @@ export async function fetchCredibleSetsListForAncestries(
     { project = null } = {}
 ) {
     const phenotypeName = session?.phenotype?.name || null;
+    const primaryAncestry =
+        session?.ancestry && session.ancestry !== "Mixed"
+            ? session.ancestry
+            : "Mixed";
     const primary = tagCredibleSetEntries(
-        await fetchCredibleSetsList(session, host),
-        "Mixed",
+        await fetchCredibleSetsList(session, host, {
+            ancestry: primaryAncestry,
+        }),
+        primaryAncestry,
         phenotypeName,
         project
     );
     const subCodes = [
         ...new Set(
-            (ancestries || []).filter((code) => code && code !== "Mixed")
+            (ancestries || []).filter(
+                (code) =>
+                    code && code !== "Mixed" && code !== primaryAncestry
+            )
         ),
     ];
     const extras = await Promise.all(
@@ -134,7 +235,9 @@ export async function fetchGwasCeCredibleSetsList(session) {
         return (Array.isArray(data) ? data : []).map((entry) => ({
             ...entry,
             phenotype: entry.phenotype || token,
+            queryPhenotype: entry.phenotype || token,
             ancestry: entry.ancestry || "Mixed",
+            queryAncestry: entry.ancestry || "Mixed",
             project: VKS_ASSOCIATION_PROJECT_GWAS_CE,
         }));
     } catch (error) {
@@ -147,6 +250,8 @@ export async function fetchGwasCeCredibleSetsList(session) {
  * Fetch credible variants for a single credible set id.
  * Mixed / primary: `phenotype,credibleSetId`
  * Ancestry-specific: `phenotype,ancestry,credibleSetId`
+ *
+ * Ancestry resolution: explicit `options.ancestry` wins; otherwise session.ancestry.
  */
 export async function fetchCredibleSetVariants(
     session,
@@ -155,7 +260,10 @@ export async function fetchCredibleSetVariants(
     options = {}
 ) {
     const phenotype = session.phenotype.name;
-    const ancestry = options.ancestry;
+    const ancestry =
+        options.ancestry !== undefined
+            ? options.ancestry
+            : session?.ancestry;
     const q =
         ancestry && ancestry !== "Mixed"
             ? `${phenotype},${ancestry},${credibleSetId}`

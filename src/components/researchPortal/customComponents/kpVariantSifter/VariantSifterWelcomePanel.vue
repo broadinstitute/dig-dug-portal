@@ -2,7 +2,7 @@
     <div class="vks-welcome" role="region" aria-labelledby="vks-welcome-title">
         <div class="vks-welcome-card">
             <header class="vks-welcome-head">
-                <h2 id="vks-welcome-title">Welcome to Variant Sifter</h2>
+                <h2 id="vks-welcome-title">{{ welcomeTitle }}</h2>
                 <p class="vks-welcome-lead">
                     Variant Sifter helps you explore genetic associations, credible
                     sets, enrichment, and variant-to-gene links across a shared genomic
@@ -255,6 +255,10 @@ export default {
         bioIndexHost: {
             type: String,
             default: "",
+        },
+        welcomeTitle: {
+            type: String,
+            default: "Welcome to Variant Sifter",
         },
     },
     data() {

@@ -50,7 +50,8 @@ export function normalizeAncestryCode(code) {
 
 /**
  * Parse `sub_ancestries` URL values (`EA,SA` or space/| separated).
- * Drops Mixed, the primary ancestry, unknowns, and duplicates.
+ * Drops the primary ancestry, unknowns, and duplicates.
+ * Mixed is allowed when it is not the primary search ancestry.
  */
 export function parseSubAncestriesParam(value, primaryAncestry = null) {
     const primary = normalizeAncestryCode(primaryAncestry) || primaryAncestry || "Mixed";
@@ -65,7 +66,7 @@ export function parseSubAncestriesParam(value, primaryAncestry = null) {
     const codes = [];
     raw.forEach((part) => {
         const code = normalizeAncestryCode(part);
-        if (!code || code === "Mixed" || code === primary || seen.has(code)) {
+        if (!code || code === primary || seen.has(code)) {
             return;
         }
         seen.add(code);
@@ -74,8 +75,8 @@ export function parseSubAncestriesParam(value, primaryAncestry = null) {
     return codes;
 }
 
-export function formatSubAncestriesParam(codes = []) {
-    return parseSubAncestriesParam(codes).join(",");
+export function formatSubAncestriesParam(codes = [], primaryAncestry = null) {
+    return parseSubAncestriesParam(codes, primaryAncestry).join(",");
 }
 
 /**

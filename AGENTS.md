@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED. Do not edit. -->
-<!-- Version: 1.0.12 | Generated: 2026-07-29T22:03:53Z | Hash: 53bbf0ab0b5e -->
+<!-- Version: 1.0.13 | Generated: 2026-09-14T03:46:35Z | Hash: bd7952ca93e8 -->
 <!-- Sources: dig-dug-portal/master/AGENTS.md + dig-dug-portal/AGENTS.md -->
 
 # dig-dug-portal — master
@@ -352,6 +352,21 @@ cfde-main  (same)
 - Provide OS-agnostic commands only where bash and PowerShell diverge.
 - Do not open PRs from portal branches targeting `master`; portal-branch changes are intentionally isolated.
 - If building a shared feature for multiple portals, follow the dev branch workflow outlined above.
+- Removed dependencies stay removed. Do not reintroduce a package listed under "Deliberately removed dependencies" unless new code actually imports it. When a merge or branch sync re-adds one, drop it again rather than keeping it.
+
+### Deliberately removed dependencies
+
+Each entry was removed on purpose. Before re-adding, confirm a real `import`/`require` exists in `src/` — a merge conflict resolution or a stale branch is not a reason.
+
+| Package        | Removed                                                                                 | Why                                                                                                                                                                                                                                                                                                                                                                                                                   | Re-add only if                                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `tabix-reader` | 2026-05-28 (`7092b95aa`), re-added by accident in `b087fdfdf`, removed again 2026-09-13 | Never imported anywhere in `src/`. The `tabix_reader` references in `src/components/lz/beta/lz-helpers.js` are a caller-supplied parameter, and `createStudyTabixSources` is exported but never called. Cost 5.4 MB / 40 packages, and pulled an unmaintained `eslint@5.16.0` into the **runtime** dependency graph, adding Dependabot alert surface for code that never ships. Upstream package last published 2022. | LocusZoom work actually starts calling `createStudyTabixSources` (or another module imports `tabix-reader` directly) |
+
+Verify with:
+
+```bash
+grep -rniE "(from|require\(|import\().{0,3}[\"']<package>" src/
+```
 
 ## Integration References
 

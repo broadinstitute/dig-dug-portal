@@ -8,6 +8,20 @@ import keyParams from "@/utils/keyParams";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { query } from "@/utils/bioIndexUtils";
 
+const CONNECTIVITY_KEYS = {
+    adipose_tissue: "adipose",
+    cardiovascular_system: "artery",
+    heart: "heart",
+    neural_tissue: "hypothalamus",
+    kidney: "kidney",
+    liver: "liver",
+    muscle_tissue: "muscle",
+    skeletal_muscle_tissue: "muscle",
+    muscle_structure: "muscle",
+    pancreas: "pancreas"
+}
+const ADIPOSE_TYPES = ["adipose_subcutaneous", "adipose_visceral"]
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -19,6 +33,8 @@ export default new Vuex.Store({
         geneLinks: bioIndex("gene-links"),
         mouseSummary: bioIndex("diff-exp-summary-tissue"),
         cs2ct: bioIndex("c2ct-tissue"),
+        connectivity: bioIndex("connectivity-map-cp"),
+        connectivityCrispr: bioIndex("connectivity-map-crispr"),
     },
     state: {
         tissueName: keyParams.tissue || "",
@@ -28,7 +44,16 @@ export default new Vuex.Store({
         selectedPhenotype: null,
         annotationOptions: [],
         selectedAnnotation: "",
-        singleCellDatasets: null
+        singleCellDatasets: null,
+        connectKeys: [],
+        connectCrisprKeys: [],
+        comparisons: [],
+        crisprComparisons: [],
+        adiposeType: ADIPOSE_TYPES[0],
+        adiposeTypeCrispr: ADIPOSE_TYPES[0],
+        selectedComparison: "",
+        selectedComparisonCrispr: "",
+        queryTissue: ""
     },
 
     mutations: {
@@ -39,26 +64,33 @@ export default new Vuex.Store({
         setTopPhenotype(state, phenotype) {
             state.topPhenotype = phenotype || state.topPhenotype;
             if (!state.selectedPhenotype){
-                console.log("no phenotype here");
                 state.selectedPhenotype = phenotype;
             }
         },
         setSelectedAnnotation(state, annotation){
             state.selectedAnnotation = annotation || state.selectedAnnotation;
-        }
+        },
     },
     actions: {
-        getTissue(context) {
+        async getTissue(context) {
             context.state.tissueName = context.state.selectedTissue || context.state.tissueName;
             context.dispatch("tissue/query", {
                 q: context.state.tissueName.replaceAll(" ", "_"), limit: 1000
             });
             let name = context.state.tissueName;
-            // TODO FIX BIOINDICES
+            let connectivityKey = CONNECTIVITY_KEYS[name];
             if (name === 'adipose_tissue'){
                 name = 'adipose';
             }
             context.dispatch("mouseSummary/query", {q: name});
+            if (!connectivityKey){
+                return;
+            }
+            context.state.queryTissue = connectivityKey;
+            await context.dispatch("getRelevantComparisons");
+            await context.dispatch("getRelevantCrisprComparisons");
+            await context.dispatch("getConnectivityData");
+            await context.dispatch("getConnectivityCrisprData");
         },
         async getEvidence(context, { q }) {
             //Do we neeed this?
@@ -78,7 +110,6 @@ export default new Vuex.Store({
                 queryString = `${context.state.selectedAncestry},${queryString}`;
             }
             queryString = `${context.state.selectedPhenotype.name},${queryString}`;
-            console.log(queryString);
             context.dispatch("cs2ct/query", { q : queryString });
         },
         onPhenotypeChange(context, phenotype){
@@ -96,7 +127,6 @@ export default new Vuex.Store({
 					}
 					return json.keys.map(key => key[0])
 				});
-            console.log(annotations);
             context.state.annotationOptions = annotations;
             context.state.selectedAnnotation = annotations[0];
 		},
@@ -120,6 +150,43 @@ export default new Vuex.Store({
                 metadata =  metadata.filter(item => item.data_type === 'single_cell');
             }
             context.state.singleCellDatasets = metadata;
+        },
+        async getConnectKeys(context){
+            let allKeys = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/connectivity-map-cp/2`)
+				.then(resp => resp.json());
+            context.state.connectKeys = allKeys.keys;
+            let allKeys1 = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/connectivity-map-crispr/2`)
+				.then(resp => resp.json());
+            context.state.connectCrisprKeys = allKeys1.keys;
+        },
+        async getRelevantComparisons(context){
+            let useTissue = context.state.queryTissue === "adipose" 
+                ? context.state.adiposeType : context.state.queryTissue;
+            let comps = context.state.connectKeys.filter(ck => ck[0] === useTissue);
+            comps = Array.from(new Set(comps.map(ck => ck[1])));
+            context.state.selectedComparison = comps[0];
+            context.state.comparisons = comps;
+        },
+        async getRelevantCrisprComparisons(context){
+            let useTissue = context.state.queryTissue === "adipose" 
+                ? context.state.adiposeTypeCrispr : context.state.queryTissue;
+            let crisprComps = context.state.connectCrisprKeys.filter(ck => ck[0] === useTissue);
+            crisprComps = Array.from(new Set(crisprComps.map(ck => ck[1])));
+            context.state.selectedComparisonCrispr = crisprComps[0];
+            context.state.crisprComparisons = crisprComps;
+        },
+        async getConnectivityData(context){
+            let useTissue = context.state.queryTissue === "adipose" 
+                ? context.state.adiposeType : context.state.queryTissue;
+            let queryKey = `${useTissue},${context.state.selectedComparison}`;
+            await context.dispatch("connectivity/query", 
+                {q: queryKey});
+        },
+        async getConnectivityCrisprData(context){
+            let useTissue = context.state.queryTissue === "adipose" 
+                ? context.state.adiposeTypeCrispr : context.state.queryTissue;
+            await context.dispatch("connectivityCrispr/query", 
+                {q: `${useTissue},${context.state.selectedComparisonCrispr}`});
         }
     },
     getters: {

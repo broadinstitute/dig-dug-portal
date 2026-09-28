@@ -2104,7 +2104,8 @@ button.btn.btn-mini {
 }
 
 /* for volcano plot. Move it to it's own CSS when there's too much */
-#volcanoPlot {
+#volcanoPlot,
+.volcanoPlot {
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -2143,7 +2144,8 @@ span.volcano-score-2 {
 
 #clicked_dot_value,
 #ld_clicked_dot_value,
-#clicked_cell_value {
+#clicked_cell_value,
+.clicked_dot_value {
     position: absolute;
     background-color: #fff;
     border: solid 1px #aaa;
