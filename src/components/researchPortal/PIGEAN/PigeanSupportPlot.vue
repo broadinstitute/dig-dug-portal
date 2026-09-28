@@ -73,6 +73,8 @@ export default {
         highlighted: { type: Array, default: () => [] },
         identity: Boolean,
         pointLabel: { type: String, default: "genes" },
+        threshold: { type: Number, default: null },
+        pointRadius: { type: Number, default: 3 },
     },
     data: () => ({ height: 425, tip: null, width: 600 }),
     computed: {
@@ -127,6 +129,12 @@ export default {
         highlighted() {
             this.draw();
         },
+        threshold() {
+            this.draw();
+        },
+        pointRadius() {
+            this.draw();
+        },
     },
     mounted() {
         this.observer = new ResizeObserver(() => this.draw());
@@ -154,8 +162,11 @@ export default {
             const margin = { left: 66, right: 24, top: 20, bottom: 58 };
             const domain = (key) => {
                 const values = this.points.map((row) => row[key]);
-                let lo = Math.min(0, d3.min(values) || 0),
-                    hi = Math.max(0, d3.max(values) || 0);
+                const extras = Number.isFinite(this.threshold)
+                    ? [this.threshold]
+                    : [];
+                let lo = Math.min(0, ...(extras), d3.min(values) || 0),
+                    hi = Math.max(0, ...(extras), d3.max(values) || 0);
                 if (hi === lo) hi = lo + 1;
                 const pad = (hi - lo) * 0.045;
                 return [lo - pad, hi + pad];
@@ -213,6 +224,39 @@ export default {
                     .attr("stroke", "#8198a6")
                     .attr("stroke-dasharray", "4 4");
             }
+            if (Number.isFinite(this.threshold)) {
+                const t = this.threshold;
+                const xPos = x(t);
+                const yPos = y(t);
+                const x0 = margin.left;
+                const x1 = width - margin.right;
+                const y0 = margin.top;
+                const y1 = this.height - margin.bottom;
+                const addThresholdLine = (x1Pos, y1Pos, x2Pos, y2Pos) => {
+                    axes.append("line")
+                        .attr("x1", x1Pos)
+                        .attr("y1", y1Pos)
+                        .attr("x2", x2Pos)
+                        .attr("y2", y2Pos)
+                        .attr("stroke", "#FFAA00")
+                        .attr("stroke-width", 1.5)
+                        .attr("stroke-dasharray", "8 4");
+                };
+                addThresholdLine(xPos, y0, xPos, y1);
+                addThresholdLine(x0, yPos, x1, yPos);
+                axes.append("text")
+                    .attr("x", xPos + 4)
+                    .attr("y", y0 + 12)
+                    .attr("fill", "#b57500")
+                    .attr("font-size", 11)
+                    .text(t);
+                axes.append("text")
+                    .attr("x", x0 + 4)
+                    .attr("y", yPos - 4)
+                    .attr("fill", "#b57500")
+                    .attr("font-size", 11)
+                    .text(t);
+            }
             const canvas = this.$refs.canvas,
                 ratio = window.devicePixelRatio || 1;
             canvas.width = width * ratio;
@@ -242,20 +286,35 @@ export default {
             const selected = positions.find(
                 (point) => point.row.id === this.selected
             );
+            const radius = Number.isFinite(this.pointRadius)
+                ? this.pointRadius
+                : 3;
+            const highlightRadius = radius + 2;
+            const selectedRadius = radius + 3;
             // Draw context first so highlighted genes cannot be buried in dense regions.
             ctx.globalAlpha = highlighted.size || this.selected ? 0.12 : 0.75;
             positions.forEach((point) => {
                 if (!highlighted.has(point.row.id) && point !== selected)
-                    drawPoint(point, 3, this.pointColor(point.row));
+                    drawPoint(point, radius, this.pointColor(point.row));
             });
             ctx.globalAlpha = 1;
             active.forEach((point) =>
-                drawPoint(point, 5, this.pointColor(point.row), true)
+                drawPoint(
+                    point,
+                    highlightRadius,
+                    this.pointColor(point.row),
+                    true
+                )
             );
             if (selected) {
-                drawPoint(selected, 6, this.pointColor(selected.row), true);
+                drawPoint(
+                    selected,
+                    selectedRadius,
+                    this.pointColor(selected.row),
+                    true
+                );
                 ctx.beginPath();
-                ctx.arc(selected.x, selected.y, 8, 0, Math.PI * 2);
+                ctx.arc(selected.x, selected.y, selectedRadius + 2, 0, Math.PI * 2);
                 ctx.strokeStyle = "#b85c16";
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
