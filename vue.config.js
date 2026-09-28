@@ -355,6 +355,13 @@ let pages = {
         title: "GP2 Browser",
         chunks: ["chunk-vendors", "chunk-common", "gp2browser"],
     },
+    pegasus: {
+        entry: "src/views/PEGASUS/main.js",
+        template: "public/index.html",
+        filename: "pegasus.html",
+        title: "PEGASUS",
+        chunks: ["chunk-vendors", "chunk-common", "pegasus"],
+    },
 };
 
 const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
