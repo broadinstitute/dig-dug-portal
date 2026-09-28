@@ -266,6 +266,92 @@
                 ></b-pagination>
             </div>
         </b-tab>
+        <b-tab title="Direct vs. indirect score" lazy>
+            <div class="tab-documentation">
+                Direct (GWAS) support versus indirect (gene set) support for
+                each gene. Dashed lines mark a score of 3 on each axis.
+            </div>
+            <div class="direct-indirect-plot">
+                <pigean-support-plot
+                    v-if="directVsIndirectRows.length > 0"
+                    ref="directIndirectPlot"
+                    :rows="directVsIndirectRows"
+                    x-key="GWAS_support"
+                    y-key="Gene_set_support"
+                    x-label="GWAS support (direct score)"
+                    y-label="Gene set support (indirect score)"
+                    title="Direct vs. indirect score"
+                    :threshold="3"
+                    :point-radius="5"
+                    @select="openGeneFromPlot"
+                />
+            </div>
+            <div class="mt-3" style="position: relative">
+                <div
+                    v-html="'Total rows: ' + directVsIndirectRows.length"
+                    class="table-total-rows"
+                ></div>
+                <div class="text-right mb-2" v-if="directVsIndirectRows.length > 0">
+                    <data-download
+                        :data="directVsIndirectRows"
+                        :filename="`direct_vs_indirect_${phenotypeKey}`"
+                    ></data-download>
+                </div>
+                <div
+                    v-if="directVsIndirectRows.length > 0"
+                    class="evidence-range-legend"
+                >
+                    <strong>Evidence range:</strong>
+                    <span class="very-strong">Very Strong</span> &gt; 3 |
+                    <span class="strongly-suggestive">Strongly Suggestive</span>: 2-3 |
+                    <span class="nominally-significant">Nominally Significant</span>: 1-2 |
+                    <span class="not-significant">Not Significant</span>: &lt; 1
+                </div>
+                <b-table
+                    striped
+                    hover
+                    :items="directVsIndirectRows"
+                    :fields="directVsIndirectFields"
+                    :per-page="perPage"
+                    :current-page="directVsIndirectPage"
+                    responsive
+                >
+                    <template v-slot:cell(Gene)="row">
+                        <a :href="'/gene.html?gene='+row.item.gene">{{ row.item.Gene }}</a>
+                    </template>
+                    <template #cell(Combined_GWAS_gene_sets)="row">
+                        <span class="score-piece">
+                            <span
+                                :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_GWAS_gene_sets)]"
+                            ></span>
+                            {{ formatScore(row.item.Combined_GWAS_gene_sets) }}
+                        </span>
+                    </template>
+                    <template #cell(GWAS_support)="row">
+                        <span class="score-piece">
+                            <span
+                                :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.GWAS_support)]"
+                            ></span>
+                            {{ formatScore(row.item.GWAS_support) }}
+                        </span>
+                    </template>
+                    <template #cell(Gene_set_support)="row">
+                        <span class="score-piece">
+                            <span
+                                :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
+                            ></span>
+                            {{ formatScore(row.item.Gene_set_support) }}
+                        </span>
+                    </template>
+                </b-table>
+                <b-pagination
+                    v-model="directVsIndirectPage"
+                    class="pagination-sm justify-content-center"
+                    :total-rows="directVsIndirectRows.length"
+                    :per-page="perPage"
+                ></b-pagination>
+            </div>
+        </b-tab>
       </b-tabs>
     </div>
   </div>
@@ -278,6 +364,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import ResearchPigeanPheWAS from "@/components/researchPortal/PIGEAN/ResearchPigeanPheWAS.vue";
+import PigeanSupportPlot from "@/components/researchPortal/PIGEAN/PigeanSupportPlot.vue";
 import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -300,6 +387,7 @@ export default Vue.component("pigean-phenotype", {
     FilterGreaterThan,
     CriterionFunctionGroup,
     ResearchPigeanPheWAS,
+    PigeanSupportPlot,
     HugeScoresTable,
     Documentation,
     TooltipDocumentation,
@@ -310,6 +398,7 @@ export default Vue.component("pigean-phenotype", {
         perPage: 10,
         currentPage: 1,
         combinedVsHugePage: 1,
+        directVsIndirectPage: 1,
         activeTab: 0,
         combinedConfig: {
             "type": "pigean phewas plot",
@@ -447,6 +536,28 @@ export default Vue.component("pigean-phenotype", {
           {
             key: 'HuGE_Score',
             label: 'HuGE score',
+            sortable: true
+          }
+        ],
+        directVsIndirectFields: [
+          {
+            key: 'Gene',
+            label: 'Gene',
+            sortable: true
+          },
+          {
+            key: 'Combined_GWAS_gene_sets',
+            label: 'Combined score',
+            sortable: true
+          },
+          {
+            key: 'GWAS_support',
+            label: 'Direct support',
+            sortable: true
+          },
+          {
+            key: 'Gene_set_support',
+            label: 'Indirect support',
             sortable: true
           }
         ]
@@ -629,12 +740,20 @@ export default Vue.component("pigean-phenotype", {
           Log_HuGE_Score: logHuge,
         };
       });
+    },
+    directVsIndirectRows() {
+      return (this.pigeanDataFiltered || [])
+        .filter((item) => item.gene || item.Gene)
+        .map((item) => ({
+          ...item,
+          id: item.gene || item.Gene,
+        }));
     }
   },
   watch: {
     pigeanDataFiltered: {
       handler(newData) {
-        if (newData && newData.length > 0 && (this.activeTab === 0 || this.activeTab === 1 || this.activeTab === 2)) {
+        if (newData && newData.length > 0 && (this.activeTab === 0 || this.activeTab === 1 || this.activeTab === 2 || this.activeTab === 3)) {
           this.$nextTick(() => {
             this.$nextTick(() => {
               setTimeout(() => {
@@ -709,6 +828,12 @@ export default Vue.component("pigean-phenotype", {
       }
       return "nominally-significant";
     },
+    openGeneFromPlot(row) {
+      const gene = row && (row.id || row.gene || row.Gene);
+      if (gene) {
+        window.location.href = `/gene.html?gene=${encodeURIComponent(gene)}`;
+      }
+    },
     renderActiveTab() {
       let refName = null;
       if (this.activeTab === 0) {
@@ -717,6 +842,21 @@ export default Vue.component("pigean-phenotype", {
         refName = 'hugeScorePhewasPlot';
       } else if (this.activeTab === 2) {
         refName = 'pigeanPhewasPlot';
+      } else if (this.activeTab === 3) {
+        const tryDraw = (attempts = 0) => {
+          const plot = this.$refs.directIndirectPlot;
+          if (plot && typeof plot.draw === "function") {
+            plot.draw();
+            return;
+          }
+          if (attempts < 20) {
+            setTimeout(() => {
+              tryDraw(attempts + 1);
+            }, 250);
+          }
+        };
+        tryDraw();
+        return;
       }
 
       if (refName) {
@@ -753,6 +893,11 @@ export default Vue.component("pigean-phenotype", {
 <style scoped>
   .tab-documentation {
     padding: 20px 0;
+  }
+  .direct-indirect-plot {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
   }
   .column-header-with-tooltip {
     display: inline-flex;
