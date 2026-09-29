@@ -96,7 +96,7 @@ new Vue({
                 { key: "phenotype", label: "Phenotype", sortable: true },
                 { key: "mondo_id", label: "MONDO ID", sortable: true },
                 { key: "name", label: "Study", sortable: true },
-                { key: "study_author", label: "Author", sortable: true },
+                { key: "study_author", label: "Study Author", sortable: true },
                 { key: "publication_ref", label: "Publication" },
                 { key: "published", label: "Status", sortable: true },
                 { key: "gwas_source", label: "GWAS source", sortable: true },
@@ -365,7 +365,7 @@ new Vue({
                 [
                     { label: "Accession", value: study.accession_id },
                     { label: "Study", value: study.name },
-                    { label: "Author", value: meta.study_author },
+                    { label: "Study Author", value: meta.study_author },
                     {
                         label: "Publication",
                         value: pub,
