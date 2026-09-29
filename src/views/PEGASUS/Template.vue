@@ -39,7 +39,7 @@
                                         alt=""
                                     />
                                 </div>
-                                <div>
+                                <div style="min-width:80ch">
                                     <h2>PEGASUS</h2>
                                     <p class="peg-intro">
                                         Predicted Effector Gene Aggregation, Standards,
@@ -55,6 +55,31 @@
                                             >Learn More</a
                                         >
                                     </p>
+                                </div>
+                                <div class="peg-header-notes">
+                                    <ul>
+                                        <li>
+                                            Learn how to generate PEGASUS lists
+                                            from your own GWAS and integrative
+                                            evidence
+                                            <a
+                                                href="https://gwas-catalog.github.io/PEGASUS/docs/peg-overview"
+                                                target="_blank"
+                                                rel="noopener"
+                                                >here</a
+                                            >.
+                                        </li>
+                                        <li>
+                                            Learn how to submit your
+                                            lists to the PEGASUS Data Registry
+                                            <a
+                                                href="https://gwas-catalog.github.io/PEGASUS/docs/submission-prep/submission-guidance"
+                                                target="_blank"
+                                                rel="noopener"
+                                                >here</a
+                                            >.
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                         </template>
@@ -121,6 +146,17 @@
                                 rel="noopener"
                                 >{{ v.item.publication_ref }}</a
                             >
+                        </template>
+
+                        <template #cell(gwas_source)="v">
+                            <a
+                                v-if="$parent.gwasCatalogHref(v.value)"
+                                :href="$parent.gwasCatalogHref(v.value)"
+                                target="_blank"
+                                rel="noopener"
+                                >{{ v.value }}</a
+                            >
+                            <span v-else>{{ v.value }}</span>
                         </template>
 
                         <template #cell(view_list)="v">
@@ -195,14 +231,10 @@
                             </p>
                             <div class="text-right">
                                 <b-dropdown
-                                    split
                                     right
                                     size="sm"
                                     variant="secondary"
-                                    :split-href="$parent.fileHref('peg_list')"
                                     :disabled="$parent.zipping"
-                                    split-class="text-white"
-                                    toggle-class="peg-download-toggle"
                                 >
                                     <template #button-content>
                                         <b-spinner
@@ -323,6 +355,19 @@ body.kp-default{
     font-size: 14px;
 }
 
+/* Third column of the studies-list header, beside the framework blurb. */
+.peg-header-notes {
+    border-left: 1px solid #dee2e6;
+    padding-left: 20px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.peg-header-notes ul {
+    margin-bottom: 0;
+    padding-left: 1.1rem;
+}
+
 /* Framework blurb under the studies-list heading. */
 .peg-intro {
     margin-bottom: 0;
@@ -381,20 +426,6 @@ body.kp-default{
 .peg-list-notes p {
     margin-bottom: 0.5rem;
     color: #6c757d;
-}
-
-/* Darken the caret half of the split button so the two halves read as
-   separate controls. */
-.peg-download-toggle.btn-secondary {
-    background-color: #494f54;
-    border-color: #494f54;
-    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.35);
-}
-
-.peg-download-toggle.btn-secondary:hover,
-.peg-download-toggle.btn-secondary:focus {
-    background-color: #3d4246;
-    border-color: #3d4246;
 }
 
 /* Checkbox legend directly above the list table. Flex rather than inline text

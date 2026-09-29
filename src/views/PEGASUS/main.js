@@ -98,7 +98,6 @@ new Vue({
                 { key: "name", label: "Study", sortable: true },
                 { key: "study_author", label: "Study Author", sortable: true },
                 { key: "publication_ref", label: "Publication" },
-                { key: "published", label: "Status", sortable: true },
                 { key: "gwas_source", label: "GWAS source", sortable: true },
                 { key: "accession_id", label: "Accession", sortable: true },
                 { key: "view_list", label: "" },
@@ -203,6 +202,15 @@ new Vue({
                 })),
                 rows,
             };
+        },
+
+        // Only GWAS Catalog accessions resolve on ebi.ac.uk; other source types
+        // (e.g. a PMID for same_as_pgs) are shown as plain text.
+        gwasCatalogHref(source) {
+            const id = String(source || "").trim();
+            return /^GCST\d+$/i.test(id)
+                ? `https://www.ebi.ac.uk/gwas/studies/${id}`
+                : null;
         },
 
         // Columns are "<CATEGORY>" or "<CATEGORY>_<SubLabel>".
