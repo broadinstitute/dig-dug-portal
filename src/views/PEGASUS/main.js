@@ -98,7 +98,6 @@ new Vue({
                 { key: "name", label: "Study", sortable: true },
                 { key: "study_author", label: "Study Author", sortable: true },
                 { key: "publication_ref", label: "Publication" },
-                { key: "published", label: "Status", sortable: true },
                 { key: "gwas_source", label: "GWAS source", sortable: true },
                 { key: "accession_id", label: "Accession", sortable: true },
                 { key: "view_list", label: "" },
