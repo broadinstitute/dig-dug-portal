@@ -400,7 +400,8 @@
                             In addition, the top 100 significantly reversed CRISPR targets were matched with the ChEMBL database to
                             identify known antagonists and other therapeutically relevant compounds targeting these genes 
                             or their protein products. </p>
-                        <criterion-function-group>
+                        <criterion-function-group
+                            @update:filter-list="$event => $parent.getSelectedPathway($event, false)">
                             <filter-enumeration-control
                                 field="best_direction"
                                 :options="$parent.connectivityData.map(d => d.best_direction)">
@@ -431,10 +432,11 @@
                                 field="pAdj">
                                 <div class="label">Max p-adj</div>
                             </filter-less-control>
-                            <div class="col filter-col-md">
+                            <filter-enumeration-control
+                                :field="$parent.selectedPathwayDescriptor"
+                                :options="$parent.connectivityData.map(d => d.pathway)">
                                 <div class="label">Search pathway</div>
-                                <input v-model="$parent.compoundPathway"/>
-                            </div>
+                            </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div v-if="$parent.connectivityData.length > 0">
                                     <volcano-plot
@@ -498,10 +500,11 @@
                             volcano plots for each cell type-trait pair, and the top 100 significantly reversed CRISPR perturbations are 
                             used to perform pathway enrichment analysis to characterize biological processes associated with prioritized 
                             targets for a cell type-trait combination.</p>
-                        <criterion-function-group>
+                        <criterion-function-group
+                            @update:filter-list="$event => $parent.getSelectedPathway($event, true)">
                             <filter-enumeration-control
                                 field="best_direction"
-                                :options="$parent.connectivityData.map(d => d.best_direction)">
+                                :options="$parent.connectivityCrisprData.map(d => d.best_direction)">
                                 <div class="label">Direction</div>
                             </filter-enumeration-control>
                             <div class="col filter-col-md" >
@@ -529,12 +532,18 @@
                                 field="pAdj">
                                 <div class="label">Max p-adj</div>
                             </filter-less-control>
+                            <filter-enumeration-control
+                                :field="$parent.selectedPathwayDescriptor"
+                                :options="$parent.connectivityCrisprData.map(d => d.pathway)">
+                                <div class="label">Search pathway</div>
+                            </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div v-if="$parent.connectivityCrisprData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
                                         :plotData="$parent.connectivityCrisprData.filter(filter)"
-                                        :chartName="$parent.chartName($parent.connectivityCrisprData[0], true)">
+                                        :chartName="$parent.chartName($parent.connectivityCrisprData[0], true)"
+                                        :geneOfInterest="$parent.crisprPathway">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">

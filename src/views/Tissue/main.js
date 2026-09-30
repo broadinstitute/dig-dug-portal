@@ -122,7 +122,9 @@ new Vue({
                 { key: "tpm_category", sortable: true, crisprOnly: true},
                 { key: "expressed", sortable: true, crisprOnly: true},
             ],
-            compoundPathway: "",
+            selectedPathwayDescriptor: "selected_pathway",
+            compoundPathway: null,
+            crisprPathway: null,
         };
     },
     computed: {
@@ -267,9 +269,15 @@ new Vue({
             });
             return data;
         },
-        convert2RenderBy(pathway){
-            console.log("did this work?");
-            return pathway;
+        getSelectedPathway(filters, isCrispr=false){
+            let pathwayFilter = filters.find(d => d.field === this.selectedPathwayDescriptor);
+            let pathway = pathwayFilter === undefined ? null : pathwayFilter.threshold;
+            if (isCrispr){
+                this.crisprPathway = pathway;
+            } else {
+                this.compoundPathway = pathway;
+            }
+
         }
     },
     watch: {
@@ -292,7 +300,7 @@ new Vue({
         },
         "$store.state.selectedComparisonCrispr"(){
             this.$store.dispatch("getConnectivityCrisprData");
-        }
+        },
     },
     render: (h) => h(Template),
 }).$mount("#app");
