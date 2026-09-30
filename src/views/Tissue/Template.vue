@@ -384,12 +384,22 @@
                 </div>
                 <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
                     <div class="card-body">
-                        <h4>Connectivity mapping: Differential Expression
-                            <span v-if="$store.state.connectivity.data.length > 0">
-                                for {{ $parent.tissueFormatter($store.state.connectivity.data[0].tissue) }} - 
-                                {{ $parent.tissueFormatter($store.state.connectivity.data[0].comparison) }}
-                            </span>
+                        <h4>Compound connectivity mapping: which small molecules reproduce or reverse disease signatures?
                         </h4>
+                        <p>Predict which small molecules reproduce or reverse disease signatures using connectivity mapping analysis.
+                            Analyses link disease-associated differential expression analyses to small molecule compound-based
+                            perturbation signatures from the Library of Integrated Network-Based Cellular Signature
+                            (<a href="https://lincsproject.org/LINCS/">LINCS</a>).
+                            For each perturbation, we calculated whether perturbation signatures showed significantly reversed or
+                            concordant effects compared to differential expression. We performed cell type-specific differential
+                            expression and connectivity mapping analyses using all available 
+                            <a href="https://hugeamp.org/r/scb">CMDKP single-cell maps</a>. 
+                            Connectivity mapping results are summarized with volcano plots for each cell type-trait pair, and the
+                            top 100 significantly reversed CRISPR perturbations are used to perform pathway enrichment analysis
+                            to characterize biological processes associated with prioritized targets for a cell type-trait combination.
+                            In addition, the top 100 significantly reversed CRISPR targets were matched with the ChEMBL database to
+                            identify known antagonists and other therapeutically relevant compounds targeting these genes 
+                            or their protein products. </p>
                         <criterion-function-group>
                             <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
                                 <div class="label">Tissue type</div>
@@ -455,12 +465,19 @@
                 </div>
                 <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
                     <div class="card-body">
-                        <h4>Connectivity mapping: Differential Expression (CRISPR)
-                            <span v-if="$store.state.connectivityCrispr.data.length > 0">
-                                for {{ $parent.tissueFormatter($store.state.connectivityCrispr.data[0].tissue) }} - 
-                                {{ $parent.tissueFormatter($store.state.connectivityCrispr.data[0].comparison) }}
-                            </span>
+                        <h4>CRISPR connectivity mapping: which gene knockouts reproduce or reverse disease signatures?
                         </h4>
+                        <p>Predict which gene knockouts reproduce or reverse disease signatures using connectivity mapping analysis. 
+                            Analyses link disease-associated differential expression analyses to CRISPR-based perturbation signatures 
+                            from the Library of Integrated Network-Based Cellular Signature 
+                            (<a href="https://lincsproject.org/LINCS/">LINCS</a>). For each perturbation, 
+                            we calculated whether perturbation signatures showed significantly reversed or concordant effects
+                            compared to differential expression. We performed cell type-specific differential expression and connectivity
+                            mapping analyses using all available 
+                            <a href="https://hugeamp.org/r/scb">CMDKP single-cell maps</a>. Connectivity mapping results are summarized with
+                            volcano plots for each cell type-trait pair, and the top 100 significantly reversed CRISPR perturbations are 
+                            used to perform pathway enrichment analysis to characterize biological processes associated with prioritized 
+                            targets for a cell type-trait combination.</p>
                         <criterion-function-group>
                             <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
                                 <div class="label">Tissue type</div>
