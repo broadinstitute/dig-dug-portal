@@ -11,9 +11,7 @@
                     <p class="eyebrow">MSKKP live single-cell explorer</p>
                     <h1>Dataset vs Dataset Single-Cell Comparison</h1>
                     <p class="lede">
-                        Compare musculoskeletal single-cell datasets using live
-                        queries against the single-cell BioIndex API - no
-                        precomputed or static test data.
+                        Compare musculoskeletal single-cell datasets. Start by selecting the tissues for your comparison using the filters below.
                     </p>
                     <div
                         v-if="$store.state.metadataError"
@@ -30,11 +28,7 @@
                         {{ $store.state.datasetCount }} single-cell dataset{{
                             $store.state.datasetCount === 1 ? "" : "s"
                         }}
-                        available from this BioIndex host{{
-                            $store.state.usingMskDatasets
-                                ? ""
-                                : ' (none tagged for the "msk" portal yet)'
-                        }}.
+                        available.
                     </p>
                     <div
                         v-if="
