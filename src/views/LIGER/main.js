@@ -6,13 +6,13 @@ import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import uiUtils from "@/utils/uiUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-import LigerBrowser from "@/components/researchPortal/LIGER/LigerBrowser.vue";
+import CellEvolutionBrowser from "@/components/researchPortal/LIGER/v2/CellEvolutionBrowser.vue";
 
 new Vue({
     store,
     components: {
         StaticPageInfo,
-        LigerBrowser
+        CellEvolutionBrowser
     },
     mixins: [pageMixin],
 

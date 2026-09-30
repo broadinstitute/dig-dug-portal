@@ -24,7 +24,7 @@ Two facts that frame everything:
 
 It comes from nowhere in the API. It is a client-side fallback that fires 100% of the time.
 
-`openProgramDetail` ([LigerBrowser.vue:2532](LigerBrowser.vue:2532)) asks for a quality class:
+`openProgramDetail` ([v1/LigerBrowser.vue:2532](v1/LigerBrowser.vue:2532)) asks for a quality class:
 
 ```js
 let quality = this.field(meta, ["suggested_program_quality_class", "quality_class",
@@ -34,7 +34,7 @@ let quality = this.field(meta, ["suggested_program_quality_class", "quality_clas
 
 `gene-program-factor` returns exactly six fields — `dataset`, `model`, `cell_type`, `factor`,
 `label`, `top_genes`. None of those four names exist, so it always falls through to
-`inferredProgramQuality()` ([LigerBrowser.vue:2105](LigerBrowser.vue:2105)):
+`inferredProgramQuality()` ([v1/LigerBrowser.vue:2105](v1/LigerBrowser.vue:2105)):
 
 ```js
 let hasBadMatch  = rows.some(row => /qc|suppress|artifact/i.test(field(row, ["match_class", "qc_recommendation", "qc_caveat"]) || ""));
@@ -125,7 +125,7 @@ CMDKP workflow, v2026-06-04, not yet manually reviewed"), but not as six badges 
 | `summary.required_supporting_evidence` | 68/87 |
 
 **Methods and scoring** — fully populated, currently computed by `stateMethodsDetail()` but
-**never rendered anywhere** (nothing reads it in `StateDetails.vue`):
+**never rendered anywhere** (nothing reads it in `v1/StateDetails.vue`):
 
 | Field | Example |
 |---|---|
