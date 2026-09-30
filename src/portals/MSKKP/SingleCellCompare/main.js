@@ -24,6 +24,35 @@ new Vue({
         datasets() {
             return this.$store.state.datasets;
         },
+        // "Select Tissue(s) to Compare" pickers. The full tissue list comes from the
+        // store (derived live from the metadata); leftDatasets/rightDatasets are the
+        // dataset options after that side's tissue filter is applied, so the "Select
+        // datasets" pickers below only offer datasets matching the chosen tissue.
+        tissues() {
+            return this.$store.state.tissues;
+        },
+        leftTissue: {
+            get() {
+                return this.$store.state.leftTissue;
+            },
+            set(value) {
+                this.$store.dispatch("setLeftTissue", value);
+            },
+        },
+        rightTissue: {
+            get() {
+                return this.$store.state.rightTissue;
+            },
+            set(value) {
+                this.$store.dispatch("setRightTissue", value);
+            },
+        },
+        leftDatasets() {
+            return this.$store.getters.leftDatasets;
+        },
+        rightDatasets() {
+            return this.$store.getters.rightDatasets;
+        },
         leftId: {
             get() {
                 return this.$store.state.leftId;

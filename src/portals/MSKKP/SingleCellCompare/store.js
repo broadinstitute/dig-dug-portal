@@ -122,6 +122,13 @@ function resolveSpecies(d) {
 function resolveOrgan(d) {
     return d.tissue_a2fkp || d.organ || d.tissue || "";
 }
+// The specific tissue/organ name for the "Select Tissue(s) to Compare" pickers.
+// Prefers the concrete `organ` value ("bone", "artery") over the KP-normalized
+// system label (`tissue_a2fkp`, e.g. "skeletal system"), since a tissue comparison
+// wants the specific tissue, not its parent anatomical system.
+function resolveTissue(d) {
+    return d.organ || d.tissue_a2fkp || d.tissue || "";
+}
 function resolveCellCount(d) {
     return d.n_cells || d.cell_count || d.num_cells || null;
 }
@@ -201,6 +208,8 @@ function logFetch(kind, url) {
 
 // Adapts calcExpressionStats() (the same aggregation the live single-cell browser
 // uses) into the {cell_type, summary, values} shape the mockup's UI expects.
+// Called both after a fresh fetch and on expression-cache hits (see ensureGeneRows),
+// so it must stay cheap enough to run per cell-type switch.
 function rowsFromExpressionStats(fields, labelColors, expression, gene, cellTypeKey, includeValues = true) {
     const stats = calcExpressionStats(fields, labelColors, expression, gene, cellTypeKey, null, !includeValues);
     return (stats || []).map((row) => ({
@@ -247,6 +256,14 @@ export default new Vuex.Store({
         leftId: null,
         rightId: null,
 
+        // "Select Tissue(s) to Compare" pickers. Each is a single tissue name, or the
+        // sentinel "All tissues", which places no constraint on the dataset pickers below.
+        // Defaulting to "All tissues" keeps the initial view identical to before these
+        // pickers existed; choosing a specific tissue narrows the dataset options.
+        tissues: [],
+        leftTissue: "All tissues",
+        rightTissue: "All tissues",
+
         cellTypes: [],
         cellTypeColors: {},
 
@@ -265,10 +282,13 @@ export default new Vuex.Store({
 
         // datasetId -> { fields, labelColors, cellTypeKey }
         fieldsCache: {},
-        // "datasetId:GENE" -> rows [{cell_type, summary, values}] | null
-        geneRowsCache: {},
-        geneRowsCacheBytes: 0,
-        geneRowsCacheOrder: [],
+        // "datasetId:GENE" -> { fields, labelColors, cellTypeKey, expression } - the
+        // raw per-cell expression vector plus everything rowsFromExpressionStats needs.
+        // Caching the vector (not derived rows) lets includeValues:false callers - the
+        // "Cell-Type Comparison" panel - hit it too, so cell-type switches never refetch.
+        expressionCache: {},
+        expressionCacheBytes: 0,
+        expressionCacheOrder: [],
         geneComparisonRequest: 0,
         cellTypeComparisonRequest: 0,
         // datasetId -> ranked gene[] from marker_genes.json.gz, or null if unavailable
@@ -311,6 +331,7 @@ export default new Vuex.Store({
                     label: resolveDatasetLabel(d),
                     species: resolveSpecies(d),
                     organ: resolveOrgan(d),
+                    tissue: resolveTissue(d),
                     nCells: resolveCellCount(d),
                     isMsk: Array.isArray(d.portals) && d.portals.includes("msk"),
                     raw: d,
@@ -319,6 +340,15 @@ export default new Vuex.Store({
 
             state.datasetCount = datasets.length;
             state.datasets = datasets;
+            // Distinct tissue names across every selectable dataset, in first-seen order.
+            // This is what the "Select Tissue(s) to Compare" pickers offer - derived
+            // live from the metadata rather than hardcoded, so it always matches what
+            // the single-cell BioIndex actually has on whichever host this build points at.
+            const tissueSet = new Set();
+            datasets.forEach((d) => {
+                if (d.tissue) tissueSet.add(d.tissue);
+            });
+            state.tissues = [...tissueSet].sort((a, b) => a.localeCompare(b));
             if (!datasets.length) {
                 state.metadataError = "The single-cell BioIndex metadata endpoint returned no single-cell datasets.";
                 state.loading = false;
@@ -363,10 +393,30 @@ export default new Vuex.Store({
         async ensureGeneRows(context, { datasetId, gene, includeValues = true }) {
             const state = context.state;
             const cacheKey = `${datasetId}:${gene}`;
-            if (includeValues && cacheKey in state.geneRowsCache) {
-                state.geneRowsCacheOrder = state.geneRowsCacheOrder.filter((key) => key !== cacheKey);
-                state.geneRowsCacheOrder.push(cacheKey);
-                return state.geneRowsCache[cacheKey];
+
+            // The expression vector is the expensive part (one BioIndex query per
+            // dataset+gene), and it does not depend on includeValues - so cache the
+            // RAW vector, then derive rows from it. This is what makes switching the
+            // "Cell-Type Comparison" cell type a pure client-side filter: every gene's
+            // per-cell values for both datasets are already in hand, and only the
+            // local stats recompute. Without this, includeValues:false calls skipped
+            // both the cache read and write below (both were gated on includeValues),
+            // so each cell-type switch re-issued up to 60x2 identical expression
+            // queries.
+            if (cacheKey in state.expressionCache) {
+                const entry = state.expressionCache[cacheKey];
+                if (entry.expression) {
+                    state.expressionCacheOrder = state.expressionCacheOrder.filter((key) => key !== cacheKey);
+                    state.expressionCacheOrder.push(cacheKey);
+                }
+                return rowsFromExpressionStats(
+                    entry.fields,
+                    entry.labelColors,
+                    entry.expression,
+                    gene,
+                    entry.cellTypeKey,
+                    includeValues
+                );
             }
 
             const fieldsEntry = await context.dispatch("ensureFields", datasetId);
@@ -381,35 +431,35 @@ export default new Vuex.Store({
             } catch (error) {
                 expression = null;
             }
+
+            // A failed/empty fetch is not cached: the next call retries it.
             if (!expression) {
                 return null;
             }
 
-            const rows = rowsFromExpressionStats(
-                fieldsEntry.fields,
-                fieldsEntry.labelColors,
+            const entry = { fields: fieldsEntry.fields, labelColors: fieldsEntry.labelColors, cellTypeKey: fieldsEntry.cellTypeKey, expression };
+            const bytes = entry.expression.length * 8;
+            while (state.expressionCacheOrder.length && state.expressionCacheBytes + bytes > GENE_ROWS_CACHE_BYTES) {
+                const oldest = state.expressionCacheOrder.shift();
+                const evicted = state.expressionCache[oldest];
+                if (evicted) state.expressionCacheBytes -= evicted.expression.length * 8;
+                Vue.delete(state.expressionCache, oldest);
+            }
+            // A single gene may exceed the budget; use it for this call but do not retain it.
+            if (bytes <= GENE_ROWS_CACHE_BYTES) {
+                Vue.set(state.expressionCache, cacheKey, entry);
+                state.expressionCacheOrder.push(cacheKey);
+                state.expressionCacheBytes += bytes;
+            }
+
+            return rowsFromExpressionStats(
+                entry.fields,
+                entry.labelColors,
                 expression,
                 gene,
                 fieldsEntry.cellTypeKey,
                 includeValues
             );
-            if (includeValues) {
-                if (cacheKey in state.geneRowsCache) return state.geneRowsCache[cacheKey];
-                const bytes = rows.reduce((total, row) => total + row.values.length * 8, 0);
-                while (state.geneRowsCacheOrder.length && state.geneRowsCacheBytes + bytes > GENE_ROWS_CACHE_BYTES) {
-                    const oldest = state.geneRowsCacheOrder.shift();
-                    const evicted = state.geneRowsCache[oldest];
-                    if (evicted) state.geneRowsCacheBytes -= evicted.reduce((total, row) => total + row.values.length * 8, 0);
-                    Vue.delete(state.geneRowsCache, oldest);
-                }
-                // A single selection may exceed the budget; use it for the plot but do not retain it.
-                if (bytes <= GENE_ROWS_CACHE_BYTES) {
-                    Vue.set(state.geneRowsCache, cacheKey, rows);
-                    state.geneRowsCacheOrder.push(cacheKey);
-                    state.geneRowsCacheBytes += bytes;
-                }
-            }
-            return rows;
         },
 
         async ensureMarkerGenes(context, datasetId) {
@@ -607,6 +657,32 @@ export default new Vuex.Store({
             context.state.rightId = datasetId;
             await context.dispatch("refreshAll");
         },
+        // Choosing a tissue narrows the dataset pickers on that side. If the currently
+        // selected dataset is no longer in the narrowed set, fall back to the first
+        // available one for that tissue (or "All tissues" if none) and refresh. Picking
+        // "All tissues" restores the full dataset list without touching the selection.
+        async setLeftTissue(context, tissue) {
+            context.state.leftTissue = tissue;
+            const filtered = tissue === "All tissues"
+                ? context.state.datasets
+                : context.state.datasets.filter((d) => d.tissue === tissue);
+            if (!filtered.some((d) => d.id === context.state.leftId)) {
+                const fallback = filtered[0];
+                if (fallback) context.state.leftId = fallback.id;
+            }
+            await context.dispatch("refreshAll");
+        },
+        async setRightTissue(context, tissue) {
+            context.state.rightTissue = tissue;
+            const filtered = tissue === "All tissues"
+                ? context.state.datasets
+                : context.state.datasets.filter((d) => d.tissue === tissue);
+            if (!filtered.some((d) => d.id === context.state.rightId)) {
+                const fallback = filtered[0];
+                if (fallback) context.state.rightId = fallback.id;
+            }
+            await context.dispatch("refreshAll");
+        },
         async setGene(context, gene) {
             await context.dispatch("loadGeneComparison", gene);
         },
@@ -616,5 +692,16 @@ export default new Vuex.Store({
     },
     getters: {
         datasetById: (state) => (id) => state.datasets.find((d) => d.id === id) || null,
+        // Datasets offered by the "Select datasets" pickers after the tissue filter is
+        // applied. "All tissues" (the default) returns every dataset, so the pickers
+        // behave exactly as before until a specific tissue is chosen.
+        leftDatasets: (state) => {
+            if (!state.leftTissue || state.leftTissue === "All tissues") return state.datasets;
+            return state.datasets.filter((d) => d.tissue === state.leftTissue);
+        },
+        rightDatasets: (state) => {
+            if (!state.rightTissue || state.rightTissue === "All tissues") return state.datasets;
+            return state.datasets.filter((d) => d.tissue === state.rightTissue);
+        },
     },
 });

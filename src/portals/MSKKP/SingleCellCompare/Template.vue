@@ -35,15 +35,38 @@
                 </div>
             </div>
 
-            <!-- Dataset pickers -->
-            <div class="card mdkp-card" v-if="$parent.datasets.length">
+            <!-- Tissue pickers -->
+            <div class="card mdkp-card" v-if="$parent.tissues.length && $parent.datasets.length">
                 <div class="card-body">
-                    <h4 class="card-title">Select datasets</h4>
+                    <h4 class="card-title">Select Tissue(s) to Compare</h4>
+                    <div class="row controls sc-filter-wrap">
+                        <label class="col-md-6 control">
+                            <span>Left tissue</span>
+                            <select class="form-control" v-model="$parent.leftTissue">
+                                <option value="All tissues">All tissues</option>
+                                <option v-for="t in $parent.tissues" :key="'lt-' + t" :value="t">
+                                    {{ $parent.formatLabel(t) }}
+                                </option>
+                            </select>
+                        </label>
+                        <label class="col-md-6 control">
+                            <span>Right tissue</span>
+                            <select class="form-control" v-model="$parent.rightTissue">
+                                <option value="All tissues">All tissues</option>
+                                <option v-for="t in $parent.tissues" :key="'rt-' + t" :value="t">
+                                    {{ $parent.formatLabel(t) }}
+                                </option>
+                            </select>
+                        </label>
+                    </div>
+                    <div>&nbsp;</div>
+                    <h4 class="card-title">Choose datasets to compare across the selected tissue(s)
+                    </h4>
                     <div class="row controls sc-filter-wrap">
                         <label class="col-md-6 control">
                             <span>Left dataset</span>
                             <select class="form-control" v-model="$parent.leftId">
-                                <option v-for="d in $parent.datasets" :key="'l-' + d.id" :value="d.id">
+                                <option v-for="d in $parent.leftDatasets" :key="'l-' + d.id" :value="d.id">
                                     {{ d.label }}
                                 </option>
                             </select>
@@ -51,7 +74,7 @@
                         <label class="col-md-6 control">
                             <span>Right dataset</span>
                             <select class="form-control" v-model="$parent.rightId">
-                                <option v-for="d in $parent.datasets" :key="'r-' + d.id" :value="d.id">
+                                <option v-for="d in $parent.rightDatasets" :key="'r-' + d.id" :value="d.id">
                                     {{ d.label }}
                                 </option>
                             </select>
