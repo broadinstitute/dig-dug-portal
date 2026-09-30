@@ -1,7 +1,7 @@
 <script>
 import Vue from "vue";
-import { formatMetric, formatPValue } from "./ligerFormat";
-import { heatColor } from "./ligerHeat";
+import { formatMetric, formatPValue } from "../ligerFormat";
+import { heatColor } from "../ligerHeat";
 
 // A table whose numeric cells are the heatmap.
 //
