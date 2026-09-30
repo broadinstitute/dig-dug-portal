@@ -406,11 +406,17 @@
                                 :options="$parent.connectivityData.map(d => d.best_direction)">
                                 <div class="label">Direction</div>
                             </filter-enumeration-control>
-                            <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
+                            <div class="col filter-col-md">
                                 <div class="label">Tissue type</div>
-                                <select v-model="$store.state.adiposeType">
+                                <select v-model="$store.state.adiposeType"
+                                    v-if="$store.state.tissueName === 'adipose_tissue'">
                                     <option value="adipose_subcutaneous">Adipose - Subcutaneous</option>
                                     <option value="adipose_visceral">Adipose - Visceral</option>
+                                </select>
+                                <select v-else>
+                                    <option :value="$store.state.tissueName">
+                                        {{$parent.tissueFormatter($store.state.tissueName)}}
+                                    </option>
                                 </select>
                             </div>
                             <div class="col filter-col-md">
@@ -493,11 +499,17 @@
                                 :options="$parent.connectivityData.map(d => d.best_direction)">
                                 <div class="label">Direction</div>
                             </filter-enumeration-control>
-                            <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
+                            <div class="col filter-col-md" >
                                 <div class="label">Tissue type</div>
-                                <select v-model="$store.state.adiposeTypeCrispr">
+                                <select v-model="$store.state.adiposeTypeCrispr"
+                                    v-if="$store.state.tissueName === 'adipose_tissue'">
                                     <option value="adipose_subcutaneous">Adipose - Subcutaneous</option>
                                     <option value="adipose_visceral">Adipose - Visceral</option>
+                                </select>
+                                <select v-else>
+                                    <option :value="$store.state.tissueName">
+                                        {{$parent.tissueFormatter($store.state.tissueName)}}
+                                    </option>
                                 </select>
                             </div>
                             <div class="col filter-col-md">
