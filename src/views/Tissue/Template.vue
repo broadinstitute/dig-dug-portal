@@ -416,11 +416,15 @@
                                     </option>
                                 </select>
                             </div>
+                            <filter-less-control
+                                field="pAdj">
+                                <div class="label">Max p-adj</div>
+                            </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div v-if="$parent.connectivityData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityData"
+                                        :plotData="$parent.connectivityData.filter(filter)"
                                         :chartName="$parent.chartName($parent.connectivityData[0])">
                                     </volcano-plot>
                                 </div>
@@ -494,11 +498,15 @@
                                     </option>
                                 </select>
                             </div>
+                            <filter-less-control
+                                field="pAdj">
+                                <div class="label">Max p-adj</div>
+                            </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div v-if="$parent.connectivityCrisprData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityCrisprData"
+                                        :plotData="$parent.connectivityCrisprData.filter(filter)"
                                         :chartName="$parent.chartName($parent.connectivityCrisprData[0], true)">
                                     </volcano-plot>
                                 </div>

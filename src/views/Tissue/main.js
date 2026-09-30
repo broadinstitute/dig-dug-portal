@@ -261,8 +261,8 @@ new Vue({
                 let pValField = d.best_direction === "reversed"
                     ? "reversed_p_adj" : d.best_direction === "concordant" 
                     ? "concordant_p_adj" : null;
-                d.relevantPVal = d[pValField];
-                d.minusLogAdjP = pValField === null ? 0 : -Math.log10(d.relevantPVal);
+                d.pAdj = d[pValField];
+                d.minusLogAdjP = pValField === null ? 0 : -Math.log10(d.pAdj);
             });
             return data;
         }
