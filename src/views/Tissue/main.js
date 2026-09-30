@@ -121,7 +121,8 @@ new Vue({
                 { key: "pct_expressed", formatter: Formatters.tpmFormatter, sortable: true, crisprOnly: true},
                 { key: "tpm_category", sortable: true, crisprOnly: true},
                 { key: "expressed", sortable: true, crisprOnly: true},
-            ]
+            ],
+            compoundPathway: "",
         };
     },
     computed: {
@@ -241,7 +242,7 @@ new Vue({
                 "yAxisLabel": "-log10(adjusted p-value)",
                 "width": 300,
                 "height": 200,
-                "diffExpVolcano": "true"
+                "diffExpVolcano": true
             };
             return config;
         },
@@ -265,6 +266,10 @@ new Vue({
                 d.minusLogAdjP = pValField === null ? 0 : -Math.log10(d.pAdj);
             });
             return data;
+        },
+        convert2RenderBy(pathway){
+            console.log("did this work?");
+            return pathway;
         }
     },
     watch: {

@@ -431,12 +431,17 @@
                                 field="pAdj">
                                 <div class="label">Max p-adj</div>
                             </filter-less-control>
+                            <div class="col filter-col-md">
+                                <div class="label">Search pathway</div>
+                                <input v-model="$parent.compoundPathway"/>
+                            </div>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div v-if="$parent.connectivityData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
                                         :plotData="$parent.connectivityData.filter(filter)"
-                                        :chartName="$parent.chartName($parent.connectivityData[0])">
+                                        :chartName="$parent.chartName($parent.connectivityData[0])"
+                                        :geneOfInterest="$parent.compoundPathway">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">
