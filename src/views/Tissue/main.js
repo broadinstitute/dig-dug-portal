@@ -113,7 +113,7 @@ new Vue({
             connectivityCrisprPage: 1,
             connectivityCrisprFields: [
                 { key: "pathway", sortable: true},
-                { key: "best_direction", sortable: true},
+                { key: "best_direction", label: "Direction", sortable: true},
                 { key: "NES_difference", formatter: Formatters.tpmFormatter, sortable: true},
                 { key: "concordant_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
                 { key: "reversed_p_adj", formatter: Formatters.pValueFormatter, sortable: true},

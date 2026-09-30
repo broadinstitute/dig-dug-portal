@@ -401,6 +401,11 @@
                             identify known antagonists and other therapeutically relevant compounds targeting these genes 
                             or their protein products. </p>
                         <criterion-function-group>
+                            <filter-enumeration-control
+                                field="best_direction"
+                                :options="$parent.connectivityData.map(d => d.best_direction)">
+                                <div class="label">Direction</div>
+                            </filter-enumeration-control>
                             <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
                                 <div class="label">Tissue type</div>
                                 <select v-model="$store.state.adiposeType">
@@ -483,6 +488,11 @@
                             used to perform pathway enrichment analysis to characterize biological processes associated with prioritized 
                             targets for a cell type-trait combination.</p>
                         <criterion-function-group>
+                            <filter-enumeration-control
+                                field="best_direction"
+                                :options="$parent.connectivityData.map(d => d.best_direction)">
+                                <div class="label">Direction</div>
+                            </filter-enumeration-control>
                             <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
                                 <div class="label">Tissue type</div>
                                 <select v-model="$store.state.adiposeTypeCrispr">
