@@ -308,6 +308,9 @@ let pages = {
 };
 
 const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
+const {
+    REVEAL_MECHANISMS_API_TARGET,
+} = require("./src/utils/revealMechanismsApi.defaults.js");
 
 // remove the debug page in production
 if (process.env.NODE_ENV === "production") {
@@ -329,6 +332,11 @@ module.exports = {
             "/interactive": {
                 target: REVEAL_KG_API_TARGET,
                 changeOrigin: true,
+            },
+            "/api/reveal": {
+                target: REVEAL_MECHANISMS_API_TARGET,
+                changeOrigin: true,
+                pathRewrite: { "^/api/reveal": "" },
             },
         },
     },

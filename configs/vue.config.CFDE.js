@@ -27,6 +27,9 @@ let pages = {
 };
 
 const { REVEAL_KG_API_TARGET } = require("../src/utils/revealKgApi.defaults.js");
+const {
+    REVEAL_MECHANISMS_API_TARGET,
+} = require("../src/utils/revealMechanismsApi.defaults.js");
 
 module.exports = {
     devServer: {
@@ -42,6 +45,13 @@ module.exports = {
             "/interactive": {
                 target: REVEAL_KG_API_TARGET,
                 changeOrigin: true,
+            },
+            // Knowledge-gap search (same path as dig-dug-server revealMechanismsProxy).
+            // Strip /api/reveal so upstream receives /v1/... under the QA /api/reveal base.
+            "/api/reveal": {
+                target: REVEAL_MECHANISMS_API_TARGET,
+                changeOrigin: true,
+                pathRewrite: { "^/api/reveal": "" },
             },
         },
     },

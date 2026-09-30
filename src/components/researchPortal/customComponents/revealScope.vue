@@ -58,6 +58,28 @@
                         Biomarker KB
                     </button>
                     <button
+                        v-if="hasGapSearchTermsContent"
+                        type="button"
+                        role="tab"
+                        class="scp-module-tab"
+                        :class="{ 'is-active': evaluateContentTab === 'gap-terms' }"
+                        :aria-selected="evaluateContentTab === 'gap-terms' ? 'true' : 'false'"
+                        @click="evaluateContentTab = 'gap-terms'"
+                    >
+                        Search terms
+                    </button>
+                    <button
+                        v-if="hasKnowledgeGapContent"
+                        type="button"
+                        role="tab"
+                        class="scp-module-tab"
+                        :class="{ 'is-active': evaluateContentTab === 'gaps' }"
+                        :aria-selected="evaluateContentTab === 'gaps' ? 'true' : 'false'"
+                        @click="evaluateContentTab = 'gaps'"
+                    >
+                        Knowledge gaps
+                    </button>
+                    <button
                         v-if="hasLiteratureContent"
                         type="button"
                         role="tab"
@@ -92,6 +114,18 @@
                     :evidence="biomarkerEvidence"
                     :blocked-reason="biomarkerEvidenceBlockedReason"
                     :relevance-loading="biomarkerRelevanceLoading"
+                />
+                <ScopeGapSearchTermsPanel
+                    v-if="hasGapSearchTermsContent"
+                    v-show="!showContentTabs || evaluateContentTab === 'gap-terms'"
+                    :groups="knowledgeGapTermGroups"
+                    :blocked-reason="knowledgeGapTermsBlockedReason"
+                />
+                <ScopeKnowledgeGapsPanel
+                    v-if="hasKnowledgeGapContent"
+                    v-show="!showContentTabs || evaluateContentTab === 'gaps'"
+                    :group-results="knowledgeGapGroupResults"
+                    :blocked-reason="knowledgeGapBlockedReason"
                 />
                 <ScopeLiteratureLauncher
                     v-if="hasLiteratureContent"
@@ -145,6 +179,8 @@ import ScopeEvaluationPanel from "@/components/researchPortal/customComponents/r
 import ScopeActionsPanel from "@/components/researchPortal/customComponents/revealScope/ScopeActionsPanel.vue";
 import ScopeKgEvidenceTable from "@/components/researchPortal/customComponents/revealScope/ScopeKgEvidenceTable.vue";
 import ScopeBiomarkerEvidenceTable from "@/components/researchPortal/customComponents/revealScope/ScopeBiomarkerEvidenceTable.vue";
+import ScopeGapSearchTermsPanel from "@/components/researchPortal/customComponents/revealScope/ScopeGapSearchTermsPanel.vue";
+import ScopeKnowledgeGapsPanel from "@/components/researchPortal/customComponents/revealScope/ScopeKnowledgeGapsPanel.vue";
 import ScopeProgressOverlay from "@/components/researchPortal/customComponents/revealScope/ScopeProgressOverlay.vue";
 import { ACTION_CATALOG } from "@/components/researchPortal/customComponents/revealScope/scopeActionsCatalog.js";
 import { findKgEvidence, resolveMechanismFactors } from "@/components/researchPortal/customComponents/revealScope/scopeKgEvidence.js";
@@ -158,6 +194,11 @@ import {
     classifyBiomarkerRelevance,
     mergeBiomarkerRelevance,
 } from "@/components/researchPortal/customComponents/revealScope/scopeBiomarkerRelevance.js";
+import { extractGapSearchTerms } from "@/components/researchPortal/customComponents/revealScope/scopeGapSearchTerms.js";
+import {
+    searchKnowledgeGaps,
+    summarizeGapHit,
+} from "@/components/researchPortal/customComponents/revealScope/scopeKnowledgeGapSearch.js";
 import {
     buildSessionExport,
     saveSessionFile,
@@ -181,6 +222,8 @@ export default Vue.component("reveal-scope", {
         ScopeActionsPanel,
         ScopeKgEvidenceTable,
         ScopeBiomarkerEvidenceTable,
+        ScopeGapSearchTermsPanel,
+        ScopeKnowledgeGapsPanel,
         ScopeProgressOverlay,
     },
     props: {
@@ -219,6 +262,10 @@ export default Vue.component("reveal-scope", {
             biomarkerEvidence: null,
             biomarkerEvidenceBlockedReason: null,
             biomarkerRelevanceLoading: false,
+            knowledgeGapTermGroups: null,
+            knowledgeGapTermsBlockedReason: null,
+            knowledgeGapGroupResults: null,
+            knowledgeGapBlockedReason: null,
             evaluateContentTab: "evaluation",
             actionsPopupDismissed: false,
             actionsPanelForcedOpen: false,
@@ -339,6 +386,12 @@ export default Vue.component("reveal-scope", {
         hasBiomarkerContent() {
             return Boolean(this.biomarkerEvidence || this.biomarkerEvidenceBlockedReason);
         },
+        hasGapSearchTermsContent() {
+            return Boolean(this.knowledgeGapTermGroups || this.knowledgeGapTermsBlockedReason);
+        },
+        hasKnowledgeGapContent() {
+            return Boolean(this.knowledgeGapGroupResults || this.knowledgeGapBlockedReason);
+        },
         hasBiomarkerRelevance() {
             const biomarkers = this.biomarkerEvidence && this.biomarkerEvidence.biomarkers;
             return Boolean(Array.isArray(biomarkers) && biomarkers.some((b) => b && b.relevance));
@@ -367,6 +420,8 @@ export default Vue.component("reveal-scope", {
                 (this.showEvaluationTab ? 1 : 0) +
                 (this.hasKgContent ? 1 : 0) +
                 (this.hasBiomarkerContent ? 1 : 0) +
+                (this.hasGapSearchTermsContent ? 1 : 0) +
+                (this.hasKnowledgeGapContent ? 1 : 0) +
                 (this.hasLiteratureContent ? 1 : 0);
             return tabCount >= 2;
         },
@@ -399,6 +454,10 @@ export default Vue.component("reveal-scope", {
                 this.biomarkerEvidence = null;
                 this.biomarkerEvidenceBlockedReason = null;
                 this.biomarkerRelevanceLoading = false;
+                this.knowledgeGapTermGroups = null;
+                this.knowledgeGapTermsBlockedReason = null;
+                this.knowledgeGapGroupResults = null;
+                this.knowledgeGapBlockedReason = null;
                 this.evaluateContentTab = "evaluation";
                 this.actionsPopupDismissed = false;
                 this.actionsPanelForcedOpen = false;
@@ -441,6 +500,10 @@ export default Vue.component("reveal-scope", {
                 this.canvasHandoffExported = false;
                 this.biomarkerEvidence = null;
                 this.biomarkerEvidenceBlockedReason = null;
+                this.knowledgeGapTermGroups = null;
+                this.knowledgeGapTermsBlockedReason = null;
+                this.knowledgeGapGroupResults = null;
+                this.knowledgeGapBlockedReason = null;
             }
             this.activeHypothesisText = payload.hypothesisText;
             if (payload.optionId === "evaluateHypothesis") {
@@ -450,6 +513,10 @@ export default Vue.component("reveal-scope", {
             if (payload.optionId === "evaluateAndSearchKg") {
                 this.kgSearchPendingAfterEvaluate = true;
                 this.runModule("evaluate");
+                return;
+            }
+            if (payload.optionId === "searchKnowledgeGaps") {
+                this.runKnowledgeGapSearch();
                 return;
             }
             // eslint-disable-next-line no-console
@@ -586,6 +653,7 @@ export default Vue.component("reveal-scope", {
             this.biomarkerEvidence = null;
             this.biomarkerEvidenceBlockedReason = null;
             this.biomarkerRelevanceLoading = false;
+            // Knowledge-gap results are additive — do not clear them on Evaluate / KG runs.
             this.evaluateContentTab = "evaluation";
             this.actionsPopupDismissed = false;
             this.actionsPanelForcedOpen = false;
@@ -593,6 +661,113 @@ export default Vue.component("reveal-scope", {
             if (!this.ranModules.includes(moduleId)) {
                 this.ranModules.push(moduleId);
             }
+        },
+        /**
+         * Additive path: dedicated term extract → DisMech gap search per term.
+         * Search terms and gap hits land on separate workspace tabs.
+         */
+        async runKnowledgeGapSearch() {
+            this.hasGeneratedContent = true;
+            this.activeModule = "evaluate";
+            this.knowledgeGapTermGroups = null;
+            this.knowledgeGapTermsBlockedReason = null;
+            this.knowledgeGapGroupResults = null;
+            this.knowledgeGapBlockedReason = null;
+            this.evaluateContentTab = "gap-terms";
+            this.actionsPopupDismissed = false;
+            this.actionsPanelForcedOpen = false;
+            this.actionsPanelInitialTab = "next";
+
+            this.beginProgress([
+                { id: "extractTerms", label: "Extracting categorized knowledge-gap search terms." },
+                { id: "searchGaps", label: "Searching DisMech knowledge gaps for each term." },
+            ]);
+
+            try {
+                const { groups, terms, extractError } = await extractGapSearchTerms(
+                    this.activeHypothesisText
+                );
+                this.setStepStatus("extractTerms", "done");
+
+                const nonEmptyGroups = (groups || []).filter(
+                    (group) => Array.isArray(group.terms) && group.terms.length
+                );
+
+                if (!terms.length) {
+                    this.knowledgeGapTermGroups = null;
+                    this.knowledgeGapTermsBlockedReason = extractError
+                        ? `Couldn't extract search terms (${extractError.message || "parse failed"}). Edit the hypothesis and try again.`
+                        : "Couldn't derive search terms from the hypothesis. Edit it so it names a clearer disease, target, or process, then try again.";
+                    this.knowledgeGapGroupResults = null;
+                    this.knowledgeGapBlockedReason = null;
+                    this.evaluateContentTab = "gap-terms";
+                    this.setStepStatus("searchGaps", "error");
+                    this.endProgress();
+                    return;
+                }
+
+                this.knowledgeGapTermGroups = nonEmptyGroups;
+                this.knowledgeGapTermsBlockedReason = null;
+                this.evaluateContentTab = "gap-terms";
+
+                const termResultByTerm = {};
+                for (let i = 0; i < terms.length; i += 1) {
+                    const term = terms[i];
+                    const searchStepIndex = this.progressSteps.findIndex((s) => s.id === "searchGaps");
+                    if (searchStepIndex !== -1) {
+                        this.progressSteps.splice(searchStepIndex, 1, {
+                            ...this.progressSteps[searchStepIndex],
+                            label: `Searching knowledge gaps (${i + 1}/${terms.length}): ${term}`,
+                            status: "active",
+                        });
+                    }
+                    try {
+                        const result = await searchKnowledgeGaps({
+                            q: term,
+                            mode: "fuzzy",
+                            limit: 8,
+                        });
+                        termResultByTerm[term] = {
+                            term,
+                            gaps: (result.items || []).map(summarizeGapHit),
+                            error: null,
+                        };
+                    } catch (err) {
+                        termResultByTerm[term] = {
+                            term,
+                            gaps: [],
+                            error: (err && err.message) || "Knowledge-gap search failed.",
+                        };
+                    }
+                }
+
+                this.knowledgeGapGroupResults = nonEmptyGroups.map((group) => ({
+                    id: group.id,
+                    label: group.label,
+                    description: group.description,
+                    termResults: group.terms.map(
+                        (term) =>
+                            termResultByTerm[term] || {
+                                term,
+                                gaps: [],
+                                error: null,
+                            }
+                    ),
+                }));
+                this.knowledgeGapBlockedReason = null;
+                this.evaluateContentTab = "gaps";
+                this.setStepStatus("searchGaps", "done");
+            } catch (err) {
+                this.knowledgeGapTermsBlockedReason =
+                    (err && err.message) || "Search-term extraction failed.";
+                this.knowledgeGapTermGroups = null;
+                this.knowledgeGapBlockedReason = null;
+                this.knowledgeGapGroupResults = null;
+                this.evaluateContentTab = "gap-terms";
+                this.setStepStatus("extractTerms", "error");
+            }
+
+            this.endProgress();
         },
         onCloseActionsPanel() {
             this.actionsPopupDismissed = true;

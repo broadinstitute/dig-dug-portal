@@ -105,6 +105,18 @@
                             for gene–trait evidence using the parsed target and outcome.
                         </span>
                     </button>
+                    <button
+                        type="button"
+                        class="scp-welcome-option scp-welcome-option-action"
+                        :disabled="!hypothesisText.trim()"
+                        @click="onOptionSelect('searchKnowledgeGaps')"
+                    >
+                        <span class="scp-welcome-option-title">Search for knowledge gaps</span>
+                        <span class="scp-welcome-option-desc">
+                            Extracts categorized search terms from the hypothesis, then looks up matching
+                            DisMech knowledge gaps per term. Does not replace Evaluate or CFDE KG search.
+                        </span>
+                    </button>
                 </div>
             </div>
 
