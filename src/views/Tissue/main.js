@@ -257,8 +257,6 @@ new Vue({
             return `${prefix}_${dataPoint.tissue}_${dataPoint.comparison}`;
         },
         processConnectivityData(inputData){
-            let directions = Array.from(new Set(inputData.map(d => d.best_direction)));
-            console.log(JSON.stringify(directions));
             let data = structuredClone(inputData);
             data.forEach(d => {
                 let pValField = d.best_direction === "reversed"
@@ -266,6 +264,7 @@ new Vue({
                     ? "concordant_p_adj" : null;
                 d.pAdj = d[pValField];
                 d.minusLogAdjP = pValField === null ? 0 : -Math.log10(d.pAdj);
+                d.is_expressed = `${d.expressed}`;
             });
             return data;
         },

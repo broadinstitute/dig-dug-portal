@@ -528,6 +528,11 @@
                                     </option>
                                 </select>
                             </div>
+                            <filter-enumeration-control
+                                field="is_expressed"
+                                :options="$parent.connectivityCrisprData.map(d => d.is_expressed)">
+                                <div class="label">Expressed</div>
+                            </filter-enumeration-control>
                             <filter-less-control
                                 field="pAdj">
                                 <div class="label">Max p-adj</div>
