@@ -3,8 +3,19 @@ import Template from "./Template.vue";
 import store from "./store.js";
 import { pageMixin } from "@/mixins/pageMixin";
 import { renderUmap, renderViolinPlot, renderScatterPlot } from "./canvasPlots.js";
+import Formatters from "@/utils/formatters";
+// Side-effect imports: both Vue.component(...) calls register these globally, the
+// same convention ResearchSingleCellBrowser.vue (chart downloads) and EnrichmentTable.vue
+// / GeneFinderTable.vue (table downloads) use elsewhere in the app, so <download-chart>
+// and <data-download> are available in Template.vue without any local registration.
+import "@/components/researchPortal/singleCellBrowser/DownloadChart.vue";
+import "@/components/DataDownload";
 
-const EMPTY_SUMMARY = { n: 0, avg_expression: 0, pct_expressing: 0, median: 0 };
+// Used when a cell type has no row at all for one side of the Gene Comparison card
+// (that dataset simply has no cells of this type for the selected gene). Null fields
+// render as "-" via formatInteger/formatNumber/formatPercent rather than a fabricated
+// 0, which would misrepresent "no data" as "zero expression".
+const EMPTY_SUMMARY = { n: null, avg_expression: null, pct_expressing: null, median: null };
 
 new Vue({
     store,
@@ -146,12 +157,20 @@ new Vue({
             return (ctc && ctc.points) || [];
         },
         cellTypeScatterPoints() {
-            return this.cellTypeComparisonPoints.map((point) => ({ label: point.gene, x: point.x, y: point.y }));
+            // Points missing either side's data have a null x or y (see
+            // loadCellTypeComparison in store.js) rather than a fabricated 0, so they
+            // are excluded from the scatter entirely instead of plotting a false
+            // coordinate. They still appear in the summary tables below.
+            return this.cellTypeComparisonPoints
+                .filter((point) => point.hasBothSummaries)
+                .map((point) => ({ label: point.gene, x: point.x, y: point.y }));
         },
         cellTypeTableRows() {
+            // Unlike the scatter, the tables show every gene with data on at least
+            // one side - including genes missing from one dataset's marker file -
+            // since each table only reports its own dataset's summary.
             return [...this.cellTypeComparisonPoints]
-                .filter((row) => row.leftSummary.n || row.rightSummary.n)
-                .sort((a, b) => Math.max(b.x, b.y) - Math.max(a.x, a.y))
+                .sort((a, b) => Math.max(b.x || 0, b.y || 0) - Math.max(a.x || 0, a.y || 0))
                 .slice(0, 35);
         },
         leftCellTypeTableRows() {
@@ -159,6 +178,43 @@ new Vue({
         },
         rightCellTypeTableRows() {
             return this.cellTypeTableRows.map((row) => ({ label: row.gene, summary: row.rightSummary }));
+        },
+        // Flat row shapes for <data-download> (uiUtils.convertJson2Csv/Tsv expect plain,
+        // non-nested objects - the display rows above nest their numbers under
+        // `row.summary`, so these mirror them one level flat instead of re-deriving).
+        leftGeneTableCsvRows() {
+            return this.leftGeneTableRows.map((row) => ({
+                cell_type: row.label,
+                avg_expression: row.summary.avg_expression,
+                pct_expressing: row.summary.pct_expressing,
+                n: row.summary.n,
+            }));
+        },
+        rightGeneTableCsvRows() {
+            return this.rightGeneTableRows.map((row) => ({
+                cell_type: row.label,
+                avg_expression: row.summary.avg_expression,
+                pct_expressing: row.summary.pct_expressing,
+                n: row.summary.n,
+            }));
+        },
+        leftCellTypeTableCsvRows() {
+            return this.leftCellTypeTableRows.map((row) => ({
+                gene: row.label,
+                p_value_adj: row.summary.p_value_adj,
+                log_fold_change: row.summary.log_fold_change,
+                pct_expressing: row.summary.pct_expressing,
+                mean_expression_scaled: row.summary.mean_expression_scaled,
+            }));
+        },
+        rightCellTypeTableCsvRows() {
+            return this.rightCellTypeTableRows.map((row) => ({
+                gene: row.label,
+                p_value_adj: row.summary.p_value_adj,
+                log_fold_change: row.summary.log_fold_change,
+                pct_expressing: row.summary.pct_expressing,
+                mean_expression_scaled: row.summary.mean_expression_scaled,
+            }));
         },
     },
     watch: {
@@ -195,14 +251,52 @@ new Vue({
         formatLabel(value) {
             return String(value || "").replace(/_/g, " ");
         },
+        // Turns a dataset/gene/cell-type label into a safe download filename segment.
+        slug(value) {
+            return String(value || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "_")
+                .replace(/^_+|_+$/g, "") || "dataset";
+        },
+        // Text shown inside each "Select dataset" <option> - plain <option> elements
+        // can't render HTML, so this builds a newline-separated, labeled block
+        // (Name / PMID or DOI / Summary) instead of a single inline string. Most
+        // browsers preserve the line breaks in rendered <option> text. The same
+        // string is also used as the option's title attribute so it's available
+        // on hover regardless of how the browser lays out the option itself.
+        formatDatasetOption(d) {
+            if (!d) return "";
+            const lines = [`${d.datasetName || d.label}`];
+            if (d.pmid || d.doi) {
+                const idParts = [];
+                if (d.pmid) idParts.push(`PMID: ${d.pmid}`);
+                if (d.doi) idParts.push(`DOI: ${d.doi}`);
+                lines.push(idParts.join(" / "));
+            }
+            //lines.push(`Summary: ${d.summary || "N/A"}`);
+            return lines.join("\n");
+        },
         formatInteger(value) {
-            return new Intl.NumberFormat("en-US").format(Number(value) || 0);
+            if (value === null || value === undefined || value === "") return "-";
+            const num = Number(value);
+            return Number.isFinite(num) ? new Intl.NumberFormat("en-US").format(num) : "-";
         },
         formatNumber(value) {
-            return Number(value || 0).toFixed(3);
+            if (value === null || value === undefined || value === "") return "-";
+            const num = Number(value);
+            return Number.isFinite(num) ? num.toFixed(3) : "-";
         },
         formatPercent(value) {
-            return `${Math.round(Number(value || 0) * 100)}%`;
+            if (value === null || value === undefined || value === "") return "-";
+            const num = Number(value);
+            return Number.isFinite(num) ? `${Math.round(num * 100)}%` : "-";
+        },
+        formatPValue: Formatters.pValueFormatter,
+        formatSigned(value) {
+            if (value === null || value === undefined || value === "") return "-";
+            const num = Number(value);
+            if (!Number.isFinite(num)) return "-";
+            return `${num > 0 ? "+" : ""}${num.toFixed(3)}`;
         },
         applyGene() {
             const gene = (this.geneInput || "").trim();

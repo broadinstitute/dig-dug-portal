@@ -132,6 +132,18 @@ function resolveTissue(d) {
 function resolveCellCount(d) {
     return d.n_cells || d.cell_count || d.num_cells || null;
 }
+function resolveDatasetName(d) {
+    return d.datasetName || d.dataset_name || resolveDatasetLabel(d);
+}
+function resolvePmid(d) {
+    return d.pmid || d.PMID || null;
+}
+function resolveDoi(d) {
+    return d.doi && d.doi !== "NA" ? d.doi : null;
+}
+function resolveSummary(d) {
+    return d.summary || "";
+}
 
 function primaryCellTypeKey(fields) {
     if (!fields || !fields.metadata_labels) return null;
@@ -144,8 +156,120 @@ function primaryCellTypeKey(fields) {
     return keys.length ? keys[0] : null;
 }
 
-function emptySummary() {
-    return { n: 0, avg_expression: 0, pct_expressing: 0, median: 0 };
+// Key used to look up a single marker_genes.json.gz row by cell type + gene.
+function markerRowKey(cellType, gene) {
+    return `${cellType}||${gene}`;
+}
+
+// Some datasets ship the newer marker schema (mean_expression, pct_nz_group) instead
+// of the older (mean_expression_raw, pct_cells_expression) one; the endpoint isn't
+// standardized. Mirrors the fallback mapping ResearchSingleCellBrowser.vue applies
+// at lines 2563-2568 before this adapter can compute ranges/summaries off either shape.
+function rawMeanExpression(row) {
+    return Number(row?.mean_expression_raw ?? row?.mean_expression) || 0;
+}
+
+function rawPctCellsExpression(row) {
+    return Number(row?.pct_cells_expression ?? row?.pct_nz_group) || 0;
+}
+
+// Same detection ResearchSingleCellBrowser.vue's markersPctScaleAdjust uses: some
+// datasets ship pct_cells_expression as a 0-1 fraction, others as 0-100. Taking the
+// max across the whole file and checking whether it's <=1 tells the two apart.
+function detectPctScaleAdjust(markersRaw) {
+    if (!Array.isArray(markersRaw) || !markersRaw.length) return 1;
+    const max = Math.max(...markersRaw.map((row) => rawPctCellsExpression(row)));
+    return max <= 1 ? 100 : 1;
+}
+
+// Per-gene {min, max} of mean_expression_raw across every cell type in the dataset,
+// mirroring the "scaled-per-gene" mode in ResearchDotPlot.vue's getColorPlotData:
+// each gene's own raw expression range (across this dataset's cell types) is what
+// mean_expression_scaled is normalized against, not a dataset-wide range.
+function buildMarkerGeneRanges(markersRaw) {
+    const ranges = new Map();
+    if (!Array.isArray(markersRaw)) return ranges;
+    markersRaw.forEach((row) => {
+        if (!row || !row.gene) return;
+        const value = rawMeanExpression(row);
+        const existing = ranges.get(row.gene);
+        if (!existing) {
+            ranges.set(row.gene, { min: value, max: value });
+        } else {
+            if (value < existing.min) existing.min = value;
+            if (value > existing.max) existing.max = value;
+        }
+    });
+    return ranges;
+}
+
+// Indexes a marker_genes.json.gz payload (array-of-records shape: {gene, cell_type,
+// mean_expression_raw, pct_cells_expression, log_fold_change, p_value_adj, ...}) by
+// cell type + gene, so the "Cell-Type Comparison" card can read every column it needs
+// straight off the already-fetched marker file instead of issuing a
+// single-cell-lognorm query per gene. Older datasets that only ship the
+// { cellTypeLabel: [gene, ...] } shape have no per-cell-type stats to index, so this
+// returns an empty index for those.
+function buildMarkerRowIndex(markersRaw) {
+    const byKey = new Map();
+    if (Array.isArray(markersRaw)) {
+        markersRaw.forEach((row) => {
+            if (!row || !row.gene || !row.cell_type) return;
+            byKey.set(markerRowKey(row.cell_type, row.gene), row);
+        });
+    }
+    return {
+        byKey,
+        geneRanges: buildMarkerGeneRanges(markersRaw),
+        pctScaleAdjust: detectPctScaleAdjust(markersRaw),
+    };
+}
+
+// Adapts one marker_genes.json.gz row into the shape the "Cell-Type Comparison"
+// table/plot expects: raw mean expression (for the scatter plot's x/y), pct
+// expressing as a 0-1 fraction (matching this view's existing pct_expressing
+// convention), log fold change, adjusted p-value, and mean expression scaled 0-1
+// against this gene's own range of cell types in this dataset (see
+// buildMarkerGeneRanges).
+// Used for the side of a Cell-Type Comparison pair that has no data at all (neither a
+// marker row nor, where applicable, an expression-query fallback). Null fields keep
+// formatPValue/formatSigned rendering "-" instead of a fabricated value; avg_expression
+// and pct_expressing stay out of any chart via the point's hasBothSummaries flag, not
+// by reporting 0 here.
+const NULL_MARKER_SUMMARY = {
+    avg_expression: null,
+    pct_expressing: null,
+    log_fold_change: null,
+    p_value_adj: null,
+    mean_expression_scaled: null,
+};
+
+function markerRowSummary(row, geneRanges, pctScaleAdjust) {
+    if (!row) {
+        return {
+            avg_expression: 0,
+            pct_expressing: 0,
+            log_fold_change: null,
+            p_value_adj: null,
+            mean_expression_scaled: 0,
+        };
+    }
+
+    const range = geneRanges && geneRanges.get(row.gene);
+    const raw = rawMeanExpression(row);
+    const scaled = range && range.max > range.min ? (raw - range.min) / (range.max - range.min) : 0;
+
+    return {
+        avg_expression: raw,
+        pct_expressing: (rawPctCellsExpression(row) * (pctScaleAdjust || 1)) / 100,
+        log_fold_change: row.log_fold_change ?? null,
+        // row.p_value is a raw, uncorrected p-value - it must never stand in for
+        // p_value_adj (shown/exported as "Adj. p-value"), since that would misrepresent
+        // an uncorrected value as having undergone multiple-testing correction. Leave
+        // it null when the marker file has no adjusted value.
+        p_value_adj: row.p_value_adj ?? null,
+        mean_expression_scaled: scaled,
+    };
 }
 
 // Extracts a ranked, deduped gene list from a marker_genes.json.gz payload. Handles
@@ -169,21 +293,13 @@ function genesFromMarkers(markersRaw) {
     return [];
 }
 
-// Chooses the initial left/right dataset pair from the full dataset list: the
-// hand-picked bone/marrow pair if both are present, else the first two msk-tagged
-// datasets, else one msk-tagged dataset paired with the first other dataset, else
-// just the first two datasets overall.
+// Chooses the initial left/right dataset pair from the full (msk-only) dataset list:
+// the hand-picked bone/marrow pair if both are present, else the first two datasets.
+// With only one dataset available it is paired with itself so both pickers still work.
 function pickDefaultPair(datasets) {
     const byId = (id) => datasets.find((d) => d.id === id);
     const soft = SOFT_DEFAULT_PAIR.map(byId).filter(Boolean);
     if (soft.length === 2) return [soft[0].id, soft[1].id];
-
-    const mskDatasets = datasets.filter((d) => d.isMsk);
-    if (mskDatasets.length >= 2) return [mskDatasets[0].id, mskDatasets[1].id];
-    if (mskDatasets.length === 1) {
-        const other = datasets.find((d) => d.id !== mskDatasets[0].id);
-        return [mskDatasets[0].id, other ? other.id : mskDatasets[0].id];
-    }
 
     if (datasets.length >= 2) return [datasets[0].id, datasets[1].id];
     return [datasets[0].id, datasets[0].id];
@@ -293,6 +409,10 @@ export default new Vuex.Store({
         cellTypeComparisonRequest: 0,
         // datasetId -> ranked gene[] from marker_genes.json.gz, or null if unavailable
         markersCache: {},
+        // datasetId -> Map("cellType||gene" -> raw marker_genes.json.gz row), built
+        // alongside markersCache so the "Cell-Type Comparison" card can read
+        // mean_expression_raw/pct_cells_expression directly, with no extra fetch.
+        markerRowsCache: {},
     },
     mutations: {
         setLoading(state, value) {
@@ -320,20 +440,24 @@ export default new Vuex.Store({
             const mskTagged = singleCell.filter((d) => Array.isArray(d.portals) && d.portals.includes("msk"));
             state.usingMskDatasets = mskTagged.length > 0;
 
-            // Every real single-cell dataset the API has is selectable - not just the
-            // "msk"-tagged ones - since limiting the pickers to those would leave
-            // production (which currently has only 1 msk-tagged dataset) with nothing
-            // to compare it against. MSK-tagged datasets are just preferred as the
-            // *default* selection - see pickDefaultPair below.
-            const datasets = singleCell
+            // Only single-cell datasets whose `portals` array includes "msk" are loaded.
+            // This is the authoritative signal that a dataset belongs to the musculoskeletal
+            // portal, so non-MSK datasets (FNIH organ atlases: artery, heart, kidney, etc.)
+            // are excluded from the pickers entirely. If no msk-tagged datasets exist on
+            // whichever host this build points at, the page shows its empty state.
+            const datasets = mskTagged
                 .map((d) => ({
                     id: resolveDatasetId(d),
                     label: resolveDatasetLabel(d),
+                    datasetName: resolveDatasetName(d),
+                    pmid: resolvePmid(d),
+                    doi: resolveDoi(d),
+                    summary: resolveSummary(d),
                     species: resolveSpecies(d),
                     organ: resolveOrgan(d),
                     tissue: resolveTissue(d),
                     nCells: resolveCellCount(d),
-                    isMsk: Array.isArray(d.portals) && d.portals.includes("msk"),
+                    isMsk: true,
                     raw: d,
                 }))
                 .filter((d) => !!d.id);
@@ -350,7 +474,7 @@ export default new Vuex.Store({
             });
             state.tissues = [...tissueSet].sort((a, b) => a.localeCompare(b));
             if (!datasets.length) {
-                state.metadataError = "The single-cell BioIndex metadata endpoint returned no single-cell datasets.";
+                state.metadataError = "The single-cell BioIndex metadata endpoint returned no musculoskeletal (\"msk\") single-cell datasets.";
                 state.loading = false;
                 return;
             }
@@ -483,6 +607,7 @@ export default new Vuex.Store({
             }
             const genes = markersRaw ? genesFromMarkers(markersRaw) : null;
             Vue.set(state.markersCache, datasetId, genes && genes.length ? genes : null);
+            Vue.set(state.markerRowsCache, datasetId, buildMarkerRowIndex(markersRaw));
             return state.markersCache[datasetId];
         },
 
@@ -607,6 +732,42 @@ export default new Vuex.Store({
             state.geneStatus = "";
         },
 
+        // Looks up a gene's per-cell-type marker summary for one dataset. Normally a
+        // pure client-side read off the already-indexed marker_genes.json.gz row. But
+        // datasets whose marker file uses the older { cellTypeLabel: [gene, ...] }
+        // shape have no per-cell-type stats to index at all (buildMarkerRowIndex
+        // returns an empty byKey for them), so for those this falls back to the same
+        // single-cell-lognorm expression query ensureGeneRows uses elsewhere, exactly
+        // as the previous implementation did, rather than reporting a false zero.
+        async cellTypeMarkerSummary(context, { datasetId, gene, cellType, markers }) {
+            const row = markers ? markers.byKey.get(markerRowKey(cellType, gene)) : null;
+            if (row) {
+                return markerRowSummary(row, markers.geneRanges, markers.pctScaleAdjust);
+            }
+            if (markers && markers.byKey.size > 0) {
+                // Array-shaped marker file, just no row for this gene/cell type - a
+                // genuine miss, not a format issue.
+                return null;
+            }
+
+            const rows = await context.dispatch("ensureGeneRows", { datasetId, gene, includeValues: false });
+            const match = rows && rows.find((r) => r.cell_type === cellType);
+            if (!match) return null;
+            return {
+                avg_expression: match.summary.avg_expression,
+                pct_expressing: match.summary.pct_expressing,
+                log_fold_change: null,
+                p_value_adj: null,
+                mean_expression_scaled: 0,
+            };
+        },
+
+        // Reads entirely from each dataset's marker_genes.json.gz file (already fetched
+        // by refreshGenePanel, cached in markerRowsCache) - no single-cell-lognorm
+        // query is issued here, so switching the selected cell type is a pure
+        // client-side lookup against data already in hand. Datasets whose marker file
+        // uses the older object-shaped format fall back to an expression query per
+        // gene via cellTypeMarkerSummary.
         async loadCellTypeComparison(context, cellType) {
             const state = context.state;
             const request = ++state.cellTypeComparisonRequest;
@@ -616,29 +777,46 @@ export default new Vuex.Store({
             state.selectedCellType = targetCellType;
             state.cellTypeStatus = "Loading";
 
-            const points = [];
-            for (const gene of state.genePanel) {
-                // eslint-disable-next-line no-await-in-loop
-                const [leftRows, rightRows] = await Promise.all([
-                    context.dispatch("ensureGeneRows", { datasetId: leftId, gene, includeValues: false }),
-                    context.dispatch("ensureGeneRows", { datasetId: rightId, gene, includeValues: false }),
-                ]);
-                if (request !== state.cellTypeComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
-                const leftSummary = (leftRows || []).find((row) => row.cell_type === targetCellType)?.summary || emptySummary();
-                const rightSummary = (rightRows || []).find((row) => row.cell_type === targetCellType)?.summary || emptySummary();
-                if (!leftSummary.n && !rightSummary.n) continue;
-                points.push({
-                    gene,
-                    x: Number(leftSummary.avg_expression) || 0,
-                    y: Number(rightSummary.avg_expression) || 0,
-                    leftSummary,
-                    rightSummary,
-                });
-            }
-
+            // Normally a cache hit: refreshGenePanel already loaded both datasets'
+            // marker files to build state.genePanel.
+            await Promise.all([
+                context.dispatch("ensureMarkerGenes", leftId),
+                context.dispatch("ensureMarkerGenes", rightId),
+            ]);
             if (request !== state.cellTypeComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
+
+            const leftMarkers = state.markerRowsCache[leftId];
+            const rightMarkers = state.markerRowsCache[rightId];
+
+            const results = await Promise.all(state.genePanel.map(async (gene) => {
+                const [leftSummary, rightSummary] = await Promise.all([
+                    context.dispatch("cellTypeMarkerSummary", { datasetId: leftId, gene, cellType: targetCellType, markers: leftMarkers }),
+                    context.dispatch("cellTypeMarkerSummary", { datasetId: rightId, gene, cellType: targetCellType, markers: rightMarkers }),
+                ]);
+                // A null summary means this gene/cell-type pair simply has no data for
+                // that side (not found in the marker file, and - for array-shaped
+                // files - not worth an expression query since other rows for this
+                // dataset ARE indexed). That is different from zero expression, so a
+                // missing side gets a null x/y (hasBothSummaries: false) rather than a
+                // fabricated 0: the scatter plot excludes it (see cellTypeScatterPoints
+                // in main.js), but the per-dataset summary tables still list the gene
+                // using whichever side's real data is available.
+                if (!leftSummary && !rightSummary) return null;
+                return {
+                    gene,
+                    x: leftSummary ? leftSummary.avg_expression : null,
+                    y: rightSummary ? rightSummary.avg_expression : null,
+                    hasBothSummaries: !!(leftSummary && rightSummary),
+                    leftSummary: leftSummary || NULL_MARKER_SUMMARY,
+                    rightSummary: rightSummary || NULL_MARKER_SUMMARY,
+                };
+            }));
+            if (request !== state.cellTypeComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
+
+            const points = results.filter(Boolean);
+
             state.cellTypeComparison = { cellType: targetCellType, points, leftId, rightId };
-            state.cellTypeStatus = points.length ? "" : `No expression data found for ${targetCellType} in the current gene panel.`;
+            state.cellTypeStatus = points.length ? "" : `No marker-gene data found for ${targetCellType} in the current gene panel.`;
         },
 
         async refreshAll(context) {
