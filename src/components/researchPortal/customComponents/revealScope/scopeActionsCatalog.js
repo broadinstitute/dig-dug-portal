@@ -12,6 +12,12 @@ export const ACTION_CATALOG = [
             "Searches the CFDE knowledge graph for gene–trait evidence using the parsed target and outcome.",
     },
     {
+        id: "runDisMechGapSearch",
+        label: "Search DisMech knowledge gaps",
+        description:
+            "Extracts search terms from the user input and looks up matching DisMech knowledge gaps. After CFDE KG, results appear under that tab; after Evaluate only, they open in a Knowledge gaps tab.",
+    },
+    {
         id: "classifyKgRelevance",
         label: "Classify CFDE KG relevance",
         description:

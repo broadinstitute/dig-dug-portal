@@ -1,6 +1,10 @@
 <template>
-    <div class="scp-gaps">
-        <div class="scp-gaps-pipeline" aria-label="How knowledge-gap search works">
+    <div class="scp-gaps" :class="{ 'scp-gaps--compact': compact }">
+        <div
+            v-if="!compact"
+            class="scp-gaps-pipeline"
+            aria-label="How knowledge-gap search works"
+        >
             <p class="scp-gaps-pipeline-title">How this search works</p>
             <ol class="scp-gaps-pipeline-steps">
                 <li class="scp-gaps-pipeline-step">
@@ -40,146 +44,158 @@
                 </template>
             </div>
 
-            <div class="scp-gaps-cards">
-                <article
+            <div
+                v-if="showCategoryTabs"
+                class="scp-gaps-category-tabs"
+                role="tablist"
+                aria-label="Knowledge gap categories"
+            >
+                <button
                     v-for="group in groupResults"
                     :key="group.id"
-                    class="scp-gaps-card"
+                    type="button"
+                    role="tab"
+                    class="scp-gaps-category-tab"
+                    :class="{ 'is-active': activeCategoryId === group.id }"
+                    :aria-selected="activeCategoryId === group.id ? 'true' : 'false'"
+                    @click="activeCategoryId = group.id"
                 >
-                    <header class="scp-gaps-card-head">
-                        <div>
-                            <h3 class="scp-gaps-card-title">{{ group.label }}</h3>
-                            <p v-if="group.description" class="scp-gaps-card-desc">{{ group.description }}</p>
-                        </div>
-                    </header>
+                    {{ group.label }}
+                </button>
+            </div>
 
-                    <div
-                        v-for="termCard in group.termResults"
-                        :key="`${group.id}:${termCard.term}`"
-                        class="scp-gaps-term-block"
-                    >
-                        <div class="scp-gaps-term-head">
-                            <span class="scp-gaps-card-term">{{ termCard.term }}</span>
-                            <span v-if="termCard.error" class="scp-gaps-card-status is-error">Error</span>
-                        </div>
-
-                        <p v-if="termCard.error" class="scp-gaps-card-error">{{ termCard.error }}</p>
-
-                        <ul v-else-if="termCard.gaps && termCard.gaps.length" class="scp-gaps-list">
-                            <li
-                                v-for="(gap, index) in termCard.gaps"
-                                :key="gap.id || `${group.id}:${termCard.term}:${index}`"
-                                class="scp-gaps-item"
-                            >
-                                <p class="scp-gaps-item-text">{{ gap.text || "(no gap text)" }}</p>
-                                <div
-                                    v-if="gap.scope || gap.diseaseLabel"
-                                    class="scp-gaps-scope-row"
-                                >
-                                    <span class="scp-gaps-scope-bubble">
-                                        {{ gap.scope || gap.diseaseLabel }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    v-if="hasDescriptionBody(gap)"
-                                    class="scp-gaps-disclosure"
-                                >
-                                    <button
-                                        type="button"
-                                        class="scp-gaps-disclosure-toggle"
-                                        :aria-expanded="isOpen(sectionKey(group, termCard, gap, index, 'desc')) ? 'true' : 'false'"
-                                        @click="toggleSection(sectionKey(group, termCard, gap, index, 'desc'))"
-                                    >
-                                        <span
-                                            class="scp-gaps-disclosure-tri"
-                                            :class="{ 'is-open': isOpen(sectionKey(group, termCard, gap, index, 'desc')) }"
-                                            aria-hidden="true"
-                                        >▶</span>
-                                        Description / rationale
-                                    </button>
-                                    <div
-                                        v-show="isOpen(sectionKey(group, termCard, gap, index, 'desc'))"
-                                        class="scp-gaps-disclosure-body"
-                                    >
-                                        <p v-if="gap.description" class="scp-gaps-item-body">
-                                            {{ gap.description }}
-                                        </p>
-                                        <p
-                                            v-if="gap.rationale"
-                                            class="scp-gaps-item-body"
-                                            :class="{ 'is-spaced': Boolean(gap.description) }"
-                                        >
-                                            {{ gap.rationale }}
-                                        </p>
-                                        <p
-                                            v-if="gap.attachmentLabels && gap.attachmentLabels.length"
-                                            class="scp-gaps-item-atts"
-                                        >
-                                            Mechanisms: {{ gap.attachmentLabels.slice(0, 3).join(", ")
-                                            }}<template v-if="gap.attachmentLabels.length > 3">…</template>
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div
-                                    v-if="gap.evidence && gap.evidence.length"
-                                    class="scp-gaps-disclosure"
-                                >
-                                    <button
-                                        type="button"
-                                        class="scp-gaps-disclosure-toggle"
-                                        :aria-expanded="isOpen(sectionKey(group, termCard, gap, index, 'ev')) ? 'true' : 'false'"
-                                        @click="toggleSection(sectionKey(group, termCard, gap, index, 'ev'))"
-                                    >
-                                        <span
-                                            class="scp-gaps-disclosure-tri"
-                                            :class="{ 'is-open': isOpen(sectionKey(group, termCard, gap, index, 'ev')) }"
-                                            aria-hidden="true"
-                                        >▶</span>
-                                        Supporting evidence
-                                        <span class="scp-gaps-disclosure-count">
-                                            ({{ gap.evidence.length }})
-                                        </span>
-                                    </button>
-                                    <div
-                                        v-show="isOpen(sectionKey(group, termCard, gap, index, 'ev'))"
-                                        class="scp-gaps-disclosure-body"
-                                    >
-                                        <ul class="scp-gaps-evidence-list">
-                                            <li
-                                                v-for="(ev, evIndex) in gap.evidence"
-                                                :key="evIndex"
-                                                class="scp-gaps-evidence-item"
-                                            >
-                                                <p v-if="ev.snippet" class="scp-gaps-item-body">
-                                                    “{{ ev.snippet }}”
-                                                </p>
-                                                <p v-if="ev.explanation" class="scp-gaps-evidence-meta">
-                                                    {{ ev.explanation }}
-                                                </p>
-                                                <p class="scp-gaps-evidence-meta">
-                                                    <template v-if="ev.reference">{{ ev.reference }}</template>
-                                                    <template v-if="ev.reference && ev.referenceTitle">
-                                                        —
-                                                    </template>
-                                                    <template v-if="ev.referenceTitle">{{
-                                                        ev.referenceTitle
-                                                    }}</template>
-                                                    <template v-if="ev.supports">
-                                                        · {{ ev.supports }}
-                                                    </template>
-                                                </p>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-
-                        <p v-else class="scp-gaps-card-empty">No knowledge gaps matched this term.</p>
+            <div
+                v-if="activeGroup"
+                class="scp-gaps-panel"
+                :class="{ 'has-tabs': showCategoryTabs }"
+                role="tabpanel"
+            >
+                <div
+                    v-for="termCard in activeGroup.termResults"
+                    :key="`${activeGroup.id}:${termCard.term}`"
+                    class="scp-gaps-term-block"
+                >
+                    <div class="scp-gaps-term-head">
+                        <span class="scp-gaps-card-term">{{ termCard.term }}</span>
+                        <span v-if="termCard.error" class="scp-gaps-card-status is-error">Error</span>
                     </div>
-                </article>
+
+                    <p v-if="termCard.error" class="scp-gaps-card-error">{{ termCard.error }}</p>
+
+                    <ul v-else-if="termCard.gaps && termCard.gaps.length" class="scp-gaps-list">
+                        <li
+                            v-for="(gap, index) in termCard.gaps"
+                            :key="gap.id || `${activeGroup.id}:${termCard.term}:${index}`"
+                            class="scp-gaps-item"
+                        >
+                            <p class="scp-gaps-item-text">{{ gap.text || "(no gap text)" }}</p>
+                            <div
+                                v-if="gap.scope || gap.diseaseLabel"
+                                class="scp-gaps-scope-row"
+                            >
+                                <span class="scp-gaps-scope-bubble">
+                                    {{ gap.scope || gap.diseaseLabel }}
+                                </span>
+                            </div>
+
+                            <div
+                                v-if="hasDescriptionBody(gap)"
+                                class="scp-gaps-disclosure"
+                            >
+                                <button
+                                    type="button"
+                                    class="scp-gaps-disclosure-toggle"
+                                    :aria-expanded="isOpen(sectionKey(activeGroup, termCard, gap, index, 'desc')) ? 'true' : 'false'"
+                                    @click="toggleSection(sectionKey(activeGroup, termCard, gap, index, 'desc'))"
+                                >
+                                    <span
+                                        class="scp-gaps-disclosure-tri"
+                                        :class="{ 'is-open': isOpen(sectionKey(activeGroup, termCard, gap, index, 'desc')) }"
+                                        aria-hidden="true"
+                                    >▶</span>
+                                    Description / rationale
+                                </button>
+                                <div
+                                    v-show="isOpen(sectionKey(activeGroup, termCard, gap, index, 'desc'))"
+                                    class="scp-gaps-disclosure-body"
+                                >
+                                    <p v-if="gap.description" class="scp-gaps-item-body">
+                                        {{ gap.description }}
+                                    </p>
+                                    <p
+                                        v-if="gap.rationale"
+                                        class="scp-gaps-item-body"
+                                        :class="{ 'is-spaced': Boolean(gap.description) }"
+                                    >
+                                        {{ gap.rationale }}
+                                    </p>
+                                    <p
+                                        v-if="gap.attachmentLabels && gap.attachmentLabels.length"
+                                        class="scp-gaps-item-atts"
+                                    >
+                                        Mechanisms: {{ gap.attachmentLabels.slice(0, 3).join(", ")
+                                        }}<template v-if="gap.attachmentLabels.length > 3">…</template>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div
+                                v-if="gap.evidence && gap.evidence.length"
+                                class="scp-gaps-disclosure"
+                            >
+                                <button
+                                    type="button"
+                                    class="scp-gaps-disclosure-toggle"
+                                    :aria-expanded="isOpen(sectionKey(activeGroup, termCard, gap, index, 'ev')) ? 'true' : 'false'"
+                                    @click="toggleSection(sectionKey(activeGroup, termCard, gap, index, 'ev'))"
+                                >
+                                    <span
+                                        class="scp-gaps-disclosure-tri"
+                                        :class="{ 'is-open': isOpen(sectionKey(activeGroup, termCard, gap, index, 'ev')) }"
+                                        aria-hidden="true"
+                                    >▶</span>
+                                    Supporting evidence
+                                    <span class="scp-gaps-disclosure-count">
+                                        ({{ gap.evidence.length }})
+                                    </span>
+                                </button>
+                                <div
+                                    v-show="isOpen(sectionKey(activeGroup, termCard, gap, index, 'ev'))"
+                                    class="scp-gaps-disclosure-body"
+                                >
+                                    <ul class="scp-gaps-evidence-list">
+                                        <li
+                                            v-for="(ev, evIndex) in gap.evidence"
+                                            :key="evIndex"
+                                            class="scp-gaps-evidence-item"
+                                        >
+                                            <p v-if="ev.snippet" class="scp-gaps-item-body">
+                                                “{{ ev.snippet }}”
+                                            </p>
+                                            <p v-if="ev.explanation" class="scp-gaps-evidence-meta">
+                                                {{ ev.explanation }}
+                                            </p>
+                                            <p class="scp-gaps-evidence-meta">
+                                                <template v-if="ev.reference">{{ ev.reference }}</template>
+                                                <template v-if="ev.reference && ev.referenceTitle">
+                                                    —
+                                                </template>
+                                                <template v-if="ev.referenceTitle">{{
+                                                    ev.referenceTitle
+                                                }}</template>
+                                                <template v-if="ev.supports">
+                                                    · {{ ev.supports }}
+                                                </template>
+                                            </p>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <p v-else class="scp-gaps-card-empty">No knowledge gaps matched this term.</p>
+                </div>
             </div>
         </template>
 
@@ -202,18 +218,45 @@ export default {
             type: String,
             default: null,
         },
+        /** When true, hide the how-this-works pipeline (e.g. embedded under CFDE KG). */
+        compact: {
+            type: Boolean,
+            default: false,
+        },
     },
     data() {
         return {
             openSections: {},
+            activeCategoryId: null,
         };
     },
     watch: {
-        groupResults() {
-            this.openSections = {};
+        groupResults: {
+            immediate: true,
+            handler(groups) {
+                this.openSections = {};
+                if (!Array.isArray(groups) || !groups.length) {
+                    this.activeCategoryId = null;
+                    return;
+                }
+                const stillValid = groups.some((g) => g && g.id === this.activeCategoryId);
+                if (!stillValid) {
+                    this.activeCategoryId = groups[0].id;
+                }
+            },
         },
     },
     computed: {
+        showCategoryTabs() {
+            return Array.isArray(this.groupResults) && this.groupResults.length > 1;
+        },
+        activeGroup() {
+            if (!Array.isArray(this.groupResults) || !this.groupResults.length) {
+                return null;
+            }
+            const match = this.groupResults.find((g) => g && g.id === this.activeCategoryId);
+            return match || this.groupResults[0];
+        },
         totalTerms() {
             if (!Array.isArray(this.groupResults)) {
                 return 0;
@@ -271,6 +314,14 @@ export default {
     background-color: #ffffff;
     border-radius: 15px;
     border-top: solid 1px #dddddd;
+}
+
+.scp-gaps.scp-gaps--compact,
+.scp-gaps--compact {
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    border-top: none;
 }
 
 .scp-gaps-pipeline {
@@ -342,40 +393,44 @@ export default {
     color: #4a5060;
 }
 
-.scp-gaps-cards {
+.scp-gaps-category-tabs {
     display: flex;
-    flex-direction: column;
-    gap: 14px;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 -1px;
 }
 
-.scp-gaps-card {
+.scp-gaps-category-tab {
+    margin: 0;
+    border: 1px solid #e2e5eb;
+    border-radius: 6px 6px 0 0;
+    background: #f7f8fa;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #4a5060;
+}
+
+.scp-gaps-category-tab.is-active {
+    background: #ffffff;
+    border-bottom-color: #ffffff;
+    color: #e07b39;
+}
+
+.scp-gaps-panel {
     border: 1px solid #e2e5eb;
     border-radius: 10px;
     background: #fff;
     padding: 14px 16px 12px;
 }
 
-.scp-gaps-card-head {
-    margin-bottom: 12px;
-}
-
-.scp-gaps-card-title {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #1e222a;
-}
-
-.scp-gaps-card-desc {
-    margin: 4px 0 0;
-    font-size: 0.8rem;
-    color: #6a7080;
-    line-height: 1.35;
+.scp-gaps-panel.has-tabs {
+    border-radius: 0 10px 10px 10px;
 }
 
 .scp-gaps-card-term {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.9rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: #1e222a;
 }
@@ -407,7 +462,8 @@ export default {
     display: flex;
     align-items: baseline;
     gap: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 25px;
+    border-bottom: solid 0.5px #dddddd;
 }
 
 .scp-gaps-card-error,

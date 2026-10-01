@@ -12,7 +12,7 @@
             <template v-if="activeModule === 'evaluate'">
                 <div class="scp-hyp-card">
                     <div class="scp-hyp-head">
-                        <span class="scp-hyp-title">Hypothesis</span>
+                        <span class="scp-hyp-title">User search</span>
                         <button type="button" class="scp-hyp-edit" @click="onEditHypothesis">Edit</button>
                     </div>
                     <p class="scp-hyp-text">{{ activeHypothesisText }}</p>
@@ -102,15 +102,17 @@
                 />
                 <ScopeKgEvidenceTable
                     v-if="hasKgContent"
-                    v-show="evaluateContentTab === 'kg'"
+                    v-show="!showContentTabs || evaluateContentTab === 'kg'"
                     :evidence="kgEvidence"
                     :blocked-reason="kgEvidenceBlockedReason"
                     :relevance-loading="kgRelevanceLoading"
                     :network-graph="kgNetworkGraph"
+                    :gap-group-results="kgEmbeddedGapResults"
+                    :gap-blocked-reason="kgEmbeddedGapBlockedReason"
                 />
                 <ScopeBiomarkerEvidenceTable
                     v-if="hasBiomarkerContent"
-                    v-show="evaluateContentTab === 'biomarker'"
+                    v-show="!showContentTabs || evaluateContentTab === 'biomarker'"
                     :evidence="biomarkerEvidence"
                     :blocked-reason="biomarkerEvidenceBlockedReason"
                     :relevance-loading="biomarkerRelevanceLoading"
@@ -194,11 +196,16 @@ import {
     classifyBiomarkerRelevance,
     mergeBiomarkerRelevance,
 } from "@/components/researchPortal/customComponents/revealScope/scopeBiomarkerRelevance.js";
-import { extractGapSearchTerms } from "@/components/researchPortal/customComponents/revealScope/scopeGapSearchTerms.js";
+import { extractGapSearchTerms, orderGapDisplayGroups, RAW_INPUT_GROUP } from "@/components/researchPortal/customComponents/revealScope/scopeGapSearchTerms.js";
 import {
     searchKnowledgeGaps,
     summarizeGapHit,
 } from "@/components/researchPortal/customComponents/revealScope/scopeKnowledgeGapSearch.js";
+import { extractKgSearchEntities } from "@/components/researchPortal/customComponents/revealScope/scopeKgEntityExtract.js";
+import {
+    findKgEvidenceByGene,
+    findKgEvidenceByFactor,
+} from "@/components/researchPortal/customComponents/revealScope/scopeKgNeighborhood.js";
 import {
     buildSessionExport,
     saveSessionFile,
@@ -266,6 +273,10 @@ export default Vue.component("reveal-scope", {
             knowledgeGapTermsBlockedReason: null,
             knowledgeGapGroupResults: null,
             knowledgeGapBlockedReason: null,
+            kgEmbeddedGapResults: null,
+            kgEmbeddedGapBlockedReason: null,
+            gapInputMode: "freeText",
+            gapSelectedEntities: [],
             evaluateContentTab: "evaluation",
             actionsPopupDismissed: false,
             actionsPanelForcedOpen: false,
@@ -302,6 +313,7 @@ export default Vue.component("reveal-scope", {
                 if (
                     action.id === "runKgSearch" ||
                     action.id === "runBiomarkerSearch" ||
+                    action.id === "runDisMechGapSearch" ||
                     action.id === "classifyKgRelevance" ||
                     action.id === "classifyBiomarkerRelevance" ||
                     action.id === "exportCfdeKgForCanvas" ||
@@ -320,6 +332,12 @@ export default Vue.component("reveal-scope", {
                 }
                 return true;
             });
+            if (this.canRunDisMechGapSearch) {
+                const gapAction = ACTION_CATALOG.find((action) => action.id === "runDisMechGapSearch");
+                if (gapAction) {
+                    list.unshift(gapAction);
+                }
+            }
             if (canSearchBiomarker) {
                 const biomarkerAction = ACTION_CATALOG.find((action) => action.id === "runBiomarkerSearch");
                 if (biomarkerAction) {
@@ -392,6 +410,19 @@ export default Vue.component("reveal-scope", {
         hasKnowledgeGapContent() {
             return Boolean(this.knowledgeGapGroupResults || this.knowledgeGapBlockedReason);
         },
+        hasKgEmbeddedGaps() {
+            return Boolean(this.kgEmbeddedGapResults || this.kgEmbeddedGapBlockedReason);
+        },
+        canRunDisMechGapSearch() {
+            if (!(this.isEvaluateDone || this.hasKgContent)) {
+                return false;
+            }
+            // Prefer embedding under CFDE KG when that tab exists.
+            if (this.hasKgContent) {
+                return !this.hasKgEmbeddedGaps;
+            }
+            return !this.hasKnowledgeGapContent;
+        },
         hasBiomarkerRelevance() {
             const biomarkers = this.biomarkerEvidence && this.biomarkerEvidence.biomarkers;
             return Boolean(Array.isArray(biomarkers) && biomarkers.some((b) => b && b.relevance));
@@ -408,12 +439,8 @@ export default Vue.component("reveal-scope", {
             return this.ranModules.includes("literature") || Boolean(this.cachedLiteratureQuery);
         },
         showEvaluationTab() {
-            return (
-                this.ranModules.includes("evaluate") ||
-                Boolean(this.cachedEvaluation) ||
-                this.hasKgContent ||
-                this.hasBiomarkerContent
-            );
+            // Only when Module A has actually run — CFDE KG / Biomarker can appear without evaluation.
+            return this.ranModules.includes("evaluate") || Boolean(this.cachedEvaluation);
         },
         showContentTabs() {
             const tabCount =
@@ -458,6 +485,10 @@ export default Vue.component("reveal-scope", {
                 this.knowledgeGapTermsBlockedReason = null;
                 this.knowledgeGapGroupResults = null;
                 this.knowledgeGapBlockedReason = null;
+                this.kgEmbeddedGapResults = null;
+                this.kgEmbeddedGapBlockedReason = null;
+                this.gapInputMode = "freeText";
+                this.gapSelectedEntities = [];
                 this.evaluateContentTab = "evaluation";
                 this.actionsPopupDismissed = false;
                 this.actionsPanelForcedOpen = false;
@@ -504,15 +535,20 @@ export default Vue.component("reveal-scope", {
                 this.knowledgeGapTermsBlockedReason = null;
                 this.knowledgeGapGroupResults = null;
                 this.knowledgeGapBlockedReason = null;
+                this.kgEmbeddedGapResults = null;
+                this.kgEmbeddedGapBlockedReason = null;
             }
             this.activeHypothesisText = payload.hypothesisText;
+            this.gapInputMode = payload.inputMode === "entities" ? "entities" : "freeText";
+            this.gapSelectedEntities = Array.isArray(payload.selectedEntities)
+                ? payload.selectedEntities
+                : [];
             if (payload.optionId === "evaluateHypothesis") {
                 this.runModule("evaluate");
                 return;
             }
-            if (payload.optionId === "evaluateAndSearchKg") {
-                this.kgSearchPendingAfterEvaluate = true;
-                this.runModule("evaluate");
+            if (payload.optionId === "searchCfdeKg") {
+                this.runSearchCfdeKgFromWelcome();
                 return;
             }
             if (payload.optionId === "searchKnowledgeGaps") {
@@ -533,6 +569,10 @@ export default Vue.component("reveal-scope", {
             }
             if (actionId === "runKgSearch") {
                 this.runSearchKgFromCache();
+                return;
+            }
+            if (actionId === "runDisMechGapSearch") {
+                this.runDisMechGapSearchFromAction();
                 return;
             }
             if (actionId === "classifyKgRelevance") {
@@ -663,61 +703,101 @@ export default Vue.component("reveal-scope", {
             }
         },
         /**
-         * Additive path: dedicated term extract → DisMech gap search per term.
-         * Search terms and gap hits land on separate workspace tabs.
+         * Shared DisMech gap search: extract (unless single entity) + per-term fuzzy search.
+         * @returns {Promise<{ groupResults: array|null, termGroups: array|null, blockedReason: string|null, termsBlockedReason: string|null }>}
          */
-        async runKnowledgeGapSearch() {
-            this.hasGeneratedContent = true;
-            this.activeModule = "evaluate";
-            this.knowledgeGapTermGroups = null;
-            this.knowledgeGapTermsBlockedReason = null;
-            this.knowledgeGapGroupResults = null;
-            this.knowledgeGapBlockedReason = null;
-            this.evaluateContentTab = "gap-terms";
-            this.actionsPopupDismissed = false;
-            this.actionsPanelForcedOpen = false;
-            this.actionsPanelInitialTab = "next";
+        async collectDisMechGapSearchResults() {
+            const rawText =
+                typeof this.activeHypothesisText === "string"
+                    ? this.activeHypothesisText.trim()
+                    : "";
+            const entities = Array.isArray(this.gapSelectedEntities)
+                ? this.gapSelectedEntities
+                : [];
+            const singleEntityOnly =
+                this.gapInputMode === "entities" && entities.length === 1;
 
-            this.beginProgress([
-                { id: "extractTerms", label: "Extracting categorized knowledge-gap search terms." },
-                { id: "searchGaps", label: "Searching DisMech knowledge gaps for each term." },
-            ]);
+            this.beginProgress(
+                singleEntityOnly
+                    ? [{ id: "searchGaps", label: "Searching DisMech knowledge gaps." }]
+                    : [
+                          { id: "extractTerms", label: "Extracting categorized knowledge-gap search terms." },
+                          { id: "searchGaps", label: "Searching DisMech knowledge gaps for each term." },
+                      ]
+            );
 
             try {
-                const { groups, terms, extractError } = await extractGapSearchTerms(
-                    this.activeHypothesisText
-                );
-                this.setStepStatus("extractTerms", "done");
+                let nonEmptyGroups = [];
+                let terms = [];
+                let termsBlockedReason = null;
 
-                const nonEmptyGroups = (groups || []).filter(
-                    (group) => Array.isArray(group.terms) && group.terms.length
-                );
+                if (singleEntityOnly) {
+                    terms = [];
+                    this.setStepStatus("searchGaps", "active");
+                } else {
+                    const { groups, terms: extractedTerms, extractError } =
+                        await extractGapSearchTerms(rawText);
+                    this.setStepStatus("extractTerms", "done");
+                    terms = extractedTerms || [];
+                    nonEmptyGroups = (groups || []).filter(
+                        (group) => Array.isArray(group.terms) && group.terms.length
+                    );
 
-                if (!terms.length) {
-                    this.knowledgeGapTermGroups = null;
-                    this.knowledgeGapTermsBlockedReason = extractError
-                        ? `Couldn't extract search terms (${extractError.message || "parse failed"}). Edit the hypothesis and try again.`
-                        : "Couldn't derive search terms from the hypothesis. Edit it so it names a clearer disease, target, or process, then try again.";
-                    this.knowledgeGapGroupResults = null;
-                    this.knowledgeGapBlockedReason = null;
-                    this.evaluateContentTab = "gap-terms";
-                    this.setStepStatus("searchGaps", "error");
-                    this.endProgress();
-                    return;
+                    if (!rawText && !terms.length) {
+                        this.setStepStatus("searchGaps", "error");
+                        this.endProgress();
+                        return {
+                            groupResults: null,
+                            termGroups: null,
+                            blockedReason: extractError
+                                ? `Couldn't extract search terms (${extractError.message || "parse failed"}). Edit the input and try again.`
+                                : "Couldn't derive search terms from the input. Edit it and try again.",
+                            termsBlockedReason: null,
+                        };
+                    }
+
+                    if (!terms.length && extractError) {
+                        termsBlockedReason = `Categorized terms unavailable (${extractError.message || "parse failed"}); searching raw input only.`;
+                    }
                 }
 
-                this.knowledgeGapTermGroups = nonEmptyGroups;
-                this.knowledgeGapTermsBlockedReason = null;
-                this.evaluateContentTab = "gap-terms";
+                const rawGroup = rawText
+                    ? {
+                          id: RAW_INPUT_GROUP.id,
+                          label: RAW_INPUT_GROUP.label,
+                          description: "",
+                          terms: [rawText],
+                      }
+                    : null;
+
+                const termGroupsForUi = orderGapDisplayGroups([
+                    ...(rawGroup ? [rawGroup] : []),
+                    ...(singleEntityOnly ? [] : nonEmptyGroups),
+                ]);
+
+                const searchQueue = [];
+                if (rawText) {
+                    searchQueue.push(rawText);
+                }
+                if (!singleEntityOnly) {
+                    const rawKey = rawText.toLowerCase();
+                    for (const term of terms) {
+                        if (term.toLowerCase() !== rawKey) {
+                            searchQueue.push(term);
+                        }
+                    }
+                }
 
                 const termResultByTerm = {};
-                for (let i = 0; i < terms.length; i += 1) {
-                    const term = terms[i];
+                for (let i = 0; i < searchQueue.length; i += 1) {
+                    const term = searchQueue[i];
                     const searchStepIndex = this.progressSteps.findIndex((s) => s.id === "searchGaps");
                     if (searchStepIndex !== -1) {
+                        const labelPreview =
+                            term.length > 48 ? `${term.slice(0, 45)}…` : term;
                         this.progressSteps.splice(searchStepIndex, 1, {
                             ...this.progressSteps[searchStepIndex],
-                            label: `Searching knowledge gaps (${i + 1}/${terms.length}): ${term}`,
+                            label: `Searching knowledge gaps (${i + 1}/${searchQueue.length}): ${labelPreview}`,
                             status: "active",
                         });
                     }
@@ -741,7 +821,7 @@ export default Vue.component("reveal-scope", {
                     }
                 }
 
-                this.knowledgeGapGroupResults = nonEmptyGroups.map((group) => ({
+                const groupResults = termGroupsForUi.map((group) => ({
                     id: group.id,
                     label: group.label,
                     description: group.description,
@@ -754,20 +834,99 @@ export default Vue.component("reveal-scope", {
                             }
                     ),
                 }));
-                this.knowledgeGapBlockedReason = null;
-                this.evaluateContentTab = "gaps";
+
                 this.setStepStatus("searchGaps", "done");
+                this.endProgress();
+                return {
+                    groupResults,
+                    termGroups: termGroupsForUi,
+                    blockedReason: null,
+                    termsBlockedReason,
+                };
             } catch (err) {
-                this.knowledgeGapTermsBlockedReason =
-                    (err && err.message) || "Search-term extraction failed.";
+                if (this.progressSteps.some((s) => s.id === "extractTerms")) {
+                    this.setStepStatus("extractTerms", "error");
+                } else {
+                    this.setStepStatus("searchGaps", "error");
+                }
+                this.endProgress();
+                return {
+                    groupResults: null,
+                    termGroups: null,
+                    blockedReason: (err && err.message) || "Knowledge-gap search failed.",
+                    termsBlockedReason: null,
+                };
+            }
+        },
+        /**
+         * Additive path from welcome: term groups tab + gaps tab.
+         */
+        async runKnowledgeGapSearch() {
+            this.hasGeneratedContent = true;
+            this.activeModule = "evaluate";
+            this.knowledgeGapTermGroups = null;
+            this.knowledgeGapTermsBlockedReason = null;
+            this.knowledgeGapGroupResults = null;
+            this.knowledgeGapBlockedReason = null;
+            this.evaluateContentTab = "gap-terms";
+            this.actionsPopupDismissed = false;
+            this.actionsPanelForcedOpen = false;
+            this.actionsPanelInitialTab = "next";
+
+            const result = await this.collectDisMechGapSearchResults();
+            if (result.blockedReason && !result.groupResults) {
                 this.knowledgeGapTermGroups = null;
-                this.knowledgeGapBlockedReason = null;
+                this.knowledgeGapTermsBlockedReason = result.blockedReason;
                 this.knowledgeGapGroupResults = null;
+                this.knowledgeGapBlockedReason = null;
                 this.evaluateContentTab = "gap-terms";
-                this.setStepStatus("extractTerms", "error");
+                return;
+            }
+            this.knowledgeGapTermGroups = result.termGroups;
+            this.knowledgeGapTermsBlockedReason = result.termsBlockedReason;
+            this.knowledgeGapGroupResults = result.groupResults;
+            this.knowledgeGapBlockedReason = result.blockedReason;
+            this.evaluateContentTab = "gaps";
+        },
+        /**
+         * Actions-panel path after Evaluate and/or CFDE KG.
+         * With CFDE KG: embed under KG tab (no Gaps tab).
+         * Evaluate only: Gaps tab, keep Evaluation, no Search terms tab.
+         */
+        async runDisMechGapSearchFromAction() {
+            if (!this.canRunDisMechGapSearch) {
+                return;
+            }
+            this.hasGeneratedContent = true;
+            this.activeModule = "evaluate";
+            this.actionsPopupDismissed = false;
+            this.actionsPanelForcedOpen = false;
+            this.actionsPanelInitialTab = "next";
+
+            const embedUnderKg = this.hasKgContent;
+            if (embedUnderKg) {
+                this.kgEmbeddedGapResults = null;
+                this.kgEmbeddedGapBlockedReason = null;
+                this.evaluateContentTab = "kg";
+            } else {
+                this.knowledgeGapGroupResults = null;
+                this.knowledgeGapBlockedReason = null;
+                // Do not touch / create Search terms tab.
+                this.evaluateContentTab = "gaps";
             }
 
-            this.endProgress();
+            const result = await this.collectDisMechGapSearchResults();
+            if (embedUnderKg) {
+                this.kgEmbeddedGapResults = result.groupResults;
+                this.kgEmbeddedGapBlockedReason =
+                    result.blockedReason || result.termsBlockedReason || null;
+                this.evaluateContentTab = "kg";
+            } else {
+                this.knowledgeGapGroupResults = result.groupResults;
+                this.knowledgeGapBlockedReason =
+                    result.blockedReason || result.termsBlockedReason || null;
+                this.evaluateContentTab = "gaps";
+            }
         },
         onCloseActionsPanel() {
             this.actionsPopupDismissed = true;
@@ -837,6 +996,142 @@ export default Vue.component("reveal-scope", {
                 this.canvasHandoffExported = false;
                 return;
             }
+            await this.runKgEvidencePipeline({
+                targetText,
+                targetResolvedId,
+                outcomeText,
+                outcomeResolvedId,
+                outcomeFactorSearchQuery,
+            });
+        },
+        /**
+         * Welcome "Search CFDE KG":
+         * - single gene/mechanism → neighborhood (no LLM extract)
+         * - free text / multi → KG entity extract, then full or neighborhood search
+         */
+        async runSearchCfdeKgFromWelcome() {
+            this.hasGeneratedContent = true;
+            this.activeModule = "evaluate";
+            this.kgEvidence = null;
+            this.kgEvidenceBlockedReason = null;
+            this.kgRelevanceLoading = false;
+            this.kgNetworkGraph = null;
+            this.canvasHandoffExported = false;
+            this.evaluateContentTab = "kg";
+            this.actionsPopupDismissed = false;
+            this.actionsPanelForcedOpen = false;
+            this.actionsPanelInitialTab = "next";
+
+            const entities = Array.isArray(this.gapSelectedEntities)
+                ? this.gapSelectedEntities
+                : [];
+            const singleEntity =
+                this.gapInputMode === "entities" && entities.length === 1 ? entities[0] : null;
+
+            try {
+                if (singleEntity && singleEntity.type === "gene") {
+                    this.beginProgress([
+                        { id: "queryRoutes", label: `Searching CFDE KG for gene ${singleEntity.label}.` },
+                        { id: "buildNetwork", label: "Building the Gene / Factor / Trait network." },
+                    ]);
+                    this.kgEvidence = await findKgEvidenceByGene(singleEntity.label);
+                    this.setStepStatus("queryRoutes", "done");
+                    await this.finishKgNetworkFromEvidence();
+                    return;
+                }
+
+                if (singleEntity && singleEntity.type === "mechanism") {
+                    this.beginProgress([
+                        {
+                            id: "queryRoutes",
+                            label: `Searching CFDE KG for mechanism ${singleEntity.label}.`,
+                        },
+                        { id: "buildNetwork", label: "Building the Gene / Factor / Trait network." },
+                    ]);
+                    this.kgEvidence = await findKgEvidenceByFactor({
+                        iri: singleEntity.iri,
+                        label: singleEntity.label,
+                    });
+                    this.setStepStatus("queryRoutes", "done");
+                    await this.finishKgNetworkFromEvidence();
+                    return;
+                }
+
+                this.beginProgress([
+                    { id: "extractEntities", label: "Extracting gene and mechanism/outcome for CFDE KG." },
+                    {
+                        id: "resolveFactors",
+                        label: "Finding the top 25 mechanism candidates for the outcome.",
+                    },
+                    { id: "selectFactor", label: "Selecting up to 5 mechanisms most relevant to the input." },
+                    { id: "queryRoutes", label: "Querying the CFDE KG across the three evidence routes." },
+                    { id: "buildNetwork", label: "Building the Gene / Gene set / Factor / Trait network." },
+                ]);
+
+                const { target, outcome, extractError } = await extractKgSearchEntities(
+                    this.activeHypothesisText
+                );
+                this.setStepStatus("extractEntities", "done");
+
+                const geneText = (target && (target.resolvedId || target.value)) || null;
+                const outcomeText = (outcome && outcome.value) || null;
+                const outcomeResolvedId = (outcome && outcome.resolvedId) || null;
+                const outcomeFactorSearchQuery = (outcome && outcome.factorSearchQuery) || null;
+
+                if (geneText && outcomeText) {
+                    this.kgEvidence = await findKgEvidence({
+                        targetText: target.value || geneText,
+                        targetResolvedId: target.resolvedId || null,
+                        outcomeText,
+                        outcomeResolvedId,
+                        outcomeFactorSearchQuery,
+                        hypothesisText: this.activeHypothesisText,
+                        onStep: this.setStepStatus,
+                    });
+                    await this.finishKgNetworkFromEvidence();
+                    return;
+                }
+
+                if (geneText && !outcomeText) {
+                    this.setStepStatus("resolveFactors", "done");
+                    this.setStepStatus("selectFactor", "done");
+                    this.kgEvidence = await findKgEvidenceByGene(geneText);
+                    this.setStepStatus("queryRoutes", "done");
+                    await this.finishKgNetworkFromEvidence();
+                    return;
+                }
+
+                if (!geneText && (outcomeText || outcomeFactorSearchQuery || outcomeResolvedId)) {
+                    this.setStepStatus("resolveFactors", "done");
+                    this.setStepStatus("selectFactor", "done");
+                    this.kgEvidence = await findKgEvidenceByFactor({
+                        label: outcomeFactorSearchQuery || outcomeResolvedId || outcomeText,
+                    });
+                    this.setStepStatus("queryRoutes", "done");
+                    await this.finishKgNetworkFromEvidence();
+                    return;
+                }
+
+                this.kgEvidenceBlockedReason = extractError
+                    ? `Couldn't extract a gene or mechanism (${extractError.message || "parse failed"}). Edit the input and try again.`
+                    : "Couldn't identify a gene or mechanism/outcome to search. Edit the input and try again.";
+                this.kgNetworkGraph = null;
+                this.endProgress();
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.warn("[reveal-scope] Search CFDE KG failed", error);
+                this.kgEvidenceBlockedReason = "CFDE KG search failed. Try again.";
+                this.kgNetworkGraph = null;
+                this.endProgress();
+            }
+        },
+        async runKgEvidencePipeline({
+            targetText,
+            targetResolvedId,
+            outcomeText,
+            outcomeResolvedId,
+            outcomeFactorSearchQuery,
+        }) {
             this.kgEvidenceBlockedReason = null;
             this.kgNetworkGraph = null;
             this.canvasHandoffExported = false;
@@ -863,6 +1158,9 @@ export default Vue.component("reveal-scope", {
                 this.endProgress();
                 return;
             }
+            await this.finishKgNetworkFromEvidence({ forceActionsOpen: true });
+        },
+        async finishKgNetworkFromEvidence({ forceActionsOpen = false } = {}) {
             try {
                 this.kgNetworkGraph = await buildKgNetworkGraph(this.kgEvidence);
             } catch (error) {
@@ -873,13 +1171,12 @@ export default Vue.component("reveal-scope", {
             }
             this.setStepStatus("buildNetwork", "done");
             this.endProgress();
-            // Relevance triage is optional — offer it as a top Next step after fetch.
             this.actionsPopupDismissed = false;
-            this.actionsPanelForcedOpen = true;
+            this.actionsPanelForcedOpen = forceActionsOpen;
             this.actionsPanelInitialTab = "next";
         },
         runKgRelevanceFromCache() {
-            if (!this.canClassifyKgRelevance || !this.cachedEvaluation) {
+            if (!this.canClassifyKgRelevance) {
                 return;
             }
             this.evaluateContentTab = "kg";
@@ -894,6 +1191,33 @@ export default Vue.component("reveal-scope", {
             ) {
                 return;
             }
+            // Welcome "Search CFDE KG" may not have run Evaluate — fall back to KG query context.
+            const slots = evaluation && evaluation.slots;
+            const ctx = kgEvidenceAtStart.queryContext || {};
+            const targetText =
+                (slots && slots.target && slots.target.value) || ctx.targetGene || null;
+            const targetResolvedId =
+                (slots && slots.target && slots.target.resolvedId) || null;
+            const outcomeText =
+                (slots && slots.outcome && slots.outcome.value) ||
+                ctx.mechanismQuery ||
+                ctx.factorLabel ||
+                null;
+            const outcomeResolvedId =
+                (slots && slots.outcome && slots.outcome.resolvedId) || null;
+            const tissue =
+                (slots &&
+                    slots.modifiers &&
+                    slots.modifiers.tissue &&
+                    slots.modifiers.tissue.value) ||
+                null;
+            const cellLine =
+                (slots &&
+                    slots.modifiers &&
+                    slots.modifiers.cell_line &&
+                    slots.modifiers.cell_line.value) ||
+                null;
+
             this.kgRelevanceLoading = true;
             this.beginProgress([
                 { id: "classifyKgRelevance", label: "Classifying CFDE KG evidence relevance to the hypothesis." },
@@ -902,12 +1226,12 @@ export default Vue.component("reveal-scope", {
             try {
                 const classifications = await classifyKgEvidenceRelevance({
                     hypothesisText: this.activeHypothesisText,
-                    targetText: evaluation.slots.target.value,
-                    targetResolvedId: evaluation.slots.target.resolvedId,
-                    outcomeText: evaluation.slots.outcome.value,
-                    outcomeResolvedId: evaluation.slots.outcome.resolvedId,
-                    tissue: evaluation.slots.modifiers.tissue.value,
-                    cellLine: evaluation.slots.modifiers.cell_line.value,
+                    targetText,
+                    targetResolvedId,
+                    outcomeText,
+                    outcomeResolvedId,
+                    tissue,
+                    cellLine,
                     routes: kgEvidenceAtStart.routes,
                 });
                 // Bail if the user navigated away / re-ran something else while this was in flight.

@@ -21,9 +21,6 @@
                     <header class="scp-gap-terms-card-head">
                         <div>
                             <h3 class="scp-gap-terms-card-title">{{ group.label }}</h3>
-                            <p v-if="group.description" class="scp-gap-terms-card-desc">
-                                {{ group.description }}
-                            </p>
                         </div>
                         <span class="scp-gap-terms-card-status">
                             {{ group.terms.length }} term{{ group.terms.length === 1 ? "" : "s" }}
@@ -146,13 +143,6 @@ export default {
     font-size: 1rem;
     font-weight: 600;
     color: #1e222a;
-}
-
-.scp-gap-terms-card-desc {
-    margin: 4px 0 0;
-    font-size: 0.8rem;
-    color: #6a7080;
-    line-height: 1.35;
 }
 
 .scp-gap-terms-card-status {

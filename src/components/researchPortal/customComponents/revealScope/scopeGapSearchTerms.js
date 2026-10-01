@@ -5,7 +5,7 @@
 
 import { createLLMClient } from "@/utils/llmClient";
 
-/** Ordered groups used for extraction, search, and UI cards. */
+/** Ordered groups used for LLM extraction (excludes raw_input — added at search time). */
 export const GAP_TERM_GROUPS = [
     {
         id: "disease_phenotype",
@@ -38,6 +38,52 @@ export const GAP_TERM_GROUPS = [
         description: "Short multi-facet queries when both sides are clear",
     },
 ];
+
+/** Synthetic group for searching the user's full hypothesis text. */
+export const RAW_INPUT_GROUP = {
+    id: "raw_input",
+    label: "Raw input",
+    description: "",
+};
+
+/**
+ * Display order for gap / search-term cards: raw input → combined → individual categories.
+ * @param {Array<{ id: string }>} groups
+ * @returns {typeof groups}
+ */
+export function orderGapDisplayGroups(groups) {
+    if (!Array.isArray(groups) || !groups.length) {
+        return [];
+    }
+    const byId = {};
+    for (const group of groups) {
+        if (group && group.id) {
+            byId[group.id] = group;
+        }
+    }
+    const ordered = [];
+    if (byId[RAW_INPUT_GROUP.id]) {
+        ordered.push(byId[RAW_INPUT_GROUP.id]);
+    }
+    if (byId.combos) {
+        ordered.push(byId.combos);
+    }
+    for (const meta of GAP_TERM_GROUPS) {
+        if (meta.id === "combos") {
+            continue;
+        }
+        if (byId[meta.id]) {
+            ordered.push(byId[meta.id]);
+        }
+    }
+    // Any unexpected groups last (stable fallback).
+    for (const group of groups) {
+        if (group && group.id && !ordered.includes(group)) {
+            ordered.push(group);
+        }
+    }
+    return ordered;
+}
 
 const GROUP_IDS = GAP_TERM_GROUPS.map((g) => g.id);
 
