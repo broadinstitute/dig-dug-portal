@@ -231,6 +231,19 @@ function buildMarkerRowIndex(markersRaw) {
 // convention), log fold change, adjusted p-value, and mean expression scaled 0-1
 // against this gene's own range of cell types in this dataset (see
 // buildMarkerGeneRanges).
+// Used for the side of a Cell-Type Comparison pair that has no data at all (neither a
+// marker row nor, where applicable, an expression-query fallback). Null fields keep
+// formatPValue/formatSigned rendering "-" instead of a fabricated value; avg_expression
+// and pct_expressing stay out of any chart via the point's hasBothSummaries flag, not
+// by reporting 0 here.
+const NULL_MARKER_SUMMARY = {
+    avg_expression: null,
+    pct_expressing: null,
+    log_fold_change: null,
+    p_value_adj: null,
+    mean_expression_scaled: null,
+};
+
 function markerRowSummary(row, geneRanges, pctScaleAdjust) {
     if (!row) {
         return {
@@ -250,7 +263,11 @@ function markerRowSummary(row, geneRanges, pctScaleAdjust) {
         avg_expression: raw,
         pct_expressing: (rawPctCellsExpression(row) * (pctScaleAdjust || 1)) / 100,
         log_fold_change: row.log_fold_change ?? null,
-        p_value_adj: row.p_value_adj ?? row.p_value ?? null,
+        // row.p_value is a raw, uncorrected p-value - it must never stand in for
+        // p_value_adj (shown/exported as "Adj. p-value"), since that would misrepresent
+        // an uncorrected value as having undergone multiple-testing correction. Leave
+        // it null when the marker file has no adjusted value.
+        p_value_adj: row.p_value_adj ?? null,
         mean_expression_scaled: scaled,
     };
 }
@@ -776,13 +793,22 @@ export default new Vuex.Store({
                     context.dispatch("cellTypeMarkerSummary", { datasetId: leftId, gene, cellType: targetCellType, markers: leftMarkers }),
                     context.dispatch("cellTypeMarkerSummary", { datasetId: rightId, gene, cellType: targetCellType, markers: rightMarkers }),
                 ]);
+                // A null summary means this gene/cell-type pair simply has no data for
+                // that side (not found in the marker file, and - for array-shaped
+                // files - not worth an expression query since other rows for this
+                // dataset ARE indexed). That is different from zero expression, so a
+                // missing side gets a null x/y (hasBothSummaries: false) rather than a
+                // fabricated 0: the scatter plot excludes it (see cellTypeScatterPoints
+                // in main.js), but the per-dataset summary tables still list the gene
+                // using whichever side's real data is available.
                 if (!leftSummary && !rightSummary) return null;
                 return {
                     gene,
-                    x: leftSummary ? leftSummary.avg_expression : 0,
-                    y: rightSummary ? rightSummary.avg_expression : 0,
-                    leftSummary: leftSummary || markerRowSummary(null),
-                    rightSummary: rightSummary || markerRowSummary(null),
+                    x: leftSummary ? leftSummary.avg_expression : null,
+                    y: rightSummary ? rightSummary.avg_expression : null,
+                    hasBothSummaries: !!(leftSummary && rightSummary),
+                    leftSummary: leftSummary || NULL_MARKER_SUMMARY,
+                    rightSummary: rightSummary || NULL_MARKER_SUMMARY,
                 };
             }));
             if (request !== state.cellTypeComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;

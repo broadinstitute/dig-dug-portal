@@ -202,6 +202,13 @@ function measureRotatedLabelWidth(ctx, label) {
     return textWidth * Math.SQRT1_2 + 11;
 }
 
+// Smallest plotting area (in px) the violin bodies are allowed to be drawn into.
+// Template.vue's canvas has a fixed aspect ratio, which gives a fixed clientHeight
+// regardless of how tall the rotated category labels end up being; when that
+// bottom-margin reservation would otherwise eat into (or invert) the plot area,
+// the canvas is grown past its CSS-driven height to preserve at least this much.
+const MIN_VIOLIN_PLOT_HEIGHT = 120;
+
 // categories: [{ label, leftValues: number[], rightValues: number[] }]
 // returns a status string ("" on success, an explanatory message when there is
 // nothing to plot)
@@ -211,15 +218,28 @@ export function renderViolinPlot(canvas, categories, yLabel) {
         clearCanvas(canvas);
         return "No plot values available.";
     }
-    const ctx = prepareCanvas(canvas);
+    let ctx = prepareCanvas(canvas);
     const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
     const labelOffset = 14;
     const maxLabelFootprint = Math.max(
         0,
         ...available.map((row) => measureRotatedLabelWidth(ctx, row.label))
     );
     const margins = { top: 20, right: 18, bottom: Math.max(92, labelOffset + maxLabelFootprint + 10), left: 58 };
+
+    // The CSS aspect ratio sizes the canvas assuming a modest bottom margin; long
+    // rotated labels can blow past that, so grow the element's own height (not just
+    // the backing buffer) whenever it would leave less than MIN_VIOLIN_PLOT_HEIGHT -
+    // or a negative amount - for the actual plot, then re-run prepareCanvas so the
+    // backing buffer/DPR transform match the new size.
+    const requiredHeight = margins.top + MIN_VIOLIN_PLOT_HEIGHT + margins.bottom;
+    let height = canvas.clientHeight;
+    if (requiredHeight > height) {
+        canvas.style.height = `${requiredHeight}px`;
+        ctx = prepareCanvas(canvas);
+        height = canvas.clientHeight;
+    }
+
     const plotWidth = width - margins.left - margins.right;
     const plotHeight = height - margins.top - margins.bottom;
     const allValues = available.flatMap((row) => [...row.leftValues, ...row.rightValues]).map(Number).filter(Number.isFinite);

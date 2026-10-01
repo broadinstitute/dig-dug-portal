@@ -11,7 +11,11 @@ import Formatters from "@/utils/formatters";
 import "@/components/researchPortal/singleCellBrowser/DownloadChart.vue";
 import "@/components/DataDownload";
 
-const EMPTY_SUMMARY = { n: 0, avg_expression: 0, pct_expressing: 0, median: 0 };
+// Used when a cell type has no row at all for one side of the Gene Comparison card
+// (that dataset simply has no cells of this type for the selected gene). Null fields
+// render as "-" via formatInteger/formatNumber/formatPercent rather than a fabricated
+// 0, which would misrepresent "no data" as "zero expression".
+const EMPTY_SUMMARY = { n: null, avg_expression: null, pct_expressing: null, median: null };
 
 new Vue({
     store,
@@ -153,14 +157,20 @@ new Vue({
             return (ctc && ctc.points) || [];
         },
         cellTypeScatterPoints() {
-            return this.cellTypeComparisonPoints.map((point) => ({ label: point.gene, x: point.x, y: point.y }));
+            // Points missing either side's data have a null x or y (see
+            // loadCellTypeComparison in store.js) rather than a fabricated 0, so they
+            // are excluded from the scatter entirely instead of plotting a false
+            // coordinate. They still appear in the summary tables below.
+            return this.cellTypeComparisonPoints
+                .filter((point) => point.hasBothSummaries)
+                .map((point) => ({ label: point.gene, x: point.x, y: point.y }));
         },
         cellTypeTableRows() {
-            // store's loadCellTypeComparison only emits a point when at least one
-            // side's marker_genes.json.gz file has a row for this gene/cell type, so
-            // there is nothing left to filter out here.
+            // Unlike the scatter, the tables show every gene with data on at least
+            // one side - including genes missing from one dataset's marker file -
+            // since each table only reports its own dataset's summary.
             return [...this.cellTypeComparisonPoints]
-                .sort((a, b) => Math.max(b.x, b.y) - Math.max(a.x, a.y))
+                .sort((a, b) => Math.max(b.x || 0, b.y || 0) - Math.max(a.x || 0, a.y || 0))
                 .slice(0, 35);
         },
         leftCellTypeTableRows() {
@@ -267,13 +277,19 @@ new Vue({
             return lines.join("\n");
         },
         formatInteger(value) {
-            return new Intl.NumberFormat("en-US").format(Number(value) || 0);
+            if (value === null || value === undefined || value === "") return "-";
+            const num = Number(value);
+            return Number.isFinite(num) ? new Intl.NumberFormat("en-US").format(num) : "-";
         },
         formatNumber(value) {
-            return Number(value || 0).toFixed(3);
+            if (value === null || value === undefined || value === "") return "-";
+            const num = Number(value);
+            return Number.isFinite(num) ? num.toFixed(3) : "-";
         },
         formatPercent(value) {
-            return `${Math.round(Number(value || 0) * 100)}%`;
+            if (value === null || value === undefined || value === "") return "-";
+            const num = Number(value);
+            return Number.isFinite(num) ? `${Math.round(num * 100)}%` : "-";
         },
         formatPValue: Formatters.pValueFormatter,
         formatSigned(value) {
