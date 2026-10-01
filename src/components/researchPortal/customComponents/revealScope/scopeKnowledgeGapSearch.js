@@ -110,6 +110,8 @@ export function summarizeGapHit(hit) {
             typeof source.disease_label === "string" ? source.disease_label.trim() : "",
         sourceStatus: typeof source.status === "string" ? source.status : null,
         sourceId: typeof source.source_id === "string" ? source.source_id : null,
+        sourceRevision:
+            typeof source.source_revision === "string" ? source.source_revision : null,
         rankingMetric: typeof ranking.metric === "string" ? ranking.metric : null,
         rankingValue: typeof ranking.value === "number" ? ranking.value : null,
         rankingRank: typeof ranking.rank === "number" ? ranking.rank : null,
