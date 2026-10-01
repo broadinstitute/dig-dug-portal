@@ -23,14 +23,14 @@
                         available.
                     </p>
                     <div
-                        v-if="!$store.state.loading && !$store.state.usingMskDatasets && $parent.datasets.length"
+                        v-if="!$store.state.loading && !$store.state.usingMskDatasets"
                         class="alert alert-info"
                     >
                         No dataset on this BioIndex host is tagged for the "msk"
-                        portal yet, so the pickers below default to the first two
-                        datasets available. The fuller MSK set (bone, bone marrow,
-                        tendon/ligament) currently lives on the dev BioIndex - rebuild
-                        with <code>BIOINDEX_DEV=1</code> to see it.
+                        portal, so there are no musculoskeletal single-cell datasets
+                        to load. The fuller MSK set (bone, bone marrow, tendon/ligament)
+                        currently lives on the dev BioIndex - rebuild with
+                        <code>BIOINDEX_DEV=1</code> to see it.
                     </div>
                 </div>
             </div>
@@ -87,7 +87,7 @@
             <div class="card mdkp-card" v-else>
                 <div class="card-body">
                     <div class="empty-state">
-                        {{ $store.state.loading ? "Loading datasets from the single-cell BioIndex..." : "No single-cell datasets are currently available." }}
+                        {{ $store.state.loading ? "Loading musculoskeletal single-cell datasets from the BioIndex..." : "No musculoskeletal (\"msk\") single-cell datasets are currently available on this BioIndex host." }}
                     </div>
                 </div>
             </div>

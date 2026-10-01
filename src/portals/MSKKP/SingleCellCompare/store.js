@@ -169,21 +169,13 @@ function genesFromMarkers(markersRaw) {
     return [];
 }
 
-// Chooses the initial left/right dataset pair from the full dataset list: the
-// hand-picked bone/marrow pair if both are present, else the first two msk-tagged
-// datasets, else one msk-tagged dataset paired with the first other dataset, else
-// just the first two datasets overall.
+// Chooses the initial left/right dataset pair from the full (msk-only) dataset list:
+// the hand-picked bone/marrow pair if both are present, else the first two datasets.
+// With only one dataset available it is paired with itself so both pickers still work.
 function pickDefaultPair(datasets) {
     const byId = (id) => datasets.find((d) => d.id === id);
     const soft = SOFT_DEFAULT_PAIR.map(byId).filter(Boolean);
     if (soft.length === 2) return [soft[0].id, soft[1].id];
-
-    const mskDatasets = datasets.filter((d) => d.isMsk);
-    if (mskDatasets.length >= 2) return [mskDatasets[0].id, mskDatasets[1].id];
-    if (mskDatasets.length === 1) {
-        const other = datasets.find((d) => d.id !== mskDatasets[0].id);
-        return [mskDatasets[0].id, other ? other.id : mskDatasets[0].id];
-    }
 
     if (datasets.length >= 2) return [datasets[0].id, datasets[1].id];
     return [datasets[0].id, datasets[0].id];
@@ -320,12 +312,12 @@ export default new Vuex.Store({
             const mskTagged = singleCell.filter((d) => Array.isArray(d.portals) && d.portals.includes("msk"));
             state.usingMskDatasets = mskTagged.length > 0;
 
-            // Every real single-cell dataset the API has is selectable - not just the
-            // "msk"-tagged ones - since limiting the pickers to those would leave
-            // production (which currently has only 1 msk-tagged dataset) with nothing
-            // to compare it against. MSK-tagged datasets are just preferred as the
-            // *default* selection - see pickDefaultPair below.
-            const datasets = singleCell
+            // Only single-cell datasets whose `portals` array includes "msk" are loaded.
+            // This is the authoritative signal that a dataset belongs to the musculoskeletal
+            // portal, so non-MSK datasets (FNIH organ atlases: artery, heart, kidney, etc.)
+            // are excluded from the pickers entirely. If no msk-tagged datasets exist on
+            // whichever host this build points at, the page shows its empty state.
+            const datasets = mskTagged
                 .map((d) => ({
                     id: resolveDatasetId(d),
                     label: resolveDatasetLabel(d),
@@ -333,7 +325,7 @@ export default new Vuex.Store({
                     organ: resolveOrgan(d),
                     tissue: resolveTissue(d),
                     nCells: resolveCellCount(d),
-                    isMsk: Array.isArray(d.portals) && d.portals.includes("msk"),
+                    isMsk: true,
                     raw: d,
                 }))
                 .filter((d) => !!d.id);
@@ -350,7 +342,7 @@ export default new Vuex.Store({
             });
             state.tissues = [...tissueSet].sort((a, b) => a.localeCompare(b));
             if (!datasets.length) {
-                state.metadataError = "The single-cell BioIndex metadata endpoint returned no single-cell datasets.";
+                state.metadataError = "The single-cell BioIndex metadata endpoint returned no musculoskeletal (\"msk\") single-cell datasets.";
                 state.loading = false;
                 return;
             }
