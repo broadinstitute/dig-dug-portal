@@ -432,6 +432,13 @@ export default new Vuex.Store({
                 expression = null;
             }
 
+            // Another comparison may have cached this vector while our fetch was
+            // pending. Reuse it through the cache-hit path so LRU bytes/order are
+            // updated only once, preserving this caller's includeValues setting.
+            if (cacheKey in state.expressionCache) {
+                return context.dispatch("ensureGeneRows", { datasetId, gene, includeValues });
+            }
+
             // A failed/empty fetch is not cached: the next call retries it.
             if (!expression) {
                 return null;
