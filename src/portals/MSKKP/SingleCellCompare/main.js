@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "./store.js";
+import store, { markerRowKey, markerRowSummary } from "./store.js";
 import { pageMixin } from "@/mixins/pageMixin";
 import { renderUmap, renderViolinPlot, renderScatterPlot } from "./canvasPlots.js";
 import Formatters from "@/utils/formatters";
@@ -142,11 +142,36 @@ new Vue({
                 rightSummary: (rightRows.get(ct) && rightRows.get(ct).summary) || EMPTY_SUMMARY,
             }));
         },
+        // Same columns/source as the "Cell-Type Comparison" tables below: read
+        // straight from each dataset's marker_genes.json.gz file (markerRowsCache),
+        // just keyed the other way around - one row per cell type, for the
+        // currently selected gene, instead of one row per gene for the currently
+        // selected cell type. Cell types with no marker-gene row for this gene in
+        // either dataset are left out, same as cellTypeComparisonPoints does.
+        geneMarkerTableRows() {
+            const state = this.$store.state;
+            const gene = state.selectedGene;
+            if (!gene) return [];
+            const leftMarkers = state.markerRowsCache[this.leftId];
+            const rightMarkers = state.markerRowsCache[this.rightId];
+            return this.cellTypes
+                .map((ct) => {
+                    const leftRow = leftMarkers ? leftMarkers.byKey.get(markerRowKey(ct, gene)) : null;
+                    const rightRow = rightMarkers ? rightMarkers.byKey.get(markerRowKey(ct, gene)) : null;
+                    if (!leftRow && !rightRow) return null;
+                    return {
+                        label: this.formatLabel(ct),
+                        leftSummary: markerRowSummary(leftRow, leftMarkers && leftMarkers.geneRanges, leftMarkers && leftMarkers.pctScaleAdjust),
+                        rightSummary: markerRowSummary(rightRow, rightMarkers && rightMarkers.geneRanges, rightMarkers && rightMarkers.pctScaleAdjust),
+                    };
+                })
+                .filter(Boolean);
+        },
         leftGeneTableRows() {
-            return this.geneCategories.map((row) => ({ label: row.label, summary: row.leftSummary }));
+            return this.geneMarkerTableRows.map((row) => ({ label: row.label, summary: row.leftSummary }));
         },
         rightGeneTableRows() {
-            return this.geneCategories.map((row) => ({ label: row.label, summary: row.rightSummary }));
+            return this.geneMarkerTableRows.map((row) => ({ label: row.label, summary: row.rightSummary }));
         },
         cellTypeComparisonPoints() {
             const ctc = this.$store.state.cellTypeComparison;
@@ -175,17 +200,19 @@ new Vue({
         leftGeneTableCsvRows() {
             return this.leftGeneTableRows.map((row) => ({
                 cell_type: row.label,
-                avg_expression: row.summary.avg_expression,
+                p_value_adj: row.summary.p_value_adj,
+                log_fold_change: row.summary.log_fold_change,
                 pct_expressing: row.summary.pct_expressing,
-                n: row.summary.n,
+                mean_expression_scaled: row.summary.mean_expression_scaled,
             }));
         },
         rightGeneTableCsvRows() {
             return this.rightGeneTableRows.map((row) => ({
                 cell_type: row.label,
-                avg_expression: row.summary.avg_expression,
+                p_value_adj: row.summary.p_value_adj,
+                log_fold_change: row.summary.log_fold_change,
                 pct_expressing: row.summary.pct_expressing,
-                n: row.summary.n,
+                mean_expression_scaled: row.summary.mean_expression_scaled,
             }));
         },
         leftCellTypeTableCsvRows() {

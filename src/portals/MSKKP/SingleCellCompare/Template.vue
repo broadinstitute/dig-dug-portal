@@ -213,17 +213,19 @@
                                         <thead>
                                             <tr>
                                                 <th>Cell type</th>
-                                                <th class="numeric">Avg</th>
-                                                <th class="numeric">% expr</th>
-                                                <th class="numeric">n</th>
+                                                <th class="numeric">Adj. p-value</th>
+                                                <th class="numeric">Log fold change</th>
+                                                <th class="numeric">% cell expr</th>
+                                                <th class="numeric">Mean expr (scaled)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr v-for="row in $parent.leftGeneTableRows" :key="row.label">
                                                 <td>{{ row.label }}</td>
-                                                <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
+                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
+                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
                                                 <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                                <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
+                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -245,17 +247,19 @@
                                         <thead>
                                             <tr>
                                                 <th>Cell type</th>
-                                                <th class="numeric">Avg</th>
-                                                <th class="numeric">% expr</th>
-                                                <th class="numeric">n</th>
+                                                <th class="numeric">Adj. p-value</th>
+                                                <th class="numeric">Log fold change</th>
+                                                <th class="numeric">% cell expr</th>
+                                                <th class="numeric">Mean expr (scaled)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr v-for="row in $parent.rightGeneTableRows" :key="row.label">
                                                 <td>{{ row.label }}</td>
-                                                <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
+                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
+                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
                                                 <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                                <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
+                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>

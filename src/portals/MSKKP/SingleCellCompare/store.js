@@ -157,7 +157,7 @@ function primaryCellTypeKey(fields) {
 }
 
 // Key used to look up a single marker_genes.json.gz row by cell type + gene.
-function markerRowKey(cellType, gene) {
+export function markerRowKey(cellType, gene) {
     return `${cellType}||${gene}`;
 }
 
@@ -219,7 +219,7 @@ function buildMarkerRowIndex(markersRaw) {
 // convention), log fold change, adjusted p-value, and mean expression scaled 0-1
 // against this gene's own range of cell types in this dataset (see
 // buildMarkerGeneRanges).
-function markerRowSummary(row, geneRanges, pctScaleAdjust) {
+export function markerRowSummary(row, geneRanges, pctScaleAdjust) {
     if (!row) {
         return {
             avg_expression: 0,
