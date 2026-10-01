@@ -183,10 +183,23 @@ function drawCategoryLabel(ctx, label, x, y) {
     ctx.font = "11px Inter, sans-serif";
     ctx.textAlign = "right";
     ctx.textBaseline = "top";
-    ctx.translate(x - 4, y + 50);
+    ctx.translate(x - 4, y);
     ctx.rotate(-Math.PI / 4);
-    ctx.fillText(truncate(label, 24), 0, 0);
+    ctx.fillText(label, 0, 0);
     ctx.restore();
+}
+
+// Width (in px, along the horizontal axis) the rotated (-45deg) category
+// label text occupies, used to size the bottom margin so full names never
+// get clipped.
+function measureRotatedLabelWidth(ctx, label) {
+    ctx.save();
+    ctx.font = "11px Inter, sans-serif";
+    const textWidth = ctx.measureText(label).width;
+    ctx.restore();
+    // At a 45deg rotation, the label's footprint along the vertical axis
+    // equals its text width times sin(45deg); add the font height too.
+    return textWidth * Math.SQRT1_2 + 11;
 }
 
 // categories: [{ label, leftValues: number[], rightValues: number[] }]
@@ -201,7 +214,12 @@ export function renderViolinPlot(canvas, categories, yLabel) {
     const ctx = prepareCanvas(canvas);
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
-    const margins = { top: 20, right: 18, bottom: 92, left: 58 };
+    const labelOffset = 14;
+    const maxLabelFootprint = Math.max(
+        0,
+        ...available.map((row) => measureRotatedLabelWidth(ctx, row.label))
+    );
+    const margins = { top: 20, right: 18, bottom: Math.max(92, labelOffset + maxLabelFootprint + 10), left: 58 };
     const plotWidth = width - margins.left - margins.right;
     const plotHeight = height - margins.top - margins.bottom;
     const allValues = available.flatMap((row) => [...row.leftValues, ...row.rightValues]).map(Number).filter(Number.isFinite);
@@ -217,7 +235,7 @@ export function renderViolinPlot(canvas, categories, yLabel) {
         const center = margins.left + band * (index + 0.5);
         drawDistribution(ctx, row.leftValues, center - offset, groupWidth * 0.38, yMax, margins, plotHeight, PAIR_COLORS.left);
         drawDistribution(ctx, row.rightValues, center + offset, groupWidth * 0.38, yMax, margins, plotHeight, PAIR_COLORS.right);
-        drawCategoryLabel(ctx, row.label, center, margins.top + plotHeight + 14);
+        drawCategoryLabel(ctx, row.label, center, margins.top + plotHeight + labelOffset);
     });
     return "";
 }
@@ -253,11 +271,14 @@ function drawScatterAxes(ctx, margins, plotWidth, plotHeight, maxValue, xLabel, 
     ctx.fillStyle = "#43504b";
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
-    ctx.fillText(`${truncate(xLabel, 48)} avg expression`, margins.left + plotWidth / 2, margins.top + plotHeight + 54);
+    const xCenter = margins.left + plotWidth / 2;
+    ctx.fillText(xLabel, xCenter, margins.top + plotHeight + 54);
+    ctx.fillText("avg expression", xCenter, margins.top + plotHeight + 68);
     ctx.save();
     ctx.translate(18, margins.top + plotHeight / 2);
     ctx.rotate(-Math.PI / 2);
-    ctx.fillText(`${truncate(yLabel, 48)} avg expression`, 0, 0);
+    ctx.fillText(yLabel, 0, -7);
+    ctx.fillText("avg expression", 0, 7);
     ctx.restore();
 }
 
@@ -271,7 +292,7 @@ export function renderScatterPlot(canvas, points, xLabel, yLabel) {
     const ctx = prepareCanvas(canvas);
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
-    const margins = { top: 22, right: 24, bottom: 70, left: 72 };
+    const margins = { top: 22, right: 24, bottom: 84, left: 72 };
     const plotWidth = width - margins.left - margins.right;
     const plotHeight = height - margins.top - margins.bottom;
     const maxValue = niceCeil(Math.max(0.05, ...available.map((point) => Math.max(point.x, point.y))));

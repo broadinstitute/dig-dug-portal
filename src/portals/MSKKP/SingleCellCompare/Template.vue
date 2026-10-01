@@ -66,16 +66,26 @@
                         <label class="col-md-6 control">
                             <span>Left dataset</span>
                             <select class="form-control" v-model="$parent.leftId">
-                                <option v-for="d in $parent.leftDatasets" :key="'l-' + d.id" :value="d.id">
-                                    {{ d.label }}
+                                <option
+                                    v-for="d in $parent.leftDatasets"
+                                    :key="'l-' + d.id"
+                                    :value="d.id"
+                                    :title="$parent.formatDatasetOption(d)"
+                                >
+                                    {{ $parent.formatDatasetOption(d) }}
                                 </option>
                             </select>
                         </label>
                         <label class="col-md-6 control">
                             <span>Right dataset</span>
                             <select class="form-control" v-model="$parent.rightId">
-                                <option v-for="d in $parent.rightDatasets" :key="'r-' + d.id" :value="d.id">
-                                    {{ d.label }}
+                                <option
+                                    v-for="d in $parent.rightDatasets"
+                                    :key="'r-' + d.id"
+                                    :value="d.id"
+                                    :title="$parent.formatDatasetOption(d)"
+                                >
+                                    {{ $parent.formatDatasetOption(d) }}
                                 </option>
                             </select>
                         </label>
@@ -109,14 +119,24 @@
                                     <h3>{{ $parent.leftLabel }}</h3>
                                     <span>{{ $parent.leftCountLabel }}</span>
                                 </div>
-                                <canvas ref="leftUmap"></canvas>
+                                <download-chart
+                                    class="download"
+                                    chartId="sc-left-umap-canvas"
+                                    :filename="`${$parent.slug($parent.leftLabel)}_umap`"
+                                ></download-chart>
+                                <canvas id="sc-left-umap-canvas" ref="leftUmap"></canvas>
                             </article>
                             <article class="col-md-6 panel">
                                 <div class="panel-title">
                                     <h3>{{ $parent.rightLabel }}</h3>
                                     <span>{{ $parent.rightCountLabel }}</span>
                                 </div>
-                                <canvas ref="rightUmap"></canvas>
+                                <download-chart
+                                    class="download"
+                                    chartId="sc-right-umap-canvas"
+                                    :filename="`${$parent.slug($parent.rightLabel)}_umap`"
+                                ></download-chart>
+                                <canvas id="sc-right-umap-canvas" ref="rightUmap"></canvas>
                             </article>
                         </div>
                         <div class="legend-row">
@@ -165,11 +185,16 @@
                                     <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
                                     <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
                                 </div>
+                                <download-chart
+                                    class="download"
+                                    chartId="sc-gene-plot-canvas"
+                                    :filename="`${$parent.slug($parent.selectedGene)}_expression_by_celltype`"
+                                ></download-chart>
                             </div>
                             <div class="plot-status" v-if="$parent.geneStatusDisplay">
                                 {{ $parent.geneStatusDisplay }}
                             </div>
-                            <canvas ref="genePlot"></canvas>
+                            <canvas id="sc-gene-plot-canvas" ref="genePlot"></canvas>
                         </div>
                         <div class="row paired-tables">
                             <article class="col-md-6 table-card">
@@ -177,48 +202,64 @@
                                 <div v-if="!$parent.leftGeneTableRows.length" class="empty-state">
                                     No rows available.
                                 </div>
-                                <table v-else>
-                                    <thead>
-                                        <tr>
-                                            <th>Cell type</th>
-                                            <th class="numeric">Avg</th>
-                                            <th class="numeric">% expr</th>
-                                            <th class="numeric">n</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="row in $parent.leftGeneTableRows" :key="row.label">
-                                            <td>{{ row.label }}</td>
-                                            <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
-                                            <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                            <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <template v-else>
+                                    <div class="table-toolbar">
+                                        <data-download
+                                            :data="$parent.leftGeneTableCsvRows"
+                                            :filename="`${$parent.slug($parent.leftLabel)}_gene_expression_by_celltype`"
+                                        ></data-download>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Cell type</th>
+                                                <th class="numeric">Avg</th>
+                                                <th class="numeric">% expr</th>
+                                                <th class="numeric">n</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="row in $parent.leftGeneTableRows" :key="row.label">
+                                                <td>{{ row.label }}</td>
+                                                <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
+                                                <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
+                                                <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </template>
                             </article>
                             <article class="col-md-6 table-card">
                                 <h3>{{ $parent.rightLabel }} summaries</h3>
                                 <div v-if="!$parent.rightGeneTableRows.length" class="empty-state">
                                     No rows available.
                                 </div>
-                                <table v-else>
-                                    <thead>
-                                        <tr>
-                                            <th>Cell type</th>
-                                            <th class="numeric">Avg</th>
-                                            <th class="numeric">% expr</th>
-                                            <th class="numeric">n</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="row in $parent.rightGeneTableRows" :key="row.label">
-                                            <td>{{ row.label }}</td>
-                                            <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
-                                            <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                            <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <template v-else>
+                                    <div class="table-toolbar">
+                                        <data-download
+                                            :data="$parent.rightGeneTableCsvRows"
+                                            :filename="`${$parent.slug($parent.rightLabel)}_gene_expression_by_celltype`"
+                                        ></data-download>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Cell type</th>
+                                                <th class="numeric">Avg</th>
+                                                <th class="numeric">% expr</th>
+                                                <th class="numeric">n</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="row in $parent.rightGeneTableRows" :key="row.label">
+                                                <td>{{ row.label }}</td>
+                                                <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
+                                                <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
+                                                <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </template>
                             </article>
                         </div>
                     </div>
@@ -245,11 +286,16 @@
                                     <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
                                     <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
                                 </div>
+                                <download-chart
+                                    class="download"
+                                    chartId="sc-cell-type-plot-canvas"
+                                    :filename="`${$parent.slug($parent.cellTypeModel)}_marker_genes`"
+                                ></download-chart>
                             </div>
                             <div class="plot-status" v-if="$parent.cellTypeStatusDisplay">
                                 {{ $parent.cellTypeStatusDisplay }}
                             </div>
-                            <canvas ref="cellTypePlot"></canvas>
+                            <canvas id="sc-cell-type-plot-canvas" ref="cellTypePlot"></canvas>
                         </div>
                         <p class="caption panel-note">
                             Scoped to the top {{ $parent.genePanelCount }} marker genes
@@ -264,48 +310,68 @@
                                 <div v-if="!$parent.leftCellTypeTableRows.length" class="empty-state">
                                     No rows available.
                                 </div>
-                                <table v-else>
-                                    <thead>
-                                        <tr>
-                                            <th>Gene</th>
-                                            <th class="numeric">Avg</th>
-                                            <th class="numeric">% expr</th>
-                                            <th class="numeric">n</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="row in $parent.leftCellTypeTableRows" :key="row.label">
-                                            <td>{{ row.label }}</td>
-                                            <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
-                                            <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                            <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <template v-else>
+                                    <div class="table-toolbar">
+                                        <data-download
+                                            :data="$parent.leftCellTypeTableCsvRows"
+                                            :filename="`${$parent.slug($parent.leftLabel)}_${$parent.slug($parent.cellTypeModel)}_marker_genes`"
+                                        ></data-download>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Gene</th>
+                                                <th class="numeric">Adj. p-value</th>
+                                                <th class="numeric">Log fold change</th>
+                                                <th class="numeric">% cell expr</th>
+                                                <th class="numeric">Mean expr (scaled)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="row in $parent.leftCellTypeTableRows" :key="row.label">
+                                                <td>{{ row.label }}</td>
+                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
+                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
+                                                <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
+                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </template>
                             </article>
                             <article class="col-md-6 table-card">
                                 <h3>{{ $parent.rightLabel }} summaries</h3>
                                 <div v-if="!$parent.rightCellTypeTableRows.length" class="empty-state">
                                     No rows available.
                                 </div>
-                                <table v-else>
-                                    <thead>
-                                        <tr>
-                                            <th>Gene</th>
-                                            <th class="numeric">Avg</th>
-                                            <th class="numeric">% expr</th>
-                                            <th class="numeric">n</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="row in $parent.rightCellTypeTableRows" :key="row.label">
-                                            <td>{{ row.label }}</td>
-                                            <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
-                                            <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                            <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <template v-else>
+                                    <div class="table-toolbar">
+                                        <data-download
+                                            :data="$parent.rightCellTypeTableCsvRows"
+                                            :filename="`${$parent.slug($parent.rightLabel)}_${$parent.slug($parent.cellTypeModel)}_marker_genes`"
+                                        ></data-download>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Gene</th>
+                                                <th class="numeric">Adj. p-value</th>
+                                                <th class="numeric">Log fold change</th>
+                                                <th class="numeric">% cell expr</th>
+                                                <th class="numeric">Mean expr (scaled)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="row in $parent.rightCellTypeTableRows" :key="row.label">
+                                                <td>{{ row.label }}</td>
+                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
+                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
+                                                <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
+                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </template>
                             </article>
                         </div>
                     </div>
@@ -544,6 +610,18 @@
 
 .mskkp-sc-compare tr:last-child td {
     border-bottom: 0;
+}
+
+.mskkp-sc-compare .panel-title .download-chart,
+.mskkp-sc-compare .plot-title .download-chart {
+    margin-bottom: 0;
+    float: none;
+}
+
+.mskkp-sc-compare .table-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 11px 0;
 }
 
 .mskkp-sc-compare .empty-state {
