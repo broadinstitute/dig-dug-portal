@@ -219,6 +219,10 @@ import {
     defaultCanvasHandoffFilename,
     buildCanvasOpenUrl,
 } from "@/components/researchPortal/customComponents/revealScope/scopeCanvasHandoff.js";
+import {
+    consumeGapKgHandoff,
+    takeGapKgHandoffTokenFromUrl,
+} from "@/components/researchPortal/customComponents/revealScope/scopeGapKgHandoff.js";
 
 export default Vue.component("reveal-scope", {
     components: {
@@ -285,7 +289,9 @@ export default Vue.component("reveal-scope", {
             progressSteps: [],
         };
     },
-    mounted: function () {},
+    mounted: function () {
+        this.consumeGapKgHandoffIfPresent();
+    },
     computed: {
         isEvaluateDone() {
             return Boolean(this.cachedEvaluation);
@@ -461,6 +467,20 @@ export default Vue.component("reveal-scope", {
     },
     watch: {},
     methods: {
+        consumeGapKgHandoffIfPresent() {
+            const token = takeGapKgHandoffTokenFromUrl();
+            const handoff = consumeGapKgHandoff(token);
+            if (!handoff || handoff.action !== "searchCfdeKg") {
+                return;
+            }
+            this.welcomeOpen = false;
+            this.activeHypothesisText = handoff.hypothesisText;
+            this.gapInputMode = "freeText";
+            this.gapSelectedEntities = [];
+            this.$nextTick(() => {
+                this.runSearchCfdeKgFromWelcome();
+            });
+        },
         onMenuAction(payload) {
             if (payload.menu === "session" && payload.action === "resetSession") {
                 this.welcomeInitialTab = "start";

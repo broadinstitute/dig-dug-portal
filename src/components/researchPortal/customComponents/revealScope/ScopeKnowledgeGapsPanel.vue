@@ -224,6 +224,13 @@
                                     >
                                         Draft a claim
                                     </button>
+                                    <button
+                                        type="button"
+                                        class="scp-gaps-action-btn"
+                                        @click="searchCfdeKgFromGap(gap)"
+                                    >
+                                        Search CFDE KG
+                                    </button>
                                 </div>
                             </div>
 
@@ -253,10 +260,48 @@
                                         :key="anchor.sourceId || `${gap.id}:${aIndex}`"
                                         class="scp-gaps-factor-card"
                                     >
-                                        <p class="scp-gaps-factor-label">{{ formatFactorLabel(anchor.label) }}</p>
-                                        <p v-if="anchor.subtitle" class="scp-gaps-factor-sub">
-                                            {{ anchor.subtitle }}
-                                        </p>
+                                        <div class="scp-gaps-factor-card-head">
+                                            <div class="scp-gaps-factor-card-text">
+                                                <p class="scp-gaps-factor-label">{{ formatFactorLabel(anchor.label) }}</p>
+                                                <p v-if="anchor.subtitle" class="scp-gaps-factor-sub">
+                                                    {{ anchor.subtitle }}
+                                                </p>
+                                            </div>
+                                            <div class="scp-gaps-factor-menu">
+                                                <button
+                                                    type="button"
+                                                    class="scp-gaps-factor-menu-btn"
+                                                    :aria-expanded="isFactorMenuOpen(factorMenuKey(gap, aIndex, anchor)) ? 'true' : 'false'"
+                                                    aria-haspopup="menu"
+                                                    :aria-label="`Options for ${anchor.label || 'factor'}`"
+                                                    @click.stop="toggleFactorMenu(factorMenuKey(gap, aIndex, anchor))"
+                                                >
+                                                    <span class="scp-gaps-factor-menu-dots" aria-hidden="true">⋮</span>
+                                                </button>
+                                                <div
+                                                    v-if="isFactorMenuOpen(factorMenuKey(gap, aIndex, anchor))"
+                                                    class="scp-gaps-factor-menu-dropdown"
+                                                    role="menu"
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        class="scp-gaps-factor-menu-item"
+                                                        role="menuitem"
+                                                        @click.stop="onFactorMenuAction('inspect', anchor)"
+                                                    >
+                                                        Inspect factor
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        class="scp-gaps-factor-menu-item"
+                                                        role="menuitem"
+                                                        @click.stop="onFactorMenuAction('openCanvas', anchor)"
+                                                    >
+                                                        Open in REVEAL Canvas
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </article>
                                 </div>
                                 <p v-else class="scp-gaps-factors-status">
@@ -279,6 +324,10 @@
 
 <script>
 import { suggestMechanismAnchors } from "@/components/researchPortal/customComponents/revealScope/scopeMechanismSuggest.js";
+import {
+    buildGapSearchText,
+    openGapKgSearchInNewTab,
+} from "@/components/researchPortal/customComponents/revealScope/scopeGapKgHandoff.js";
 
 export default {
     name: "ScopeKnowledgeGapsPanel",
@@ -304,6 +353,7 @@ export default {
             activeCategoryId: null,
             /** @type {Record<string, { loading: boolean, error: string|null, anchors: object[] }>} */
             factorByGapKey: {},
+            openFactorMenuKey: null,
         };
     },
     watch: {
@@ -312,6 +362,7 @@ export default {
             handler(groups) {
                 this.openSections = {};
                 this.factorByGapKey = {};
+                this.openFactorMenuKey = null;
                 if (!Array.isArray(groups) || !groups.length) {
                     this.activeCategoryId = null;
                     return;
@@ -322,6 +373,12 @@ export default {
                 }
             },
         },
+    },
+    mounted() {
+        document.addEventListener("click", this.onDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener("click", this.onDocumentClick);
     },
     computed: {
         showCategoryTabs() {
@@ -396,6 +453,30 @@ export default {
                 return "";
             }
             return label.replace(/_/g, "_\u200B");
+        },
+        factorMenuKey(gap, aIndex, anchor) {
+            return (anchor && anchor.sourceId) || `${(gap && gap.id) || "gap"}:${aIndex}`;
+        },
+        isFactorMenuOpen(key) {
+            return this.openFactorMenuKey === key;
+        },
+        toggleFactorMenu(key) {
+            this.openFactorMenuKey = this.openFactorMenuKey === key ? null : key;
+        },
+        onDocumentClick() {
+            this.openFactorMenuKey = null;
+        },
+        onFactorMenuAction(_actionId, _anchor) {
+            // Placeholder — Inspect factor / Open in REVEAL Canvas wired later.
+            this.openFactorMenuKey = null;
+        },
+        searchCfdeKgFromGap(gap) {
+            const hypothesisText = buildGapSearchText(gap);
+            if (!hypothesisText) {
+                return;
+            }
+            openGapKgSearchInNewTab(hypothesisText);
+            this.$emit("search-cfde-kg", { hypothesisText, gap });
         },
         async findSupportingFactors(gap, key) {
             if (!gap || !key || this.isFactorLoading(key)) {
@@ -730,17 +811,29 @@ export default {
     min-width: 0;
     box-sizing: border-box;
     padding: 8px 10px;
-    border: 1px solid #e2e5eb;
+    border: 1px solid rgba(224, 123, 57, 0.35);
     border-radius: 8px;
-    background: #fafbfc;
-    overflow: hidden;
+    background: rgba(224, 123, 57, 0.12);
+    overflow: visible;
+    position: relative;
+}
+
+.scp-gaps-factor-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.scp-gaps-factor-card-text {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .scp-gaps-factor-label {
     margin: 0;
     font-size: 13px;
     font-weight: 600;
-    color: #1e222a;
+    color: #c45f1f;
     line-height: 1.35;
     overflow-wrap: anywhere;
     word-break: break-word;
@@ -749,8 +842,75 @@ export default {
 .scp-gaps-factor-sub {
     margin: 2px 0 0;
     font-size: 12px;
-    color: #6a7080;
+    color: #a3521a;
     line-height: 1.35;
+    opacity: 0.85;
+}
+
+.scp-gaps-factor-menu {
+    flex: 0 0 auto;
+    position: relative;
+}
+
+.scp-gaps-factor-menu-btn {
+    margin: 0;
+    padding: 0;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #c45f1f;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.scp-gaps-factor-menu-btn:hover {
+    background: rgba(224, 123, 57, 0.2);
+    color: #a3521a;
+}
+
+.scp-gaps-factor-menu-dots {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.scp-gaps-factor-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 20;
+    min-width: 180px;
+    margin-top: 2px;
+    padding: 4px;
+    background: #fff;
+    border: 1px solid #d5d9e1;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(20, 22, 30, 0.12);
+}
+
+.scp-gaps-factor-menu-item {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #1e222a;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.scp-gaps-factor-menu-item:hover {
+    background: #f5f8fc;
+    color: #2c5c97;
 }
 
 .scp-gaps-disclosure {
