@@ -213,19 +213,17 @@
                                         <thead>
                                             <tr>
                                                 <th>Cell type</th>
-                                                <th class="numeric">Adj. p-value</th>
-                                                <th class="numeric">Log fold change</th>
-                                                <th class="numeric">% cell expr</th>
-                                                <th class="numeric">Mean expr (scaled)</th>
+                                                <th class="numeric">Avg</th>
+                                                <th class="numeric">% expr</th>
+                                                <th class="numeric">n</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr v-for="row in $parent.leftGeneTableRows" :key="row.label">
                                                 <td>{{ row.label }}</td>
-                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
-                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
+                                                <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
                                                 <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
+                                                <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -247,19 +245,17 @@
                                         <thead>
                                             <tr>
                                                 <th>Cell type</th>
-                                                <th class="numeric">Adj. p-value</th>
-                                                <th class="numeric">Log fold change</th>
-                                                <th class="numeric">% cell expr</th>
-                                                <th class="numeric">Mean expr (scaled)</th>
+                                                <th class="numeric">Avg</th>
+                                                <th class="numeric">% expr</th>
+                                                <th class="numeric">n</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr v-for="row in $parent.rightGeneTableRows" :key="row.label">
                                                 <td>{{ row.label }}</td>
-                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
-                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
+                                                <td class="numeric">{{ $parent.formatNumber(row.summary.avg_expression) }}</td>
                                                 <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
+                                                <td class="numeric">{{ $parent.formatInteger(row.summary.n) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -301,13 +297,13 @@
                             </div>
                             <canvas id="sc-cell-type-plot-canvas" ref="cellTypePlot"></canvas>
                         </div>
-                        <p class="caption panel-note">
+                        <!-- <p class="caption panel-note">
                             Scoped to the top {{ $parent.genePanelCount }} marker genes
                             <template v-if="$store.state.usingLiveGenePanel">auto-loaded live from each dataset's own marker_genes file</template>
                             <template v-else>from a fallback list (neither dataset has a live marker-gene file)</template>
                             - not the whole genome, see the comments in
                             <code>src/views/SingleCellCompare/store.js</code> for why.
-                        </p>
+                        </p> -->
                         <div class="row paired-tables">
                             <article class="col-md-6 table-card">
                                 <h3>{{ $parent.leftLabel }} summaries</h3>
