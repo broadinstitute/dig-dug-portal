@@ -448,10 +448,21 @@
 .mskkp-sc-compare .plot-card,
 .mskkp-sc-compare .table-card {
     min-width: 0;
-    border: 1px solid #dbe4df;
     border-radius: 8px;
     background: #fff;
     overflow: hidden;
+}
+
+.mskkp-sc-compare .panel,
+.mskkp-sc-compare .table-card {
+    border: 1px solid #dbe4df;
+}
+
+/* The two overlay-legend charts (Gene Comparison's violin chart and Cell-Type
+   Comparison's scatter chart) no longer have a bordered card around them - just the
+   canvas with its legend/download overlay. */
+.mskkp-sc-compare .plot-card {
+    border: none;
 }
 
 .mskkp-sc-compare .panel {
