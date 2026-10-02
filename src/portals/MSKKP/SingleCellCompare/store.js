@@ -169,8 +169,15 @@ function primaryCellTypeKey(fields) {
 }
 
 // Key used to look up a single marker_genes.json.gz row by cell type + gene.
+// Gene is uppercased on both the indexing side (buildMarkerRowIndex, keyed off
+// the file's own row.gene) and the lookup side (cellTypeMarkerSummary, keyed off
+// whatever case the user typed/selected) so a case difference between the two -
+// e.g. typing "Cxcl12" while the marker file stores "CXCL12" - doesn't silently
+// miss every row for that gene and fall back to "-" for log fold change/adj.
+// p-value/mean expr scaled everywhere, while avg expression/pct still populate
+// via the separate expression-query path (which isn't case-sensitive the same way).
 function markerRowKey(cellType, gene) {
-    return `${cellType}||${gene}`;
+    return `${cellType}||${String(gene || "").toUpperCase()}`;
 }
 
 // Some datasets ship the newer marker schema (mean_expression, pct_nz_group) instead
@@ -796,10 +803,23 @@ export default new Vuex.Store({
             const leftMarkers = state.markerRowsCache[leftId];
             const rightMarkers = state.markerRowsCache[rightId];
 
+            // Fetched once per dataset, up front, rather than letting each cell type's
+            // cellTypeMarkerSummary call dispatch its own ensureGeneRows: ensureGeneRows
+            // only caches completed fetches, not in-flight ones, and every cell type
+            // here shares the same datasetId+gene cache key - so without this, every
+            // cell type missing a marker row (the common case for an arbitrary gene)
+            // would fire its own concurrent, identical BioIndex expression request
+            // instead of reusing one.
+            const [leftExpressionRows, rightExpressionRows] = await Promise.all([
+                context.dispatch("ensureGeneRows", { datasetId: leftId, gene: targetGene, includeValues: false }),
+                context.dispatch("ensureGeneRows", { datasetId: rightId, gene: targetGene, includeValues: false }),
+            ]);
+            if (request !== state.geneMarkerComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
+
             const results = await Promise.all(unionCellTypes.map(async (cellType) => {
                 const [leftSummary, rightSummary] = await Promise.all([
-                    context.dispatch("cellTypeMarkerSummary", { datasetId: leftId, gene: targetGene, cellType, markers: leftMarkers, allowExpressionFallback: true }),
-                    context.dispatch("cellTypeMarkerSummary", { datasetId: rightId, gene: targetGene, cellType, markers: rightMarkers, allowExpressionFallback: true }),
+                    context.dispatch("cellTypeMarkerSummary", { datasetId: leftId, gene: targetGene, cellType, markers: leftMarkers, allowExpressionFallback: true, expressionRows: leftExpressionRows }),
+                    context.dispatch("cellTypeMarkerSummary", { datasetId: rightId, gene: targetGene, cellType, markers: rightMarkers, allowExpressionFallback: true, expressionRows: rightExpressionRows }),
                 ]);
                 if (!leftSummary && !rightSummary) return null;
                 return {
@@ -832,7 +852,15 @@ export default new Vuex.Store({
         // shows every cell type that has cells for this gene - just with "-" for the
         // marker-only columns (log fold change / adj. p-value / mean expr scaled)
         // since those have no meaning outside the marker file.
-        async cellTypeMarkerSummary(context, { datasetId, gene, cellType, markers, allowExpressionFallback = false }) {
+        // `expressionRows`, when passed, is a pre-fetched ensureGeneRows() result for
+        // this exact datasetId+gene (see loadGeneMarkerComparison, which fetches it
+        // once per dataset before calling this per cell type - fetching it here
+        // instead, once per cell type, would fire that many concurrent, identical
+        // BioIndex expression requests, since ensureGeneRows only dedupes completed
+        // fetches, not in-flight ones). When omitted, this falls back to dispatching
+        // ensureGeneRows itself, for callers (loadCellTypeComparison) that only ever
+        // need it for one cell type at a time.
+        async cellTypeMarkerSummary(context, { datasetId, gene, cellType, markers, allowExpressionFallback = false, expressionRows }) {
             const row = markers ? markers.byKey.get(markerRowKey(cellType, gene)) : null;
             if (row) {
                 return markerRowSummary(row, markers.geneRanges, markers.pctScaleAdjust);
@@ -844,7 +872,9 @@ export default new Vuex.Store({
                 return null;
             }
 
-            const rows = await context.dispatch("ensureGeneRows", { datasetId, gene, includeValues: false });
+            const rows = expressionRows !== undefined
+                ? expressionRows
+                : await context.dispatch("ensureGeneRows", { datasetId, gene, includeValues: false });
             const match = rows && rows.find((r) => r.cell_type === cellType);
             if (!match) return null;
             return {
@@ -867,7 +897,15 @@ export default new Vuex.Store({
             const request = ++state.cellTypeComparisonRequest;
             const [leftId, rightId] = [state.leftId, state.rightId];
             const targetCellType = cellType || state.selectedCellType;
-            if (!targetCellType) return;
+            if (!targetCellType) {
+                // No common cell type between the two selected datasets (state.cellTypes
+                // is empty, so refreshCellTypes left selectedCellType null) - clear any
+                // comparison left over from a previous, compatible pair instead of
+                // leaving it on screen under the newly selected dataset names.
+                state.cellTypeComparison = null;
+                state.cellTypeStatus = "The selected datasets have no cell types in common.";
+                return;
+            }
             state.selectedCellType = targetCellType;
             state.cellTypeStatus = "Loading";
 
