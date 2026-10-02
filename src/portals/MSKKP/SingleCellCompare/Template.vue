@@ -109,8 +109,7 @@
                         <div class="section-heading">
                             <h4 id="sc-overview-title" class="card-title">Dataset Overview</h4>
                             <p class="caption">
-                                Display-sampled UMAP coordinates colored by cell type,
-                                fetched live per dataset.
+                                Display-sampled UMAP coordinates colored by cell type, fetched live per dataset. Gray-colored cells are those that are not common between the two selected datasets.
                             </p>
                         </div>
                         <div class="row paired-panels">
@@ -139,7 +138,7 @@
                                 <canvas id="sc-right-umap-canvas" ref="rightUmap"></canvas>
                             </article>
                         </div>
-                        <div class="legend-row">
+                        <div v-if="$parent.cellTypes.length" class="legend-row">
                             <span class="legend-item" v-for="ct in $parent.cellTypes" :key="ct">
                                 <span
                                     class="swatch"
@@ -148,6 +147,9 @@
                                 {{ $parent.formatLabel(ct) }}
                             </span>
                         </div>
+                        <p v-else class="caption no-common-cell-types">
+                            There are no common cell types between these two datasets.
+                        </p>
                     </div>
                 </div>
 
@@ -558,6 +560,14 @@
 
 .mskkp-sc-compare .legend-row {
     margin-top: 14px;
+}
+
+.mskkp-sc-compare .no-common-cell-types {
+    max-width: none;
+    margin: 14px 0 0;
+    text-align: left;
+    color: #63706b;
+    font-style: italic;
 }
 
 .mskkp-sc-compare .dataset-key span,

@@ -330,11 +330,15 @@ export function renderScatterPlot(canvas, points, xLabel, yLabel) {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = "#345c5f";
-    ctx.globalAlpha = 0.34;
+    // Color each gene by whichever dataset expresses it more strongly, using the
+    // same left/right colors as the dataset-key chips above this chart (and the
+    // violin plot's PAIR_COLORS) - a flat, unrelated color read as "black" at this
+    // dot size/alpha and gave no visual tie to the left/right legend at all.
+    ctx.globalAlpha = 0.5;
     available.forEach((point) => {
         const x = scale(point.x, 0, maxValue, margins.left, margins.left + plotWidth);
         const y = scale(point.y, 0, maxValue, margins.top + plotHeight, margins.top);
+        ctx.fillStyle = point.x >= point.y ? PAIR_COLORS.left : PAIR_COLORS.right;
         ctx.beginPath();
         ctx.arc(x, y, 2.1, 0, Math.PI * 2);
         ctx.fill();
@@ -343,15 +347,16 @@ export function renderScatterPlot(canvas, points, xLabel, yLabel) {
 
     const labeled = [...available].sort((a, b) => Math.max(b.x, b.y) - Math.max(a.x, a.y)).slice(0, 12);
     ctx.font = "10.5px Inter, sans-serif";
-    ctx.fillStyle = "#33423d";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     labeled.forEach((point) => {
         const x = scale(point.x, 0, maxValue, margins.left, margins.left + plotWidth);
         const y = scale(point.y, 0, maxValue, margins.top + plotHeight, margins.top);
+        ctx.fillStyle = point.x >= point.y ? PAIR_COLORS.left : PAIR_COLORS.right;
         ctx.beginPath();
         ctx.arc(x, y, 3.1, 0, Math.PI * 2);
         ctx.fill();
+        ctx.fillStyle = "#33423d";
         ctx.fillText(truncate(point.label, 14), Math.min(x + 5, margins.left + plotWidth - 54), y);
     });
     return "";
