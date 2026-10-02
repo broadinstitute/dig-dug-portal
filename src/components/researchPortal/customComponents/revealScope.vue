@@ -33,7 +33,7 @@
                         :aria-selected="evaluateContentTab === 'evaluation' ? 'true' : 'false'"
                         @click="evaluateContentTab = 'evaluation'"
                     >
-                        Evaluation
+                        {{ evaluationTabLabel }}
                     </button>
                     <button
                         v-if="hasKgContent"
@@ -95,6 +95,7 @@
                 <ScopeEvaluationPanel
                     v-if="showEvaluationTab"
                     v-show="!showContentTabs || evaluateContentTab === 'evaluation'"
+                    :key="evaluationPanelKey"
                     :hypothesis-text="activeHypothesisText"
                     :preloaded-evaluation="pendingImportedEvaluation"
                     @evaluated="onEvaluated"
@@ -107,8 +108,6 @@
                     :blocked-reason="kgEvidenceBlockedReason"
                     :relevance-loading="kgRelevanceLoading"
                     :network-graph="kgNetworkGraph"
-                    :gap-group-results="kgEmbeddedGapResults"
-                    :gap-blocked-reason="kgEmbeddedGapBlockedReason"
                 />
                 <ScopeBiomarkerEvidenceTable
                     v-if="hasBiomarkerContent"
@@ -201,7 +200,10 @@ import {
     searchKnowledgeGaps,
     summarizeGapHit,
 } from "@/components/researchPortal/customComponents/revealScope/scopeKnowledgeGapSearch.js";
-import { extractKgSearchEntities } from "@/components/researchPortal/customComponents/revealScope/scopeKgEntityExtract.js";
+import {
+    extractHypothesisEvaluation,
+    INPUT_KIND_FREE_TEXT,
+} from "@/components/researchPortal/customComponents/revealScope/scopeHypothesisEvaluation.js";
 import {
     findKgEvidenceByGene,
     findKgEvidenceByFactor,
@@ -213,6 +215,7 @@ import {
     parseSessionImport,
 } from "@/components/researchPortal/customComponents/revealScope/scopeSessionFile.js";
 import { buildDesignHandoffUrl } from "@/components/researchPortal/customComponents/revealScope/scopeDesignHandoff.js";
+import { buildWorkflowHandoffUrl } from "@/components/researchPortal/customComponents/revealScope/scopeWorkflowHandoff.js";
 import {
     toCanvasHandoff,
     saveCanvasHandoffFile,
@@ -277,11 +280,10 @@ export default Vue.component("reveal-scope", {
             knowledgeGapTermsBlockedReason: null,
             knowledgeGapGroupResults: null,
             knowledgeGapBlockedReason: null,
-            kgEmbeddedGapResults: null,
-            kgEmbeddedGapBlockedReason: null,
             gapInputMode: "freeText",
             gapSelectedEntities: [],
             evaluateContentTab: "evaluation",
+            evaluationPanelKey: 0,
             actionsPopupDismissed: false,
             actionsPanelForcedOpen: false,
             actionsPanelInitialTab: "next",
@@ -323,7 +325,8 @@ export default Vue.component("reveal-scope", {
                     action.id === "classifyKgRelevance" ||
                     action.id === "classifyBiomarkerRelevance" ||
                     action.id === "exportCfdeKgForCanvas" ||
-                    action.id === "openRevealCanvas"
+                    action.id === "openRevealCanvas" ||
+                    action.id === "developIdeaToHypothesis"
                 ) {
                     return false;
                 }
@@ -380,14 +383,37 @@ export default Vue.component("reveal-scope", {
                     list.unshift(openCanvasAction);
                 }
             }
+            if (
+                typeof this.activeHypothesisText === "string" &&
+                this.activeHypothesisText.trim()
+            ) {
+                const developAction = ACTION_CATALOG.find(
+                    (action) => action.id === "developIdeaToHypothesis"
+                );
+                if (developAction) {
+                    list.unshift(developAction);
+                }
+            }
             return list;
         },
         hasMissingSlots() {
+            // Free-text CFDE KG parses may omit perturbation/etc. but still search — do not block Actions.
+            if (
+                this.cachedEvaluation &&
+                this.cachedEvaluation.inputKind === INPUT_KIND_FREE_TEXT
+            ) {
+                return false;
+            }
             return Boolean(
                 this.cachedEvaluation &&
                     this.cachedEvaluation.missingRequiredSlots &&
                     this.cachedEvaluation.missingRequiredSlots.length
             );
+        },
+        evaluationTabLabel() {
+            return this.cachedEvaluation && this.cachedEvaluation.inputKind === INPUT_KIND_FREE_TEXT
+                ? "Parsed terms"
+                : "Evaluation";
         },
         hasKgContent() {
             return Boolean(this.kgEvidence || this.kgEvidenceBlockedReason);
@@ -416,16 +442,9 @@ export default Vue.component("reveal-scope", {
         hasKnowledgeGapContent() {
             return Boolean(this.knowledgeGapGroupResults || this.knowledgeGapBlockedReason);
         },
-        hasKgEmbeddedGaps() {
-            return Boolean(this.kgEmbeddedGapResults || this.kgEmbeddedGapBlockedReason);
-        },
         canRunDisMechGapSearch() {
             if (!(this.isEvaluateDone || this.hasKgContent)) {
                 return false;
-            }
-            // Prefer embedding under CFDE KG when that tab exists.
-            if (this.hasKgContent) {
-                return !this.hasKgEmbeddedGaps;
             }
             return !this.hasKnowledgeGapContent;
         },
@@ -505,8 +524,6 @@ export default Vue.component("reveal-scope", {
                 this.knowledgeGapTermsBlockedReason = null;
                 this.knowledgeGapGroupResults = null;
                 this.knowledgeGapBlockedReason = null;
-                this.kgEmbeddedGapResults = null;
-                this.kgEmbeddedGapBlockedReason = null;
                 this.gapInputMode = "freeText";
                 this.gapSelectedEntities = [];
                 this.evaluateContentTab = "evaluation";
@@ -555,8 +572,6 @@ export default Vue.component("reveal-scope", {
                 this.knowledgeGapTermsBlockedReason = null;
                 this.knowledgeGapGroupResults = null;
                 this.knowledgeGapBlockedReason = null;
-                this.kgEmbeddedGapResults = null;
-                this.kgEmbeddedGapBlockedReason = null;
             }
             this.activeHypothesisText = payload.hypothesisText;
             this.gapInputMode = payload.inputMode === "entities" ? "entities" : "freeText";
@@ -611,6 +626,10 @@ export default Vue.component("reveal-scope", {
                 this.openDesignExperimentProtocol();
                 return;
             }
+            if (actionId === "developIdeaToHypothesis") {
+                this.openDevelopIdeaToHypothesis();
+                return;
+            }
             if (actionId === "exportCfdeKgForCanvas") {
                 this.exportCfdeKgForCanvas();
                 return;
@@ -631,6 +650,17 @@ export default Vue.component("reveal-scope", {
                 hypothesisText: this.activeHypothesisText,
                 evaluation: this.cachedEvaluation,
             });
+            window.open(url, "_blank", "noopener");
+        },
+        openDevelopIdeaToHypothesis() {
+            const text =
+                typeof this.activeHypothesisText === "string"
+                    ? this.activeHypothesisText.trim()
+                    : "";
+            if (!text) {
+                return;
+            }
+            const url = buildWorkflowHandoffUrl({ hypothesisText: text });
             window.open(url, "_blank", "noopener");
         },
         async exportCfdeKgForCanvas() {
@@ -910,8 +940,8 @@ export default Vue.component("reveal-scope", {
         },
         /**
          * Actions-panel path after Evaluate and/or CFDE KG.
-         * With CFDE KG: embed under KG tab (no Gaps tab).
-         * Evaluate only: Gaps tab, keep Evaluation, no Search terms tab.
+         * Always opens a Knowledge gaps tab (alongside CFDE KG when present).
+         * Does not create the Search terms tab.
          */
         async runDisMechGapSearchFromAction() {
             if (!this.canRunDisMechGapSearch) {
@@ -923,30 +953,15 @@ export default Vue.component("reveal-scope", {
             this.actionsPanelForcedOpen = false;
             this.actionsPanelInitialTab = "next";
 
-            const embedUnderKg = this.hasKgContent;
-            if (embedUnderKg) {
-                this.kgEmbeddedGapResults = null;
-                this.kgEmbeddedGapBlockedReason = null;
-                this.evaluateContentTab = "kg";
-            } else {
-                this.knowledgeGapGroupResults = null;
-                this.knowledgeGapBlockedReason = null;
-                // Do not touch / create Search terms tab.
-                this.evaluateContentTab = "gaps";
-            }
+            this.knowledgeGapGroupResults = null;
+            this.knowledgeGapBlockedReason = null;
+            this.evaluateContentTab = "gaps";
 
             const result = await this.collectDisMechGapSearchResults();
-            if (embedUnderKg) {
-                this.kgEmbeddedGapResults = result.groupResults;
-                this.kgEmbeddedGapBlockedReason =
-                    result.blockedReason || result.termsBlockedReason || null;
-                this.evaluateContentTab = "kg";
-            } else {
-                this.knowledgeGapGroupResults = result.groupResults;
-                this.knowledgeGapBlockedReason =
-                    result.blockedReason || result.termsBlockedReason || null;
-                this.evaluateContentTab = "gaps";
-            }
+            this.knowledgeGapGroupResults = result.groupResults;
+            this.knowledgeGapBlockedReason =
+                result.blockedReason || result.termsBlockedReason || null;
+            this.evaluateContentTab = "gaps";
         },
         onCloseActionsPanel() {
             this.actionsPopupDismissed = true;
@@ -1026,8 +1041,8 @@ export default Vue.component("reveal-scope", {
         },
         /**
          * Welcome "Search CFDE KG":
-         * - single gene/mechanism → neighborhood (no LLM extract)
-         * - free text / multi → KG entity extract, then full or neighborhood search
+         * - single gene/mechanism → neighborhood (no LLM)
+         * - free text / multi → classify+evaluate (or parse slots), then KG search
          */
         async runSearchCfdeKgFromWelcome() {
             this.hasGeneratedContent = true;
@@ -1078,7 +1093,10 @@ export default Vue.component("reveal-scope", {
                 }
 
                 this.beginProgress([
-                    { id: "extractEntities", label: "Extracting gene and mechanism/outcome for CFDE KG." },
+                    {
+                        id: "classifyParse",
+                        label: "Classifying input and extracting CFDE KG search terms.",
+                    },
                     {
                         id: "resolveFactors",
                         label: "Finding the top 25 mechanism candidates for the outcome.",
@@ -1088,11 +1106,35 @@ export default Vue.component("reveal-scope", {
                     { id: "buildNetwork", label: "Building the Gene / Gene set / Factor / Trait network." },
                 ]);
 
-                const { target, outcome, extractError } = await extractKgSearchEntities(
-                    this.activeHypothesisText
-                );
-                this.setStepStatus("extractEntities", "done");
+                let evaluation;
+                try {
+                    evaluation = await extractHypothesisEvaluation(this.activeHypothesisText, {
+                        classifyInput: true,
+                    });
+                } catch (error) {
+                    // eslint-disable-next-line no-console
+                    console.warn("[reveal-scope] CFDE KG classify/parse failed", error);
+                    this.setStepStatus("classifyParse", "error");
+                    this.kgEvidenceBlockedReason =
+                        "Couldn't parse the input for CFDE KG search. Edit it and try again.";
+                    this.kgNetworkGraph = null;
+                    this.endProgress();
+                    return;
+                }
 
+                this.cachedEvaluation = evaluation;
+                this.evaluationPanelKey += 1;
+                this.pendingImportedEvaluation = evaluation;
+                if (!this.ranModules.includes("evaluate")) {
+                    this.ranModules.push("evaluate");
+                }
+                this.$nextTick(() => {
+                    this.pendingImportedEvaluation = null;
+                });
+                this.setStepStatus("classifyParse", "done");
+
+                const target = evaluation.slots && evaluation.slots.target;
+                const outcome = evaluation.slots && evaluation.slots.outcome;
                 const geneText = (target && (target.resolvedId || target.value)) || null;
                 const outcomeText = (outcome && outcome.value) || null;
                 const outcomeResolvedId = (outcome && outcome.resolvedId) || null;
@@ -1132,10 +1174,10 @@ export default Vue.component("reveal-scope", {
                     return;
                 }
 
-                this.kgEvidenceBlockedReason = extractError
-                    ? `Couldn't extract a gene or mechanism (${extractError.message || "parse failed"}). Edit the input and try again.`
-                    : "Couldn't identify a gene or mechanism/outcome to search. Edit the input and try again.";
+                this.kgEvidenceBlockedReason =
+                    "Couldn't identify a gene or mechanism/outcome to search. Edit the input and try again.";
                 this.kgNetworkGraph = null;
+                this.evaluateContentTab = "evaluation";
                 this.endProgress();
             } catch (error) {
                 // eslint-disable-next-line no-console

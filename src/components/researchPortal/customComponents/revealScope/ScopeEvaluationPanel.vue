@@ -5,7 +5,7 @@
                 Missing {{ missingRequiredSlotsLabel }}
             </div>
 
-            <div class="scp-eval-rubric">
+            <div v-if="showRubric" class="scp-eval-rubric">
                 <div v-for="axis in rubricAxes" :key="axis.id" class="scp-eval-axis">
                     <div class="scp-eval-axis-head">
                         <span class="scp-eval-axis-title">{{ axis.label }}</span>
@@ -58,6 +58,7 @@
 import {
     extractHypothesisEvaluation,
     emptyHypothesisEvaluation,
+    INPUT_KIND_FREE_TEXT,
 } from "./scopeHypothesisEvaluation.js";
 
 const REQUIRED_SLOT_LABELS = {
@@ -93,6 +94,9 @@ export default {
         };
     },
     computed: {
+        showRubric() {
+            return this.evaluation.inputKind !== INPUT_KIND_FREE_TEXT;
+        },
         rubricAxes() {
             return [
                 { id: "precision", label: "Precision", data: this.evaluation.rubric.precision },

@@ -74,7 +74,7 @@
                     <div class="scp-welcome-mode" role="radiogroup" aria-label="Input mode">
                         <label class="scp-welcome-mode-option">
                             <input v-model="inputMode" type="radio" value="freeText" />
-                            Free text
+                            Hypothesis / free text
                         </label>
                         <label class="scp-welcome-mode-option">
                             <input v-model="inputMode" type="radio" value="entities" />

@@ -161,24 +161,11 @@
             </div>
         </template>
 
-        <section
-            v-if="gapGroupResults || gapBlockedReason"
-            class="scp-kg-gaps"
-            aria-label="DisMech knowledge gaps"
-        >
-            <h3 class="scp-kg-gaps-title">DisMech knowledge gaps</h3>
-            <ScopeKnowledgeGapsPanel
-                :group-results="gapGroupResults"
-                :blocked-reason="gapBlockedReason"
-                :compact="true"
-            />
-        </section>
     </div>
 </template>
 
 <script>
 import ScopeKgNetworkGraph from "@/components/researchPortal/customComponents/revealScope/ScopeKgNetworkGraph.vue";
-import ScopeKnowledgeGapsPanel from "@/components/researchPortal/customComponents/revealScope/ScopeKnowledgeGapsPanel.vue";
 
 const RELEVANCE_COLUMNS = [
     { key: "relevanceLabel", label: "Relevance" },
@@ -240,7 +227,6 @@ export default {
     name: "ScopeKgEvidenceTable",
     components: {
         ScopeKgNetworkGraph,
-        ScopeKnowledgeGapsPanel,
     },
     props: {
         evidence: {
@@ -257,14 +243,6 @@ export default {
         },
         networkGraph: {
             type: Object,
-            default: null,
-        },
-        gapGroupResults: {
-            type: Array,
-            default: null,
-        },
-        gapBlockedReason: {
-            type: String,
             default: null,
         },
     },
@@ -562,18 +540,5 @@ export default {
     overflow-wrap: anywhere;
     word-break: break-word;
     white-space: normal;
-}
-
-.scp-kg-gaps {
-    margin-top: 24px;
-    padding-top: 18px;
-    border-top: 1px solid #e2e5eb;
-}
-
-.scp-kg-gaps-title {
-    margin: 0 0 12px;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--cfde-blue, #2c5c97);
 }
 </style>

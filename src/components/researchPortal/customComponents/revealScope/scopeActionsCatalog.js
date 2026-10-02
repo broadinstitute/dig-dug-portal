@@ -15,7 +15,7 @@ export const ACTION_CATALOG = [
         id: "runDisMechGapSearch",
         label: "Search DisMech knowledge gaps",
         description:
-            "Extracts search terms from the user input and looks up matching DisMech knowledge gaps. After CFDE KG, results appear under that tab; after Evaluate only, they open in a Knowledge gaps tab.",
+            "Extracts search terms from the user input and looks up matching DisMech knowledge gaps. Results open in a Knowledge gaps tab (alongside CFDE KG when that tab is present).",
     },
     {
         id: "classifyKgRelevance",
@@ -34,6 +34,12 @@ export const ACTION_CATALOG = [
         label: "Classify biomarker relevance",
         description:
             "Optional LLM pass that labels each fetched biomarker as on-topic, mismatched context, or unrelated to the hypothesis.",
+    },
+    {
+        id: "developIdeaToHypothesis",
+        label: "Develop idea to a hypothesis",
+        description:
+            "Opens REVEAL Workflow in a new tab with the current SCOPE input as the starting query (search terms are extracted there).",
     },
     {
         id: "designExperimentProtocol",
