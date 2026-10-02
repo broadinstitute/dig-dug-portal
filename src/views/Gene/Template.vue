@@ -647,7 +647,7 @@
                 "
                 class="card mdkp-card"
             >
-                <div class="card-body">
+                <div class="card-body" v-if="!$parent.hideOnMSKKP">
                     <h4 class="card-title">
                         Differential
                         {{ $store.state.geneName }} ortholog expression in mouse

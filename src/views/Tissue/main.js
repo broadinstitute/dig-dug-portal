@@ -125,6 +125,7 @@ new Vue({
             selectedPathwayDescriptor: "selected_pathway",
             compoundPathway: null,
             crisprPathway: null,
+            hideOnMSKKP: true
         };
     },
     computed: {
