@@ -7,12 +7,44 @@
         </p>
         <div class="mskkp-landing-support-logos">
             <div
-                v-for="(row, rowIndex) in logoRows"
-                :key="rowIndex"
+                v-for="(row, rowIndex) in partnerLogoRows"
+                :key="'partner-' + rowIndex"
                 class="mskkp-landing-support-logo-row"
             >
                 <div
                     v-for="logo in row"
+                    :key="logo.src"
+                    class="mskkp-landing-support-logo"
+                >
+                    <a
+                        v-if="logo.href"
+                        :href="logo.href"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <img
+                            :src="logo.src"
+                            :alt="logo.alt"
+                            :style="{ height: logo.height }"
+                        />
+                    </a>
+                    <img
+                        v-else
+                        :src="logo.src"
+                        :alt="logo.alt"
+                        :style="{ height: logo.height }"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <h3 class="mskkp-landing-support-subheader">
+            Other NIAMS-funded Knowledge Bases and Data Repositories
+        </h3>
+        <div class="mskkp-landing-support-logos">
+            <div class="mskkp-landing-support-logo-row">
+                <div
+                    v-for="logo in niamsLogos"
                     :key="logo.src"
                     class="mskkp-landing-support-logo"
                 >
@@ -46,7 +78,7 @@ import Vue from "vue";
 export default Vue.component("mskkp-landing-support", {
     data() {
         return {
-            logos: [
+            partnerLogos: [
                 {
                     alt: "IFMRS",
                     href: "http://www.ifmrs.org",
@@ -117,20 +149,28 @@ export default Vue.component("mskkp-landing-support", {
                         "https://kp4cd.org/sites/default/files/vueportal/BroadInstLogoforDigitalRGB.png",
                     height: "40px",
                 },
+            ],
+            niamsLogos: [
                 {
-                    alt: "OAI",
+                    alt: "OAI CORE Knowledgebase",
                     href: "https://nda.nih.gov/oai",
-                    src: "/images/oai_logo.svg",
-                    height: "50px",
+                    src: "/images/oai_logo.png",
+                    height: "90px",
+                },
+                {
+                    alt: "ROSSA — Rodent Open Science Skeletal Archive",
+                    href: "https://rossa.dev.i3.uconn.edu/",
+                    src: "/images/rossa_logo.png",
+                    height: "55px",
                 },
             ],
         };
     },
     computed: {
-        logoRows() {
+        partnerLogoRows() {
             const rows = [];
-            for (let i = 0; i < this.logos.length; i += 5) {
-                rows.push(this.logos.slice(i, i + 5));
+            for (let i = 0; i < this.partnerLogos.length; i += 5) {
+                rows.push(this.partnerLogos.slice(i, i + 5));
             }
             return rows;
         },
@@ -159,6 +199,13 @@ export default Vue.component("mskkp-landing-support", {
     margin: 0 0 24px;
 }
 
+.mskkp-landing-support-subheader {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 28px 0 16px;
+    text-align: center;
+}
+
 .mskkp-landing-support-logos {
     display: flex;
     flex-direction: column;
@@ -170,7 +217,7 @@ export default Vue.component("mskkp-landing-support", {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 40px;
 }
 
 .mskkp-landing-support-logo img {

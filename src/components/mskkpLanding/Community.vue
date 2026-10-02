@@ -15,12 +15,20 @@
                 <h2>Contact</h2>
                 <p>
                     We welcome the involvement of interested researchers.
-                    <span class="mskkp-landing-community-link">Contact us</span>
+                    <a
+                        class="mskkp-landing-community-link"
+                        href="http://kp4cd.org/contact_team"
+                        >Contact us</a
+                    >
                     to learn more about contributing data or collaborating with
                     us on analyses, methods, or tool development.
                 </p>
                 <p>
-                    <span class="mskkp-landing-community-link">Sign up</span>
+                    <a
+                        class="mskkp-landing-community-link"
+                        href="https://docs.google.com/forms/d/e/1FAIpQLSdA8Wn6QDLNLoUejq-BJrPW7SFAM7DsFggu8iPOIhOP0WS2Tw/viewform"
+                        >Sign up</a
+                    >
                     for email updates, newsletters, and webinar invitations.
                 </p>
             </div>
@@ -52,6 +60,11 @@
                         <div class="mskkp-landing-community-news-body">
                             {{ item.body }}
                         </div>
+                        <a
+                            class="mskkp-landing-community-link"
+                            :href="`/news.html?nid=${item.nid}`"
+                            >Read more...</a
+                        >
                     </div>
                 </div>
             </div>
@@ -162,5 +175,6 @@ export default Vue.component("mskkp-landing-community", {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    margin-bottom: 4px;
 }
 </style>
