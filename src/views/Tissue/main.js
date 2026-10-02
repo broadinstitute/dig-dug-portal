@@ -113,7 +113,7 @@ new Vue({
             connectivityCrisprPage: 1,
             connectivityCrisprFields: [
                 { key: "pathway", sortable: true},
-                { key: "best_direction", sortable: true},
+                { key: "best_direction", label: "Direction", sortable: true},
                 { key: "NES_difference", formatter: Formatters.tpmFormatter, sortable: true},
                 { key: "concordant_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
                 { key: "reversed_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
@@ -121,7 +121,10 @@ new Vue({
                 { key: "pct_expressed", formatter: Formatters.tpmFormatter, sortable: true, crisprOnly: true},
                 { key: "tpm_category", sortable: true, crisprOnly: true},
                 { key: "expressed", sortable: true, crisprOnly: true},
-            ]
+            ],
+            selectedPathwayDescriptor: "selected_pathway",
+            compoundPathway: null,
+            crisprPathway: null,
         };
     },
     computed: {
@@ -178,7 +181,18 @@ new Vue({
             if(!this.$store.state.singleCellDatasets) return false;
             if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
             if(!this.tissue) return false;
-            const scTissue = this.$store.state.singleCellDatasets.find(x => x.tissue_a2fkp === this.tissue);
+            let matchingTissues = this.$store.state.singleCellDatasets.filter(x => x.tissue_a2fkp === this.tissue);
+            if (matchingTissues.length === 0){
+                matchingTissues = this.$store.state.singleCellDatasets
+                    .filter(x => x.tissue.replaceAll(" ", "_") === this.tissue);
+            }
+            let versionFinder = /_v([\d]+.*[\d]*)/;
+            matchingTissues.forEach(t => {
+                let version = t.datasetId.match(versionFinder);
+                t.version = version === null ? -1 : parseFloat(version[1]);
+            });
+            matchingTissues = matchingTissues.sort((a,b) => b.version - a.version);
+            const scTissue = matchingTissues[0];
             if(scTissue){
                 this.scTissueDataset = scTissue;
                 this.scbConfig.presets.datasetId = scTissue.datasetId;
@@ -241,7 +255,7 @@ new Vue({
                 "yAxisLabel": "-log10(adjusted p-value)",
                 "width": 300,
                 "height": 200,
-                "diffExpVolcano": "true"
+                "diffExpVolcano": true
             };
             return config;
         },
@@ -254,16 +268,26 @@ new Vue({
             return `${prefix}_${dataPoint.tissue}_${dataPoint.comparison}`;
         },
         processConnectivityData(inputData){
-            let directions = Array.from(new Set(inputData.map(d => d.best_direction)));
-            console.log(JSON.stringify(directions));
             let data = structuredClone(inputData);
             data.forEach(d => {
                 let pValField = d.best_direction === "reversed"
                     ? "reversed_p_adj" : d.best_direction === "concordant" 
                     ? "concordant_p_adj" : null;
-                d.minusLogAdjP = pValField === null ? 0 : -Math.log10(d[pValField]);
+                d.pAdj = d[pValField];
+                d.minusLogAdjP = pValField === null ? 0 : -Math.log10(d.pAdj);
+                d.is_expressed = `${d.expressed}`;
             });
             return data;
+        },
+        getSelectedPathway(filters, isCrispr=false){
+            let pathwayFilter = filters.find(d => d.field === this.selectedPathwayDescriptor);
+            let pathway = pathwayFilter === undefined ? null : pathwayFilter.threshold;
+            if (isCrispr){
+                this.crisprPathway = pathway;
+            } else {
+                this.compoundPathway = pathway;
+            }
+
         }
     },
     watch: {
@@ -286,7 +310,7 @@ new Vue({
         },
         "$store.state.selectedComparisonCrispr"(){
             this.$store.dispatch("getConnectivityCrisprData");
-        }
+        },
     },
     render: (h) => h(Template),
 }).$mount("#app");
