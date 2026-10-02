@@ -23,27 +23,19 @@ LIGER/
 
 Anything true of the LIGER **data** regardless of how it is presented:
 
-- the endpoint list and their query-key conventions
+- the endpoint list and the tissue-key convention
 - host resolution
-- the tissue / dataset-ID mapping
 - what the returned fields mean and how they must be read
 - pure, presentation-free helpers (`ligerFormat.js`)
 
-`ligerApi.js` is the executable form of most of this document: host resolution, the tissue config, the
-keying detection, the field accessors and every URL builder. A version should reach the bioindex
-through it and never construct a URL or re-derive a host itself.
+`ligerApi.js` is the executable form of most of this document: host resolution, tissue identity, the
+field accessors and every URL builder. A version should reach the bioindex through it and never
+construct a URL or re-derive a host itself.
 
-> **`v1` does not use `ligerApi.js`.** It still carries its own inline copy of all of it, written
-> before the folder was split. Nothing is broken by this, but it means the tissue config exists in two
-> places: **a new portal's dataset ID has to be added to `ligerApi.js` and to `v1/LigerBrowser.vue`
-> both** until v1 is migrated. Migrating it is mechanical — v1's methods are the same functions with
-> `this.` in front — but it is a large diff against a working component, so it has not been done.
-
-Plus the one piece of presentation both versions deliberately share: `CellStateInfographic.vue`, the
-orienting figure in the page header. It is self-contained (its own four categorical colors, no imports
-beyond Vue) and it explains the LIGER *concept* rather than either version's workflow, which is why it
-did not stay with v1. Treat it as shared: a change to it lands on both pages, so it is not the place to
-experiment with v2's look.
+Plus `CellStateInfographic.vue`, the orienting figure in the page header. It is self-contained (its own
+four categorical colors, no imports beyond Vue) and it explains the LIGER *concept* rather than a
+particular version's workflow. It was shared with v1; now that v1 is deprecated, **v2 is its only
+consumer**, so it can be edited freely or moved into `v2/`.
 
 ### What belongs in a version folder
 
@@ -58,11 +50,16 @@ either; the version's top-level component is its only entry point.
 
 | Version | Entry component | Status | Notes |
 |---|---|---|---|
-| `v1` | `v1/LigerBrowser.vue` | complete, not currently mounted | The full browser. Kept as the reference implementation and as the fallback. See `v1/README.md`. |
-| `v2` | `v2/CellEvolutionBrowser.vue` | in progress, **mounted on the LIGER page** | The Cell Evolution Browser: fresh interface over the same endpoints. Currently the page header only. See `v2/README.md`. |
+| `v1` | `v1/LigerBrowser.vue` | **deprecated and non-functional** | The original browser. Not mounted, and it will not work if mounted — see below. Kept for reference only. |
+| `v2` | `v2/CellEvolutionBrowser.vue` | **mounted on the LIGER page** | The Cell Evolution Browser. See `v2/README.md`. |
 
-`src/views/LIGER/main.js` and `src/views/LIGER/Template.vue` point at v2. Swapping back to v1 is a
-two-line change in those files (import path plus the tag in the template).
+`src/views/LIGER/main.js` and `src/views/LIGER/Template.vue` point at v2.
+
+**v1 is no longer a fallback.** It carries its own inline copy of the data layer, built against the
+pre-migration query shapes — dataset IDs as the first argument and a `model` argument on the program
+endpoints — neither of which the API accepts any more. Swapping back to it would produce a page of
+empty sections and HTTP errors. Updating it was explicitly dropped rather than deferred; if it is ever
+needed again, it should import `ligerApi.js` instead of being patched.
 
 Adding a version: create the folder, put its entry component and README in it, and point the consuming
 page at it. Nothing at the root should need to change unless the new version needs a genuinely shared
@@ -79,7 +76,7 @@ helper.
 - Keep labels human-readable; do not leak raw IDs where a readable label exists.
 - Every data-backed section needs its own loading and error state.
 - Trait identity stays keyed by raw API trait values internally; displayed labels prefer phenotype
-  `description` from `/api/portal/phenotypes?q=md`, and group labels come from phenotype `group`.
+  `description` from `/api/portal/phenotypes`, and group labels come from phenotype `group`.
 
 ## API Host
 
@@ -101,7 +98,7 @@ overridable per page.
 
 Two endpoints do **not** follow `apiHost`:
 
-- `/api/portal/phenotypes?q=md`
+- `/api/portal/phenotypes`
 - `/api/bio/match/gene?q=`
 
 Only the hugeamp bioindex serves them (others return `501`), so both are pinned to `LIGER_HUGEAMP_HOST`,
@@ -109,72 +106,38 @@ which is hugeamp prod or hugeamp dev by the same dev check above. Do not route t
 `config.prodHost` / `config.devHost`: those exist to point the LIGER indexes at another portal, and
 dragging these two along would send them to a host that does not serve them.
 
-## Temporary Local Tissue Config
+## Tissue Keys
 
-Portals do not agree on how a tissue is identified, so there is a temporary hardcoded mapping in `v1/LigerBrowser.vue`.
+**Every index is keyed on the tissue key** — `vat`, `pancreas`, `bonemarrow` — and none of them takes
+a model argument. One convention, on every endpoint, on every portal.
 
-Two things vary by portal:
+This replaced a substantial amount of client machinery, all of it now deleted: a hardcoded
+tissue → dataset table with a `datasetIds[]` array per tissue, its reverse index, per-portal
+dataset-ID observation, and a runtime sniff of which of two keying conventions a given portal spoke.
+Endpoints fell into three classes — always a dataset ID, always a tissue key, and
+depends-on-the-portal — and guessing wrong returned HTTP 500 rather than an empty result. See
+`BACKEND_REQUEST_TISSUE_KEYS.md` for the request that produced the change.
 
-- some responses carry a tissue label, others carry only a dataset ID
-- the dataset ID for the same tissue differs between portals
+Two rules follow from it, and both matter:
 
-So each tissue lists every dataset ID we know it by, and resolution runs in whichever direction the response supports:
+- **Never hold a dataset ID as a constant.** They drift as source data is rebuilt: between two
+  observations heart went `FNIH_Heart_scRNA_v3.2` → `v4.0`, and artery and pancreas both moved to
+  `v3`. Three of the four tissues checked had changed. Where a dataset ID is needed — naming the
+  source, linking to the single-cell browser, joining `dataset_metadata.json.gz` — read it from the
+  `dataset` field of a row that was just loaded.
+- **Never gate the tissue list.** Every row reports its own `tissue`, so the list is whatever the API
+  returns. The old table dropped anything it did not list, which is how `bone`, `bonemarrow` and
+  `tendon` stayed invisible after the API gained them. Twelve tissues are live as of the last check:
+  artery, bone, bonemarrow, heart, hypothalamus, kidney, liver, muscle, pancreas, sat, tendon, vat.
 
-- `artery` -> `FNIH_Artery_scRNA_v2.2`
-- `heart` -> `FNIH_Heart_scRNA_v3.2`
-- `hypothalamus` -> `FNIH_Hypothalamus_scRNA_v2.2`
-- `kidney` -> `FNIH_Kidney_scRNA_v2.2`
-- `liver` -> `FNIH_Liver_scRNA_v3.2`
-- `muscle` -> `FNIH_Muscle_scRNA_v2.2`
-- `pancreas` -> `FNIH_Pancreas_scRNA_v2.2`, `islet_of_Langerhans_scRNA_v3-4`
-- `sat` -> `FNIH_SAT_scRNA_v2.2`
-- `vat` -> `FNIH_VAT_scRNA_v2.2`
+The one piece of tissue config left on the client is a **display-label map** (`TISSUE_LABELS` in
+`ligerApi.js`), and it is temporary. Labels cannot be derived from keys — `bonemarrow` title-cases to
+"Bonemarrow", `sat`/`vat` to "Sat"/"Vat". `tissue_label` has been requested on the gene-level
+expression endpoints, and `tissueLabel()` already prefers the row's field, so **delete the map when it
+lands**. It is not a gate: an unlisted tissue still renders.
 
-How it resolves:
-
-- `rowTissueKey(row)` reads `tissue` / `tissue_label` first, then falls back to `dataset` / `dataset_id` via the reverse map
-- the gene search records which dataset ID the portal actually used, in `observedDatasetIds`
-- `tissueDatasetId(label)` returns that observed ID, falling back to the first configured ID when the portal only returned tissue labels
-
-## Tissue vs Dataset Query Keys
-
-Portals also disagree on what the first query argument should be. Some accept a tissue key, others require a dataset ID for the same endpoint:
-
-- pankbase: `gene-program-expression-cell-type?q=islet_of_Langerhans_scRNA_v3-4,INS`
-- hugeamp: `gene-program-expression-cell-type?q=pancreas,INS`
-
-`detectCellStateDatasetKeying()` decides which convention applies, from the gene-level `gene-program-expression-cell-state` response:
-
-- rows carry a `tissue` -> the portal is tissue-keyed
-- rows carry only a `dataset` -> the portal is dataset-keyed
-
-The result is stored in `cellStateUsesDatasetKey`, and `tissueQueryKey(label)` returns a dataset ID or a tissue key accordingly.
-
-Only the cell-state response is a valid signal here. The `gene-program-expression-program` response reports dataset IDs on **both** kinds of portal, so including it makes every portal look dataset-keyed.
-
-Use `tissueQueryKey()` for:
-
-- `gene-program-expression-cell-type`
-- `gene-program-expression-cell-state` (3-arg form)
-- `gene-program-heatmap`
-- `gene-program-cell-state-trait-factor`
-
-Do **not** use it for `gene-program-cell-state-metadata` / `-extended` — those are tissue-keyed on every portal, so they keep using `tissueKeyFromLabel()`.
-
-The `gene-program-*factor` and `gene-program-expression-program` builders take `tissueDatasetId()` and are unaffected.
-
-Note that on a dataset-keyed portal, passing a tissue name to `gene-program-expression-cell-type` or `gene-program-expression-cell-state` returns **HTTP 500**, not an empty result, so this surfaces as a load error rather than an empty state.
-
-Config note:
-
-- keep this mapping consistent on `datasetIds` (an array) only
-- do not mix `datasetIds`, `datasetId`, and `datasetID`
-- add a new portal's dataset ID to the existing tissue entry rather than adding a new tissue
-
-Program model currently hardcoded:
-
-- `mouse_msigdb`
-
+A portal's `tissues` config allowlist is unaffected — choosing which tissues to *display* is curation,
+not identity.
 
 ## Endpoints Currently Wired
 
@@ -192,14 +155,14 @@ These are used to:
 
 ### Cell type expression
 
-- `/api/bio/query/gene-program-expression-cell-type?q=<tissue>,<gene>`
+- `/api/bio/query/gene-program-expression-cell-type?q=<tissueKey>,<gene>`
 
 This is used after tissue selection to populate the cell-type expression card.
 
 ### Cell state section
 
-- `/api/bio/query/gene-program-expression-cell-state?q=<tissue>,<cellType>,<gene>`
-- `/api/bio/query/gene-program-cell-state-metadata-extended?q=<tissue>,<cellType>`
+- `/api/bio/query/gene-program-expression-cell-state?q=<tissueKey>,<cellType>,<gene>`
+- `/api/bio/query/gene-program-cell-state-metadata-extended?q=<tissueKey>,<cellType>`
 
 These power:
 
@@ -210,8 +173,8 @@ State labels should come from metadata `display_name` for the matching `state_id
 
 ### Gene program section
 
-- `/api/bio/query/gene-program-expression-program?q=<datasetId>,<cellType>,<model>,<gene>`
-- `/api/bio/query/gene-program-factor?q=<datasetId>,<cellType>,<model>`
+- `/api/bio/query/gene-program-expression-program?q=<tissueKey>,<cellType>,<gene>`
+- `/api/bio/query/gene-program-factor?q=<tissueKey>,<cellType>`
 
 These power:
 
@@ -228,7 +191,7 @@ Program labels should prefer metadata labels and avoid exposing raw factor IDs w
 
 ### State/program relationships
 
-- `/api/bio/query/gene-program-heatmap?q=<tissue>,<cellType>`
+- `/api/bio/query/gene-program-heatmap?q=<tissueKey>,<cellType>`
 
 Loaded once per cell type. This powers:
 
@@ -253,17 +216,19 @@ test first in case the index starts sending it.
 
 ### Trait links
 
-- `/api/bio/query/gene-program-cell-state-trait-factor?q=<tissue>,<cellType>,<stateId>`
-- `/api/bio/query/gene-program-trait-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
-- `/api/portal/phenotypes?q=md`
+- `/api/bio/query/gene-program-cell-state-trait-factor?q=<tissueKey>,<cellType>,<stateId>`
+- `/api/bio/query/gene-program-trait-factor?q=<tissueKey>,<cellType>,<factorId>`
+- `/api/portal/phenotypes`
 
-`/api/portal/phenotypes` is served only by the hugeamp bioindex; other portals return `501`. It is therefore pinned to `LIGER_HUGEAMP_HOST` rather than `apiHost`, so it stays on hugeamp regardless of which portal hosts the component. Along with `/api/bio/match/gene`, it is one of the two endpoints that do not follow the resolved host.
+`/api/portal/phenotypes` is **called unscoped, and must stay that way.** It was `?q=md`, which scopes the phenotype list to the metabolic disease group, so every trait outside that group silently failed to resolve and was then hidden by the unmatched-trait filter. Measured: 16 of 20 sampled traits matched under `?q=md`, and the four misses — ADHD, telomere length (x2), brain volume — all resolve unscoped. LIGER spans 12 tissues including bone, bonemarrow, tendon and hypothalamus, so its traits are not metabolic.
+
+It is served only by the hugeamp bioindex; other portals return `501`. It is therefore pinned to `LIGER_HUGEAMP_HOST` rather than `apiHost`, so it stays on hugeamp regardless of which portal hosts the component. Along with `/api/bio/match/gene`, it is one of the two endpoints that do not follow the resolved host.
 
 #### Trait cell type partition — resolved, mechanism removed
 
 Both trait endpoints once returned 0 rows for a real cell type on pankbase and served everything under a single synthetic cell type, `combined_signatures`. The component probed at runtime and substituted that key for cell-state traits, while deliberately leaving program traits on the real cell type (the combined partition was a separate decomposition whose `Factor1` was not any cell type's `Factor1`, so substituting would have misattributed trait associations across programs).
 
-**The pipeline now returns real cell type names, and the whole mechanism has been deleted.** Verified against `islet_of_Langerhans_scRNA_v3-4` / `beta`:
+**The pipeline now returns real cell type names, and the whole mechanism has been deleted.** Verified against `islet_of_Langerhans_scRNA_v3-4` / `beta` -- note the queries below are in the **pre-migration** shape, with a dataset ID and a model, and are kept as the historical record of that measurement:
 
 | query | before | now |
 |---|---|---|
@@ -288,14 +253,14 @@ more, so nothing fans these out across every state and program up front.
 Important behavior:
 
 - trait identity should stay keyed by raw API trait values internally
-- displayed trait labels should prefer phenotype `description` from `/api/portal/phenotypes?q=md`
+- displayed trait labels should prefer phenotype `description` from `/api/portal/phenotypes`
 - trait group labels should come from phenotype `group`
 - rows with no matching phenotype label can now be filtered out in code via `LIGER_FILTER_UNLABELED_HEATMAP_TRAITS`
 - that same filter also applies to detail-panel trait tables
 
 ### Program gene loadings
 
-- `/api/bio/query/gene-program-gene-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
+- `/api/bio/query/gene-program-gene-factor?q=<tissueKey>,<cellType>,<factorId>`
 
 This powers:
 
@@ -303,7 +268,7 @@ This powers:
 
 ### Program gene set associations
 
-- `/api/bio/query/gene-program-gene-set-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
+- `/api/bio/query/gene-program-gene-set-factor?q=<tissueKey>,<cellType>,<factorId>`
 
 This powers:
 
@@ -311,7 +276,7 @@ This powers:
 
 ### Program QC states
 
-- `/api/bio/query/gene-program-qc-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
+- `/api/bio/query/gene-program-qc-factor?q=<tissueKey>,<cellType>,<factorId>`
 - `/api/bio/query/gene-program-qc-metadata-extended?q=1`
 
 These power:

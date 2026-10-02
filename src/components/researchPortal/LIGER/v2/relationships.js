@@ -12,8 +12,11 @@
 //    beta). A missing p-value cannot be drawn: a hairline would assert "no
 //    association" when the fact is "not reported". Those rows are dropped and
 //    counted, so the UI can say how many it is not showing.
-// 2. `state_name` mixes curated states with QC signatures and nothing separates
-//    them. Filtering is by id prefix via isQcStateRow() -- see ../ligerApi.js.
+// 2. `state_name` mixes curated states with QC signatures and nothing on the row
+//    separates them -- 36 QC signatures against 6 real states for vat/adipocyte.
+//    Filtering goes through isQcStateRow(), which prefers the QC signature
+//    dictionary when the caller has loaded it and falls back to the name prefix
+//    when it has not. See ../ligerApi.js.
 
 import { programKey, stateKey, isQcStateRow, gseaPValue, gseaQValue, SIGNIFICANCE_P } from "../ligerApi";
 import { clamp } from "../ligerHeat";
@@ -68,7 +71,11 @@ export function buildEdges(heatmapRows = [], {
     programOrder = {},
     stateOrder = {},
     metricKey = "gsea_p",
-    significantOnly = true
+    significantOnly = true,
+    // The authoritative QC test, from gene-program-qc-metadata-extended. Optional:
+    // the heatmap can resolve before that dictionary does, and isQcStateRow() falls
+    // back to the name prefix rather than stopping filtering.
+    qcSignatureIndex = null
 } = {}) {
     let metric = metricFor(metricKey);
 
@@ -80,7 +87,7 @@ export function buildEdges(heatmapRows = [], {
     let candidates = [];
 
     heatmapRows.forEach((row) => {
-        if (isQcStateRow(row)) {
+        if (isQcStateRow(row, qcSignatureIndex)) {
             qcDropped++;
             return;
         }

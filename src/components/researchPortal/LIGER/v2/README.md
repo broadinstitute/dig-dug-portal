@@ -129,10 +129,18 @@ every one of those and each read a field no row carries. Do not widen the metric
 - **Associations with no p-value.** `gsea_p` / `gsea_q` are null on a large fraction of rows (190 of
   450 for islet beta). A hairline would assert "no association" where the fact is "not reported", so
   those rows are dropped and **counted in the legend** instead.
-- **QC signatures.** `state_name` mixes curated states with `qc_*` signatures and no field separates
-  them — 36 of 45 distinct values for islet beta are QC. Filtered by id prefix in `isQcStateRow()`.
-  Filtering on `state_type === "qc_state"` is the bug that shipped once: no row carries that field, so
-  the filter passed everything and QC signatures were presented as curated matches.
+- **QC signatures.** `state_name` mixes curated states with `qc_*` signatures and no field on the row
+  separates them — 36 against 6 real states for vat/adipocyte. `isQcStateRow()` tries three tests in
+  order of trustworthiness:
+  1. `state_type === "qc_state"`, for if the index ever sends it. **It does not today** — filtering on
+     it is the bug that shipped once, because no row carries the field, so the filter passed
+     everything and QC signatures were presented as curated matches.
+  2. The **QC signature dictionary** from `gene-program-qc-metadata-extended`, whose
+     `qc_signature_id` values are exactly these `state_name`s. This is the authoritative test and the
+     reason the dictionary is now fetched alongside the heatmap rather than on program selection.
+  3. The `qc_` name prefix. Kept as a **fallback, not replaced** — the heatmap can resolve before the
+     dictionary does, and a filter that silently stops filtering is worse than a crude one. A QC
+     signature not named `qc_*` would slip past this, which is what test 2 is for.
 - **Edges to rows that are not on the canvas.** The heatmap is scoped to the cell type, not to the
   gene, so it reports programs and states this gene's expression rows do not include. An edge is kept
   only when both endpoints are drawn.
@@ -521,23 +529,47 @@ param. All of `/r/scb`, `https://hugeamp.org/r/scb`, `/r/scb?tab=umap` and `/r/s
 
 1. Typing → 200ms debounce → `match/gene` → suggestions.
 2. Gene selected → gene-level `expression-cell-state` **and** `expression-program` in parallel. These
-   derive the tissue list, record which dataset ID this portal uses per tissue, and detect the keying
-   convention. Only the cell-state response is a valid keying signal — see `../README.md`.
-3. Tissue selected → `expression-cell-type`, keyed with `tissueQueryKey()`.
-4. Cell type selected → five requests in parallel:
-   - `expression-program` (4-arg, dataset-keyed) and `gene-program-factor` for the program labels
-   - `expression-cell-state` (3-arg, `tissueQueryKey()`) and `cell-state-metadata-extended`
-     (**plain tissue key** — that endpoint is tissue-keyed on every portal) for the state labels
+   derive the tissue list, straight from the rows' `tissue` field.
+3. Tissue selected → `expression-cell-type?q=<tissueKey>,<gene>`.
+4. Cell type selected → four requests in parallel:
+   - `expression-program` and `gene-program-factor`
+   - `expression-cell-state` and `cell-state-metadata-extended` for the state labels and ledes
    - `gene-program-heatmap` for the edges
+   - `gene-program-qc-metadata-extended`, which is what identifies a QC signature in those edges
 
-Two keying traps live in step 4. The cell-state *expression* endpoint is in the family that keys on a
-dataset ID on some portals, so it goes through `tissueQueryKey()`; the *metadata* endpoint is
-tissue-keyed everywhere and takes `tissueKeyFromLabel()`. Swapping them returns HTTP 500 on one portal
-or the other, not an empty result. And the program endpoints are dataset-keyed on every portal, via
-`tissueDatasetId()`.
+**Every one of them takes `<tissueKey>,…` and none takes a model.** This used to be the most
+error-prone part of the component: three classes of endpoint — always-dataset-ID, always-tissue-key,
+and depends-on-the-portal — with a runtime sniff to tell them apart and HTTP 500 rather than an empty
+result when it guessed wrong. See *Tissue identity* below.
 
 The heatmap is **not** lazily loaded behind a click. Its rows are the edges, and the edges are the
 point of showing both lists at once.
+
+## Tissue identity
+
+**`selectedTissueKey` holds the key; the label is derived.** It used to be the other way round — the
+label was the state and every query re-derived a key from it — which is why four conversion functions
+existed. The key is what the API speaks and what the query string has always carried, so it is the
+identity; the label is presentation.
+
+**There is no tissue → dataset mapping.** There was a hardcoded 9-tissue table with a `datasetIds[]`
+array per tissue, a reverse index, per-portal dataset-ID observation, and `detectCellStateDatasetKeying()`.
+All of it is deleted. Two things it got wrong, both observed:
+
+- It **gated the tissue list**. Any tissue absent from the table was dropped, so when the API gained
+  `bone`, `bonemarrow` and `tendon` they stayed invisible. The list is now whatever the rows report.
+- It **pinned dataset IDs as constants**, and they drift as source data is rebuilt — between two
+  observations heart went `v3.2` → `v4.0`, and artery and pancreas both moved to `v3`. Three of the
+  four tissues checked had changed. A dataset ID may only ever be read from a response.
+
+What is left is one map of **display labels**, `TISSUE_LABELS` in `../ligerApi.js`, and it is
+temporary. It exists only because labels cannot be derived: `bonemarrow` title-cases to "Bonemarrow",
+and `sat`/`vat` to "Sat"/"Vat". `tissue_label` has been requested on the two gene-level expression
+endpoints; `tissueLabel()` already prefers the row's field, so **when it lands, delete the map**.
+Unlike the old table it is not a gate — an unlisted tissue still renders, via `formatDisplayLabel()`.
+
+The config `tissues` allowlist stays. Which tissues a portal chooses to *display* is curation, not
+identity.
 
 ## The metadata card
 
@@ -594,11 +626,12 @@ Fetched **once per session and cached**, lazily, the first time a dataset ID exi
 the portal's entire single-cell catalogue, not a per-scope query, so refetching it on every tissue
 change would be re-downloading the same file.
 
-The row is matched on `activeDatasetId` — the ID the program queries actually used, via
-`tissueDatasetId()`, so the card describes the data the canvas was built from rather than a tissue's
-nominal dataset. Exact match first, then normalized, which covers a case or `-`/`_` disagreement
+The row is matched on `activeDatasetId`, which is **read off the loaded rows' `dataset` field** — the
+program rows when there are any, the cell-type rows before a cell type is chosen. It cannot come from
+anywhere else: dataset IDs drift as source data is rebuilt, so an ID held in config or in a constant is
+a future wrong answer. Exact match first, then normalized, which covers a case or `-`/`_` disagreement
 between the two pipelines without collapsing genuinely different datasets (`v2.2` and `v3.2` stay
-distinct).
+distinct) — and that distinctness is now load-bearing rather than theoretical.
 
 Below the dataset fields it lists **every cell type the tissue reports, with the searched gene's
 expression in each**, strongest first, with the one the canvas is built from marked. This is the
@@ -675,12 +708,20 @@ none of which any index returns, falling back to a regex over `match_class`, whi
 return either — so it printed the constant `Exploratory biological` on every program in every tissue
 while looking like an API verdict.
 
-The honest replacements are both here:
+The honest replacement is **counted QC enrichment** — signatures tested, enriched at q < 0.05, at
+P < 0.05. Counts, not a verdict. An empty QC result says so rather than asserting a pass the API never
+reported.
 
-- **The factorization's own `label`**, reported as exactly that. For islet beta it calls 7 of 10
-  programs QC or artifact programs, which is the real headline for those programs.
-- **Counted QC enrichment** — signatures tested, enriched at q < 0.05, at P < 0.05. Counts, not a
-  verdict. An empty QC result says so rather than asserting a pass the API never reported.
+There was a second one — a `Factorization label` block reporting `gene-program-factor`'s own `label`,
+with a flag when that label called the program a QC or artifact program. **Removed**, because the
+label turned out to be the same string as the panel's own title, so the block restated the heading;
+and the QC flag was derived from that same text, which means a program whose title reads
+`Ambient RNA contamination` was already saying it. `programSelfLabelsAsQc()` went with it.
+
+Note what this does *not* remove: `factor_quality` now exists as a real field on several endpoints
+(`exploratory_biological`, `unmatched` observed). A badge built on that would be legitimate, unlike
+v1's — but not until its value space is enumerated. Two values that are not points on one scale is
+exactly how the fabricated badge started.
 
 Gene loadings drop rows with a loading of exactly 0 (45 of 4940 on Factor1) — a zero loading is not a
 top gene. When the loading index is empty, the ordered `top_genes` string is the fallback and shows
@@ -701,8 +742,14 @@ being first in the table cannot be mistaken for being strongest. Three cases it 
 
 Both trait endpoints return `trait`, `beta`, `beta_uncorrected` and nothing else, and the trait value
 is a raw internal code — `BSandFG` means nothing on its own. So every display goes through the
-`/api/portal/phenotypes?q=md` join, fetched once for the session and **pinned to the hugeamp
-bioindex**: no other portal serves it (see `../README.md`).
+`/api/portal/phenotypes` join, fetched once for the session and **pinned to the hugeamp bioindex**: no
+other portal serves it (see `../README.md`).
+
+**That call is unscoped, and must stay that way.** It was `?q=md`, which scopes the phenotype list to
+the metabolic disease group — so every trait outside that group silently failed to resolve and was
+then hidden by the unmatched-trait filter. Measured: 16 of 20 sampled traits matched under `?q=md`,
+and the four misses (ADHD, telomere length ×2, brain volume) all resolve unscoped. LIGER now spans 12
+tissues including bone, bonemarrow, tendon and hypothalamus, so its traits are not metabolic.
 
 - **Identity stays keyed by the raw API value.** Only the display is the phenotype `description`.
 - **Grouped by phenotype `group`**, because the group is what makes a bare code legible. Group order
@@ -756,10 +803,9 @@ a `popstate` handler that re-runs the load chain; pushing without one just reint
 - **`SPEC` is a guess at the abbreviation.** `EXP`/`SPEC` fit the 38px and 42px columns and the
   tooltips carry the full meaning, but nobody who reads these scores has confirmed that those are the
   conventional short forms.
-- **The real trait match rate is unverified.** `../README.md` flags this: whether the phenotype join
-  hits most traits or a handful has never been measured against live data, and the default filter
-  hides whatever misses. Worth a browser check — it decides whether the Traits tabs show ~25 rows or
-  none.
+- **Whether to keep hiding unmatched traits by default.** The match rate is no longer unknown — it was
+  the `?q=md` scoping, and unscoped it is 20 of 20 on the sample above. With the remainder a short
+  tail rather than a wall of raw codes, the default could reasonably flip to showing them.
 - **Is the state `Methods` tab worth keeping?** Everything in it is populated, but whether a portal
   reader needs AUCell/UCell scoring detail is a call for someone who reads these scores. v1's README
   raises the same question. It is cheap to drop — one tab.
