@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "./store.js";
+import store, { orderCellTypes } from "./store.js";
 import { pageMixin } from "@/mixins/pageMixin";
 import { renderUmap, renderViolinPlot, renderScatterPlot } from "./canvasPlots.js";
 import Formatters from "@/utils/formatters";
@@ -137,7 +137,13 @@ new Vue({
             if (!gc) return [];
             const leftRows = new Map((gc.datasets[this.leftId] || []).map((row) => [row.cell_type, row]));
             const rightRows = new Map((gc.datasets[this.rightId] || []).map((row) => [row.cell_type, row]));
-            const order = this.cellTypes.filter((ct) => leftRows.has(ct) || rightRows.has(ct));
+            // Unlike state.cellTypes (which the "Cell-Type Comparison" selector/legend
+            // intersects down to cell types common to both datasets), this chart shows
+            // every cell type either dataset actually returned expression rows for -
+            // the same "all cell types" behavior it had before that intersection was
+            // introduced - so a cell type unique to one dataset still gets its own
+            // violin (with an empty/"-" side for the dataset that lacks it).
+            const order = orderCellTypes(new Set([...leftRows.keys(), ...rightRows.keys()]));
             return order.map((ct) => ({
                 label: this.formatLabel(ct),
                 leftValues: (leftRows.get(ct) && leftRows.get(ct).values) || [],
@@ -146,11 +152,26 @@ new Vue({
                 rightSummary: (rightRows.get(ct) && rightRows.get(ct).summary) || EMPTY_SUMMARY,
             }));
         },
+        // Same columns/source as the "Cell-Type Comparison" tables below: one row per
+        // cell type (for the selected gene) read from state.geneMarkerComparison,
+        // which loadGeneMarkerComparison builds from each dataset's marker_genes.json.gz
+        // file. Every cell type with data on at least one side is kept; the missing
+        // side's summary is NULL_MARKER_SUMMARY, rendered as "-" by formatPValue /
+        // formatSigned / formatPercent / formatNumber.
+        geneMarkerTableRows() {
+            const gmc = this.$store.state.geneMarkerComparison;
+            if (!gmc) return [];
+            return gmc.rows.map((row) => ({
+                label: this.formatLabel(row.cellType),
+                leftSummary: row.leftSummary,
+                rightSummary: row.rightSummary,
+            }));
+        },
         leftGeneTableRows() {
-            return this.geneCategories.map((row) => ({ label: row.label, summary: row.leftSummary }));
+            return this.geneMarkerTableRows.map((row) => ({ label: row.label, summary: row.leftSummary }));
         },
         rightGeneTableRows() {
-            return this.geneCategories.map((row) => ({ label: row.label, summary: row.rightSummary }));
+            return this.geneMarkerTableRows.map((row) => ({ label: row.label, summary: row.rightSummary }));
         },
         cellTypeComparisonPoints() {
             const ctc = this.$store.state.cellTypeComparison;
@@ -185,17 +206,19 @@ new Vue({
         leftGeneTableCsvRows() {
             return this.leftGeneTableRows.map((row) => ({
                 cell_type: row.label,
-                avg_expression: row.summary.avg_expression,
+                p_value_adj: row.summary.p_value_adj,
+                log_fold_change: row.summary.log_fold_change,
                 pct_expressing: row.summary.pct_expressing,
-                n: row.summary.n,
+                mean_expression_scaled: row.summary.mean_expression_scaled,
             }));
         },
         rightGeneTableCsvRows() {
             return this.rightGeneTableRows.map((row) => ({
                 cell_type: row.label,
-                avg_expression: row.summary.avg_expression,
+                p_value_adj: row.summary.p_value_adj,
+                log_fold_change: row.summary.log_fold_change,
                 pct_expressing: row.summary.pct_expressing,
-                n: row.summary.n,
+                mean_expression_scaled: row.summary.mean_expression_scaled,
             }));
         },
         leftCellTypeTableCsvRows() {
@@ -260,7 +283,7 @@ new Vue({
         },
         // Text shown inside each "Select dataset" <option> - plain <option> elements
         // can't render HTML, so this builds a newline-separated, labeled block
-        // (Name / PMID or DOI / Summary) instead of a single inline string. Most
+        // (Name / PMID or DOI / GEO series) instead of a single inline string. Most
         // browsers preserve the line breaks in rendered <option> text. The same
         // string is also used as the option's title attribute so it's available
         // on hover regardless of how the browser lays out the option itself.
@@ -273,7 +296,7 @@ new Vue({
                 if (d.doi) idParts.push(`DOI: ${d.doi}`);
                 lines.push(idParts.join(" / "));
             }
-            //lines.push(`Summary: ${d.summary || "N/A"}`);
+            if (d.geoSeries) lines.push(`GEO: ${d.geoSeries}`);
             return lines.join("\n");
         },
         formatInteger(value) {
