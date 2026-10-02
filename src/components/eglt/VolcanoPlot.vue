@@ -46,7 +46,8 @@ export default Vue.component("volcano-plot", {
     data() {
         return {
             plotId: `volcanoPlot${Math.random() * 1e9}`,
-            clicked_dot_value: `clicked_dot_value${Math.random() * 1e9}`
+            clicked_dot_value: `clicked_dot_value${Math.random() * 1e9}`,
+            highlightColor: "goldenrod"
         };
     },
     modules: {
@@ -503,9 +504,9 @@ export default Vue.component("volcano-plot", {
 
             //if selectedGene is not undefined
             if (this.geneOfInterest != undefined) {
-                let targetGene = this.$parent.convert2RenderBy(
-                    this.geneOfInterest
-                );
+                let targetGene = !!this.renderConfig.diffExpVolcano
+                    ? this.geneOfInterest 
+                    : this.$parent.convert2RenderBy(this.geneOfInterest);
 
                 this.renderData.map((d) => {
                     if (
@@ -527,7 +528,7 @@ export default Vue.component("volcano-plot", {
                                     yAxisTicks.lo) /
                                     (yPosMax - yAxisTicks.lo));
 
-                        ctx.fillStyle = "#ff0000";
+                        ctx.fillStyle = !!this.renderConfig.diffExpVolcano ? this.highlightColor : "#ff0000";
                         ctx.lineWidth = 0;
 
                         ctx.beginPath();
@@ -536,7 +537,6 @@ export default Vue.component("volcano-plot", {
 
                         ctx.font = "12px Arial";
                         ctx.textAlign = "center";
-                        ctx.fillStyle = "#FF0000";
                         ctx.fillText(
                             d[this.renderConfig.renderBy],
                             xPos,

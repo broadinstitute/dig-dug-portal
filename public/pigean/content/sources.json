@@ -1,0 +1,57 @@
+{
+  "imported_at": "2026-09-15",
+  "sources": [
+    {
+      "path": "/Users/cyakaboski/src/papers/pigean-indirect-support/src/quasar-collective/docs/abstract.md",
+      "sha256": "9c06a1ccad4d8ee9ca8ed0ab851f24605bc3d211bd6f367a29f4cc9656109335"
+    },
+    {
+      "path": "/Users/cyakaboski/src/papers/pigean-indirect-support/src/quasar-collective/docs/methods.md",
+      "sha256": "dd68486c73e4ef4f65dcdd01001857678149890a7729c09d3b8ce945e3b50f25"
+    },
+    {
+      "path": "/Users/cyakaboski/src/papers/pigean-indirect-support/src/quasar-collective/manifest.yaml",
+      "sha256": "8d85fc27fc0c02f5a4d3ecef5e38f448d513c6c081488dbe7ad51b30962eb191"
+    },
+    {
+      "path": "/Users/cyakaboski/src/papers/pigean-indirect-support/src/quasar-collective/figures/pigean-figure-1/pigean-figure-1.png",
+      "sha256": "b792b3ecc1481aab0e97b571d204a45ba8ac77f6a6887466b6f5159e163d8ad5",
+      "asset": "media/pigean-figure-1.png"
+    },
+    {
+      "path": "/Users/cyakaboski/src/presentations/cfde-decode-pigean/public/manim/regularization.webm",
+      "sha256": "0ed7c7bb3f32002b92860a3dc3fd5ec697e310b2edf716187f0147d0ad399ebe",
+      "asset": "media/regularization.webm"
+    },
+    {
+      "path": "/Users/cyakaboski/src/presentations/cfde-decode-pigean/public/manim/set_regularization.webm",
+      "sha256": "bfe0287df608235cc205ebeea56f8ff7595c959236db16e73fa0cca48f292f32",
+      "asset": "media/set_regularization.webm"
+    },
+    {
+      "path": "/Users/cyakaboski/src/presentations/cfde-decode-pigean/public/manim/pigean_model.webm",
+      "sha256": "36d22502c84bf3c1e70f34a0f5e967ce2a6bb5cd73a8526d8f95af582de18108",
+      "asset": "media/pigean_model.webm"
+    },
+    {
+      "path": "/Users/cyakaboski/src/presentations/cfde-decode-pigean/public/manim/support_decomposition.webm",
+      "sha256": "6b07ba989f5cce1d7ed8338b3d815967c7f9876181ddd26942aa5910989aee98",
+      "asset": "media/support_decomposition.webm"
+    }
+  ],
+  "abstract_variables": {
+    "NUM_TOTAL_GENE_ANNOTATIONS": 144627,
+    "NUM_TOTAL_TRAITS_MOUSE_MSIGDB": 5535,
+    "NUM_GENETRAIT_REL_PP50": 295547,
+    "TEMPORAL_DELTA_R2_BETA_P": 8.65e-09,
+    "PIGEAN_COMBINED_RS_ALL": 2.52,
+    "MINIKEL_OTG_RS": 1.895,
+    "NUM_MINIKEL_OTG_PRIORITIZED_TARGETS": 1203,
+    "RARE_CRDC_N_PROBANDS": 26531,
+    "NUM_UNDERSTOOD_MECHANISMS": 5971,
+    "NUM_NOVEL_DISCOVERIES": 46409,
+    "NUM_INDIRECT_ONLY_ASSOCIATIONS": 19453,
+    "NUM_PIGEAN_PRIORITIZED_TARGETS_MOUSE_MSIGDB_AT_RS_eq_MINIKEL_OTG_INDIRECT": 2961
+  },
+  "notes": "Abstract wording imported from the manuscript, variables resolved from manifest.yaml; LaTeX emphasis/percent converted for the web. Documentation is an adaptation for the portal."
+}
