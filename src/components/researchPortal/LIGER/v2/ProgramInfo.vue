@@ -1,6 +1,6 @@
 <script>
 import Vue from "vue";
-import { field, numericField, programSelfLabelsAsQc } from "../ligerApi";
+import { field, numericField } from "../ligerApi";
 import { formatSignificance } from "./programAxis";
 import InfoTabs from "./InfoTabs.vue";
 import TraitTable from "./TraitTable.vue";
@@ -123,16 +123,6 @@ export default Vue.component("ProgramInfo", {
 
         topTraits() {
             return this.traits ? this.traits.rows.slice(0, 5) : [];
-        },
-
-        selfLabel() {
-            return this.factor ? String(field(this.factor, ["label"]) || "") : "";
-        },
-
-        // Reported as what it is -- the factorization's own description of itself --
-        // rather than dressed up as a curation verdict.
-        selfLabelIsQc() {
-            return programSelfLabelsAsQc(this.selfLabel);
         },
 
         model() {
@@ -327,14 +317,6 @@ export default Vue.component("ProgramInfo", {
                 </div>
                 <div v-if="geneLabel" class="metric-note">for {{ geneLabel }}</div>
             </div>
-        </div>
-
-        <div v-if="selfLabel" class="self-label" :class="{ qc: selfLabelIsQc }">
-            <span class="self-label-key">Factorization label</span>
-            <span class="self-label-value">{{ selfLabel }}</span>
-            <span v-if="selfLabelIsQc" class="self-label-flag">
-                This program describes itself as a QC or artifact program.
-            </span>
         </div>
 
         <div v-if="error" class="info-missing">{{ error }}</div>
@@ -611,36 +593,6 @@ export default Vue.component("ProgramInfo", {
 <style scoped src="./entityInfo.css"></style>
 
 <style scoped>
-.self-label{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 5px 10px;
-    margin-top: 12px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    background: var(--ce-sunken);
-}
-.self-label.qc{
-    background: #fdf3e6;
-}
-.self-label-key{
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: var(--ce-muted);
-}
-.self-label-value{
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ce-ink);
-}
-.self-label-flag{
-    font-size: 11px;
-    color: #9a5b00;
-}
-
 /* The pinned searched gene. A rule under it, so the ranking below still reads as a
    ranking rather than starting at an arbitrary row. */
 .searched-row{

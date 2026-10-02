@@ -16,13 +16,10 @@ import {
     field,
     numericField,
     normalizeGeneLabel,
-    tissueKeyFromLabel,
-    tissueLabelFromKey,
-    tissueLabelForRow,
-    tissueQueryKey,
-    tissueDatasetId,
-    detectCellStateDatasetKeying,
-    collectObservedDatasetIds,
+    tissueLabel,
+    rowTissueKey,
+    rowDatasetId,
+    buildQcSignatureIndex,
     cellTypeKey,
     cellTypeLabel,
     programKey,
@@ -34,7 +31,6 @@ import {
     absoluteExpressionValue,
     buildPhenotypeIndex,
     normalizeKey,
-    PROGRAM_MODEL,
     SIGNIFICANCE_P
 } from "../ligerApi";
 import { buildTraitRows } from "./traits";
@@ -199,8 +195,15 @@ export default Vue.component("CellEvolutionBrowser", {
             suggestionTimer: null,
 
             // scope
+            //
+            // `availableTissues` is [{ key, label }] and `selectedTissueKey` is the
+            // KEY, not the label. That is the whole shape of the tissue migration:
+            // the key is the identity the API speaks and the query string carries,
+            // and the label is presentation derived from it. It used to be the other
+            // way round -- the label was state and every query re-derived a key from
+            // it -- which is why there were four functions to convert between them.
             availableTissues: [],
-            selectedTissue: "",
+            selectedTissueKey: "",
             cellTypeRows: [],
             selectedCellTypeKey: "",
             isLoadingCellTypes: false,
@@ -300,13 +303,7 @@ export default Vue.component("CellEvolutionBrowser", {
             // True while restoring from the query string. Suppresses the param
             // writes that the selection methods would otherwise make on the way
             // through, so restoring a link does not rewrite the link it came from.
-            isHydratingFromQuery: false,
-
-            // Which dataset ID this portal actually reported per tissue, and whether
-            // the cell-state family of endpoints keys on dataset IDs here. Both are
-            // learned from the gene-level response -- see ../README.md.
-            observedDatasetIds: {},
-            cellStateUsesDatasetKey: false
+            isHydratingFromQuery: false
         };
     },
 
@@ -349,10 +346,14 @@ export default Vue.component("CellEvolutionBrowser", {
         // --- header band options ---
 
         tissueOptions() {
-            return this.availableTissues.map((label) => ({
-                key: label,
-                label
-            }));
+            return this.availableTissues;
+        },
+
+        // For display only -- the hub, the canvas heading, the empty-state sentence.
+        selectedTissueLabel() {
+            let match = this.availableTissues.find((tissue) => tissue.key === this.selectedTissueKey);
+
+            return match ? match.label : tissueLabel(this.selectedTissueKey);
         },
 
         cellTypeOptions() {
@@ -419,7 +420,7 @@ export default Vue.component("CellEvolutionBrowser", {
                 return "Search a gene first";
             }
 
-            if (!this.selectedTissue) {
+            if (!this.selectedTissueKey) {
                 return "Select a tissue first";
             }
 
@@ -428,15 +429,27 @@ export default Vue.component("CellEvolutionBrowser", {
 
         // --- source dataset ---
 
-        // The dataset ID the program queries actually used, so the metadata card
-        // describes the data the canvas was built from rather than a tissue's
-        // nominal dataset.
+        // Read off the rows the canvas was actually built from, so the metadata card
+        // describes the data on screen.
+        //
+        // This can only come from a response. Dataset IDs drift as source data is
+        // rebuilt -- heart went v3.2 -> v4.0 and artery and pancreas both moved to
+        // v3 between two observations -- so any ID held in config or in a constant
+        // is a future wrong answer. The program rows are preferred because they are
+        // what the programs list is built from; the cell-type rows are the fallback
+        // for the window before a cell type is chosen.
         activeDatasetId() {
-            if (!this.selectedTissue) {
-                return "";
+            let rows = this.programRows.length ? this.programRows : this.cellTypeRows;
+
+            for (let i = 0; i < rows.length; i++) {
+                let datasetId = rowDatasetId(rows[i]);
+
+                if (datasetId) {
+                    return datasetId;
+                }
             }
 
-            return tissueDatasetId(this.selectedTissue, this.observedDatasetIds) || "";
+            return "";
         },
 
         activeDataset() {
@@ -616,7 +629,8 @@ export default Vue.component("CellEvolutionBrowser", {
                 programOrder: this.programOrder,
                 stateOrder: this.stateOrder,
                 metricKey: this.metricKey,
-                significantOnly: this.significantEdgesOnly
+                significantOnly: this.significantEdgesOnly,
+                qcSignatureIndex: this.qcSignatureIndex
             });
         },
 
@@ -839,10 +853,6 @@ export default Vue.component("CellEvolutionBrowser", {
             };
         },
 
-        programModel() {
-            return PROGRAM_MODEL;
-        },
-
         worldWidth() {
             return WORLD_WIDTH;
         },
@@ -964,7 +974,7 @@ export default Vue.component("CellEvolutionBrowser", {
                 return "empty-gene";
             }
 
-            if (!this.selectedTissue) {
+            if (!this.selectedTissueKey) {
                 return "empty-tissue";
             }
 
@@ -1017,6 +1027,13 @@ export default Vue.component("CellEvolutionBrowser", {
 
         isLoadingStateTraits() {
             return this.loadingTraitKey === `state:${this.selectedStateKey}`;
+        },
+
+        // Just the ids, for isQcStateRow(). Separate from qcMetadataByKey below,
+        // which carries whole rows for the QC table -- this one only has to answer
+        // "is this state_name a QC signature".
+        qcSignatureIndex() {
+            return buildQcSignatureIndex(this.qcMetadataRows);
         },
 
         qcMetadataByKey() {
@@ -1112,7 +1129,7 @@ export default Vue.component("CellEvolutionBrowser", {
         },
 
         scopeSummary() {
-            let parts = [this.selectedGene, this.selectedTissue];
+            let parts = [this.selectedGene, this.selectedTissueLabel];
 
             if (this.selectedCellTypeOption) {
                 parts.push(this.selectedCellTypeOption.label);
@@ -1128,7 +1145,7 @@ export default Vue.component("CellEvolutionBrowser", {
         // adipose adipocytes" is the sentence the canvas is answering, and the band
         // above already shows the same three values as fields.
         canvasHeadingTitle() {
-            let scope = [this.selectedTissue, this.selectedCellTypeOption && this.selectedCellTypeOption.label]
+            let scope = [this.selectedTissueLabel, this.selectedCellTypeOption && this.selectedCellTypeOption.label]
                 .filter((part) => !!part)
                 .join(" ");
 
@@ -1311,31 +1328,24 @@ export default Vue.component("CellEvolutionBrowser", {
             window.history.replaceState({ path: nextUrl }, "", nextUrl);
         },
 
-        // The tissue param is a tissue key, not a label. An unrecognized tissue has
-        // no key, so fall back to its normalized label -- it can still appear in a
-        // response, and therefore in a link.
-        tissueParamFor(label) {
-            return tissueKeyFromLabel(label) || normalizeKey(label) || "";
-        },
-
-        // Resolves a tissue param back to the label used everywhere internally.
-        // Three ways in, because the param may be a config key, a key for a tissue
-        // the config does not list, or the label itself.
+        // Resolves a `?tissue=` param against the loaded list.
+        //
+        // The param was always a tissue key, and the selection is now a tissue key
+        // too, so this is a membership test rather than a conversion -- the three
+        // ways in (config key, unlisted key, label) collapsed into one. Links
+        // written by the old version still resolve, which is the point; normalizing
+        // covers a param that arrives with different casing or separators.
         tissueFromParam(param) {
             if (!param) {
                 return "";
             }
 
-            let fromConfig = tissueLabelFromKey(param);
-
-            if (fromConfig && this.availableTissues.includes(fromConfig)) {
-                return fromConfig;
-            }
-
             let wanted = normalizeKey(param);
 
-            return this.availableTissues.find((label) => this.tissueParamFor(label) === wanted
-                || normalizeKey(label) === wanted) || "";
+            let match = this.availableTissues.find((tissue) => tissue.key === wanted)
+                || this.availableTissues.find((tissue) => normalizeKey(tissue.label) === wanted);
+
+            return match ? match.key : "";
         },
 
         async initializeFromQuery() {
@@ -1372,7 +1382,7 @@ export default Vue.component("CellEvolutionBrowser", {
                 // submitGeneSearch auto-selects when there is exactly one tissue, so
                 // re-selecting the same one here would refetch its cell types for
                 // nothing.
-                if (tissue !== this.selectedTissue) {
+                if (tissue !== this.selectedTissueKey) {
                     await this.selectTissue({ key: tissue });
                 }
 
@@ -1412,7 +1422,7 @@ export default Vue.component("CellEvolutionBrowser", {
         selectionParams() {
             return {
                 gene: this.selectedGene || "",
-                tissue: this.selectedTissue ? this.tissueParamFor(this.selectedTissue) : "",
+                tissue: this.selectedTissueKey,
                 cell_type: this.selectedCellTypeKey || "",
                 cell_state: this.selectedStateKey || "",
                 gene_program: this.selectedProgramKey || ""
@@ -1456,10 +1466,10 @@ export default Vue.component("CellEvolutionBrowser", {
         // If a gene-keyed loading index ever appears, this whole method collapses
         // into one request.
         async loadGeneLoadings(cellTypeKey) {
-            let datasetId = tissueDatasetId(this.selectedTissue, this.observedDatasetIds);
+            let tissueKey = this.selectedTissueKey;
             let programKeys = this.programItems.map((item) => item.key);
 
-            if (!datasetId || !cellTypeKey || !this.selectedGene || !programKeys.length) {
+            if (!tissueKey || !cellTypeKey || !this.selectedGene || !programKeys.length) {
                 return;
             }
 
@@ -1490,7 +1500,7 @@ export default Vue.component("CellEvolutionBrowser", {
 
                     try {
                         let rows = rowsFromResponse(
-                            await fetchJson(this.api.programGenes(datasetId, cellTypeKey, programId))
+                            await fetchJson(this.api.programGenes(tissueKey, cellTypeKey, programId))
                         );
                         let value = this.geneLoadingFromRows(rows, gene);
 
@@ -1626,15 +1636,13 @@ export default Vue.component("CellEvolutionBrowser", {
         },
 
         loadProgramTraits(programId) {
-            let datasetId = tissueDatasetId(this.selectedTissue, this.observedDatasetIds);
-
-            if (!datasetId || !this.selectedCellTypeKey) {
+            if (!this.selectedTissueKey || !this.selectedCellTypeKey) {
                 return;
             }
 
             return this.loadTraits(
                 `program:${programId}`,
-                this.api.programTraits(datasetId, this.selectedCellTypeKey, programId)
+                this.api.programTraits(this.selectedTissueKey, this.selectedCellTypeKey, programId)
             );
         },
 
@@ -1643,21 +1651,13 @@ export default Vue.component("CellEvolutionBrowser", {
                 return;
             }
 
-            // Cell-state traits are in the family that keys on a dataset ID on some
-            // portals, so this goes through tissueQueryKey() -- not the plain tissue
-            // key the metadata endpoints take.
-            let queryKey = tissueQueryKey(this.selectedTissue, {
-                observedDatasetIds: this.observedDatasetIds,
-                usesDatasetKey: this.cellStateUsesDatasetKey
-            });
-
-            if (!queryKey) {
+            if (!this.selectedTissueKey) {
                 return;
             }
 
             return this.loadTraits(
                 `state:${stateId}`,
-                this.api.cellStateTraits(queryKey, this.selectedCellTypeKey, stateId)
+                this.api.cellStateTraits(this.selectedTissueKey, this.selectedCellTypeKey, stateId)
             );
         },
 
@@ -1682,30 +1682,61 @@ export default Vue.component("CellEvolutionBrowser", {
                 return;
             }
 
-            let datasetId = tissueDatasetId(this.selectedTissue, this.observedDatasetIds);
+            let tissueKey = this.selectedTissueKey;
             let cellType = this.selectedCellTypeKey;
 
-            if (!datasetId || !cellType) {
+            if (!tissueKey || !cellType) {
                 return;
             }
 
             this.loadingProgramDetailKey = programId;
             this.programDetailError = "";
 
+            // Settled individually, NOT Promise.all.
+            //
+            // These are three independent indexes and one of them failing says
+            // nothing about the other two. Under Promise.all a single rejection
+            // discarded all three results and reported one generic message, so a
+            // fault in any one index blanked Gene loadings, Gene sets and QC
+            // signatures together -- and `gene-program-gene-set-factor` may legitimately
+            // be absent on some portals, which would have taken the other two down
+            // with it. This is the same shape of mistake as the gene-loading fan-out
+            // that once turned a ReferenceError into plausible-looking missing data;
+            // see "The fan-out reports absent and failed separately" in ../README.md.
+            let sources = [
+                { key: "genes", label: "gene loadings", url: this.api.programGenes(tissueKey, cellType, programId) },
+                { key: "geneSets", label: "gene sets", url: this.api.programGeneSets(tissueKey, cellType, programId) },
+                { key: "qc", label: "QC signatures", url: this.api.programQc(tissueKey, cellType, programId) }
+            ];
+
             try {
-                let [genes, geneSets, qc] = await Promise.all([
-                    fetchJson(this.api.programGenes(datasetId, cellType, programId)).then(rowsFromResponse),
-                    fetchJson(this.api.programGeneSets(datasetId, cellType, programId)).then(rowsFromResponse),
-                    fetchJson(this.api.programQc(datasetId, cellType, programId)).then(rowsFromResponse)
-                ]);
+                let detail = {};
+                let failed = [];
+
+                await Promise.all(sources.map(async (source) => {
+                    try {
+                        detail[source.key] = rowsFromResponse(await fetchJson(source.url));
+                    } catch (error) {
+                        // Left undefined rather than set to []. The panel tests
+                        // `Array.isArray` to decide whether a source loaded, so an
+                        // empty array here would assert "this program has none"
+                        // where the fact is "we could not ask".
+                        failed.push(source.label);
+                        console.error(`LIGER: ${source.label} failed for ${programId}`, error);
+                    }
+                }));
 
                 // Vue 2 cannot see a new key on a plain object, so replace the map.
                 this.programDetailCache = {
                     ...this.programDetailCache,
-                    [programId]: { genes, geneSets, qc }
+                    [programId]: detail
                 };
-            } catch (error) {
-                this.programDetailError = "Unable to load the full detail for this program. The figures above are unaffected.";
+
+                // Names what actually failed, so an empty tab is never ambiguous
+                // between "nothing reported" and "the request did not come back".
+                this.programDetailError = failed.length
+                    ? `Unable to load ${failed.join(" or ")} for this program. Everything else here is unaffected.`
+                    : "";
             } finally {
                 if (this.loadingProgramDetailKey === programId) {
                     this.loadingProgramDetailKey = "";
@@ -1743,12 +1774,15 @@ export default Vue.component("CellEvolutionBrowser", {
             }
         },
 
-        tissueAllowed(label) {
+        // The config allowlist is the one legitimately client-side piece of tissue
+        // config left: which tissues a portal chooses to DISPLAY is curation, not
+        // identity.
+        tissueAllowed(tissueKey) {
             if (!this.configuredTissueKeys.length) {
                 return true;
             }
 
-            return this.configuredTissueKeys.includes(tissueKeyFromLabel(label) || normalizeKey(label));
+            return this.configuredTissueKeys.includes(tissueKey);
         },
 
         async lookupGenes(query) {
@@ -1789,9 +1823,7 @@ export default Vue.component("CellEvolutionBrowser", {
 
         resetGeneResults() {
             this.availableTissues = [];
-            this.selectedTissue = "";
-            this.observedDatasetIds = {};
-            this.cellStateUsesDatasetKey = false;
+            this.selectedTissueKey = "";
             this.resetTissueResults();
         },
 
@@ -1854,8 +1886,9 @@ export default Vue.component("CellEvolutionBrowser", {
             });
 
             try {
-                // Both gene-level queries, to derive the tissue list. The cell-state
-                // one is also the only valid signal for the keying convention.
+                // Both gene-level queries, to derive the tissue list. They used to
+                // do double duty as the signal for which keying convention the
+                // portal spoke; there is only one convention now.
                 let [cellStatePayload, programPayload] = await Promise.all([
                     fetchJson(this.api.geneCellStates(normalizedGene)),
                     fetchJson(this.api.genePrograms(normalizedGene))
@@ -1864,19 +1897,24 @@ export default Vue.component("CellEvolutionBrowser", {
                 let cellStateRows = rowsFromResponse(cellStatePayload);
                 let programRows = rowsFromResponse(programPayload);
 
-                let observed = collectObservedDatasetIds(cellStateRows, this.observedDatasetIds);
-                this.observedDatasetIds = collectObservedDatasetIds(programRows, observed);
-                this.cellStateUsesDatasetKey = detectCellStateDatasetKeying(cellStateRows);
+                // The tissue list is whatever the rows report, with no table to
+                // check it against -- which is the point. The old version resolved
+                // each row through a hardcoded 9-tissue config and dropped anything
+                // missing from it, so `bone`, `bonemarrow` and `tendon` stayed
+                // invisible for as long as the config went unedited.
+                let byKey = {};
 
-                let tissues = Array.from(
-                    new Set(
-                        []
-                            .concat(cellStateRows, programRows)
-                            .map((row) => tissueLabelForRow(row))
-                            .filter((label) => !!label)
-                            .filter((label) => this.tissueAllowed(label))
-                    )
-                ).sort((a, b) => a.localeCompare(b));
+                [].concat(cellStateRows, programRows).forEach((row) => {
+                    let key = rowTissueKey(row);
+
+                    if (key && !byKey[key] && this.tissueAllowed(key)) {
+                        byKey[key] = { key, label: tissueLabel(key, row) };
+                    }
+                });
+
+                let tissues = Object.keys(byKey)
+                    .map((key) => byKey[key])
+                    .sort((a, b) => a.label.localeCompare(b.label));
 
                 this.availableTissues = tissues;
 
@@ -1885,8 +1923,9 @@ export default Vue.component("CellEvolutionBrowser", {
                     return;
                 }
 
+                // `tissues` is now [{ key, label }], so the entry IS the option.
                 if (tissues.length === 1) {
-                    await this.selectTissue({ key: tissues[0] });
+                    await this.selectTissue(tissues[0]);
                 }
             } catch (error) {
                 this.selectedGene = "";
@@ -1899,9 +1938,10 @@ export default Vue.component("CellEvolutionBrowser", {
 
         async selectTissue(option) {
             this.resetTissueResults();
-            this.selectedTissue = option.key;
+            this.selectedTissueKey = option.key;
             this.syncQueryParams({
-                tissue: this.tissueParamFor(option.key),
+                // The selection IS the param now -- no conversion.
+                tissue: option.key,
                 cell_type: "",
                 cell_state: "",
                 gene_program: ""
@@ -1909,30 +1949,28 @@ export default Vue.component("CellEvolutionBrowser", {
             await this.loadCellTypes(option.key);
         },
 
-        async loadCellTypes(tissue) {
-            if (!this.selectedGene || !tissue) {
+        async loadCellTypes(tissueKey) {
+            if (!this.selectedGene || !tissueKey) {
                 return;
             }
+
+            // The query takes the key; the messages take the label. `vat` is what
+            // the API is asked for, "VAT" is what a reader is told about.
+            let label = tissueLabel(tissueKey);
 
             this.isLoadingCellTypes = true;
             this.cellTypeError = "";
 
             try {
-                let queryKey = tissueQueryKey(tissue, {
-                    observedDatasetIds: this.observedDatasetIds,
-                    usesDatasetKey: this.cellStateUsesDatasetKey
-                });
-                let payload = await fetchJson(this.api.cellTypeExpression(queryKey, this.selectedGene));
+                let payload = await fetchJson(this.api.cellTypeExpression(tissueKey, this.selectedGene));
 
                 this.cellTypeRows = rowsFromResponse(payload).filter((row) => !!cellTypeKey(row));
 
                 if (!this.cellTypeRows.length) {
-                    this.cellTypeError = `No cell types for ${this.selectedGene} in ${tissue}.`;
+                    this.cellTypeError = `No cell types for ${this.selectedGene} in ${label}.`;
                 }
             } catch (error) {
-                // On a dataset-keyed portal a tissue-keyed query returns HTTP 500
-                // rather than an empty result, so a keying mistake lands here.
-                this.cellTypeError = `Unable to load cell types for ${tissue}.`;
+                this.cellTypeError = `Unable to load cell types for ${label}.`;
             } finally {
                 this.isLoadingCellTypes = false;
             }
@@ -1947,13 +1985,19 @@ export default Vue.component("CellEvolutionBrowser", {
                 gene_program: ""
             });
 
-            // All three in parallel. The relationship heatmap is NOT lazily loaded
-            // behind a click: its rows are the edges, and the edges are the point of
-            // showing both lists at once.
+            // In parallel. The relationship heatmap is NOT lazily loaded behind a
+            // click: its rows are the edges, and the edges are the point of showing
+            // both lists at once.
+            //
+            // The QC dictionary joins this set because it is now what identifies a
+            // QC signature in the heatmap rows. It is fetched once per session and
+            // cached, and `relationships` is a computed, so the edges re-filter on
+            // their own if it lands after them.
             await Promise.all([
                 this.loadPrograms(option),
                 this.loadStates(option),
-                this.loadRelationships(option)
+                this.loadRelationships(option),
+                this.ensureQcMetadata()
             ]);
 
             // Deliberately NOT awaited. The gene-loading fan-out is one request per
@@ -1963,33 +2007,32 @@ export default Vue.component("CellEvolutionBrowser", {
         },
 
         async loadPrograms(cellType) {
-            if (!this.selectedGene || !this.selectedTissue || !cellType) {
+            if (!this.selectedGene || !this.selectedTissueKey || !cellType) {
                 return;
             }
 
-            // The program endpoints are dataset-keyed on every portal.
-            let datasetId = tissueDatasetId(this.selectedTissue, this.observedDatasetIds);
-
-            if (!datasetId) {
-                this.programError = "Unable to determine the dataset for this tissue.";
-                return;
-            }
+            let tissueKey = this.selectedTissueKey;
 
             this.isLoadingPrograms = true;
             this.programError = "";
 
             try {
                 let [expressionPayload, infoPayload] = await Promise.all([
-                    fetchJson(this.api.programExpression(datasetId, cellType.key, this.selectedGene)),
-                    // gene-program-factor carries the readable labels; without it the
-                    // nodes would show raw factor IDs.
-                    fetchJson(this.api.programInfo(datasetId, cellType.key))
+                    fetchJson(this.api.programExpression(tissueKey, cellType.key, this.selectedGene)),
+                    // gene-program-factor is still fetched for `top_genes`, which
+                    // only it carries. The readable label now rides along on the
+                    // expression rows as `factor_label`, so this is no longer load
+                    // bearing for the node labels -- programLabel() prefers the info
+                    // row when present and falls back to the expression row's own
+                    // field, which means the canvas renders correctly even if this
+                    // request is the one that fails.
+                    fetchJson(this.api.programInfo(tissueKey, cellType.key))
                 ]);
 
-                this.programRows = rowsFromResponse(expressionPayload).filter((row) => {
-                    let model = field(row, ["model"]);
-                    return !model || model === PROGRAM_MODEL;
-                });
+                // No model filter any more: the API serves one factorization and the
+                // argument is gone. `model` survives as a field on these rows, so a
+                // future multi-model index would need the filter back here.
+                this.programRows = rowsFromResponse(expressionPayload);
                 this.programInfoRows = rowsFromResponse(infoPayload);
 
                 if (!this.programRows.length) {
@@ -2003,31 +2046,21 @@ export default Vue.component("CellEvolutionBrowser", {
         },
 
         async loadStates(cellType) {
-            if (!this.selectedGene || !this.selectedTissue || !cellType) {
+            if (!this.selectedGene || !this.selectedTissueKey || !cellType) {
                 return;
             }
 
-            // Two different keys, deliberately. The cell-state EXPRESSION endpoint is
-            // in the family that keys on a dataset ID on some portals, so it goes
-            // through tissueQueryKey(); the METADATA endpoint is tissue-keyed on
-            // every portal and takes the plain tissue key. Swapping them returns
-            // HTTP 500 on one portal or the other.
-            let queryKey = tissueQueryKey(this.selectedTissue, {
-                observedDatasetIds: this.observedDatasetIds,
-                usesDatasetKey: this.cellStateUsesDatasetKey
-            });
-            let tissueKey = tissueKeyFromLabel(this.selectedTissue);
-
-            if (!tissueKey) {
-                this.stateError = "Unable to determine the selected tissue.";
-                return;
-            }
+            // One key for both now. These two used to take DIFFERENT first
+            // arguments -- the expression endpoint a per-portal dataset-or-tissue
+            // key, the metadata endpoint a plain tissue key -- and swapping them
+            // returned HTTP 500 on one portal or the other.
+            let tissueKey = this.selectedTissueKey;
 
             this.stateError = "";
 
             try {
                 let [expressionPayload, metadataPayload] = await Promise.all([
-                    fetchJson(this.api.cellStateExpression(queryKey, cellType.key, this.selectedGene)),
+                    fetchJson(this.api.cellStateExpression(tissueKey, cellType.key, this.selectedGene)),
                     // Carries `display_name`, which is the readable state label.
                     fetchJson(this.api.cellStateMetadata(tissueKey, cellType.key))
                 ]);
@@ -2036,7 +2069,7 @@ export default Vue.component("CellEvolutionBrowser", {
                 // they are pipeline diagnostics, not cell states a reader browses.
                 this.stateRows = rowsFromResponse(expressionPayload)
                     .filter((row) => !!stateKey(row))
-                    .filter((row) => !isQcStateRow(row));
+                    .filter((row) => !isQcStateRow(row, this.qcSignatureIndex));
                 this.stateMetadataRows = rowsFromResponse(metadataPayload);
 
                 if (!this.stateRows.length) {
@@ -2048,18 +2081,14 @@ export default Vue.component("CellEvolutionBrowser", {
         },
 
         async loadRelationships(cellType) {
-            if (!this.selectedTissue || !cellType) {
+            if (!this.selectedTissueKey || !cellType) {
                 return;
             }
 
             this.relationshipError = "";
 
             try {
-                let queryKey = tissueQueryKey(this.selectedTissue, {
-                    observedDatasetIds: this.observedDatasetIds,
-                    usesDatasetKey: this.cellStateUsesDatasetKey
-                });
-                let payload = await fetchJson(this.api.relationshipHeatmap(queryKey, cellType.key));
+                let payload = await fetchJson(this.api.relationshipHeatmap(this.selectedTissueKey, cellType.key));
 
                 this.relationshipRows = rowsFromResponse(payload);
 
@@ -2285,7 +2314,7 @@ export default Vue.component("CellEvolutionBrowser", {
                     label="Tissue"
                     placeholder="Select a tissue"
                     :options="tissueOptions"
-                    :value="selectedTissue"
+                    :value="selectedTissueKey"
                     :disabled-reason="tissueDisabledReason"
                     :loading="isLoadingGeneData"
                     empty-text="No tissues for this gene"
@@ -2487,7 +2516,7 @@ export default Vue.component("CellEvolutionBrowser", {
                     <div class="gene-hub" :style="hubStyle">
                         <div class="hub-eyebrow">Gene</div>
                         <div class="hub-gene">{{ selectedGene }}</div>
-                        <div class="hub-scope">{{ selectedTissue }}</div>
+                        <div class="hub-scope">{{ selectedTissueLabel }}</div>
                         <div v-if="selectedCellTypeOption" class="hub-scope">{{ selectedCellTypeOption.label }}</div>
                     </div>
 
@@ -2713,7 +2742,7 @@ export default Vue.component("CellEvolutionBrowser", {
                                 Pick a gene, tissue and cell type above to see the programs its expression is associated with.
                             </template>
                             <template v-else-if="bodyState === 'empty-programs'">
-                                {{ scopeSummary }} returned no programs for the <code>{{ programModel }}</code> model.
+                                {{ scopeSummary }} returned no gene programs.
                             </template>
                             <template v-else>
                                 Finish choosing a scope in the band above.

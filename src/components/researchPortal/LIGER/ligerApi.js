@@ -1,11 +1,24 @@
-// The LIGER data layer: host resolution, tissue/dataset identity, URL building and
-// response normalization. No presentation, no Vue -- everything here is a property
-// of the API rather than of any one interface, which is why it sits at the root of
-// LIGER/ rather than inside a version folder.
+// The LIGER data layer: host resolution, tissue identity, URL building and response
+// normalization. No presentation, no Vue -- everything here is a property of the API
+// rather than of any one interface, which is why it sits at the root of LIGER/
+// rather than inside a version folder.
 //
-// NOTE: `v1/LigerBrowser.vue` still carries its own inline copy of all of this and
-// does NOT import from here. Until it is migrated, the tissue config below and the
-// one in v1 have to be changed together. See ../README.md.
+// **Every index is keyed on the tissue key** (`vat`, `pancreas`) and none of them
+// take a model argument any more. That replaced a large amount of machinery here:
+// a hardcoded tissue -> dataset table, its reverse index, per-portal dataset-ID
+// observation, and a runtime sniff of which of two keying conventions each portal
+// used. All of it is gone. See ../README.md for the history, and
+// ../BACKEND_REQUEST_TISSUE_KEYS.md for the request that produced the change.
+//
+// Two consequences worth keeping in mind:
+//
+// 1. **Dataset IDs drift continuously** as source data is rebuilt -- between two
+//    observations `FNIH_Heart_scRNA_v3.2` became `v4.0` and artery and pancreas
+//    both moved to `v3`. Nothing here may hold a dataset ID as a constant. Where a
+//    dataset ID is needed (naming the source, linking to the single-cell browser)
+//    it comes from the `dataset` field of a row we just loaded.
+// 2. **`v1/` is deprecated** and carries its own inline copy of the OLD query
+//    shapes, so it no longer talks to a live API. It is not mounted anywhere.
 
 const DEV_HUGEAMP_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
 const PROD_HUGEAMP_BIOINDEX_HOST = "https://bioindex.hugeamp.org";
@@ -28,41 +41,36 @@ export const HUGEAMP_HOST = USE_DEV_HOST
     ? DEV_HUGEAMP_BIOINDEX_HOST
     : PROD_HUGEAMP_BIOINDEX_HOST;
 
-// The program endpoints all query a single factorization model. Anything that
-// counts or filters program rows has to apply the same filter or it overcounts.
-export const PROGRAM_MODEL = "mouse_msigdb";
-
 // Used as a significance flag only. p_value underflows to 5e-324 for the strongest
 // hits, so it can never order them.
 export const SIGNIFICANCE_P = 0.05;
 
-// Portals do not agree on how a tissue is identified. Some return a tissue label on
-// the gene-level expression rows, others return only a dataset ID, and the dataset
-// IDs themselves differ between portals for the same tissue. So each tissue lists
-// every dataset ID we know it by, and resolution runs in whichever direction the
-// response happens to support.
+// Display labels for the tissue keys the API reports. **This is temporary**, and it
+// is the last remnant of the old hardcoded tissue table -- it exists only because
+// the labels cannot be derived from the keys: `bonemarrow` title-cases to
+// "Bonemarrow", and `sat` / `vat` to "Sat" / "Vat", where the right answers are
+// "Bone Marrow", "SAT" and "VAT".
 //
-// Keep this on `datasetIds` (an array) only -- do not mix in `datasetId` /
-// `datasetID` -- and add a new portal's ID to the existing tissue entry rather than
-// adding a new tissue.
-export const TISSUE_CONFIG = {
-    artery: { label: "Artery", datasetIds: ["FNIH_Artery_scRNA_v2.2"] },
-    heart: { label: "Heart", datasetIds: ["FNIH_Heart_scRNA_v3.2"] },
-    hypothalamus: { label: "Hypothalamus", datasetIds: ["FNIH_Hypothalamus_scRNA_v2.2"] },
-    kidney: { label: "Kidney", datasetIds: ["FNIH_Kidney_scRNA_v2.2"] },
-    liver: { label: "Liver", datasetIds: ["FNIH_Liver_scRNA_v3.2"] },
-    muscle: { label: "Muscle", datasetIds: ["FNIH_Muscle_scRNA_v2.2"] },
-    pancreas: { label: "Pancreas", datasetIds: ["FNIH_Pancreas_scRNA_v2.2", "islet_of_Langerhans_scRNA_v3-4"] },
-    sat: { label: "SAT", datasetIds: ["FNIH_SAT_scRNA_v2.2"] },
-    vat: { label: "VAT", datasetIds: ["FNIH_VAT_scRNA_v2.2"] }
+// `tissue_label` has been requested on the two gene-level expression endpoints.
+// **When it lands, delete this map and `tissueLabel()` falls back to the field.**
+//
+// Deliberately NOT a gate: a tissue missing from here still renders, via
+// formatDisplayLabel(). The old table dropped any tissue it did not list, which is
+// how `bone`, `bonemarrow` and `tendon` stayed invisible after the API gained them.
+const TISSUE_LABELS = {
+    artery: "Artery",
+    bone: "Bone",
+    bonemarrow: "Bone Marrow",
+    heart: "Heart",
+    hypothalamus: "Hypothalamus",
+    kidney: "Kidney",
+    liver: "Liver",
+    muscle: "Muscle",
+    pancreas: "Pancreas",
+    sat: "SAT",
+    tendon: "Tendon",
+    vat: "VAT"
 };
-
-export const DATASET_TISSUE_MAP = Object.keys(TISSUE_CONFIG).reduce((map, tissueKey) => {
-    (TISSUE_CONFIG[tissueKey].datasetIds || []).forEach((datasetId) => {
-        map[datasetId] = tissueKey;
-    });
-    return map;
-}, {});
 
 // --- generic row / field access ------------------------------------------------
 
@@ -150,14 +158,6 @@ export function firstPathValue(row, paths = []) {
     }
 
     return null;
-}
-
-// The program `label` from gene-program-factor is the factorization's own verdict on
-// itself, and for islet beta 7 of 10 programs call themselves QC or artifact
-// programs. That is real, reportable information -- and it is the honest replacement
-// for the fabricated quality badge v1 used to show.
-export function programSelfLabelsAsQc(label) {
-    return /\b(qc|artifact|ambient|contamination|doublet)\b/i.test(String(label || ""));
 }
 
 // The bioindex returns rows several different ways depending on the endpoint, and
@@ -274,118 +274,39 @@ export function normalizeGeneLabel(gene) {
     return String(field(gene, ["symbol", "gene_symbol", "name", "gene", "id"]) || "").toUpperCase();
 }
 
-// --- tissue / dataset identity -------------------------------------------------
-
-export function tissueKeyFromLabel(label) {
-    return Object.keys(TISSUE_CONFIG).find((tissueKey) => TISSUE_CONFIG[tissueKey].label === label) || null;
-}
-
-// The inverse, for restoring a tissue from a query string. Returns null for a key
-// the config does not know, which the caller has to handle -- an unrecognized
-// tissue can still be present in a response and therefore in a link.
-export function tissueLabelFromKey(tissueKey) {
-    let config = TISSUE_CONFIG[normalizeKey(tissueKey)];
-    return config ? config.label : null;
-}
-
-export function rowDatasetId(row) {
-    return String(field(row, ["dataset_id", "dataset"]) || "");
-}
+// --- tissue identity -----------------------------------------------------------
+//
+// One key per tissue, straight off the row. There is nothing to resolve any more:
+// every index takes the tissue key, and every row reports the key it was served
+// under. The query string already carried keys, so links keep resolving.
 
 export function rowTissueKey(row) {
-    let tissue = field(row, ["tissue_label", "tissue"]);
+    return normalizeKey(field(row, ["tissue"]));
+}
 
-    if (tissue) {
-        let normalized = normalizeKey(tissue);
-        if (TISSUE_CONFIG[normalized]) {
-            return normalized;
-        }
+// The dataset the row was actually served from -- for naming the source and linking
+// to the single-cell browser, never for querying. Dataset IDs drift as source data
+// is rebuilt, so this is only ever read from a response, never held as a constant.
+export function rowDatasetId(row) {
+    return String(field(row, ["dataset", "dataset_id"]) || "");
+}
+
+// Prefers the API's own label once it sends one, so this needs no change when
+// `tissue_label` lands on the expression endpoints -- the row wins, TISSUE_LABELS
+// covers the gap, and formatDisplayLabel() keeps an unknown tissue visible rather
+// than dropping it.
+export function tissueLabel(tissueKey, row = null) {
+    let fromRow = row ? field(row, ["tissue_label"]) : null;
+
+    if (fromRow) {
+        return String(fromRow);
     }
 
-    return DATASET_TISSUE_MAP[rowDatasetId(row)] || null;
+    let key = normalizeKey(tissueKey);
+
+    return TISSUE_LABELS[key] || formatDisplayLabel(key);
 }
 
-export function tissueLabelForRow(row) {
-    let tissueKey = rowTissueKey(row);
-
-    if (tissueKey) {
-        return TISSUE_CONFIG[tissueKey].label;
-    }
-
-    // Unrecognized tissue with no dataset ID we can map: show it as-is rather than
-    // dropping the row.
-    let tissue = field(row, ["tissue_label", "tissue"]);
-    return tissue ? formatDisplayLabel(tissue) : "";
-}
-
-// The cell-state family of endpoints keys on a tissue on some portals and on a
-// dataset ID on others. The gene-level cell-state response tells us which: if its
-// rows carry a tissue the portal speaks tissue, if they carry only a dataset ID it
-// speaks dataset. The program payload is no help -- it reports dataset IDs on both
-// kinds of portal, so including it makes every portal look dataset-keyed.
-export function detectCellStateDatasetKeying(rows = []) {
-    let hasTissue = rows.some((row) => !!field(row, ["tissue_label", "tissue"]));
-    let hasDataset = rows.some((row) => !!rowDatasetId(row));
-
-    return !hasTissue && hasDataset;
-}
-
-// Records the dataset ID a portal reported for each tissue, so the dataset-keyed
-// endpoints downstream query the ID this portal actually serves rather than the
-// first one in the static config. Returns a new object; the first ID seen wins.
-export function collectObservedDatasetIds(rows = [], observed = {}) {
-    let next = { ...observed };
-
-    rows.forEach((row) => {
-        let datasetId = rowDatasetId(row);
-        let tissueKey = rowTissueKey(row);
-
-        if (datasetId && tissueKey && !next[tissueKey]) {
-            next[tissueKey] = datasetId;
-        }
-    });
-
-    return next;
-}
-
-// Prefer the dataset ID this portal actually used for the current gene; fall back
-// to the first configured ID when the response only gave us tissue labels.
-export function tissueDatasetId(label, observedDatasetIds = {}) {
-    let tissueKey = tissueKeyFromLabel(label);
-
-    if (!tissueKey) {
-        return null;
-    }
-
-    return observedDatasetIds[tissueKey] || (TISSUE_CONFIG[tissueKey].datasetIds || [])[0] || null;
-}
-
-// Query key for the cell-state family only:
-//   gene-program-expression-cell-type
-//   gene-program-expression-cell-state (3-arg form)
-//   gene-program-heatmap
-//   gene-program-cell-state-trait-factor
-//
-// Do NOT use it for gene-program-cell-state-metadata / -extended, which are
-// tissue-keyed on every portal, and not for the program endpoints, which take a
-// dataset ID via tissueDatasetId().
-//
-// On a dataset-keyed portal, passing a tissue name to a cell-state endpoint returns
-// HTTP 500 rather than an empty result, so getting this wrong surfaces as a load
-// error rather than an empty state.
-export function tissueQueryKey(label, { observedDatasetIds = {}, usesDatasetKey = false } = {}) {
-    let tissueKey = tissueKeyFromLabel(label);
-
-    if (!tissueKey) {
-        return "";
-    }
-
-    if (!usesDatasetKey) {
-        return tissueKey;
-    }
-
-    return tissueDatasetId(label, observedDatasetIds) || tissueKey;
-}
 
 // --- row accessors -------------------------------------------------------------
 
@@ -409,18 +330,49 @@ export function stateLabel(row, metadataRow = null) {
     );
 }
 
+// The `qc_signature_id` values from gene-program-qc-metadata-extended, as a lookup.
+// That dictionary is the authoritative list of QC signatures, and its ids are
+// exactly the `state_name` values the heatmap mixes in with curated states -- 36
+// `qc_bad_*` against 6 real states for vat/adipocyte.
+export function buildQcSignatureIndex(qcMetadataRows = []) {
+    return qcMetadataRows.reduce((index, row) => {
+        let id = field(row, ["qc_signature_id"]);
+
+        if (id) {
+            index[normalizeKey(id)] = true;
+        }
+
+        return index;
+    }, {});
+}
+
 // gene-program-heatmap's `state_name` MIXES curated cell states and QC signatures,
-// and no field separates them -- for islet beta, 36 of 45 distinct values are
-// `qc_bad_*`. This was once filtered on `state_type === "qc_state"`, which no row
-// carries, so the filter passed everything and QC signatures were presented as
-// curated state matches. The id prefix is the only real signal; the `state_type`
-// test is kept first in case the index starts sending it.
-export function isQcStateRow(row) {
+// and no field on those rows separates them.
+//
+// Three tests, in order of how much they can be trusted:
+//
+// 1. `state_type === "qc_state"`, for if the index ever sends it. It does not today
+//    -- filtering on it is the bug that shipped once, because no row carries the
+//    field, so the filter passed everything and QC signatures were presented as
+//    curated matches.
+// 2. The QC dictionary, when the caller has loaded it. This is the authoritative
+//    test and the reason it is plumbed through.
+// 3. The `qc_` name prefix. Kept as a fallback, NOT replaced by the dictionary: the
+//    heatmap can resolve before the dictionary does, and a filter that silently
+//    stops filtering is worse than a crude one. A QC signature not named `qc_*`
+//    would slip past this and is exactly what test 2 is for.
+export function isQcStateRow(row, qcSignatureIndex = null) {
     if (field(row, ["state_type"]) === "qc_state") {
         return true;
     }
 
-    return /^qc[_-]/i.test(String(stateKey(row) || ""));
+    let key = String(stateKey(row) || "");
+
+    if (qcSignatureIndex && qcSignatureIndex[normalizeKey(key)]) {
+        return true;
+    }
+
+    return /^qc[_-]/i.test(key);
 }
 
 export function programKey(row) {
@@ -531,8 +483,12 @@ function query(host, index, ...args) {
     return `${host}/api/bio/query/${index}?q=${encodeURIComponent(args.join(","))}`;
 }
 
-// Returns the URL builders bound to one resolved host. `tissueQuery` arguments come
-// from tissueQueryKey(); `datasetId` arguments from tissueDatasetId().
+// Returns the URL builders bound to one resolved host.
+//
+// **Every `tissueKey` argument is the tissue key**, the same string the rows report
+// in their `tissue` field. There is no second convention and no model argument --
+// both are gone from the API, which is what let the identity section above shrink to
+// three functions.
 export function createLigerApi(config = {}) {
     let host = resolveApiHost(config);
 
@@ -541,30 +497,36 @@ export function createLigerApi(config = {}) {
 
         // pinned to hugeamp -- other portals return 501
         matchGene: (prefix) => `${HUGEAMP_HOST}/api/bio/match/gene?q=${encodeURIComponent(prefix)}`,
-        traitPhenotypes: () => `${HUGEAMP_HOST}/api/portal/phenotypes?q=md`,
 
-        // gene-level, used to derive the tissue list and detect the keying convention
+        // Unscoped, deliberately. `?q=md` scoped this to the metabolic disease group
+        // and silently failed to resolve every trait outside it -- ADHD, telomere
+        // length and brain volume all missed, 4 of 20 sampled, and the Traits tabs
+        // hide unmatched rows by default. LIGER now spans 12 tissues including bone,
+        // bonemarrow, tendon and hypothalamus, so its traits are not metabolic.
+        traitPhenotypes: () => `${HUGEAMP_HOST}/api/portal/phenotypes`,
+
+        // gene-level, and the source of the tissue list
         geneCellStates: (gene) => query(host, "gene-program-expression-cell-state", gene),
         genePrograms: (gene) => query(host, "gene-program-expression-program", gene),
 
-        cellTypeExpression: (tissueQuery, gene) => query(host, "gene-program-expression-cell-type", tissueQuery, gene),
+        cellTypeExpression: (tissueKey, gene) => query(host, "gene-program-expression-cell-type", tissueKey, gene),
 
-        cellStateExpression: (tissueQuery, cellType, gene) =>
-            query(host, "gene-program-expression-cell-state", tissueQuery, cellType, gene),
+        cellStateExpression: (tissueKey, cellType, gene) =>
+            query(host, "gene-program-expression-cell-state", tissueKey, cellType, gene),
         cellStateMetadata: (tissueKey, cellType) =>
             query(host, "gene-program-cell-state-metadata-extended", tissueKey, cellType),
 
-        programExpression: (datasetId, cellType, gene) =>
-            query(host, "gene-program-expression-program", datasetId, cellType, PROGRAM_MODEL, gene),
-        programInfo: (datasetId, cellType) => query(host, "gene-program-factor", datasetId, cellType, PROGRAM_MODEL),
-        programGenes: (datasetId, cellType, programId) =>
-            query(host, "gene-program-gene-factor", datasetId, cellType, PROGRAM_MODEL, programId),
-        programGeneSets: (datasetId, cellType, programId) =>
-            query(host, "gene-program-gene-set-factor", datasetId, cellType, PROGRAM_MODEL, programId),
-        programQc: (datasetId, cellType, programId) =>
-            query(host, "gene-program-qc-factor", datasetId, cellType, PROGRAM_MODEL, programId),
-        programTraits: (datasetId, cellType, programId) =>
-            query(host, "gene-program-trait-factor", datasetId, cellType, PROGRAM_MODEL, programId),
+        programExpression: (tissueKey, cellType, gene) =>
+            query(host, "gene-program-expression-program", tissueKey, cellType, gene),
+        programInfo: (tissueKey, cellType) => query(host, "gene-program-factor", tissueKey, cellType),
+        programGenes: (tissueKey, cellType, programId) =>
+            query(host, "gene-program-gene-factor", tissueKey, cellType, programId),
+        programGeneSets: (tissueKey, cellType, programId) =>
+            query(host, "gene-program-gene-set-factor", tissueKey, cellType, programId),
+        programQc: (tissueKey, cellType, programId) =>
+            query(host, "gene-program-qc-factor", tissueKey, cellType, programId),
+        programTraits: (tissueKey, cellType, programId) =>
+            query(host, "gene-program-trait-factor", tissueKey, cellType, programId),
 
         // The single-cell dataset metadata the programs were generated from. JSONL,
         // not JSON -- read it with fetchJsonLines(). It covers every single-cell
@@ -576,8 +538,8 @@ export function createLigerApi(config = {}) {
         datasetMetadata: () => `${host}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`,
 
         qcMetadata: () => query(host, "gene-program-qc-metadata-extended", "1"),
-        relationshipHeatmap: (tissueQuery, cellType) => query(host, "gene-program-heatmap", tissueQuery, cellType),
-        cellStateTraits: (tissueQuery, cellType, stateId) =>
-            query(host, "gene-program-cell-state-trait-factor", tissueQuery, cellType, stateId)
+        relationshipHeatmap: (tissueKey, cellType) => query(host, "gene-program-heatmap", tissueKey, cellType),
+        cellStateTraits: (tissueKey, cellType, stateId) =>
+            query(host, "gene-program-cell-state-trait-factor", tissueKey, cellType, stateId)
     };
 }
