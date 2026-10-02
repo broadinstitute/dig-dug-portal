@@ -167,12 +167,6 @@ new Vue({
                 rightSummary: row.rightSummary,
             }));
         },
-        leftGeneTableRows() {
-            return this.geneMarkerTableRows.map((row) => ({ label: row.label, summary: row.leftSummary }));
-        },
-        rightGeneTableRows() {
-            return this.geneMarkerTableRows.map((row) => ({ label: row.label, summary: row.rightSummary }));
-        },
         cellTypeComparisonPoints() {
             const ctc = this.$store.state.cellTypeComparison;
             return (ctc && ctc.points) || [];
@@ -194,49 +188,36 @@ new Vue({
                 .sort((a, b) => Math.max(b.x || 0, b.y || 0) - Math.max(a.x || 0, a.y || 0))
                 .slice(0, 35);
         },
-        leftCellTypeTableRows() {
-            return this.cellTypeTableRows.map((row) => ({ label: row.gene, summary: row.leftSummary }));
-        },
-        rightCellTypeTableRows() {
-            return this.cellTypeTableRows.map((row) => ({ label: row.gene, summary: row.rightSummary }));
-        },
-        // Flat row shapes for <data-download> (uiUtils.convertJson2Csv/Tsv expect plain,
-        // non-nested objects - the display rows above nest their numbers under
-        // `row.summary`, so these mirror them one level flat instead of re-deriving).
-        leftGeneTableCsvRows() {
-            return this.leftGeneTableRows.map((row) => ({
+        // Flat row shape for the merged "Cell-type summaries" table's single
+        // download: one row per cell type, with both datasets' four metrics side by
+        // side (left_/right_ prefixed) instead of two separate per-dataset exports.
+        // Same source table (geneMarkerTableRows) as the on-screen table below.
+        geneTableCsvRows() {
+            return this.geneMarkerTableRows.map((row) => ({
                 cell_type: row.label,
-                p_value_adj: row.summary.p_value_adj,
-                log_fold_change: row.summary.log_fold_change,
-                pct_expressing: row.summary.pct_expressing,
-                mean_expression_scaled: row.summary.mean_expression_scaled,
+                [`${this.leftLabel}_p_value_adj`]: row.leftSummary.p_value_adj,
+                [`${this.leftLabel}_log_fold_change`]: row.leftSummary.log_fold_change,
+                [`${this.leftLabel}_pct_expressing`]: row.leftSummary.pct_expressing,
+                [`${this.leftLabel}_mean_expression_scaled`]: row.leftSummary.mean_expression_scaled,
+                [`${this.rightLabel}_p_value_adj`]: row.rightSummary.p_value_adj,
+                [`${this.rightLabel}_log_fold_change`]: row.rightSummary.log_fold_change,
+                [`${this.rightLabel}_pct_expressing`]: row.rightSummary.pct_expressing,
+                [`${this.rightLabel}_mean_expression_scaled`]: row.rightSummary.mean_expression_scaled,
             }));
         },
-        rightGeneTableCsvRows() {
-            return this.rightGeneTableRows.map((row) => ({
-                cell_type: row.label,
-                p_value_adj: row.summary.p_value_adj,
-                log_fold_change: row.summary.log_fold_change,
-                pct_expressing: row.summary.pct_expressing,
-                mean_expression_scaled: row.summary.mean_expression_scaled,
-            }));
-        },
-        leftCellTypeTableCsvRows() {
-            return this.leftCellTypeTableRows.map((row) => ({
-                gene: row.label,
-                p_value_adj: row.summary.p_value_adj,
-                log_fold_change: row.summary.log_fold_change,
-                pct_expressing: row.summary.pct_expressing,
-                mean_expression_scaled: row.summary.mean_expression_scaled,
-            }));
-        },
-        rightCellTypeTableCsvRows() {
-            return this.rightCellTypeTableRows.map((row) => ({
-                gene: row.label,
-                p_value_adj: row.summary.p_value_adj,
-                log_fold_change: row.summary.log_fold_change,
-                pct_expressing: row.summary.pct_expressing,
-                mean_expression_scaled: row.summary.mean_expression_scaled,
+        // Same left_/right_-prefixed, single-download shape as geneTableCsvRows,
+        // built from cellTypeTableRows (gene, leftSummary, rightSummary) instead.
+        cellTypeTableCsvRows() {
+            return this.cellTypeTableRows.map((row) => ({
+                gene: row.gene,
+                [`${this.leftLabel}_p_value_adj`]: row.leftSummary.p_value_adj,
+                [`${this.leftLabel}_log_fold_change`]: row.leftSummary.log_fold_change,
+                [`${this.leftLabel}_pct_expressing`]: row.leftSummary.pct_expressing,
+                [`${this.leftLabel}_mean_expression_scaled`]: row.leftSummary.mean_expression_scaled,
+                [`${this.rightLabel}_p_value_adj`]: row.rightSummary.p_value_adj,
+                [`${this.rightLabel}_log_fold_change`]: row.rightSummary.log_fold_change,
+                [`${this.rightLabel}_pct_expressing`]: row.rightSummary.pct_expressing,
+                [`${this.rightLabel}_mean_expression_scaled`]: row.rightSummary.mean_expression_scaled,
             }));
         },
     },

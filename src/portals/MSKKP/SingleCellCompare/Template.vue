@@ -112,7 +112,7 @@
                         </div>
                         <div class="row paired-panels">
                             <article class="col-md-6 panel">
-                                <div class="panel-title">
+                                <div class="chart-label-overlay">
                                     <h3>{{ $parent.leftLabel }}</h3>
                                     <span>{{ $parent.leftCountLabel }}</span>
                                 </div>
@@ -124,7 +124,7 @@
                                 <canvas id="sc-left-umap-canvas" ref="leftUmap"></canvas>
                             </article>
                             <article class="col-md-6 panel">
-                                <div class="panel-title">
+                                <div class="chart-label-overlay">
                                     <h3>{{ $parent.rightLabel }}</h3>
                                     <span>{{ $parent.rightCountLabel }}</span>
                                 </div>
@@ -155,7 +155,7 @@
                 <div class="card mdkp-card" aria-labelledby="sc-gene-title">
                     <div class="card-body">
                         <div class="section-heading with-control">
-                            <h4 id="sc-gene-title" class="card-title">Gene Comparison</h4>
+                            <h4 id="sc-gene-title" class="card-title">Expression by cell type</h4>
                             <label class="control compact">
                                 <span>Gene</span>
                                 <input
@@ -179,93 +179,69 @@
                             - any gene symbol you type is queried live regardless.
                         </p>
                         <div class="plot-card">
-                            <div class="plot-title">
-                                <h3>Expression by cell type</h3>
-                                <div class="dataset-key">
-                                    <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
-                                    <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
-                                </div>
-                                <download-chart
-                                    class="download"
-                                    chartId="sc-gene-plot-canvas"
-                                    :filename="`${$parent.slug($parent.selectedGene)}_expression_by_celltype`"
-                                ></download-chart>
-                            </div>
                             <div class="plot-status" v-if="$parent.geneStatusDisplay">
                                 {{ $parent.geneStatusDisplay }}
                             </div>
-                            <canvas id="sc-gene-plot-canvas" ref="genePlot"></canvas>
-                        </div>
-                        <div class="row paired-tables">
-                            <article class="col-md-6 table-card">
-                                <h3>{{ $parent.leftLabel }} summaries</h3>
-                                <div v-if="!$parent.leftGeneTableRows.length" class="empty-state">
-                                    No rows available.
-                                </div>
-                                <template v-else>
-                                    <div class="table-toolbar">
-                                        <data-download
-                                            :data="$parent.leftGeneTableCsvRows"
-                                            :filename="`${$parent.slug($parent.leftLabel)}_gene_expression_by_celltype`"
-                                        ></data-download>
+                            <div class="chart-canvas-wrap">
+                                <div class="chart-overlay-row">
+                                    <div class="dataset-key chart-legend-overlay">
+                                        <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
+                                        <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
                                     </div>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Cell type</th>
-                                                <th class="numeric">Adj. p-value</th>
-                                                <th class="numeric">Log fold change</th>
-                                                <th class="numeric">% cell expr</th>
-                                                <th class="numeric">Mean expr (scaled)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="row in $parent.leftGeneTableRows" :key="row.label">
-                                                <td>{{ row.label }}</td>
-                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
-                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
-                                                <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </template>
-                            </article>
-                            <article class="col-md-6 table-card">
-                                <h3>{{ $parent.rightLabel }} summaries</h3>
-                                <div v-if="!$parent.rightGeneTableRows.length" class="empty-state">
-                                    No rows available.
+                                    <download-chart
+                                        class="download"
+                                        chartId="sc-gene-plot-canvas"
+                                        :filename="`${$parent.slug($parent.selectedGene)}_expression_by_celltype`"
+                                    ></download-chart>
                                 </div>
-                                <template v-else>
-                                    <div class="table-toolbar">
-                                        <data-download
-                                            :data="$parent.rightGeneTableCsvRows"
-                                            :filename="`${$parent.slug($parent.rightLabel)}_gene_expression_by_celltype`"
-                                        ></data-download>
-                                    </div>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Cell type</th>
-                                                <th class="numeric">Adj. p-value</th>
-                                                <th class="numeric">Log fold change</th>
-                                                <th class="numeric">% cell expr</th>
-                                                <th class="numeric">Mean expr (scaled)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="row in $parent.rightGeneTableRows" :key="row.label">
-                                                <td>{{ row.label }}</td>
-                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
-                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
-                                                <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </template>
-                            </article>
+                                <canvas id="sc-gene-plot-canvas" ref="genePlot"></canvas>
+                            </div>
                         </div>
+                        <article class="table-card">
+                            <div v-if="!$parent.geneMarkerTableRows.length" class="empty-state">
+                                No rows available.
+                            </div>
+                            <template v-else>
+                                <div class="table-toolbar">
+                                    <data-download
+                                        :data="$parent.geneTableCsvRows"
+                                        :filename="`${$parent.slug($parent.selectedGene)}_gene_expression_by_celltype`"
+                                    ></data-download>
+                                </div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th rowspan="2">Cell type</th>
+                                            <th colspan="4" class="dataset-group-header">{{ $parent.leftLabel }}</th>
+                                            <th colspan="4" class="dataset-group-header">{{ $parent.rightLabel }}</th>
+                                        </tr>
+                                        <tr>
+                                            <th class="numeric">Adj. p-value</th>
+                                            <th class="numeric">Log fold change</th>
+                                            <th class="numeric">% cell expr</th>
+                                            <th class="numeric">Mean expr (scaled)</th>
+                                            <th class="numeric">Adj. p-value</th>
+                                            <th class="numeric">Log fold change</th>
+                                            <th class="numeric">% cell expr</th>
+                                            <th class="numeric">Mean expr (scaled)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="row in $parent.geneMarkerTableRows" :key="row.label">
+                                            <td>{{ row.label }}</td>
+                                            <td class="numeric">{{ $parent.formatPValue(row.leftSummary.p_value_adj) }}</td>
+                                            <td class="numeric">{{ $parent.formatSigned(row.leftSummary.log_fold_change) }}</td>
+                                            <td class="numeric">{{ $parent.formatPercent(row.leftSummary.pct_expressing) }}</td>
+                                            <td class="numeric">{{ $parent.formatNumber(row.leftSummary.mean_expression_scaled) }}</td>
+                                            <td class="numeric">{{ $parent.formatPValue(row.rightSummary.p_value_adj) }}</td>
+                                            <td class="numeric">{{ $parent.formatSigned(row.rightSummary.log_fold_change) }}</td>
+                                            <td class="numeric">{{ $parent.formatPercent(row.rightSummary.pct_expressing) }}</td>
+                                            <td class="numeric">{{ $parent.formatNumber(row.rightSummary.mean_expression_scaled) }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </article>
                     </div>
                 </div>
 
@@ -273,7 +249,7 @@
                 <div class="card mdkp-card" aria-labelledby="sc-celltype-title">
                     <div class="card-body">
                         <div class="section-heading with-control">
-                            <h4 id="sc-celltype-title" class="card-title">Cell-Type Comparison</h4>
+                            <h4 id="sc-celltype-title" class="card-title">Marker-panel genes by average expression</h4>
                             <label class="control compact">
                                 <span>Cell type</span>
                                 <select class="form-control" v-model="$parent.cellTypeModel">
@@ -284,22 +260,23 @@
                             </label>
                         </div>
                         <div class="plot-card">
-                            <div class="plot-title">
-                                <h3>Marker-panel genes by average expression</h3>
-                                <div class="dataset-key">
-                                    <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
-                                    <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
-                                </div>
-                                <download-chart
-                                    class="download"
-                                    chartId="sc-cell-type-plot-canvas"
-                                    :filename="`${$parent.slug($parent.cellTypeModel)}_marker_genes`"
-                                ></download-chart>
-                            </div>
                             <div class="plot-status" v-if="$parent.cellTypeStatusDisplay">
                                 {{ $parent.cellTypeStatusDisplay }}
                             </div>
-                            <canvas id="sc-cell-type-plot-canvas" ref="cellTypePlot"></canvas>
+                            <div class="chart-canvas-wrap">
+                                <div class="chart-overlay-row">
+                                    <div class="dataset-key chart-legend-overlay">
+                                        <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
+                                        <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
+                                    </div>
+                                    <download-chart
+                                        class="download"
+                                        chartId="sc-cell-type-plot-canvas"
+                                        :filename="`${$parent.slug($parent.cellTypeModel)}_marker_genes`"
+                                    ></download-chart>
+                                </div>
+                                <canvas id="sc-cell-type-plot-canvas" ref="cellTypePlot"></canvas>
+                            </div>
                         </div>
                         <!-- <p class="caption panel-note">
                             Scoped to the top {{ $parent.genePanelCount }} marker genes
@@ -308,76 +285,51 @@
                             - not the whole genome, see the comments in
                             <code>src/views/SingleCellCompare/store.js</code> for why.
                         </p> -->
-                        <div class="row paired-tables">
-                            <article class="col-md-6 table-card">
-                                <h3>{{ $parent.leftLabel }} summaries</h3>
-                                <div v-if="!$parent.leftCellTypeTableRows.length" class="empty-state">
-                                    No rows available.
+                        <article class="table-card">
+                            <div v-if="!$parent.cellTypeTableRows.length" class="empty-state">
+                                No rows available.
+                            </div>
+                            <template v-else>
+                                <div class="table-toolbar">
+                                    <data-download
+                                        :data="$parent.cellTypeTableCsvRows"
+                                        :filename="`${$parent.slug($parent.cellTypeModel)}_marker_genes`"
+                                    ></data-download>
                                 </div>
-                                <template v-else>
-                                    <div class="table-toolbar">
-                                        <data-download
-                                            :data="$parent.leftCellTypeTableCsvRows"
-                                            :filename="`${$parent.slug($parent.leftLabel)}_${$parent.slug($parent.cellTypeModel)}_marker_genes`"
-                                        ></data-download>
-                                    </div>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Gene</th>
-                                                <th class="numeric">Adj. p-value</th>
-                                                <th class="numeric">Log fold change</th>
-                                                <th class="numeric">% cell expr</th>
-                                                <th class="numeric">Mean expr (scaled)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="row in $parent.leftCellTypeTableRows" :key="row.label">
-                                                <td>{{ row.label }}</td>
-                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
-                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
-                                                <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </template>
-                            </article>
-                            <article class="col-md-6 table-card">
-                                <h3>{{ $parent.rightLabel }} summaries</h3>
-                                <div v-if="!$parent.rightCellTypeTableRows.length" class="empty-state">
-                                    No rows available.
-                                </div>
-                                <template v-else>
-                                    <div class="table-toolbar">
-                                        <data-download
-                                            :data="$parent.rightCellTypeTableCsvRows"
-                                            :filename="`${$parent.slug($parent.rightLabel)}_${$parent.slug($parent.cellTypeModel)}_marker_genes`"
-                                        ></data-download>
-                                    </div>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Gene</th>
-                                                <th class="numeric">Adj. p-value</th>
-                                                <th class="numeric">Log fold change</th>
-                                                <th class="numeric">% cell expr</th>
-                                                <th class="numeric">Mean expr (scaled)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="row in $parent.rightCellTypeTableRows" :key="row.label">
-                                                <td>{{ row.label }}</td>
-                                                <td class="numeric">{{ $parent.formatPValue(row.summary.p_value_adj) }}</td>
-                                                <td class="numeric">{{ $parent.formatSigned(row.summary.log_fold_change) }}</td>
-                                                <td class="numeric">{{ $parent.formatPercent(row.summary.pct_expressing) }}</td>
-                                                <td class="numeric">{{ $parent.formatNumber(row.summary.mean_expression_scaled) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </template>
-                            </article>
-                        </div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th rowspan="2">Gene</th>
+                                            <th colspan="4" class="dataset-group-header">{{ $parent.leftLabel }}</th>
+                                            <th colspan="4" class="dataset-group-header">{{ $parent.rightLabel }}</th>
+                                        </tr>
+                                        <tr>
+                                            <th class="numeric">Adj. p-value</th>
+                                            <th class="numeric">Log fold change</th>
+                                            <th class="numeric">% cell expr</th>
+                                            <th class="numeric">Mean expr (scaled)</th>
+                                            <th class="numeric">Adj. p-value</th>
+                                            <th class="numeric">Log fold change</th>
+                                            <th class="numeric">% cell expr</th>
+                                            <th class="numeric">Mean expr (scaled)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="row in $parent.cellTypeTableRows" :key="row.gene">
+                                            <td>{{ row.gene }}</td>
+                                            <td class="numeric">{{ $parent.formatPValue(row.leftSummary.p_value_adj) }}</td>
+                                            <td class="numeric">{{ $parent.formatSigned(row.leftSummary.log_fold_change) }}</td>
+                                            <td class="numeric">{{ $parent.formatPercent(row.leftSummary.pct_expressing) }}</td>
+                                            <td class="numeric">{{ $parent.formatNumber(row.leftSummary.mean_expression_scaled) }}</td>
+                                            <td class="numeric">{{ $parent.formatPValue(row.rightSummary.p_value_adj) }}</td>
+                                            <td class="numeric">{{ $parent.formatSigned(row.rightSummary.log_fold_change) }}</td>
+                                            <td class="numeric">{{ $parent.formatPercent(row.rightSummary.pct_expressing) }}</td>
+                                            <td class="numeric">{{ $parent.formatNumber(row.rightSummary.mean_expression_scaled) }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </article>
                     </div>
                 </div>
             </template>
@@ -461,8 +413,8 @@
 }
 
 .mskkp-sc-compare .sc-filter-wrap {
-    background-color: #ddefff;
-    border: 1px solid #bbdfff;
+    background-color: transparent;
+    border: none;
     border-radius: 5px;
 }
 
@@ -502,7 +454,10 @@
     overflow: hidden;
 }
 
-.mskkp-sc-compare .panel-title,
+.mskkp-sc-compare .panel {
+    position: relative;
+}
+
 .mskkp-sc-compare .plot-title,
 .mskkp-sc-compare .table-card h3 {
     display: flex;
@@ -515,9 +470,36 @@
     background: #ddefff;
 }
 
-.mskkp-sc-compare .panel-title span {
+/* Overlays the dataset name/cell count directly on the UMAP chart (no separate
+   title bar) so the panel is just the chart itself. */
+.mskkp-sc-compare .chart-label-overlay {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    max-width: calc(100% - 56px);
+    padding: 4px 10px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.82);
+    pointer-events: none;
+}
+
+.mskkp-sc-compare .chart-label-overlay h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #2f3b36;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mskkp-sc-compare .chart-label-overlay span {
     color: #63706b;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     white-space: nowrap;
 }
 
@@ -575,6 +557,35 @@
     gap: 7px;
 }
 
+/* Wraps just the "Expression by cell type" canvas (Gene Comparison card) - no
+   separate title bar - so the left/right dataset legend and the download button can
+   both sit on top of the chart itself, top right. */
+.mskkp-sc-compare .chart-canvas-wrap {
+    position: relative;
+}
+
+.mskkp-sc-compare .chart-overlay-row {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mskkp-sc-compare .chart-legend-overlay {
+    padding: 4px 10px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.82);
+    pointer-events: none;
+}
+
+.mskkp-sc-compare .chart-overlay-row .download-chart {
+    margin-bottom: 0;
+    float: none;
+}
+
 .mskkp-sc-compare .chip,
 .mskkp-sc-compare .swatch {
     width: 10px;
@@ -614,6 +625,13 @@
     text-transform: uppercase;
 }
 
+/* Groups each dataset's four metric columns under its own name in the merged
+   "Cell-type summaries" table, with a divider between the two datasets' groups. */
+.mskkp-sc-compare .dataset-group-header {
+    text-align: center;
+    border-left: 1px solid #dbe4df;
+}
+
 .mskkp-sc-compare td.numeric,
 .mskkp-sc-compare th.numeric {
     text-align: right;
@@ -624,16 +642,50 @@
     border-bottom: 0;
 }
 
-.mskkp-sc-compare .panel-title .download-chart,
 .mskkp-sc-compare .plot-title .download-chart {
     margin-bottom: 0;
     float: none;
+}
+
+.mskkp-sc-compare .panel .download-chart {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+    margin-bottom: 0;
+    float: none;
+}
+
+/* DownloadChart.vue renders a bootstrap-vue b-dropdown (variant="secondary"), which
+   ships its own gray background/white text; override it to a plain, borderless,
+   black-text button for every download-chart instance on this page. */
+.mskkp-sc-compare .download-chart >>> .btn-secondary,
+.mskkp-sc-compare .download-chart >>> .btn-secondary:hover,
+.mskkp-sc-compare .download-chart >>> .btn-secondary:focus,
+.mskkp-sc-compare .download-chart >>> .btn-secondary:active {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
 }
 
 .mskkp-sc-compare .table-toolbar {
     display: flex;
     justify-content: flex-end;
     padding: 8px 11px 0;
+}
+
+/* DataDownload.vue ("Download data") is the same bootstrap-vue b-dropdown
+   (variant="secondary") as DownloadChart.vue, rendered unwrapped inside
+   .table-toolbar - override it the same way: borderless, transparent, black text. */
+.mskkp-sc-compare .table-toolbar >>> .btn-secondary,
+.mskkp-sc-compare .table-toolbar >>> .btn-secondary:hover,
+.mskkp-sc-compare .table-toolbar >>> .btn-secondary:focus,
+.mskkp-sc-compare .table-toolbar >>> .btn-secondary:active {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
 }
 
 .mskkp-sc-compare .empty-state {
