@@ -110,6 +110,15 @@ const KNOWN_CELL_TYPE_COLORS = {
 
 const MAX_OVERVIEW_POINTS = 4000;
 
+// Orders a set of cell-type labels the same way everywhere they're displayed:
+// the hand-picked KNOWN_CELL_TYPE_COLORS labels first (in their declared order),
+// then everything else alphabetically.
+export function orderCellTypes(labelSet) {
+    const known = Object.keys(KNOWN_CELL_TYPE_COLORS).filter((label) => labelSet.has(label));
+    const rest = [...labelSet].filter((label) => !known.includes(label)).sort();
+    return [...known, ...rest];
+}
+
 function resolveDatasetId(d) {
     return d.datasetId || d.dataset_id || d.id || d.name || null;
 }
@@ -144,6 +153,9 @@ function resolveDoi(d) {
 function resolveSummary(d) {
     return d.summary || "";
 }
+function resolveGeoSeries(d) {
+    return d.geoSeries || d.geo_series || d.GEO || d.gse || "";
+}
 
 function primaryCellTypeKey(fields) {
     if (!fields || !fields.metadata_labels) return null;
@@ -157,8 +169,15 @@ function primaryCellTypeKey(fields) {
 }
 
 // Key used to look up a single marker_genes.json.gz row by cell type + gene.
+// Gene is uppercased on both the indexing side (buildMarkerRowIndex, keyed off
+// the file's own row.gene) and the lookup side (cellTypeMarkerSummary, keyed off
+// whatever case the user typed/selected) so a case difference between the two -
+// e.g. typing "Cxcl12" while the marker file stores "CXCL12" - doesn't silently
+// miss every row for that gene and fall back to "-" for log fold change/adj.
+// p-value/mean expr scaled everywhere, while avg expression/pct still populate
+// via the separate expression-query path (which isn't case-sensitive the same way).
 function markerRowKey(cellType, gene) {
-    return `${cellType}||${gene}`;
+    return `${cellType}||${String(gene || "").toUpperCase()}`;
 }
 
 // Some datasets ship the newer marker schema (mean_expression, pct_nz_group) instead
@@ -393,6 +412,11 @@ export default new Vuex.Store({
         overviewStatus: {},
 
         geneComparison: null,
+        // Per-cell-type marker_genes.json.gz summaries for the selected gene, powering
+        // the Gene Comparison card's tables (same columns/source as Cell-Type
+        // Comparison's tables - see loadGeneMarkerComparison). Kept separate from
+        // geneComparison (which stays expression-query based, for the violin plot).
+        geneMarkerComparison: null,
         cellTypeComparison: null,
         overview: {},
 
@@ -406,6 +430,7 @@ export default new Vuex.Store({
         expressionCacheBytes: 0,
         expressionCacheOrder: [],
         geneComparisonRequest: 0,
+        geneMarkerComparisonRequest: 0,
         cellTypeComparisonRequest: 0,
         // datasetId -> ranked gene[] from marker_genes.json.gz, or null if unavailable
         markersCache: {},
@@ -453,6 +478,7 @@ export default new Vuex.Store({
                     pmid: resolvePmid(d),
                     doi: resolveDoi(d),
                     summary: resolveSummary(d),
+                    geoSeries: resolveGeoSeries(d),
                     species: resolveSpecies(d),
                     organ: resolveOrgan(d),
                     tissue: resolveTissue(d),
@@ -672,15 +698,23 @@ export default new Vuex.Store({
                 context.dispatch("ensureFields", state.rightId),
             ]);
 
-            const labelSet = new Set();
-            [leftEntry, rightEntry].forEach((entry) => {
-                if (!entry || !entry.cellTypeKey) return;
-                (entry.fields.metadata_labels[entry.cellTypeKey] || []).forEach((label) => labelSet.add(label));
-            });
+            // The "Cell-Type Comparison" picker only makes sense for cell types that
+            // exist in BOTH selected datasets, so this intersects rather than unions
+            // the two label sets. A dataset whose fields failed to load entirely falls
+            // back to the other side's set alone, rather than collapsing to empty,
+            // since there is nothing to intersect against in that case.
+            const labelSets = [leftEntry, rightEntry]
+                .filter((entry) => entry && entry.cellTypeKey)
+                .map((entry) => new Set(entry.fields.metadata_labels[entry.cellTypeKey] || []));
 
-            const known = Object.keys(KNOWN_CELL_TYPE_COLORS).filter((label) => labelSet.has(label));
-            const rest = [...labelSet].filter((label) => !known.includes(label)).sort();
-            const cellTypes = [...known, ...rest];
+            let labelSet;
+            if (labelSets.length === 2) {
+                labelSet = new Set([...labelSets[0]].filter((label) => labelSets[1].has(label)));
+            } else {
+                labelSet = labelSets[0] || new Set();
+            }
+
+            const cellTypes = orderCellTypes(labelSet);
 
             const colors = {};
             let paletteIndex = 0;
@@ -732,25 +766,115 @@ export default new Vuex.Store({
             state.geneStatus = "";
         },
 
+        // Builds the Gene Comparison card's table rows - one per cell type, for the
+        // currently selected gene - straight from each dataset's marker_genes.json.gz
+        // file via the same cellTypeMarkerSummary lookup (and its object-shaped-file
+        // expression-query fallback) the Cell-Type Comparison card uses, so both
+        // cards' tables share identical columns and the same "-" treatment of missing
+        // data. Unlike state.cellTypes (which the "Cell-Type Comparison" selector/
+        // legend intersects down to cell types common to both datasets), this table
+        // covers the UNION of both datasets' cell types - a cell type unique to one
+        // side still gets its own row (with "-" on the other side), since this table
+        // is reporting per-dataset gene expression, not driving a shared selector.
+        async loadGeneMarkerComparison(context, gene) {
+            const state = context.state;
+            const request = ++state.geneMarkerComparisonRequest;
+            const [leftId, rightId] = [state.leftId, state.rightId];
+            const targetGene = gene || state.selectedGene;
+            if (!targetGene) return;
+
+            await Promise.all([
+                context.dispatch("ensureFields", leftId),
+                context.dispatch("ensureFields", rightId),
+                context.dispatch("ensureMarkerGenes", leftId),
+                context.dispatch("ensureMarkerGenes", rightId),
+            ]);
+            if (request !== state.geneMarkerComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
+
+            const leftFieldsEntry = state.fieldsCache[leftId];
+            const rightFieldsEntry = state.fieldsCache[rightId];
+            const unionLabelSet = new Set();
+            [leftFieldsEntry, rightFieldsEntry].forEach((entry) => {
+                if (!entry || !entry.cellTypeKey) return;
+                (entry.fields.metadata_labels[entry.cellTypeKey] || []).forEach((label) => unionLabelSet.add(label));
+            });
+            const unionCellTypes = orderCellTypes(unionLabelSet);
+
+            const leftMarkers = state.markerRowsCache[leftId];
+            const rightMarkers = state.markerRowsCache[rightId];
+
+            // Fetched once per dataset, up front, rather than letting each cell type's
+            // cellTypeMarkerSummary call dispatch its own ensureGeneRows: ensureGeneRows
+            // only caches completed fetches, not in-flight ones, and every cell type
+            // here shares the same datasetId+gene cache key - so without this, every
+            // cell type missing a marker row (the common case for an arbitrary gene)
+            // would fire its own concurrent, identical BioIndex expression request
+            // instead of reusing one.
+            const [leftExpressionRows, rightExpressionRows] = await Promise.all([
+                context.dispatch("ensureGeneRows", { datasetId: leftId, gene: targetGene, includeValues: false }),
+                context.dispatch("ensureGeneRows", { datasetId: rightId, gene: targetGene, includeValues: false }),
+            ]);
+            if (request !== state.geneMarkerComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
+
+            const results = await Promise.all(unionCellTypes.map(async (cellType) => {
+                const [leftSummary, rightSummary] = await Promise.all([
+                    context.dispatch("cellTypeMarkerSummary", { datasetId: leftId, gene: targetGene, cellType, markers: leftMarkers, allowExpressionFallback: true, expressionRows: leftExpressionRows }),
+                    context.dispatch("cellTypeMarkerSummary", { datasetId: rightId, gene: targetGene, cellType, markers: rightMarkers, allowExpressionFallback: true, expressionRows: rightExpressionRows }),
+                ]);
+                if (!leftSummary && !rightSummary) return null;
+                return {
+                    cellType,
+                    leftSummary: leftSummary || NULL_MARKER_SUMMARY,
+                    rightSummary: rightSummary || NULL_MARKER_SUMMARY,
+                };
+            }));
+            if (request !== state.geneMarkerComparisonRequest || leftId !== state.leftId || rightId !== state.rightId) return;
+
+            state.geneMarkerComparison = { gene: targetGene, rows: results.filter(Boolean) };
+        },
+
         // Looks up a gene's per-cell-type marker summary for one dataset. Normally a
         // pure client-side read off the already-indexed marker_genes.json.gz row. But
-        // datasets whose marker file uses the older { cellTypeLabel: [gene, ...] }
-        // shape have no per-cell-type stats to index at all (buildMarkerRowIndex
-        // returns an empty byKey for them), so for those this falls back to the same
-        // single-cell-lognorm expression query ensureGeneRows uses elsewhere, exactly
-        // as the previous implementation did, rather than reporting a false zero.
-        async cellTypeMarkerSummary(context, { datasetId, gene, cellType, markers }) {
+        // marker_genes.json.gz only ever lists a cell type's own top marker genes
+        // (ranked by log-fold-change/p-value), not a full gene x cell-type matrix - so
+        // for most genes, most cell types simply have no row at all, regardless of
+        // whether the file is array- or object-shaped. By default (allowExpressionFallback
+        // false, what loadCellTypeComparison uses) a miss against an array-shaped file
+        // is treated as a genuine "not a marker here" and returns null, since that
+        // action is already iterating every gene in the panel per cell type and a
+        // fallback query per miss would be expensive. Datasets whose marker file uses
+        // the older { cellTypeLabel: [gene, ...] } shape have no per-cell-type stats to
+        // index at all (buildMarkerRowIndex returns an empty byKey for them), so those
+        // always fall back to the same single-cell-lognorm expression query
+        // ensureGeneRows uses elsewhere. Passing allowExpressionFallback: true (what
+        // loadGeneMarkerComparison uses, one gene across all cell types) extends that
+        // same fallback to array-shaped misses too, so the Gene Comparison table still
+        // shows every cell type that has cells for this gene - just with "-" for the
+        // marker-only columns (log fold change / adj. p-value / mean expr scaled)
+        // since those have no meaning outside the marker file.
+        // `expressionRows`, when passed, is a pre-fetched ensureGeneRows() result for
+        // this exact datasetId+gene (see loadGeneMarkerComparison, which fetches it
+        // once per dataset before calling this per cell type - fetching it here
+        // instead, once per cell type, would fire that many concurrent, identical
+        // BioIndex expression requests, since ensureGeneRows only dedupes completed
+        // fetches, not in-flight ones). When omitted, this falls back to dispatching
+        // ensureGeneRows itself, for callers (loadCellTypeComparison) that only ever
+        // need it for one cell type at a time.
+        async cellTypeMarkerSummary(context, { datasetId, gene, cellType, markers, allowExpressionFallback = false, expressionRows }) {
             const row = markers ? markers.byKey.get(markerRowKey(cellType, gene)) : null;
             if (row) {
                 return markerRowSummary(row, markers.geneRanges, markers.pctScaleAdjust);
             }
-            if (markers && markers.byKey.size > 0) {
+            const arrayShapedMiss = markers && markers.byKey.size > 0;
+            if (arrayShapedMiss && !allowExpressionFallback) {
                 // Array-shaped marker file, just no row for this gene/cell type - a
-                // genuine miss, not a format issue.
+                // genuine "not a marker here" miss, not a format issue.
                 return null;
             }
 
-            const rows = await context.dispatch("ensureGeneRows", { datasetId, gene, includeValues: false });
+            const rows = expressionRows !== undefined
+                ? expressionRows
+                : await context.dispatch("ensureGeneRows", { datasetId, gene, includeValues: false });
             const match = rows && rows.find((r) => r.cell_type === cellType);
             if (!match) return null;
             return {
@@ -758,7 +882,7 @@ export default new Vuex.Store({
                 pct_expressing: match.summary.pct_expressing,
                 log_fold_change: null,
                 p_value_adj: null,
-                mean_expression_scaled: 0,
+                mean_expression_scaled: null,
             };
         },
 
@@ -773,7 +897,15 @@ export default new Vuex.Store({
             const request = ++state.cellTypeComparisonRequest;
             const [leftId, rightId] = [state.leftId, state.rightId];
             const targetCellType = cellType || state.selectedCellType;
-            if (!targetCellType) return;
+            if (!targetCellType) {
+                // No common cell type between the two selected datasets (state.cellTypes
+                // is empty, so refreshCellTypes left selectedCellType null) - clear any
+                // comparison left over from a previous, compatible pair instead of
+                // leaving it on screen under the newly selected dataset names.
+                state.cellTypeComparison = null;
+                state.cellTypeStatus = "The selected datasets have no cell types in common.";
+                return;
+            }
             state.selectedCellType = targetCellType;
             state.cellTypeStatus = "Loading";
 
@@ -830,6 +962,7 @@ export default new Vuex.Store({
                 context.dispatch("loadOverview", state.leftId),
                 context.dispatch("loadOverview", state.rightId),
                 context.dispatch("loadGeneComparison", state.selectedGene),
+                context.dispatch("loadGeneMarkerComparison", state.selectedGene),
                 context.dispatch("loadCellTypeComparison", state.selectedCellType),
             ]);
         },
@@ -869,7 +1002,10 @@ export default new Vuex.Store({
             await context.dispatch("refreshAll");
         },
         async setGene(context, gene) {
-            await context.dispatch("loadGeneComparison", gene);
+            await Promise.all([
+                context.dispatch("loadGeneComparison", gene),
+                context.dispatch("loadGeneMarkerComparison", gene),
+            ]);
         },
         async setCellType(context, cellType) {
             await context.dispatch("loadCellTypeComparison", cellType);
