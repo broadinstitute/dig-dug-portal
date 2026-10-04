@@ -7,9 +7,11 @@ import re
 from time import perf_counter
 
 from scripts.pb_gene_context_validation import ContextAnalysisEngine
+from scripts.gene_score_context_runner import GeneScoreContextRunner
 
 
 CONTEXT_PATH = "/phenotype-analyzer-api/analyze"
+PUBLIC_CONTEXT_PATH = "/phenotype-analyzer-api/public-analyze"
 MAX_REQUEST_BYTES = 64 * 1024
 HPO_PATTERN = re.compile(r"^HP:\d{7}$")
 GENE_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9.-]*$")
@@ -58,6 +60,39 @@ def parse_context_request(payload):
     }
 
 
+def public_context_projection(result, min_support=10):
+    """Return supported aggregate effects and carrier mean scores without sample evidence."""
+    gene_result = result.get("gene_association") or {}
+    if gene_result.get("status") == "ok" and int(gene_result.get("n_positive") or 0) >= min_support:
+        public_gene = {
+            key: gene_result.get(key)
+            for key in ("model", "score_type", "affected_only", "beta", "p_value", "status")
+        }
+    else:
+        public_gene = {"status": "unavailable"}
+    public_variants = {}
+    for variant_id, association in (result.get("variant_associations") or {}).items():
+        if association.get("status") != "ok":
+            continue
+        public_variants[variant_id] = {
+            "beta": association.get("beta"),
+            "p_value": association.get("p_value"),
+            "status": "ok",
+        }
+    public_match_scores = {}
+    for variant_id, score in (result.get("variant_match_scores") or {}).items():
+        if score.get("status") != "ok":
+            continue
+        public_match_scores[variant_id] = {"match_score": score.get("match_score")}
+    return {
+        "gene": result.get("gene"),
+        "query_hpo": result.get("query_hpo", []),
+        "gene_association": public_gene,
+        "variant_associations": public_variants,
+        "variant_match_scores": public_match_scores,
+    }
+
+
 def create_server(address, engine):
     class ContextHandler(BaseHTTPRequestHandler):
         def _send_json(self, status, payload):
@@ -76,7 +111,7 @@ def create_server(address, engine):
                 self._send_json(404, {"error": "not_found"})
 
         def do_POST(self):
-            if self.path != CONTEXT_PATH:
+            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH}:
                 self._send_json(404, {"error": "not_found"})
                 return
             try:
@@ -98,8 +133,11 @@ def create_server(address, engine):
                     "multiple_testing_scope": "single gene in current request",
                     "n_tests": 1,
                 })
-                result["request_ms"] = round((perf_counter() - started) * 1000, 3)
-                self._send_json(200, result)
+                if self.path == PUBLIC_CONTEXT_PATH:
+                    self._send_json(200, public_context_projection(result, request["min_carriers"]))
+                else:
+                    result["request_ms"] = round((perf_counter() - started) * 1000, 3)
+                    self._send_json(200, result)
             except (ValueError, json.JSONDecodeError) as error:
                 self._send_json(400, {"error": "invalid_request", "detail": str(error)})
             except Exception:
@@ -117,17 +155,54 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--hpo-matrix", required=True)
     parser.add_argument("--overlap-roster", required=True)
-    parser.add_argument("--evidence", required=True)
+    parser.add_argument("--evidence")
+    parser.add_argument("--bioindex-host")
+    parser.add_argument("--bioindex-evidence-index", choices=("gene-variants-crdc", "gene-samples"),
+                        default="gene-variants-crdc")
+    parser.add_argument("--bioindex-access-token-file")
     parser.add_argument("--covariates", required=True)
+    parser.add_argument("--gene-scores")
+    parser.add_argument("--gene-score-covariates")
+    parser.add_argument("--gene-score-platform")
+    parser.add_argument("--gene-score-id-map")
+    parser.add_argument("--gene-score-model", choices=("lm", "lmm"), default="lm")
+    parser.add_argument("--gene-score-type", choices=("max", "sum"), default="max")
+    parser.add_argument("--gene-score-affected-only", action="store_true")
+    parser.add_argument("--grm-prefix")
+    parser.add_argument("--rscript", default="Rscript")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8092)
     args = parser.parse_args(argv)
+    if not args.evidence and not args.bioindex_host:
+        parser.error("provide --evidence or --bioindex-host")
+    access_token = None
+    if args.bioindex_access_token_file:
+        from pathlib import Path
+        access_token = Path(args.bioindex_access_token_file).read_text().strip()
 
+    gene_runner = (
+        GeneScoreContextRunner(
+            args.gene_scores,
+            args.gene_score_covariates or args.covariates,
+            model=args.gene_score_model,
+            score_type=args.gene_score_type,
+            affected_only=args.gene_score_affected_only,
+            platform_path=args.gene_score_platform,
+            score_id_map=args.gene_score_id_map,
+            grm_prefix=args.grm_prefix,
+            rscript=args.rscript,
+        )
+        if args.gene_scores else None
+    )
     engine = ContextAnalysisEngine(
         args.hpo_matrix,
         args.overlap_roster,
         args.evidence,
         covariate_path=args.covariates,
+        gene_association_runner=gene_runner,
+        bioindex_host=args.bioindex_host,
+        bioindex_access_token=access_token,
+        bioindex_evidence_index=args.bioindex_evidence_index,
     )
     server = create_server((args.host, args.port), engine)
     print(f"pb_Gene Context API listening on http://{args.host}:{server.server_port}")

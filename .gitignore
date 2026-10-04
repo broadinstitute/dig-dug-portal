@@ -3,6 +3,8 @@ node_modules
 /dist
 /distPapers
 /portals
+__pycache__/
+*.pyc
 
 # private/local planning artifacts
 docs/not_share/
@@ -35,3 +37,7 @@ pnpm-lock.yaml
 
 public/data/
 .vs/
+
+# Private handoff archives and cohort inputs stay outside GitHub.
+/deliverables/
+**/CRDC2025_step4_sample_gene_burden_nonsyn_dosage_LOFTEE_AM.tsv

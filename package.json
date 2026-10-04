@@ -3,6 +3,7 @@
   "version": "3.0.0",
   "private": true,
   "scripts": {
+    "serve:pb-gene": "bash scripts/serve_pb_gene_context.sh",
     "watch": "vue-cli-service build --mode development --watch",
     "build": "vue-cli-service build --mode development",
     "deploy": "vue-cli-service build --mode production"

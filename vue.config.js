@@ -308,6 +308,63 @@ if (process.env.NODE_ENV === "production") {
 
 const phenotypeAnalyzerHostPrivate = process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE
     || "http://127.0.0.1:8092";
+if (process.env.PB_GENE_CONTEXT_DATA_ROOT) {
+    process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE = "false";
+}
+let localContextApiProcess = null;
+function startLocalContextApi() {
+    const dataRoot = process.env.PB_GENE_CONTEXT_DATA_ROOT;
+    if (!dataRoot || process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE || localContextApiProcess) return;
+    const fs = require("fs");
+    const path = require("path");
+    const { spawn } = require("child_process");
+    const input = name => path.resolve(dataRoot, name);
+    const sourceFile = (variable, name) => path.resolve(process.env[variable] || input(name));
+    const hpoMatrix = sourceFile("PB_GENE_CONTEXT_HPO_MATRIX",
+        fs.existsSync(input("hpo.tsv.gz")) ? "hpo.tsv.gz" : "hpo.tsv");
+    const roster = sourceFile("PB_GENE_CONTEXT_ROSTER", "roster.tsv");
+    const evidence = sourceFile("PB_GENE_CONTEXT_VARIANT_EVIDENCE", "variant_evidence.tsv");
+    const covariates = sourceFile("PB_GENE_CONTEXT_COVARIATES", "covariates.tsv");
+    const contextBioIndexHost = process.env.PB_GENE_CONTEXT_BIOINDEX_HOST || process.env.BIOINDEX_HOST_PRIVATE;
+    const geneScores = path.resolve(process.env.PB_GENE_CONTEXT_GENE_SCORES || input("gene_scores.tsv"));
+    for (const file of [hpoMatrix, roster, covariates, ...(!contextBioIndexHost ? [evidence] : [])]) {
+        if (!fs.existsSync(file)) throw new Error(`PB Gene Context API input missing: ${file}`);
+    }
+    if (process.env.PB_GENE_CONTEXT_GENE_SCORES && !fs.existsSync(geneScores)) {
+        throw new Error(`PB Gene Context API input missing: ${geneScores}`);
+    }
+    const args = [path.resolve(__dirname, "scripts/start_pb_gene_context_api.sh"),
+        "--hpo-matrix", hpoMatrix, "--overlap-roster", roster,
+        "--covariates", covariates];
+    if (contextBioIndexHost) args.push("--bioindex-host", contextBioIndexHost);
+    else args.push("--evidence", evidence);
+    if (process.env.PB_GENE_CONTEXT_BIOINDEX_EVIDENCE_INDEX) {
+        args.push("--bioindex-evidence-index", process.env.PB_GENE_CONTEXT_BIOINDEX_EVIDENCE_INDEX);
+    }
+    if (process.env.PB_GENE_CONTEXT_BIOINDEX_TOKEN_FILE) {
+        args.push("--bioindex-access-token-file", process.env.PB_GENE_CONTEXT_BIOINDEX_TOKEN_FILE);
+    }
+    if (fs.existsSync(geneScores)) args.push("--gene-scores", geneScores);
+    const optional = [
+        ["PB_GENE_CONTEXT_GENE_SCORE_COVARIATES", "--gene-score-covariates"],
+        ["PB_GENE_CONTEXT_GENE_SCORE_PLATFORM", "--gene-score-platform"],
+        ["PB_GENE_CONTEXT_GENE_SCORE_ID_MAP", "--gene-score-id-map"],
+        ["PB_GENE_CONTEXT_GENE_SCORE_MODEL", "--gene-score-model"],
+        ["PB_GENE_CONTEXT_GENE_SCORE_TYPE", "--gene-score-type"],
+        ["PB_GENE_CONTEXT_GRM_PREFIX", "--grm-prefix"],
+        ["PB_GENE_CONTEXT_RSCRIPT", "--rscript"],
+    ];
+    for (const [environmentName, flag] of optional) {
+        if (process.env[environmentName]) args.push(flag, process.env[environmentName]);
+    }
+    if (process.env.PB_GENE_CONTEXT_AFFECTED_ONLY === "true") args.push("--gene-score-affected-only");
+    localContextApiProcess = spawn("bash", args, { cwd: __dirname, env: process.env, stdio: "inherit" });
+    localContextApiProcess.on("exit", (code, signal) => {
+        console.error(`PB Gene Context API exited: ${signal || code}`);
+        localContextApiProcess = null;
+    });
+    process.once("exit", () => { if (localContextApiProcess) localContextApiProcess.kill(); });
+}
 const bioindexHostPrivateBrowser = process.env.BIOINDEX_HOST_PRIVATE_BROWSER
     || (process.env.BIOINDEX_HOST_PRIVATE
         ? "/__bioindex_private__"
@@ -317,6 +374,12 @@ module.exports = {
     devServer: {
         writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
         before(app) {
+            startLocalContextApi();
+            require("./scripts/gene_hpo_association_endpoint")(app, process.env.PB_GENE_HPO_FILE);
+            require("./scripts/gene_carrier_summary_endpoint")(
+                app,
+                process.env.BIOINDEX_HOST_PRIVATE
+            );
             const fixturePath = process.env.PB_GENE_CONTEXT_FIXTURE_PATH;
             if (!fixturePath) return;
             app.get("/__pb_gene_context_fixture__", (request, response, next) => {

@@ -8,6 +8,8 @@ import gzip
 import hashlib
 import json
 from pathlib import Path
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 import numpy as np
 from scipy import sparse
@@ -19,6 +21,7 @@ from scripts.context_api_fast import (
     variant_pathogenic_scores,
 )
 from scripts.rphers_fast import score_samples
+from scripts.variant_association import MODEL_VERSION as VARIANT_ASSOCIATION_MODEL_VERSION, analyze_gene_variants
 
 
 PC_NAMES = [f"PC{index}" for index in range(1, 11)]
@@ -196,6 +199,25 @@ def reconstruct_burden_pathogenic_score(row):
     return variant_pathogenic_scores(row)["burden"]
 
 
+def _normalized_evidence_row(raw, gene):
+    variant_id = str(raw.get("Variant_ID") or raw.get("variant_id") or "").strip()
+    if not variant_id:
+        raise ValueError("evidence row has no variant ID")
+    extended_score, extended_source = reconstruct_pathogenic_score(raw)
+    burden_score, burden_source = reconstruct_burden_pathogenic_score(raw)
+    return {
+        "sample_id": str(raw.get("sample_id") or "").strip(),
+        "gene_symbol": gene,
+        "variant_id": variant_id,
+        "GT": raw.get("GT"),
+        "alt_dosage": raw.get("alt_dosage"),
+        "pathogenicity_score": extended_score,
+        "score_source": extended_source,
+        "burden_pathogenicity_score": burden_score,
+        "burden_score_source": burden_source,
+    }
+
+
 def load_gene_evidence(path, genes, analysis_sample_ids):
     """Stream the evidence TSV and retain requested-gene carriers in the analysis roster."""
     genes = [str(gene).strip().upper() for gene in genes]
@@ -217,26 +239,75 @@ def load_gene_evidence(path, genes, analysis_sample_ids):
             if sample_id not in analysis_sample_ids:
                 outside[gene] += 1
                 continue
-            variant_id = str(raw.get("Variant_ID") or raw.get("variant_id") or "").strip()
-            if not variant_id:
-                raise ValueError("evidence row has no variant ID")
-            extended_score, extended_source = reconstruct_pathogenic_score(raw)
-            burden_score, burden_source = reconstruct_burden_pathogenic_score(raw)
-            rows_by_gene[gene].append({
-                "sample_id": sample_id,
-                "gene_symbol": gene,
-                "variant_id": variant_id,
-                "GT": raw.get("GT"),
-                "alt_dosage": raw.get("alt_dosage"),
-                "pathogenicity_score": extended_score,
-                "score_source": extended_source,
-                "burden_pathogenicity_score": burden_score,
-                "burden_score_source": burden_source,
-            })
+            rows_by_gene[gene].append(_normalized_evidence_row(raw, gene))
     return {
         "rows_by_gene": rows_by_gene,
         "carrier_rows_outside_analysis": {gene: int(outside[gene]) for gene in genes},
     }
+
+
+def load_gene_evidence_bioindex(host, gene, analysis_sample_ids, access_token=None,
+                                index="gene-variants-crdc", sample_id_map=None):
+    """Fetch all private Gene pages and align carrier IDs to the PheRS roster."""
+    host = str(host).rstrip("/")
+    sample_set = set(str(value) for value in analysis_sample_ids)
+    if index not in {"gene-variants-crdc", "gene-samples"}:
+        raise ValueError("unsupported BioIndex Gene evidence index")
+    sample_id_map = sample_id_map or {}
+    url = f"{host}/api/bio/query/{index}?{urlencode({'q': gene})}"
+    rows = []
+    outside = 0
+    seen_tokens = set()
+    seen_carriers = set()
+    while url:
+        headers = {"x-bioindex-access-token": access_token} if access_token else {}
+        with urlopen(Request(url, headers=headers), timeout=60) as response:
+            payload = json.load(response)
+        data = payload.get("data")
+        if not isinstance(data, list):
+            raise ValueError("BioIndex gene-samples response has no data list")
+        for raw in data:
+            if index == "gene-samples":
+                if str(raw.get("gene_symbol") or "").strip().upper() != gene:
+                    continue
+                carriers = [raw.get("sample_id")]
+                variant_id = raw.get("variant_id") or raw.get("Variant_ID")
+            else:
+                chrom = str(raw.get("chromosome") or raw.get("CHROM") or "").removeprefix("chr")
+                pos = raw.get("position") or raw.get("POS")
+                ref = raw.get("reference") or raw.get("REF")
+                alt = raw.get("alt") or raw.get("ALT")
+                if not all((chrom, pos, ref, alt)):
+                    continue
+                variant_id = f"chr{chrom}:{pos}:{ref}:{alt}"
+                carriers = raw.get("samples") or []
+                if not isinstance(carriers, list):
+                    continue
+                template = _normalized_evidence_row(
+                    dict(raw, sample_id="", variant_id=variant_id, GT="0/1", alt_dosage=1), gene,
+                )
+            for original_id in carriers:
+                sample_id = sample_id_map.get(str(original_id), str(original_id))
+                if sample_id not in sample_set:
+                    outside += 1
+                    continue
+                key = (sample_id, variant_id)
+                if key in seen_carriers:
+                    continue
+                seen_carriers.add(key)
+                if index == "gene-variants-crdc":
+                    rows.append(dict(template, sample_id=sample_id))
+                else:
+                    rows.append(_normalized_evidence_row(dict(raw, sample_id=sample_id, variant_id=variant_id), gene))
+        token = payload.get("continuation")
+        if token:
+            if token in seen_tokens:
+                raise ValueError("BioIndex repeated a continuation token")
+            seen_tokens.add(token)
+            url = f"{host}/api/bio/cont?{urlencode({'token': token})}"
+        else:
+            url = None
+    return {"rows_by_gene": {gene: rows}, "carrier_rows_outside_analysis": {gene: outside}}
 
 
 def _write_private_audits(audit_dir, gene, sample_ids, y, x, rows):
@@ -355,10 +426,22 @@ def _gene_result(
 class ContextAnalysisEngine:
     """Preload cohort inputs and cache HPO vectors and per-gene burden inputs."""
 
-    def __init__(self, hpo_path, roster_path, evidence_path, covariate_path=None):
+    def __init__(self, hpo_path, roster_path, evidence_path, covariate_path=None, gene_association_runner=None,
+                 bioindex_host=None, bioindex_access_token=None, bioindex_evidence_index="gene-variants-crdc"):
         self.hpo = load_hpo_matrix(hpo_path, [])
         self.roster = load_overlap_roster(roster_path)
-        self.evidence_path = Path(evidence_path)
+        self.evidence_path = Path(evidence_path) if evidence_path else None
+        self.bioindex_host = bioindex_host
+        self.bioindex_access_token = bioindex_access_token
+        self.bioindex_evidence_index = bioindex_evidence_index
+        self.bioindex_sample_id_map = {}
+        if bioindex_host and covariate_path:
+            with _open_text(covariate_path) as handle:
+                for row in csv.DictReader(handle, delimiter="\t"):
+                    sample_id = str(row.get("sample_id") or "").strip()
+                    vcf_id = str(row.get("vcf_sample_id") or "").strip()
+                    if sample_id and vcf_id:
+                        self.bioindex_sample_id_map[vcf_id] = sample_id
         both = set(self.roster["sample_ids"])
         hpo_ids = self.hpo["sample_ids"].tolist()
         missing_from_hpo = both - set(hpo_ids)
@@ -376,6 +459,7 @@ class ContextAnalysisEngine:
             if covariate_path
             else None
         )
+        self.gene_association_runner = gene_association_runner
 
     @lru_cache(maxsize=32)
     def _phenotype(self, normalized_query_hpo):
@@ -397,11 +481,12 @@ class ContextAnalysisEngine:
 
     @lru_cache(maxsize=64)
     def _gene_data(self, gene):
-        evidence = load_gene_evidence(
-            self.evidence_path,
-            [gene],
-            self.analysis_sample_set,
-        )
+        evidence = (load_gene_evidence_bioindex(
+            self.bioindex_host, gene, self.analysis_sample_set, self.bioindex_access_token,
+            self.bioindex_evidence_index, self.bioindex_sample_id_map,
+        ) if self.bioindex_host else load_gene_evidence(
+            self.evidence_path, [gene], self.analysis_sample_set,
+        ))
         rows = evidence["rows_by_gene"][gene]
         carriers_by_variant = {}
         for row in rows:
@@ -436,6 +521,29 @@ class ContextAnalysisEngine:
             carriers_by_variant=gene_data["carriers_by_variant"],
             burden_input=gene_data["burden_input"],
         )
+        if self.covariates is None:
+            result["variant_associations"] = {}
+            result["variant_association_status"] = "missing_covariates"
+        else:
+            try:
+                variant_result = analyze_gene_variants(self, gene, normalized_query_hpo)
+                result["variant_associations"] = variant_result["variant_associations"]
+                result["variant_association_status"] = "ok"
+                result["variant_association_model"] = VARIANT_ASSOCIATION_MODEL_VERSION
+            except ValueError as error:
+                if "no residual degrees of freedom" not in str(error):
+                    raise
+                result["variant_associations"] = {}
+                result["variant_association_status"] = "insufficient_degrees_of_freedom"
+        if self.gene_association_runner is None:
+            result["gene_association"] = {"status": "not_configured"}
+        else:
+            try:
+                result["gene_association"] = self.gene_association_runner.run(
+                    gene, self.analysis_sample_ids, y,
+                )
+            except Exception:
+                result["gene_association"] = {"status": "runner_failed"}
         result["query_hpo"] = list(normalized_query_hpo)
         result["covariate_encoding"] = None if self.covariates is None else {
             "names": self.covariates["names"],
