@@ -59,6 +59,20 @@ let pages = {
         title: "PB Gene Search",
         chunks: ["chunk-vendors", "chunk-common", "pbGeneLowercase"]
     },
+    publicGene: {
+        entry: "src/views/PublicGene/main.js",
+        template: "public/index.html",
+        filename: "public_Gene.html",
+        title: "Public Gene Reference",
+        chunks: ["chunk-vendors", "chunk-common", "publicGene"]
+    },
+    publicGeneLowercase: {
+        entry: "src/views/PublicGene/main.js",
+        template: "public/index.html",
+        filename: "public_gene.html",
+        title: "Public Gene Reference",
+        chunks: ["chunk-vendors", "chunk-common", "publicGeneLowercase"]
+    },
     pbFront: {
         entry: "src/views/PbFront/main.js",
         template: "public/index.html",
@@ -383,6 +397,10 @@ module.exports = {
         before(app) {
             startLocalContextApi();
             require("./scripts/gene_hpo_association_endpoint")(app, process.env.PB_GENE_HPO_FILE);
+            require("./scripts/public_gene_variant_endpoint")(
+                app,
+                process.env.BIOINDEX_HOST_PRIVATE
+            );
             require("./scripts/gene_carrier_summary_endpoint")(
                 app,
                 process.env.BIOINDEX_HOST_PRIVATE

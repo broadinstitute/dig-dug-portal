@@ -1,0 +1,147 @@
+/* Public gene page overrides for the existing PB Gene layout. */
+.public-gene-page .demo-notice {
+    padding: 0.45rem 1rem;
+    background: #e9f5f4;
+    color: #13625c;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.public-gene-page .demo-empty {
+    margin: 0;
+    padding: 0.4rem 1rem;
+    background: #f3f7fa;
+    color: #4b6174;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.public-gene-page .public-gene-pending {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.public-gene-reference-locus {
+    padding: 1.25rem 1.5rem;
+}
+
+.public-gene-reference-locus .pbg-locus-header > div {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.public-gene-reference-locus .pbg-window-exon-block {
+    cursor: default;
+}
+
+.public-gene-reference-locus .pbg-window-variant-dot {
+    top: 0.35rem;
+}
+
+.public-gene-unavailable-track {
+    color: #667b8e;
+    font-size: 0.82rem;
+}
+
+.public-gene-page .pbg-window-density-plot.public-gene-density-plot {
+    height: 140px;
+}
+
+.public-gene-density-empty {
+    color: #667b8e;
+    font-size: 0.82rem;
+}
+
+.public-gene-caption,
+.public-gene-empty {
+    color: #526a7e;
+    font-size: 0.83rem;
+    line-height: 1.5;
+}
+
+.public-gene-empty {
+    margin: 0;
+    padding: 1rem 1.25rem;
+}
+
+.public-gene-context-form {
+    grid-template-columns: minmax(18rem, 1fr) auto;
+}
+
+.public-gene-context-note {
+    margin: 0.65rem 0 0;
+    color: var(--pbg-text-soft);
+    font-size: 0.82rem;
+}
+
+.pbg-evidence-summary-head {
+    border-bottom: 0;
+}
+
+.public-gene-page .pbg-ve-table-head > span.pbg-ve-sort {
+    display: flex;
+    align-items: center;
+    color: var(--pbg-text-muted);
+    cursor: default;
+}
+
+.public-gene-page .pbg-ve-row > .pbg-ve-carriers {
+    color: var(--pbg-text-muted);
+}
+
+.public-gene-page .pbg-variant-expanded {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.public-gene-page .pbg-selected-variant-evidence {
+    padding: 0;
+    border-right: 0;
+}
+
+.public-gene-page .pbg-selected-variant-head {
+    padding: 0.75rem 1rem 0.45rem;
+    border-bottom: 1px solid var(--pbg-border);
+}
+
+.public-gene-page .pbg-evidence-group {
+    padding: 0.6rem 1rem 0.75rem;
+    border-bottom: 1px solid var(--pbg-border);
+}
+
+.public-gene-page .pbg-evidence-group-title {
+    margin: 0 0 0.4rem;
+    color: #627796;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.public-gene-page .pbg-selected-kv {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem 1rem;
+}
+
+.public-gene-page .pbg-selected-kv-row > span {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: #627796;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}
+
+.public-gene-page .pbg-selected-kv-row > strong {
+    overflow-wrap: anywhere;
+    font-size: 0.92rem;
+}
+
+@media (max-width: 760px) {
+    .public-gene-page .pbg-selected-kv {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.public-gene-effect-availability { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; padding: .6rem .75rem; margin: .4rem 0; color: #183a5d; background: #edf7ff; border: 1px solid #b7c9dc; border-radius: .35rem; font-size: .82rem; }
+.public-gene-effect-availability button { border: 1px solid #1769aa; background: white; color: #1769aa; border-radius: .35rem; padding: .3rem .55rem; font: inherit; font-weight: 700; cursor: pointer; }
+.public-gene-effect-availability button:hover, .public-gene-effect-availability button:focus { background: #dceeff; }
