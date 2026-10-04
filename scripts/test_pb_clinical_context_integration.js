@@ -48,11 +48,11 @@ assert.match(variantModel, /pbv-evidence--likely-pathogenic/);
 assert.match(variantModel, /pbv-evidence--vus/);
 assert.match(variantTemplate, /Choose gene context/);
 assert.match(geneTemplate, /Top phenotype associations/);
-assert.match(geneTemplate, /OR is per one-unit increase in score/);
-assert.match(geneTemplate, /Precomputed association results are not available yet/);
+assert.match(geneTemplate, /per 0\.1-point increase in gene burden score/);
+assert.match(geneTemplate, /Precomputed phenotype association results have not been connected for this gene/);
 assert.doesNotMatch(geneTemplate, /Carrier phenotype profile/);
 assert.match(geneModel, /genePhenotypeAssociations/);
-assert.match(geneTemplate, /<details class="pbg-context-disclosure pbg-summary-panels-disclosure">/);
+assert.match(geneTemplate, /<section class="pbg-summary-band" aria-label="Carrier summary details">/);
 assert.match(geneTemplate, /Carrier summary details/);
 
 console.log("PB_CLINICAL_CONTEXT_INTEGRATION_TEST_PASS");

@@ -10,25 +10,13 @@
             </span>
         </div>
         <form class="pbg-context-form" @submit.prevent="$emit('run')">
-            <input v-model.trim="contextInputModel"
-                   type="text"
-                   aria-label="HPO context terms"
-                   autocomplete="off"
-                   spellcheck="false"
-                   placeholder="Enter HPO terms, e.g. HP:0001250, HP:0000133">
+            <hpo-term-input v-model="contextInputModel"></hpo-term-input>
             <button type="submit" :disabled="contextLoading">
                 {{ contextLoading ? 'Calculating' : 'Go' }}
             </button>
             <details class="pbg-context-advanced">
                 <summary>Advanced</summary>
                 <div class="pbg-context-advanced-panel">
-                    <label>
-                        <span>Statistical filter</span>
-                        <select v-model="metricModel">
-                            <option value="p_value">P-value</option>
-                            <option value="fdr">FDR</option>
-                        </select>
-                    </label>
                     <label>
                         <span>Threshold</span>
                         <input v-model.number="thresholdModel" type="number" min="0.000001" max="1" step="any">
@@ -37,9 +25,6 @@
                         <span>Minimum carriers</span>
                         <input v-model.number="minCarriersModel" type="number" min="10" step="1">
                     </label>
-                    <small v-if="contextSignificanceMetric === 'fdr'">
-                        BH-FDR is calculated within the API-defined test family.
-                    </small>
                     <button class="pbg-context-advanced-apply" type="submit" :disabled="contextLoading">
                         Apply &amp; run
                     </button>
@@ -62,7 +47,6 @@
                 <span>HPOs (Entered terms)</span>
                 <span>Beta (Effect Size)</span>
                 <span>P-value</span>
-                <span title="Results are sorted from the lowest FDR to the highest.">FDR ↑</span>
                 <span>Status / score coverage</span>
                 <span>Note</span>
             </div>
@@ -70,7 +54,6 @@
                 <span>{{ run.hpos }}<small>{{ run.sourceLabel }}</small></span>
                 <strong>{{ run.beta }}</strong>
                 <strong>{{ run.pValue }}</strong>
-                <strong>{{ run.fdr }}</strong>
                 <span class="pbg-context-result-diagnostic">
                     <strong>{{ run.statusLabel }}</strong>
                     <small>{{ run.coverageLabel }}</small>
@@ -86,14 +69,15 @@
 </template>
 
 <script>
+import HpoTermInput from "./HpoTermInput";
 export default {
     name: "HpoContextPanel",
+    components: { HpoTermInput },
     props: {
         activeContextTerms: { type: Array, required: true },
         contextTermDetails: { type: Array, default: () => [] },
         contextInput: { type: String, required: true },
         contextLoading: { type: Boolean, required: true },
-        contextSignificanceMetric: { type: String, required: true },
         contextSignificanceThreshold: { type: Number, required: true },
         contextMinCarriers: { type: Number, required: true },
         externalPhenotypeResultUrl: { type: String, default: "" },
@@ -104,10 +88,6 @@ export default {
         contextInputModel: {
             get() { return this.contextInput; },
             set(value) { this.$emit("update:contextInput", value); },
-        },
-        metricModel: {
-            get() { return this.contextSignificanceMetric; },
-            set(value) { this.$emit("update:contextSignificanceMetric", value); },
         },
         thresholdModel: {
             get() { return this.contextSignificanceThreshold; },

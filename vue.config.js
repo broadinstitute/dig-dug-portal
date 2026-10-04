@@ -52,6 +52,13 @@ let pages = {
         title: "PB Gene Search",
         chunks: ["chunk-vendors", "chunk-common", "pbGene"]
     },
+    pbGeneLowercase: {
+        entry: "src/views/PbGene/main.js",
+        template: "public/index.html",
+        filename: "pb_gene.html",
+        title: "PB Gene Search",
+        chunks: ["chunk-vendors", "chunk-common", "pbGeneLowercase"]
+    },
     pbFront: {
         entry: "src/views/PbFront/main.js",
         template: "public/index.html",

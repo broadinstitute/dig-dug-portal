@@ -1,3 +1,4 @@
+import { resolveHpoTerms, contextApiError } from "./hpoContextSearch";
 import {
     geneInfo, crdcEvidence, genomeWindow, variantRows,
     geneCarrierDemographics, geneLevelPhenotypeCategories, geneLevelCoCarrierGenes,
@@ -5,7 +6,14 @@ import {
 } from "./mockData";
 import { applyPbGeneFixturePipeline, fixtureGeneSymbol, fixtureLoaded } from "./fixturePipeline";
 import { fetchPbGeneBioIndexState } from "./pbGeneBioIndexAdapter";
+import { normalizeCarrierAge, normalizeCarrierAgeDemographics } from "./carrierAge";
+import { locusFilterActive, locusFilterKey, refreshLocusFilter } from "./locusFilters";
+import { ASSOCIATION_PAGE_SIZE, CO_CARRIER_PAGE_SIZE, INVESTIGATOR_PAGE_SIZE, paginate, sortAssociations, sortCoCarrierGenes, sortInvestigators } from "./summaryTable";
+import { query as queryBioIndex } from "@/utils/bioIndexUtils";
+import { VARIANT_PAGE_SIZE, findPositionWindow, positionOrderedVariants, positionSearchPlaceholder, variantPosition, visiblePageNumbers } from "./variantTableNavigation";
 import { readClinicalFocus } from "../KrClinicalFocus/focusStore";
+import { pathogenicityClass as clinvarBadgeClass } from "./clinvarBadge";
+import { hgvsNotation } from "./hgvsNotation";
 
 const LOCAL_CONTEXT_FIXTURE_ENABLED = process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE === "true";
 const PHENOTYPE_RESULT_URL = "http://100.80.30.199/phenotypeResult.html";
@@ -45,6 +53,10 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         ((resolved.genomeWindow.markers || []).find(m => m.focal) || {}).variantId ||
         ((resolved.variantRows || [])[0] && resolved.variantRows[0].id) ||
         null;
+    const requestedVariantId = params.get("variant");
+    const initialSelectedVariantId = (resolved.variantRows || []).some(row => row.id === requestedVariantId)
+        ? requestedVariantId
+        : null;
     const initialVariantBp = initialVariantId
         ? parseInt(String(initialVariantId).split(":")[1], 10)
         : null;
@@ -54,14 +66,23 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         ...resolved,
 
         // Block 3 summary mode
-        geneTab: "gene",
-        summaryExpandedCards: {},
+        geneTab: initialSelectedVariantId ? "variant" : "gene",
+        pendingVariantId: requestedVariantId,
+        summaryPages: { phenotype: 1, genotype: 1, investigator: 1 },
+        summarySort: { phenotype: { key: "pValue", dir: "asc" }, genotype: { key: "count", dir: "desc" }, investigator: { key: "inv", dir: "asc" } },
         searchGeneQuery: query,
         searchGeneLoading: false,
         searchGeneProgress: "",
         searchGeneError: "",
         liveDataLoaded: false,
         liveDataSource: fixtureLoaded ? "local fixture" : "mock fallback",
+        geneCarrierSummary: null,
+        variantCarrierSummaries: {},
+        carrierSummaryPending: {},
+        carrierSummaryProgress: {},
+        carrierSummaryErrors: {},
+        sampleDetailsCache: {},
+        sampleDetailsLoading: {},
 
         // User-entered HPO context and accumulated gene-level runs
         contextInput: initialContextTerms.map((term) => term.id).join(", "),
@@ -70,12 +91,11 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         contextRuns: [],
         activeContextTerms: initialContextTerms.map((term) => term.id),
         contextTermDetails: initialContextTerms.map((term) => ({ id: term.id, label: term.label || term.id })),
-        contextSignificanceMetric: "p_value",
         contextSignificanceThreshold: 0.05,
         contextMinCarriers: 10,
 
         // Variants sub-accordion
-        expandedVariantId: null,
+        expandedVariantId: initialSelectedVariantId,
         activeTabMap: {},
 
         // Density + sample filters
@@ -84,6 +104,10 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         ageFilter: "All ages",
         investigatorFilter: "All investigators",
         sexFilter: "All",
+        locusFilterResult: null,
+        locusFilterProgress: "",
+        locusFilterError: "",
+        locusFilterSequence: 0,
 
         // Zoom level (1=whole gene … 6=queried variant ±25 bp)
         zoomLevel: initialZoomLevel,
@@ -95,7 +119,13 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         // Carrier table "show more" (+5 increments)
         showCountCarrierMap:  {},   // variantId → count shown
         showCountGeneCarriers: 5,
-        showCountVariants: 5,
+        variantPage: 1,
+        variantSearchStart: null,
+        variantSearchResultId: null,
+        variantPositionQuery: "",
+        variantPositionError: "",
+        variantPageJump: "",
+        variantPageJumpError: "",
 
         // Expandable phenotype categories
         expandedPhenoCategories: {},
@@ -181,13 +211,15 @@ const MAX_ZOOM = 5;
 const LOCUS_DENSITY_PLOT_PX = 108;
 const TERMS_LIMIT    = 5;
 const CARRIER_LIMIT  = 5;
-const VARIANT_LIMIT  = 5;
 const PHENO_CAT_LIMIT = 5;
-const SUMMARY_PHENO_LIMIT = 4;
-const SUMMARY_GENE_LIMIT = 6;
-const SUMMARY_DEMO_LIMIT = 4;
 
 export const pbGeneComputed = {
+    locusFilterActive() { return locusFilterActive(this); },
+    locusFilterRequestKey() {
+        const range = this.winBp;
+        const bins = this.isBaseLevel ? Math.min(120, Math.floor(range.end - range.start) + 1) : this.isWholeGeneView ? 120 : 80;
+        return locusFilterKey(this, Math.floor(range.start), Math.ceil(range.end), bins, this.liveDataLoaded);
+    },
     // ── sample filter helper ─────────────────────────────────────────────────
     sampleMatches() {
         return (s) => {
@@ -491,24 +523,36 @@ export const pbGeneComputed = {
             : this.totalGeneCarriers;
     },
 
-    phenotypeAssociationCardLabel() {
-        if (this.isSummaryCardExpanded("phenotype")) {
-            return `${this.genePhenotypeAssociations.length} passing associations`;
+    activeCarrierSummary() {
+        if (this.geneTab === "variant" && this.selectedEvidenceVariant) {
+            return this.variantCarrierSummaries[this.selectedEvidenceVariant.id] || null;
         }
-        const shown = Math.min(SUMMARY_PHENO_LIMIT, this.genePhenotypeAssociations.length);
-        return shown ? `Top ${shown} associations` : "Results pending";
+        return this.geneCarrierSummary;
+    },
+
+    activeCarrierSummaryStatus() {
+        const key = this.geneTab === "variant" && this.selectedEvidenceVariant
+            ? this.selectedEvidenceVariant.id : "__gene__";
+        if (this.carrierSummaryPending[key]) return this.carrierSummaryProgress[key] || "Loading carrier metadata…";
+        return this.carrierSummaryErrors[key] || "";
+    },
+
+    phenotypeAssociationCardLabel() {
+        return this.genePhenotypeAssociations.length
+            ? `${this.genePhenotypeAssociations.length} release associations` : "Results pending";
     },
 
     summaryAssociationRows() {
-        if (this.isSummaryCardExpanded("phenotype")) return this.genePhenotypeAssociations;
-        return this.genePhenotypeAssociations.slice(0, SUMMARY_PHENO_LIMIT);
+        const sort = this.summarySort.phenotype;
+        return paginate(sortAssociations(this.genePhenotypeAssociations, sort.key, sort.dir), this.summaryPages.phenotype, ASSOCIATION_PAGE_SIZE);
     },
 
-    summaryAssociationHiddenCount() {
-        return Math.max(0, this.genePhenotypeAssociations.length - SUMMARY_PHENO_LIMIT);
+    summaryAssociationPageCount() {
+        return Math.ceil(this.genePhenotypeAssociations.length / ASSOCIATION_PAGE_SIZE);
     },
 
     summaryCoCarrierGenes() {
+        if (this.activeCarrierSummary) return this.activeCarrierSummary.coCarrierGenes || [];
         if (this.geneTab === "variant" && this.selectedEvidenceVariant) {
             return this.selectedEvidenceVariant.coCarrierGenes || [];
         }
@@ -518,25 +562,20 @@ export const pbGeneComputed = {
     },
 
     summaryCoCarrierCardLabel() {
-        if (this.isSummaryCardExpanded("genotype")) {
-            return `${this.summaryCoCarrierGenes.length} co-carrier genes`;
-        }
-        const shown = Math.min(SUMMARY_GENE_LIMIT, this.summaryCoCarrierGenes.length);
-        return this.summaryCoCarrierGenes.length > shown
-            ? `Top ${shown} of ${this.summaryCoCarrierGenes.length} genes`
-            : `${this.summaryCoCarrierGenes.length} co-carrier genes`;
+        return `${this.summaryCoCarrierGenes.length} co-carrier genes`;
     },
 
     summaryCoCarrierGenesVisible() {
-        if (this.isSummaryCardExpanded("genotype")) return this.summaryCoCarrierGenes;
-        return this.summaryCoCarrierGenes.slice(0, SUMMARY_GENE_LIMIT);
+        const sort = this.summarySort.genotype;
+        return paginate(sortCoCarrierGenes(this.summaryCoCarrierGenes, sort.key, sort.dir), this.summaryPages.genotype, CO_CARRIER_PAGE_SIZE);
     },
 
-    summaryCoCarrierHiddenCount() {
-        return Math.max(0, this.summaryCoCarrierGenes.length - SUMMARY_GENE_LIMIT);
+    summaryCoCarrierPageCount() {
+        return Math.ceil(this.summaryCoCarrierGenes.length / CO_CARRIER_PAGE_SIZE);
     },
 
     summaryCarrierDemographics() {
+        if (this.activeCarrierSummary) return normalizeCarrierAgeDemographics(this.activeCarrierSummary.geneCarrierDemographics);
         if (!(this.geneTab === "variant" && this.selectedEvidenceVariant)) {
             return this.geneCarrierDemographics || { byAge: [], byInvestigator: [], bySex: [], byAffected: [] };
         }
@@ -567,31 +606,21 @@ export const pbGeneComputed = {
 
     summaryCarrierDemographicsVisible() {
         const demo = this.summaryCarrierDemographics || {};
-        if (this.isSummaryCardExpanded("demographics")) {
-            return {
-                byAge: demo.byAge || [],
-                byInvestigator: demo.byInvestigator || [],
-                bySex: demo.bySex || [],
-                byAffected: demo.byAffected || [],
-            };
-        }
         return {
-            byAge: (demo.byAge || []).slice(0, SUMMARY_DEMO_LIMIT),
-            byInvestigator: (demo.byInvestigator || []).slice(0, SUMMARY_DEMO_LIMIT),
-            bySex: (demo.bySex || []).slice(0, SUMMARY_DEMO_LIMIT),
-            byAffected: (demo.byAffected || []).slice(0, SUMMARY_DEMO_LIMIT),
+            byAge: demo.byAge || [],
+            byInvestigator: paginate(sortInvestigators(demo.byInvestigator || [], this.summarySort.investigator.key, this.summarySort.investigator.dir), this.summaryPages.investigator, INVESTIGATOR_PAGE_SIZE),
+            bySex: demo.bySex || [],
+            byAffected: demo.byAffected || [],
         };
     },
 
-    summaryCarrierDemographicsHiddenCount() {
-        const demo = this.summaryCarrierDemographics || {};
-        return ["byAge", "byInvestigator", "bySex", "byAffected"].reduce((total, key) => {
-            const rows = demo[key] || [];
-            return total + Math.max(0, rows.length - SUMMARY_DEMO_LIMIT);
-        }, 0);
+    summaryInvestigatorPageCount() {
+        return Math.ceil((this.summaryCarrierDemographics.byInvestigator || []).length / INVESTIGATOR_PAGE_SIZE);
     },
 
     availableAges() {
+        const summary = this.geneCarrierSummary && this.geneCarrierSummary.geneCarrierDemographics;
+        if (summary) return ["All ages", ...(summary.byAge || []).map(row => row.band)];
         const ages = new Set();
         this.variantRows.forEach(row => row.carrierSamples.forEach(s => ages.add(s.age)));
         const ordered = ["<1", "1-5", "6-11", "12-17", "18+", "Unknown", "0-1", "2-4", "5-12", "13-18", "Adult"];
@@ -601,6 +630,8 @@ export const pbGeneComputed = {
     },
 
     availableInvestigators() {
+        const summary = this.geneCarrierSummary && this.geneCarrierSummary.geneCarrierDemographics;
+        if (summary) return ["All investigators", ...(summary.byInvestigator || []).map(row => row.inv).sort()];
         const invs = new Set();
         this.variantRows.forEach(row => row.carrierSamples.forEach(s => invs.add(s.group)));
         return ["All investigators", ...Array.from(invs).sort()];
@@ -922,6 +953,7 @@ export const pbGeneComputed = {
     },
 
     locusWindowDistinctCarrierCount() {
+        if (this.locusFilterActive) return this.locusFilterResult ? this.locusFilterResult.distinctCarriers : null;
         if (!this.locusWindowVariantRows.length) return 0;
         if (this.locusWindowVariantRows.some(row => !(row.carrierSamples || []).length)) return null;
         const matches = this.variantFilterMatches;
@@ -1200,6 +1232,16 @@ export const pbGeneComputed = {
     },
 
     positionCarrierCountMap() {
+        if (this.locusFilterActive && this.isBaseLevel) {
+            const out = {};
+            const start = Math.ceil(this.winBp.start);
+            const counts = this.locusFilterResult ? this.locusFilterResult.carrierDensity : [];
+            counts.forEach((count, index) => {
+                out[start + index] = { count, variantIds: (this.variantRows || [])
+                    .filter(row => this.variantPosition(row.id) === start + index).map(row => row.id) };
+            });
+            return out;
+        }
         const matches = this.variantFilterMatches;
         const groups = {};
         (this.variantRows || []).forEach(row => {
@@ -1228,6 +1270,7 @@ export const pbGeneComputed = {
     },
 
     locusDensityMax() {
+        if (this.locusFilterActive) return this.locusFilterResult ? Math.max(1, ...this.locusFilterResult.carrierDensity) : 1;
         const values = Object.values(this.positionCarrierCountMap).map(item => Number(item.count) || 0);
         const max = Math.max(1, ...values);
         if (max <= 10) return 10;
@@ -1247,6 +1290,7 @@ export const pbGeneComputed = {
         const { start, end } = this.winBp;
         const span = (end - start) || 1;
         const map = this.positionCarrierCountMap;
+        const filteredDensity = this.locusFilterActive ? (this.locusFilterResult ? this.locusFilterResult.carrierDensity : []) : null;
         const max = this.locusDensityMax;
         const plotHeight = this.locusDensityPlotHeightPx;
         const maxBarHeight = Math.max(2, plotHeight - 3);
@@ -1299,7 +1343,7 @@ export const pbGeneComputed = {
             }
         });
         return bins.map(bin => {
-            const count = bin.sampleIds.size || bin.fallbackCount;
+            const count = filteredDensity ? filteredDensity[bin.idx] || 0 : bin.sampleIds.size || bin.fallbackCount;
             const pos = Math.round((bin.start + bin.end) / 2);
             const variantLabel = bin.variantIds.length
                 ? ` · ${bin.variantIds.join(", ")}`
@@ -1496,12 +1540,28 @@ export const pbGeneComputed = {
         });
     },
 
-    visibleVariantRows() {
-        return this.sortedVariantRows.slice(0, this.showCountVariants || VARIANT_LIMIT);
+    positionSortedVariantRows() {
+        return positionOrderedVariants(this.variantRows);
     },
 
-    hiddenVariantCount() {
-        return Math.max(0, (this.variantRows || []).length - (this.showCountVariants || VARIANT_LIMIT));
+    variantPositionPlaceholder() {
+        return positionSearchPlaceholder(this.variantRows);
+    },
+
+    variantPageCount() {
+        return Math.ceil((this.variantRows || []).length / VARIANT_PAGE_SIZE);
+    },
+
+    variantPageNumbers() {
+        return visiblePageNumbers(this.variantPage, this.variantPageCount);
+    },
+
+    visibleVariantRows() {
+        if (this.variantSearchStart != null) {
+            return this.positionSortedVariantRows.slice(this.variantSearchStart, this.variantSearchStart + VARIANT_PAGE_SIZE);
+        }
+        const page = Math.max(1, Math.min(this.variantPage, this.variantPageCount || 1));
+        return this.sortedVariantRows.slice((page - 1) * VARIANT_PAGE_SIZE, page * VARIANT_PAGE_SIZE);
     },
 
     // ── Most severe observed variant by annotation-only score ────────────────
@@ -1530,6 +1590,102 @@ export const pbGeneComputed = {
 };
 
 export const pbGeneMethods = {
+    refreshLocusFilter,
+    async loadCarrierSummary(variantId = "") {
+        const gene = normalizeGeneQuery((this.geneInfo || {}).symbol);
+        if (!gene || !this.liveDataLoaded) return;
+        const key = variantId || "__gene__";
+        const existing = variantId ? this.variantCarrierSummaries[variantId] : this.geneCarrierSummary;
+        if (this.carrierSummaryPending[key] || (existing && existing.status === "ready")) return;
+        this.$set(this.carrierSummaryPending, key, true);
+        this.$set(this.carrierSummaryErrors, key, "");
+        try {
+            const params = new URLSearchParams({ gene });
+            if (variantId) params.set("variant", variantId);
+            for (let attempt = 0; attempt < 2400; attempt += 1) {
+                const response = await fetch(`/__gene_carrier_summary__?${params.toString()}`);
+                if (!response.ok) throw new Error(`Carrier metadata returned ${response.status}.`);
+                const result = await response.json();
+                if (normalizeGeneQuery((this.geneInfo || {}).symbol) !== gene) return;
+                if (result.status === "error") throw new Error(result.error || "Carrier metadata unavailable.");
+                if (result.status === "ready") {
+                    if (variantId) this.$set(this.variantCarrierSummaries, variantId, result);
+                    else this.geneCarrierSummary = result;
+                    return;
+                }
+                if (result.geneCarrierDemographics && Array.isArray(result.coCarrierGenes)) {
+                    if (variantId) this.$set(this.variantCarrierSummaries, variantId, result);
+                    else this.geneCarrierSummary = result;
+                }
+                this.$set(this.carrierSummaryProgress, key, result.total
+                    ? `Calculating ${variantId ? "variant" : "gene"} carrier statistics · ${result.completed}/${result.total} checked (partial)`
+                    : "Loading carrier metadata…");
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+            throw new Error("Carrier metadata is still loading. Refresh to check again.");
+        } catch (error) {
+            if (normalizeGeneQuery((this.geneInfo || {}).symbol) === gene) {
+                this.$set(this.carrierSummaryErrors, key, String(error && error.message ? error.message : error));
+            }
+        } finally {
+            this.$set(this.carrierSummaryPending, key, false);
+        }
+    },
+
+    async fetchCarrierSampleDetail(sampleId) {
+        if (!sampleId || this.sampleDetailsCache[sampleId] || this.sampleDetailsLoading[sampleId]) return;
+        this.$set(this.sampleDetailsLoading, sampleId, true);
+        try {
+            const rows = await queryBioIndex("samples-info", sampleId, { limit: 1, query_private: true }, true);
+            const raw = Array.isArray(rows) ? rows[0] : null;
+            const vcfId = raw && raw.SampleInVCF;
+            const canonicalId = raw && raw.sample_id;
+            if (!raw || (vcfId && vcfId !== sampleId) ||
+                (!vcfId && canonicalId && canonicalId !== sampleId.replace(/_G38$/i, ""))) {
+                this.$set(this.sampleDetailsCache, sampleId, {});
+                return;
+            }
+            const pick = (...keys) => {
+                for (const key of keys) if (raw[key] != null && raw[key] !== "") return raw[key];
+                return null;
+            };
+            const flag = value => {
+                const normalized = String(value == null ? "" : value).trim().toLowerCase();
+                if (["y", "yes", "true", "1", "affected"].includes(normalized)) return "Yes";
+                if (["n", "no", "false", "0", "unaffected"].includes(normalized)) return "No";
+                return "Unavailable";
+            };
+            const display = value => value == null || value === "" ? "Unavailable" : String(value);
+            this.$set(this.sampleDetailsCache, sampleId, {
+                uniqueId: display(pick("sample_id", "SampleInVCF")),
+                age: normalizeCarrierAge(pick("age_at_enrollment", "age_for_portal", "age", "age_band")),
+                sex: display(pick("sex", "gender")),
+                hpo: Array.isArray(raw.phenotypes) ? raw.phenotypes.map(row => row && row.hpo_id).filter(Boolean).join(", ") || "None" : "Unavailable",
+                genes: Array.isArray(raw.genes) ? raw.genes : "Unavailable",
+                group: display(pick("investigator", "cohort", "study", "study_code")),
+                affected: flag(pick("initial_study_affected", "affected_flag", "affected", "is_affected")),
+                proband: String(pick("family_relationship") || "").toLowerCase() === "proband" ? "Proband" : "Unavailable",
+                gendx: display(pick("GeneDx", "gendx_detail_label", "gendx")),
+            });
+        } catch (error) {
+            this.$set(this.sampleDetailsCache, sampleId, {});
+        } finally {
+            this.$set(this.sampleDetailsLoading, sampleId, false);
+        }
+    },
+
+    fetchVisibleCarrierSampleDetails(variantId) {
+        const row = (this.variantRows || []).find(item => item.id === variantId);
+        if (!row) return;
+        this.visibleCarrierRows(row).forEach(sample => { this.fetchCarrierSampleDetail(sample.id); });
+    },
+
+    carrierSampleField(sample, field) {
+        const detail = this.sampleDetailsCache[sample.id];
+        if (detail && detail[field] != null) return detail[field];
+        if (this.sampleDetailsLoading[sample.id]) return "Loading…";
+        return sample[field];
+    },
     displayMetric(value) {
         return value == null || value === "" ? "Unavailable" : value;
     },
@@ -1597,25 +1753,39 @@ export const pbGeneMethods = {
         return Math.max(-Math.max(leftRoomPx, 0), Math.min(Math.max(rightRoomPx, 0), nudgePx));
     },
 
-    isSummaryCardExpanded(key) {
-        return !!this.summaryExpandedCards[key];
+    setSummaryPage(kind, page) {
+        const counts = { phenotype: this.summaryAssociationPageCount, genotype: this.summaryCoCarrierPageCount, investigator: this.summaryInvestigatorPageCount };
+        if (!(kind in counts)) return;
+        this.$set(this.summaryPages, kind, Math.max(1, Math.min(Number(page) || 1, counts[kind] || 1)));
     },
 
-    toggleSummaryCard(key) {
-        this.$set(this.summaryExpandedCards, key, !this.isSummaryCardExpanded(key));
+    resetSummaryPages() {
+        this.summaryPages = { phenotype: 1, genotype: 1, investigator: 1 };
+    },
+
+    sortSummaryColumn(kind, key) {
+        const current = this.summarySort[kind];
+        if (!current) return;
+        const defaultDir = (kind === "genotype" && key !== "gene") || (kind === "investigator" && key === "count") ? "desc" : "asc";
+        const dir = current.key === key ? (current.dir === "asc" ? "desc" : "asc") : defaultDir;
+        this.$set(this.summarySort, kind, { key, dir });
+        this.setSummaryPage(kind, 1);
+    },
+
+    summarySortIndicator(kind, key) {
+        const sort = this.summarySort[kind];
+        return !sort || sort.key !== key ? "▵" : sort.dir === "asc" ? "▲" : "▼";
     },
 
     async runContextAnalysis() {
-        const terms = String(this.contextInput || "")
-            .toUpperCase()
-            .split(/[\s,;]+/)
-            .filter(Boolean)
-            .filter((term, index, all) => all.indexOf(term) === index);
-        const invalid = terms.find(term => !/^HP:\d{7}$/.test(term));
-        if (!terms.length || invalid) {
-            this.contextError = invalid ? `${invalid} is not a valid HPO ID.` : "Enter at least one HPO term.";
+        if (this.searchGeneLoading) {
+            this.contextError = "Wait for this gene's variant evidence to finish loading.";
             return;
         }
+        let terms;
+        try { terms = resolveHpoTerms(this.contextInput); }
+        catch (error) { this.contextError = error.message; return; }
+        this.contextInput = terms.join(", ");
         const significanceThreshold = Number(this.contextSignificanceThreshold);
         const minCarriers = Number(this.contextMinCarriers);
         if (!Number.isFinite(significanceThreshold) || significanceThreshold <= 0 || significanceThreshold > 1) {
@@ -1639,13 +1809,13 @@ export const pbGeneMethods = {
                         terms: terms.join(","),
                         gene: this.geneInfo.symbol,
                         advanced: {
-                            significance_metric: this.contextSignificanceMetric,
+                            significance_metric: "p_value",
                             significance_threshold: significanceThreshold,
                             min_carriers: minCarriers,
                         },
                     }),
                 });
-            if (!response.ok) throw new Error(`Context API returned ${response.status}.`);
+            if (!response.ok) throw new Error(await contextApiError(response));
             const payload = await response.json();
             let result = payload;
             let sourceLabel = "Private API";
@@ -1662,17 +1832,18 @@ export const pbGeneMethods = {
             }
             this.applyVariantContextScores(result);
             const burden = result.gene_burden || result.burden || {};
+            const grs = result.gene_association || {};
+            const useGrs = Boolean(result.gene_association);
+            const geneAssociation = useGrs ? grs : burden;
+            const genePValue = geneAssociation.p_value != null ? geneAssociation.p_value : useGrs ? null : burden.pValue != null ? burden.pValue : result.p_value;
             this.contextRuns.push({
                 id: `${Date.now()}-${this.contextRuns.length}`,
                 hpos: terms.join(", "),
-                beta: this.contextStatistic(burden.beta != null ? burden.beta : result.beta),
-                pValue: this.contextStatistic(
-                    burden.p_value != null ? burden.p_value : burden.pValue != null ? burden.pValue : result.p_value
-                ),
-                fdrSortValue: burden.fdr != null && Number.isFinite(Number(burden.fdr)) ? Number(burden.fdr) : Infinity,
-                fdr: this.contextStatistic(burden.fdr),
-                status: burden.status || "unknown",
-                nPositiveBurden: burden.n_positive_burden,
+                beta: this.contextStatistic(geneAssociation.beta != null ? geneAssociation.beta : useGrs ? null : result.beta),
+                pValue: this.contextStatistic(genePValue),
+                pValueSortValue: genePValue != null && Number.isFinite(Number(genePValue)) ? Number(genePValue) : Infinity,
+                status: geneAssociation.status || "unknown",
+                nPositiveBurden: useGrs ? grs.n_positive : burden.n_positive_burden,
                 minCarriers: burden.min_carriers,
                 nVariantsScored: burden.n_variants_scored,
                 nVariantsTotal: burden.n_variants_total,
@@ -1680,13 +1851,13 @@ export const pbGeneMethods = {
                 modelVersion: burden.model_version,
                 formula: burden.formula,
                 burdenPathogenicScoreVersion: burden.burden_pathogenic_score_version,
-                statusLabel: this.contextBurdenStatusLabel(burden),
-                coverageLabel: this.contextBurdenCoverageLabel(burden),
-                modelLabel: [burden.model_version, burden.formula].filter(Boolean).join(" · ") || "Model details unavailable",
-                note: this.contextBurdenNote(burden),
+                statusLabel: useGrs ? (grs.status === "ok" ? "Calculated · GRS association" : `Unavailable · ${grs.status}`) : this.contextBurdenStatusLabel(burden),
+                coverageLabel: useGrs ? (grs.n_positive == null ? "Gene-score coverage unavailable" : `${Number(grs.n_positive).toLocaleString()} positive-score samples`) : this.contextBurdenCoverageLabel(burden),
+                modelLabel: useGrs ? (grs.status === "not_configured" ? "GRS source not configured" : `GRS ${grs.score_type || "max"} · ${String(grs.model || "lm").toUpperCase()}${grs.affected_only ? " · affected only" : ""}`) : [burden.model_version, burden.formula].filter(Boolean).join(" · ") || "Model details unavailable",
+                note: useGrs ? (grs.status === "ok" ? "Unadjusted gene-level p-value" : grs.status === "not_configured" ? "Gene score data unavailable" : "Gene-score analysis could not be calculated") : this.contextBurdenNote(burden),
                 sourceLabel,
             });
-            this.contextRuns.sort((a, b) => a.fdrSortValue - b.fdrSortValue);
+            this.contextRuns.sort((a, b) => a.pValueSortValue - b.pValueSortValue);
             this.activeContextTerms = terms;
             this.contextTermDetails = terms.map((id) => {
                 const existing = this.contextTermDetails.find((term) => term.id === id);
@@ -1713,7 +1884,7 @@ export const pbGeneMethods = {
             phenotypeCategories: [],
             variantEvidence: [],
             phenotypeMatchScore: null,
-        }));
+        })).filter(row => row.carrierCount > 0);
         this.crdcEvidence = {
             ...(this.crdcEvidence || {}),
             currentGeneCarrierTotal: Number(result.carrier_sample_count || 0),
@@ -1725,8 +1896,14 @@ export const pbGeneMethods = {
         const scores = result && result.variant_match_scores && typeof result.variant_match_scores === "object"
             ? result.variant_match_scores
             : {};
+        const associations = result && result.variant_associations && typeof result.variant_associations === "object"
+            ? result.variant_associations
+            : {};
         const scoreByVariant = new Map(
             Object.keys(scores).map(variantId => [String(variantId).toLowerCase(), scores[variantId]])
+        );
+        const associationByVariant = new Map(
+            Object.keys(associations).map(variantId => [String(variantId).toLowerCase(), associations[variantId]])
         );
         (this.variantRows || []).forEach(row => {
             const context = scoreByVariant.get(String(row.id || "").toLowerCase()) || null;
@@ -1739,6 +1916,17 @@ export const pbGeneMethods = {
             row.phenotypeMatchScoredCarrierCount = context && context.scored_carrier_count != null
                 ? Number(context.scored_carrier_count)
                 : null;
+            const association = associationByVariant.get(String(row.id || "").toLowerCase()) || null;
+            const status = association && association.status ? association.status : "not_returned";
+            const beta = status === "ok" && association.beta != null ? Number(association.beta) : NaN;
+            const pValue = status === "ok" && association.p_value != null ? Number(association.p_value) : NaN;
+            this.$set(row, "variantEffectBeta", Number.isFinite(beta) ? beta : null);
+            this.$set(row, "variantEffectPValue", Number.isFinite(pValue) && pValue >= 0 && pValue <= 1 ? pValue : null);
+            this.$set(row, "variantAssociationStatus", status);
+            this.$set(row, "variantAssociationLowCarrierCount", Boolean(association && association.low_carrier_count));
+            this.$set(row, "variantAssociationCarrierCount", association && association.n_carriers != null
+                ? Number(association.n_carriers)
+                : null);
         });
     },
 
@@ -1797,6 +1985,12 @@ export const pbGeneMethods = {
         return number.toFixed(3);
     },
 
+    variantPValueDisplay(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number) || number < 0 || number > 1) return "—";
+        return number === 0 ? "<1e-300" : this.contextStatistic(number);
+    },
+
     async submitGeneSearch() {
         const query = normalizeGeneQuery(this.searchGeneQuery);
         if (!query) return;
@@ -1819,11 +2013,14 @@ export const pbGeneMethods = {
     async loadLiveGeneData(queryOverride = null, updateUrl = false) {
         const query = normalizeGeneQuery(queryOverride || this.searchGeneQuery || (this.geneInfo || {}).symbol);
         if (!query) return;
+        const sameGene = query === normalizeGeneQuery((this.geneInfo || {}).symbol);
+        const params = sameGene ? new URLSearchParams(window.location.search) : new URLSearchParams();
         if (LOCAL_CONTEXT_FIXTURE_ENABLED) {
             if (updateUrl) {
                 const url = new URL(window.location.href);
                 url.pathname = "/pb_Gene.html";
                 url.searchParams.set("query", query);
+                url.searchParams.delete("variant");
                 window.location.assign(url.toString());
             }
             return;
@@ -1838,31 +2035,48 @@ export const pbGeneMethods = {
                     Object.keys(partialState).forEach(key => {
                         this[key] = partialState[key];
                     });
+                    const selectedId = sameGene ? this.pendingVariantId || this.expandedVariantId : null;
+                    if (selectedId && (this.variantRows || []).some(row => row.id === selectedId)) {
+                        this.selectVariant(selectedId);
+                    } else {
+                        this.pendingVariantId = selectedId;
+                        this.expandedVariantId = null;
+                        this.geneTab = "gene";
+                    }
                     this.liveDataLoaded = true;
                     this.liveDataSource = "private BioIndex · carrier evidence loading";
                     this.searchGeneProgress = "Loading variant and carrier evidence";
                 },
                 onProgress: (index) => {
                     pageCounts[index] = (pageCounts[index] || 0) + 1;
-                    const label = index === "gene-samples"
-                        ? "carrier evidence"
-                        : index === "gene-variants2"
-                            ? "variant annotations"
-                            : "gene summary";
+                    const label = index === "gene-variants-crdc"
+                        ? "variant annotations"
+                        : "gene summary";
                     this.searchGeneProgress = `Loading ${label} · page ${pageCounts[index]}`;
                 },
             });
             const resolvedSymbol = normalizeGeneQuery((geneState.geneInfo || {}).symbol || query);
-            const nextState = createPbGeneRuntimeState(geneState, resolvedSymbol, new URLSearchParams());
+            const selectedId = sameGene ? this.pendingVariantId || this.expandedVariantId : null;
+            if (selectedId) params.set("variant", selectedId);
+            else params.delete("variant");
+            const nextState = createPbGeneRuntimeState(geneState, resolvedSymbol, params);
             Object.keys(nextState).forEach(key => {
                 this[key] = nextState[key];
             });
+            this.pendingVariantId = null;
+            if (this.expandedVariantId) this.selectVariant(this.expandedVariantId);
             this.liveDataLoaded = true;
             this.liveDataSource = "private BioIndex";
+            this.loadCarrierSummary();
+            if (this.expandedVariantId) {
+                this.loadCarrierSummary(this.expandedVariantId);
+                this.fetchVisibleCarrierSampleDetails(this.expandedVariantId);
+            }
             if (updateUrl) {
                 const url = new URL(window.location.href);
                 url.pathname = "/pb_Gene.html";
                 url.searchParams.set("query", resolvedSymbol);
+                if (!sameGene) url.searchParams.delete("variant");
                 url.searchParams.delete("locus");
                 url.searchParams.delete("locusView");
                 window.history.pushState({}, "", url.toString());
@@ -1880,28 +2094,47 @@ export const pbGeneMethods = {
 
     // ── gene-level tab ────────────────────────────────────────────────────────
     setGeneTab(tab) {
-        if (tab === "variant" && !this.expandedVariantId) {
+        this.resetSummaryPages();
+        if (tab === "variant") {
             const first = (this.variantRows || [])[0];
-            if (first) this.expandedVariantId = first.id;
-        }
-        if (tab === "gene") {
+            this.selectVariant(this.expandedVariantId || (first && first.id));
+        } else {
+            this.pendingVariantId = null;
             this.expandedVariantId = null;
+            this.geneTab = "gene";
+            this.loadCarrierSummary();
         }
-        this.geneTab = tab;
     },
 
     // ── variant accordion ─────────────────────────────────────────────────────
     toggleVariant(variantId) {
         if (this.expandedVariantId === variantId) {
-            this.expandedVariantId = null;
-            this.geneTab = "gene";
+            this.setGeneTab("gene");
             return;
         }
+        this.selectVariant(variantId);
+    },
+
+    selectVariant(variantId) {
+        if (!(this.variantRows || []).some(row => row.id === variantId)) return false;
+        this.resetSummaryPages();
+        this.pendingVariantId = null;
         this.expandedVariantId = variantId;
         this.geneTab = "variant";
+        if (!this.visibleVariantRows.some(row => row.id === variantId)) {
+            this.variantSearchStart = null;
+            this.variantSearchResultId = null;
+            const index = this.sortedVariantRows.findIndex(row => row.id === variantId);
+            this.variantPage = Math.floor(index / VARIANT_PAGE_SIZE) + 1;
+        }
         if (!this.activeTabMap[variantId]) {
             this.$set(this.activeTabMap, variantId, "phenotype");
         }
+        if (this.liveDataLoaded) {
+            this.loadCarrierSummary(variantId);
+            this.fetchVisibleCarrierSampleDetails(variantId);
+        }
+        return true;
     },
 
     setTab(variantId, tab) {
@@ -1913,12 +2146,7 @@ export const pbGeneMethods = {
     },
 
     scrollToVariant(variantId) {
-        if (!variantId) return;
-        this.geneTab = "variant";
-        this.expandedVariantId = variantId;
-        if (!this.activeTabMap[variantId]) {
-            this.$set(this.activeTabMap, variantId, "phenotype");
-        }
+        if (!this.selectVariant(variantId)) return;
         this.$nextTick(() => {
             const el = this.$el.querySelector(`[data-variant-id="${variantId}"]`);
             if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -2049,6 +2277,7 @@ export const pbGeneMethods = {
     showMoreCarriers(variantId, total) {
         const cur = this.showCountCarrierMap[variantId] || CARRIER_LIMIT;
         this.$set(this.showCountCarrierMap, variantId, Math.min(cur + 5, total));
+        this.fetchVisibleCarrierSampleDetails(variantId);
     },
 
     showMoreGeneCarriers() {
@@ -2062,11 +2291,44 @@ export const pbGeneMethods = {
         this.showCountGeneCarriers = 5;
     },
 
-    showMoreVariants() {
-        this.showCountVariants = Math.min(
-            (this.showCountVariants || VARIANT_LIMIT) + VARIANT_LIMIT,
-            (this.variantRows || []).length
-        );
+    searchVariantPosition() {
+        const found = findPositionWindow(this.variantRows, this.geneInfo, this.variantPositionQuery);
+        if (found.error) {
+            this.variantPositionError = found.error;
+            return;
+        }
+        this.variantPositionError = "";
+        this.variantSortKey = "variant";
+        this.variantSortDir = "asc";
+        this.variantSearchStart = found.start;
+        this.variantSearchResultId = found.match.id;
+        this.variantPage = Math.floor(found.nearestIndex / VARIANT_PAGE_SIZE) + 1;
+        this.pendingVariantId = null;
+        this.expandedVariantId = null;
+        this.geneTab = "gene";
+    },
+
+    goToVariantPage(page) {
+        this.variantPage = Math.max(1, Math.min(Number(page) || 1, this.variantPageCount || 1));
+        this.variantSearchStart = null;
+        this.variantSearchResultId = null;
+        this.variantPositionQuery = "";
+        this.variantPositionError = "";
+        this.variantPageJumpError = "";
+        this.pendingVariantId = null;
+        this.expandedVariantId = null;
+        this.geneTab = "gene";
+    },
+
+    jumpToVariantPage() {
+        const input = String(this.variantPageJump || "").trim();
+        const page = Number(input);
+        if (!/^\d+$/.test(input) || !Number.isSafeInteger(page) || page < 1 || page > this.variantPageCount) {
+            this.variantPageJumpError = "Invalid page";
+            return;
+        }
+        this.goToVariantPage(page);
+        this.variantPageJump = "";
     },
 
     // ── expandable phenotype categories ───────────────────────────────────────
@@ -2126,8 +2388,14 @@ export const pbGeneMethods = {
             this.variantSortDir = this.variantSortDir === "asc" ? "desc" : "asc";
         } else {
             this.variantSortKey = key;
-            this.variantSortDir = key === "variantScore" || key === "matchScore" ? "desc" : "asc";
+            this.variantSortDir = ["variantScore", "matchScore", "effectScore"].includes(key) ? "desc" : "asc";
         }
+        this.variantSearchStart = null;
+        this.variantSearchResultId = null;
+        this.variantPositionQuery = "";
+        this.variantPositionError = "";
+        const index = this.sortedVariantRows.findIndex(row => row.id === this.expandedVariantId);
+        this.variantPage = index >= 0 ? Math.floor(index / VARIANT_PAGE_SIZE) + 1 : 1;
     },
 
     variantSortIndicator(key) {
@@ -2136,12 +2404,15 @@ export const pbGeneMethods = {
     },
 
     variantSortValue(row, key) {
-        if (key === "variant") return row.id || "";
+        if (key === "variant") return variantPosition(row);
         if (key === "carriers") return Number(row.carrierCount || 0);
         if (key === "crdcAF") return this.parseAfValue(this.crdcAF(row));
-        if (key === "classification") return `${this.variantClassification(row)} ${row.consequence || ""}`.trim().toLowerCase();
+        if (key === "consequence") return String(row.consequence || "").toLowerCase();
+        if (key === "clinvar") return String(row.clinvar || "").toLowerCase();
         if (key === "variantScore") return this.variantScoreValue(row);
         if (key === "matchScore") return row.phenotypeMatchScore;
+        if (key === "effectScore") return row.variantEffectBeta;
+        if (key === "pValue") return row.variantEffectPValue;
         return null;
     },
 
@@ -2190,12 +2461,6 @@ export const pbGeneMethods = {
         const sources = this.variantAfWarningSources(row);
         if (!sources.length) return "";
         return `${sources.join("; ")} is >= 10%. Review this variant because the rare-disease display expects rare gnomAD-filtered calls.`;
-    },
-
-    variantClassification(row) {
-        const clinvar = this.variantEvidenceValue(row, "ClinVar", "");
-        if (!this.isMissingMetadataValue(clinvar)) return clinvar;
-        return row.clinvar || row.classification || "—";
     },
 
     variantAffectedCount(row) {
@@ -2258,6 +2523,8 @@ export const pbGeneMethods = {
     variantEvidenceRows(row) {
         return [
             { label: "CRDC carrier frequency", value: this.crdcAF(row) },
+            { label: "HGVS.c", value: hgvsNotation(row.hgvsc, "c") },
+            { label: "HGVS.p", value: hgvsNotation(row.hgvsp || row.csq_detail, "p") },
             { label: "AlphaMissense", value: this.variantEvidenceValue(row, "AlphaMissense") },
             { label: "REVEL", value: this.variantEvidenceValue(row, "REVEL") },
             { label: "LOFTEE", value: this.variantEvidenceValue(row, "LOFTEE") },
@@ -2293,22 +2560,7 @@ export const pbGeneMethods = {
     },
 
     pathogenicityClass(clinvar) {
-        if (!clinvar) return "";
-        const values = String(clinvar)
-            .toLowerCase()
-            .replace(/_/g, " ")
-            .split(/[&,;|/]+/)
-            .map(value => value.trim());
-        if (values.some(value => value === "p" || /^pathogenic\b/.test(value))) {
-            return "pbg-badge--pathogenic";
-        }
-        if (values.some(value => value === "lp" || /^likely pathogenic\b/.test(value))) {
-            return "pbg-badge--likely-path";
-        }
-        if (values.some(value => value === "vus" || /^uncertain significance\b/.test(value))) {
-            return "pbg-badge--vus";
-        }
-        return "";
+        return clinvarBadgeClass(clinvar);
     },
 
     consequenceClass(csq) {

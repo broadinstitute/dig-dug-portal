@@ -9,6 +9,8 @@ HPO_CONTEXT = (ROOT / "src/views/PbGene/HpoContextPanel.vue").read_text()
 MODEL = (ROOT / "src/views/PbGene/pageModel.js").read_text()
 ADAPTER = (ROOT / "src/views/PbGene/pbGeneBioIndexAdapter.js").read_text()
 STYLE = (ROOT / "src/views/PbGene/style.css").read_text()
+CLINVAR_BADGE = (ROOT / "src/views/PbGene/clinvarBadge.js").read_text()
+CARRIER_KPIS = (ROOT / "src/views/PbGene/CarrierSummaryKpis.vue").read_text()
 VUE_CONFIG = (ROOT / "vue.config.js").read_text()
 GENE_IDS = (ROOT / "src/views/PbGene/geneIdReference.generated.js").read_text()
 
@@ -28,10 +30,11 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn('rel="noopener noreferrer"', HPO_CONTEXT)
         self.assertIn("encodeURIComponent(terms.join(\",\"))", MODEL)
 
-    def test_advanced_contains_statistical_filter_controls(self):
-        for text in ("P-value", "FDR", "Threshold", "Minimum carriers"):
+    def test_advanced_contains_context_threshold_controls(self):
+        for text in ("P-value", "Threshold", "Minimum carriers"):
             self.assertIn(text, HPO_CONTEXT)
-        for field in ("contextSignificanceMetric", "contextSignificanceThreshold", "contextMinCarriers"):
+        self.assertNotIn("FDR", HPO_CONTEXT)
+        for field in ("contextSignificanceThreshold", "contextMinCarriers"):
             self.assertIn(field, MODEL)
         for field in ("significance_metric", "significance_threshold", "min_carriers"):
             self.assertIn(field, MODEL)
@@ -44,11 +47,11 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn('type="submit"', HPO_CONTEXT)
         self.assertIn("Apply &amp; run", HPO_CONTEXT)
 
-    def test_context_results_show_fdr_and_sort_lowest_first(self):
-        self.assertIn("FDR ↑", HPO_CONTEXT)
-        self.assertIn("{{ run.fdr }}", HPO_CONTEXT)
-        self.assertIn("fdrSortValue", MODEL)
-        self.assertIn("this.contextRuns.sort((a, b) => a.fdrSortValue - b.fdrSortValue)", MODEL)
+    def test_context_results_show_p_value_and_sort_lowest_first(self):
+        self.assertIn("{{ run.pValue }}", HPO_CONTEXT)
+        self.assertNotIn("{{ run.fdr }}", HPO_CONTEXT)
+        self.assertIn("pValueSortValue", MODEL)
+        self.assertIn("this.contextRuns.sort((a, b) => a.pValueSortValue - b.pValueSortValue)", MODEL)
         self.assertIn('if (value == null || value === "") return "—";', MODEL)
 
     def test_default_threshold_does_not_block_form_submission(self):
@@ -57,15 +60,16 @@ class PbGeneContextUiTest(unittest.TestCase):
 
     def test_score_labels_and_no_context_state_are_unambiguous(self):
         self.assertIn("Extended Pathogenic Score", TEMPLATE)
-        self.assertIn("Match Score (Context-based)", TEMPLATE)
+        self.assertIn("Match Score", TEMPLATE)
+        self.assertIn("Match Score calculation: mean residual PheRS", TEMPLATE)
         self.assertIn("no context", TEMPLATE)
         self.assertNotIn("Variant score <em>", TEMPLATE)
         self.assertNotIn("Match score <em>", TEMPLATE)
 
     def test_gene_summary_counts_variants_with_pathogenicity_evidence(self):
-        self.assertIn("Pathogenic variants in this gene", TEMPLATE)
-        self.assertIn("pathogenicEvidenceVariantCount", TEMPLATE)
-        self.assertIn('const labels = ["LOFTEE", "AlphaMissense", "REVEL"]', MODEL)
+        self.assertIn("Pathogenic score coverage", TEMPLATE)
+        self.assertIn("predictionAnnotatedVariantCount", TEMPLATE)
+        self.assertIn("LoFTEE · AlphaMissense · REVEL", TEMPLATE)
         self.assertNotIn("<em>Variants in this gene</em>", TEMPLATE)
 
     def test_table_score_excludes_revel_but_marks_revel_only_rows(self):
@@ -141,16 +145,17 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn('href: this.variantEvidenceHref(row, "ClinVar")', MODEL)
 
     def test_crdc_frequency_is_labeled_as_carrier_frequency(self):
-        self.assertIn("CRDC carrier frequency", TEMPLATE)
+        self.assertNotIn("sortVariantsBy('crdcAF')", TEMPLATE)
+        self.assertNotIn('class="pbg-ve-af"', TEMPLATE)
         self.assertIn('label: "CRDC carrier frequency"', MODEL)
         self.assertNotIn("CRDC AF", TEMPLATE)
         self.assertNotIn('label: "CRDC AF"', MODEL)
 
     def test_cohort_and_carrier_denominators_are_visible(self):
         self.assertIn("CRDC cohort", TEMPLATE)
-        self.assertIn("Gene carriers", TEMPLATE)
+        self.assertIn("Carrier summary details", TEMPLATE)
         self.assertIn("crdcCohortCount", MODEL)
-        self.assertIn("cohortRatio", TEMPLATE)
+        self.assertIn("distinct people with an observed variant", CARRIER_KPIS)
         self.assertIn("crdc_cohort_count", ADAPTER)
 
     def test_cohort_summary_is_subtle_right_aligned_text(self):
@@ -202,7 +207,7 @@ class PbGeneContextUiTest(unittest.TestCase):
 
     def test_gene_level_omim_and_ensembl_ids_use_hgnc_reference(self):
         self.assertIn("PB_GENE_ID_REFERENCE", ADAPTER)
-        self.assertIn('"DMD": ["ENSG00000198947","300377"]', GENE_IDS)
+        self.assertIn('"DMD": ["ENSG00000198947","300377"', GENE_IDS)
         self.assertIn("geneHgncLink", GENE_IDENTITY)
         self.assertIn("https://www.genenames.org/data/gene-symbol-report/#!/symbol/", GENE_IDENTITY)
         self.assertIn('class="pbg-gene-fullname-link"', GENE_IDENTITY)
@@ -213,27 +218,23 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn('rel="noopener noreferrer"', GENE_IDENTITY)
         self.assertIn(".pbg-meta-pill--link:focus-visible", STYLE)
 
-    def test_a2fkp_and_subtle_variant_evidence_states_are_visible_without_extra_requests(self):
-        self.assertIn(">A2FKP</a>", TEMPLATE)
-        self.assertNotIn(">Public view</a>", TEMPLATE)
-        self.assertIn('href="https://a2f.hugeamp.org/"', TEMPLATE)
-        self.assertIn(".pbg-nav-link--a2fkp", STYLE)
+    def test_subtle_variant_evidence_states_are_visible_without_extra_requests(self):
         self.assertIn("pbg-selected-clinvar", TEMPLATE)
         self.assertIn(".pbg-selected-clinvar.pbg-badge--pathogenic", STYLE)
         self.assertIn(".pbg-selected-clinvar.pbg-badge--likely-path", STYLE)
         self.assertIn("hasRevelOnlyScore(row)", TEMPLATE)
         self.assertIn("pbg-revel-only-note", TEMPLATE)
-        classification_start = STYLE.index(".pbg-ve-classification .pbg-clinvar-badge")
+        classification_start = STYLE.index(".pbg-ve-clinvar .pbg-clinvar-badge")
         classification_end = STYLE.index("}", classification_start)
         self.assertIn("overflow-wrap: anywhere", STYLE[classification_start:classification_end])
-        self.assertIn('.replace(/_/g, " ")', MODEL)
-        self.assertIn(".split(/[&,;|/]+/)", MODEL)
+        self.assertIn('.replace(/_/g, " ")', CLINVAR_BADGE)
+        self.assertIn(".split(/[&,;|/]+/)", CLINVAR_BADGE)
         self.assertIn("Unavailable — the live BioIndex gene index does not provide an NCBI summary.", ADAPTER)
 
     def test_match_score_help_and_desktop_variant_table_are_lightweight(self):
         self.assertIn('class="pbg-score-help"', TEMPLATE)
         self.assertIn("Mean residual PheRS across the unique carriers", TEMPLATE)
-        self.assertIn("--pbg-ve-min-width: 64rem", STYLE)
+        self.assertIn("--pbg-ve-min-width: 83rem", STYLE)
         self.assertIn("overflow-x: auto", STYLE)
         self.assertIn("GeneIdentityPanel", TEMPLATE)
         self.assertIn("HpoContextPanel", TEMPLATE)
@@ -250,16 +251,16 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertLess(affected, proband)
 
     def test_co_genes_collapses_after_three_names(self):
-        self.assertIn("coGenePreview(s.genes)", TEMPLATE)
-        self.assertIn("coGeneRemaining(s.genes)", TEMPLATE)
+        self.assertIn("coGenePreview(carrierSampleField(s, 'genes'))", TEMPLATE)
+        self.assertIn("coGeneRemaining(carrierSampleField(s, 'genes'))", TEMPLATE)
         self.assertIn("more</summary>", TEMPLATE)
 
     def test_removed_summary_metrics_do_not_return(self):
         self.assertNotIn("<em>Carriers</em>", TEMPLATE)
         self.assertNotIn("GenDx diagnosed", TEMPLATE)
         self.assertNotIn("Mean carrier burden", TEMPLATE)
-        self.assertIn("Largest contributing clinical area", TEMPLATE)
-        self.assertIn("metricRatio", TEMPLATE)
+        self.assertIn('class="pbg-summary-band" aria-label="Carrier summary details"', TEMPLATE)
+        self.assertIn("CarrierSummaryKpis", TEMPLATE)
 
 
 if __name__ == "__main__":

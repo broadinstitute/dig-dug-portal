@@ -1,4 +1,5 @@
 import { query } from "@/utils/bioIndexUtils";
+import { displayGeneHpoAssociations } from "./geneHpoDisplay";
 import { getGeneReferenceAnnotation } from "./geneAnnotationReference";
 import { getGeneExons } from "./geneExonReference";
 import { PB_GENE_ID_REFERENCE } from "./geneIdReference.generated";
@@ -34,18 +35,17 @@ export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
 }
 
 async function loadPbGeneBioIndexState(gene, options) {
-    const sampleRowsPromise = safeBioIndexQuery("gene-samples", gene, null, options);
-    const variantRowsPromise = safeBioIndexQuery("gene-variants2", gene, null, options);
+    const variantRowsPromise = safeBioIndexQuery("gene-variants-crdc", gene, null, options);
+    const associationPromise = loadGeneHpoAssociations(gene);
     const geneRows = await safeBioIndexQuery("gene", gene, 5, options);
-    if (options.onPartial) options.onPartial(buildPbGeneState(gene, geneRows, [], []));
+    if (options.onPartial) options.onPartial(buildPbGeneState(gene, geneRows, []));
     const variantRows = await variantRowsPromise;
-    const sampleRows = await sampleRowsPromise;
 
-    if (!variantRows.length && !sampleRows.length) {
-        throw new Error(`No live BioIndex carrier or variant rows returned for ${gene}.`);
+    if (!variantRows.length) {
+        throw new Error(`No live BioIndex variant rows returned for ${gene}.`);
     }
 
-    return buildPbGeneState(gene, geneRows, variantRows, sampleRows);
+    return buildPbGeneState(gene, geneRows, variantRows, await associationPromise);
 }
 
 async function safeBioIndexQuery(index, q, limit = null, options = {}) {
@@ -63,17 +63,29 @@ async function safeBioIndexQuery(index, q, limit = null, options = {}) {
     }
 }
 
-function buildPbGeneState(gene, geneRows, variantRows, sampleRows) {
-    const variantMap = collectVariants(variantRows, sampleRows);
+async function loadGeneHpoAssociations(gene) {
+    try {
+        const response = await fetch(`/__gene_hpo_associations__?gene=${encodeURIComponent(gene)}`);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data.associations) ? displayGeneHpoAssociations(data.associations) : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function buildPbGeneState(gene, geneRows, variantRows, associationRows = []) {
+    const variantMap = collectVariants(variantRows);
     const variants = Array.from(variantMap.values())
         .map(entry => buildVariantRow(entry))
+        .filter(row => row.carrierCount > 0)
         .sort((a, b) => b.carrierCount - a.carrierCount || a.id.localeCompare(b.id));
-    const carrierIds = uniqueValues(sampleRows.map(row => value(row, ["sample_id", "sampleId", "sample"])));
+    const carrierIds = uniqueValues(variants.flatMap(row => row.carrierSamples.map(sample => sample.id)));
     const exons = getGeneExons(gene);
     const geneInfo = buildGeneInfo(gene, geneRows[0] || {}, variants, exons);
     const genomeWindow = buildGenomeWindow(geneInfo, variants, exons);
     const cohortKeys = ["crdc_cohort_count", "cohort_sample_count", "cohort_n", "total_cohort_samples"];
-    const cohortRow = sampleRows.concat(variantRows).find(row => numericValue(row, cohortKeys) != null);
+    const cohortRow = variantRows.find(row => numericValue(row, cohortKeys) != null);
 
     return {
         geneInfo,
@@ -82,9 +94,9 @@ function buildPbGeneState(gene, geneRows, variantRows, sampleRows) {
             currentGeneCarrierTotal: carrierIds.length,
             queriedVariantCarriers: variants[0] ? variants[0].carrierCount : 0,
             variantCount: variants.length,
-            probands: countFlag(sampleRows, ["proband_flag", "proband", "is_proband"]),
-            affected: countFlag(sampleRows, ["affected_flag", "affected", "is_affected"]),
-            largestClinicalArea: largestClinicalArea(sampleRows),
+            probands: null,
+            affected: null,
+            largestClinicalArea: null,
             overallBurdenMatchScore: null,
             topVariantSignal: {
                 score: null,
@@ -94,48 +106,35 @@ function buildPbGeneState(gene, geneRows, variantRows, sampleRows) {
         },
         genomeWindow,
         variantRows: variants,
-        geneCarrierDemographics: buildDemographics(sampleRows),
+        geneCarrierDemographics: buildDemographics([]),
         geneLevelPhenotypeCategories: [],
         geneLevelCoCarrierGenes: [],
-        // Populated later from the separately precomputed association result set.
-        genePhenotypeAssociations: [],
+        genePhenotypeAssociations: associationRows,
     };
 }
 
-function collectVariants(variantRows, sampleRows) {
-    const annotationMap = new Map();
+function collectVariants(variantRows) {
+    const map = new Map();
     variantRows.forEach(row => {
         const id = variantId(row);
         if (!id) return;
         const key = canonicalVariantId(id);
-        const rows = annotationMap.get(key) || [];
-        rows.push(row);
-        annotationMap.set(key, rows);
-    });
-
-    const map = new Map();
-    sampleRows.forEach(row => {
-        const id = variantId(row);
-        if (!id) return;
-        const key = canonicalVariantId(id);
-        const entry = map.get(key) || {
-            id,
-            variantRows: annotationMap.get(key) || [],
-            sampleRows: [],
-        };
-        entry.sampleRows.push(row);
+        const entry = map.get(key) || { id, variantRows: [], sampleRows: [], sampleIds: new Set() };
+        entry.variantRows.push(row);
+        if (Array.isArray(row.samples)) {
+            row.samples.forEach(sampleId => {
+                if (typeof sampleId === "string" && sampleId) entry.sampleIds.add(sampleId);
+            });
+        }
         map.set(key, entry);
     });
     return map;
 }
 
 function buildVariantRow(entry) {
-    const primary = entry.sampleRows[0] || entry.variantRows[0] || {};
+    const primary = entry.variantRows[0] || {};
     const sampleRowById = new Map();
-    entry.sampleRows.forEach(row => {
-        const sampleId = value(row, ["sample_id", "sampleId", "sample"]);
-        if (sampleId != null && !sampleRowById.has(sampleId)) sampleRowById.set(sampleId, row);
-    });
+    entry.sampleIds.forEach(sampleId => sampleRowById.set(sampleId, {}));
     const carrierSamples = Array.from(sampleRowById.entries()).map(([sampleId, row]) => {
         const hpoCount = value(row, ["hpo_count", "HPO_count", "hpo_terms_count"]);
         const coGeneCount = value(row, ["co_gene_count", "genes", "other_gene_count"]);
@@ -161,9 +160,12 @@ function buildVariantRow(entry) {
     });
 
     const consequence = displayValue(value(primary, ["Consequence", "consequence", "most_severe_consequence"]), "Unavailable");
-    const hgvsp = displayValue(value(primary, ["HGVSp", "hgvsp", "hgvs_p", "protein_change"]), "");
+    const hgvsc = firstAnnotationValue(entry.variantRows, ["HGVSc", "hgvsc", "hgvs_c"]);
+    const hgvsp = firstAnnotationValue(entry.variantRows, ["HGVSp", "hgvsp", "hgvs_p", "protein_change"]);
     const clinvar = displayValue(value(primary, ["Clinical_sig", "clinical_sig", "ClinVar_CLNSIG", "clinvar_clnsig", "CLNSIG"]), "Unavailable");
-    const carrierCount = carrierSamples.length || numericValue(primary, ["carrier_count", "carrierCount", "n_carriers"]) || 0;
+    const reportedCarrierCount = entry.variantRows.reduce((max, row) =>
+        Math.max(max, numericValue(row, ["carrier_count", "carrierCount", "n_carriers"]) || 0), 0);
+    const carrierCount = carrierSamples.length || reportedCarrierCount;
     const crdcAf = displayValue(value(primary, ["crdc_vcf_af", "crdcAF", "cohortAF", "cohort_AF_dp20", "cohort_af_dp20", "AF"]), "Unavailable");
     const gnomadAf = displayValue(value(primary, ["gnomAD_AF", "gnomad_AF", "gnomad_exome_af", "gnomADe_AF"]), "Unavailable");
     const revel = optionalAnnotationValue(primary, ["REVEL", "revel", "revel_score"]);
@@ -173,11 +175,13 @@ function buildVariantRow(entry) {
     return {
         id: entry.id,
         consequence,
+        hgvsc,
+        hgvsp,
         csq_detail: hgvsp || consequence,
         phenotypeMatchScore: null,
         carrierCount,
-        probands: countFlag(entry.sampleRows, ["proband_flag", "proband", "is_proband"]),
-        affected: countFlag(entry.sampleRows, ["affected_flag", "affected", "is_affected"]),
+        probands: null,
+        affected: null,
         topTerms: [],
         gnomadAF: gnomadAf,
         crdcAF: crdcAf,
@@ -321,6 +325,16 @@ function value(row, keys) {
 function displayValue(raw, fallback = "Unavailable") {
     if (raw == null || raw === "" || raw === "NA" || raw === "NaN") return fallback;
     return String(raw);
+}
+
+function firstAnnotationValue(rows, keys) {
+    for (const row of rows) {
+        for (const key of keys) {
+            const text = displayValue(row[key], "");
+            if (text && text.toLowerCase() !== "n/a") return text;
+        }
+    }
+    return "";
 }
 
 function optionalAnnotationValue(row, keys) {
