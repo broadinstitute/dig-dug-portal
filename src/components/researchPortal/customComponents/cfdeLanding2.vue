@@ -360,8 +360,8 @@
             <div class="home-section-wrap">
                 <h3 class="kc">Examples of CFDE Knowledge</h3>
                 <div>
-                    Secondary analyses created by The Knowledge Center using
-                    Common Fund data
+                    Secondary analyses created by the CFDE Knowledge Center using Common Fund data,
+                    and new offerings developed by the CFDE Knowledge Center and Data Resource Center
                 </div>
                 <div class="home-section">
                     <template v-for="example in this.examplesData">
