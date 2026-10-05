@@ -1174,7 +1174,7 @@ export default Vue.component("cfde-landing-2", {
             const randInt = (min, max) =>
                 Math.floor(Math.random() * (max - min + 1)) + min;
             let currSpotlight = this.currSpotlight;
-            const max = Object.keys(this.parsedData.map).length;
+            const max = this.spotlightItems.length;
             let dir = "next";
             if (e?.target) {
                 clearInterval(this.spotlightInterval);
