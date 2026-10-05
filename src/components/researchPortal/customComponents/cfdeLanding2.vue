@@ -396,7 +396,10 @@
                                         </div>
                                     </div>
                                     <div class="f-row">
-                                        <div class="example-item-analysis">
+                                        <div v-if="example.dcc ==='CFDELiver'">
+                                            Visit the <a href="https://dev.cfdeliverresource.org/">CFDE Liver Resource</a>
+                                        </div>
+                                        <div v-else class="example-item-analysis">
                                             See on
                                             <a
                                                 :href="`/r/kc_entity_${example.type.toLowerCase()}?entity=${example.type.toLowerCase()}&${example.type.toLowerCase()}=${
