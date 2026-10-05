@@ -481,8 +481,8 @@
                     <div class="home-section-wrap" v-if="this.parsedData">
                         <h3 class="kc">Common Fund Program Spotlight</h3>
                         <div class="home-section">
-                            <template v-for="(value, key) in this.parsedData.map">
-                                <div class="spotlight-item" v-if="!!value.spotlight">
+                            <template v-for="[key, value] in Object.entries(this.parsedData.map).filter(d => !!d.value.spotlight)">
+                                <div class="spotlight-item">
                                     <div class="spotlight-logo f-row">
                                         <img :src="value.logo" />
                                     </div>
