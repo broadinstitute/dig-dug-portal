@@ -84,6 +84,7 @@ export default {
             context.commit("setResearchMethod", json);
         },
         async getResearchMenu(context, param) {
+            console.log("Is this thing on?");
 
             let json = await fetch(
                 "https://hugeampkpncms.org/view/rest/get_research_menu?menu=" + param.menuID

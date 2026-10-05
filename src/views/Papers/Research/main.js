@@ -869,6 +869,7 @@ new Vue({
         },
         researchPage() {
             let contents = this.$store.state.hugeampkpncms.researchPage;
+            console.log(JSON.stringify(contents));
 
             if (contents.length === 0) {
                 return null;

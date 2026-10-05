@@ -267,6 +267,22 @@
                             >Start here</a
                         >
                     </div>
+                    <div class="home-section f-col">
+                        <div class="analysis-figure">
+                            <img
+                                src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/kc_biomarkers.png"
+                            />
+                        </div>
+                        <h2>CFDE KG</h2>
+                        <div style="flex:1">
+                            <strong>Nominate candidate biomarkers from a mechanism, or candidate mechanisms for a biomarker.</strong>
+                        </div>
+                        <a
+                            href="/r/kc-biomarker"
+                            style="align-self: flex-end"
+                            >Start here</a
+                        >
+                    </div>
                 </div>
             </div>
         </div>
