@@ -278,7 +278,7 @@
                             <strong>Nominate candidate biomarkers from a mechanism, or candidate mechanisms for a biomarker.</strong>
                         </div>
                         <a
-                            href="/r/kc-biomarker"
+                            href="/r/kc_biomarker"
                             style="align-self: flex-end"
                             >Start here</a
                         >
