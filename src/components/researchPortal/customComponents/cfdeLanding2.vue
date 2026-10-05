@@ -481,15 +481,15 @@
                     <div class="home-section-wrap" v-if="this.parsedData">
                         <h3 class="kc">Common Fund Program Spotlight</h3>
                         <div class="home-section">
-                            <template v-for="[key, value] in Object.entries(this.parsedData.map).filter(d => !!d.value.spotlight)">
+                            <template v-for="key in Object.keys(this.parsedData.map).filter(d => !!this.parsedData.map[d].spotlight)">
                                 <div class="spotlight-item">
                                     <div class="spotlight-logo f-row">
-                                        <img :src="value.logo" />
+                                        <img :src="this.parsedData.map[key].logo" />
                                     </div>
                                     <div class="f-col fill-width">
                                         <div class="spotlight-text f-col fill-height">
-                                            <h3>{{ value.name }}</h3>
-                                            <div v-html="value.spotlight"></div>
+                                            <h3>{{ this.parsedData.map[key].name }}</h3>
+                                            <div v-html="this.parsedData.map[key].spotlight"></div>
                                         </div>
                                         <a
                                             style="align-self: flex-end"
