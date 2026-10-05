@@ -29,6 +29,7 @@ import biomarkerNetwork from "@/components/researchPortal/customComponents/bioma
 import revealScope from "@/components/researchPortal/customComponents/revealScope.vue";
 import cfdeScope2Design from "@/components/researchPortal/customComponents/cfdeScope2Design.vue";
 import cfdeRevealV2 from "@/components/researchPortal/customComponents/cfdeRevealV2.vue";
+import cfdeProteinPage from "@/components/researchPortal/customComponents/cfdeProteinPage.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
@@ -47,7 +48,8 @@ export default Vue.component("research-section-components", {
 		biomarkerNetwork,
 		revealScope,
 		cfdeScope2Design,
-		cfdeRevealV2
+		cfdeRevealV2,
+		cfdeProteinPage
 	},
 	data() {
 		return {
@@ -109,6 +111,9 @@ console.log('this.component', this.component);
 				break;
 			case 'cfdeRevealV2':
 				this.currentComponent = cfdeRevealV2;
+				break;
+			case 'cfdeProteinPage':
+				this.currentComponent = cfdeProteinPage;
 				break;
 		}
 	},
