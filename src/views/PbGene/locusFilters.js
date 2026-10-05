@@ -1,12 +1,16 @@
 export function locusFilterActive(state) {
+    const groupFilterActive = state.projectFilter !== undefined
+        ? state.projectFilter !== "All projects"
+        : state.investigatorFilter !== "All investigators";
     return state.carrierScopeFilter !== "All" || state.ageFilter !== "All ages" ||
-        state.investigatorFilter !== "All investigators" || state.sexFilter !== "All";
+        groupFilterActive || state.sexFilter !== "All";
 }
 
 export function locusFilterKey(state, start, end, bins, ready) {
     if (!ready || !locusFilterActive(state)) return "";
+    const groupFilter = state.projectFilter !== undefined ? state.projectFilter : state.investigatorFilter;
     return JSON.stringify([state.geneInfo.symbol, start, end, bins,
-        state.carrierScopeFilter, state.ageFilter, state.investigatorFilter, state.sexFilter]);
+        state.carrierScopeFilter, state.ageFilter, groupFilter, state.sexFilter]);
 }
 
 export async function refreshLocusFilter() {
@@ -17,9 +21,10 @@ export async function refreshLocusFilter() {
     this.locusFilterError = "";
     this.locusFilterProgress = "";
     if (!key) return;
-    const [gene, start, end, bins, scope, age, investigator, sex] = JSON.parse(key);
+    const [gene, start, end, bins, scope, age, group, sex] = JSON.parse(key);
     const layout = this.publicLocusFilterRequestKey !== undefined ? "public" : "pb";
-    const params = new URLSearchParams({ gene, start, end, bins, scope, age, investigator, sex, layout });
+    const params = new URLSearchParams({ gene, start, end, bins, scope, age, sex, layout });
+    params.set(layout === "public" ? "project" : "investigator", group);
     try {
         for (let attempt = 0; attempt < 2400; attempt += 1) {
             const response = await fetch(`/__gene_locus_filter__?${params.toString()}`);

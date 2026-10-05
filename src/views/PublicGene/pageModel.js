@@ -24,13 +24,13 @@ export function createPublicGeneState() {
         genePhenotypeAssociations: [],
         associationsLoading: reference.known,
         associationsError: "",
-        summaryPages: { phenotype: 1, genotype: 1, investigator: 1 },
-        summarySort: { phenotype: { key: "pValue", dir: "asc" }, genotype: { key: "count", dir: "desc" }, investigator: { key: "inv", dir: "asc" } },
+        summaryPages: { phenotype: 1, genotype: 1, project: 1 },
+        summarySort: { phenotype: { key: "pValue", dir: "asc" }, genotype: { key: "count", dir: "desc" }, project: { key: "project", dir: "asc" } },
         distinctCarriers: null,
         carrierDensity: [],
         carrierScopeFilter: "All",
         ageFilter: "All ages",
-        investigatorFilter: "All investigators",
+        projectFilter: "All projects",
         sexFilter: "All",
         locusFilterResult: null,
         locusFilterProgress: "",
@@ -147,14 +147,18 @@ export async function loadPublicCarrierSummary(variantId = "") {
     if (!gene) return;
     const key = variantId || "__gene__";
     const existing = variantId ? this.variantCarrierSummaries[variantId] : this.geneCarrierSummary;
-    if (this.carrierSummaryPending[key] || (existing && existing.status === "ready")) return;
+    if (this.carrierSummaryPending[key] || (existing && existing.status === "ready" &&
+        (!variantId || existing.matchedMetadataCount >= existing.carrierTotal))) return;
     this.$set(this.carrierSummaryPending, key, true);
     this.$set(this.carrierSummaryErrors, key, "");
     try {
         const params = new URLSearchParams({ gene });
         if (variantId) params.set("variant", variantId);
+        let incompleteVariantRefreshes = 0;
         for (let attempt = 0; attempt < 2400; attempt += 1) {
-            const response = await fetch(`/__gene_carrier_summary__?${params.toString()}`);
+            const requestParams = new URLSearchParams(params);
+            if (incompleteVariantRefreshes) requestParams.set("refresh", String(incompleteVariantRefreshes));
+            const response = await fetch(`/__gene_carrier_summary__?${requestParams.toString()}`);
             if (!response.ok) throw new Error(`Carrier metadata returned ${response.status}.`);
             const result = await response.json();
             if (String((this.geneInfo || {}).symbol || "").toUpperCase() !== gene) return;
@@ -162,6 +166,11 @@ export async function loadPublicCarrierSummary(variantId = "") {
             if (result.status === "ready") {
                 if (variantId) this.$set(this.variantCarrierSummaries, variantId, result);
                 else this.geneCarrierSummary = result;
+                if (variantId && incompleteVariantRefreshes < 2 && result.matchedMetadataCount < result.carrierTotal) {
+                    incompleteVariantRefreshes += 1;
+                    await new Promise(resolve => setTimeout(resolve, 250));
+                    continue;
+                }
                 return;
             }
             if (result.geneCarrierDemographics && Array.isArray(result.coCarrierGenes)) {

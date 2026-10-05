@@ -1596,14 +1596,18 @@ export const pbGeneMethods = {
         if (!gene || !this.liveDataLoaded) return;
         const key = variantId || "__gene__";
         const existing = variantId ? this.variantCarrierSummaries[variantId] : this.geneCarrierSummary;
-        if (this.carrierSummaryPending[key] || (existing && existing.status === "ready")) return;
+        if (this.carrierSummaryPending[key] || (existing && existing.status === "ready" &&
+            (!variantId || existing.matchedMetadataCount >= existing.carrierTotal))) return;
         this.$set(this.carrierSummaryPending, key, true);
         this.$set(this.carrierSummaryErrors, key, "");
         try {
             const params = new URLSearchParams({ gene });
             if (variantId) params.set("variant", variantId);
+            let incompleteVariantRefreshes = 0;
             for (let attempt = 0; attempt < 2400; attempt += 1) {
-                const response = await fetch(`/__gene_carrier_summary__?${params.toString()}`);
+                const requestParams = new URLSearchParams(params);
+                if (incompleteVariantRefreshes) requestParams.set("refresh", String(incompleteVariantRefreshes));
+                const response = await fetch(`/__gene_carrier_summary__?${requestParams.toString()}`);
                 if (!response.ok) throw new Error(`Carrier metadata returned ${response.status}.`);
                 const result = await response.json();
                 if (normalizeGeneQuery((this.geneInfo || {}).symbol) !== gene) return;
@@ -1611,6 +1615,11 @@ export const pbGeneMethods = {
                 if (result.status === "ready") {
                     if (variantId) this.$set(this.variantCarrierSummaries, variantId, result);
                     else this.geneCarrierSummary = result;
+                    if (variantId && incompleteVariantRefreshes < 2 && result.matchedMetadataCount < result.carrierTotal) {
+                        incompleteVariantRefreshes += 1;
+                        await new Promise(resolve => setTimeout(resolve, 250));
+                        continue;
+                    }
                     return;
                 }
                 if (result.geneCarrierDemographics && Array.isArray(result.coCarrierGenes)) {
@@ -1636,12 +1645,14 @@ export const pbGeneMethods = {
         if (!sampleId || this.sampleDetailsCache[sampleId] || this.sampleDetailsLoading[sampleId]) return;
         this.$set(this.sampleDetailsLoading, sampleId, true);
         try {
-            const rows = await queryBioIndex("samples-info", sampleId, { limit: 1, query_private: true }, true);
-            const raw = Array.isArray(rows) ? rows[0] : null;
-            const vcfId = raw && raw.SampleInVCF;
-            const canonicalId = raw && raw.sample_id;
-            if (!raw || (vcfId && vcfId !== sampleId) ||
-                (!vcfId && canonicalId && canonicalId !== sampleId.replace(/_G38$/i, ""))) {
+            const rows = await queryBioIndex("samples-info", sampleId, { limit: 5, query_private: true }, true);
+            const canonicalSampleId = sampleId.replace(/_G38$/i, "");
+            const raw = Array.isArray(rows) ? rows.find(row => {
+                if (row && row.SampleInVCF) return row.SampleInVCF === sampleId;
+                if (row && row.sample_id) return row.sample_id === canonicalSampleId;
+                return rows.length === 1;
+            }) : null;
+            if (!raw) {
                 this.$set(this.sampleDetailsCache, sampleId, {});
                 return;
             }

@@ -133,7 +133,7 @@
                         <div class="pbg-locus-filterbar" aria-label="Carrier filters">
                             <select v-model="carrierScopeFilter" class="pbg-filter-select pbg-filter-select--scope" aria-label="Carrier scope"><option value="All">All carriers</option><option value="Affected">Affected only</option><option value="Proband">Probands only</option></select>
                             <select v-model="ageFilter" class="pbg-filter-select" aria-label="Carrier age"><option v-for="age in publicAvailableAges" :key="age" :value="age">{{ age }}</option></select>
-                            <select v-model="investigatorFilter" class="pbg-filter-select" aria-label="Carrier investigator"><option v-for="investigator in publicAvailableInvestigators" :key="investigator" :value="investigator">{{ investigator }}</option></select>
+                            <select v-model="projectFilter" class="pbg-filter-select" aria-label="Carrier project"><option v-for="project in publicAvailableProjects" :key="project" :value="project">{{ project }}</option></select>
                             <select v-model="sexFilter" class="pbg-filter-select" aria-label="Carrier sex"><option value="All">All sexes</option><option value="Female">Female</option><option value="Male">Male</option><option value="n/a">n/a</option></select>
                         </div>
                     </div>
@@ -257,12 +257,12 @@
                                 <div class="pbg-summary-card-head"><strong>Carrier demographics</strong><span>{{ activePublicCarrierSummary ? `${activePublicCarrierSummary.matchedMetadataCount}/${activePublicCarrierSummary.carrierTotal} carriers` : 'Loading' }}</span></div>
                                 <div v-if="publicDemographicsHasRows" class="pbg-summary-card-body pbg-summary-demo-grid">
                                     <div class="pbg-summary-demo-investigators">
-                                        <p class="pbg-summary-demo-heading"><button class="pbg-summary-sort pbg-summary-demo-sort" type="button" @click="sortSummaryColumn('investigator', 'inv')">By investigator <i>{{ summarySortIndicator('investigator', 'inv') }}</i></button><button class="pbg-summary-sort pbg-summary-demo-sort" type="button" @click="sortSummaryColumn('investigator', 'count')">Count <i>{{ summarySortIndicator('investigator', 'count') }}</i></button></p>
-                                        <div v-for="row in visiblePublicInvestigators" :key="'public-inv-' + row.inv" class="pbg-summary-demo-row"><span :title="row.inv">{{ row.inv }}</span><i><b class="pbg-demo-fill--inv" :style="{ width: publicDemoBarWidth(row.count) }"></b></i><strong>{{ row.count }}</strong></div>
-                                        <SummaryPager v-if="publicInvestigatorPageCount > 1" compact class="pbg-summary-investigator-pager"
-                                                      :page="summaryPages.investigator" :total-pages="publicInvestigatorPageCount"
-                                                      label="Investigator pages" input-id="public-gene-investigator-page"
-                                                      @change="setSummaryPage('investigator', $event)" />
+                                        <p class="pbg-summary-demo-heading"><button class="pbg-summary-sort pbg-summary-demo-sort" type="button" @click="sortSummaryColumn('project', 'project')">By Project <i>{{ summarySortIndicator('project', 'project') }}</i></button><button class="pbg-summary-sort pbg-summary-demo-sort" type="button" @click="sortSummaryColumn('project', 'count')">Count <i>{{ summarySortIndicator('project', 'count') }}</i></button></p>
+                                        <div v-for="row in visiblePublicProjects" :key="'public-project-' + row.project" class="pbg-summary-demo-row"><span :title="row.project">{{ row.project }}</span><i><b class="pbg-demo-fill--inv" :style="{ width: publicDemoBarWidth(row.count) }"></b></i><strong>{{ row.count }}</strong></div>
+                                        <SummaryPager v-if="publicProjectPageCount > 1" compact class="pbg-summary-investigator-pager"
+                                                      :page="summaryPages.project" :total-pages="publicProjectPageCount"
+                                                      label="Project pages" input-id="public-gene-project-page"
+                                                      @change="setSummaryPage('project', $event)" />
                                     </div>
                                     <div>
                                         <p>By age</p>
@@ -401,7 +401,7 @@ import { createPublicGeneState, loadPublicCarrierSummary, loadPublicGeneAssociat
 import { VARIANT_PAGE_SIZE, findPositionWindow, positionOrderedVariants, positionSearchPlaceholder } from "../PbGene/variantTableNavigation";
 import { normalizeCarrierAgeDemographics } from "../PbGene/carrierAge";
 import { locusFilterActive, locusFilterKey, refreshLocusFilter } from "../PbGene/locusFilters";
-import { ASSOCIATION_PAGE_SIZE, CO_CARRIER_PAGE_SIZE, INVESTIGATOR_PAGE_SIZE, paginate, sortAssociations, sortCoCarrierGenes, sortInvestigators } from "../PbGene/summaryTable";
+import { ASSOCIATION_PAGE_SIZE, CO_CARRIER_PAGE_SIZE, INVESTIGATOR_PAGE_SIZE, paginate, sortAssociations, sortCoCarrierGenes, sortProjects } from "../PbGene/summaryTable";
 import SummaryPager from "../PbGene/SummaryPager";
 import CarrierSummaryKpis from "../PbGene/CarrierSummaryKpis";
 import { pathogenicityClass } from "../PbGene/clinvarBadge";
@@ -426,9 +426,9 @@ export default {
             const demographics = this.geneCarrierSummary && this.geneCarrierSummary.geneCarrierDemographics;
             return ["All ages", ...(demographics ? demographics.byAge || [] : []).map(row => row.band)];
         },
-        publicAvailableInvestigators() {
+        publicAvailableProjects() {
             const demographics = this.geneCarrierSummary && this.geneCarrierSummary.geneCarrierDemographics;
-            return ["All investigators", ...(demographics ? demographics.byInvestigator || [] : []).map(row => row.inv).sort()];
+            return ["All projects", ...(demographics ? demographics.byProject || [] : []).map(row => row.project).sort()];
         },
         publicLocusDistinctCarriers() {
             return this.publicLocusFilterActive ? this.locusFilterResult && this.locusFilterResult.distinctCarriers : this.distinctCarriers;
@@ -479,15 +479,15 @@ export default {
         publicDemographics() {
             return this.activePublicCarrierSummary
                 ? normalizeCarrierAgeDemographics(this.activePublicCarrierSummary.geneCarrierDemographics)
-                : { byAge: [], byInvestigator: [], bySex: [], byAffected: [] };
+                : { byAge: [], byProject: [], bySex: [], byAffected: [] };
         },
         publicDemographicsHasRows() {
-            return ["byAge", "byInvestigator", "bySex", "byAffected"].some(key => (this.publicDemographics[key] || []).length);
+            return ["byAge", "byProject", "bySex", "byAffected"].some(key => (this.publicDemographics[key] || []).length);
         },
-        visiblePublicInvestigators() {
-            return paginate(sortInvestigators(this.publicDemographics.byInvestigator || [], this.summarySort.investigator.key, this.summarySort.investigator.dir), this.summaryPages.investigator, INVESTIGATOR_PAGE_SIZE);
+        visiblePublicProjects() {
+            return paginate(sortProjects(this.publicDemographics.byProject || [], this.summarySort.project.key, this.summarySort.project.dir), this.summaryPages.project, INVESTIGATOR_PAGE_SIZE);
         },
-        publicInvestigatorPageCount() { return Math.ceil((this.publicDemographics.byInvestigator || []).length / INVESTIGATOR_PAGE_SIZE); },
+        publicProjectPageCount() { return Math.ceil((this.publicDemographics.byProject || []).length / INVESTIGATOR_PAGE_SIZE); },
         topScoredVariant() {
             return this.variantRows
                 .filter(row => variantScore(row) != null)
@@ -542,16 +542,16 @@ export default {
         loadPublicVariants,
         loadPublicCarrierSummary,
         setSummaryPage(kind, page) {
-            const counts = { phenotype: this.publicAssociationPageCount, genotype: this.publicCoCarrierPageCount, investigator: this.publicInvestigatorPageCount };
+            const counts = { phenotype: this.publicAssociationPageCount, genotype: this.publicCoCarrierPageCount, project: this.publicProjectPageCount };
             if (!(kind in counts)) return;
             this.$set(this.summaryPages, kind, Math.max(1, Math.min(Number(page) || 1, counts[kind] || 1)));
         },
-        resetSummaryPages() { this.summaryPages = { phenotype: 1, genotype: 1, investigator: 1 }; },
+        resetSummaryPages() { this.summaryPages = { phenotype: 1, genotype: 1, project: 1 }; },
         setPublicGeneMode() { this.expandedVariantId = null; this.resetSummaryPages(); },
         sortSummaryColumn(kind, key) {
             const current = this.summarySort[kind];
             if (!current) return;
-            const defaultDir = (kind === "genotype" && key !== "gene") || (kind === "investigator" && key === "count") ? "desc" : "asc";
+            const defaultDir = (kind === "genotype" && key !== "gene") || (kind === "project" && key === "count") ? "desc" : "asc";
             const dir = current.key === key ? (current.dir === "asc" ? "desc" : "asc") : defaultDir;
             this.$set(this.summarySort, kind, { key, dir });
             this.setSummaryPage(kind, 1);

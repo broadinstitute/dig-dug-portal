@@ -1,11 +1,14 @@
 // Aggregate private samples-info records for the Gene summary cards.
 // Responses contain counts only; no sample identifiers or individual metadata.
+const crypto = require("crypto");
+const cookie = require("cookie");
 const MAX_PAGES = 100;
 const SAMPLE_CONCURRENCY = 12;
 const MAX_GENE_CACHE = 5;
 const MAX_SAMPLE_CACHE = 1000;
 const GENE_BATCH_SIZE = 120;
-const SAMPLE_REQUEST_TIMEOUT_MS = 12000;
+const SAMPLE_REQUEST_TIMEOUT_MS = 20000;
+const DEBUG_SAMPLE_LOOKUPS = process.env.PB_GENE_CARRIER_DEBUG === "1";
 
 function first(row, keys) {
     for (const key of keys) {
@@ -67,6 +70,7 @@ function normalizeInfo(row, queriedId) {
         age: normalizedAge(row),
         sex: display(first(row, ["sex", "gender"])),
         investigator: display(first(row, ["investigator", "cohort", "study", "study_code"])),
+        project: display(first(row, ["Project", "project", "project_name", "clean_name"])),
         affected: affectedLabel(first(row, ["initial_study_affected", "affected_flag", "affected", "is_affected"])),
         proband: String(first(row, ["family_relationship"]) || "").trim().toLowerCase() === "proband",
         genes: Array.isArray(row.genes)
@@ -84,6 +88,7 @@ function createSummary(gene, carrierTotal) {
     const age = new Map();
     const sex = new Map();
     const investigator = new Map();
+    const project = new Map();
     const affected = new Map();
     const genes = new Map();
     const add = (map, value) => { if (value) map.set(value, (map.get(value) || 0) + 1); };
@@ -95,6 +100,7 @@ function createSummary(gene, carrierTotal) {
             add(age, ageBand(info.age));
             add(sex, info.sex);
             add(investigator, info.investigator);
+            add(project, info.project);
             add(affected, info.affected);
             for (const symbol of info.genes) {
                 if (symbol !== gene) add(genes, symbol);
@@ -109,6 +115,7 @@ function createSummary(gene, carrierTotal) {
                         .filter(band => age.has(band))
                         .map(band => ({ band, count: age.get(band) })),
                     byInvestigator: rowsFromCounts(investigator, "inv"),
+                    byProject: rowsFromCounts(project, "project"),
                     bySex: rowsFromCounts(sex, "label"),
                     byAffected: rowsFromCounts(affected, "label"),
                 },
@@ -126,36 +133,56 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
     const lowQueue = [];
     let active = 0;
 
-    async function read(path, params, timeoutMs = 60000) {
+    function accessScope(accessToken) {
+        return accessToken
+            ? crypto.createHash("sha256").update(accessToken).digest("hex").slice(0, 24)
+            : "anonymous";
+    }
+
+    async function read(path, params, timeoutMs = 60000, accessToken = "") {
         const url = new URL(path, `${bioIndexBase.replace(/\/$/, "")}/`);
         for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
         const response = await fetch(url, {
-            headers: { Accept: "application/json" },
+            headers: {
+                Accept: "application/json",
+                ...(accessToken ? { "x-bioindex-access-token": accessToken } : {}),
+            },
             signal: AbortSignal.timeout(timeoutMs),
         });
         if (!response.ok) throw new Error(`BioIndex ${response.status} at ${path}`);
         return response.json();
     }
 
-    async function readSample(id) {
-        for (let attempt = 0; attempt < 2; attempt += 1) {
+    async function readSample(id, accessToken) {
+        for (let attempt = 0; attempt < 3; attempt += 1) {
             try {
                 const payload = await read("/api/bio/query/samples-info",
-                    { q: id, limit: 1 }, SAMPLE_REQUEST_TIMEOUT_MS);
-                return normalizeInfo((payload.data || [])[0], id);
+                    { q: id, limit: 5 }, SAMPLE_REQUEST_TIMEOUT_MS, accessToken);
+                const rows = Array.isArray(payload.data) ? payload.data : [];
+                const row = rows.find(candidate => normalizeInfo(candidate, id)) || null;
+                const info = normalizeInfo(row, id);
+                if (DEBUG_SAMPLE_LOOKUPS && !info) {
+                    console.warn(`[gene-carrier-summary] samples-info ${row ? "ID mismatch" : "no row"}`);
+                }
+                if (info || attempt === 2) return info;
+                await new Promise(resolve => setTimeout(resolve, 250 * (attempt + 1)));
             } catch (error) {
-                if (attempt === 1) return null;
+                if (DEBUG_SAMPLE_LOOKUPS) {
+                    console.warn(`[gene-carrier-summary] samples-info request failed: ${error.name || "Error"}${error.cause && error.cause.code ? ` (${error.cause.code})` : ""}`);
+                }
+                if (attempt === 2) throw error;
+                await new Promise(resolve => setTimeout(resolve, 250 * (attempt + 1)));
             }
         }
-        return null;
     }
 
-    function carriersForGene(gene) {
-        if (geneCache.has(gene)) return geneCache.get(gene);
+    function carriersForGene(gene, accessToken) {
+        const cacheKey = `${accessScope(accessToken)}|${gene}`;
+        if (geneCache.has(cacheKey)) return geneCache.get(cacheKey);
         const pending = (async () => {
             const all = new Set();
             const byVariant = new Map();
-            let page = await read("/api/bio/query/gene-variants-crdc", { q: gene });
+            let page = await read("/api/bio/query/gene-variants-crdc", { q: gene }, 60000, accessToken);
             let pageNumber = 0;
             while (page) {
                 if (++pageNumber > MAX_PAGES || !Array.isArray(page.data)) throw new Error("Invalid gene variant pagination");
@@ -170,12 +197,12 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
                     }
                     byVariant.set(id, samples);
                 }
-                page = page.continuation ? await read("/api/bio/cont", { token: page.continuation }) : null;
+                page = page.continuation ? await read("/api/bio/cont", { token: page.continuation }, 60000, accessToken) : null;
             }
             return { all, byVariant };
         })();
-        geneCache.set(gene, pending);
-        pending.catch(() => geneCache.delete(gene));
+        geneCache.set(cacheKey, pending);
+        pending.catch(() => geneCache.delete(cacheKey));
         if (geneCache.size > MAX_GENE_CACHE) geneCache.delete(geneCache.keys().next().value);
         return pending;
     }
@@ -185,15 +212,15 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             const task = highQueue.shift() || lowQueue.shift();
             active += 1;
             task.started = true;
-            readSample(task.id)
-                .then(task.resolve)
-                .catch(() => task.resolve(null))
+            readSample(task.id, task.accessToken)
+                .then(task.resolve, task.reject)
                 .finally(() => { active -= 1; drain(); });
         }
     }
 
-    function sampleInfo(id, highPriority) {
-        const cached = sampleCache.get(id);
+    function sampleInfo(id, highPriority, accessToken) {
+        const cacheKey = `${accessScope(accessToken)}|${id}`;
+        const cached = sampleCache.get(cacheKey);
         if (cached) {
             if (highPriority && cached.task && !cached.task.started) {
                 const index = lowQueue.indexOf(cached.task);
@@ -205,24 +232,31 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             return cached.promise;
         }
         let resolve;
-        const promise = new Promise(done => { resolve = done; });
-        const task = { id, resolve, started: false };
-        sampleCache.set(id, { promise, task });
+        let reject;
+        const promise = new Promise((done, fail) => { resolve = done; reject = fail; });
+        const task = { id, accessToken, resolve, reject, started: false };
+        const entry = { promise, task };
+        sampleCache.set(cacheKey, entry);
+        promise.then(info => {
+            if (!info && sampleCache.get(cacheKey) === entry) sampleCache.delete(cacheKey);
+        }, () => {
+            if (sampleCache.get(cacheKey) === entry) sampleCache.delete(cacheKey);
+        });
         (highPriority ? highQueue : lowQueue).push(task);
         if (sampleCache.size > MAX_SAMPLE_CACHE) sampleCache.delete(sampleCache.keys().next().value);
         drain();
         return promise;
     }
 
-    function startJob(key, gene, requestedVariant) {
+    function startJob(key, gene, requestedVariant, accessToken, refreshAttemptCount = 0) {
         const job = {
             status: "loading", completed: 0, total: 0, result: null, error: null,
             summary: null, snapshot: null, snapshotCompleted: -1,
-            carrierSets: null, filterInfo: requestedVariant ? null : new Map(),
+            carrierSets: null, filterInfo: requestedVariant ? null : new Map(), refreshAttemptCount,
         };
         jobs.set(key, job);
         (async () => {
-            const carrierSets = await carriersForGene(gene);
+            const carrierSets = await carriersForGene(gene, accessToken);
             if (!requestedVariant) job.carrierSets = carrierSets;
             const ids = requestedVariant ? carrierSets.byVariant.get(requestedVariant) : carrierSets.all;
             if (!ids) throw new Error("Variant is unavailable for this gene");
@@ -231,11 +265,11 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             job.summary = createSummary(gene, sampleIds.length);
             for (let offset = 0; offset < sampleIds.length; offset += GENE_BATCH_SIZE) {
                 await Promise.all(sampleIds.slice(offset, offset + GENE_BATCH_SIZE).map(id =>
-                    sampleInfo(id, Boolean(requestedVariant)).then(info => {
+                    sampleInfo(id, Boolean(requestedVariant), accessToken).then(info => {
                         job.summary.add(info);
                         if (job.filterInfo) job.filterInfo.set(id, info && {
                             age: info.age, sex: info.sex, investigator: info.investigator,
-                            affected: info.affected, proband: info.proband,
+                            project: info.project, affected: info.affected, proband: info.proband,
                         });
                         job.completed += 1;
                     })));
@@ -265,8 +299,20 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             response.status(503).json({ error: "Private BioIndex is not configured." });
             return;
         }
-        const key = `${gene}|${variant.toLowerCase()}`;
-        const job = jobs.get(key) || startJob(key, gene, variant);
+        const accessToken = cookie.parse((request.headers && request.headers.cookie) || "").session || "";
+        const scope = accessScope(accessToken);
+        const key = `${scope}|${gene}|${variant.toLowerCase()}`;
+        const previous = jobs.get(key);
+        const requestedRefreshCount = Math.max(0, Math.min(2, Number(request.query.refresh) || 0));
+        const refreshIncomplete = variant && requestedRefreshCount > 0 && previous &&
+            previous.status === "ready" && requestedRefreshCount > previous.refreshAttemptCount &&
+            previous.refreshAttemptCount < 2 &&
+            previous.result.matchedMetadataCount < previous.result.carrierTotal;
+        if (refreshIncomplete) {
+            jobs.delete(key);
+        }
+        const refreshAttemptCount = refreshIncomplete ? previous.refreshAttemptCount + 1 : 0;
+        const job = jobs.get(key) || startJob(key, gene, variant, accessToken, refreshAttemptCount);
         if (job.status === "loading" && job.summary && job.completed && job.snapshotCompleted !== job.completed) {
             job.snapshot = job.summary.snapshot();
             job.snapshotCompleted = job.completed;
@@ -274,6 +320,7 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
         response.json({ status: job.status, completed: job.completed, total: job.total,
             ...(job.status === "ready" ? job.result : job.snapshot || {}),
             ...(job.status === "error" ? { error: job.error } : {}) });
+        if (job.status === "error") jobs.delete(key);
     });
 
     app.get("/__gene_locus_filter__", (request, response) => {
@@ -287,14 +334,17 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
         const scope = String(request.query.scope || "All");
         const age = String(request.query.age || "All ages");
         const investigator = String(request.query.investigator || "All investigators");
+        const project = String(request.query.project || "All projects");
         const sex = String(request.query.sex || "All");
+        const accessToken = cookie.parse((request.headers && request.headers.cookie) || "").session || "";
+        const tokenScope = accessScope(accessToken);
         if (!/^[A-Z0-9][A-Z0-9.-]{0,31}$/.test(gene) ||
             !Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 1 || end <= start ||
             !Number.isSafeInteger(bins) || bins < 1 || bins > 120 ||
             !["pb", "public"].includes(layout) ||
             !["All", "Affected", "Proband"].includes(scope) ||
             !["All", "Female", "Male", "n/a"].includes(sex) ||
-            age.length > 50 || investigator.length > 160) {
+            age.length > 50 || investigator.length > 160 || project.length > 160) {
             response.status(400).json({ error: "Invalid locus filter." });
             return;
         }
@@ -302,8 +352,10 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             response.status(503).json({ error: "Private BioIndex is not configured." });
             return;
         }
-        const job = jobs.get(`${gene}|`) || startJob(`${gene}|`, gene, "");
+        const key = `${tokenScope}|${gene}|`;
+        const job = jobs.get(key) || startJob(key, gene, "", accessToken);
         if (job.status === "error") {
+            jobs.delete(key);
             response.status(502).json({ error: job.error || "Carrier metadata unavailable." });
             return;
         }
@@ -316,7 +368,8 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             if (scope === "Affected" && info.affected !== "Yes") return false;
             if (scope === "Proband" && !info.proband) return false;
             if (age !== "All ages" && ageBand(info.age) !== age) return false;
-            if (investigator !== "All investigators" && info.investigator !== investigator) return false;
+            if (layout === "pb" && investigator !== "All investigators" && info.investigator !== investigator) return false;
+            if (layout === "public" && project !== "All projects" && info.project !== project) return false;
             const sampleSex = String(info.sex || "").trim().toLowerCase();
             if (sex === "Female" && sampleSex !== "f" && sampleSex !== "female") return false;
             if (sex === "Male" && sampleSex !== "m" && sampleSex !== "male") return false;

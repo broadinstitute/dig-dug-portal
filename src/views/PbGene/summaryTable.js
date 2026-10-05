@@ -41,3 +41,10 @@ export function sortInvestigators(rows, key, dir) {
         compareMissingLast(key === "count" ? Number(a.count) : a.inv,
             key === "count" ? Number(b.count) : b.inv, direction) || String(a.inv).localeCompare(String(b.inv)));
 }
+
+export function sortProjects(rows, key, dir) {
+    const direction = dir === "desc" ? -1 : 1;
+    return [...rows].sort((a, b) =>
+        compareMissingLast(key === "count" ? Number(a.count) : a.project,
+            key === "count" ? Number(b.count) : b.project, direction) || String(a.project).localeCompare(String(b.project)));
+}
