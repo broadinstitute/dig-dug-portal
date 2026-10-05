@@ -481,19 +481,19 @@
                     <div class="home-section-wrap" v-if="this.parsedData">
                         <h3 class="kc">Common Fund Program Spotlight</h3>
                         <div class="home-section">
-                            <template v-for="key in Object.keys(this.parsedData.map).filter(d => !!this.parsedData.map[d].spotlight)">
+                            <template v-for="item in this.spotlightItems">
                                 <div class="spotlight-item">
                                     <div class="spotlight-logo f-row">
-                                        <img :src="this.parsedData.map[key].logo" />
+                                        <img :src="item[1].logo" />
                                     </div>
                                     <div class="f-col fill-width">
                                         <div class="spotlight-text f-col fill-height">
-                                            <h3>{{ this.parsedData.map[key].name }}</h3>
-                                            <div v-html="this.parsedData.map[key].spotlight"></div>
+                                            <h3>{{ item[1].name }}</h3>
+                                            <div v-html="item[1].spotlight"></div>
                                         </div>
                                         <a
                                             style="align-self: flex-end"
-                                            :href="`/r/kc_programs?DCC=${key}`"
+                                            :href="`/r/kc_programs?DCC=${item[0]}`"
                                             >Learn More</a
                                         >
                                     </div>
@@ -707,6 +707,10 @@ export default Vue.component("cfde-landing-2", {
             const content = this.sectionConfigs && this.sectionConfigs["content"];
             return (content && content["single search version"]) || "";
         },
+        spotlightItems(){
+            let allItems = Object.entries(this.parsedData.map);
+            return allItems.filter(item => !!item[1].spotlight);
+        }
     },
     watch: {},
     updated() {},
