@@ -273,9 +273,16 @@
                                 src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/kc_biomarkers.png"
                             />
                         </div>
-                        <h2>CFDE KG</h2>
+                        <h2>BIOMARKERS TO MECHANISMS</h2>
                         <div style="flex:1">
                             <strong>Nominate candidate biomarkers from a mechanism, or candidate mechanisms for a biomarker.</strong>
+                            <div>This workflow starts with a biomarker from BiomarkerKB and identifies candidate mechanisms through:</div>
+                            <ul>
+                                <li>diseases associated with the selected biomarker</li>
+                                <li>CFDE REVEAL gene–trait–factor evidence for those diseases</li>
+                                <li>Overlap between disease-associated genes and biological factors</li>
+                            </ul>
+                            <div>It produces a ranked list of candidate mechanisms supported by gene and disease evidence.</div>
                         </div>
                         <a
                             href="/r/kc_biomarker"
@@ -475,7 +482,7 @@
                         <h3 class="kc">Common Fund Program Spotlight</h3>
                         <div class="home-section">
                             <template v-for="(value, key) in this.parsedData.map">
-                                <div class="spotlight-item">
+                                <div class="spotlight-item" v-if="!!value.spotlight">
                                     <div class="spotlight-logo f-row">
                                         <img :src="value.logo" />
                                     </div>
