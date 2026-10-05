@@ -209,6 +209,13 @@ function measureRotatedLabelWidth(ctx, label) {
 // the canvas is grown past its CSS-driven height to preserve at least this much.
 const MIN_VIOLIN_PLOT_HEIGHT = 120;
 
+// Template.vue overlays the left/right dataset legend on top of this chart, top
+// right (see .chart-legend-overlay). Reserving this much extra top margin keeps the
+// violin bodies/axis from starting underneath that legend; growing the canvas by the
+// same amount (via the height check below) means the plot area itself doesn't shrink
+// to make room - the whole chart just gets a little taller and the plot shifts down.
+const LEGEND_RESERVED_TOP = 34;
+
 // categories: [{ label, leftValues: number[], rightValues: number[] }]
 // returns a status string ("" on success, an explanatory message when there is
 // nothing to plot)
@@ -225,7 +232,7 @@ export function renderViolinPlot(canvas, categories, yLabel) {
         0,
         ...available.map((row) => measureRotatedLabelWidth(ctx, row.label))
     );
-    const margins = { top: 20, right: 18, bottom: Math.max(92, labelOffset + maxLabelFootprint + 10), left: 58 };
+    const margins = { top: 20 + LEGEND_RESERVED_TOP, right: 18, bottom: Math.max(92, labelOffset + maxLabelFootprint + 10), left: 58 };
 
     // The CSS aspect ratio sizes the canvas assuming a modest bottom margin; long
     // rotated labels can blow past that, so grow the element's own height (not just
@@ -309,10 +316,22 @@ export function renderScatterPlot(canvas, points, xLabel, yLabel) {
         clearCanvas(canvas);
         return "No plot values available.";
     }
-    const ctx = prepareCanvas(canvas);
+    let ctx = prepareCanvas(canvas);
     const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const margins = { top: 22, right: 24, bottom: 84, left: 72 };
+    const margins = { top: 22 + LEGEND_RESERVED_TOP, right: 24, bottom: 84, left: 72 };
+
+    // Same treatment as the violin plot: Template.vue overlays the left/right dataset
+    // legend and the download button on top of this chart too, so the canvas is
+    // grown by the same amount reserved for them above, keeping the plot area itself
+    // the size it would have been without the overlay.
+    let height = canvas.clientHeight;
+    const requiredHeight = height + LEGEND_RESERVED_TOP;
+    if (requiredHeight > height) {
+        canvas.style.height = `${requiredHeight}px`;
+        ctx = prepareCanvas(canvas);
+        height = canvas.clientHeight;
+    }
+
     const plotWidth = width - margins.left - margins.right;
     const plotHeight = height - margins.top - margins.bottom;
     const maxValue = niceCeil(Math.max(0.05, ...available.map((point) => Math.max(point.x, point.y))));
@@ -330,11 +349,15 @@ export function renderScatterPlot(canvas, points, xLabel, yLabel) {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = "#345c5f";
-    ctx.globalAlpha = 0.34;
+    // Color each gene by whichever dataset expresses it more strongly, using the
+    // same left/right colors as the dataset-key chips above this chart (and the
+    // violin plot's PAIR_COLORS) - a flat, unrelated color read as "black" at this
+    // dot size/alpha and gave no visual tie to the left/right legend at all.
+    ctx.globalAlpha = 0.5;
     available.forEach((point) => {
         const x = scale(point.x, 0, maxValue, margins.left, margins.left + plotWidth);
         const y = scale(point.y, 0, maxValue, margins.top + plotHeight, margins.top);
+        ctx.fillStyle = point.x >= point.y ? PAIR_COLORS.left : PAIR_COLORS.right;
         ctx.beginPath();
         ctx.arc(x, y, 2.1, 0, Math.PI * 2);
         ctx.fill();
@@ -343,15 +366,16 @@ export function renderScatterPlot(canvas, points, xLabel, yLabel) {
 
     const labeled = [...available].sort((a, b) => Math.max(b.x, b.y) - Math.max(a.x, a.y)).slice(0, 12);
     ctx.font = "10.5px Inter, sans-serif";
-    ctx.fillStyle = "#33423d";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     labeled.forEach((point) => {
         const x = scale(point.x, 0, maxValue, margins.left, margins.left + plotWidth);
         const y = scale(point.y, 0, maxValue, margins.top + plotHeight, margins.top);
+        ctx.fillStyle = point.x >= point.y ? PAIR_COLORS.left : PAIR_COLORS.right;
         ctx.beginPath();
         ctx.arc(x, y, 3.1, 0, Math.PI * 2);
         ctx.fill();
+        ctx.fillStyle = "#33423d";
         ctx.fillText(truncate(point.label, 14), Math.min(x + 5, margins.left + plotWidth - 54), y);
     });
     return "";
