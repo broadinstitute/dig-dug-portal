@@ -63,7 +63,7 @@
                             </select>
                         </label>
                     </div>
-                    <div>&nbsp;</div>
+                    <hr class="selector-divider" />
                     <div class="row controls sc-filter-wrap">
                         <label class="col-md-6 control">
                             <span>Tissue 2</span>
@@ -418,6 +418,13 @@
     border-radius: 5px;
 }
 
+/* Light gray divider between the Tissue 1/Dataset row and the Tissue 2/Dataset row. */
+.mskkp-sc-compare .selector-divider {
+    margin: 10px 0;
+    border: none;
+    border-top: 1px solid #dbe4df;
+}
+
 .mskkp-sc-compare .controls .control {
     padding: 0 7px;
 }
@@ -442,15 +449,22 @@
     padding: 0 7px;
 }
 
-/* 12px gutter between the two UMAPs (10-15px requested), both side by side and -
-   since columns stack on narrow screens, see the mobile override below - stacked. */
+/* 10px gutter between the two UMAPs, both side by side and - since columns stack on
+   narrow screens, see the mobile override below - stacked. Uses flex gap (rather than
+   the padding/negative-margin gutter trick) so the 10px is exact regardless of any
+   grid-framework padding on .col-md-6. */
 .mskkp-sc-compare .paired-panels {
-    margin: 0 -6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 0;
 }
 
 .mskkp-sc-compare .paired-panels > [class*="col"] {
-    padding: 0 6px;
-    margin-bottom: 12px;
+    padding: 0;
+    margin: 0;
+    flex: 1 1 calc(50% - 8px);
+    max-width: calc(50% - 8px);
 }
 
 .mskkp-sc-compare .panel,
@@ -462,15 +476,15 @@
     overflow: hidden;
 }
 
-.mskkp-sc-compare .panel,
-.mskkp-sc-compare .table-card {
+.mskkp-sc-compare .panel {
     border: 1px solid #dbe4df;
 }
 
-/* The two overlay-legend charts (Gene Comparison's violin chart and Cell-Type
-   Comparison's scatter chart) no longer have a bordered card around them - just the
-   canvas with its legend/download overlay. */
-.mskkp-sc-compare .plot-card {
+/* Neither the two overlay-legend charts (Gene Comparison's violin chart and
+   Cell-Type Comparison's scatter chart) nor the two merged summary tables have a
+   bordered card/outline around them. */
+.mskkp-sc-compare .plot-card,
+.mskkp-sc-compare .table-card {
     border: none;
 }
 
@@ -657,6 +671,12 @@
     border-bottom: 0;
 }
 
+/* Bolds the cell type / gene name column (always the first cell of each row) in the
+   two merged summary tables. */
+.mskkp-sc-compare .table-card td:first-child {
+    font-weight: 700;
+}
+
 .mskkp-sc-compare .plot-title .download-chart {
     margin-bottom: 0;
     float: none;
@@ -726,15 +746,19 @@
     }
 
     .mskkp-sc-compare .controls,
-    .mskkp-sc-compare .paired-panels,
     .mskkp-sc-compare .paired-tables {
         margin: 0;
     }
 
     .mskkp-sc-compare .controls > [class*="col"],
-    .mskkp-sc-compare .paired-panels > [class*="col"],
     .mskkp-sc-compare .paired-tables > [class*="col"] {
         padding: 0;
+    }
+
+    /* Stack the two UMAPs to one column, keeping the 10px gap (now a row gap). */
+    .mskkp-sc-compare .paired-panels > [class*="col"] {
+        flex-basis: 100%;
+        max-width: 100%;
     }
 }
 </style>
