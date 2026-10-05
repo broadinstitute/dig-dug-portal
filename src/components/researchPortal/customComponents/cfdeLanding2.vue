@@ -481,7 +481,7 @@
                     <div class="home-section-wrap" v-if="this.parsedData">
                         <h3 class="kc">Common Fund Program Spotlight</h3>
                         <div class="home-section">
-                            <template v-for="item in this.spotlightItems">
+                            <template v-for="item in this.parsedData.map">
                                 <div class="spotlight-item">
                                     <div class="spotlight-logo f-row">
                                         <img :src="item[1].logo" />
@@ -1174,7 +1174,7 @@ export default Vue.component("cfde-landing-2", {
             const randInt = (min, max) =>
                 Math.floor(Math.random() * (max - min + 1)) + min;
             let currSpotlight = this.currSpotlight;
-            const max = Object.keys(this.parsedData.map).length;
+            const max = this.spotlightItems.length;
             let dir = "next";
             if (e?.target) {
                 clearInterval(this.spotlightInterval);
