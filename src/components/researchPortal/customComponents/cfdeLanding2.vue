@@ -481,7 +481,7 @@
                     <div class="home-section-wrap" v-if="this.parsedData">
                         <h3 class="kc">Common Fund Program Spotlight</h3>
                         <div class="home-section">
-                            <template v-for="item in this.parsedData.map">
+                            <template v-for="item in this.spotlightItems">
                                 <div class="spotlight-item">
                                     <div class="spotlight-logo f-row">
                                         <img :src="item[1].logo" />
