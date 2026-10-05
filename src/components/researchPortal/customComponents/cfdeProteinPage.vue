@@ -1,5 +1,6 @@
 <template>
     <div class="cfde-protein-page">
+<<<<<<< HEAD
         <div class="cfde-protein-card">
             <div>
                 <b-tabs class="cfde-tabs">
@@ -119,10 +120,13 @@
                 </div>
             </div>
         </div>
+=======
+>>>>>>> da9386ae2 (protein page development set up.)
     </div>
 </template>
 
 <script>
+<<<<<<< HEAD
 import "@/components/NCATS/old/PredicateTable.vue";
 
 // section_id -> title/header (merged from section_headers.json)
@@ -149,6 +153,8 @@ const sectionKey = (k) =>
         .toLowerCase()
         .replace(/_gene(?=_|$)/g, "");
 
+=======
+>>>>>>> da9386ae2 (protein page development set up.)
 export default {
     name: "cfdeProteinPage",
     props: {
@@ -165,6 +171,7 @@ export default {
             default: () => ({}),
         },
     },
+<<<<<<< HEAD
     data() {
         return {
             uniprotId: "",
@@ -426,4 +433,10 @@ export default {
     border-radius: 5px;
     padding: 17.5px;
 }
+=======
+};
+</script>
+
+<style scoped>
+>>>>>>> da9386ae2 (protein page development set up.)
 </style>
