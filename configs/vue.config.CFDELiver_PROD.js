@@ -38,6 +38,13 @@ let pages = {
         title: "Research",
         chunks: ["chunk-vendors", "chunk-common", "research"],
     },
+    about: {
+        entry: "src/portals/CFDELiver/views/About/main.js",
+        template: "src/portals/CFDELiver/views/index.html",
+        filename: "about.html",
+        title: "About the Portal",
+        chunks: ["chunk-vendors", "chunk-common", "about"]
+    }
 };
 
 module.exports = {
