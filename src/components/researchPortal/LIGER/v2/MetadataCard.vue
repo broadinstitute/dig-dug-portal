@@ -104,13 +104,6 @@ export default Vue.component("MetadataCard", {
             type: Boolean,
             default: false
         },
-        // When a state is selected but no program is, the program tab lists only the
-        // programs matching that state. Mirror of statesForSelectedProgram.
-        programsForSelectedState: {
-            type: Array,
-            default: () => []
-        },
-
         // --- cell state tab ---
         stateItems: {
             type: Array,
@@ -126,12 +119,6 @@ export default Vue.component("MetadataCard", {
         },
         // programs matching the selected state
         stateMatches: {
-            type: Array,
-            default: () => []
-        },
-        // When a program is selected but no state is, the state tab lists only the
-        // states matching that program rather than all of them.
-        statesForSelectedProgram: {
             type: Array,
             default: () => []
         },
@@ -178,7 +165,7 @@ export default Vue.component("MetadataCard", {
                     note: this.selectedProgram
                         ? this.selectedProgram.label
                         : (this.programListItems.length
-                            ? `${this.programListItems.length}${this.narrowedToState ? " matching" : " available"}`
+                            ? `${this.programListItems.length} total`
                             : "None in scope")
                 },
                 {
@@ -187,7 +174,7 @@ export default Vue.component("MetadataCard", {
                     note: this.selectedState
                         ? this.selectedState.label
                         : (this.stateListItems.length
-                            ? `${this.stateListItems.length}${this.narrowedToProgram ? " matching" : " available"}`
+                            ? `${this.stateListItems.length} total`
                             : "None in scope")
                 }
             ];
@@ -195,39 +182,29 @@ export default Vue.component("MetadataCard", {
 
         // With one side selected and the other not, the empty side's pick-one list
         // narrows to what matches. The question at that point is "which of these
-        // does the selected one connect to", not "what exists".
+        // **These lists never narrow and never filter.** They used to shrink to the
+        // matches of whatever was selected on the other side, which meant that with a
+        // program selected the cell-state list showed a handful of states and there
+        // was no way to reach the rest from here. They are the "I know what I am
+        // looking for" path, so they are always the complete set.
         //
-        // Both directions, and both say so plus how to get back to the full set --
-        // a silently filtered list is indistinguishable from a short one.
-        narrowedToProgram() {
-            return !this.selectedState && !!this.selectedProgram && this.statesForSelectedProgram.length > 0;
-        },
-
-        narrowedToState() {
-            return !this.selectedProgram && !!this.selectedState && this.programsForSelectedState.length > 0;
-        },
-
+        // Nothing the canvas checkboxes do reaches them either. Rows below the
+        // loading / enrichment thresholds are DIMMED here, never removed, and
+        // `EntityList` prints how many are dimmed so the count not matching the
+        // canvas does not read as a bug.
         stateListItems() {
-            return this.narrowedToProgram ? this.statesForSelectedProgram : this.stateItems;
+            return this.stateItems;
         },
 
         stateListNote() {
-            if (this.narrowedToProgram) {
-                return `Cell states matching ${this.selectedProgram.label}. Clear the gene program selection to see all ${this.stateItems.length}.`;
-            }
-
             return "Select a cell state here or on the canvas above.";
         },
 
         programListItems() {
-            return this.narrowedToState ? this.programsForSelectedState : this.programItems;
+            return this.programItems;
         },
 
         programListNote() {
-            if (this.narrowedToState) {
-                return `Gene programs matching ${this.selectedState.label}. Clear the cell state selection to see all ${this.programItems.length}.`;
-            }
-
             return "Select a gene program here or on the canvas above.";
         }
     },
@@ -316,9 +293,8 @@ export default Vue.component("MetadataCard", {
                     match-label="States"
                     :note="programListNote"
                     :items="programListItems"
-                    :empty-text="narrowedToState
-                        ? 'No gene programs match the selected cell state.'
-                        : 'No gene programs in the current scope.'"
+                    muted-label="gene loading is 0 or not reported"
+                    empty-text="No gene programs in the current scope."
                     @select="$emit('select-program', $event)"
                 />
             </template>
@@ -346,9 +322,8 @@ export default Vue.component("MetadataCard", {
                     match-label="Programs"
                     :note="stateListNote"
                     :items="stateListItems"
-                    :empty-text="narrowedToProgram
-                        ? 'No cell states match the selected gene program.'
-                        : 'No cell states in the current scope.'"
+                    muted-label="enrichment not significant"
+                    empty-text="No cell states in the current scope."
                     @select="$emit('select-state', $event)"
                 />
             </template>
@@ -400,14 +375,14 @@ export default Vue.component("MetadataCard", {
     transition: background-color .12s ease;
 }
 .tab-label{
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
     color: var(--ce-muted);
 }
 .tab-note{
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--ce-ink);
     overflow: hidden;
@@ -444,7 +419,7 @@ export default Vue.component("MetadataCard", {
     padding: 0;
     border: none;
     background: none;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--ce-accent);
     cursor: pointer;
@@ -456,13 +431,13 @@ export default Vue.component("MetadataCard", {
     text-align: center;
 }
 .placeholder-title{
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--ce-ink);
 }
 .placeholder-text{
     margin-top: 4px;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--ce-muted);
 }
 </style>

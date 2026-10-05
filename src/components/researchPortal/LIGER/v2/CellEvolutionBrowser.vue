@@ -7,6 +7,7 @@ import CanvasStage from "./CanvasStage.vue";
 import ProgramRow from "./ProgramRow.vue";
 import StateRow from "./StateRow.vue";
 import MetadataCard from "./MetadataCard.vue";
+import InfoTip from "./InfoTip.vue";
 import {
     createLigerApi,
     fetchJson,
@@ -31,6 +32,11 @@ import {
     absoluteExpressionValue,
     buildPhenotypeIndex,
     normalizeKey,
+    isFlaggedFactor,
+    parseFactorFlags,
+    factorVerdictLabel,
+    GENE_LOADING_DEFINITION,
+    ENRICHMENT_DEFINITION,
     SIGNIFICANCE_P
 } from "../ligerApi";
 import { buildTraitRows } from "./traits";
@@ -45,7 +51,12 @@ import {
 import { buildEdges, buildGeneLinks, edgePath, stateColor, METRICS, EDGE_MIN_SCORE } from "./relationships";
 
 const DEFAULT_CONFIG = {
-    pageTitle: "Cell Evolution Browser",
+    // The public-facing name (punchlist 1.1). "Cell Evolution Browser" was the
+    // internal working name and is still the component's, the folder's and this
+    // file's -- renaming those is import churn with no user-visible effect, so the
+    // two are deliberately allowed to differ. A portal can override this like any
+    // other config key.
+    pageTitle: "Cell State Browser",
     pageSubtitle: "Explore how genes influence cell states through coordinated programs of activity across tissues and cell types.",
     documentationUrl: "/research.html?pageid=kp_liger_documentation",
     exampleGenes: ["PPARG", "PCSK9", "INS"],
@@ -97,20 +108,21 @@ const HUB_Y = WORLD_HEIGHT / 2;
 const HUB_WIDTH = 220;
 const HUB_HEIGHT = 128;
 
-// The two panels' headers are DIFFERENT heights, because they carry different
-// things: the programs header adds a row of column headings over its two numeric
-// columns, and the states list has no numeric columns to head. One shared constant
-// would leave a ~22px dead band under the cell-states description.
+// ONE header height, for both panels. They used to differ because the programs
+// header carried a row of EXP / SPEC column headings and the states header did not;
+// those columns came off the rows (punchlist 1.2) and the two headers now hold
+// exactly the same things, so a second constant would only be something to drift.
 //
-// Both are exact for the same reason `LIST_ROW_HEIGHT` is -- the edge anchors add
-// them to the panel top rather than measuring -- so each is published to its own
-// panel as `--ce-list-header-height` and the description is line-clamped, so text
-// can never be the thing that decides the height.
+// It is **exact, not an estimate**, for the same reason `LIST_ROW_HEIGHT` is: the
+// edge anchors add it to the panel top rather than measuring the DOM, so a header
+// that rendered taller than this would point every association line one dead band
+// too high. It is published to the panels as `--ce-list-header-height` and the
+// description is line-clamped, so text can never be the thing that decides the
+// height. **Change this and the CSS together, or not at all.**
 //
-// Title row (18) + description (2 x 13) + column heads (12) + gaps + padding.
-const PROGRAM_HEADER_HEIGHT = 84;
-// The same without the column heads.
-const STATE_HEADER_HEIGHT = 68;
+// Title row (18) + gap (3) + description (2 x 13) = 47, plus 13px of breathing room
+// split above and below.
+const LIST_HEADER_HEIGHT = 60;
 const LIST_ROW_HEIGHT = 46;
 
 // One gap, used on both sides of the programs list: gene -> programs and
@@ -136,6 +148,14 @@ const STATE_LIST_WIDTH = 340;
 // clearing both boxes completely, since the heading is two short lines and the legend
 // now opens collapsed. This clears the heading; the reader pans for the rest.
 const HEADING_CLEARANCE = 40;
+
+// How much world space a COLLAPSED edge key occupies above its panel: the header box
+// plus the dotted tail. `Fit` reserves this so the keys are never cropped. An
+// expanded key grows upward past it, which is fine -- that is a transient state the
+// reader opened themselves.
+// Two pulses at 600ms. Matches the `legend-pulse` animation -- if they drift, the
+// class is removed mid-flash or lingers after it.
+const PULSE_MS = 1200;
 
 // Margin `Fit` leaves around the content, overriding CanvasStage's more generous
 // default. Counted twice per axis, so the default 80 was spending ~12% of the fitted
@@ -167,7 +187,8 @@ export default Vue.component("CellEvolutionBrowser", {
         CanvasStage,
         ProgramRow,
         StateRow,
-        MetadataCard
+        MetadataCard,
+        InfoTip
     },
 
     props: {
@@ -216,6 +237,30 @@ export default Vue.component("CellEvolutionBrowser", {
             programError: "",
             selectedProgramKey: "",
 
+            // gene-program-nmf-liger-report, one row per factor for this scope. The
+            // factor-level quality signal: `overall_verdict` is what hides a program
+            // row, replacing the p-value graying nobody on the 10/02 call could
+            // explain.
+            //
+            // Fetched alongside the programs but NOT allowed to fail them -- a scope
+            // with no report (7 of 169 return nothing) must still draw its canvas,
+            // with every program shown. Absent QC is not a failed QC.
+            factorReportRows: [],
+            // Punchlist 1.6, and phrased as a POSITIVE filter to match
+            // `significantEdgesOnly` below -- both legend checkboxes now read as
+            // "only show me the ones that clear this bar", rather than one saying
+            // keep and the other saying hide.
+            //
+            // On by default. This was the single biggest point of confusion on the
+            // 10/02 call, hit independently by two reviewers: searching a gene listed
+            // every program for the cell type, so "why is it showing that only 4 of
+            // these programs are connected to the gene?"
+            //
+            // The QC verdict does NOT hide anything. It is displayed on the row and
+            // in the detail card and that is all -- several questions about what it
+            // means are still open with Kyle.
+            loadedProgramsOnly: true,
+
             // cell states
             stateRows: [],
             stateMetadataRows: [],
@@ -248,6 +293,12 @@ export default Vue.component("CellEvolutionBrowser", {
             // dataset,cell_type,model,factor, so the only way to the gene's loading
             // in every program is to ask every program. See loadGeneLoadings().
             geneLoadingByProgram: {},
+            // Programs the API answered for and that genuinely do not carry this
+            // gene. Kept as a MAP rather than only the count below, because this is
+            // what 1.6 hides on -- and a program whose request *failed* must not be
+            // hidden. "We asked and it is not there" and "we never got an answer"
+            // look identical from `geneLoadingByProgram` alone.
+            geneLoadingAbsentByProgram: {},
             geneLoadingsDone: 0,
             geneLoadingsTotal: 0,
             geneLoadingsAbsent: 0,
@@ -288,6 +339,11 @@ export default Vue.component("CellEvolutionBrowser", {
             // are what they come back for once they are reading widths. The heading
             // stays visible, so the box does not have to be discovered.
             legendCollapsed: true,
+            // "gene" | "enrichment" | "", set when a canvas label is clicked so the
+            // matching legend section can flash. Cleared on a timer, because a class
+            // that is never removed cannot be re-triggered by a second click.
+            pulsedSection: "",
+            pulseTimer: null,
 
             // The edge under the cursor, and what to say about it. Held apart from
             // `hovered` because it is a single line rather than a row's whole fan.
@@ -517,8 +573,26 @@ export default Vue.component("CellEvolutionBrowser", {
             }, {});
         },
 
-        programItems() {
+        factorReportByKey() {
+            return this.factorReportRows.reduce((map, row) => {
+                let key = programKey(row);
+
+                if (key) {
+                    map[key] = row;
+                }
+
+                return map;
+            }, {});
+        },
+
+        // Every program in the scope, flagged or not. Nothing renders from this
+        // directly -- `programItems` is the filtered view, and filtering THERE rather
+        // than at the template is what keeps the edges, the canvas height, the row
+        // anchors and the counts consistent with each other. A program hidden here is
+        // hidden everywhere, which is what punchlist 1.7 needs.
+        allProgramItems() {
             let infoByKey = this.programInfoByKey;
+            let reportByKey = this.factorReportByKey;
 
             return buildExpressionItems(this.programRows, {
                 axisMax: this.expressionAxis,
@@ -530,10 +604,86 @@ export default Vue.component("CellEvolutionBrowser", {
                         label: programLabel(row, infoByKey[key] || null)
                     };
                 }
+            }).map((item) => {
+                let report = reportByKey[item.key] || null;
+
+                let qcFlagged = report ? isFlaggedFactor(report) : null;
+                let geneLoading = this.geneLoadingByProgram[item.key];
+                let geneLoadingAbsent = !!this.geneLoadingAbsentByProgram[item.key];
+                // Matches the checkbox, which says `Loading > 0 only`. A loading of
+                // exactly 0 or below is a REPORTED value, so it is not "absent" --
+                // but it does not clear the bar either, and the label would be lying
+                // if it stayed visible. Zero loadings are real in this data: 45 of
+                // 4940 genes on Factor1 alone.
+                //
+                // A program whose request FAILED is in neither group and is never
+                // hidden: missing is not absent.
+                let belowLoading = geneLoadingAbsent
+                    || (Number.isFinite(geneLoading) && geneLoading <= 0);
+
+                return {
+                    ...item,
+                    report,
+                    // Three states, not two. `false` means the report said
+                    // high_confidence; `null` means no report row for this factor,
+                    // which must not read as a pass.
+                    qcFlagged,
+                    qcFlags: report ? parseFactorFlags(field(report, ["flags"])) : [],
+                    // Display only, by decision: the verdict is shown on the row and
+                    // in the detail card and filters nothing. What covariates `X` and
+                    // `Y` are, whether trait covariates should flag, and why two
+                    // checks come back `unknown` are all still open with Kyle.
+                    verdictLabel: report ? factorVerdictLabel(report) : "",
+                    verdictTone: qcFlagged === true ? "warn" : (report ? "ok" : "none"),
+
+                    // **Dimming means "this is what the filter would remove".** Not
+                    // the p-value (nobody on the 10/02 call could say what it tested,
+                    // and 3.1 is still open) and not the QC verdict (3.11-3.13 are
+                    // open, and it is reported as a pill instead).
+                    //
+                    // So a dimmed row only ever appears with `Loading > 0 only` OFF,
+                    // on the canvas. In the card's lists, which never filter, it is
+                    // how a reader tells the two groups apart.
+                    muted: belowLoading,
+
+                    hasGeneLoading: Number.isFinite(geneLoading),
+                    geneLoading,
+                    geneLoadingText: Number.isFinite(geneLoading) ? geneLoading.toFixed(2) : "—",
+                    geneLoadingAbsent,
+                    belowLoading
+                };
             });
         },
 
-        stateItems() {
+        // The gene-loading fan-out is one request per program and is NOT awaited, so
+        // for the first moment after a scope loads every program looks like it has no
+        // loading. Filtering on that would collapse the list from 20 rows to 4 a
+        // second after the canvas appeared, under the reader's cursor.
+        //
+        // So the filter stays inert until the fan-out has finished and the list
+        // settles exactly once.
+        geneLoadingsSettled() {
+            return this.geneLoadingsTotal > 0 && this.geneLoadingsDone >= this.geneLoadingsTotal;
+        },
+
+        programItems() {
+            if (!this.loadedProgramsOnly || !this.geneLoadingsSettled) {
+                return this.allProgramItems;
+            }
+
+            return this.allProgramItems.filter((item) => !item.belowLoading);
+        },
+
+        // Counted off `allProgramItems` so the number does not change when the filter
+        // is toggled. Zero until the fan-out settles, which is also when the checkbox
+        // appears -- offering to reveal rows that are already visible would be noise.
+        programsWithoutLoadingCount() {
+            return this.geneLoadingsSettled
+                ? this.allProgramItems.filter((item) => item.belowLoading).length
+                : 0;
+        },
+
+        allStateItems() {
             let metadataByKey = this.stateMetadataByKey;
 
             // Its own specificity axis, from its own rows: state specificity and
@@ -551,8 +701,10 @@ export default Vue.component("CellEvolutionBrowser", {
                 }
             });
 
-            // The color is assigned by final list position, so it matches the swatch
-            // on the row and the edges that land there.
+            // NOTE the color here is provisional. It is assigned by position, and
+            // `stateItems` filters this list, so the final color is assigned there --
+            // otherwise the swatch on a row and the edges landing on it would be
+            // picked from two different orderings and disagree.
             //
             // The lede comes along too. A state row carries it where a program row
             // carries its metrics: a cell state's name is a claim about biology
@@ -568,6 +720,77 @@ export default Vue.component("CellEvolutionBrowser", {
                     "summary.recommended_portal_summary"
                 ]) || ""
             }));
+        },
+
+        // Punchlist 1.7: a cell state with no surviving association to a visible
+        // program is not shown. Otherwise states dangle off programs the gene-loading
+        // filter already removed, and non-significant associations leave states on
+        // the canvas with nothing drawn to them.
+        //
+        // **This needs two passes, and the reason is a genuine cycle.** `buildEdges()`
+        // takes `stateOrder` -- it uses it to drop off-canvas edges and to pick each
+        // edge's color -- so the edges cannot be derived from a state list that is
+        // itself derived from the edges. The first pass runs against ALL states,
+        // purely to find out which ones are connected; `stateItems` filters on that;
+        // and `relationships` then runs again against the final order, which is what
+        // actually gets drawn. The cost is one extra pass over a few hundred rows.
+        // Always computed at the significance threshold, regardless of the checkbox:
+        // this is "does the state have an association worth drawing", which is the
+        // same question whether or not the reader is currently filtering on it.
+        connectedStateKeys() {
+            // Degrade to no filtering rather than to an empty canvas. If the
+            // relationship index failed or returned nothing, every state would have
+            // zero edges and the whole list would vanish -- and the states are still
+            // real without it, exactly as programs are without the QC report.
+            if (!this.relationshipRows.length) {
+                return null;
+            }
+
+            let probeOrder = this.allStateItems.reduce((map, item, index) => {
+                map[item.key] = index;
+                return map;
+            }, {});
+
+            return buildEdges(this.relationshipRows, {
+                programOrder: this.programOrder,
+                stateOrder: probeOrder,
+                metricKey: this.metricKey,
+                significantOnly: true,
+                qcSignatureIndex: this.qcSignatureIndex
+            }).edges.reduce((keys, edge) => {
+                keys[edge.stateKey] = true;
+                return keys;
+            }, {});
+        },
+
+        // Symmetric with `programItems`: the same checkbox that filters the edges
+        // filters the states they would have landed on. With it off, every state is
+        // shown and the unconnected ones are dimmed rather than removed.
+        stateItems() {
+            let connected = this.connectedStateKeys;
+
+            if (!connected) {
+                return this.allStateItems;
+            }
+
+            let kept = this.significantEdgesOnly
+                ? this.allStateItems.filter((item) => connected[item.key])
+                : this.allStateItems;
+
+            // Color is assigned HERE, over the final visible order, so the row swatch
+            // and the edges landing on that row agree. Assigning it upstream would
+            // leave the two reading from different orderings.
+            return kept.map((item, index) => ({
+                ...item,
+                color: stateColor(index),
+                // Same meaning as on a program row: this is what the filter would
+                // remove. Replaces the p-value rule these rows used to carry.
+                muted: !connected[item.key]
+            }));
+        },
+
+        hiddenStateCount() {
+            return this.allStateItems.length - this.stateItems.length;
         },
 
         programOrder() {
@@ -587,11 +810,11 @@ export default Vue.component("CellEvolutionBrowser", {
         // --- panel geometry ---
 
         programListHeight() {
-            return PROGRAM_HEADER_HEIGHT + this.programItems.length * LIST_ROW_HEIGHT;
+            return LIST_HEADER_HEIGHT + this.programItems.length * LIST_ROW_HEIGHT;
         },
 
         stateListHeight() {
-            return STATE_HEADER_HEIGHT + this.stateItems.length * LIST_ROW_HEIGHT;
+            return LIST_HEADER_HEIGHT + this.stateItems.length * LIST_ROW_HEIGHT;
         },
 
         programListTop() {
@@ -602,13 +825,37 @@ export default Vue.component("CellEvolutionBrowser", {
             return HUB_Y - this.stateListHeight / 2;
         },
 
+        // Each label spans exactly its own gap between the columns and sits at the
+        // vertical middle of the bundle it names. Both panels are centered on `HUB_Y`,
+        // so that is where every bundle is thickest -- the label lands on the lines
+        // rather than beside them, which is the point.
+        //
+        // `translateY(-50%)` rather than subtracting a height: the label's height is
+        // its text's, and a hardcoded half-height would drift the moment the type
+        // scale moves.
+        geneKeyStyle() {
+            return {
+                left: `${HUB_X + HUB_WIDTH}px`,
+                width: `${COLUMN_GAP}px`,
+                top: `${HUB_Y}px`
+            };
+        },
+
+        enrichmentKeyStyle() {
+            return {
+                left: `${PROGRAM_LIST_X + PROGRAM_LIST_WIDTH}px`,
+                width: `${COLUMN_GAP}px`,
+                top: `${HUB_Y}px`
+            };
+        },
+
         programListStyle() {
             return {
                 left: `${PROGRAM_LIST_X}px`,
                 top: `${this.programListTop}px`,
                 width: `${PROGRAM_LIST_WIDTH}px`,
                 "--ce-row-height": `${LIST_ROW_HEIGHT}px`,
-                "--ce-list-header-height": `${PROGRAM_HEADER_HEIGHT}px`
+                "--ce-list-header-height": `${LIST_HEADER_HEIGHT}px`
             };
         },
 
@@ -618,7 +865,7 @@ export default Vue.component("CellEvolutionBrowser", {
                 top: `${this.stateListTop}px`,
                 width: `${STATE_LIST_WIDTH}px`,
                 "--ce-row-height": `${LIST_ROW_HEIGHT}px`,
-                "--ce-list-header-height": `${STATE_HEADER_HEIGHT}px`
+                "--ce-list-header-height": `${LIST_HEADER_HEIGHT}px`
             };
         },
 
@@ -630,6 +877,30 @@ export default Vue.component("CellEvolutionBrowser", {
                 stateOrder: this.stateOrder,
                 metricKey: this.metricKey,
                 significantOnly: this.significantEdgesOnly,
+                qcSignatureIndex: this.qcSignatureIndex
+            });
+        },
+
+        // The same edge set over EVERY program and state, always at the significance
+        // threshold. This is what the metadata card reads.
+        //
+        // It exists because `relationships` above is scoped to what the canvas is
+        // currently drawing, so a match count taken from it would read 0 for any
+        // entity the checkboxes had hidden, and a state would come out dimmed merely
+        // because the program it connects to was filtered away. The card's lists do
+        // not filter, so they cannot be described by a filtered edge set.
+        unfilteredRelationships() {
+            return buildEdges(this.relationshipRows, {
+                programOrder: this.allProgramItems.reduce((map, item, index) => {
+                    map[item.key] = index;
+                    return map;
+                }, {}),
+                stateOrder: this.allStateItems.reduce((map, item, index) => {
+                    map[item.key] = index;
+                    return map;
+                }, {}),
+                metricKey: this.metricKey,
+                significantOnly: true,
                 qcSignatureIndex: this.qcSignatureIndex
             });
         },
@@ -650,8 +921,8 @@ export default Vue.component("CellEvolutionBrowser", {
             // Two offsets, not one: the panels' headers are different heights, so a
             // shared `rowCenter` would land every edge's program end correctly and
             // its state end 8px high.
-            let programRowCenter = PROGRAM_HEADER_HEIGHT + LIST_ROW_HEIGHT / 2;
-            let stateRowCenter = STATE_HEADER_HEIGHT + LIST_ROW_HEIGHT / 2;
+            let programRowCenter = LIST_HEADER_HEIGHT + LIST_ROW_HEIGHT / 2;
+            let stateRowCenter = LIST_HEADER_HEIGHT + LIST_ROW_HEIGHT / 2;
 
             return this.relationships.edges.map((edge) => {
                 let fromY = programTop + programRowCenter + this.programOrder[edge.programKey] * LIST_ROW_HEIGHT;
@@ -727,6 +998,14 @@ export default Vue.component("CellEvolutionBrowser", {
             return METRICS;
         },
 
+        geneLoadingDefinition() {
+            return GENE_LOADING_DEFINITION;
+        },
+
+        enrichmentDefinition() {
+            return ENRICHMENT_DEFINITION;
+        },
+
         significanceThreshold() {
             return SIGNIFICANCE_P;
         },
@@ -747,7 +1026,7 @@ export default Vue.component("CellEvolutionBrowser", {
         drawnGeneLinks() {
             let originX = HUB_X + HUB_WIDTH;
             let targetX = PROGRAM_LIST_X;
-            let rowCenter = PROGRAM_HEADER_HEIGHT + LIST_ROW_HEIGHT / 2;
+            let rowCenter = LIST_HEADER_HEIGHT + LIST_ROW_HEIGHT / 2;
             let hovered = this.hovered;
 
             return this.geneLinks.links.map((link) => {
@@ -831,9 +1110,13 @@ export default Vue.component("CellEvolutionBrowser", {
                 right = STATE_LIST_X + STATE_LIST_WIDTH;
             }
 
-            // The clearance is on the top only: the heading and the legend are both
-            // up there, and nothing is fixed across the bottom except the zoom
-            // controls and the gesture hint, which are small and in the corners.
+            // The clearance is on the top only: the canvas heading is up there, and
+            // nothing is fixed across the bottom except the zoom controls and the
+            // gesture hint, which are small and in the corners.
+            //
+            // The two canvas labels need nothing here. They sit at `HUB_Y`, the
+            // vertical middle of the bundles, which is already well inside these
+            // bounds -- unlike the earlier version that floated above the panels.
             let top = Math.min(...tops) - HEADING_CLEARANCE;
 
             return {
@@ -865,62 +1148,11 @@ export default Vue.component("CellEvolutionBrowser", {
             return FIT_PADDING;
         },
 
-        // The EXP column head's tooltip.
-        //
-        // It carries the axis top, which is why the `max N` readout could come out
-        // of the header: the bars are scaled to the strongest value on screen, and
-        // that ceiling has to be stated SOMEWHERE or the relative scaling is
-        // invisible. Moving it here keeps the property and buys back the space.
-        //
-        // The field is named rather than interpreted. `log10_cpk` is the only
-        // expression field these endpoints return and its exact definition is an
-        // open question -- it behaves like a log of a log, see ../README.md -- so
-        // this reports the backend's own naming and does not assert CPK.
-        expressionColumnHelp() {
-            return {
-                title: "EXP — expression",
-                stats: [
-                    { label: "Field", value: "log10_cpk" },
-                    { label: "Axis top", value: String(this.expressionAxis) }
-                ],
-                paragraphs: [
-                    `How strongly ${this.geneLabelOrGene} is expressed in this gene program.`,
-                    "The number is the pipeline's log10_cpk as reported. The bar is the same value"
-                        + " as 10^log10_cpk, on a linear scale from a true zero — a bar has to have"
-                        + " one, and log10_cpk does not.",
-                    "The scale is relative to these results, not global: the axis top is the"
-                        + " strongest value on this canvas, floored so a barely-expressed gene"
-                        + " cannot fill its own bar. Both lists share it, because it is the same"
-                        + " measurement on both."
-                ]
-            };
-        },
-
-        // Kept separate from the expression tooltip, and separate from v1's
-        // cell-type one: specificity's DENOMINATOR differs by card, and collapsing
-        // the three into one string is how they come to disagree with the data.
-        // Here it is the parent cell-type background.
-        specificityColumnHelp() {
-            return {
-                title: "SPEC — specificity",
-                stats: [
-                    { label: "Field", value: "log2fc_weighted_vs_all_parent" },
-                    { label: "Units", value: "log₂ fold change" }
-                ],
-                paragraphs: [
-                    `How specific ${this.geneLabelOrGene}'s expression is to this program,`
-                        + " measured against the rest of the parent cell type.",
-                    "Negative means the gene is expressed less in this program than across the"
-                        + " cell type as a whole — the program is not where this gene's signal"
-                        + " sits. It is a fold change, not a p-value.",
-                    "The gutter arrow carries the sign: blue up, red down, grey when the API"
-                        + " reports no specificity at all, which is a third case rather than a"
-                        + " zero. There is no bar, because specificity is signed and expression is"
-                        + " not, and one shared track would read as though both were the same kind"
-                        + " of quantity."
-                ]
-            };
-        },
+        // The EXP / SPEC column-head tooltips used to live here. The columns came off
+        // the program rows (10/02 call, punchlist 1.2), so their explanations moved
+        // into the program detail card, next to the values they describe. The axis
+        // ceiling the EXP tooltip used to state went with them -- it still has to be
+        // stated somewhere, because the bars are relatively scaled.
 
         // key -> label, for the tooltip. An edge carries only its endpoints' keys,
         // and a tooltip that named `Factor7` and `artery_fibroblast_adipogenic`
@@ -970,6 +1202,14 @@ export default Vue.component("CellEvolutionBrowser", {
                 return "canvas";
             }
 
+            // The scope HAS programs; none of them carries this gene, so the 1.6
+            // filter hid all of them. Distinct from "empty-programs", which would
+            // tell the reader the scope returned nothing and leave them no way to
+            // find out otherwise.
+            if (this.allProgramItems.length) {
+                return "all-unloaded";
+            }
+
             if (!this.selectedGene) {
                 return "empty-gene";
             }
@@ -991,8 +1231,16 @@ export default Vue.component("CellEvolutionBrowser", {
             return this.programItems.find((item) => item.key === this.selectedProgramKey) || null;
         },
 
+        // Falls back to the unfiltered list. A state can leave the canvas while it is
+        // selected -- tightening the significance filter cuts its last edge, or a
+        // `cell_state` query param names one that was never connected -- and unlike
+        // the program filter there is no checkbox to turn this one off, since it is
+        // derived from the edges. Showing the card for a state that is not drawn is
+        // more use than blanking it.
         selectedState() {
-            return this.stateItems.find((item) => item.key === this.selectedStateKey) || null;
+            return this.stateItems.find((item) => item.key === this.selectedStateKey)
+                || this.allStateItems.find((item) => item.key === this.selectedStateKey)
+                || null;
         },
 
         selectedProgramFactor() {
@@ -1051,19 +1299,32 @@ export default Vue.component("CellEvolutionBrowser", {
         // Per-row match counts, for the pick-one lists. Answers "is this worth
         // opening" before anything is opened.
         programItemsWithCounts() {
-            let byProgram = this.relationships.byProgram;
+            let byProgram = this.unfilteredRelationships.byProgram;
 
-            return this.programItems.map((item) => ({
+            // **The FULL set, deliberately -- `allProgramItems`, not `programItems`.**
+            // The card's lists are the "I know what I am looking for" path, and a
+            // list that hid what the canvas filter hid would leave a reader unable to
+            // reach a program at all without first working out which checkbox was
+            // responsible. The filtered-out rows carry `muted`, so the two groups are
+            // still distinguishable.
+            return this.allProgramItems.map((item) => ({
                 ...item,
                 matchCount: (byProgram[item.key] || []).length
             }));
         },
 
         stateItemsWithCounts() {
-            let byState = this.relationships.byState;
+            let byState = this.unfilteredRelationships.byState;
 
-            return this.stateItems.map((item) => ({
+            // The full set, for the same reason as the programs list above. These
+            // come off `allStateItems`, which has no `muted` and only a provisional
+            // color, so both are resolved here -- against the UNFILTERED edge set, so
+            // a state is dimmed only for having no significant association of its
+            // own, never for the canvas having hidden the program it connects to.
+            return this.allStateItems.map((item, index) => ({
                 ...item,
+                color: stateColor(index),
+                muted: !(byState[item.key] || []).length,
                 matchCount: (byState[item.key] || []).length
             }));
         },
@@ -1093,40 +1354,9 @@ export default Vue.component("CellEvolutionBrowser", {
                 .sort((a, b) => a.sortValue - b.sortValue);
         },
 
-        // The two narrowing cases, one per direction. With one side selected and the
-        // other not, the pick-one list for the empty side shows only what matches --
-        // the question at that point is "which of these does the selected one
-        // connect to", not "what exists".
-        //
-        // Both read the same edge set the canvas draws, so the card and the canvas
-        // cannot disagree about what a match is.
-        statesForSelectedProgram() {
-            if (!this.selectedProgramKey) {
-                return [];
-            }
-
-            let matched = (this.relationships.byProgram[this.selectedProgramKey] || [])
-                .reduce((set, edge) => {
-                    set[edge.stateKey] = true;
-                    return set;
-                }, {});
-
-            return this.stateItemsWithCounts.filter((item) => matched[item.key]);
-        },
-
-        programsForSelectedState() {
-            if (!this.selectedStateKey) {
-                return [];
-            }
-
-            let matched = (this.relationships.byState[this.selectedStateKey] || [])
-                .reduce((set, edge) => {
-                    set[edge.programKey] = true;
-                    return set;
-                }, {});
-
-            return this.programItemsWithCounts.filter((item) => matched[item.key]);
-        },
+        // The pick-one lists used to narrow to the selected entity's matches. They
+        // no longer do -- see MetadataCard. A reader with a program selected could
+        // not reach any non-matching cell state from the card at all.
 
         scopeSummary() {
             let parts = [this.selectedGene, this.selectedTissueLabel];
@@ -1182,9 +1412,14 @@ export default Vue.component("CellEvolutionBrowser", {
         // correction than survive a raw p-value, so the same 0.05 threshold can
         // legitimately empty the picture, and nothing said so.
         //
-        // The two reasons are reported separately for the same reason the legend
-        // keeps them apart: "above the threshold" is a filter the reader can undo,
-        // "not reported" is not.
+        // The two reasons are reported separately because they are different kinds
+        // of fact: "above the threshold" is a filter the reader can undo, "not
+        // reported" is not.
+        //
+        // These counts no longer appear in the Enrichment key -- as drop counts over
+        // heatmap rows they described something nobody is looking at. They survive
+        // HERE because this fires only when the canvas is empty, which is exactly when
+        // a reader needs to be told the difference between a filter and a data gap.
         edgeEmptyNotice() {
             if (!this.relationshipRows.length || this.edgeSummary.shown) {
                 return "";
@@ -1195,12 +1430,12 @@ export default Vue.component("CellEvolutionBrowser", {
             if (nonSignificant) {
                 return `No ${metricLabel} < ${this.significanceThreshold} associations here — `
                     + `${nonSignificant} reported above the threshold. Uncheck the filter under `
-                    + `Association scores to draw them.`;
+                    + `Enrichment to draw them.`;
             }
 
             if (unreported) {
                 return `No ${metricLabel} is reported on any of the ${unreported} associations in `
-                    + `this scope. Try the other metric under Association scores.`;
+                    + `this scope. Try the other metric under Enrichment.`;
             }
 
             return "No program–state associations reported in this scope.";
@@ -1227,6 +1462,11 @@ export default Vue.component("CellEvolutionBrowser", {
             this.ensurePhenotypes();
             this.loadProgramDetail(programId);
             this.loadProgramTraits(programId);
+            // A `gene_program` query param can name a program the default filter
+            // hides -- so the card would open on a row that is not on the canvas,
+            // with no indication why. An explicit request for a program outranks the
+            // default.
+            this.revealHiddenProgram(programId);
             // Selecting on the canvas has to take the card to the thing selected.
             // The card's own list and cross-links set the tab themselves, so this
             // being unconditional is harmless -- it agrees with them.
@@ -1276,6 +1516,7 @@ export default Vue.component("CellEvolutionBrowser", {
 
     beforeDestroy() {
         this.clearSuggestionTimer();
+        clearTimeout(this.pulseTimer);
     },
 
     methods: {
@@ -1467,7 +1708,11 @@ export default Vue.component("CellEvolutionBrowser", {
         // into one request.
         async loadGeneLoadings(cellTypeKey) {
             let tissueKey = this.selectedTissueKey;
-            let programKeys = this.programItems.map((item) => item.key);
+            // `allProgramItems`, NOT `programItems`. Since 1.6 the visible list is
+            // filtered BY the result of this fan-out, so asking only about visible
+            // programs would ask only about programs already known to have a loading
+            // -- and nothing would ever be discovered to hide.
+            let programKeys = this.allProgramItems.map((item) => item.key);
 
             if (!tissueKey || !cellTypeKey || !this.selectedGene || !programKeys.length) {
                 return;
@@ -1477,6 +1722,7 @@ export default Vue.component("CellEvolutionBrowser", {
             let gene = this.selectedGene;
 
             this.geneLoadingByProgram = {};
+            this.geneLoadingAbsentByProgram = {};
             this.geneLoadingsDone = 0;
             this.geneLoadingsTotal = programKeys.length;
             this.geneLoadingsAbsent = 0;
@@ -1484,6 +1730,7 @@ export default Vue.component("CellEvolutionBrowser", {
 
             let queue = programKeys.slice();
             let resolved = {};
+            let absentKeys = {};
             // Two different facts, reported separately: the gene is not in this
             // program's index, versus the request for it did not come back.
             let absent = 0;
@@ -1508,8 +1755,10 @@ export default Vue.component("CellEvolutionBrowser", {
                             resolved[programId] = value;
                         } else {
                             // The request succeeded and the gene is genuinely not in
-                            // this program's loading index. Distinct from a failure.
+                            // this program's loading index. Distinct from a failure,
+                            // and the ONLY condition that hides a row under 1.6.
                             absent += 1;
+                            absentKeys[programId] = true;
                         }
                     } catch (error) {
                         // One program failing leaves its line undrawn -- but it is
@@ -1535,12 +1784,21 @@ export default Vue.component("CellEvolutionBrowser", {
                     // Replaced rather than mutated so Vue 2 sees each arrival and
                     // the lines appear progressively.
                     this.geneLoadingByProgram = { ...resolved };
+                    this.geneLoadingAbsentByProgram = { ...absentKeys };
                 }
             };
 
             await Promise.all(
                 Array.from({ length: Math.min(GENE_LOADING_CONCURRENCY, queue.length) }, worker)
             );
+
+            // Only now is it known which programs carry the gene, so only now can the
+            // 1.6 filter be said to hide anything. On a deep link `selectedProgramKey`
+            // was restored from the query string long before this point, and the
+            // watcher's own call found nothing resolved yet.
+            if (run === this.geneLoadingRun) {
+                this.revealHiddenProgram(this.selectedProgramKey);
+            }
         },
 
         // Pulls one gene's loading out of a program's gene list. Case-insensitive,
@@ -1572,7 +1830,7 @@ export default Vue.component("CellEvolutionBrowser", {
 
             stage.revealWorldPoint(
                 PROGRAM_LIST_X + PROGRAM_LIST_WIDTH / 2,
-                listTop + PROGRAM_HEADER_HEIGHT + index * LIST_ROW_HEIGHT + LIST_ROW_HEIGHT / 2
+                listTop + LIST_HEADER_HEIGHT + index * LIST_ROW_HEIGHT + LIST_ROW_HEIGHT / 2
             );
         },
 
@@ -1591,7 +1849,7 @@ export default Vue.component("CellEvolutionBrowser", {
 
                 stage.revealWorldPoint(
                     STATE_LIST_X + STATE_LIST_WIDTH / 2,
-                    this.stateListTop + STATE_HEADER_HEIGHT + index * LIST_ROW_HEIGHT + LIST_ROW_HEIGHT / 2
+                    this.stateListTop + LIST_HEADER_HEIGHT + index * LIST_ROW_HEIGHT + LIST_ROW_HEIGHT / 2
                 );
             });
         },
@@ -1837,6 +2095,10 @@ export default Vue.component("CellEvolutionBrowser", {
         resetCellTypeResults() {
             this.programRows = [];
             this.programInfoRows = [];
+            // The report is per scope. Leaving the previous scope's rows here would
+            // key QC verdicts onto the new scope's factors by bare id -- `Factor1`
+            // exists in every cell type -- and hide the wrong programs.
+            this.factorReportRows = [];
             this.programError = "";
             this.selectedProgramKey = "";
             this.stateRows = [];
@@ -1852,6 +2114,7 @@ export default Vue.component("CellEvolutionBrowser", {
             // old cell type cannot land as lines in the new one.
             this.geneLoadingRun += 1;
             this.geneLoadingByProgram = {};
+            this.geneLoadingAbsentByProgram = {};
             this.geneLoadingsDone = 0;
             this.geneLoadingsTotal = 0;
             this.geneLoadingsAbsent = 0;
@@ -2017,7 +2280,7 @@ export default Vue.component("CellEvolutionBrowser", {
             this.programError = "";
 
             try {
-                let [expressionPayload, infoPayload] = await Promise.all([
+                let [expressionPayload, infoPayload, reportRows] = await Promise.all([
                     fetchJson(this.api.programExpression(tissueKey, cellType.key, this.selectedGene)),
                     // gene-program-factor is still fetched for `top_genes`, which
                     // only it carries. The readable label now rides along on the
@@ -2026,7 +2289,14 @@ export default Vue.component("CellEvolutionBrowser", {
                     // row when present and falls back to the expression row's own
                     // field, which means the canvas renders correctly even if this
                     // request is the one that fails.
-                    fetchJson(this.api.programInfo(tissueKey, cellType.key))
+                    fetchJson(this.api.programInfo(tissueKey, cellType.key)),
+                    // Swallowed on failure, deliberately, and the only one of the
+                    // three that is. The QC verdict HIDES rows, so a failed fetch
+                    // must degrade to "no filtering" rather than to an error page or
+                    // an empty canvas -- the programs are still real without it.
+                    fetchJson(this.api.factorReport(tissueKey, cellType.key))
+                        .then(rowsFromResponse)
+                        .catch(() => [])
                 ]);
 
                 // No model filter any more: the API serves one factorization and the
@@ -2034,6 +2304,7 @@ export default Vue.component("CellEvolutionBrowser", {
                 // future multi-model index would need the filter back here.
                 this.programRows = rowsFromResponse(expressionPayload);
                 this.programInfoRows = rowsFromResponse(infoPayload);
+                this.factorReportRows = reportRows;
 
                 if (!this.programRows.length) {
                     this.programError = `No gene programs for ${this.selectedGene} in ${cellType.label}.`;
@@ -2097,6 +2368,40 @@ export default Vue.component("CellEvolutionBrowser", {
                 }
             } catch (error) {
                 this.relationshipError = `Unable to load program/state associations for ${cellType.label}.`;
+            }
+        },
+
+        // The canvas labels are the way in to the legend. A reader looking at a
+        // bundle and wondering what the widths mean should not then have to find the
+        // box in the corner, expand it, and work out which half applies.
+        openLegendSection(section) {
+            this.legendCollapsed = false;
+            // Cleared first so clicking the same label twice re-runs the animation --
+            // re-adding a class it already has does nothing.
+            this.pulsedSection = "";
+            clearTimeout(this.pulseTimer);
+
+            this.$nextTick(() => {
+                this.pulsedSection = section;
+                this.pulseTimer = setTimeout(() => {
+                    this.pulsedSection = "";
+                }, PULSE_MS);
+            });
+        },
+
+        // Turns the filter off when the selected program is one it hides. Called from
+        // the selection watcher rather than from the click handlers, because a click
+        // can only land on a visible row -- the case this exists for is a deep link,
+        // and a restore that runs before the loadings have resolved.
+        revealHiddenProgram(programId) {
+            if (!this.loadedProgramsOnly || !programId) {
+                return;
+            }
+
+            let item = this.allProgramItems.find((candidate) => candidate.key === programId);
+
+            if (item && item.belowLoading) {
+                this.loadedProgramsOnly = false;
             }
         },
 
@@ -2248,17 +2553,6 @@ export default Vue.component("CellEvolutionBrowser", {
 
         onGeneLinkLeave() {
             this.hovered = null;
-            this.canvasTooltip = null;
-        },
-
-        // The column heads use the same tooltip, and touch neither `hovered` nor
-        // `hoveredEdgeKey`: a reader reading what a column means is not pointing at
-        // any row, and dimming the canvas under them would be noise.
-        onColumnHelpEnter(help, event) {
-            this.positionTooltip(event, help);
-        },
-
-        onColumnHelpLeave() {
             this.canvasTooltip = null;
         }
     }
@@ -2526,39 +2820,24 @@ export default Vue.component("CellEvolutionBrowser", {
                         <div class="list-header">
                             <div class="list-heading-row">
                                 <span class="list-title">Gene programs</span>
-                                <span class="list-count">{{ programItems.length }}</span>
+                                <!-- "N of M", not "N": the list is filtered, and a
+                                     bare count cannot say so. -->
+                                <span class="list-count">{{ programItems.length }} of {{ allProgramItems.length }}</span>
                             </div>
                             <div class="list-description">
                                 Coordinated patterns of gene activity representing biological processes.
                             </div>
 
-                            <!-- Column heads over the two numeric columns, on the
-                                 same geometry the rows use (see the --ce-col-*
-                                 variables), so they line up with the values rather
-                                 than near them.
+                            <!-- No EXP / SPEC column heads here any more. The 10/02
+                                 call asked for expression and specificity to come off
+                                 the program rows: that data is far less validated than
+                                 the structure, and "the expression's basically the
+                                 same across all gene programs… I'd [not] want that to
+                                 be the first thing people see."
 
-                                 Their explanations go through the same tooltip the
-                                 association lines use. These triggers are inside the
-                                 canvas world and therefore scaled by the zoom, but
-                                 the tooltip is not -- it is positioned in screen
-                                 coordinates from the pointer, outside CanvasStage,
-                                 so its text stays the same size at every zoom.
-
-                                 The dotted underline is the only thing saying there
-                                 is anything here to hover. -->
-                            <div class="list-columns">
-                                <span class="col-spacer" aria-hidden="true"></span>
-                                <span
-                                    class="col-head"
-                                    @mouseenter="onColumnHelpEnter(expressionColumnHelp, $event)"
-                                    @mouseleave="onColumnHelpLeave"
-                                >EXP</span>
-                                <span
-                                    class="col-head"
-                                    @mouseenter="onColumnHelpEnter(specificityColumnHelp, $event)"
-                                    @mouseleave="onColumnHelpLeave"
-                                >SPEC</span>
-                            </div>
+                                 Their explanations moved into the program detail card,
+                                 which is also where the axis ceiling the EXP tooltip
+                                 used to state now lives. -->
                         </div>
 
                         <program-row
@@ -2576,7 +2855,7 @@ export default Vue.component("CellEvolutionBrowser", {
                         <div class="list-header">
                             <div class="list-heading-row">
                                 <span class="list-title">Cell states</span>
-                                <span class="list-count">{{ stateItems.length }}</span>
+                                <span class="list-count">{{ stateItems.length }} of {{ allStateItems.length }}</span>
                             </div>
                             <div class="list-description">
                                 Cellular phenotypes associated with gene programs.
@@ -2594,8 +2873,56 @@ export default Vue.component("CellEvolutionBrowser", {
                         />
                     </div>
 
-                    <!-- Legend and controls for the edges. Fixed to the viewport, not
-                         the world, so it stays readable at any zoom. -->
+                    <!-- Just the labels, in WORLD coordinates ON TOP OF the bundle
+                         each one names -- centered in the gap, both across and down.
+                         They are an at-a-glance answer to "what are these lines", and
+                         a way in: clicking one opens the legend in the corner and
+                         pulses the matching section.
+
+                         Sitting over the lines rather than above them means a label
+                         occludes a few of its own edges. That is accepted: each is a
+                         small pill against a 200px gap, and the lines it covers stay
+                         hoverable on either side of it. The SVG is painted earlier in
+                         the slot, so the labels land on top without a z-index.
+
+                         The scales and controls themselves are NOT here. Sized to the
+                         gap they sit in, a full key is 200px wide and cramped, and two
+                         of them put the controls in two places a reader has to find
+                         separately. A label is small enough that the constraint costs
+                         nothing.
+
+                         World content, so each label tracks its own gap and pans with
+                         it; `data-canvas-interactive` so clicking one does not read as
+                         the start of a pan. -->
+                    <div class="edge-key" :style="geneKeyStyle" data-canvas-interactive>
+                        <info-tip
+                            title="Gene loadings"
+                            :text="geneLoadingDefinition"
+                            :focusable="false"
+                            cursor="pointer"
+                        >
+                            <button type="button" class="edge-key-label" @click="openLegendSection('gene')">
+                                Gene loadings
+                            </button>
+                        </info-tip>
+                    </div>
+
+                    <div class="edge-key" :style="enrichmentKeyStyle" data-canvas-interactive>
+                        <info-tip
+                            title="Enrichment"
+                            :text="enrichmentDefinition"
+                            :focusable="false"
+                            cursor="pointer"
+                        >
+                            <button type="button" class="edge-key-label" @click="openLegendSection('enrichment')">
+                                Enrichment
+                            </button>
+                        </info-tip>
+                    </div>
+
+                    <!-- The scales and filters, back in one box fixed to the viewport:
+                         it stays legible at any zoom, and the two encodings stay side
+                         by side where they can be read against each other. -->
                     <template v-slot:overlay>
                         <div class="edge-legend" data-canvas-interactive>
                             <!-- Collapsible, because it is a key rather than a
@@ -2603,122 +2930,126 @@ export default Vue.component("CellEvolutionBrowser", {
                                  it is occluding the top-right of their canvas. The
                                  header is what survives collapsing, so the way back
                                  is in the same place the box was. -->
-                            <button
-                                type="button"
-                                class="legend-toggle"
-                                :aria-expanded="String(!legendCollapsed)"
-                                :title="legendCollapsed ? 'Show the association scales' : 'Hide the association scales'"
-                                @click="legendCollapsed = !legendCollapsed"
+                            <info-tip
+                                display="block"
+                                :focusable="false"
+                                :text="legendCollapsed ? 'Show the association scales' : 'Hide the association scales'"
                             >
-                                <span class="legend-heading">Association scores</span>
-                                <!-- One drawn chevron, rotated, rather than the ▾/▴
-                                     glyph pair: those two are not the same size in
-                                     every font, so the arrow changed weight as it
-                                     flipped. -->
-                                <svg
-                                    class="legend-chevron"
-                                    :class="{ open: !legendCollapsed }"
-                                    viewBox="0 0 16 16"
-                                    aria-hidden="true"
+                                <button
+                                    type="button"
+                                    class="legend-toggle"
+                                    :aria-expanded="String(!legendCollapsed)"
+                                    @click="legendCollapsed = !legendCollapsed"
                                 >
-                                    <path
-                                        d="M 3.5 6 L 8 10.5 L 12.5 6"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </button>
+                                    <span class="legend-heading">Association scores</span>
+                                    <!-- One drawn chevron, rotated, rather than the
+                                         glyph pair: those two are not the same size in
+                                         every font, so the arrow changed weight as it
+                                         flipped. -->
+                                    <svg class="legend-chevron" :class="{ open: !legendCollapsed }"
+                                         viewBox="0 0 16 16" aria-hidden="true">
+                                        <path d="M 3.5 6 L 8 10.5 L 12.5 6" fill="none" stroke="currentColor"
+                                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </info-tip>
 
                             <div v-show="!legendCollapsed" class="legend-body">
                                 <!-- Gene links first, because they are the left half
                                      of the picture. Width is a loading, not a
                                      p-value, so it gets its own scale readout. -->
-                                <div class="legend-row">
-                                    <span class="legend-title">{{ geneLabelOrGene }} → program</span>
-                                    <span class="legend-count">({{ geneLinkSummary.resolved }})</span>
-                                </div>
-                                <div class="legend-label">Gene loading</div>
-                                <div class="legend-scale">
-                                    <span class="scale-end">0</span>
-                                    <svg class="scale-swatch" viewBox="0 0 100 11"
-                                         preserveAspectRatio="none" aria-hidden="true">
-                                        <polygon points="0,4.5 100,0 100,11 0,6.5"
-                                                 :fill="geneLinkColor" opacity=".5" />
-                                    </svg>
-                                    <span class="scale-end">{{ geneLinkSummary.ceiling }}</span>
-                                </div>
-                                <div v-if="geneLinkSummary.pending" class="legend-notes">
-                                    {{ geneLinkSummary.pending }} of {{ geneLinkSummary.total }} programs still loading…
-                                </div>
-                                <div v-else-if="geneLinkSummary.absent || geneLinkSummary.failed" class="legend-notes">
-                                    <div v-if="geneLinkSummary.absent">
-                                        {{ geneLinkSummary.absent }} with no loading reported for this gene
+                                <div class="legend-section" :class="{ pulse: pulsedSection === 'gene' }">
+                                    <div class="legend-row">
+                                        <span class="legend-title">{{ geneLabelOrGene }} &#8594; program</span>
+                                        <span class="legend-count">({{ geneLinkSummary.resolved }})</span>
                                     </div>
-                                    <div v-if="geneLinkSummary.failed" class="legend-fail">
-                                        {{ geneLinkSummary.failed }} failed to load — see the console
+                                    <div class="legend-label">Gene loading</div>
+                                    <div class="legend-scale">
+                                        <span class="scale-end">0</span>
+                                        <svg class="scale-swatch" viewBox="0 0 100 11"
+                                             preserveAspectRatio="none" aria-hidden="true">
+                                            <polygon points="0,4.5 100,0 100,11 0,6.5"
+                                                     :fill="geneLinkColor" opacity=".5" />
+                                        </svg>
+                                        <span class="scale-end">{{ geneLinkSummary.ceiling }}</span>
+                                    </div>
+
+                                    <label class="legend-check">
+                                        <input type="checkbox" v-model="loadedProgramsOnly" />
+                                        <span>Loading &gt; 0 only</span>
+                                    </label>
+
+                                    <div v-if="geneLinkSummary.pending" class="legend-notes">
+                                        {{ geneLinkSummary.pending }} of {{ geneLinkSummary.total }} programs still loading&#8230;
+                                    </div>
+                                    <div v-else-if="programsWithoutLoadingCount || geneLinkSummary.failed" class="legend-notes">
+                                        <div v-if="programsWithoutLoadingCount">
+                                            {{ programsWithoutLoadingCount }} with no loading above 0<template
+                                                v-if="loadedProgramsOnly">, hidden</template>
+                                        </div>
+                                        <!-- Counted apart and never hidden: a failed
+                                             request is not the API saying the gene is
+                                             not there. -->
+                                        <div v-if="geneLinkSummary.failed" class="legend-fail">
+                                            {{ geneLinkSummary.failed }} failed to load &#8212; see the console
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="legend-divider" aria-hidden="true"></div>
 
-                                <div class="legend-row">
-                                    <span class="legend-title">Program → state</span>
-                                    <span class="legend-count">({{ edgeSummary.shown }})</span>
-                                </div>
-
-                                <!-- The metric sits on the unit line rather than a
-                                     row of its own: it *is* the unit, so naming the
-                                     encoding and choosing it are one thought. -->
-                                <div class="legend-row unit-row">
-                                    <label class="legend-label" for="ce-metric">Enrichment (−log₁₀)</label>
-                                    <select id="ce-metric" v-model="metricKey" class="legend-select">
-                                        <option v-for="metric in metricOptions" :key="metric.key" :value="metric.key">
-                                            {{ metric.label }}
-                                        </option>
-                                    </select>
-                                </div>
-
-                                <!-- Both ends stated. The scale starts at the
-                                     significance threshold, not at zero, so the
-                                     thinnest line is a real score and has to say so;
-                                     the top moves with the data. -->
-                                <div class="legend-scale">
-                                    <span class="scale-end">{{ edgeSummary.floor }}</span>
-                                    <svg class="scale-swatch" viewBox="0 0 100 11"
-                                         preserveAspectRatio="none" aria-hidden="true">
-                                        <polygon points="0,4.5 100,0 100,11 0,6.5" :fill="mutedLinkColor" />
-                                    </svg>
-                                    <span class="scale-end">{{ edgeSummary.ceiling }}</span>
-                                </div>
-
-                                <label class="legend-check">
-                                    <input type="checkbox" v-model="significantEdgesOnly" />
-                                    <span>{{ edgeSummary.metricLabel }} &lt; {{ significanceThreshold }} only</span>
-                                </label>
-
-                                <!-- What is NOT drawn, and why. A missing p-value
-                                     cannot be a thin line: that would assert "no
-                                     association" where the fact is "not reported". -->
-                                <div class="legend-notes">
-                                    <div v-if="edgeSummary.nonSignificant">
-                                        {{ edgeSummary.nonSignificant }} below threshold, hidden
+                                <div class="legend-section" :class="{ pulse: pulsedSection === 'enrichment' }">
+                                    <div class="legend-row">
+                                        <span class="legend-title">Program &#8594; state</span>
+                                        <span class="legend-count">({{ edgeSummary.shown }})</span>
                                     </div>
-                                    <div v-if="edgeSummary.unreported">
-                                        {{ edgeSummary.unreported }} with no {{ edgeSummary.metricLabel }} reported
-                                    </div>
-                                    <div v-if="edgeSummary.qc">
-                                        {{ edgeSummary.qc }} QC signatures excluded
-                                    </div>
-                                </div>
 
-                                <div v-if="relationshipError" class="legend-error">{{ relationshipError }}</div>
-                                <div v-else-if="stateError" class="legend-error">{{ stateError }}</div>
+                                    <!-- The metric sits on the unit line rather than a
+                                         row of its own: it *is* the unit, so naming the
+                                         encoding and choosing it are one thought. -->
+                                    <div class="legend-row unit-row">
+                                        <label class="legend-label" for="ce-metric">Enrichment (&#8722;log&#8321;&#8320;)</label>
+                                        <select id="ce-metric" v-model="metricKey" class="legend-select">
+                                            <option v-for="metric in metricOptions" :key="metric.key" :value="metric.key">
+                                                {{ metric.label }}
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Both ends stated. The scale starts at the
+                                         significance threshold, not at zero, so the
+                                         thinnest line is a real score and has to say
+                                         so; the top moves with the data. -->
+                                    <div class="legend-scale">
+                                        <span class="scale-end">{{ edgeSummary.floor }}</span>
+                                        <svg class="scale-swatch" viewBox="0 0 100 11"
+                                             preserveAspectRatio="none" aria-hidden="true">
+                                            <polygon points="0,4.5 100,0 100,11 0,6.5" :fill="mutedLinkColor" />
+                                        </svg>
+                                        <span class="scale-end">{{ edgeSummary.ceiling }}</span>
+                                    </div>
+
+                                    <label class="legend-check">
+                                        <input type="checkbox" v-model="significantEdgesOnly" />
+                                        <span>{{ edgeSummary.metricLabel }} &lt; {{ significanceThreshold }} only</span>
+                                    </label>
+
+                                    <!-- Only the consequence the reader can SEE. The
+                                         edge drop counts that used to sit here counted
+                                         rows of a heatmap nobody is looking at. -->
+                                    <div v-if="hiddenStateCount" class="legend-notes">
+                                        {{ hiddenStateCount }} cell state<template
+                                            v-if="hiddenStateCount !== 1">s</template> hidden with no
+                                        association shown
+                                    </div>
+
+                                    <div v-if="relationshipError" class="legend-error">{{ relationshipError }}</div>
+                                    <div v-else-if="stateError" class="legend-error">{{ stateError }}</div>
+                                </div>
                             </div>
                         </div>
                     </template>
+
                 </canvas-stage>
 
                 <div v-else class="body-placeholder">
@@ -2735,6 +3066,7 @@ export default Vue.component("CellEvolutionBrowser", {
                             <template v-if="bodyState === 'empty-gene'">Search a gene to begin</template>
                             <template v-else-if="bodyState === 'empty-tissue'">Select a tissue</template>
                             <template v-else-if="bodyState === 'empty-cell-type'">Select a cell type</template>
+                            <template v-else-if="bodyState === 'all-unloaded'">No gene programs carry {{ geneLabelOrGene }}</template>
                             <template v-else>No gene programs in this scope</template>
                         </div>
                         <div class="placeholder-text">
@@ -2743,6 +3075,16 @@ export default Vue.component("CellEvolutionBrowser", {
                             </template>
                             <template v-else-if="bodyState === 'empty-programs'">
                                 {{ scopeSummary }} returned no gene programs.
+                            </template>
+                            <!-- The way out is in the message, not only in the
+                                 legend: the legend lives on the canvas, and there is
+                                 no canvas to find it on in this state. -->
+                            <template v-else-if="bodyState === 'all-unloaded'">
+                                None of the {{ allProgramItems.length }} gene programs in {{ scopeSummary }} reports a
+                                loading for {{ geneLabelOrGene }}, so none are shown.
+                                <button type="button" class="placeholder-action" @click="loadedProgramsOnly = false">
+                                    Show all programs
+                                </button>
                             </template>
                             <template v-else>
                                 Finish choosing a scope in the band above.
@@ -2776,13 +3118,11 @@ export default Vue.component("CellEvolutionBrowser", {
             :program-detail-error="programDetailError"
             :program-traits="programTraits"
             :loading-program-traits="isLoadingProgramTraits"
-            :programs-for-selected-state="programsForSelectedState"
 
             :state-items="stateItemsWithCounts"
             :selected-state="selectedState"
             :selected-state-metadata="selectedStateMetadata"
             :state-matches="stateMatches"
-            :states-for-selected-program="statesForSelectedProgram"
             :state-traits="stateTraits"
             :loading-state-traits="isLoadingStateTraits"
 
@@ -3022,18 +3362,17 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     color: var(--ce-muted);
 }
 
-/* Row geometry, published to the rows AND to the programs header so the column
-   heads line up with the values rather than near them. Custom properties inherit
-   through scoped styles, so ProgramRow reads these from its panel -- the same
-   one-constant-on-both-sides discipline as `--ce-row-height`. Changing a column
-   width here moves the heading with it. */
+/* Row geometry, published to the rows. Custom properties inherit through scoped
+   styles, so ProgramRow and StateRow read these from their panel -- the same
+   one-constant-on-both-sides discipline as `--ce-row-height`.
+
+   The `--ce-col-*` widths are gone with the EXP / SPEC columns they sized. The
+   gutter is wider than it was because it now carries the specificity value under
+   the arrow, not just the arrow. */
 .canvas-list{
     --ce-row-pad: 10px;
-    --ce-row-gutter: 22px;
+    --ce-row-gutter: 34px;
     --ce-row-gutter-gap: 6px;
-    --ce-col-exp: 38px;
-    --ce-col-spec: 42px;
-    --ce-col-gap: 7px;
 
     position: absolute;
     background: #fff;
@@ -3054,7 +3393,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     flex-direction: column;
     justify-content: center;
     gap: 3px;
-    height: var(--ce-list-header-height, 68px);
+    height: var(--ce-list-header-height, 60px);
     box-sizing: border-box;
     padding: 0 var(--ce-row-pad);
     border-bottom: 1px solid var(--ce-line);
@@ -3098,37 +3437,6 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     color: var(--ce-muted);
 }
 
-/* Same grid as `.row-metrics` in ProgramRow, offset by the row's gutter, so EXP and
-   SPEC sit over their own columns. */
-.list-columns{
-    display: grid;
-    grid-template-columns: 1fr var(--ce-col-exp) var(--ce-col-spec);
-    align-items: center;
-    gap: var(--ce-col-gap);
-    margin-top: 3px;
-    padding-left: calc(var(--ce-row-gutter) + var(--ce-row-gutter-gap));
-}
-.col-head{
-    /* Shrink-wrapped and pushed right, so the dotted rule is exactly as wide as the
-       word. Underlining the whole 42px cell would advertise a hover target that is
-       mostly empty space. */
-    justify-self: end;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: .06em;
-    color: var(--ce-muted);
-    cursor: help;
-    /* The only thing saying these explain themselves. `text-decoration` rather than
-       a border, so the rule follows the text's own box and not the grid cell's. */
-    text-decoration: underline dotted;
-    text-decoration-color: var(--ce-muted);
-    text-underline-offset: 3px;
-}
-.col-head:hover{
-    color: var(--ce-ink);
-    text-decoration-color: var(--ce-ink);
-}
-
 /* --- canvas heading --- */
 
 /* No card around it, unlike the legend: the legend is a key you read against the
@@ -3169,6 +3477,8 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 /* --- edge legend --- */
 
+/* The scales box, fixed to the viewport. World content scales with the zoom; this
+   must stay legible at every zoom, so it does not live in the world. */
 .edge-legend{
     width: 252px;
     border: 1px solid var(--ce-line);
@@ -3179,6 +3489,59 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
        the box's radius -- which is also why the padding lives on the header and the
        body rather than here. */
     overflow: hidden;
+}
+
+/* The two canvas labels. Positioned in WORLD coordinates ON the gap whose lines they
+   name, and no wider than that gap (`COLUMN_GAP`), so each reads as belonging to its
+   own bundle rather than to the panel beside it.
+
+   Centered on the bundle both ways: horizontally by the flex, vertically by the
+   transform against a `top` of `HUB_Y`. */
+.edge-key{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    transform: translateY(-50%);
+}
+.edge-key-label{
+    max-width: 100%;
+    padding: 2px 9px;
+    border: 1px solid var(--ce-line);
+    border-radius: 999px;
+    background: rgba(255,255,255,.96);
+    color: var(--ce-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.edge-key-label:hover{
+    border-color: var(--ce-accent);
+    color: var(--ce-accent);
+}
+/* Flashed when a canvas label is clicked, so the eye lands on the half of the legend
+   that label belongs to rather than on the whole box. Padded and inset so the tint
+   has something to fill -- the sections are otherwise flush with the body. */
+.legend-section{
+    margin: 0 -6px;
+    padding: 0 6px;
+    border-radius: 6px;
+}
+.legend-section.pulse{
+    animation: legend-pulse .6s ease-in-out 2;
+}
+@keyframes legend-pulse{
+    0%, 100%{ background: transparent; }
+    50%{ background: var(--ce-accent-soft); }
+}
+/* Respects a reader who has asked for less motion: the tint still appears, it just
+   does not flash. */
+@media (prefers-reduced-motion: reduce){
+    .legend-section.pulse{
+        animation: none;
+        background: var(--ce-accent-soft);
+    }
 }
 
 /* Tinted like the list panels' own headers, so the two read as the same kind of
@@ -3236,11 +3599,18 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     color: var(--ce-ink);
 }
 /* Inline and parenthesized rather than a pill: it is part of the title's phrase --
-   "PPARG → program (24)" -- not a separate badge. */
+   "PPARG -> program (24)" -- not a separate badge. */
 .legend-count{
     font-size: 10px;
     font-variant-numeric: tabular-nums;
     color: var(--ce-muted);
+}
+/* The legend carries two independent encodings -- gene loadings and GSEA -- and a
+   rule keeps them from reading as one list. */
+.legend-divider{
+    height: 1px;
+    margin: 8px 0;
+    background: var(--ce-line);
 }
 .legend-label{
     font-size: 10px;
@@ -3295,13 +3665,6 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     line-height: 1.5;
     color: var(--ce-muted);
 }
-/* The legend carries two independent encodings -- gene loadings and GSEA -- and a
-   rule keeps them from reading as one list. */
-.legend-divider{
-    height: 1px;
-    margin: 8px 0;
-    background: var(--ce-line);
-}
 .legend-fail{
     color: #b42318;
 }
@@ -3338,6 +3701,24 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-size: 12px;
     line-height: 1.6;
     color: var(--ce-muted);
+}
+/* The only way back when the gene-loading filter has hidden every program: the
+   legend that normally carries this control lives on the canvas, and there is no
+   canvas in that state. */
+.placeholder-action{
+    display: block;
+    margin: 10px auto 0;
+    padding: 5px 12px;
+    border: 1px solid var(--ce-accent);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ce-accent);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.placeholder-action:hover{
+    background: var(--ce-accent-soft);
 }
 .placeholder-spinner{
     display: inline-block;
