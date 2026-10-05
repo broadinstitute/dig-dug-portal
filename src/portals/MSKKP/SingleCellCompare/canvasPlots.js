@@ -316,21 +316,23 @@ export function renderScatterPlot(canvas, points, xLabel, yLabel) {
         clearCanvas(canvas);
         return "No plot values available.";
     }
-    let ctx = prepareCanvas(canvas);
     const width = canvas.clientWidth;
     const margins = { top: 22 + LEGEND_RESERVED_TOP, right: 24, bottom: 84, left: 72 };
 
     // Same treatment as the violin plot: Template.vue overlays the left/right dataset
     // legend and the download button on top of this chart too, so the canvas is
     // grown by the same amount reserved for them above, keeping the plot area itself
-    // the size it would have been without the overlay.
-    let height = canvas.clientHeight;
-    const requiredHeight = height + LEGEND_RESERVED_TOP;
-    if (requiredHeight > height) {
-        canvas.style.height = `${requiredHeight}px`;
-        ctx = prepareCanvas(canvas);
-        height = canvas.clientHeight;
-    }
+    // the size it would have been without the overlay. redrawCellTypePlot (and hence
+    // this function) reruns on every cell-type/dataset change and window resize, so
+    // the inline height set here must never be read back as this call's own baseline
+    // - clear it first to let the CSS aspect-ratio give back the natural height,
+    // then grow from that stable number every time instead of compounding on top of
+    // whatever a previous call already grew it to.
+    canvas.style.height = "";
+    const baseHeight = canvas.clientHeight;
+    canvas.style.height = `${baseHeight + LEGEND_RESERVED_TOP}px`;
+    let ctx = prepareCanvas(canvas);
+    const height = canvas.clientHeight;
 
     const plotWidth = width - margins.left - margins.right;
     const plotHeight = height - margins.top - margins.bottom;
