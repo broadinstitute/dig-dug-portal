@@ -8,7 +8,7 @@
 // a hardcoded tissue -> dataset table, its reverse index, per-portal dataset-ID
 // observation, and a runtime sniff of which of two keying conventions each portal
 // used. All of it is gone. See ../README.md for the history, and
-// ../BACKEND_REQUEST_TISSUE_KEYS.md for the request that produced the change.
+// ../API.md for the request that produced the change.
 //
 // Two consequences worth keeping in mind:
 //
@@ -389,6 +389,208 @@ export function programLabel(row, infoRow = null) {
     );
 }
 
+// What a gene loading IS, in one sentence, for the UI to show wherever the number
+// appears -- the Gene loadings tab and the canvas label over the gene link bundle.
+//
+// It lives here rather than in a component because it is knowledge about the data
+// rather than presentation, and because two places showing the same definition in
+// two strings is how they come to disagree.
+//
+// Note it describes a RELATIVE contribution and names no unit. That is deliberate:
+// the loadings are "like read counts, but with a free scaling parameter" nobody has
+// pinned down (see API.md, open question 7), so this stays true whatever the answer
+// turns out to be. **Do not add a unit to it before that is settled.**
+export const GENE_LOADING_DEFINITION = "Gene loadings represent the contribution of the gene to the"
+    + " program's expression, higher loading means they contribute more to that program.";
+
+// What the program -> state line encodes, for the canvas label over that bundle.
+//
+// **This is the pipeline's method as we understand it, not as it has been confirmed.**
+// The heatmap returns only `gsea_p` and `gsea_q` -- there is no `gsea_nes`, so no
+// effect size and no direction -- and the index does not state what was tested
+// against what. This sentence is the reading the field names imply. It is logged for
+// confirmation in API.md, open questions. If the pipeline owner describes it
+// differently, change it here.
+export const ENRICHMENT_DEFINITION = "The cell state's marker gene set, tested for enrichment among"
+    + " genes ranked by their loading in the program.";
+
+// --- factor QC report ----------------------------------------------------------
+//
+// `gene-program-nmf-liger-report`: one row per factor, six checks, and an
+// `overall_verdict` rolling up the four that flag. This is the factor-level quality
+// signal -- "is this gene program trustworthy".
+//
+// **A different axis from isQcStateRow().** That asks whether a `state_name` is a QC
+// artifact rather than a curated cell state. The report's own `blacklist_status` /
+// `top_blacklist_match` name a QC signature a factor correlates with, are
+// informational only, and must not feed isQcStateRow() or drive hiding.
+//
+// Enum values, the semicolon separator and the flag-code grammar were measured
+// 2026-10-05 across all 162 scopes (2296 rows), not inferred. Labels below are the
+// source report's own wording (`factor_report.txt`, 2026-09-27). See
+// API.md, 'The factor QC report'.
+export const FACTOR_VERDICT_FLAGGED = "flagged";
+
+// Every correlation on these rows is a **Spearman r**, stated as such throughout the
+// source report. Do not label them "correlation" generically.
+//
+// `flagging: false` is load bearing: those two checks are informational only, and a
+// `clean` on them is not a pass. One sampled factor reads `blacklist_status: clean`
+// at r = 0.68, so rendering that beside a green dot would assert a verdict the
+// pipeline did not make.
+export const FACTOR_REPORT_GROUPS = [
+    {
+        key: "activity",
+        label: "Activity",
+        status: "activity_status",
+        flagging: true,
+        fields: [
+            { key: "mean_cell_score", label: "Mean cell score" },
+            { key: "max_gene_loading", label: "Max gene loading" }
+        ]
+    },
+    {
+        key: "independence",
+        label: "Independence",
+        status: "independence_status",
+        flagging: true,
+        fields: [
+            { key: "most_correlated_factor", label: "Most correlated factor" },
+            { key: "max_other_factor_corr", label: "Spearman r" }
+        ]
+    },
+    {
+        key: "similarity",
+        label: "Curated-state match",
+        status: "similarity_status",
+        flagging: false,
+        fields: [
+            { key: "best_matching_state", label: "Best matching state" },
+            { key: "best_match_corr", label: "Spearman r" },
+            { key: "similarity_basis", label: "Basis" }
+        ]
+    },
+    {
+        key: "technical",
+        label: "Technical QC",
+        status: "technical_status",
+        flagging: true,
+        fields: [
+            { key: "top_technical_covariate", label: "Top covariate" },
+            { key: "top_technical_corr", label: "Spearman r" }
+        ]
+    },
+    {
+        key: "blacklist",
+        label: "Blacklist QC",
+        status: "blacklist_status",
+        flagging: false,
+        fields: [
+            { key: "top_blacklist_match", label: "Strongest match" },
+            { key: "blacklist_match_corr", label: "Spearman r" }
+        ]
+    },
+    {
+        key: "contamination",
+        label: "Cross-cell-type QC",
+        status: "contamination_status",
+        flagging: true,
+        fields: [
+            // Restricted to OTHER cell types, per the source report's wording.
+            { key: "top_contaminant_state", label: "Strongest other-cell-type match" },
+            { key: "top_contaminant_celltype", label: "Cell type" },
+            { key: "contaminant_gene_loading_corr", label: "Gene-loading r" },
+            { key: "contaminant_cellscore_corr", label: "Cell-score r" }
+        ]
+    }
+];
+
+// `flags` is semicolon-separated with no spaces. Three code shapes, and the first
+// takes no argument:
+//
+//   INACTIVE
+//   TECHNICAL_CONFOUND_<covariate>     e.g. _SI_Age, _QC_percent_mt, _X, _Y
+//   CONTAMINATION_<state_id>
+//
+// No REDUNDANT_* code has ever been observed, consistent with `independence_status`
+// being constant -- but the source report counts "Redundant with another factor" as
+// a category, so the check exists and simply never fires on this data.
+//
+// Parsed into {kind, detail} rather than kept as an opaque string deliberately: the
+// meaning of covariates `X` and `Y` is an open question with Kyle, and if those have
+// to stop counting it must be a predicate change here, not a rewrite.
+const FLAG_CODE_KINDS = [
+    { kind: "inactive", code: "INACTIVE", label: "Inactive" },
+    { kind: "technical_confound", prefix: "TECHNICAL_CONFOUND_", label: "Possible technical confound" },
+    { kind: "contamination", prefix: "CONTAMINATION_", label: "Possible cross-cell-type contamination" }
+];
+
+export function parseFactorFlags(value) {
+    return String(value || "")
+        .split(";")
+        .map((code) => code.trim())
+        .filter((code) => !!code)
+        .map((code) => {
+            let match = FLAG_CODE_KINDS.find((candidate) => candidate.prefix
+                ? code.startsWith(candidate.prefix)
+                : code === candidate.code);
+
+            return {
+                code,
+                kind: match ? match.kind : "other",
+                // An unrecognised code still renders, as itself. A new flag class
+                // appearing in the data must not vanish from the UI.
+                label: match ? match.label : code,
+                detail: match && match.prefix ? code.slice(match.prefix.length) : ""
+            };
+        });
+}
+
+export function isFlaggedFactor(reportRow) {
+    return normalizeKey(field(reportRow, ["overall_verdict"])) === FACTOR_VERDICT_FLAGGED;
+}
+
+// Sentence case, because this is read as a phrase on a row rather than as a field
+// value. An unrecognised verdict falls through to formatDisplayLabel() rather than
+// being dropped -- a new verdict string must not render as blank.
+const FACTOR_VERDICT_LABELS = {
+    high_confidence: "High confidence",
+    flagged: "Flagged"
+};
+
+export function factorVerdictLabel(reportRow) {
+    let value = normalizeKey(field(reportRow, ["overall_verdict"]));
+
+    if (!value) {
+        return "";
+    }
+
+    return FACTOR_VERDICT_LABELS[value] || formatDisplayLabel(value);
+}
+
+// `unknown` is a third state meaning the check could not be run -- it is reported on
+// ~10% of rows, always on blacklist and contamination together. It is neither a pass
+// nor a failure and must not be collapsed into either.
+export function factorStatusTone(status) {
+    let value = normalizeKey(status);
+
+    if (!value || value === "unknown") {
+        return "unknown";
+    }
+
+    if (value === "clean" || value === "active" || value === "independent") {
+        return "ok";
+    }
+
+    // Curated-state match reports a finding, not a quality: neither value is good or
+    // bad news.
+    if (value === "no_strong_match" || value === "tracks_curated_state") {
+        return "neutral";
+    }
+
+    return "warn";
+}
+
 // The only expression field any of these endpoints returns. It is a log of a log
 // (see ../README.md) -- do not relabel it as CPK.
 export function absoluteExpressionValue(row) {
@@ -527,6 +729,23 @@ export function createLigerApi(config = {}) {
             query(host, "gene-program-qc-factor", tissueKey, cellType, programId),
         programTraits: (tissueKey, cellType, programId) =>
             query(host, "gene-program-trait-factor", tissueKey, cellType, programId),
+
+        // One row per factor, carrying six QC checks and an `overall_verdict`. This is
+        // the authoritative **factor-level** quality signal -- "is this gene program
+        // trustworthy" -- and is what program rows should be filtered on.
+        //
+        // Not the same axis as `programQc` / `qcMetadata` below, which ask whether a
+        // `state_name` is a QC artifact rather than a curated cell state. The report's
+        // own `blacklist_status` / `top_blacklist_match` name a QC signature a factor
+        // correlates with and are informational only: they must not feed
+        // `isQcStateRow()` and must not drive hiding.
+        //
+        // Only four of the six checks contribute to a flag (activity, independence,
+        // technical confound, cross-cell-type contamination; curated-state match and
+        // blacklist do not), so filter on `overall_verdict`, never on an individual
+        // status. See API.md.
+        factorReport: (tissueKey, cellType) =>
+            query(host, "gene-program-nmf-liger-report", tissueKey, cellType),
 
         // The single-cell dataset metadata the programs were generated from. JSONL,
         // not JSON -- read it with fetchJsonLines(). It covers every single-cell

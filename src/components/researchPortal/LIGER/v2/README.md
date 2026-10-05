@@ -1,4 +1,8 @@
-# LIGER v2 — Cell Evolution Browser
+# LIGER v2 — Cell State Browser
+
+> The public name is **Cell State Browser**. The component, the folder and this file keep the
+> internal working name *Cell Evolution Browser*; renaming them is import churn with no user-visible
+> effect, so the two are deliberately allowed to differ. `pageTitle` is what a reader sees.
 
 A fresh interface over the same LIGER endpoints as `v1`. **This is the version mounted on the LIGER
 page** (`src/views/LIGER/main.js` → `src/views/LIGER/Template.vue`).
@@ -439,32 +443,213 @@ comes from the metadata row the canvas already fetched for its labels, via the s
 `StateInfo` reads, so it costs no request. It is single-line and ellipsized, because the row height is
 shared with the edge math.
 
-### The programs list heads its columns
+### Program rows carry structure, not expression
 
-`EXP` and `SPEC` sit over the two numeric columns, on the same grid the rows use — the geometry is
-published from the panel as `--ce-row-gutter`, `--ce-col-exp`, `--ce-col-gap` and so on, so a column
-that changes width takes its heading with it. Two copies of those numbers would drift and the headings
-would stop lining up with the values.
+**Expression is not on a program row.** The 2026-10-02 call asked for it to come off (punchlist 1.2):
+the expression data is far less validated than the structure beside it, and it barely varies between
+programs — *"the expression's basically the same across all gene programs… I'd [not] want that to be
+the first thing people see."* The bar, the value and the `EXP` / `SPEC` column heads are all gone.
 
-Each head is a hover target for **the same tooltip the association lines use** — see *The canvas
-tooltip*. A `dotted underline` is the only thing saying so, and it is shrink-wrapped to the word
-(`justify-self: end`) rather than spanning the 42px grid cell, which would advertise a target that is
-mostly empty space.
+What a row carries now:
 
-Between them the two tooltips say what the number is, its field and units, what the bar is, that the
-scale is **relative to these results rather than global**, and what a negative specificity means.
-Three things they must keep getting right:
+| Position | Content |
+|---|---|
+| Gutter | Specificity: direction as the arrow, value under it, one `title` over both |
+| Line 1 | The program label |
+| Line 2 | The factor QC verdict, where the expression bar used to be |
 
-- **The axis top is in the `EXP` tooltip.** That is what let the `max N` readout come out of the
-  header. The bars are scaled to the strongest value on screen, and that moving ceiling has to be
-  stated *somewhere* or the relative scaling is invisible — which is the property the whole bar design
-  rests on.
+The verdict is **display only** — it filters nothing and dims nothing. Several questions about what
+its inputs mean are open with the pipeline owner (`../API.md`, *Open questions* 1–3), so
+it is reported, not acted on.
+
+**Dimming means one thing everywhere: "this is what the filter would remove."** A dimmed program has
+no loading for the searched gene; a dimmed cell state has no significant association. Not the p-value
+(3.1 is still open) and not the QC verdict. On the canvas a dimmed row only appears with the
+corresponding checkbox off; in the card's lists, which never filter, it is how the two groups are told
+apart. A program whose loading request *failed* is never dimmed — missing is not absent.
+
+The explanations that used to be column-head tooltips now live in `ProgramInfo`'s head metrics, on the
+values they describe, since the card is the only place those values still appear. Three things they
+must keep getting right:
+
 - **The expression field is named, not interpreted.** `log10_cpk` behaves like a log of a log and its
-  exact definition is an open question (`../README.md`), so the tooltip reports the backend's own
-  naming and does not assert CPK.
-- **Specificity's tooltip stays its own string.** The denominator differs by card — cell types measure
+  exact definition is an open question (`../README.md`), so the text reports the backend's own naming
+  and does not assert CPK.
+- **Specificity's text stays its own string.** The denominator differs by card — cell types measure
   against other cell types, programs and states against the parent cell-type background. v1's README
   says the same thing: do not collapse these into one shared sentence.
+- **The p-value text says that what it tests is unknown.** Asked twice on the call and unanswered
+  (3.1). That is why it no longer grays anything.
+
+### Which programs are shown
+
+Default: **only programs that report a loading for the searched gene** (punchlist 1.6). This was the
+single biggest point of confusion on the call, hit independently by two reviewers — searching a gene
+listed every program for the cell type, so *"why is it showing that only 4 of these programs are
+connected to the gene?"* The `Show programs with no <gene> loading` checkbox sits in the legend's
+**gene → program** block, with the scale it qualifies.
+
+Three rules this filter must keep:
+
+- **Filtering happens at the `programItems` computed**, over `allProgramItems` — not in the template.
+  `buildEdges()` drops any edge whose endpoint is off-canvas, so a hidden program's edges go with it,
+  and the canvas height, row anchors and counts all stay consistent for free.
+- **The filter stays inert until the gene-loading fan-out settles** (`geneLoadingsSettled`). That
+  fan-out is one request per program and is not awaited, so filtering early would collapse the list
+  from every program to a handful a second after the canvas appeared, under the reader's cursor.
+- **Three states, not two: present, absent, failed.** A program the API answered for and said *no*
+  (`geneLoadingAbsentByProgram`) is hidden; a program whose request *failed* stays visible. The two
+  are indistinguishable from `geneLoadingByProgram` alone, which is the same distinction the legend's
+  `absent` / `failed` counts exist to preserve.
+- **`belowLoading`, not `geneLoadingAbsent`, is the predicate.** The checkbox says `Loading > 0 only`,
+  and a loading of exactly 0 or below is a *reported* value — not absent, but it does not clear the
+  bar either, and the label would be lying if such a row stayed visible. Zero loadings are real here:
+  45 of 4940 genes on Factor1 alone.
+
+`loadGeneLoadings()` therefore fans out over `allProgramItems`, **not** `programItems` — asking only
+about visible programs would ask only about programs already known to have a loading, and nothing
+would ever be discovered to hide.
+
+Both legend checkboxes are phrased as **positive** filters — `Loading > 0 only` and
+`GSEA P < 0.05 only` — and both default on. One saying "keep" while the other said "hide" made the two
+read as opposites when they do the same kind of thing.
+
+### Which cell states are shown (the cascade)
+
+Punchlist 1.7: a state with no surviving association to a visible program is hidden. Otherwise states
+dangle off programs the gene-loading filter removed, or sit there with every association below the
+significance threshold and nothing drawn to them.
+
+It has **no checkbox of its own** — it follows `GSEA P < 0.05 only`, symmetrically with how the
+programs list follows `Loading > 0 only`. With that box on, unconnected states are hidden; with it
+off, every state is shown and the unconnected ones are dimmed. `connectedStateKeys` is therefore
+always computed at `significantOnly: true` regardless of the checkbox: "does this state have an
+association worth drawing" is the same question either way, and only the *response* to it changes.
+
+**It takes two `buildEdges()` passes, and that is not redundancy.** `buildEdges()` takes `stateOrder`,
+which it uses both to drop off-canvas edges and to pick each edge's color, so the edges cannot be
+derived from a state list that is itself derived from the edges. `connectedStateKeys` runs the first
+pass against *all* states purely to learn which are connected; `stateItems` filters on that; and
+`relationships` runs again against the final order, which is what gets drawn.
+
+Two consequences worth keeping:
+
+- **State color is assigned in `stateItems`, not `allStateItems`.** It is positional, so assigning it
+  before the filter would leave the row's swatch and the edges landing on that row reading from two
+  different orderings.
+- **An empty relationship index disables the filter** (`connectedStateKeys` returns `null`). Every
+  state would otherwise have zero edges and the entire list would vanish — the same
+  degrade-to-unfiltered rule the factor QC report follows.
+
+`selectedState` falls back to `allStateItems`, because a state can leave the canvas while selected.
+
+### The card's lists never filter and never narrow
+
+With nothing selected on a tab, that tab shows **every** program or cell state in scope. Two separate
+mechanisms used to cut them down, and both are gone:
+
+- **Canvas filtering.** `programItemsWithCounts` and `stateItemsWithCounts` are built from
+  `allProgramItems` / `allStateItems`, not the canvas-filtered lists.
+- **Cross-selection narrowing.** The lists used to shrink to the matches of whatever was selected on
+  the other side. With a program selected, the cell-state list showed a handful of states and there
+  was no way to reach the rest from the card at all. `statesForSelectedProgram` /
+  `programsForSelectedState` and the `narrowedTo*` flags are deleted, not disabled.
+
+These lists are the "I know what I am looking for" path. Anything that hides a row here leaves a
+reader unable to reach it without first working out which control was responsible.
+
+Rows below the thresholds are **dimmed**, and `EntityList` prints how many — the tab header count will
+not match the canvas and that otherwise reads as a bug. Programs also carry `geneLoading` /
+`geneLoadingText`, shown as `EntityList`'s own column, since the loading is the reason a program is on
+the canvas at all.
+
+**Both lists read `unfilteredRelationships`, not `relationships`.** The latter is scoped to what the
+canvas is drawing, so match counts taken from it read 0 for anything the checkboxes hid, and a cell
+state came out dimmed merely because the program it connects to had been filtered away. A list that
+does not filter cannot be described by a filtered edge set. That is a third `buildEdges()` pass, always
+at `significantOnly: true`.
+
+Note `stateItemsWithCounts` also re-resolves `color` itself: `allStateItems` carries only a
+*provisional* color, assigned before filtering, which is normally settled in `stateItems`.
+
+### The legend, and the two canvas labels
+
+**The scales live in one box in the `overlay` slot** — viewport-fixed, so it stays legible at any
+zoom, and so the two encodings sit side by side where they can be read against each other. It is
+collapsible; the header survives collapsing, so the way back is where the box was.
+
+**Two labels sit in the world**, one *on* each bundle: `Gene loadings` over the hub → programs gap,
+`Enrichment` over the programs → states gap. Each is no wider than its gap (`COLUMN_GAP`) and is
+centered on the bundle both ways — horizontally by the flex, vertically by `translateY(-50%)` against
+a `top` of `HUB_Y`, which is where both panels are centered and so where every bundle is thickest.
+The transform rather than a subtracted half-height, because the label's height is its text's and a
+hardcoded number would drift the moment the type scale moves.
+
+A label therefore occludes a few of its own edges. That is accepted: each is a small pill against a
+200px gap, and the covered lines stay hoverable on either side of it. The connector SVG is painted
+earlier in the slot, so the labels land on top without needing a `z-index`.
+
+They carry **no scales or controls** — that was tried and reverted. A full key sized to its gap is
+200px wide and cramped, and splitting the controls across two boxes puts them in two places a reader
+has to find separately. A label is small enough that the width constraint costs nothing.
+
+Clicking a label opens the legend and **pulses the matching section**, so the eye lands on the half
+that label belongs to rather than on the whole box. Three details that make that work:
+
+- `pulsedSection` is cleared and re-set on `$nextTick`, because re-adding a class an element already
+  has does not restart a CSS animation — without it, clicking the same label twice does nothing the
+  second time.
+- `PULSE_MS` must match the `legend-pulse` animation duration × iterations. If they drift, the class
+  is removed mid-flash or lingers after it.
+- The timer is cleared in `beforeDestroy`.
+
+`data-canvas-interactive` on each label, or clicking one reads as the start of a pan. They need no
+clearance in `contentBounds`: sitting at `HUB_Y` they are already well inside its bounds, unlike the
+earlier version that floated above the panels and had to be reserved for.
+
+The enrichment section reports **only** `N cell states hidden with no association shown`. The edge
+drop counts that used to sit there — `N below threshold`, `N QC signatures excluded` — were counting
+rows of a heatmap nobody is looking at, while the visible effect of the checkbox is states appearing
+and disappearing. Those counts still exist in `edgeSummary` and still drive `edgeEmptyNotice`, which
+fires only when the canvas is empty — the one moment a reader has to be told whether they are looking
+at a filter or a data gap.
+
+### Tooltips: `InfoTip`, never `title`
+
+**No native `title` attribute is used anywhere in this browser**, and reintroducing one is a
+regression. `title` cannot be styled, cannot be read at a legible size, waits about a second before
+appearing, and never appears at all for keyboard users.
+
+`InfoTip.vue` wraps a trigger and shows its `text` on hover or focus. **It renders the tooltip into
+`document.body`**, which is the whole design, for two reasons that both bite:
+
+- The canvas world is CSS-`transform`ed for pan and zoom, and a `position: fixed` descendant of a
+  transformed element is positioned against that element rather than the viewport. A tooltip rendered
+  in place inside the canvas lands in the wrong spot and scales with the zoom.
+- The list panels and the info card both `overflow: hidden`, so an in-place tooltip near a panel edge
+  would be clipped.
+
+Vue 2 has no `<teleport>`, so the element is created and positioned by hand and removed on hide and on
+destroy. A tooltip that outlives its trigger is a leak that shows up as a box stuck over the page.
+
+Two props exist for cases that are easy to get wrong:
+
+- `:focusable="false"` when the trigger already wraps something focusable — a button, a link. Focus is
+  tracked with `focusin`/`focusout`, which bubble, so the tooltip still opens for keyboard users
+  without the wrapper becoming a second tab stop in front of the control. Icon buttons keep an
+  `aria-label`, since the tooltip text is no longer their accessible name.
+- `cursor="inherit"` when the tooltip only reveals text that did not fit. `cursor: help` is right for
+  an explanation and wrong on a truncated label or a clickable row.
+
+Where a label is clipped, the `overflow`/`ellipsis` rules sit on an **inner** span rather than on the
+trigger, so the trigger still measures the full row width as a hover target.
+
+### Type scale in the info panels
+
+Nothing in the info panels is below **11px**. The scale is 11 / 12 / 13 / 14 / 18, raised from
+9 / 10 / 11 / 12 / 13 / 16 rather than flattened — the hierarchy is load bearing, so the sizes move
+together. This applies to `entityInfo.css` and the info-panel components; the canvas rows keep their
+own smaller type, because their height is fixed and shared with the edge math.
 
 ### Layout constants
 
@@ -472,20 +657,22 @@ All in `CellEvolutionBrowser.vue`, all world pixels. Only **three** things are p
 the gene hub and the two list panels — and each panel is vertically centered on the hub. The rows
 inside a panel are ordinary flow.
 
-`LIST_ROW_HEIGHT`, `PROGRAM_HEADER_HEIGHT` and `STATE_HEADER_HEIGHT` are **exact, not estimates**. The
-edge anchors are computed from them rather than measured from the DOM, so an element whose real height
-differed would point every line at the wrong place — a header that grew by one line would put every
-edge a line too high. Each is published to CSS on its panel (`--ce-row-height`,
-`--ce-list-header-height`), the elements take their height from those variables, and both use
-`box-sizing: border-box` so the height holds regardless of padding or text metrics. If any needs to
-grow, measure the DOM instead of changing one side only. The header's description is
-`-webkit-line-clamp: 2` and the state row's lede is single-line for the same reason: text must not be
-the thing that decides the height.
+`LIST_ROW_HEIGHT` and `LIST_HEADER_HEIGHT` are **exact, not estimates**. The edge anchors are computed
+from them rather than measured from the DOM, so an element whose real height differed would point every
+line at the wrong place — a header that grew by one line would put every edge a line too high. Each is
+published to CSS on its panel (`--ce-row-height`, `--ce-list-header-height`), the elements take their
+height from those variables, and both use `box-sizing: border-box` so the height holds regardless of
+padding or text metrics. **Change a constant and its CSS together, or not at all.** If a header ever
+has to size to its content, measure the DOM and feed the measurement into the layout math — do not
+simply drop the fixed height. The header's description is `-webkit-line-clamp: 2` and the state row's
+lede is single-line for the same reason: text must not be the thing that decides the height.
 
-**The two headers are different heights on purpose** — the programs header carries a row of column
-headings and the states list has no numeric columns to head, so one shared constant would leave a dead
-band under the cell-states description. `edgeGeometry` therefore computes **two** row-center offsets;
-a single shared one would land every edge's program end correctly and its state end 8px high.
+**There is one header constant, not two.** The programs and states headers used to differ because the
+programs header carried a row of `EXP` / `SPEC` column headings; those columns came off the rows
+(punchlist 1.2) and the two headers now hold exactly the same things, so a second constant would only
+be something to drift. When the columns were removed the old 84px constant was briefly left in place,
+which left a dead band under the programs description — if the header ever looks too tall again, that
+is the first thing to check.
 
 **`COLUMN_GAP` is one constant for both gaps** — gene → programs and programs → states. They were 180
 and 340; the wider one read as the more important relationship when they are the same kind of step in
@@ -512,7 +699,7 @@ sections land. v1's keys describe v1's controls and are not ported wholesale.
 
 | Key | Default |
 |---|---|
-| `pageTitle` | `Cell Evolution Browser` |
+| `pageTitle` | `Cell State Browser` |
 | `pageSubtitle` | `Explore how genes influence cell states through coordinated programs…` |
 | `documentationUrl` | `/research.html?pageid=kp_liger_documentation` |
 | `exampleGenes` | `["PPARG", "PCSK9", "INS"]` — `[]` hides the row |
@@ -674,7 +861,7 @@ anywhere in v1** — `stateMethodsDetail()` built it and nothing read it.
 Those rows are **nested** — the interesting fields live under `summary.`, `state.`, `curation.`,
 `quality.` and `marker_set.`. `field()` only reads top-level keys, so this goes through `pathValue()`.
 
-Deliberately not shown, from the measured audit in `../DETAIL_DATA_CATALOGUE.md`:
+Deliberately not shown, from the measured audit in `../API.md`:
 
 - `summary.biological_description` / `short_description` — the same text as the lede on most states,
   a longer version of it on the rest.
@@ -819,7 +1006,7 @@ a `popstate` handler that re-runs the load chain; pushing without one just reint
 
 - Everything for this version lives in this folder. Do not import from `../v1/`.
 - All endpoint access goes through `../ligerApi.js`. Do not build a URL or re-derive a host here.
-- Check `../DETAIL_DATA_CATALOGUE.md` before putting a field on screen. **Do not render a value the API
+- Check `../API.md` before putting a field on screen. **Do not render a value the API
   does not supply** — that is how v1 ended up showing a constant quality badge that read as an API
   verdict.
 - Build controls in this folder rather than pulling in portal-wide components.

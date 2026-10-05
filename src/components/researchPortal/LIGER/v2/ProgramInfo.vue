@@ -1,8 +1,15 @@
 <script>
 import Vue from "vue";
-import { field, numericField } from "../ligerApi";
+import {
+    field,
+    numericField,
+    FACTOR_REPORT_GROUPS,
+    factorStatusTone,
+    GENE_LOADING_DEFINITION
+} from "../ligerApi";
 import { formatSignificance } from "./programAxis";
 import InfoTabs from "./InfoTabs.vue";
+import InfoTip from "./InfoTip.vue";
 import TraitTable from "./TraitTable.vue";
 
 const TOP_GENE_ROWS = 30;
@@ -26,6 +33,7 @@ const TOP_GENE_SET_ROWS = 25;
 export default Vue.component("ProgramInfo", {
     components: {
         InfoTabs,
+        InfoTip,
         TraitTable
     },
 
@@ -99,11 +107,44 @@ export default Vue.component("ProgramInfo", {
         tabs() {
             return [
                 { key: "overview", label: "Overview" },
-                { key: "genes", label: "Gene loadings", count: this.geneLoadings.rows.length || this.topGeneFallback.length },
+                // `count: 0` DISABLES a tab in InfoTabs, so a count may only be
+                // given once its source has actually loaded. Passing the length of an
+                // empty array while the fetch is still in flight makes the tab
+                // unclickable exactly when a reader is trying to open it, and leaves
+                // a legitimately empty one unable to say so.
+                {
+                    key: "genes",
+                    label: "Gene loadings",
+                    count: this.loadedCount("genes", this.geneLoadings.rows.length || this.topGeneFallback.length)
+                },
                 { key: "states", label: "Associated states", count: this.matches.length },
-                { key: "genesets", label: "Gene sets", count: this.geneSets.rows.length },
+                // Never 0, so this tab is never disabled -- `|| null` where the
+                // others pass their real count.
+                //
+                // Empty is the NORMAL case here: gene-set associations are loaded for
+                // liver only, 10 of 161 scopes across the 12 tissues. A greyed-out
+                // dead tab on the other 94% tells a reader nothing, and they cannot
+                // open it to find out why. Enabled and empty, it says so.
+                {
+                    key: "genesets",
+                    label: "Gene sets",
+                    count: this.loadedCount("geneSets", this.geneSets.rows.length) || null
+                },
                 { key: "traits", label: "Traits", count: this.traits ? this.traits.shown : null },
-                { key: "qc", label: "QC signatures", count: this.qcRows.length }
+                // Two tabs that both say QC, and they are different axes: this one is
+                // "is this program trustworthy" (factor-level, the report), the next
+                // is "which QC signatures is it enriched for" (signature-level). The
+                // labels have to keep them apart.
+                // The count is the FLAG count, and only when there is one. `count: 0`
+                // disables a tab in InfoTabs, which would make the report
+                // unreachable on exactly the programs that passed it -- and a clean
+                // report is still worth reading. No badge, still clickable.
+                {
+                    key: "report",
+                    label: "Factor QC",
+                    count: this.factorReport && this.factorReport.flagged ? this.factorReport.nFlags : null
+                },
+                { key: "qc", label: "QC signatures", count: this.loadedCount("qc", this.qcRows.length) }
             ];
         },
 
@@ -270,14 +311,129 @@ export default Vue.component("ProgramInfo", {
 
         hasQcData() {
             return !!(this.detail && Array.isArray(this.detail.qc));
+        },
+
+        // From ligerApi, not written here: the canvas label over the gene link bundle
+        // shows the same sentence, and two copies would drift.
+        geneLoadingDefinition() {
+            return GENE_LOADING_DEFINITION;
+        },
+
+        // The three explanations that used to be the canvas column-head tooltips.
+        // They moved with their values when the columns came off the rows.
+        //
+        // `log10_cpk` is NAMED, not interpreted: it is the only expression field
+        // these endpoints return, it behaves like a log of a log, and its exact
+        // definition is an open question with the pipeline owner. Reporting the
+        // backend's own naming asserts nothing. Do not relabel this as CPK.
+        expressionHelp() {
+            return `How strongly ${this.geneLabel || "the gene"} is expressed in this gene program.\n\n`
+                + `Field: log10_cpk, as reported by the pipeline.`;
+        },
+
+        // Kept separate from the expression text, and from the cell-type one:
+        // specificity's DENOMINATOR differs by card -- cell types measure against the
+        // other cell types in the tissue, programs against the parent cell type --
+        // and collapsing them into one string is how they come to disagree with the
+        // data. Here it is the parent cell-type background.
+        specificityHelp() {
+            return `How specific ${this.geneLabel || "the gene"}'s expression is to this program,`
+                + ` measured against the rest of the parent cell type.\n\n`
+                + `Negative means the gene is expressed less in this program than across the cell`
+                + ` type as a whole — the program is not where this gene's signal sits.\n\n`
+                + `Field: log2fc_weighted_vs_all_parent, in log₂ fold change. It is a fold change,`
+                + ` not a p-value.`;
+        },
+
+        // Says plainly that what it tests is unknown. That was asked twice on the
+        // 10/02 call and went unanswered (punchlist 3.1), and it is why this value no
+        // longer grays anything.
+        pValueHelp() {
+            return `Reported with the expression value. What this p-value tests has not been`
+                + ` confirmed with the pipeline owner, so it is shown as reported and is not used`
+                + ` to rank or to flag anything.\n\nIt underflows to 5e-324 for the strongest hits,`
+                + ` so values at the floor are shown as <1e-300 rather than a falsely precise`
+                + ` number.`;
+        },
+
+        // The factor QC report, rendered as reported.
+        //
+        // Deliberately uninterpreted. Several questions about this data are open with
+        // Kyle -- what covariates `X` and `Y` are, whether trait covariates should
+        // flag at all, why two checks come back `unknown` on ~10% of factors -- so
+        // the card shows every check with its evidence and lets the reader judge.
+        // Summarising it into a verdict here would bake in answers nobody has.
+        //
+        // The one thing it does assert is the pipeline's own distinction: the two
+        // informational-only checks are marked as such, because a `clean` on those is
+        // not a pass. One sampled factor reads `blacklist_status: clean` at r = 0.68.
+        factorReport() {
+            let row = this.program ? this.program.report : null;
+
+            if (!row) {
+                return null;
+            }
+
+            let groups = FACTOR_REPORT_GROUPS.map((group) => {
+                let status = field(row, [group.status]);
+
+                return {
+                    key: group.key,
+                    label: group.label,
+                    flagging: group.flagging,
+                    status: status || "—",
+                    tone: factorStatusTone(status),
+                    fields: group.fields
+                        .map((item) => ({
+                            key: item.key,
+                            label: item.label,
+                            value: this.reportValue(row, item.key)
+                        }))
+                        .filter((item) => item.value !== null)
+                };
+            });
+
+            return {
+                groups,
+                verdict: String(field(row, ["overall_verdict"]) || ""),
+                flagged: this.program.qcFlagged === true,
+                flags: this.program.qcFlags || [],
+                nFlags: numericField(row, ["n_flags"])
+            };
         }
     },
 
     methods: {
+        // `null` until the source has loaded, so InfoTabs leaves the tab enabled.
+        // A zero that means "not fetched yet" and a zero that means "none reported"
+        // are different facts and must not render the same.
+        loadedCount(key, value) {
+            return this.detail && Array.isArray(this.detail[key]) ? value : null;
+        },
+
+        // Numbers are rounded for reading; everything else passes through as a
+        // string. `null` means the field is absent, and the row is dropped rather
+        // than printed as an empty label -- the report's field set varies.
+        reportValue(row, key) {
+            let numeric = numericField(row, [key]);
+
+            if (Number.isFinite(numeric)) {
+                return Math.abs(numeric) < 0.001 && numeric !== 0
+                    ? numeric.toExponential(2)
+                    : String(Number(numeric.toFixed(4)));
+            }
+
+            let text = field(row, [key]);
+
+            return text === null || text === undefined || text === "" ? null : String(text);
+        },
+
         qcTitle(row) {
+            // Newline-separated: InfoTip turns these into separate lines, and
+            // `recommended_use` / `exclude_when` are sentences rather than labels.
             return [row.category, row.tier, row.recommendedUse, row.excludeWhen]
                 .filter((part) => !!part)
-                .join(" · ");
+                .join("\n");
         }
     }
 });
@@ -299,27 +455,49 @@ export default Vue.component("ProgramInfo", {
                 </div>
             </div>
 
+            <!-- These three came off the canvas rows (punchlist 1.2). The card is
+                 now the only place they appear, so it is also the only place their
+                 explanations can live -- hence the tooltips, which moved here from
+                 the EXP / SPEC column heads. -->
             <div class="head-metrics">
                 <div class="metric">
                     <span class="metric-label">Expression</span>
-                    <span class="metric-value">{{ program.absText }}</span>
+                    <info-tip title="Expression" :text="expressionHelp">
+                        <span class="metric-value help">{{ program.absText }}</span>
+                    </info-tip>
                 </div>
                 <div class="metric">
                     <span class="metric-label">Specificity</span>
-                    <span
-                        class="metric-value"
-                        :class="program.specDirection ? 'dir-' + program.specDirection : 'dir-none'"
-                    >{{ program.specText }}</span>
+                    <info-tip title="Specificity" :text="specificityHelp">
+                        <span
+                            class="metric-value help"
+                            :class="program.specDirection ? 'dir-' + program.specDirection : 'dir-none'"
+                        >{{ program.specText }}</span>
+                    </info-tip>
                 </div>
                 <div class="metric">
                     <span class="metric-label">p-value</span>
-                    <span class="metric-value">{{ program.pValueText }}</span>
+                    <info-tip title="p-value" :text="pValueHelp">
+                        <span class="metric-value help">{{ program.pValueText }}</span>
+                    </info-tip>
                 </div>
                 <div v-if="geneLabel" class="metric-note">for {{ geneLabel }}</div>
             </div>
         </div>
 
         <div v-if="error" class="info-missing">{{ error }}</div>
+
+        <!-- A flagged program is normally hidden, so if one is on screen the reader
+             either asked for it or deep-linked to it. Either way the reason belongs
+             at the top of the card, not three tabs in. -->
+        <div v-if="factorReport && factorReport.flagged" class="report-banner">
+            <b>Flagged by the factor QC report.</b>
+            <ul class="report-flags">
+                <li v-for="flag in factorReport.flags" :key="flag.code">
+                    {{ flag.label }}<template v-if="flag.detail"> — <code>{{ flag.detail }}</code></template>
+                </li>
+            </ul>
+        </div>
 
         <info-tabs v-model="activeTab" :tabs="tabs" />
 
@@ -349,7 +527,7 @@ export default Vue.component("ProgramInfo", {
                     <ul v-if="topMatches.length" class="preview-list">
                         <li v-for="match in topMatches" :key="match.key">
                             <span class="swatch" :style="{ background: match.color }"></span>
-                            <span class="preview-text" :title="match.label">{{ match.label }}</span>
+                            <info-tip class="preview-text" display="block" cursor="inherit" :text="match.label">{{ match.label }}</info-tip>
                         </li>
                     </ul>
                     <div v-else class="section-empty">
@@ -364,7 +542,7 @@ export default Vue.component("ProgramInfo", {
                     </h5>
                     <ul v-if="topGeneSets.length" class="preview-list">
                         <li v-for="row in topGeneSets" :key="row.name">
-                            <span class="preview-text" :title="row.name">{{ row.name }}</span>
+                            <info-tip class="preview-text" display="block" cursor="inherit" :text="row.name">{{ row.name }}</info-tip>
                         </li>
                     </ul>
                     <div v-else-if="loading" class="section-empty">Loading…</div>
@@ -409,6 +587,12 @@ export default Vue.component("ProgramInfo", {
                         of {{ geneLoadings.total.toLocaleString() }} with a positive loading
                     </span>
                 </h5>
+
+                <!-- What the number means, above the table rather than in a tooltip:
+                     "loading" is the one term on this tab a reader is most likely not
+                     to share a definition for, and it is the column they are here to
+                     read. -->
+                <p class="section-intro">{{ geneLoadingDefinition }}</p>
 
                 <div v-if="loading && !geneLoadings.rows.length" class="section-empty">Loading…</div>
 
@@ -530,7 +714,7 @@ export default Vue.component("ProgramInfo", {
                     </tr>
                 </tbody>
             </table>
-            <div v-else class="section-empty">No gene set associations reported.</div>
+            <div v-else class="section-empty">No gene set associations reported for this cell type.</div>
         </section>
         </template>
 
@@ -538,6 +722,53 @@ export default Vue.component("ProgramInfo", {
             <h5 class="section-title">Human genetic trait associations</h5>
             <trait-table :traits="traits" :loading="loadingTraits" :error="traitError" />
         </section>
+
+        <!-- Every check and its evidence, exactly as reported. No roll-up beyond the
+             pipeline's own `overall_verdict`: what several of these fields mean is
+             still an open question, and a card that summarised them would be
+             asserting answers. -->
+        <template v-else-if="activeTab === 'report'">
+            <section class="info-section">
+                <h5 class="section-title">
+                    Factor QC report
+                    <span v-if="factorReport" class="section-note">
+                        Verdict: {{ factorReport.verdict || "—" }}
+                    </span>
+                </h5>
+
+                <template v-if="factorReport">
+                    <div class="report-groups">
+                        <div v-for="group in factorReport.groups" :key="group.key" class="report-group">
+                            <div class="report-head">
+                                <span class="qc-dot" :class="group.tone"></span>
+                                <span class="report-name">{{ group.label }}</span>
+                                <span class="report-status">{{ group.status }}</span>
+                                <!-- The pipeline's own distinction, kept visible.
+                                     These two checks never contribute to the verdict,
+                                     so a `clean` on them is not a pass. -->
+                                <span v-if="!group.flagging" class="report-info-only">informational only</span>
+                            </div>
+                            <dl v-if="group.fields.length" class="pair-list">
+                                <template v-for="item in group.fields">
+                                    <dt :key="group.key + item.key + '-l'">{{ item.label }}</dt>
+                                    <dd :key="group.key + item.key + '-v'">{{ item.value }}</dd>
+                                </template>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="section-foot">
+                        Six checks, of which four can raise a flag — activity, independence, technical
+                        QC and cross-cell-type QC. Curated-state match and blacklist QC are reported
+                        for context and never affect the verdict. All correlations are Spearman r.
+                    </div>
+                </template>
+
+                <div v-else class="section-empty">
+                    No factor QC report for this program.
+                </div>
+            </section>
+        </template>
 
         <template v-else>
         <section class="info-section">
@@ -570,7 +801,7 @@ export default Vue.component("ProgramInfo", {
                         <tr v-for="row in qcRows" :key="row.id">
                             <td>
                                 <span class="qc-dot" :class="row.tone"></span>
-                                <span :title="qcTitle(row)">{{ row.label }}</span>
+                                <info-tip :text="qcTitle(row)">{{ row.label }}</info-tip>
                                 <span v-if="row.category" class="qc-category">{{ row.category }}</span>
                             </td>
                             <td class="qc-tier">{{ row.tier || "—" }}</td>
@@ -611,7 +842,7 @@ export default Vue.component("ProgramInfo", {
     border-radius: 999px;
     background: var(--ce-accent);
     color: #fff;
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
 }
@@ -630,9 +861,15 @@ export default Vue.component("ProgramInfo", {
     font-weight: 400;
 }
 
+/* The head metrics are the only place these three values appear now, so they are
+   also the only place to explain them. */
+.metric-value.help{
+    cursor: help;
+}
+
 .qc-evidence{
     margin-bottom: 8px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--ce-muted);
 }
 .qc-evidence b{ color: var(--ce-ink); }
@@ -647,10 +884,78 @@ export default Vue.component("ProgramInfo", {
 .qc-dot.ok{ background: #2e9e6b; }
 .qc-dot.warn{ background: #d9a400; }
 .qc-dot.bad{ background: #d92d20; }
+/* A check that reports a finding rather than a quality (curated-state match), and
+   one that could not be run at all. Neither is a pass or a failure, so neither gets
+   a color that reads as one -- `unknown` is hollow because there is no result. */
+.qc-dot.neutral{ background: var(--ce-muted); }
+.qc-dot.unknown{
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--ce-muted);
+}
+
+/* Why this program is on screen at all, since flagged programs are hidden by
+   default. Reads as a caveat, not an error: the row is real data. */
+.report-banner{
+    margin: 10px 0 0;
+    padding: 8px 10px;
+    border-left: 3px solid #d9a400;
+    background: #fdf6e3;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ce-ink);
+}
+.report-flags{
+    margin: 4px 0 0;
+    padding-left: 16px;
+}
+.report-flags code{
+    font-size: 11px;
+    word-break: break-all;
+}
+
+.report-groups{
+    display: grid;
+    gap: 10px;
+}
+.report-group{
+    padding-bottom: 9px;
+    border-bottom: 1px solid var(--ce-line);
+}
+.report-group:last-child{
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.report-head{
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+.report-name{
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ce-ink);
+}
+/* The API's own string, not a prettified version of it: the reader may be comparing
+   this against the pipeline's report or asking the pipeline owner about it. */
+.report-status{
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ce-muted);
+}
+.report-info-only{
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--ce-sunken);
+    font-size: 11px;
+    color: var(--ce-muted);
+    white-space: nowrap;
+}
 
 .qc-category,
 .qc-tier{
-    font-size: 10px;
+    font-size: 11px;
     color: var(--ce-muted);
 }
 .qc-category{ margin-left: 7px; }
