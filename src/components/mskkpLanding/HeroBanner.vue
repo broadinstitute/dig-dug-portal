@@ -87,7 +87,7 @@ export default Vue.component("mskkp-landing-hero-banner", {
 
 .mskkp-landing-hero-search-label,
 .mskkp-landing-hero-search-examples {
-    color: #bcafd6;
+    color: #e9dffb;
     font-size: 14px;
 }
 
@@ -151,7 +151,7 @@ export default Vue.component("mskkp-landing-hero-banner", {
 }
 
 .mskkp-landing-hero-search-examples a.doc {
-    color: #bcafd6 !important;
+    color: #e9dffb !important;
     text-decoration: none;
 }
 </style>
