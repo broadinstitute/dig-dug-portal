@@ -74,7 +74,7 @@ export default Vue.component("InfoTabs", {
     border: 1px solid transparent;
     border-radius: 999px;
     background: none;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--ce-muted);
     cursor: pointer;
@@ -99,7 +99,7 @@ export default Vue.component("InfoTabs", {
     padding: 0 5px;
     border-radius: 999px;
     background: var(--ce-sunken);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 400;
     font-variant-numeric: tabular-nums;
 }

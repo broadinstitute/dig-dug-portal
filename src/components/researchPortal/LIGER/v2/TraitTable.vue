@@ -1,9 +1,14 @@
 <script>
 import Vue from "vue";
+import InfoTip from "./InfoTip.vue";
 
 // Trait associations, grouped by phenotype group. Shared by both detail panels --
 // the two trait endpoints return the same three fields, so there is one table.
 export default Vue.component("TraitTable", {
+    components: {
+        InfoTip
+    },
+
     props: {
         // the buildTraitRows() result
         traits: {
@@ -81,7 +86,7 @@ export default Vue.component("TraitTable", {
                             <!-- The raw API code is the tooltip: identity stays
                                  keyed by it internally, and it is what to quote in
                                  a bug report. -->
-                            <td :title="row.key">{{ row.label }}</td>
+                            <td><info-tip cursor="inherit" :text="row.key">{{ row.label }}</info-tip></td>
                             <td class="num" :class="row.beta >= 0 ? 'dir-up' : 'dir-down'">
                                 {{ row.beta.toFixed(3) }}
                             </td>
@@ -101,7 +106,7 @@ export default Vue.component("TraitTable", {
 <style scoped>
 .trait-count{
     margin-bottom: 8px;
-    font-size: 10px;
+    font-size: 11px;
     color: var(--ce-muted);
 }
 .data-table{
@@ -111,7 +116,7 @@ export default Vue.component("TraitTable", {
 .data-table th{
     padding: 4px 8px 4px 0;
     border-bottom: 1px solid var(--ce-line);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: .04em;
     text-transform: uppercase;
@@ -122,7 +127,7 @@ export default Vue.component("TraitTable", {
 .data-table td{
     padding: 5px 8px 5px 0;
     border-bottom: 1px solid var(--ce-line);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.4;
     color: var(--ce-ink);
 }
@@ -154,13 +159,13 @@ export default Vue.component("TraitTable", {
 
 .section-empty{
     padding: 6px 0;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.5;
     color: var(--ce-muted);
 }
 .section-foot{
     margin-top: 6px;
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1.5;
     color: var(--ce-muted);
 }

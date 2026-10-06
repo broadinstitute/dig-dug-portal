@@ -32,7 +32,7 @@
     min-width: 0;
 }
 .info-eyebrow{
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
@@ -40,7 +40,7 @@
 }
 .info-title{
     margin: 2px 0 0 !important;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     line-height: 1.3;
     color: var(--ce-ink);
@@ -48,13 +48,13 @@
 /* What the entity IS, which is header material -- not an overview section. */
 .info-lede{
     margin-top: 4px;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.6;
     color: var(--ce-ink);
 }
 .info-sub{
     margin-top: 3px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--ce-muted);
 }
 
@@ -70,12 +70,12 @@
     display: contents;
 }
 .metric-label{
-    font-size: 11px;
+    font-size: 12px;
     color: var(--ce-muted);
     white-space: nowrap;
 }
 .metric-value{
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     text-align: right;
@@ -84,7 +84,7 @@
 .metric-note{
     grid-column: 1 / -1;
     text-align: right;
-    font-size: 10px;
+    font-size: 11px;
     color: var(--ce-muted);
 }
 .dir-up{ color: #2f5bea; }
@@ -98,7 +98,7 @@
     padding: 8px 10px;
     border-radius: 8px;
     background: var(--ce-sunken);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.5;
     color: var(--ce-muted);
 }
@@ -123,7 +123,7 @@
     align-items: center;
     gap: 7px;
     margin: 0 0 7px !important;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ce-ink);
 }
@@ -132,26 +132,35 @@
     border-radius: 999px;
     background: var(--ce-sunken);
     border: 1px solid var(--ce-line);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 400;
     font-variant-numeric: tabular-nums;
     color: var(--ce-muted);
 }
 .section-note{
     margin-left: auto;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 400;
+    color: var(--ce-muted);
+}
+/* A sentence defining what a section's numbers mean, between the heading and the
+   table. Distinct from `.section-note`, which is a statistic riding on the heading
+   line, and from `.section-foot`, which qualifies a result after it. */
+.section-intro{
+    margin: 0 0 8px;
+    font-size: 11px;
+    line-height: 1.5;
     color: var(--ce-muted);
 }
 .section-empty{
     padding: 6px 0;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.5;
     color: var(--ce-muted);
 }
 .section-foot{
     margin-top: 6px;
-    font-size: 10px;
+    font-size: 11px;
     color: var(--ce-muted);
 }
 
@@ -170,7 +179,7 @@
     border: 1px solid var(--ce-line);
     border-radius: 999px;
     background: var(--ce-sunken);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--ce-ink);
     /* Gene-set names are long unbroken tokens that would otherwise force the column
@@ -178,7 +187,7 @@
     overflow-wrap: anywhere;
 }
 .marker-cite{
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 400;
     color: var(--ce-accent);
     text-decoration: none;
@@ -186,7 +195,7 @@
 
 .section-lead{
     margin-bottom: 8px;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.6;
     color: var(--ce-muted);
 }
@@ -213,7 +222,7 @@
        push the row wider than the card instead. */
     min-width: 0;
     padding: 3px 0;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.45;
     color: var(--ce-ink);
 }
@@ -239,7 +248,7 @@
     margin: 0;
 }
 .pair-list dt{
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 400;
     color: var(--ce-ink);
     min-width: 0;
@@ -247,7 +256,7 @@
 }
 .pair-list dd{
     margin: 0;
-    font-size: 10px;
+    font-size: 11px;
     text-align: right;
     color: var(--ce-muted);
     white-space: nowrap;
@@ -259,7 +268,7 @@
 .cite-link{
     display: inline-block;
     margin-right: 6px;
-    font-size: 10px;
+    font-size: 11px;
     color: var(--ce-accent);
 }
 .swatch{
@@ -281,7 +290,7 @@
 .data-table th{
     padding: 4px 8px 4px 0;
     border-bottom: 1px solid var(--ce-line);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: .04em;
     text-transform: uppercase;
@@ -293,7 +302,7 @@
 .data-table td{
     padding: 5px 8px 5px 0;
     border-bottom: 1px solid var(--ce-line);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.4;
     color: var(--ce-ink);
 }
@@ -323,13 +332,13 @@
     margin: 0;
 }
 .guidance dt{
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--ce-muted);
 }
 .guidance dd{
     margin: 0;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.6;
     color: var(--ce-ink);
 }
@@ -344,7 +353,7 @@
     margin-top: 16px;
     padding-top: 10px;
     border-top: 1px solid var(--ce-line);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--ce-muted);
 }
 .establishment{

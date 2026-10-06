@@ -44,7 +44,7 @@ export function renderMethodMarkdown(source, prefix) {
         ],
         renderer: {
             heading(token) {
-                const plain = token.text.replace(/<[^>]*>|[*`$]/g, "");
+                const plain = token.text.replace(/[<>*`$]/g, "");
                 const base = `${prefix}-${plain
                     .toLowerCase()
                     .replace(/[^a-z0-9]+/g, "-")

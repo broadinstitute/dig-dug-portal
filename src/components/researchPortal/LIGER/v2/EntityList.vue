@@ -32,12 +32,32 @@ export default Vue.component("EntityList", {
         matchLabel: {
             type: String,
             default: ""
+        },
+        // Why the dimmed rows are dimmed. Supplied by the caller because the reason
+        // differs per list -- a program is dimmed for its gene loading, a cell state
+        // for its enrichment -- and a generic "below the filters" says neither.
+        mutedLabel: {
+            type: String,
+            default: ""
         }
     },
 
     computed: {
         showMatches() {
             return !!this.matchLabel && this.items.some((item) => Number.isFinite(item.matchCount));
+        },
+
+        // Programs carry a gene loading; cell states do not. Driven off the data
+        // rather than a prop, the same way the matches column is.
+        showLoading() {
+            return this.items.some((item) => Number.isFinite(item.geneLoading));
+        },
+
+        // This list never filters -- it is the full set, and `muted` is what marks
+        // the rows the canvas is currently leaving out. Saying so matters, because
+        // the count in the tab header will not match the canvas.
+        mutedCount() {
+            return this.items.filter((item) => item.muted).length;
         }
     }
 });
@@ -52,10 +72,23 @@ export default Vue.component("EntityList", {
 
         <div v-if="!items.length" class="list-empty">{{ emptyText }}</div>
 
-        <table v-else class="list-table">
+        <!-- The legend is NOT part of the table's conditional chain. It was written as
+             a `v-else-if` between the two, which meant that any list with a dimmed row
+             rendered the legend INSTEAD of the table -- the common case, and the table
+             vanished entirely. -->
+        <template v-else>
+            <!-- This list is the full set and never filters, unlike the canvas.
+                 Dimmed rows are the ones the canvas is currently leaving out, and
+                 saying so is what stops the two counts looking like a bug. -->
+            <div v-if="mutedCount && mutedLabel" class="list-legend">
+                {{ mutedCount }} dimmed — {{ mutedLabel }}
+            </div>
+
+            <table class="list-table">
             <thead>
                 <tr>
                     <th class="col-name">Name</th>
+                    <th v-if="showLoading" class="col-num">Loading</th>
                     <th class="col-num">Expression</th>
                     <th class="col-num">Specificity</th>
                     <th v-if="showMatches" class="col-num">{{ matchLabel }}</th>
@@ -73,6 +106,7 @@ export default Vue.component("EntityList", {
                         <span v-if="item.color" class="swatch" :style="{ background: item.color }"></span>
                         <span class="row-name">{{ item.label }}</span>
                     </td>
+                    <td v-if="showLoading" class="col-num loading">{{ item.geneLoadingText || "—" }}</td>
                     <td class="col-num">{{ item.absText }}</td>
                     <td
                         class="col-num spec"
@@ -83,7 +117,8 @@ export default Vue.component("EntityList", {
                     </td>
                 </tr>
             </tbody>
-        </table>
+            </table>
+        </template>
     </div>
 </template>
 
@@ -95,21 +130,31 @@ export default Vue.component("EntityList", {
 .list-intro{
     margin-bottom: 10px;
 }
+.list-legend{
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--ce-muted);
+}
+/* The loading is why a program is on the canvas at all, so it leads the numbers. */
+.col-num.loading{
+    font-weight: 700;
+    color: var(--ce-ink);
+}
 .intro-title{
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--ce-ink);
 }
 .intro-note{
     margin-top: 2px;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.5;
     color: var(--ce-muted);
 }
 
 .list-empty{
     padding: 22px 0;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--ce-muted);
 }
 
@@ -120,7 +165,7 @@ export default Vue.component("EntityList", {
 .list-table th{
     padding: 5px 8px;
     border-bottom: 1px solid var(--ce-line);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: .04em;
     text-transform: uppercase;
@@ -140,7 +185,7 @@ export default Vue.component("EntityList", {
 .list-table td{
     padding: 6px 8px;
     border-bottom: 1px solid var(--ce-line);
-    font-size: 12px;
+    font-size: 13px;
     color: var(--ce-ink);
 }
 .col-name{

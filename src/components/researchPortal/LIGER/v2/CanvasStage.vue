@@ -1,5 +1,6 @@
 <script>
 import Vue from "vue";
+import InfoTip from "./InfoTip.vue";
 
 // An infinite-canvas viewport built from HTML elements rather than a <canvas>.
 //
@@ -34,6 +35,10 @@ const FIT_MIN_SCALE = 0.6;
 const DRAG_THRESHOLD_PX = 4;
 
 export default Vue.component("CanvasStage", {
+    components: {
+        InfoTip
+    },
+
     props: {
         // World size in world pixels. The slot content is positioned inside this.
         worldWidth: {
@@ -445,10 +450,20 @@ export default Vue.component("CanvasStage", {
         </div>
 
         <div class="stage-controls" data-canvas-interactive>
-            <button type="button" title="Zoom out" :disabled="!canZoomOut" @click="zoomOut">&minus;</button>
-            <button type="button" class="zoom-readout" title="Reset to 100%" @click="resetZoom">{{ zoomPercent }}</button>
-            <button type="button" title="Zoom in" :disabled="!canZoomIn" @click="zoomIn">+</button>
-            <button type="button" class="fit" title="Fit to content" @click="fit">Fit</button>
+            <!-- `focusable: false` on each: the button inside is already the tab
+                 stop, and InfoTip listens on focusin/focusout, which bubble. -->
+            <info-tip text="Zoom out" :focusable="false">
+                <button type="button" aria-label="Zoom out" :disabled="!canZoomOut" @click="zoomOut">&minus;</button>
+            </info-tip>
+            <info-tip text="Reset to 100%" :focusable="false">
+                <button type="button" class="zoom-readout" @click="resetZoom">{{ zoomPercent }}</button>
+            </info-tip>
+            <info-tip text="Zoom in" :focusable="false">
+                <button type="button" aria-label="Zoom in" :disabled="!canZoomIn" @click="zoomIn">+</button>
+            </info-tip>
+            <info-tip text="Fit to content" :focusable="false">
+                <button type="button" class="fit" @click="fit">Fit</button>
+            </info-tip>
         </div>
 
         <div class="stage-hint">Drag to pan · {{ zoomHint }} to zoom</div>

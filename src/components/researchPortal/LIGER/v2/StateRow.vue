@@ -1,5 +1,6 @@
 <script>
 import Vue from "vue";
+import InfoTip from "./InfoTip.vue";
 
 // One cell state, as a two-line row: the name on the first line, its one-line lede
 // on the second.
@@ -20,6 +21,10 @@ import Vue from "vue";
 // state's edges, which makes the list its own legend: a reader traces a line to a
 // color and finds the color at the head of a row.
 export default Vue.component("StateRow", {
+    components: {
+        InfoTip
+    },
+
     props: {
         // one item from buildExpressionItems(), plus `color`, `matchCount`, `lede`
         state: {
@@ -52,13 +57,17 @@ export default Vue.component("StateRow", {
         <div class="accent"></div>
 
         <div class="row-body">
-            <div class="row-label" :title="state.label">{{ state.label }}</div>
+            <info-tip class="row-label" display="block" cursor="inherit" :text="state.label">
+                <span class="clip">{{ state.label }}</span>
+            </info-tip>
 
             <!-- The lede is not always present: it comes from the state's metadata
                  row, and the catalogue's rows are not uniform. An empty line reads
                  as a short row rather than as missing data, which is right -- there
                  is nothing to report. -->
-            <div v-if="state.lede" class="row-lede" :title="state.lede">{{ state.lede }}</div>
+            <info-tip v-if="state.lede" class="row-lede" display="block" cursor="inherit" :text="state.lede">
+                <span class="clip">{{ state.lede }}</span>
+            </info-tip>
         </div>
     </div>
 </template>
@@ -109,9 +118,6 @@ export default Vue.component("StateRow", {
     font-weight: 700;
     line-height: 1.35;
     color: var(--ce-ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 /* One line, ellipsized, with the full text on the title attribute. The row height is
    fixed and shared with the canvas edge math, so this cannot be allowed to wrap --
@@ -120,6 +126,11 @@ export default Vue.component("StateRow", {
     font-size: 10px;
     line-height: 1.35;
     color: var(--ce-muted);
+}
+/* The clipping sits on an inner span rather than on the InfoTip trigger, so the
+   trigger still measures the full row width as a hover target. */
+.clip{
+    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

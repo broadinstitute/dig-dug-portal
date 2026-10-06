@@ -1,5 +1,6 @@
 <script>
 import Vue from "vue";
+import InfoTip from "./InfoTip.vue";
 
 // The source-data tab: metadata for the single-cell dataset the programs in the
 // canvas were generated from.
@@ -12,6 +13,10 @@ import Vue from "vue";
 // -- printing a label with nothing after it would read as missing data rather than
 // as a field this dataset does not carry.
 export default Vue.component("DatasetInfo", {
+    components: {
+        InfoTip
+    },
+
     props: {
         // one row from the metadata file, or null when nothing matched
         dataset: {
@@ -244,10 +249,16 @@ export default Vue.component("DatasetInfo", {
                     :key="cellType.key"
                     class="cell-type"
                     :class="{ selected: cellType.selected }"
-                    :title="'log10_cpk ' + cellType.expressionRawText"
                 >
-                    <span class="cell-type-label">{{ cellType.label }}</span>
-                    <span class="cell-type-value">{{ cellType.expressionText }}</span>
+                    <info-tip
+                        class="cell-type-tip"
+                        display="flex"
+                        title="Expression"
+                        :text="'log10_cpk ' + cellType.expressionRawText"
+                    >
+                        <span class="cell-type-label">{{ cellType.label }}</span>
+                        <span class="cell-type-value">{{ cellType.expressionText }}</span>
+                    </info-tip>
                 </li>
             </ul>
         </section>
@@ -264,12 +275,12 @@ export default Vue.component("DatasetInfo", {
     align-items: center;
     gap: 8px;
     padding: 22px 0;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--ce-muted);
 }
 .info-state.error{ color: #b42318; }
 .info-state code{
-    font-size: 11px;
+    font-size: 12px;
     background: var(--ce-sunken);
     padding: 1px 5px;
     border-radius: 4px;
@@ -296,7 +307,7 @@ export default Vue.component("DatasetInfo", {
     min-width: 0;
 }
 .info-eyebrow{
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
@@ -304,14 +315,14 @@ export default Vue.component("DatasetInfo", {
 }
 .info-title{
     margin: 2px 0 0 !important;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     line-height: 1.3;
     color: var(--ce-ink);
 }
 .info-authors{
     margin-top: 3px;
-    font-size: 11px;
+    font-size: 12px;
     font-style: italic;
     line-height: 1.5;
     color: var(--ce-muted);
@@ -329,7 +340,7 @@ export default Vue.component("DatasetInfo", {
     border-radius: 8px;
     background: var(--ce-accent);
     color: #fff !important;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     text-decoration: none !important;
     white-space: nowrap;
@@ -346,7 +357,7 @@ export default Vue.component("DatasetInfo", {
 .info-summary{
     flex: 1;
     min-width: 220px;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.65;
     color: var(--ce-ink);
 }
@@ -370,14 +381,14 @@ export default Vue.component("DatasetInfo", {
     min-width: 190px;
 }
 .info-fields dt{
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--ce-muted);
     white-space: nowrap;
 }
 .info-fields dd{
     margin: 0;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--ce-ink);
     overflow-wrap: anywhere;
 }
@@ -400,7 +411,7 @@ export default Vue.component("DatasetInfo", {
 }
 .section-title{
     margin: 0 !important;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ce-ink);
 }
@@ -408,7 +419,7 @@ export default Vue.component("DatasetInfo", {
     padding: 1px 7px;
     border-radius: 999px;
     background: var(--ce-sunken);
-    font-size: 10px;
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
     color: var(--ce-muted);
 }
@@ -416,7 +427,7 @@ export default Vue.component("DatasetInfo", {
    type, so the heading has to name the gene and the field. */
 .section-note{
     margin-left: auto;
-    font-size: 10px;
+    font-size: 11px;
     color: var(--ce-muted);
 }
 
@@ -436,7 +447,7 @@ export default Vue.component("DatasetInfo", {
     gap: 8px;
     padding: 3px 6px;
     border-radius: 5px;
-    font-size: 11px;
+    font-size: 12px;
     cursor: help;
 }
 /* The one the canvas is built from. Not a link: the selector in the band above is
@@ -444,6 +455,12 @@ export default Vue.component("DatasetInfo", {
 .cell-type.selected{
     background: var(--ce-accent-soft);
     font-weight: 700;
+}
+.cell-type-tip{
+    width: 100%;
+    align-items: baseline;
+    gap: 6px;
+    justify-content: space-between;
 }
 .cell-type-label{
     flex: 1;

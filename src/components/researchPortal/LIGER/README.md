@@ -8,15 +8,15 @@ its own subfolder with its own components, styles and README.
 
 ```
 LIGER/
-  README.md                   <- this file: shared API / data knowledge
-  DETAIL_DATA_CATALOGUE.md    <- field-by-field record of what each endpoint returns
+  README.md                   <- this file: folder layout + how the VALUES must be read
+  API.md                      <- the endpoints: keying, fields, coverage gaps, open questions
   ligerApi.js                 <- the data layer: hosts, tissue keying, URL building
   ligerFormat.js              <- shared number formatting
   ligerHeat.js                <- shared color math (clamp, mixColor) + v1's heat scale
   CellStateInfographic.vue    <- the orienting figure, used by both versions' page headers
   references/                 <- source of truth for endpoints and host
   v1/                         <- the original browser
-  v2/                         <- the Cell Evolution Browser, in progress (currently shipped)
+  v2/                         <- the Cell State Browser (currently shipped)
 ```
 
 ### What belongs at the root
@@ -51,7 +51,7 @@ either; the version's top-level component is its only entry point.
 | Version | Entry component | Status | Notes |
 |---|---|---|---|
 | `v1` | `v1/LigerBrowser.vue` | **deprecated and non-functional** | The original browser. Not mounted, and it will not work if mounted — see below. Kept for reference only. |
-| `v2` | `v2/CellEvolutionBrowser.vue` | **mounted on the LIGER page** | The Cell Evolution Browser. See `v2/README.md`. |
+| `v2` | `v2/CellEvolutionBrowser.vue` | **mounted on the LIGER page** | The **Cell State Browser** — the component keeps the old internal name. See `v2/README.md`. |
 
 `src/views/LIGER/main.js` and `src/views/LIGER/Template.vue` point at v2.
 
@@ -68,7 +68,7 @@ helper.
 ## Constraints That Apply to Every Version
 
 - Use the endpoints and host from `references/liger_apis.txt`.
-- Check `DETAIL_DATA_CATALOGUE.md` before rendering a field. Several fields earlier versions read do not
+- Check `API.md` before rendering a field. Several fields earlier versions read do not
   exist on any index. **Do not render a value the API does not supply** — that is how v1 ended up showing
   a constant quality badge that looked like an API verdict.
 - Keep new files for a version inside that version's folder.
@@ -116,7 +116,7 @@ tissue → dataset table with a `datasetIds[]` array per tissue, its reverse ind
 dataset-ID observation, and a runtime sniff of which of two keying conventions a given portal spoke.
 Endpoints fell into three classes — always a dataset ID, always a tissue key, and
 depends-on-the-portal — and guessing wrong returned HTTP 500 rather than an empty result. See
-`BACKEND_REQUEST_TISSUE_KEYS.md` for the request that produced the change.
+`API.md` for the request that produced the change.
 
 Two rules follow from it, and both matter:
 
@@ -187,7 +187,7 @@ Program labels should prefer metadata labels and avoid exposing raw factor IDs w
 `top_genes` -- and that is the whole program-level metadata surface. There is **no** `rationale`, no
 `suggested_program_label` and no `suggested_program_quality_class`. An earlier note here claimed a
 `rationale` field; the index does not send one, and the program detail panel no longer reads for it. See
-`DETAIL_DATA_CATALOGUE.md`.
+`API.md`.
 
 ### State/program relationships
 
@@ -298,6 +298,44 @@ Important behavior:
   - metadata `category`
   - metadata marker genes
 - QC metadata joins on `qc_signature_id` matching QC row `state_name`
+
+### Factor QC report
+
+- `/api/bio/query/gene-program-nmf-liger-report?q=<tissueKey>,<cellType>`
+
+One row per factor, carrying six QC checks and an `overall_verdict`. This is the authoritative
+**factor-level** quality signal, and it is what hides and grays gene program rows — replacing the
+p-value, which nobody on the 2026-10-02 call could define.
+
+Fetched once per cell type alongside the program endpoints. It is the **only** one of those three
+whose failure is swallowed: the verdict hides rows, so losing it must degrade to "no filtering"
+rather than to an empty canvas. 7 of 169 scopes return no report at all, and a program with no report
+row is shown, never dimmed — **missing QC is not failed QC**, and the three-state `qcFlagged`
+(`true` / `false` / `null`) exists to keep that distinction.
+
+These power:
+
+- hiding flagged programs by default, with the legend's `Show QC-flagged programs` checkbox
+- graying flagged rows once they are shown
+- the program detail card's **Factor QC** tab and its flagged banner
+
+**It is a different axis from the QC signature filtering above.** That one asks "is this `state_name`
+a QC artifact rather than a curated cell state"; this one asks "is this gene program trustworthy".
+The report's own `blacklist_status` / `top_blacklist_match` fields name a QC signature a factor
+correlates with and are **informational only** — they must not drive filtering.
+
+Only four of the six checks contribute to a flag (activity, independence, technical confound,
+cross-cell-type contamination are flagged; curated-state match and blacklist are not), so **filter on
+`overall_verdict`, never on an individual status**.
+
+Of those four, **`independence_status` is constant** — `independent` on all 2308 factor rows across
+all 162 scopes, with no `REDUNDANT_*` code anywhere in `flags`. Three checks actually fire.
+
+`flags` is **semicolon-separated**. `blacklist_status` and `contamination_status` each have a third
+value, `unknown`, meaning the check could not be run — fold it into neither `clean` nor flagged.
+
+Full field list, flagged-vs-informational breakdown, measured enum values, the |r| ≥ 0.5 thresholds
+and the integration plan: `API.md`.
 
 
 ## Reading the Data
@@ -425,6 +463,12 @@ If bars look visually wrong again, inspect:
 #### p_value
 
 Used as a significance flag only — it dims the specificity bar above `LIGER_SIGNIFICANCE_P` (0.05) and appears on row hover. It is never used for ranking: it underflows to `5e-324` for the strongest hits, so it cannot order them. Anything at the floor is displayed as `<1e-300` rather than a falsely precise number.
+
+**It no longer grays v2's gene program rows.** Those are grayed by the factor QC report's
+`overall_verdict` instead (punchlist 1.4) — the p-value is still printed, but what it tests is an
+open question (3.1) and an undefined quantity should not be what makes a row look untrustworthy.
+Cell-state rows still use the p-value rule below: 1.4 was about program rows, and there is no
+state-level QC report.
 
 A bar is dimmed **only when a p-value is present and fails the threshold.** Not every portal returns `p_value` on every endpoint, and dimming on missing data washes out the whole column — reading as "all low confidence" when it actually means "not reported".
 

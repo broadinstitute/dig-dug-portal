@@ -1,5 +1,6 @@
 <script>
 import Vue from "vue";
+import InfoTip from "./InfoTip.vue";
 import { pathValue, firstPathValue } from "../ligerApi";
 import InfoTabs from "./InfoTabs.vue";
 import TraitTable from "./TraitTable.vue";
@@ -15,7 +16,7 @@ import TraitTable from "./TraitTable.vue";
 // labels. Those rows are NESTED (`summary.`, `state.`, `curation.`, `marker_set.`,
 // `scoring.`), so everything here reads through pathValue().
 //
-// Deliberately NOT shown, from the measured audit in ../DETAIL_DATA_CATALOGUE.md:
+// Deliberately NOT shown, from the measured audit in ../API.md:
 //
 // - `summary.biological_description` / `short_description` -- the same text as the
 //   lede on most states, a longer version of it on the rest.
@@ -28,6 +29,7 @@ import TraitTable from "./TraitTable.vue";
 export default Vue.component("StateInfo", {
     components: {
         InfoTabs,
+        InfoTip,
         TraitTable
     },
 
@@ -264,7 +266,7 @@ export default Vue.component("StateInfo", {
                     </h5>
                     <ul v-if="topMatches.length" class="preview-list">
                         <li v-for="match in topMatches" :key="match.key">
-                            <span class="preview-text" :title="match.label">{{ match.label }}</span>
+                            <info-tip class="preview-text" display="block" cursor="inherit" :text="match.label">{{ match.label }}</info-tip>
                         </li>
                     </ul>
                     <div v-else class="section-empty">
