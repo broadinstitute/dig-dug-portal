@@ -1,16 +1,16 @@
 <!-- AUTO-GENERATED. Do not edit. -->
-<!-- Version: 1.0.13 | Generated: 2026-09-14T03:46:35Z | Hash: bd7952ca93e8 -->
-<!-- Sources: dig-dug-portal/master/AGENTS.md + dig-dug-portal/AGENTS.md -->
+<!-- Version: 1.0.3 | Generated: 2026-10-06T15:31:44Z | Hash: de0548ebd9fb -->
+<!-- Sources: dig-dug-portal/mskkp-main/AGENTS.md + dig-dug-portal/AGENTS.md -->
 
-# dig-dug-portal — master
+# dig-dug-portal — mskkp-main
 
 ## Variant-Specific Guidance
 
 ## Purpose and Intended Audience
 
-Variant-specific guidance for the `master` build of dig-dug-portal. Extends ../AGENTS.md; root rules and workflows still apply.
+Variant-specific guidance for the `mskkp-main` build of dig-dug-portal. Extends ../AGENTS.md; root rules and workflows still apply.
 
-Upstream branch: `master` of https://github.com/broadinstitute/dig-dug-portal
+Upstream branch: `mskkp-main` of https://github.com/broadinstitute/dig-dug-portal
 
 ## Repository Organization
 
@@ -18,33 +18,42 @@ This folder holds variant-specific notes only. Build and runtime instructions li
 
 ## Variant Notes
 
-- Branch: `master`
-- Differences from default: document only what diverges from parent (entry pages, env vars, deploy target).
+- Branch: `mskkp-main`
+- Vue config: `configs/vue.config.MSKKP.js`
+- The config inherits the shared Vue config and overrides the home page entry with `src/portals/MSKKP/MskkpIndex/main.js`.
+- Adds the `singlecellcompare.html` page, titled `MSKKP Single-Cell Dataset Comparison`, with entry point `src/portals/MSKKP/SingleCellCompare/main.js`.
+- Output configuration is inherited from the shared Vue config.
+- The upstream package manifest uses `vis-network 10.1.2` and `vis-data 8.0.5`.
 
 ## Quick Start (Delta Only)
 
-Switch to this branch before running parent workflows:
+Branch: `mskkp-main`. In shared Quick Start step 1, clone with `git clone -b mskkp-main …` (fresh checkout) or run `git checkout mskkp-main` (existing clone), then run `npm install` before any other step.
+
+Set the config path in the same shell before the shared watch/build/deploy commands (step 2/5):
+
+bash/zsh (macOS/Linux):
 
 ```bash
-git checkout master
+export VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.MSKKP.js
 ```
 
-Then follow setup, watch, build, and deploy from ../AGENTS.md.
+PowerShell (Windows):
 
-For local static preview of compiled master output:
-
-```bash
-npm run preview
+```powershell
+$env:VUE_CLI_SERVICE_CONFIG_PATH = "configs/vue.config.MSKKP.js"
 ```
+
+Everything else follows the shared Quick Start Workflows unchanged.
 
 ## Constraints and Non-Negotiables
 
+- Always set `VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.MSKKP.js` before building; otherwise the shared root config is used.
 - Do not duplicate parent guidance; record only variant-specific differences here.
 - Use uppercase `AGENTS.md` for any nested agent docs.
 
 ## Assumptions and Known Limitations
 
-- Variant-specific scripts or env vars not yet documented; add only when verified from source.
+- The documented page set reflects the upstream MSKKP Vue config; re-check it when that config changes.
 
 ---
 
@@ -180,6 +189,7 @@ Each page entry contains:
 Branch-level vis-network differences (tracked portal branches):
 
 - **master, cfde-main, cfde-liver-main, matkp-main, pankbase-main, radiant-main, sysbio-main**: `vis-network ^10.0.2` + `vis-data ^8.0.3` direct; no `vue-vis-network` wrapper
+- **mskkp-main**: `vis-network 10.1.2` + `vis-data 8.0.5`
 - **radiant-main only**: additionally includes `igv 2.12.6` (IGV.js genome browser)
 
 Webpack must include a babel-loader transpilation rule covering vis-network/vis-data modules.
@@ -188,11 +198,25 @@ Webpack must include a babel-loader transpilation rule covering vis-network/vis-
 
 ### 1. Setup
 
+Fresh checkout — always run `npm install` after cloning (and again after switching branches, since dependency trees differ per branch):
+
+bash/zsh (macOS/Linux):
+
 ```bash
 git clone https://github.com/broadinstitute/dig-dug-portal.git
 cd dig-dug-portal
 npm install
 ```
+
+PowerShell (Windows):
+
+```powershell
+git clone https://github.com/broadinstitute/dig-dug-portal.git
+Set-Location dig-dug-portal
+npm install
+```
+
+To build a specific portal branch, add `-b <branch>` to the clone, or run `git checkout <branch>` in an existing clone — then run `npm install` again, since each branch pins its own dependency tree. Variant docs name their branch and any other deltas only.
 
 On Windows, `npm install --no-optional` reduces optional macOS dependency warnings.
 
@@ -200,8 +224,19 @@ A committed `package-lock.json` pins the dependency tree, so for a clean/reprodu
 
 ### 2. Prototype (Watch Mode)
 
+The upstream `watch`, `build`, and `deploy` npm scripts use POSIX-only `export NODE_OPTIONS=$(...)` syntax, so `npm run watch|build|deploy` fails under npm's default Windows shell. In PowerShell, set `NODE_OPTIONS` the same way the scripts do (legacy OpenSSL provider on Node ≥ 17 only) and call `vue-cli-service` directly. `preview` / `preview:dir` are plain `serve` calls and work as-is.
+
+bash/zsh (macOS/Linux):
+
 ```bash
 npm run watch
+```
+
+PowerShell (Windows):
+
+```powershell
+$env:NODE_OPTIONS = node -p "+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''"
+node .\node_modules\@vue\cli-service\bin\vue-cli-service.js build --mode development --watch
 ```
 
 ### 3. Choose BioIndex Target
@@ -219,7 +254,8 @@ PowerShell:
 
 ```powershell
 $env:BIOINDEX_DEV = "1"
-npm run watch
+$env:NODE_OPTIONS = node -p "+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''"
+node .\node_modules\@vue\cli-service\bin\vue-cli-service.js build --mode development --watch
 ```
 
 To override BioIndex hosts directly:
@@ -278,23 +314,40 @@ Notes:
 
 ### 5. Build / Deploy
 
+bash/zsh (macOS/Linux):
+
 ```bash
 npm run build    # development-mode build
 npm run deploy   # production build
 ```
 
+PowerShell (Windows):
+
+```powershell
+$env:NODE_OPTIONS = node -p "+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''"
+node .\node_modules\@vue\cli-service\bin\vue-cli-service.js build --mode development   # = npm run build
+node .\node_modules\@vue\cli-service\bin\vue-cli-service.js build --mode production    # = npm run deploy
+```
+
 ### 6. Cache Cleanup (Optional)
 
+bash/zsh (macOS/Linux):
+
 ```bash
-./build-clean.sh build   # bash
-.\build-clean.ps1 build  # PowerShell
+./build-clean.sh build
+```
+
+PowerShell (Windows):
+
+```powershell
+.\build-clean.ps1 build
 ```
 
 ### 7. Testing
 
 Upstream defines no automated `test` script. Validate by:
 
-- Successful `npm run build`
+- Successful `npm run build` (or the PowerShell equivalent in step 5)
 - Smoke-load critical routes: index, phenotype, region, variant, gene
 - Run against BIOINDEX_DEV and default BioIndex once each
 - Verify integration with DIG-DUG server when full runtime is required
@@ -303,13 +356,29 @@ Upstream defines no automated `test` script. Validate by:
 
 For static smoke-testing of compiled output, serve build artifacts locally:
 
+bash/zsh (macOS/Linux):
+
 ```bash
+npm run preview
+```
+
+PowerShell (Windows):
+
+```powershell
 npm run preview
 ```
 
 If a portal branch outputs to a non-`dist/` folder, use:
 
+bash/zsh (macOS/Linux):
+
 ```bash
+npm run preview:dir -- <output-dir>
+```
+
+PowerShell (Windows):
+
+```powershell
 npm run preview:dir -- <output-dir>
 ```
 
@@ -349,7 +418,7 @@ cfde-main  (same)
     1. Check whether equivalent logic already exists in `src/modules/`, `src/components/`, `src/utils/`, or `src/mixins/` before creating new files.
     2. If a framework/library is already in use (e.g., BootstrapVue, existing chart wrappers, existing selector/table patterns), use available components/patterns before writing custom ones.
     3. If new code is still required, place it in the same folder and naming conventions used by existing code (feature-aligned organization, no parallel ad-hoc structure).
-- Provide OS-agnostic commands only where bash and PowerShell diverge.
+- The shared Quick Start gives separate bash/zsh (macOS/Linux) and PowerShell (Windows) blocks for every step, and includes `npm install` after any clone or branch checkout. Variant "Quick Start (Delta Only)" sections name the branch and record only branch-specific deltas (config path, output dir), splitting by shell only where commands diverge; they never repeat shared setup, build, or preview steps. Elsewhere, split commands only where bash and PowerShell diverge.
 - Do not open PRs from portal branches targeting `master`; portal-branch changes are intentionally isolated.
 - If building a shared feature for multiple portals, follow the dev branch workflow outlined above.
 - Removed dependencies stay removed. Do not reintroduce a package listed under "Deliberately removed dependencies" unless new code actually imports it. When a merge or branch sync re-adds one, drop it again rather than keeping it.
