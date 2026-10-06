@@ -404,7 +404,7 @@
                                     </div>
                                     <div class="f-row">
                                         <div v-if="example.dcc ==='CFDELiver'">
-                                            Visit the <a href="https://dev.cfdeliverresource.org/">CFDE Liver Resource</a>
+                                            Visit the <a href="https://cfdeliverresource.org/">CFDE Liver Resource</a>
                                         </div>
                                         <div v-else class="example-item-analysis">
                                             See on
