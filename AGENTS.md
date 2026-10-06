@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED. Do not edit. -->
-<!-- Version: 1.0.13 | Generated: 2026-09-14T03:46:35Z | Hash: bd7952ca93e8 -->
+<!-- Version: 1.0.14 | Generated: 2026-10-06T14:49:06Z | Hash: 985780d35422 -->
 <!-- Sources: dig-dug-portal/master/AGENTS.md + dig-dug-portal/AGENTS.md -->
 
 # dig-dug-portal — master
@@ -180,6 +180,7 @@ Each page entry contains:
 Branch-level vis-network differences (tracked portal branches):
 
 - **master, cfde-main, cfde-liver-main, matkp-main, pankbase-main, radiant-main, sysbio-main**: `vis-network ^10.0.2` + `vis-data ^8.0.3` direct; no `vue-vis-network` wrapper
+- **mskkp-main**: `vis-network 10.1.2` + `vis-data 8.0.5`
 - **radiant-main only**: additionally includes `igv 2.12.6` (IGV.js genome browser)
 
 Webpack must include a babel-loader transpilation rule covering vis-network/vis-data modules.
