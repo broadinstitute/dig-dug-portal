@@ -20,6 +20,7 @@ must be resolved upstream rather than silently classified as noncarriers.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import hashlib
 from typing import Mapping, Sequence
 
 import numpy as np
@@ -214,6 +215,7 @@ def analyze_gene_variants(
     *,
     variant_ids: Sequence[str] | None = None,
     include_gene_ols: bool = False,
+    affected_only: bool = False,
 ) -> dict:
     """Use the existing cached PheRS/roster/evidence loader; return aggregates only.
 
@@ -228,9 +230,27 @@ def analyze_gene_variants(
         raise ValueError("gene and at least one HPO term are required")
     y, checksum = engine._phenotype(terms)
     gene_data = engine._gene_data(gene)
-    context = OLSContext(engine.analysis_sample_ids, engine.covariates["values"], engine.covariates["names"])
+    if affected_only:
+        mask = engine.covariates.get("affected_mask")
+        if mask is None:
+            raise ValueError("affected status is not available in the covariate source")
+        sample_ids = [sample_id for sample_id, selected in zip(engine.analysis_sample_ids, mask) if selected]
+        selected_ids = set(sample_ids)
+        covariates = engine.covariates["values"][mask]
+        y = y[mask]
+        checksum = hashlib.sha256(y.astype("<f8", copy=False).tobytes()).hexdigest()
+    else:
+        sample_ids = engine.analysis_sample_ids
+        selected_ids = set(sample_ids)
+        covariates = engine.covariates["values"]
+    context = OLSContext(sample_ids, covariates, engine.covariates["names"])
     outcome = context.outcome(y)
     carriers_by_variant = dict(gene_data["carriers_by_variant"])
+    if affected_only:
+        carriers_by_variant = {
+            variant_id: [sample_id for sample_id in ids if sample_id in selected_ids]
+            for variant_id, ids in carriers_by_variant.items()
+        }
     if variant_ids is not None:
         for variant_id in variant_ids:
             variant_id = str(variant_id).strip()
@@ -244,6 +264,7 @@ def analyze_gene_variants(
         "phenotype_vector_sha256": checksum,
         "carrier_rows_outside_analysis": gene_data["outside_rows"],
         "model": "OLS residual PheRS ~ binary variant + age + age_missing + sex (female reference; male/unknown levels) + PC1-PC10",
+        "affected_only": affected_only,
         "covariate_design_columns": list(context.covariate_names),
         "genotype_assumption": "Complete callable roster; absent carrier row means genotype 0",
         "dropped_aliased_covariates": list(context.dropped_covariates),
@@ -253,7 +274,8 @@ def analyze_gene_variants(
         },
     }
     if include_gene_ols:
-        result["gene_burden_ols_comparator"] = asdict(outcome.gene_burden_ols(gene_data["burden_input"]["values"]))
+        burden_values = gene_data["burden_input"]["values"]
+        result["gene_burden_ols_comparator"] = asdict(outcome.gene_burden_ols(burden_values[mask] if affected_only else burden_values))
     return result
 
 

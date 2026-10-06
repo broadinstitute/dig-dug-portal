@@ -2,7 +2,8 @@
 
 This is a private server-side intermediate. It uses the same HPO matrix loader,
 overlap-roster rule, and ``score_samples`` function as the Gene Context API.
-The resulting sample-level TSV must never be returned to the browser.
+The TSV stays on the server. The private Variant Context route can return only
+the requested variant's carrier residuals to the authenticated PB Variant view.
 """
 
 from __future__ import annotations

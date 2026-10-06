@@ -4,11 +4,13 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
 
 import numpy as np
 
 from scripts.pb_gene_context_validation import (
     COVARIATE_NAMES,
+    ContextAnalysisEngine,
     load_covariates,
     load_gene_evidence,
     load_hpo_matrix,
@@ -23,6 +25,21 @@ QUERY_HPO = ["HP:0001336", "HP:0002353", "HP:0001270", "HP:0012373"]
 
 
 class PbGeneContextValidationTest(unittest.TestCase):
+    def test_co_gene_fdr_uses_target_and_all_requested_genes(self):
+        engine = ContextAnalysisEngine.__new__(ContextAnalysisEngine)
+        engine.gene_association_runner = SimpleNamespace(model="lm")
+        engine._all_gene_associations = lambda terms, score_type, affected_only: {
+            "HBB": {"beta": 0.3, "p_value": 0.01, "status": "ok"},
+            "HBA1": {"beta": 0.2, "p_value": 0.04, "status": "ok"},
+            "HBA2": {"beta": None, "p_value": None, "status": "no_positive_score"},
+        }
+        result = engine.co_gene_associations("HBB", ["HP:0001250"], ["HBA1", "HBA2", "HBA1"])
+        self.assertEqual(result["n_requested"], 3)
+        self.assertEqual(result["n_tests"], 2)
+        self.assertAlmostEqual(result["gene_associations"]["HBB"]["fdr"], 0.02)
+        self.assertAlmostEqual(result["gene_associations"]["HBA1"]["fdr"], 0.04)
+        self.assertNotIn("fdr", result["gene_associations"]["HBA2"])
+
     def setUp(self):
         self.tempdir = tempfile.TemporaryDirectory()
         self.root = Path(self.tempdir.name)
@@ -60,6 +77,27 @@ class PbGeneContextValidationTest(unittest.TestCase):
         np.testing.assert_array_equal(loaded["matrix"].toarray(), [[1, 0, 1, 0], [0, 1, 0, 1]])
         with self.assertRaisesRegex(ValueError, "missing query HPO"):
             load_hpo_matrix(path, [*QUERY_HPO, "HP:9999999"])
+
+    def test_private_variant_residuals_use_full_hpo_matrix_and_only_target_carriers(self):
+        hpo = self.write_tsv("hpo.tsv", ["sample_id", "HP:0001250", "HP:0001252"], [
+            ["A", 1, 0], ["B", 0, 1], ["C", 1, 1], ["D", 0, 0],
+        ])
+        roster = self.write_tsv("roster.tsv", ["sample_id", "overlap_status"], [
+            ["A", "both"], ["B", "both"], ["C", "both"], ["D", "hpo_only"],
+        ])
+        evidence = self.write_tsv("evidence.tsv", ["sample_id", "gene_symbol", "Variant_ID", "GT", "pathogenicity_score", "Alphamissense"], [
+            ["A", "HBB", "chr11:5227002:T:A", "0/1", 0.2, 0.2],
+            ["B", "HBB", "chr11:5227002:T:A", "0/1", 0.2, 0.2],
+            ["C", "HBB", "chr11:5227003:C:T", "0/1", 0.4, 0.4],
+        ])
+        engine = ContextAnalysisEngine(hpo, roster, evidence)
+        result = engine.variant_carrier_residuals("HBB", "11:5227002:T:A", ["HP:0001250"])
+        scores = result["sample_scores"]
+        self.assertEqual(set(scores), {"A", "B"})
+        expected = engine._phenotype(("HP:0001250",))[0]
+        self.assertAlmostEqual(scores["A"], expected[0])
+        self.assertAlmostEqual(scores["B"], expected[1])
+        self.assertNotEqual(scores["A"], scores["B"])
 
     def test_loads_only_validated_overlap_roster_and_returns_aggregate_qc(self):
         path = self.write_tsv(

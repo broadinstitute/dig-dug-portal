@@ -12,9 +12,13 @@ from scripts.gene_score_context_runner import GeneScoreContextRunner
 
 CONTEXT_PATH = "/phenotype-analyzer-api/analyze"
 PUBLIC_CONTEXT_PATH = "/phenotype-analyzer-api/public-analyze"
+CO_GENE_PATH = "/phenotype-analyzer-api/co-gene-associations"
 MAX_REQUEST_BYTES = 64 * 1024
+MAX_CO_GENE_REQUEST_BYTES = 512 * 1024
+MAX_CO_GENES = 25000
 HPO_PATTERN = re.compile(r"^HP:\d{7}$")
 GENE_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9.-]*$")
+VARIANT_PATTERN = re.compile(r"^(?:chr)?(?:[0-9]{1,2}|X|Y|M|MT):[0-9]+:[A-Z*.-]+:[A-Z*.-]+$", re.I)
 
 
 def parse_context_request(payload):
@@ -51,13 +55,40 @@ def parse_context_request(payload):
         raise ValueError("significance_threshold must be greater than 0 and no more than 1")
     if min_carriers < 10:
         raise ValueError("min_carriers must be at least 10")
+    variant_id = str(payload.get("variant_id") or "").strip()
+    if variant_id and (len(variant_id) > 256 or not VARIANT_PATTERN.fullmatch(variant_id)):
+        raise ValueError("variant_id must be an exact chr:pos:ref:alt identifier")
+    score_type = payload.get("score_type", "max")
+    affected_only = payload.get("affected_only", False)
+    if score_type not in {"max", "sum"} or not isinstance(affected_only, bool):
+        raise ValueError("score_type must be max or sum and affected_only must be boolean")
     return {
         "gene": gene,
         "terms": terms,
         "metric": metric,
         "threshold": threshold,
         "min_carriers": min_carriers,
+        "variant_id": variant_id or None,
+        "score_type": score_type,
+        "affected_only": affected_only,
     }
+
+
+def parse_co_gene_request(payload):
+    request = parse_context_request(payload)
+    if request["variant_id"]:
+        raise ValueError("variant_id is not used for co-gene associations")
+    raw_genes = payload.get("co_genes")
+    if not isinstance(raw_genes, list) or len(raw_genes) > MAX_CO_GENES:
+        raise ValueError("co_genes must be a list of at most 25000 symbols")
+    genes = []
+    for value in raw_genes:
+        gene = str(value).strip().upper()
+        if len(gene) > 64 or not GENE_PATTERN.fullmatch(gene):
+            raise ValueError("co_genes contains an invalid HGNC symbol")
+        genes.append(gene)
+    request["co_genes"] = list(dict.fromkeys(genes))
+    return request
 
 
 def public_context_projection(result, min_support=10):
@@ -111,19 +142,34 @@ def create_server(address, engine):
                 self._send_json(404, {"error": "not_found"})
 
         def do_POST(self):
-            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH}:
+            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH}:
                 self._send_json(404, {"error": "not_found"})
                 return
             try:
                 length = int(self.headers.get("Content-Length") or 0)
-                if length <= 0 or length > MAX_REQUEST_BYTES:
+                limit = MAX_CO_GENE_REQUEST_BYTES if self.path == CO_GENE_PATH else MAX_REQUEST_BYTES
+                if length <= 0 or length > limit:
                     raise ValueError("invalid request body size")
-                request = parse_context_request(json.loads(self.rfile.read(length)))
+                payload = json.loads(self.rfile.read(length))
+                request = parse_co_gene_request(payload) if self.path == CO_GENE_PATH else parse_context_request(payload)
+                if self.path == CO_GENE_PATH:
+                    started = perf_counter()
+                    result = engine.co_gene_associations(
+                        request["gene"], request["terms"], request["co_genes"],
+                        score_type=request["score_type"], affected_only=request["affected_only"],
+                    )
+                    result["request_ms"] = round((perf_counter() - started) * 1000, 3)
+                    self._send_json(200, result)
+                    return
+                if self.path == PUBLIC_CONTEXT_PATH and request["variant_id"]:
+                    raise ValueError("individual variant carrier scores are private-only")
                 started = perf_counter()
                 result = engine.analyze(
                     request["gene"],
                     request["terms"],
                     min_carriers=request["min_carriers"],
+                    score_type=request["score_type"],
+                    affected_only=request["affected_only"],
                 )
                 burden = result.get("gene_burden") or {}
                 p_value = burden.get("p_value")
@@ -136,6 +182,11 @@ def create_server(address, engine):
                 if self.path == PUBLIC_CONTEXT_PATH:
                     self._send_json(200, public_context_projection(result, request["min_carriers"]))
                 else:
+                    if request["variant_id"]:
+                        result["variant_carrier_residuals"] = engine.variant_carrier_residuals(
+                            request["gene"], request["variant_id"], request["terms"],
+                            affected_only=request["affected_only"],
+                        )
                     result["request_ms"] = round((perf_counter() - started) * 1000, 3)
                     self._send_json(200, result)
             except (ValueError, json.JSONDecodeError) as error:

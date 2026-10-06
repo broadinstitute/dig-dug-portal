@@ -60,9 +60,13 @@ class GeneScoreContextRunner:
             self._score_slices[key] = str(output)
             return str(output)
 
-    def run(self, gene, sample_ids, residual_phers):
+    def _run(self, sample_ids, residual_phers, gene=None, score_type=None, affected_only=None):
         if len(sample_ids) != len(residual_phers):
             raise ValueError("phenotype sample and residual lengths differ")
+        score_type = self.score_type if score_type is None else score_type
+        affected_only = self.affected_only if affected_only is None else affected_only
+        if score_type not in {"max", "sum"} or not isinstance(affected_only, bool):
+            raise ValueError("unsupported gene-score settings")
         script = Path(__file__).with_name(f"run_gene_score_{self.model}.R")
         with tempfile.TemporaryDirectory(prefix="pb_gene_grs_") as directory:
             phenotype_path = Path(directory) / "phenotype.tsv"
@@ -78,12 +82,13 @@ class GeneScoreContextRunner:
                 self.rscript, str(script),
                 "--phenotype", str(phenotype_path),
                 "--covariates", self.covariate_path,
-                "--gene-scores", self._score_file_for_gene(gene),
-                "--score-type", self.score_type,
-                "--affected-only", "yes" if self.affected_only else "no",
-                "--genes", gene,
+                "--gene-scores", self._score_file_for_gene(gene) if gene else self.score_path,
+                "--score-type", score_type,
+                "--affected-only", "yes" if affected_only else "no",
                 "--output", str(output_path),
             ]
+            if gene:
+                command.extend(("--genes", gene))
             if self.platform_path:
                 command.extend(("--platform-file", str(self.platform_path)))
             if self.score_id_map:
@@ -93,18 +98,32 @@ class GeneScoreContextRunner:
             subprocess.run(command, check=True, capture_output=True, text=True, timeout=self.timeout_seconds)
             with output_path.open(newline="") as handle:
                 rows = list(csv.DictReader(handle, delimiter="\t"))
-        if len(rows) != 1 or rows[0]["gene_symbol"].upper() != gene.upper():
+        output = {}
+        for row in rows:
+            symbol = row["gene_symbol"].upper()
+            if symbol in output:
+                raise ValueError("gene-score script returned a duplicate gene result")
+            output[symbol] = {
+                "gene": symbol,
+                "model": row["model"],
+                "score_type": row["score_type"],
+                "affected_only": row["affected_only"] == "yes",
+                "beta": float(row["beta"]) if row["beta"] else None,
+                "standard_error": float(row["standard_error"]) if row["standard_error"] else None,
+                "p_value": float(row["p_value"]) if row["p_value"] else None,
+                "n_samples": int(row["n_samples"]),
+                "n_positive": int(row["n_positive"]),
+                "status": row["status"],
+            }
+        return output
+
+    def run(self, gene, sample_ids, residual_phers, *, score_type=None, affected_only=None):
+        results = self._run(sample_ids, residual_phers, gene=gene,
+                            score_type=score_type, affected_only=affected_only)
+        if len(results) != 1 or gene.upper() not in results:
             raise ValueError("gene-score script returned an unexpected gene result")
-        row = rows[0]
-        return {
-            "gene": gene.upper(),
-            "model": row["model"],
-            "score_type": row["score_type"],
-            "affected_only": row["affected_only"] == "yes",
-            "beta": float(row["beta"]) if row["beta"] else None,
-            "standard_error": float(row["standard_error"]) if row["standard_error"] else None,
-            "p_value": float(row["p_value"]) if row["p_value"] else None,
-            "n_samples": int(row["n_samples"]),
-            "n_positive": int(row["n_positive"]),
-            "status": row["status"],
-        }
+        return results[gene.upper()]
+
+    def run_all(self, sample_ids, residual_phers, *, score_type=None, affected_only=None):
+        """Fit one null model and test every gene in the approved score source."""
+        return self._run(sample_ids, residual_phers, score_type=score_type, affected_only=affected_only)

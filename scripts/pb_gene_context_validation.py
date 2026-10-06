@@ -15,6 +15,7 @@ import numpy as np
 from scipy import sparse
 
 from scripts.context_api_fast import (
+    benjamini_hochberg,
     gene_burden_scores,
     gene_burden_test,
     variant_match_scores,
@@ -176,6 +177,11 @@ def load_covariates(path, analysis_sample_ids):
     return {
         "values": np.asarray(values, dtype=np.float64),
         "names": list(COVARIATE_NAMES),
+        "affected_mask": (
+            np.asarray([str(rows[sample_id].get("affected") or "").strip().upper() == "Y"
+                        for sample_id in analysis_sample_ids], dtype=bool)
+            if "affected" in (reader.fieldnames or []) else None
+        ),
         "age_median": age_median,
         "age_missing_count": int(sum(row["age_missing"] for row in parsed.values())),
         "sex_reference": "Female",
@@ -435,13 +441,17 @@ class ContextAnalysisEngine:
         self.bioindex_access_token = bioindex_access_token
         self.bioindex_evidence_index = bioindex_evidence_index
         self.bioindex_sample_id_map = {}
+        self.browser_sample_id_by_analysis = {}
         if bioindex_host and covariate_path:
             with _open_text(covariate_path) as handle:
                 for row in csv.DictReader(handle, delimiter="\t"):
                     sample_id = str(row.get("sample_id") or "").strip()
                     vcf_id = str(row.get("vcf_sample_id") or "").strip()
                     if sample_id and vcf_id:
+                        if vcf_id in self.bioindex_sample_id_map and self.bioindex_sample_id_map[vcf_id] != sample_id:
+                            raise ValueError("vcf_sample_id maps to multiple analysis samples")
                         self.bioindex_sample_id_map[vcf_id] = sample_id
+                        self.browser_sample_id_by_analysis[sample_id] = vcf_id
         both = set(self.roster["sample_ids"])
         hpo_ids = self.hpo["sample_ids"].tolist()
         missing_from_hpo = both - set(hpo_ids)
@@ -498,7 +508,72 @@ class ContextAnalysisEngine:
             "burden_input": gene_burden_scores(self.analysis_sample_ids, rows),
         }
 
-    def analyze(self, gene, query_hpo, min_carriers=10, audit_dir=None):
+    def variant_carrier_residuals(self, gene, variant_id, query_hpo, affected_only=False):
+        """Private, exact-variant carrier residuals; never enumerate the full cohort."""
+        gene = str(gene or "").strip().upper()
+        canonical = str(variant_id or "").lower().removeprefix("chr")
+        terms = tuple(sorted(set(str(term).strip().upper() for term in query_hpo if str(term).strip())))
+        y, _ = self._phenotype(terms)
+        variant_rows = self._gene_data(gene)["carriers_by_variant"]
+        matching = [ids for key, ids in variant_rows.items() if str(key).lower().removeprefix("chr") == canonical]
+        carriers = set(sample_id for ids in matching for sample_id in ids)
+        if affected_only:
+            if self.covariates is None or self.covariates["affected_mask"] is None:
+                raise ValueError("affected status is not available in the covariate source")
+            carriers.intersection_update(
+                sample_id for sample_id, affected in zip(self.analysis_sample_ids, self.covariates["affected_mask"])
+                if affected
+            )
+        score_by_analysis = dict(zip(self.analysis_sample_ids, y))
+        scores = {
+            self.browser_sample_id_by_analysis.get(sample_id, sample_id): float(score_by_analysis[sample_id])
+            for sample_id in sorted(carriers)
+            if sample_id in score_by_analysis and np.isfinite(score_by_analysis[sample_id])
+        }
+        return {"variant_id": variant_id, "carrier_count": len(carriers), "sample_scores": scores}
+
+    @lru_cache(maxsize=4)
+    def _all_gene_associations(self, normalized_query_hpo, score_type, affected_only):
+        if self.gene_association_runner is None:
+            raise ValueError("gene-score source is not configured")
+        y, _ = self._phenotype(normalized_query_hpo)
+        return self.gene_association_runner.run_all(
+            self.analysis_sample_ids, y, score_type=score_type, affected_only=affected_only,
+        )
+
+    def co_gene_associations(self, target_gene, query_hpo, co_genes, score_type="max", affected_only=False):
+        """One full-cohort gene-score pass, with BH over this variant's gene family."""
+        target_gene = str(target_gene).strip().upper()
+        genes = list(dict.fromkeys([target_gene, *(str(gene).strip().upper() for gene in co_genes)]))
+        terms = tuple(sorted(set(str(term).strip().upper() for term in query_hpo if str(term).strip())))
+        catalog = self._all_gene_associations(terms, score_type, affected_only)
+        selected = {
+            gene: dict(catalog.get(gene) or {"gene": gene, "status": "not_in_score_file"})
+            for gene in genes
+        }
+        valid = [
+            (gene, row) for gene, row in selected.items()
+            if row.get("status") == "ok" and row.get("p_value") is not None
+            and np.isfinite(row["p_value"]) and 0 <= row["p_value"] <= 1
+        ]
+        if valid:
+            adjusted = benjamini_hochberg([row["p_value"] for _, row in valid])
+            for (gene, _), q_value in zip(valid, adjusted):
+                selected[gene]["fdr"] = float(q_value)
+        return {
+            "target_gene": target_gene,
+            "query_hpo": list(terms),
+            "model": self.gene_association_runner.model,
+            "score_type": score_type,
+            "affected_only": affected_only,
+            "fdr_method": "BH",
+            "multiple_testing_scope": "target gene plus unfiltered different-gene co-carriers",
+            "n_requested": len(genes),
+            "n_tests": len(valid),
+            "gene_associations": selected,
+        }
+
+    def analyze(self, gene, query_hpo, min_carriers=10, audit_dir=None, score_type="max", affected_only=False):
         gene = str(gene or "").strip().upper()
         if not gene:
             raise ValueError("gene is required")
@@ -507,26 +582,48 @@ class ContextAnalysisEngine:
             raise ValueError("at least one HPO term is required")
         y, phenotype_checksum = self._phenotype(normalized_query_hpo)
         gene_data = self._gene_data(gene)
+        if affected_only:
+            if self.covariates is None or self.covariates["affected_mask"] is None:
+                raise ValueError("affected status is not available in the covariate source")
+            mask = self.covariates["affected_mask"]
+            sample_ids = [sample_id for sample_id, selected in zip(self.analysis_sample_ids, mask) if selected]
+            selected_ids = set(sample_ids)
+            result_y = y[mask]
+            phenotype_checksum = hashlib.sha256(result_y.astype("<f8", copy=False).tobytes()).hexdigest()
+            rows = [row for row in gene_data["rows"] if row["sample_id"] in selected_ids]
+            covariates = self.covariates["values"][mask]
+            carriers_by_variant = {
+                variant_id: [sample_id for sample_id in ids if sample_id in selected_ids]
+                for variant_id, ids in gene_data["carriers_by_variant"].items()
+            }
+            burden_input = gene_burden_scores(sample_ids, rows)
+        else:
+            sample_ids = self.analysis_sample_ids
+            result_y = y
+            rows = gene_data["rows"]
+            covariates = None if self.covariates is None else self.covariates["values"]
+            carriers_by_variant = gene_data["carriers_by_variant"]
+            burden_input = gene_data["burden_input"]
         result = _gene_result(
             gene,
-            self.analysis_sample_ids,
-            y,
-            gene_data["rows"],
+            sample_ids,
+            result_y,
+            rows,
             min_carriers,
             phenotype_checksum,
             gene_data["outside_rows"],
             audit_dir,
-            covariates=None if self.covariates is None else self.covariates["values"],
+            covariates=covariates,
             covariate_names=None if self.covariates is None else self.covariates["names"],
-            carriers_by_variant=gene_data["carriers_by_variant"],
-            burden_input=gene_data["burden_input"],
+            carriers_by_variant=carriers_by_variant,
+            burden_input=burden_input,
         )
         if self.covariates is None:
             result["variant_associations"] = {}
             result["variant_association_status"] = "missing_covariates"
         else:
             try:
-                variant_result = analyze_gene_variants(self, gene, normalized_query_hpo)
+                variant_result = analyze_gene_variants(self, gene, normalized_query_hpo, affected_only=affected_only)
                 result["variant_associations"] = variant_result["variant_associations"]
                 result["variant_association_status"] = "ok"
                 result["variant_association_model"] = VARIANT_ASSOCIATION_MODEL_VERSION
@@ -540,7 +637,7 @@ class ContextAnalysisEngine:
         else:
             try:
                 result["gene_association"] = self.gene_association_runner.run(
-                    gene, self.analysis_sample_ids, y,
+                    gene, self.analysis_sample_ids, y, score_type=score_type, affected_only=affected_only,
                 )
             except Exception:
                 result["gene_association"] = {"status": "runner_failed"}

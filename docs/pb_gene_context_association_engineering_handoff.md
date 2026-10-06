@@ -11,12 +11,12 @@ Submitting HPO terms computes one residual PheRS vector for the selected cohort.
 
 | Analysis | Predictor | Browser destination | Current API model |
 |---|---|---|---|
-| Script 1: variant association | Binary carrier status for each exact variant | Variant Evidence `Effect Score (β)` and `P-value`; Match Score remains the mean carrier residual PheRS | OLS |
+| Script 1: variant association | Binary carrier status for each exact variant across the full analysis roster | Variant Evidence `Effect Score (β)` and `P-value`; Match Score remains the mean carrier residual PheRS | OLS |
 | Script 2: gene-score association | Supplied `gene_score_max` or `gene_score_sum` | HPO Context gene-level β and p-value | LM by default; GMMAT Gaussian LMM can be configured |
 
 The gene score file is an **approved server-side input**, not a GitHub deliverable. Use `CRDC2025_step4_sample_gene_burden_nonsyn_dosage_LOFTEE_AM.tsv` from `/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/custom_hpo_regression/input/`. Helen will obtain this file from that server location and move it to the test-server/S3 location she manages, then configure its mounted/local path as `PB_GENE_CONTEXT_GENE_SCORES` or `--gene-scores`. GitHub delivery consists of the scripts, this English engineering document, and the Gene view code. Do not commit cohort data, gene scores, sample-level residuals, or GRMs.
 
-The analyst supplies the PheRS and association calculations in this package. Helen's integration task is to connect the approved BioIndex/cohort sources to those scripts and expose their aggregate result through the prototype's Context API contract. `pb_gene.html` posts to `/phenotype-analyzer-api/analyze`; `public_gene.html` posts to `/phenotype-analyzer-api/public-analyze`. The public route returns all valid aggregate variant effects, including single-carrier variants, without sample IDs or carrier-count fields in the Context response. Gene-level effects keep their separate support rule. Keep both routes behind the portal's appropriate access controls and same-origin proxy.
+The analyst supplies the PheRS and association calculations in this package. Helen's integration task is to connect the approved BioIndex/cohort sources to those scripts and expose their result through the prototype's Context API contract. `pb_gene.html` posts to `/phenotype-analyzer-api/analyze`; `public_gene.html` posts to `/phenotype-analyzer-api/public-analyze`. An authenticated private PB Variant request may specify one exact `variant_id` and receive residual PheRS values for only that variant's carriers. The public route returns aggregate variant effects without sample IDs or carrier-count fields. Gene-level effects keep their separate support rule. Keep both routes behind the portal's appropriate access controls and same-origin proxy.
 
 ## Five-Minute Start
 
@@ -73,7 +73,7 @@ Residual PheRS is calculated across the complete HPO matrix using the portal's P
 | Gene LM | `residual PheRS ~ GRS + age + age_missing + sex + WES_WGS + PC1..PC10` | `scripts/run_gene_score_lm.R` | Context API default. |
 | Gene GRM LMM | Same fixed effects with a Gaussian GRM random effect; GMMAT null-model score test | `scripts/run_gene_score_lmm.R` | Select with `PB_GENE_CONTEXT_GENE_SCORE_MODEL=lmm` and `PB_GENE_CONTEXT_GRM_PREFIX`. Its reported β is a null-score approximation. |
 
-The GRM prefix refers to existing GCTA `.grm.id` and `.grm.bin` files. The gene LMM needs `vcf_sample_id` values matching the GRM IDs and an installed GMMAT R package. The gene calculation accepts `max` or `sum` scores and an `affected_only` switch; `affected_only` filters `affected=Y` **for the gene association only**. The variant association still uses the full analysis roster. No runtime comparison is asserted here because synthetic timing does not predict production timing.
+The GRM prefix refers to existing GCTA `.grm.id` and `.grm.bin` files. The gene LMM needs `vcf_sample_id` values matching the GRM IDs and an installed GMMAT R package. The gene calculation accepts `max` or `sum` scores and an `affected_only` switch. In the original PB Gene and one-shot flow documented here, `affected_only` selects samples for the gene association while the variant association uses the full analysis roster. The later PB Variant Context API additionally applies its submitted `affected_only` setting to the exact-variant carrier mean and binary-variant OLS; see `docs/pb_variant_hpo_context_cogene_engineering_handoff_20261005.md`. No runtime comparison is asserted here because synthetic timing does not predict production timing.
 
 ## One-Shot Server Execution
 
@@ -97,7 +97,7 @@ The output directory contains:
 
 | File | Contract |
 |---|---|
-| `residual_phers.tsv` | Private sample-level intermediate: `sample_id`, `residual_phers`, `raw_phers`. Never return to the browser or public route. |
+| `residual_phers.tsv` | Private sample-level intermediate: `sample_id`, `residual_phers`, `raw_phers`. Never return the full file to the browser or public route. The private exact-variant request may return only its carrier residuals. |
 | `variant_ols.json` or `variant_lmm.json` | `variant_associations` keyed by exact variant ID, with `beta`, `standard_error`, `p_value`, `n_samples`, `n_carriers`, and `status`. |
 | `gene_lm.tsv` or `gene_lmm.tsv` | `gene_symbol`, `score_type`, `model`, `affected_only`, `n_samples`, `beta`, `standard_error`, `p_value`, `n_positive`, `status`. |
 

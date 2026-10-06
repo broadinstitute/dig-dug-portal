@@ -24,9 +24,12 @@ Content-Type: application/json
 }
 ```
 
-The API returns `variant_match_scores`, `gene_burden`, and
-`analysis_sample_count`. It must not return sample IDs, patient HPO terms,
-genotypes, patient-level residuals, or covariate rows.
+The default API response returns `variant_match_scores`, `gene_burden`, and
+`analysis_sample_count` without sample IDs or patient-level values. A private
+PB Variant request may also specify one exact `variant_id`; that response
+returns residual PheRS keyed only by that variant's carriers for the private
+Carrier sample table. The public route must reject this request. Never return
+the full cohort residual vector, patient HPO terms, genotypes, or covariates.
 
 ## Shared Outcome Vector
 

@@ -98,8 +98,8 @@ class VariantAssociationTests(unittest.TestCase):
                 for i, sample_id in enumerate(self.ids)
             ])
             roster = write("roster.tsv", ["sample_id", "overlap_status"], [[sample_id, "both"] for sample_id in self.ids])
-            covariates = write("covariates.tsv", ["sample_id", "age", "sex", *[f"PC{i}" for i in range(1, 11)]], [
-                [sample_id, 20 + i % 57, ["Female", "Male", "Unknown"][i % 3], *rng.normal(size=10)]
+            covariates = write("covariates.tsv", ["sample_id", "age", "sex", "affected", *[f"PC{i}" for i in range(1, 11)]], [
+                [sample_id, 20 + i % 57, ["Female", "Male", "Unknown"][i % 3], "Y" if i % 2 == 0 else "N", *rng.normal(size=10)]
                 for i, sample_id in enumerate(self.ids)
             ])
             carriers = [self.ids[i] for i in np.flatnonzero(self.x)]
@@ -116,6 +116,19 @@ class VariantAssociationTests(unittest.TestCase):
             self.assertAlmostEqual(result["variant_associations"]["V1"]["p_value"], direct.p_value)
             self.assertEqual(result["variant_associations"]["V2"]["status"], "no_carriers")
             self.assertNotIn("sample_ids", result)
+            affected = analyze_gene_variants(engine, "ATL1", ["HP:0000001", "HP:0000002"],
+                                             variant_ids=["V1"], affected_only=True)
+            mask = engine.covariates["affected_mask"]
+            affected_ids = [sample_id for sample_id, selected in zip(engine.analysis_sample_ids, mask) if selected]
+            direct_affected = OLSContext(affected_ids, engine.covariates["values"][mask], engine.covariates["names"]).outcome(y[mask]).variant(
+                [sample_id for sample_id in carriers if sample_id in set(affected_ids)]
+            )
+            self.assertEqual(affected["analysis_sample_count"], len(affected_ids))
+            self.assertAlmostEqual(affected["variant_associations"]["V1"]["beta"], direct_affected.beta)
+            self.assertAlmostEqual(affected["variant_associations"]["V1"]["p_value"], direct_affected.p_value)
+            context_affected = engine.analyze("ATL1", ["HP:0000001", "HP:0000002"], affected_only=True)
+            self.assertEqual(context_affected["variant_match_scores"]["V1"]["carrier_count"], direct_affected.n_carriers)
+            self.assertAlmostEqual(context_affected["variant_associations"]["V1"]["beta"], direct_affected.beta)
 
 
 if __name__ == "__main__":
