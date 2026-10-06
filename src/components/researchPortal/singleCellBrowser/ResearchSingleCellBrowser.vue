@@ -58,6 +58,7 @@
             <b-table v-if="singleCellMetadata"
                 :items="singleCellMetadata"
                 :fields="tableColumns"
+                sort-by="tissue"
                 small
                 striped
                 hover
@@ -1421,12 +1422,12 @@
                 viewType: 1,
                 
                 baseTableColumns: [
-                    {key: "tissue", label: "Tissue", class:"capitalize"},
-                    {key: "depot", label: "Depot", class:"capitalize"}, 
-                    {key: "sourceDataset", label: "Source"},
-                    {key: "totalDonors", label: "Donors", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
-                    {key: "totalBiosamples", label: "Biosamples", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
-                    {key: "totalSamples", label: "Cells", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
+                    {key: "tissue", label: "Tissue", class:"capitalize", sortable: true},
+                    {key: "depot", label: "Depot", class:"capitalize", sortable: true}, 
+                    {key: "sourceDataset", label: "Source", sortable: true},
+                    {key: "totalDonors", label: "Donors", sortable: true, formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
+                    {key: "totalBiosamples", label: "Biosamples", sortable: true, formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
+                    {key: "totalSamples", label: "Cells", sortable: true, formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
                 ],
                 currentDatasetsPage: 1,
                 totalDatasets: null,
