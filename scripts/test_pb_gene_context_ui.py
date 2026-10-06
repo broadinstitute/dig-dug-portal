@@ -22,6 +22,9 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn("@submit.prevent=\"$emit('run')\"", HPO_CONTEXT)
         self.assertIn('@run="runContextAnalysis"', TEMPLATE)
         self.assertIn("contextRuns.push", MODEL)
+        self.assertIn('<details class="pbg-context-disclosure" open>', TEMPLATE)
+        self.assertIn('aria-label="Gene score aggregation"', HPO_CONTEXT)
+        self.assertIn('aria-label="Analysis samples"', HPO_CONTEXT)
 
     def test_context_links_valid_hpo_terms_to_the_temporary_phenotype_page(self):
         self.assertIn("http://100.80.30.199/phenotypeResult.html", MODEL)

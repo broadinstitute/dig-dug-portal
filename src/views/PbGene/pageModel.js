@@ -93,6 +93,8 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         contextTermDetails: initialContextTerms.map((term) => ({ id: term.id, label: term.label || term.id })),
         contextSignificanceThreshold: 0.05,
         contextMinCarriers: 10,
+        contextScoreType: "max",
+        contextAnalysisSet: "all",
 
         // Variants sub-accordion
         expandedVariantId: initialSelectedVariantId,
@@ -1799,6 +1801,8 @@ export const pbGeneMethods = {
         this.contextInput = terms.join(", ");
         const significanceThreshold = Number(this.contextSignificanceThreshold);
         const minCarriers = Number(this.contextMinCarriers);
+        const scoreType = this.contextScoreType;
+        const affectedOnly = this.contextAnalysisSet === "affected";
         if (!Number.isFinite(significanceThreshold) || significanceThreshold <= 0 || significanceThreshold > 1) {
             this.contextError = "Threshold must be greater than 0 and no more than 1.";
             return;
@@ -1819,6 +1823,8 @@ export const pbGeneMethods = {
                     body: JSON.stringify({
                         terms: terms.join(","),
                         gene: this.geneInfo.symbol,
+                        score_type: scoreType,
+                        affected_only: affectedOnly,
                         advanced: {
                             significance_metric: "p_value",
                             significance_threshold: significanceThreshold,
@@ -1864,7 +1870,7 @@ export const pbGeneMethods = {
                 burdenPathogenicScoreVersion: burden.burden_pathogenic_score_version,
                 statusLabel: useGrs ? (grs.status === "ok" ? "Calculated · GRS association" : `Unavailable · ${grs.status}`) : this.contextBurdenStatusLabel(burden),
                 coverageLabel: useGrs ? (grs.n_positive == null ? "Gene-score coverage unavailable" : `${Number(grs.n_positive).toLocaleString()} positive-score samples`) : this.contextBurdenCoverageLabel(burden),
-                modelLabel: useGrs ? (grs.status === "not_configured" ? "GRS source not configured" : `GRS ${grs.score_type || "max"} · ${String(grs.model || "lm").toUpperCase()}${grs.affected_only ? " · affected only" : ""}`) : [burden.model_version, burden.formula].filter(Boolean).join(" · ") || "Model details unavailable",
+                modelLabel: useGrs ? (grs.status === "not_configured" ? "GRS source not configured" : `GRS ${grs.score_type || scoreType} · ${String(grs.model || "lm").toUpperCase()} · ${grs.affected_only ? "Affected only" : "All samples"}`) : [burden.model_version, burden.formula].filter(Boolean).join(" · ") || "Model details unavailable",
                 note: useGrs ? (grs.status === "ok" ? "Unadjusted gene-level p-value" : grs.status === "not_configured" ? "Gene score data unavailable" : "Gene-score analysis could not be calculated") : this.contextBurdenNote(burden),
                 sourceLabel,
             });

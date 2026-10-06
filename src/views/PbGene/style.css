@@ -403,6 +403,31 @@
     gap: 0.5rem;
 }
 
+.pbg-context-form--with-options {
+    grid-template-columns: minmax(18rem, 1fr) auto auto auto auto;
+}
+
+.pbg-context-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 2.2rem;
+    color: var(--pbg-text-soft);
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pbg-context-option select {
+    min-height: 2.2rem;
+    padding: 0.3rem 0.45rem;
+    border: 1px solid #aebfd1;
+    border-radius: 0.35rem;
+    background: white;
+    color: var(--pbg-text-strong);
+    font-size: 0.9rem;
+}
+
 .pbg-context-form > input {
     min-width: 0;
     padding: 0.52rem 0.7rem;
@@ -1444,6 +1469,10 @@
     }
 
     .pbg-context-form {
+        grid-template-columns: 1fr auto;
+    }
+
+    .pbg-context-form--with-options {
         grid-template-columns: 1fr auto;
     }
 

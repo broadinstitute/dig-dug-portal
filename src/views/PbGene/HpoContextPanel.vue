@@ -9,8 +9,10 @@
                 {{ activeContextTerms.length ? 'Context active' : 'No context' }}
             </span>
         </div>
-        <form class="pbg-context-form" @submit.prevent="$emit('run')">
+        <form class="pbg-context-form pbg-context-form--with-options" @submit.prevent="$emit('run')">
             <hpo-term-input v-model="contextInputModel"></hpo-term-input>
+            <label class="pbg-context-option">GRS <select v-model="scoreTypeModel" aria-label="Gene score aggregation"><option value="max">Max</option><option value="sum">Sum</option></select></label>
+            <label class="pbg-context-option">Samples <select v-model="analysisSetModel" aria-label="Analysis samples"><option value="all">All</option><option value="affected">Affected only</option></select></label>
             <button type="submit" :disabled="contextLoading">
                 {{ contextLoading ? 'Calculating' : 'Go' }}
             </button>
@@ -78,6 +80,8 @@ export default {
         contextTermDetails: { type: Array, default: () => [] },
         contextInput: { type: String, required: true },
         contextLoading: { type: Boolean, required: true },
+        contextScoreType: { type: String, required: true },
+        contextAnalysisSet: { type: String, required: true },
         contextSignificanceThreshold: { type: Number, required: true },
         contextMinCarriers: { type: Number, required: true },
         externalPhenotypeResultUrl: { type: String, default: "" },
@@ -88,6 +92,14 @@ export default {
         contextInputModel: {
             get() { return this.contextInput; },
             set(value) { this.$emit("update:contextInput", value); },
+        },
+        scoreTypeModel: {
+            get() { return this.contextScoreType; },
+            set(value) { this.$emit("update:contextScoreType", value); },
+        },
+        analysisSetModel: {
+            get() { return this.contextAnalysisSet; },
+            set(value) { this.$emit("update:contextAnalysisSet", value); },
         },
         thresholdModel: {
             get() { return this.contextSignificanceThreshold; },

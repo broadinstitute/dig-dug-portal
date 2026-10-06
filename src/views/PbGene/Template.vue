@@ -50,7 +50,7 @@
                     </div>
                 </div>
 
-                <details class="pbg-context-disclosure">
+                <details class="pbg-context-disclosure" open>
                     <summary>
                         <strong>HPO Context</strong>
                         <span class="pbg-context-summary-sub">gene burden and carrier matching</span>
@@ -63,6 +63,8 @@
                         :context-term-details="contextTermDetails"
                         :context-input.sync="contextInput"
                         :context-loading="contextLoading || searchGeneLoading"
+                        :context-score-type.sync="contextScoreType"
+                        :context-analysis-set.sync="contextAnalysisSet"
                         :context-significance-threshold.sync="contextSignificanceThreshold"
                         :context-min-carriers.sync="contextMinCarriers"
                         :external-phenotype-result-url="externalPhenotypeResultUrl"
