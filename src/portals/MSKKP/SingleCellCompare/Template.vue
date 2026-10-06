@@ -22,6 +22,9 @@
                         {{ $store.state.datasetCount }} single-cell dataset{{ $store.state.datasetCount === 1 ? "" : "s" }}
                         available.
                     </p>
+                    <p class="caption dataset-count-note">
+                        For more analyses of these individual single-cell datasets, visit our <a href="/r/scb">Single Cell Browser</a>. To view cell states and gene programs for musculoskeletal cell types, visit our <a href="/liger.html">Cell State Browser</a>.
+                    </p>
                     <div
                         v-if="!$store.state.loading && !$store.state.usingMskDatasets"
                         class="alert alert-info"
