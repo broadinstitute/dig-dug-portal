@@ -823,6 +823,7 @@ export default Vue.component("cfde-landing-2", {
                     dccItem["examples"]["disease_example"]!=""
                 ){
                     examples.push({
+                        dcc: dccItem["dcc"],
                         type: 'disease',
                         logo: dccItem["logo"] || "",
                         name: dccItem["name"] || "",
