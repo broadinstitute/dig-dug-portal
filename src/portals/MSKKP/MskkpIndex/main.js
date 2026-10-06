@@ -10,13 +10,13 @@ Vue.use(BootstrapVueIcons);
 Vue.config.productionTip = false;
 
 import PageHeader from "@/components/PageHeader.vue";
-import MskkpLandingHeroBanner from "@/components/mskkpLanding/HeroBanner.vue";
-import MskkpLandingMetrics from "@/components/mskkpLanding/Metrics.vue";
-import MskkpLandingMain from "@/components/mskkpLanding/Main.vue";
-import MskkpLandingFeatures from "@/components/mskkpLanding/Features.vue";
-import MskkpLandingCommunity from "@/components/mskkpLanding/Community.vue";
-import MskkpLandingSupport from "@/components/mskkpLanding/Support.vue";
-import MskkpLandingFooter from "@/components/mskkpLanding/Footer.vue";
+import MskkpLandingHeroBanner from "./components/HeroBanner.vue";
+import MskkpLandingMetrics from "./components/Metrics.vue";
+import MskkpLandingMain from "./components/Main.vue";
+import MskkpLandingFeatures from "./components/Features.vue";
+import MskkpLandingCommunity from "./components/Community.vue";
+import MskkpLandingSupport from "./components/Support.vue";
+import MskkpLandingFooter from "./components/Footer.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -123,9 +123,7 @@ new Vue({
             return contents[0];
         },
         pageStats() {
-            return (
-                this.stats.find((s) => s["Portal ID"] == "msk") || {}
-            );
+            return this.stats.find((s) => s["Portal ID"] == "msk") || {};
         },
         statsArray() {
             return this.statsKeys.map((stat) => ({

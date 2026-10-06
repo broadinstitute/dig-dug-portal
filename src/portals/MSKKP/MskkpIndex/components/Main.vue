@@ -14,7 +14,7 @@
 
 <script>
 import Vue from "vue";
-import MskkpLandingResultsPrimer from "@/components/mskkpLanding/ResultsPrimer.vue";
+import MskkpLandingResultsPrimer from "./ResultsPrimer.vue";
 
 export default Vue.component("mskkp-landing-main", {
     components: {
