@@ -1,8 +1,8 @@
 <script>
 import Vue from "vue";
-import { formatMetric, formatPValue, isFiniteNumber } from "./ligerFormat";
-import { clamp, mixColor, heatColor } from "./ligerHeat";
-import CellStateInfographic from "./CellStateInfographic.vue";
+import { formatMetric, formatPValue, isFiniteNumber } from "../ligerFormat";
+import { clamp, mixColor, heatColor } from "../ligerHeat";
+import CellStateInfographic from "../CellStateInfographic.vue";
 import StateDetails from "./StateDetails.vue";
 import ProgramDetails from "./ProgramDetails.vue";
 

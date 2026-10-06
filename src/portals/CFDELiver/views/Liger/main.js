@@ -3,13 +3,13 @@ import Template from "./Template.vue";
 
 import { contentMixin } from "@/portals/CFDELiver/mixins/contentMixin.js";
 import { getTextContent } from "@/portals/CFDELiver/utils/content";
-import LigerBrowser from "@/components/researchPortal/LIGER/LigerBrowser.vue";
+import CellEvolutionBrowser from "@/components/researchPortal/LIGER/v2/CellEvolutionBrowser.vue";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 
 new Vue({
     components: {
-        LigerBrowser
+        CellEvolutionBrowser
     },
     mixins: [contentMixin],
 
@@ -25,8 +25,8 @@ new Vue({
                 pageTitle: "Liver Cell State & Program Explorer",
                 documentationUrl: "https://knowledge-portal-network.gitbook.io/knowledge-portal-network-docs/5lsQ2czOVhDBVTAi0MCc",
                 tissues: ["liver"],
-                exampleGenes: ["GCKR", "EPCAM", "HFE"],
-                hideTissueCardIfOneOption: false,
+                singleCellBrowserUrl: "/single-cell-map.html",
+                exampleGenes: ["GCKR", "EPCAM", "HFE"]
             },
         };
     },

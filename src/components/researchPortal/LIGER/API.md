@@ -1,61 +1,190 @@
-# LIGER Detail Panels — Data Catalogue
+# LIGER API Reference
 
-What the state and program detail panels can actually show, verified against live responses.
+Everything the front end needs to know about the LIGER indexes: how they are keyed, what each one
+returns, where the data is incomplete, and what is still unanswered.
 
-**Probe conditions.** All counts below come from `https://bioindex-dev.pankbase.org`,
-`islet_of_Langerhans_scRNA_v3-4` / `beta` / `mouse_msigdb`, plus a sweep of all 11 islet cell
-types (87 curated states) and all 10 configured tissues.
+Companion to `README.md`, which covers the folder layout and how the *values* must be read
+(expression bars, specificity denominators, axis scaling). This file is about the **endpoints**.
 
-Two facts that frame everything:
-
-- **Prod pankbase does not serve these indexes.** `https://bioindex.pankbase.org` returns
-  `{"detail":"Invalid index: ..."}` for every LIGER index. Only `bioindex-dev.pankbase.org`
-  has them, i.e. only when the dev host is in play (localhost or a `dev` subdomain).
-- **Only one dataset has data.** Of the 10 datasets in `LIGER_TISSUE_CONFIG`, only
-  `islet_of_Langerhans_scRNA_v3-4` returns rows. The other nine (including the other pancreas
-  dataset `FNIH_Pancreas_scRNA_v2.2`) return 0 on every index.
-- **Metadata is tissue-keyed, everything else is dataset-keyed.**
-  `gene-program-cell-state-metadata-extended` only answers to `Pancreas,<cellType>`; every
-  other index only answers to `islet_of_Langerhans_scRNA_v3-4,...`.
+> Supersedes `DETAIL_DATA_CATALOGUE.md` and `BACKEND_REQUEST_TISSUE_KEYS.md`, both removed. The
+> tissue-key request was delivered — see *Tissue keys* below. The catalogue's field inventories are
+> preserved in full at the end of this file.
 
 ---
 
-## 1. Where "Exploratory biological" comes from
+## Host
 
-It comes from nowhere in the API. It is a client-side fallback that fires 100% of the time.
+Resolved in `apiHost()` — a single binary choice, no precedence chain. Dev when the page is served
+from `localhost` / `127.0.0.1` / `0.0.0.0`, or when any label of the hostname other than the TLD
+contains `dev`. Prod otherwise. Both default to the hugeamp bioindexes.
 
-`openProgramDetail` ([LigerBrowser.vue:2532](LigerBrowser.vue:2532)) asks for a quality class:
+**Two endpoints do not follow it** and are pinned to `LIGER_HUGEAMP_HOST`, because only the hugeamp
+bioindex serves them (others return `501`):
 
-```js
-let quality = this.field(meta, ["suggested_program_quality_class", "quality_class",
-                                "release_recommendation", "qc_recommendation"])
-              || this.inferredProgramQuality(programId);
-```
+- `/api/portal/phenotypes` — called **unscoped**, and must stay that way. `?q=md` scopes it to the
+  metabolic disease group, which silently dropped every trait outside it.
+- `/api/bio/match/gene?q=`
 
-`gene-program-factor` returns exactly six fields — `dataset`, `model`, `cell_type`, `factor`,
-`label`, `top_genes`. None of those four names exist, so it always falls through to
-`inferredProgramQuality()` ([LigerBrowser.vue:2105](LigerBrowser.vue:2105)):
+`BIO_INDEX_HOST` is deliberately unused: it is compile-time injected per portal build, so it made the
+resolved host depend on how the bundle was built rather than on the page config.
 
-```js
-let hasBadMatch  = rows.some(row => /qc|suppress|artifact/i.test(field(row, ["match_class", "qc_recommendation", "qc_caveat"]) || ""));
-let hasStrongMatch = rows.some(row => /strong|gene_only/i.test(field(row, ["match_class"]) || ""));
-return hasStrongMatch ? "high_confidence_biological" : "exploratory_biological";
-```
+## Tissue keys
 
-`gene-program-heatmap` has no `match_class`, `qc_recommendation`, or `qc_caveat` field either
-(verified over 1320 rows across every islet cell type). Both regexes test the empty string,
-both fail, and the function returns `"exploratory_biological"` — which `prettyToken()` renders
-as **"Exploratory biological"** and `detailBadgeTone()` colours warn, because the word
-`exploratory` is in its warn regex.
+**Every index is keyed on the tissue key** — `vat`, `pancreas`, `bonemarrow` — and none takes a model
+argument. One convention, every endpoint, every portal.
 
-So the badge is a hardcoded constant wearing a data-driven costume. Same value also feeds the
-`Quality` row in `summaryFields`, so the overview says it twice.
+This was a backend change the portal requested and received. Before it, endpoints disagreed about
+whether argument 1 was a tissue key or a dataset ID, nothing declared which, and guessing wrong
+returned **HTTP 500** rather than an empty result. The client carried a hardcoded tissue → dataset
+table, a reverse index, per-portal dataset-ID observation, and a runtime sniff of which convention a
+portal spoke. All of it is deleted.
 
-The same collapse hits the neighbouring field: `Rationale` reads `meta.rationale`, which does
-not exist, so that row is filtered out and never renders. The README's claim that
-"`gene-program-factor` now also provides a `rationale` field" is not true of this deployment.
+Two rules follow, and both still bite:
+
+- **Never hold a dataset ID as a constant.** They drift as source data is rebuilt — heart went
+  `v3.2` → `v4.0`, artery and pancreas both moved to `v3`, liver is now `FNIH_Liver_scRNA_v4.0`
+  (was `v3.2`). Read it from the `dataset` field of a row you just loaded.
+- **Never gate the tissue list.** Every row reports its own `tissue`, so the list is whatever the API
+  returns. The old table dropped anything it did not list, which is how `bone`, `bonemarrow` and
+  `tendon` stayed invisible after the API gained them.
+
+Twelve tissues are live: artery, bone, bonemarrow, heart, hypothalamus, kidney, liver, muscle,
+pancreas, sat, tendon, vat. Across them, **161 tissue/cell-type scopes**.
+
+The one remaining piece of tissue config is a display-label map (`TISSUE_LABELS`), and it is
+temporary — labels cannot be derived from keys (`bonemarrow` title-cases to "Bonemarrow",
+`sat`/`vat` to "Sat"/"Vat"). `tissue_label` has been requested on the gene-level expression
+endpoints; `tissueLabel()` already prefers the row's field, so **delete the map when it lands**.
 
 ---
+
+## Endpoints
+
+| Endpoint | Query | Notes |
+|---|---|---|
+| `match/gene` | `<prefix>` | Autocomplete. Pinned to hugeamp. |
+| `gene-program-expression-cell-state` | `<gene>` | Gene-level; source of the tissue list. |
+| `gene-program-expression-program` | `<gene>` | Gene-level. |
+| `gene-program-expression-cell-type` | `<tissue>,<gene>` | `log2fc_weighted_vs_all_parent` is **always null** here. |
+| `gene-program-expression-cell-state` | `<tissue>,<cellType>,<gene>` | |
+| `gene-program-expression-program` | `<tissue>,<cellType>,<gene>` | Carries `factor_label`, so node labels survive a `gene-program-factor` failure. |
+| `gene-program-cell-state-metadata-extended` | `<tissue>,<cellType>` | `display_name` + the lede. **Not available for all 12 tissues.** |
+| `gene-program-factor` | `<tissue>,<cellType>` | Exactly six fields. `top_genes` only. |
+| `gene-program-gene-factor` | `<tissue>,<cellType>,<factor>` | One request per program — there is no gene-keyed loading index. |
+| `gene-program-gene-set-factor` | `<tissue>,<cellType>,<factor>` | **Liver only.** See *Coverage gaps*. |
+| `gene-program-qc-factor` | `<tissue>,<cellType>,<factor>` | |
+| `gene-program-qc-metadata-extended` | `1` | The whole QC signature dictionary; fetched once. |
+| `gene-program-heatmap` | `<tissue>,<cellType>` | Eight fields. `state_name` **mixes curated states and QC signatures**. |
+| `gene-program-nmf-liger-report` | `<tissue>,<cellType>` | Factor-level QC. See below. |
+| `gene-program-trait-factor` | `<tissue>,<cellType>,<factor>` | |
+| `gene-program-cell-state-trait-factor` | `<tissue>,<cellType>,<stateId>` | |
+| `portal/phenotypes` | *(unscoped)* | Trait labels and groups. Pinned to hugeamp. |
+| `raw/file/single_cell_all_metadata/dataset_metadata.json.gz` | — | JSONL, not JSON. |
+
+---
+
+## The factor QC report
+
+`gene-program-nmf-liger-report` — one row per factor, six checks, and an `overall_verdict` rolling up
+the four that flag. The factor-level quality signal: *is this gene program trustworthy?*
+
+**A different axis from `isQcStateRow()`.** That asks whether a `state_name` is a QC artifact rather
+than a curated cell state. The report's own `blacklist_status` / `top_blacklist_match` name a QC
+signature a factor correlates with, are informational only, and must not feed `isQcStateRow()`.
+
+### Measured, not inferred
+
+Swept all 161 scopes on `bioindex-dev.hugeamp.org`; 162 returned rows, **2,296 factor rows** total.
+
+| Field | Observed values | Flags? |
+|---|---|---|
+| `activity_status` | `active`, `inactive` | yes |
+| `independence_status` | `independent` **only** | yes, but never fires |
+| `similarity_status` | `no_strong_match`, `tracks_curated_state` | **no — informational** |
+| `technical_status` | `clean`, `possible_confound` | yes |
+| `blacklist_status` | `clean`, `possible_blacklist_match`, `unknown` | **no — informational** |
+| `contamination_status` | `clean`, `possible_contaminant`, `unknown` | yes |
+| `overall_verdict` | `high_confidence`, `flagged` | — |
+
+**Filter on `overall_verdict`, never on an individual status.**
+
+`flags` is **semicolon-separated**, no spaces. Three code shapes, the first taking no argument:
+
+```
+INACTIVE
+TECHNICAL_CONFOUND_<covariate>     e.g. _SI_Age, _QC_percent_mt, _X, _Y
+CONTAMINATION_<state_id>
+```
+
+`parseFactorFlags()` returns `{code, kind, detail}` rather than keeping the raw string, so excluding
+a class of flag later is a predicate change rather than a rewrite. An unrecognised code renders as
+itself rather than vanishing.
+
+### What the numbers look like
+
+- **355 of 2,296 rows flagged (15.5%)**, ranging 8% (muscle) to 35% (bonemarrow).
+- `n_flags` never exceeds **2** — 1,941 at 0, 281 at 1, 74 at 2.
+- Reason counts across 429 codes: `TECHNICAL_CONFOUND` 274, `CONTAMINATION` 137, `INACTIVE` 18.
+- Both thresholds appear to be **|r| > 0.5**. `contaminant_gene_loading_corr` sits near zero
+  throughout and does not drive the verdict. All correlations are **Spearman r**.
+- `independence_status` is constant across all 2,296 rows and no `REDUNDANT_*` code exists. **Do not
+  render independence as a live check** — it can only ever say "pass".
+
+### Traps
+
+**`unknown` is a third state** meaning the check could not be run — not a pass, not a failure. 222
+rows (9.7%) carry it, always on `contamination_status` and `blacklist_status` *together*. Of those,
+**200 are `high_confidence`** — i.e. four checks passed and two never ran. Do not claim the
+contamination check passed on those rows.
+
+**`clean` on an informational check is not a low correlation.** One sampled factor reads
+`blacklist_status: clean` at r = 0.68.
+
+**`X` and `Y` drive more flags than anything else.** 154 of 274 technical-confound flags — 36% of all
+flag codes. Two plausible readings (sex chromosomes, embedding coordinates) and both make the flag
+inappropriate. A further 51 flags come from `age` / `SI_BMI` / `Trait_*` covariates, which are
+biological rather than technical. **This is why the verdict currently displays but filters nothing.**
+
+---
+
+## Coverage gaps
+
+| Gap | Status |
+|---|---|
+| **`gene-program-gene-set-factor` is liver-only.** 10 scopes with data, all liver; 151 without, covering the other eleven tissues entirely. `liver,schwann_cell,Factor7` returns 3,704 rows; `pancreas,beta_cell` returns 0 for all ten factors. | Measured across all 161 scopes. The Gene sets tab is empty on 94% of scopes, so it stays *enabled* when empty rather than being disabled and unable to explain itself. |
+| **`gene-program-cell-state-metadata-extended` does not cover all 12 tissues.** It is the sole source of `display_name`, the lede, marker genes and citations. | Which tissues are missing is **unanswered**. Without it, state rows fall back to raw IDs. |
+| **No gene-independent tissue/cell-type API.** | Blocks a tissue-first flow; the dropdowns cannot populate before a gene is chosen. |
+| **`gsea_p` / `gsea_q` are null on a substantial fraction of heatmap rows** — 190 of 450 for islet beta. | Expected; reported separately from "below threshold" in the UI. |
+| **`state_name` mixes curated states and QC signatures** — 36 of 45 distinct values for islet beta are `qc_bad_*`. No field separates them. | `isQcStateRow()` tests the `qc_` prefix, keeping the (never-populated) `state_type` test first in case the index grows it. |
+
+---
+
+## Open questions
+
+Nothing below should be guessed at in code.
+
+| # | Question | Who |
+|---|---|---|
+| 1 | **What are technical covariates `X` and `Y`?** 36% of all QC flags. Decides whether `overall_verdict` is ever safe to filter on. | Kyle |
+| 2 | **Should `Trait_*` / `age` / `SI_BMI` covariates flag at all?** 51 flags from biological covariates. | Kyle |
+| 3 | **Why is the contamination check `unknown` on 222 rows,** and should those still read `high_confidence`? | Patrick / Kyle |
+| 4 | **Is `gene-program-gene-set-factor`'s liver-only coverage intended,** and is the rest coming? | Patrick |
+| 5 | **Which tissues lack `cell-state-metadata-extended`?** | Patrick |
+| 6 | **What does the `p_value` on expression rows test?** Asked twice on the 2026-10-02 call, unanswered. It no longer drives anything in the UI. | Patrick / Kyle |
+| 7 | **What exactly are the gene loadings, and what is the scaling parameter?** Blocks labelling the units honestly. | Kyle |
+| 8 | **How does `factor_quality` relate to `overall_verdict`?** Two quality signals on the same object from different endpoints. Orthogonal or redundant? | Patrick / Kyle |
+| 9 | **Is `independence_status` meant to be constant,** or is the check not firing? | Kyle |
+| 11 | **Confirm what the heatmap's GSEA tests.** The UI now tells readers it is "the cell state's marker gene set, tested for enrichment among genes ranked by their loading in the program" (`ENRICHMENT_DEFINITION`). That is the reading the field names imply, **not a confirmed description** — the index returns only `gsea_p` / `gsea_q`, with no `gsea_nes`, so neither effect size nor direction is available to check it against. If it is wrong, the tooltip is actively misleading. | Kyle / Patrick |
+| 10 | **Does MSKKP serve the same bioindex as CMDKP?** Believed yes; unverified. | — |
+
+---
+
+## Field inventories
+
+> **Provenance.** Measured on `bioindex-dev.pankbase.org`, `islet_of_Langerhans_scRNA_v3-4` / `beta`,
+> plus a sweep of 11 islet cell types (87 curated states) — **before the tissue-key migration**, so
+> the query shapes shown are the old dataset-keyed ones. The *field sets* are what matters here and
+> are still believed current; the counts are of that sample, not of today's twelve tissues.
 
 ## 2. Cell state — what the API actually returns
 
@@ -125,7 +254,7 @@ CMDKP workflow, v2026-06-04, not yet manually reviewed"), but not as six badges 
 | `summary.required_supporting_evidence` | 68/87 |
 
 **Methods and scoring** — fully populated, currently computed by `stateMethodsDetail()` but
-**never rendered anywhere** (nothing reads it in `StateDetails.vue`):
+**never rendered anywhere** (nothing reads it in `v1/StateDetails.vue`):
 
 | Field | Example |
 |---|---|
@@ -270,85 +399,3 @@ Every one of these produces a silently-empty column, a dead fallback, or a wrong
 8. **`stateMethodsDetail()` is computed and never consumed.** Dead code covering real data.
 
 ---
-
-## 5. Proposed reorganization
-
-Rule applied: the overview holds *identity + curation status* only; every many-row association
-becomes a tab; anything in §2.1's always-empty table or §4 is deleted rather than rendered as
-a blank.
-
-### Cell state
-
-**Header** — `display_name` · `cell_type_label`, `tissue_label` · `summary.portal_user_summary`
-as the lede (as now).
-
-**Overview** (no tab, always first):
-
-- *About this state* — `summary.biological_description`, and `summary.recommended_portal_summary`
-  as the "how to use it" line.
-- *Curation status* — a labelled grid, not a badge soup:
-  Establishment `summary.portal_display_establishment` · State class `state.class` ·
-  Interpretation `state.interpretation_status` · Release `state.release_class` ·
-  Portal visibility `state.portal_visibility` · QC sensitivity `state.qc_sensitivity` ·
-  Hard calls `state.allow_hard_call`.
-- *Provenance* — one line: "AI curated · CMDKP cell-state curation workflow · v2026-06-04 ·
-  not yet manually reviewed", plus `curation.provenance_warnings[]` as small chips. Replaces
-  the duplicated `portal_primary_badges` / `quality_badges` pair.
-- *What this means for `<GENE>`* — the four `gene_expression_*` fields, as now, plus
-  `summary.interpretation_caveat` and `summary.do_not_overinterpret_as` (68/87), which are
-  currently dropped.
-- Counts only, as jump-offs: N markers, N related programs, N traits, N citations.
-
-**Tabs**
-
-| Tab | Content | Source |
-|---|---|---|
-| Marker genes | chips + provenance table (gene, role, evidence, notes, source type, citations) | `marker_set.markers[]` |
-| Related programs | heat table: Program, GSEA P, GSEA q, −log10(q). **Drop** Cell coactivity, Match score, and the metric selector. | heatmap |
-| Traits | grouped heat table, joint/marginal beta | `…cell-state-trait-factor` |
-| Methods | `portal_methods_details`, score scope, hard-call policy + notes, primary/secondary score, `scoring.activity_weights[]` | already built by the unused `stateMethodsDetail()` |
-| References | `state_level_citations[]` — label + link only, drop the always-empty PMID/DOI suffix | metadata |
-
-### Gene program
-
-**Header** — `label` · `factor` · `cell_type` / `dataset` / `model`.
-
-**Overview**:
-
-- *About this program* — drop `summaryText`'s invented prose. State what is known:
-  the model label, the factor id, N genes with positive loading, N gene sets, N traits.
-- *Interpretability* — replace the fabricated quality badge with two things the API supports:
-  1. **Self-label flag**: `label` contains `QC`/`artifact` → "This program is labelled as a
-     QC/artifact program by the factorization" (true for 7 of 10 beta programs).
-  2. **QC signature evidence**: "N of 19 QC signatures at q < 0.05" from `gene-program-qc-factor`,
-     with the existing bubbles below it. Bubble tooltips gain `tier`, `recommended_use`, and
-     `exclude_when` from the QC metadata.
-- Remove `Rationale` and `Quality` from `summaryFields` entirely until the API supplies them.
-
-**Tabs**
-
-| Tab | Content | Source |
-|---|---|---|
-| Gene loadings | Gene / Loading, top 30 of ~4900 (say so) | `gene-program-gene-factor` |
-| Curated state matches | heat table filtered to `state_name` **not** matching `^qc_`, since `state_type` doesn't exist. Columns: State, GSEA P, GSEA q, −log10(q). Drop Correlation, Match score, metric selector. | heatmap |
-| QC signatures | promote from bubbles to a real table: Signature, Category, Tier, GSEA P, GSEA q, Marker genes, Exclude when | `qc-factor` ⋈ `qc-metadata-extended` |
-| Gene sets | Gene set / Joint beta / Marginal beta, top N of ~4000 (say so) | `gene-program-gene-set-factor` |
-| Traits | grouped heat table | `gene-program-trait-factor` |
-
-### Shared cleanup
-
-- Delete the metric selector from both panels, or gate it on `metricOptions.length > 2` so it
-  disappears when the only options are the two `gsea_neglog10*` duplicates.
-- Delete the `Correlation` / `Cell coactivity` / `Match score` columns.
-- Split QC signatures out of curated-state matches by an `^qc_` test on `state_name`.
-- Fix the stale "No state-level PIGEAN rows" empty-state string.
-- Update README §"Endpoints Currently Wired" — the `rationale` claim and the `combined_match_score`
-  / correlation metric list do not match what the index returns.
-
-### Unverified
-
-The phenotype label/group join (`/api/portal/phenotypes?q=md`) could not be measured from here —
-Cloudflare blocks scripted access to both hugeamp bioindex hosts. Trait keys look like hugeamp
-phenotype `name`s (`SerumUrea`, `BSandFG`), so the join plausibly works, but the effective row
-count after `LIGER_FILTER_UNLABELED_HEATMAP_TRAITS` drops unlabelled traits is unmeasured. Worth
-checking in the browser, since it decides whether the trait tabs show 355 rows or a handful.
