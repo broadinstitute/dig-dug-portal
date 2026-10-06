@@ -1,7 +1,7 @@
 <template>
     <div class="main-content">
         <div class="f-col" style="width:100%">
-            <LigerBrowser :config="$parent.ligerConfig" />
+            <CellEvolutionBrowser :config="$parent.ligerConfig" />
         </div>
     </div>
 </template>
