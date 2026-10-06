@@ -50,7 +50,7 @@
                             </select>
                         </label>
                         <label class="col-md-6 control">
-                            <span>Dataset 1</span>
+                            <span>Dataset</span>
                             <select class="form-control" v-model="$parent.leftId">
                                 <option
                                     v-for="d in $parent.leftDatasets"
@@ -63,7 +63,7 @@
                             </select>
                         </label>
                     </div>
-                    <div>&nbsp;</div>
+                    <hr class="selector-divider" />
                     <div class="row controls sc-filter-wrap">
                         <label class="col-md-6 control">
                             <span>Tissue 2</span>
@@ -75,7 +75,7 @@
                             </select>
                         </label>
                         <label class="col-md-6 control">
-                            <span>Dataset 2</span>
+                            <span>Dataset</span>
                             <select class="form-control" v-model="$parent.rightId">
                                 <option
                                     v-for="d in $parent.rightDatasets"
@@ -110,32 +110,6 @@
                                 Display-sampled UMAP coordinates colored by cell type, fetched live per dataset. Gray-colored cells are those that are not common between the two selected datasets.
                             </p>
                         </div>
-                        <div class="row paired-panels">
-                            <article class="col-md-6 panel">
-                                <div class="chart-label-overlay">
-                                    <h3>{{ $parent.leftLabel }}</h3>
-                                    <span>{{ $parent.leftCountLabel }}</span>
-                                </div>
-                                <download-chart
-                                    class="download"
-                                    chartId="sc-left-umap-canvas"
-                                    :filename="`${$parent.slug($parent.leftLabel)}_umap`"
-                                ></download-chart>
-                                <canvas id="sc-left-umap-canvas" ref="leftUmap"></canvas>
-                            </article>
-                            <article class="col-md-6 panel">
-                                <div class="chart-label-overlay">
-                                    <h3>{{ $parent.rightLabel }}</h3>
-                                    <span>{{ $parent.rightCountLabel }}</span>
-                                </div>
-                                <download-chart
-                                    class="download"
-                                    chartId="sc-right-umap-canvas"
-                                    :filename="`${$parent.slug($parent.rightLabel)}_umap`"
-                                ></download-chart>
-                                <canvas id="sc-right-umap-canvas" ref="rightUmap"></canvas>
-                            </article>
-                        </div>
                         <div v-if="$parent.cellTypes.length" class="legend-row">
                             <span class="legend-item" v-for="ct in $parent.cellTypes" :key="ct">
                                 <span
@@ -148,6 +122,36 @@
                         <p v-else class="caption no-common-cell-types">
                             There are no common cell types between these two datasets.
                         </p>
+                        <div class="row paired-panels">
+                            <article class="col-md-6 panel">
+                                <div class="panel-label">
+                                    <h3>{{ $parent.leftLabel }}</h3>
+                                    <span>{{ $parent.leftCountLabel }}</span>
+                                </div>
+                                <div class="chart-canvas-wrap">
+                                    <download-chart
+                                        class="download"
+                                        chartId="sc-left-umap-canvas"
+                                        :filename="`${$parent.slug($parent.leftLabel)}_umap`"
+                                    ></download-chart>
+                                    <canvas id="sc-left-umap-canvas" ref="leftUmap"></canvas>
+                                </div>
+                            </article>
+                            <article class="col-md-6 panel">
+                                <div class="panel-label">
+                                    <h3>{{ $parent.rightLabel }}</h3>
+                                    <span>{{ $parent.rightCountLabel }}</span>
+                                </div>
+                                <div class="chart-canvas-wrap">
+                                    <download-chart
+                                        class="download"
+                                        chartId="sc-right-umap-canvas"
+                                        :filename="`${$parent.slug($parent.rightLabel)}_umap`"
+                                    ></download-chart>
+                                    <canvas id="sc-right-umap-canvas" ref="rightUmap"></canvas>
+                                </div>
+                            </article>
+                        </div>
                     </div>
                 </div>
 
@@ -183,17 +187,15 @@
                                 {{ $parent.geneStatusDisplay }}
                             </div>
                             <div class="chart-canvas-wrap">
-                                <div class="chart-overlay-row">
-                                    <div class="dataset-key chart-legend-overlay">
-                                        <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
-                                        <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
-                                    </div>
-                                    <download-chart
-                                        class="download"
-                                        chartId="sc-gene-plot-canvas"
-                                        :filename="`${$parent.slug($parent.selectedGene)}_expression_by_celltype`"
-                                    ></download-chart>
+                                <div class="dataset-key chart-legend-overlay">
+                                    <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
+                                    <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
                                 </div>
+                                <download-chart
+                                    class="download"
+                                    chartId="sc-gene-plot-canvas"
+                                    :filename="`${$parent.slug($parent.selectedGene)}_expression_by_celltype`"
+                                ></download-chart>
                                 <canvas id="sc-gene-plot-canvas" ref="genePlot"></canvas>
                             </div>
                         </div>
@@ -264,17 +266,15 @@
                                 {{ $parent.cellTypeStatusDisplay }}
                             </div>
                             <div class="chart-canvas-wrap">
-                                <div class="chart-overlay-row">
-                                    <div class="dataset-key chart-legend-overlay">
-                                        <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
-                                        <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
-                                    </div>
-                                    <download-chart
-                                        class="download"
-                                        chartId="sc-cell-type-plot-canvas"
-                                        :filename="`${$parent.slug($parent.cellTypeModel)}_marker_genes`"
-                                    ></download-chart>
+                                <div class="dataset-key chart-legend-overlay">
+                                    <span><i class="chip left"></i>{{ $parent.leftLabel }}</span>
+                                    <span><i class="chip right"></i>{{ $parent.rightLabel }}</span>
                                 </div>
+                                <download-chart
+                                    class="download"
+                                    chartId="sc-cell-type-plot-canvas"
+                                    :filename="`${$parent.slug($parent.cellTypeModel)}_marker_genes`"
+                                ></download-chart>
                                 <canvas id="sc-cell-type-plot-canvas" ref="cellTypePlot"></canvas>
                             </div>
                         </div>
@@ -418,6 +418,13 @@
     border-radius: 5px;
 }
 
+/* Light gray divider between the Tissue 1/Dataset row and the Tissue 2/Dataset row. */
+.mskkp-sc-compare .selector-divider {
+    margin: 10px 0;
+    border: none;
+    border-top: 1px solid #dbe4df;
+}
+
 .mskkp-sc-compare .controls .control {
     padding: 0 7px;
 }
@@ -434,14 +441,30 @@
     min-width: min(320px, 100%);
 }
 
-.mskkp-sc-compare .paired-panels,
 .mskkp-sc-compare .paired-tables {
     margin: 0 -7px;
 }
 
-.mskkp-sc-compare .paired-panels > [class*="col"],
 .mskkp-sc-compare .paired-tables > [class*="col"] {
     padding: 0 7px;
+}
+
+/* 10px gutter between the two UMAPs, both side by side and - since columns stack on
+   narrow screens, see the mobile override below - stacked. Uses flex gap (rather than
+   the padding/negative-margin gutter trick) so the 10px is exact regardless of any
+   grid-framework padding on .col-md-6. */
+.mskkp-sc-compare .paired-panels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 0;
+}
+
+.mskkp-sc-compare .paired-panels > [class*="col"] {
+    padding: 0;
+    margin: 0;
+    flex: 1 1 calc(50% - 8px);
+    max-width: calc(50% - 8px);
 }
 
 .mskkp-sc-compare .panel,
@@ -453,15 +476,15 @@
     overflow: hidden;
 }
 
-.mskkp-sc-compare .panel,
-.mskkp-sc-compare .table-card {
+.mskkp-sc-compare .panel {
     border: 1px solid #dbe4df;
 }
 
-/* The two overlay-legend charts (Gene Comparison's violin chart and Cell-Type
-   Comparison's scatter chart) no longer have a bordered card around them - just the
-   canvas with its legend/download overlay. */
-.mskkp-sc-compare .plot-card {
+/* Neither the two overlay-legend charts (Gene Comparison's violin chart and
+   Cell-Type Comparison's scatter chart) nor the two merged summary tables have a
+   bordered card/outline around them. */
+.mskkp-sc-compare .plot-card,
+.mskkp-sc-compare .table-card {
     border: none;
 }
 
@@ -481,24 +504,17 @@
     background: #ddefff;
 }
 
-/* Overlays the dataset name/cell count directly on the UMAP chart (no separate
-   title bar) so the panel is just the chart itself. */
-.mskkp-sc-compare .chart-label-overlay {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    z-index: 1;
+/* Plain label row above each UMAP (no separate colored title bar, but also not an
+   overlay on top of the canvas - the dataset name/cell count never covers any of
+   the actual chart). */
+.mskkp-sc-compare .panel-label {
     display: flex;
     align-items: baseline;
     gap: 8px;
-    max-width: calc(100% - 56px);
-    padding: 4px 10px;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.82);
-    pointer-events: none;
+    padding: 10px 12px 0;
 }
 
-.mskkp-sc-compare .chart-label-overlay h3 {
+.mskkp-sc-compare .panel-label h3 {
     margin: 0;
     font-size: 0.9rem;
     font-weight: 700;
@@ -508,7 +524,7 @@
     text-overflow: ellipsis;
 }
 
-.mskkp-sc-compare .chart-label-overlay span {
+.mskkp-sc-compare .panel-label span {
     color: #63706b;
     font-size: 0.78rem;
     white-space: nowrap;
@@ -550,12 +566,12 @@
 }
 
 .mskkp-sc-compare .legend-row {
-    margin-top: 14px;
+    margin: 14px 0;
 }
 
 .mskkp-sc-compare .no-common-cell-types {
     max-width: none;
-    margin: 14px 0 0;
+    margin: 14px 0;
     text-align: left;
     color: #63706b;
     font-style: italic;
@@ -575,24 +591,26 @@
     position: relative;
 }
 
-.mskkp-sc-compare .chart-overlay-row {
+/* Legend sits top left, the download link top right - kept apart (not bunched
+   together) since the download is a plain text link rather than a button; a button
+   could sit right next to the legend without reading as one cluttered group, but a
+   text link needs real separation to stand on its own. */
+.mskkp-sc-compare .chart-legend-overlay {
     position: absolute;
     top: 8px;
-    right: 8px;
+    left: 8px;
     z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.mskkp-sc-compare .chart-legend-overlay {
     padding: 4px 10px;
     border-radius: 5px;
     background: rgba(255, 255, 255, 0.82);
     pointer-events: none;
 }
 
-.mskkp-sc-compare .chart-overlay-row .download-chart {
+.mskkp-sc-compare .chart-canvas-wrap .download-chart {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
     margin-bottom: 0;
     float: none;
 }
@@ -651,6 +669,12 @@
 
 .mskkp-sc-compare tr:last-child td {
     border-bottom: 0;
+}
+
+/* Bolds the cell type / gene name column (always the first cell of each row) in the
+   two merged summary tables. */
+.mskkp-sc-compare .table-card td:first-child {
+    font-weight: 700;
 }
 
 .mskkp-sc-compare .plot-title .download-chart {
@@ -722,15 +746,19 @@
     }
 
     .mskkp-sc-compare .controls,
-    .mskkp-sc-compare .paired-panels,
     .mskkp-sc-compare .paired-tables {
         margin: 0;
     }
 
     .mskkp-sc-compare .controls > [class*="col"],
-    .mskkp-sc-compare .paired-panels > [class*="col"],
     .mskkp-sc-compare .paired-tables > [class*="col"] {
         padding: 0;
+    }
+
+    /* Stack the two UMAPs to one column, keeping the 10px gap (now a row gap). */
+    .mskkp-sc-compare .paired-panels > [class*="col"] {
+        flex-basis: 100%;
+        max-width: 100%;
     }
 }
 </style>
