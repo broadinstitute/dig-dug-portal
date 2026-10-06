@@ -9,6 +9,7 @@ const compiler = require("vue-template-compiler");
 
 const root = path.resolve(__dirname, "..");
 const window = { location: { search: "?query=GC" } };
+let contextRequest;
 
 function load(source, filename, imports) {
     const code = babel.transformSync(source, {
@@ -25,14 +26,17 @@ function load(source, filename, imports) {
             return imports[name];
         },
         window, URLSearchParams, process: { env: {} },
-        fetch: async () => ({
-            ok: true,
-            json: async () => ({
-                gene_association: { status: "ok", model: "lm", score_type: "max", beta: 0.42, p_value: 0.01 },
-                variant_associations: { "CHR4:71741650:A:T": { status: "ok", beta: -0.2, p_value: 0.03 } },
-                variant_match_scores: { "CHR4:71741650:A:T": { match_score: 0.125 } },
-            }),
-        }),
+        fetch: async (url, options) => {
+            contextRequest = { url, body: JSON.parse(options.body) };
+            return {
+                ok: true,
+                json: async () => ({
+                    gene_association: { status: "ok", model: "lm", score_type: "sum", affected_only: true, beta: 0.42, p_value: 0.01 },
+                    variant_associations: { "CHR4:71741650:A:T": { status: "ok", beta: -0.2, p_value: 0.03 } },
+                    variant_match_scores: { "CHR4:71741650:A:T": { match_score: 0.125 } },
+                }),
+            };
+        },
     });
     return exports;
 }
@@ -125,8 +129,12 @@ page.jumpToVariantPage();
 assert.equal(page.variantPageJumpError, "Invalid page");
 assert.equal(page.variantPage, 2);
 async function testContext() {
+    page.publicContextScoreType = "sum";
+    page.publicContextAnalysisSet = "affected";
     page.publicContextInput = "HP:0001250; hp:0000133 HP:0001250";
     await page.selectPublicHpoContext();
+    assert.equal(contextRequest.body.score_type, "sum");
+    assert.equal(contextRequest.body.affected_only, true);
     assert.deepEqual(Array.from(page.publicContextTerms), ["HP:0001250", "HP:0000133"]);
     assert.equal(page.publicContextError, "");
     assert.equal(page.publicGeneAssociation.beta, 0.42);

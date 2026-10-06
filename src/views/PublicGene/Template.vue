@@ -42,6 +42,8 @@
                         </div>
                         <form class="pbg-context-form public-gene-context-form" @submit.prevent="selectPublicHpoContext">
                             <hpo-term-input v-model="publicContextInput"></hpo-term-input>
+                            <label class="pbg-context-option">GRS <select v-model="publicContextScoreType" aria-label="Gene score aggregation"><option value="max">Max</option><option value="sum">Sum</option></select></label>
+                            <label class="pbg-context-option">Samples <select v-model="publicContextAnalysisSet" aria-label="Analysis samples"><option value="all">All</option><option value="affected">Affected only</option></select></label>
                             <button type="submit" :disabled="publicContextLoading">{{ publicContextLoading ? 'Calculating' : 'Go' }}</button>
                         </form>
                         <p v-if="publicContextError" class="pbg-context-error" role="alert">{{ publicContextError }}</p>
@@ -54,7 +56,7 @@
                                 <span>{{ publicContextTerms.join(', ') }}<small>Public aggregate</small></span>
                                 <strong>{{ publicStatistic(publicGeneAssociation.beta) }}</strong>
                                 <strong>{{ publicPValue(publicGeneAssociation.p_value) }}</strong>
-                                <span class="pbg-context-result-diagnostic"><strong>{{ publicGeneAssociation.status === 'ok' ? 'Calculated · GRS association' : 'Unavailable' }}</strong><small v-if="publicGeneAssociation.status === 'ok'">{{ String(publicGeneAssociation.model || 'lm').toUpperCase() }} · GRS {{ publicGeneAssociation.score_type }}</small></span>
+                                <span class="pbg-context-result-diagnostic"><strong>{{ publicGeneAssociation.status === 'ok' ? 'Calculated · GRS association' : 'Unavailable' }}</strong><small v-if="publicGeneAssociation.status === 'ok'">{{ String(publicGeneAssociation.model || 'lm').toUpperCase() }} · GRS {{ publicGeneAssociation.score_type }} · {{ publicGeneAssociation.affected_only ? 'Affected only' : 'All samples' }}</small></span>
                                 <span>Unadjusted p-value</span>
                             </div>
                             <p v-else class="pbg-context-empty">{{ publicContextLoading ? 'Calculating aggregate association…' : 'No aggregate result returned.' }}</p>

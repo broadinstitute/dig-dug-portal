@@ -18,6 +18,8 @@ export function createPublicGeneState() {
         publicContextTerms: [],
         publicContextError: "",
         publicContextLoading: false,
+        publicContextScoreType: "max",
+        publicContextAnalysisSet: "all",
         publicGeneAssociation: null,
         publicVariantAssociations: {},
         publicVariantMatchScores: {},
@@ -231,7 +233,12 @@ export async function selectPublicHpoContext() {
         const response = await fetch("/phenotype-analyzer-api/public-analyze", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ gene: this.geneInfo.symbol, terms }),
+            body: JSON.stringify({
+                gene: this.geneInfo.symbol,
+                terms,
+                score_type: this.publicContextScoreType,
+                affected_only: this.publicContextAnalysisSet === "affected",
+            }),
         });
         if (!response.ok) throw new Error(await contextApiError(response));
         const result = await response.json();
