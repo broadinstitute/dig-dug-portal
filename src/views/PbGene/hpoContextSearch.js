@@ -47,12 +47,19 @@ export function resolveHpoTerms(value) {
     if (!terms.length) throw new Error("Enter at least one HPO term.");
     return [...new Set(terms)];
 }
-export async function contextApiError(response) {
+export async function contextApiFailure(response) {
     let payload = {};
     try { payload = await response.json(); } catch (_) { /* Non-JSON proxy error. */ }
     const detail = String(payload.detail || "");
     if (response.status === 400 && detail.startsWith("missing query HPO columns:")) {
-        return `These phenotypes are not in our cohort HPO list: ${detail.split(": ").slice(1).join(": ")}.`;
+        const missingTerms = [...new Set(detail.match(/HP:\d{7}/g) || [])];
+        return {
+            message: `These phenotypes are not in our cohort HPO list: ${missingTerms.join(", ")}.`,
+            missingTerms,
+        };
     }
-    return detail || `HPO analysis returned ${response.status}.`;
+    return { message: detail || `HPO analysis returned ${response.status}.`, missingTerms: [] };
+}
+export async function contextApiError(response) {
+    return (await contextApiFailure(response)).message;
 }

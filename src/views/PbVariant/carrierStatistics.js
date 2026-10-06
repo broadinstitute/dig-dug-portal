@@ -1,4 +1,5 @@
 const MISSING_VALUES = new Set(["", "unavailable", "na", "nan", "n/a", "—"]);
+const { orderHierarchyTerms } = require("./hpoHierarchy");
 
 function clean(value) {
     if (value == null) return null;
@@ -44,8 +45,8 @@ function normalizeFlag(value, positiveLabel, negativeLabel) {
     const text = clean(value);
     if (!text) return null;
     const lower = text.toLowerCase();
-    if (["true", "yes", "y", "1", "affected", "proband"].includes(lower)) return positiveLabel;
-    if (["false", "no", "n", "0", "unaffected", "non-proband", "nonproband"].includes(lower)) return negativeLabel;
+    if (["true", "yes", "y", "1", "affected"].includes(lower)) return positiveLabel;
+    if (["false", "no", "n", "0", "unaffected"].includes(lower)) return negativeLabel;
     return text;
 }
 
@@ -104,11 +105,12 @@ function normalizeCoGene(raw) {
 }
 
 function normalizeCoVariant(raw) {
-    if (typeof raw === "string") return { id: clean(raw), gene: null, classification: null };
+    if (typeof raw === "string") return { id: clean(raw), gene: null, clinvar: null, variantScore: null };
     return {
         id: clean(raw && (raw.id || raw.variantId || raw.variant_id)),
         gene: clean(raw && (raw.gene || raw.symbol)),
-        classification: clean(raw && (raw.classification || raw.clinvar)),
+        clinvar: clean(raw && raw.clinvar),
+        variantScore: finiteNumber(raw && (raw.variantScore ?? raw.variant_score)),
     };
 }
 
@@ -132,7 +134,8 @@ function variantBurdenPathogenicScore(row) {
 
 function normalizeCarrier(sample, index) {
     const ageValue = sample.ageYears != null ? sample.ageYears : sample.age_years;
-    const numericAge = Number(ageValue != null ? ageValue : sample.age);
+    const ageInput = ageValue != null ? ageValue : sample.age;
+    const numericAge = ageInput == null || ageInput === "" ? NaN : Number(ageInput);
     const key = clean(sample.id || sample.sampleId || sample.sample_id) || `carrier-${index}`;
     return {
         key,
@@ -147,11 +150,11 @@ function normalizeCarrier(sample, index) {
         geneBurden: finiteNumber(sample.geneBurden),
         geneBurdenScoredVariants: finiteNumber(sample.geneBurdenScoredVariants) || 0,
         affected: normalizeFlag(sample.affected, "Yes", "No"),
-        proband: normalizeFlag(sample.proband, "Proband", "non-Proband"),
         sex: normalizeSex(sample.sex),
         ageBin: clean(sample.ageBin || sample.age_bin || sample.ageBand || sample.age_band),
         ageYears: Number.isFinite(numericAge) ? numericAge : null,
         investigator: clean(sample.investigator || sample.group || sample.cohort || sample.study),
+        project: clean(sample.project || sample.Project || sample.project_name || sample.clean_name),
         phenotypes: normalizePhenotypes(sample),
         coGenes: parseList(sample.coGenes || sample.co_genes || sample.coCarrierGenes || sample.co_carrier_genes)
             .map(normalizeCoGene).filter(item => item.gene),
@@ -171,7 +174,8 @@ function normalizeCarrierRecords(samples) {
 function attachSameGeneCoVariants(samples, variantRows, targetVariantId, gene) {
     const output = (samples || []).map(sample => ({
         ...sample,
-        coVariants: parseList(sample.coVariants || sample.co_variants || sample.sameGeneVariants || sample.same_gene_variants),
+        coVariants: parseList(sample.coVariants || sample.co_variants || sample.sameGeneVariants || sample.same_gene_variants)
+            .map(normalizeCoVariant).filter(item => item.id),
         geneBurden: 0,
         geneBurdenScoredVariants: 0,
     }));
@@ -196,8 +200,21 @@ function attachSameGeneCoVariants(samples, variantRows, targetVariantId, gene) {
                 output[index].geneBurden += burdenScore;
                 output[index].geneBurdenScoredVariants += 1;
             }
-            if (isTarget || seen[index].has(id)) return;
-            output[index].coVariants.push({ id, gene, classification: clean(row.classification || row.clinvar) });
+            if (isTarget) return;
+            const variantScore = variantPathogenicScore(
+                variantEvidenceValue(row, "LOFTEE"),
+                variantEvidenceValue(row, "AlphaMissense")
+            );
+            const clinvar = clean(row.clinvar);
+            if (seen[index].has(id)) {
+                const existing = output[index].coVariants.find(item => normalizeCoVariant(item).id === id);
+                if (existing && typeof existing === "object") {
+                    if (clinvar != null) existing.clinvar = clinvar;
+                    if (variantScore != null) existing.variantScore = variantScore;
+                }
+                return;
+            }
+            output[index].coVariants.push({ id, gene, clinvar, variantScore });
             seen[index].add(id);
         });
     });
@@ -222,12 +239,48 @@ function exactVariantContext(result, variantId) {
     };
 }
 
+function exactVariantAssociation(result, variantId) {
+    const associations = result && result.variant_associations;
+    if (!associations || typeof associations !== "object") return null;
+    const canonical = String(variantId || "").replace(/^chr/i, "").toLowerCase();
+    const entry = Object.entries(associations).find(([id]) => String(id).replace(/^chr/i, "").toLowerCase() === canonical);
+    if (!entry) return null;
+    const row = entry[1] || {};
+    const pValue = finiteNumber(row.p_value);
+    return {
+        beta: row.status === "ok" ? finiteNumber(row.beta) : null,
+        pValue: row.status === "ok" && pValue != null && pValue >= 0 && pValue <= 1 ? pValue : null,
+        carrierCount: finiteNumber(row.n_carriers),
+        sampleCount: finiteNumber(row.n_samples),
+        lowCarrierCount: Boolean(row.low_carrier_count),
+        modelVersion: clean(row.model_version || result.variant_association_model),
+        status: clean(row.status) || "unknown",
+    };
+}
+
+function exactVariantCarrierResiduals(result, variantId) {
+    const source = result && result.variant_carrier_residuals;
+    if (!source || !source.sample_scores) return {};
+    const canonical = id => String(id || "").replace(/^chr/i, "").toLowerCase();
+    if (canonical(source.variant_id) !== canonical(variantId)) return {};
+    return Object.entries(source.sample_scores).reduce((scores, [id, value]) => {
+        const number = finiteNumber(value);
+        if (number != null) scores[id.toLowerCase()] = number;
+        return scores;
+    }, {});
+}
+
+function variantPathogenicScore(loftee, alphaMissense) {
+    if (String(loftee || "").trim().toLowerCase() === "hc") return 1;
+    const value = parseFloat(String(alphaMissense == null ? "" : alphaMissense).replace(/,/g, ""));
+    return Number.isFinite(value) ? value : null;
+}
+
 function filterCarrierRecords(records, filters) {
     return (records || []).filter(carrier => {
         if (filters.affected.length && !filters.affected.includes(carrier.affected)) return false;
-        if (filters.proband.length && !filters.proband.includes(carrier.proband)) return false;
         if (filters.sex.length && !filters.sex.includes(carrier.sex)) return false;
-        if (filters.investigator.length && !filters.investigator.includes(carrier.investigator)) return false;
+        if (filters.project.length && !filters.project.includes(carrier.project)) return false;
         if (filters.age.length) {
             const tokens = [
                 carrier.ageBin ? `bin:${carrier.ageBin}` : null,
@@ -250,28 +303,37 @@ function filterCarrierRecords(records, filters) {
 function phenotypeCatalog(records) {
     const categories = new Map();
     (records || []).forEach(carrier => carrier.phenotypes.forEach(category => {
-        const existing = categories.get(category.key) || { ...category, terms: [] };
-        const termMap = new Map(existing.terms.map(term => [term.key, term]));
-        category.terms.forEach(term => termMap.set(term.key, term));
-        existing.terms = Array.from(termMap.values()).sort((a, b) => a.label.localeCompare(b.label));
+        const existing = categories.get(category.key) || { ...category, terms: new Map() };
+        category.terms.forEach(term => existing.terms.set(term.key, term));
         categories.set(category.key, existing);
     }));
-    return Array.from(categories.values()).sort((a, b) => a.label.localeCompare(b.label));
+    return Array.from(categories.values())
+        .map(category => ({ ...category, terms: orderHierarchyTerms([...category.terms.values()], category.id || category.key) }))
+        .sort((a, b) => a.label.localeCompare(b.label));
 }
 
 function summarizePhenotypes(records, catalog) {
     const denominator = records.length;
+    const categoryCounts = new Map();
+    const termCounts = new Map();
+    for (const carrier of records) {
+        for (const category of carrier.phenotypes) {
+            categoryCounts.set(category.key, (categoryCounts.get(category.key) || 0) + 1);
+            for (const term of category.terms) {
+                const key = `${category.key}|${term.key}`;
+                termCounts.set(key, (termCounts.get(key) || 0) + 1);
+            }
+        }
+    }
     return catalog.map(category => {
-        const carriers = records.filter(carrier => carrier.phenotypes.some(item => item.key === category.key));
+        const count = categoryCounts.get(category.key) || 0;
         return {
             ...category,
-            count: carriers.length,
-            pct: denominator ? Math.round((carriers.length / denominator) * 100) : 0,
+            count,
+            pct: denominator ? Math.round((count / denominator) * 100) : 0,
             terms: category.terms.map(term => {
-                const count = records.filter(carrier => carrier.phenotypes.some(item =>
-                    item.key === category.key && item.terms.some(candidate => candidate.key === term.key)
-                )).length;
-                return { ...term, count, pct: denominator ? Math.round((count / denominator) * 100) : 0 };
+                const termCount = termCounts.get(`${category.key}|${term.key}`) || 0;
+                return { ...term, count: termCount, pct: denominator ? Math.round((termCount / denominator) * 100) : 0 };
             }),
         };
     });
@@ -299,10 +361,13 @@ function summarizeCooccurrence(records, key, idField, catalogRecords = records) 
 
 module.exports = {
     attachSameGeneCoVariants,
+    exactVariantAssociation,
+    exactVariantCarrierResiduals,
     exactVariantContext,
     filterCarrierRecords,
     normalizeCarrierRecords,
     phenotypeCatalog,
     summarizeCooccurrence,
     summarizePhenotypes,
+    variantPathogenicScore,
 };

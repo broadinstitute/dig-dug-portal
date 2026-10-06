@@ -7,7 +7,6 @@ const {
     isVariantId,
     resolveRsidReference,
     resolveVariantReference,
-    transcriptGeneChoices,
 } = require("../src/views/PbVariant/variantIdentifiers");
 
 assert.equal(canonicalVariantId("chr1:167,845,562:ct:c"), "1:167845562:CT:C");
@@ -48,15 +47,5 @@ assert.deepEqual(transcript, {
     refseqTranscript: "NM_018417.6",
     rsid: null,
 });
-
-assert.deepEqual(
-    transcriptGeneChoices([
-        { symbol: "ADCY10" },
-        { geneId: "RP1-313L4" },
-        { gene_symbol: "adcy10" },
-        { symbol: "" },
-    ]),
-    ["ADCY10", "RP1-313L4"]
-);
 
 console.log("PB_VARIANT_IDENTIFIERS_PASS");

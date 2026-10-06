@@ -45,6 +45,9 @@ async function main() {
     const message = await helper.contextApiError(bad());
     assert.match(message, /These phenotypes are not in our cohort HPO list/);
     assert.match(message, /HP:0033565/);
+    const failure = await helper.contextApiFailure(bad());
+    assert.deepEqual(array(failure.missingTerms), ['HP:0011874', 'HP:0011880', 'HP:0033565']);
+    assert.equal(failure.message, message);
     assert.equal(await helper.contextApiError({status:502,json:async()=>{throw Error();}}),'HPO analysis returned 502.');
     const pb = load('src/views/PbGene/pageModel.js', {'./hpoContextSearch':helper}, async()=>bad());
     const privateState = {contextInput:'HP:0011880,HP:0011874,HP:0033565', contextSignificanceThreshold:.05, contextMinCarriers:10, contextSignificanceMetric:'p_value', geneInfo:{symbol:'ADCY10'}};
