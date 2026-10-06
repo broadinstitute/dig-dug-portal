@@ -4649,7 +4649,7 @@ export default Vue.component("reveal-kg-workspace", {
 
 .rkw-header {
     position: relative;
-    z-index: 40;
+    /*z-index: 40;*/
     display: flex;
     align-items: center;
     gap: 24px;

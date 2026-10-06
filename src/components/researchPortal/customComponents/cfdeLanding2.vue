@@ -810,6 +810,7 @@ export default Vue.component("cfde-landing-2", {
                     dccItem["examples"]["gene_example"]!=""
                 ){
                     examples.push({
+                        dcc: dccItem["dcc"],
                         type: 'gene',
                         logo: dccItem["logo"] || "",
                         name: dccItem["name"] || "",
