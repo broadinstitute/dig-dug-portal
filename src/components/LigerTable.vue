@@ -345,7 +345,12 @@ export default Vue.component("LigerTable", {
     },
     computed: {
         cellStateExpression() {
-            return this.$store.state.cellStateExpression;
+            // TODO make this extensible across portals by collecting the portal tissues
+            let mskkpTissues = ["bonemarrow", "bone", "muscle", "tendon"];
+            let expressionResults = this.$store.state.cellStateExpression;
+            expressionResults.data = expressionResults.data.filter(d => 
+                mskkpTissues.includes(d.tissue));
+            return expressionResults;
         },
         items() {
             return (this.cellStateExpression.data || []).map((row) =>
