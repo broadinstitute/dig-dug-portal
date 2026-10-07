@@ -20,6 +20,7 @@ import {
     tissueLabel,
     rowTissueKey,
     rowDatasetId,
+    portalGroup as resolvePortalGroup,
     buildQcSignatureIndex,
     cellTypeKey,
     cellTypeLabel,
@@ -50,6 +51,11 @@ import {
 } from "./programAxis";
 import { buildEdges, buildGeneLinks, edgePath, stateColor, METRICS, EDGE_MIN_SCORE } from "./relationships";
 
+// Every key a portal may pass through the `config` prop. Keys below that carry a
+// literal are read with a `|| DEFAULT_CONFIG.<key>` fallback; keys that are commented
+// but not listed as properties have no literal default -- "unset" has its own
+// meaning (show everything, derive from the data, use the built-in host) rather than
+// falling back to a stand-in value, so putting one here would be a lie.
 const DEFAULT_CONFIG = {
     // The public-facing name (punchlist 1.1). "Cell Evolution Browser" was the
     // internal working name and is still the component's, the folder's and this
@@ -64,6 +70,24 @@ const DEFAULT_CONFIG = {
     // as a query param, so this may be relative or absolute and may already carry
     // its own query string. Set to "" to hide the link.
     singleCellBrowserUrl: "/r/scb"
+
+    // tissues: unset = every tissue the gene's rows report. Otherwise an allowlist
+    // of tissue keys (`["liver", "bone"]`) -- client-side curation, checked in
+    // `tissueAllowed()`/`configuredTissueKeys` alongside (not instead of) the
+    // `dataset_metadata.json.gz` `portals` sub-portal filter: a tissue has to clear
+    // both to show. The one case this is actually for: a portal with no subdomain
+    // of its own (so the `portals` filter never kicks in) that still wants to curate
+    // its tissue list.
+
+    // gene: unset = no gene preselected. A gene symbol to search on load, overridden
+    // by a `?gene=` query param when one is present.
+
+    // prodHost / devHost: unset = the built-in hugeamp bioindexes (see ../README.md).
+    // Override to point this portal's requests at a different bioindex host.
+
+    // expressionAxis / specificityAxis: unset = derived from the loaded rows. Fixes
+    // the canvas's expression/specificity axis bounds instead of auto-scaling to
+    // whatever the current scope's data reports. depricated from v1.
 };
 
 const SUGGESTION_DEBOUNCE_MS = 200;
@@ -397,6 +421,14 @@ export default Vue.component("CellEvolutionBrowser", {
         configuredTissueKeys() {
             let configured = Array.isArray(this.browserConfig.tissues) ? this.browserConfig.tissues : [];
             return configured.map((tissue) => normalizeKey(tissue)).filter((tissue) => !!tissue);
+        },
+
+        // The hugeamp sub-portal this page is served from (`a2f`, `md`, `msk`, ...),
+        // or null when this is the main hugeamp.org/www host, a non-hugeamp portal,
+        // or a bare localhost. Null means show every tissue -- there is nothing to
+        // narrow against.
+        portalGroup() {
+            return resolvePortalGroup();
         },
 
         // --- header band options ---
@@ -2043,6 +2075,38 @@ export default Vue.component("CellEvolutionBrowser", {
             return this.configuredTissueKeys.includes(tissueKey);
         },
 
+        // Sub-portal curation, the same idea as `tissueAllowed` but sourced from
+        // `dataset_metadata.json.gz`'s `portals` field instead of `browserConfig`.
+        // Joined on dataset ID rather than tissue: it is the join the metadata file
+        // and the LIGER indexes already agree on (see `activeDataset`), where tissue
+        // naming is not guaranteed to match between the two pipelines.
+        //
+        // Allows everything when there is no sub-portal to narrow for -- the main
+        // host and every non-hugeamp portal see the full catalogue. On a sub-portal,
+        // a dataset is shown only when its metadata row explicitly lists this
+        // sub-portal under `portals`; an unmatched row, a row with no `datasetId` to
+        // look up, or a row with no `portals` field at all is excluded, same as a
+        // dataset that lists other sub-portals but not this one.
+        datasetAllowedForPortal(datasetId) {
+            if (!this.portalGroup) {
+                return true;
+            }
+
+            if (!datasetId) {
+                return false;
+            }
+
+            let normalizedWanted = normalizeKey(datasetId);
+            let row = this.datasetMetadataRows.find((row) => row.datasetId === datasetId)
+                || this.datasetMetadataRows.find((row) => normalizeKey(row.datasetId) === normalizedWanted);
+
+            if (!row || !Array.isArray(row.portals)) {
+                return false;
+            }
+
+            return row.portals.includes(this.portalGroup);
+        },
+
         async lookupGenes(query) {
             try {
                 let payload = await fetchJson(this.api.matchGene(query));
@@ -2152,9 +2216,15 @@ export default Vue.component("CellEvolutionBrowser", {
                 // Both gene-level queries, to derive the tissue list. They used to
                 // do double duty as the signal for which keying convention the
                 // portal spoke; there is only one convention now.
+                //
+                // The dataset metadata is normally lazy -- see `ensureDatasetMetadata`
+                // -- but a sub-portal needs it up front, to filter the tissue list
+                // below by `portals` before anything renders instead of narrowing it
+                // after the fact.
                 let [cellStatePayload, programPayload] = await Promise.all([
                     fetchJson(this.api.geneCellStates(normalizedGene)),
-                    fetchJson(this.api.genePrograms(normalizedGene))
+                    fetchJson(this.api.genePrograms(normalizedGene)),
+                    ...(this.portalGroup ? [this.ensureDatasetMetadata()] : [])
                 ]);
 
                 let cellStateRows = rowsFromResponse(cellStatePayload);
@@ -2170,7 +2240,12 @@ export default Vue.component("CellEvolutionBrowser", {
                 [].concat(cellStateRows, programRows).forEach((row) => {
                     let key = rowTissueKey(row);
 
-                    if (key && !byKey[key] && this.tissueAllowed(key)) {
+                    if (
+                        key
+                        && !byKey[key]
+                        && this.tissueAllowed(key)
+                        && this.datasetAllowedForPortal(rowDatasetId(row))
+                    ) {
                         byKey[key] = { key, label: tissueLabel(key, row) };
                     }
                 });

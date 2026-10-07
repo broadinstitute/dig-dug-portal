@@ -33,6 +33,34 @@ export const USE_DEV_HOST =
     LOCAL_HOSTNAMES.includes(RUNTIME_HOSTNAME) ||
     RUNTIME_HOSTNAME.split(".").slice(0, -1).some((part) => part.includes("dev"));
 
+// The hugeamp subdomain a request is served from (`a2f`, `md`, `msk`, ...), or null
+// on the bare hugeamp.org/www.hugeamp.org host, on a non-hugeamp portal, or on a bare
+// `localhost`. This is the same subdomain `dataset_metadata.json.gz` rows list under
+// `portals`, so it is the key for narrowing that file's rows -- and anything else
+// derived from it -- to what a given sub-portal should show.
+//
+// `localhost` gets the same "any depth past the first label" treatment as hugeamp:
+// `msk.localhost` AND `msk.dev.localhost` (a local dev server on a sub-portal host)
+// both resolve to `msk`, since `window.location.hostname` never includes the port.
+export function portalGroup(hostname = RUNTIME_HOSTNAME) {
+    let isHugeamp = hostname === "hugeamp.org" || hostname.endsWith(".hugeamp.org");
+    let isLocalhost = hostname.includes("localhost");
+    let parts = hostname.split(".");
+    let subdomain = null;
+
+    if (isLocalhost) {
+        if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "dev") {
+            subdomain = parts[0];
+        }
+    } else if (isHugeamp) {
+        if (parts.length > 2 && parts[0] !== "www" && parts[0] !== "dev") {
+            subdomain = parts[0];
+        }
+    }
+
+    return subdomain;
+}
+
 // /api/portal/phenotypes and /api/bio/match/gene are only served by the hugeamp
 // bioindex (other portals return 501), so they stay pinned to hugeamp regardless of
 // the configured prod/dev hosts -- routing them through config.prodHost /
