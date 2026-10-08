@@ -537,7 +537,7 @@
 
                     <div class="home-section-wrap" v-if="this.parsedData">
                         <h3 class="kc">CFDE Workbench</h3>
-                        <div class="home-section">
+                        <div class="home-section" style="padding-bottom: 35px;">
                             <div class="f-row" style="gap:20px">
                                 <div class="drc-logo">
                                     <img
@@ -591,11 +591,35 @@
                     </div>
                     <div class="home-section-wrap">
                         <h3 class="kc">CFDE Liver Resource</h3>
-                        Developed through a collaboration between the CFDE Data Resource Center and CFDE Knowledge Center, the CFDE Liver Resource aggregates liver-relevant resources from NIH Common Fund programs and additional public resources into a single user-friendly portal.
-                        Connect liver anatomy, function, cell (sub)types, cell states, and diseases
-                        <img id="liver-banner" src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_examples/CFDELiver.png"/>
-                        <a href="https://cfdeliverresource.org">Visit CFDE Liver Resource</a>
-                    </div>    
+                        <div class="home-section">
+                            <div class="f-row" style="gap:20px">
+                                <div>
+                                    <img style="width:200px"
+                                        src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_examples/CFDELiver_small.png"
+                                    />
+                                </div>
+                                <div class="f-col">
+                                    <div>
+                                        Developed through a collaboration between the CFDE Data Resource Center
+                                        and CFDE Knowledge Center, the CFDE Liver Resource aggregates liver-relevant resources
+                                        from NIH Common Fund programs and additional public resources into a single user-friendly portal.
+                                    </div>
+                                    <ul>
+                                        <li>
+                                            Connect liver anatomy, function, cell (sub)types, cell states, and diseases
+                                        </li>
+                                    </ul>
+                                    <div class="drc-link">
+                                        <a
+                                            href="https://cfdeliverresource.org"
+                                            target="_blank"
+                                            >Visit CFDE Liver Resource</a
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -747,7 +771,7 @@ export default Vue.component("cfde-landing-2", {
             const newsFeedUrl = this.sectionConfigs["content"]["custom"]["news feed"];
             if(newsFeedUrl) {
                 const newsFeed = await this.loadFile(newsFeedUrl);
-                if(newsFeed.length > 5) newsFeed.length = 5;
+                if(newsFeed.length > 3) newsFeed.length = 3; // Truncating to fit the CFDE Liver Resource card
                 newsFeed.forEach(item=>{
                     //extract only img element from thumbnail
                     item.field_thumbnail_image = new DOMParser().parseFromString(item.field_thumbnail_image, 'text/html').querySelector('img')?.outerHTML || '';
@@ -1955,9 +1979,6 @@ export default Vue.component("cfde-landing-2", {
     ::v-deep .news-item .thumbnail img{
         width: 150px;
         height: auto;
-    }
-    #liver-banner {
-        max-width: 600px !important;
     }
 }
 </style>
