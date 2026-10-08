@@ -110,6 +110,14 @@
                                 <span class="label">Download bottom-line data:</span>
                                 <a v-if="$store.state.ancestry == '' || !$store.state.ancestry" :href="'https://dig-open-bottom-line-analysis.s3.amazonaws.com/bottom-line/Mixed/' + $store.state.phenotype.name + '.sumstats.tsv.gz'" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="color: white !important; margin-left: 10px;">Download</a>
                                 <a v-else :href="'https://dig-open-bottom-line-analysis.s3.amazonaws.com/bottom-line/' + $store.state.ancestry + '/' + $store.state.phenotype.name + '.sumstats.tsv.gz'" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="color: white !important; margin-left: 10px;">Download</a>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-primary btn-sm"
+                                    style="margin-left: 8px;"
+                                    @click="$parent.showProvenanceModal = true"
+                                >
+                                    See Provenance
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -712,10 +720,36 @@
             </div>
         </div>
 
+        <b-modal
+            v-model="$parent.showProvenanceModal"
+            title="Bottom-Line Provenance"
+            size="xl"
+            scrollable
+            hide-footer
+        >
+            <bottom-line-provenance
+                v-if="$parent.showProvenanceModal"
+                :update-query-params="false"
+                :show-search="false"
+                :show-ancestry-select="false"
+                :show-link-back="true"
+                :show-page-title="false"
+            ></bottom-line-provenance>
+        </b-modal>
+
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+<script>
+import BottomLineProvenance from "@/components/researchPortal/bottomLineProvenance/BottomLineProvenance.vue";
+
+export default {
+    components: {
+        BottomLineProvenance,
+    },
+};
+</script>
 <style scoped>
 .phenotype-search-input {
     display: block !important;

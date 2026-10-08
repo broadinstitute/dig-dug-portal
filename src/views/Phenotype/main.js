@@ -40,6 +40,7 @@ import CriterionListGroup from "@/components/criterion/group/CriterionFunctionGr
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import BottomLineProvenance from "@/components/researchPortal/bottomLineProvenance/BottomLineProvenance.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
 new Vue({
     store,
@@ -65,6 +66,7 @@ new Vue({
         PhenotypeHugeScores, // Commented out - gene-level associations section is muted
         C2ctTable,
         ResearchSingleSearch,
+        BottomLineProvenance,
         MetaAnalysisBarGraph,
         PigeanPhenotype,
         PigeanFactor,
@@ -78,6 +80,7 @@ new Vue({
             newPhenotypeSearchKey: null,
             hidePValueFilter: true,
             annotation: "",
+            showProvenanceModal: false,
         };
     },
 
