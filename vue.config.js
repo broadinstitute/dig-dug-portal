@@ -376,6 +376,13 @@ let pages = {
         title: "PEGASUS",
         chunks: ["chunk-vendors", "chunk-common", "pegasus"],
     },
+    bottomline: {
+        entry: "src/views/BottomLine/main.js",
+        template: "public/index.html",
+        filename: "bottom-line.html",
+        title: "Bottom-Line Provenance",
+        chunks: ["chunk-vendors", "chunk-common", "bottomline"],
+    },
 };
 
 const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
