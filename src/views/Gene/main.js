@@ -1,11 +1,7 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-import {
-    CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
-    CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
-} from "./cellStateExpressionDocumentation";
-import { difference } from "@/utils/lodashUtils";
+import _ from "lodash";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -27,7 +23,6 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import ColocusTable from "@/components/ColocusTable.vue";
-import LigerTable from "@/components/LigerTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -92,7 +87,6 @@ new Vue({
         ResearchSingleSearch,
         MouseSummaryTable,
         ColocusTable,
-        LigerTable,
         PigeanGene,
     },
     mixins: [pageMixin],
@@ -100,17 +94,13 @@ new Vue({
     data() {
         return {
             counter: 0,
-            cellStateExpressionTooltipDefault:
-                CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
-            cellStateExpressionSubheaderDefault:
-                CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
-            activeTab: "commonVariantPheWASPlot",
+            activeTab: "hugeScorePheWASPlot",
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
-                    link: "https://ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
+                    link: "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
                 },
                 hgnc: {
                     title: "HUGO Gene Nomenclature Committee",
@@ -220,7 +210,6 @@ new Vue({
                     bottom: 300,
                 },
             },
-            hideOnMSKKP: true
         };
     },
 
@@ -384,9 +373,6 @@ new Vue({
         pigeanGeneData() {
             let data = this.$store.state.pigeanGene.data;
             return data;
-        },
-        falconGeneAssociations() {
-            return this.$store.state.falconGeneAssociations.data || [];
         },
 
         associations52k() {
@@ -582,7 +568,7 @@ new Vue({
         },
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = difference(
+            const removedPhenotypes = _.difference(
                 oldPhenotypes.map((p) => p.name),
                 phenotypes.map((p) => p.name)
             );
@@ -613,7 +599,6 @@ new Vue({
             this.$store.dispatch("queryAssociations");
             this.$store.dispatch("getHugeScoresData");
             this.$store.dispatch("getPigeanGeneData");
-            this.$store.dispatch("getFalconGeneAssociations");
             this.$store.dispatch("getMouseData");
         },
         "$store.state.selectedAncestry"(newAncestry) {
@@ -632,10 +617,6 @@ new Vue({
         "$store.state.geneName"(NAME) {
             this.$store.dispatch("getHugeScoresData");
             this.$store.dispatch("getPigeanGeneData");
-            this.$store.dispatch("getFalconGeneAssociations");
-            if (NAME) {
-                this.$store.dispatch("cellStateExpression/query", { q: NAME });
-            }
         },
     },
 

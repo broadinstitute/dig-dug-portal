@@ -185,20 +185,19 @@
                 </div>
             </div>
 
-            <!-- Pigean section -->
+            <!-- Pigean Gene 
             <pigean-gene 
-        v-if="$parent.phenotypeMap && (($parent.pigeanGeneData && $parent.pigeanGeneData.length > 0) || ($parent.hugeScores && $parent.hugeScores.length > 0))"
+        v-if="$parent.pigeanGeneData && $parent.pigeanGeneData.length > 0 && $parent.phenotypeMap"
             :gene="$store.state.geneName"
             :hugeScores="$parent.hugeScores"
             :pigeanData="$parent.pigeanGeneData"
-            :falconGeneAssociations="$parent.falconGeneAssociations"
             :phenotypesInSession="$parent.phenotypesInSession"
             :phenotypeMap="$parent.phenotypeMap"
-            :docDetails="$parent.docDetails"
             ></pigean-gene>
+            -->
         
-            <!-- Gene-level associations (common / rare variant) — hidden -->
-            <div v-if="false" class="card mdkp-card">
+
+            <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>
                         {{
@@ -248,6 +247,15 @@
                         >
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
+                        <filter-greater-control
+                            v-if="$parent.activeTab === 'hugeScorePheWASPlot'"
+                            :field="'huge'"
+                            placeholder="Set HuGE..."
+                        >
+                            <div>
+                                <strong>HuGE Score (&ge;)</strong>
+                            </div>
+                        </filter-greater-control>
                         <div
                             v-if="
                                 $parent.activeTab === 'commonVariantPheWASPlot'
@@ -265,6 +273,7 @@
                             </ancestry-selectpicker>
                         </div>
                         <filter-pvalue-control
+                            v-if="$parent.activeTab !== 'hugeScorePheWASPlot'"
                             :field="'pValue'"
                             placeholder="Set P-Value ..."
                         >
@@ -348,6 +357,66 @@
                                 </b-badge>
                             </span>
                             <b-tabs>
+                                <b-tab
+                                    title="HuGE Scores"
+                                    @click="
+                                        $parent.renderPhewas(
+                                            'hugeScorePheWASPlot'
+                                        )
+                                    "
+                                >
+                                    <h4 class="card-title">HuGE Scores</h4>
+                                    <span>
+                                        <documentation
+                                            name="gene.hugecal.subheader"
+                                            :content-fill="$parent.docDetails"
+                                            :content-map="
+                                                $store.state.bioPortal
+                                                    .documentations
+                                            "
+                                        >
+                                        </documentation>
+                                    </span>
+                                    <research-phewas-plot
+                                        v-if="$parent.hugeScores.length > 0"
+                                        ref="hugeScorePheWASPlot"
+                                        canvas-id="hugeScorePlot"
+                                        :plot-name="`huge_scores_${$store.state.geneName}`"
+                                        :phenotypes-data="$parent.hugeScores"
+                                        :phenotype-map="
+                                            $store.state.bioPortal.phenotypeMap
+                                        "
+                                        :colors="$parent.plotColors"
+                                        :plot-margin="$parent.phewasPlotMargin"
+                                        :render-config="
+                                            $parent.hugeScoreRenderConfig
+                                        "
+                                        :pkg-data="null"
+                                        :pkg-data-selected="null"
+                                        :filter="filter"
+                                        :utils="$parent.utilsBox"
+                                        :options="['open phenotype page']"
+                                    >
+                                    </research-phewas-plot>
+                                    <unauthorized-message
+                                        :restricted="
+                                            $store.state.varassociations
+                                                .restricted
+                                        "
+                                    >
+                                    </unauthorized-message>
+                                    <huge-scores-table
+                                        v-if="$parent.hugeScores.length > 0"
+                                        :page-key="$store.state.gene.data[0]"
+                                        lead-table-field="phenotype"
+                                        :huge-scores="$parent.hugeScores"
+                                        :phenotype-map="
+                                            $store.state.bioPortal.phenotypeMap
+                                        "
+                                        :filter="filter"
+                                    >
+                                    </huge-scores-table>
+                                </b-tab>
                                 <b-tab
                                     title="Common variant associations"
                                     @click="
@@ -498,7 +567,6 @@
                     </criterion-function-group>
                 </div>
             </div>
-            
 
             <!-- NDKP only -->
             <div
@@ -608,38 +676,6 @@
                 </div>
             </div>
 
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4 class="card-title">
-                        Cell state expression for
-                        {{ $store.state.geneName }}
-                        <tooltip-documentation
-                            name="gene.cell-state-expression.tooltip"
-                            :content-fill="$parent.docDetails"
-                            :default-content="
-                                $parent.cellStateExpressionTooltipDefault
-                            "
-                            :is-hover="true"
-                            :no-icon="false"
-                            :content-map="$store.state.bioPortal.documentations"
-                        >
-                        </tooltip-documentation>
-                    </h4>
-                    <documentation
-                        name="gene.cell-state-expression.subheader"
-                        :content-fill="$parent.docDetails"
-                        :default-content="
-                            $parent.cellStateExpressionSubheaderDefault
-                        "
-                        :content-map="$store.state.bioPortal.documentations"
-                    >
-                    </documentation>
-                    <liger-table
-                        :gene-name="$store.state.geneName"
-                    ></liger-table>
-                </div>
-            </div>
-
             <div
                 v-if="
                     $parent.deployment !== 'production' &&
@@ -647,7 +683,7 @@
                 "
                 class="card mdkp-card"
             >
-                <div class="card-body" v-if="!$parent.hideOnMSKKP">
+                <div class="card-body">
                     <h4 class="card-title">
                         Differential
                         {{ $store.state.geneName }} ortholog expression in mouse

@@ -208,28 +208,6 @@
                         </criterion-function-group>
                     </div>
                 </div>
-                <!-- PIGEAN, EAGGL, FALCON -->
-                <pigean-phenotype
-                    v-if="
-                        ($store.state.pigeanGenePhenotype.data &&
-                            $store.state.pigeanGenePhenotype.data.length > 0) ||
-                        ($store.state.hugePhenotype.data &&
-                            $store.state.hugePhenotype.data.length > 0)
-                    "
-                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                    :pigeanData="$store.state.pigeanGenePhenotype.data"
-                    :hugeScores="$store.state.hugePhenotype.data"
-                    :falconTraitAssociatedGenes="$store.state.falconTraitAssociatedGenes.data"
-                    :phenotype="$store.state.phenotype"
-                    :docDetails="$parent.docDetails"
-                >
-                </pigean-phenotype>
-                <pigean-factors
-                    :title="`Genetic factors underlying ${$store.state.phenotype.name}`"
-                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                    :pigeanFactorData="$store.state.pigeanFactor.data"
-                >
-                </pigean-factors>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
@@ -364,10 +342,24 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <!-- 
+                <pigean-factors
+                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                    :pigeanFactorData="$store.state.pigeanFactor.data"
+                >
+                </pigean-factors>
             
 
-                <!-- Top gene-level associations (HuGE / common / rare) — hidden -->
-          <div v-if="false" class="card mdkp-card">
+                <pigean-phenotype
+                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                    :pigeanData="$store.state.pigeanGenePhenotype.data"
+                >
+
+                </pigean-phenotype>
+
+                -->
+
+          <div class="card mdkp-card">
                     <div class="card-body geneLevelAssoc">
                         <h4 class="card-title">
                             Top gene-level associations for
