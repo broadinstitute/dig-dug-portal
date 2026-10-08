@@ -403,10 +403,7 @@
                                         </div>
                                     </div>
                                     <div class="f-row">
-                                        <div v-if="example.dcc ==='CFDELiver'">
-                                            Visit the <a href="https://cfdeliverresource.org/">CFDE Liver Resource</a>
-                                        </div>
-                                        <div v-else class="example-item-analysis">
+                                        <div class="example-item-analysis">
                                             See on
                                             <a
                                                 :href="`/r/kc_entity_${example.type.toLowerCase()}?entity=${example.type.toLowerCase()}&${example.type.toLowerCase()}=${
@@ -578,18 +575,27 @@
                         </div>
                     </div>
                 </div>
-                <div class="home-section-wrap" v-if="this.newsFeed">
-                    <h3 class="kc">Knowledge Center News</h3>
-                    <div class="home-section f-col" style="padding-top:30px;">
-                        <div class="news-item f-row" v-for="item in this.newsFeed">
-                            <div class="thumbnail" v-html="item.field_thumbnail_image"></div>
-                            <div class="f-col">
-                                <a :href="`/r/kc_news_item?id=${item.nid}`"><h3 class="">{{item.title}}</h3></a>
-                                <div class="" v-html="item.body"></div>
+                <div class="f-col" style="gap: 40px">
+                    <div class="home-section-wrap" v-if="this.newsFeed">
+                        <h3 class="kc">Knowledge Center News</h3>
+                        <div class="home-section f-col" style="padding-top:30px;">
+                            <div class="news-item f-row" v-for="item in this.newsFeed">
+                                <div class="thumbnail" v-html="item.field_thumbnail_image"></div>
+                                <div class="f-col">
+                                    <a :href="`/r/kc_news_item?id=${item.nid}`"><h3 class="">{{item.title}}</h3></a>
+                                    <div class="" v-html="item.body"></div>
+                                </div>
                             </div>
+                            <a style="align-self: flex-end;" :href="`/r/kc_news`">See All News</a>
                         </div>
-                        <a style="align-self: flex-end;" :href="`/r/kc_news`">See All News</a>
                     </div>
+                    <div class="home-section-wrap">
+                        <h3 class="kc">CFDE Liver Resource</h3>
+                        Developed through a collaboration between the CFDE Data Resource Center and CFDE Knowledge Center, the CFDE Liver Resource aggregates liver-relevant resources from NIH Common Fund programs and additional public resources into a single user-friendly portal.
+                        Connect liver anatomy, function, cell (sub)types, cell states, and diseases
+                        <img id="liver-banner" src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_examples/CFDELiver.png"/>
+                        <a href="https://cfdeliverresource.org">Visit CFDE Liver Resource</a>
+                    </div>    
                 </div>
             </div>
         </div>
@@ -1949,6 +1955,9 @@ export default Vue.component("cfde-landing-2", {
     ::v-deep .news-item .thumbnail img{
         width: 150px;
         height: auto;
+    }
+    #liver-banner {
+        max-width: 600px !important;
     }
 }
 </style>
