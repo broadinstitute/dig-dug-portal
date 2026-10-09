@@ -128,7 +128,7 @@
                             "
                         >
                             <template v-if="expandedDetailType === 'locus'">
-                              <pigean-locus-zoom :phenotype="phenotype" :gene="row.item.gene"></pigean-locus-zoom>
+                              <pigean-locus-zoom :phenotype="phenotype.name" :gene="row.item.gene"></pigean-locus-zoom>
                             </template>
                             <template v-if="expandedDetailType === 'genesets'">
                               <div v-if="row.item.gene === pigeanSubtableGene">
@@ -967,7 +967,7 @@ export default Vue.component("pigean-phenotype", {
       );
     },
     subtableKey(gene){
-      return `${this.phenotype},${gene},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE}`;
+      return `${this.phenotype.name},${gene},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE}`;
     },
     async getPigeanSubtable(item) {
       let queryKey = this.subtableKey(item.gene);
