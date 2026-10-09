@@ -732,6 +732,11 @@ export default Vue.component("pigean-gene", {
             label: "Top genes",
             sortable: false,
           },
+          {
+            key: "factor_value",
+            label: "Loading on factor",
+            sortable: true
+          }
         ],
         tableFields: [
           {
@@ -1298,7 +1303,7 @@ export default Vue.component("pigean-gene", {
       );
     },
     getPigeanFactorQueryKey(item) {
-      return `${item.phenotype},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE}`;
+      return `${item.phenotype},${DEFAULT_GENESET_SIZE},${this.gene}`;
     },
     sortFactorsByRelevance(data) {
       return [...(data || [])].sort((a, b) => {
@@ -1420,7 +1425,7 @@ export default Vue.component("pigean-gene", {
         error: null,
       });
       try {
-        const data = await query("pigean-factor", queryKey, { limit: 1000 });
+        const data = await query("pigean-factor-gene", queryKey, { limit: 1000 });
         this.$set(this.factorGeneSetDataByRow, queryKey, {
           loading: false,
           data: data || [],
