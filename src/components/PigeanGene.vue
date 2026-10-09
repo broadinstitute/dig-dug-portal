@@ -141,8 +141,11 @@
                     <template #cell(Factor)="r">
                         <div class="top-list-cell">
                             <span class="eaggl-factor-preview">{{
-                                getPreviewFactorLabels(r.item)
-                            }}</span>
+                                getPreviewFactorLabels(r.item).slice(0, 5).join(", ")
+                            }}<span v-if="getPreviewFactorLabels(r.item).length > 5">,
+                              <strong>{{ getPreviewFactorLabels(r.item).length - 5 }} more</strong>
+                            </span>
+                            </span>
                             <b-button
                                 variant="outline-primary"
                                 size="sm"
@@ -680,6 +683,7 @@ const GENE_SET_TABLE_FORMAT = {
         "Source",
     ],
 };
+const EAGGL_SHORT_LENGTH = 5;
 
 function valueMatchesCategory(value, cat) {
     const r = cat.range;
@@ -1346,13 +1350,9 @@ export default Vue.component("pigean-gene", {
     },
     getPreviewFactorLabels(item) {
       const labels = this.getFactorSubtableData(item)
-        .slice(0, 5)
         .map((factor) => factor.label || factor.factor || factor.cluster || "")
         .filter(Boolean);
-      if (labels.length > 0) {
-        return labels.join(", ");
-      }
-      return item.Factor || "-";
+      return labels;
     },
     prefetchPigeanFactorsForRows(rows) {
       (rows || []).forEach((item) => {
