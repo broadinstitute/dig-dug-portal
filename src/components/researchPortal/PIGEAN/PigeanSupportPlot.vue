@@ -75,6 +75,7 @@ export default {
         pointLabel: { type: String, default: "genes" },
         threshold: { type: Number, default: null },
         pointRadius: { type: Number, default: 3 },
+        labelQuadrants: { type: Boolean, default: false}
     },
     data: () => ({ height: 425, tip: null, width: 600 }),
     computed: {
@@ -213,6 +214,36 @@ export default {
                 .attr("fill", "#334f62")
                 .attr("font-size", 13)
                 .text(this.yLabel);
+            if (this.labelQuadrants){
+                axes.append("text")
+                    .attr("x", (width - margin.right - 12))
+                    .attr("y", margin.top + 6)
+                    .attr("text-anchor", "end")
+                    .attr("fill", "#334f62")
+                    .attr("font-size", 13)
+                    .text("Support from GWAS + gene annotations");
+                axes.append("text")
+                    .attr("x", (width - margin.right - 12))
+                    .attr("y", this.height - margin.bottom - 12)
+                    .attr("text-anchor", "end")
+                    .attr("fill", "#334f62")
+                    .attr("font-size", 13)
+                    .text("Support from GWAS");
+                axes.append("text")
+                    .attr("x", (margin.left + 12))
+                    .attr("y", this.height - margin.bottom - 12)
+                    .attr("text-anchor", "start")
+                    .attr("fill", "#334f62")
+                    .attr("font-size", 13)
+                    .text("No support");
+                axes.append("text")
+                    .attr("x", (margin.left + 12))
+                    .attr("y", margin.top + 6)
+                    .attr("text-anchor", "start")
+                    .attr("fill", "#334f62")
+                    .attr("font-size", 13)
+                    .text("Support from gene annotations");
+            }
             if (this.identity) {
                 const lo = Math.max(x.domain()[0], y.domain()[0]),
                     hi = Math.min(x.domain()[1], y.domain()[1]);
@@ -230,7 +261,7 @@ export default {
                 const yPos = y(t);
                 const x0 = margin.left;
                 const x1 = width - margin.right;
-                const y0 = margin.top;
+                const y0 = this.labelQuadrants ? margin.top + 12 : margin.top;
                 const y1 = this.height - margin.bottom;
                 const addThresholdLine = (x1Pos, y1Pos, x2Pos, y2Pos) => {
                     axes.append("line")

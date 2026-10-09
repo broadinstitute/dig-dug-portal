@@ -51,7 +51,7 @@
                 <b-table
                     striped
                     hover
-                    :items="pigeanDataFiltered"
+                    :items="pigeanTableItems"
                     :fields="tableFields"
                     :per-page="perPage"
                     :current-page="currentPage"
@@ -70,32 +70,6 @@
                             </span>
                         </span>
                     </template>
-                    <template #head(PPA)="data">
-                        <span class="column-header-with-tooltip">
-                            <span>{{ data.label }}</span>
-                            <span @click.stop>
-                                <tooltip-documentation
-                                    name="pigean.phenotype.column.falcon.tooltip"
-                                    :is-hover="true"
-                                    :no-icon="false"
-                                    supply-text="Placeholder documentation for FALCON posterior probability of association (PPA)."
-                                ></tooltip-documentation>
-                            </span>
-                        </span>
-                    </template>
-                    <template #head(Factor)="data">
-                        <span class="column-header-with-tooltip">
-                            <span>{{ data.label }}</span>
-                            <span @click.stop>
-                                <tooltip-documentation
-                                    name="pigean.phenotype.column.eaggl.tooltip"
-                                    :is-hover="true"
-                                    :no-icon="false"
-                                    supply-text="Placeholder documentation for the EAGGL mechanistic factor."
-                                ></tooltip-documentation>
-                            </span>
-                        </span>
-                    </template>
                     <template v-slot:cell(Gene)="row">
                         <a :href="'/gene.html?gene='+row.item.gene">{{ row.item.Gene }}</a>
                     </template>
@@ -107,24 +81,79 @@
                                 ></span>
                                 {{ formatScore(row.item.Combined_GWAS_gene_sets) }}
                             </span>
-                            <span>|</span>
-                            <span class="score-piece">
-                                <span
-                                    :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.GWAS_support)]"
-                                ></span>
-                                {{ formatScore(row.item.GWAS_support) }}
-                            </span>
-                            <span>|</span>
-                            <span class="score-piece">
-                                <span
-                                    :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
-                                ></span>
-                                {{ formatScore(row.item.Gene_set_support) }}
-                            </span>
-                        </span>
+                          </span>
                     </template>
-                    <template #cell(PPA)="row">
-                        {{ formatPpa(row.item.PPA) }}
+                    <template #cell(GWAS_support)="row">
+                      <div>
+                        <span class="score-piece">
+                          <span
+                              :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.GWAS_support)]"
+                          ></span>
+                            {{ formatScore(row.item.GWAS_support) }}
+                        </span>
+                        <b-button
+                          variant="outline-primary"
+                          size="sm"
+                          class="view-more-btn"
+                          @click="toggleDetails(row.item, 'locus')"
+                      >
+                          {{ isDetailsOpen(row.item, 'locus') ? "Hide" : "View evidence" }}
+                      </b-button>
+                      </div>
+                    </template>
+                    <template #cell(Gene_set_support)="row">
+                      <div>
+                        <span class="score-piece">
+                          <span
+                              :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
+                          ></span>
+                            {{ formatScore(row.item.Gene_set_support) }}
+                        </span>
+                        <b-button
+                          variant="outline-primary"
+                          size="sm"
+                          class="view-more-btn"
+                          @click="toggleDetails(row.item, 'genesets')"
+                      >
+                          {{ isDetailsOpen(row.item, 'genesets') ? "Hide" : "View evidence" }}
+                      </b-button>
+                      </div>
+                    </template>
+                    <template #row-details="row">
+                        <div
+                            class="p-3"
+                            style="
+                                background-color: #eeeeee;
+                                border-left: 5px solid #cccccc;
+                            "
+                        >
+                            <template v-if="expandedDetailType === 'locus'">
+                              <pigean-locus-zoom :phenotype="phenotype.name" :gene="row.item.gene"></pigean-locus-zoom>
+                            </template>
+                            <template v-if="expandedDetailType === 'genesets'">
+                              <div v-if="row.item.gene === pigeanSubtableGene">
+                                <b-table
+                                    hover
+                                    small
+                                    responsive
+                                    :items="currentPigeanSubtableData"
+                                    :fields="pigeanSubtableFields"
+                                    sort-by="beta"
+                                    :sort-desc="true"
+                                    :sort-null-last="true"
+                                    :per-page="10"
+                                    :current-page="pigeanSubtableIndex"
+                                  >
+                                  </b-table>
+                                  <b-pagination 
+                                    v-model="pigeanSubtableIndex"
+                                    class="pagination-sm justify-content-center"
+                                    :total-rows="currentPigeanSubtableData.length"
+                                    :per-page="10"
+                                ></b-pagination>
+                              </div>
+                            </template>
+                        </div>
                     </template>
                 </b-table>
                 <b-pagination
@@ -281,9 +310,10 @@
                     x-label="GWAS support (direct score)"
                     y-label="Gene set support (indirect score)"
                     title="Direct vs. indirect score"
-                    :threshold="3"
+                    :threshold="1"
                     :point-radius="5"
                     @select="openGeneFromPlot"
+                    :labelQuadrants="true"
                 />
             </div>
             <div class="mt-3" style="position: relative">
@@ -368,6 +398,7 @@ import PigeanSupportPlot from "@/components/researchPortal/PIGEAN/PigeanSupportP
 import HugeScoresTable from "@/components/HugeScoresTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import PigeanLocusZoom from "@/components/PigeanLocusZoom.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -379,6 +410,7 @@ import keyParams from "@/utils/keyParams";
 import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
+import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 
 export default Vue.component("pigean-phenotype", {
   components: {
@@ -391,6 +423,7 @@ export default Vue.component("pigean-phenotype", {
     HugeScoresTable,
     Documentation,
     TooltipDocumentation,
+    PigeanLocusZoom
   },
   props: ["phenotypeMap", "pigeanData", "hugeScores", "falconTraitAssociatedGenes", "phenotype", "docDetails", "filter"],
   data() {
@@ -400,6 +433,8 @@ export default Vue.component("pigean-phenotype", {
         combinedVsHugePage: 1,
         directVsIndirectPage: 1,
         activeTab: 0,
+        expandedRowKey: null,
+        expandedDetailType: null,
         combinedConfig: {
             "type": "pigean phewas plot",
             "render by": "Gene",
@@ -508,17 +543,14 @@ export default Vue.component("pigean-phenotype", {
           },
           {
             key: 'Combined_GWAS_gene_sets',
-            label: 'PIGEAN scores (combined | GWAS support | gene set support)',
             sortable: true
           },
           {
-            key: 'PPA',
-            label: 'FALCON PPA',
+            key: "GWAS_support",
             sortable: true
           },
           {
-            key: 'Factor',
-            label: 'EAGGL Mechanistic factor',
+            key: "Gene_set_support",
             sortable: true
           }
         ],
@@ -560,7 +592,15 @@ export default Vue.component("pigean-phenotype", {
             label: 'Indirect support',
             sortable: true
           }
-        ]
+        ],
+        pigeanSubtableEndpoint: "pigean-joined-gene",
+        pigeanSubtableFields: [
+            { key: "gene_set", label: "Gene set", sortable: true },
+            { key: "beta", label: "Effect (joint)", sortable: true },
+        ],
+        pigeanSubtableData: {},
+        pigeanSubtableIndex: 1,
+        pigeanSubtableGene: null
       };
   },
   computed: {
@@ -716,6 +756,14 @@ export default Vue.component("pigean-phenotype", {
           return reformattedItem;
         });
     },
+    pigeanTableItems() {
+      const key = this.expandedRowKey;
+      return (this.pigeanDataFiltered || []).map((item) => ({
+        ...item,
+        _rowKey: this.getRowKey(item),
+        _showDetails: key !== null && key === this.getRowKey(item),
+      }));
+    },
     combinedVsHugeData() {
       const hugeByGene = {};
       (this.hugeScores || []).forEach((score) => {
@@ -748,6 +796,10 @@ export default Vue.component("pigean-phenotype", {
           ...item,
           id: item.gene || item.Gene,
         }));
+    },
+    currentPigeanSubtableData(){
+      let queryKey = this.subtableKey(this.pigeanSubtableGene);
+      return this.pigeanSubtableData[queryKey];
     }
   },
   watch: {
@@ -886,7 +938,45 @@ export default Vue.component("pigean-phenotype", {
       setTimeout(() => {
         tryRender();
       }, 600);
-    }
+    },
+    async toggleDetails(item, detailType="locus") {
+      const key = this.getRowKey(item);
+      let isCurrentKey = this.expandedRowKey === key;
+      if (isCurrentKey && this.expandedDetailType === detailType) {
+        this.expandedRowKey = null;
+        this.expandedDetailType = null;
+        this.pigeanSubtableGene = null;
+        return;
+      }
+      this.expandedRowKey = key;
+      this.expandedDetailType = detailType;
+      if (detailType === "genesets"){
+        if (!isCurrentKey){
+          this.pigeanSubtableIndex = 1;
+          this.pigeanSubtableGene = item.gene;
+        }
+        await this.getPigeanSubtable(item);
+      }
+    },
+    getRowKey(item) {
+      return `${item.gene || ""}|${item.Factor || ""}`;
+    },
+    isDetailsOpen(item, detailType="locus") {
+      return (
+        this.expandedRowKey === this.getRowKey(item) &&
+        this.expandedDetailType === detailType
+      );
+    },
+    subtableKey(gene){
+      return `${this.phenotype.name},${gene},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE}`;
+    },
+    async getPigeanSubtable(item) {
+      let queryKey = this.subtableKey(item.gene);
+      if (!this.pigeanSubtableData[queryKey]) {
+          let data = await query(this.pigeanSubtableEndpoint, queryKey);
+          Vue.set(this.pigeanSubtableData, queryKey, data);
+      }
+    },
   }
 });
 </script>
