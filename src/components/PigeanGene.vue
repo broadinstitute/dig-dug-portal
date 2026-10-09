@@ -815,11 +815,6 @@ export default Vue.component("pigean-gene", {
             sortable: true
           },
           {
-            key: 'PPA',
-            label: 'FALCON PPA',
-            sortable: true
-          },
-          {
             key: 'HuGE_Score',
             label: 'HuGE score',
             sortable: true
