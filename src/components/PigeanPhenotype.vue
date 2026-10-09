@@ -310,9 +310,10 @@
                     x-label="GWAS support (direct score)"
                     y-label="Gene set support (indirect score)"
                     title="Direct vs. indirect score"
-                    :threshold="3"
+                    :threshold="1"
                     :point-radius="5"
                     @select="openGeneFromPlot"
+                    :labelQuadrants="true"
                 />
             </div>
             <div class="mt-3" style="position: relative">
