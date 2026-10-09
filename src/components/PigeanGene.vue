@@ -4,8 +4,6 @@
       <h4 class="card-title">
         Gene-level trait associations for {{ (gene || "").toUpperCase() }}
       </h4>
-
-        
       <b-tabs v-model="activeTab">
         <b-tab title="Combined genetic support (GWAS + gene sets)">
             <div class="tab-documentation">
@@ -115,21 +113,27 @@
                                 ></span>
                                 {{ formatScore(row.item.Combined_GWAS_gene_sets) }}
                             </span>
-                            <span>|</span>
-                            <span class="score-piece">
-                                <span
-                                    :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.GWAS_support)]"
-                                ></span>
-                                {{ formatScore(row.item.GWAS_support) }}
-                            </span>
-                            <span>|</span>
-                            <span class="score-piece">
-                                <span
-                                    :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
-                                ></span>
-                                {{ formatScore(row.item.Gene_set_support) }}
-                            </span>
                         </span>
+                    </template>
+                    <template #cell(GWAS_support)="row">
+                      <span class="combined-score-cell">
+                          <span class="score-piece">
+                              <span
+                                  :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.GWAS_support)]"
+                              ></span>
+                              {{ formatScore(row.item.GWAS_support) }}
+                          </span>
+                        </span>
+                    </template>
+                    <template #cell(Gene_set_support)="row">
+                      <span class="combined-score-cell">
+                          <span class="score-piece">
+                              <span
+                                  :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
+                              ></span>
+                              {{ formatScore(row.item.Gene_set_support) }}
+                          </span>
+                      </span>
                     </template>
                     <template #cell(PPA)="row">
                         {{ formatPpa(row.item.PPA) }}
@@ -779,7 +783,14 @@ export default Vue.component("pigean-gene", {
           },
           {
             key: 'Combined_GWAS_gene_sets',
-            label: 'PIGEAN scores (combined | GWAS support | gene set support)',
+            sortable: true
+          },
+          {
+            key: "GWAS_support",
+            sortable: true
+          },
+          {
+            key: "Gene_set_support",
             sortable: true
           },
           {
