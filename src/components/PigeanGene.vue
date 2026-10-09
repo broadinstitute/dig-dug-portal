@@ -312,25 +312,27 @@
                               <pigean-locus-zoom :phenotype="row.item.phenotype" :gene="gene"></pigean-locus-zoom>
                             </template>
                             <template v-else-if="expandedDetailType === 'genesets'">
-                              <b-table
+                              <div v-if="row.item.phenotype === pigeanSubtablePhenotype">
+                                <b-table
                                   hover
                                   small
                                   responsive
-                                  :items="getPigeanSubtableData(row.item.phenotype)"
+                                  :items="currentPigeanSubtableData"
                                   :fields="pigeanSubtableFields"
                                   sort-by="beta"
                                   :sort-desc="true"
                                   :sort-null-last="true"
                                   :per-page="10"
                                   :current-page="pigeanSubtableIndex"
-                              >
-                              </b-table>
-                              <b-pagination v-if="!!getPigeanSubtableData(row.item.phenotype)"
-                                v-model="pigeanSubtableIndex"
-                                class="pagination-sm justify-content-center"
-                                :total-rows="getPigeanSubtableData(row.item.phenotype).length"
-                                :per-page="10"
-                            ></b-pagination>
+                                >
+                                </b-table>
+                                <b-pagination 
+                                  v-model="pigeanSubtableIndex"
+                                  class="pagination-sm justify-content-center"
+                                  :total-rows="currentPigeanSubtableData.length"
+                                  :per-page="10"
+                              ></b-pagination>
+                                </div>
                             </template>
                         </div>
                     </template>
@@ -944,7 +946,8 @@ export default Vue.component("pigean-gene", {
             { key: "beta", label: "Effect (joint)", sortable: true },
         ],
         pigeanSubtableData: {},
-        pigeanSubtableIndex: 1
+        pigeanSubtableIndex: 1,
+        pigeanSubtablePhenotype: null
       };
   },
   async mounted(){
@@ -1110,6 +1113,10 @@ export default Vue.component("pigean-gene", {
           Log_HuGE_Score: logHuge,
         };
       });
+    },
+    currentPigeanSubtableData(){
+      let queryKey = this.subtableKey(this.pigeanSubtablePhenotype);
+      return this.pigeanSubtableData[queryKey];
     }
   },
   watch: {
@@ -1374,6 +1381,7 @@ export default Vue.component("pigean-gene", {
       if (isCurrentKey && this.expandedDetailType === detailType) {
         this.expandedRowKey = null;
         this.expandedDetailType = null;
+        this.pigeanSubtablePhenotype = null;
         return;
       }
       this.expandedRowKey = key;
@@ -1390,6 +1398,7 @@ export default Vue.component("pigean-gene", {
       } else if (detailType === "genesets"){
         if (!isCurrentKey){
           this.pigeanSubtableIndex = 1;
+          this.pigeanSubtablePhenotype = item.phenotype;
         }
         await this.getPigeanSubtable(item);
       }
@@ -1518,10 +1527,6 @@ export default Vue.component("pigean-gene", {
     subtableKey(phenotype){
       return `${phenotype},${this.gene},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE}`;
     },
-    getPigeanSubtableData(phenotype){
-      let queryKey = this.subtableKey(phenotype);
-      return this.pigeanSubtableData[queryKey];
-    }
   },
 });
 </script>
