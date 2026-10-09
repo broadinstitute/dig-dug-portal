@@ -798,6 +798,9 @@ export default Vue.component("pigean-phenotype", {
         }));
     },
     currentPigeanSubtableData(){
+      if (this.pigeanSubtableGene === null){
+        return [];
+      }
       let queryKey = this.subtableKey(this.pigeanSubtableGene);
       return this.pigeanSubtableData[queryKey];
     }
@@ -941,22 +944,25 @@ export default Vue.component("pigean-phenotype", {
     },
     async toggleDetails(item, detailType="locus") {
       const key = this.getRowKey(item);
-      let isCurrentKey = this.expandedRowKey === key;
-      if (isCurrentKey && this.expandedDetailType === detailType) {
-        this.expandedRowKey = null;
-        this.expandedDetailType = null;
-        this.pigeanSubtableGene = null;
+      await this.getPigeanSubtable(item);
+      let initialKey = this.expandedRowKey;
+      let initialType = this.expandedDetailType;
+      this.toggleShut();
+      if (initialKey === key && initialType === detailType) {
         return;
       }
       this.expandedRowKey = key;
       this.expandedDetailType = detailType;
-      if (detailType === "genesets"){
-        if (!isCurrentKey){
-          this.pigeanSubtableIndex = 1;
-          this.pigeanSubtableGene = item.gene;
-        }
-        await this.getPigeanSubtable(item);
+      this.pigeanSubtableGene = item.gene;
+      if (detailType === "genesets" && initialKey !== key){
+        this.pigeanSubtableIndex = 1;
       }
+    },
+    toggleShut(){
+      this.expandedRowKey = null;
+      this.expandedDetailType = null;
+      this.pigeanSubtableGene = null;
+      return;
     },
     getRowKey(item) {
       return `${item.gene || ""}|${item.Factor || ""}`;
