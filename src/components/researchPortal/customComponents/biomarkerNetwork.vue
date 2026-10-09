@@ -92,7 +92,11 @@
                     :alt="directionInfographicAlt"
                     class="bn-direction-infographic__img"
                 />
+                <div style="text-align: center;">
+                    Biomarkers were derived from <a href="https://biomarkerkb.org/" target="_blank">BiomarkerKB</a>, a CFDE partnership aimed at categorizing and integrating multi-source biomarker data.
+                </div>
             </div>
+            
 
             <div class="bn-accordions">
                 <template v-if="isForwardSearch">
