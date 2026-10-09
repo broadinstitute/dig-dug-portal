@@ -130,7 +130,7 @@
                             <template v-if="expandedDetailType === 'locus'">
                               <pigean-locus-zoom :phenotype="phenotype" :gene="row.item.gene"></pigean-locus-zoom>
                             </template>
-                            <template v-else-if="expandedDetailType === 'genesets'">
+                            <template v-if="expandedDetailType === 'genesets'">
                               <div v-if="row.item.gene === pigeanSubtableGene">
                                 <b-table
                                     hover

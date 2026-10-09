@@ -155,9 +155,6 @@
                           {{ isDetailsOpen(row.item, 'genesets') ? "Hide" : "View evidence" }}
                       </b-button>
                     </template>
-                    <template #cell(PPA)="row">
-                        {{ formatPpa(row.item.PPA) }}
-                    </template>
                     <template #cell(Factor)="r">
                         <div class="top-list-cell">
                             <span class="eaggl-factor-preview">{{
