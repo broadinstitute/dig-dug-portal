@@ -126,14 +126,25 @@
                         </span>
                     </template>
                     <template #cell(Gene_set_support)="row">
-                      <span class="combined-score-cell">
-                          <span class="score-piece">
-                              <span
-                                  :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
-                              ></span>
-                              {{ formatScore(row.item.Gene_set_support) }}
-                          </span>
-                      </span>
+                      <div>
+                          <span class="combined-score-cell">
+                            <span class="score-piece">
+                                <span
+                                    :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
+                                ></span>
+                                {{ formatScore(row.item.Gene_set_support) }}
+                            </span>
+                        </span>
+                      </div>
+                      <b-button
+                          variant="outline-primary"
+                          size="sm"
+                          class="view-more-btn"
+                          @click="toggleDetails(row.item, true)"
+                      >
+                          {{ isDetailsOpen(row.item, true) ? "Hide" : "View evidence" }}
+                      </b-button>
+                      
                     </template>
                     <template #cell(PPA)="row">
                         {{ formatPpa(row.item.PPA) }}
@@ -150,9 +161,9 @@
                                 variant="outline-primary"
                                 size="sm"
                                 class="view-more-btn"
-                                @click="toggleFactorDetails(r.item)"
+                                @click="toggleDetails(r.item)"
                             >
-                                {{ isFactorDetailsOpen(r.item) ? "Hide" : "View more" }}
+                                {{ isDetailsOpen(r.item) ? "Hide" : "View more" }}
                             </b-button>
                         </div>
                     </template>
@@ -1325,10 +1336,11 @@ export default Vue.component("pigean-gene", {
       if (!value) return "";
       return String(value).split(";").join(", ");
     },
-    isFactorDetailsOpen(item) {
+    isDetailsOpen(item, isLocus=false) {
+      const detailType = !isLocus ? "factor" : "locus"
       return (
         this.expandedRowKey === this.getRowKey(item) &&
-        this.expandedDetailType === "factor"
+        this.expandedDetailType === detailType
       );
     },
     getPigeanFactorQueryKey(item) {
@@ -1409,22 +1421,26 @@ export default Vue.component("pigean-gene", {
       const state = this.factorGeneSetDataByRow[key];
       return state && state.error ? state.error : null;
     },
-    toggleFactorDetails(item) {
+    toggleDetails(item, isLocus=false) {
+      const detailType = !isLocus ? "factor" : "locus";
+      console.log(detailType);
       const key = this.getRowKey(item);
-      if (this.expandedRowKey === key && this.expandedDetailType === "factor") {
+      if (this.expandedRowKey === key && this.expandedDetailType === detailType) {
         this.expandedRowKey = null;
         this.expandedDetailType = null;
         return;
       }
       this.expandedRowKey = key;
-      this.expandedDetailType = "factor";
-      const queryKey = this.getPigeanFactorQueryKey(item);
-      const state = this.factorGeneSetDataByRow[queryKey];
-      if (
-        !state ||
-        (!state.loading && !(state.data && state.data.length) && !state.error)
-      ) {
-        this.fetchPigeanFactorForRow(item);
+      this.expandedDetailType = detailType;
+      if (!isLocus){
+        const queryKey = this.getPigeanFactorQueryKey(item);
+        const state = this.factorGeneSetDataByRow[queryKey];
+        if (
+          !state ||
+          (!state.loading && !(state.data && state.data.length) && !state.error)
+        ) {
+          this.fetchPigeanFactorForRow(item);
+        }
       }
     },
     async fetchPigeanFactorForRow(item) {
