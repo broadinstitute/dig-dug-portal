@@ -78,6 +78,7 @@ import Vue from "vue";
 import EventBus from "@/utils/eventBus";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 import ResearchSingleSearchCFDEllm from "@/components/researchPortal/ResearchSingleSearchCFDEllm.vue";
+import CfdeSingleSearch from "@/components/researchPortal/customComponents/CfdeSingleSearch.vue";
 
 export default Vue.component("research-page-header", {
 	props: ["researchMenu","phenotypes", "utils", "headerLogo","sectionConfig","utils"],
@@ -197,11 +198,16 @@ export default Vue.component("research-page-header", {
 			const phenotypes = this.phenotypes;
 			const utilsBox = this.utils;
 
+			let searchComponent = ResearchSingleSearchCFDE;
+			if(searchConfig['single search version']==='cfde hybrid') {
+				searchComponent =  CfdeSingleSearch;
+			}
+
 			// dynamically create and mount the search component with its props
 			const SearchComponentClass = Vue.extend({
 				render(h) {
 				//return h(ResearchSingleSearchCFDEllm, {
-				return h(ResearchSingleSearchCFDE, {
+				return h(searchComponent, {
 					props: {
 					singleSearchConfig: searchConfig,
 					phenotypes: phenotypes,
