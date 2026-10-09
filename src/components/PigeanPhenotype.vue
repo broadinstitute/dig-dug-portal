@@ -70,32 +70,6 @@
                             </span>
                         </span>
                     </template>
-                    <template #head(PPA)="data">
-                        <span class="column-header-with-tooltip">
-                            <span>{{ data.label }}</span>
-                            <span @click.stop>
-                                <tooltip-documentation
-                                    name="pigean.phenotype.column.falcon.tooltip"
-                                    :is-hover="true"
-                                    :no-icon="false"
-                                    supply-text="Placeholder documentation for FALCON posterior probability of association (PPA)."
-                                ></tooltip-documentation>
-                            </span>
-                        </span>
-                    </template>
-                    <template #head(Factor)="data">
-                        <span class="column-header-with-tooltip">
-                            <span>{{ data.label }}</span>
-                            <span @click.stop>
-                                <tooltip-documentation
-                                    name="pigean.phenotype.column.eaggl.tooltip"
-                                    :is-hover="true"
-                                    :no-icon="false"
-                                    supply-text="Placeholder documentation for the EAGGL mechanistic factor."
-                                ></tooltip-documentation>
-                            </span>
-                        </span>
-                    </template>
                     <template v-slot:cell(Gene)="row">
                         <a :href="'/gene.html?gene='+row.item.gene">{{ row.item.Gene }}</a>
                     </template>
@@ -518,11 +492,6 @@ export default Vue.component("pigean-phenotype", {
           },
           {
             key: "Gene_set_support",
-            sortable: true
-          },
-          {
-            key: 'Factor',
-            label: 'EAGGL Mechanistic factor',
             sortable: true
           }
         ],
