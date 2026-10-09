@@ -311,8 +311,27 @@
                             <template v-else-if="expandedDetailType === 'locus'">
                               <pigean-locus-zoom :phenotype="row.item.phenotype" :gene="gene"></pigean-locus-zoom>
                             </template>
-                            <template v-else-if="expandedDetailType === 'genesets'">Gene set evidence coming soon</template>
-                            
+                            <template v-else-if="expandedDetailType === 'genesets'">
+                              <b-table
+                                  hover
+                                  small
+                                  responsive
+                                  :items="getPigeanSubtableData(row.item.phenotype)"
+                                  :fields="pigeanSubtableFields"
+                                  sort-by="beta"
+                                  :sort-desc="true"
+                                  :sort-null-last="true"
+                                  :per-page="10"
+                                  :current-page="pigeanSubtableIndex"
+                              >
+                              </b-table>
+                              <b-pagination v-if="!!getPigeanSubtableData(row.item.phenotype)"
+                                v-model="pigeanSubtableIndex"
+                                class="pagination-sm justify-content-center"
+                                :total-rows="getPigeanSubtableData(row.item.phenotype).length"
+                                :per-page="10"
+                            ></b-pagination>
+                            </template>
                         </div>
                     </template>
                 </b-table>
@@ -480,99 +499,6 @@
                 ></b-pagination>
             </div>
         </b-tab>
-        <!-- <b-tab title="GWAS support vs HuGE score">
-            <div class="tab-documentation">
-                Documentation for pigean genetic support
-            </div>
-            <research-pigean-phewas-plot
-                v-if="pigeanDataFiltered.length > 0"
-                ref="pigeanPhewasPlot"
-                canvas-id="pigeanPlot"
-                :plot-name="`pigean_${gene}`"
-                :phenotypes-data="pigeanDataFiltered"
-                :phenotype-map="
-                    phenotypeMap
-                "
-                :colors="plotColors"
-                :plot-margin="phewasPlotMargin"
-                :render-config="
-                    pigeanConfig
-                "
-                :pkg-data="null"
-                :pkg-data-selected="null"
-                :filter="null"
-                :utils="utilsBox"
-                :options="['open phenotype page']"
-            >
-            </research-pigean-phewas-plot>
-        </b-tab> -->
-        
-        <!-- <b-tab title="GWAS support">
-            <div class="tab-documentation">
-                Documentation for GWAS support
-            </div>
-            <research-phewas-plot
-                v-if="pigeanDataFiltered.length > 0"
-                ref="gwasPhewasPlot"
-                canvas-id="gwasPlot"
-                :plot-name="`gwas_${gene}`"
-                :phenotypes-data="pigeanDataFiltered"
-                :phenotype-map="phenotypeMap"
-                :colors="plotColors"
-                :plot-margin="phewasPlotMargin"
-                :render-config="gwasConfig"
-                :pkg-data="null"
-                :pkg-data-selected="null"
-                :filter="null"
-                :utils="utilsBox"
-                :options="['open phenotype page']"
-            >
-            </research-phewas-plot>
-        </b-tab>
-        <b-tab title="Gene set support">
-            <div class="tab-documentation">
-                Documentation for gene set support
-            </div>
-            <research-phewas-plot
-                v-if="pigeanDataFiltered.length > 0"
-                ref="geneSetPhewasPlot"
-                canvas-id="geneSetPlot"
-                :plot-name="`gene_set_${gene}`"
-                :phenotypes-data="pigeanDataFiltered"
-                :phenotype-map="phenotypeMap"
-                :colors="plotColors"
-                :plot-margin="phewasPlotMargin"
-                :render-config="geneSetConfig"
-                :pkg-data="null"
-                :pkg-data-selected="null"
-                :filter="null"
-                :utils="utilsBox"
-                :options="['open phenotype page']"
-            >
-            </research-phewas-plot>
-        </b-tab>
-        <b-tab title="HuGE scores">
-            <div class="tab-documentation">
-                Documentation for HuGE scores
-            </div>
-            <research-phewas-plot
-                v-if="pigeanDataFiltered.length > 0"
-                ref="hugePhewasPlot"
-                canvas-id="hugePlot"
-                :plot-name="`huge_${gene}`"
-                :phenotypes-data="pigeanDataFiltered"
-                :phenotype-map="phenotypeMap"
-                :colors="plotColors"
-                :plot-margin="phewasPlotMargin"
-                :render-config="hugeConfig"
-                :pkg-data="null"
-                :pkg-data-selected="null"
-                :filter="null"
-                :utils="utilsBox"
-                :options="['open phenotype page']"
-            >
-            </research-phewas-plot>
-        </b-tab>-->
       </b-tabs>
     </div>
   </div>
@@ -709,7 +635,6 @@ const GENE_SET_TABLE_FORMAT = {
         "Source",
     ],
 };
-const EAGGL_SHORT_LENGTH = 5;
 
 function valueMatchesCategory(value, cat) {
     const r = cat.range;
@@ -1013,6 +938,13 @@ export default Vue.component("pigean-gene", {
                 bottom: 300,
             },
         },
+        pigeanSubtableEndpoint: "pigean-joined-gene",
+        pigeanSubtableFields: [
+            { key: "gene_set", label: "Gene set", sortable: true },
+            { key: "beta", label: "Effect (joint)", sortable: true },
+        ],
+        pigeanSubtableData: {},
+        pigeanSubtableIndex: 1
       };
   },
   async mounted(){
@@ -1436,9 +1368,10 @@ export default Vue.component("pigean-gene", {
       const state = this.factorGeneSetDataByRow[key];
       return state && state.error ? state.error : null;
     },
-    toggleDetails(item, detailType="factor") {
+    async toggleDetails(item, detailType="factor") {
       const key = this.getRowKey(item);
-      if (this.expandedRowKey === key && this.expandedDetailType === detailType) {
+      let isCurrentKey = this.expandedRowKey === key;
+      if (isCurrentKey && this.expandedDetailType === detailType) {
         this.expandedRowKey = null;
         this.expandedDetailType = null;
         return;
@@ -1454,6 +1387,11 @@ export default Vue.component("pigean-gene", {
         ) {
           this.fetchPigeanFactorForRow(item);
         }
+      } else if (detailType === "genesets"){
+        if (!isCurrentKey){
+          this.pigeanSubtableIndex = 1;
+        }
+        await this.getPigeanSubtable(item);
       }
     },
     async fetchPigeanFactorForRow(item) {
@@ -1569,6 +1507,20 @@ export default Vue.component("pigean-gene", {
       setTimeout(() => {
         tryRender();
       }, 600);
+    },
+    async getPigeanSubtable(item) {
+      let queryKey = this.subtableKey(item.phenotype);
+      if (!this.pigeanSubtableData[queryKey]) {
+          let data = await query(this.pigeanSubtableEndpoint, queryKey);
+          Vue.set(this.pigeanSubtableData, queryKey, data);
+      }
+    },
+    subtableKey(phenotype){
+      return `${phenotype},${this.gene},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE}`;
+    },
+    getPigeanSubtableData(phenotype){
+      let queryKey = this.subtableKey(phenotype);
+      return this.pigeanSubtableData[queryKey];
     }
   },
 });
