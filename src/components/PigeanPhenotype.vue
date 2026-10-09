@@ -107,21 +107,23 @@
                                 ></span>
                                 {{ formatScore(row.item.Combined_GWAS_gene_sets) }}
                             </span>
-                            <span>|</span>
-                            <span class="score-piece">
-                                <span
-                                    :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.GWAS_support)]"
-                                ></span>
-                                {{ formatScore(row.item.GWAS_support) }}
-                            </span>
-                            <span>|</span>
-                            <span class="score-piece">
-                                <span
-                                    :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
-                                ></span>
-                                {{ formatScore(row.item.Gene_set_support) }}
-                            </span>
-                        </span>
+                          </span>
+                    </template>
+                    <template #cell(GWAS_support)="row">
+                      <span class="score-piece">
+                          <span
+                              :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.GWAS_support)]"
+                          ></span>
+                          {{ formatScore(row.item.GWAS_support) }}
+                      </span>
+                    </template>
+                    <template #cell(Gene_set_support)="row">
+                      <span class="score-piece">
+                          <span
+                              :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
+                          ></span>
+                          {{ formatScore(row.item.Gene_set_support) }}
+                      </span>
                     </template>
                     <template #cell(PPA)="row">
                         {{ formatPpa(row.item.PPA) }}
@@ -508,12 +510,14 @@ export default Vue.component("pigean-phenotype", {
           },
           {
             key: 'Combined_GWAS_gene_sets',
-            label: 'PIGEAN scores (combined | GWAS support | gene set support)',
             sortable: true
           },
           {
-            key: 'PPA',
-            label: 'FALCON PPA',
+            key: "GWAS_support",
+            sortable: true
+          },
+          {
+            key: "Gene_set_support",
             sortable: true
           },
           {
