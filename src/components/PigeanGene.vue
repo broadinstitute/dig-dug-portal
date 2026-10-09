@@ -308,6 +308,9 @@
                                     ></b-pagination>
                                 </template>
                             </template>
+                            <template v-else-if="expandedDetailType === 'locus'">Locus zoom plot coming soon</template>
+                            <template v-else-if="expandedDetailType === 'genesets'">Gene set evidence coming soon</template>
+                            
                         </div>
                     </template>
                 </b-table>
