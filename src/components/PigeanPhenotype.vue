@@ -92,6 +92,7 @@
                             {{ formatScore(row.item.GWAS_support) }}
                         </span>
                         <b-button
+                          style="margin-left: 5px;"
                           variant="outline-primary"
                           size="sm"
                           class="view-more-btn"
@@ -110,6 +111,7 @@
                             {{ formatScore(row.item.Gene_set_support) }}
                         </span>
                         <b-button
+                          style="margin-left: 5px;"
                           variant="outline-primary"
                           size="sm"
                           class="view-more-btn"
