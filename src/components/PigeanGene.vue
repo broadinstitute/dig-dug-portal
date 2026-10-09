@@ -308,7 +308,9 @@
                                     ></b-pagination>
                                 </template>
                             </template>
-                            <template v-else-if="expandedDetailType === 'locus'">Locus zoom plot coming soon</template>
+                            <template v-else-if="expandedDetailType === 'locus'">
+                              <pigean-locus-zoom :phenotype="row.item.phenotype" :gene="gene"></pigean-locus-zoom>
+                            </template>
                             <template v-else-if="expandedDetailType === 'genesets'">Gene set evidence coming soon</template>
                             
                         </div>
@@ -589,6 +591,7 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import KcCfdeLogo from "@/components/Cfde2Kp/KcCfdeLogo.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import PigeanLocusZoom from "@/components/PigeanLocusZoom.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -753,6 +756,7 @@ export default Vue.component("pigean-gene", {
     FilterGreaterThan,
     KcCfdeLogo,
     TooltipDocumentation,
+    PigeanLocusZoom
   },
   props: ["gene","pigeanData","falconGeneAssociations","phenotypeMap","phenotypesInSession","hugeScores","docDetails"],
   data() {
@@ -1441,7 +1445,7 @@ export default Vue.component("pigean-gene", {
       }
       this.expandedRowKey = key;
       this.expandedDetailType = detailType;
-      if (!isLocus){
+      if (detailType === 'factor'){
         const queryKey = this.getPigeanFactorQueryKey(item);
         const state = this.factorGeneSetDataByRow[queryKey];
         if (
