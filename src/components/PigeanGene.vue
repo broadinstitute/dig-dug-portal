@@ -116,7 +116,8 @@
                         </span>
                     </template>
                     <template #cell(GWAS_support)="row">
-                      <span class="combined-score-cell">
+                      <div>
+                        <span class="combined-score-cell">
                           <span class="score-piece">
                               <span
                                   :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.GWAS_support)]"
@@ -124,6 +125,15 @@
                               {{ formatScore(row.item.GWAS_support) }}
                           </span>
                         </span>
+                      </div>
+                      <b-button
+                          variant="outline-primary"
+                          size="sm"
+                          class="view-more-btn"
+                          @click="toggleDetails(row.item, 'locus')"
+                      >
+                          {{ isDetailsOpen(row.item, 'locus') ? "Hide" : "View evidence" }}
+                      </b-button>
                     </template>
                     <template #cell(Gene_set_support)="row">
                       <div>
@@ -140,11 +150,10 @@
                           variant="outline-primary"
                           size="sm"
                           class="view-more-btn"
-                          @click="toggleDetails(row.item, true)"
+                          @click="toggleDetails(row.item, 'genesets')"
                       >
-                          {{ isDetailsOpen(row.item, true) ? "Hide" : "View evidence" }}
+                          {{ isDetailsOpen(row.item, 'genesets') ? "Hide" : "View evidence" }}
                       </b-button>
-                      
                     </template>
                     <template #cell(PPA)="row">
                         {{ formatPpa(row.item.PPA) }}
@@ -1336,8 +1345,7 @@ export default Vue.component("pigean-gene", {
       if (!value) return "";
       return String(value).split(";").join(", ");
     },
-    isDetailsOpen(item, isLocus=false) {
-      const detailType = !isLocus ? "factor" : "locus"
+    isDetailsOpen(item, detailType="factor") {
       return (
         this.expandedRowKey === this.getRowKey(item) &&
         this.expandedDetailType === detailType
@@ -1421,9 +1429,7 @@ export default Vue.component("pigean-gene", {
       const state = this.factorGeneSetDataByRow[key];
       return state && state.error ? state.error : null;
     },
-    toggleDetails(item, isLocus=false) {
-      const detailType = !isLocus ? "factor" : "locus";
-      console.log(detailType);
+    toggleDetails(item, detailType="factor") {
       const key = this.getRowKey(item);
       if (this.expandedRowKey === key && this.expandedDetailType === detailType) {
         this.expandedRowKey = null;
