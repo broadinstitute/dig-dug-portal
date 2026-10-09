@@ -1379,6 +1379,7 @@ export default Vue.component("pigean-gene", {
     },
     async toggleDetails(item, detailType="factor") {
       const key = this.getRowKey(item);
+      await this.getPigeanSubtable(item);
       let isCurrentKey = this.expandedRowKey === key;
       if (isCurrentKey && this.expandedDetailType === detailType) {
         this.expandedRowKey = null;
@@ -1388,6 +1389,7 @@ export default Vue.component("pigean-gene", {
       }
       this.expandedRowKey = key;
       this.expandedDetailType = detailType;
+      this.pigeanSubtablePhenotype = item.phenotype;
       if (detailType === 'factor'){
         const queryKey = this.getPigeanFactorQueryKey(item);
         const state = this.factorGeneSetDataByRow[queryKey];
@@ -1397,12 +1399,8 @@ export default Vue.component("pigean-gene", {
         ) {
           this.fetchPigeanFactorForRow(item);
         }
-      } else if (detailType === "genesets"){
-        if (!isCurrentKey){
-          this.pigeanSubtableIndex = 1;
-          this.pigeanSubtablePhenotype = item.phenotype;
-        }
-        await this.getPigeanSubtable(item);
+      } else if (detailType === "genesets" && !isCurrentKey){
+        this.pigeanSubtableIndex = 1;
       }
     },
     async fetchPigeanFactorForRow(item) {

@@ -960,10 +960,6 @@ export default Vue.component("pigean-phenotype", {
       this.expandedDetailType = detailType;
       this.pigeanSubtableGene = item.gene;
     },
-    toggleShut(){
-      
-      return;
-    },
     getRowKey(item) {
       return `${item.gene || ""}|${item.Factor || ""}`;
     },
