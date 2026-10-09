@@ -2003,50 +2003,50 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
     },
     created() {
         this.llmExtract = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
+            //llm: "openai",
+            //model: "gpt-5-mini",
             system_prompt: this.extractSystemPropmpt
         });
 
         this.llmMechanismGrouping = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
+            //llm: "openai",
+            //model: "gpt-5-mini",
             system_prompt: this.mechanismGroupingSystemPrompt,
         });
 
         this.llmAnalyze = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
+            //llm: "openai",
+            //model: "gpt-5-mini",
             system_prompt: this.mechanismHypothesisSystemPrompt,
         });
 
         this.llmFilter = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
+            //llm: "openai",
+            //model: "gpt-5-mini",
             system_prompt: this.factorFilteringPrompt
         });
 
         this.llmPhenotypeFactorsFilter = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
+            //llm: "openai",
+            //model: "gpt-5-mini",
             system_prompt: this.phenotypeFactorsFilteringPrompt
         });
 
         this.llmGeneSetPick = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
+            //llm: "openai",
+            //model: "gpt-5-mini",
             system_prompt: this.geneSetPickSystemPrompt,
         });
 
         this.llmMergedFactorAndGeneSetPick = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
+            //llm: "openai",
+            //model: "gpt-5-mini",
             system_prompt: this.mergedFactorAndGeneSetPickSystemPrompt,
         });
 
         this.llmMergedAssociationAndGeneSetPick = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
+            //llm: "openai",
+            //model: "gpt-5-mini",
             system_prompt: this.mergedAssociationAndGeneSetPickSystemPrompt,
         });
     },

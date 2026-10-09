@@ -344,8 +344,8 @@
                             :time-budget="selectedTimeBudget"
                             :experiment-notes="experimentNotes"
                             :llm-config="{
-                                llm: sectionConfigs.llm || 'gemini',
-                                model: sectionConfigs.model || (sectionConfigs.llm === 'openai' ? 'gpt-5-mini' : 'gemini-2.5-flash-lite')
+                                //llm: sectionConfigs.llm || 'gemini',
+                                //model: sectionConfigs.model || (sectionConfigs.llm === 'openai' ? 'gpt-5-mini' : 'gemini-2.5-flash-lite')
                             }"
                             :hide-buttons="false"
                             :show-only-group-and-tier="true"
@@ -1343,8 +1343,8 @@ export default {
 
             const experimentSystemPrompt = this.experiment_system_prompt || '';
             this.buildExperiments = createLLMClient({
-                llm: llm,
-                model: model,
+                //llm: llm,
+                //model: model,
                 system_prompt: experimentSystemPrompt
             });
         } catch (error) {
