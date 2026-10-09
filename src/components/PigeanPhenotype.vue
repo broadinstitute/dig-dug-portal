@@ -945,23 +945,21 @@ export default Vue.component("pigean-phenotype", {
     async toggleDetails(item, detailType="locus") {
       const key = this.getRowKey(item);
       await this.getPigeanSubtable(item);
-      let initialKey = this.expandedRowKey;
-      let initialType = this.expandedDetailType;
-      this.toggleShut();
-      if (initialKey === key && initialType === detailType) {
+      if (this.expandedRowKey === key && this.expandedDetailType === detailType) {
+        this.expandedRowKey = null;
+        this.expandedDetailType = null;
+        this.pigeanSubtableGene = null;
         return;
+      }
+      if (detailType === "genesets" && this.expandedRowKey !== key){
+        this.pigeanSubtableIndex = 1;
       }
       this.expandedRowKey = key;
       this.expandedDetailType = detailType;
       this.pigeanSubtableGene = item.gene;
-      if (detailType === "genesets" && initialKey !== key){
-        this.pigeanSubtableIndex = 1;
-      }
     },
     toggleShut(){
-      this.expandedRowKey = null;
-      this.expandedDetailType = null;
-      this.pigeanSubtableGene = null;
+      
       return;
     },
     getRowKey(item) {
