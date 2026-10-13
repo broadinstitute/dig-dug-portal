@@ -71,20 +71,33 @@
                                     name="pigean.column.pigean.tooltip"
                                     :is-hover="true"
                                     :no-icon="false"
-                                    supply-text="Placeholder documentation for PIGEAN scores (combined, GWAS support, and gene set support)."
+                                    :supply-text="tooltipMap['COMBINED_SUPPORT']"
                                 ></tooltip-documentation>
                             </span>
                         </span>
                     </template>
-                    <template #head(PPA)="data">
+                    <template #head(Direct_support)="data">
                         <span class="column-header-with-tooltip">
                             <span>{{ data.label }}</span>
                             <span @click.stop>
                                 <tooltip-documentation
-                                    name="pigean.column.falcon.tooltip"
+                                    name="pigean.column.pigean.tooltip"
                                     :is-hover="true"
                                     :no-icon="false"
-                                    supply-text="Placeholder documentation for FALCON posterior probability of association (PPA)."
+                                    :supply-text="tooltipMap['DIRECT_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template #head(Indirect_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['INDIRECT_SUPPORT']"
                                 ></tooltip-documentation>
                             </span>
                         </span>
@@ -97,7 +110,7 @@
                                     name="pigean.column.eaggl.tooltip"
                                     :is-hover="true"
                                     :no-icon="false"
-                                    supply-text="Placeholder documentation for the EAGGL mechanistic factor."
+                                    :supply-text="tooltipMap['LATENT_GENETIC']"
                                 ></tooltip-documentation>
                             </span>
                         </span>
@@ -529,6 +542,7 @@ import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
 import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
+import { TOOLTIP_MAP } from "../utils/pigeanUtils";
 
 const GENE_SET_TABLE_FORMAT = {
     "data convert": [
@@ -1119,6 +1133,9 @@ export default Vue.component("pigean-gene", {
     currentPigeanSubtableData(){
       let queryKey = this.subtableKey(this.pigeanSubtablePhenotype);
       return this.pigeanSubtableData[queryKey];
+    },
+    tooltipMap(){
+      return TOOLTIP_MAP;
     }
   },
   watch: {

@@ -805,6 +805,9 @@ export default Vue.component("pigean-phenotype", {
       }
       let queryKey = this.subtableKey(this.pigeanSubtableGene);
       return this.pigeanSubtableData[queryKey];
+    },
+    tooltipMap(){
+      return TOOLTIP_MAP;
     }
   },
   watch: {
