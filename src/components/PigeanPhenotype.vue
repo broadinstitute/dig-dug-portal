@@ -18,7 +18,7 @@
                 similar to genes with direct support. EAGGL uses combined (direct + indirect) genetic support, 
                 and the specific gene annotations responsible for indirect support, to group genes into latent 
                 factors underlying each phenotype, which are a proxy for genetically anchored “mechanisms”. 
-                More information on the overall framework and each method can be found here.
+                <span v-if="false">More information on the overall framework and each method can be found here.</span>
             </div>
             <research-pigean-phewas-plot
                 v-if="pigeanDataFiltered.length > 0"
