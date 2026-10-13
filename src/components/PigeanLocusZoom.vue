@@ -15,7 +15,11 @@
         :pkgDataSelected="[]"
         :utils="utilsBox"
         :sectionId="`${sectionId}_region`"
+        @plotRendered="e => loadPlot(e)"
       ></research-region-plot>
+      <div v-if="!plotLoaded">
+        <b-spinner label="Loading..."></b-spinner>
+      </div>
       <research-genes-track
           :region="region"
           :plotConfig="plotConfig"
@@ -74,6 +78,7 @@ export default Vue.component("pigean-locus-zoom", {
               "fixed population":"ALL",
           "populations":{"ALL":"ALL"}}
         },
+        plotLoaded: false,
         sectionId: "",
         assocData: [],
         genesTrackData: [],
@@ -198,6 +203,9 @@ export default Vue.component("pigean-locus-zoom", {
         "phenotype":{"type":"list","field":"phenotype","search":[this.phenotype]},
         "gene":{"type":"input","field":"gene","search":[this.gene]}}
     },
+    loadPlot(plotLoaded){
+      this.plotLoaded = plotLoaded;
+    }
   },
 });
 </script>
