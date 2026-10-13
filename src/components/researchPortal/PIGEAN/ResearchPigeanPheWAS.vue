@@ -327,7 +327,9 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             return !!this.secondaryYAxisField;
         },
         ppaField() {
-            return this.renderConfig["ppa field"] || null;
+            //return this.renderConfig["ppa field"] || null;
+            // TODO determine when this removal is permanent.
+            return null;
         },
         ppaStripHeight() {
             if (!this.ppaField) {
