@@ -895,6 +895,7 @@ export default Vue.component("research-region-plot", {
 			this.$forceUpdate();
 		},
 		renderPlots(event) {
+			this.$emit("plotRendered", false);
 			let regionStart = this.searchingRegion.start;
 			let regionEnd = this.searchingRegion.end;
 			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
@@ -1440,6 +1441,7 @@ export default Vue.component("research-region-plot", {
 					);
 				}
 			}
+			this.$emit("plotRendered", true);
 		},
 		feedPosData(POS_DATA, X, Y, KEY) {
 			let floorXpos = Math.floor(X);
