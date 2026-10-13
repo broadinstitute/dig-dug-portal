@@ -65,7 +65,33 @@
                                     name="pigean.phenotype.column.pigean.tooltip"
                                     :is-hover="true"
                                     :no-icon="false"
-                                    supply-text="Placeholder documentation for PIGEAN scores (combined, GWAS support, and gene set support)."
+                                    :supply-text="tooltipMap['COMBINED_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template #head(Direct_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['DIRECT_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template #head(Indirect_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['INDIRECT_SUPPORT']"
                                 ></tooltip-documentation>
                             </span>
                         </span>
@@ -412,6 +438,7 @@ import keyParams from "@/utils/keyParams";
 import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
+import { TOOLTIP_MAP } from "../utils/pigeanUtils";
 import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 
 export default Vue.component("pigean-phenotype", {
