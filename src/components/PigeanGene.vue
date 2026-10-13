@@ -419,7 +419,6 @@
         </b-tab>
         <b-tab title="Combined scores vs HuGE scores">
             <div class="tab-documentation">
-                Documentation for combined scores vs HuGE scores
             </div>
             <research-pigean-phewas-plot
                 v-if="combinedVsHugeData.length > 0"
@@ -472,19 +471,6 @@
                     :current-page="combinedVsHugePage"
                     responsive
                 >
-                    <template #head(PPA)="data">
-                        <span class="column-header-with-tooltip">
-                            <span>{{ data.label }}</span>
-                            <span @click.stop>
-                                <tooltip-documentation
-                                    name="pigean.column.falcon.vs.huge.tooltip"
-                                    :is-hover="true"
-                                    :no-icon="false"
-                                    supply-text="Placeholder documentation for FALCON posterior probability of association (PPA)."
-                                ></tooltip-documentation>
-                            </span>
-                        </span>
-                    </template>
                     <template v-slot:cell(Phenotype)="row">
                         <a :href="'/phenotype.html?phenotype='+row.item.phenotype">{{ phenotypeMap[row.item.phenotype] && phenotypeMap[row.item.phenotype]['description'] ? phenotypeMap[row.item.phenotype]['description'] : row.item.Phenotype }}</a>
                     </template>

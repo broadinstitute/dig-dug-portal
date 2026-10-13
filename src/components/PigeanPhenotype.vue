@@ -251,7 +251,6 @@
         </b-tab>
         <b-tab title="Combined scores vs HuGE scores">
             <div class="tab-documentation">
-                Documentation for combined scores vs HuGE scores
             </div>
             <research-pigean-phewas-plot
                 v-if="combinedVsHugeData.length > 0"
