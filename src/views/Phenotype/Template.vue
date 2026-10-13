@@ -107,16 +107,14 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <span class="label">Download bottom-line data:</span>
-                                <a v-if="$store.state.ancestry == '' || !$store.state.ancestry" :href="'https://dig-open-bottom-line-analysis.s3.amazonaws.com/bottom-line/Mixed/' + $store.state.phenotype.name + '.sumstats.tsv.gz'" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="color: white !important; margin-left: 10px;">Download</a>
-                                <a v-else :href="'https://dig-open-bottom-line-analysis.s3.amazonaws.com/bottom-line/' + $store.state.ancestry + '/' + $store.state.phenotype.name + '.sumstats.tsv.gz'" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="color: white !important; margin-left: 10px;">Download</a>
+                                <span class="label">Bottom-line data:</span>
                                 <button
                                     type="button"
-                                    class="btn btn-outline-primary btn-sm"
-                                    style="margin-left: 8px;"
+                                    class="btn btn-primary btn-sm"
+                                    style="margin-left: 10px;"
                                     @click="$parent.showProvenanceModal = true"
                                 >
-                                    See Provenance
+                                    Provenance &amp; summary statistics
                                 </button>
                             </div>
                         </div>
