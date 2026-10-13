@@ -481,6 +481,19 @@
                     :current-page="combinedVsHugePage"
                     responsive
                 >
+                    <template #head(Combined_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.phenotype.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['COMBINED_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
                     <template v-slot:cell(Phenotype)="row">
                         <a :href="'/phenotype.html?phenotype='+row.item.phenotype">{{ phenotypeMap[row.item.phenotype] && phenotypeMap[row.item.phenotype]['description'] ? phenotypeMap[row.item.phenotype]['description'] : row.item.Phenotype }}</a>
                     </template>
