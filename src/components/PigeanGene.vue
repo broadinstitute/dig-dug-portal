@@ -7,7 +7,7 @@
       <b-tabs v-model="activeTab">
         <b-tab title="Combined genetic support (direct + indirect)">
             <div class="tab-documentation">
-                Documentation for combined genetic support
+                {{ tooltipMap['COMBINED_SUPPORT']}}
             </div>
             <research-pigean-phewas-plot
                 v-if="pigeanDataFiltered.length > 0"
