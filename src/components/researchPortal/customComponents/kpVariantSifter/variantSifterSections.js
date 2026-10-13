@@ -25,8 +25,8 @@ export const VARIANT_SIFTER_SECTIONS = [
     },
     {
         id: "variant-to-gene-links",
-        label: "Variant-to-gene links",
-        drawerLabel: "Var-to-gene",
+        label: "Gene links",
+        drawerLabel: "Gene links",
         shortLabel: "V2G",
         description: "Tissue-specific variant-to-gene linking evidence.",
         trackImplemented: false,
