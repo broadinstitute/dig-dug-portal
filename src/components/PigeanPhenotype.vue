@@ -8,7 +8,17 @@
       <b-tabs v-model="activeTab">
         <b-tab title="Combined genetic support (direct + indirect)">
             <div class="tab-documentation">
-                {{ tooltipMap['COMBINED_SUPPORT']}}
+                The results below are produced by three Bayesian statistical methods — FALCON, PIGEAN and EAGGL — 
+                which address complementary questions regarding genetic support for a gene. FALCON models 
+                genetic associations and functional genomic annotations to infer “direct genetic support” 
+                for the involvement of a gene in a phenotype; it improves upon and replaces the HuGE (
+                Human Genetic Evidence; <a href="https://pubmed.ncbi.nlm.nih.gov/35421386/">
+                Dornbos et al. 2022</a>) method. PIGEAN uses gene annotations to extend 
+                this direct support to assign “indirect genetic support” to additional genes functionally 
+                similar to genes with direct support. EAGGL uses combined (direct + indirect) genetic support, 
+                and the specific gene annotations responsible for indirect support, to group genes into latent 
+                factors underlying each phenotype, which are a proxy for genetically anchored “mechanisms”. 
+                More information on the overall framework and each method can be found here.
             </div>
             <research-pigean-phewas-plot
                 v-if="pigeanDataFiltered.length > 0"
