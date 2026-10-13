@@ -33,3 +33,6 @@ public/data/
 .vs/
 .claude/settings.local.json
 .cursor/*
+
+# Python registry builder and tests
+__pycache__/

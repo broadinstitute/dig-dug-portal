@@ -384,18 +384,40 @@
                 </div>
                 <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
                     <div class="card-body">
-                        <h4>Connectivity mapping: Differential Expression
-                            <span v-if="$store.state.connectivity.data.length > 0">
-                                for {{ $parent.tissueFormatter($store.state.connectivity.data[0].tissue) }} - 
-                                {{ $parent.tissueFormatter($store.state.connectivity.data[0].comparison) }}
-                            </span>
+                        <h4>Compound connectivity mapping: which small molecules reproduce or reverse disease signatures?
                         </h4>
-                        <criterion-function-group>
-                            <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
+                        <p>Predict which small molecules reproduce or reverse disease signatures using connectivity mapping analysis.
+                            Analyses link disease-associated differential expression analyses to small molecule compound-based
+                            perturbation signatures from the Library of Integrated Network-Based Cellular Signature
+                            (<a href="https://lincsproject.org/LINCS/">LINCS</a>).
+                            For each perturbation, we calculated whether perturbation signatures showed significantly reversed or
+                            concordant effects compared to differential expression. We performed cell type-specific differential
+                            expression and connectivity mapping analyses using all available 
+                            <a href="https://hugeamp.org/r/scb">CMDKP single-cell maps</a>. 
+                            Connectivity mapping results are summarized with volcano plots for each cell type-trait pair, and the
+                            top 100 significantly reversed CRISPR perturbations are used to perform pathway enrichment analysis
+                            to characterize biological processes associated with prioritized targets for a cell type-trait combination.
+                            In addition, the top 100 significantly reversed CRISPR targets were matched with the ChEMBL database to
+                            identify known antagonists and other therapeutically relevant compounds targeting these genes 
+                            or their protein products. </p>
+                        <criterion-function-group
+                            @update:filter-list="$event => $parent.getSelectedPathway($event, false)">
+                            <filter-enumeration-control
+                                field="best_direction"
+                                :options="$parent.connectivityData.map(d => d.best_direction)">
+                                <div class="label">Direction</div>
+                            </filter-enumeration-control>
+                            <div class="col filter-col-md">
                                 <div class="label">Tissue type</div>
-                                <select v-model="$store.state.adiposeType">
+                                <select v-model="$store.state.adiposeType"
+                                    v-if="$store.state.tissueName === 'adipose_tissue'">
                                     <option value="adipose_subcutaneous">Adipose - Subcutaneous</option>
                                     <option value="adipose_visceral">Adipose - Visceral</option>
+                                </select>
+                                <select v-else>
+                                    <option :value="$store.state.tissueName">
+                                        {{$parent.tissueFormatter($store.state.tissueName)}}
+                                    </option>
                                 </select>
                             </div>
                             <div class="col filter-col-md">
@@ -406,12 +428,22 @@
                                     </option>
                                 </select>
                             </div>
+                            <filter-less-control
+                                field="pAdj">
+                                <div class="label">Max p-adj</div>
+                            </filter-less-control>
+                            <filter-enumeration-control
+                                :field="$parent.selectedPathwayDescriptor"
+                                :options="$parent.connectivityData.map(d => d.pathway)">
+                                <div class="label">Search pathway</div>
+                            </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div v-if="$parent.connectivityData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityData"
-                                        :chartName="$parent.chartName($parent.connectivityData[0])">
+                                        :plotData="$parent.connectivityData.filter(filter)"
+                                        :chartName="$parent.chartName($parent.connectivityData[0])"
+                                        :geneOfInterest="$parent.compoundPathway">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">
@@ -455,18 +487,37 @@
                 </div>
                 <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
                     <div class="card-body">
-                        <h4>Connectivity mapping: Differential Expression (CRISPR)
-                            <span v-if="$store.state.connectivityCrispr.data.length > 0">
-                                for {{ $parent.tissueFormatter($store.state.connectivityCrispr.data[0].tissue) }} - 
-                                {{ $parent.tissueFormatter($store.state.connectivityCrispr.data[0].comparison) }}
-                            </span>
+                        <h4>CRISPR connectivity mapping: which gene knockouts reproduce or reverse disease signatures?
                         </h4>
-                        <criterion-function-group>
-                            <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
+                        <p>Predict which gene knockouts reproduce or reverse disease signatures using connectivity mapping analysis. 
+                            Analyses link disease-associated differential expression analyses to CRISPR-based perturbation signatures 
+                            from the Library of Integrated Network-Based Cellular Signature 
+                            (<a href="https://lincsproject.org/LINCS/">LINCS</a>). For each perturbation, 
+                            we calculated whether perturbation signatures showed significantly reversed or concordant effects
+                            compared to differential expression. We performed cell type-specific differential expression and connectivity
+                            mapping analyses using all available 
+                            <a href="https://hugeamp.org/r/scb">CMDKP single-cell maps</a>. Connectivity mapping results are summarized with
+                            volcano plots for each cell type-trait pair, and the top 100 significantly reversed CRISPR perturbations are 
+                            used to perform pathway enrichment analysis to characterize biological processes associated with prioritized 
+                            targets for a cell type-trait combination.</p>
+                        <criterion-function-group
+                            @update:filter-list="$event => $parent.getSelectedPathway($event, true)">
+                            <filter-enumeration-control
+                                field="best_direction"
+                                :options="$parent.connectivityCrisprData.map(d => d.best_direction)">
+                                <div class="label">Direction</div>
+                            </filter-enumeration-control>
+                            <div class="col filter-col-md" >
                                 <div class="label">Tissue type</div>
-                                <select v-model="$store.state.adiposeTypeCrispr">
+                                <select v-model="$store.state.adiposeTypeCrispr"
+                                    v-if="$store.state.tissueName === 'adipose_tissue'">
                                     <option value="adipose_subcutaneous">Adipose - Subcutaneous</option>
                                     <option value="adipose_visceral">Adipose - Visceral</option>
+                                </select>
+                                <select v-else>
+                                    <option :value="$store.state.tissueName">
+                                        {{$parent.tissueFormatter($store.state.tissueName)}}
+                                    </option>
                                 </select>
                             </div>
                             <div class="col filter-col-md">
@@ -477,12 +528,27 @@
                                     </option>
                                 </select>
                             </div>
+                            <filter-enumeration-control
+                                field="is_expressed"
+                                :options="$parent.connectivityCrisprData.map(d => d.is_expressed)">
+                                <div class="label">Expressed</div>
+                            </filter-enumeration-control>
+                            <filter-less-control
+                                field="pAdj">
+                                <div class="label">Max p-adj</div>
+                            </filter-less-control>
+                            <filter-enumeration-control
+                                :field="$parent.selectedPathwayDescriptor"
+                                :options="$parent.connectivityCrisprData.map(d => d.pathway)">
+                                <div class="label">Search pathway</div>
+                            </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div v-if="$parent.connectivityCrisprData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
-                                        :plotData="$parent.connectivityCrisprData"
-                                        :chartName="$parent.chartName($parent.connectivityCrisprData[0], true)">
+                                        :plotData="$parent.connectivityCrisprData.filter(filter)"
+                                        :chartName="$parent.chartName($parent.connectivityCrisprData[0], true)"
+                                        :geneOfInterest="$parent.crisprPathway">
                                     </volcano-plot>
                                 </div>
                                 <div class="table-total-rows">

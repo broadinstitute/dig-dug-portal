@@ -19,7 +19,7 @@
 				</div>
 			</div>
             <div class="card mdkp-card" style="padding:50px">
-                <LigerBrowser :config="$parent.liger_config" />
+                <CellEvolutionBrowser :config="$parent.liger_config" />
             </div>
 		</div>
 

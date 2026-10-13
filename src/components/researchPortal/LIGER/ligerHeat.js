@@ -1,7 +1,12 @@
 // Heat colors for the LIGER matrices.
 //
-// The matrices now live inside the detail components, but the parent still colors
-// its own cells, so this is shared rather than duplicated on both sides.
+// Shared across versions. `clamp` and `mixColor` are generic color math and should
+// stay version-agnostic; `heatColor` is v1's palette. A new version that wants a
+// different scale should define its own `heatColor` in its own folder and reuse
+// `clamp` / `mixColor` from here rather than editing this one.
+//
+// Within v1: the matrices live inside the detail components, but the parent still
+// colors its own cells, so this is shared rather than duplicated on both sides.
 //
 // Diverging scales run orange -> white -> blue around a true zero; sequential runs
 // white -> teal from zero. Both apply a mild gamma so the middle of the range stays

@@ -1,6 +1,6 @@
 <script>
 import Vue from "vue";
-import { formatMetric, formatPValue } from "./ligerFormat";
+import { formatMetric, formatPValue } from "../ligerFormat";
 import HeatTable from "./HeatTable.vue";
 
 const GENE_SET_PREVIEW_ROWS = 25;

@@ -1,8 +1,10 @@
-// Shared number formatting for the LIGER browser and its detail components.
+// Shared number formatting for every version of the LIGER browser.
 //
-// These live outside the SFCs because the parent builds the detail payloads and
-// the detail components render them; both have to format the same value the same
-// way, and a second copy of `formatPValue` would drift.
+// This sits at the root of LIGER/ rather than inside a version folder because it
+// is presentation-free: a LIGER number formats the same way wherever it appears.
+// Within a version, the parent builds the detail payloads and the detail
+// components render them; both have to format the same value the same way, and a
+// second copy of `formatPValue` would drift.
 
 export function isFiniteNumber(value) {
     return Number.isFinite(value);
