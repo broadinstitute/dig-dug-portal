@@ -405,8 +405,7 @@ export default {
             const traitLegacyId = this.selectedProvenance && this.selectedProvenance.trait_legacy_id
                 ? this.selectedProvenance.trait_legacy_id
                 : this.selectedTrait.legacy_id;
-            const selectedAncestry = this.selectedAncestry.ancestry_name || this.selectedAncestry.ancestry_id;
-            const ancestryDirectory = this.isMixedAncestry(this.selectedAncestry) ? "Mixed" : selectedAncestry;
+            const ancestryDirectory = this.selectedAncestry.ancestry_id;
 
             if (!traitLegacyId || !ancestryDirectory) {
                 return "";
