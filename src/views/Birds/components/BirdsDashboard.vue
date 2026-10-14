@@ -14,7 +14,7 @@
             data-method="eaggl" type="button" @click="focus('eaggl')">Latent genetic factors<span class="btnSub">associated &amp; relevant genes → potential mechanisms</span></button>
         </div></div>
       </div>
-      <div class="frame">
+      <div class="birdframe">
         <div class="canvasWrap" ref="canvasWrap">
           <div id="tooltip" class="tip" :style="{ opacity: tooltip.visible ? 1 : 0, left: tooltip.left, top: tooltip.top }"><strong>{{ tooltip.text }}</strong></div>
           <modelgraph :method="method"
@@ -24,7 +24,8 @@
             <div v-html="graphLegend"></div>
           </div>
         </div>
-        <section class="detailSection" aria-label="Method details">
+        <div class="detail-section-wrapper">
+            <section class="detailSection" aria-label="Method details">
           <div class="detailTabs" role="tablist" aria-label="Method detail view">
             <button id="overview-tab" class="detailTab" :class="{ active: detailTab === 'overview' }"
               type="button" role="tab" :aria-selected="detailTab === 'overview' ? 'true' : 'false'"
@@ -41,6 +42,7 @@
             <validation-gallery :method="method"></validation-gallery>
           </div>
         </section>
+        </div>
       </div>
       <div class="footerNote">Local dashboard — no internet connection or external library required.</div>
     </div>
@@ -122,4 +124,11 @@ export default Vue.component("birds-dashboard", {
 <style>
 @import url("/css/birdcss/revisions.css");
 @import url("/css/birdcss/style.css");
+.detail-section-wrapper {
+    display: block !important;
+}
+.birdframe {
+    margin-left: 25%;
+    max-width: 50%;
+}
 </style>
