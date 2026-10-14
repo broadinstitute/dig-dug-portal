@@ -1,10 +1,10 @@
 <template>
-  <div>
-    <img src="/images/birdimages/modelgraph.svg"/>
+  <div v-html="birdModelTemplate">
   </div>
 </template>
 <script>
 import Vue from "vue";
+import { BIRD_MODEL_TEMPLATE } from "../content/modelgraph";
 
 export default Vue.component("modelgraph", {
   components: {
@@ -12,6 +12,11 @@ export default Vue.component("modelgraph", {
   props: { method: { type: String, required: true } },
   data() { return { activeHover: null }; },
   mounted() { this.applyFocus(); },
+  computed: {
+    birdModelTemplate(){
+      return BIRD_MODEL_TEMPLATE;
+    }
+  },
   methods: {
     applyFocus() {
       const viz = this.$el;
