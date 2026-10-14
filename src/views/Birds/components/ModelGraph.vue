@@ -1,6 +1,6 @@
 <template>
   <div>
-    <img src="../assets/modelgraph.svg"/>
+    <img src="/images/birdimages/modelgraph.svg"/>
   </div>
 </template>
 <script>
