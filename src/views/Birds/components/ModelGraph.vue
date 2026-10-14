@@ -178,19 +178,19 @@
     <!-- edges / method paths -->
     <g id="edges" class="stat-only">
       <!-- Direct genetic support: annotations combine with associations upstream of the genes -->
-      <path d="M302 227 L487.02 221.19" class="edge falcon supportHigh" data-method="falcon" data-arrow-width="5"/>
-      <path d="M302 264 L595.1 281.69" class="edge falcon supportMedium" data-method="falcon" data-arrow-width="3.7"/>
+      <path d="M302 227 L487.02 221.19" class="edge falcon supportHigh" data-method="falcon" stroke-width="5"/>
+      <path d="M302 264 L595.1 281.69" class="edge falcon supportMedium" data-method="falcon" stroke-width="3.7"/>
 
       <!-- Indirect support: associated genes and gene annotations -> relevant genes -->
-      <path d="M525 258 L525 362" class="edge pigean" data-method="pigean" data-arrow-width="2.1"/>
-      <path d="M302 450 L487.92 408.31" class="edge dataEdge pigean supportHigh" data-method="pigean" data-arrow-width="5"/>
-      <path d="M302 441 L599.81 307.5" class="edge dataEdge pigean supportLow" data-method="pigean" data-arrow-width="2.5"/>
+      <path d="M525 258 L525 362" class="edge pigean" data-method="pigean" stroke-width="2.1"/>
+      <path d="M302 450 L487.92 408.31" class="edge dataEdge pigean supportHigh" data-method="pigean" stroke-width="5"/>
+      <path d="M302 441 L599.81 307.5" class="edge dataEdge pigean supportLow" data-method="pigean" stroke-width="2.5"/>
 
       <!-- Latent genetic factors: associated and relevant genes -> latent factors -->
-      <path d="M562.965 221.54 L771.57 230" class="edge eaggl membershipEdge loadingStrong" data-method="eaggl" data-arrow-width="5.2"/>
-      <path d="M560.72 387.035 L795 302" class="edge eaggl membershipEdge loadingMedium" data-method="eaggl" data-arrow-width="3.3"/>
-      <path d="M698.585 310.78 L790.21 359.4" class="edge eaggl membershipEdge loadingHigh" data-method="eaggl" data-arrow-width="4.3"/>
-      <path d="M558.585 417.78 L780 535" class="edge eaggl membershipEdge loadingLow" data-method="eaggl" data-arrow-width="2.3"/>
+      <path d="M562.965 221.54 L771.57 230" class="edge eaggl membershipEdge loadingStrong" data-method="eaggl" stroke-width="5.2"/>
+      <path d="M560.72 387.035 L795 302" class="edge eaggl membershipEdge loadingMedium" data-method="eaggl" stroke-width="3.3"/>
+      <path d="M698.585 310.78 L790.21 359.4" class="edge eaggl membershipEdge loadingHigh" data-method="eaggl" stroke-width="4.3"/>
+      <path d="M558.585 417.78 L780 535" class="edge eaggl membershipEdge loadingLow" data-method="eaggl" stroke-width="2.3"/>
 
     </g>
 
@@ -263,7 +263,10 @@ export default Vue.component("modelgraph", {
   },
   props: { method: { type: String, required: true } },
   data() { return { activeHover: null }; },
-  mounted() { this.applyFocus(); },
+  mounted() { 
+    this.drawEdges();
+    this.applyFocus();
+  },
   methods: {
     applyFocus() {
       const viz = this.$el;
@@ -303,6 +306,12 @@ export default Vue.component("modelgraph", {
     },
     onModelMove(event) {
       if (this.activeHover) this.$emit('move-tip', event);
+    },
+    drawEdges(){
+      const viz = this.$el;
+      viz.querySelectorAll("path").forEach(path => {
+        console.log(JSON.stringify(path));
+      })
     }
   },
   watch: { method() { this.$nextTick(this.applyFocus); } },

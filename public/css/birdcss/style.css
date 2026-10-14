@@ -184,7 +184,7 @@
   .dataCombination path{fill:none;stroke:#dc913a;stroke-width:2.2}
   .dataCombination circle{fill:#fff8ed;stroke:#dc913a;stroke-width:1.8}
   .dataCombination text{fill:#b96f24;font-size:17px;font-weight:800;text-anchor:middle;dominant-baseline:middle}
-  .edge{fill:#8796aa;stroke:black;opacity:.8;transition:opacity .18s,filter .18s}
+  .edge{fill:#8796aa;stroke:#8796aa;opacity:.8;transition:opacity .18s,filter .18s}
   .edge.dataEdge{fill:#8796aa}
   .edge.membershipEdge{fill:#268f88;opacity:.9}
   .methodRibbon{cursor:pointer}
