@@ -55,7 +55,7 @@
                     v-if="pigeanDataFiltered.length > 0"
                     class="evidence-range-legend"
                 >
-                    <strong>Evidence range (Combined score):</strong>
+                    <strong>Evidence range (Combined support):</strong>
                     <span class="very-strong">Very Strong</span> &gt; 3 |
                     <span class="strongly-suggestive">Strongly Suggestive</span>: 2-3 |
                     <span class="nominally-significant">Nominally Significant</span>: 1-2 |
@@ -305,6 +305,8 @@
                                         :current-page="getFactorSubtablePage(row.item)"
                                         show-empty
                                         empty-text="No factor data."
+                                        sort-by="factor_value"
+                                        :sort-desc="true"
                                     >
                                         <template #cell(top_gene_sets)="cell">
                                             {{ formatSemicolonList(cell.item.top_gene_sets) }}
@@ -427,7 +429,7 @@
                 </template>
             </criterion-function-group>
         </b-tab>
-        <b-tab title="Combined scores vs HuGE scores">
+        <b-tab title="Combined support vs HuGE">
             <div class="tab-documentation">
             </div>
             <research-pigean-phewas-plot
@@ -730,8 +732,13 @@ export default Vue.component("pigean-gene", {
             sortable: true,
           },
           {
+            key: "factor_value",
+            label: "Loading on factor",
+            sortable: true
+          },
+          {
             key: "gene_set_score",
-            label: "Factor relevance",
+            label: "Factor relevance to phenotype",
             sortable: true,
             formatter: (value) =>
               value === null || value === undefined || value === ""
@@ -751,11 +758,6 @@ export default Vue.component("pigean-gene", {
             key: "top_genes",
             label: "Top genes",
             sortable: false,
-          },
-          {
-            key: "factor_value",
-            label: "Loading on factor",
-            sortable: true
           }
         ],
         tableFields: [
@@ -794,7 +796,7 @@ export default Vue.component("pigean-gene", {
           },
           {
             key: 'Combined_support',
-            label: 'Combined score',
+            label: 'Combined support',
             sortable: true
           },
           {
@@ -809,12 +811,12 @@ export default Vue.component("pigean-gene", {
             "group by": "group",
             "phenotype map": "kp phenotype map",
             "y axis fields": ["Combined_support","Log_HuGE_Score"],
-            "y axis field labels": ["Combined score","Log(HuGE scores)"],
+            "y axis field labels": ["Combined support","Log(HuGE scores)"],
             "primary y axis field": "Combined_support",
             "secondary y axis field": "Log_HuGE_Score",
             "secondary y axis label": "Log(HuGE scores)",
             "convert y -log10": "false",
-            "y axis label": "Combined score",
+            "y axis label": "Combined support",
             "x axis label": "",
             "beta field": "null",
             "hover content": ["Phenotype", "Factor","Combined_support", "HuGE_Score", "Log_HuGE_Score"],

@@ -52,7 +52,7 @@
                     v-if="pigeanDataFiltered.length > 0"
                     class="evidence-range-legend"
                 >
-                    <strong>Evidence range (Combined score):</strong>
+                    <strong>Evidence range (Combined support):</strong>
                     <span class="very-strong">Very Strong</span> &gt; 3 |
                     <span class="strongly-suggestive">Strongly Suggestive</span>: 2-3 |
                     <span class="nominally-significant">Nominally Significant</span>: 1-2 |
@@ -259,7 +259,7 @@
                 </template>
             </criterion-function-group>
         </b-tab>
-        <b-tab title="Combined scores vs HuGE scores">
+        <b-tab title="Combined support vs HuGE">
             <div class="tab-documentation">
             </div>
             <research-pigean-phewas-plot
@@ -345,10 +345,10 @@
                 ></b-pagination>
             </div>
         </b-tab>
-        <b-tab title="Direct vs. indirect score" lazy>
+        <b-tab title="Direct vs. indirect support" lazy>
             <div class="tab-documentation">
-                Direct (GWAS) support versus indirect (gene set) support for
-                each gene. Dashed lines mark a score of 3 on each axis.
+                Direct (GWAS) support versus indirect (gene annotation) support for
+                each gene. Dashed lines mark a score of 1 (considered nominally significant) on each axis.
             </div>
             <div class="direct-indirect-plot">
                 <pigean-support-plot
@@ -357,9 +357,9 @@
                     :rows="directVsIndirectRows"
                     x-key="Direct_support"
                     y-key="Indirect_support"
-                    x-label="GWAS support (direct score)"
-                    y-label="Gene set support (indirect score)"
-                    title="Direct vs. indirect score"
+                    x-label="Direct support"
+                    y-label="Indirect support"
+                    title="Direct vs. indirect support"
                     :threshold="1"
                     :point-radius="5"
                     @select="openGeneFromPlot"
@@ -558,12 +558,12 @@ export default Vue.component("pigean-phenotype", {
             "group by": "Factor",
             "phenotype map": null,
             "y axis fields": ["Combined_support","Log_HuGE_Score"],
-            "y axis field labels": ["Combined score","Log(HuGE scores)"],
+            "y axis field labels": ["Combined support","Log(HuGE scores)"],
             "primary y axis field": "Combined_support",
             "secondary y axis field": "Log_HuGE_Score",
             "secondary y axis label": "Log(HuGE scores)",
             "convert y -log10": "false",
-            "y axis label": "Combined score",
+            "y axis label": "Combined support",
             "x axis label": "",
             "beta field": "null",
             "hover content": ["Gene", "Factor","Combined_support", "HuGE_Score", "Log_HuGE_Score"],
@@ -652,7 +652,7 @@ export default Vue.component("pigean-phenotype", {
           },
           {
             key: 'Combined_support',
-            label: 'Combined score',
+            label: 'Combined support',
             sortable: true
           },
           {
@@ -669,7 +669,7 @@ export default Vue.component("pigean-phenotype", {
           },
           {
             key: 'Combined_support',
-            label: 'Combined score',
+            label: 'Combined support',
             sortable: true
           },
           {
