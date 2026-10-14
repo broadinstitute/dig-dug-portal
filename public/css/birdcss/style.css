@@ -25,12 +25,25 @@
   }
   .page{max-width:1680px;margin:0 auto;padding:18px 24px 22px}
   .header{
-    display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;margin-bottom:14px
+    /*display:grid;*/
+    grid-template-columns:1fr auto;
+    gap:24px;
+    /*align-items:end;*/
+    margin-bottom:14px;
+    text-align: center;
   }
   h1{font-size:28px;line-height:1.08;margin:0;font-weight:760;letter-spacing:-.02em}
   .subtitle{font-size:15px;color:var(--muted);max-width:980px;line-height:1.5}
-  .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-  .statControls{display:flex;gap:8px;flex-wrap:nowrap;justify-content:flex-end}
+  .controls{
+    /*display:flex;*/
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:center}
+  .statControls{
+    /*display:flex;*/
+    gap:8px;
+    flex-wrap:nowrap;
+    justify-content:center}
   .btn{
     border:1px solid #d7dfeb;background:#fff;border-radius:999px;padding:9px 13px;
     color:#334761;font-size:13px;font-weight:650;cursor:pointer;transition:.16s ease;

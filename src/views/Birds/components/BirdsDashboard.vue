@@ -2,7 +2,7 @@
 
     <div class="page">
       <div class="header">
-        <h1>From genetic associations to mechanisms: A birds-eye's view</h1>
+        <h1>From genetic associations to mechanisms: A bird's-eye view</h1>
         <div class="controls"><div class="statControls">
           <button class="btn" :class="{ active: method === 'all' }" data-method="all"
             type="button" @click="focus('all')">Whole model</button>
