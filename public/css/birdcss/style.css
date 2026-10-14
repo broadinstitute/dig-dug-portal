@@ -186,7 +186,7 @@
   .dataCombination text{fill:#b96f24;font-size:17px;font-weight:800;text-anchor:middle;dominant-baseline:middle}
   .edge{fill:#8796aa;stroke:#8796aa;opacity:.8;transition:opacity .18s,filter .18s}
   .edge.dataEdge{fill:#8796aa}
-  .edge.membershipEdge{fill:#268f88;opacity:.9}
+  .edge.membershipEdge{fill:#268f88; stroke:#268f88; opacity:.9}
   .methodRibbon{cursor:pointer}
   .methodRibbon text{font-size:13px;font-weight:800}
   .methodRibbon .desc{font-size:11px;font-weight:600}
