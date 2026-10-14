@@ -1,5 +1,4 @@
 <template>
-
     <div class="page">
       <div class="header">
         <h1>From genetic associations to mechanisms: A bird's-eye view</h1>
@@ -126,5 +125,6 @@ export default Vue.component("birds-dashboard", {
 @import url("/css/birdcss/style.css");
 .detail-section-wrapper {
     display: block !important;
+    margin-top: 10px;
 }
 </style>
