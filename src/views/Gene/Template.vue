@@ -644,6 +644,7 @@
                 v-if="
                     $parent.deployment !== 'production' &&
                     $store.state.mouseSummary.data.length > 0
+                    && false
                 "
                 class="card mdkp-card"
             >
