@@ -9,18 +9,18 @@
 </template>
 <script>
 import Vue from "vue";
-import BirdPanelHtml from "../content/panels.js";
+import BIRD_PANEL_HTML from "../content/panels.js";
 
 export default Vue.component("method-heading", {
   props: { method: { type: String, required: true } },
   computed: {
-    identity() { return panelMarkup(this.method).querySelector('.methodIdentity').outerHTML; },
-    title() { return panelMarkup(this.method).querySelector('.detailTitle').outerHTML; }
+    identity() { return this.panelMarkup(this.method).querySelector('.methodIdentity').outerHTML; },
+    title() { return this.panelMarkup(this.method).querySelector('.detailTitle').outerHTML; }
   },
   methods: {
     panelMarkup(method) {
         const panel = document.createElement('div');
-        panel.innerHTML = BirdPanelHtml[method];
+        panel.innerHTML = BIRD_PANEL_HTML[method];
         return panel;
     }
   }

@@ -10,6 +10,8 @@
 <script>
 import Vue from "vue";
 import MethodHeading from "./MethodHeading.vue";
+import BIRD_PANEL_HTML from "../content/panels.js";
+
 export default Vue.component("method-panel", {
   components : {
     MethodHeading
@@ -17,17 +19,24 @@ export default Vue.component("method-panel", {
   props: { method: String },
   computed: {
     wholePanel() {
-      const panel = panelMarkup('all');
+      const panel = this.panelMarkup('all');
       const legend = [...panel.querySelectorAll('.panelSection')]
         .find(section => section.querySelector('h3').textContent === 'Legend');
       legend.remove();
       return panel.innerHTML;
     },
     methodBody() {
-      return [...panelMarkup(this.method).querySelectorAll('.panelSection')]
+      return [...this.panelMarkup(this.method).querySelectorAll('.panelSection')]
         .map(section => section.outerHTML).join('');
-    }
+    },
   },
+  methods: {
+    panelMarkup(method) {
+        const panel = document.createElement('div');
+        panel.innerHTML = BIRD_PANEL_HTML[method];
+        return panel;
+    }
+  }
 });
 </script>
 

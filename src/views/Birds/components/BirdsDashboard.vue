@@ -49,12 +49,14 @@
 import Vue from "vue";
 import ModelGraph from "./ModelGraph.vue";
 import ValidationGallery from "./ValidationGallery.vue";
-import BirdPanelHtml from "../content/panels.js";
+import MethodPanel from "./MethodPanel.vue";
+import BIRD_PANEL_HTML from "../content/panels.js";
 
 export default Vue.component("birds-dashboard", {
     components: {
         ModelGraph,
-        ValidationGallery
+        ValidationGallery,
+        MethodPanel
     },
   data() {
     return {
@@ -64,7 +66,7 @@ export default Vue.component("birds-dashboard", {
   },
   computed: {
     graphLegend() {
-      const legend = [...panelMarkup('all').querySelectorAll('.panelSection')]
+      const legend = [...this.panelMarkup('all').querySelectorAll('.panelSection')]
         .find(section => section.querySelector('h3').textContent === 'Legend')
         .querySelector('.legend');
       const factor = legend.querySelector('.swatch.mechanism').closest('.leg');
@@ -74,14 +76,15 @@ export default Vue.component("birds-dashboard", {
     }
   },
   mounted() {
+    console.log(typeof BIRD_PANEL_HTML);
     const initial = location.hash.slice(1);
-    this.focus(BirdPanelHtml[initial] ? initial : 'all');
+    this.focus(BIRD_PANEL_HTML[initial] ? initial : 'all');
     window.addEventListener('keydown', this.onShortcut);
   },
   beforeDestroy() { window.removeEventListener('keydown', this.onShortcut); },
   methods: {
     focus(method) {
-      if (!BirdPanelHtml[method]) return;
+      if (!BIRD_PANEL_HTML[method]) return;
       this.method = method;
       if (method === 'all') this.detailTab = 'overview';
       this.tooltip.visible = false;
@@ -108,6 +111,11 @@ export default Vue.component("birds-dashboard", {
       this.tooltip.visible = true;
       this.moveTip(payload.event);
     },
+    panelMarkup(method) {
+        const panel = document.createElement('div');
+        panel.innerHTML = BIRD_PANEL_HTML[method];
+        return panel;
+    }
   },
 });
 </script>
