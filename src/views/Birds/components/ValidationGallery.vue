@@ -15,8 +15,12 @@
 </template>
 <script>
 import Vue from "vue";
+import MethodHeading from "./MethodHeading.vue";
 
 export default Vue.component("validation-gallery", {
+  components: {
+    MethodHeading
+  },
   props: { method: { type: String, required: true } },
   computed: {
     config() { return window.BirdValidationData[this.method]; },

@@ -9,8 +9,11 @@
 </template>
 <script>
 import Vue from "vue";
-
+import MethodHeading from "./MethodHeading.vue";
 export default Vue.component("method-panel", {
+  components : {
+    MethodHeading
+  },
   props: { method: String },
   computed: {
     wholePanel() {

@@ -47,8 +47,13 @@
 </template>
 <script>
 import Vue from "vue";
-
+import ModelGraph from "./ModelGraph.vue";
+import ValidationGallery from "./ValidationGallery.vue";
 export default Vue.component("birds-dashboard", {
+    components: {
+        ModelGraph,
+        ValidationGallery
+    },
   data() {
     return {
       method: 'all', detailTab: 'overview',
