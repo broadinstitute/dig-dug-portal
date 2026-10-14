@@ -305,6 +305,8 @@
                                         :current-page="getFactorSubtablePage(row.item)"
                                         show-empty
                                         empty-text="No factor data."
+                                        sort-by="factor_value"
+                                        :sort-desc="true"
                                     >
                                         <template #cell(top_gene_sets)="cell">
                                             {{ formatSemicolonList(cell.item.top_gene_sets) }}
@@ -730,8 +732,13 @@ export default Vue.component("pigean-gene", {
             sortable: true,
           },
           {
+            key: "factor_value",
+            label: "Loading on factor",
+            sortable: true
+          },
+          {
             key: "gene_set_score",
-            label: "Factor relevance",
+            label: "Factor relevance to phenotype",
             sortable: true,
             formatter: (value) =>
               value === null || value === undefined || value === ""
@@ -751,11 +758,6 @@ export default Vue.component("pigean-gene", {
             key: "top_genes",
             label: "Top genes",
             sortable: false,
-          },
-          {
-            key: "factor_value",
-            label: "Loading on factor",
-            sortable: true
           }
         ],
         tableFields: [
