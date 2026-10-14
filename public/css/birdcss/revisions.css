@@ -114,13 +114,13 @@ h1{font-size:clamp(25px,2.6vw,31px);line-height:1.16}
 
 /* Keep the entire diagram visible in common laptop-height viewports. */
 @media (min-width:901px) and (max-height:820px){
-  .header,.frame{max-width:940px}
+  .header,.frame, .birdframe{max-width:940px}
 }
 @media (min-width:901px) and (max-height:720px){
-  .header,.frame{max-width:800px}
+  .header,.frame, .birdframe{max-width:800px}
 }
 @media (min-width:901px) and (max-height:620px){
-  .header,.frame{max-width:700px}
+  .header,.frame, .birdframe{max-width:700px}
 }
 @media (max-width:900px){
   .statControls{grid-template-columns:repeat(2,minmax(0,1fr))}
