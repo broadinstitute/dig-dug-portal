@@ -1,47 +1,48 @@
 <template>
-
     <div class="page">
-      <div class="header">
-        <h1>From genetic associations to mechanisms: A bird's-eye view</h1>
-        <div class="controls"><div class="statControls">
-          <button class="btn" :class="{ active: method === 'all' }" data-method="all"
-            type="button" @click="focus('all')">Whole model</button>
-          <button class="btn methodTab" :class="{ active: method === 'falcon' }"
-            data-method="falcon" type="button" @click="focus('falcon')">Direct genetic support<span class="btnSub">association signals → associated genes</span></button>
-          <button class="btn methodTab" :class="{ active: method === 'pigean' }"
-            data-method="pigean" type="button" @click="focus('pigean')">Indirect genetic support<span class="btnSub">associated genes + shared biology → relevant genes</span></button>
-          <button class="btn methodTab" :class="{ active: method === 'eaggl' }"
-            data-method="eaggl" type="button" @click="focus('eaggl')">Latent genetic factors<span class="btnSub">associated &amp; relevant genes → potential mechanisms</span></button>
-        </div></div>
-      </div>
-      <div class="birdframe">
-        <div class="canvasWrap" ref="canvasWrap">
-          <div id="tooltip" class="tip" :style="{ opacity: tooltip.visible ? 1 : 0, left: tooltip.left, top: tooltip.top }"><strong>{{ tooltip.text }}</strong></div>
-          <modelgraph :method="method"
-            @show-tip="showTip" @hide-tip="tooltip.visible = false" @move-tip="moveTip"></modelgraph>
-          <div class="graphLegend" aria-label="Graph legend">
-            <strong>Legend</strong>
-            <div v-html="graphLegend"></div>
-          </div>
+      <div class="page-liner">
+        <div class="header">
+          <h1>From genetic associations to mechanisms: A bird's-eye view</h1>
+          <div class="controls"><div class="statControls">
+            <button class="btn" :class="{ active: method === 'all' }" data-method="all"
+              type="button" @click="focus('all')">Whole model</button>
+            <button class="btn methodTab" :class="{ active: method === 'falcon' }"
+              data-method="falcon" type="button" @click="focus('falcon')">Direct genetic support<span class="btnSub">association signals → associated genes</span></button>
+            <button class="btn methodTab" :class="{ active: method === 'pigean' }"
+              data-method="pigean" type="button" @click="focus('pigean')">Indirect genetic support<span class="btnSub">associated genes + shared biology → relevant genes</span></button>
+            <button class="btn methodTab" :class="{ active: method === 'eaggl' }"
+              data-method="eaggl" type="button" @click="focus('eaggl')">Latent genetic factors<span class="btnSub">associated &amp; relevant genes → potential mechanisms</span></button>
+          </div></div>
         </div>
-        <div class="detail-section-wrapper">
-            <section class="detailSection" aria-label="Method details">
-          <div class="detailTabs" role="tablist" aria-label="Method detail view">
-            <button id="overview-tab" class="detailTab" :class="{ active: detailTab === 'overview' }"
-              type="button" role="tab" :aria-selected="detailTab === 'overview' ? 'true' : 'false'"
-              aria-controls="overview-view" @click="showDetail('overview')">Overview</button>
-            <button v-if="method !== 'all'" id="validation-tab" class="detailTab"
-              :class="{ active: detailTab === 'validation' }" type="button" role="tab"
-              :aria-selected="detailTab === 'validation' ? 'true' : 'false'"
-              aria-controls="validation-view" @click="showDetail('validation')">Validation</button>
+        <div class="birdframe">
+          <div class="canvasWrap" ref="canvasWrap">
+            <div id="tooltip" class="tip" :style="{ opacity: tooltip.visible ? 1 : 0, left: tooltip.left, top: tooltip.top }"><strong>{{ tooltip.text }}</strong></div>
+            <modelgraph :method="method"
+              @show-tip="showTip" @hide-tip="tooltip.visible = false" @move-tip="moveTip"></modelgraph>
+            <div class="graphLegend" aria-label="Graph legend">
+              <strong>Legend</strong>
+              <div v-html="graphLegend"></div>
+            </div>
           </div>
-          <div id="overview-view" role="tabpanel" aria-labelledby="overview-tab"
-            v-show="detailTab === 'overview'"><method-panel :method="method"></method-panel></div>
-          <div v-if="method !== 'all'" v-show="detailTab === 'validation'"
-            id="validation-view" class="side" role="tabpanel" aria-labelledby="validation-tab">
-            <validation-gallery :method="method"></validation-gallery>
+          <div class="detail-section-wrapper">
+              <section class="detailSection" aria-label="Method details">
+            <div class="detailTabs" role="tablist" aria-label="Method detail view">
+              <button id="overview-tab" class="detailTab" :class="{ active: detailTab === 'overview' }"
+                type="button" role="tab" :aria-selected="detailTab === 'overview' ? 'true' : 'false'"
+                aria-controls="overview-view" @click="showDetail('overview')">Overview</button>
+              <button v-if="method !== 'all'" id="validation-tab" class="detailTab"
+                :class="{ active: detailTab === 'validation' }" type="button" role="tab"
+                :aria-selected="detailTab === 'validation' ? 'true' : 'false'"
+                aria-controls="validation-view" @click="showDetail('validation')">Validation</button>
+            </div>
+            <div id="overview-view" role="tabpanel" aria-labelledby="overview-tab"
+              v-show="detailTab === 'overview'"><method-panel :method="method"></method-panel></div>
+            <div v-if="method !== 'all'" v-show="detailTab === 'validation'"
+              id="validation-view" class="side" role="tabpanel" aria-labelledby="validation-tab">
+              <validation-gallery :method="method"></validation-gallery>
+            </div>
+          </section>
           </div>
-        </section>
         </div>
       </div>
       <div class="footerNote">Local dashboard — no internet connection or external library required.</div>
@@ -126,5 +127,9 @@ export default Vue.component("birds-dashboard", {
 @import url("/css/birdcss/style.css");
 .detail-section-wrapper {
     display: block !important;
+    margin-top: 10px;
+}
+.controls {
+  margin-top: 10px !important;
 }
 </style>
