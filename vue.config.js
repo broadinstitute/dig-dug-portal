@@ -386,7 +386,7 @@ let pages = {
     birds: {
         entry: "src/views/Birds/main.js",
         template: "public/index.html",
-        title: "From genetic associations to mechanisms: A birds-eye's view",
+        title: "Bird Methods",
         chunks: ["chunk-vendors", "chunk-common", "birds"]
     }
 };
