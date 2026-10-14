@@ -16,6 +16,7 @@
 <script>
 import Vue from "vue";
 import MethodHeading from "./MethodHeading.vue";
+import { BirdValidationData } from "../content/validation.js";
 
 export default Vue.component("validation-gallery", {
   components: {
@@ -23,7 +24,7 @@ export default Vue.component("validation-gallery", {
   },
   props: { method: { type: String, required: true } },
   computed: {
-    config() { return window.BirdValidationData[this.method]; },
+    config() { return BirdValidationData[this.method]; },
     title() { return this.config.name + ' validation'; }
   },
 });

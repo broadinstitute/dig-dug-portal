@@ -1,5 +1,5 @@
 // Verbatim validation copy and figure metadata from the reviewed dashboard.
-window.BirdValidationData = {
+export const BirdValidationData = {
     falcon:{
       name:'FALCON',
       figures:[

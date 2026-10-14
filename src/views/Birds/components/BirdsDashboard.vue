@@ -49,6 +49,8 @@
 import Vue from "vue";
 import ModelGraph from "./ModelGraph.vue";
 import ValidationGallery from "./ValidationGallery.vue";
+import BirdPanelHtml from "../content/panels.js";
+
 export default Vue.component("birds-dashboard", {
     components: {
         ModelGraph,
@@ -73,13 +75,13 @@ export default Vue.component("birds-dashboard", {
   },
   mounted() {
     const initial = location.hash.slice(1);
-    this.focus(window.BirdPanelHtml[initial] ? initial : 'all');
+    this.focus(BirdPanelHtml[initial] ? initial : 'all');
     window.addEventListener('keydown', this.onShortcut);
   },
   beforeDestroy() { window.removeEventListener('keydown', this.onShortcut); },
   methods: {
     focus(method) {
-      if (!window.BirdPanelHtml[method]) return;
+      if (!BirdPanelHtml[method]) return;
       this.method = method;
       if (method === 'all') this.detailTab = 'overview';
       this.tooltip.visible = false;

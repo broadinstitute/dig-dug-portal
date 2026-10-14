@@ -9,6 +9,7 @@
 </template>
 <script>
 import Vue from "vue";
+import BirdPanelHtml from "../content/panels.js";
 
 export default Vue.component("method-heading", {
   props: { method: { type: String, required: true } },
@@ -19,7 +20,7 @@ export default Vue.component("method-heading", {
   methods: {
     panelMarkup(method) {
         const panel = document.createElement('div');
-        panel.innerHTML = window.BirdPanelHtml[method];
+        panel.innerHTML = BirdPanelHtml[method];
         return panel;
     }
   }
