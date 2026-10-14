@@ -257,7 +257,6 @@
 </template>
 <script>
 import Vue from "vue";
-import { BIRD_MODEL_TEMPLATE } from "../content/modelgraph";
 
 export default Vue.component("modelgraph", {
   components: {
@@ -265,13 +264,6 @@ export default Vue.component("modelgraph", {
   props: { method: { type: String, required: true } },
   data() { return { activeHover: null }; },
   mounted() { this.applyFocus(); },
-  computed: {
-    birdModelTemplate(){
-      let baseHtml = BIRD_MODEL_TEMPLATE;
-      baseHtml = baseHtml.replaceAll("onModelOver", "$parent.onModelOver");
-      return baseHtml;
-    }
-  },
   methods: {
     applyFocus() {
       const viz = this.$el;
