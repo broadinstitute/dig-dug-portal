@@ -36,6 +36,11 @@ h1{font-size:clamp(25px,2.6vw,31px);line-height:1.16}
   margin:0 auto;
   gap:14px;
 }
+.birdframe {
+  max-width: 1120px;
+  margin-left: 280px;
+
+}
 .canvasWrap,.detailSection,.side{width:100%}
 #viz{max-height:calc(100vh - 255px);max-height:calc(100dvh - 255px)}
 .graphLegend{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:12px;padding:9px 14px 11px;border-top:1px solid #e8edf4;background:#fff}
@@ -114,13 +119,28 @@ h1{font-size:clamp(25px,2.6vw,31px);line-height:1.16}
 
 /* Keep the entire diagram visible in common laptop-height viewports. */
 @media (min-width:901px) and (max-height:820px){
-  .header,.frame, .birdframe{max-width:940px}
+  .header,.frame {max-width:940px}
+  .birdframe {
+    /* max page width:1680px*/
+    margin-left: 370px;
+    max-width: 940px;
+  }
 }
 @media (min-width:901px) and (max-height:720px){
-  .header,.frame, .birdframe{max-width:800px}
+  .header,.frame {max-width:800px}
+  .birdframe {
+    /* max page width:1680px*/
+    margin-left: 440px;
+    max-width: 800px;
+  }
 }
 @media (min-width:901px) and (max-height:620px){
-  .header,.frame, .birdframe{max-width:700px}
+  .header,.frame {max-width:700px}
+  .birdframe {
+    /* max page width:1680px*/
+    margin-left: 490px;
+    max-width: 700px;
+  }
 }
 @media (max-width:900px){
   .statControls{grid-template-columns:repeat(2,minmax(0,1fr))}

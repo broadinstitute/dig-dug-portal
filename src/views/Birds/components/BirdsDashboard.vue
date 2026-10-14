@@ -127,10 +127,4 @@ export default Vue.component("birds-dashboard", {
 .detail-section-wrapper {
     display: block !important;
 }
-.birdframe {
-    /*margin-left: 25%;*/
-    /*max-width: 50%;*/
-    max-width: 901px;
-    display: block !important;
-}
 </style>
