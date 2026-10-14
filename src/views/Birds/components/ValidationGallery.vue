@@ -29,4 +29,7 @@ export default Vue.component("validation-gallery", {
   },
 });
 </script>
-
+<style>
+@import url("/css/birdcss/revisions.css");
+@import url("/css/birdcss/style.css");
+</style>

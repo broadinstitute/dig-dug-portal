@@ -26,4 +26,7 @@ export default Vue.component("method-heading", {
   }
 });
 </script>
-
+<style>
+@import url("/css/birdcss/revisions.css");
+@import url("/css/birdcss/style.css");
+</style>

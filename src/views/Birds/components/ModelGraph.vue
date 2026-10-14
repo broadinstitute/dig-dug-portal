@@ -56,4 +56,7 @@ export default Vue.component("modelgraph", {
   watch: { method() { this.$nextTick(this.applyFocus); } },
 });
 </script>
-
+<style>
+@import url("/css/birdcss/revisions.css");
+@import url("/css/birdcss/style.css");
+</style>

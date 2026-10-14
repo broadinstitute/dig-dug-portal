@@ -119,4 +119,7 @@ export default Vue.component("birds-dashboard", {
   },
 });
 </script>
-
+<style>
+@import url("/css/birdcss/revisions.css");
+@import url("/css/birdcss/style.css");
+</style>

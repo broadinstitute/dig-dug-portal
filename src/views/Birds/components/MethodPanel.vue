@@ -39,4 +39,7 @@ export default Vue.component("method-panel", {
   }
 });
 </script>
-
+<style>
+@import url("/css/birdcss/revisions.css");
+@import url("/css/birdcss/style.css");
+</style>
