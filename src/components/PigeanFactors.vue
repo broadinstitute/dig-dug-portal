@@ -41,6 +41,58 @@
           :current-page="currentPage"
           responsive
         >
+        <template #head(label)="data">
+          <span class="column-header-with-tooltip">
+            <span>{{ data.label }}</span>
+            <span @click.stop>
+                <tooltip-documentation
+                    name="pigean.phenotype.column.pigean.tooltip"
+                    :is-hover="true"
+                    :no-icon="false"
+                    :supply-text="tooltipMap['LATENT_GENETIC']"
+                ></tooltip-documentation>
+              </span>
+            </span>
+        </template>
+        <template #head(gene_set_score)="data">
+          <span class="column-header-with-tooltip">
+            <span>{{ data.label }}</span>
+            <span @click.stop>
+                <tooltip-documentation
+                    name="pigean.phenotype.column.pigean.tooltip"
+                    :is-hover="true"
+                    :no-icon="false"
+                    :supply-text="tooltipMap['FACTOR_RELEVANCE']"
+                ></tooltip-documentation>
+              </span>
+            </span>
+        </template>
+        <template #head(top_gene_sets)="data">
+          <span class="column-header-with-tooltip">
+            <span>{{ data.label }}</span>
+            <span @click.stop>
+                <tooltip-documentation
+                    name="pigean.phenotype.column.pigean.tooltip"
+                    :is-hover="true"
+                    :no-icon="false"
+                    :supply-text="tooltipMap['TOP_GENE_SETS']"
+                ></tooltip-documentation>
+              </span>
+            </span>
+        </template>
+        <template #head(top_genes)="data">
+          <span class="column-header-with-tooltip">
+            <span>{{ data.label }}</span>
+            <span @click.stop>
+                <tooltip-documentation
+                    name="pigean.phenotype.column.pigean.tooltip"
+                    :is-hover="true"
+                    :no-icon="false"
+                    :supply-text="tooltipMap['TOP_GENES']"
+                ></tooltip-documentation>
+              </span>
+            </span>
+        </template>
           <template v-slot:cell(top_gene_sets)="row">
             <div class="top-list-cell">
               <span v-if="row.item.top_gene_sets" class="top-gene-sets-cell">
@@ -178,6 +230,7 @@ import DataDownload from "@/components/DataDownload.vue";
 import PigeanFactorsViz from "@/components/PigeanFactorsViz.vue";
 import { query, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import keyParams from "@/utils/keyParams";
+import { TOOLTIP_MAP } from "../utils/pigeanUtils";
 
 export default Vue.component("pigean-factors", {
   components: {
@@ -209,7 +262,7 @@ export default Vue.component("pigean-factors", {
       tableFields: [
         {
           key: 'label',
-          label: 'Factor',
+          label: 'Latent genetic factor',
           sortable: true,
           thStyle: { width: '25%' },
           tdStyle: { width: '25%' }
@@ -245,7 +298,7 @@ export default Vue.component("pigean-factors", {
         },
         {
           key: 'relevance_to_factor',
-          label: 'Relevance to factor',
+          label: 'Loading on factor',
           sortable: true,
           formatter: (value) => value ? value.toFixed(2) : 'N/A',
           tdClass(value) {
@@ -266,7 +319,7 @@ export default Vue.component("pigean-factors", {
         },
         {
           key: 'combined',
-          label: 'Combined score',
+          label: 'Combined support',
           sortable: true,
           formatter: (value) => value ? value.toFixed(2) : 'N/A',
           tdClass(value) {
@@ -287,7 +340,7 @@ export default Vue.component("pigean-factors", {
         },
         {
           key: 'gwas_support',
-          label: 'GWAS support',
+          label: 'Direct support',
           sortable: true,
           formatter: (value) => value ? value.toFixed(2) : 'N/A',
           tdClass(value) {
@@ -308,7 +361,7 @@ export default Vue.component("pigean-factors", {
         },
         {
           key: 'gene_set_support',
-          label: 'Gene set support',
+          label: 'Indirect support',
           sortable: true,
           formatter: (value) => value ? value.toFixed(2) : 'N/A',
           tdClass(value) {
@@ -336,7 +389,7 @@ export default Vue.component("pigean-factors", {
         },
         {
           key: 'relevance_to_factor',
-          label: 'Relevance to factor',
+          label: 'Loading on factor',
           sortable: true,
           formatter: (value) => value ? value.toFixed(2) : 'N/A',
           tdClass(value) {
@@ -673,6 +726,9 @@ export default Vue.component("pigean-factors", {
         geneSetScores: genes.map(g => pickScore(full.geneSetScores, g)),
         geneSetFactorData
       };
+    },
+    tooltipMap(){
+      return TOOLTIP_MAP;
     }
   },
   watch: {

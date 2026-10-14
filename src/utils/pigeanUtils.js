@@ -25,7 +25,9 @@ export const TOOLTIP_MAP = {
     "FACTOR_RELEVANCE": "Factor relevance measures how “important” the genetic factor is to the phenotype.",
     "LOADING_ON_FACTOR": "The loading of a gene on a factor measures how likely a gene participates in the factor. The loading of a gene annotation on a factor measures how well the gene annotation represents the (unobserved / latent) factor.",
     "MARGINAL_EFFECT": "The marginal effect of a gene annotation measures its relevance to the phenotype when considered in isolation. All gene annotation effects are expressed in units of log-odds of probabilities: >0.01 = significant, >0.1 = strongly significant, and >1.0 = among the strongest for any phenotype and any gene set.",
-    "JOINT_EFFECT": "The joint effect of a gene annotation measures its relevance to the phenotype when considered together with all other gene annotations in the model. All gene annotation effects are expressed in units of log-odds of probabilities: >0.01 = significant, >0.1 = strongly significant, and >1.0 = among the strongest for any phenotype and any gene set. Gene annotations with high marginal effects but weak joint effects are relevant to the phenotype but likely correlated with other gene annotations that are more relevant to the phenotype."
+    "JOINT_EFFECT": "The joint effect of a gene annotation measures its relevance to the phenotype when considered together with all other gene annotations in the model. All gene annotation effects are expressed in units of log-odds of probabilities: >0.01 = significant, >0.1 = strongly significant, and >1.0 = among the strongest for any phenotype and any gene set. Gene annotations with high marginal effects but weak joint effects are relevant to the phenotype but likely correlated with other gene annotations that are more relevant to the phenotype.",
+    "TOP_GENE_SETS": "The top gene sets with the highest loadings on the factor (i.e., gene sets that best represent the factor)",
+    "TOP_GENES": "The top gene sets with the highest loadings on the factor (i.e., genes are most likely to participate in the factor)"
 };
 
 export default {

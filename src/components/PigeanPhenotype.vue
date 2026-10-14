@@ -259,7 +259,7 @@
                 </template>
             </criterion-function-group>
         </b-tab>
-        <b-tab title="Combined support vs direct support from HuGE">
+        <b-tab title="Combined support vs HuGE">
             <div class="tab-documentation">
             </div>
             <research-pigean-phewas-plot
@@ -345,10 +345,10 @@
                 ></b-pagination>
             </div>
         </b-tab>
-        <b-tab title="Direct vs. indirect score" lazy>
+        <b-tab title="Direct vs. indirect support" lazy>
             <div class="tab-documentation">
-                Direct (GWAS) support versus indirect (gene set) support for
-                each gene. Dashed lines mark a score of 3 on each axis.
+                Direct (GWAS) support versus indirect (gene annotation) support for
+                each gene. Dashed lines mark a score of 1 (considered nominally significant) on each axis.
             </div>
             <div class="direct-indirect-plot">
                 <pigean-support-plot
@@ -357,9 +357,9 @@
                     :rows="directVsIndirectRows"
                     x-key="Direct_support"
                     y-key="Indirect_support"
-                    x-label="GWAS support (direct score)"
-                    y-label="Gene set support (indirect score)"
-                    title="Direct vs. indirect score"
+                    x-label="Direct support"
+                    y-label="Indirect support"
+                    title="Direct vs. indirect support"
                     :threshold="1"
                     :point-radius="5"
                     @select="openGeneFromPlot"

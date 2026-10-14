@@ -429,7 +429,7 @@
                 </template>
             </criterion-function-group>
         </b-tab>
-        <b-tab title="Combined support vs direct support from HuGE">
+        <b-tab title="Combined support vs HuGE">
             <div class="tab-documentation">
             </div>
             <research-pigean-phewas-plot
