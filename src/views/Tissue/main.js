@@ -181,7 +181,18 @@ new Vue({
             if(!this.$store.state.singleCellDatasets) return false;
             if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
             if(!this.tissue) return false;
-            const scTissue = this.$store.state.singleCellDatasets.find(x => x.tissue_a2fkp === this.tissue);
+            let scTissues = this.$store.state.singleCellDatasets.filter(x => x.tissue_a2fkp === this.tissue);
+            if (scTissues.length === 0){
+                scTissues = this.$store.state.singleCellDatasets
+                    .filter(x => x.tissue.replaceAll(" ", "_") === this.tissue);
+            }
+            let versionFinder = /_v([\d]+.*[\d]*)/;
+            scTissues.forEach(t => {
+                let version = t.datasetId.match(versionFinder);
+                t.version = version === null ? -1 : parseFloat(version[1]);
+            });
+            scTissues = scTissues.sort((a,b) => b.version - a.version);
+            let scTissue = scTissues[0];
             if(scTissue){
                 this.scTissueDataset = scTissue;
                 this.scbConfig.presets.datasetId = scTissue.datasetId;
