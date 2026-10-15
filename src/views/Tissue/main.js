@@ -105,7 +105,6 @@ new Vue({
                     datasetId: null,
                     layout: 3
                 },
-                isTissuePage: true,
                 bioIndex: "https://bioindex.hugeamp.org",
                 bioIndexDev: "https://bioindex-dev.hugeamp.org"
             },
