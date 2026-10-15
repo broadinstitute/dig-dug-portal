@@ -306,12 +306,6 @@ export default Vue.component("modelgraph", {
     onModelMove(event) {
       if (this.activeHover) this.$emit('move-tip', event);
     },
-    drawEdges(){
-      const viz = this.$el;
-      viz.querySelectorAll("path").forEach(path => {
-        console.log(JSON.stringify(path));
-      })
-    }
   },
   watch: { method() { this.$nextTick(this.applyFocus); } },
 });
