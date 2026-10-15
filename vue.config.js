@@ -383,6 +383,12 @@ let pages = {
         title: "Bottom-Line Provenance",
         chunks: ["chunk-vendors", "chunk-common", "bottomline"],
     },
+    birds: {
+        entry: "src/views/Birds/main.js",
+        template: "public/index.html",
+        title: "Bird Methods",
+        chunks: ["chunk-vendors", "chunk-common", "birds"]
+    }
 };
 
 const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");

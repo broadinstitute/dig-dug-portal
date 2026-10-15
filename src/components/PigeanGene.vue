@@ -5,9 +5,19 @@
         Gene-level trait associations for {{ (gene || "").toUpperCase() }}
       </h4>
       <b-tabs v-model="activeTab">
-        <b-tab title="Combined genetic support (GWAS + gene sets)">
+        <b-tab title="Combined genetic support (direct + indirect)">
             <div class="tab-documentation">
-                Documentation for combined genetic support
+                The results below are produced by three Bayesian statistical methods — FALCON, PIGEAN and EAGGL — 
+                which address complementary questions regarding genetic support for a gene. FALCON models 
+                genetic associations and functional genomic annotations to infer “direct genetic support” 
+                for the involvement of a gene in a phenotype; it improves upon and replaces the HuGE (
+                Human Genetic Evidence; <a href="https://pubmed.ncbi.nlm.nih.gov/35421386/">
+                Dornbos et al. 2022</a>) method. PIGEAN uses gene annotations to extend 
+                this direct support to assign “indirect genetic support” to additional genes functionally 
+                similar to genes with direct support. EAGGL uses combined (direct + indirect) genetic support, 
+                and the specific gene annotations responsible for indirect support, to group genes into latent 
+                factors underlying each phenotype, which are a proxy for genetically anchored “mechanisms”. 
+                More information on the overall framework and each method can be found <a href="/birds.html">here</a>.
             </div>
             <research-pigean-phewas-plot
                 v-if="pigeanDataFiltered.length > 0"
@@ -45,7 +55,7 @@
                     v-if="pigeanDataFiltered.length > 0"
                     class="evidence-range-legend"
                 >
-                    <strong>Evidence range (Combined score):</strong>
+                    <strong>Evidence range (Combined support):</strong>
                     <span class="very-strong">Very Strong</span> &gt; 3 |
                     <span class="strongly-suggestive">Strongly Suggestive</span>: 2-3 |
                     <span class="nominally-significant">Nominally Significant</span>: 1-2 |
@@ -63,7 +73,7 @@
                     detail-key="_rowKey"
                     responsive
                 >
-                    <template #head(Combined_GWAS_gene_sets)="data">
+                    <template #head(Combined_support)="data">
                         <span class="column-header-with-tooltip">
                             <span>{{ data.label }}</span>
                             <span @click.stop>
@@ -71,20 +81,33 @@
                                     name="pigean.column.pigean.tooltip"
                                     :is-hover="true"
                                     :no-icon="false"
-                                    supply-text="Placeholder documentation for PIGEAN scores (combined, GWAS support, and gene set support)."
+                                    :supply-text="tooltipMap['COMBINED_SUPPORT']"
                                 ></tooltip-documentation>
                             </span>
                         </span>
                     </template>
-                    <template #head(PPA)="data">
+                    <template #head(Direct_support)="data">
                         <span class="column-header-with-tooltip">
                             <span>{{ data.label }}</span>
                             <span @click.stop>
                                 <tooltip-documentation
-                                    name="pigean.column.falcon.tooltip"
+                                    name="pigean.column.pigean.tooltip"
                                     :is-hover="true"
                                     :no-icon="false"
-                                    supply-text="Placeholder documentation for FALCON posterior probability of association (PPA)."
+                                    :supply-text="tooltipMap['DIRECT_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template #head(Indirect_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['INDIRECT_SUPPORT']"
                                 ></tooltip-documentation>
                             </span>
                         </span>
@@ -97,7 +120,7 @@
                                     name="pigean.column.eaggl.tooltip"
                                     :is-hover="true"
                                     :no-icon="false"
-                                    supply-text="Placeholder documentation for the EAGGL mechanistic factor."
+                                    :supply-text="tooltipMap['LATENT_GENETIC']"
                                 ></tooltip-documentation>
                             </span>
                         </span>
@@ -105,24 +128,24 @@
                     <template v-slot:cell(Phenotype)="row">
                         <a :href="'/phenotype.html?phenotype='+row.item.phenotype">{{ phenotypeMap[row.item.phenotype] && phenotypeMap[row.item.phenotype]['description'] ? phenotypeMap[row.item.phenotype]['description'] : row.item.Phenotype }}</a>
                     </template>
-                    <template #cell(Combined_GWAS_gene_sets)="row">
+                    <template #cell(Combined_support)="row">
                         <span class="combined-score-cell">
                             <span class="score-piece">
                                 <span
-                                    :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_GWAS_gene_sets)]"
+                                    :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_support)]"
                                 ></span>
-                                {{ formatScore(row.item.Combined_GWAS_gene_sets) }}
+                                {{ formatScore(row.item.Combined_support) }}
                             </span>
                         </span>
                     </template>
-                    <template #cell(GWAS_support)="row">
+                    <template #cell(Direct_support)="row">
                       <div>
                         <span class="combined-score-cell">
                           <span class="score-piece">
                               <span
-                                  :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.GWAS_support)]"
+                                  :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Direct_support)]"
                               ></span>
-                              {{ formatScore(row.item.GWAS_support) }}
+                              {{ formatScore(row.item.Direct_support) }}
                           </span>
                         </span>
                       </div>
@@ -135,14 +158,14 @@
                           {{ isDetailsOpen(row.item, 'locus') ? "Hide" : "View evidence" }}
                       </b-button>
                     </template>
-                    <template #cell(Gene_set_support)="row">
+                    <template #cell(Indirect_support)="row">
                       <div>
                           <span class="combined-score-cell">
                             <span class="score-piece">
                                 <span
-                                    :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Gene_set_support)]"
+                                    :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Indirect_support)]"
                                 ></span>
-                                {{ formatScore(row.item.Gene_set_support) }}
+                                {{ formatScore(row.item.Indirect_support) }}
                             </span>
                         </span>
                       </div>
@@ -282,6 +305,8 @@
                                         :current-page="getFactorSubtablePage(row.item)"
                                         show-empty
                                         empty-text="No factor data."
+                                        sort-by="factor_value"
+                                        :sort-desc="true"
                                     >
                                         <template #cell(top_gene_sets)="cell">
                                             {{ formatSemicolonList(cell.item.top_gene_sets) }}
@@ -404,9 +429,8 @@
                 </template>
             </criterion-function-group>
         </b-tab>
-        <b-tab title="Combined scores vs HuGE scores">
+        <b-tab title="Combined support vs HuGE">
             <div class="tab-documentation">
-                Documentation for combined scores vs HuGE scores
             </div>
             <research-pigean-phewas-plot
                 v-if="combinedVsHugeData.length > 0"
@@ -459,15 +483,15 @@
                     :current-page="combinedVsHugePage"
                     responsive
                 >
-                    <template #head(PPA)="data">
+                    <template #head(Combined_support)="data">
                         <span class="column-header-with-tooltip">
                             <span>{{ data.label }}</span>
                             <span @click.stop>
                                 <tooltip-documentation
-                                    name="pigean.column.falcon.vs.huge.tooltip"
+                                    name="pigean.phenotype.column.pigean.tooltip"
                                     :is-hover="true"
                                     :no-icon="false"
-                                    supply-text="Placeholder documentation for FALCON posterior probability of association (PPA)."
+                                    :supply-text="tooltipMap['COMBINED_SUPPORT']"
                                 ></tooltip-documentation>
                             </span>
                         </span>
@@ -475,12 +499,12 @@
                     <template v-slot:cell(Phenotype)="row">
                         <a :href="'/phenotype.html?phenotype='+row.item.phenotype">{{ phenotypeMap[row.item.phenotype] && phenotypeMap[row.item.phenotype]['description'] ? phenotypeMap[row.item.phenotype]['description'] : row.item.Phenotype }}</a>
                     </template>
-                    <template #cell(Combined_GWAS_gene_sets)="row">
+                    <template #cell(Combined_support)="row">
                         <span class="score-piece">
                             <span
-                                :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_GWAS_gene_sets)]"
+                                :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_support)]"
                             ></span>
-                            {{ formatScore(row.item.Combined_GWAS_gene_sets) }}
+                            {{ formatScore(row.item.Combined_support) }}
                         </span>
                     </template>
                     <template #cell(PPA)="row">
@@ -529,6 +553,7 @@ import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
 import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
+import { TOOLTIP_MAP } from "../utils/pigeanUtils";
 
 const GENE_SET_TABLE_FORMAT = {
     "data convert": [
@@ -707,6 +732,11 @@ export default Vue.component("pigean-gene", {
             sortable: true,
           },
           {
+            key: "factor_value",
+            label: "Loading on factor",
+            sortable: true
+          },
+          {
             key: "gene_set_score",
             label: "Factor relevance to phenotype",
             sortable: true,
@@ -728,11 +758,6 @@ export default Vue.component("pigean-gene", {
             key: "top_genes",
             label: "Top genes",
             sortable: false,
-          },
-          {
-            key: "factor_value",
-            label: "Loading on factor",
-            sortable: true
           }
         ],
         tableFields: [
@@ -742,20 +767,20 @@ export default Vue.component("pigean-gene", {
             sortable: true
           },
           {
-            key: 'Combined_GWAS_gene_sets',
+            key: 'Combined_support',
             sortable: true
           },
           {
-            key: "GWAS_support",
+            key: "Direct_support",
             sortable: true
           },
           {
-            key: "Gene_set_support",
+            key: "Indirect_support",
             sortable: true
           },
           {
             key: 'Factor',
-            label: 'EAGGL Mechanistic factor',
+            label: 'Latent genetic factor',
             sortable: true
           },
           {
@@ -770,8 +795,8 @@ export default Vue.component("pigean-gene", {
             sortable: true
           },
           {
-            key: 'Combined_GWAS_gene_sets',
-            label: 'Combined score',
+            key: 'Combined_support',
+            label: 'Combined support',
             sortable: true
           },
           {
@@ -785,16 +810,16 @@ export default Vue.component("pigean-gene", {
             "render by": "Phenotype",
             "group by": "group",
             "phenotype map": "kp phenotype map",
-            "y axis fields": ["Combined_GWAS_gene_sets","Log_HuGE_Score"],
-            "y axis field labels": ["Combined score","Log(HuGE scores)"],
-            "primary y axis field": "Combined_GWAS_gene_sets",
+            "y axis fields": ["Combined_support","Log_HuGE_Score"],
+            "y axis field labels": ["Combined support","Log(HuGE scores)"],
+            "primary y axis field": "Combined_support",
             "secondary y axis field": "Log_HuGE_Score",
             "secondary y axis label": "Log(HuGE scores)",
             "convert y -log10": "false",
-            "y axis label": "Combined score",
+            "y axis label": "Combined support",
             "x axis label": "",
             "beta field": "null",
-            "hover content": ["Phenotype", "Factor","Combined_GWAS_gene_sets", "HuGE_Score", "Log_HuGE_Score"],
+            "hover content": ["Phenotype", "Factor","Combined_support", "HuGE_Score", "Log_HuGE_Score"],
             "filter by threshold": true,
             "thresholds": [2],
             "label in black": "greater than",
@@ -811,14 +836,14 @@ export default Vue.component("pigean-gene", {
             "render by": "Phenotype",
             "group by": "group",
             "phenotype map": "kp phenotype map",
-            "y axis fields": ["Combined_GWAS_gene_sets","GWAS_support","Gene_set_support"],
-            "y axis field labels": ["Combined (GWAS support + Gene set support)","GWAS support","Gene set support"],
-            "primary y axis field": "Combined_GWAS_gene_sets",
+            "y axis fields": ["Combined_support","Direct_support","Indirect_support"],
+            "y axis field labels": ["Combined (direct support + indirect support)","Direct support","Indirect support"],
+            "primary y axis field": "Combined_support",
             "convert y -log10": "false",
-            "y axis label": "Combined (GWAS + gene sets)",
+            "y axis label": "Combined (direct + indirect)",
             "x axis label": "",
             "beta field": "null",
-            "hover content": ["Phenotype", "Factor", "Combined_GWAS_gene_sets", "GWAS_support", "Gene_set_support", "PPA"],
+            "hover content": ["Phenotype", "Factor", "Combined_support", "Direct_support", "Indirect_support"],
             "filter by threshold": true,
             thresholds: [2],
             "label in black": "greater than",
@@ -838,12 +863,12 @@ export default Vue.component("pigean-gene", {
             "render by": "Phenotype",
             "group by": "group",
             "phenotype map": "kp phenotype map",
-            "y axis field": "GWAS_support",
+            "y axis field": "Direct_support",
             "convert y -log10": "false",
             "y axis label": "GWAS support",
             "x axis label": "",
             "beta field": "null",
-            "hover content": ["Phenotype", "GWAS_support", "Combined_GWAS_gene_sets", "Gene_set_support", "HuGE_Score"],
+            "hover content": ["Phenotype", "Direct_support", "Combined_support", "Indirect_support", "HuGE_Score"],
             thresholds: [2],
             "label in black": "greater than",
             height: "600",
@@ -859,12 +884,12 @@ export default Vue.component("pigean-gene", {
             "render by": "Phenotype",
             "group by": "group",
             "phenotype map": "kp phenotype map",
-            "y axis field": "Gene_set_support",
+            "y axis field": "Indirect_support",
             "convert y -log10": "false",
             "y axis label": "Gene set support",
             "x axis label": "",
             "beta field": "null",
-            "hover content": ["Phenotype", "Gene_set_support", "GWAS_support", "Combined_GWAS_gene_sets", "HuGE_Score"],
+            "hover content": ["Phenotype", "Indirect_support", "Direct_support", "Combined_support", "HuGE_Score"],
             thresholds: [2],
             "label in black": "greater than",
             height: "600",
@@ -885,7 +910,7 @@ export default Vue.component("pigean-gene", {
             "y axis label": "HuGE Score",
             "x axis label": "",
             "beta field": "null",
-            "hover content": ["Phenotype", "HuGE_Score", "GWAS_support", "Gene_set_support", "Combined_GWAS_gene_sets"],
+            "hover content": ["Phenotype", "HuGE_Score", "Direct_support", "Indirect_support", "Combined_support"],
             thresholds: [2],
             "label in black": "greater than",
             height: "600",
@@ -953,6 +978,7 @@ export default Vue.component("pigean-gene", {
       };
   },
   async mounted(){
+    console.log(JSON.stringify(Object.keys(Vue.config)));
     // Render the initial tab's plot when component is mounted
     this.$nextTick(() => {
       setTimeout(() => {
@@ -1050,9 +1076,9 @@ export default Vue.component("pigean-gene", {
       const fieldMapping = {
         'phenotype': 'Phenotype',
         'label': 'Factor',
-        'combined': 'Combined_GWAS_gene_sets',
-        'log_bf': 'GWAS_support',
-        'prior': 'Gene_set_support',
+        'combined': 'Combined_support',
+        'log_bf': 'Direct_support',
+        'prior': 'Indirect_support',
         'huge_score': 'HuGE_Score'
       };
       
@@ -1119,6 +1145,9 @@ export default Vue.component("pigean-gene", {
     currentPigeanSubtableData(){
       let queryKey = this.subtableKey(this.pigeanSubtablePhenotype);
       return this.pigeanSubtableData[queryKey];
+    },
+    tooltipMap(){
+      return TOOLTIP_MAP;
     }
   },
   watch: {
