@@ -130,4 +130,7 @@ export default Vue.component("birds-dashboard", {
 .controls {
   margin-top: 10px !important;
 }
+.page {
+  padding-top: 0px !important;
+}
 </style>
