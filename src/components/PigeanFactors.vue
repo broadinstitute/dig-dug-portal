@@ -54,7 +54,7 @@
               </span>
             </span>
         </template>
-        <template #head(gene_set_score)="data">
+        <template #head(anchor_any_joint)="data">
           <span class="column-header-with-tooltip">
             <span>{{ data.label }}</span>
             <span @click.stop>
@@ -268,10 +268,10 @@ export default Vue.component("pigean-factors", {
           tdStyle: { width: '25%' }
         },
         {
-          key: 'gene_set_score',
+          key: 'anchor_any_joint',
           label: 'Factor relevance to phenotype',
           sortable: true,
-          formatter: (value) => value ? value.toFixed(2) : 'N/A',
+          formatter: (value) => value !== 0 ? value.toFixed(2) : value,
           thStyle: { width: '15%' },
           tdStyle: { width: '15%' }
         },
@@ -478,8 +478,8 @@ export default Vue.component("pigean-factors", {
         .map(f => ({
           id: f.factor || f.cluster || '',
           label: f.label || f.factor || f.cluster || '',
-          score: f.gene_set_score !== undefined && f.gene_set_score !== null 
-            ? (typeof f.gene_set_score === 'number' ? f.gene_set_score : parseFloat(f.gene_set_score) || 0)
+          score: f.anchor_any_joint !== undefined && f.anchor_any_joint !== null 
+            ? (typeof f.anchor_any_joint === 'number' ? f.anchor_any_joint : parseFloat(f.anchor_any_joint) || 0)
             : 0
         }))
         .filter(f => f.id !== '');
@@ -570,8 +570,8 @@ export default Vue.component("pigean-factors", {
         .map(f => ({
           id: f.factor || f.cluster || '',
           label: f.label || f.factor || f.cluster || '',
-          score: f.gene_set_score !== undefined && f.gene_set_score !== null 
-            ? (typeof f.gene_set_score === 'number' ? f.gene_set_score : parseFloat(f.gene_set_score) || 0)
+          score: f.anchor_any_joint !== undefined && f.anchor_any_joint !== null 
+            ? (typeof f.anchor_any_joint === 'number' ? f.anchor_any_joint : parseFloat(f.anchor_any_joint) || 0)
             : 0
         }))
         .filter(f => f.id !== '');
