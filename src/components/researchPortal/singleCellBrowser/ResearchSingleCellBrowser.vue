@@ -2193,16 +2193,16 @@
                     if(this.portalGroup){
                         filteredMetadata =  filteredMetadata.filter(item => {
                             if(item.portals){
-                                return item.portals.includes(this.portalGroup);
+                                // All datasets should show on a2fkp
+                                return item.portals.includes(this.portalGroup) || this.portalGroup === 'a2f';
                             }
                         })
                     }
                     return filteredMetadata;
                 };
 
-                this.singleCellMetadata = filterSingleCellMetadata()
+                this.singleCellMetadata = filterSingleCellMetadata();
                 llog('singleCellMetadata', this.singleCellMetadata);
-                
                 //find metadata for current dataset
                 this.metadata = this.singleCellMetadata.find(x => x.datasetId === this.datasetId);
                 if(!this.metadata){
