@@ -490,7 +490,7 @@ export default Vue.component("pigean-factors-viz", {
       relevanceHeaderText.setAttribute('font-family', 'Arial');
       // Rotate -90 degrees around the center point
       relevanceHeaderText.setAttribute('transform', `rotate(-90, ${relevanceHeaderX}, ${relevanceHeaderY})`);
-      relevanceHeaderText.textContent = 'Relevance to trait';
+      relevanceHeaderText.textContent = 'Factor relevance to phenotype';
       relevanceG.appendChild(relevanceHeaderText);
       
       // Draw special row labels (Combined support, Direct support, Indirect support)
@@ -525,7 +525,7 @@ export default Vue.component("pigean-factors-viz", {
           rect.setAttribute('fill', color.background);
           rect.setAttribute('stroke', color.border);
           rect.setAttribute('stroke-width', '1');
-          rect.setAttribute('title', `Relevance to trait: ${relevanceScore.toFixed(2)}`);
+          rect.setAttribute('title', `Factor relevance to phenotype: ${relevanceScore.toFixed(2)}`);
         } else {
           rect.setAttribute('fill', '#f0f0f0');
           rect.setAttribute('stroke', '#fff');
@@ -1227,7 +1227,7 @@ export default Vue.component("pigean-factors-viz", {
       relevanceHeaderText.setAttribute('font-weight', '600');
       relevanceHeaderText.setAttribute('font-family', 'Arial');
       relevanceHeaderText.setAttribute('transform', `rotate(-90, ${relevanceHeaderX}, ${relevanceHeaderY})`);
-      relevanceHeaderText.textContent = 'Relevance to trait';
+      relevanceHeaderText.textContent = 'Factor relevance to phenotype';
       relevanceG.appendChild(relevanceHeaderText);
       
       // Draw relevance column cells for factor rows
@@ -1244,7 +1244,7 @@ export default Vue.component("pigean-factors-viz", {
           rect.setAttribute('fill', color.background);
           rect.setAttribute('stroke', color.border);
           rect.setAttribute('stroke-width', '1');
-          rect.setAttribute('title', `Relevance to trait: ${relevanceScore.toFixed(2)}`);
+          rect.setAttribute('title', `Factor relevance to phenotype: ${relevanceScore.toFixed(2)}`);
         } else {
           rect.setAttribute('fill', '#f0f0f0');
           rect.setAttribute('stroke', '#fff');
