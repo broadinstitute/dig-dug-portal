@@ -301,21 +301,6 @@ export default Vue.component("pigean-factors", {
           label: 'Loading on factor',
           sortable: true,
           formatter: (value) => value ? value.toFixed(2) : 'N/A',
-          tdClass(value) {
-            if (value === null || value === undefined) {
-              return '';
-            }
-            const numValue = typeof value === 'string' ? parseFloat(value) : value;
-            if (numValue > 3) {
-              return 'very-strong';
-            } else if (numValue >= 2 && numValue <= 3) {
-              return 'strongly-suggestive';
-            } else if (numValue >= 1 && numValue < 2) {
-              return 'nominally-significant';
-            } else {
-              return 'not-significant';
-            }
-          }
         },
         {
           key: 'combined',
@@ -392,21 +377,6 @@ export default Vue.component("pigean-factors", {
           label: 'Loading on factor',
           sortable: true,
           formatter: (value) => value ? value.toFixed(2) : 'N/A',
-          tdClass(value) {
-            if (value === null || value === undefined) {
-              return '';
-            }
-            const numValue = typeof value === 'string' ? parseFloat(value) : value;
-            if (numValue > 3) {
-              return 'very-strong';
-            } else if (numValue >= 2 && numValue <= 3) {
-              return 'strongly-suggestive';
-            } else if (numValue >= 1 && numValue < 2) {
-              return 'nominally-significant';
-            } else {
-              return 'not-significant';
-            }
-          }
         },
         {
           key: 'beta',
@@ -775,7 +745,7 @@ export default Vue.component("pigean-factors", {
     },
     getGeneSetsSubtableKey(item) {
       const factor = item.factor || item.cluster || '';
-      return `${item.phenotype},2,small,${factor}`;
+      return `${item.phenotype},2,${DEFAULT_GENESET_SIZE},${factor}`;
     },
     getGeneSetsSubtableCurrentPage(item) {
       const key = this.getGeneSetsSubtableKey(item);
