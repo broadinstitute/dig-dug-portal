@@ -165,7 +165,7 @@ export default Vue.component("pigean-factors-viz", {
       let dynamicHeight = this.height;
       
       if (this.heatmapData && this.heatmapData.factors && this.heatmapData.factors.length > 0) {
-        const numSpecialRows = 3; // Combined score, GWAS support, Gene set support
+        const numSpecialRows = 3; // Combined support, Direct support, Indirect support
         const numFactors = this.heatmapData.factors.length;
         const cellHeight = 20;
         const margin = { top: 100, bottom: 20 };
@@ -390,7 +390,7 @@ export default Vue.component("pigean-factors-viz", {
         return;
       }
       
-      // Sort genes by combined score (descending - bigger first)
+      // Sort genes by Combined support (descending - bigger first)
       if (combinedScores && combinedScores.length === genes.length) {
         // Create array of indices with scores for sorting
         const geneIndices = genes.map((gene, index) => ({
@@ -422,7 +422,7 @@ export default Vue.component("pigean-factors-viz", {
       }
       
       // Calculate dimensions (swapped: genes on x-axis, factors on y-axis)
-      // Add 3 extra rows for Combined score, GWAS support, and Gene set support
+      // Add 3 extra rows for Combined support, Direct support, and Indirect support
       // Add 1 extra column for factor relevance score in y-axis labels
       const numSpecialRows = 3;
       const relevanceColumnWidth = 20; // Fixed width for relevance score column in y-axis labels
@@ -493,8 +493,8 @@ export default Vue.component("pigean-factors-viz", {
       relevanceHeaderText.textContent = 'Relevance to trait';
       relevanceG.appendChild(relevanceHeaderText);
       
-      // Draw special row labels (Combined score, GWAS support, Gene set support)
-      const specialRowLabels = ['Combined score', 'GWAS support', 'Gene set support'];
+      // Draw special row labels (Combined support, Direct support, Indirect support)
+      const specialRowLabels = ['Combined support', 'Direct support', 'Indirect support'];
       
       // Draw relevance column cells for special rows (empty cells)
       specialRowLabels.forEach((label, rowIndex) => {
@@ -672,11 +672,11 @@ export default Vue.component("pigean-factors-viz", {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       g.setAttribute('transform', `translate(${margin.left},${margin.top})`);
       
-      // Draw special rows with circles (Combined score, GWAS support, Gene set support)
+      // Draw special rows with circles (Combined support, Direct support, Indirect support)
       const specialRowData = [
-        { scores: combinedScores || [], label: 'Combined score' },
-        { scores: gwasScores || [], label: 'GWAS support' },
-        { scores: geneSetScores || [], label: 'Gene set support' }
+        { scores: combinedScores || [], label: 'Combined support' },
+        { scores: gwasScores || [], label: 'Direct support' },
+        { scores: geneSetScores || [], label: 'Indirect support' }
       ];
       
       // Calculate min/max scores for circle size normalization
@@ -1832,15 +1832,15 @@ export default Vue.component("pigean-factors-viz", {
               values: heatmap.geneSetFactorData || []
             },
             gwasData: {
-              description: '2D array [gene][factor] of GWAS support scores (log_bf)',
+              description: '2D array [gene][factor] of Direct support scores (log_bf)',
               values: heatmap.gwasData || []
             },
             geneSetData: {
-              description: '2D array [gene][factor] of gene set support scores (prior)',
+              description: '2D array [gene][factor] of Indirect support scores (prior)',
               values: heatmap.geneSetData || []
             },
             combinedScores: {
-              description: 'Array of combined scores per gene',
+              description: 'Array of Combined supports per gene',
               values: heatmap.combinedScores || []
             },
             gwasScores: {
