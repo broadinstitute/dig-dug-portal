@@ -5,7 +5,7 @@ import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -78,7 +78,7 @@ export default new Vuex.Store({
                 return; // Exit early if phenotype not ready
             }
             let phenotype = context.state.phenotype.name;
-            await context.dispatch("pigeanGenePhenotype/query", { q: phenotype + ',2,small', limit: 1000 });
+            await context.dispatch("pigeanGenePhenotype/query", { q: phenotype + `,2,${DEFAULT_GENESET_SIZE}`, limit: 1000 });
         },
         async getFalconTraitAssociatedGenes(context) {
             if (!context.state.phenotype || !context.state.phenotype.name) {
