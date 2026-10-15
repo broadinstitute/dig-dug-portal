@@ -156,8 +156,9 @@
                         </template>
                     </div>
                 </div>
+                <!-- This is not meant to be deployed. Reinstate when ready. -->
                 <div
-                    v-if="$parent.showDiffExp"
+                    v-if="$parent.showDiffExp && false"
                     class="card mdkp-card"
                 >
                     <div class="card-body">
