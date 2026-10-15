@@ -78,7 +78,7 @@ export default new Vuex.Store({
                 return; // Exit early if phenotype not ready
             }
             let phenotype = context.state.phenotype.name;
-            await context.dispatch("pigeanGenePhenotype/query", { q: phenotype + ',2,small', limit: 1000 });
+            await context.dispatch("pigeanGenePhenotype/query", { q: phenotype + ',2,mouse_msigdb', limit: 1000 });
         },
         async getFalconTraitAssociatedGenes(context) {
             if (!context.state.phenotype || !context.state.phenotype.name) {

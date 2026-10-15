@@ -192,7 +192,7 @@ export default new Vuex.Store({
         },
         async getPigeanGeneData(context) {
             let name = context.state.geneName;
-            context.dispatch("pigeanGene/query", { q: 'portal,' + name + ',2,small' });
+            context.dispatch("pigeanGene/query", { q: 'portal,' + name + ',2,mouse_msigdb' });
         },
         async getFalconGeneAssociations(context) {
             let name = context.state.geneName;
