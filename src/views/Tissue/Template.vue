@@ -382,7 +382,8 @@
                         ></tissue-heritability-table>
                     </div>
                 </div>
-                <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
+                <!-- This is not ready yet. Reinstate when ready. -->
+                <div class="card mdkp-card" v-if="!!$store.state.queryTissue && false">
                     <div class="card-body">
                         <h4>Compound connectivity mapping: which small molecules reproduce or reverse disease signatures?
                         </h4>
@@ -485,7 +486,7 @@
                         </criterion-function-group>
                     </div>
                 </div>
-                <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
+                <div class="card mdkp-card" v-if="!!$store.state.queryTissue && false">
                     <div class="card-body">
                         <h4>CRISPR connectivity mapping: which gene knockouts reproduce or reverse disease signatures?
                         </h4>
