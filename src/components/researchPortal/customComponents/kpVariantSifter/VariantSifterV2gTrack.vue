@@ -188,7 +188,7 @@ export default {
         emptyMessage: {
             type: String,
             default:
-                "Select one or more tissues in the Var-to-gene panel to load tracks.",
+                "Select one or more tissues in the Gene links panel to load tracks.",
         },
         legendAriaLabel: {
             type: String,

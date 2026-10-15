@@ -235,9 +235,11 @@
             :default-bio-index-host="defaultBioIndexHost"
             :project-id="projectId"
             :resolve-host-for-index="bioIndexHostFor"
+            :suggest-actions-after-user-action="suggestActionsAfterUserAction"
             @close="settingsOpen = false"
             @update:visibleSectionIds="onVisibleSectionIdsUpdate"
             @update:projectId="onProjectIdUpdate"
+            @update:suggestActionsAfterUserAction="onSuggestActionsAfterUserActionUpdate"
         />
     </div>
 </template>
@@ -594,6 +596,7 @@ export default Vue.component("kp-variant-sifter", {
         return {
             sections: VARIANT_SIFTER_SECTIONS,
             visibleSectionIds: defaultVisibleSectionIds(),
+            suggestActionsAfterUserAction: false,
             settingsOpen: false,
             canvasActive: false,
             welcomeOpen: true,
@@ -2029,6 +2032,15 @@ export default Vue.component("kp-variant-sifter", {
                 this.openDrawerId = null;
             }
         },
+        onSuggestActionsAfterUserActionUpdate(enabled) {
+            this.suggestActionsAfterUserAction = Boolean(enabled);
+        },
+        /** Open Actions only when Settings → Suggest Actions is enabled. */
+        openAssistantSuggestions() {
+            if (this.suggestActionsAfterUserAction) {
+                this.aiAssistantOpen = true;
+            }
+        },
         exportSession() {
             try {
                 exportVariantSifterSession({
@@ -2364,7 +2376,7 @@ export default Vue.component("kp-variant-sifter", {
             steps.forEach((step) => {
                 stepStates[step.id] = "pending";
             });
-            this.aiAssistantOpen = true;
+            this.openAssistantSuggestions();
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
@@ -2416,7 +2428,7 @@ export default Vue.component("kp-variant-sifter", {
                 [stepId]: "pending",
             };
 
-            this.aiAssistantOpen = true;
+            this.openAssistantSuggestions();
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
@@ -2517,7 +2529,7 @@ export default Vue.component("kp-variant-sifter", {
                         }
                     );
 
-            this.aiAssistantOpen = true;
+            this.openAssistantSuggestions();
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",

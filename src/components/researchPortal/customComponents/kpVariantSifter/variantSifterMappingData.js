@@ -47,7 +47,7 @@ const CS_PPA_FIELD = ASSOCIATIONS_TABLE_FORMAT["custom table"]["Credible Set"]["
 export const VKS_CRED_SETS_COLUMN = "Cred. sets";
 export const VKS_ANNOTATION_OVERLAP_COLUMN = "Annotation Overlap";
 export const VKS_BIOSAMPLE_OVERLAP_COLUMN = "Biosample Overlap";
-export const VKS_V2G_COLUMN = "V2G";
+export const VKS_V2G_COLUMN = "Gene links";
 export const VKS_S2G_COLUMN = "S2G";
 
 export const VKS_MAPPING_GROUP_COLORS = {
@@ -1257,7 +1257,7 @@ export function collectMappingCategories({
         deselectedBiosamples: v2gState?.deselectedBiosamples,
         selectedLinks: v2gState?.selectedLinks,
         idPrefix: "v2g",
-        group: "Variant-to-gene",
+        group: "Gene links",
         groupId: "variant-to-gene-links",
         formatLabel: formatV2gLinkLabel,
     });

@@ -109,6 +109,23 @@
                             </li>
                         </ul>
                     </section>
+
+                    <section class="vks-settings-section">
+                        <h3 class="vks-ui-section-title">Suggest Actions</h3>
+                        <p class="vks-ui-hint">
+                            When enabled, the Actions panel opens automatically after
+                            workspace actions that have a suggested next step. When
+                            disabled, the panel stays closed until you open it.
+                        </p>
+                        <label class="vks-settings-suggest-label">
+                            <input
+                                type="checkbox"
+                                :checked="suggestActionsAfterUserAction"
+                                @change="onSuggestActionsChange"
+                            />
+                            <span>Suggest available actions after user action</span>
+                        </label>
+                    </section>
                 </div>
 
                 <div
@@ -228,6 +245,10 @@ export default {
             type: String,
             default: "KP Variant Sifter",
         },
+        suggestActionsAfterUserAction: {
+            type: Boolean,
+            default: false,
+        },
     },
     data() {
         return {
@@ -281,6 +302,12 @@ export default {
             this.$emit(
                 "update:projectId",
                 normalizeProjectId(event?.target?.value)
+            );
+        },
+        onSuggestActionsChange(event) {
+            this.$emit(
+                "update:suggestActionsAfterUserAction",
+                Boolean(event?.target?.checked)
             );
         },
         onToggleSection(sectionId, event) {
@@ -426,7 +453,8 @@ export default {
     border-bottom: none;
 }
 
-.vks-settings-section-item label {
+.vks-settings-section-item label,
+.vks-settings-suggest-label {
     display: inline-flex;
     align-items: center;
     gap: 8px;
