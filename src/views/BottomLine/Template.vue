@@ -9,6 +9,14 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body" style="flex: 1">
+            <div class="card mdkp-card">
+                <div class="card-body temporary-card">
+                    <documentation
+                        name="bottomline.provenance.pageheader"
+                        :content-map="$store.state.bioPortal.documentations"
+                    ></documentation>
+                </div>
+            </div>
             <div
                 v-if="$parent.pageInfo"
                 class="card mdkp-card dataset-page-header"
@@ -16,10 +24,6 @@
                 <div class="row card-body">
                     <div class="col-md-12">
                         <h2>{{ $parent.pageInfo[0].title[0].value }}</h2>
-                        <documentation
-                            name="bottomline.provenance.pageheader"
-                            :content-map="$store.state.bioPortal.documentations"
-                        ></documentation>
                     </div>
                 </div>
             </div>
