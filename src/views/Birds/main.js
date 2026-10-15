@@ -26,13 +26,21 @@ new Vue({
             return contents[0];
         },
         diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
+            let diseaseGroup = this.$store.getters["bioPortal/diseaseGroup"];
+            console.log(JSON.stringify(diseaseGroup));
+            return diseaseGroup;
         },
     },
-    created() {},
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+    },
 
     methods: {},
-
+    watch: {
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+    },
     render(createElement, context) {
         return createElement(Template);
     },
