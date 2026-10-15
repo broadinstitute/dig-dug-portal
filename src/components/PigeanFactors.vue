@@ -271,7 +271,7 @@ export default Vue.component("pigean-factors", {
           key: 'anchor_any_joint',
           label: 'Factor relevance to phenotype',
           sortable: true,
-          formatter: (value) => value ? value.toFixed(2) : 'N/A',
+          formatter: (value) => value !== 0 ? value.toFixed(2) : value,
           thStyle: { width: '15%' },
           tdStyle: { width: '15%' }
         },
