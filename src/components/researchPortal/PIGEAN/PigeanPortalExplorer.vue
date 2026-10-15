@@ -574,6 +574,7 @@ import PigeanSupportPlot from "./PigeanSupportPlot.vue";
 import PigeanPortalTable from "./PigeanPortalTable.vue";
 import PigeanPortalDetail from "./PigeanPortalDetail.vue";
 import PigeanPhenotypeSummary from "./PigeanPhenotypeSummary.vue";
+import { DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 import {
     loadRegistry,
     loadResult,
@@ -620,7 +621,7 @@ export default {
         metadataError: null,
         model: "cfde-inc-v2",
         trait: "T2D",
-        bModel: "mouse_msigdb",
+        bModel: DEFAULT_GENESET_SIZE,
         bTrait: "T2D",
         resultA: null,
         resultB: null,

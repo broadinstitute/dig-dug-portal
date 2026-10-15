@@ -228,7 +228,7 @@
 import Vue from "vue";
 import DataDownload from "@/components/DataDownload.vue";
 import PigeanFactorsViz from "@/components/PigeanFactorsViz.vue";
-import { query, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
+import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 import keyParams from "@/utils/keyParams";
 import { TOOLTIP_MAP } from "../utils/pigeanUtils";
 
@@ -450,7 +450,7 @@ export default Vue.component("pigean-factors", {
       return "Phenotype";
     },
     genesetSize() {
-      return keyParams.genesetSize || 'mouse_msigdb';
+      return DEFAULT_GENESET_SIZE;
     },
     phenotype() {
       // Get phenotype from the first data item

@@ -103,12 +103,13 @@ import PageFooter from "@/components/PageFooter.vue";
 import PigeanMethodContent from "@/components/researchPortal/PIGEAN/PigeanMethodContent.vue";
 import PigeanPortalExplorer from "@/components/researchPortal/PIGEAN/PigeanPortalExplorer.vue";
 import { MODELS } from "@/utils/pigeanPortalUtils";
+import { DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils"
 const defaults = {
     tab: "abstract",
     view: "explore",
     model: "cfde-inc-v2",
     trait: "T2D",
-    bModel: "mouse_msigdb",
+    bModel: DEFAULT_GENESET_SIZE,
     bTrait: "T2D",
 };
 const allowed = [

@@ -197,7 +197,7 @@
 import Vue from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 
 export default Vue.component("PigeanGraphViz", {
     props: {
@@ -206,7 +206,7 @@ export default Vue.component("PigeanGraphViz", {
         },
         genesetSize: {
             type: String,
-            default: "mouse_msigdb",
+            default: DEFAULT_GENESET_SIZE,
         },
         sigma: {
             type: Number,

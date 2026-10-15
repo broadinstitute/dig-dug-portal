@@ -7,6 +7,7 @@ import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
 import regionUtils from "@/utils/regionUtils";
+import { DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -192,7 +193,7 @@ export default new Vuex.Store({
         },
         async getPigeanGeneData(context) {
             let name = context.state.geneName;
-            context.dispatch("pigeanGene/query", { q: 'portal,' + name + ',2,mouse_msigdb' });
+            context.dispatch("pigeanGene/query", { q: 'portal,' + name + `,2,${DEFAULT_GENESET_SIZE}` });
         },
         async getFalconGeneAssociations(context) {
             let name = context.state.geneName;
