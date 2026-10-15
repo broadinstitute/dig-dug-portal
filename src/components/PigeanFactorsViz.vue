@@ -1092,15 +1092,15 @@ export default Vue.component("pigean-factors-viz", {
       // Draw gene labels (x-axis) - positioned higher to avoid overlap
       genes.forEach((gene, geneIndex) => {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        const labelY = -30; // Move labels further up to avoid overlap with first row
+        const labelY = -5; // Move labels further up to avoid overlap with first row
         const labelX = geneIndex * cellWidth + cellWidth / 2; // No offset needed
         text.setAttribute('x', labelX);
         text.setAttribute('y', labelY);
-        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('text-anchor', 'start');
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '11px');
         text.setAttribute('font-family', 'Arial');
-        text.setAttribute('transform', `rotate(-45, ${labelX}, ${labelY})`);
+        text.setAttribute('transform', `rotate(-90, ${labelX}, ${labelY})`);
         text.textContent = gene;
         g.appendChild(text);
       });
@@ -1118,8 +1118,8 @@ export default Vue.component("pigean-factors-viz", {
 
       geneSets.forEach((geneSet, geneSetIndex) => {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        const labelY = -15;
-        const labelX = geneSetXOffset + geneSetIndex * cellWidth;
+        const labelY = -5;
+        const labelX = geneSetXOffset + geneSetIndex * cellWidth + (cellWidth / 2);
         text.setAttribute('x', labelX);
         text.setAttribute('y', labelY);
         text.setAttribute('text-anchor', 'start');
@@ -1127,7 +1127,7 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '10px');
         text.setAttribute('font-family', 'Arial');
-        text.setAttribute('transform', `rotate(-45, ${labelX}, ${labelY})`);
+        text.setAttribute('transform', `rotate(-90, ${labelX}, ${labelY})`);
         text.textContent = this.truncateLabel(geneSet, 40);
         const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
         title.textContent = geneSet;
@@ -1401,13 +1401,10 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute('x', labelX);
         text.setAttribute('y', labelY);
         text.setAttribute('text-anchor', 'start'); // Left-align so text extends right and up when rotated
-        text.setAttribute('alignment-baseline', 'middle');
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '10px'); // Slightly smaller font
         text.setAttribute('font-family', 'Arial');
-        // Rotate -45 degrees around the start point
-        // The text will extend upward and to the right when rotated, avoiding cell overlap
-        text.setAttribute('transform', `rotate(-45, ${labelX}, ${labelY})`);
+        text.setAttribute('transform', `rotate(-90, ${labelX}, ${labelY})`);
         text.textContent = geneSet;
         g.appendChild(text);
       });
