@@ -6,6 +6,25 @@
                 View full provenance page
             </a>
         </div>
+        <p v-if="showPageTitle" class="provenance-intro">
+            The Bottom-Line Provenance viewer contains a series of provenance
+            graphs that depict how raw GWAS variant inputs were processed to
+            create finalized summary statistics files for bottom-line traits
+            available across the portals. Each bottom-line trait (e.g. heart
+            failure, bipolar disorder) can be filtered by ancestry and includes
+            a graph, table, and JSON-based representation of the provenance.
+            All nodes in the provenance graphs are represented using the Dataset
+            Attribution and Provenance Profile for Evidence Retrieval (DAPPER)
+            schema as machine-readable objects with computed identifiers. For a
+            more detailed description of DAPPER and its associated models,
+            please visit
+            <a
+                href="https://broadinstitute.github.io/dapper/model/"
+                target="_blank"
+                rel="noopener"
+                >https://broadinstitute.github.io/dapper/model/</a
+            >.
+        </p>
         <div
             v-if="showSearch"
             ref="traitPicker"
@@ -704,6 +723,10 @@ export default {
 .provenance-page-link {
     margin-left: auto;
     white-space: nowrap;
+}
+
+.provenance-intro {
+    margin-bottom: 18px;
 }
 
 .trait-picker {
