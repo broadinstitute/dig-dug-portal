@@ -775,7 +775,7 @@ export default Vue.component("pigean-factors", {
     },
     getGeneSetsSubtableKey(item) {
       const factor = item.factor || item.cluster || '';
-      return `${item.phenotype},2,small,${factor}`;
+      return `${item.phenotype},2,${DEFAULT_GENESET_SIZE},${factor}`;
     },
     getGeneSetsSubtableCurrentPage(item) {
       const key = this.getGeneSetsSubtableKey(item);
