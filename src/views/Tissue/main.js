@@ -182,6 +182,10 @@ new Vue({
             if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
             if(!this.tissue) return false;
             let scTissues = this.$store.state.singleCellDatasets.filter(x => x.tissue_a2fkp === this.tissue);
+            if (scTissues.length === 0){
+                scTissues = this.$store.state.singleCellDatasets
+                    .filter(x => x.tissue.replaceAll(" ", "_") === this.tissue);
+            }
             let versionFinder = /_v([\d]+.*[\d]*)/;
             scTissues.forEach(t => {
                 let version = t.datasetId.match(versionFinder);
