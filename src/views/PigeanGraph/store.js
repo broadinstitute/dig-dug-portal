@@ -20,7 +20,7 @@ export default new Vuex.Store({
     state: {
         phenotype: null,
         selectedPhenotype: null,
-        genesetSize: keyParams.genesetSize || "small",
+        genesetSize: "mouse_msigdb",
         traitGroup: keyParams.traitGroup || "portal",
         traitGroupToQuery: null,
         phenotypesInSession: null,

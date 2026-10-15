@@ -620,7 +620,7 @@ export default {
         metadataError: null,
         model: "cfde-inc-v2",
         trait: "T2D",
-        bModel: "small",
+        bModel: "mouse_msigdb",
         bTrait: "T2D",
         resultA: null,
         resultB: null,

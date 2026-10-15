@@ -212,10 +212,6 @@ new Vue({
                 keyParams.set({ traitGroup: phenotype.trait_group });
             } else {
                 // Set defaults if no phenotype in URL
-                if (!keyParams.genesetSize) {
-                    keyParams.set({ genesetSize: "small" });
-                    this.$store.commit("setGenesetSize", "small");
-                }
                 if (!keyParams.traitGroup) {
                     keyParams.set({ traitGroup: "portal" });
                     this.$store.commit("setTraitGroup", "portal");

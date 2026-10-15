@@ -108,7 +108,7 @@ const defaults = {
     view: "explore",
     model: "cfde-inc-v2",
     trait: "T2D",
-    bModel: "small",
+    bModel: "mouse_msigdb",
     bTrait: "T2D",
 };
 const allowed = [

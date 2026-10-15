@@ -66,7 +66,7 @@ export default Vue.component("NetworkGraph", {
         genesetSize: {
             type: String,
             required: true,
-            default: "small",
+            default: "mouse_msigdb",
         },
         isEmbed: {
             type: Boolean,

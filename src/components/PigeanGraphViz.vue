@@ -206,7 +206,7 @@ export default Vue.component("PigeanGraphViz", {
         },
         genesetSize: {
             type: String,
-            default: "small",
+            default: "mouse_msigdb",
         },
         sigma: {
             type: Number,

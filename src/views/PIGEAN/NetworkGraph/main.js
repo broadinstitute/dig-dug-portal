@@ -31,7 +31,7 @@ new Vue({
     },
     computed: {
         genesetSize() {
-            return keyParams.genesetSize || "small";
+            return keyParams.genesetSize || "mouse_msigdb";
         },
     },
     methods: {
