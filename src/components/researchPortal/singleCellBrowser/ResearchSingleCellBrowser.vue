@@ -2192,9 +2192,12 @@
                     //get matching portals
                     if(this.portalGroup){
                         filteredMetadata =  filteredMetadata.filter(item => {
+                            //TODO REMOVE THIS SPECIAL CASE ONCE DATA UPDATES
+                            if (item.datasetId === 'FNIH_Muscle_scRNA_v2.2'){
+                                item.portals.push('a2f');
+                            }
                             if(item.portals){
-                                // All datasets should show on a2fkp
-                                return item.portals.includes(this.portalGroup) || this.portalGroup === 'a2f';
+                                return item.portals.includes(this.portalGroup);
                             }
                         })
                     }
