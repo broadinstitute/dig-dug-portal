@@ -95,7 +95,7 @@ export default new Vuex.Store({
                 return; // Exit early if phenotype not ready
             }
             let phenotype = context.state.phenotype.name;
-            await context.dispatch("pigeanFactor/query", { q: phenotype + ',2,small', limit: 1000 });
+            await context.dispatch("pigeanFactor/query", { q: phenotype + `,2,${DEFAULT_GENESET_SIZE}`, limit: 1000 });
         },
         onPhenotypeChange(context, phenotype) {
             context.state.selectedPhenotype = phenotype;
