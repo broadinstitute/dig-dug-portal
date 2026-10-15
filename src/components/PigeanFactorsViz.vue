@@ -320,6 +320,21 @@ export default Vue.component("pigean-factors-viz", {
         return { background: "#cccccc", border: "#999999" };
       }
     },
+    getColorByRelevance(score){
+      // Same logic as the purple scoring above, but with green
+      // Clamp value to 0-1 range
+      const clampedValue = Math.max(0, Math.min(1, score));
+      
+      // Create gradient from light green to dark green
+      const r1 = 186, g1 = 253, b1 = 227; // Light green
+      const r2 = 4, g2 = 114, b2 = 72;  // Dark green
+      
+      const r = Math.round(r1 + (r2 - r1) * clampedValue);
+      const g = Math.round(g1 + (g2 - g1) * clampedValue);
+      const b = Math.round(b1 + (b2 - b1) * clampedValue);
+      
+      return `rgb(${r}, ${g}, ${b})`;
+    },
     renderTopCombinedHeatmap(retryCount) {
       if (!this.hasTopCombinedHeatmapData) {
         return;
@@ -521,9 +536,9 @@ export default Vue.component("pigean-factors-viz", {
         
         // Color code based on relevance score
         if (relevanceScore !== null && relevanceScore !== undefined) {
-          const color = this.getColorByScore(relevanceScore);
-          rect.setAttribute('fill', color.background);
-          rect.setAttribute('stroke', color.border);
+          const color = this.getColorByRelevance(relevanceScore);
+          rect.setAttribute('fill', color);
+          rect.setAttribute('stroke', '#fff');
           rect.setAttribute('stroke-width', '1');
           rect.setAttribute('title', `Factor relevance to phenotype: ${relevanceScore.toFixed(2)}`);
         } else {
