@@ -450,7 +450,7 @@ export default Vue.component("pigean-factors", {
       return "Phenotype";
     },
     genesetSize() {
-      return keyParams.genesetSize || 'small';
+      return keyParams.genesetSize || 'mouse_msigdb';
     },
     phenotype() {
       // Get phenotype from the first data item
