@@ -110,7 +110,7 @@ new Vue({
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
-                    link: "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
+                    link: "https://ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
                 },
                 hgnc: {
                     title: "HUGO Gene Nomenclature Committee",
