@@ -12,6 +12,7 @@ const {
     normalizeCarrierRecords,
     phenotypeCatalog,
     summarizeCooccurrence,
+    summarizeCoVariantResiduals,
     summarizePhenotypes,
     variantPathogenicScore,
 } = require("./carrierStatistics");
@@ -31,9 +32,9 @@ const {
 } = require("./variantIdentifiers");
 
 const FACETS = ["affected", "sex", "age", "project", "phenotype"];
-const COOCCURRENCE_LIMIT = 5;
+const COOCCURRENCE_LIMIT = 4;
 const CARRIER_TABLE_LIMIT = 5;
-const PHENOTYPE_PAGE_LIMIT = 11;
+const PHENOTYPE_PAGE_LIMIT = 8;
 const SAMPLE_METADATA_BATCH_SIZE = 12;
 const DEFAULT_VARIANT = "chr11:5227002:T:A";
 const DEFAULT_GENE = "HBB";
@@ -386,7 +387,11 @@ export const pbVariantComputed = {
         return pageCount(this.cooccurGeneRows.length, COOCCURRENCE_LIMIT);
     },
     cooccurVariantRows() {
-        return summarizeCooccurrence(this.filteredCarriers, "coVariants", "id");
+        const residuals = summarizeCoVariantResiduals(
+            this.filteredCarriers, this.contextResidualById, this.coGeneAnalysisSet === "affected"
+        );
+        return summarizeCooccurrence(this.filteredCarriers, "coVariants", "id")
+            .map(row => ({ ...row, ...residuals[row.id] }));
     },
     sortedCooccurVariantRows() {
         return sortCoVariantRows(this.cooccurVariantRows, this.tableSort.coVariants);
@@ -479,10 +484,26 @@ export const pbVariantMethods = {
     },
     visiblePhenotypeTerms(row) {
         const visibleParents = new Set([row.id || row.key]);
-        return row.terms.filter(term => {
+        const visible = row.terms.filter(term => {
             if (!visibleParents.has(term.parentId || row.id || row.key)) return false;
             if (this.expandedPhenotypeNodes.includes(term.id)) visibleParents.add(term.id);
             return true;
+        });
+        const termsById = new Map(row.terms.map(term => [term.id, term]));
+        return visible.map((term, position) => {
+            const path = [];
+            let current = term;
+            while (current && path.length < 8) {
+                path.unshift(current);
+                current = termsById.get(current.parentId);
+            }
+            const treeGuides = path.map((node, index) => {
+                const hasNextSibling = visible.slice(position + 1).some(later =>
+                    later.depth === node.depth && later.parentId === node.parentId);
+                const elbow = index === path.length - 1;
+                return { elbow, last: elbow && !hasNextSibling, continuing: !elbow && hasNextSibling };
+            });
+            return { ...term, treeGuides };
         });
     },
     togglePhenotypeNode(id) {
@@ -501,7 +522,7 @@ export const pbVariantMethods = {
     sortTableColumn(kind, key) {
         const current = this.tableSort[kind];
         if (!current) return;
-        const defaultDir = ["age", "residual", "count", "pct", "beta"].includes(key) ? "desc" : "asc";
+        const defaultDir = ["age", "residual", "meanResidual", "count", "pct", "beta"].includes(key) ? "desc" : "asc";
         const dir = current.key === key ? current.dir === "asc" ? "desc" : "asc" : defaultDir;
         this.$set(this.tableSort, kind, { key, dir });
         this.$set(this.resultPages, kind, 1);

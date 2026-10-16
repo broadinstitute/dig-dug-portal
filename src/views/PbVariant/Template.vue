@@ -226,6 +226,8 @@
                         </div>
                     </section>
 
+                    <div class="pbv-workspace">
+                    <div class="pbv-analysis-layout">
                     <section class="pbv-carrier-workspace-card">
                 <div class="pbv-carrier-heading">
                     <div class="pbv-carrier-heading-main">
@@ -349,7 +351,7 @@
 
                     <div class="pbv-recompute-connector">recomputed for the current selection</div>
 
-                    <section class="pbv-recompute-results">
+                    <section class="pbv-recompute-results pbv-phenotype-results">
                         <div class="pbv-result-block">
                             <h3>Observed phenotypes</h3>
                             <p class="pbv-sub">
@@ -367,7 +369,7 @@
                                         <button type="button" @click="sortTableColumn('phenotypes', 'count')">Count (%) <i>{{ tableSortIndicator('phenotypes', 'count') }}</i></button>
                                     </div>
                                 </div>
-                                <div v-for="row in visiblePhenotypeRows" :key="row.key">
+                                <div v-for="row in visiblePhenotypeRows" :key="row.key" class="pbv-pheno-branch" :class="{ 'is-expanded': expandedCategories.includes(row.key) }">
                                     <div class="pbv-pheno-row">
                                         <button class="pbv-pheno-toggle" type="button" :aria-expanded="expandedCategories.includes(row.key) ? 'true' : 'false'" @click="toggleCategory(row.key)">
                                             {{ expandedCategories.includes(row.key) ? '▾' : '▸' }}
@@ -380,7 +382,9 @@
                                     </div>
                                     <div v-if="expandedCategories.includes(row.key)" class="pbv-pheno-terms">
                                         <div v-for="term in visiblePhenotypeTerms(row)" :key="term.key" class="pbv-bar-row pbv-bar-row--nested">
-                                            <span class="pbv-hpo-node-label" :style="{ paddingLeft: `${Math.min(term.depth - 1, 7) * 0.85}rem` }">
+                                            <span class="pbv-hpo-node-label">
+                                                <span v-for="(guide, index) in term.treeGuides" :key="index" class="pbv-tree-guide"
+                                                      :class="{ 'is-elbow': guide.elbow, 'is-last': guide.last, 'is-continuing': guide.continuing }" aria-hidden="true"></span>
                                                 <button v-if="term.hasChildren" class="pbv-pheno-toggle" type="button"
                                                         :aria-label="`${expandedPhenotypeNodes.includes(term.id) ? 'Collapse' : 'Expand'} ${term.label}`"
                                                         :aria-expanded="expandedPhenotypeNodes.includes(term.id) ? 'true' : 'false'"
@@ -398,6 +402,11 @@
                                               @change="setResultPage('phenotypes', $event)" />
                             </template>
                         </div>
+
+                    </section>
+                    </div>
+
+                    <section class="pbv-recompute-results pbv-detail-results">
 
                         <div class="pbv-result-block pbv-carrier-result-block">
                             <div class="pbv-result-heading">
@@ -429,14 +438,13 @@
                                 <span v-if="contextMatch && coGeneAnalysisSet === 'affected'">Only affected analysis samples receive a score in this run.</span>
                                 <span v-if="contextMatch && !Object.keys(contextResidualById).length">This Context API has not returned individual residual PheRS values.</span>
                             </p>
-                            <div class="pbv-carrier-table">
+                            <div class="pbv-carrier-table" role="region" aria-label="Carrier sample table">
                                 <div class="pbv-carrier-table-head">
-                                    <strong>Carrier sample table</strong>
-                                        <span>
-                                            Private BioIndex detail
-                                            <template v-if="sampleMetadataStatus === 'loading'"> · loading sample metadata {{ sampleMetadataCompleted }}/{{ carrierRecords.length }}</template>
-                                            <template v-else-if="sampleMetadataStatus === 'ready' || sampleMetadataStatus === 'partial'"> · metadata matched {{ sampleMetadataMatched }}/{{ carrierRecords.length }}</template>
-                                        </span>
+                                    <span>
+                                        Private BioIndex detail
+                                        <template v-if="sampleMetadataStatus === 'loading'"> · loading sample metadata {{ sampleMetadataCompleted }}/{{ carrierRecords.length }}</template>
+                                        <template v-else-if="sampleMetadataStatus === 'ready' || sampleMetadataStatus === 'partial'"> · metadata matched {{ sampleMetadataMatched }}/{{ carrierRecords.length }}</template>
+                                    </span>
                                 </div>
                                 <div class="pbv-carrier-table-body">
                                     <p v-if="!matchCount" class="pbv-empty-note">No carriers match the current filter combination.</p>
@@ -473,7 +481,14 @@
                         </div>
 
                         <div class="pbv-result-block">
-                            <h3>Co-occurrence among this variant's carriers</h3>
+                            <div class="pbv-cooccur-section-heading">
+                                <h3>Co-occurrence among this variant's carriers</h3>
+                                <a href="#pbv-context-title" class="pbv-context-link-status"
+                                   :class="{ 'is-active': contextMatch || contextAssociation }"
+                                   title="HPO Context controls the gene association scores and co-variant mean rPheRS. Carrier overlap, Variant Score, and ClinVar remain independent of context.">
+                                    {{ contextMatch || contextAssociation ? 'HPO Context active' : 'Run HPO Context' }} ↑
+                                </a>
+                            </div>
                             <p class="pbv-sub">Counts use the same {{ matchCount }} distinct-carrier selection shown above.</p>
                             <div class="pbv-cooccur-grid">
                                 <article class="pbv-cooccur-card">
@@ -487,7 +502,7 @@
                                         <div class="pbv-cooccur-head">
                                             <span><button type="button" @click="sortTableColumn('coGenes', 'gene')">Gene <i>{{ tableSortIndicator('coGenes', 'gene') }}</i></button></span>
                                             <span title="Shared carriers / selected target-variant carriers (overlap percentage)."><button type="button" @click="sortTableColumn('coGenes', 'count')">Carriers <i>{{ tableSortIndicator('coGenes', 'count') }}</i></button></span>
-                                            <span title="Full-cohort LM effect per unit of selected gene score."><button type="button" @click="sortTableColumn('coGenes', 'beta')">β <i>{{ tableSortIndicator('coGenes', 'beta') }}</i></button></span>
+                                            <span title="Effect Score (β): full-cohort LM effect per unit of selected gene score."><button class="pbv-effect-score-heading" type="button" @click="sortTableColumn('coGenes', 'beta')">Effect (β) <i>{{ tableSortIndicator('coGenes', 'beta') }}</i></button></span>
                                             <span><button type="button" @click="sortTableColumn('coGenes', 'pValue')">p-value <i>{{ tableSortIndicator('coGenes', 'pValue') }}</i></button></span>
                                             <span title="Benjamini–Hochberg adjusted p-value across the target gene and all unfiltered co-genes."><button type="button" @click="sortTableColumn('coGenes', 'fdr')">FDR <i>{{ tableSortIndicator('coGenes', 'fdr') }}</i></button></span>
                                         </div>
@@ -517,10 +532,18 @@
                                             <span><button type="button" @click="sortTableColumn('coVariants', 'id')">Variant <i>{{ tableSortIndicator('coVariants', 'id') }}</i></button></span>
                                             <span title="Carriers shared with the selected target variant, out of all selected target-variant carriers. The percentage uses the same denominator."><button type="button" @click="sortTableColumn('coVariants', 'count')">Carriers <i>{{ tableSortIndicator('coVariants', 'count') }}</i></button></span>
                                             <span title="LoFTEE HC = 1; otherwise AlphaMissense when available."><button type="button" @click="sortTableColumn('coVariants', 'variantScore')">Variant Score <i>{{ tableSortIndicator('coVariants', 'variantScore') }}</i></button></span>
+                                            <span title="Mean residual PheRS among current filtered target-variant carriers who also carry this variant, using the HPO Context analysis sample setting. Shown only when every eligible co-carrier has a score."><button class="pbv-mean-residual-heading" type="button" @click="sortTableColumn('coVariants', 'meanResidual')">Mean rPheRS <i>{{ tableSortIndicator('coVariants', 'meanResidual') }}</i></button></span>
                                             <span><button type="button" @click="sortTableColumn('coVariants', 'clinvar')">ClinVar <i>{{ tableSortIndicator('coVariants', 'clinvar') }}</i></button></span>
                                         </div>
                                         <div v-for="row in visibleCooccurVariantRows" :key="row.id" class="pbv-cooccur-row">
-                                            <a :href="`/pb_variant.html?query=${row.id}&gene=${row.gene || variantIdentity.gene}`">{{ row.id }}</a><span>{{ row.count }} / {{ matchCount }} ({{ row.pct }}%)</span><span>{{ row.variantScore == null ? 'Unavailable' : String(row.variantScore) }}</span><span :title="row.clinvar || 'Unavailable'">{{ row.clinvar || 'Unavailable' }}</span>
+                                            <a :href="`/pb_variant.html?query=${row.id}&gene=${row.gene || variantIdentity.gene}`">{{ row.id }}</a><span>{{ row.count }} / {{ matchCount }} ({{ row.pct }}%)</span><span>{{ row.variantScore == null ? 'Unavailable' : String(row.variantScore) }}</span>
+                                            <span class="pbv-cooccur-residual" :title="`${row.scoredCarrierCount || 0} / ${row.eligibleCarrierCount || 0} eligible co-carriers scored for the selected HPO Context${coGeneAnalysisSet === 'affected' ? ' (affected only)' : ''}.`">
+                                                <template v-if="contextLoading">Calculating…</template>
+                                                <template v-else-if="row.meanResidual != null">{{ displayMean(row.meanResidual) }}</template>
+                                                <template v-else-if="!contextMatch && !contextAssociation && !contextError">No context</template>
+                                                <template v-else>Unavailable <small>{{ row.eligibleCarrierCount ? `${row.scoredCarrierCount || 0}/${row.eligibleCarrierCount} scored` : '0 eligible' }}</small></template>
+                                            </span>
+                                            <span :title="row.clinvar || 'Unavailable'">{{ row.clinvar || 'Unavailable' }}</span>
                                         </div>
                                         <SummaryPager class="pbv-result-pagination" :page="resultPages.coVariants" :total-pages="coVariantPageCount"
                                                       label="Other same-gene variant pages" input-id="pb-variant-covariant-page"
@@ -530,6 +553,7 @@
                             </div>
                         </div>
                     </section>
+                    </div>
                 </template>
             </div>
         </div>

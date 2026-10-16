@@ -47,7 +47,7 @@ function sortCoGeneRows(rows, sort) {
 }
 
 function sortCoVariantRows(rows, sort) {
-    return sortRows(rows, sort, (row, key) => row[key], ["count", "pct", "variantScore"]);
+    return sortRows(rows, sort, (row, key) => row[key], ["count", "pct", "variantScore", "meanResidual"]);
 }
 
 module.exports = { sortCarrierRows, sortCoGeneRows, sortCoVariantRows, sortPhenotypeRows };

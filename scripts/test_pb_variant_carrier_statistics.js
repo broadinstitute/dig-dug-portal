@@ -112,10 +112,11 @@ assert.deepStrictEqual(sortCarrierRows(mergedMetadata, { key: "residual", dir: "
 assert.deepStrictEqual(sortCoGeneRows([{ gene: "A", count: 2 }, { gene: "B", count: 10 }], { key: "count", dir: "desc" }).map(row => row.gene), ["B", "A"], "co-gene counts must sort numerically");
 assert.deepStrictEqual(sortCoVariantRows([{ id: "chr1:2", clinvar: null }, { id: "chr1:1", clinvar: "Benign" }], { key: "clinvar", dir: "asc" }).map(row => row.id), ["chr1:1", "chr1:2"], "missing ClinVar annotations must sort last");
 assert.deepStrictEqual(sortCoVariantRows([{ id: "chr1:2", variantScore: 0.9 }, { id: "chr1:1", variantScore: 0.22 }], { key: "variantScore", dir: "desc" }).map(row => row.id), ["chr1:2", "chr1:1"], "co-variant scores must sort numerically");
-assert.strictEqual(pageCount(12, 5), 3, "co-occurrence pages must contain five rows");
+assert.deepStrictEqual(sortCoVariantRows([{ id: "chr1:2", meanResidual: -0.5 }, { id: "chr1:1", meanResidual: 0.25 }], { key: "meanResidual", dir: "desc" }).map(row => row.id), ["chr1:1", "chr1:2"], "co-variant residual means must sort numerically");
+assert.strictEqual(pageCount(12, 4), 3, "co-occurrence pages must contain four rows");
 const twentyTwoPhenotypes = Array.from({ length: 22 }, (_, index) => ({ key: `category-${index}`, count: index + 1, pct: index + 1 }));
-assert.strictEqual(pageCount(twentyTwoPhenotypes.length, 11), 2, "22 phenotype categories must use two pages");
-assert.deepStrictEqual(pageRows(twentyTwoPhenotypes, 2, 11).map(row => row.count), Array.from({ length: 11 }, (_, index) => index + 12), "second phenotype page must contain the remaining 11 categories");
+assert.strictEqual(pageCount(twentyTwoPhenotypes.length, 8), 3, "22 phenotype categories must use three pages");
+assert.deepStrictEqual(pageRows(twentyTwoPhenotypes, 3, 8).map(row => row.count), [17, 18, 19, 20, 21, 22], "third phenotype page must contain the remaining six categories");
 assert.deepStrictEqual(sortPhenotypeRows(twentyTwoPhenotypes, { key: "count", dir: "desc" }).slice(0, 2).map(row => row.count), [22, 21], "phenotype count sorting must be numeric");
 
 const joined = stats.attachSameGeneCoVariants(
@@ -141,6 +142,21 @@ assert.deepStrictEqual(
     [["chr1:2:C:T", 1, 100]],
     "same-gene co-occurrence must recalculate against the filtered carrier denominator"
 );
+const residualCoCarriers = [
+    { id: "Sample-A", affected: "Yes", coVariants: [{ id: "chr1:2:C:T" }, { id: "chr1:2:C:T" }] },
+    { id: "Sample-B", affected: "Yes", coVariants: [{ id: "chr1:2:C:T" }] },
+    { id: "Sample-C", affected: "No", coVariants: [{ id: "chr1:2:C:T" }] },
+];
+const allResiduals = stats.summarizeCoVariantResiduals(residualCoCarriers, { "sample-a": -1, "sample-b": 0.5, "sample-c": 2 });
+assert.deepStrictEqual(allResiduals["chr1:2:C:T"], {
+    eligibleCarrierCount: 3, scoredCarrierCount: 3, meanResidual: 0.5,
+}, "co-variant mean must use each filtered overlapping carrier once");
+assert.deepStrictEqual(stats.summarizeCoVariantResiduals(residualCoCarriers.slice(0, 2), { "sample-a": -1 })["chr1:2:C:T"], {
+    eligibleCarrierCount: 2, scoredCarrierCount: 1, meanResidual: null,
+}, "missing carrier residuals must suppress partial co-variant means");
+assert.deepStrictEqual(stats.summarizeCoVariantResiduals(residualCoCarriers, { "sample-a": -1, "sample-b": 0.5 }, true)["chr1:2:C:T"], {
+    eligibleCarrierCount: 2, scoredCarrierCount: 2, meanResidual: -0.25,
+}, "affected-only context must average affected co-carriers within the current selection");
 const lofteeOverlap = stats.attachSameGeneCoVariants(
     [{ id: "carrier-a" }],
     [
@@ -224,10 +240,10 @@ assert(!variantTemplate.includes("<span>Investigator</span>"), "carrier statisti
 
 const variantPageModel = fs.readFileSync(path.join(__dirname, "../src/views/PbVariant/pageModel.js"), "utf8");
 assert(variantPageModel.includes("const CARRIER_TABLE_LIMIT = 5;"), "carrier table must show five samples per page");
-assert(variantPageModel.includes("const COOCCURRENCE_LIMIT = 5;"), "both co-occurrence tables must show five rows per page");
+assert(variantPageModel.includes("const COOCCURRENCE_LIMIT = 4;"), "both co-occurrence tables must show four rows per page");
 assert(variantTemplate.includes("Variant Score") && variantTemplate.includes("ClinVar"), "co-variant table must label score and ClinVar");
 const coGeneMarkup = variantTemplate.slice(variantTemplate.indexOf("<h3>Different-gene co-carriers"), variantTemplate.indexOf("<h3>Other {{ variantIdentity.gene }} variants"));
-assert(coGeneMarkup.includes("pbv-cooccur-row--target") && coGeneMarkup.includes("visibleCooccurGeneRows"), "target gene must stay fixed above five paginated co-genes");
+assert(coGeneMarkup.includes("pbv-cooccur-row--target") && coGeneMarkup.includes("visibleCooccurGeneRows"), "target gene must stay fixed above paginated co-genes");
 assert(coGeneMarkup.includes("Carrier overlap uses the current filters.") && !coGeneMarkup.includes("coGeneScoreType") && !variantTemplate.includes("5 rows per page"), "co-occurrence help must be in the heading without redundant option or row-count copy");
 assert(["'beta'", "'pValue'", "'fdr'"].every(key => coGeneMarkup.includes(key)), "gene association columns must be sortable");
 assert(variantTemplate.includes('v-model="contextScoreTypeInput"') && variantTemplate.includes('v-model="contextAnalysisSetInput"'), "HPO Go form must offer max/sum and all/affected controls");

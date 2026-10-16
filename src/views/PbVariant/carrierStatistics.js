@@ -359,6 +359,30 @@ function summarizeCooccurrence(records, key, idField, catalogRecords = records) 
         .sort((a, b) => b.count - a.count || String(a[idField]).localeCompare(String(b[idField])));
 }
 
+function summarizeCoVariantResiduals(records, residualById, affectedOnly = false) {
+    const groups = new Map();
+    for (const carrier of records || []) {
+        if (affectedOnly && carrier.affected !== "Yes") continue;
+        const score = finiteNumber(residualById[String(carrier.id || "").toLowerCase()]);
+        const variantIds = new Set((carrier.coVariants || []).map(item => item.id).filter(Boolean));
+        for (const id of variantIds) {
+            const group = groups.get(id) || { eligibleCarrierCount: 0, scoredCarrierCount: 0, scoreSum: 0 };
+            group.eligibleCarrierCount += 1;
+            if (score != null) {
+                group.scoredCarrierCount += 1;
+                group.scoreSum += score;
+            }
+            groups.set(id, group);
+        }
+    }
+    return Object.fromEntries([...groups].map(([id, group]) => [id, {
+        eligibleCarrierCount: group.eligibleCarrierCount,
+        scoredCarrierCount: group.scoredCarrierCount,
+        meanResidual: group.eligibleCarrierCount > 0 && group.scoredCarrierCount === group.eligibleCarrierCount
+            ? group.scoreSum / group.eligibleCarrierCount : null,
+    }]));
+}
+
 module.exports = {
     attachSameGeneCoVariants,
     exactVariantAssociation,
@@ -368,6 +392,7 @@ module.exports = {
     normalizeCarrierRecords,
     phenotypeCatalog,
     summarizeCooccurrence,
+    summarizeCoVariantResiduals,
     summarizePhenotypes,
     variantPathogenicScore,
 };
