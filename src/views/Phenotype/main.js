@@ -239,6 +239,7 @@ new Vue({
         },
         "$store.state.annotationOptions"(data) {
             this.annotation = data[0];
+            this.onAnnotationSelected();
         },
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });

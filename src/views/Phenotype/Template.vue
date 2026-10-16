@@ -278,6 +278,7 @@
                                     <select v-model="$parent.annotation"
                                         class="form-control"
                                         @change="$parent.onAnnotationSelected()">
+                                        <option value="">Select annotation</option>
                                         <option v-for="anno in $store.state.annotationOptions"
                                             :value="anno">
                                             {{ anno }}
