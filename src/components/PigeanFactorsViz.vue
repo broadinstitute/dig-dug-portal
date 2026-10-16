@@ -422,7 +422,7 @@ export default Vue.component("pigean-factors-viz", {
       // Add 3 extra rows for Combined support, Direct support, and Indirect support
       // Add 1 extra column for factor relevance score in y-axis labels
       const numSpecialRows = 3;
-      const relevanceColumnWidth = 20; // Fixed width for relevance score column in y-axis labels
+      const relevanceColumnWidth = 0; // we're no longer using this column
       const totalColumns = genes.length + geneSets.length;
       const cellWidth = Math.max(30, 300 / Math.max(totalColumns, 1)); // Dynamic width based on number of columns
       const cellHeight = 20;
