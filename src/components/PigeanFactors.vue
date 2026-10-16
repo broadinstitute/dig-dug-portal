@@ -226,6 +226,25 @@
             </div>
             <div v-if="row.item.subtableActive === SUBTABLE_ACTIVE.PHEWAS" class="subtable-container">
               PheWAS coming soon
+              <research-phewas-plot
+                  style="width: 100%"
+                  :canvas-id="`pigean_${row.item.factor}_${generateId(
+                      row.item.label
+                  )}`"
+                  :plot-name="`PIGEAN_${row.item.factor}`"
+                  :phenotypes-data="phewasData[getSubtableKey(row.item)]"
+                  :phenotype-map="
+                      phenotypeMap || $store.state.bioPortal.phenotypeMap
+                  "
+                  :linkPhenotypes="true"
+                  :isPigean="true"
+                  :colors="plotColors"
+                  :render-config="phewasRenderConfig"
+                  :utils="utilsBox"
+                  :native-dl-btn="false"
+                  :top1500="true"
+              >
+              </research-phewas-plot>
             </div>
           </template>
         </b-table>
@@ -244,13 +263,15 @@ import Vue from "vue";
 import DataDownload from "@/components/DataDownload.vue";
 import PigeanFactorsViz from "@/components/PigeanFactorsViz.vue";
 import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
+import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import keyParams from "@/utils/keyParams";
 import { TOOLTIP_MAP } from "../utils/pigeanUtils";
 
 export default Vue.component("pigean-factors", {
   components: {
     DataDownload,
-    PigeanFactorsViz
+    PigeanFactorsViz,
+    ResearchPheWAS
   },
   props: {
     pigeanFactorData: {
@@ -411,6 +432,7 @@ export default Vue.component("pigean-factors", {
           formatter: (value) => value ? value.toFixed(2) : 'N/A'
         }
       ],
+      phewasData: {},
       subtableData: {},
       subtableLoading: {},
       subtablePerPage: 10,
@@ -421,7 +443,34 @@ export default Vue.component("pigean-factors", {
       heatmapData: {}, // Map of gene -> { factor -> factor_value }
       heatmapLoading: false, // Track if heatmap data is still loading
       heatmapDataLoaded: false, // Track if heatmap data has been initially loaded
-      geneSetsHeatmapDataLoaded: false // Track if gene sets heatmap data has been loaded
+      geneSetsHeatmapDataLoaded: false, // Track if gene sets heatmap data has been loaded
+      phewasRenderConfig: {
+        type: "phewas plot",
+        "render by": "other_phenotype",
+        "group by": "group",
+        "phenotype map": "kp phenotype map",
+        "y axis field": "pValue",
+        "convert y -log10": "true",
+        "y axis label": "-Log10(p-value)",
+        "x axis label": "",
+        "beta field": "null",
+        "hover content": [
+            "Z",
+            "pValue",
+            "pValue_marginal",
+            "pValue_orig",
+            "pValue_robust",
+        ],
+        thresholds: [0.05, 0.00005],
+        "label in black": "lower than",
+        height: "475",
+        "plot margin": {
+            left: 150,
+            right: 180,
+            top: 300,
+            bottom: 300,
+        },
+    },
     };
   },
   computed: {
@@ -873,7 +922,7 @@ export default Vue.component("pigean-factors", {
       // Mark gene sets heatmap data as loaded
       this.geneSetsHeatmapDataLoaded = true;
     },
-    async toggleSubtable(row, subtable) {
+    async toggleSubtable(row, subtable, tempKey=true) {
       const item = row.item;
       const key = this.getSubtableKey(item);
       const factorId = item.factor || item.cluster || '';
@@ -951,9 +1000,15 @@ export default Vue.component("pigean-factors", {
           }
         }
       } else if (subtable === this.SUBTABLE_ACTIVE.PHEWAS){
-        console.log("PheWAS coming soon");
+        let phewasKey = tempKey ? key.replace("mouse_msigdb", "small") : key // TODO DON'T PUSH THIS TO DEV
+        if (!this.phewasData[key]) {
+            let data = await query("pigean-phewas", phewasKey);
+            Vue.set(this.phewasData, phewasKey, data);
+        }
       }
-      
+    },
+    generateId(label) {
+      return label.replaceAll(",", "").replaceAll(" ", "_");
     },
   }
 });
