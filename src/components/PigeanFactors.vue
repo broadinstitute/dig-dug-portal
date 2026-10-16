@@ -54,19 +54,6 @@
               </span>
             </span>
         </template>
-        <template #head(anchor_any_joint)="data">
-          <span class="column-header-with-tooltip">
-            <span>{{ data.label }}</span>
-            <span @click.stop>
-                <tooltip-documentation
-                    name="pigean.phenotype.column.pigean.tooltip"
-                    :is-hover="true"
-                    :no-icon="false"
-                    :supply-text="tooltipMap['FACTOR_RELEVANCE']"
-                ></tooltip-documentation>
-              </span>
-            </span>
-        </template>
         <template #head(top_gene_sets)="data">
           <span class="column-header-with-tooltip">
             <span>{{ data.label }}</span>

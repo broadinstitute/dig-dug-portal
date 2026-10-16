@@ -737,15 +737,6 @@ export default Vue.component("pigean-gene", {
             sortable: true
           },
           {
-            key: "anchor_any_joint",
-            label: "Factor relevance to phenotype",
-            sortable: true,
-            formatter: (value) =>
-              value === null || value === undefined || value === ""
-                ? "N/A"
-                : Number(value).toFixed(2),
-          },
-          {
             key: "top_gene_sets",
             label: "Top gene sets",
             sortable: false,
