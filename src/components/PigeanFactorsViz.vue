@@ -1262,8 +1262,8 @@ export default Vue.component("pigean-factors-viz", {
       // Draw gene set labels (x-axis) - positioned to avoid overlap, left-aligned
       geneSets.forEach((geneSet, geneSetIndex) => {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        const labelY = -15; // Position labels closer to heatmap cells
-        const labelX = geneSetIndex * cellWidth; // Start at left edge of cell
+        const labelY = -5; // Position labels closer to heatmap cells
+        const labelX = geneSetIndex * cellWidth + (cellWidth / 2); // middle of cell
         text.setAttribute('x', labelX);
         text.setAttribute('y', labelY);
         text.setAttribute('text-anchor', 'start'); // Left-align so text extends right and up when rotated
