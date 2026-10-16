@@ -176,6 +176,8 @@ def load_covariates(path, analysis_sample_ids):
         ])
     return {
         "values": np.asarray(values, dtype=np.float64),
+        "sample_metadata": {sample_id: {"age": parsed[sample_id]["age"], "sex": parsed[sample_id]["sex"]}
+                            for sample_id in analysis_sample_ids},
         "names": list(COVARIATE_NAMES),
         "affected_mask": (
             np.asarray([str(rows[sample_id].get("affected") or "").strip().upper() == "Y"
@@ -442,7 +444,7 @@ class ContextAnalysisEngine:
         self.bioindex_evidence_index = bioindex_evidence_index
         self.bioindex_sample_id_map = {}
         self.browser_sample_id_by_analysis = {}
-        if bioindex_host and covariate_path:
+        if covariate_path:
             with _open_text(covariate_path) as handle:
                 for row in csv.DictReader(handle, delimiter="\t"):
                     sample_id = str(row.get("sample_id") or "").strip()
@@ -506,6 +508,60 @@ class ContextAnalysisEngine:
             "outside_rows": evidence["carrier_rows_outside_analysis"][gene],
             "carriers_by_variant": carriers_by_variant,
             "burden_input": gene_burden_scores(self.analysis_sample_ids, rows),
+        }
+
+    def phenotype_profile(self, query_hpo, filters=None, page=1, page_size=25):
+        """Page real HPO observations and the existing residual PheRS calculation."""
+        terms = tuple(sorted(set(str(term).strip().upper() for term in query_hpo)))
+        if not terms:
+            raise ValueError("at least one HPO term is required")
+        if not self.covariates:
+            raise ValueError("sample covariates are unavailable")
+        residuals, _ = self._phenotype(terms)
+        columns = [self.hpo["hpo_columns"].index(term) for term in terms]
+        counts = np.asarray(self.hpo["matrix"][self.analysis_hpo_indices][:, columns].sum(axis=1)).ravel()
+        metadata = self.covariates["sample_metadata"]
+        filters = filters or {}
+        sex = filters.get("sex")
+        exact_age = filters.get("exact_age")
+        rows = []
+        complete_count = 0
+        ages = []
+        for index, sample_id in enumerate(self.analysis_sample_ids):
+            info = metadata[sample_id]
+            if sex and info["sex"] != sex:
+                continue
+            if exact_age is not None and info["age"] != exact_age:
+                continue
+            count = int(counts[index])
+            complete_count += count == len(terms)
+            if info["age"] is not None:
+                ages.append(info["age"])
+            rows.append({
+                "sample_id": self.browser_sample_id_by_analysis.get(sample_id, sample_id),
+                "residual_phers": float(residuals[index]) if np.isfinite(residuals[index]) else None,
+                "exact_match_count": count,
+                "exact_age": info["age"],
+                "sex": info["sex"],
+            })
+        rows.sort(key=lambda row: (row["residual_phers"] is None,
+                                   -(row["residual_phers"] or 0), row["sample_id"]))
+        offset = (page - 1) * page_size
+        return {
+            "query_hpo_ids": list(terms),
+            "summary": {
+                "eligible_sample_count": len(rows),
+                "complete_match_sample_count": complete_count,
+                "median_exact_age": float(np.median(ages)) if ages else None,
+            },
+            "filter_options": {
+                "sexes": sorted({value["sex"] for value in metadata.values()}),
+                "exact_ages": sorted({value["age"] for value in metadata.values() if value["age"] is not None}),
+            },
+            "samples": rows[offset:offset + page_size],
+            "pagination": {"page": page, "page_size": page_size, "total": len(rows),
+                           "next": page + 1 if offset + page_size < len(rows) else None},
+            "scoring_method": "residual PheRS",
         }
 
     def variant_carrier_residuals(self, gene, variant_id, query_hpo, affected_only=False):

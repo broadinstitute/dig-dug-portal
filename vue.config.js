@@ -329,10 +329,35 @@ if (process.env.NODE_ENV === "production") {
 
 const phenotypeAnalyzerHostPrivate = process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE
     || "http://127.0.0.1:8092";
+const phenotypeTestServerHost = process.env.PB_PHENOTYPE_TEST_SERVER
+    || "http://100.80.30.199";
+const phenotypeProfilePort = Number(process.env.PB_PHENOTYPE_PROFILE_PORT || 8093);
 if (process.env.PB_GENE_CONTEXT_DATA_ROOT) {
     process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE = "false";
 }
 let localContextApiProcess = null;
+let localPhenotypeProfileProcess = null;
+function startLocalPhenotypeProfileApi() {
+    const matrix = process.env.PB_PHENOTYPE_HPO_MATRIX;
+    const metadata = process.env.PB_PHENOTYPE_METADATA;
+    const mapping = process.env.PB_PHENOTYPE_COHORT_MAPPING;
+    if (!matrix || !metadata || !mapping || localPhenotypeProfileProcess) return;
+    const fs = require("fs");
+    const { spawn } = require("child_process");
+    for (const file of [matrix, metadata, mapping]) {
+        if (!fs.existsSync(file)) throw new Error(`PB Phenotype profile input missing: ${file}`);
+    }
+    localPhenotypeProfileProcess = spawn(process.env.PB_PHENOTYPE_PYTHON || "python3", [
+        "-m", "scripts.pb_phenotype_profile_api",
+        "--hpo-matrix", matrix, "--metadata", metadata,
+        "--cohort-mapping", mapping, "--port", String(phenotypeProfilePort),
+    ], { cwd: __dirname, env: process.env, stdio: "inherit" });
+    localPhenotypeProfileProcess.on("exit", (code, signal) => {
+        console.error(`PB Phenotype profile API exited: ${signal || code}`);
+        localPhenotypeProfileProcess = null;
+    });
+    process.once("exit", () => { if (localPhenotypeProfileProcess) localPhenotypeProfileProcess.kill(); });
+}
 function startLocalContextApi() {
     const dataRoot = process.env.PB_GENE_CONTEXT_DATA_ROOT;
     if (!dataRoot || process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE || localContextApiProcess) return;
@@ -396,6 +421,7 @@ module.exports = {
         writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
         before(app) {
             startLocalContextApi();
+            startLocalPhenotypeProfileApi();
             require("./scripts/gene_hpo_association_endpoint")(app, process.env.PB_GENE_HPO_FILE);
             require("./scripts/public_gene_variant_endpoint")(
                 app,
@@ -412,6 +438,16 @@ module.exports = {
             });
         },
         proxy: {
+            "/__pb_phenotype_profile__": {
+                target: `http://127.0.0.1:${phenotypeProfilePort}`,
+                changeOrigin: true,
+                pathRewrite: { "^/__pb_phenotype_profile__": "/phenotype-analyzer-api" },
+            },
+            "/__pb_phenotype_test__": {
+                target: phenotypeTestServerHost,
+                changeOrigin: true,
+                pathRewrite: { "^/__pb_phenotype_test__": "/phenotype-analyzer-api" },
+            },
             ...(process.env.BIOINDEX_HOST_PRIVATE ? {
                 "/__bioindex_private__": {
                     target: process.env.BIOINDEX_HOST_PRIVATE,

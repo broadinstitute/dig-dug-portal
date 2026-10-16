@@ -13,6 +13,7 @@ from scripts.gene_score_context_runner import GeneScoreContextRunner
 CONTEXT_PATH = "/phenotype-analyzer-api/analyze"
 PUBLIC_CONTEXT_PATH = "/phenotype-analyzer-api/public-analyze"
 CO_GENE_PATH = "/phenotype-analyzer-api/co-gene-associations"
+PROFILE_PATH = "/phenotype-analyzer-api/profile"
 MAX_REQUEST_BYTES = 64 * 1024
 MAX_CO_GENE_REQUEST_BYTES = 512 * 1024
 MAX_CO_GENES = 25000
@@ -91,6 +92,32 @@ def parse_co_gene_request(payload):
     return request
 
 
+def parse_profile_request(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("request body must be a JSON object")
+    terms = payload.get("hpo_ids")
+    if not isinstance(terms, list) or not 1 <= len(terms) <= 20:
+        raise ValueError("hpo_ids must contain 1 to 20 HPO terms")
+    terms = list(dict.fromkeys(str(term).strip().upper() for term in terms))
+    if any(not HPO_PATTERN.fullmatch(term) for term in terms):
+        raise ValueError("hpo_ids contains an invalid HPO term")
+    filters = payload.get("filters") or {}
+    if not isinstance(filters, dict) or set(filters) - {"sex", "exact_age"}:
+        raise ValueError("unsupported profile filter")
+    sex = filters.get("sex")
+    if sex not in {None, "Female", "Male", "Unknown"}:
+        raise ValueError("sex must be Female, Male, or Unknown")
+    exact_age = filters.get("exact_age")
+    if exact_age is not None:
+        if isinstance(exact_age, bool) or not isinstance(exact_age, (int, float)) or not 0 <= exact_age <= 99:
+            raise ValueError("exact_age must be a number from 0 to 99")
+    page, page_size = payload.get("page", 1), payload.get("page_size", 25)
+    if type(page) is not int or type(page_size) is not int or page < 1 or not 1 <= page_size <= 100:
+        raise ValueError("invalid profile page or page_size")
+    return {"terms": terms, "filters": {"sex": sex, "exact_age": exact_age},
+            "page": page, "page_size": page_size}
+
+
 def public_context_projection(result, min_support=10):
     """Return supported aggregate effects and carrier mean scores without sample evidence."""
     gene_result = result.get("gene_association") or {}
@@ -124,7 +151,7 @@ def public_context_projection(result, min_support=10):
     }
 
 
-def create_server(address, engine):
+def create_server(address, engine, profile_only=False):
     class ContextHandler(BaseHTTPRequestHandler):
         def _send_json(self, status, payload):
             body = json.dumps(payload, allow_nan=False, separators=(",", ":")).encode()
@@ -142,7 +169,10 @@ def create_server(address, engine):
                 self._send_json(404, {"error": "not_found"})
 
         def do_POST(self):
-            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH}:
+            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH, PROFILE_PATH}:
+                self._send_json(404, {"error": "not_found"})
+                return
+            if profile_only and self.path != PROFILE_PATH:
                 self._send_json(404, {"error": "not_found"})
                 return
             try:
@@ -151,6 +181,11 @@ def create_server(address, engine):
                 if length <= 0 or length > limit:
                     raise ValueError("invalid request body size")
                 payload = json.loads(self.rfile.read(length))
+                if self.path == PROFILE_PATH:
+                    request = parse_profile_request(payload)
+                    self._send_json(200, engine.phenotype_profile(
+                        request["terms"], request["filters"], request["page"], request["page_size"]))
+                    return
                 request = parse_co_gene_request(payload) if self.path == CO_GENE_PATH else parse_context_request(payload)
                 if self.path == CO_GENE_PATH:
                     started = perf_counter()

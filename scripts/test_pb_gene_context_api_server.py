@@ -4,10 +4,15 @@ import unittest
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from scripts.pb_gene_context_api_server import create_server, parse_co_gene_request, parse_context_request, public_context_projection
+from scripts.pb_gene_context_api_server import create_server, parse_co_gene_request, parse_context_request, parse_profile_request, public_context_projection
 
 
 class _FakeEngine:
+    def phenotype_profile(self, query_hpo, filters, page, page_size):
+        return {"query_hpo_ids": query_hpo, "summary": {"eligible_sample_count": 1},
+                "samples": [{"sample_id": "private-sample", "exact_match_count": 1}],
+                "pagination": {"page": page, "page_size": page_size, "total": 1, "next": None},
+                "filters": filters}
     def analyze(self, gene, query_hpo, min_carriers=10, score_type="max", affected_only=False):
         return {
             "gene": gene,
@@ -35,6 +40,35 @@ class _FakeEngine:
 
 
 class PbGeneContextApiServerTest(unittest.TestCase):
+    def test_profile_request_validates_terms_filters_and_paging(self):
+        parsed = parse_profile_request({"hpo_ids": ["hp:0001250", "HP:0001250"],
+                                        "filters": {"sex": "Female", "exact_age": 11},
+                                        "page": 2, "page_size": 10})
+        self.assertEqual(parsed["terms"], ["HP:0001250"])
+        self.assertEqual(parsed["filters"], {"sex": "Female", "exact_age": 11})
+        self.assertEqual((parsed["page"], parsed["page_size"]), (2, 10))
+        for payload in ({"hpo_ids": ["bad"]}, {"hpo_ids": ["HP:0001250"], "filters": {"investigator": "A"}},
+                        {"hpo_ids": ["HP:0001250"], "page_size": 1000}):
+            with self.assertRaises(ValueError):
+                parse_profile_request(payload)
+
+    def test_serves_profile_route(self):
+        server = create_server(("127.0.0.1", 0), _FakeEngine())
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            request = Request(f"http://127.0.0.1:{server.server_port}/phenotype-analyzer-api/profile",
+                              data=json.dumps({"hpo_ids": ["HP:0001250"], "page_size": 25}).encode(),
+                              headers={"Content-Type": "application/json"}, method="POST")
+            with urlopen(request, timeout=2) as response:
+                payload = json.load(response)
+            self.assertEqual(payload["query_hpo_ids"], ["HP:0001250"])
+            self.assertEqual(payload["samples"][0]["sample_id"], "private-sample")
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
     def test_co_gene_request_validates_options_and_gene_list(self):
         parsed = parse_co_gene_request({
             "gene": "HBB", "terms": "HP:0001250", "co_genes": ["hba1", "HBA1"],

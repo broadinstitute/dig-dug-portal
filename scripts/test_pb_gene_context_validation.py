@@ -7,6 +7,7 @@ import unittest
 from types import SimpleNamespace
 
 import numpy as np
+from scipy import sparse
 
 from scripts.pb_gene_context_validation import (
     COVARIATE_NAMES,
@@ -25,6 +26,28 @@ QUERY_HPO = ["HP:0001336", "HP:0002353", "HP:0001270", "HP:0012373"]
 
 
 class PbGeneContextValidationTest(unittest.TestCase):
+    def test_profile_uses_real_hpo_counts_filters_and_stable_paging(self):
+        engine = ContextAnalysisEngine.__new__(ContextAnalysisEngine)
+        engine.hpo = {"hpo_columns": ["HP:0001250", "HP:0001252"],
+                      "matrix": sparse.csr_matrix([[1, 1], [1, 0], [0, 0]])}
+        engine.analysis_hpo_indices = np.asarray([0, 1, 2])
+        engine.analysis_sample_ids = ["A", "B", "C"]
+        engine.browser_sample_id_by_analysis = {"A": "A_E38", "B": "B_E38"}
+        engine.covariates = {"sample_metadata": {
+            "A": {"age": 11, "sex": "Female"}, "B": {"age": 11, "sex": "Female"},
+            "C": {"age": 19, "sex": "Male"}}}
+        engine._phenotype = lambda terms: (np.asarray([0.2, -0.1, -0.5]), "checksum")
+        first = engine.phenotype_profile(["HP:0001250", "HP:0001252"],
+                                         {"sex": "Female", "exact_age": 11}, page=1, page_size=1)
+        second = engine.phenotype_profile(["HP:0001250", "HP:0001252"],
+                                          {"sex": "Female", "exact_age": 11}, page=2, page_size=1)
+        self.assertEqual(first["summary"], {"eligible_sample_count": 2,
+                                            "complete_match_sample_count": 1, "median_exact_age": 11.0})
+        self.assertEqual(first["samples"][0]["sample_id"], "A_E38")
+        self.assertEqual(first["samples"][0]["exact_match_count"], 2)
+        self.assertEqual(second["samples"][0]["sample_id"], "B_E38")
+        self.assertEqual(second["pagination"]["next"], None)
+
     def test_co_gene_fdr_uses_target_and_all_requested_genes(self):
         engine = ContextAnalysisEngine.__new__(ContextAnalysisEngine)
         engine.gene_association_runner = SimpleNamespace(model="lm")
