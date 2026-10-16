@@ -1013,8 +1013,9 @@ export default Vue.component("pigean-factors", {
         let phewasKey = tempKey ? key.replace("mouse_msigdb", "small") : key // TODO DON'T PUSH THIS TO DEV
         if (!this.phewasData[key]) {
             let data = await query("pigean-phewas", phewasKey);
-            Vue.set(this.phewasData, phewasKey, data);
+            Vue.set(this.phewasData, key, data);
         }
+        console.log(JSON.stringify(this.phewasData[key]));
       }
     },
     generateId(label) {
