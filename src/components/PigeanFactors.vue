@@ -214,7 +214,7 @@
             <div v-if="row.item.subtableActive === SUBTABLE_ACTIVE.PHEWAS" class="subtable-container">
               <div v-if="!!phewasData[getSubtableKey(row.item)]">
                 <div v-if="phewasData[getSubtableKey(row.item)].length === 0">
-                  PheWAS coming soon
+                  PheWAS not available for this factor
                 </div>
                 <research-phewas-plot v-else
                   style="width: 100%"
