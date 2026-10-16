@@ -224,11 +224,6 @@ export default Vue.component("pigean-factors-viz", {
     },
     geneSetsHeatmapData: {
       handler(newVal, oldVal) {
-        console.log('geneSetsHeatmapData watcher triggered', { 
-          newVal, 
-          hasGeneSets: newVal && newVal.geneSets && newVal.geneSets.length > 0,
-          geneSetsLength: newVal && newVal.geneSets ? newVal.geneSets.length : 0
-        });
         // Clean up any orphaned tooltips before rendering
         this.cleanupTooltips();
         if (newVal && newVal.geneSets && newVal.geneSets.length > 0) {
@@ -356,20 +351,13 @@ export default Vue.component("pigean-factors-viz", {
     renderHeatmap(source, labelsContainer, heatmapContainer) {
       const heatmap = source || this.heatmapData;
       const labelsEl = labelsContainer || this.$refs.heatmapLabelsContainer;
-      const contentEl = heatmapContainer || this.$refs.heatmapContainer;
-      
-      console.log('renderHeatmap called', heatmap);
-      
+      const contentEl = heatmapContainer || this.$refs.heatmapContainer;      
       if (!heatmap || !heatmap.factors || heatmap.factors.length === 0) {
-        console.log('No heatmap data or empty factors array');
         return;
       }
-      
       if (!contentEl || !labelsEl) {
-        console.log('heatmapContainer or heatmapLabelsContainer ref not found');
         return;
       }
-      
       // Clear previous heatmap and clean up any orphaned tooltips
       // Remove any tooltips that might still be in the DOM
       const existingTooltips = document.querySelectorAll('.heatmap-tooltip');
@@ -392,16 +380,10 @@ export default Vue.component("pigean-factors-viz", {
       
       // Factors are already sorted by relevance score in PigeanFactors.vue, but ensure we have scores
       const relevanceScores = factorScores || factors.map(() => 0);
-      
-      console.log('Heatmap data:', { genes: genes.length, geneSets: geneSets.length, factors: factors.length, data: data ? data.length : 0 });
-      
       if (genes.length === 0 && geneSets.length === 0) {
-        console.log('Empty genes and gene sets arrays');
         return;
-      }
-      
+      }      
       if (genes.length > 0 && (!data || data.length === 0)) {
-        console.log('No data array');
         return;
       }
       
@@ -1139,16 +1121,12 @@ export default Vue.component("pigean-factors-viz", {
       contentEl.appendChild(svg);
     },
     renderGeneSetsHeatmap() {
-      console.log('renderGeneSetsHeatmap called', this.geneSetsHeatmapData);
-      
       if (!this.geneSetsHeatmapData || !this.geneSetsHeatmapData.geneSets || this.geneSetsHeatmapData.geneSets.length === 0) {
-        console.log('No gene sets heatmap data or empty gene sets array');
         return;
       }
       
       // Wait for refs to be available
       if (!this.$refs.geneSetsHeatmapContainer || !this.$refs.geneSetsHeatmapLabelsContainer) {
-        console.log('geneSetsHeatmapContainer or geneSetsHeatmapLabelsContainer ref not found, retrying...');
         // Retry after a short delay
         setTimeout(() => {
           this.renderGeneSetsHeatmap();
@@ -1176,16 +1154,10 @@ export default Vue.component("pigean-factors-viz", {
       let { geneSets, factors, factorLabels, factorScores, data } = this.geneSetsHeatmapData;
       const labels = factorLabels || factors;
       const relevanceScores = factorScores || factors.map(() => 0);
-      
-      console.log('Gene sets heatmap data:', { geneSets: geneSets.length, factors: factors.length, data: data ? data.length : 0 });
-      
       if (geneSets.length === 0 || factors.length === 0) {
-        console.log('Empty gene sets or factors array');
         return;
       }
-      
       if (!data || data.length === 0) {
-        console.log('No data array');
         return;
       }
       
