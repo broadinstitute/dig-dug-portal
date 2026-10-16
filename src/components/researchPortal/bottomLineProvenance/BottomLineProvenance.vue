@@ -2,9 +2,17 @@
     <div class="bottom-line-provenance">
         <div v-if="showPageTitle || showLinkBack" class="page-heading">
             <h2 v-if="showPageTitle" class="page-title">Bottom-Line Provenance</h2>
-            <a v-if="showLinkBack" class="provenance-page-link" :href="standaloneProvenanceUrl">
-                View full provenance page
-            </a>
+            <div style="display:flex; flex-direction: column; gap: 15px;">
+                <div v-if="documentationMap" class="card-body temporary-card">
+                    <documentation
+                        name="bottomline.provenance.tooltip"
+                        :content-map="documentationMap"
+                    ></documentation>
+                </div>
+                <a class="provenance-page-link" :href="standaloneProvenanceUrl">
+                    View full provenance page
+                </a>
+            </div>
         </div>
         <div
             v-if="showSearch"
@@ -300,6 +308,10 @@ export default {
         showPageTitle: {
             type: Boolean,
             default: true,
+        },
+        documentationMap: {
+            type: String,
+            default: null,
         },
     },
     components: {
