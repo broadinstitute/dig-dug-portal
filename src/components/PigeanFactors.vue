@@ -880,6 +880,7 @@ export default Vue.component("pigean-factors", {
         }
         item.subtableActive = true;
         item.geneSetsSubtableActive = false;
+        item.phewasSubtableActive = false;
         
         // Load data if not already loaded
         if (!this.subtableData[key]) {
@@ -932,6 +933,7 @@ export default Vue.component("pigean-factors", {
         }
         item.geneSetsSubtableActive = true;
         item.subtableActive = false;
+        item.phewasSubtableActive = false;
         
         // Load data if not already loaded
         if (!this.subtableDataGeneSets[key]) {
@@ -967,49 +969,23 @@ export default Vue.component("pigean-factors", {
       const factorId = item.factor || item.cluster || '';
       
       // Initialize geneSetsSubtableActive if not exists
-      if (!item.hasOwnProperty('geneSetsSubtableActive')) {
-        Vue.set(item, 'geneSetsSubtableActive', false);
+      if (!item.hasOwnProperty('phewasSubtableActive')) {
+        Vue.set(item, 'phewasSubtableActive', false);
       }
       
       // Toggle details
-      if (row.detailsShowing && item.geneSetsSubtableActive) {
+      if (row.detailsShowing && item.phewasSubtableActive) {
         // Hide
         row.toggleDetails();
-        item.geneSetsSubtableActive = false;
+        item.phewasSubtableActive = false;
       } else {
         // Show
         if (!row.detailsShowing) {
           row.toggleDetails();
         }
-        item.geneSetsSubtableActive = true;
+        item.phewasSubtableActive = true;
         item.subtableActive = false;
-        
-        // Load data if not already loaded
-        if (!this.subtableDataGeneSets[key]) {
-          Vue.set(this.subtableLoadingGeneSets, factorId, true);
-          try {
-            const data = await query('pigean-gene-set-factor', key);
-            // Map the data to match our table fields
-            const mappedData = (data || []).map(item => ({
-              gene_set: item.gene_set,
-              relevance_to_factor: item.factor_value,
-              beta: item.beta,
-              beta_uncorrected: item.beta_uncorrected,
-              // Keep original fields for reference
-              ...item
-            }));
-            Vue.set(this.subtableDataGeneSets, key, mappedData);
-            // Initialize pagination for this subtable
-            if (!this.subtableCurrentPagesGeneSets[key]) {
-              Vue.set(this.subtableCurrentPagesGeneSets, key, 1);
-            }
-          } catch (error) {
-            console.error('Error loading gene sets subtable data:', error);
-            Vue.set(this.subtableDataGeneSets, key, []);
-          } finally {
-            Vue.set(this.subtableLoadingGeneSets, factorId, false);
-          }
-        }
+        item.geneSetsSubtableActive = false;
       }
     }
   }
