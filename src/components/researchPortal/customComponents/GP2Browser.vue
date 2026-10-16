@@ -11,7 +11,7 @@
                     <span class="vks-mark">GP2</span>
                     <span class="vks-title">Browser</span>
                 </div>
-                <VariantSifterMenuBar
+                <GP2BrowserMenuBar
                     :recent-searches="recentSearches"
                     @action="onMenuAction"
                 />
@@ -27,7 +27,7 @@
                 @apply-search="onSessionParamApply"
                 @remove-phenotype="onRemoveAssociationPhenotype"
             />
-            <VariantSifterViewportControls
+            <GP2BrowserViewportControls
                 v-if="canvasActive"
                 class="vks-header-controls"
                 :region-zoom="regionZoom"
@@ -68,7 +68,7 @@
 
         <div class="vks-main">
             <div class="vks-stage">
-                <VariantSifterCanvas
+                <GP2BrowserCanvas
                     :sections="sections"
                     :visible-section-ids="visibleSectionIds"
                     :canvas-active="canvasActive"
@@ -125,7 +125,7 @@
                     @start-search="onStartSearch"
                     @import-session="openSessionImport"
                 />
-                <VariantSifterAiAssistantPanel
+                <GP2BrowserAiAssistantPanel
                     :open="aiAssistantOpen"
                     :active-tab="assistantState.activeTab"
                     :thread-entries="assistantState.threadEntries"
@@ -152,7 +152,7 @@
                 />
             </div>
             <div v-if="canvasActive" class="vks-drawer-rail-slot">
-                <VariantSifterSectionDrawers
+                <GP2BrowserSectionDrawers
                     :sections="visibleSections"
                     :open-drawer-id="openDrawerId"
                     :search-session="searchSession"
@@ -227,7 +227,7 @@
             @export="onExportSessionConfirm"
         />
 
-        <VariantSifterSettingsPanel
+        <GP2BrowserSettingsPanel
             :open="settingsOpen"
             :sections="sections"
             :visible-section-ids="visibleSectionIds"
@@ -237,9 +237,16 @@
             :project-id="projectId"
             :resolve-host-for-index="bioIndexHostFor"
             :tool-name="'GP2 Browser'"
+            :suggest-actions-after-user-action="suggestActionsAfterUserAction"
             @close="settingsOpen = false"
             @update:visibleSectionIds="onVisibleSectionIdsUpdate"
             @update:projectId="onProjectIdUpdate"
+            @update:suggestActionsAfterUserAction="onSuggestActionsAfterUserActionUpdate"
+        />
+
+        <GP2BrowserResearchModal
+            :panel-id="activeResearchPanelId"
+            @close="activeResearchPanelId = null"
         />
     </div>
 </template>
@@ -248,21 +255,24 @@
 import Vue from "vue";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 
-import VariantSifterMenuBar from "./kpVariantSifter/VariantSifterMenuBar.vue";
+import GP2BrowserMenuBar from "./gp2Browser/GP2BrowserMenuBar.vue";
+import GP2BrowserResearchModal from "./gp2Browser/GP2BrowserResearchModal.vue";
+import GP2BrowserSectionDrawers from "./gp2Browser/GP2BrowserSectionDrawers.vue";
+import GP2BrowserCanvas from "./gp2Browser/GP2BrowserCanvas.vue";
+import GP2BrowserViewportControls from "./gp2Browser/GP2BrowserViewportControls.vue";
+import GP2BrowserAiAssistantPanel from "./gp2Browser/GP2BrowserAiAssistantPanel.vue";
+import GP2BrowserSettingsPanel from "./gp2Browser/GP2BrowserSettingsPanel.vue";
+import {
+    GP2_BROWSER_SECTIONS,
+    gp2DefaultVisibleSectionIds,
+    gp2NormalizeVisibleSectionIds,
+} from "./gp2Browser/gp2BrowserSections.js";
 import VariantSifterSessionParamBubbles from "./kpVariantSifter/VariantSifterSessionParamBubbles.vue";
 import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
-import VariantSifterViewportControls from "./kpVariantSifter/VariantSifterViewportControls.vue";
-import VariantSifterCanvas from "./kpVariantSifter/VariantSifterCanvas.vue";
-import VariantSifterSectionDrawers from "./kpVariantSifter/VariantSifterSectionDrawers.vue";
-import VariantSifterAiAssistantPanel from "./kpVariantSifter/VariantSifterAiAssistantPanel.vue";
 import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
 import VariantSifterRegionLoadBubble from "./kpVariantSifter/VariantSifterRegionLoadBubble.vue";
-import VariantSifterSettingsPanel from "./kpVariantSifter/VariantSifterSettingsPanel.vue";
-import { VARIANT_SIFTER_SECTIONS } from "./kpVariantSifter/variantSifterSections.js";
 import {
-    defaultVisibleSectionIds,
     isSectionVisible,
-    normalizeVisibleSectionIds,
 } from "./kpVariantSifter/variantSifterToolSettings.js";
 import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAncestriesParam, parseSubAncestriesParam, formatPhenotypesParam, parsePhenotypesParam } from "./kpVariantSifter/variantSifterSearchUtils.js";
 import {
@@ -570,22 +580,24 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("gp2-browser", {
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
     components: {
-        VariantSifterMenuBar,
+        GP2BrowserMenuBar,
+        GP2BrowserResearchModal,
+        GP2BrowserSectionDrawers,
+        GP2BrowserCanvas,
+        GP2BrowserViewportControls,
+        GP2BrowserAiAssistantPanel,
+        GP2BrowserSettingsPanel,
         VariantSifterSessionParamBubbles,
         VariantSifterWorkspaceGuide,
-        VariantSifterViewportControls,
-        VariantSifterCanvas,
-        VariantSifterSectionDrawers,
-        VariantSifterAiAssistantPanel,
         VariantSifterExportSessionModal,
         VariantSifterRegionLoadBubble,
-        VariantSifterSettingsPanel,
     },
     data() {
         return {
-            sections: VARIANT_SIFTER_SECTIONS,
-            visibleSectionIds: defaultVisibleSectionIds(),
+            sections: GP2_BROWSER_SECTIONS,
+            visibleSectionIds: gp2DefaultVisibleSectionIds(),
             settingsOpen: false,
+            suggestActionsAfterUserAction: false,
             canvasActive: false,
             welcomeOpen: true,
             searchSession: null,
@@ -630,6 +642,7 @@ export default Vue.component("gp2-browser", {
             exportSessionOpen: false,
             exportSessionBusy: false,
             workspaceGuideOpen: false,
+            activeResearchPanelId: null,
             chromePinned: false,
             headerHeightPx: 53,
             assistantPanelTopPx: 53,
@@ -833,7 +846,7 @@ export default Vue.component("gp2-browser", {
                     project: VKS_ASSOCIATION_PROJECT_GWAS_CE,
                 });
             } catch (error) {
-                console.warn("Variant Sifter GWAS-CE associations load failed", error);
+                console.warn("GP2 Browser GWAS-CE associations load failed", error);
                 return [];
             }
         },
@@ -1214,7 +1227,7 @@ export default Vue.component("gp2-browser", {
                     };
                 }
             } catch (ldError) {
-                console.warn("Variant Sifter reference LD fetch failed", ldError);
+                console.warn("GP2 Browser reference LD fetch failed", ldError);
                 this.associationsState = {
                     ...this.associationsState,
                     ldLoading: false,
@@ -1553,7 +1566,7 @@ export default Vue.component("gp2-browser", {
                                 );
                             } catch (ancestryError) {
                                 console.warn(
-                                    `Variant Sifter ${ancestry} association gap fetch failed`,
+                                    `GP2 Browser ${ancestry} association gap fetch failed`,
                                     ancestryError
                                 );
                             }
@@ -1607,7 +1620,7 @@ export default Vue.component("gp2-browser", {
                                 );
                             } catch (phenotypeError) {
                                 console.warn(
-                                    `Variant Sifter ${phenotypeName} association gap fetch failed`,
+                                    `GP2 Browser ${phenotypeName} association gap fetch failed`,
                                     phenotypeError
                                 );
                             }
@@ -1657,7 +1670,7 @@ export default Vue.component("gp2-browser", {
                                     );
                                 } catch (ancestryError) {
                                     console.warn(
-                                        `Variant Sifter ${phenotypeName}/${ancestry} association gap fetch failed`,
+                                        `GP2 Browser ${phenotypeName}/${ancestry} association gap fetch failed`,
                                         ancestryError
                                     );
                                 }
@@ -1665,7 +1678,7 @@ export default Vue.component("gp2-browser", {
                         }
                     } catch (assocError) {
                         associationFetchFailed = true;
-                        console.warn("Variant Sifter association gap fetch failed", assocError);
+                        console.warn("GP2 Browser association gap fetch failed", assocError);
                     }
                 }
 
@@ -1710,7 +1723,7 @@ export default Vue.component("gp2-browser", {
                             }
                         } catch (recombError) {
                             recombFetchFailed = true;
-                            console.warn("Variant Sifter recomb gap fetch failed", recombError);
+                            console.warn("GP2 Browser recomb gap fetch failed", recombError);
                         }
                     }
                     if (token !== this.regionExtendToken) {
@@ -1773,7 +1786,7 @@ export default Vue.component("gp2-browser", {
                                 this.flushStreamedGenes(mergedGenes, activeRegion);
                             } catch (genesError) {
                                 genesFetchFailed = true;
-                                console.warn("Variant Sifter genes gap fetch failed", genesError);
+                                console.warn("GP2 Browser genes gap fetch failed", genesError);
                             }
                         }
                         if (token !== this.regionExtendToken) {
@@ -1804,7 +1817,7 @@ export default Vue.component("gp2-browser", {
                                 }
                             } catch (recombError) {
                                 recombFetchFailed = true;
-                                console.warn("Variant Sifter recomb gap fetch failed", recombError);
+                                console.warn("GP2 Browser recomb gap fetch failed", recombError);
                             }
                         }
                         if (token !== this.regionExtendToken) {
@@ -1837,7 +1850,7 @@ export default Vue.component("gp2-browser", {
                             } catch (annoError) {
                                 annoFetchFailed = true;
                                 console.warn(
-                                    "Variant Sifter annotation gap fetch failed",
+                                    "GP2 Browser annotation gap fetch failed",
                                     annoError
                                 );
                             }
@@ -1900,7 +1913,7 @@ export default Vue.component("gp2-browser", {
                 if (token !== this.regionExtendToken) {
                     return;
                 }
-                console.warn("Variant Sifter region extension failed", error);
+                console.warn("GP2 Browser region extension failed", error);
                 this.regionLoadProgress = {
                     ...this.regionLoadProgress,
                     steps: this.regionLoadProgress.steps.map((step) =>
@@ -1918,7 +1931,10 @@ export default Vue.component("gp2-browser", {
             }
         },
         onMenuAction(payload) {
-            if (payload.action === "resetSearch") {
+            if (
+                payload.action === "resetSearch" ||
+                payload.action === "newSession"
+            ) {
                 this.resetSearch();
                 return;
             }
@@ -1940,6 +1956,14 @@ export default Vue.component("gp2-browser", {
             }
             if (payload.action === "gettingAround") {
                 this.workspaceGuideOpen = true;
+                return;
+            }
+            if (
+                payload.action === "genePrioritization" ||
+                payload.action === "associatedPhenotypes" ||
+                payload.action === "literatureEvidence"
+            ) {
+                this.activeResearchPanelId = payload.action;
             }
         },
         applyRecentSearch(entry) {
@@ -2009,12 +2033,21 @@ export default Vue.component("gp2-browser", {
             );
         },
         onVisibleSectionIdsUpdate(ids) {
-            this.visibleSectionIds = normalizeVisibleSectionIds(ids, this.sections);
+            this.visibleSectionIds = gp2NormalizeVisibleSectionIds(ids, this.sections);
             if (
                 this.openDrawerId &&
                 !isSectionVisible(this.visibleSectionIds, this.openDrawerId)
             ) {
                 this.openDrawerId = null;
+            }
+        },
+        onSuggestActionsAfterUserActionUpdate(enabled) {
+            this.suggestActionsAfterUserAction = Boolean(enabled);
+        },
+        /** Open Actions only when Settings → Suggest Actions is enabled. */
+        openAssistantSuggestions() {
+            if (this.suggestActionsAfterUserAction) {
+                this.aiAssistantOpen = true;
             }
         },
         exportSession() {
@@ -2150,11 +2183,25 @@ export default Vue.component("gp2-browser", {
                     this.phenotypesInUse || []
                 );
                 const restored = importVariantSifterSession(payload, phenotypes);
+                restored.visibleSectionIds = Array.isArray(
+                    payload?.ui?.visibleSectionIds
+                )
+                    ? gp2NormalizeVisibleSectionIds(
+                          payload.ui.visibleSectionIds,
+                          this.sections
+                      )
+                    : gp2DefaultVisibleSectionIds(this.sections);
+                if (typeof payload?.ui?.openDrawerId === "string") {
+                    restored.openDrawerId = payload.ui.openDrawerId;
+                }
                 this.projectId = projectId;
                 this.syncUrlProjectParam();
                 this.applyImportedSession(restored);
             } catch (error) {
-                window.alert(error.message || "Could not import session.");
+                const message = String(
+                    error?.message || "Could not import session."
+                ).replace(/Variant Sifter/gi, "GP2 Browser");
+                window.alert(message);
             } finally {
                 event.target.value = "";
             }
@@ -2233,7 +2280,7 @@ export default Vue.component("gp2-browser", {
                 restored.regionShiftBp ?? restored.viewOffsetBp ?? 0
             );
             this.openDrawerId = restored.openDrawerId;
-            this.visibleSectionIds = normalizeVisibleSectionIds(
+            this.visibleSectionIds = gp2NormalizeVisibleSectionIds(
                 restored.visibleSectionIds,
                 this.sections
             );
@@ -2352,7 +2399,7 @@ export default Vue.component("gp2-browser", {
             steps.forEach((step) => {
                 stepStates[step.id] = "pending";
             });
-            this.aiAssistantOpen = true;
+            this.openAssistantSuggestions();
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
@@ -2404,7 +2451,7 @@ export default Vue.component("gp2-browser", {
                 [stepId]: "pending",
             };
 
-            this.aiAssistantOpen = true;
+            this.openAssistantSuggestions();
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
@@ -2505,7 +2552,7 @@ export default Vue.component("gp2-browser", {
                         }
                     );
 
-            this.aiAssistantOpen = true;
+            this.openAssistantSuggestions();
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
@@ -2608,7 +2655,7 @@ export default Vue.component("gp2-browser", {
                 if (geToken !== this.globalEnrichmentRequestToken) {
                     return false;
                 }
-                console.warn("Variant Sifter global enrichment load failed", error);
+                console.warn("GP2 Browser global enrichment load failed", error);
                 this.globalEnrichmentState = {
                     ...emptyGlobalEnrichmentState(),
                     error: "Failed to load global enrichment for this locus.",
@@ -2649,7 +2696,7 @@ export default Vue.component("gp2-browser", {
                 return true;
             } catch (error) {
                 console.warn(
-                    `Variant Sifter ${phenotypeName} global enrichment load failed`,
+                    `GP2 Browser ${phenotypeName} global enrichment load failed`,
                     error
                 );
                 return false;
@@ -2700,7 +2747,7 @@ export default Vue.component("gp2-browser", {
             this.mappingState = emptyMappingState();
             this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
             this.settingsOpen = false;
-            this.visibleSectionIds = defaultVisibleSectionIds(this.sections);
+            this.visibleSectionIds = gp2DefaultVisibleSectionIds(this.sections);
             this.welcomeInitialValues = null;
             this.welcomeOpen = true;
             this.canvasActive = false;
@@ -2916,7 +2963,7 @@ export default Vue.component("gp2-browser", {
                 if (token !== this.credibleSetsRequestToken) {
                     return false;
                 }
-                console.warn("Variant Sifter credible sets list failed", error);
+                console.warn("GP2 Browser credible sets list failed", error);
                 this.credibleSetsState = {
                     ...(preserveSelection ? this.credibleSetsState : emptyCredibleSetsState()),
                     listLoading: false,
@@ -3076,7 +3123,7 @@ export default Vue.component("gp2-browser", {
                     },
                 };
             } catch (error) {
-                console.warn("Variant Sifter credible variants load failed", error);
+                console.warn("GP2 Browser credible variants load failed", error);
                 this.credibleSetsState = {
                     ...this.credibleSetsState,
                     variantsLoading: false,
@@ -3125,7 +3172,7 @@ export default Vue.component("gp2-browser", {
                 return true;
             } catch (error) {
                 console.warn(
-                    `Variant Sifter ${phenotypeName} credible sets list failed`,
+                    `GP2 Browser ${phenotypeName} credible sets list failed`,
                     error
                 );
                 return false;
@@ -3181,7 +3228,7 @@ export default Vue.component("gp2-browser", {
                 };
             } catch (error) {
                 console.warn(
-                    `Variant Sifter ${phenotypeName}/${ancestry} credible sets list failed`,
+                    `GP2 Browser ${phenotypeName}/${ancestry} credible sets list failed`,
                     error
                 );
             }
@@ -3327,7 +3374,7 @@ export default Vue.component("gp2-browser", {
                 if (token !== this.genesRequestToken) {
                     return;
                 }
-                console.warn("Variant Sifter genes track load failed", error);
+                console.warn("GP2 Browser genes track load failed", error);
                 this.genesState = {
                     ...emptyGenesState(),
                     error: "Failed to load genes track for this locus.",
@@ -3347,7 +3394,7 @@ export default Vue.component("gp2-browser", {
             try {
                 recombData = await fetchRecombinationRate(session.region);
             } catch (error) {
-                console.warn("Variant Sifter plot overlays load failed", error);
+                console.warn("GP2 Browser plot overlays load failed", error);
                 overlayError = "Recombination overlay could not be loaded for this locus.";
             }
 
@@ -3506,7 +3553,7 @@ export default Vue.component("gp2-browser", {
                 if (isCancelled()) {
                     return false;
                 }
-                console.warn("Variant Sifter LD score fetch failed", ldError);
+                console.warn("GP2 Browser LD score fetch failed", ldError);
                 this.associationsState = {
                     ...this.associationsState,
                     ldLoading: false,
@@ -3601,10 +3648,10 @@ export default Vue.component("gp2-browser", {
                         query: null,
                     };
                     this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
-                    console.warn("Variant Sifter KP associations load failed; showing GWAS-CE only", error);
+                    console.warn("GP2 Browser KP associations load failed; showing GWAS-CE only", error);
                 } else {
                     associationFailed = true;
-                    console.warn("Variant Sifter associations load failed", error);
+                    console.warn("GP2 Browser associations load failed", error);
                     this.associationsState = {
                         ...emptyAssociationsState(),
                         error: "Failed to load associations. Please try again.",
@@ -3651,7 +3698,7 @@ export default Vue.component("gp2-browser", {
                     if (token !== this.associationsRequestToken) {
                         return;
                     }
-                    console.warn("Variant Sifter plot overlays load failed", error);
+                    console.warn("GP2 Browser plot overlays load failed", error);
                     this.plotOverlaysState = {
                         ...emptyPlotOverlaysState(),
                         ready: true,
@@ -3698,7 +3745,7 @@ export default Vue.component("gp2-browser", {
                         if (token !== this.associationsRequestToken) {
                             return;
                         }
-                        console.warn("Variant Sifter LD enrich failed", error);
+                        console.warn("GP2 Browser LD enrich failed", error);
                         this.associationsState = {
                             ...this.associationsState,
                             ldLoading: false,
@@ -3751,7 +3798,7 @@ export default Vue.component("gp2-browser", {
                         if (genesToken !== this.genesRequestToken) {
                             return;
                         }
-                        console.warn("Variant Sifter genes track load failed", error);
+                        console.warn("GP2 Browser genes track load failed", error);
                         this.genesState = {
                             ...emptyGenesState(),
                             error: "Failed to load genes track for this locus.",
@@ -3779,7 +3826,7 @@ export default Vue.component("gp2-browser", {
                         if (recombToken !== this.plotOverlaysRequestToken) {
                             return;
                         }
-                        console.warn("Variant Sifter plot overlays load failed", error);
+                        console.warn("GP2 Browser plot overlays load failed", error);
                         this.plotOverlaysState = {
                             ...emptyPlotOverlaysState(),
                             ready: true,
@@ -3851,7 +3898,7 @@ export default Vue.component("gp2-browser", {
                     if (token !== this.associationsRequestToken) {
                         return;
                     }
-                    console.warn("Variant Sifter LD score fetch failed", ldError);
+                    console.warn("GP2 Browser LD score fetch failed", ldError);
                     this.associationsState = {
                         ...this.associationsState,
                         ldError: "LD scores could not be loaded for this locus.",
@@ -3906,7 +3953,7 @@ export default Vue.component("gp2-browser", {
                 });
             } catch (error) {
                 associationsOk = false;
-                console.warn("Variant Sifter pending association extras failed", error);
+                console.warn("GP2 Browser pending association extras failed", error);
             }
 
             if (showProgress) {
@@ -4106,7 +4153,7 @@ export default Vue.component("gp2-browser", {
                     return;
                 }
                 console.warn(
-                    `Variant Sifter ancestry availability probe failed for ${phenotypeName}`,
+                    `GP2 Browser ancestry availability probe failed for ${phenotypeName}`,
                     error
                 );
                 this.associationsState = {
@@ -4324,7 +4371,7 @@ export default Vue.component("gp2-browser", {
                         formattedRows = ldResult.rows;
                     }
                 } catch (ldError) {
-                    console.warn(`Variant Sifter ${ancestry} LD enrich failed`, ldError);
+                    console.warn(`GP2 Browser ${ancestry} LD enrich failed`, ldError);
                 }
 
                 if (token !== this.associationsRequestToken) {
@@ -4394,7 +4441,7 @@ export default Vue.component("gp2-browser", {
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
-                console.warn(`Variant Sifter ${ancestry} associations load failed`, error);
+                console.warn(`GP2 Browser ${ancestry} associations load failed`, error);
                 this.associationsState = {
                     ...this.associationsState,
                     ancestrySeriesLoading: {
@@ -4519,7 +4566,7 @@ export default Vue.component("gp2-browser", {
                 } catch (ldError) {
                     ldOk = false;
                     console.warn(
-                        `Variant Sifter ${phenotypeName} LD enrich failed`,
+                        `GP2 Browser ${phenotypeName} LD enrich failed`,
                         ldError
                     );
                 }
@@ -4578,7 +4625,7 @@ export default Vue.component("gp2-browser", {
                 } catch (csError) {
                     credibleSetsOk = false;
                     console.warn(
-                        `Variant Sifter ${phenotypeName} credible sets merge failed`,
+                        `GP2 Browser ${phenotypeName} credible sets merge failed`,
                         csError
                     );
                 }
@@ -4605,7 +4652,7 @@ export default Vue.component("gp2-browser", {
                 } catch (geError) {
                     globalEnrichmentOk = false;
                     console.warn(
-                        `Variant Sifter ${phenotypeName} global enrichment merge failed`,
+                        `GP2 Browser ${phenotypeName} global enrichment merge failed`,
                         geError
                     );
                 }
@@ -4635,7 +4682,7 @@ export default Vue.component("gp2-browser", {
                     return false;
                 }
                 console.warn(
-                    `Variant Sifter ${phenotypeName} associations load failed`,
+                    `GP2 Browser ${phenotypeName} associations load failed`,
                     error
                 );
                 this.associationsState = {
@@ -4976,7 +5023,7 @@ export default Vue.component("gp2-browser", {
                     stepStates: {},
                     threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
                         createAssistantMessage(
-                            "I could not match that to a Variant Sifter action yet. Browse the Actions tab for supported requests, or try phrasing like “Classify tissues by phenotype relevance”, “Find understudied bottom-line variants in this locus”, or “Open Global enrich.”",
+                            "I could not match that to a GP2 Browser action yet. Browse the Actions tab for supported requests, or try phrasing like “Classify tissues by phenotype relevance”, “Find understudied bottom-line variants in this locus”, or “Open Global enrich.”",
                             { isClarify: true }
                         ),
                     ]),
@@ -5274,7 +5321,7 @@ export default Vue.component("gp2-browser", {
                 ) {
                     return;
                 }
-                console.warn("Variant Sifter CS2CT tissue classification failed", error);
+                console.warn("GP2 Browser CS2CT tissue classification failed", error);
                 const errorMessage =
                     error?.message ||
                     "CS2CT tissue filtering is unavailable; using enrichment p-value filtering only.";
@@ -5454,7 +5501,7 @@ export default Vue.component("gp2-browser", {
                         }
                         hadError = true;
                         console.warn(
-                            `Variant Sifter understudied bottom-line search failed (${ancestry})`,
+                            `GP2 Browser understudied bottom-line search failed (${ancestry})`,
                             error
                         );
                         const errorMessage =
@@ -5499,7 +5546,7 @@ export default Vue.component("gp2-browser", {
                     return;
                 }
                 console.warn(
-                    "Variant Sifter understudied bottom-line search failed",
+                    "GP2 Browser understudied bottom-line search failed",
                     error
                 );
                 const errorMessage =
@@ -5744,7 +5791,7 @@ export default Vue.component("gp2-browser", {
                         );
                     } catch (error) {
                         console.warn(
-                            `Variant Sifter genetic correlation failed (${ancestry})`,
+                            `GP2 Browser genetic correlation failed (${ancestry})`,
                             error
                         );
                         groups.push({
@@ -5763,6 +5810,10 @@ export default Vue.component("gp2-browser", {
                     session,
                     groups,
                 });
+                const resultText = String(result.text || "").replace(
+                    /Variant Sifter/gi,
+                    "GP2 Browser"
+                );
                 this.markAssistantStepState(resolvedStepId, "done");
                 if (!silent) {
                     this.assistantState = {
@@ -5771,7 +5822,7 @@ export default Vue.component("gp2-browser", {
                         executionProgressLabel: "",
                         threadEntries: replacePendingAssistantEntry(
                             this.assistantState.threadEntries,
-                            result.text,
+                            resultText,
                             { phenotypeGroups: result.phenotypeGroups }
                         ),
                     };
@@ -5786,7 +5837,7 @@ export default Vue.component("gp2-browser", {
                 if (actionToken !== this.assistantActionToken) {
                     return;
                 }
-                console.warn("Variant Sifter genetic correlation search failed", error);
+                console.warn("GP2 Browser genetic correlation search failed", error);
                 this.markAssistantStepState(resolvedStepId, "error");
                 if (!silent) {
                     this.assistantState = {
@@ -6061,7 +6112,7 @@ export default Vue.component("gp2-browser", {
                     if (token !== this.v2gRequestToken) {
                         return;
                     }
-                    console.warn("Variant Sifter gene-links fetch failed", tissue, error);
+                    console.warn("GP2 Browser gene-links fetch failed", tissue, error);
                     const selectedWithoutFailed = (this.v2gState.selectedTissues || []).filter(
                         (entry) => entry !== tissue
                     );
@@ -6165,7 +6216,7 @@ export default Vue.component("gp2-browser", {
                 if (token !== this.s2gRequestToken) {
                     return;
                 }
-                console.warn("Variant Sifter variant-links fetch failed", error);
+                console.warn("GP2 Browser variant-links fetch failed", error);
                 this.s2gState = {
                     ...this.s2gState,
                     loadingTissue: null,
@@ -6602,5 +6653,80 @@ export default Vue.component("gp2-browser", {
 
 .vks-session-import-input {
     display: none;
+}
+
+.kp-variant-sifter-workspace >>> table.research-data-table {
+    border-top: solid 1px #ddd;
+    border-right: solid 1px #ddd;
+    border-collapse: inherit;
+    text-align: center;
+    clear: both;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table > thead > tr > th {
+    background-color: #eeeeee;
+    border: none !important;
+    border-left: solid 1px #ddd !important;
+    border-bottom: solid 2px #ccc !important;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table > thead > tr > th.sortable-th {
+    color: #007bff;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table > thead > tr > th.sortable-th:hover {
+    color: #004bcf;
+    cursor: pointer;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table td {
+    border: none !important;
+    border-left: solid 1px #eee !important;
+    border-bottom: solid 1px #ddd !important;
+    font-size: 13px;
+    height: 27px;
+    vertical-align: middle;
+    position: relative;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table td a {
+    color: #007bff;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table td a:hover {
+    color: #004bcf;
+}
+
+.kp-variant-sifter-workspace >>> .byor-tooltip {
+    position: relative;
+    overflow: visible;
+}
+
+.kp-variant-sifter-workspace >>> .byor-tooltip .tooltiptext {
+    visibility: hidden;
+    width: 220px;
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 4px;
+    padding: 8px 10px;
+    position: absolute;
+    z-index: 100;
+    top: calc(100% + 4px);
+    left: 0;
+    bottom: auto;
+    margin-left: 0;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: normal;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.kp-variant-sifter-workspace >>> .byor-tooltip:hover .tooltiptext {
+    visibility: visible;
 }
 </style>

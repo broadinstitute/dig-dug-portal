@@ -40,6 +40,9 @@ export default {
 </script>
 
 <style>
+@import url("/css/effectorGenes.css");
+@import url("/css/tooltipDocumentation.css");
+
 .gp2-browser-page {
     min-height: 100vh;
 }
