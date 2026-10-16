@@ -732,6 +732,7 @@
                 :show-ancestry-select="false"
                 :show-link-back="true"
                 :show-page-title="false"
+                :documentation-map="$store.state.bioPortal.documentations"
             ></bottom-line-provenance>
         </b-modal>
 
