@@ -467,70 +467,9 @@ export default Vue.component("pigean-factors-viz", {
       const labelsG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       labelsG.setAttribute('transform', `translate(${labelWidth - relevanceColumnWidth - 10},${labelMargin.top})`);
       
-      // Group for relevance column (cells and header)
-      const relevanceG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      relevanceG.setAttribute('transform', `translate(${labelWidth - relevanceColumnWidth},${labelMargin.top})`);
-      
-      // Draw relevance column header label (rotated 90 degrees)
-      // Position it further up and adjust for rotation to prevent cutoff
-      // When rotated -90 degrees, the text extends horizontally, so we need more vertical space
-      const relevanceHeaderText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      const relevanceHeaderX = 10;//relevanceColumnWidth / 2;
-      const relevanceHeaderY = -60; // Move further up to accommodate rotated text (text extends left when rotated -90)
-      relevanceHeaderText.setAttribute('x', relevanceHeaderX);
-      relevanceHeaderText.setAttribute('y', relevanceHeaderY);
-      relevanceHeaderText.setAttribute('text-anchor', 'middle');
-      relevanceHeaderText.setAttribute('alignment-baseline', 'middle');
-      relevanceHeaderText.setAttribute('class', 'heatmap-label');
-      relevanceHeaderText.setAttribute('font-size', '10px'); // Slightly smaller font to fit better
-      relevanceHeaderText.setAttribute('font-weight', '600');
-      relevanceHeaderText.setAttribute('font-family', 'Arial');
-      // Rotate -90 degrees around the center point
-      relevanceHeaderText.setAttribute('transform', `rotate(-90, ${relevanceHeaderX}, ${relevanceHeaderY})`);
-      relevanceHeaderText.textContent = 'Factor relevance to phenotype';
-      relevanceG.appendChild(relevanceHeaderText);
-      
       // Draw special row labels (Combined support, Direct support, Indirect support)
       const specialRowLabels = ['Combined support', 'Direct support', 'Indirect support'];
       
-      // Draw relevance column cells for special rows (empty cells)
-      specialRowLabels.forEach((label, rowIndex) => {
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', 0);
-        rect.setAttribute('y', rowIndex * cellHeight);
-        rect.setAttribute('width', relevanceColumnWidth);
-        rect.setAttribute('height', cellHeight);
-        rect.setAttribute('fill', '#f5f5f5');
-        rect.setAttribute('stroke', '#fff');
-        rect.setAttribute('stroke-width', '1');
-        rect.setAttribute('class', 'heatmap-cell-bg');
-        relevanceG.appendChild(rect);
-      });
-      
-      // Draw relevance column cells for factor rows (color-coded)
-      factors.forEach((factor, factorIndex) => {
-        const relevanceScore = relevanceScores[factorIndex];
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', 0);
-        rect.setAttribute('y', (numSpecialRows + factorIndex) * cellHeight);
-        rect.setAttribute('width', relevanceColumnWidth);
-        rect.setAttribute('height', cellHeight);
-        
-        // Color code based on relevance score
-        if (relevanceScore !== null && relevanceScore !== undefined) {
-          const color = this.getColorByRelevance(relevanceScore);
-          rect.setAttribute('fill', color);
-          rect.setAttribute('stroke', '#fff');
-          rect.setAttribute('stroke-width', '1');
-          rect.setAttribute('title', `Factor relevance to phenotype: ${relevanceScore.toFixed(2)}`);
-        } else {
-          rect.setAttribute('fill', '#f0f0f0');
-          rect.setAttribute('stroke', '#fff');
-          rect.setAttribute('stroke-width', '1');
-        }
-        rect.setAttribute('class', 'heatmap-cell-bg');
-        relevanceG.appendChild(rect);
-      });
       specialRowLabels.forEach((label, rowIndex) => {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', 0);
@@ -657,7 +596,6 @@ export default Vue.component("pigean-factors-viz", {
       });
       
       labelsSvg.appendChild(labelsG);
-      labelsSvg.appendChild(relevanceG);
       labelsEl.appendChild(labelsSvg);
       
       // Create scrollable heatmap SVG (cells and x-axis labels)
@@ -1197,49 +1135,6 @@ export default Vue.component("pigean-factors-viz", {
       const labelsG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       labelsG.setAttribute('transform', `translate(${labelWidth - relevanceColumnWidth - 10},${labelMargin.top})`);
       
-      // Group for relevance column
-      const relevanceG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      relevanceG.setAttribute('transform', `translate(${labelWidth - relevanceColumnWidth},${labelMargin.top})`);
-      
-      // Draw relevance column header label (rotated 90 degrees)
-      const relevanceHeaderText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      const relevanceHeaderX = 10;
-      const relevanceHeaderY = -60;
-      relevanceHeaderText.setAttribute('x', relevanceHeaderX);
-      relevanceHeaderText.setAttribute('y', relevanceHeaderY);
-      relevanceHeaderText.setAttribute('text-anchor', 'middle');
-      relevanceHeaderText.setAttribute('alignment-baseline', 'middle');
-      relevanceHeaderText.setAttribute('class', 'heatmap-label');
-      relevanceHeaderText.setAttribute('font-size', '10px');
-      relevanceHeaderText.setAttribute('font-weight', '600');
-      relevanceHeaderText.setAttribute('font-family', 'Arial');
-      relevanceHeaderText.setAttribute('transform', `rotate(-90, ${relevanceHeaderX}, ${relevanceHeaderY})`);
-      relevanceHeaderText.textContent = 'Factor relevance to phenotype';
-      relevanceG.appendChild(relevanceHeaderText);
-      
-      // Draw relevance column cells for factor rows
-      factors.forEach((factor, factorIndex) => {
-        const relevanceScore = relevanceScores[factorIndex];
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', 0);
-        rect.setAttribute('y', factorIndex * cellHeight);
-        rect.setAttribute('width', relevanceColumnWidth);
-        rect.setAttribute('height', cellHeight);
-        
-        if (relevanceScore !== null && relevanceScore !== undefined) {
-          const color = this.getColorByScore(relevanceScore);
-          rect.setAttribute('fill', color.background);
-          rect.setAttribute('stroke', color.border);
-          rect.setAttribute('stroke-width', '1');
-          rect.setAttribute('title', `Factor relevance to phenotype: ${relevanceScore.toFixed(2)}`);
-        } else {
-          rect.setAttribute('fill', '#f0f0f0');
-          rect.setAttribute('stroke', '#fff');
-          rect.setAttribute('stroke-width', '1');
-        }
-        rect.setAttribute('class', 'heatmap-cell-bg');
-        relevanceG.appendChild(rect);
-      });
       
       // Draw factor labels (y-axis)
       factors.forEach((factor, factorIndex) => {
@@ -1257,7 +1152,6 @@ export default Vue.component("pigean-factors-viz", {
         labelsG.appendChild(text);
       });
       
-      labelsSvg.appendChild(relevanceG);
       labelsSvg.appendChild(labelsG);
       this.$refs.geneSetsHeatmapLabelsContainer.appendChild(labelsSvg);
       
