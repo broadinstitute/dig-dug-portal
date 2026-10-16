@@ -225,7 +225,6 @@
               </div>
             </div>
             <div v-if="row.item.subtableActive === SUBTABLE_ACTIVE.PHEWAS" class="subtable-container">
-              PheWAS coming soon
               <div v-if="!!phewasData[getSubtableKey(row.item)]">
                 <research-phewas-plot
                   style="width: 100%"
@@ -1010,12 +1009,17 @@ export default Vue.component("pigean-factors", {
           }
         }
       } else if (subtable === this.SUBTABLE_ACTIVE.PHEWAS){
-        let phewasKey = tempKey ? key.replace("mouse_msigdb", "small") : key // TODO DON'T PUSH THIS TO DEV
-        if (!this.phewasData[key]) {
-            let data = await query("pigean-phewas", phewasKey);
-            Vue.set(this.phewasData, key, data);
+        if (!!this.phewasData[key]){
+          return;
         }
-        console.log(JSON.stringify(this.phewasData[key]));
+        let endpoint = "pigean-phewas";
+        let mouse_msigdb_data = await query(endpoint, key);
+        if (mouse_msigdb_data.length > 0){
+          Vue.set(this.phewasData, key, mouse_msigdb_data);
+          return;
+        }
+        let oldData = await query(endpoint, key.replace("mouse_msigdb", "small"));
+        Vue.set(this.phewasData, key, oldData);
       }
     },
     generateId(label) {
