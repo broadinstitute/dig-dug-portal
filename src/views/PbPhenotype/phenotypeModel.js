@@ -21,8 +21,14 @@ const frequencyWeight = Object.fromEntries(
     FREQUENCIES.map(([name, , weight]) => [name, weight])
 );
 const profileCache = new WeakMap();
+const unweightedProfileCache = new WeakMap();
+export const DISEASE_SOURCES = [
+    { key: "orphanet", label: "Orphanet" },
+    { key: "omim", label: "OMIM" },
+    { key: "decipher", label: "DECIPHER" },
+    { key: "ddg2p", label: "DDG2P" },
+];
 export const CANDIDATE_SCORE_THRESHOLD = 0.10;
-export const EXCLUDED_TERM_PENALTY = 0.5;
 export const AGE_BANDS = [
     { label: "0", min: 0, max: 0 },
     { label: "1–2", min: 1, max: 2 },
@@ -47,6 +53,84 @@ export function ageBand(value) {
     return AGE_BANDS.find((band) => years >= band.min && years <= band.max)?.label || "Unknown";
 }
 
+function exclusionSummary(samples, excludedIds, labels, groupOf, termsOf) {
+    const bins = labels.map((label) => ({label, before: 0, remaining: 0, excluded: 0}));
+    const byLabel = new Map(bins.map((bin) => [bin.label, bin]));
+    for (const sample of samples) {
+        const bin = byLabel.get(groupOf(sample));
+        bin.before++;
+        if (excludedIds.some((id) => termsOf(sample).includes(id))) bin.excluded++;
+        else bin.remaining++;
+    }
+    const maximum = Math.max(1, ...bins.map((bin) => bin.before));
+    const excluded = bins.reduce((sum, bin) => sum + bin.excluded, 0);
+    const unknown = byLabel.get("Unknown");
+    return {
+        before: samples.length, remaining: samples.length - excluded, excluded,
+        knownBefore: samples.length - unknown.before,
+        knownRemaining: samples.length - excluded - unknown.remaining,
+        bins: bins.map((bin) => ({...bin,
+            remainingWidth: bin.remaining / maximum * 100,
+            excludedWidth: bin.excluded / maximum * 100,
+        })),
+    };
+}
+
+export function ageExclusionSummary(samples, excludedIds, {ageOf, termsOf}) {
+    return exclusionSummary(samples, excludedIds, [...AGE_BANDS.map(({label}) => label), "Unknown"],
+        (sample) => ageBand(ageOf(sample)), termsOf);
+}
+
+export function sexCategory(value) {
+    const sex = String(value || "").trim().toLowerCase();
+    return sex === "female" || sex === "f" ? "Female" : sex === "male" || sex === "m" ? "Male" : "Unknown";
+}
+
+export function sexExclusionSummary(samples, excludedIds, {sexOf, termsOf}) {
+    return exclusionSummary(samples, excludedIds, ["Female", "Male", "Unknown"],
+        (sample) => sexCategory(sexOf(sample)), termsOf);
+}
+
+function quantile(sorted, probability) {
+    if (!sorted.length) return null;
+    const position = (sorted.length - 1) * probability;
+    const lower = Math.floor(position);
+    return sorted[lower] + (sorted[Math.ceil(position)] - sorted[lower]) * (position - lower);
+}
+
+export function cohortSampleSummary(samples, {cohortOf, ageOf, sexOf, affectedOf, scoreOf}) {
+    const cohorts = new Map();
+    for (const sample of samples) {
+        const name = cohortOf(sample) || "Unknown";
+        if (!cohorts.has(name)) cohorts.set(name, {
+            name, total: 0, affected: 0, ages: [],
+            sex: {female: 0, male: 0, unknown: 0}, phersSum: 0, phersKnown: 0,
+        });
+        const cohort = cohorts.get(name);
+        cohort.total++;
+        if (affectedOf(sample) === "Y") cohort.affected++;
+        const age = validAge(ageOf(sample));
+        if (age != null) cohort.ages.push(age);
+        cohort.sex[sexCategory(sexOf(sample)).toLowerCase()]++;
+        const score = scoreOf(sample);
+        if ((typeof score === "number" || typeof score === "string") &&
+            String(score).trim() !== "" && Number.isFinite(Number(score))) {
+            cohort.phersSum += Number(score);
+            cohort.phersKnown++;
+        }
+    }
+    return [...cohorts.values()].map((cohort) => {
+        const ages = cohort.ages.sort((a, b) => a - b);
+        return {
+            name: cohort.name, total: cohort.total, affected: cohort.affected,
+            sex: cohort.sex, ageKnown: ages.length,
+            medianAge: quantile(ages, 0.5), q1Age: quantile(ages, 0.25), q3Age: quantile(ages, 0.75),
+            meanResidualPhers: cohort.phersKnown ? cohort.phersSum / cohort.phersKnown : null,
+            phersKnown: cohort.phersKnown,
+        };
+    }).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+}
+
 function profilesFor(reference) {
     if (!profileCache.has(reference)) {
         const profiles = new Map();
@@ -68,7 +152,7 @@ function profilesFor(reference) {
             ([hpoId, associations]) =>
                 associations.forEach(([index, frequency, diagnostic]) => {
                     const weight = frequencyWeight[frequency];
-                    if (!weight) return; // Orphanet Excluded (0%) has no score or penalty.
+                    if (!weight) return; // Orphanet Excluded (0%) is ignored.
                     if (!profiles.has(index)) profiles.set(index, new Map());
                     const annotations = profiles.get(index);
                     const previous = annotations.get(hpoId);
@@ -160,26 +244,18 @@ export function diseaseRows(reference, queryIds, excludedIds = []) {
             const rawScore = diseaseCoverage + queryCoverage
                 ? 2 * diseaseCoverage * queryCoverage / (diseaseCoverage + queryCoverage)
                 : 0;
-            const penalizedBy = excludedIds.filter((id) =>
+            const excludedBy = excludedIds.filter((id) =>
                 queryIds.length === 1
                     ? profile.some((item) => item.hpoId === id)
                     : matches.has(id)
             );
-            const penaltyWeight = Math.max(
-                0, ...penalizedBy.map((id) =>
-                    queryIds.length === 1
-                        ? profile.find((item) => item.hpoId === id).weight
-                        : matches.get(id).weight
-                )
-            );
-            const score = Math.max(0, rawScore - EXCLUDED_TERM_PENALTY * penaltyWeight);
             return {
                 code,
                 name,
                 genes,
                 profile,
                 matchedIds,
-                penalizedBy,
+                excludedBy,
                 diagnostic: singleTermAnnotation
                     ? singleTermAnnotation.diagnostic
                     : matchedIds.some((id) => matches.get(id).diagnostic),
@@ -189,8 +265,7 @@ export function diseaseRows(reference, queryIds, excludedIds = []) {
                 diseaseCoverage,
                 queryCoverage,
                 rawScore,
-                penaltyWeight,
-                score,
+                score: rawScore,
             };
         })
         .filter(Boolean)
@@ -198,13 +273,61 @@ export function diseaseRows(reference, queryIds, excludedIds = []) {
             queryIds.length === 1
                 ? (frequencyWeight[b.frequency] || 0) -
                       (frequencyWeight[a.frequency] || 0) ||
-                  a.penalizedBy.length - b.penalizedBy.length ||
                   Number(b.diagnostic) - Number(a.diagnostic) ||
                   a.name.localeCompare(b.name)
                 : b.score - a.score ||
                   b.queryCoverage - a.queryCoverage ||
                   a.name.localeCompare(b.name)
         );
+}
+
+export function unweightedDiseaseRows(reference, additional, queryIds, excludedIds = []) {
+    if (!queryIds.length) return [];
+    if (!unweightedProfileCache.has(additional)) {
+        const ancestors = new Map();
+        const ancestorsOf = (id) => {
+            if (ancestors.has(id)) return ancestors.get(id);
+            const found = new Set();
+            const pending = [...(reference.terms[id]?.[2] || [])];
+            while (pending.length) {
+                const parent = pending.pop();
+                if (found.has(parent) || parent === id) continue;
+                found.add(parent);
+                pending.push(...(reference.terms[parent]?.[2] || []));
+            }
+            ancestors.set(id, found);
+            return found;
+        };
+        const profiles = additional.profiles.map(([code, source, referenceId, name, hpoIds, genes, mondoIds]) => {
+            const profile = [...new Set(hpoIds)].map((hpoId) => ({hpoId}));
+            const matchedBy = new Map();
+            profile.forEach(({hpoId}) => matchedBy.set(hpoId, new Set([hpoId, ...ancestorsOf(hpoId)])));
+            const matches = new Set([...matchedBy.values()].flatMap((ids) => [...ids]));
+            return {code, source, referenceId, name, profile, matchedBy, matches,
+                genes: genes.map((gene) => [gene]), mondoIds};
+        });
+        unweightedProfileCache.set(additional, profiles);
+    }
+    return unweightedProfileCache.get(additional).map((row) => {
+        const matchedIds = queryIds.filter((id) => row.matches.has(id));
+        if (!matchedIds.length) return null;
+        const matchedProfileIds = row.profile.filter(({hpoId}) =>
+            queryIds.some((id) => row.matchedBy.get(hpoId).has(id))
+        ).map(({hpoId}) => hpoId);
+        return {
+            code: row.code, source: row.source, referenceId: row.referenceId,
+            name: row.name, profile: row.profile, genes: row.genes, mondoIds: row.mondoIds,
+            matchedIds, matchedProfileIds,
+            excludedBy: excludedIds.filter((id) => row.matches.has(id)),
+            overlapCount: matchedProfileIds.length,
+            profileCoverage: matchedProfileIds.length / row.profile.length,
+            queryCoverage: matchedIds.length / queryIds.length,
+            score: null, frequency: "", diagnostic: false,
+        };
+    }).filter(Boolean).sort((a, b) =>
+        b.overlapCount - a.overlapCount || b.matchedIds.length - a.matchedIds.length ||
+        b.profileCoverage - a.profileCoverage || a.name.localeCompare(b.name)
+    );
 }
 
 // Binary entropy ranks terms that most evenly split the current top candidates.

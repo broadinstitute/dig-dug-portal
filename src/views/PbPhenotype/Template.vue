@@ -77,13 +77,7 @@
                                     <option value="">Affected: any</option>
                                     <option value="Y">Affected: yes</option>
                                     <option value="N">Affected: no</option>
-                                </select><button
-                                    type="button"
-                                    class="pbp-btn small"
-                                    @click="saveProfile"
-                                >
-                                    {{ saved ? "Saved" : "Save profile" }}
-                                </button>
+                                </select>
                             </div>
                         </div>
                         <datalist id="pbp-options">
@@ -95,7 +89,33 @@
                                 {{ item.name }}
                             </option>
                         </datalist>
-                        <div class="pbp-exrow">
+                        <div class="pbp-term-summary" aria-label="Query term context">
+                            <div
+                                v-for="item in termSummaries"
+                                :key="item.id"
+                                class="pbp-term-summary-row"
+                                :style="termStyle(item.id)"
+                            >
+                                <span class="pbp-term-summary-name"><i></i>{{ name(item.id) }}</span>
+                                <span>{{ item.samples == null ? "—" : item.samples.toLocaleString() }} samples{{ item.percent == null ? "" : ` (${item.percent}%)` }}</span>
+                                <span>{{ item.diseases.toLocaleString() }} diseases</span>
+                                <span>{{ item.veryFrequent.toLocaleString() }} {{ item.veryFrequent === 1 ? "disease" : "diseases" }} with ≥80% frequency</span>
+                                <div v-for="excludedItem in item.exclusions" :key="excludedItem.id" class="pbp-term-summary-excluded">
+                                    <span>− {{ name(excludedItem.id) }}</span>
+                                    <span>{{ excludedItem.samples == null ? "—" : excludedItem.samples.toLocaleString() }} samples excluded</span>
+                                    <span>{{ excludedItem.diseases.toLocaleString() }} {{ excludedItem.diseases === 1 ? "disease" : "diseases" }} excluded</span>
+                                    <span>{{ excludedItem.veryFrequent.toLocaleString() }} high-frequency {{ excludedItem.veryFrequent === 1 ? "disease" : "diseases" }} excluded</span>
+                                </div>
+                            </div>
+                            <div v-if="multi" class="pbp-term-summary-total">
+                                <strong>All {{ ids.length }} together</strong>
+                                <span>{{ matchesLoaded ? allTermsSampleCount.toLocaleString() : "—" }} samples</span>
+                                <span>≥2 of {{ ids.length }}: {{ matchesLoaded ? atLeastTwoSampleCount.toLocaleString() : "—" }}</span>
+                                <span>{{ cohortSampleCount ? cohortSampleCount.toLocaleString() : "—" }} total samples</span>
+                            </div>
+                            <p class="pbp-term-summary-note">Sample counts use the full CRDC cohort before page filters. Disease counts use direct Orphanet annotations. High-frequency diseases list this phenotype as very frequent (80–99%) or obligate (100%).<template v-if="excluded.length"> Red rows show how many of each query term's samples and diseases are excluded. Counts across rows may overlap.</template></p>
+                        </div>
+                        <div class="pbp-exrow" role="group" aria-label="Excluded phenotypes">
                             <b>⊘ Exclude</b
                             ><span
                                 v-for="id in excluded"
@@ -124,20 +144,22 @@
                                 /><button type="submit">+</button>
                             </form>
                             <span class="pbp-helper"
-                                >Samples with the term in their expanded HPO profile are hidden;
-                                diseases annotated with it are
-                                down-ranked.</span
+                                >Matching samples and diseases are removed from the result tables.
+                                Exclude does not change residual PheRS or Profile score.</span
                             >
                         </div>
                         <p v-if="multi" class="pbp-banner">
                             This set is scored as one profile. Samples are
-                            ranked by residual PheRS. Candidate genes follow
-                            Orphanet disease links. Disease profile scores
-                            combine query and disease phenotype coverage, then
-                            subtract a penalty for user-excluded terms. None
+                            ranked by residual PheRS. Genes are tested across
+                            the approved full gene-score source; Orphanet links
+                            provide independent evidence.
+                            {{ isOrphanet ? "Orphanet profile scores combine query and disease phenotype coverage; diseases" : `${diseaseSourceLabel} results use unweighted HPO overlap; records` }}
+                            matching an excluded term are removed. None
                             of this is a diagnosis.
                         </p>
-                        <p v-else class="pbp-context-note">
+                        <details v-else class="pbp-definition">
+                            <summary>Definition and ontology</summary>
+                            <p class="pbp-context-note">
                             {{ term ? term[1] : "" }} Parent:
                             {{
                                 term ? (term[2] || []).map(name).join(", ") : ""
@@ -150,105 +172,23 @@
                                 >Ontology and definition</a
                             >
                             · {{ reference.meta.hpoOBO }}
-                        </p>
+                            </p>
+                        </details>
                     </section>
-                    <div class="pbp-metrics">
-                        <div class="pbp-metric teal">
-                            <div class="label">
-                                {{
-                                    multi
-                                        ? `Returned samples matching ≥2 of ${ids.length} terms`
-                                            : `Samples matched to ${name(
-                                              ids[0]
-                                          )}`
-                                }}
-                            </div>
-                            <div class="value">
-                                {{
-                                    matchesLoaded
-                                        ? qualifyingSamples.length
-                                        : "—"
-                                }}
-                            </div>
-                            <div class="detail">
-                                {{
-                                    matchesLoaded
-                                        ? `${matches.length} with ≥1 term · ${cohortSampleCount.toLocaleString()} cohort samples`
-                                        : "CRDC HPO profile API"
-                                }}
-                            </div>
-                        </div>
-                        <div class="pbp-metric teal">
-                            <div class="label">
-                                {{ multi ? "Genes with profile signal" : "Genes with burden signal" }}
-                            </div>
-                            <div class="value">
-                                {{ genes ? (multi ? geneRows.filter(significantGene).length : genes.total) : "—" }}
-                            </div>
-                            <div class="detail">
-                                {{
-                                    multi
-                                        ? geneLoading ? "Calculating candidate genes…" : geneError ? "Gene analysis unavailable" : `q < 0.05 across ${genes ? genes.nTests : 0} tested candidates`
-                                        : "q < 0.05 · positive direction"
-                                }}
-                            </div>
-                        </div>
-                        <div class="pbp-metric purple">
-                            <div class="label">
-                                {{
-                                    multi
-                                        ? "Candidate diseases"
-                                        : `Diseases where ${name(
-                                              ids[0]
-                                          )} is obligate`
-                                }}
-                            </div>
-                            <div class="value">
-                                {{ multi ? candidates.length : obligateCount }}
-                            </div>
-                            <div class="detail">
-                                {{
-                                    multi
-                                        ? "profile score ≥ 0.10"
-                                        : `${veryFrequentCount} very frequent`
-                                }}
-                            </div>
-                        </div>
-                        <div class="pbp-metric purple">
-                            <div class="label">
-                                {{
-                                    multi
-                                        ? "Genes from top 10 candidates"
-                                        : "Genes linked through diseases"
-                                }}
-                            </div>
-                            <div class="value">{{ linkedSymbols.length }}</div>
-                            <div class="detail">
-                                {{
-                                    !multi && genes
-                                        ? `${burdenLinkedCount} overlap displayed burden genes`
-                                        : "Orphanet disease–gene links"
-                                }}
-                            </div>
-                        </div>
-                    </div>
-                    <section class="pbp-card">
+                    <section class="pbp-card pbp-samples">
                         <div class="pbp-rowhead">
                             <div>
                                 <span class="pbp-tag crdc"
                                     >CRDC · OBSERVED HPO</span
                                 >
                                 <h2>
-                                    {{
-                                        multi
-                                            ? "Samples ranked by residual PheRS"
-                                            : `Samples with ${name(ids[0])}`
-                                    }}
+                                    Samples ranked by residual PheRS
+                                    <span class="pbp-heading-count">· {{ matchesLoaded ? qualifyingSamples.length.toLocaleString() : "—" }}</span>
                                 </h2>
                                 <p class="pbp-sub">
                                     {{
                                         multi
-                                            ? "Residual PheRS for the entered HPO profile, highest first."
+                                            ? `Samples recording at least 2 of ${ids.length} query HPOs, ranked by residual PheRS.`
                                             : "Samples with this recorded HPO term, ranked by residual PheRS."
                                     }}
                                 </p>
@@ -278,110 +218,7 @@
                                 Retry
                             </button>
                         </p>
-                        <div v-if="!multi" class="pbp-summary-grid">
-                            <div>
-                                <h3>
-                                    Terms in expanded profiles alongside {{ name(ids[0]) }}
-                                </h3>
-                                <p class="pbp-sub">
-                                    {{ hpoKnownCount }} of
-                                    {{ filteredSamples.length }} returned
-                                    samples have expanded HPO profiles in the CRDC matrix.
-                                    Percentages below use only those records.
-                                </p>
-                                <div class="pbp-coterms">
-                                    <button
-                                        v-for="item in coTerms"
-                                        :key="item.id"
-                                        type="button"
-                                        @click="addFeature(item.id)"
-                                    >
-                                        {{ name(item.id) }}
-                                        <em>{{ item.percent }}%</em></button
-                                    ><span
-                                        v-if="!coTerms.length"
-                                        class="pbp-muted"
-                                        >Co-recorded terms are not available for
-                                        these samples.</span
-                                    >
-                                </div>
-                                <h3>Cohort categories · matched samples</h3>
-                                <div class="pbp-table-scroll">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th><button class="pbp-sort" @click="toggleSort('cohorts', 'name')">Cohort category {{ sortIndicator('cohorts', 'name') }}</button></th>
-                                                <th><button class="pbp-sort" @click="toggleSort('cohorts', 'total')">Samples {{ sortIndicator('cohorts', 'total') }}</button></th>
-                                                <th><button class="pbp-sort" @click="toggleSort('cohorts', 'affected')">Affected {{ sortIndicator('cohorts', 'affected') }}</button></th>
-                                                <th><button class="pbp-sort" @click="toggleSort('cohorts', 'medianAge')">Median age {{ sortIndicator('cohorts', 'medianAge') }}</button></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr
-                                                v-for="item in sortedCohortDiseaseSummary"
-                                                :key="item.name"
-                                            >
-                                                <td>{{ item.name }}</td>
-                                                <td>{{ item.total }}</td>
-                                                <td>{{ item.affected }}</td>
-                                                <td>{{ item.medianAge == null ? "—" : item.medianAge }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div>
-                                <h3>Age at record</h3>
-                                <p class="pbp-sub">
-                                    {{ ageSummary.known }} of {{ filteredSamples.length }}
-                                    returned samples have a valid age at enrollment.
-                                </p>
-                                <div v-if="ageSummary.known" class="pbp-age-list">
-                                    <div v-for="bin in ageSummary.bins" :key="bin.label">
-                                        <span>{{ bin.label }}</span>
-                                        <i><b :style="{ width: `${Math.round(bin.count / ageSummary.known * 100)}%` }"></b></i>
-                                        <strong>{{ bin.count }}</strong>
-                                    </div>
-                                </div>
-                                <h3>Sex · returned matches</h3>
-                                <div v-if="sexSummary.known" class="pbp-sex">
-                                    <span
-                                        :style="{
-                                            width: `${
-                                                (sexSummary.female /
-                                                    sexSummary.known) *
-                                                100
-                                            }%`,
-                                        }"
-                                    ></span>
-                                </div>
-                                <p class="pbp-sub">
-                                    {{ sexSummary.female }} female ·
-                                    {{ sexSummary.male }} male ·
-                                    {{
-                                        filteredSamples.length -
-                                        sexSummary.known
-                                    }}
-                                    unknown
-                                </p>
-                            </div>
-                        </div>
-                        <button
-                            v-if="!multi"
-                            type="button"
-                            class="pbp-more"
-                            @click="showSingleList = !showSingleList"
-                        >
-                            {{
-                                showSingleList
-                                    ? "Hide sample list"
-                                    : `Open sample list (${filteredSamples.length} returned)`
-                            }}
-                        </button>
-                        <div
-                            v-if="multi || showSingleList"
-                            class="pbp-table-scroll"
-                        >
+                        <div class="pbp-table-scroll">
                             <table>
                                 <thead>
                                     <tr>
@@ -402,7 +239,6 @@
                                         <td>
                                             <span
                                                 class="pbp-rank"
-                                                :class="{ top: sample.rank <= 3 }"
                                                 >{{ sample.rank }}</span
                                             >
                                         </td>
@@ -442,13 +278,92 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div v-if="multi || showSingleList" class="pbp-pagination">
+                        <div class="pbp-pagination">
                             <button type="button" :disabled="samplePage <= 1" @click="samplePage--">Previous</button>
-                            <span>Page {{ samplePage }} / {{ samplePageCount }} · {{ filteredSamples.length }} samples</span>
+                            <span>Page {{ samplePage }} / {{ samplePageCount }} · {{ qualifyingSamples.length }} samples</span>
                             <button type="button" :disabled="samplePage >= samplePageCount" @click="samplePage++">Next</button>
                         </div>
+                        <div v-if="matchesLoaded" class="pbp-sample-context">
+                            <section class="pbp-context-panel pbp-age-panel" aria-label="Age at record">
+                                <div class="pbp-context-heading">
+                                    <h3>Age at record</h3>
+                                    <span>{{ ageSummary.remaining.toLocaleString() }} / {{ ageSummary.before.toLocaleString() }} samples remain</span>
+                                </div>
+                                <p class="pbp-sub">{{ multi ? `Samples matching ≥2 of ${ids.length} query terms` : `Samples with ${name(ids[0])}` }} · current age, sex, affected and cohort filters applied.</p>
+                                <div class="pbp-age-legend">
+                                    <span><i class="remaining"></i>Remaining</span>
+                                    <span><i class="excluded"></i>Excluded{{ ageSummary.excluded ? ` · ${ageSummary.excluded.toLocaleString()}` : "" }}</span>
+                                </div>
+                                <div class="pbp-age-labels"><span>Age band</span><span>Samples</span><span>Remaining / before</span></div>
+                                <div class="pbp-age-list">
+                                    <div v-for="bin in ageSummary.bins" :key="bin.label">
+                                        <span>{{ bin.label }}</span>
+                                        <div class="pbp-age-track" role="img" :aria-label="`${bin.label}: ${bin.remaining} remaining, ${bin.excluded} excluded, ${bin.before} before Exclude`" :title="`${bin.remaining} remaining + ${bin.excluded} excluded = ${bin.before} before Exclude`">
+                                            <span class="remaining" :style="{ width: `${bin.remainingWidth}%` }"></span>
+                                            <span class="excluded" :style="{ width: `${bin.excludedWidth}%` }"></span>
+                                        </div>
+                                        <span class="pbp-age-count"><b>{{ bin.remaining.toLocaleString() }}</b> / {{ bin.before.toLocaleString() }}<small v-if="bin.excluded">−{{ bin.excluded.toLocaleString() }}</small></span>
+                                    </div>
+                                </div>
+                                <p class="pbp-note">Age is measured at enrollment, not symptom onset. Gray shading shows samples removed by Exclude; each bar keeps its original length. Ages outside 0–100 or missing values are Unknown.</p>
+                            </section>
+                            <section class="pbp-context-panel pbp-sex-panel" aria-label="Sex and co-recorded phenotypes">
+                                <h3>Sex · remaining samples</h3>
+                                <div class="pbp-age-legend">
+                                    <span><i class="remaining"></i>Remaining</span>
+                                    <span><i class="excluded"></i>Excluded{{ sexSummary.excluded ? ` · ${sexSummary.excluded.toLocaleString()}` : "" }}</span>
+                                </div>
+                                <div class="pbp-age-labels"><span>Sex</span><span>Samples</span><span>Remaining / before</span></div>
+                                <div class="pbp-age-list">
+                                    <div v-for="bin in sexSummary.bins" :key="bin.label">
+                                        <span>{{ bin.label }}</span>
+                                        <div class="pbp-age-track" role="img" :aria-label="`${bin.label}: ${bin.remaining} remaining, ${bin.excluded} excluded, ${bin.before} before Exclude`" :title="`${bin.remaining} remaining + ${bin.excluded} excluded = ${bin.before} before Exclude`">
+                                            <span class="remaining" :style="{ width: `${bin.remainingWidth}%` }"></span>
+                                            <span class="excluded" :style="{ width: `${bin.excludedWidth}%` }"></span>
+                                        </div>
+                                        <span class="pbp-age-count"><b>{{ bin.remaining.toLocaleString() }}</b> / {{ bin.before.toLocaleString() }}<small v-if="bin.excluded">−{{ bin.excluded.toLocaleString() }}</small></span>
+                                    </div>
+                                </div>
+                                <p class="pbp-note">Same samples and filters as Age at record. Gray shading shows samples removed by Exclude.</p>
+                                <h3>Co-recorded phenotypes</h3>
+                                <p class="pbp-sub">{{ hpoKnownCount.toLocaleString() }} remaining samples with expanded HPO profiles. Select a term to add it to the query.</p>
+                                <div class="pbp-coterms">
+                                    <button v-for="item in coTerms" :key="item.id" type="button" @click="addFeature(item.id)">
+                                        {{ name(item.id) }}<em>{{ item.percent }}%</em>
+                                    </button>
+                                    <span v-if="!coTerms.length" class="pbp-muted">No co-recorded phenotypes are available.</span>
+                                </div>
+                            </section>
+                        </div>
+                        <details v-if="matchesLoaded" open class="pbp-cohort-details">
+                            <summary>Cohort categories · {{ cohortDiseaseSummary.length }} groups</summary>
+                            <p class="pbp-sub">Remaining samples after current filters and Exclude. Age: median (25th–75th percentile), years. Sex: female / male / unknown. Mean residual PheRS uses available scores only.</p>
+                            <div class="pbp-table-scroll">
+                                <table>
+                                    <thead><tr>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'name')">Cohort category {{ sortIndicator('cohorts', 'name') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'total')">Samples {{ sortIndicator('cohorts', 'total') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'affected')">Affected {{ sortIndicator('cohorts', 'affected') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'medianAge')">Age · median (Q1–Q3) {{ sortIndicator('cohorts', 'medianAge') }}</button></th>
+                                        <th><button class="pbp-sort" title="Sort by female sample count" @click="toggleSort('cohorts', 'sex')">Sex · F / M / unknown {{ sortIndicator('cohorts', 'sex') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'phers')">Mean residual PheRS {{ sortIndicator('cohorts', 'phers') }}</button></th>
+                                    </tr></thead>
+                                    <tbody><tr v-for="item in visibleCohortDiseaseSummary" :key="item.name">
+                                        <td>{{ item.name }}</td><td>{{ item.total.toLocaleString() }}</td><td>{{ item.affected.toLocaleString() }}</td>
+                                        <td class="pbp-cohort-stat"><b>{{ ageStat(item.medianAge) }}</b><span v-if="item.medianAge != null"> ({{ ageStat(item.q1Age) }}–{{ ageStat(item.q3Age) }})</span><small>{{ item.ageKnown.toLocaleString() }} / {{ item.total.toLocaleString() }} valid ages</small></td>
+                                        <td class="pbp-cohort-stat">{{ item.sex.female.toLocaleString() }} / {{ item.sex.male.toLocaleString() }} / {{ item.sex.unknown.toLocaleString() }}</td>
+                                        <td class="pbp-cohort-stat"><b>{{ item.meanResidualPhers == null ? "—" : score(item.meanResidualPhers) }}</b><small>{{ item.phersKnown.toLocaleString() }} / {{ item.total.toLocaleString() }} scored</small></td>
+                                    </tr></tbody>
+                                </table>
+                            </div>
+                            <div class="pbp-pagination">
+                                <button type="button" :disabled="cohortPage <= 1" @click="cohortPage--">Previous</button>
+                                <span>Page {{ cohortPage }} / {{ cohortPageCount }} · {{ cohortDiseaseSummary.length }} groups</span>
+                                <button type="button" :disabled="cohortPage >= cohortPageCount" @click="cohortPage++">Next</button>
+                            </div>
+                        </details>
                         <p class="pbp-note">
-                            Filled colour marks a recorded query HPO; a pale outline means it was not recorded. Colours follow the query chips above. An unmatched term is unknown, not clinically
+                            Filled colour marks a recorded query HPO; a white box with a dashed outline means it was not recorded. Colours follow the query chips above. An unmatched term is unknown, not clinically
                             absent. Matches and residual PheRS use the
                             parent-expanded CRDC HPO matrix and existing
                             rphers_fast calculation. Visible sample disease /
@@ -476,11 +391,12 @@
                                                   ids[0]
                                               )}`
                                     }}
+                                    <span class="pbp-heading-count">· {{ genes ? (multi ? `${genes.nTests.toLocaleString()} tested, ${significantGeneCount.toLocaleString()} significant` : `${genes.total.toLocaleString()} significant`) : "—" }}</span>
                                 </h2>
                                 <p class="pbp-sub">
                                     {{
                                         multi
-                                            ? `Calculated with the Gene/Variant pages' full-cohort gene-score API. β and p are model results; q is BH FDR across ${genes ? genes.nTests : 0} tested Orphanet candidate genes.`
+                                            ? `Calculated with the Gene/Variant pages' full-cohort gene-score model across all genes in the approved score source. β and p are model results; q is BH FDR across ${genes ? genes.nTests.toLocaleString() : "—"} tested genes. Orphanet links are independent evidence.`
                                             : "Positive burden associations from the same precomputed release as the Gene page. Orphanet links are independent evidence."
                                     }}
                                 </p>
@@ -501,7 +417,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="pbp-filters">
+                        <div v-if="genes && !geneLoading && !geneError" class="pbp-filters">
                             <button
                                 v-for="filter in geneFilters"
                                 :key="filter.key"
@@ -655,7 +571,7 @@
                                                     }}</span
                                                 ></template
                                             ><span v-else class="pbp-muted"
-                                                >Not linked — candidate</span
+                                                >{{ significantGene(row) ? "Not linked — candidate" : "No Orphanet link" }}</span
                                             >
                                         </td>
                                     </tr>
@@ -665,7 +581,7 @@
                                 No genes match this filter.
                             </p>
                         </div>
-                        <div class="pbp-pagination">
+                        <div v-if="genes && !geneLoading && !geneError" class="pbp-pagination">
                             <button type="button" :disabled="genePage <= 1" @click="genePage--">Previous</button>
                             <span>Page {{ genePage }} / {{ genePageCount }} · {{ filteredGenes.length }} genes</span>
                             <button type="button" :disabled="genePage >= genePageCount" @click="genePage++">Next</button>
@@ -676,7 +592,7 @@
                             <div class="pbp-rowhead">
                                 <div>
                                     <span class="pbp-tag orpha"
-                                        >ORPHANET REFERENCE</span
+                                        >{{ diseaseSourceLabel.toUpperCase() }} REFERENCE</span
                                     >
                                     <h2>
                                         {{
@@ -686,12 +602,15 @@
                                                       ids[0]
                                                   )}`
                                         }}
+                                        <span class="pbp-heading-count">· {{ diseases.length.toLocaleString() }} matched</span>
                                     </h2>
                                     <p class="pbp-sub">
                                         {{
-                                            multi
-                                                ? "Ranked by harmonic coverage of query and disease phenotypes. Expand a row to inspect the calculation and annotations."
-                                                : "Sorted by phenotype frequency class and diagnostic criterion."
+                                            !isOrphanet
+                                                ? "Ranked by the number of disease HPOs matched, then query terms matched and disease coverage. Frequency weights are not used."
+                                                : multi
+                                                ? "Orphanet disease profiles, ranked by harmonic coverage of query and disease phenotypes. Expand a row to inspect the calculation and annotations."
+                                                : "Orphanet disease profiles, sorted by phenotype frequency class and diagnostic criterion."
                                         }}
                                     </p>
                                 </div>
@@ -702,7 +621,15 @@
                                     aria-label="Filter disease or gene"
                                 />
                             </div>
-                            <div class="pbp-filters">
+                            <div class="pbp-filters pbp-source-filters" role="group" aria-label="Disease reference source">
+                                <button v-for="source in diseaseSources" :key="source.key" type="button"
+                                    :class="{ on: diseaseSource === source.key }"
+                                    :aria-pressed="diseaseSource === source.key"
+                                    @click="diseaseSource = source.key">
+                                    {{ source.label }} · {{ source.count.toLocaleString() }}
+                                </button>
+                            </div>
+                            <div v-if="diseaseFilters.length" class="pbp-filters">
                                 <button
                                     v-for="filter in diseaseFilters"
                                     :key="filter.key"
@@ -724,8 +651,8 @@
                                         <tr>
                                             <th v-if="multi"><button class="pbp-sort" @click="toggleSort('diseases', 'rank')">Rank {{ sortIndicator('diseases', 'rank') }}</button></th>
                                             <th><button class="pbp-sort" @click="toggleSort('diseases', 'disease')">Disease {{ sortIndicator('diseases', 'disease') }}</button></th>
-                                            <th><button class="pbp-sort" @click="toggleSort('diseases', 'score')">{{ multi ? "Profile score" : "Frequency class" }} {{ sortIndicator('diseases', 'score') }}</button></th>
-                                            <th><button class="pbp-sort" @click="toggleSort('diseases', 'matched')">{{ multi ? "Query terms annotated" : "Criterion" }} {{ sortIndicator('diseases', 'matched') }}</button></th>
+                                            <th><button class="pbp-sort" @click="toggleSort('diseases', 'score')">{{ !isOrphanet ? "Disease HPOs matched" : multi ? "Profile score" : "Frequency class" }} {{ sortIndicator('diseases', 'score') }}</button></th>
+                                            <th><button class="pbp-sort" @click="toggleSort('diseases', 'matched')">{{ multi || !isOrphanet ? "Query terms matched" : "Criterion" }} {{ sortIndicator('diseases', 'matched') }}</button></th>
                                             <th v-if="!multi"><button class="pbp-sort" @click="toggleSort('diseases', 'genes')">Genes {{ sortIndicator('diseases', 'genes') }}</button></th>
                                         </tr>
                                     </thead>
@@ -740,9 +667,6 @@
                                                 <td v-if="multi">
                                                     <span
                                                         class="pbp-rank"
-                                                        :class="{
-                                                            top: row.rank <= 3,
-                                                        }"
                                                         >{{ row.rank }}</span
                                                     >
                                                 </td>
@@ -756,7 +680,7 @@
                                                             : "▼"
                                                     }}</span
                                                     ><small
-                                                        >ORPHA:{{ row.code
+                                                        >{{ row.referenceId || `DDG2P · ${row.genes.map(gene => gene[0]).join(", ")}`
                                                         }}<template
                                                             v-if="
                                                                 row.genes.length
@@ -775,22 +699,12 @@
                                                                     .join(", ")
                                                             }}</template
                                                         ></small
-                                                    ><small
-                                                        v-if="
-                                                            row.penalizedBy
-                                                                .length
-                                                        "
-                                                        class="pbp-downrank"
-                                                        >down-ranked: annotated
-                                                        with excluded term
-                                                        {{
-                                                            row.penalizedBy
-                                                                .map(name)
-                                                                .join(", ")
-                                                        }}</small
                                                     >
                                                 </td>
-                                                <td v-if="multi">
+                                                <td v-if="!isOrphanet">
+                                                    <b>{{ row.overlapCount }}/{{ row.profile.length }}</b>
+                                                </td>
+                                                <td v-else-if="multi">
                                                     <b>{{ row.score.toFixed(2) }}</b>
                                                 </td>
                                                 <td v-else>
@@ -808,7 +722,7 @@
                                                         }}</span
                                                     >
                                                 </td>
-                                                <td v-if="multi">
+                                                <td v-if="multi || !isOrphanet">
                                                     <b
                                                         >{{
                                                             row.matchedIds
@@ -862,6 +776,7 @@
                                                         >
                                                         {{ diseaseWhy(row) }}
                                                     </p>
+                                                    <p v-if="row.mondoIds.length" class="pbp-note">MONDO mappings: {{ row.mondoIds.join(", ") }}</p>
                                                     <table
                                                         class="pbp-feature-table"
                                                     >
@@ -902,9 +817,7 @@
                                                                         type="button"
                                                                         class="pbp-feature"
                                                                         :class="{
-                                                                            hit: ids.includes(
-                                                                                item.hpoId
-                                                                            ),
+                                                                            hit: ids.includes(item.hpoId) || (row.matchedProfileIds || []).includes(item.hpoId),
                                                                             miss: excluded.includes(
                                                                                 item.hpoId
                                                                             ),
@@ -982,18 +895,19 @@
                             </div>
                             <div class="pbp-pagination">
                                 <button type="button" :disabled="diseasePage <= 1" @click="diseasePage--">Previous</button>
-                                <span>Page {{ diseasePage }} / {{ diseasePageCount }} · {{ filteredDiseases.length }} diseases</span>
+                                <span>Page {{ diseasePage }} / {{ diseasePageCount }} · {{ filteredDiseases.length }} {{ diseaseSource === "ddg2p" ? "gene–condition records" : "diseases" }}</span>
                                 <button type="button" :disabled="diseasePage >= diseasePageCount" @click="diseasePage++">Next</button>
                             </div>
                             <p class="pbp-note">
                                 {{
-                                    multi
-                                        ? "Profile score is the harmonic mean of disease and query coverage, minus 0.5 × the largest matching user-excluded term weight. It ranks diseases; it is not a probability. Orphanet Excluded (0%) annotations are ignored. "
+                                    !isOrphanet
+                                        ? "Disease HPOs matched = matched phenotype annotations / all unique phenotype annotations for this record (for example, 2/8). Inheritance and clinical modifiers are omitted. Query terms matched uses the input term count as its denominator. A query also matches a more specific disease annotation; matching several queries counts an annotation once. Excluded phenotypes remove matching records. No frequency weights or Profile score are assigned. "
+                                        : multi
+                                        ? "Profile score is the harmonic mean of disease and query coverage. Diseases matching a user-excluded HPO are removed from these results. The score ranks the remaining diseases; it is not a probability. Orphanet Excluded (0%) annotations are ignored. "
                                         : ""
-                                }}Orphadata Products 4 and 6 · July 2026
-                                reference snapshot.
+                                }}{{ isOrphanet ? "Orphadata Products 4 and 6 · July 2026 reference snapshot." : diseaseSource === "ddg2p" ? "DDG2P phenotype reference · local release; each row is a gene–condition record." : "HPOA disease phenotype annotations · 2026-02-16 local release." }}
                             </p>
-                            <p class="pbp-note">
+                            <p v-if="isOrphanet" class="pbp-note">
                                 * Included in an established diagnostic criteria
                                 set; this finding alone does not establish a
                                 diagnosis. Excluded (0%) annotations are
@@ -1002,20 +916,22 @@
                         </section>
                         <aside v-if="multi" class="pbp-card pbp-narrow">
                             <span class="pbp-tag orpha"
-                                >ORPHANET REFERENCE</span
+                                >{{ diseaseSourceLabel.toUpperCase() }} REFERENCE</span
                             >
                             <h3>What would narrow this?</h3>
                             <p class="pbp-sub">
-                                Terms that best split the top
-                                {{ Math.min(10, candidates.length) }} candidates
-                                by binary information gain. Mark present or
-                                excluded to rerun the page.
+                                Each row is a different phenotype. The count
+                                shows how many of the top
+                                {{ Math.min(10, candidates.length) }} {{ diseaseSourceLabel }} candidate
+                                {{ diseaseSource === "ddg2p" ? "gene–condition records" : "diseases" }} are annotated with it. + adds a
+                                recorded phenotype; - marks a confirmed
+                                excluded phenotype.
                             </p>
                             <table>
                                 <thead>
                                     <tr>
                                         <th><button class="pbp-sort" @click="toggleSort('narrowing', 'phenotype')">Phenotype {{ sortIndicator('narrowing', 'phenotype') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('narrowing', 'count')">Splits top {{ sortIndicator('narrowing', 'count') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('narrowing', 'count')">{{ diseaseSource === "ddg2p" ? "Records annotated" : "Diseases annotated" }} {{ sortIndicator('narrowing', 'count') }}</button></th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -1036,26 +952,31 @@
                                             >
                                         </td>
                                         <td>
-                                            {{ item.count }} / {{ item.total }}
+                                            {{ item.count }} of {{ item.total }}
                                         </td>
                                         <td>
                                             <button
                                                 type="button"
+                                                class="pbp-narrow-add"
                                                 title="Add as present"
+                                                aria-label="Add as present phenotype"
                                                 @click="addFeature(item.hpoId)"
                                             >
-                                                ✓</button
+                                                +</button
                                             ><button
                                                 type="button"
+                                                class="pbp-narrow-exclude"
                                                 title="Add as excluded"
+                                                aria-label="Add as excluded phenotype"
                                                 @click="addExcluded(item.hpoId)"
                                             >
-                                                ✗
+                                                -
                                             </button>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+                            <p v-if="!sortedNarrowing.length" class="pbp-note">No distinguishing phenotype is available among the top {{ diseaseSourceLabel }} records.</p>
                         </aside>
                     </div>
                 </template>
@@ -1072,23 +993,31 @@
 </template>
 <script>
 import { ORPHANET_REFERENCE } from "./orphanetReference.generated";
+import additionalReferences from "./additionalDiseaseReferences.generated.json";
 import {
     FREQUENCIES,
+    DISEASE_SOURCES,
     CANDIDATE_SCORE_THRESHOLD,
     AGE_BANDS,
     validAge,
     ageBand,
+    ageExclusionSummary,
+    sexExclusionSummary,
+    sexCategory,
+    cohortSampleSummary,
     TERM_COLORS,
     resolveHpoId,
     resolveHpoIds,
     diseaseRows,
+    unweightedDiseaseRows,
     narrowingTerms,
     sampleMatchCount,
     formatStatistic,
     sortTableRows,
 } from "./phenotypeModel";
 import { request as bioIndexRequest } from "@/utils/bioIndexUtils";
-const REF = ORPHANET_REFERENCE;
+import { fetchProfileGeneAssociations } from "./profileGeneApi";
+const REF = { ...ORPHANET_REFERENCE, terms: { ...ORPHANET_REFERENCE.terms, ...additionalReferences.terms } };
 const sampleKey = (sample) => sample.SampleInVCF || sample.unique_sample_ID;
 const normalizeTerms = (value) =>
     Array.isArray(value)
@@ -1126,13 +1055,12 @@ export default {
             searchQuery: query,
             addQuery: "",
             excludeQuery: "",
-            saved: false,
             ageBandFilter: "",
             sexFilter: "",
             cohortDiseaseFilter: "",
             affectedFilter: "",
-            showSingleList: false,
             samplePage: 1,
+            cohortPage: 1,
             tableSort: {
                 cohorts: { key: "total", dir: "desc" },
                 samples: { key: "rank", dir: "asc" },
@@ -1155,7 +1083,8 @@ export default {
             geneRequest: 0,
             geneFilter: "significant",
             genePage: 1,
-            diseaseFilter: ids.length > 1 ? "all" : "default",
+            diseaseFilter: ids.length > 1 || ["omim", "decipher", "ddg2p"].includes(params.get("source")) ? "all" : "default",
+            diseaseSource: DISEASE_SOURCES.some((source) => source.key === params.get("source")) ? params.get("source") : "orphanet",
             diseaseQuery: "",
             diseasePage: 1,
             expandedDiseases: [],
@@ -1176,34 +1105,94 @@ export default {
                 this.matchesLoaded = false;
                 this.genes = null;
                 this.samplePage = 1;
+                this.cohortPage = 1;
                 this.cohortDiseaseFilter = "";
                 this.genePage = 1;
                 this.diseasePage = 1;
-                this.diseaseFilter = this.ids.length > 1 ? "all" : "default";
+                this.diseaseFilter = this.ids.length > 1 || !this.isOrphanet ? "all" : "default";
                 this.loadSamples();
                 this.loadGenes();
             },
         },
-        ageBandFilter() { this.samplePage = 1; },
-        sexFilter() { this.samplePage = 1; },
-        affectedFilter() { this.samplePage = 1; },
-        cohortDiseaseFilter() { this.samplePage = 1; },
+        ageBandFilter() { this.samplePage = 1; this.cohortPage = 1; },
+        sexFilter() { this.samplePage = 1; this.cohortPage = 1; },
+        affectedFilter() { this.samplePage = 1; this.cohortPage = 1; },
+        cohortDiseaseFilter() { this.samplePage = 1; this.cohortPage = 1; },
         excluded: { deep: true, handler() {
             this.samplePage = 1;
+            this.cohortPage = 1;
             this.diseasePage = 1;
-            if (!this.excludedDiseaseCount) this.diseaseFilter = "all";
-            this.loadGenes();
+            if (this.multi) this.diseaseFilter = "all";
         } },
         visibleSamples(samples) { if (samples.length) this.loadSampleInfo(samples); },
         diseaseQuery() { this.diseasePage = 1; },
+        diseaseSource() {
+            this.diseasePage = 1;
+            this.diseaseFilter = this.multi || !this.isOrphanet ? "all" : "default";
+            this.expandedDiseases = [];
+            this.expandedFeatures = [];
+            this.$set(this.tableSort, "diseases", { key: "rank", dir: "asc" });
+            this.$set(this.tableSort, "narrowing", { key: "", dir: "asc" });
+            this.syncUrl();
+        },
     },
     computed: {
         ageBands() { return AGE_BANDS; },
         multi() {
             return this.ids.length > 1;
         },
+        isOrphanet() { return this.diseaseSource === "orphanet"; },
+        diseaseSourceLabel() { return DISEASE_SOURCES.find((source) => source.key === this.diseaseSource).label; },
         term() {
             return REF.terms[this.ids[0]];
+        },
+        termSummaries() {
+            return this.ids.map((id) => {
+                const diseases = new Set();
+                const veryFrequent = new Set();
+                (REF.associations[id] || []).forEach(([index, frequency]) => {
+                    if (!FREQUENCIES.some(([name]) => name === frequency)) return;
+                    const code = REF.diseases[index]?.[0];
+                    if (!code) return;
+                    diseases.add(code);
+                    if (frequency === FREQUENCIES[0][0] || frequency === FREQUENCIES[1][0])
+                        veryFrequent.add(code);
+                });
+                const samples = this.matchesLoaded
+                    ? this.matches.filter((row) => this.sampleTerms(row).includes(id)).length
+                    : null;
+                const rate = samples != null && this.cohortSampleCount
+                    ? (samples / this.cohortSampleCount) * 100 : null;
+                return {
+                    id,
+                    samples,
+                    percent: rate == null ? null : rate > 0 && rate < 1 ? "<1" : Math.round(rate),
+                    diseases: diseases.size,
+                    veryFrequent: veryFrequent.size,
+                    exclusions: this.excluded.map((excludedId) => {
+                        const removed = new Set(this.allOrphanetDiseases
+                            .filter((row) => row.excludedBy.includes(excludedId))
+                            .map((row) => row.code));
+                        return {
+                            id: excludedId,
+                            samples: this.matchesLoaded
+                                ? this.matches.filter((row) =>
+                                    this.sampleTerms(row).includes(id) &&
+                                    this.sampleTerms(row).includes(excludedId)
+                                ).length
+                                : null,
+                            diseases: [...diseases].filter((code) => removed.has(code)).length,
+                            veryFrequent: [...veryFrequent].filter((code) => removed.has(code)).length,
+                        };
+                    }),
+                };
+            });
+        },
+        allTermsSampleCount() {
+            return this.matches.filter((row) => sampleMatchCount(row) === this.ids.length).length;
+        },
+        atLeastTwoSampleCount() {
+            return this.matches.filter((row) => sampleMatchCount(row) >= 2).length;
         },
         hpoOptions() {
             return Object.entries(REF.terms).map(([id, item]) => ({
@@ -1221,31 +1210,13 @@ export default {
             ].sort();
         },
         cohortDiseaseSummary() {
-            const map = new Map();
-            this.filteredSamples.forEach((row) => {
-                const name = row.cohort_category || "Unknown";
-                if (!map.has(name))
-                    map.set(name, { name, total: 0, affected: 0, ages: [] });
-                const item = map.get(name);
-                item.total++;
-                if (row.initial_study_affected === "Y") item.affected++;
-                const age = this.sampleAge(row);
-                if (age != null) item.ages.push(age);
+            return cohortSampleSummary(this.qualifyingSamples, {
+                cohortOf: (row) => row.cohort_category,
+                ageOf: (row) => this.sampleAge(row),
+                sexOf: (row) => row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender,
+                affectedOf: (row) => row.initial_study_affected,
+                scoreOf: (row) => row.residual_phers,
             });
-            return [...map.values()].map((item) => {
-                const ages = item.ages.sort((a, b) => a - b);
-                const middle = Math.floor(ages.length / 2);
-                return {
-                    ...item,
-                    medianAge: ages.length
-                        ? ages.length % 2
-                            ? ages[middle]
-                            : (ages[middle - 1] + ages[middle]) / 2
-                        : null,
-                };
-            }).sort(
-                (a, b) => b.total - a.total || a.name.localeCompare(b.name)
-            );
         },
         sortedCohortDiseaseSummary() {
             return sortTableRows(this.cohortDiseaseSummary, this.tableSort.cohorts, {
@@ -1253,35 +1224,25 @@ export default {
                 total: (row) => row.total,
                 affected: (row) => row.affected,
                 medianAge: (row) => row.medianAge,
+                sex: (row) => row.sex.female,
+                phers: (row) => row.meanResidualPhers,
             });
         },
+        visibleCohortDiseaseSummary() {
+            return this.sortedCohortDiseaseSummary.slice((this.cohortPage - 1) * 5, this.cohortPage * 5);
+        },
+        cohortPageCount() { return Math.max(1, Math.ceil(this.cohortDiseaseSummary.length / 5)); },
         ageSummary() {
-            const bins = AGE_BANDS.map((band) => ({ ...band, count: 0 }));
-            let known = 0;
-            this.filteredSamples.forEach((row) => {
-                const age = this.sampleAge(row);
-                if (age == null) return;
-                known++;
-                const band = ageBand(age);
-                const bin = bins.find((item) => item.label === band);
-                if (bin) bin.count++;
+            return ageExclusionSummary(this.samplesBeforeExclusion, this.excluded, {
+                ageOf: (row) => this.sampleAge(row),
+                termsOf: (row) => this.sampleTerms(row),
             });
-            return { known, bins };
         },
         sexSummary() {
-            return this.filteredSamples.reduce(
-                (out, row) => {
-                    const sex = String(
-                        row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender || ""
-                    ).toLowerCase();
-                    if (sex === "female" || sex === "male") {
-                        out[sex]++;
-                        out.known++;
-                    }
-                    return out;
-                },
-                { female: 0, male: 0, known: 0 }
-            );
+            return sexExclusionSummary(this.samplesBeforeExclusion, this.excluded, {
+                sexOf: (row) => row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender,
+                termsOf: (row) => this.sampleTerms(row),
+            });
         },
         hpoKnownCount() {
             return this.filteredSamples.filter(
@@ -1294,7 +1255,7 @@ export default {
             this.filteredSamples.forEach((row) => {
                 if (!this.sampleTerms(row).length) return;
                 new Set(leafTerms(this.sampleTerms(row))).forEach((id) => {
-                    if (id !== this.ids[0] && REF.terms[id])
+                    if (!this.ids.includes(id) && !this.excluded.includes(id) && REF.terms[id])
                         counts.set(id, (counts.get(id) || 0) + 1);
                 });
             });
@@ -1308,19 +1269,20 @@ export default {
                 .slice(0, 8);
         },
         hiddenCount() {
-            return this.matches.filter((row) =>
+            return this.samplesBeforeExclusion.filter((row) =>
                 this.excluded.some((id) => this.sampleTerms(row).includes(id))
             ).length;
         },
         unknownExclusionCount() {
             return this.excluded.length
-                ? this.matches.filter((row) => !this.sampleTerms(row).length)
+                ? this.samplesBeforeExclusion.filter((row) => !this.sampleTerms(row).length)
                       .length
                 : 0;
         },
-        filteredSamples() {
+        samplesBeforeExclusion() {
             return this.matches.filter(
                 (row) =>
+                    (!this.multi || sampleMatchCount(row) >= 2) &&
                     (!this.cohortDiseaseFilter ||
                         (row.cohort_category || "Unknown") ===
                             this.cohortDiseaseFilter) &&
@@ -1329,22 +1291,22 @@ export default {
                     (!this.ageBandFilter ||
                         this.sampleAgeBand(row) === this.ageBandFilter) &&
                     (!this.sexFilter ||
-                        String(row.gender || "").toLowerCase() === this.sexFilter) &&
-                    !this.excluded.some((id) =>
-                        this.sampleTerms(row).includes(id)
-                    )
+                        sexCategory(row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender).toLowerCase() === this.sexFilter)
+            );
+        },
+        filteredSamples() {
+            return this.samplesBeforeExclusion.filter((row) =>
+                !this.excluded.some((id) => this.sampleTerms(row).includes(id))
             );
         },
         qualifyingSamples() {
-            return this.filteredSamples.filter(
-                (row) => !this.multi || sampleMatchCount(row) >= 2
-            );
+            return this.filteredSamples;
         },
         visibleSamples() {
             return this.sortedSamples.slice((this.samplePage - 1) * 5, this.samplePage * 5);
         },
         sortedSamples() {
-            return sortTableRows(this.filteredSamples, this.tableSort.samples, {
+            return sortTableRows(this.qualifyingSamples, this.tableSort.samples, {
                 rank: (row) => row.rank,
                 sample: (row) => sampleKey(row),
                 phers: (row) => row.residual_phers,
@@ -1357,13 +1319,35 @@ export default {
                 affected: (row) => row.initial_study_affected || null,
             });
         },
-        samplePageCount() { return Math.max(1, Math.ceil(this.filteredSamples.length / 5)); },
+        samplePageCount() { return Math.max(1, Math.ceil(this.qualifyingSamples.length / 5)); },
+        allOrphanetDiseases() {
+            return diseaseRows(REF, this.ids, this.excluded).map((row) => ({
+                ...row, source: "orphanet", referenceId: `ORPHA:${row.code}`, mondoIds: [],
+            }));
+        },
+        allUnweightedDiseases() {
+            return unweightedDiseaseRows(REF, additionalReferences, this.ids, this.excluded);
+        },
+        diseaseSources() {
+            return DISEASE_SOURCES.map((source) => ({ ...source,
+                count: (source.key === "orphanet" ? this.allOrphanetDiseases : this.allUnweightedDiseases.filter((row) => row.source === source.key))
+                    .filter((row) => !row.excludedBy.length).length,
+            }));
+        },
+        allDiseases() {
+            return this.isOrphanet ? this.allOrphanetDiseases
+                : this.allUnweightedDiseases.filter((row) => row.source === this.diseaseSource);
+        },
+        orphanetDiseases() {
+            return this.allOrphanetDiseases.filter((row) => !row.excludedBy.length)
+                .map((row, index) => ({ ...row, rank: index + 1 }));
+        },
         diseases() {
-            return diseaseRows(REF, this.ids, this.excluded)
+            return this.allDiseases.filter((row) => !row.excludedBy.length)
                 .map((row, index) => ({ ...row, rank: index + 1 }));
         },
         candidates() {
-            return this.diseases.filter((row) => row.score >= CANDIDATE_SCORE_THRESHOLD);
+            return this.isOrphanet ? this.diseases.filter((row) => row.score >= CANDIDATE_SCORE_THRESHOLD) : this.diseases;
         },
         obligateCount() {
             return this.diseases.filter(
@@ -1375,21 +1359,9 @@ export default {
                 (row) => row.frequency === FREQUENCIES[1][0]
             ).length;
         },
-        linkedSymbols() {
-            return [
-                ...new Set(
-                    (this.multi
-                        ? this.candidates.slice(0, 10)
-                        : this.diseases
-                    ).flatMap((row) => row.genes.map((gene) => gene[0]))
-                ),
-            ];
-        },
-        burdenLinkedCount() {
+        significantGeneCount() {
             return this.genes
-                ? this.genes.associations.filter((row) =>
-                      this.linkedSymbols.includes(row.gene) && row.qValue < 0.05
-                  ).length
+                ? this.genes.associations.filter((row) => row.qValue != null && row.qValue < 0.05).length
                 : 0;
         },
         geneRows() {
@@ -1402,8 +1374,8 @@ export default {
                         diseases: [],
                     })
                 );
-            (this.multi ? this.candidates.slice(0, 10) : this.diseases).forEach(
-                (disease, rank) =>
+            (this.multi ? this.orphanetDiseases.filter((row) => row.score >= CANDIDATE_SCORE_THRESHOLD) : this.orphanetDiseases).forEach(
+                (disease) =>
                     disease.genes.forEach((gene) => {
                         const symbol = gene[0];
                         if (!map.has(symbol))
@@ -1415,7 +1387,7 @@ export default {
                         map.get(symbol).diseases.push({
                             code: disease.code,
                             name: disease.name,
-                            rank: rank + 1,
+                            rank: disease.rank,
                         });
                     })
             );
@@ -1429,38 +1401,44 @@ export default {
             );
         },
         geneFilters() {
-            return [
+            const filters = [
                 {
                     key: "significant",
                     label: "q < 0.05",
-                    count: this.geneRows.filter(this.significantGene)
-                        .length,
+                    count: this.significantGeneCount,
                 },
                 {
                     key: "all",
                     label: this.multi
-                        ? "Candidate genes"
+                        ? "All tested"
                         : "Available evidence",
-                    count: this.geneRows.length,
+                    count: this.multi
+                        ? this.geneRows.filter((row) => row.association).length
+                        : this.geneRows.length,
                 },
                 {
                     key: "linked",
                     label: "Also in Orphanet",
                     count: this.geneRows.filter(
                         (row) =>
-                            row.diseases.length &&
-                            (this.multi || row.association)
+                            row.diseases.length && row.association
                     ).length,
                 },
             ];
+            if (this.multi) filters.push({
+                key: "union",
+                label: "CRDC or Orphanet",
+                count: this.geneRows.length,
+            });
+            return filters;
         },
         filteredGenes() {
             return this.geneRows.filter(
                 (row) =>
-                    this.geneFilter === "all" ||
+                    this.geneFilter === "union" ||
+                    (this.geneFilter === "all" && (!this.multi || row.association)) ||
                     (this.geneFilter === "linked" &&
-                        row.diseases.length &&
-                        (this.multi || row.association)) ||
+                        row.diseases.length && row.association) ||
                     (this.geneFilter === "significant" && this.significantGene(row))
             );
         },
@@ -1488,22 +1466,8 @@ export default {
             );
         },
         diseaseFilters() {
-            if (this.multi) {
-                const filters = [
-                    {
-                        key: "all",
-                        label: "All annotated",
-                        count: this.diseases.length,
-                    },
-                ];
-                if (this.excluded.length && this.excludedDiseaseCount)
-                    filters.push({
-                        key: "notExcluded",
-                        label: this.diseaseFilter === "notExcluded"
-                            ? `${this.excludedDiseaseCount} diseases matching excluded terms hidden`
-                            : `Hide ${this.excludedDiseaseCount} diseases matching excluded terms`,
-                    });
-                return filters;
+            if (this.multi || !this.isOrphanet) {
+                return [];
             }
             return [
                 {
@@ -1525,16 +1489,11 @@ export default {
                 },
             ];
         },
-        excludedDiseaseCount() {
-            return this.excluded.length
-                ? this.diseases.filter((row) => row.penalizedBy.length).length
-                : 0;
-        },
         filteredDiseases() {
             const q = this.diseaseQuery.toLowerCase();
             return this.diseases.filter((row) => {
-                const include = this.multi
-                    ? this.diseaseFilter !== "notExcluded" || !row.penalizedBy.length
+                const include = this.multi || !this.isOrphanet
+                    ? true
                     : this.diseaseFilter === "all" ||
                       (this.diseaseFilter === "diagnostic" && row.diagnostic) ||
                       (this.diseaseFilter === "default" &&
@@ -1559,8 +1518,8 @@ export default {
             return sortTableRows(this.filteredDiseases, this.tableSort.diseases, {
                 rank: (row) => row.rank,
                 disease: (row) => row.name,
-                score: (row) => this.multi ? row.score : FREQUENCIES.findIndex((item) => item[0] === row.frequency),
-                matched: (row) => this.multi ? row.matchedIds.length : Number(row.diagnostic),
+                score: (row) => !this.isOrphanet ? row.overlapCount : this.multi ? row.score : FREQUENCIES.findIndex((item) => item[0] === row.frequency),
+                matched: (row) => this.multi || !this.isOrphanet ? row.matchedIds.length : Number(row.diagnostic),
                 genes: (row) => row.genes.map((gene) => gene[0]).join(", "),
             });
         },
@@ -1584,7 +1543,7 @@ export default {
         },
         toggleSort(table, key) {
             const current = this.tableSort[table];
-            const defaultDescending = ["phers", "matches", "total", "affected", "effect", "evidence", "matched", "count"].includes(key);
+            const defaultDescending = ["phers", "matches", "total", "affected", "effect", "evidence", "matched", "count", "sex"].includes(key);
             this.$set(this.tableSort, table, {
                 key,
                 dir: current.key === key
@@ -1592,6 +1551,7 @@ export default {
                     : defaultDescending ? "desc" : "asc",
             });
             if (table === "samples") this.samplePage = 1;
+            if (table === "cohorts") this.cohortPage = 1;
             if (table === "genes") this.genePage = 1;
             if (table === "diseases") this.diseasePage = 1;
         },
@@ -1630,8 +1590,10 @@ export default {
         },
         sampleSex(sample) {
             const gender = sample.gender || (this.sampleInfo[sampleKey(sample)] || {}).gender;
-            return gender === "female" ? "F" : gender === "male" ? "M" : "—";
+            const category = sexCategory(gender);
+            return category === "Female" ? "F" : category === "Male" ? "M" : "—";
         },
+        ageStat(value) { return value == null ? "—" : Number(value.toFixed(1)).toLocaleString(); },
         sampleAge(sample) {
             let raw = sample.age_at_enrollment;
             if (!Object.prototype.hasOwnProperty.call(sample, "age_at_enrollment")) {
@@ -1662,6 +1624,8 @@ export default {
             if (this.excluded.length)
                 url.searchParams.set("exclude", this.excluded.join(","));
             else url.searchParams.delete("exclude");
+            if (!this.isOrphanet) url.searchParams.set("source", this.diseaseSource);
+            else url.searchParams.delete("source");
             window.history.replaceState({}, "", url.pathname + url.search);
         },
         submitSearch() {
@@ -1708,19 +1672,6 @@ export default {
         removeExcluded(id) {
             this.excluded = this.excluded.filter((item) => item !== id);
             this.syncUrl();
-        },
-        saveProfile() {
-            localStorage.setItem(
-                "pbPhenotypeProfile",
-                JSON.stringify({
-                    hpoIds: this.ids,
-                    excludedIds: this.excluded,
-                    ageBand: this.ageBandFilter,
-                    sex: this.sexFilter,
-                    affected: this.affectedFilter,
-                })
-            );
-            this.saved = true;
         },
         async loadSamples() {
             if (!this.ids.length) return;
@@ -1806,56 +1757,35 @@ export default {
                 return;
             }
             const ids = [...this.ids];
-            const symbols = this.multi ? [...this.linkedSymbols] : [];
-            if (this.multi && !symbols.length) {
-                this.genes = { associations: [], nTests: 0 };
-                this.geneFilter = "all";
-                this.geneLoading = false;
-                this.geneError = "";
-                return;
-            }
             this.geneLoading = true;
             this.geneError = "";
             try {
-                const response = this.multi
-                    ? await fetch("/phenotype-analyzer-api/co-gene-associations", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            gene: symbols[0],
-                            terms: ids.join(","),
-                            co_genes: symbols.slice(1),
-                            score_type: "max",
-                            affected_only: false,
-                        }),
-                    })
-                    : await fetch(`/__hpo_gene_associations__?hpo=${encodeURIComponent(ids[0])}`);
-                if (!response.ok)
-                    throw new Error(
-                        `CRDC gene analysis returned ${response.status}.`
-                    );
-                const data = await response.json();
+                let data;
+                if (this.multi) {
+                    data = await fetchProfileGeneAssociations(ids);
+                } else {
+                    const response = await fetch(`/__hpo_gene_associations__?hpo=${encodeURIComponent(ids[0])}`);
+                    if (!response.ok) throw new Error(`CRDC gene analysis returned ${response.status}.`);
+                    data = await response.json();
+                }
                 let genes;
-                if (symbols.length) {
+                if (this.multi) {
                     const received = data.query_hpo || [];
-                    if (data.target_gene !== symbols[0] ||
-                        received.length !== ids.length ||
+                    if (received.length !== ids.length ||
                         ids.some((id) => !received.includes(id)) ||
-                        !data.gene_associations)
+                        data.multiple_testing_scope !== "all valid genes in approved score source" ||
+                        !data.gene_associations ||
+                        Number(data.n_tests) !== Object.keys(data.gene_associations).length)
                         throw new Error("Gene analysis returned a different HPO profile.");
                     genes = {
                         nTests: Number(data.n_tests) || 0,
-                        associations: symbols.map((gene) => {
-                            const item = data.gene_associations[gene];
-                            if (item?.status !== "ok" || item.p_value == null) return null;
-                            return {
-                                gene,
+                        associations: Object.entries(data.gene_associations).map(([gene, item]) => ({
+                                gene: gene.toUpperCase(),
                                 beta: item.beta,
                                 pValue: item.p_value,
                                 qValue: item.fdr,
                                 nPositive: item.n_positive,
-                            };
-                        }).filter(Boolean),
+                            })),
                     };
                 } else {
                     if (data.hpoId !== ids[0] || !Array.isArray(data.associations))
@@ -1895,8 +1825,11 @@ export default {
                 : "";
         },
         diseaseWhy(row) {
+            if (row.source !== "orphanet") {
+                return `${row.overlapCount}/${row.profile.length} unique disease HPO annotations match the query; ${row.matchedIds.length}/${this.ids.length} input HPOs are explained. Matches include more specific annotations. Each disease annotation is counted once, even when several input terms match it. No frequency weighting is used.`;
+            }
             return this.multi
-                ? `${row.matchedIds.length}/${this.ids.length} query terms match this disease or a more specific annotation. How ${row.score.toFixed(2)} is calculated: N ${row.numerator.toFixed(4)} ÷ S(D) ${row.denominator.toFixed(4)} = Cov_D ${row.diseaseCoverage.toFixed(3)}; N ÷ ${this.ids.length} = Cov_Q ${row.queryCoverage.toFixed(3)}; harmonic mean ${row.rawScore.toFixed(3)}${row.penaltyWeight ? ` − 0.5 × ${row.penaltyWeight.toFixed(4)} for excluded ${row.penalizedBy.map(this.name).join(", ")}` : ""} = ${row.score.toFixed(2)}.`
+                ? `${row.matchedIds.length}/${this.ids.length} query terms match this disease or a more specific annotation. How ${row.score.toFixed(2)} is calculated: N ${row.numerator.toFixed(4)} ÷ S(D) ${row.denominator.toFixed(4)} = Cov_D ${row.diseaseCoverage.toFixed(3)}; N ÷ ${this.ids.length} = Cov_Q ${row.queryCoverage.toFixed(3)}; harmonic mean ${row.rawScore.toFixed(3)} = ${row.score.toFixed(2)}.`
                 : `${this.name(
                       this.ids[0]
                   )} is annotated as ${row.frequency.toLowerCase()}${
@@ -1906,6 +1839,7 @@ export default {
                   }.`;
         },
         featureGroups(row) {
+            if (row.source !== "orphanet") return [{name: "Annotated HPOs", short: "Annotated HPOs", items: row.profile}];
             return FREQUENCIES.map(([name, short]) => ({
                 name,
                 short,
