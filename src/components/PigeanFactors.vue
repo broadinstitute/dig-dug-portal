@@ -125,6 +125,18 @@
               </b-button>
             </div>
           </template>
+          <template v-slot:cell(factor)="row">
+            <div class="top-list-cell">
+              <b-button
+                variant="outline-primary"
+                size="sm"
+                class="view-more-btn"
+                @click="togglePhewasSubtable(row)"
+              >
+                {{ row.detailsShowing && row.item.phewasSubtableActive ? "Hide" : "View more" }}
+              </b-button>
+            </div>
+          </template>
           <template v-slot:row-details="row">
             <div v-if="row.item.subtableActive" class="subtable-container">
               <div v-if="subtableLoading[row.item.factor || row.item.cluster]" class="text-center p-3">
@@ -174,14 +186,14 @@
               <div v-if="subtableLoadingGeneSets[row.item.factor || row.item.cluster]" class="text-center p-3">
                 Loading...
               </div>
-              <div v-else-if="subtableDataGeneSets[getGeneSetsSubtableKey(row.item)] && subtableDataGeneSets[getGeneSetsSubtableKey(row.item)].length > 0">
+              <div v-else-if="subtableDataGeneSets[getSubtableKey(row.item)] && subtableDataGeneSets[getSubtableKey(row.item)].length > 0">
                 <div class="subtable-header">
-                  <span class="table-total-rows">Total rows: {{ subtableDataGeneSets[getGeneSetsSubtableKey(row.item)].length }}</span>
+                  <span class="table-total-rows">Total rows: {{ subtableDataGeneSets[getSubtableKey(row.item)].length }}</span>
                 </div>
                 <b-table
                   striped
                   hover
-                  :items="subtableDataGeneSets[getGeneSetsSubtableKey(row.item)]"
+                  :items="subtableDataGeneSets[getSubtableKey(row.item)]"
                   :fields="geneSetsSubtableFields"
                   :per-page="subtablePerPage"
                   :current-page="getGeneSetsSubtableCurrentPage(row.item)"
@@ -202,15 +214,18 @@
                   </template>
                 </b-table>
                 <b-pagination
-                  v-model="subtableCurrentPagesGeneSets[getGeneSetsSubtableKey(row.item)]"
+                  v-model="subtableCurrentPagesGeneSets[getSubtableKey(row.item)]"
                   class="pagination-sm justify-content-center mt-2"
-                  :total-rows="subtableDataGeneSets[getGeneSetsSubtableKey(row.item)].length"
+                  :total-rows="subtableDataGeneSets[getSubtableKey(row.item)].length"
                   :per-page="subtablePerPage"
                 ></b-pagination>
               </div>
               <div v-else class="text-center p-3 text-muted">
                 No data available
               </div>
+            </div>
+            <div v-if="row.item.phewasSubtableActive" class="subtable-container">
+              PheWAS coming soon
             </div>
           </template>
         </b-table>
@@ -264,30 +279,20 @@ export default Vue.component("pigean-factors", {
           key: 'label',
           label: 'Latent genetic factor',
           sortable: true,
-          thStyle: { width: '25%' },
-          tdStyle: { width: '25%' }
-        },
-        {
-          key: 'anchor_any_joint',
-          label: 'Factor relevance to phenotype',
-          sortable: true,
-          formatter: (value) => value !== 0 ? value.toFixed(2) : value,
-          thStyle: { width: '15%' },
-          tdStyle: { width: '15%' }
         },
         {
           key: 'top_gene_sets',
           label: 'Top gene sets',
           sortable: false,
-          thStyle: { width: '45%' },
-          tdStyle: { width: '45%' }
         },
         {
           key: 'top_genes',
           label: 'Top genes',
           sortable: false,
-          thStyle: { width: '15%' },
-          tdStyle: { width: '15%' }
+        },
+        {
+          key: "factor",
+          label: "PheWAS"
         }
       ],
       subtableFields: [
@@ -409,6 +414,7 @@ export default Vue.component("pigean-factors", {
       if (!this.pigeanFactorData) {
         return [];
       }
+      console.log(JSON.stringify(this.pigeanFactorData[0]));
       return this.pigeanFactorData;
     },
     phenotypeName() {
@@ -418,9 +424,6 @@ export default Vue.component("pigean-factors", {
         return phenotype ? phenotype.description : this.pigeanFactorData[0].phenotype;
       }
       return "Phenotype";
-    },
-    genesetSize() {
-      return DEFAULT_GENESET_SIZE;
     },
     phenotype() {
       // Get phenotype from the first data item
@@ -559,7 +562,7 @@ export default Vue.component("pigean-factors", {
         // Find the factor object to get phenotype
         const factorObj = this.pigeanDataFiltered.find(f => (f.factor || f.cluster) === factorId);
         if (factorObj) {
-          const key = this.getGeneSetsSubtableKey(factorObj);
+          const key = this.getSubtableKey(factorObj);
           const data = this.subtableDataGeneSets[key] || [];
           data.forEach(item => {
             if (item.gene_set) {
@@ -580,7 +583,7 @@ export default Vue.component("pigean-factors", {
         if (!factorObj) {
           return geneSets.map(() => null);
         }
-        const key = this.getGeneSetsSubtableKey(factorObj);
+        const key = this.getSubtableKey(factorObj);
         const factorData = this.subtableDataGeneSets[key] || [];
         
         // Create a map of gene_set -> factor_value for quick lookup
@@ -734,7 +737,7 @@ export default Vue.component("pigean-factors", {
     },
     getSubtableKey(item) {
       const factor = item.factor || item.cluster || '';
-      return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${factor}`;
+      return `${item.phenotype},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE},${factor}`;
     },
     getSubtableCurrentPage(item) {
       const key = this.getSubtableKey(item);
@@ -743,12 +746,8 @@ export default Vue.component("pigean-factors", {
       }
       return this.subtableCurrentPages[key];
     },
-    getGeneSetsSubtableKey(item) {
-      const factor = item.factor || item.cluster || '';
-      return `${item.phenotype},2,${DEFAULT_GENESET_SIZE},${factor}`;
-    },
     getGeneSetsSubtableCurrentPage(item) {
-      const key = this.getGeneSetsSubtableKey(item);
+      const key = this.getSubtableKey(item);
       if (!this.subtableCurrentPagesGeneSets[key]) {
         Vue.set(this.subtableCurrentPagesGeneSets, key, 1);
       }
@@ -827,7 +826,7 @@ export default Vue.component("pigean-factors", {
       
       // Load data for all factors in parallel
       const loadPromises = this.pigeanFactorData.map(async (factor) => {
-        const key = this.getGeneSetsSubtableKey(factor);
+        const key = this.getSubtableKey(factor);
         const factorId = factor.factor || factor.cluster || '';
         
         if (!this.subtableDataGeneSets[key] && factorId) {
@@ -913,7 +912,58 @@ export default Vue.component("pigean-factors", {
     },
     async toggleGeneSetsSubtable(row) {
       const item = row.item;
-      const key = this.getGeneSetsSubtableKey(item);
+      const key = this.getSubtableKey(item);
+      const factorId = item.factor || item.cluster || '';
+      
+      // Initialize geneSetsSubtableActive if not exists
+      if (!item.hasOwnProperty('geneSetsSubtableActive')) {
+        Vue.set(item, 'geneSetsSubtableActive', false);
+      }
+      
+      // Toggle details
+      if (row.detailsShowing && item.geneSetsSubtableActive) {
+        // Hide
+        row.toggleDetails();
+        item.geneSetsSubtableActive = false;
+      } else {
+        // Show
+        if (!row.detailsShowing) {
+          row.toggleDetails();
+        }
+        item.geneSetsSubtableActive = true;
+        item.subtableActive = false;
+        
+        // Load data if not already loaded
+        if (!this.subtableDataGeneSets[key]) {
+          Vue.set(this.subtableLoadingGeneSets, factorId, true);
+          try {
+            const data = await query('pigean-gene-set-factor', key);
+            // Map the data to match our table fields
+            const mappedData = (data || []).map(item => ({
+              gene_set: item.gene_set,
+              relevance_to_factor: item.factor_value,
+              beta: item.beta,
+              beta_uncorrected: item.beta_uncorrected,
+              // Keep original fields for reference
+              ...item
+            }));
+            Vue.set(this.subtableDataGeneSets, key, mappedData);
+            // Initialize pagination for this subtable
+            if (!this.subtableCurrentPagesGeneSets[key]) {
+              Vue.set(this.subtableCurrentPagesGeneSets, key, 1);
+            }
+          } catch (error) {
+            console.error('Error loading gene sets subtable data:', error);
+            Vue.set(this.subtableDataGeneSets, key, []);
+          } finally {
+            Vue.set(this.subtableLoadingGeneSets, factorId, false);
+          }
+        }
+      }
+    },
+    async togglePhewasSubtable(row) {
+      const item = row.item;
+      const key = this.getSubtableKey(item);
       const factorId = item.factor || item.cluster || '';
       
       // Initialize geneSetsSubtableActive if not exists
