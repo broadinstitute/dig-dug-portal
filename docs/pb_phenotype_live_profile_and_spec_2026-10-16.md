@@ -1,11 +1,143 @@
 ---
-title: PB Phenotype 로컬 페이지 구현·데이터 연결·확정 화면 규칙
+title: PB Phenotype Engineering Integration Handoff
 tags: [dig-dug-portal, pb-phenotype, bioindex, phers]
 status: active
 updated: 2026-10-16
 ---
 
-# PB Phenotype — 구현·데이터·화면 규칙 (2026-10-16 최종 갱신)
+# PB Phenotype Engineering Integration Handoff
+
+- Updated: 2026-10-16
+- Branch: `kyuryung/bch-prototype`
+- Page: `/pb_phenotype.html`
+Audience: frontend, backend, reference-data and platform engineers integrating this page into the authenticated BCH portal.
+
+## A. Delivery and integration baseline
+
+| Item | Required implementation |
+|---|---|
+| Current screen commit | `e66a2be797e0f3b682f706973a926fe97fba6fdc` — `feat(pb-phenotype): expand references and unify profile analysis` |
+| Prerequisite Phenotype commit | `179be6c4a` — profile service, proxy, initial reference/data integration |
+| Related Variant screen commit | `71a157188daf457926b217df9f39a6d38f1e5531` |
+| Variant engineering document | [PB Variant integration handoff](pb_variant_engineering_integration_handoff.md) |
+
+Integrate the branch history through `e66a2be79`, or include its prerequisites explicitly. Cherry-picking only the latest Template/CSS changes does not supply the profile service, proxy, precomputed-gene endpoint or statistical dependencies. Preserve the existing BCH multi-page routes and configuration; add the needed entry/service mappings rather than replacing the entire production `vue.config.js`.
+
+Reference URLs:
+
+- Single: `http://127.0.0.1:8098/pb_phenotype.html?query=HP%3A0001945&exclude=HP%3A0000252`
+- Multiple: `http://127.0.0.1:8098/pb_phenotype.html?query=HP%3A0001945%2CHP%3A0002922%2CHP%3A0002315`
+- Additional reference selection: append `&source=omim`, `decipher`, or `ddg2p`; Orphanet is the default.
+
+These are local acceptance references. The implementation commits do not establish a test-server deployment. The sections below contain the current product and calculation rules; use them as acceptance requirements, not as a source of hard-coded example counts.
+
+## B. Services the deployed page must have
+
+| Browser path | Current development provider | Required deployed behavior |
+|---|---|---|
+| `/__pb_phenotype_profile__/profile` | Vue proxy to local Python profile service, normally port 8093; rewrites to `/phenotype-analyzer-api/profile` | An authenticated service with the response contract in C1; the Python implementation can be mounted server-side with approved inputs or replaced by an equivalent existing service |
+| `/__hpo_gene_associations__?hpo=…` | Express handler registered by `scripts/gene_hpo_association_endpoint.js` in `devServer.before` | Serve the same approved precomputed HPO-to-gene release projection from a backend route; a static Vue build does not include this handler |
+| `/phenotype-analyzer-api/co-gene-associations` | Vue proxy to the existing Gene/Variant Context API, normally port 8092 | Preserve existing gene-score model and complete requested-family BH results; do not create a requirement for `/profile-gene-associations` |
+| `/__bioindex_private__/api/bio/query/samples-info` | Private BioIndex proxy | Preserve the private request helper, session authentication and authorized sample metadata fields |
+
+`devServer.proxy` and `devServer.before` run only in development. Deploying built HTML/JS alone will not provide the three API paths above. Configure the production web server/application router explicitly and preserve the same-origin private access boundary. Do not substitute public BioIndex responses or fixture values.
+
+Development settings:
+
+| Variable | Role |
+|---|---|
+| `PB_PHENOTYPE_HPO_MATRIX` | Approved complete parent-expanded binary HPO TSV/TSV.GZ; first column sample ID, remaining columns HPO IDs |
+| `PB_PHENOTYPE_METADATA` | TSV with `sample_id`, `age`, `sex`, `affected`, aligned to the profile cohort |
+| `PB_PHENOTYPE_COHORT_MAPPING` | CSV with `de_identified_subject`, `clean_name`, `cohort_type`; Primary mapping takes precedence |
+| `PB_PHENOTYPE_PYTHON` / `PB_PHENOTYPE_PROFILE_PORT` | Python interpreter / local profile port (8093 default in Vue); profile dependencies include NumPy and SciPy |
+| `PB_GENE_HPO_FILE` | Approved `browser_gene_hpo.jsonl.gz` release for the single-HPO gene route |
+| `PHENOTYPE_ANALYZER_HOST_PRIVATE` | Existing gene/variant Context service upstream; its approved analysis roster, covariates and gene-score source are separate from the full profile cohort |
+| `BIOINDEX_HOST_PRIVATE` / `BIOINDEX_HOST_PRIVATE_BROWSER` | Private upstream / same-origin browser proxy base |
+
+`npm run serve:pb-phenotype` sets local development defaults. For a standalone profile service use `python3 -m scripts.pb_phenotype_profile_api --hpo-matrix <approved-path> --metadata <approved-path> --cohort-mapping <approved-path> --host 127.0.0.1 --port 8093`. Configure approved service-side inputs in the target environment; workstation paths are not production runtime dependencies. Never put the raw matrix, sample metadata or gene-score table into browser assets or Git.
+
+## C. Request, response and calculation contracts
+
+### C1. Private sample profile
+
+```http
+POST /__pb_phenotype_profile__/profile
+Content-Type: application/json
+
+{"hpo_ids":["HP:0001945","HP:0002315"],"page":1,"page_size":100}
+```
+
+The upstream profile path is `/phenotype-analyzer-api/profile`. The existing parser accepts 1–20 HPO IDs, positive page numbers, and page sizes 1–100. The current frontend sends no Exclude or metadata filters in this request: it collects **all** response pages, then applies its display filters. Do not pass age-band labels into the optional legacy `exact_age` field or silently redefine its request contract.
+
+Required response fields:
+
+| Field | Contract |
+|---|---|
+| `query_hpo_ids` | HPO IDs used for this calculation |
+| `scoring_method` | Current frontend requires `residual PheRS: rphers_fast.score_samples` |
+| `cohort_sample_count` | Full profile cohort count, distinct from returned matches and analysis-roster size |
+| `pagination` | `{page, page_size, total, next}`; total counts the complete matching result, not the current response slice |
+| `samples[]` | One row per sample: `sample_id`, `unique_sample_ID`, `residual_phers`, `matches`, `expanded_hpo_ids`, `age_at_enrollment`, `gender`, `initial_study_affected`, `cohort_category` |
+| `matches` | `k/n`, computed from the same parent-expanded matrix and query; not inferred from PheRS |
+| `expanded_hpo_ids` | Complete recorded/parent-expanded HPO IDs needed by match cards, Exclude and co-recorded phenotype summaries |
+| Demographics | Nullable numeric age; `female`/`male`/`unknown`; affected `Y`/`N`/missing; explicit cohort label or missing |
+
+The API returns samples matching at least one query term. For multiple HPOs the current UI selects ≥2 matches for its sample list and demographic/cohort summaries. Single HPO uses all returned matches. Residual PheRS comes from the existing scorer over the full approved matrix; changing Exclude removes rows without refitting or changing the remaining scores.
+
+This is an authenticated **sample-level** route. Do not apply the public aggregate-only response contract to it, and do not expose it through an unauthenticated/public route. Reference definitions and disease annotations remain separate from patient observations.
+
+### C2. Single-HPO precomputed genes
+
+`GET /__hpo_gene_associations__?hpo=HP:0001945` returns `{hpoId, total, associations}`. Each association supplies `gene`, `oddsRatio`, `ciLow`, `ciHigh`, `pValue`, and `qValue`. The current handler selects positive-direction, q-significant associations from the approved release and transforms the approximate OR/CI to a 0.1-score increment. Preserve this scale and its labels; do not display those ORs as the multi-HPO β.
+
+The current handler caps returned associations at 20 although `total` may be larger. For a complete production list, deliver all valid rows or implement explicit server pagination compatible with the 4-row UI. Do not claim a full list when only this preview has been delivered. Missing release configuration is 503, not an empty biological result.
+
+### C3. Multi-HPO full-gene analysis
+
+Use the existing `POST /phenotype-analyzer-api/co-gene-associations` with:
+
+```json
+{
+  "gene": "<first symbol in the approved source catalog>",
+  "terms": ["HP:0001945", "HP:0002315"],
+  "co_genes": ["<every other symbol in that same catalog>"],
+  "score_type": "max",
+  "affected_only": false
+}
+```
+
+The strings in angle brackets describe the request construction, not runnable gene symbols. `profileGeneApi.js` constructs the real request from `profileGeneCatalog.generated.json` (19,090 named genes for the verified source). The request fits the existing 25,000-symbol / 512 KiB limits.
+
+The response must include `query_hpo`, `model`, `score_type`, `affected_only`, `fdr_method: "BH"`, `n_requested`, `n_tests`, and `gene_associations` keyed by every requested symbol. A valid tested row has `status: "ok"`, `beta`, finite `p_value` and `fdr` in [0,1], and `n_positive`; non-testable genes retain their explicit status. The adapter checks complete symbols/counts, BH and valid FDR coverage, then retains valid tested genes. The view additionally verifies that query HPOs and the normalized full-testing scope match.
+
+The legacy service's scope label refers generically to target/co-genes. For this page the **actual request family is the complete approved source catalog**, and the adapter normalizes its scope accordingly. For Variant the family is only the target plus unfiltered co-carrier genes. Preserve this difference even though both pages reuse the same route. Do not select genes from Orphanet candidates or top-10 diseases before testing.
+
+The statistical model and score source are reused from Gene/Variant; no Phenotype-only regression is introduced. Source catalog and service score release must match. The source hash and regeneration command appear in the implementation reference below; the current service does not independently return that hash.
+
+### C4. Reference matching and descriptive summaries
+
+- Orphanet uses the frequency-weighted coverage formula below; other selected DBs show unique matched/total phenotype HPO counts with no invented frequency or Profile score.
+- Exclude removes matching disease records; Orphanet's own Excluded(0%) annotations are ignored. Source selection controls both disease ranking and What would narrow this?.
+- Demographic comparisons start with the same query-qualified, metadata-filtered samples **before Exclude**. Gray segments are the unique excluded subset; filled plus gray preserves the original bar extent. Remaining samples define cohort statistics and co-recorded HPO percentages.
+- Cohort Mean residual PheRS is the mean of available finite residuals, with a scored/total denominator; 0 and negative scores are included. This differs from Variant's same-gene Mean rPheRS, which requires complete eligible-carrier coverage before showing any mean.
+
+## D. Engineer implementation and acceptance checklist
+
+1. Integrate the complete branch prerequisites; preserve `/pb_phenotype.html`, `/pb_variant.html`, `/pb_Gene.html` case and existing portal routing.
+2. Configure the four private browser paths in B and approved backend inputs. Verify the full profile cohort and the separate gene-analysis roster; do not interchange their denominators.
+3. Ship the generated reference artifacts with provenance, or a versioned equivalent. Preserve Orphanet/OMIM/DECIPHER/DDG2P source selection, complete HPO profiles, gene links and MONDO mappings. A search preview is not a full disease profile.
+4. Fetch every sample page before totals, filters and charts. Verify that unavailable HPO or missing sample metadata produces a clear state rather than synthetic zeros.
+5. Verify single and multiple queries: 5 sample rows, 4 gene rows, 5 disease rows and 5 cohort groups per page. Cohort groups are open by default. No Save profile button, top-three rank highlight, duplicate All annotated capsule, PheRS bar or Profile score bar.
+6. Check recorded HPO color fills vs unrecorded **white dashed** boxes, Exclude's red block and per-term exclusion counts, and Unknown demographics. UI-valid age is 0–100 with the specified bands; age-at-enrollment is not age-at-onset.
+7. Check both Age and Sex before/after counts, no duplicate exclusion counts, cohort age quantiles/sex totals/residual mean, column sorting and pagination. Quantile method and missing-score rules are specified below.
+8. Switch each disease source and verify that both the table and narrowing candidates/counts change; preserve `source` in the URL and apply Exclude to each source.
+9. Run the three Node tests listed below, the development build and `git diff --check`. Validate the private HTTP contracts in the target environment and compare the supplied local acceptance cases. Local verified counts are examples, not fixed release expectations.
+
+Source files to integrate: `PbPhenotype/Template.vue`, `style.css`, `phenotypeModel.js`, `profileGeneApi.js`, the three generated reference/catalog artifacts, `scripts/pb_phenotype_profile_api.py`, `gene_hpo_association_endpoint.js`, existing scorer/Context dependencies and relevant `vue.config.js` entries. Reference builders and tests are listed below.
+
+The remaining source limits below are concrete integration items: single-HPO gene preview cap, no validated sample-diagnosis→Orphanet count mapping, and no Compare phenotypes implementation. Do not replace them with mock values. This document and the existing Variant handoff are the two page-specific engineering entry documents; no new file is required.
+
+## Current implementation reference and calculation details
 
 ## 1. 현재 상태와 적용 범위
 

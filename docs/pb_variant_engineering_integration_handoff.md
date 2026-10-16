@@ -1,11 +1,60 @@
 # PB Variant Engineering Integration Handoff
 
-Updated: 2026-10-05
+Updated: 2026-10-16
 Target branch: `kyuryung/bch-prototype`
 Pages: `/pb_variant.html`, `/pb_Gene.html`
 Audience: frontend, backend, data, and platform engineers connecting the approved PB Variant implementation to a browser-accessible BCH environment
 
-The October HPO Context, affected-only variant analysis, co-gene LM/FDR, and current UI behavior are specified in `docs/pb_variant_hpo_context_cogene_engineering_handoff_20261005.md`. That focused update supersedes older behavior descriptions below where they differ.
+This is the engineering integration contract for the current committed Variant page. The implementation snapshot below supersedes the older October 5 pagination and source-status descriptions. Existing proposed backend interfaces later in this file remain proposals, not deployed routes.
+
+## Implementation Snapshot — 2026-10-16
+
+| Deliverable | Commit / document |
+|---|---|
+| Current PB Variant screen | `71a157188daf457926b217df9f39a6d38f1e5531` — `feat(pb-variant): refine carrier analysis layout and context scores` |
+| Related PB Phenotype screen | `e66a2be797e0f3b682f706973a926fe97fba6fdc`, including its prerequisite `179be6c4a` |
+| Phenotype engineering contract | [PB Phenotype integration handoff](pb_phenotype_live_profile_and_spec_2026-10-16.md) |
+
+Use the branch history through `e66a2be79` when integrating both pages. These are frontend implementation commits, not confirmation that the BCH server has been deployed. The `71a157188` diff is six files: `PbVariant/Template.vue`, `pageModel.js`, `carrierStatistics.js`, `style.css`, `tableSorting.js`, and `scripts/test_pb_variant_carrier_statistics.js`.
+
+Current reference URL: `http://127.0.0.1:8097/pb_variant.html?query=chr11%3A5227002%3AT%3AA&gene=HBB`. The port is a local development choice; preserve `/pb_variant.html` on the deployed origin.
+
+### Required screen behavior
+
+- Preserve the desktop workspace: carrier filter controls beside the observed-phenotype hierarchy, followed by carrier samples and co-occurrence results. It collapses into a vertical layout on smaller screens.
+- Observed phenotypes: **8 top-level items per page**, with parent/child disclosure and visible tree connector guides. Do not flatten the hierarchy or count source rows as people.
+- Carrier samples: **5 per page**. Show each authorized carrier's own residual PheRS after HPO Context runs.
+- Different-gene co-carriers: fixed target-gene row plus **4 other genes per page**. Columns are Gene, Carriers, Effect (β), p-value, FDR.
+- Other same-gene variants: **4 per page**. Columns are Variant, Carriers, Variant Score, **Mean rPheRS**, ClinVar.
+- Co-occurrence Carriers uses `shared / selected target carriers (percent)`. Carrier filters immediately change the selected denominator and counts. Table headers sort numerically where appropriate, including Mean rPheRS.
+- The HPO Context status/link above co-occurrence results points back to Context controls. Variant Score and ClinVar do not depend on HPO Context.
+
+### Same-gene Mean rPheRS contract
+
+`summarizeCoVariantResiduals` in `carrierStatistics.js` uses the selected target-variant carriers who also carry the other same-gene variant. It uses each person's returned score from the **same submitted HPO Context**. Under Affected only, include only affected carriers in this mean. Deduplicate each person's co-variant IDs before counting.
+
+Return/display `eligibleCarrierCount`, `scoredCarrierCount`, and `meanResidual`. Display a mean only when eligible count is positive and every eligible co-carrier has a finite score. Keep 0 and negative residuals; missing is not zero. Before Go show `No context`, while running show `Calculating…`, and for incomplete coverage show `Unavailable` with scored/eligible coverage. This is a descriptive subset mean; it does not refit the variant OLS or gene-score LM. It is distinct from the main exact-variant Match Score, whose filtered aggregate remains unavailable without its backend contract.
+
+### Current metadata source
+
+The page loads private `samples-info` for all distinct exact-variant carriers, initially 5 and then batches of 12. `sampleMetadataFromRows`/`mergeCarrierMetadata` joins approved age, sex, affected, project, HPO and gene-list fields when present. A missing field stays unavailable; an incomplete metadata fetch is not a biological zero. Complete metadata matches for the unfiltered carrier set are required before defining the co-gene FDR family. An aggregate/batched production replacement must preserve this full-set check.
+
+### Shared endpoint, different FDR families
+
+Both pages call `/phenotype-analyzer-api/co-gene-associations`, but:
+
+- **Variant:** target gene plus all unique other genes among the **unfiltered exact-variant carriers**. Carrier UI filters never redefine this testing family.
+- **Phenotype:** every named gene in the approved gene-score source catalog; it is not limited to Variant co-carriers or Orphanet-linked genes.
+
+The backend must reuse its existing full-source model pass and BH implementation, then return the requested family. Do not copy the narrower Variant family into Phenotype. The Phenotype document specifies its full-catalog completeness checks.
+
+### Calculation inputs and formulas
+
+Compute residual PheRS with the existing scorer over the complete approved HPO matrix, then align it to the analysis roster (`overlap_status=both`). Affected only subsets the association and carrier-mean population after this residualization; do not residualize again on the affected subset. The fixed roster, complete covariates and gene-score file must be the same approved inputs used by Gene.
+
+The current exact-variant model is `residual PheRS ~ carrier(0/1) + age + age_missing + sex indicators + PC1..PC10`, fitted by OLS over all selected analysis samples including noncarriers. It has no GRM. The gene-score LM uses the selected Max/Sum score plus age, age missingness, sex, WES/WGS platform and PC1..PC10. Preserve the implemented covariate encoding in `scripts/gene_score_association.R` and the existing scorer; do not introduce a page-specific model or confuse binary-variant effect with gene-score effect.
+
+Missing entered HPOs are handled by the existing Variant retry: omit only HPO IDs explicitly reported absent by the approved matrix, retry the remaining query, and show the omitted terms and actual analysis terms. If none remain, return an error. The user's unsubmitted control edits do not change the active result; Go commits the HPO, GRS and All/Affected-only settings together.
 
 ## Decision And Scope
 
@@ -114,7 +163,7 @@ flowchart TD
     GV --> D
     G --> D
     D --> F --> U
-    F -->|HPO terms, gene| C -->|aggregate only| F
+    F -->|HPO terms, gene, exact variant| C -->|effects and private exact-carrier residuals| F
 ```
 
 Actual sequence:
@@ -143,8 +192,10 @@ automation, schemas, and index materialization, is documented centrally in
 `docs/pb_front_gene_variant_merge_handoff.md`, section **Cross-page processed
 BioIndex handoff (2026-09-07)**. Its `sample_variant_gene` rows can be indexed
 by `variant_id` for exact carriers and by `gene_symbol` for the existing Gene
-context. HPO and co-gene rows remain separate private sources and must be
-joined/materialized server-side rather than fetched once per carrier.
+context. HPO and co-gene rows remain separate private sources. The current
+prototype joins authorized samples-info per carrier as described above.
+A production batched/materialized replacement may reduce these requests;
+preserve the complete unfiltered gene-family definition and its coverage check.
 
 ### Requests
 
@@ -210,10 +261,11 @@ Status meanings:
 | Mean residual PheRS / Match Score | `POST /phenotype-analyzer-api/analyze` | Exact-variant mean across unique carriers; require `status=ok` and `carrier_count=scored_carrier_count`. | Conditional on Context API; filtered subsets remain `Unavailable` until backend recomputation exists |
 | Individual residual PheRS | Private `POST /phenotype-analyzer-api/analyze` with one exact `variant_id` | Display each returned carrier's own residual in the Carrier sample table; unavailable for carriers outside the analysis roster. | Connected for the authorized private route |
 | Exact-variant Effect Score (β) and p-value | `variant_associations` in the Context API response | Display once in the HPO Context result table; compute from individual residual PheRS and binary carrier status across all selected analysis samples, including noncarriers. `affected_only=true` selects `affected=Y` for the carrier mean and binary-variant OLS. Label the current OLS model as having no GRM. | Connected, subject to genotype callability validation |
-| Age, sex, affected, proband, cohort/investigator | Optional carrier row aliases | Normalize only values actually supplied by the authorized source. | Not connected for currently verified payloads; filter disabled and cells show `Unavailable` |
-| Carrier HPO categories/terms | Optional carrier row phenotype fields | Normalize observed categories and terms; all carrier aggregates use the same selected denominator. | Not connected for currently verified payloads |
+| Age, sex, affected, proband, project | Carrier fields plus private `samples-info` | Join exact authorized sample metadata, normalize supplied values, and retain explicit missing states. | Connected when supplied; incomplete fetches and missing fields remain visible as unavailable |
+| Carrier HPO categories/terms | Carrier fields plus private `samples-info` phenotype fields | Normalize supplied terms into the existing hierarchy; use the same selected-carrier denominator. | Conditional on the actual private payload; do not invent terms when the field is empty |
 | GenDx | Optional carrier row diagnosis fields | Display authorized label only. | Not connected for currently verified payloads |
-| Different-gene co-carriers | Optional `gene-samples.co_carrier_genes` | Preferred unfiltered path: read the approved, deduplicated other-gene list already attached to each private carrier row. Use AGG-01 only for filtered recalculation or when sample-level cross-gene delivery is not approved. | Frontend ready; current verified payload does not supply the field, so display `Not calculated`, never `0` |
+| Different-gene co-carriers | Complete private `samples-info` gene lists merged into carrier metadata; inline `co_carrier_genes` is an optional alternative | Deduplicate other genes and intersect selected target carriers. Define the FDR family from the complete unfiltered carrier set. | Connected when complete metadata is available; otherwise show `Not calculated`/error, never a fabricated zero |
+| Same-gene Mean rPheRS | Exact-carrier residual map from the private Context response | Mean over selected eligible co-carriers with complete score coverage, respecting the submitted analysis sample option. | Connected after Go; `No context`/`Calculating…`/`Unavailable` are distinct states |
 
 `Unavailable` means that the current connected payload does not supply an approved value. It is not a claim that the underlying CRDC, reference, or clinical source lacks the value.
 
@@ -229,7 +281,7 @@ Status meanings:
 | Missing optional field | Render `Unavailable`; disable an empty facet rather than inventing options. |
 | Carrier filters | Facets combine with AND; multiple values within a facet use OR. Every phenotype, carrier, and same-gene co-occurrence summary uses the same selected carrier set. |
 | Carrier table | Show 5 rows per numbered page; filtering resets to page 1. Show individual `rPheRS` with a hover and keyboard-focus explanation, without repeating exact-variant score, β, or p-value in each row. |
-| Co-occurrence tables | Show the shaded target gene above 5 paginated different-gene rows, and 5 rows per page for Other same-gene variants. Filtering resets to page 1. Both tables combine overlap count and percentage in one Carriers cell, for example `3 / 122 (2%)`. |
+| Co-occurrence tables | Show the fixed target gene above 4 paginated different-gene rows, and 4 rows per page for Other same-gene variants. Filtering resets to page 1. Both tables combine overlap count and percentage in one Carriers cell, for example `3 / 122 (2%)`. Include the same-gene Mean rPheRS column with complete-coverage rules. |
 | HPO Context | Open by default. Validate `HP:ddddddd`; post on Go with GRS Max/Sum and All/Affected only options (defaults Max and All); keep negative Match Scores; reject partial coverage. Show the selected-analysis-sample carrier mean Match Score and one exact-variant β and p-value. Affected only subsets the variant association and carrier mean; GRS Max/Sum changes gene-score associations, not the exact variant's binary predictor. |
 | Filtered Match Score | Do not reuse the all-carrier score after the carrier selection changes. Show `Unavailable` until a filtered aggregate endpoint exists. |
 | Different-gene result | Calculate co-carrier counts from the complete private samples-info gene lists. On HPO Go, run full-cohort gene-score LM once for the target gene and all unfiltered different-gene co-carriers, using the selected Max/Sum and All/Affected only settings. Show β, p-value and Benjamini–Hochberg FDR. Adjust across all valid p-values in that fixed gene family; carrier filters change visible overlap counts but never the FDR family. Show `Not calculated` when sample gene lists are unavailable. |
@@ -275,7 +327,7 @@ PB Variant reads either `payload.genes[gene]` or the payload itself, then requir
 }
 ```
 
-The aggregate response must not include sample IDs, per-patient HPO profiles, residual PheRS values, genotypes, or covariate rows. The authenticated private PB Variant request can additionally include `variant_id` to return only that exact variant's carrier residual PheRS values for its sample table. The public route must not return these values. See `docs/pb_gene_context_api_guide.md` for the statistical contract.
+The public/aggregate route must not include sample IDs, per-patient HPO profiles, residual PheRS values, genotypes, or covariate rows. The authenticated private PB Variant request includes `variant_id` and may return **only that exact variant's carrier residuals** as `variant_carrier_residuals: {variant_id, carrier_count, sample_scores: {sample_id: residual}}`. The browser uses this map for individual scores and complete-coverage same-gene descriptive means. Never expose the full-cohort vector or model covariates. See `docs/pb_gene_context_api_guide.md` for the shared statistical contract.
 
 The private co-gene request uses `POST /phenotype-analyzer-api/co-gene-associations` with `gene`, `terms`, `co_genes` (all unique other genes among unfiltered target-variant carriers), `score_type` (`max` or `sum`), and `affected_only` (boolean). It returns target and co-gene LM β/p-values and BH FDR, with `n_tests` counting valid p-values in this fixed family. The request requires complete carrier gene lists; changing page or carrier filters does not change the family. The current prototype does not apply a minimum co-gene carrier count to these private exploratory association rows.
 
@@ -580,6 +632,7 @@ Run:
 ```bash
 node scripts/test_pb_variant_carrier_statistics.js
 node scripts/test_pb_variant_identifiers.js
+node scripts/test_gene_hpo_context_search.js
 git diff --check
 npm run build
 ```
@@ -596,18 +649,21 @@ Browser acceptance:
 - exact variant without a gene resolves only when transcript mapping is unambiguous;
 - full continuation counts match distinct carrier and variant counts;
 - 3-carrier and large-carrier pages both render correctly;
-- carrier table expands 3 rows at a time and same-gene co-variants expand 10 rows at a time;
+- carrier samples paginate by 5, observed phenotype groups by 8, and both co-occurrence lists by 4, with the target-gene row fixed;
 - filters update every frontend-derived section against the same carrier denominator;
 - missing metadata/HPO/GenDx remains `Unavailable` and its facet is disabled;
-- different-gene co-carriers is calculated when approved `gene-samples.co_carrier_genes` data is present; otherwise it remains `Not calculated`; use AGG-01 only for filtered recalculation or aggregate-only delivery;
+- different-gene co-carriers uses complete authorized samples-info gene lists (or an equivalent complete inline source); incomplete lists prevent defining a supposedly complete FDR family;
+- same-gene Mean rPheRS is shown only after Context Go and only at complete eligible co-carrier score coverage; test affected-only selection, duplicate co-variant IDs, negative residuals, missing scores, sorting, and page reset;
 - Context API results display only for exact-variant complete coverage;
 - PB Gene remains available and the explicit variant action opens PB Variant;
-- no fixture values, tokens, patient-level HPO profiles, residuals, or covariate rows appear in browser responses or logs.
+- public responses and logs contain no private HPO profiles, sample residuals, tokens, or covariate rows; only the authenticated exact-variant private response may supply its authorized carrier residuals.
 
 ## Known Verification Boundary On 2026-08-01
+
+The paragraph below is historical Tier 1 evidence, not the current October source-status inventory. The October implementation and tests are specified at the top of this document; a production engineer must independently verify service reachability, approved source versions, and authorization in the target environment.
 
 The implementation and documented build/browser checks passed during Tier 1 acceptance. During this documentation pass, the already-running Vue server remained available on port 8095, but the configured private BioIndex host was not reachable from the workstation. Therefore this pass verified the code paths, contracts, prior acceptance evidence, and local compile state; it did not claim a new live-source snapshot or schema confirmation.
 
 ## Copy-Paste Production Task
 
-> Integrate the existing `kyuryung/bch-prototype` PB Variant page into the BCH browser environment without replacing PB Gene or the BCH `vue.config.js`. Start with `docs/pb_variant_engineering_integration_handoff.md` and `docs/bch_pb_variant_tier1_acceptance_note_20260801.md`. Preserve the existing private BioIndex helper and its fourth `query_private=true` argument, follow all continuations, count distinct sample IDs, and keep missing source fields as `Unavailable` or `Not calculated`. Configure a same-origin authenticated route for private BioIndex and, separately, for the Context API. Request optional `gene-samples.co_carrier_genes` first for the unfiltered different-gene view; use AGG-01 only for filtered recalculation or aggregate-only delivery. Treat REF-01, SAMPLE-01, COHORT-01, DIRECT-01/02, BIO-EXT-01, and AGG-01/02 as distinct source/backend contracts; do not synthesize their data. Run the documented unit, build, live, and browser checks before merge, and report any contract deviation.
+> Integrate PB Variant screen commit `71a157188` with its branch prerequisites. Read this document's October 16 snapshot, preserve PB Gene and the BCH configuration, follow all private BioIndex continuations, and join complete authorized samples-info metadata. Keep pagination at 8 phenotype groups, 5 carriers, and 4 co-occurrence rows. Connect the existing analyze/co-gene routes with the submitted HPO/GRS/analysis-sample options; preserve the fixed unfiltered Variant FDR family. Keep private exact-carrier residuals restricted to the authorized variant request and use complete-coverage rules for same-gene Mean rPheRS. Do not infer missing values or treat proposed interfaces as deployed services. For Phenotype use its separate full-gene scope and engineering contract. Run unit, HTTP, build and browser acceptance checks before integration.
