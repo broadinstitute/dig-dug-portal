@@ -417,18 +417,6 @@ export default Vue.component("pigean-factors", {
           label: 'Loading on factor',
           sortable: true,
           formatter: (value) => value ? value.toFixed(2) : 'N/A',
-        },
-        {
-          key: 'beta',
-          label: 'Joint effect',
-          sortable: true,
-          formatter: (value) => value ? value.toFixed(2) : 'N/A'
-        },
-        {
-          key: 'beta_uncorrected',
-          label: 'Marginal effect',
-          sortable: true,
-          formatter: (value) => value ? value.toFixed(2) : 'N/A'
         }
       ],
       phewasData: {},
