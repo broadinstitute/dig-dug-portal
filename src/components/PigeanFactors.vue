@@ -226,7 +226,8 @@
             </div>
             <div v-if="row.item.subtableActive === SUBTABLE_ACTIVE.PHEWAS" class="subtable-container">
               PheWAS coming soon
-              <research-phewas-plot
+              <div v-if="!!phewasData[getSubtableKey(row.item)]">
+                <research-phewas-plot
                   style="width: 100%"
                   :canvas-id="`pigean_${row.item.factor}_${generateId(
                       row.item.label
@@ -245,6 +246,7 @@
                   :top1500="true"
               >
               </research-phewas-plot>
+              </div>
             </div>
           </template>
         </b-table>
@@ -289,6 +291,14 @@ export default Vue.component("pigean-factors", {
     title: {
       type: String,
       default: "Factors, gene sets, and genes relevant to the trait"
+    },
+    utilsBox: {
+      type: Object,
+      default: () => ({})
+    },
+    plotColors: {
+      type: Array,
+      default: () => []
     }
   },
   data() {

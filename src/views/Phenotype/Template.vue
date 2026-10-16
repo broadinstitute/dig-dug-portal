@@ -228,12 +228,15 @@
                     :falconTraitAssociatedGenes="$store.state.falconTraitAssociatedGenes.data"
                     :phenotype="$store.state.phenotype"
                     :docDetails="$parent.docDetails"
+                    :plotColors="$parent.plotColors"
                 >
                 </pigean-phenotype>
                 <pigean-factors
                     :title="`Genetic factors underlying ${$store.state.phenotype.name}`"
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     :pigeanFactorData="$store.state.pigeanFactor.data"
+                    :utilsBox="$parent.utilsBox"
+                    :plotColors="$parent.plotColors"
                 >
                 </pigean-factors>
                 <div class="card mdkp-card">
