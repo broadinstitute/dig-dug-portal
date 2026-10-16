@@ -46,7 +46,7 @@ export function portalGroup(hostname = RUNTIME_HOSTNAME) {
     let isHugeamp = hostname === "hugeamp.org" || hostname.endsWith(".hugeamp.org");
     let isLocalhost = hostname.includes("localhost");
     let parts = hostname.split(".");
-    let subdomain = null;
+    let subdomain = isHugeamp ? 'md' : null;
 
     if (isLocalhost) {
         if (parts.length > 1 && parts[0] !== "www" && parts[0] !== "dev") {
