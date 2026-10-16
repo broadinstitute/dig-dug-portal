@@ -213,7 +213,10 @@
             </div>
             <div v-if="row.item.subtableActive === SUBTABLE_ACTIVE.PHEWAS" class="subtable-container">
               <div v-if="!!phewasData[getSubtableKey(row.item)]">
-                <research-phewas-plot
+                <div v-if="phewasData[getSubtableKey(row.item)].length === 0">
+                  PheWAS coming soon
+                </div>
+                <research-phewas-plot v-else
                   style="width: 100%"
                   :canvas-id="`pigean_${row.item.factor}_${generateId(
                       row.item.label
@@ -230,8 +233,8 @@
                   :utils="utilsBox"
                   :native-dl-btn="false"
                   :top1500="true"
-              >
-              </research-phewas-plot>
+                >
+                </research-phewas-plot>
               </div>
             </div>
           </template>
@@ -1001,12 +1004,7 @@ export default Vue.component("pigean-factors", {
         }
         let endpoint = "pigean-phewas";
         let mouse_msigdb_data = await query(endpoint, key);
-        if (mouse_msigdb_data.length > 0){
-          Vue.set(this.phewasData, key, mouse_msigdb_data);
-          return;
-        }
-        let oldData = await query(endpoint, key.replace("mouse_msigdb", "small"));
-        Vue.set(this.phewasData, key, oldData);
+        Vue.set(this.phewasData, key, mouse_msigdb_data);
       }
     },
     generateId(label) {
