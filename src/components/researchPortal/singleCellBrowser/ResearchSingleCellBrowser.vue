@@ -51,7 +51,7 @@
 
         <div v-if="showDatasetSelect" style="display:flex; flex-direction: column; gap:10px;">
             <div>
-                <div style="font-weight: bold; font-size:16px;">Select Tissue</div>
+                <div style="font-weight: bold; font-size:16px;">Select Tissue ({{ singleCellMetadata.length }})</div>
                 <div>Click on a row to select</div>
             </div>
             <!-- datasets table -->
@@ -1734,7 +1734,7 @@
                 const isHugeamp = (hostname === 'hugeamp.org') || hostname.endsWith('.hugeamp.org');
                 const isLocalhost = hostname.includes('localhost');
                 const parts = hostname.split('.');
-                let subdomain = null;
+                let subdomain = isHugeamp ? 'md' : null;
                 if(isLocalhost){
                     if (parts.length === 2 && parts[0] !== 'www' && parts[0] !== 'dev') {
                         subdomain = parts[0];
