@@ -1128,14 +1128,24 @@ new Vue({
                 return [];
             }
 
+            const visibleRows = outcome.rows.filter((row) =>
+                this.isRowFilterVisible(row, outcome.outcome_id)
+            );
+
             if (this.isEvidenceTableExpanded(outcome.outcome_id)) {
-                return outcome.rows;
+                return visibleRows;
             }
 
-            return outcome.rows.slice(0, 3);
+            return visibleRows.slice(0, 3);
         },
         evidenceRowCount(outcome) {
-            return outcome && outcome.rows ? outcome.rows.length : 0;
+            if (!outcome || !outcome.rows) {
+                return 0;
+            }
+
+            return outcome.rows.filter((row) =>
+                this.isRowFilterVisible(row, outcome.outcome_id)
+            ).length;
         },
         hiddenEvidenceRowCount(outcome) {
             return Math.max(this.evidenceRowCount(outcome) - 3, 0);
