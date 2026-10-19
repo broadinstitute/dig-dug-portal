@@ -221,6 +221,8 @@ function attachSameGeneCoVariants(samples, variantRows, targetVariantId, gene) {
     return output;
 }
 
+const { standardizedField, referenceAvailable, sameReference } = require("../../utils/rphersUnits");
+
 function exactVariantContext(result, variantId) {
     const scores = result && result.variant_match_scores;
     if (!scores || typeof scores !== "object") return null;
@@ -232,7 +234,7 @@ function exactVariantContext(result, variantId) {
     const scoredCarrierCount = finiteNumber(row.scored_carrier_count);
     const complete = row.status === "ok" && carrierCount > 0 && scoredCarrierCount === carrierCount;
     return {
-        matchScore: complete ? finiteNumber(row.match_score) : null,
+        matchScore: complete ? standardizedField(row, "mean_rphers_z", result.rphers_standardization) : null,
         carrierCount,
         scoredCarrierCount,
         status: clean(row.status) || "unknown",
@@ -248,7 +250,7 @@ function exactVariantAssociation(result, variantId) {
     const row = entry[1] || {};
     const pValue = finiteNumber(row.p_value);
     return {
-        beta: row.status === "ok" ? finiteNumber(row.beta) : null,
+        beta: row.status === "ok" ? standardizedField(row, "beta_sd", result.rphers_standardization) : null,
         pValue: row.status === "ok" && pValue != null && pValue >= 0 && pValue <= 1 ? pValue : null,
         carrierCount: finiteNumber(row.n_carriers),
         sampleCount: finiteNumber(row.n_samples),
@@ -260,10 +262,11 @@ function exactVariantAssociation(result, variantId) {
 
 function exactVariantCarrierResiduals(result, variantId) {
     const source = result && result.variant_carrier_residuals;
-    if (!source || !source.sample_scores) return {};
+    if (!source || !source.sample_rphers_z || !referenceAvailable(result.rphers_standardization) ||
+        !sameReference(source.rphers_standardization, result.rphers_standardization)) return {};
     const canonical = id => String(id || "").replace(/^chr/i, "").toLowerCase();
     if (canonical(source.variant_id) !== canonical(variantId)) return {};
-    return Object.entries(source.sample_scores).reduce((scores, [id, value]) => {
+    return Object.entries(source.sample_rphers_z).reduce((scores, [id, value]) => {
         const number = finiteNumber(value);
         if (number != null) scores[id.toLowerCase()] = number;
         return scores;

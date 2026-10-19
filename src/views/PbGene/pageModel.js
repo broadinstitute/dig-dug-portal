@@ -1,4 +1,5 @@
 import { resolveHpoTerms, contextApiError } from "./hpoContextSearch";
+import { standardizedField, referenceAvailable, referenceDescription, contextMatches } from "../../utils/rphersUnits";
 import {
     geneInfo, crdcEvidence, genomeWindow, variantRows,
     geneCarrierDemographics, geneLevelPhenotypeCategories, geneLevelCoCarrierGenes,
@@ -1847,16 +1848,22 @@ export const pbGeneMethods = {
                 sourceLabel = "Local validation fixture";
                 this.installLocalContextVariantRows(result);
             }
+            if (!contextMatches(result.rphers_standardization, terms)) result.rphers_standardization = null;
             this.applyVariantContextScores(result);
             const burden = result.gene_burden || result.burden || {};
             const grs = result.gene_association || {};
             const useGrs = Boolean(result.gene_association);
             const geneAssociation = useGrs ? grs : burden;
             const genePValue = geneAssociation.p_value != null ? geneAssociation.p_value : useGrs ? null : burden.pValue != null ? burden.pValue : result.p_value;
+            const reference = contextMatches(result.rphers_standardization, terms) ? result.rphers_standardization : null;
+            const sdAvailable = referenceAvailable(reference);
             this.contextRuns.push({
                 id: `${Date.now()}-${this.contextRuns.length}`,
                 hpos: terms.join(", "),
-                beta: this.contextStatistic(geneAssociation.beta != null ? geneAssociation.beta : useGrs ? null : result.beta),
+                beta: this.contextStatistic(standardizedField(geneAssociation, "beta_sd_per_0_1_grs", reference)),
+                betaRaw: geneAssociation.beta,
+                standardErrorSdPer0_1Grs: standardizedField(geneAssociation, "standard_error_sd_per_0_1_grs", reference),
+                referenceLabel: referenceDescription(reference),
                 pValue: this.contextStatistic(genePValue),
                 pValueSortValue: genePValue != null && Number.isFinite(Number(genePValue)) ? Number(genePValue) : Infinity,
                 status: geneAssociation.status || "unknown",
@@ -1871,7 +1878,8 @@ export const pbGeneMethods = {
                 statusLabel: useGrs ? (grs.status === "ok" ? "Calculated · GRS association" : `Unavailable · ${grs.status}`) : this.contextBurdenStatusLabel(burden),
                 coverageLabel: useGrs ? (grs.n_positive == null ? "Gene-score coverage unavailable" : `${Number(grs.n_positive).toLocaleString()} positive-score samples`) : this.contextBurdenCoverageLabel(burden),
                 modelLabel: useGrs ? (grs.status === "not_configured" ? "GRS source not configured" : `GRS ${grs.score_type || scoreType} · ${String(grs.model || "lm").toUpperCase()} · ${grs.affected_only ? "Affected only" : "All samples"}`) : [burden.model_version, burden.formula].filter(Boolean).join(" · ") || "Model details unavailable",
-                note: useGrs ? (grs.status === "ok" ? "Unadjusted gene-level p-value" : grs.status === "not_configured" ? "Gene score data unavailable" : "Gene-score analysis could not be calculated") : this.contextBurdenNote(burden),
+                note: !sdAvailable ? referenceDescription(reference) : useGrs ? (grs.status === "ok" ? "Unadjusted gene-level p-value" : grs.status === "not_configured" ? "Gene score data unavailable" : "Gene-score analysis could not be calculated") : this.contextBurdenNote(burden),
+                noteIsWarning: !sdAvailable || (useGrs ? grs.status !== "ok" : Boolean(this.contextBurdenNote(burden))),
                 sourceLabel,
             });
             this.contextRuns.sort((a, b) => a.pValueSortValue - b.pValueSortValue);
@@ -1910,6 +1918,7 @@ export const pbGeneMethods = {
     },
 
     applyVariantContextScores(result) {
+        const reference = result && result.rphers_standardization;
         const scores = result && result.variant_match_scores && typeof result.variant_match_scores === "object"
             ? result.variant_match_scores
             : {};
@@ -1924,7 +1933,10 @@ export const pbGeneMethods = {
         );
         (this.variantRows || []).forEach(row => {
             const context = scoreByVariant.get(String(row.id || "").toLowerCase()) || null;
-            const score = context && context.match_score != null ? Number(context.match_score) : NaN;
+            const z = standardizedField(context, "mean_rphers_z", reference);
+            const complete = context && context.status === "ok" && context.carrier_count > 0 &&
+                context.scored_carrier_count === context.carrier_count;
+            const score = complete && z != null ? z : NaN;
             row.phenotypeMatchScore = Number.isFinite(score) ? score : null;
             row.phenotypeMatchStatus = context && context.status ? context.status : "not_returned";
             row.phenotypeMatchCarrierCount = context && context.carrier_count != null
@@ -1935,7 +1947,8 @@ export const pbGeneMethods = {
                 : null;
             const association = associationByVariant.get(String(row.id || "").toLowerCase()) || null;
             const status = association && association.status ? association.status : "not_returned";
-            const beta = status === "ok" && association.beta != null ? Number(association.beta) : NaN;
+            const betaSd = standardizedField(association, "beta_sd", reference);
+            const beta = status === "ok" && betaSd != null ? betaSd : NaN;
             const pValue = status === "ok" && association.p_value != null ? Number(association.p_value) : NaN;
             this.$set(row, "variantEffectBeta", Number.isFinite(beta) ? beta : null);
             this.$set(row, "variantEffectPValue", Number.isFinite(pValue) && pValue >= 0 && pValue <= 1 ? pValue : null);

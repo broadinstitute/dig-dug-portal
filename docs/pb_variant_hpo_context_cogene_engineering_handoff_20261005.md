@@ -1,5 +1,11 @@
 # PB Variant HPO Context and Co-gene Engineering Handoff
 
+## October 19, 2026 display-unit addendum
+
+The current prototype runs at `http://127.0.0.1:8098/`. [The shared engineering handoff](pb_gene_context_association_engineering_handoff.md) supplies the current script/helper inventory and unit contract. Historical numeric examples below remain raw-unit verification records.
+
+Keep the existing exact-variant and co-gene models, selection, coverage and BH family. Display individual carrier `rphers_z`, carrier/co-variant `mean_rphers_z`, and exact-variant `beta_sd`/`standard_error_sd` (binary carrier 0→1). Target-gene and different-gene effects use `beta_sd_per_0_1_grs`/`standard_error_sd_per_0_1_grs`. Center individual/group scores by the shared reference mean; divide slopes by its SD without centering. The reference comes from the complete original scoring vector, not the affected-only subset or selected carriers. API raw fields are retained alongside the added fields and reference metadata. See the main handoff and [verification record](pb_units_verification_2026-10-19.json) for current standardized results and the distinct Phenotype/Context scoring cohorts.
+
 Updated: 2026-10-05
 Branch: `kyuryung/bch-prototype`
 Status: implemented and verified in the local prototype; deployment to the BCH test server remains separate.

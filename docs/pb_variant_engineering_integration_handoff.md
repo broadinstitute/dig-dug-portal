@@ -667,3 +667,17 @@ The implementation and documented build/browser checks passed during Tier 1 acce
 ## Copy-Paste Production Task
 
 > Integrate PB Variant screen commit `71a157188` with its branch prerequisites. Read this document's October 16 snapshot, preserve PB Gene and the BCH configuration, follow all private BioIndex continuations, and join complete authorized samples-info metadata. Keep pagination at 8 phenotype groups, 5 carriers, and 4 co-occurrence rows. Connect the existing analyze/co-gene routes with the submitted HPO/GRS/analysis-sample options; preserve the fixed unfiltered Variant FDR family. Keep private exact-carrier residuals restricted to the authorized variant request and use complete-coverage rules for same-gene Mean rPheRS. Do not infer missing values or treat proposed interfaces as deployed services. For Phenotype use its separate full-gene scope and engineering contract. Run unit, HTTP, build and browser acceptance checks before integration.
+
+## October 19, 2026: rPheRS display units
+
+Apply the authoritative `pb_rphers_sd_agent_prompt_2026-10-19.md` specification and the **October 19 SD contract** in `pb_gene_context_association_engineering_handoff.md` when integrating this follow-up. Earlier raw-rPheRS label descriptions above are historical.
+
+- Exact variant: `beta_sd` / `standard_error_sd` from the existing carrier 0/1 regression; title **Variant effect β (SD)**. This is a covariate-adjusted difference, not a carrier mean, and is not multiplied by 0.1.
+- Carrier mean and co-variant mean: **Mean rPheRS Z-score**. Individual authorized scores use private `sample_rphers_z` and title **rPheRS Z-score**. Means are centered by the reference mean; effects are not.
+- Different-gene Context results: `beta_sd_per_0_1_grs`, title **Effect per 0.1 GRS (SD)**. Sorting uses this displayed field. Existing p/q and the fixed unfiltered testing family remain unchanged.
+- The existing selected-mean scope is retained: the top carrier mean is unavailable when the full original carrier set is not selected. Filters do not refit regressions or recalculate reference mean/SD. Same-gene co-variant means still require complete eligible carrier coverage.
+- GRS, Mean carrier GRS, Variant Score, carrier denominators, pagination, and all other score types retain their original definitions.
+
+The server reference comes from the full **original scoring cohort**, before the analysis roster/affected-only filter. Consume only current-version metadata matching the active HPO context and reference ID. Exact-carrier personal scores and different-gene effects must match the Context reference; no raw fallback is permitted. The inspected Context source has 15,764 scoring rows and a 15,761-row regression roster; the Phenotype sample source has a separate 16,366-row reference. Do not claim those sources share the same standardization.
+
+Deploy/restart the supplied Python scripts, including `rphers_standardization.py`, with the frontend and API projection. No BioIndex migration or historical burden rerun is needed. The calculation process connected to the current localhost:8098 prototype has been updated/restarted with the same inputs and a backup of the original scripts. Engineering/production BioIndex was not changed; old raw-only responses from other deployments produce unavailable SD cells. Regression-scaling, complete-coverage, same-source identity, and real view-method/CSV tests are in `test_rphers_standardization.py` and `test_rphers_sd_ui.js`.

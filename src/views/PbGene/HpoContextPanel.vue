@@ -40,14 +40,14 @@
             </span>
         </div>
         <p v-if="externalPhenotypeResultUrl" class="pbg-context-external">
-            Temporary residual PheRS source:
+            Related phenotype results:
             <a :href="externalPhenotypeResultUrl" target="_blank" rel="noopener noreferrer">Open phenotype result ↗</a>
         </p>
         <p v-if="contextError" class="pbg-context-error">{{ contextError }}</p>
         <div class="pbg-context-results">
             <div class="pbg-context-result-head">
                 <span>HPOs (Entered terms)</span>
-                <span>Beta (Effect Size)</span>
+                <span title="Covariate-adjusted change in residual PheRS, in reference-cohort SD units, per 0.1 increase in gene burden score. GRS Max/Sum is unchanged.">Effect per 0.1 GRS (SD)</span>
                 <span>P-value</span>
                 <span>Status / score coverage</span>
                 <span>Note</span>
@@ -60,8 +60,9 @@
                     <strong>{{ run.statusLabel }}</strong>
                     <small>{{ run.coverageLabel }}</small>
                     <small>{{ run.modelLabel }}</small>
+                    <small>{{ run.referenceLabel }}</small>
                 </span>
-                <span class="pbg-context-result-note" :class="{ 'pbg-context-result-note--warning': run.note }">
+                <span class="pbg-context-result-note" :class="{ 'pbg-context-result-note--warning': run.noteIsWarning }">
                     {{ run.note || '—' }}
                 </span>
             </div>

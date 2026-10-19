@@ -1,0 +1,46 @@
+{
+  "single_hpo_gene_rows_verified": 36,
+  "single_hpo_phenotype_rows_verified": 20,
+  "single_hpo_original_p_q_n_and_order_preserved": true,
+  "context_variant_effects_verified": 965,
+  "context_raw_matches_prechange": true,
+  "context_gene_beta_per_0_1_grs_sd": 0.08001574485085873,
+  "context_p": 0.0442650857098572,
+  "context_analysis_n": 6913,
+  "context_reference_n": 15764,
+  "context_reference_sd": 0.7109327271108082,
+  "profile_reference_n": 16366,
+  "profile_reference_sd": 0.7089715430759951,
+  "profile_filter_and_page_reference_unchanged": true,
+  "individual_z_and_complete_carrier_mean_verified": true,
+  "verification_date": "2026-10-19",
+  "python_tests_passed": 67,
+  "node_test_commands_passed": 6,
+  "git_diff_check_passed": true,
+  "modified_existing_scripts": [
+    "scripts/rphers_fast.py",
+    "scripts/pb_gene_context_validation.py",
+    "scripts/variant_association.py",
+    "scripts/pb_phenotype_profile_api.py",
+    "scripts/pb_gene_context_api_server.py",
+    "scripts/gene_hpo_association_endpoint.js"
+  ],
+  "added_shared_modules": [
+    "scripts/rphers_standardization.py",
+    "src/utils/rphersUnits.js",
+    "src/utils/singleHpoUnits.js"
+  ],
+  "prototype_remote_sha256_matches_repository": true,
+  "prototype_python_sha256": {
+    "scripts/rphers_fast.py": "457cde7d7528726568ddbc19c74456333cf862c3cc858d98af9134e9161db3fa",
+    "scripts/rphers_standardization.py": "dc32f1a8e70c2cdde3b36cad39f290a7786d8264d17f57bbaae3f85044063b61",
+    "scripts/pb_gene_context_validation.py": "0ece427c0665a39e32c613a71fdc4b0cc510d7bdc513384253f67fa5b974a46c",
+    "scripts/variant_association.py": "f50dcc81e93f4c84d1bd5b790cc9778449a2fdc559d51df28623bf20a9ccd5c4",
+    "scripts/pb_gene_context_api_server.py": "a87f88d8310490cc6a7b28d2cfb2be2d56a071e93903e1868c91eea960e54e39"
+  },
+  "historical_single_hpo_refit_performed": false,
+  "limitations": [
+    "Phenotype sample scoring uses the unchanged 16366-row cohort; Context uses the unchanged 15764-row scoring cohort and existing regression roster. These are distinct references.",
+    "Checks cover the prototype; engineering production deployment is a separate step."
+  ]
+}

@@ -145,12 +145,12 @@
                             </form>
                             <span class="pbp-helper"
                                 >Matching samples and diseases are removed from the result tables.
-                                Exclude does not change residual PheRS or Profile score.</span
+                                Exclude does not change rPheRS Z-scores or Profile score.</span
                             >
                         </div>
                         <p v-if="multi" class="pbp-banner">
                             This set is scored as one profile. Samples are
-                            ranked by residual PheRS. Genes are tested across
+                            ranked by rPheRS Z-score. Genes are tested across
                             the approved full gene-score source; Orphanet links
                             provide independent evidence.
                             {{ isOrphanet ? "Orphanet profile scores combine query and disease phenotype coverage; diseases" : `${diseaseSourceLabel} results use unweighted HPO overlap; records` }}
@@ -182,14 +182,14 @@
                                     >CRDC · OBSERVED HPO</span
                                 >
                                 <h2>
-                                    Samples ranked by residual PheRS
+                                    Samples ranked by rPheRS Z-score
                                     <span class="pbp-heading-count">· {{ matchesLoaded ? qualifyingSamples.length.toLocaleString() : "—" }}</span>
                                 </h2>
                                 <p class="pbp-sub">
                                     {{
                                         multi
-                                            ? `Samples recording at least 2 of ${ids.length} query HPOs, ranked by residual PheRS.`
-                                            : "Samples with this recorded HPO term, ranked by residual PheRS."
+                                            ? `Samples recording at least 2 of ${ids.length} query HPOs, ranked by rPheRS Z-score.`
+                                            : "Samples with this recorded HPO term, ranked by rPheRS Z-score."
                                     }}
                                 </p>
                             </div>
@@ -209,6 +209,7 @@
                                 >
                             </div>
                         </div>
+                        <p v-if="matchesLoaded" class="pbp-sub">{{ rphersReferenceLabel(sampleStandardization) }}</p>
                         <p v-if="sampleLoading" class="pbp-status">
                             Loading CRDC samples…
                         </p>
@@ -224,7 +225,7 @@
                                     <tr>
                                         <th><button class="pbp-sort" @click="toggleSort('samples', 'rank')">Rank {{ sortIndicator('samples', 'rank') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('samples', 'sample')">Sample {{ sortIndicator('samples', 'sample') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'phers')">Residual PheRS {{ sortIndicator('samples', 'phers') }}</button></th>
+                                        <th><button class="pbp-sort" title="How many scoring-cohort sample SDs this patient's residual PheRS lies above or below that cohort's mean." @click="toggleSort('samples', 'phers')">rPheRS Z-score {{ sortIndicator('samples', 'phers') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('samples', 'matches')">Query HPOs matched {{ sortIndicator('samples', 'matches') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('samples', 'ageSex')">Age · sex {{ sortIndicator('samples', 'ageSex') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('samples', 'cohort')">Cohort disease / project {{ sortIndicator('samples', 'cohort') }}</button></th>
@@ -252,7 +253,7 @@
                                             >
                                         </td>
                                         <td>
-                                            {{ score(sample.residual_phers) }}
+                                            {{ score(sample.rphers_z) }}
                                         </td>
                                         <td>
                                             <span class="pbp-segments" role="img" :aria-label="sampleMatchDescription(sample)">
@@ -337,7 +338,7 @@
                         </div>
                         <details v-if="matchesLoaded" open class="pbp-cohort-details">
                             <summary>Cohort categories · {{ cohortDiseaseSummary.length }} groups</summary>
-                            <p class="pbp-sub">Remaining samples after current filters and Exclude. Age: median (25th–75th percentile), years. Sex: female / male / unknown. Mean residual PheRS uses available scores only.</p>
+                            <p class="pbp-sub">Remaining samples after current filters and Exclude. Age: median (25th–75th percentile), years. Sex: female / male / unknown. Mean rPheRS Z-score is the mean of the available individual Z-scores.</p>
                             <div class="pbp-table-scroll">
                                 <table>
                                     <thead><tr>
@@ -346,7 +347,7 @@
                                         <th><button class="pbp-sort" @click="toggleSort('cohorts', 'affected')">Affected {{ sortIndicator('cohorts', 'affected') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('cohorts', 'medianAge')">Age · median (Q1–Q3) {{ sortIndicator('cohorts', 'medianAge') }}</button></th>
                                         <th><button class="pbp-sort" title="Sort by female sample count" @click="toggleSort('cohorts', 'sex')">Sex · F / M / unknown {{ sortIndicator('cohorts', 'sex') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'phers')">Mean residual PheRS {{ sortIndicator('cohorts', 'phers') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'phers')">Mean rPheRS Z-score {{ sortIndicator('cohorts', 'phers') }}</button></th>
                                     </tr></thead>
                                     <tbody><tr v-for="item in visibleCohortDiseaseSummary" :key="item.name">
                                         <td>{{ item.name }}</td><td>{{ item.total.toLocaleString() }}</td><td>{{ item.affected.toLocaleString() }}</td>
@@ -364,12 +365,7 @@
                         </details>
                         <p class="pbp-note">
                             Filled colour marks a recorded query HPO; a white box with a dashed outline means it was not recorded. Colours follow the query chips above. An unmatched term is unknown, not clinically
-                            absent. Matches and residual PheRS use the
-                            parent-expanded CRDC HPO matrix and existing
-                            rphers_fast calculation. Visible sample disease /
-                            project labels come from BioIndex clean_name when
-                            available; cohort filtering uses the local cohort
-                            category mapping.<template v-if="excluded.length">
+                            absent. Matches use the parent-expanded CRDC HPO observations. rPheRS Z-scores use the full scoring-cohort reference above; page filters and Exclude do not change the scores or reference. Sample disease / project labels and cohort categories use their available source records.<template v-if="excluded.length">
                                 {{ hiddenCount }} returned samples were removed
                                 using confirmed recorded HPO terms;
                                 {{ unknownExclusionCount }} have no exposed HPO
@@ -396,10 +392,12 @@
                                 <p class="pbp-sub">
                                     {{
                                         multi
-                                            ? `Calculated with the Gene/Variant pages' full-cohort gene-score model across all genes in the approved score source. β and p are model results; q is BH FDR across ${genes ? genes.nTests.toLocaleString() : "—"} tested genes. Orphanet links are independent evidence.`
-                                            : "Positive burden associations from the same precomputed release as the Gene page. Orphanet links are independent evidence."
+                                            ? `Covariate-adjusted effect per 0.1 increase in GRS, in the gene-analysis scoring cohort's residual PheRS SD units. GRS Max, all analysis samples. q is BH FDR across ${genes ? genes.nTests.toLocaleString() : "—"} tested genes. Orphanet links are independent evidence.`
+                                            : "Existing approximate binary-HPO score-test β: change in HPO log-odds per 0.1 increase in GRS, without rPheRS SD standardization. Coefficient, SE and 95% CI are rescaled by 0.1; release p/q values and analysis samples are unchanged. Orphanet links are independent evidence."
                                     }}
                                 </p>
+                                <p v-if="multi && genes" class="pbp-sub">{{ rphersReferenceLabel(geneStandardization) }}</p>
+                                <p v-if="rphersReferencesDiffer" class="pbp-sub">Sample scores and gene effects use different existing scoring cohorts. Each SD value uses its own stated reference; they are not a shared-reference scale.</p>
                             </div>
                             <div class="pbp-controls">
                                 <button
@@ -449,7 +447,7 @@
                                     <tr>
                                         <th><button class="pbp-sort" @click="toggleSort('genes', 'gene')">Gene {{ sortIndicator('genes', 'gene') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('genes', 'evidence')">Evidence {{ sortIndicator('genes', 'evidence') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('genes', 'effect')">{{ multi ? "β (gene score)" : "OR per 0.1 burden score" }} {{ sortIndicator('genes', 'effect') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('genes', 'effect')">{{ multi ? "Effect per 0.1 GRS (SD)" : "β per 0.1 GRS (log-odds)" }} {{ sortIndicator('genes', 'effect') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('genes', 'support')">{{ multi ? "Positive-score samples" : "95% CI" }} {{ sortIndicator('genes', 'support') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('genes', 'p')">p {{ sortIndicator('genes', 'p') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('genes', 'q')">q {{ sortIndicator('genes', 'q') }}</button></th>
@@ -483,7 +481,7 @@
                                         </td>
                                         <td>
                                             <div
-                                                v-if="row.association && !multi"
+                                                v-if="row.association && !multi && row.association.betaPer0_1Grs != null"
                                                 class="pbp-bar"
                                             >
                                                 <i
@@ -491,9 +489,9 @@
                                                     :style="{
                                                         width: `${Math.max(
                                                             2,
-                                                            (row.association
-                                                                .oddsRatio /
-                                                                maxOdds) *
+                                                            (Math.abs(row.association
+                                                                .betaPer0_1Grs) /
+                                                                maxSingleBeta) *
                                                                 100
                                                         )}%`,
                                                     }"
@@ -501,11 +499,11 @@
                                                 ><b>{{
                                                     stat(
                                                         row.association
-                                                            .oddsRatio
+                                                            .betaPer0_1Grs
                                                     )
                                                 }}</b>
                                             </div>
-                                            <span v-else>{{ row.association && multi ? stat(row.association.beta) : "—" }}</span>
+                                            <span v-else>{{ row.association && multi ? stat(row.association.betaSdPer0_1Grs) : "—" }}</span>
                                         </td>
                                         <td>
                                             {{
@@ -513,9 +511,9 @@
                                                     ? row.association.nPositive.toLocaleString()
                                                     : row.association
                                                     ? `${stat(
-                                                          row.association.ciLow
+                                                          row.association.betaCiLowPer0_1Grs
                                                       )}–${stat(
-                                                          row.association.ciHigh
+                                                          row.association.betaCiHighPer0_1Grs
                                                       )}`
                                                     : "—"
                                             }}
@@ -1017,6 +1015,7 @@ import {
 } from "./phenotypeModel";
 import { request as bioIndexRequest } from "@/utils/bioIndexUtils";
 import { fetchProfileGeneAssociations } from "./profileGeneApi";
+import { referenceAvailable, standardizedField, sameReference, contextMatches, referenceDescription } from "../../utils/rphersUnits";
 const REF = { ...ORPHANET_REFERENCE, terms: { ...ORPHANET_REFERENCE.terms, ...additionalReferences.terms } };
 const sampleKey = (sample) => sample.SampleInVCF || sample.unique_sample_ID;
 const normalizeTerms = (value) =>
@@ -1073,6 +1072,8 @@ export default {
             cohortSampleCount: 0,
             sampleLoading: false,
             sampleError: "",
+            sampleStandardization: null,
+            geneStandardization: null,
             sampleRequest: 0,
             sampleInfo: {},
             sampleInfoChecked: {},
@@ -1103,6 +1104,8 @@ export default {
             handler() {
                 this.matches = [];
                 this.matchesLoaded = false;
+                this.sampleStandardization = null;
+                this.geneStandardization = null;
                 this.genes = null;
                 this.samplePage = 1;
                 this.cohortPage = 1;
@@ -1140,6 +1143,10 @@ export default {
         ageBands() { return AGE_BANDS; },
         multi() {
             return this.ids.length > 1;
+        },
+        rphersReferencesDiffer() {
+            return this.multi && referenceAvailable(this.sampleStandardization) && referenceAvailable(this.geneStandardization) &&
+                !sameReference(this.sampleStandardization, this.geneStandardization);
         },
         isOrphanet() { return this.diseaseSource === "orphanet"; },
         diseaseSourceLabel() { return DISEASE_SOURCES.find((source) => source.key === this.diseaseSource).label; },
@@ -1215,7 +1222,7 @@ export default {
                 ageOf: (row) => this.sampleAge(row),
                 sexOf: (row) => row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender,
                 affectedOf: (row) => row.initial_study_affected,
-                scoreOf: (row) => row.residual_phers,
+                scoreOf: (row) => row.rphers_z,
             });
         },
         sortedCohortDiseaseSummary() {
@@ -1309,7 +1316,7 @@ export default {
             return sortTableRows(this.qualifyingSamples, this.tableSort.samples, {
                 rank: (row) => row.rank,
                 sample: (row) => sampleKey(row),
-                phers: (row) => row.residual_phers,
+                phers: (row) => row.rphers_z,
                 matches: (row) => sampleMatchCount(row),
                 ageSex: (row) => {
                     const age = this.sampleAge(row);
@@ -1449,19 +1456,19 @@ export default {
             return sortTableRows(this.filteredGenes, this.tableSort.genes, {
                 gene: (row) => row.gene,
                 evidence: (row) => Number(Boolean(row.association)) * 2 + Number(Boolean(row.diseases.length)),
-                effect: (row) => this.multi ? row.association?.beta : row.association?.oddsRatio,
-                support: (row) => this.multi ? row.association?.nPositive : row.association?.ciLow,
+                effect: (row) => this.multi ? row.association?.betaSdPer0_1Grs : row.association?.betaPer0_1Grs,
+                support: (row) => this.multi ? row.association?.nPositive : row.association?.betaCiLowPer0_1Grs,
                 p: (row) => row.association?.pValue,
                 q: (row) => row.association?.qValue,
                 disease: (row) => row.diseases[0]?.rank ?? null,
             });
         },
         genePageCount() { return Math.max(1, Math.ceil(this.filteredGenes.length / 4)); },
-        maxOdds() {
+        maxSingleBeta() {
             return Math.max(
-                1,
+                1e-12,
                 ...this.geneRows.map((row) =>
-                    row.association ? Number(row.association.oddsRatio) || 0 : 0
+                    row.association ? Math.abs(Number(row.association.betaPer0_1Grs)) || 0 : 0
                 )
             );
         },
@@ -1578,6 +1585,7 @@ export default {
                 ? "—"
                 : Number(value).toFixed(3);
         },
+        rphersReferenceLabel(reference) { return referenceDescription(reference); },
         sampleTerms(sample) {
             if (Array.isArray(sample.expanded_hpo_ids)) return sample.expanded_hpo_ids;
             return normalizeTerms(
@@ -1693,6 +1701,7 @@ export default {
                     return result;
                 };
                 const first = await fetchPage(1);
+                const reference = contextMatches(first.rphers_standardization, this.ids) ? first.rphers_standardization : null;
                 const pages = Math.ceil(first.pagination.total / 100);
                 const matches = [...first.samples];
                 for (let start = 2; start <= pages; start += 8) {
@@ -1700,10 +1709,17 @@ export default {
                     const batch = await Promise.all(
                         Array.from({ length: Math.min(8, pages - start + 1) }, (_, index) => fetchPage(start + index))
                     );
-                    batch.forEach((result) => matches.push(...result.samples));
+                    batch.forEach((result) => {
+                        if (reference && !sameReference(reference, result.rphers_standardization))
+                            throw new Error("CRDC profile pages returned different SD references; retry the request.");
+                        matches.push(...result.samples);
+                    });
                 }
                 if (request === this.sampleRequest) {
-                    this.matches = matches.map((row, index) => ({ ...row, rank: index + 1 }));
+                    this.sampleStandardization = reference;
+                    this.matches = matches.map((row, index) => ({ ...row, rank: index + 1,
+                        rphers_z: referenceAvailable(reference) && typeof row.rphers_z === "number" && Number.isFinite(row.rphers_z)
+                            ? row.rphers_z : null }));
                     this.matchesLoaded = true;
                     this.cohortSampleCount = first.cohort_sample_count;
                 }
@@ -1777,11 +1793,15 @@ export default {
                         !data.gene_associations ||
                         Number(data.n_tests) !== Object.keys(data.gene_associations).length)
                         throw new Error("Gene analysis returned a different HPO profile.");
+                    const reference = contextMatches(data.rphers_standardization, ids) ? data.rphers_standardization : null;
                     genes = {
+                        rphersStandardization: reference,
                         nTests: Number(data.n_tests) || 0,
                         associations: Object.entries(data.gene_associations).map(([gene, item]) => ({
                                 gene: gene.toUpperCase(),
                                 beta: item.beta,
+                                betaSdPer0_1Grs: standardizedField(item, "beta_sd_per_0_1_grs", reference),
+                                standardErrorSdPer0_1Grs: standardizedField(item, "standard_error_sd_per_0_1_grs", reference),
                                 pValue: item.p_value,
                                 qValue: item.fdr,
                                 nPositive: item.n_positive,
@@ -1794,6 +1814,7 @@ export default {
                 }
                 if (request === this.geneRequest) {
                     this.genes = genes;
+                    this.geneStandardization = this.multi ? genes.rphersStandardization : null;
                     this.geneFilter = this.multi ? "all" : "significant";
                 }
             } catch (error) {
@@ -1859,23 +1880,32 @@ export default {
                     "gene",
                     this.multi ? "crdc_gene_score_q_significant" : "crdc_burden_q_significant",
                     "orphanet_link",
-                    this.multi ? "beta_gene_score" : "or_per_0.1",
-                    this.multi ? "n_positive" : "ci_low",
-                    ...(this.multi ? [] : ["ci_high"]),
+                    this.multi ? "beta_sd_per_0_1_grs" : "beta_log_odds_per_0_1_grs",
+                    this.multi ? "standard_error_sd_per_0_1_grs" : "standard_error_log_odds_per_0_1_grs",
+                    this.multi ? "n_positive" : "beta_ci_low_log_odds_per_0_1_grs",
+                    ...(this.multi ? [] : ["beta_ci_high_log_odds_per_0_1_grs"]),
                     "p",
                     "q",
                     "linked_diseases",
+                    ...(this.multi ? [] : ["analysis_n", "effect_model", "effect_unit", "effect_approximation", "source_release"]),
+                    ...(this.multi ? ["rphers_reference_id", "rphers_reference_mean", "rphers_reference_sd", "rphers_reference_n", "rphers_standardization_version"] : []),
                 ],
                 ...this.sortedGenes.map((row) => [
                     row.gene,
                     this.significantGene(row),
                     Boolean(row.diseases.length),
-                    this.multi ? row.association?.beta : row.association?.oddsRatio,
-                    this.multi ? row.association?.nPositive : row.association?.ciLow,
-                    ...(this.multi ? [] : [row.association?.ciHigh]),
+                    this.multi ? row.association?.betaSdPer0_1Grs : row.association?.betaPer0_1Grs,
+                    this.multi ? row.association?.standardErrorSdPer0_1Grs : row.association?.standardErrorPer0_1Grs,
+                    this.multi ? row.association?.nPositive : row.association?.betaCiLowPer0_1Grs,
+                    ...(this.multi ? [] : [row.association?.betaCiHighPer0_1Grs]),
                     row.association?.pValue,
                     row.association?.qValue,
                     row.diseases.map((item) => item.name).join("; "),
+                    ...(this.multi ? [] : [row.association?.nSamples, row.association?.model, row.association?.effectUnit,
+                        row.association?.effectApproximation, row.association?.sourceRelease]),
+                    ...(this.multi ? [this.geneStandardization?.reference_id, this.geneStandardization?.reference_mean,
+                        this.geneStandardization?.reference_sd, this.geneStandardization?.reference_n,
+                        this.geneStandardization?.version] : []),
                 ]),
             ].map((row) => row.map(quote).join(","));
             const url = URL.createObjectURL(

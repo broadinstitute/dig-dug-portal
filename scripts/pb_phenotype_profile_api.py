@@ -13,6 +13,7 @@ import numpy as np
 from scripts.pb_gene_context_api_server import create_server
 from scripts.pb_gene_context_validation import load_hpo_matrix
 from scripts.rphers_fast import score_samples
+from scripts.rphers_standardization import standardized_value
 
 
 def _age(value):
@@ -42,14 +43,19 @@ class ProfileEngine:
                     self.cohort[sample_id] = name
 
     @lru_cache(maxsize=8)
-    def _ranked(self, terms):
+    def _scoring(self, terms):
         missing = [term for term in terms if term not in self.column_index]
         if missing:
             raise ValueError("HPO terms are absent from the CRDC matrix: " + ", ".join(missing))
-        scored = score_samples(
+        return score_samples(
             self.hpo["matrix"], self.hpo["hpo_columns"], terms,
             sample_ids=self.hpo["sample_ids"],
         )
+
+    @lru_cache(maxsize=8)
+    def _ranked(self, terms):
+        scored = self._scoring(terms)
+        reference = scored["rphers_standardization"]
         matrix = self.hpo["matrix"]
         rows = []
         for index in scored["order"]:
@@ -65,6 +71,7 @@ class ProfileEngine:
                 "sample_id": sample_id,
                 "unique_sample_ID": sample_id,
                 "residual_phers": float(scored["phenotype_match_score_resid"][index]),
+                "rphers_z": standardized_value(scored["phenotype_match_score_resid"][index], reference, center=True),
                 "exact_match_count": matched,
                 "matches": f"{matched}/{len(terms)}",
                 "expanded_hpo_ids": observed,
@@ -101,6 +108,7 @@ class ProfileEngine:
             },
             "scoring_method": "residual PheRS: rphers_fast.score_samples",
             "cohort_sample_count": len(self.hpo["sample_ids"]),
+            "rphers_standardization": self._scoring(terms)["rphers_standardization"],
         }
 
 

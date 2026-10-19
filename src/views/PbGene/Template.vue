@@ -100,26 +100,26 @@
                                             <button class="pbg-info-button" type="button" aria-label="About top phenotype associations" aria-describedby="pbg-association-help-hero">
                                                 ?
                                                 <span id="pbg-association-help-hero" class="pbg-info-tooltip" role="tooltip">
-                                                    Shows the gene–HPO rows and order supplied by the precomputed browser release. Displayed OR and 95% CI are approximate effects per 0.1-point increase in gene burden score. q is adjusted across genes within each HPO.
+                                                    Approximate score-test β and 95% CI for the change in HPO log-odds per 0.1 increase in GRS. These coefficients are not in rPheRS SD units. Release row order, p-values, and q-values are unchanged; q is adjusted across genes within each HPO.
                                                 </span>
                                             </button>
                                         </div>
-                                        <p>Precomputed associations across binary HPO phenotypes</p>
+                                        <p>β per 0.1 GRS (log-odds) · precomputed binary HPO</p>
                                     </div>
                                     <span>{{ liveDataLoaded ? 'Precomputed' : 'Preview data' }}</span>
                                 </div>
                                 <div v-if="topPhenotypeAssociations.length" class="pbg-association-spotlight">
-                                    <strong>OR {{ contextStatistic(topPhenotypeAssociations[0].oddsRatio) }}</strong>
+                                    <strong>β {{ contextStatistic(topPhenotypeAssociations[0].betaPer0_1Grs) }}</strong>
                                     <div>
                                         <span>{{ topPhenotypeAssociations[0].label }}</span>
-                                        <em>{{ topPhenotypeAssociations[0].hpoId }} · 95% CI {{ contextStatistic(topPhenotypeAssociations[0].ciLow) }}–{{ contextStatistic(topPhenotypeAssociations[0].ciHigh) }}</em>
+                                        <em>{{ topPhenotypeAssociations[0].hpoId }} · 95% CI {{ contextStatistic(topPhenotypeAssociations[0].betaCiLowPer0_1Grs) }}–{{ contextStatistic(topPhenotypeAssociations[0].betaCiHighPer0_1Grs) }}</em>
                                         <small>p {{ contextStatistic(topPhenotypeAssociations[0].pValue) }} · q {{ contextStatistic(topPhenotypeAssociations[0].qValue) }}</small>
                                     </div>
                                 </div>
                                 <div v-if="topPhenotypeAssociations.length" class="pbg-association-rank-list">
                                     <div v-for="association in topPhenotypeAssociations.slice(1)" :key="association.hpoId" class="pbg-association-rank-row">
                                         <span>{{ association.label }} <small>{{ association.hpoId }}</small></span>
-                                        <strong>OR {{ contextStatistic(association.oddsRatio) }}</strong>
+                                        <strong>β {{ contextStatistic(association.betaPer0_1Grs) }}</strong>
                                         <em>p {{ contextStatistic(association.pValue) }}<br>q {{ contextStatistic(association.qValue) }}</em>
                                     </div>
                                 </div>
@@ -364,18 +364,18 @@
                                         <button class="pbg-info-button pbg-info-button--small" type="button" aria-label="About phenotype association results" aria-describedby="pbg-association-help-summary">
                                             ?
                                             <span id="pbg-association-help-summary" class="pbg-info-tooltip" role="tooltip">
-                                                Gene-level rows and rank come from the precomputed browser release. Displayed OR and 95% CI are approximate effects per 0.1-point increase in gene burden score. q is adjusted across genes within each HPO.
+                                                Approximate binary-HPO score-test β for the change in HPO log-odds per 0.1 increase in GRS, without rPheRS SD standardization. Release row order and p/q values are unchanged; q is adjusted across genes within each HPO.
                                             </span>
                                         </button>
                                     </div>
-                                    <p>Gene-level · binary HPO phenotypes</p>
+                                    <p>Gene-level · β per 0.1 GRS (log-odds)</p>
                                 </div>
                                 <span>{{ phenotypeAssociationCardLabel }}</span>
                             </div>
                             <div class="pbg-summary-card-body pbg-summary-association-table">
                                 <div v-if="summaryAssociationRows.length" class="pbg-summary-association-head">
                                     <button class="pbg-summary-sort" type="button" @click="sortSummaryColumn('phenotype', 'label')">Phenotype <i>{{ summarySortIndicator('phenotype', 'label') }}</i></button>
-                                    <button class="pbg-summary-sort" type="button" @click="sortSummaryColumn('phenotype', 'oddsRatio')">OR <i>{{ summarySortIndicator('phenotype', 'oddsRatio') }}</i></button>
+                                    <button class="pbg-summary-sort" type="button" @click="sortSummaryColumn('phenotype', 'betaPer0_1Grs')">β per 0.1 GRS (log-odds) <i>{{ summarySortIndicator('phenotype', 'betaPer0_1Grs') }}</i></button>
                                     <button class="pbg-summary-sort" type="button" @click="sortSummaryColumn('phenotype', 'pValue')">p <i>{{ summarySortIndicator('phenotype', 'pValue') }}</i></button>
                                     <button class="pbg-summary-sort" type="button" title="Adjusted across genes within each HPO" @click="sortSummaryColumn('phenotype', 'qValue')">q <i>{{ summarySortIndicator('phenotype', 'qValue') }}</i></button>
                                 </div>
@@ -383,7 +383,7 @@
                                      :key="'summary-association-' + association.hpoId"
                                      class="pbg-summary-association-row">
                                     <span>{{ association.label }} <small>{{ association.hpoId }}</small></span>
-                                    <strong>{{ contextStatistic(association.oddsRatio) }}</strong>
+                                    <strong>{{ contextStatistic(association.betaPer0_1Grs) }}</strong>
                                     <span>{{ contextStatistic(association.pValue) }}</span>
                                     <span>{{ contextStatistic(association.qValue) }}</span>
                                 </div>
@@ -517,15 +517,15 @@
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">
                                 <i>{{ variantSortIndicator('matchScore') }}</i>
                                 <span>
-                                    Match Score
+                                    Mean rPheRS Z-score
                                     <abbr class="pbg-score-help"
-                                          title="Mean residual PheRS across the unique carriers of this variant for the selected HPO context. No partial mean is shown when any carrier score is missing."
-                                          aria-label="Match Score calculation: mean residual PheRS across unique carriers of this variant for the selected HPO context."
+                                          title="Mean of the unique carriers' individual residual PheRS Z-scores for this HPO context, using the full scoring-cohort reference. No partial mean is shown when any carrier score is missing."
+                                          aria-label="Mean rPheRS Z-score: average individual Z-score across unique carriers."
                                           @click.stop>?</abbr>
                                     <em>CRDC</em>
                                 </span>
                             </button>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('effectScore')"><i>{{ variantSortIndicator('effectScore') }}</i><span>Effect Score (β)</span></button>
+                            <button class="pbg-ve-sort" type="button" title="Covariate-adjusted residual PheRS difference between variant noncarriers (0) and carriers (1), in full scoring-cohort SD units. This is a regression effect, not the carrier mean." @click="sortVariantsBy('effectScore')"><i>{{ variantSortIndicator('effectScore') }}</i><span>Variant effect β (SD)</span></button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('pValue')"><i>{{ variantSortIndicator('pValue') }}</i><span>p-value</span></button>
                         </div>
                         <p class="pbg-score-legend">
@@ -568,7 +568,7 @@
                                 <span v-else class="pbg-no-context" :title="row.phenotypeMatchStatus || ''">Unavailable</span>
                                 <span v-if="!activeContextTerms.length" class="pbg-no-context">no context</span>
                                 <strong v-else-if="row.variantEffectBeta != null" class="pbg-score-badge"
-                                        :title="row.variantAssociationLowCarrierCount ? 'Adjusted carrier effect in residual PheRS units; exploratory because fewer than 10 carriers were scored.' : 'Adjusted carrier effect in residual PheRS units.'">
+                                        :title="row.variantAssociationLowCarrierCount ? 'Covariate-adjusted carrier versus noncarrier difference in residual PheRS, in reference-cohort SD units; exploratory because fewer than 10 carriers were scored.' : 'Covariate-adjusted carrier versus noncarrier difference in residual PheRS, in reference-cohort SD units.'">
                                     {{ contextStatistic(row.variantEffectBeta) }}
                                 </strong>
                                 <span v-else class="pbg-no-context" :title="row.variantAssociationStatus || 'not_returned'">Unavailable</span>
@@ -629,7 +629,7 @@
                                             <span>Sex</span>
                                             <span>GT</span>
                                             <span>HPO terms</span>
-                                            <span title="Carrier residual PheRS for the selected HPO context; unavailable when not supplied.">Match (residual PheRS)</span>
+                                            <span title="Individual residual PheRS relative to the scoring-cohort mean, in sample SD units; unavailable when individual scores are not supplied.">rPheRS Z-score</span>
                                             <span>Co-genes</span>
                                             <span>Investigator</span>
                                             <span>Affected</span>
@@ -642,7 +642,7 @@
                                             <span>{{ carrierSampleField(s, 'sex') }}</span>
                                             <span>{{ s.gt }}</span>
                                             <span>{{ carrierSampleField(s, 'hpo') || '—' }}</span>
-                                            <span class="pbg-no-context" :title="activeContextTerms.length ? 'Carrier residual PheRS is not supplied by the current data source.' : 'Run an HPO context analysis to request matching.'">{{ activeContextTerms.length ? '—' : 'no context' }}</span>
+                                            <span class="pbg-no-context" :title="activeContextTerms.length ? 'Individual rPheRS Z-scores are not available for these carriers.' : 'Run an HPO context analysis to request matching.'">{{ activeContextTerms.length ? '—' : 'no context' }}</span>
                                             <div class="pbg-co-gene-cell">
                                                 <span>{{ coGenePreview(carrierSampleField(s, 'genes')) }}</span>
                                                 <details v-if="coGeneRemaining(carrierSampleField(s, 'genes')).length">

@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const zlib = require("node:zlib");
 const readline = require("node:readline");
 const hpoLabels = require("../src/views/PbPhenotype/geneHpoLabels.generated.json");
+const { withSingleHpoDisplayUnits } = require("../src/utils/singleHpoUnits");
 
 const MAX_CACHE = 20;
 const cache = new Map();
@@ -16,9 +17,23 @@ function finiteNumber(value) {
 
 function projectAssociation(row) {
     const hpoId = String(row.hpo_id || "");
-    return {
+    const coefficientBoundary = value => {
+        const odds = finiteNumber(value);
+        return odds != null && odds > 0 ? Math.log(odds) : null;
+    };
+    return withSingleHpoDisplayUnits({
         hpoId,
         label: hpoLabels[hpoId] || hpoId,
+        beta: finiteNumber(row.beta_gene_score_sum_approx),
+        standardError: finiteNumber(row.se_gene_score_sum_approx),
+        nSamples: finiteNumber(row.n_samples),
+        betaCiLow: coefficientBoundary(row.ci_lower_approx),
+        betaCiHigh: coefficientBoundary(row.ci_upper_approx),
+        sourceRelease: process.env.PB_GENE_HPO_RELEASE_ID || "gene_hpo_release_20260905",
+        model: "binomial_logit_mixed_score_test",
+        modelFormula: row.model_formula || null,
+        outcome: "hpo_binary",
+        predictor: "gene_score_sum",
         oddsRatio: finiteNumber(row.odds_ratio_approx),
         ciLow: finiteNumber(row.ci_lower_approx),
         ciHigh: finiteNumber(row.ci_upper_approx),
@@ -27,7 +42,7 @@ function projectAssociation(row) {
         qSignificant: row.q_significant === true,
         positiveDirection: row.positive_direction === true,
         rank: Number(row.rank) || null,
-    };
+    });
 }
 
 async function readGene(filePath, gene) {

@@ -17,7 +17,7 @@ GENE_IDS = (ROOT / "src/views/PbGene/geneIdReference.generated.js").read_text()
 
 class PbGeneContextUiTest(unittest.TestCase):
     def test_context_controls_and_accumulating_result_table_exist(self):
-        for text in ("HPO context", "Go", "Advanced", "Beta (Effect Size)", "P-value"):
+        for text in ("HPO context", "Go", "Advanced", "Effect per 0.1 GRS (SD)", "P-value"):
             self.assertIn(text, HPO_CONTEXT)
         self.assertIn("@submit.prevent=\"$emit('run')\"", HPO_CONTEXT)
         self.assertIn('@run="runContextAnalysis"', TEMPLATE)
@@ -63,8 +63,8 @@ class PbGeneContextUiTest(unittest.TestCase):
 
     def test_score_labels_and_no_context_state_are_unambiguous(self):
         self.assertIn("Extended Pathogenic Score", TEMPLATE)
-        self.assertIn("Match Score", TEMPLATE)
-        self.assertIn("Match Score calculation: mean residual PheRS", TEMPLATE)
+        self.assertIn("Mean rPheRS Z-score", TEMPLATE)
+        self.assertIn("Mean rPheRS Z-score: average individual Z-score", TEMPLATE)
         self.assertIn("no context", TEMPLATE)
         self.assertNotIn("Variant score <em>", TEMPLATE)
         self.assertNotIn("Match score <em>", TEMPLATE)
@@ -84,7 +84,7 @@ class PbGeneContextUiTest(unittest.TestCase):
 
     def test_variant_match_score_consumes_aggregate_api_result(self):
         self.assertIn("result.variant_match_scores", MODEL)
-        self.assertIn("context.match_score", MODEL)
+        self.assertIn('standardizedField(context, "mean_rphers_z", reference)', MODEL)
         self.assertIn("row.phenotypeMatchStatus", MODEL)
         self.assertNotIn("result.samples || result.top_matches", MODEL)
         self.assertNotIn("row.phenotype_match_score_resid", MODEL)
@@ -236,7 +236,7 @@ class PbGeneContextUiTest(unittest.TestCase):
 
     def test_match_score_help_and_desktop_variant_table_are_lightweight(self):
         self.assertIn('class="pbg-score-help"', TEMPLATE)
-        self.assertIn("Mean residual PheRS across the unique carriers", TEMPLATE)
+        self.assertIn("Mean of the unique carriers' individual residual PheRS Z-scores", TEMPLATE)
         self.assertIn("--pbg-ve-min-width: 83rem", STYLE)
         self.assertIn("overflow-x: auto", STYLE)
         self.assertIn("GeneIdentityPanel", TEMPLATE)

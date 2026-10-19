@@ -10,6 +10,8 @@ from time import perf_counter
 import numpy as np
 from scipy import sparse
 
+from scripts.rphers_standardization import scoring_identity, standardize_scores
+
 
 def _binary_matrix(matrix):
     if sparse.issparse(matrix):
@@ -61,6 +63,9 @@ def score_samples(crdc_bin, hpo_columns, query_hpo, sample_ids=None, alpha=1.0):
     coefficients = np.linalg.lstsq(design, raw_score, rcond=None)[0]
     residual = raw_score - design @ coefficients
 
+    data_id, cohort_id = scoring_identity(matrix, hpo_columns, sample_ids)
+    rphers_z, reference = standardize_scores(residual, matched_hpo, data_id, cohort_id)
+
     order = np.lexsort((-raw_score, -residual))
     rank = np.empty(n_samples, dtype=int)
     rank[order] = np.arange(1, n_samples + 1)
@@ -73,6 +78,8 @@ def score_samples(crdc_bin, hpo_columns, query_hpo, sample_ids=None, alpha=1.0):
         "total_sample_hpo_terms": total_hpo_terms.astype(int),
         "phenotype_match_score": raw_score,
         "phenotype_match_score_resid": residual,
+        "rphers_z": rphers_z,
+        "rphers_standardization": reference,
         "phenotype_match_rank": rank,
         "order": order,
     }

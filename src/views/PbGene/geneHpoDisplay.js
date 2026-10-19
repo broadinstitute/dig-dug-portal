@@ -1,5 +1,6 @@
 // The release stores approximate OR and CI for a one-point burden-score increase.
 // Rescale only the displayed effect; p, q, and source row order stay unchanged.
+import { withSingleHpoDisplayUnits } from "../../utils/singleHpoUnits";
 const DISPLAY_BURDEN_STEP = 0.1;
 
 function rescaleOdds(value) {
@@ -10,7 +11,7 @@ function rescaleOdds(value) {
 }
 
 export function displayGeneHpoAssociations(rows) {
-    return rows.map(row => ({
+    return rows.map(row => withSingleHpoDisplayUnits({
         ...row,
         oddsRatioPerPoint: row.oddsRatio,
         ciLowPerPoint: row.ciLow,

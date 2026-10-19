@@ -59,7 +59,7 @@
                     <details class="pbg-context-disclosure" open>
                         <summary>
                             <strong>HPO Context</strong>
-                            <span class="pbg-context-summary-sub">exact-variant Match Score</span>
+                            <span class="pbg-context-summary-sub">exact-variant mean rPheRS Z-score</span>
                             <span class="pbg-context-summary-pill">
                                 {{ contextLoading ? 'Calculating' : contextMatch && contextMatch.matchScore != null ? displayMean(contextMatch.matchScore) : contextMatch ? contextMatch.status : 'On-demand tool' }}
                             </span>
@@ -67,7 +67,7 @@
                         <section class="pbg-context-card" aria-labelledby="pbv-context-title">
                             <div class="pbg-context-head">
                                 <div>
-                                    <h2 id="pbv-context-title">Run HPO context <abbr class="pbv-context-help" title="Calculate the carrier mean and the exact-variant association from individual residual PheRS across the analysis cohort." aria-label="Calculate the carrier mean and the exact-variant association from individual residual PheRS across the analysis cohort.">?</abbr></h2>
+                                    <h2 id="pbv-context-title">Run HPO context <abbr class="pbv-context-help" title="Show the carrier mean rPheRS Z-score and the adjusted variant effect in SD units, using the full scoring-cohort reference." aria-label="Show the carrier mean rPheRS Z-score and the adjusted variant effect in SD units, using the full scoring-cohort reference.">?</abbr></h2>
                                 </div>
                                 <span class="pbg-context-status" :class="{ 'pbg-context-status--active': activeContextTerms.length }">
                                     {{ activeContextTerms.length ? 'Context active' : 'No context' }}
@@ -83,21 +83,22 @@
                             <p v-if="contextWarning" class="pbv-context-warning" role="status">{{ contextWarning }}</p>
                             <div v-if="contextMatch || contextAssociation" class="pbg-context-results">
                                 <div class="pbg-context-result-head pbv-context-result-grid">
-                                    <span>HPOs used</span><span>Match Score</span><span>Carrier coverage</span><span>Effect Score (β)</span><span>p-value</span><span>Status</span>
+                                    <span>HPOs used</span><span>Mean rPheRS Z-score</span><span>Carrier coverage</span><span>Variant effect β (SD)</span><span>p-value</span><span>Status</span>
                                 </div>
                                 <div class="pbg-context-result-row pbv-context-result-grid">
                                     <span>{{ activeContextTerms.join(', ') }}</span>
                                     <strong :class="{ 'pbg-unavailable-value': !contextMatch || contextMatch.matchScore == null }">{{ contextMatch ? displayMean(contextMatch.matchScore) : 'Unavailable' }}</strong>
                                     <span>{{ contextMatch ? `${contextMatch.scoredCarrierCount || 0} / ${contextMatch.carrierCount || 0} scored` : 'Unavailable' }}</span>
-                                    <strong :class="{ 'pbg-unavailable-value': !contextAssociation || contextAssociation.beta == null }" :title="`One adjusted binary-carrier effect for this exact variant, calculated from individual residual PheRS in ${coGeneAnalysisSet === 'affected' ? 'affected samples' : 'all analysis samples'}.`">{{ contextAssociation ? displayMean(contextAssociation.beta) : 'Unavailable' }}</strong>
+                                    <strong :class="{ 'pbg-unavailable-value': !contextAssociation || contextAssociation.beta == null }" :title="`Covariate-adjusted residual PheRS difference between noncarriers (0) and carriers (1), in full scoring-cohort SD units; fitted in ${coGeneAnalysisSet === 'affected' ? 'affected samples' : 'all analysis samples'}.`">{{ contextAssociation ? displayMean(contextAssociation.beta) : 'Unavailable' }}</strong>
                                     <strong :class="{ 'pbg-unavailable-value': !contextAssociation || contextAssociation.pValue == null }" title="Unadjusted p-value for this exact variant's binary-carrier effect; not a per-sample value.">{{ contextAssociation ? displayPValue(contextAssociation.pValue) : 'Unavailable' }}</strong>
                                     <span>{{ contextMatch ? contextMatch.status : contextAssociation.status }}</span>
                                 </div>
                             </div>
                             <p class="pbv-context-crossref">
-                                <strong>Match Score</strong> is the carrier mean in the selected analysis samples, returned only with complete carrier coverage. <strong>Effect Score and p-value</strong> use binary carrier status in {{ coGeneAnalysisSet === 'affected' ? 'affected samples' : 'the full analysis cohort' }}. GRS Max/Sum applies to the gene associations below; a single binary variant has no GRS aggregation. Carrier-statistics filters below do not recalculate these results.
+                                <strong>Mean rPheRS Z-score</strong> is the mean of the selected analysis carriers' individual Z-scores, returned only with complete coverage. <strong>Variant effect β (SD)</strong> is the covariate-adjusted 0→1 carrier effect in {{ coGeneAnalysisSet === 'affected' ? 'affected samples' : 'the full analysis cohort' }}; it is distinct from the carrier mean. GRS Max/Sum applies to gene associations below. Carrier-statistics filters do not refit these regressions.
                                 <span v-if="contextAssociation && contextAssociation.sampleCount">{{ variantAssociationModelLabel }}: {{ contextAssociation.sampleCount.toLocaleString() }} analysis samples, {{ contextAssociation.carrierCount == null ? 'unknown' : contextAssociation.carrierCount.toLocaleString() }} modeled carriers / {{ variantIdentity.distinctCarriers.toLocaleString() }} BioIndex carriers.</span>
                             </p>
+                            <p v-if="contextMatch || contextAssociation" class="pbv-context-crossref">{{ rphersReferenceLabel(contextStandardization) }}</p>
                         </section>
                     </details>
 
@@ -414,7 +415,7 @@
                                 <div class="pbv-carrier-inline-scores">
                                     <span class="pbv-carrier-inline-score"
                                           :title="contextScoreAvailableForSelection ? `${contextMatch.scoredCarrierCount || 0} / ${contextMatch.carrierCount || 0} context carriers scored · ${contextMatch.status}` : 'Run HPO Context above to calculate the exact-variant carrier mean.'">
-                                        <small>Mean residual PheRS</small>
+                                        <small>Mean rPheRS Z-score</small>
                                         <strong :class="{ 'pbg-unavailable-value': !contextScoreAvailableForSelection }">
                                             {{ contextScoreAvailableForSelection ? displayMean(contextMatch.matchScore) : 'Unavailable' }}
                                         </strong>
@@ -434,9 +435,9 @@
                                 · private sample rows use this selection
                             </p>
                             <p class="pbv-sample-score-note">
-                                rPheRS is individual for each carrier under the selected HPO Context.
+                                Each rPheRS Z-score is an individual's residual PheRS distance from the full scoring-cohort mean, in sample SD units. The aggregate mean uses the complete Context carrier group and is unavailable when carrier filters change the selection.
                                 <span v-if="contextMatch && coGeneAnalysisSet === 'affected'">Only affected analysis samples receive a score in this run.</span>
-                                <span v-if="contextMatch && !Object.keys(contextResidualById).length">This Context API has not returned individual residual PheRS values.</span>
+                                <span v-if="contextMatch && !Object.keys(contextResidualById).length">Individual rPheRS Z-scores are unavailable for these carriers.</span>
                             </p>
                             <div class="pbv-carrier-table" role="region" aria-label="Carrier sample table">
                                 <div class="pbv-carrier-table-head">
@@ -456,8 +457,8 @@
                                                 <span><button type="button" @click="sortTableColumn('carriers', 'sex')">Sex <i>{{ tableSortIndicator('carriers', 'sex') }}</i></button></span>
                                                 <span><button type="button" @click="sortTableColumn('carriers', 'gt')">GT <i>{{ tableSortIndicator('carriers', 'gt') }}</i></button></span>
                                                 <span class="pbv-rphers-head">
-                                                    <button type="button" @click="sortTableColumn('carriers', 'residual')">rPheRS <i>{{ tableSortIndicator('carriers', 'residual') }}</i></button>
-                                                    <abbr class="pbg-score-help" tabindex="0" title="Residual Phenotype Risk Score: this sample's score for the selected HPO Context after adjusting for its total number of recorded HPO terms. It can be negative. The Match Score above is the mean rPheRS among carriers." aria-label="What is rPheRS?">?</abbr>
+                                                    <button type="button" @click="sortTableColumn('carriers', 'residual')">rPheRS Z-score <i>{{ tableSortIndicator('carriers', 'residual') }}</i></button>
+                                                    <abbr class="pbg-score-help" tabindex="0" title="How many scoring-cohort sample SDs this patient's residual PheRS lies above or below that cohort's mean. Carrier averages are means of these Z-scores; regression effects are separate." aria-label="What is an rPheRS Z-score?">?</abbr>
                                                 </span>
                                                 <span><button type="button" @click="sortTableColumn('carriers', 'affected')">Affected <i>{{ tableSortIndicator('carriers', 'affected') }}</i></button></span>
                                                 <span><button type="button" @click="sortTableColumn('carriers', 'project')">Project <i>{{ tableSortIndicator('carriers', 'project') }}</i></button></span>
@@ -467,7 +468,7 @@
                                                 <span>{{ carrierAge(carrier) }}</span>
                                                 <span>{{ carrierMetadataField(carrier, 'sex') }}</span>
                                                 <span>{{ displayCarrierValue(carrier.genotype) }}</span>
-                                                <span :title="contextMatch ? 'Individual residual PheRS for the selected HPO context; unavailable if this sample is outside the analysis roster.' : 'Run HPO Context to request matching.'">{{ carrierResidualScore(carrier) }}</span>
+                                                <span :title="contextMatch ? 'Individual rPheRS Z-score for the selected HPO context; unavailable if this sample is outside the analysis roster or reference scores are unavailable.' : 'Run HPO Context to request matching.'">{{ carrierResidualScore(carrier) }}</span>
                                                 <span>{{ carrierMetadataField(carrier, 'affected') }}</span>
                                                 <span :title="carrierMetadataField(carrier, 'project')">{{ carrierMetadataField(carrier, 'project') }}</span>
                                             </div>
@@ -485,7 +486,7 @@
                                 <h3>Co-occurrence among this variant's carriers</h3>
                                 <a href="#pbv-context-title" class="pbv-context-link-status"
                                    :class="{ 'is-active': contextMatch || contextAssociation }"
-                                   title="HPO Context controls the gene association scores and co-variant mean rPheRS. Carrier overlap, Variant Score, and ClinVar remain independent of context.">
+                                   title="HPO Context controls gene effects per 0.1 GRS in SD units and co-variant mean rPheRS Z-scores. Carrier overlap, Variant Score, and ClinVar remain independent of context.">
                                     {{ contextMatch || contextAssociation ? 'HPO Context active' : 'Run HPO Context' }} ↑
                                 </a>
                             </div>
@@ -495,6 +496,7 @@
                                     <h3>Different-gene co-carriers <abbr class="pbv-context-help" :title="`Gene scores use ${coGeneAnalysisSet === 'affected' ? 'affected CRDC samples' : 'the full CRDC cohort'} and the selected HPO context. Carrier overlap uses the current filters.`" :aria-label="`Gene scores use ${coGeneAnalysisSet === 'affected' ? 'affected CRDC samples' : 'the full CRDC cohort'} and the selected HPO context. Carrier overlap uses the current filters.`">?</abbr></h3>
                                     <p v-if="coGeneAssociationStatus === 'error'" class="pbv-empty-note">Gene associations unavailable: {{ coGeneAssociationError }}</p>
                                     <p v-else-if="coGeneAssociationStatus === 'ready'" class="pbv-sub">{{ coGeneAssociationSummary.nTests }} genes tested · Benjamini–Hochberg FDR across the target gene and all different-gene co-carriers.</p>
+                                    <p v-if="coGeneAssociationStatus === 'ready'" class="pbv-sub">{{ rphersReferenceLabel(coGeneStandardization) }}</p>
                                     <p v-if="!hasCoGeneData && sampleMetadataStatus === 'loading'" class="pbv-empty-note">Loading sample gene lists…</p>
                                     <p v-else-if="!hasCoGeneData" class="pbv-empty-note">Not calculated — sample gene lists are unavailable.</p>
                                     <p v-else-if="!matchCount" class="pbv-empty-note">No carriers match the current filter combination.</p>
@@ -502,7 +504,7 @@
                                         <div class="pbv-cooccur-head">
                                             <span><button type="button" @click="sortTableColumn('coGenes', 'gene')">Gene <i>{{ tableSortIndicator('coGenes', 'gene') }}</i></button></span>
                                             <span title="Shared carriers / selected target-variant carriers (overlap percentage)."><button type="button" @click="sortTableColumn('coGenes', 'count')">Carriers <i>{{ tableSortIndicator('coGenes', 'count') }}</i></button></span>
-                                            <span title="Effect Score (β): full-cohort LM effect per unit of selected gene score."><button class="pbv-effect-score-heading" type="button" @click="sortTableColumn('coGenes', 'beta')">Effect (β) <i>{{ tableSortIndicator('coGenes', 'beta') }}</i></button></span>
+                                            <span title="Covariate-adjusted residual PheRS change in reference-cohort SD units per 0.1 increase in the selected Max/Sum gene burden score."><button class="pbv-effect-score-heading" type="button" @click="sortTableColumn('coGenes', 'beta')">Effect per 0.1 GRS (SD) <i>{{ tableSortIndicator('coGenes', 'beta') }}</i></button></span>
                                             <span><button type="button" @click="sortTableColumn('coGenes', 'pValue')">p-value <i>{{ tableSortIndicator('coGenes', 'pValue') }}</i></button></span>
                                             <span title="Benjamini–Hochberg adjusted p-value across the target gene and all unfiltered co-genes."><button type="button" @click="sortTableColumn('coGenes', 'fdr')">FDR <i>{{ tableSortIndicator('coGenes', 'fdr') }}</i></button></span>
                                         </div>
@@ -532,7 +534,7 @@
                                             <span><button type="button" @click="sortTableColumn('coVariants', 'id')">Variant <i>{{ tableSortIndicator('coVariants', 'id') }}</i></button></span>
                                             <span title="Carriers shared with the selected target variant, out of all selected target-variant carriers. The percentage uses the same denominator."><button type="button" @click="sortTableColumn('coVariants', 'count')">Carriers <i>{{ tableSortIndicator('coVariants', 'count') }}</i></button></span>
                                             <span title="LoFTEE HC = 1; otherwise AlphaMissense when available."><button type="button" @click="sortTableColumn('coVariants', 'variantScore')">Variant Score <i>{{ tableSortIndicator('coVariants', 'variantScore') }}</i></button></span>
-                                            <span title="Mean residual PheRS among current filtered target-variant carriers who also carry this variant, using the HPO Context analysis sample setting. Shown only when every eligible co-carrier has a score."><button class="pbv-mean-residual-heading" type="button" @click="sortTableColumn('coVariants', 'meanResidual')">Mean rPheRS <i>{{ tableSortIndicator('coVariants', 'meanResidual') }}</i></button></span>
+                                            <span title="Mean of individual rPheRS Z-scores among current filtered target-variant carriers who also carry this variant, using the HPO Context analysis sample setting. Shown only with complete eligible co-carrier coverage; the SD reference does not change with filters."><button class="pbv-mean-residual-heading" type="button" @click="sortTableColumn('coVariants', 'meanResidual')">Mean rPheRS Z-score <i>{{ tableSortIndicator('coVariants', 'meanResidual') }}</i></button></span>
                                             <span><button type="button" @click="sortTableColumn('coVariants', 'clinvar')">ClinVar <i>{{ tableSortIndicator('coVariants', 'clinvar') }}</i></button></span>
                                         </div>
                                         <div v-for="row in visibleCooccurVariantRows" :key="row.id" class="pbv-cooccur-row">

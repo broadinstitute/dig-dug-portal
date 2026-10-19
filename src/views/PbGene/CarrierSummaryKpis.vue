@@ -16,7 +16,7 @@
             <div class="pbg-summary-kpi">
                 <span>{{ variantId ? 'Top phenotype · gene-level' : 'Top phenotype' }}</span>
                 <strong class="pbg-summary-kpi-phenotype" :title="association ? association.label : ''">{{ association ? association.label : 'Unavailable' }}</strong>
-                <small>{{ association ? `OR ${formatStatistic(association.oddsRatio)} · q ${formatStatistic(association.qValue)}` : 'No precomputed association' }}</small>
+                <small title="Approximate score-test coefficient for the change in HPO log-odds per 0.1 increase in GRS; not an rPheRS SD effect.">{{ association ? `β per 0.1 GRS ${formatStatistic(association.betaPer0_1Grs)} · q ${formatStatistic(association.qValue)}` : 'No precomputed association' }}</small>
             </div>
             <div class="pbg-summary-kpi">
                 <span>Top co-carrier gene</span><strong>{{ topGene ? topGene.gene : 'Unavailable' }}</strong>

@@ -22,6 +22,9 @@ from scripts.context_api_fast import (
     variant_pathogenic_scores,
 )
 from scripts.rphers_fast import score_samples
+from scripts.rphers_standardization import (
+    association_with_sd, mean_with_sd, standardized_value, unavailable_reference,
+)
 from scripts.variant_association import MODEL_VERSION as VARIANT_ASSOCIATION_MODEL_VERSION, analyze_gene_variants
 
 
@@ -474,16 +477,25 @@ class ContextAnalysisEngine:
         self.gene_association_runner = gene_association_runner
 
     @lru_cache(maxsize=32)
-    def _phenotype(self, normalized_query_hpo):
+    def _scoring(self, normalized_query_hpo):
         missing = [term for term in normalized_query_hpo if term not in set(self.hpo["hpo_columns"])]
         if missing:
             raise ValueError("missing query HPO columns: " + ", ".join(missing))
-        phenotype = score_samples(
+        return score_samples(
             self.hpo["matrix"],
             self.hpo["hpo_columns"],
             normalized_query_hpo,
             sample_ids=self.hpo["sample_ids"],
         )
+
+    def _standardization(self, normalized_query_hpo):
+        if "sample_ids" not in getattr(self, "hpo", {}):
+            return unavailable_reference(normalized_query_hpo)
+        return self._scoring(normalized_query_hpo)["rphers_standardization"]
+
+    @lru_cache(maxsize=32)
+    def _phenotype(self, normalized_query_hpo):
+        phenotype = self._scoring(normalized_query_hpo)
         y = np.asarray(
             phenotype["phenotype_match_score_resid"][self.analysis_hpo_indices],
             dtype=np.float64,
@@ -518,6 +530,7 @@ class ContextAnalysisEngine:
         if not self.covariates:
             raise ValueError("sample covariates are unavailable")
         residuals, _ = self._phenotype(terms)
+        reference = self._standardization(terms)
         columns = [self.hpo["hpo_columns"].index(term) for term in terms]
         counts = np.asarray(self.hpo["matrix"][self.analysis_hpo_indices][:, columns].sum(axis=1)).ravel()
         metadata = self.covariates["sample_metadata"]
@@ -540,6 +553,7 @@ class ContextAnalysisEngine:
             rows.append({
                 "sample_id": self.browser_sample_id_by_analysis.get(sample_id, sample_id),
                 "residual_phers": float(residuals[index]) if np.isfinite(residuals[index]) else None,
+                "rphers_z": standardized_value(residuals[index], reference, center=True),
                 "exact_match_count": count,
                 "exact_age": info["age"],
                 "sex": info["sex"],
@@ -562,6 +576,7 @@ class ContextAnalysisEngine:
             "pagination": {"page": page, "page_size": page_size, "total": len(rows),
                            "next": page + 1 if offset + page_size < len(rows) else None},
             "scoring_method": "residual PheRS",
+            "rphers_standardization": reference,
         }
 
     def variant_carrier_residuals(self, gene, variant_id, query_hpo, affected_only=False):
@@ -586,7 +601,11 @@ class ContextAnalysisEngine:
             for sample_id in sorted(carriers)
             if sample_id in score_by_analysis and np.isfinite(score_by_analysis[sample_id])
         }
-        return {"variant_id": variant_id, "carrier_count": len(carriers), "sample_scores": scores}
+        reference = self._standardization(terms)
+        return {"variant_id": variant_id, "carrier_count": len(carriers), "sample_scores": scores,
+                "sample_rphers_z": {key: standardized_value(value, reference, center=True)
+                                    for key, value in scores.items()},
+                "rphers_standardization": reference}
 
     @lru_cache(maxsize=4)
     def _all_gene_associations(self, normalized_query_hpo, score_type, affected_only):
@@ -616,6 +635,8 @@ class ContextAnalysisEngine:
             adjusted = benjamini_hochberg([row["p_value"] for _, row in valid])
             for (gene, _), q_value in zip(valid, adjusted):
                 selected[gene]["fdr"] = float(q_value)
+        reference = self._standardization(terms)
+        selected = {gene: association_with_sd(row, reference, gene=True) for gene, row in selected.items()}
         return {
             "target_gene": target_gene,
             "query_hpo": list(terms),
@@ -627,6 +648,7 @@ class ContextAnalysisEngine:
             "n_requested": len(genes),
             "n_tests": len(valid),
             "gene_associations": selected,
+            "rphers_standardization": reference,
         }
 
     def analyze(self, gene, query_hpo, min_carriers=10, audit_dir=None, score_type="max", affected_only=False):
@@ -697,6 +719,16 @@ class ContextAnalysisEngine:
                 )
             except Exception:
                 result["gene_association"] = {"status": "runner_failed"}
+        reference = self._standardization(normalized_query_hpo)
+        result["rphers_standardization"] = reference
+        result["gene_association"] = association_with_sd(result["gene_association"], reference, gene=True)
+        result["gene_burden"] = association_with_sd(result["gene_burden"], reference, gene=True)
+        result["variant_associations"] = {
+            key: association_with_sd(row, reference) for key, row in result["variant_associations"].items()
+        }
+        result["variant_match_scores"] = {
+            key: mean_with_sd(row, reference) for key, row in result["variant_match_scores"].items()
+        }
         result["query_hpo"] = list(normalized_query_hpo)
         result["covariate_encoding"] = None if self.covariates is None else {
             "names": self.covariates["names"],

@@ -1,5 +1,15 @@
 # pb_Gene Context API Calculation Guide
 
+## October 19, 2026 display-unit addendum
+
+Use [the current engineering handoff](pb_gene_context_association_engineering_handoff.md) for the complete script inventory, added dependencies and response fields. The current prototype runs at `http://127.0.0.1:8098/`. Examples below document the original raw calculation contract; they do not override the current display units or current LM model specified in that handoff.
+
+The raw outcome and fitted models are preserved. The API additionally supplies individual `rphers_z`, carrier `mean_rphers_z`, variant `beta_sd`/`standard_error_sd`, and gene `beta_sd_per_0_1_grs`/`standard_error_sd_per_0_1_grs`. All use metadata from the complete original scoring vector, before analysis or display filtering, with sample SD (`ddof=1`). Do not derive the reference from carriers or matched samples. Missing individual scores remain unavailable.
+
+The separate precomputed single-HPO endpoint uses stored binary-HPO coefficients multiplied by 0.1; those coefficients are not divided by rPheRS SD. Its model, coefficient approximation, original p/q/N and release identity remain explicit. Deploy the existing scripts with all three new helpers listed in the main handoff. No historical single-HPO analysis is rerun.
+
+## Original calculation contract
+
 This document defines the calculation contract behind the HPO Context panel.
 Use the running mockup at
 <http://127.0.0.1:8095/pb_Gene.html?query=DMD> to verify how aggregate results

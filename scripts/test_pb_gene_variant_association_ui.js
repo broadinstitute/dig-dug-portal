@@ -14,24 +14,28 @@ const code = babel.transformSync(fs.readFileSync(filename, 'utf8'), {
 const moduleExports = {};
 vm.runInNewContext(code, {
     exports: moduleExports,
-    require: () => ({}),
+    require: name => name.includes('rphersUnits') ? require('../src/utils/rphersUnits') : ({}),
     window: { location: { search: '' } },
     URLSearchParams,
     process: { env: {} },
 });
 
 const row = { id: 'chr14:50587963:T:G', phenotypeMatchScore: null };
+const reference = { version: 'rphers_scoring_cohort_sample_sd_v1', status: 'ok', reference_id: 'reference',
+    data_release_id: 'data', scoring_cohort_id: 'cohort', reference_n: 100, reference_mean: 2, reference_sd: 4, ddof: 1 };
+const sd = { standardization_status: 'ok', standardization_reference_id: 'reference' };
 const view = {
     variantRows: [row],
     $set(target, key, value) { target[key] = value; },
     contextStatistic: moduleExports.pbGeneMethods.contextStatistic,
 };
 moduleExports.pbGeneMethods.applyVariantContextScores.call(view, {
+    rphers_standardization: reference,
     variant_match_scores: {
-        'CHR14:50587963:T:G': { match_score: 0.37, status: 'ok', carrier_count: 12, scored_carrier_count: 12 },
+        'CHR14:50587963:T:G': { ...sd, match_score: 3.48, mean_rphers_z: 0.37, status: 'ok', carrier_count: 12, scored_carrier_count: 12 },
     },
     variant_associations: {
-        'CHR14:50587963:T:G': { beta: -0.24, p_value: 0.004, status: 'ok', n_carriers: 12, low_carrier_count: false },
+        'CHR14:50587963:T:G': { ...sd, beta: -0.96, beta_sd: -0.24, p_value: 0.004, status: 'ok', n_carriers: 12, low_carrier_count: false },
     },
 });
 assert.equal(row.phenotypeMatchScore, 0.37);
@@ -40,6 +44,10 @@ assert.equal(row.variantEffectPValue, 0.004);
 assert.equal(row.variantAssociationStatus, 'ok');
 assert.equal(row.variantAssociationCarrierCount, 12);
 assert.equal(moduleExports.pbGeneMethods.variantPValueDisplay.call(view, row.variantEffectPValue), '0.004');
+moduleExports.pbGeneMethods.applyVariantContextScores.call(view, {
+    variant_associations: { 'chr14:50587963:T:G': { beta: 12, p_value: .01, status: 'ok' } },
+});
+assert.equal(row.variantEffectBeta, null, 'Legacy raw-only API must not be relabelled SD');
 
 moduleExports.pbGeneMethods.applyVariantContextScores.call(view, {
     variant_associations: {

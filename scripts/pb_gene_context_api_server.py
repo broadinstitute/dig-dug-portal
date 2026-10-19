@@ -124,7 +124,10 @@ def public_context_projection(result, min_support=10):
     if gene_result.get("status") == "ok" and int(gene_result.get("n_positive") or 0) >= min_support:
         public_gene = {
             key: gene_result.get(key)
-            for key in ("model", "score_type", "affected_only", "beta", "p_value", "status")
+            for key in ("model", "score_type", "affected_only", "beta", "p_value", "status",
+                        "standard_error", "beta_sd", "standard_error_sd", "beta_sd_per_0_1_grs",
+                        "standard_error_sd_per_0_1_grs", "predictor", "display_predictor_step",
+                        "standardization_reference_id", "standardization_status")
         }
     else:
         public_gene = {"status": "unavailable"}
@@ -136,18 +139,22 @@ def public_context_projection(result, min_support=10):
             "beta": association.get("beta"),
             "p_value": association.get("p_value"),
             "status": "ok",
+            **{key: association[key] for key in ("standard_error", "beta_sd", "standard_error_sd",
+               "predictor", "display_predictor_step", "standardization_reference_id", "standardization_status") if key in association},
         }
     public_match_scores = {}
     for variant_id, score in (result.get("variant_match_scores") or {}).items():
         if score.get("status") != "ok":
             continue
-        public_match_scores[variant_id] = {"match_score": score.get("match_score")}
+        public_match_scores[variant_id] = {key: score[key] for key in (
+            "match_score", "mean_rphers_z", "standardization_reference_id", "standardization_status") if key in score}
     return {
         "gene": result.get("gene"),
         "query_hpo": result.get("query_hpo", []),
         "gene_association": public_gene,
         "variant_associations": public_variants,
         "variant_match_scores": public_match_scores,
+        "rphers_standardization": result.get("rphers_standardization"),
     }
 
 

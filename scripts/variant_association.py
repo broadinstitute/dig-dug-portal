@@ -27,6 +27,8 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy.stats import chi2, t
 
+from scripts.rphers_standardization import association_with_sd, unavailable_reference
+
 
 MODEL_VERSION = "portal_variant_binary_ols_covariate_v1"
 
@@ -276,6 +278,13 @@ def analyze_gene_variants(
     if include_gene_ols:
         burden_values = gene_data["burden_input"]["values"]
         result["gene_burden_ols_comparator"] = asdict(outcome.gene_burden_ols(burden_values[mask] if affected_only else burden_values))
+    reference = engine._standardization(terms) if hasattr(engine, "_standardization") else unavailable_reference(terms)
+    result["rphers_standardization"] = reference
+    result["variant_associations"] = {
+        key: association_with_sd(row, reference) for key, row in result["variant_associations"].items()
+    }
+    if include_gene_ols:
+        result["gene_burden_ols_comparator"] = association_with_sd(result["gene_burden_ols_comparator"], reference, gene=True)
     return result
 
 

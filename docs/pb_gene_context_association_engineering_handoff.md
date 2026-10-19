@@ -1,6 +1,56 @@
 # PB Gene Context Association Engineering Handoff
 
-Updated: 2026-10-02
+## Confirmed display units — October 19, 2026 follow-up
+
+The user's final decision supersedes earlier OR-retention and pending-source proposals in this document. No new single-HPO regression is needed or authorized for this change.
+
+| Result | Primary display | Formula |
+|---|---|---|
+| Precomputed binary single-HPO gene burden | β per 0.1 GRS (log-odds) | 0.1 × stored approximate β |
+| Live Context Gene | Effect per 0.1 GRS (SD) | 0.1 × raw linear β / original scoring-cohort SD |
+| Live Context Variant | Variant effect β (SD) | raw linear β / original scoring-cohort SD, carrier 0→1 |
+
+Single-HPO uses the stored `beta_gene_score_sum_approx` and `se_gene_score_sum_approx`, without rPheRS SD division. Its existing coefficient CI is scaled by 0.1; where the release supplies OR bounds, the endpoint takes the log of the original one-GRS positive finite bounds before scaling. It never recovers β from an already available OR. Original score-test p/q, release selection/order, and fitted N are retained. No Wald p-values or new q-values are calculated.
+
+`gene_hpo_association_endpoint.js` preserves legacy OR fields and adds raw `beta`, `standardError`, `betaCiLow`, `betaCiHigh`, plus `betaPer0_1Grs`, `standardErrorPer0_1Grs`, `betaCiLowPer0_1Grs`, and `betaCiHighPer0_1Grs`. Metadata includes `nSamples`, `sourceRelease` (default `gene_hpo_release_20260905`, configurable through `PB_GENE_HPO_RELEASE_ID`), `model`, `modelFormula`, `outcome=hpo_binary`, `predictor=gene_score_sum`, `effectUnit=log_odds_per_0_1_grs`, `effectApproximation=score_test`, `displayPredictorStep=0.1`, and `displayVersion=single_hpo_beta_per_0_1_grs_v1`. A missing stored β or unmatched CI remains unavailable. `singleHpoUnits.js` derives display fields only from original coefficient fields, preventing a repeated 0.1 conversion.
+
+Gene's precomputed hero card, ranked rows, carrier-summary KPI, summary table and effect sorting use these single-HPO fields. Phenotype's single-HPO table, bars, sorting and CSV use the same fields. CSV explicitly names `beta_log_odds_per_0_1_grs`, corresponding SE/CI columns, and records analysis N/model/unit/approximation/release. Context SD fields, individual/mean Z-scores, Variant Score, GRS and disease Profile score remain separate. All historical result files are unchanged.
+
+Deploy the Node release endpoint and frontend together and restart the Vue development server to clear its process-local release cache. Python/BioIndex changes or another HPC job restart are not needed for this follow-up. Tests `test_pb_phenotype_gene_endpoint.js` and `test_rphers_sd_ui.js` cover direct stored-β scaling, preserved p/q/N, CI conversion, same Gene/Phenotype values, CSV units, negative/zero/missing coefficients and idempotence.
+
+### Existing entry points and added dependencies
+
+| File | Change / responsibility |
+|---|---|
+| `scripts/rphers_fast.py` | Existing scorer: preserve raw calculation and add reference/Z fields after scoring. |
+| `scripts/pb_gene_context_validation.py` | Existing Context engine: reuse the complete scoring reference, append display effects/means after the existing fits. |
+| `scripts/variant_association.py` | Existing variant wrapper: append SD effects/SE after existing OLS. |
+| `scripts/pb_phenotype_profile_api.py` | Existing profile service: append individual Z-scores and full-reference metadata; keep counts/filtering. |
+| `scripts/pb_gene_context_api_server.py` | Existing routes: pass through added aggregate fields and preserve private/public boundaries. |
+| `scripts/gene_hpo_association_endpoint.js` | Existing release routes: read stored β/SE and append per-0.1-GRS fields and coefficient CI. |
+| **New** `scripts/rphers_standardization.py` | Shared Python reference/mean/effect conversion helpers; imported by the existing scripts above. |
+| **New** `src/utils/rphersUnits.js` | Frontend validation of reference/version and standardized fields; no raw-value fallback. |
+| **New** `src/utils/singleHpoUnits.js` | Shared Node/frontend scaling of stored binary-HPO β/SE/CI by 0.1. |
+
+The three PB view models/templates and Gene's existing `geneHpoDisplay.js` consume these fields. Existing URLs, calculation commands and analysis inputs remain the integration path. Include **all three new helper files** when handing off the changed existing scripts/views; copying only the modified entry points will leave imports missing. Existing `run_gene_score_lm.R`, `run_gene_score_lmm.R` and historical single-HPO analysis scripts/results are unchanged. No replacement analysis service was introduced.
+
+### Engineering delivery documents
+
+Deliver the code and these documents from the same commit. This document is the starting point; the October 19 display-unit contract supersedes historical raw-unit labels in older examples.
+
+| Document | Purpose |
+|---|---|
+| [This handoff](pb_gene_context_association_engineering_handoff.md) | Shared calculation changes, complete script/helper inventory, input sources, response fields, cache and deployment requirements. |
+| [Context API calculation guide](pb_gene_context_api_guide.md) | Existing request and calculation contract, with a current-unit addendum. |
+| [Variant Context/co-gene handoff](pb_variant_hpo_context_cogene_engineering_handoff_20261005.md) | Exact-variant and co-gene routes, affected-only selection, coverage and FDR family. |
+| [Variant integration handoff](pb_variant_engineering_integration_handoff.md) | Variant page fields, carrier displays and frontend integration. |
+| [Phenotype profile/specification](pb_phenotype_live_profile_and_spec_2026-10-16.md) | Phenotype sample/cohort displays, live versus single-HPO effects, sorting and CSV. |
+| [Final implementation specification](pb_rphers_sd_agent_prompt_2026-10-19.md) | Approved formulas, scope and preservation requirements. |
+| [Verification record](pb_units_verification_2026-10-19.json) | Aggregate validation results, cohort differences, changed module inventory and prototype Python hashes. |
+
+Apply the Python entry points together with `rphers_standardization.py`; apply the Node endpoint together with `singleHpoUnits.js`; then deploy all three pages with both frontend helpers. Restart the relevant API processes and Node release cache. Preserve the existing analysis inputs and raw fields. Production BioIndex schemas and historical single-HPO result files do not need conversion for this display change.
+
+Updated: 2026-10-19
 Target branch: `kyuryung/bch-prototype`
 Pages: `/pb_gene.html`, `/public_gene.html`
 Audience: frontend, backend, data, and platform engineers integrating HPO-dependent Gene associations
@@ -11,8 +61,8 @@ Submitting HPO terms computes one residual PheRS vector for the selected cohort.
 
 | Analysis | Predictor | Browser destination | Current API model |
 |---|---|---|---|
-| Script 1: variant association | Binary carrier status for each exact variant across the full analysis roster | Variant Evidence `Effect Score (β)` and `P-value`; Match Score remains the mean carrier residual PheRS | OLS |
-| Script 2: gene-score association | Supplied `gene_score_max` or `gene_score_sum` | HPO Context gene-level β and p-value | LM by default; GMMAT Gaussian LMM can be configured |
+| Script 1: variant association | Binary carrier status for each exact variant across the full analysis roster | Variant Evidence `Variant effect β (SD)` and `P-value`; `Mean rPheRS Z-score` is the carrier mean | OLS |
+| Script 2: gene-score association | Supplied `gene_score_max` or `gene_score_sum` | HPO Context `Effect per 0.1 GRS (SD)` and p-value | LM by default; GMMAT Gaussian LMM can be configured |
 
 The gene score file is an **approved server-side input**, not a GitHub deliverable. Use `CRDC2025_step4_sample_gene_burden_nonsyn_dosage_LOFTEE_AM.tsv` from `/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/custom_hpo_regression/input/`. Helen will obtain this file from that server location and move it to the test-server/S3 location she manages, then configure its mounted/local path as `PB_GENE_CONTEXT_GENE_SCORES` or `--gene-scores`. GitHub delivery consists of the scripts, this English engineering document, and the Gene view code. Do not commit cohort data, gene scores, sample-level residuals, or GRMs.
 
@@ -176,3 +226,80 @@ Use the target branch for the scripts, this guide, the current frontend implemen
 | Analyst-supplied sample-by-gene score source in the `custom_hpo_regression/input` share folder | `PB_GENE_CONTEXT_GENE_SCORES` / `--gene-scores` | Helen retrieves `CRDC2025_step4_sample_gene_burden_nonsyn_dosage_LOFTEE_AM.tsv` from lab-share and stages it in her data environment. Preserve `gene_score_max` and `gene_score_sum` and map IDs only if required. Never add this source to GitHub. |
 
 Keep the supplied formulas and regression scripts as the calculation implementation. The older HPO match endpoint can continue serving its current result; wire the new aggregate Gene Context response to the page routes shown above. The `top_matches` response alone is not a substitute for the new response fields.
+
+## October 19, 2026: rPheRS SD display contract
+
+This addendum supersedes the raw-unit **display mapping** above for the private PB Gene, PB Variant, and PB Phenotype screens. The raw calculation and fields remain available. Implementation authority: `docs/pb_rphers_sd_agent_prompt_2026-10-19.md`; the reference and display-step choices are this implementation's specification, not an attribution of additional instructions to Jason.
+
+### Calculation scripts and unchanged analyses
+
+The change belongs to the supplied Python calculation scripts. `scripts/rphers_fast.py` still calculates the same weights, raw score, residual vector, ranking, and original scoring roster. It now calls `scripts/rphers_standardization.py` on that entire residual vector. `pb_gene_context_validation.py` reuses that scoring result, subsets the **unchanged raw Y** for the existing analysis roster, and adds display fields after fitting. `variant_association.py` uses the same reference. Neither the R gene runners nor the regression predictors, covariates, Max/Sum options, affected-only rule, p-values, or FDR families change. There is no extra regression for standardization.
+
+| Value | Added field | Calculation / UI |
+|---|---|---|
+| Individual residual | `rphers_z` | `(raw - reference_mean) / reference_sd`; rPheRS Z-score |
+| Complete carrier mean | `mean_rphers_z` | `(match_score - reference_mean) / reference_sd`; Mean rPheRS Z-score |
+| Linear effect / SE | `beta_sd`, `standard_error_sd` | Raw slope / SE divided by reference SD |
+| Gene primary effect / SE | `beta_sd_per_0_1_grs`, `standard_error_sd_per_0_1_grs` | Above multiplied by 0.1; **Effect per 0.1 GRS (SD)** |
+| Variant primary effect | `beta_sd` | Carrier predictor 0→1; **Variant effect β (SD)**; no 0.1 multiplier |
+
+Raw `beta`, `standard_error`, `match_score`, `residual_phers`, and private `sample_scores` retain their meanings. Gene `predictor=gene_grs` / `display_predictor_step=0.1`; variant `predictor=variant_carrier_0_1` / step 1. Existing `score_type` and analysis N fields retain their original meanings. Do not substitute the legacy evidence-derived `gene_burden` for the configured `gene_association` displayed in the Context panel.
+
+Every response carries `rphers_standardization` with:
+
+- `version`: `rphers_scoring_cohort_sample_sd_v1`, `status`, `ddof=1`, `scope=full_existing_scoring_cohort`;
+- `reference_mean`, `reference_sd`, `reference_n` (finite scores), `scoring_cohort_n` (original rows), normalized `query_hpo`;
+- `data_release_id` (SHA256 of normalized HPO matrix content and columns), `scoring_cohort_id` (SHA256 of ordered scoring IDs), and `reference_id` (version/data/cohort/context identity). These content identifiers are not human release names and contain no sample IDs.
+
+Derived association/mean rows carry `standardization_reference_id` and `standardization_status`. Private exact-carrier responses add `sample_rphers_z` alongside unchanged `sample_scores`, plus their reference metadata. Public projection forwards aggregate standardized fields and reference metadata without personal scores/IDs or carrier counts. Public screens outside the three specified PB screens retain their existing bindings.
+
+Unavailable states: `missing_reference`, `insufficient_reference` (fewer than two finite scores), `zero_or_invalid_sd` (including numerical round-off at or below 1e-12), `analysis_unavailable`, and `incomplete_coverage`. The frontend requires the current version, valid metadata, matching context/reference, and valid standardized field; it never relabels a raw fallback as SD/Z. Existing analysis and coverage status fields are not overwritten. An absent individual score remains unavailable.
+
+### Confirmed source boundaries
+
+| Existing path | Scoring vector / reference | Actual regression / display population |
+|---|---|---|
+| Current Gene/Variant Context configuration | Full 15,764-row matrix | Existing aligned 15,761-row regression roster; affected-only narrows this as before (6,913 in the inspected configuration) |
+| Local Phenotype profile sidecar | Full 16,366-row matrix | Existing HPO-matching sample list, then existing display filters |
+| Precomputed single-HPO gene–HPO release | Binary HPO logistic score-test results | Existing release analysis N (15,574); displayed stored β and coefficient CI are multiplied by 0.1, without rPheRS SD scaling |
+
+The 15,764→15,761 exclusion reflects missing PCA/covariate rows in the inspected analysis inputs. It does **not** redefine the original scoring cohort. No 602 or three samples are dropped by this change. A different deployment must verify its actual input/roster contents rather than infer N from filenames. Context Y is continuous residual PheRS; gene predictor is the existing GRS, variant predictor is carrier 0/1. The single-HPO release outcome is binary HPO and is not standardized by this code.
+
+Read-only real-input verification for `HP:0001250,HP:0001256` found raw scores, weights, residuals, ranks, and ordering **exactly unchanged** from the prior scorer. The 15,764 reference SD is `0.7109327271108082`; the 16,366 reference SD is `0.7089715430759951`. Each full reference has mean Z approximately 0 and sample SD 1. These are different references, not interchangeable denominators. The UI reports the source N and flags different sample/gene references on Phenotype; no cohort unification is attempted.
+
+### Engineer rollout and cache handling
+
+Ship the changed calculation scripts **including the new helper module**, API aggregate-field projection, and frontend together. Restart the Python Context and profile processes so in-memory scoring/association caches do not retain old response shapes. Cached raw gene results remain raw; conversion copies them after lookup and never rescales an already standardized field. Existing process-local caches are bounded; there is no new persistent analysis cache or rerun of the historical single-HPO release. If infrastructure adds response caching, namespace it by the standardization version, data/cohort identity, context, and the existing analysis options. Reference metadata must be consistent across paginated responses.
+
+No BioIndex data/schema migration is required for this unit change. The calculation service behind the current localhost:8098 prototype has been updated with the five supplied Python modules and restarted with the same inputs (prototype job 29646410; previous job 29628071). Before replacement, existing scripts were backed up under runtime/sd-update-20261019/before in the existing prototype calculation directory. The localhost:8092 tunnel has been reconnected, and the local profile service on 8093 was restarted with the same inputs. This updates the current prototype only; engineering/production BioIndex and its data were not changed. Raw-only responses from any older service still produce unavailable SD cells.
+
+### Verification
+
+- `python3 -m unittest scripts.test_rphers_fast scripts.test_rphers_standardization scripts.test_pb_gene_context_validation scripts.test_variant_association scripts.test_context_api_fast scripts.test_pb_gene_context_ui`
+- `python3 -m unittest scripts.test_pb_gene_context_api_server` (requires local listener permission)
+- `node scripts/test_rphers_sd_ui.js`, `node scripts/test_pb_gene_variant_association_ui.js`, `node scripts/test_pb_variant_carrier_statistics.js`
+- Phenotype model/source endpoint tests and production build.
+
+Tests cover direct standardized-Y regression versus β/SE rescaling for continuous/binary predictors, unchanged p/q/raw Y and roster, gene 0.1 versus variant 1 scaling, mean centering/coverage, same-source cross-page reference identity, filter/paging invariance, missing/constant outcomes, UI/CSV agreement, and preserved single-HPO raw fields/p/q/N with stored-β display scaling. Large historical burden analyses were not rerun.
+
+### Current prototype Context verification
+
+The current prototype calculation process was restarted with the same inputs. For SYNGAP1, `HP:0001250,HP:0001256`, Sum GRS and affected-only, the existing 6,913-row analysis and all 965 variant association rows were preserved. Gene raw β/SE/p were identical before/after; the primary gene SD effect per 0.1 GRS is `0.08001574485085873`, p `0.0442650857098572`, reference N `15,764`, SD `0.7109327271108082`. Some variant float results differ only at machine precision after moving the same process to another compute node (validated with relative tolerance 1e-10 / absolute 1e-12). This is not evidence of a different regression or cohort; do not describe those cross-node floats as bitwise identical.
+
+Browser verification on localhost:8098 confirmed the SYNGAP1 Context primary effect displays `0.080` and p `0.044`. For exact variant `chr6:33432683:A:C` under the same Sum/affected HPO context, the screen displays mean carrier Z `0.394`, carrier coverage `2/2`, variant SD effect `0.194`, p `0.849`, and the same 15,764-score reference. Phenotype sample Z-scores and its separate 16,366-score reference were also visually verified. The precomputed single-HPO cards use the separate stored-β scaling described in the confirmed display table; no new regression was needed.
+
+The user subsequently supplied the complete release directory `/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/single_gene_burden_with_HPO/gene_hpo_release_20260905`. Inspection of `all_gene_hpo_results.tsv.gz` (not only the browser projection), `source_inventory.tsv`, and `validation.json` confirmed 2,774 HPOs, 17,952 genes, and 49,798,848 result rows. The full table already contains `beta_gene_score_sum_approx` and `se_gene_score_sum_approx`; the issue is their model/outcome, not absent beta columns or incomplete prior analysis. Its `model_formula` uses `hpo_binary`. Source R code fits `GMMAT::glmmkin(..., family=binomial(link="logit"))`; the GPU source uses the corresponding binomial working weights. Therefore these completed coefficients cannot be interpreted as continuous residual-PheRS SD slopes by dividing them by the Context rPheRS SD. No additional burden analysis was started during this source audit.
+
+### Final single-HPO browser acceptance on localhost:8098
+
+The Vue development server was restarted with its original BioIndex, Context proxy, and release-file settings. Live release endpoints returned the new coefficient fields. SYNGAP1 / HP:0000751 retains 36 release rows, original analysis N 15,574, raw β `56.1762258940778`, p `1.39013754174241e-13`, q `3.56411406595015e-11`; its Gene card now displays β `5.618` and coefficient CI `4.129–7.106` per 0.1 GRS. Phenotype single-HPO HP:0000751 visibly shows the same unit and existing significant-gene selection; DEDD displays β `55.9`, CI `51.2–60.6`, p `3.52e-120`, q `6.32e-116`. These large binary-model coefficients are not residual-PheRS Z-scores. Individual rPheRS Z-scores themselves are unbounded; centering to mean 0 / sample SD 1 does not impose a 0–1 or −1–1 range.
+
+The endpoint and UI/CSV integration tests passed for the final distinction; the production build passed with the existing LocusZoom/tabix-reader warning. No new single-HPO analyses, historical refits, or BioIndex data changes were made.
+
+### Reverification and handoff audit — October 19, 2026
+
+The existing entry points and new helper dependencies were traced again. The Context prototype's five Python modules have identical SHA256 hashes to this working tree. The existing R runners and historical single-HPO analysis scripts/results remain unchanged. 59 Python calculation/UI tests plus 8 HTTP tests passed; six Node test commands passed, including the real view-method/CSV consumers. `git diff --check` passed. The prior successful build applies to the same implementation code; this audit changed documentation only.
+
+Live 8098 checks independently compared all 36 returned SYNGAP1 rows and all 20 returned HP:0000751 gene rows with the stored release β/SE/CI/p/q/N; row order was preserved. All 965 returned Context variant effects were checked for SD scaling, along with the gene 0.1-GRS scaling, raw-result preservation against the pre-change aggregate snapshot (floating-point tolerance), private individual Z-scores and complete carrier mean. Profile paging/sex-filter requests retained the same 16,366-score reference. Context retains its separate 15,764-score reference. No historical single-HPO fits were run.
+
+The aggregate-only machine-readable record is `docs/pb_units_verification_2026-10-19.json`. It contains no individual sample records. This validates the current prototype and supplied code; engineering production rollout still requires carrying the modified entry points, frontend, and all added helper files together.

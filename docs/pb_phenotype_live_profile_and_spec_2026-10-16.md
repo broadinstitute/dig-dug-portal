@@ -331,3 +331,25 @@ python3 scripts/build_pb_profile_gene_catalog.py \
 5. 기존 샘플별 민감 데이터는 private 입력과 API에서 읽으며 Git에 원본 샘플 행렬·metadata·gene-score 표를 넣지 않는다.
 
 이전 커밋: Phenotype `179be6c4a`, Variant `71a157188`. 본 후속 변경 묶음의 범위는 위 Phenotype 구현·reference·검증·문서 파일이며 브랜치는 `kyuryung/bch-prototype`이다. Gene/Variant 화면 및 다른 작업의 변경은 이 묶음에 포함하지 않는다. 실제 커밋 식별자와 push 결과는 Obsidian 동기화본의 마지막 저장 기록과 Git history에서 확인한다.
+
+## 10. 2026-10-19 rPheRS SD 표시 후속 구현
+
+이번 변경의 기준은 `pb_rphers_sd_agent_prompt_2026-10-19.md`이며, 앞 절의 raw residual PheRS 표시 설명은 아래 규칙으로 갱신한다. API 필드·배포·전체 검증 계약은 `pb_gene_context_association_engineering_handoff.md`의 October 19 SD contract를 따른다.
+
+- `rphers_fast.score_samples`는 기존 raw 점수·residualization·가중치·순위를 그대로 유지하고 전체 기존 scoring vector에서 평균과 표본 SD(`ddof=1`)를 구한다. `pb_phenotype_profile_api.py`는 이 기준 metadata와 sample별 `rphers_z`를 기존 raw `residual_phers` 옆에 추가한다.
+- Sample 열과 정렬은 **rPheRS Z-score**, cohort 평균은 **Mean rPheRS Z-score**를 사용한다. 개인 점수는 기준 평균에서 몇 SD 떨어졌는지, 평균은 해당 집단의 개인 Z-score 평균임을 도움말로 설명한다. 화면 필터·페이지·HPO 일치 목록에서 SD를 새로 구하지 않는다.
+- Multi-HPO live gene 표·정렬·CSV는 **Effect per 0.1 GRS (SD)** / `beta_sd_per_0_1_grs`를 사용한다. CSV에는 `standard_error_sd_per_0_1_grs`와 기준 ID·평균·SD·N·표준화 버전도 포함한다. raw β/SE/p/q, GRS Max/Sum, affected-only 및 전체 gene 검정 범위는 유지한다.
+- 단일-HPO 사전 계산 gene 표는 저장 β·SE와 대응 계수 CI를 0.1배해 표시하고, p·q·실제 분석 N은 유지한다. SD로 나누지 않으며 CSV 단위는 11절을 따른다. Orphanet 등의 disease Profile score도 변경하지 않는다.
+- API의 기준 metadata/표준화 필드가 없으면 숫자를 추정하거나 raw 값을 Z/SD로 표시하지 않는다. 페이지별 기준이 다르면 sample과 gene 기준을 따로 표시하고 비교 기준이 다르다는 안내를 보여준다.
+
+현재 확인한 sample profile 입력은 실제 16,366명, Context 입력의 scoring cohort는 15,764명, Context의 실제 회귀 roster는 15,761명이다. 각 입력의 기존 집단을 보존했으므로 sample 점수와 gene 효과의 기준이 다르다. 같은 HPO `HP:0001250,HP:0001256`에서 profile SD는 `0.7089715430759951`, Context SD는 `0.7109327271108082`다. 이 차이를 지우기 위해 점수를 다시 계산하거나 sample 602명/3명을 제외하지 않았다. 동일 입력을 공유하는 경로의 기준은 일치한다.
+
+기존 API 경로를 유지하며 BioIndex 변경은 필요 없다. 로컬 profile API(8093)는 같은 입력으로 수정된 script를 재시작했다. 현재 localhost:8098 프로토타입에 연결된 Context 계산 프로세스에도 수정 script와 helper를 반영하고, 기존 script 백업 후 동일 입력으로 재시작했다. 엔지니어 운영 환경은 이 script와 frontend 묶음을 별도로 반영해야 하며, 운영 BioIndex는 수정하지 않았다. 브라우저 필드명만 바꾸거나 single-HPO 분석을 다시 실행하는 작업이 아니다.
+
+검증: 실데이터 두 입력의 raw 점수·residual·순위가 이전 scorer와 정확히 일치하고, 전체 기준 집단의 Z 평균은 약 0, 표본 SD는 1이다. `test_rphers_standardization.py`는 직접 표준화한 Y 회귀와 β/SE 변환의 일치·p/q 유지·0.1 적용 범위·결측/coverage·필터/페이지 기준 불변을 검증한다. `test_rphers_sd_ui.js`는 실제 view method와 CSV의 숫자/단위 및 single-HPO 저장 β의 0.1배 표시와 p/q/N 보존을 검증한다. 과거 single-HPO burden 분석은 재실행하지 않았다.
+
+## 11. 2026-10-19 최종 확정: Single-HPO β와 Context SD β 구분
+
+Single-HPO는 기존 binary-HPO release의 저장 β·SE에 0.1만 곱해 **β per 0.1 GRS (log-odds)**로 표시한다. 기존 OR 주 표시를 교체하며, rPheRS SD로 나누지 않는다. 원래 OR CI의 양의 유한한 경계를 로그 변환한 계수 CI도 0.1배한다. 저장 β가 있으므로 OR에서 β를 복원하지 않는다. 기존 p/q·N·결과 선택 범위는 보존하고 과거 분석을 재실행하지 않는다.
+
+Context Gene은 **Effect per 0.1 GRS (SD)** = `0.1 × β / s`, Context Variant는 carrier 0→1의 **Variant effect β (SD)** = `β / s`를 유지한다. 따라서 Single-HPO와 Context의 β 제목·도움말·정렬·CSV 단위를 명확히 구분한다. Single-HPO CSV는 `beta_log_odds_per_0_1_grs` 및 대응 SE/CI, 실제 분석 N, 모델·단위·근사 계수·release 정보를 포함한다. API 필드와 검증은 Gene Context handoff 맨 위의 최종 표시 규칙을 따른다. 앞 절의 OR 유지 설명은 이 후속 결정으로 대체한다.

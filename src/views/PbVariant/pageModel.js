@@ -2,6 +2,7 @@ import { fetchPbGeneBioIndexState } from "@/views/PbGene/pbGeneBioIndexAdapter";
 import { query, request } from "@/utils/bioIndexUtils";
 import { readClinicalFocus } from "@/views/KrClinicalFocus/focusStore";
 import { contextApiError, contextApiFailure, hpoLabel, resolveHpoTerms } from "@/views/PbGene/hpoContextSearch";
+import { standardizedField, referenceDescription, referenceAvailable, contextMatches, sameReference } from "../../utils/rphersUnits";
 
 const {
     attachSameGeneCoVariants,
@@ -155,6 +156,8 @@ export function createPbVariantState() {
         contextMatch: null,
         contextAssociation: null,
         contextGeneAssociation: null,
+        contextStandardization: null,
+        coGeneStandardization: null,
         contextResidualById: {},
         contextRunId: 0,
         coGeneAssociationByGene: {},
@@ -376,7 +379,7 @@ export const pbVariantComputed = {
     sortedCooccurGeneRows() {
         const rows = this.cooccurGeneRows.map(row => {
             const association = this.coGeneAssociationByGene[row.gene] || {};
-            return { ...row, beta: association.beta, pValue: association.p_value, fdr: association.fdr };
+            return { ...row, beta: standardizedField(association, "beta_sd_per_0_1_grs", this.coGeneStandardization), pValue: association.p_value, fdr: association.fdr };
         });
         return sortCoGeneRows(rows, this.tableSort.coGenes);
     },
@@ -611,12 +614,14 @@ export const pbVariantMethods = {
         const value = this.contextResidualById[String(carrier.id || "").toLowerCase()];
         return this.displayMean(value);
     },
+    rphersReferenceLabel(reference) { return referenceDescription(reference); },
     geneAssociationCell(gene, field) {
         if (this.coGeneAssociationStatus === "idle") return "No context";
         if (this.coGeneAssociationStatus === "loading") return "Calculating…";
         const association = this.coGeneAssociationByGene[gene];
         if (!association || association.status !== "ok") return "Unavailable";
-        const value = field === "p_value" ? association.p_value : association[field];
+        const value = field === "beta" ? standardizedField(association, "beta_sd_per_0_1_grs", this.coGeneStandardization)
+            : field === "p_value" ? association.p_value : association[field];
         return field === "beta" ? this.displayMean(value) : this.displayPValue(value);
     },
     async runCoGeneAssociations(terms, runId) {
@@ -655,6 +660,9 @@ export const pbVariantMethods = {
                 throw new Error("Co-gene association response did not match this HPO context.");
             }
             this.coGeneAssociationByGene = result.gene_associations || {};
+            this.coGeneStandardization = contextMatches(result.rphers_standardization, terms) &&
+                sameReference(result.rphers_standardization, this.contextStandardization)
+                ? result.rphers_standardization : null;
             this.coGeneAssociationSummary = {
                 model: result.model,
                 scoreType: result.score_type,
@@ -684,6 +692,8 @@ export const pbVariantMethods = {
         this.contextMatch = null;
         this.contextAssociation = null;
         this.contextGeneAssociation = null;
+        this.contextStandardization = null;
+        this.coGeneStandardization = null;
         this.contextResidualById = {};
         this.coGeneAssociationByGene = {};
         this.coGeneAssociationStatus = "idle";
@@ -719,10 +729,14 @@ export const pbVariantMethods = {
             const result = payload.genes && payload.genes[this.variantIdentity.gene]
                 ? payload.genes[this.variantIdentity.gene]
                 : payload;
+            if (!contextMatches(result.rphers_standardization, analysisTerms)) result.rphers_standardization = null;
             const match = exactVariantContext(result, this.variantIdentity.canonicalId);
             const association = exactVariantAssociation(result, this.variantIdentity.canonicalId);
             if (!match && !association) throw new Error("The Context API did not return this exact variant.");
             if (excludedTerms.length) this.contextWarning = `Excluded from calculation because they are not in the CRDC cohort data: ${excludedTerms.map(id => `${hpoLabel(id)} (${id})`).join(", ")}.`;
+            this.contextStandardization = result.rphers_standardization || null;
+            if (!referenceAvailable(this.contextStandardization))
+                this.contextWarning = [this.contextWarning, referenceDescription(this.contextStandardization)].filter(Boolean).join(" ");
             this.contextMatch = match;
             this.contextAssociation = association;
             this.contextGeneAssociation = result.gene_association || null;
@@ -811,6 +825,8 @@ export const pbVariantMethods = {
             this.contextMatch = null;
             this.contextAssociation = null;
             this.contextGeneAssociation = null;
+            this.contextStandardization = null;
+            this.coGeneStandardization = null;
             this.contextResidualById = {};
             this.coGeneAssociationByGene = {};
             this.coGeneAssociationStatus = "idle";

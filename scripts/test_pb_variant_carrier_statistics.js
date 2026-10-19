@@ -2,6 +2,9 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const stats = require("../src/views/PbVariant/carrierStatistics");
+const reference = { version: 'rphers_scoring_cohort_sample_sd_v1', status: 'ok', reference_id: 'reference',
+    data_release_id: 'data', scoring_cohort_id: 'cohort', reference_n: 100, reference_mean: 2, reference_sd: 4, ddof: 1 };
+const sd = { standardization_status: 'ok', standardization_reference_id: 'reference' };
 const { sampleMetadataFromRows, mergeCarrierMetadata } = require("../src/views/PbVariant/sampleMetadata");
 const { clampPage, pageCount, pageRows } = require("../src/views/PbVariant/pagination");
 const { hpoPath, hpoVersion } = require("../src/views/PbVariant/hpoHierarchy");
@@ -171,8 +174,9 @@ assert.deepStrictEqual(stats.normalizeCarrierRecords(lofteeOverlap)[0].coVariant
 
 assert.deepStrictEqual(
     stats.exactVariantContext({
+        rphers_standardization: reference,
         variant_match_scores: {
-            "1:1:A:G": { match_score: -0.25, carrier_count: 2, scored_carrier_count: 2, status: "ok" },
+            "1:1:A:G": { ...sd, match_score: 1, mean_rphers_z: -0.25, carrier_count: 2, scored_carrier_count: 2, status: "ok" },
         },
     }, "chr1:1:A:G"),
     { matchScore: -0.25, carrierCount: 2, scoredCarrierCount: 2, status: "ok" },
@@ -188,8 +192,8 @@ assert.strictEqual(
     "partial residual PheRS means must never be displayed"
 );
 assert.deepStrictEqual(
-    stats.exactVariantAssociation({ variant_associations: {
-        "1:1:A:G": { beta: -0.24, p_value: 0.004, n_carriers: 12, n_samples: 100, low_carrier_count: false, status: "ok" },
+    stats.exactVariantAssociation({ rphers_standardization: reference, variant_associations: {
+        "1:1:A:G": { ...sd, beta: -0.96, beta_sd: -0.24, p_value: 0.004, n_carriers: 12, n_samples: 100, low_carrier_count: false, status: "ok" },
     } }, "chr1:1:A:G"),
     { beta: -0.24, pValue: 0.004, carrierCount: 12, sampleCount: 100, lowCarrierCount: false, modelVersion: null, status: "ok" },
     "variant association must match the exact variant ID and retain cohort-wide effect"
@@ -199,8 +203,10 @@ assert.strictEqual(stats.exactVariantAssociation({ variant_associations: {
 } }, "1:1:A:G").beta, null, "unsupported association must not display a beta");
 assert.strictEqual(stats.variantPathogenicScore("HC", "0.2"), 1, "LoFTEE HC takes priority over AlphaMissense");
 assert.strictEqual(stats.variantPathogenicScore("Unavailable", "0.2229"), 0.2229, "AlphaMissense supplies the variant score otherwise");
-assert.deepStrictEqual(stats.exactVariantCarrierResiduals({ variant_carrier_residuals: {
-    variant_id: "1:1:A:G", sample_scores: { "Sample-A": -0.125, "Sample-B": 0.25 },
+assert.deepStrictEqual(stats.exactVariantCarrierResiduals({ rphers_standardization: reference, variant_carrier_residuals: {
+    rphers_standardization: reference,
+    variant_id: "1:1:A:G", sample_scores: { "Sample-A": 1.5, "Sample-B": 3 },
+    sample_rphers_z: { "Sample-A": -0.125, "Sample-B": 0.25 },
 } }, "chr1:1:A:G"), { "sample-a": -0.125, "sample-b": 0.25 }, "carrier residuals must remain individual and match the exact variant");
 assert.deepStrictEqual(stats.exactVariantCarrierResiduals({ variant_carrier_residuals: {
     variant_id: "chr1:2:A:G", sample_scores: { "Sample-A": 1 },
@@ -223,8 +229,8 @@ assert(variantTemplate.includes("Count (%)") && variantTemplate.includes("visibl
 assert(!variantTemplate.includes("sortTableColumn('carriers', 'coGenes')") && !variantTemplate.includes("carrierCoGeneCount(carrier)"), "carrier sample table must omit numeric co-gene column");
 const contextResultMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbg-context-results"'), variantTemplate.indexOf('class="pbv-context-crossref"'));
 const carrierTableMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-carrier-table"'), variantTemplate.indexOf('class="pbv-result-block"', variantTemplate.indexOf('class="pbv-carrier-table"')));
-assert(["Effect Score (β)", "p-value"].every(label => contextResultMarkup.includes(label)), "HPO Context must show exact-variant association results");
-assert(carrierTableMarkup.includes("rPheRS") && carrierTableMarkup.includes("What is rPheRS?"), "carrier table must explain individual residual PheRS");
+assert(["Variant effect β (SD)", "p-value"].every(label => contextResultMarkup.includes(label)), "HPO Context must show exact-variant association results");
+assert(carrierTableMarkup.includes("rPheRS Z-score") && carrierTableMarkup.includes("What is an rPheRS Z-score?"), "carrier table must explain individual residual PheRS");
 assert(!carrierTableMarkup.includes("Variant Score"), "carrier table must not repeat the exact-variant score");
 assert(!carrierTableMarkup.includes("Effect Score (β)") && !carrierTableMarkup.includes("p-value"), "carrier rows must not repeat exact-variant association results");
 assert(variantTemplate.includes("variantScoreSource === 'loftee'") && variantTemplate.includes("variantScoreSource === 'alphaMissense'"), "identity must mark the selected variant-score source");
