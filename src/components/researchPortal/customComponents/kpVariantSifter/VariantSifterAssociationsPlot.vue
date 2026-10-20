@@ -321,6 +321,14 @@ import { hasV2gTrackData } from "./variantSifterV2gData.js";
 import { hasS2gTrackData } from "./variantSifterS2gData.js";
 import { isSectionVisible } from "./variantSifterToolSettings.js";
 import { variantMatchesWorkspaceMapping } from "./variantSifterMappingData.js";
+import {
+    buildZoom0SearchRegionPlotData,
+    buildZoomedViewRegionPlotData,
+    prepareRawPlotRows,
+    roundZoomLevelBy10,
+} from "./variantSifterAssociationsDownsample.js";
+
+const VIEW_MOVE_SETTLE_MS = 140;
 
 export default {
     name: "VariantSifterAssociationsPlot",
@@ -338,6 +346,13 @@ export default {
             genesDockPinned: false,
             genesDockPinnedStyle: {},
             genesDockPinFrame: null,
+            // 3-tier association downsampling movement/settle state:
+            // while moving, plots render the lightweight Tier 2 (0% zoom) dataset;
+            // once settled, plots render Tier 3 (zoomed-in viewing region dataset).
+            isViewMoving: false,
+            settledViewRegion: null,
+            settledRoundedZoom: 0,
+            viewSettleTimer: null,
         };
     },
     props: {
@@ -690,6 +705,48 @@ export default {
         },
     },
     watch: {
+        rows: {
+            handler() {
+                this.syncSettledViewImmediate();
+            },
+            immediate: true,
+        },
+        regionZoom: {
+            handler(nextZoom) {
+                const rounded = roundZoomLevelBy10(nextZoom);
+                if (rounded <= 0) {
+                    this.clearViewSettleTimer();
+                    this.isViewMoving = false;
+                    this.settledRoundedZoom = 0;
+                    this.settledViewRegion = this.viewRegion ? { ...this.viewRegion } : null;
+                    return;
+                }
+                this.markViewMovingAndScheduleSettle();
+            },
+            immediate: true,
+        },
+        viewRegion: {
+            handler(nextRegion, prevRegion) {
+                if (!nextRegion) {
+                    return;
+                }
+                if (
+                    prevRegion &&
+                    prevRegion.chr === nextRegion.chr &&
+                    prevRegion.start === nextRegion.start &&
+                    prevRegion.end === nextRegion.end
+                ) {
+                    return;
+                }
+                if (!prevRegion || roundZoomLevelBy10(this.regionZoom) <= 0) {
+                    this.settledViewRegion = { ...nextRegion };
+                    this.settledRoundedZoom = roundZoomLevelBy10(this.regionZoom);
+                    return;
+                }
+                this.markViewMovingAndScheduleSettle();
+            },
+            immediate: true,
+        },
         plotData: {
             handler(hasData) {
                 if (!hasData?.length) {
@@ -727,6 +784,14 @@ export default {
         },
     },
     mounted() {
+        this.syncSettledViewImmediate();
+        this.onGlobalPointerUp = () => {
+            if (this.isViewMoving) {
+                this.scheduleViewSettle(40);
+            }
+        };
+        window.addEventListener("mouseup", this.onGlobalPointerUp, { passive: true });
+        window.addEventListener("touchend", this.onGlobalPointerUp, { passive: true });
         this.updateStackCanvasWidth();
         this.stackResizeObserver = attachPlotResizeObserver(this, "plotStack", () => {
             this.updateStackCanvasWidth();
@@ -741,6 +806,12 @@ export default {
         });
     },
     beforeDestroy() {
+        this.clearViewSettleTimer();
+        if (this.onGlobalPointerUp) {
+            window.removeEventListener("mouseup", this.onGlobalPointerUp);
+            window.removeEventListener("touchend", this.onGlobalPointerUp);
+            this.onGlobalPointerUp = null;
+        }
         if (this.stackResizeObserver) {
             this.stackResizeObserver.disconnect();
         }
@@ -750,6 +821,39 @@ export default {
         this.teardownGenesDockPinListeners();
     },
     methods: {
+        clearViewSettleTimer() {
+            if (this.viewSettleTimer) {
+                clearTimeout(this.viewSettleTimer);
+                this.viewSettleTimer = null;
+            }
+        },
+        syncSettledViewImmediate() {
+            this.clearViewSettleTimer();
+            this.isViewMoving = false;
+            this.settledRoundedZoom = roundZoomLevelBy10(this.regionZoom);
+            this.settledViewRegion = this.viewRegion
+                ? { ...this.viewRegion }
+                : this.searchSession?.region
+                  ? { ...this.searchSession.region }
+                  : null;
+        },
+        markViewMovingAndScheduleSettle() {
+            this.isViewMoving = true;
+            this.scheduleViewSettle(VIEW_MOVE_SETTLE_MS);
+        },
+        scheduleViewSettle(delayMs = VIEW_MOVE_SETTLE_MS) {
+            this.clearViewSettleTimer();
+            this.viewSettleTimer = setTimeout(() => {
+                this.viewSettleTimer = null;
+                this.settledRoundedZoom = roundZoomLevelBy10(this.regionZoom);
+                this.settledViewRegion = this.viewRegion
+                    ? { ...this.viewRegion }
+                    : this.searchSession?.region
+                      ? { ...this.searchSession.region }
+                      : null;
+                this.isViewMoving = false;
+            }, delayMs);
+        },
         setupGenesDockPinListeners() {
             this.teardownGenesDockPinListeners();
             const plotStack = this.$refs.plotStack;

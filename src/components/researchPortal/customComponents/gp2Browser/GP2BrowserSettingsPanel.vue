@@ -111,6 +111,24 @@
                     </section>
 
                     <section class="vks-settings-section">
+                        <h3 class="vks-ui-section-title">Region zoom</h3>
+                        <p class="vks-ui-hint">
+                            Association data is downsampled on initial load to keep memory
+                            and rendering lightweight. When enabled, zooming in to 100%
+                            refetches full association data for the zoomed-in viewing
+                            region.
+                        </p>
+                        <label class="vks-settings-suggest-label">
+                            <input
+                                type="checkbox"
+                                :checked="refetchAssociationsOnZoom"
+                                @change="onRefetchAssociationsOnZoomChange"
+                            />
+                            <span>Refetch association data for zoomed-in region</span>
+                        </label>
+                    </section>
+
+                    <section class="vks-settings-section">
                         <h3 class="vks-ui-section-title">Suggest Actions</h3>
                         <p class="vks-ui-hint">
                             When enabled, the Actions panel opens automatically after
@@ -249,6 +267,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        refetchAssociationsOnZoom: {
+            type: Boolean,
+            default: true,
+        },
     },
     data() {
         return {
@@ -307,6 +329,12 @@ export default {
         onSuggestActionsChange(event) {
             this.$emit(
                 "update:suggestActionsAfterUserAction",
+                Boolean(event?.target?.checked)
+            );
+        },
+        onRefetchAssociationsOnZoomChange(event) {
+            this.$emit(
+                "update:refetchAssociationsOnZoom",
                 Boolean(event?.target?.checked)
             );
         },

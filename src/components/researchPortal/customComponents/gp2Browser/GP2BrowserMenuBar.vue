@@ -81,6 +81,7 @@ export default {
                         { id: "newSession", label: "New session" },
                         { id: "importSession", label: "Import session" },
                         { id: "exportSession", label: "Export session" },
+                        { id: "exportHtmlReport", label: "Export HTML report" },
                         { id: "sessionDivider", type: "divider" },
                         {
                             id: "recentSearchesHeader",

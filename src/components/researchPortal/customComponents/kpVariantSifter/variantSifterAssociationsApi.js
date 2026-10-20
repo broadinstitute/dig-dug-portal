@@ -3,6 +3,7 @@ import {
     ancestryLabel,
     formatRegion,
 } from "./variantSifterSearchUtils.js";
+import { downsampleAssociationRowsOnLoad } from "./variantSifterAssociationsDownsample.js";
 import {
     getProjectConfig,
     gwasCeAssociationsIndex,
@@ -115,20 +116,18 @@ export function resolveGwasCeAssociationsRequest(session) {
 export async function fetchAssociations(
     session,
     host,
-    projectId = VKS_PROJECT_DEFAULT_ID
+    projectId = VKS_PROJECT_DEFAULT_ID,
+    { downsample = true } = {}
 ) {
     const { index, q, logicalIndex, fmt } = resolveAssociationsRequest(
         session,
         projectId
     );
     const data = await query(index, q, { host, fmt });
-    const rows = Array.isArray(data) ? data : [];
-
-    rows.sort((a, b) => {
-        const pA = a?.pValue ?? 1;
-        const pB = b?.pValue ?? 1;
-        return pA - pB;
-    });
+    const rawRows = Array.isArray(data) ? data : [];
+    const rows = downsample
+        ? downsampleAssociationRowsOnLoad(rawRows, { region: session?.region })
+        : [...rawRows].sort((a, b) => (a?.pValue ?? 1) - (b?.pValue ?? 1));
 
     return { index: logicalIndex || index, q, rows };
 }
@@ -136,7 +135,10 @@ export async function fetchAssociations(
 /**
  * Fetch GWAS-CE token associations (additive overlay). Uses the CE BioIndex host.
  */
-export async function fetchGwasCeAssociations(session) {
+export async function fetchGwasCeAssociations(
+    session,
+    { downsample = true } = {}
+) {
     const token = resolveGwasCeToken(session);
     if (!token) {
         throw new Error("GWAS-CE access token is required.");
@@ -147,13 +149,10 @@ export async function fetchGwasCeAssociations(session) {
         return { index: logicalIndex, q, rows: [] };
     }
     const data = await query(index, q, { host, fmt });
-    const rows = Array.isArray(data) ? data : [];
-
-    rows.sort((a, b) => {
-        const pA = a?.pValue ?? 1;
-        const pB = b?.pValue ?? 1;
-        return pA - pB;
-    });
+    const rawRows = Array.isArray(data) ? data : [];
+    const rows = downsample
+        ? downsampleAssociationRowsOnLoad(rawRows, { region: session?.region })
+        : [...rawRows].sort((a, b) => (a?.pValue ?? 1) - (b?.pValue ?? 1));
 
     return { index: logicalIndex || index, q, rows };
 }

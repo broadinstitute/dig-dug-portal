@@ -513,23 +513,7 @@ export default {
         isGwasCeProjectActive() {
             return isGwasCeProject(this.projectId);
         },
-        pinnedPlotVariantIds() {
-            const ids = new Set();
-            const refVariant = this.plotOverlaysState?.refVariant;
-            if (refVariant) {
-                ids.add(refVariant);
-            }
-            (this.plotMarkers?.starredVariants || []).forEach((entry) => {
-                if (entry?.variantId) {
-                    ids.add(entry.variantId);
-                }
-            });
-            return ids;
-        },
-        /**
-         * 1. Raw data (`rawRows`): every variant in the loaded locus, pre-sorted once by Position.
-         */
-        rawPlotSeries() {
+        plotSeries() {
             return buildAssociationPlotSeries({
                 rows: this.rows,
                 primaryAncestry: this.primaryAncestry,
@@ -539,50 +523,7 @@ export default {
                 project: VKS_ASSOCIATION_PROJECT_KP,
             }).map((series) => ({
                 ...series,
-                rawRows: prepareRawPlotRows(associationRowsToPlotData(series.rows)),
-            }));
-        },
-        /**
-         * 2. Permanent 0% zoom data (`zoom0Rows`): p <= 0.005 + every 20 variants (min & max p)
-         *    across the searching region. Used at 0% zoom AND while actively dragging/moving.
-         */
-        zoom0PlotSeries() {
-            const searchRegion = this.searchSession?.region || null;
-            return this.rawPlotSeries.map((series) => ({
-                ...series,
-                zoom0Rows: buildZoom0SearchRegionPlotData(series.rawRows, {
-                    searchRegion,
-                    pinnedVariantIds: this.pinnedPlotVariantIds,
-                }),
-            }));
-        },
-        /**
-         * 3. Zoomed-in viewing region data (`zoomedViewRows`): calculated from Tier 1 (`rawRows`)
-         *    only when movement is done (`!isViewMoving`) and rounded zoom > 0.
-         */
-        zoomedViewPlotSeries() {
-            if (this.settledRoundedZoom <= 0 || !this.settledViewRegion) {
-                return null;
-            }
-            return this.rawPlotSeries.map((series) => ({
-                ...series,
-                zoomedViewRows: buildZoomedViewRegionPlotData(series.rawRows, {
-                    viewRegion: this.settledViewRegion,
-                    regionZoom: this.settledRoundedZoom,
-                    pinnedVariantIds: this.pinnedPlotVariantIds,
-                }),
-            }));
-        },
-        plotSeries() {
-            const useZoomedSet3 =
-                !this.isViewMoving &&
-                this.settledRoundedZoom > 0 &&
-                Array.isArray(this.zoomedViewPlotSeries);
-            return this.zoom0PlotSeries.map((series, idx) => ({
-                ...series,
-                plotData: useZoomedSet3
-                    ? this.zoomedViewPlotSeries[idx]?.zoomedViewRows || series.zoom0Rows
-                    : series.zoom0Rows,
+                plotData: associationRowsToPlotData(series.rows),
             }));
         },
         gwasCePlotRows() {
@@ -591,34 +532,8 @@ export default {
                 VKS_ASSOCIATION_PROJECT_GWAS_CE
             );
         },
-        rawGwasCePlotData() {
-            return prepareRawPlotRows(associationRowsToPlotData(this.gwasCePlotRows));
-        },
-        zoom0GwasCePlotData() {
-            return buildZoom0SearchRegionPlotData(this.rawGwasCePlotData, {
-                searchRegion: this.searchSession?.region || null,
-                pinnedVariantIds: this.pinnedPlotVariantIds,
-            });
-        },
-        zoomedViewGwasCePlotData() {
-            if (this.settledRoundedZoom <= 0 || !this.settledViewRegion) {
-                return null;
-            }
-            return buildZoomedViewRegionPlotData(this.rawGwasCePlotData, {
-                viewRegion: this.settledViewRegion,
-                regionZoom: this.settledRoundedZoom,
-                pinnedVariantIds: this.pinnedPlotVariantIds,
-            });
-        },
         gwasCePlotData() {
-            if (
-                !this.isViewMoving &&
-                this.settledRoundedZoom > 0 &&
-                this.zoomedViewGwasCePlotData
-            ) {
-                return this.zoomedViewGwasCePlotData;
-            }
-            return this.zoom0GwasCePlotData;
+            return associationRowsToPlotData(this.gwasCePlotRows);
         },
         gwasCePlotOverlaysState() {
             const leadRow = pickLeadVariantRow(this.gwasCePlotRows);

@@ -12,11 +12,34 @@ When a GP2 change touches any module or component shared with KP Variant Sifter 
 
 For system structure, session model, data flow, and assistant runtime, see [`../kpVariantSifter/ARCHITECTURE.md`](../kpVariantSifter/ARCHITECTURE.md).
 
-## Entry points
+## Entry points & GP2-specific components
 
-| Surface | Path |
-|---------|------|
-| Shell component | `../GP2Browser.vue` |
-| GP2 menu bar | `./GP2BrowserMenuBar.vue` |
-| Research section registration | `ResearchSectionComponents.vue` → `"GP2Browser"` |
-| Standalone page | `/gp2browser.html` (`src/views/GP2Browser/`) |
+| Surface | Path | Purpose |
+|---------|------|---------|
+| Shell component | `../GP2Browser.vue` | Main workspace state, on-demand section data loading, and orchestration |
+| Standalone page | `/gp2browser.html` (`src/views/GP2Browser/`) | Standalone entry (`main.js`, `Template.vue`) |
+| Research section registration | `ResearchSectionComponents.vue` → `"GP2Browser"` | Multi-page Research portal registration |
+| Section registry | `./gp2BrowserSections.js` | Defines `GP2_BROWSER_SECTIONS` (including `qtl-evidences`) and `GP2_DEFAULT_VISIBLE_SECTION_IDS` (`["associations", "qtl-evidences", "genes"]`) |
+| Header menu bar | `./GP2BrowserMenuBar.vue` | **Session** (with recent searches), **Tools** (`Gene prioritization`, `Associated phenotypes`, `Literature evidence`), and **Help** (`Getting Around`) |
+| Tools modal | `./GP2BrowserResearchModal.vue` | Modal shell for Tools menu items |
+| Welcome panel | `./GP2BrowserWelcomePanel.vue` | GP2-branded welcome search modal |
+| Canvas | `./GP2BrowserCanvas.vue` | Workspace track stage mounting `GP2BrowserWelcomePanel` and `GP2BrowserAssociationsPlot` |
+| Section drawers | `./GP2BrowserSectionDrawers.vue` | Left drawer rail and panels (including `QTL evidences` drawer) |
+| Associations plot | `./GP2BrowserAssociationsPlot.vue` | Associations & nested tracks canvas with `QTL evidences` track placeholder |
+| Associations downsampler | `./gp2BrowserAssociationsDownsample.js` | Load-time association downsampling (`downsampleAssociationRowsOnLoad`: `p <= 0.05` kept in full; `p > 0.05` kept with probability $(1 - p)^9$) and zoomed-in row merging with cached LD score reuse (`mergeZoomedAssociationRows`, `stripZoomRefetchedRows`) |
+| Settings panel | `./GP2BrowserSettingsPanel.vue` | GP2-branded Settings modal (`Suggest Actions` unchecked by default; `Refetch association data for zoomed-in region` checked by default; section checkboxes drive on-demand data loading) |
+| Viewport controls | `./GP2BrowserViewportControls.vue` | Header zoom/pan/table/actions/settings toolbar (positive zoom-in snaps to `100%`) |
+| Actions panel | `./GP2BrowserAiAssistantPanel.vue` | GP2-branded Actions / AI assistant side panel |
+
+## GP2 data-loading & rendering architecture
+
+1. **Settings-driven on-demand data loading (`GP2Browser.vue`)**:
+   - Default checked sections on startup: `associations`, `qtl-evidences`, `genes`.
+   - `loadInitialSearchData`, `syncRegionDataToView` (region extension), and additive phenotype/ancestry loaders only query BioIndex for sections currently checked in `visibleSectionIds`.
+   - Per-section loaded region trackers (`lastAssociationsRegion`, `lastGenesRegion`, `lastCredibleSetsListRegion`, `lastGlobalEnrichmentRegion`, `lastV2gCatalogRegion`, `lastS2gRegion`) record which genomic region each feature has loaded.
+   - When a user checks a previously unchecked section in Settings (`onVisibleSectionIdsUpdate` → `loadDataForCheckedSections`), `GP2Browser.vue` immediately fetches the missing data for the active locus region.
+
+2. **Load-time association downsampling & 100% zoom refetch (`gp2BrowserAssociationsDownsample.js`, `variantSifterAssociationsApi.js`, & `GP2Browser.vue`)**:
+   - **0% zoom load-time filter**: `fetchAssociations` and `fetchGwasCeAssociations` run `downsampleAssociationRowsOnLoad` as soon as BioIndex pages complete, keeping 100% of variants with `p <= 0.05` and keeping `p > 0.05` variants when `Math.random() <= Math.pow(1 - p, 9)`. Filtered-out rows are immediately discarded so full raw locus arrays are never retained in memory.
+   - **100% zoom snap**: Dragging the Region zoom slider to any positive zoom-in value snaps directly to `100%` (`+100` on slider, `regionZoom = 99`).
+   - **Optional zoomed-in region refetch (`refetchAssociationsOnZoom`)**: Controlled by **Settings → General → Region zoom → Refetch association data for zoomed-in region** (checked by default). When enabled and zoomed to `100%` (including after panning while zoomed in), `refetchAssociationsForZoomedView()` fetches un-downsampled (`{ downsample: false }`) association rows for `viewRegion`, copies cached LD scores from the 0%-zoom rows (`applyCachedLdScoresToRows`, without calling the LD server), and tags zoomed-only rows with `_zoomRefetched: true`. Returning to `0%` zoom (or unchecking the setting) strips `_zoomRefetched` rows (`stripZoomRefetchedRows`) to restore the 0%-zoom baseline.

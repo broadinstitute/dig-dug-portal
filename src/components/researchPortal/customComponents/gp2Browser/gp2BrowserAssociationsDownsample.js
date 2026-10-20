@@ -22,6 +22,7 @@
  */
 
 export const GP2_ASSOC_DOWNSAMPLE_P_THRESHOLD = 0.05;
+export const GP2_ASSOC_DOWNSAMPLE_POWER = 9;
 export const GP2_ASSOC_DOWNSAMPLE_BASE_N = 40;
 export const GP2_ASSOC_DOWNSAMPLE_STEP_PER_10_PCT = 4;
 
@@ -256,3 +257,153 @@ export function buildZoomedViewRegionPlotData(
     const sampledInView = sampleMinMaxEveryNFromSorted(candidatesInView, n);
     return [...keptSignificant, ...sampledInView];
 }
+
+/**
+ * Downsample association rows immediately upon loading:
+ * - Keeps 100% of variants with `p <= 0.05` (`pThreshold`).
+ * - For `p > 0.05`, keeps the variant if `Math.random() <= Math.pow(1 - p, power)` (`power = 9`),
+ *   giving a ~90% overall reduction with zero sorting/bucketing overhead.
+ */
+export function downsampleAssociationRowsOnLoad(
+    rows = [],
+    {
+        pThreshold = GP2_ASSOC_DOWNSAMPLE_P_THRESHOLD,
+        power = GP2_ASSOC_DOWNSAMPLE_POWER,
+    } = {}
+) {
+    if (!Array.isArray(rows) || !rows.length) {
+        return [];
+    }
+    const surviving = [];
+    for (let i = 0; i < rows.length; i += 1) {
+        const row = rows[i];
+        const p = getRowPValue(row);
+        if (p == null || !Number.isFinite(p) || p <= pThreshold) {
+            surviving.push(row);
+            continue;
+        }
+        const clampedP = Math.min(1, Math.max(0, p));
+        if (Math.random() <= Math.pow(1 - clampedP, power)) {
+            surviving.push(row);
+        }
+    }
+    return surviving.sort((a, b) => {
+        const pA = getRowPValue(a);
+        const pB = getRowPValue(b);
+        const normA = pA != null && Number.isFinite(pA) ? pA : 1;
+        const normB = pB != null && Number.isFinite(pB) ? pB : 1;
+        return normA - normB;
+    });
+}
+
+/**
+ * Copy already-computed LD scores (`LDS`) from existing rows onto newly fetched
+ * zoomed-in rows by Variant ID / varId without refetching from the LD server.
+ */
+export function applyCachedLdScoresToRows(targetRows = [], sourceRows = []) {
+    if (!Array.isArray(targetRows) || !targetRows.length) {
+        return [];
+    }
+    if (!Array.isArray(sourceRows) || !sourceRows.length) {
+        return targetRows;
+    }
+    const ldByVarId = new Map();
+    for (let i = 0; i < sourceRows.length; i += 1) {
+        const row = sourceRows[i];
+        const varId = row?.["Variant ID"] || row?.varId;
+        const lds = row?.LDS;
+        if (varId && lds != null && !Number.isNaN(lds)) {
+            ldByVarId.set(varId, lds);
+        }
+    }
+    if (!ldByVarId.size) {
+        return targetRows;
+    }
+    return targetRows.map((row) => {
+        if (row?.LDS != null && !Number.isNaN(row.LDS)) {
+            return row;
+        }
+        const varId = row?.["Variant ID"] || row?.varId;
+        const cachedLds = varId ? ldByVarId.get(varId) : undefined;
+        if (cachedLds === undefined) {
+            return row;
+        }
+        return {
+            ...row,
+            LDS: cachedLds,
+        };
+    });
+}
+
+function zoomRowMergeKey(row, primaryAncestry = "Mixed") {
+    const id = row?.["Variant ID"] || row?.varId || "";
+    const ancestry = row?.Ancestry || primaryAncestry;
+    const project = row?.Project || "KP";
+    const phenotype = row?.PhenotypeKey || row?.Phenotype || "";
+    return `${id}@@${ancestry}@@${project}@@${phenotype}`;
+}
+
+/**
+ * Remove any rows that were added exclusively by a 100%-zoom refetch (`_zoomRefetched: true`),
+ * restoring the 0%-zoom downsampled baseline while preserving any LD or series updates.
+ */
+export function stripZoomRefetchedRows(rows = []) {
+    if (!Array.isArray(rows) || !rows.length) {
+        return [];
+    }
+    if (!rows.some((row) => row?._zoomRefetched)) {
+        return rows;
+    }
+    return rows.filter((row) => !row?._zoomRefetched);
+}
+
+/**
+ * Merge newly refetched zoomed-in rows with the 0%-zoom baseline rows:
+ * - Strips any prior `_zoomRefetched` rows
+ * - Copies cached LD scores from the baseline onto incoming rows (no LD server call)
+ * - Tags zoomed-only rows with `_zoomRefetched: true` so they can be discarded when zooming back out
+ */
+export function mergeZoomedAssociationRows(
+    existingRows = [],
+    incomingZoomRows = [],
+    primaryAncestry = "Mixed"
+) {
+    const baseRows = stripZoomRefetchedRows(existingRows);
+    if (!Array.isArray(incomingZoomRows) || !incomingZoomRows.length) {
+        return baseRows;
+    }
+    const incomingWithLd = applyCachedLdScoresToRows(incomingZoomRows, baseRows);
+    const baseKeys = new Set();
+    for (let i = 0; i < baseRows.length; i += 1) {
+        const key = zoomRowMergeKey(baseRows[i], primaryAncestry);
+        if (key && !key.startsWith("@@")) {
+            baseKeys.add(key);
+        }
+    }
+    const addedZoomRows = [];
+    for (let i = 0; i < incomingWithLd.length; i += 1) {
+        const row = incomingWithLd[i];
+        const key = zoomRowMergeKey(row, primaryAncestry);
+        if (!key || key.startsWith("@@") || baseKeys.has(key)) {
+            continue;
+        }
+        baseKeys.add(key);
+        addedZoomRows.push({
+            ...row,
+            _zoomRefetched: true,
+        });
+    }
+    if (!addedZoomRows.length) {
+        return baseRows;
+    }
+    return [...baseRows, ...addedZoomRows].sort((left, right) => {
+        const pLeft = getRowPValue(left);
+        const pRight = getRowPValue(right);
+        return (
+            (pLeft != null && Number.isFinite(pLeft) ? pLeft : 1) -
+            (pRight != null && Number.isFinite(pRight) ? pRight : 1)
+        );
+    });
+}
+
+

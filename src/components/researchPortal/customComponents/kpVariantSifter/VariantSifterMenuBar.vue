@@ -36,7 +36,10 @@
 </template>
 
 <script>
-import { formatRecentSearchLabel } from "./variantSifterRecentSearches.js";
+import {
+    formatRecentSearchLabel,
+    VKS_RECENT_SEARCHES_LIMIT,
+} from "./variantSifterRecentSearches.js";
 
 export default {
     name: "VariantSifterMenuBar",
@@ -48,48 +51,44 @@ export default {
     },
     computed: {
         menus() {
-            const recentItems =
-                Array.isArray(this.recentSearches) && this.recentSearches.length
-                    ? this.recentSearches.map((entry, index) => {
-                          const label = formatRecentSearchLabel(entry);
-                          return {
-                              id: `recentSearch-${index}-${entry.timestamp || index}`,
-                              action: "applyRecentSearch",
-                              label,
-                              title: label,
-                              recentSearch: entry,
-                          };
-                      })
-                    : [
-                          {
-                              id: "recentSearchesEmpty",
-                              label: "No recent searches",
-                              disabled: true,
-                          },
-                      ];
+            const topRecent = Array.isArray(this.recentSearches)
+                ? this.recentSearches.slice(0, VKS_RECENT_SEARCHES_LIMIT)
+                : [];
+            const recentItems = topRecent.length
+                ? topRecent.map((entry, index) => {
+                      const label = formatRecentSearchLabel(entry);
+                      return {
+                          id: `recentSearch-${index}-${entry.timestamp || index}`,
+                          action: "applyRecentSearch",
+                          label,
+                          title: label,
+                          recentSearch: entry,
+                      };
+                  })
+                : [
+                      {
+                          id: "recentSearchesEmpty",
+                          label: "No recent searches",
+                          disabled: true,
+                      },
+                  ];
 
             return [
                 {
-                    id: "search",
-                    label: "Search",
+                    id: "session",
+                    label: "Session",
                     items: [
-                        { id: "resetSearch", label: "Reset search" },
-                        { id: "searchDivider", type: "divider" },
+                        { id: "newSession", label: "New session" },
+                        { id: "importSession", label: "Import session" },
+                        { id: "exportSession", label: "Export session" },
+                        { id: "exportHtmlReport", label: "Export HTML report" },
+                        { id: "sessionDivider", type: "divider" },
                         {
                             id: "recentSearchesHeader",
                             type: "header",
                             label: "Recent searches",
                         },
                         ...recentItems,
-                    ],
-                },
-                {
-                    id: "importExport",
-                    label: "Import / Export",
-                    items: [
-                        { id: "importSession", label: "Import session" },
-                        { id: "exportSession", label: "Export session" },
-                        { id: "exportHtmlReport", label: "Export HTML report" },
                     ],
                 },
                 {

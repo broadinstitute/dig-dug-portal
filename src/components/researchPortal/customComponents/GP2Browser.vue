@@ -238,10 +238,12 @@
             :resolve-host-for-index="bioIndexHostFor"
             :tool-name="'GP2 Browser'"
             :suggest-actions-after-user-action="suggestActionsAfterUserAction"
+            :refetch-associations-on-zoom="refetchAssociationsOnZoom"
             @close="settingsOpen = false"
             @update:visibleSectionIds="onVisibleSectionIdsUpdate"
             @update:projectId="onProjectIdUpdate"
             @update:suggestActionsAfterUserAction="onSuggestActionsAfterUserActionUpdate"
+            @update:refetchAssociationsOnZoom="onRefetchAssociationsOnZoomUpdate"
         />
 
         <GP2BrowserResearchModal
@@ -287,6 +289,10 @@ import {
     fetchGlobalAssociations,
 } from "./kpVariantSifter/variantSifterAssociationsApi.js";
 import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
+import {
+    mergeZoomedAssociationRows,
+    stripZoomRefetchedRows,
+} from "./gp2Browser/gp2BrowserAssociationsDownsample.js";
 import { createFiltersIndex, applyAssociationsFilters } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
 import { enrichAssociationRowsWithLdScores, enrichAssociationRowsWithLdScoresForRef } from "./kpVariantSifter/variantSifterLdServer.js";
 import {
@@ -487,6 +493,35 @@ import {
 } from "./kpVariantSifter/variantSifterRegionLoadProgress.js";
 import "./kpVariantSifter/vksSharedStyles.css";
 
+const GP2_REGION_LOAD_STEP_CATALOG = [
+    { id: "associations", label: "Association data" },
+    { id: "genes", label: "Genes track" },
+    { id: "recomb", label: "Recombination overlay" },
+    { id: "credibleSets", label: "Credible sets list" },
+    { id: "globalEnrichment", label: "Global enrichment" },
+    { id: "geneLinks", label: "Gene links" },
+    { id: "snp2geneLinks", label: "SNP 2 gene links" },
+    { id: "ld", label: "LD scores" },
+];
+
+function startGp2RegionLoadProgress(stepIds = null) {
+    const hasFilter = Array.isArray(stepIds);
+    const allowed = hasFilter ? new Set(stepIds) : null;
+    const steps = GP2_REGION_LOAD_STEP_CATALOG.filter((step) =>
+        allowed ? allowed.has(step.id) : true
+    ).map((step) => ({
+        ...step,
+        status: VKS_REGION_LOAD_STATUS.PENDING,
+    }));
+    if (!steps.length) {
+        return emptyRegionLoadProgress();
+    }
+    return {
+        active: true,
+        steps,
+    };
+}
+
 function emptyAssociationsState() {
     return {
         loading: false,
@@ -598,6 +633,7 @@ export default Vue.component("gp2-browser", {
             visibleSectionIds: gp2DefaultVisibleSectionIds(),
             settingsOpen: false,
             suggestActionsAfterUserAction: false,
+            refetchAssociationsOnZoom: true,
             canvasActive: false,
             welcomeOpen: true,
             searchSession: null,
@@ -613,6 +649,7 @@ export default Vue.component("gp2-browser", {
             regionLoadDismissTimer: null,
             regionExtendToken: 0,
             regionPanSyncTimer: null,
+            zoomViewAreaRefetchTimer: null,
             pendingPanSliderReset: false,
             dataTableOpen: false,
             mappingState: emptyMappingState(),
@@ -630,6 +667,7 @@ export default Vue.component("gp2-browser", {
             v2gState: emptyV2gState(),
             s2gState: emptyS2gState(),
             associationsRequestToken: 0,
+            zoomAssociationsRequestToken: 0,
             genesRequestToken: 0,
             plotOverlaysRequestToken: 0,
             credibleSetsRequestToken: 0,
@@ -638,7 +676,13 @@ export default Vue.component("gp2-browser", {
             s2gRequestToken: 0,
             pendingSubAncestries: [],
             pendingPhenotypes: [],
+            lastAssociationsRegion: null,
+            lastZoomedAssociationsRegion: null,
+            lastGenesRegion: null,
             lastCredibleSetsListRegion: null,
+            lastGlobalEnrichmentRegion: null,
+            lastV2gCatalogRegion: null,
+            lastS2gRegion: null,
             exportSessionOpen: false,
             exportSessionBusy: false,
             workspaceGuideOpen: false,
@@ -804,6 +848,10 @@ export default Vue.component("gp2-browser", {
             clearTimeout(this.regionPanSyncTimer);
             this.regionPanSyncTimer = null;
         }
+        if (this.zoomViewAreaRefetchTimer) {
+            clearTimeout(this.zoomViewAreaRefetchTimer);
+            this.zoomViewAreaRefetchTimer = null;
+        }
         this.teardownChromePin();
         if (this.regionLoadDismissTimer) {
             clearTimeout(this.regionLoadDismissTimer);
@@ -834,13 +882,18 @@ export default Vue.component("gp2-browser", {
          * Fetch GWAS-CE token associations as an additive overlay (Project=GWAS-CE).
          * Soft-fails to [] when token/project is missing or the request errors.
          */
-        async fetchFormattedGwasCeAssociationRows(session, region = null) {
+        async fetchFormattedGwasCeAssociationRows(
+            session,
+            region = null,
+            { downsample = true } = {}
+        ) {
             if (!isGwasCeProject(this.projectId) || !resolveGwasCeToken(session)) {
                 return [];
             }
             try {
                 const result = await fetchGwasCeAssociations(
-                    region ? { ...session, region } : session
+                    region ? { ...session, region } : session,
+                    { downsample }
                 );
                 return formatAssociationRows(result.rows, session, {
                     project: VKS_ASSOCIATION_PROJECT_GWAS_CE,
@@ -1080,6 +1133,8 @@ export default Vue.component("gp2-browser", {
             this.regionZoom = clampRegionZoom(nextZoom);
             if (this.regionZoom > 0) {
                 this.regionZoomOut = 0;
+            } else {
+                this.restoreZoom0AssociationRows();
             }
         },
         onRegionZoomOutUpdate(nextZoomOut) {
@@ -1097,19 +1152,45 @@ export default Vue.component("gp2-browser", {
             if (this.regionZoomOut > 0) {
                 this.regionZoom = 0;
                 this.regionViewArea = 0;
+                this.restoreZoom0AssociationRows();
             }
         },
         onRegionZoomSliderCommit() {
+            if (this.regionZoom > 0) {
+                this.refetchAssociationsForZoomedView();
+                return;
+            }
+            this.restoreZoom0AssociationRows();
             this.scheduleRegionDataSync(0);
         },
         onRegionViewAreaUpdate(nextViewArea) {
-            this.regionViewArea = clampRegionViewArea(nextViewArea);
+            const clamped = clampRegionViewArea(nextViewArea);
+            const changed = clamped !== this.regionViewArea;
+            this.regionViewArea = clamped;
+            if (changed && this.regionZoom > 0 && this.refetchAssociationsOnZoom) {
+                this.scheduleZoomedAssociationsRefetch(180);
+            }
+        },
+        scheduleZoomedAssociationsRefetch(delayMs = 180) {
+            if (this.zoomViewAreaRefetchTimer) {
+                clearTimeout(this.zoomViewAreaRefetchTimer);
+                this.zoomViewAreaRefetchTimer = null;
+            }
+            if (delayMs <= 0) {
+                this.refetchAssociationsForZoomedView();
+                return;
+            }
+            this.zoomViewAreaRefetchTimer = setTimeout(() => {
+                this.zoomViewAreaRefetchTimer = null;
+                this.refetchAssociationsForZoomedView();
+            }, delayMs);
         },
         resetRegionViewport() {
             this.regionZoom = 0;
             this.regionZoomOut = 0;
             this.regionViewArea = 0;
             this.regionShiftBp = 0;
+            this.restoreZoom0AssociationRows();
             if (this.searchSession?.region) {
                 this.applyDataRegion(this.activeRegion);
             }
@@ -1161,9 +1242,234 @@ export default Vue.component("gp2-browser", {
         },
         onRegionPanEnd() {
             if (this.regionZoom > 0) {
+                this.scheduleZoomedAssociationsRefetch(0);
                 return;
             }
             this.scheduleRegionDataSync(0);
+        },
+        restoreZoom0AssociationRows() {
+            if (this.zoomViewAreaRefetchTimer) {
+                clearTimeout(this.zoomViewAreaRefetchTimer);
+                this.zoomViewAreaRefetchTimer = null;
+            }
+            this.zoomAssociationsRequestToken += 1;
+            this.lastZoomedAssociationsRegion = null;
+            const cleaned = stripZoomRefetchedRows(this.associationsState.rows);
+            if (cleaned !== this.associationsState.rows) {
+                this.associationsState = {
+                    ...this.associationsState,
+                    rows: cleaned,
+                };
+            }
+        },
+        onRefetchAssociationsOnZoomUpdate(enabled) {
+            this.refetchAssociationsOnZoom = Boolean(enabled);
+            if (!this.refetchAssociationsOnZoom) {
+                this.restoreZoom0AssociationRows();
+            } else if (this.regionZoom > 0) {
+                this.refetchAssociationsForZoomedView();
+            }
+        },
+        async refetchAssociationsForZoomedView() {
+            if (
+                !this.refetchAssociationsOnZoom ||
+                this.regionZoom <= 0 ||
+                !this.searchSession?.region ||
+                !this.viewRegion ||
+                !this.isSectionChecked("associations")
+            ) {
+                if (!this.refetchAssociationsOnZoom || this.regionZoom <= 0) {
+                    this.restoreZoom0AssociationRows();
+                }
+                return;
+            }
+            const zoomRegion = cloneGenomicRegion(this.viewRegion);
+            if (genomicRegionsEqual(this.lastZoomedAssociationsRegion, zoomRegion)) {
+                return;
+            }
+            const token = ++this.zoomAssociationsRequestToken;
+            const associationsHost = this.bioIndexHostFor("associations");
+            const zoomSession = {
+                ...this.searchSession,
+                region: zoomRegion,
+            };
+            const primaryAncestry = primaryAssociationAncestry(this.searchSession);
+            let zoomedRows = [];
+
+            try {
+                if (this.searchSession?.phenotype?.name) {
+                    const primaryResult = await fetchAssociations(
+                        zoomSession,
+                        associationsHost,
+                        this.projectId,
+                        { downsample: false }
+                    );
+                    if (token !== this.zoomAssociationsRequestToken) {
+                        return;
+                    }
+                    zoomedRows = formatAssociationRows(primaryResult.rows, zoomSession, {
+                        project: VKS_ASSOCIATION_PROJECT_KP,
+                    });
+                }
+
+                const ceRows = await this.fetchFormattedGwasCeAssociationRows(
+                    this.searchSession,
+                    zoomRegion,
+                    { downsample: false }
+                );
+                if (token !== this.zoomAssociationsRequestToken) {
+                    return;
+                }
+                if (ceRows.length) {
+                    zoomedRows = mergeAssociationRowsByVariantAndAncestry(
+                        zoomedRows,
+                        ceRows,
+                        primaryAncestry
+                    );
+                }
+
+                for (const ancestry of this.associationsState.selectedAncestries || []) {
+                    if (token !== this.zoomAssociationsRequestToken) {
+                        return;
+                    }
+                    if (!ancestry || ancestry === primaryAncestry) {
+                        continue;
+                    }
+                    try {
+                        const ancestrySession = {
+                            ...zoomSession,
+                            ancestry,
+                        };
+                        const ancestryResult = await fetchAssociations(
+                            ancestrySession,
+                            associationsHost,
+                            this.projectId,
+                            { downsample: false }
+                        );
+                        const ancestryRows = formatAssociationRows(
+                            ancestryResult.rows,
+                            ancestrySession,
+                            { project: VKS_ASSOCIATION_PROJECT_KP }
+                        );
+                        zoomedRows = mergeAssociationRowsByVariantAndAncestry(
+                            zoomedRows,
+                            ancestryRows,
+                            primaryAncestry
+                        );
+                    } catch (ancestryErr) {
+                        console.warn(
+                            `GP2 Browser ${ancestry} zoomed association refetch failed`,
+                            ancestryErr
+                        );
+                    }
+                }
+
+                for (const entry of this.associationsState.selectedPhenotypes || []) {
+                    if (token !== this.zoomAssociationsRequestToken) {
+                        return;
+                    }
+                    const phenotypeName =
+                        typeof entry === "string" ? entry : entry?.name;
+                    if (
+                        !phenotypeName ||
+                        phenotypeName === this.searchSession?.phenotype?.name
+                    ) {
+                        continue;
+                    }
+                    try {
+                        const phenotypeSession = {
+                            ...zoomSession,
+                            phenotype:
+                                typeof entry === "string" ? { name: entry } : entry,
+                            ancestry: primaryAncestry,
+                        };
+                        const phenotypeResult = await fetchAssociations(
+                            phenotypeSession,
+                            associationsHost,
+                            this.projectId,
+                            { downsample: false }
+                        );
+                        const phenotypeRows = formatAssociationRows(
+                            phenotypeResult.rows,
+                            phenotypeSession,
+                            { project: VKS_ASSOCIATION_PROJECT_KP }
+                        );
+                        zoomedRows = mergeAssociationRowsByVariantAndAncestry(
+                            zoomedRows,
+                            phenotypeRows,
+                            primaryAncestry
+                        );
+                    } catch (phenotypeErr) {
+                        console.warn(
+                            `GP2 Browser ${phenotypeName} zoomed association refetch failed`,
+                            phenotypeErr
+                        );
+                    }
+
+                    for (const ancestry of entry?.selectedAncestries || []) {
+                        if (token !== this.zoomAssociationsRequestToken) {
+                            return;
+                        }
+                        if (!ancestry || ancestry === primaryAncestry) {
+                            continue;
+                        }
+                        try {
+                            const ancestrySession = {
+                                ...zoomSession,
+                                phenotype:
+                                    typeof entry === "string"
+                                        ? { name: entry }
+                                        : entry,
+                                ancestry,
+                            };
+                            const ancestryResult = await fetchAssociations(
+                                ancestrySession,
+                                associationsHost,
+                                this.projectId,
+                                { downsample: false }
+                            );
+                            const ancestryRows = formatAssociationRows(
+                                ancestryResult.rows,
+                                ancestrySession,
+                                { project: VKS_ASSOCIATION_PROJECT_KP }
+                            );
+                            zoomedRows = mergeAssociationRowsByVariantAndAncestry(
+                                zoomedRows,
+                                ancestryRows,
+                                primaryAncestry
+                            );
+                        } catch (ancestryErr) {
+                            console.warn(
+                                `GP2 Browser ${phenotypeName}/${ancestry} zoomed association refetch failed`,
+                                ancestryErr
+                            );
+                        }
+                    }
+                }
+
+                if (
+                    token !== this.zoomAssociationsRequestToken ||
+                    this.regionZoom <= 0 ||
+                    !this.refetchAssociationsOnZoom
+                ) {
+                    return;
+                }
+
+                this.lastZoomedAssociationsRegion = zoomRegion;
+                this.associationsState = {
+                    ...this.associationsState,
+                    rows: mergeZoomedAssociationRows(
+                        this.associationsState.rows,
+                        zoomedRows,
+                        primaryAncestry
+                    ),
+                };
+            } catch (error) {
+                console.warn(
+                    "GP2 Browser zoomed association refetch failed",
+                    error
+                );
+            }
         },
         onTogglePositionMarker(position) {
             const viewRegion = this.viewRegion || this.searchSession?.region;
@@ -1302,6 +1608,9 @@ export default Vue.component("gp2-browser", {
                 loading: false,
             };
         },
+        isSectionChecked(sectionId) {
+            return isSectionVisible(this.visibleSectionIds, sectionId);
+        },
         setRegionLoadStep(stepId, status) {
             this.regionLoadProgress = patchRegionLoadStep(
                 this.regionLoadProgress,
@@ -1314,7 +1623,19 @@ export default Vue.component("gp2-browser", {
                 clearTimeout(this.regionLoadDismissTimer);
                 this.regionLoadDismissTimer = null;
             }
-            this.regionLoadProgress = startRegionLoadProgress();
+            const stepIds = ["associations", "ld"];
+            if (!projectAssociationsOnly(this.projectId)) {
+                if (this.isSectionChecked("credible-sets")) {
+                    stepIds.push("credibleSets");
+                }
+                if (
+                    this.isSectionChecked("global-enrichment") ||
+                    this.isSectionChecked("variant-to-gene-links")
+                ) {
+                    stepIds.push("globalEnrichment");
+                }
+            }
+            this.regionLoadProgress = startGp2RegionLoadProgress(stepIds);
             this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
         },
         finishAdditivePhenotypeLoadProgress({
@@ -1466,7 +1787,20 @@ export default Vue.component("gp2-browser", {
                 clearTimeout(this.regionLoadDismissTimer);
                 this.regionLoadDismissTimer = null;
             }
-            this.regionLoadProgress = startRegionLoadProgress();
+            const associationsOnly = projectAssociationsOnly(this.projectId);
+            const extendAssoc = this.isSectionChecked("associations");
+            const extendGenes = !associationsOnly && this.isSectionChecked("genes");
+            const extendGe =
+                !associationsOnly && this.isSectionChecked("global-enrichment");
+            const extendCs =
+                !associationsOnly && this.isSectionChecked("credible-sets");
+            const extendStepIds = [
+                ...(extendAssoc ? ["associations", "recomb", "ld"] : []),
+                ...(extendGenes ? ["genes"] : []),
+                ...(extendCs ? ["credibleSets"] : []),
+                ...(extendGe ? ["globalEnrichment"] : []),
+            ];
+            this.regionLoadProgress = startGp2RegionLoadProgress(extendStepIds);
             const associationsHost = this.bioIndexHostFor("associations");
             const genesHost = this.bioIndexHostFor("genes");
             const regionsHost = this.bioIndexHostFor("regions");
@@ -1483,10 +1817,12 @@ export default Vue.component("gp2-browser", {
             let extendedAssociationRows = false;
             let associationFetchFailed = false;
 
-            this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
+            if (extendAssoc) {
+                this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
+            }
 
             try {
-                for (const gap of gaps) {
+                for (const gap of extendAssoc ? gaps : []) {
                     if (token !== this.regionExtendToken) {
                         return;
                     }
@@ -1688,70 +2024,68 @@ export default Vue.component("gp2-browser", {
 
                 mergedRows = filterAssociationRowsInRegion(mergedRows, activeRegion);
                 this.dataRegion = cloneGenomicRegion(activeRegion);
-                this.flushStreamedAssociationRows(mergedRows, activeRegion);
-                this.setRegionLoadStep(
-                    "associations",
-                    associationFetchFailed && !extendedAssociationRows
-                        ? VKS_REGION_LOAD_STATUS.FAILED
-                        : VKS_REGION_LOAD_STATUS.DONE
-                );
-
-                if (projectAssociationsOnly(this.projectId)) {
-                    this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.DONE);
+                if (extendAssoc) {
+                    this.lastAssociationsRegion = cloneGenomicRegion(activeRegion);
+                    this.flushStreamedAssociationRows(mergedRows, activeRegion);
                     this.setRegionLoadStep(
-                        "globalEnrichment",
-                        VKS_REGION_LOAD_STATUS.DONE
-                    );
-                    this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.DONE);
-
-                    let recombFetchFailed = false;
-                    this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
-                    for (const gap of gaps) {
-                        if (token !== this.regionExtendToken) {
-                            return;
-                        }
-                        const gapRegion = {
-                            chr: activeRegion.chr,
-                            start: gap.start,
-                            end: gap.end,
-                        };
-                        try {
-                            const newRecomb = await fetchRecombinationRate(gapRegion);
-                            if (newRecomb) {
-                                mergedRecomb = mergeRecombData(mergedRecomb, newRecomb);
-                                this.flushStreamedRecomb(mergedRecomb, activeRegion);
-                            }
-                        } catch (recombError) {
-                            recombFetchFailed = true;
-                            console.warn("GP2 Browser recomb gap fetch failed", recombError);
-                        }
-                    }
-                    if (token !== this.regionExtendToken) {
-                        return;
-                    }
-                    this.setRegionLoadStep(
-                        "recomb",
-                        recombFetchFailed && !mergedRecomb?.position?.length
+                        "associations",
+                        associationFetchFailed && !extendedAssociationRows
                             ? VKS_REGION_LOAD_STATUS.FAILED
                             : VKS_REGION_LOAD_STATUS.DONE
                     );
+                }
 
-                    if (extendedAssociationRows) {
-                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
-                        const ldOk = await this.refreshRegionLdScores(
-                            mergedRows,
-                            activeRegion,
-                            () => token !== this.regionExtendToken
-                        );
+                if (projectAssociationsOnly(this.projectId)) {
+                    if (extendAssoc) {
+                        let recombFetchFailed = false;
+                        this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+                        for (const gap of gaps) {
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            const gapRegion = {
+                                chr: activeRegion.chr,
+                                start: gap.start,
+                                end: gap.end,
+                            };
+                            try {
+                                const newRecomb = await fetchRecombinationRate(gapRegion);
+                                if (newRecomb) {
+                                    mergedRecomb = mergeRecombData(mergedRecomb, newRecomb);
+                                    this.flushStreamedRecomb(mergedRecomb, activeRegion);
+                                }
+                            } catch (recombError) {
+                                recombFetchFailed = true;
+                                console.warn("GP2 Browser recomb gap fetch failed", recombError);
+                            }
+                        }
                         if (token !== this.regionExtendToken) {
                             return;
                         }
                         this.setRegionLoadStep(
-                            "ld",
-                            ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                            "recomb",
+                            recombFetchFailed && !mergedRecomb?.position?.length
+                                ? VKS_REGION_LOAD_STATUS.FAILED
+                                : VKS_REGION_LOAD_STATUS.DONE
                         );
-                    } else {
-                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+
+                        if (extendedAssociationRows) {
+                            this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                            const ldOk = await this.refreshRegionLdScores(
+                                mergedRows,
+                                activeRegion,
+                                () => token !== this.regionExtendToken
+                            );
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            this.setRegionLoadStep(
+                                "ld",
+                                ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                            );
+                        } else {
+                            this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+                        }
                     }
 
                     this.finishRegionExtendSync();
@@ -1761,12 +2095,21 @@ export default Vue.component("gp2-browser", {
                 let genesFetchFailed = false;
                 let recombFetchFailed = false;
 
-                this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
-                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
-                this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
+                if (extendGenes) {
+                    this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
+                }
+                if (extendAssoc) {
+                    this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+                }
+                if (extendGe) {
+                    this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
+                }
 
                 await Promise.all([
                     (async () => {
+                        if (!extendGenes) {
+                            return;
+                        }
                         for (const gap of gaps) {
                             if (token !== this.regionExtendToken) {
                                 return;
@@ -1792,6 +2135,7 @@ export default Vue.component("gp2-browser", {
                         if (token !== this.regionExtendToken) {
                             return;
                         }
+                        this.lastGenesRegion = cloneGenomicRegion(activeRegion);
                         this.setRegionLoadStep(
                             "genes",
                             genesFetchFailed && !mergedGenes.length
@@ -1800,6 +2144,9 @@ export default Vue.component("gp2-browser", {
                         );
                     })(),
                     (async () => {
+                        if (!extendAssoc) {
+                            return;
+                        }
                         for (const gap of gaps) {
                             if (token !== this.regionExtendToken) {
                                 return;
@@ -1831,6 +2178,9 @@ export default Vue.component("gp2-browser", {
                         );
                     })(),
                     (async () => {
+                        if (!extendGe) {
+                            return;
+                        }
                         let annoFetchFailed = false;
                         for (const gap of gaps) {
                             if (token !== this.regionExtendToken) {
@@ -1858,6 +2208,7 @@ export default Vue.component("gp2-browser", {
                         if (token !== this.regionExtendToken) {
                             return;
                         }
+                        this.lastGlobalEnrichmentRegion = cloneGenomicRegion(activeRegion);
                         this.flushStreamedAnnoRows(mergedAnnoRows, activeRegion);
                         this.setRegionLoadStep(
                             "globalEnrichment",
@@ -1872,41 +2223,45 @@ export default Vue.component("gp2-browser", {
                     return;
                 }
 
-                if (extendedAssociationRows) {
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
-                    const ldOk = await this.refreshRegionLdScores(
-                        mergedRows,
-                        activeRegion,
-                        () => token !== this.regionExtendToken
+                if (extendAssoc) {
+                    if (extendedAssociationRows) {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                        const ldOk = await this.refreshRegionLdScores(
+                            mergedRows,
+                            activeRegion,
+                            () => token !== this.regionExtendToken
+                        );
+                        if (token !== this.regionExtendToken) {
+                            return;
+                        }
+                        this.setRegionLoadStep(
+                            "ld",
+                            ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    } else {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+                    }
+                }
+
+                if (extendCs) {
+                    this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
+                    const credibleSetsOk = await this.loadCredibleSetsList(
+                        {
+                            ...this.searchSession,
+                            region: activeRegion,
+                        },
+                        { preserveSelection: true }
                     );
                     if (token !== this.regionExtendToken) {
                         return;
                     }
                     this.setRegionLoadStep(
-                        "ld",
-                        ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                        "credibleSets",
+                        credibleSetsOk
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
                     );
-                } else {
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
                 }
-
-                this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
-                const credibleSetsOk = await this.loadCredibleSetsList(
-                    {
-                        ...this.searchSession,
-                        region: activeRegion,
-                    },
-                    { preserveSelection: true }
-                );
-                if (token !== this.regionExtendToken) {
-                    return;
-                }
-                this.setRegionLoadStep(
-                    "credibleSets",
-                    credibleSetsOk
-                        ? VKS_REGION_LOAD_STATUS.DONE
-                        : VKS_REGION_LOAD_STATUS.FAILED
-                );
 
                 this.finishRegionExtendSync();
             } catch (error) {
@@ -2033,6 +2388,7 @@ export default Vue.component("gp2-browser", {
             );
         },
         onVisibleSectionIdsUpdate(ids) {
+            const prevSet = new Set(this.visibleSectionIds || []);
             this.visibleSectionIds = gp2NormalizeVisibleSectionIds(ids, this.sections);
             if (
                 this.openDrawerId &&
@@ -2040,6 +2396,172 @@ export default Vue.component("gp2-browser", {
             ) {
                 this.openDrawerId = null;
             }
+            const newlyChecked = this.visibleSectionIds.filter(
+                (id) => !prevSet.has(id)
+            );
+            if (newlyChecked.length && this.searchSession?.region) {
+                this.loadDataForCheckedSections(newlyChecked);
+            }
+        },
+        async loadDataForCheckedSections(sectionIds = []) {
+            if (!this.searchSession?.region) {
+                return;
+            }
+            const associationsOnly = projectAssociationsOnly(this.projectId);
+            const targetRegion = cloneGenomicRegion(
+                this.dataRegion || this.searchSession.region
+            );
+            const targetSession = {
+                ...this.searchSession,
+                region: targetRegion,
+            };
+            const checkedSet = new Set(sectionIds);
+
+            const needAssoc =
+                checkedSet.has("associations") &&
+                !genomicRegionsEqual(this.lastAssociationsRegion, targetRegion) &&
+                !this.associationsState.loading;
+            const needGenes =
+                !associationsOnly &&
+                checkedSet.has("genes") &&
+                (!this.genesState.ready ||
+                    !genomicRegionsEqual(this.lastGenesRegion, targetRegion)) &&
+                !this.genesState.loading;
+            const needCs =
+                !associationsOnly &&
+                checkedSet.has("credible-sets") &&
+                !genomicRegionsEqual(
+                    this.lastCredibleSetsListRegion,
+                    targetRegion
+                ) &&
+                !this.credibleSetsState.listLoading;
+            const needGe =
+                !associationsOnly &&
+                checkedSet.has("global-enrichment") &&
+                !genomicRegionsEqual(
+                    this.lastGlobalEnrichmentRegion,
+                    targetRegion
+                ) &&
+                !this.globalEnrichmentState.loading;
+            const needV2g =
+                !associationsOnly &&
+                checkedSet.has("variant-to-gene-links") &&
+                !needGe &&
+                !genomicRegionsEqual(
+                    this.lastGlobalEnrichmentRegion,
+                    targetRegion
+                ) &&
+                !genomicRegionsEqual(this.lastV2gCatalogRegion, targetRegion) &&
+                !this.globalEnrichmentState.loading;
+            const needS2g =
+                !associationsOnly &&
+                checkedSet.has("snp2gene-links") &&
+                (!hasS2gTrackData(this.s2gState) ||
+                    !genomicRegionsEqual(this.lastS2gRegion, targetRegion)) &&
+                !this.s2gState?.loadingTissue;
+
+            const stepIds = [
+                ...(needAssoc ? ["associations", "recomb", "ld"] : []),
+                ...(needGenes ? ["genes"] : []),
+                ...(needCs ? ["credibleSets"] : []),
+                ...(needGe ? ["globalEnrichment"] : []),
+                ...(needV2g ? ["geneLinks"] : []),
+                ...(needS2g ? ["snp2geneLinks"] : []),
+            ];
+
+            if (!stepIds.length) {
+                return;
+            }
+
+            if (this.regionLoadDismissTimer) {
+                clearTimeout(this.regionLoadDismissTimer);
+                this.regionLoadDismissTimer = null;
+            }
+            this.regionLoadProgress = startGp2RegionLoadProgress(stepIds);
+
+            await Promise.all([
+                (async () => {
+                    if (!needAssoc) {
+                        return;
+                    }
+                    await this.loadAssociationsSectionForSession(targetSession);
+                })(),
+                (async () => {
+                    if (!needGenes) {
+                        return;
+                    }
+                    this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
+                    const ok = await this.loadGenesTrack(targetSession);
+                    this.setRegionLoadStep(
+                        "genes",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+                (async () => {
+                    if (!needCs) {
+                        return;
+                    }
+                    this.setRegionLoadStep(
+                        "credibleSets",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                    const ok = await this.loadCredibleSetsList(targetSession, {
+                        preserveSelection: true,
+                    });
+                    this.setRegionLoadStep(
+                        "credibleSets",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+                (async () => {
+                    if (!needGe) {
+                        return;
+                    }
+                    await this.loadGlobalEnrichmentForSession(targetSession, {
+                        offerClassifyAction: true,
+                    });
+                })(),
+                (async () => {
+                    if (!needV2g) {
+                        return;
+                    }
+                    this.setRegionLoadStep(
+                        "geneLinks",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                    const ok = await this.loadV2gTissueCatalogForSession(
+                        targetSession
+                    );
+                    this.setRegionLoadStep(
+                        "geneLinks",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+                (async () => {
+                    if (!needS2g) {
+                        return;
+                    }
+                    this.setRegionLoadStep(
+                        "snp2geneLinks",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                    const ok = await this.onS2gLoad();
+                    this.setRegionLoadStep(
+                        "snp2geneLinks",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+            ]);
+
+            this.closeRegionLoadProgressIfSettled();
         },
         onSuggestActionsAfterUserActionUpdate(enabled) {
             this.suggestActionsAfterUserAction = Boolean(enabled);
@@ -2275,10 +2797,32 @@ export default Vue.component("gp2-browser", {
             this.dataRegion = restored.dataRegion
                 ? cloneGenomicRegion(restored.dataRegion)
                 : cloneGenomicRegion(restored.searchSession.region);
-            this.lastCredibleSetsListRegion = computeActiveRegion(
+            const restoredActiveRegion = computeActiveRegion(
                 restored.searchSession.region,
                 restored.regionShiftBp ?? restored.viewOffsetBp ?? 0
             );
+            this.lastAssociationsRegion = restored.associationsState?.rows?.length
+                ? cloneGenomicRegion(this.dataRegion)
+                : null;
+            this.lastGenesRegion = restored.genesState?.ready
+                ? cloneGenomicRegion(this.dataRegion)
+                : null;
+            this.lastCredibleSetsListRegion = restored.credibleSetsState?.available
+                ?.length
+                ? restoredActiveRegion
+                : null;
+            this.lastGlobalEnrichmentRegion =
+                restored.globalEnrichmentState?.annoRows?.length ||
+                Object.keys(restored.globalEnrichmentState?.annoData || {}).length
+                    ? cloneGenomicRegion(this.dataRegion)
+                    : null;
+            this.lastV2gCatalogRegion = restored.globalEnrichmentState?.geRows
+                ?.length
+                ? cloneGenomicRegion(this.dataRegion)
+                : null;
+            this.lastS2gRegion = hasS2gTrackData(restored.s2gState)
+                ? cloneGenomicRegion(this.dataRegion)
+                : null;
             this.openDrawerId = restored.openDrawerId;
             this.visibleSectionIds = gp2NormalizeVisibleSectionIds(
                 restored.visibleSectionIds,
@@ -2306,7 +2850,7 @@ export default Vue.component("gp2-browser", {
         afterSessionRestored(restored) {
             const selectedPhenotypes =
                 restored.associationsState?.selectedPhenotypes || [];
-            if (restored.searchSession) {
+            if (restored.searchSession && this.isSectionChecked("associations")) {
                 this.probeAncestryAssociationAvailabilityForSession(
                     restored.searchSession
                 );
@@ -2330,19 +2874,29 @@ export default Vue.component("gp2-browser", {
                 );
                 return;
             }
-            Promise.resolve(
-                this.loadGlobalEnrichmentForSession(restored.searchSession)
-            ).finally(() => {
+            if (this.isSectionChecked("global-enrichment")) {
+                Promise.resolve(
+                    this.loadGlobalEnrichmentForSession(restored.searchSession)
+                ).finally(() => {
+                    this.hydrateCompanionLayersForRestoredPhenotypes(
+                        selectedPhenotypes
+                    );
+                });
+            } else {
                 this.hydrateCompanionLayersForRestoredPhenotypes(
                     selectedPhenotypes
                 );
-            });
+            }
         },
         /**
          * Older or partial session files may restore additive phenotypes without
          * GE / CS companion rows. Fetch missing layers without clearing snapshot data.
          */
         hydrateCompanionLayersForRestoredPhenotypes(selectedPhenotypes) {
+            const loadGe =
+                this.isSectionChecked("global-enrichment") ||
+                this.isSectionChecked("variant-to-gene-links");
+            const loadCs = this.isSectionChecked("credible-sets");
             (selectedPhenotypes || []).forEach((entry) => {
                 const phenotypeName = String(entry?.name || "").trim();
                 if (!phenotypeName) {
@@ -2352,21 +2906,25 @@ export default Vue.component("gp2-browser", {
                     name: phenotypeName,
                     description: entry.description || null,
                 };
-                const geRows = this.globalEnrichmentState?.geRows || [];
-                const hasGe = geRows.some(
-                    (row) =>
-                        String(row?.phenotype || "").trim() === phenotypeName
-                );
-                if (!hasGe) {
-                    this.mergeGlobalEnrichmentForPhenotype(phenotype);
+                if (loadGe) {
+                    const geRows = this.globalEnrichmentState?.geRows || [];
+                    const hasGe = geRows.some(
+                        (row) =>
+                            String(row?.phenotype || "").trim() === phenotypeName
+                    );
+                    if (!hasGe) {
+                        this.mergeGlobalEnrichmentForPhenotype(phenotype);
+                    }
                 }
-                const available = this.credibleSetsState?.available || [];
-                const hasCs = available.some(
-                    (cs) =>
-                        String(cs?.phenotype || "").trim() === phenotypeName
-                );
-                if (!hasCs) {
-                    this.mergeCredibleSetsForPhenotype(phenotype);
+                if (loadCs) {
+                    const available = this.credibleSetsState?.available || [];
+                    const hasCs = available.some(
+                        (cs) =>
+                            String(cs?.phenotype || "").trim() === phenotypeName
+                    );
+                    if (!hasCs) {
+                        this.mergeCredibleSetsForPhenotype(phenotype);
+                    }
                 }
             });
         },
@@ -2594,13 +3152,33 @@ export default Vue.component("gp2-browser", {
             this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
 
             try {
-                const [geRows, annoRows] = await Promise.all([
-                    fetchGlobalEnrichment(session, geHost),
+                const phenotypes =
+                    this.associationPhenotypesOnCanvas().length > 0
+                        ? this.associationPhenotypesOnCanvas()
+                        : session.phenotype
+                          ? [session.phenotype]
+                          : [];
+                const [geRowLists, annoRows] = await Promise.all([
+                    Promise.all(
+                        phenotypes.map((phenotype) =>
+                            fetchGlobalEnrichment(
+                                { ...session, phenotype },
+                                geHost
+                            )
+                        )
+                    ),
                     fetchLocusAnnotations(session.region, regionsHost),
                 ]);
                 if (geToken !== this.globalEnrichmentRequestToken) {
                     return false;
                 }
+                let geRows = [];
+                geRowLists.forEach((rows, idx) => {
+                    const pName = String(phenotypes[idx]?.name || "").trim();
+                    geRows = pName
+                        ? mergeGeRowsByPhenotype(geRows, rows, pName)
+                        : [...geRows, ...(rows || [])];
+                });
 
                 const annoData = buildAnnoDataFromRows(annoRows);
                 const catalog = extractGeCatalog(annoData);
@@ -2635,6 +3213,10 @@ export default Vue.component("gp2-browser", {
                     biosampleRegionsByAnnotation: {},
                     biosampleLoading: false,
                 };
+                this.lastGlobalEnrichmentRegion = cloneGenomicRegion(
+                    session.region
+                );
+                this.lastV2gCatalogRegion = cloneGenomicRegion(session.region);
                 this.setRegionLoadStep(
                     "globalEnrichment",
                     Object.keys(annoData).length
@@ -2661,6 +3243,75 @@ export default Vue.component("gp2-browser", {
                     error: "Failed to load global enrichment for this locus.",
                 };
                 this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.FAILED);
+                return false;
+            }
+        },
+        async loadV2gTissueCatalogForSession(session) {
+            if (!session?.region) {
+                return false;
+            }
+            if (
+                genomicRegionsEqual(
+                    this.lastGlobalEnrichmentRegion,
+                    session.region
+                ) ||
+                genomicRegionsEqual(this.lastV2gCatalogRegion, session.region)
+            ) {
+                return true;
+            }
+            const geHost = this.bioIndexHostFor("global-enrichment");
+            if (!geHost) {
+                return false;
+            }
+            const geToken = ++this.globalEnrichmentRequestToken;
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                loading: true,
+            };
+            try {
+                const phenotypes =
+                    this.associationPhenotypesOnCanvas().length > 0
+                        ? this.associationPhenotypesOnCanvas()
+                        : session.phenotype
+                          ? [session.phenotype]
+                          : [];
+                const geRowLists = await Promise.all(
+                    phenotypes.map((phenotype) =>
+                        fetchGlobalEnrichment(
+                            { ...session, phenotype },
+                            geHost
+                        )
+                    )
+                );
+                if (geToken !== this.globalEnrichmentRequestToken) {
+                    return false;
+                }
+                let geRows = [];
+                geRowLists.forEach((rows, idx) => {
+                    const pName = String(phenotypes[idx]?.name || "").trim();
+                    geRows = pName
+                        ? mergeGeRowsByPhenotype(geRows, rows, pName)
+                        : [...geRows, ...(rows || [])];
+                });
+                this.globalEnrichmentState = {
+                    ...this.globalEnrichmentState,
+                    loading: false,
+                    geRows,
+                };
+                this.lastV2gCatalogRegion = cloneGenomicRegion(session.region);
+                return true;
+            } catch (error) {
+                if (geToken !== this.globalEnrichmentRequestToken) {
+                    return false;
+                }
+                console.warn(
+                    "GP2 Browser V2G tissue catalog load failed",
+                    error
+                );
+                this.globalEnrichmentState = {
+                    ...this.globalEnrichmentState,
+                    loading: false,
+                };
                 return false;
             }
         },
@@ -2735,7 +3386,14 @@ export default Vue.component("gp2-browser", {
             this.s2gState = emptyS2gState();
             this.assistantState = emptyAssistantState();
             this.aiAssistantOpen = false;
+            this.lastAssociationsRegion = null;
+            this.lastZoomedAssociationsRegion = null;
+            this.zoomAssociationsRequestToken += 1;
+            this.lastGenesRegion = null;
             this.lastCredibleSetsListRegion = null;
+            this.lastGlobalEnrichmentRegion = null;
+            this.lastV2gCatalogRegion = null;
+            this.lastS2gRegion = null;
             this.pendingSubAncestries = [];
             this.pendingPhenotypes = [];
             this.dataRegion = null;
@@ -2837,7 +3495,14 @@ export default Vue.component("gp2-browser", {
             this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
             this.v2gRequestToken += 1;
             this.s2gRequestToken += 1;
+            this.lastAssociationsRegion = null;
+            this.lastZoomedAssociationsRegion = null;
+            this.zoomAssociationsRequestToken += 1;
+            this.lastGenesRegion = null;
             this.lastCredibleSetsListRegion = null;
+            this.lastGlobalEnrichmentRegion = null;
+            this.lastV2gCatalogRegion = null;
+            this.lastS2gRegion = null;
             if (projectAssociationsOnly(this.projectId)) {
                 this.visibleSectionIds = ["associations"];
                 this.openDrawerId = null;
@@ -2852,7 +3517,10 @@ export default Vue.component("gp2-browser", {
             this.loadInitialSearchData(searchSession);
         },
         syncCredibleSetsToActiveRegion(activeRegion) {
-            if (projectAssociationsOnly(this.projectId)) {
+            if (
+                projectAssociationsOnly(this.projectId) ||
+                !this.isSectionChecked("credible-sets")
+            ) {
                 return;
             }
             if (!this.searchSession?.phenotype || !activeRegion) {
@@ -3357,7 +4025,7 @@ export default Vue.component("gp2-browser", {
                     this.bioIndexHostFor("genes")
                 );
                 if (token !== this.genesRequestToken) {
-                    return;
+                    return false;
                 }
                 this.genesState = {
                     ...this.genesState,
@@ -3370,15 +4038,18 @@ export default Vue.component("gp2-browser", {
                         data
                     ),
                 };
+                this.lastGenesRegion = cloneGenomicRegion(session.region);
+                return true;
             } catch (error) {
                 if (token !== this.genesRequestToken) {
-                    return;
+                    return false;
                 }
                 console.warn("GP2 Browser genes track load failed", error);
                 this.genesState = {
                     ...emptyGenesState(),
                     error: "Failed to load genes track for this locus.",
                 };
+                return false;
             }
         },
         async loadPlotOverlays(session, rows) {
@@ -3562,18 +4233,9 @@ export default Vue.component("gp2-browser", {
                 return false;
             }
         },
-        async loadInitialSearchData(session) {
+        async loadAssociationsSectionForSession(session) {
             const token = ++this.associationsRequestToken;
-            ++this.genesRequestToken;
-            ++this.plotOverlaysRequestToken;
-            ++this.credibleSetsRequestToken;
-            ++this.globalEnrichmentRequestToken;
-
-            if (this.regionLoadDismissTimer) {
-                clearTimeout(this.regionLoadDismissTimer);
-                this.regionLoadDismissTimer = null;
-            }
-            this.regionLoadProgress = startRegionLoadProgress();
+            const recombToken = ++this.plotOverlaysRequestToken;
             this.associationsState = emptyAssociationsState();
 
             const host = this.bioIndexHostFor("associations");
@@ -3582,11 +4244,10 @@ export default Vue.component("gp2-browser", {
                     ...emptyAssociationsState(),
                     error: "BioIndex host is not available.",
                 };
-                for (const step of this.regionLoadProgress.steps) {
-                    this.setRegionLoadStep(step.id, VKS_REGION_LOAD_STATUS.FAILED);
-                }
-                this.closeRegionLoadProgressIfSettled();
-                return;
+                this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.FAILED);
+                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.FAILED);
+                this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                return false;
             }
 
             let formattedRows = [];
@@ -3596,17 +4257,15 @@ export default Vue.component("gp2-browser", {
             try {
                 const result = await fetchAssociations(session, host, this.projectId);
                 if (token !== this.associationsRequestToken) {
-                    return;
+                    return false;
                 }
-
                 const kpRows = formatAssociationRows(result.rows, session, {
                     project: VKS_ASSOCIATION_PROJECT_KP,
                 });
                 const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
                 if (token !== this.associationsRequestToken) {
-                    return;
+                    return false;
                 }
-
                 formattedRows = mergeAssociationRowsByVariantAndAncestry(
                     kpRows,
                     ceRows,
@@ -3615,6 +4274,7 @@ export default Vue.component("gp2-browser", {
                 if (!this.dataRegion) {
                     this.dataRegion = cloneGenomicRegion(session.region);
                 }
+                this.lastAssociationsRegion = cloneGenomicRegion(session.region);
                 this.associationsState = {
                     ...this.associationsState,
                     error: null,
@@ -3626,12 +4286,11 @@ export default Vue.component("gp2-browser", {
                 this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
             } catch (error) {
                 if (token !== this.associationsRequestToken) {
-                    return;
+                    return false;
                 }
-                // KP failed — still try CE overlay so the page is not empty.
                 const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
                 if (token !== this.associationsRequestToken) {
-                    return;
+                    return false;
                 }
                 if (ceRows.length) {
                     formattedRows = ceRows;
@@ -3639,6 +4298,7 @@ export default Vue.component("gp2-browser", {
                     if (!this.dataRegion) {
                         this.dataRegion = cloneGenomicRegion(session.region);
                     }
+                    this.lastAssociationsRegion = cloneGenomicRegion(session.region);
                     this.associationsState = {
                         ...this.associationsState,
                         error: null,
@@ -3648,7 +4308,10 @@ export default Vue.component("gp2-browser", {
                         query: null,
                     };
                     this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
-                    console.warn("GP2 Browser KP associations load failed; showing GWAS-CE only", error);
+                    console.warn(
+                        "GP2 Browser KP associations load failed; showing GWAS-CE only",
+                        error
+                    );
                 } else {
                     associationFailed = true;
                     console.warn("GP2 Browser associations load failed", error);
@@ -3656,28 +4319,21 @@ export default Vue.component("gp2-browser", {
                         ...emptyAssociationsState(),
                         error: "Failed to load associations. Please try again.",
                     };
-                    this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.FAILED);
+                    this.setRegionLoadStep(
+                        "associations",
+                        VKS_REGION_LOAD_STATUS.FAILED
+                    );
                 }
             }
 
             if (token !== this.associationsRequestToken) {
-                return;
+                return false;
             }
 
-            if (projectAssociationsOnly(this.projectId)) {
-                this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.DONE);
-                this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.DONE);
-                this.setRegionLoadStep(
-                    "globalEnrichment",
-                    VKS_REGION_LOAD_STATUS.DONE
-                );
-
-                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
-                try {
-                    const recombData = await fetchRecombinationRate(session.region);
-                    if (token !== this.associationsRequestToken) {
-                        return;
-                    }
+            this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+            try {
+                const recombData = await fetchRecombinationRate(session.region);
+                if (recombToken === this.plotOverlaysRequestToken) {
                     const leadRow =
                         pickLeadVariantRow(
                             filterAssociationRowsByProject(
@@ -3694,10 +4350,9 @@ export default Vue.component("gp2-browser", {
                         refVariantUserSet: false,
                     };
                     this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.DONE);
-                } catch (error) {
-                    if (token !== this.associationsRequestToken) {
-                        return;
-                    }
+                }
+            } catch (error) {
+                if (recombToken === this.plotOverlaysRequestToken) {
                     console.warn("GP2 Browser plot overlays load failed", error);
                     this.plotOverlaysState = {
                         ...emptyPlotOverlaysState(),
@@ -3706,55 +4361,287 @@ export default Vue.component("gp2-browser", {
                     };
                     this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.FAILED);
                 }
+            }
 
-                if (!associationFailed && formattedRows.length) {
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+            if (!associationFailed && formattedRows.length) {
+                this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                try {
+                    const ldResult = await this.enrichAssociationRowsByProject(
+                        formattedRows,
+                        session
+                    );
+                    const rowsWithLd = ldResult.rows;
+                    if (token !== this.associationsRequestToken) {
+                        return false;
+                    }
+                    const ldAvailable = rowsWithLd.some(
+                        (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                    );
+                    this.associationsState = {
+                        ...this.associationsState,
+                        ldError: ldAvailable
+                            ? null
+                            : "LD scores could not be loaded for this locus.",
+                        rows: rowsWithLd,
+                    };
+                    this.plotOverlaysState = {
+                        ...this.plotOverlaysState,
+                        refVariant:
+                            ldResult.refVariant ||
+                            rowToLdVariant(pickLeadVariantRow(rowsWithLd)),
+                    };
+                    this.setRegionLoadStep(
+                        "ld",
+                        ldAvailable
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                } catch (ldError) {
+                    if (token !== this.associationsRequestToken) {
+                        return false;
+                    }
+                    console.warn("GP2 Browser LD score fetch failed", ldError);
+                    this.associationsState = {
+                        ...this.associationsState,
+                        ldError: "LD scores could not be loaded for this locus.",
+                    };
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                }
+            } else {
+                this.setRegionLoadStep(
+                    "ld",
+                    associationFailed
+                        ? VKS_REGION_LOAD_STATUS.FAILED
+                        : VKS_REGION_LOAD_STATUS.DONE
+                );
+            }
+
+            if (!associationFailed) {
+                this.probeAncestryAssociationAvailabilityForSession(session);
+            }
+            this.loadPendingAssociationExtras();
+            return !associationFailed;
+        },
+        async loadInitialSearchData(session) {
+            const token = ++this.associationsRequestToken;
+            ++this.genesRequestToken;
+            ++this.plotOverlaysRequestToken;
+            ++this.credibleSetsRequestToken;
+            ++this.globalEnrichmentRequestToken;
+
+            if (this.regionLoadDismissTimer) {
+                clearTimeout(this.regionLoadDismissTimer);
+                this.regionLoadDismissTimer = null;
+            }
+            const associationsOnly = projectAssociationsOnly(this.projectId);
+            const loadAssoc = this.isSectionChecked("associations");
+            const loadGenes = !associationsOnly && this.isSectionChecked("genes");
+            const loadCs =
+                !associationsOnly && this.isSectionChecked("credible-sets");
+            const loadGe =
+                !associationsOnly && this.isSectionChecked("global-enrichment");
+            const loadV2g =
+                !associationsOnly &&
+                this.isSectionChecked("variant-to-gene-links") &&
+                !loadGe;
+            const loadS2g =
+                !associationsOnly && this.isSectionChecked("snp2gene-links");
+
+            const initialStepIds = [
+                ...(loadAssoc ? ["associations", "recomb", "ld"] : []),
+                ...(loadGenes ? ["genes"] : []),
+                ...(loadCs ? ["credibleSets"] : []),
+                ...(loadGe ? ["globalEnrichment"] : []),
+                ...(loadV2g ? ["geneLinks"] : []),
+                ...(loadS2g ? ["snp2geneLinks"] : []),
+            ];
+
+            this.regionLoadProgress = startGp2RegionLoadProgress(initialStepIds);
+            this.associationsState = emptyAssociationsState();
+
+            if (!initialStepIds.length) {
+                this.closeRegionLoadProgressIfSettled();
+                return;
+            }
+
+            const host = this.bioIndexHostFor("associations");
+            if (loadAssoc && !host) {
+                this.associationsState = {
+                    ...emptyAssociationsState(),
+                    error: "BioIndex host is not available.",
+                };
+                for (const step of this.regionLoadProgress.steps) {
+                    this.setRegionLoadStep(step.id, VKS_REGION_LOAD_STATUS.FAILED);
+                }
+                this.closeRegionLoadProgressIfSettled();
+                return;
+            }
+
+            let formattedRows = [];
+            let associationFailed = false;
+
+            if (loadAssoc) {
+                this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
+                try {
+                    const result = await fetchAssociations(session, host, this.projectId);
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+
+                    const kpRows = formatAssociationRows(result.rows, session, {
+                        project: VKS_ASSOCIATION_PROJECT_KP,
+                    });
+                    const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+
+                    formattedRows = mergeAssociationRowsByVariantAndAncestry(
+                        kpRows,
+                        ceRows,
+                        primaryAssociationAncestry(session)
+                    );
+                    if (!this.dataRegion) {
+                        this.dataRegion = cloneGenomicRegion(session.region);
+                    }
+                    this.lastAssociationsRegion = cloneGenomicRegion(session.region);
+                    this.associationsState = {
+                        ...this.associationsState,
+                        error: null,
+                        ldError: null,
+                        rows: formattedRows,
+                        index: result.index,
+                        query: result.q,
+                    };
+                    this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
+                } catch (error) {
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+                    // KP failed — still try CE overlay so the page is not empty.
+                    const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+                    if (ceRows.length) {
+                        formattedRows = ceRows;
+                        associationFailed = false;
+                        if (!this.dataRegion) {
+                            this.dataRegion = cloneGenomicRegion(session.region);
+                        }
+                        this.lastAssociationsRegion = cloneGenomicRegion(session.region);
+                        this.associationsState = {
+                            ...this.associationsState,
+                            error: null,
+                            ldError: null,
+                            rows: formattedRows,
+                            index: null,
+                            query: null,
+                        };
+                        this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
+                        console.warn("GP2 Browser KP associations load failed; showing GWAS-CE only", error);
+                    } else {
+                        associationFailed = true;
+                        console.warn("GP2 Browser associations load failed", error);
+                        this.associationsState = {
+                            ...emptyAssociationsState(),
+                            error: "Failed to load associations. Please try again.",
+                        };
+                        this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.FAILED);
+                    }
+                }
+            }
+
+            if (token !== this.associationsRequestToken) {
+                return;
+            }
+
+            if (projectAssociationsOnly(this.projectId)) {
+                if (loadAssoc) {
+                    this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
                     try {
-                        const ldResult = await this.enrichAssociationRowsByProject(
-                            formattedRows,
-                            session
-                        );
-                        const rowsWithLd = ldResult.rows;
+                        const recombData = await fetchRecombinationRate(session.region);
                         if (token !== this.associationsRequestToken) {
                             return;
                         }
-                        const ldAvailable = rowsWithLd.some(
-                            (row) => row.LDS != null && !Number.isNaN(row.LDS)
-                        );
-                        this.associationsState = {
-                            ...this.associationsState,
-                            rows: rowsWithLd,
-                            ldLoading: false,
-                            ldError: ldAvailable
-                                ? null
-                                : "LD scores could not be loaded for this locus.",
+                        const leadRow =
+                            pickLeadVariantRow(
+                                filterAssociationRowsByProject(
+                                    formattedRows,
+                                    VKS_ASSOCIATION_PROJECT_KP
+                                )
+                            ) || pickLeadVariantRow(formattedRows);
+                        this.plotOverlaysState = {
+                            ready: true,
+                            loading: false,
+                            error: null,
+                            recombData,
+                            refVariant: rowToLdVariant(leadRow),
+                            refVariantUserSet: false,
                         };
-                        if (ldResult.refVariant) {
-                            this.plotOverlaysState = {
-                                ...this.plotOverlaysState,
-                                refVariant: ldResult.refVariant,
-                            };
-                        }
-                        this.setRegionLoadStep(
-                            "ld",
-                            ldAvailable
-                                ? VKS_REGION_LOAD_STATUS.DONE
-                                : VKS_REGION_LOAD_STATUS.FAILED
-                        );
+                        this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.DONE);
                     } catch (error) {
                         if (token !== this.associationsRequestToken) {
                             return;
                         }
-                        console.warn("GP2 Browser LD enrich failed", error);
-                        this.associationsState = {
-                            ...this.associationsState,
-                            ldLoading: false,
-                            ldError: "LD scores could not be loaded for this locus.",
+                        console.warn("GP2 Browser plot overlays load failed", error);
+                        this.plotOverlaysState = {
+                            ...emptyPlotOverlaysState(),
+                            ready: true,
+                            error: "Recombination overlay could not be loaded for this locus.",
                         };
-                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                        this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.FAILED);
                     }
-                } else {
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+
+                    if (!associationFailed && formattedRows.length) {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                        try {
+                            const ldResult = await this.enrichAssociationRowsByProject(
+                                formattedRows,
+                                session
+                            );
+                            const rowsWithLd = ldResult.rows;
+                            if (token !== this.associationsRequestToken) {
+                                return;
+                            }
+                            const ldAvailable = rowsWithLd.some(
+                                (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                            );
+                            this.associationsState = {
+                                ...this.associationsState,
+                                rows: rowsWithLd,
+                                ldLoading: false,
+                                ldError: ldAvailable
+                                    ? null
+                                    : "LD scores could not be loaded for this locus.",
+                            };
+                            if (ldResult.refVariant) {
+                                this.plotOverlaysState = {
+                                    ...this.plotOverlaysState,
+                                    refVariant: ldResult.refVariant,
+                                };
+                            }
+                            this.setRegionLoadStep(
+                                "ld",
+                                ldAvailable
+                                    ? VKS_REGION_LOAD_STATUS.DONE
+                                    : VKS_REGION_LOAD_STATUS.FAILED
+                            );
+                        } catch (error) {
+                            if (token !== this.associationsRequestToken) {
+                                return;
+                            }
+                            console.warn("GP2 Browser LD enrich failed", error);
+                            this.associationsState = {
+                                ...this.associationsState,
+                                ldLoading: false,
+                                ldError: "LD scores could not be loaded for this locus.",
+                            };
+                            this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                        }
+                    } else {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+                    }
                 }
 
                 this.closeRegionLoadProgressIfSettled();
@@ -3766,13 +4653,30 @@ export default Vue.component("gp2-browser", {
             const recombToken = ++this.plotOverlaysRequestToken;
             const globalEnrichmentToken = ++this.globalEnrichmentRequestToken;
 
-            this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
-            this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
-            this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
-            this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
+            if (loadGenes) {
+                this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadAssoc) {
+                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadCs) {
+                this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadGe) {
+                this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadV2g) {
+                this.setRegionLoadStep("geneLinks", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadS2g) {
+                this.setRegionLoadStep("snp2geneLinks", VKS_REGION_LOAD_STATUS.LOADING);
+            }
 
             await Promise.all([
                 (async () => {
+                    if (!loadGenes) {
+                        return;
+                    }
                     try {
                         const data = await fetchGenesTrackData(
                             session.region,
@@ -3793,6 +4697,7 @@ export default Vue.component("gp2-browser", {
                                 data
                             ),
                         };
+                        this.lastGenesRegion = cloneGenomicRegion(session.region);
                         this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.DONE);
                     } catch (error) {
                         if (genesToken !== this.genesRequestToken) {
@@ -3807,6 +4712,9 @@ export default Vue.component("gp2-browser", {
                     }
                 })(),
                 (async () => {
+                    if (!loadAssoc) {
+                        return;
+                    }
                     try {
                         const recombData = await fetchRecombinationRate(session.region);
                         if (recombToken !== this.plotOverlaysRequestToken) {
@@ -3836,6 +4744,9 @@ export default Vue.component("gp2-browser", {
                     }
                 })(),
                 (async () => {
+                    if (!loadCs) {
+                        return;
+                    }
                     const ok = await this.loadCredibleSetsList(session);
                     if (ok) {
                         this.setRegionLoadStep(
@@ -3850,10 +4761,37 @@ export default Vue.component("gp2-browser", {
                     }
                 })(),
                 (async () => {
+                    if (!loadGe) {
+                        return;
+                    }
                     await this.loadGlobalEnrichmentForSession(session, {
                         offerClassifyAction: true,
                         requestToken: globalEnrichmentToken,
                     });
+                })(),
+                (async () => {
+                    if (!loadV2g) {
+                        return;
+                    }
+                    const ok = await this.loadV2gTissueCatalogForSession(session);
+                    this.setRegionLoadStep(
+                        "geneLinks",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+                (async () => {
+                    if (!loadS2g) {
+                        return;
+                    }
+                    const ok = await this.onS2gLoad();
+                    this.setRegionLoadStep(
+                        "snp2geneLinks",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
                 })(),
             ]);
 
@@ -3861,66 +4799,71 @@ export default Vue.component("gp2-browser", {
                 return;
             }
 
-            if (!associationFailed && formattedRows.length) {
-                this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
-                try {
-                    const ldResult = await this.enrichAssociationRowsByProject(
-                        formattedRows,
-                        session
-                    );
-                    const rowsWithLd = ldResult.rows;
-                    if (token !== this.associationsRequestToken) {
-                        return;
+            if (loadAssoc) {
+                if (!associationFailed && formattedRows.length) {
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                    try {
+                        const ldResult = await this.enrichAssociationRowsByProject(
+                            formattedRows,
+                            session
+                        );
+                        const rowsWithLd = ldResult.rows;
+                        if (token !== this.associationsRequestToken) {
+                            return;
+                        }
+                        const ldAvailable = rowsWithLd.some(
+                            (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                        );
+                        this.associationsState = {
+                            ...this.associationsState,
+                            ldError: ldAvailable
+                                ? null
+                                : "LD scores could not be loaded for this locus.",
+                            rows: rowsWithLd,
+                        };
+                        this.plotOverlaysState = {
+                            ...this.plotOverlaysState,
+                            refVariant:
+                                ldResult.refVariant ||
+                                rowToLdVariant(pickLeadVariantRow(rowsWithLd)),
+                        };
+                        this.setRegionLoadStep(
+                            "ld",
+                            ldAvailable
+                                ? VKS_REGION_LOAD_STATUS.DONE
+                                : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    } catch (ldError) {
+                        if (token !== this.associationsRequestToken) {
+                            return;
+                        }
+                        console.warn("GP2 Browser LD score fetch failed", ldError);
+                        this.associationsState = {
+                            ...this.associationsState,
+                            ldLoading: false,
+                            ldError: "LD scores could not be loaded for this locus.",
+                        };
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
                     }
-                    const ldAvailable = rowsWithLd.some(
-                        (row) => row.LDS != null && !Number.isNaN(row.LDS)
-                    );
-                    this.associationsState = {
-                        ...this.associationsState,
-                        ldError: ldAvailable
-                            ? null
-                            : "LD scores could not be loaded for this locus.",
-                        rows: rowsWithLd,
-                    };
-                    this.plotOverlaysState = {
-                        ...this.plotOverlaysState,
-                        refVariant:
-                            ldResult.refVariant ||
-                            rowToLdVariant(pickLeadVariantRow(rowsWithLd)),
-                    };
+                } else {
                     this.setRegionLoadStep(
                         "ld",
-                        ldAvailable
-                            ? VKS_REGION_LOAD_STATUS.DONE
-                            : VKS_REGION_LOAD_STATUS.FAILED
+                        associationFailed
+                            ? VKS_REGION_LOAD_STATUS.FAILED
+                            : VKS_REGION_LOAD_STATUS.DONE
                     );
-                } catch (ldError) {
-                    if (token !== this.associationsRequestToken) {
-                        return;
-                    }
-                    console.warn("GP2 Browser LD score fetch failed", ldError);
-                    this.associationsState = {
-                        ...this.associationsState,
-                        ldError: "LD scores could not be loaded for this locus.",
-                    };
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
                 }
-            } else {
-                this.setRegionLoadStep(
-                    "ld",
-                    associationFailed
-                        ? VKS_REGION_LOAD_STATUS.FAILED
-                        : VKS_REGION_LOAD_STATUS.DONE
-                );
             }
 
             this.closeRegionLoadProgressIfSettled();
-            if (!associationFailed) {
-                this.probeAncestryAssociationAvailabilityForSession(session);
+            if (loadAssoc) {
+                if (!associationFailed) {
+                    this.probeAncestryAssociationAvailabilityForSession(session);
+                }
+                // Primary page data is loaded; now fetch URL/session sub-ancestries
+                // and additive phenotypes.
+                this.loadPendingAssociationExtras();
             }
-            // Primary page data is loaded; now fetch URL/session sub-ancestries
-            // and additive phenotypes.
-            this.loadPendingAssociationExtras();
         },
         async loadPendingAssociationExtras() {
             const pendingAncestries = parseSubAncestriesParam(
@@ -4403,7 +5346,11 @@ export default Vue.component("gp2-browser", {
                             [ancestry]: emptyMessage,
                         },
                     };
-                    await this.mergeCredibleSetsForAncestry(ancestry);
+                    if (this.isSectionChecked("credible-sets")) {
+                        await this.mergeCredibleSetsForAncestry(ancestry);
+                    } else {
+                        this.lastCredibleSetsListRegion = null;
+                    }
                     this.offerUnderstudiedForAncestry(ancestry);
                 } else {
                     this.associationsState = {
@@ -4431,10 +5378,14 @@ export default Vue.component("gp2-browser", {
                             [loadingKey]: emptyMessage,
                         },
                     };
-                    await this.mergeCredibleSetsForPhenotypeAncestry(
-                        phenotypeObj,
-                        ancestry
-                    );
+                    if (this.isSectionChecked("credible-sets")) {
+                        await this.mergeCredibleSetsForPhenotypeAncestry(
+                            phenotypeObj,
+                            ancestry
+                        );
+                    } else {
+                        this.lastCredibleSetsListRegion = null;
+                    }
                 }
                 return true;
             } catch (error) {
@@ -4605,6 +5556,13 @@ export default Vue.component("gp2-browser", {
                     this.searchSession
                 );
                 associationsOk = true;
+                const loadCs =
+                    !projectAssociationsOnly(this.projectId) &&
+                    this.isSectionChecked("credible-sets");
+                const loadGe =
+                    !projectAssociationsOnly(this.projectId) &&
+                    (this.isSectionChecked("global-enrichment") ||
+                        this.isSectionChecked("variant-to-gene-links"));
                 if (ownsProgress) {
                     this.setRegionLoadStep(
                         "ld",
@@ -4612,60 +5570,77 @@ export default Vue.component("gp2-browser", {
                             ? VKS_REGION_LOAD_STATUS.DONE
                             : VKS_REGION_LOAD_STATUS.FAILED
                     );
-                    this.setRegionLoadStep(
-                        "credibleSets",
-                        VKS_REGION_LOAD_STATUS.LOADING
-                    );
+                    if (loadCs) {
+                        this.setRegionLoadStep(
+                            "credibleSets",
+                            VKS_REGION_LOAD_STATUS.LOADING
+                        );
+                    }
                 }
                 let credibleSetsOk = true;
-                try {
-                    credibleSetsOk = await this.mergeCredibleSetsForPhenotype(
-                        phenotype
-                    );
-                } catch (csError) {
-                    credibleSetsOk = false;
-                    console.warn(
-                        `GP2 Browser ${phenotypeName} credible sets merge failed`,
-                        csError
-                    );
+                if (loadCs) {
+                    try {
+                        credibleSetsOk = await this.mergeCredibleSetsForPhenotype(
+                            phenotype
+                        );
+                    } catch (csError) {
+                        credibleSetsOk = false;
+                        console.warn(
+                            `GP2 Browser ${phenotypeName} credible sets merge failed`,
+                            csError
+                        );
+                    }
+                } else {
+                    this.lastCredibleSetsListRegion = null;
                 }
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
                 if (ownsProgress) {
-                    this.setRegionLoadStep(
-                        "credibleSets",
-                        credibleSetsOk
-                            ? VKS_REGION_LOAD_STATUS.DONE
-                            : VKS_REGION_LOAD_STATUS.FAILED
-                    );
-                    this.setRegionLoadStep(
-                        "globalEnrichment",
-                        VKS_REGION_LOAD_STATUS.LOADING
-                    );
+                    if (loadCs) {
+                        this.setRegionLoadStep(
+                            "credibleSets",
+                            credibleSetsOk
+                                ? VKS_REGION_LOAD_STATUS.DONE
+                                : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    }
+                    if (loadGe) {
+                        this.setRegionLoadStep(
+                            "globalEnrichment",
+                            VKS_REGION_LOAD_STATUS.LOADING
+                        );
+                    }
                 }
                 let globalEnrichmentOk = true;
-                try {
-                    globalEnrichmentOk = await this.mergeGlobalEnrichmentForPhenotype(
-                        phenotype
-                    );
-                } catch (geError) {
-                    globalEnrichmentOk = false;
-                    console.warn(
-                        `GP2 Browser ${phenotypeName} global enrichment merge failed`,
-                        geError
-                    );
+                if (loadGe) {
+                    try {
+                        globalEnrichmentOk = await this.mergeGlobalEnrichmentForPhenotype(
+                            phenotype
+                        );
+                    } catch (geError) {
+                        globalEnrichmentOk = false;
+                        console.warn(
+                            `GP2 Browser ${phenotypeName} global enrichment merge failed`,
+                            geError
+                        );
+                    }
+                } else {
+                    this.lastGlobalEnrichmentRegion = null;
+                    this.lastV2gCatalogRegion = null;
                 }
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
                 if (ownsProgress) {
-                    this.setRegionLoadStep(
-                        "globalEnrichment",
-                        globalEnrichmentOk
-                            ? VKS_REGION_LOAD_STATUS.DONE
-                            : VKS_REGION_LOAD_STATUS.FAILED
-                    );
+                    if (loadGe) {
+                        this.setRegionLoadStep(
+                            "globalEnrichment",
+                            globalEnrichmentOk
+                                ? VKS_REGION_LOAD_STATUS.DONE
+                                : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    }
                     this.finishAdditivePhenotypeLoadProgress({
                         associationsOk: true,
                         ldOk,
@@ -6169,9 +7144,10 @@ export default Vue.component("gp2-browser", {
             };
         },
         async onS2gLoad() {
-            const region = this.viewRegion || this.searchSession?.region;
+            const region =
+                this.dataRegion || this.viewRegion || this.searchSession?.region;
             if (!region) {
-                return;
+                return false;
             }
             const host = this.bioIndexHostFor("variant-links");
             const token = ++this.s2gRequestToken;
@@ -6183,14 +7159,15 @@ export default Vue.component("gp2-browser", {
             try {
                 const rows = await fetchVariantLinks(region, host);
                 if (token !== this.s2gRequestToken) {
-                    return;
+                    return false;
                 }
+                this.lastS2gRegion = cloneGenomicRegion(region);
                 if (!rows.length) {
                     this.s2gState = {
                         ...emptyS2gState(),
                         error: "No SNP-to-gene links found in this region.",
                     };
-                    return;
+                    return true;
                 }
                 const tissueData = buildS2gTissueData(rows);
                 const methods = collectMethodsFromTissueData(tissueData);
@@ -6212,9 +7189,10 @@ export default Vue.component("gp2-browser", {
                     deselectedGenes,
                     viewMode: "tracks",
                 };
+                return true;
             } catch (error) {
                 if (token !== this.s2gRequestToken) {
-                    return;
+                    return false;
                 }
                 console.warn("GP2 Browser variant-links fetch failed", error);
                 this.s2gState = {
@@ -6222,10 +7200,12 @@ export default Vue.component("gp2-browser", {
                     loadingTissue: null,
                     error: "Failed to load SNP-to-gene links for this region.",
                 };
+                return false;
             }
         },
         onS2gClear() {
             this.s2gRequestToken += 1;
+            this.lastS2gRegion = null;
             this.s2gState = emptyS2gState();
         },
         onS2gDeselectedMethodsUpdate(deselectedMethods) {
