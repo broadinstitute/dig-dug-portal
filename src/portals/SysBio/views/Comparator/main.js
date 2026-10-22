@@ -419,7 +419,14 @@ new Vue({
             return config;
         },
         async getAllGenes(genes){
-            this.allGenes = genes;
+            // getEnrichr caps long lists, so order the table's genes by their
+            // best -log10P across the two comparisons before handing them over
+            const wanted = new Set(genes);
+            const best = d => Math.max(d[this.y1] || 0, d[this.y2] || 0);
+            this.allGenes = this.bulkData19K
+                .filter(d => wanted.has(d.gene))
+                .sort((a, b) => best(b) - best(a))
+                .map(d => d.gene);
             await this.populateEnrichr();
         }
     },

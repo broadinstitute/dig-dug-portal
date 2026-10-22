@@ -310,6 +310,7 @@ new Vue({
                 up ? d.logFoldChange >= this.volcanoXConditionGreater
                 : d.logFoldChange <= -this.volcanoXConditionGreater );
             data = data.filter(d=> d["-log10P"] >= this.volcanoYCondition)
+                .sort((a, b) => b["-log10P"] - a["-log10P"]) // getEnrichr caps the list; keep the most significant
                 .map(d => d.gene);
             return data;
         },

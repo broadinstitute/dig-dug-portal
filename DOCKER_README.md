@@ -50,7 +50,7 @@ This document explains how to build and run the Portal using Docker.
 - `DEFAULT_PORTAL`: Default portal identifier (default: empty)
 - `GA4_ID`: Google Analytics 4 measurement ID (default: `G-D3G6XZYGBR`)
 - `SYSBIO_HOST`: SysBio API URL (default: `https://sysbio.hugeampkpnbi.org`)
-- `ENRICHR_HOST`: Enrichr API URL (default: `https://matkp.hugeampkpnbi.org`)
+- `ENRICHR_HOST`: Enrichr API URL (default: `https://sysbio.hugeampkpnbi.org`)
 - `SHOW_LOGIN`: Show login controls when set to `true` (default: `false`)
 - `USE_REMOTE_CMS`: When `true`, the SysBio portal fetches CMS content live from `hugeampkpncms.org` at runtime. When unset or `false` (default), it serves the committed snapshot from `/cmsdata/` instead, eliminating outside requests. Flip to `true` to preview unpublished CMS edits without redeploying.
 
