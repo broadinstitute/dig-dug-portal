@@ -39,9 +39,8 @@
           "path": "gwas.html"
         },
         {
-          "label": "Phenotype Comparator Browser",
-          "path": "comp.html",
-          "hide": true
+          "label": "Phenotype Comparator",
+          "path": "comp.html"
         }
       ]
     },
