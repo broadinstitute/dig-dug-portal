@@ -137,7 +137,7 @@
                                           <div class="tab-section">
                                             <div class="row">
                                                 <p id="enrichr-explain">The top 10 pathways from the selected gene set library are provided
-                                                for all differentially expressed genes from the above-selected dataset
+                                                for the <strong>top 2,000</strong> differentially expressed genes from the above-selected dataset
                                                 and p-value filters (<strong>{{ $parent.upGenes.length }}</strong> upregulated,
                                                 <strong>{{ $parent.downGenes.length}}</strong> downregulated genes).
                                                 If you use data from this tool, please review our <a href="about.html?page=policies">Citation
