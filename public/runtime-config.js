@@ -7,7 +7,7 @@ window.__RUNTIME_CONFIG__ = {
     DEFAULT_PORTAL: "",
     GA4_ID: "G-D3G6XZYGBR",
     SYSBIO_HOST: "https://sysbio.hugeampkpnbi.org",
-    ENRICHR_HOST: "https://matkp.hugeampkpnbi.org",
+    ENRICHR_HOST: "https://sysbio.hugeampkpnbi.org",
     SHOW_LOGIN: false,
     USE_REMOTE_CMS: false,
 };

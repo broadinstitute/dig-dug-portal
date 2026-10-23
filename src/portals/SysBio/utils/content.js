@@ -64,15 +64,25 @@ export async function getNewsItem(itemId) {
     }
 }
 
+// Enrichr's addList time grows with list length (~3 s at 2k genes, ~30 s at
+// 10k, which is past the bioindex proxy timeout), so cap what we send. Callers
+// order their lists most-significant first so the cap keeps the genes that matter.
+export const MAX_ENRICHR_GENES = 2000;
+
 export async function getEnrichr(genesList, library) {
     //only run if genesList is not empty
     if (genesList.length === 0) {
         return [];
     }
+    let genes = Array.from(new Set(genesList));
+    if (genes.length > MAX_ENRICHR_GENES) {
+        console.warn(`ENRICHR: sending the ${MAX_ENRICHR_GENES} most significant of ${genes.length} genes`);
+        genes = genes.slice(0, MAX_ENRICHR_GENES);
+    }
     let enrichrEndpoint = `${ENRICHR_HOST}/api/enrichr/enrichr`;
     let enrichrRequest = {
         gene_set_library: library,
-        gene_list: genesList,
+        gene_list: genes,
         gene_list_desc: "my_list",
     };
     try {

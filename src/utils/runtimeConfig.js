@@ -11,7 +11,7 @@ export const GA4_ID = config.GA4_ID || "";
 export const SYSBIO_HOST =
     config.SYSBIO_HOST || "https://sysbio.hugeampkpnbi.org";
 export const ENRICHR_HOST =
-    config.ENRICHR_HOST || "https://matkp.hugeampkpnbi.org";
+    config.ENRICHR_HOST || "https://sysbio.hugeampkpnbi.org";
 export const SHOW_LOGIN = config.SHOW_LOGIN === true;
 export const USE_REMOTE_CMS = config.USE_REMOTE_CMS === true;
 
