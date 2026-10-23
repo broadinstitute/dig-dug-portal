@@ -10,6 +10,18 @@ import keyParams from "@/utils/keyParams";
 
 Vue.use(VueCookies);
 
+const DRUPAL_CMS_BASE_URL = "https://hugeampkpncms.org";
+const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API; replace with its hosted URL later.
+// const CONTENT_CMS_BASE_URL = DRUPAL_CMS_BASE_URL; // Drupal
+
+function cmsUrl(baseUrl, pathname, parameters = {}) {
+    const query = Object.entries(parameters)
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join("&");
+
+    return `${baseUrl}${pathname}${query ? `?${query}` : ""}`;
+}
+
 export default {
     namespaced: true,
 
@@ -71,7 +83,9 @@ export default {
     actions: {
         async getResearchMode(context, param) {
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_page_access?pageid=" + param.pageID
+                cmsUrl(CONTENT_CMS_BASE_URL, "/view/rest/get_research_page_access", {
+                    pageid: param.pageID,
+                })
             ).then(resp => resp.json());
             //check for cookie if dev mode
             if (!!json[0].field_page_mode && json[0].field_page_mode === 'dev') {
@@ -85,7 +99,9 @@ export default {
         async getResearchMethod(context, param) {
 
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_method?method=" + param.methodID
+                cmsUrl(CONTENT_CMS_BASE_URL, "/view/rest/get_research_method", {
+                    method: param.methodID,
+                })
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchMethod", json);
@@ -93,14 +109,20 @@ export default {
         async getResearchMenu(context, param) {
 
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_menu?menu=" + param.menuID
+                cmsUrl(CONTENT_CMS_BASE_URL, "/view/rest/get_research_menu", {
+                    menu: param.menuID,
+                })
             ).then(resp => resp.json());
             context.commit("setResearchMenu", json);
         },
         async getResearchDevPage(context, param) {
             if (param.devID != "" && param.devPW != "") {
                 let json = await fetch(
-                    "https://hugeampkpncms.org/view/rest/get_research_page_dev?pageid=" + param.pageID + "&&devid=" + param.devID + "&&devpw=" + param.devPW
+                    cmsUrl(DRUPAL_CMS_BASE_URL, "/view/rest/get_research_page_dev", {
+                        pageid: param.pageID,
+                        devid: param.devID,
+                        devpw: param.devPW,
+                    })
                 ).then(resp => resp.json());
                 //if login successful, and user wants to be remembered
                 if (json.length > 0 && param.devCK) {
@@ -115,7 +137,9 @@ export default {
         },
         async getResearchPage(context, param) {
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_page?pageid=" + param.pageID
+                cmsUrl(CONTENT_CMS_BASE_URL, "/view/rest/get_research_page", {
+                    pageid: param.pageID,
+                })
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchPage", json);
@@ -138,7 +162,7 @@ export default {
 
             console.log("wildCard here", param.wildCard);
 
-            let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
+            let fetchUrl = (param.domain == "hugeampkpn") ? `${DRUPAL_CMS_BASE_URL}/servedata/dataset?dataset=` + param.dataPoint : param.dataPoint;
 
             if (param.wildCard) {
                 fetchUrl = fetchUrl.replaceAll(param.wildCard + ",", "");

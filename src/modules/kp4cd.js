@@ -3,6 +3,9 @@
 
  */
 
+const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API; replace with its hosted URL later.
+// const CONTENT_CMS_BASE_URL = "https://hugeampkpncms.org"; // Drupal
+
 // Helper function to fetch with fallback: try hugeampkpncms.org first, fallback to kp4cd.org on error
 async function fetchWithFallback(PRIMARY_URL, FALLBACK_URL) {
     // Replace kp4cd.org with hugeampkpncms.org for the first attempt
@@ -147,7 +150,7 @@ export default {
             let portal = selectedDiseaseGroup || "md";
 
             let json = await fetchWithFallback(
-                `https://hugeampkpncms.org/rest/views/news2vueportal?portal=` + portal,
+                `${CONTENT_CMS_BASE_URL}/rest/views/news2vueportal?portal=` + portal,
                 `https://kp4cd.org/rest/views/news2vueportal?portal=` + portal
             );
             // set the data
@@ -328,7 +331,7 @@ export default {
         },
         async getPortals(context) {
             let json = await fetchWithFallback(
-                `https://hugeampkpncms.org/rest/views/a2f_community_kps`,
+                `${CONTENT_CMS_BASE_URL}/rest/views/a2f_community_kps`,
                 `https://kp4cd.org/rest/views/a2f_community_kps`
             );
             // set the data
@@ -336,7 +339,7 @@ export default {
         },
         async getHelpBook(context) {
             let json = await fetchWithFallback(
-                `https://hugeampkpncms.org/rest/views/help_book`,
+                `${CONTENT_CMS_BASE_URL}/rest/views/help_book`,
                 `https://kp4cd.org/rest/views/help_book`
             );
             // set the data
@@ -344,7 +347,7 @@ export default {
         },
         async getContentByID(context, nid) {
             let json = await fetchWithFallback(
-                `https://hugeampkpncms.org/rest/views/content_by_id?nid=` + nid,
+                `${CONTENT_CMS_BASE_URL}/rest/views/content_by_id?nid=` + nid,
                 `https://kp4cd.org/rest/views/content_by_id?nid=` + nid
             );
             // set the data
@@ -352,7 +355,7 @@ export default {
         },
         async getHelpBookSearch(context, searchKey) {
             let json = await fetchWithFallback(
-                `https://hugeampkpncms.org/rest/views/help_book_search?body=` +
+                `${CONTENT_CMS_BASE_URL}/rest/views/help_book_search?body=` +
                 searchKey,
                 `https://kp4cd.org/rest/views/help_book_search?body=` +
                 searchKey
