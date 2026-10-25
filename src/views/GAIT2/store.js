@@ -8,7 +8,7 @@ import bioIndex from "@/modules/bioIndex";
 import ldServer from "@/modules/ldServer";
 import keyParams from "@/utils/keyParams";
 import { query } from "@/utils/bioIndexUtils";
-import { uniqBy } from "lodash";
+import { uniqBy } from "@/utils/lodashUtils";
 
 Vue.use(Vuex);
 
@@ -48,7 +48,7 @@ export default new Vuex.Store({
 
             if (data.action == "remove") {
                 let tempArray = [];
-                state.pkgDataSelected.map(p => {
+                state.pkgDataSelected.map((p) => {
                     if (p.type != data.type || p.id != data.id) {
                         tempArray.push(p);
                     }
@@ -57,7 +57,6 @@ export default new Vuex.Store({
             }
         },
         setGenesInRegion(state, data) {
-
             state.genesInRegion = data;
         },
         setCodingGenesData(state, data) {
@@ -75,10 +74,10 @@ export default new Vuex.Store({
                 return {
                     chromosome: gene.chromosome,
                     start: gene.start,
-                    end: gene.end
+                    end: gene.end,
                 };
             }
-        }
+        },
     },
     actions: {
         onPhenotypeChange(context, phenotypes) {
@@ -86,22 +85,22 @@ export default new Vuex.Store({
         },
 
         async queryGenes(context, phenotypes) {
-            let queries = phenotypes.map(phenotype =>
+            let queries = phenotypes.map((phenotype) =>
                 query("gene-finder", phenotype)
             );
 
             let data = await Promise.all(queries)
-                .then(results => results.flatMap(data => data))
-                .then(data => uniqBy(data, "gene"));
+                .then((results) => results.flatMap((data) => data))
+                .then((data) => uniqBy(data, "gene"));
 
             context.commit("setGenes", data);
         },
 
         async queryBurden(context, { gene, binID }) {
-            let queries = binID.map(bin => query("burden", `${gene},${bin}`));
+            let queries = binID.map((bin) => query("burden", `${gene},${bin}`));
             let data = await Promise.all(queries)
-                .then(results => results.flatMap(data => data))
-                .then(data => uniqBy(data, "varId"));
+                .then((results) => results.flatMap((data) => data))
+                .then((data) => uniqBy(data, "varId"));
             context.commit("setVariants", data);
         },
         pkgData(context, pkgData) {
@@ -116,5 +115,5 @@ export default new Vuex.Store({
         codingGenesData(context, setCodingGenesData) {
             context.commit("setCodingGenesData", setCodingGenesData);
         },
-    }
+    },
 });

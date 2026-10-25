@@ -8,7 +8,7 @@ import ldServer from "@/modules/ldServer";
 import regionUtils from "@/utils/regionUtils";
 import keyParams from "@/utils/keyParams";
 import { query } from "@/utils/bioIndexUtils";
-import { uniqBy } from "lodash";
+import { uniqBy } from "@/utils/lodashUtils";
 
 Vue.use(Vuex);
 
@@ -45,33 +45,32 @@ export default new Vuex.Store({
         commonVarBF: null,
         rareVarBF: null,
         hugeScore: null,
-
     },
     mutations: {
         setCommonVarBF(state, BF) {
-            state.commonVarBF = BF
+            state.commonVarBF = BF;
         },
         setRareVarBF(state, BF) {
-            state.rareVarBF = BF
+            state.rareVarBF = BF;
         },
         setHugeScore(state, BF) {
-            state.hugeScore = BF
+            state.hugeScore = BF;
         },
         setUniversalPriorList(state, universalPriorList) {
-            state.universalPriorList = universalPriorList
+            state.universalPriorList = universalPriorList;
         },
         setSuggestedPriorNew(state, suggestedPriorNew) {
-            state.suggestedPriorNew = suggestedPriorNew
+            state.suggestedPriorNew = suggestedPriorNew;
         },
         setAssociationsData(state, associationsData) {
-            state.associationsData = associationsData
+            state.associationsData = associationsData;
         },
         setRegionData(state, regionData) {
-            state.regionData = regionData
+            state.regionData = regionData;
         },
         setPrior(state, prior) {
-            state.prior = prior
-            keyParams.set({ prior: prior })
+            state.prior = prior;
+            keyParams.set({ prior: prior });
         },
         setLocus(state, region = {}) {
             state.chr = region.chr || state.newChr || state.chr;
@@ -88,7 +87,7 @@ export default new Vuex.Store({
             keyParams.set({ phenotype: phenotype });
         },
         setSearchGene(state, searchGene) {
-            state.searchGene = searchGene
+            state.searchGene = searchGene;
             keyParams.set({ gene: searchGene });
         },
         setPhenotypesInSession(state, PHENOTYPES) {
@@ -111,22 +110,23 @@ export default new Vuex.Store({
                     chromosome: gene.chromosome,
                     start: gene.start,
                     end: gene.end,
-                }
+                };
             }
         },
     },
     actions: {
         commonVarBF(context, BF) {
-            context.commit('setCommonVarBF', BF)
+            context.commit("setCommonVarBF", BF);
         },
         rareVarBF(context, BF) {
-            context.commit('setRareVarBF', BF)
+            context.commit("setRareVarBF", BF);
         },
         hugeScore(context, BF) {
-            context.commit('setHugeScore', BF)
+            context.commit("setHugeScore", BF);
         },
         async queryRegion(context, regionPhenotypeMap) {
-            const newRegion = regionPhenotypeMap["region"] || context.getters.region;
+            const newRegion =
+                regionPhenotypeMap["region"] || context.getters.region;
             const phenotype = regionPhenotypeMap["phenotype"];
             context.commit("genes/clearData");
             context.commit("associations/clearData");
@@ -139,12 +139,11 @@ export default new Vuex.Store({
             }
 
             const phenoRegionQuery = `${phenotype},${newRegion.chromosome}:${newRegion.start}-${newRegion.end}`;
-            context.dispatch('associations/query', { q: phenoRegionQuery });
+            context.dispatch("associations/query", { q: phenoRegionQuery });
         },
 
         updatedUniversalSuggestedPriorList(context, universalPriorList) {
-            context.commit('setUniversalPriorList', universalPriorList);
-
+            context.commit("setUniversalPriorList", universalPriorList);
         },
 
         async getAssociationsData(context, phenoGeneInput) {
@@ -153,24 +152,28 @@ export default new Vuex.Store({
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {
-                context.state.newChr = locus.chr
+                context.state.newChr = locus.chr;
                 context.state.newStart = locus.start;
                 context.state.newEnd = locus.end;
                 //update the locus
                 context.commit("setLocus", locus);
                 context.commit("setPhenotype", phenotype);
                 context.commit("setSearchGene", gene);
-                context.commit("setPrior", 0.3696)
+                context.commit("setPrior", 0.3696);
             }
-            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start - 50000}-${locus.end + 50000}`;
-            const regionQuery = `${locus.chr}:${locus.start - 250000}-${locus.end + 250000}`;
+            const phenoRegionQuery = `${phenotype},${locus.chr}:${
+                locus.start - 50000
+            }-${locus.end + 50000}`;
+            const regionQuery = `${locus.chr}:${locus.start - 250000}-${
+                locus.end + 250000
+            }`;
 
-            context.dispatch('associations/query', { q: phenoRegionQuery });
-            context.dispatch('genes/query', { q: regionQuery });
+            context.dispatch("associations/query", { q: phenoRegionQuery });
+            context.dispatch("genes/query", { q: regionQuery });
         },
 
         async getRegion(context, gene) {
-            context.dispatch('gene/query', { q: gene });
+            context.dispatch("gene/query", { q: gene });
         },
         async getEGLData(context) {
             let dataset = "mccarthy";
@@ -179,7 +182,7 @@ export default new Vuex.Store({
         },
 
         async get52KAssociationData(context, gene) {
-            context.dispatch('geneAssociations52k/query', { q: gene });
+            context.dispatch("geneAssociations52k/query", { q: gene });
         },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
@@ -190,7 +193,5 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
-
-
-    }
+    },
 });

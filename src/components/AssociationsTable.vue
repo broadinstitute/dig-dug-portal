@@ -145,7 +145,7 @@ import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import { filter } from "lodash";
+import { isEqual } from "@/utils/lodashUtils";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
@@ -154,8 +154,6 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import DataDownload from "@/components/DataDownload";
 import Chi from "chi-squared";
-
-import { isEqual } from "lodash";
 
 export default Vue.component("AssociationsTable", {
     components: {

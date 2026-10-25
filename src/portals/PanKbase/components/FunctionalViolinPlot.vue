@@ -8,7 +8,6 @@
 <script>
 import * as d3 from "d3";
 import colors from "@/utils/colors";
-import { truncate } from "lodash";
 import Vue from "vue";
 
 export default Vue.component("functional-violin-plot", {

@@ -170,7 +170,7 @@
 
 <script>
 import Vue from "vue";
-import { orderBy, groupBy } from "lodash";
+import { orderBy, groupBy } from "@/utils/lodashUtils";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 export default Vue.component("dataset-associations", {

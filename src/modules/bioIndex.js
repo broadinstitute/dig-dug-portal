@@ -2,10 +2,10 @@ import { query } from "@/utils/bioIndexUtils";
 import {
     postAlertNotice,
     postAlertError,
-    closeAlert
+    closeAlert,
 } from "@/components/Alert";
 
-import { merge } from "lodash";
+import { merge } from "@/utils/lodashUtils";
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 
 // Override the base module with an extended object that may contain
@@ -43,7 +43,7 @@ export default function (index, extend) {
                     state.progress.bytes_read / state.progress.bytes_total,
                     1.0
                 );
-            }
+            },
         },
 
         // commit methods
@@ -72,7 +72,7 @@ export default function (index, extend) {
 
             setError(state, error) {
                 state.error = error;
-            }
+            },
         },
 
         // dispatch methods
@@ -87,7 +87,7 @@ export default function (index, extend) {
 
                 let profile = {
                     fetch: 0,
-                    query: 0
+                    query: 0,
                 };
 
                 if (!!q) {
@@ -111,7 +111,7 @@ export default function (index, extend) {
                         limit: limit || context.state.limit,
                         limitWhile: limitWhile,
                         // updates progress
-                        onResolve: json => {
+                        onResolve: (json) => {
                             profile.fetch += json.profile.fetch || 0;
                             profile.query += json.profile.query || 0;
 
@@ -120,17 +120,17 @@ export default function (index, extend) {
                             context.commit("setProgress", json.progress);
                         },
                         // report errors
-                        onError: error => {
+                        onError: (error) => {
                             postAlertError(error.detail);
-                            context.commit('setError', error.detail);
+                            context.commit("setError", error.detail);
                         },
-                    }).finally(() => closeAlert(alertID))
+                    }).finally(() => closeAlert(alertID));
 
                     // data is loaded
                     context.commit("setResponse", { data, profile });
                 }
-            }
-        }
+            },
+        },
     };
 
     // override module settings

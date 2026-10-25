@@ -1,206 +1,223 @@
 <template>
-	<div>
-		<div :id="'vector_wrapper_' + sectionId" :class="'vector-wrapper-' + canvasId">
-
-		</div>
-	</div>
+    <div>
+        <div
+            :id="'vector_wrapper_' + sectionId"
+            :class="'vector-wrapper-' + canvasId"
+        ></div>
+    </div>
 </template>
 
 <script>
 import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
-import { cloneDeep } from "lodash";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-qq-plot-vector", {
-	props: [
-		"renderData",
-		"renderConfig",
-		"colors",
-		"margin",
-		"chrLengths",
-		"sectionId",
-		"utils"
-	],
-	data() {
-		return {
-		};
-	},
-	modules: {
-	},
-	components: {},
-	created: function () {
+    props: [
+        "renderData",
+        "renderConfig",
+        "colors",
+        "margin",
+        "chrLengths",
+        "sectionId",
+        "utils",
+    ],
+    data() {
+        return {};
+    },
+    modules: {},
+    components: {},
+    created: function () {},
+    mounted: function () {
+        //this.renderPlot('default')
+    },
+    beforeDestroy() {},
+    computed: {
+        canvasId() {
+            let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();
+            return canvasId;
+        },
+    },
+    watch: {},
+    methods: {
+        renderPlot(DATA) {
+            let wrapperClass = `.vector-wrapper-${this.canvasId}`;
+            let wrapperId = `vector_wrapper_${this.sectionId}`;
 
-	},
-	mounted: function () {
-		//this.renderPlot('default')
-	},
-	beforeDestroy() {
-	},
-	computed: {
-		canvasId() {
-			let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();
-			return canvasId;
-		}
-	},
-	watch: {
-	},
-	methods: {
-		renderPlot(DATA) {
+            let bitmapWrapper = document.querySelector(
+                "#" + this.sectionId + "qqPlotWrapper"
+            );
 
+            let margin = {
+                left: this.margin.left / 2,
+                right: this.margin.right / 2,
+                top: this.margin.top / 2,
+                bottom: this.margin.bottom / 2,
+                bump: this.margin.bump / 2,
+            };
 
-			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
-			let wrapperId = `vector_wrapper_${this.sectionId}`;
+            let width = !!this.renderConfig["width"]
+                ? this.renderConfig["width"]
+                : bitmapWrapper.clientWidth - (margin.left + margin.right);
+            let height = !!this.renderConfig["height"]
+                ? this.renderConfig["height"]
+                : 300;
 
-			let bitmapWrapper = document.querySelector(
-				"#" + this.sectionId + "qqPlotWrapper"
-			);
+            let svg = d3
+                .select(wrapperClass)
+                .append("svg")
+                .attr("id", "vector_qq_plot_" + this.sectionId)
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom);
 
-			let margin = {
-				left: this.margin.left / 2,
-				right: this.margin.right / 2,
-				top: this.margin.top / 2,
-				bottom: this.margin.bottom / 2,
-				bump: this.margin.bump / 2,
-			}
+            svg.append("g")
+                .attr("id", "plot")
+                .attr("transform", "translate(0,0)");
 
-			let width = !!this.renderConfig['width'] ? this.renderConfig['width'] :
-				bitmapWrapper.clientWidth - (margin.left + margin.right);
-			let height = !!this.renderConfig['height'] ? this.renderConfig['height']
-				: 300;
+            // render labels
+            svg.select("#plot")
+                .style("font-family", "Arial")
+                .style("font-size", 12)
+                .style("text-anchor", "middle");
 
-			let svg = d3.select(wrapperClass)
-				.append("svg")
-				.attr("id", "vector_qq_plot_" + this.sectionId)
-				.attr("width", width + margin.left + margin.right)
-				.attr("height", height + margin.top + margin.bottom);
+            svg.select("#plot")
+                .append("text")
+                .attr("x", margin.left + width / 2)
+                .attr("y", height + margin.top + margin.bottom - 10)
+                .text(this.renderConfig["x axis label"]);
 
-			svg.append("g")
-				.attr("id", "plot")
-				.attr("transform", "translate(0,0)");
+            svg.select("#plot")
+                .append("text")
+                .attr(
+                    "transform",
+                    "translate(" +
+                        (margin.bump + 20) +
+                        "," +
+                        (margin.top + height / 2) +
+                        ")rotate(-90)"
+                )
+                .attr("x", 0)
+                .attr("y", 0)
+                .text(this.renderConfig["y axis label"]);
 
-			// render labels
-			svg.select("#plot")
-				.style("font-family", "Arial").style("font-size", 12)
-				.style("text-anchor", "middle")
+            let yAxisField = this.renderConfig["y axis field"],
+                renderField = this.renderConfig["render by"];
 
-			svg.select("#plot")
-				.append("text")
-				.attr("x", (margin.left + (width / 2)))
-				.attr("y", (height + margin.top + margin.bottom - 10))
-				.text(this.renderConfig['x axis label']);
+            let qqData = this.utils.sortUtils.sortArrOfObjects(
+                this.renderData[DATA].unsorted,
+                yAxisField,
+                "number",
+                "desc"
+            );
 
-			svg.select("#plot")
-				.append("text")
-				.attr("transform", "translate(" + (margin.bump + 20) + "," + (margin.top + (height / 2)) + ")rotate(-90)")
-				.attr("x", 0)
-				.attr("y", 0)
-				.text(this.renderConfig['y axis label']);
+            let yMax,
+                yMin,
+                maxXVal = 8,
+                minXVal = 0;
 
-			let yAxisField = this.renderConfig['y axis field'],
-				renderField = this.renderConfig['render by'];
+            qqData.map((d) => {
+                let yValue = d[yAxisField];
 
-			let qqData = this.utils.sortUtils.sortArrOfObjects(this.renderData[DATA].unsorted, yAxisField, "number", "desc");
-			
+                if (yMin == null) {
+                    yMin = yValue;
+                }
+                if (yMax == null) {
+                    yMax = yValue;
+                }
 
-			let yMax,
-				yMin,
-				maxXVal = 8,
-				minXVal = 0;
+                if (yValue < yMin) {
+                    yMin = yValue;
+                }
+                if (yValue > yMax) {
+                    yMax = yValue;
+                }
+            });
 
+            let expected = [];
+            for (let i = 1; i <= qqData.length; i++) {
+                expected.push(Math.log10(i + 1 / qqData.length));
+            }
+            // render axis
 
-			qqData.map((d) => {
-				let yValue = d[yAxisField];
+            let y = d3
+                .scaleLinear()
+                .domain([yMin, yMax])
+                .range([height + margin.top, margin.top]);
 
-				if (yMin == null) {
-					yMin = yValue;
-				}
-				if (yMax == null) {
-					yMax = yValue;
-				}
+            svg.select("#plot")
+                .append("g")
+                .attr(
+                    "transform",
+                    "translate(" + (margin.left - margin.bump) + ",0)"
+                )
+                .call(d3.axisLeft(y).ticks(5));
 
-				if (yValue < yMin) {
-					yMin = yValue;
-				}
-				if (yValue > yMax) {
-					yMax = yValue;
-				}
-			});
+            let x = d3
+                .scaleLinear()
+                .domain([minXVal, maxXVal])
+                .range([margin.left, width]);
+            let xReverse = d3
+                .scaleLinear()
+                .domain([maxXVal, minXVal])
+                .range([margin.left, width]);
 
+            svg.select("#plot")
+                .append("g")
+                .attr("transform", function (d) {
+                    return (
+                        "translate(0, " +
+                        (margin.top + height + margin.bump) +
+                        ")"
+                    );
+                })
+                .call(d3.axisBottom(x));
 
-			let expected = [];
-			for (let i = 1; i <= qqData.length; i++) {
-				expected.push(Math.log10(i + 1 / qqData.length));
-			}
-			// render axis
+            let yPosByPixel = height / (yMax - yMin);
 
-			
+            svg.select("#plot")
+                .append("line")
+                .attr("x1", x(0))
+                .attr("x2", x(8))
+                .attr("y1", y(yMin))
+                .attr("y2", margin.top + height - 8 * yPosByPixel)
+                .attr("stroke", "#FF0000")
+                .style("stroke-width", 0.75);
 
+            qqData.map((d, yIndex) => {
+                let xPos = x(expected[expected.length - 1] - expected[yIndex]),
+                    yPos = y(d[yAxisField]);
 
-			let y = d3.scaleLinear().domain([yMin, yMax]).range([height + margin.top, margin.top]);
+                svg.select("#plot")
+                    .append("circle")
+                    .attr("cx", xPos)
+                    .attr("cy", yPos)
+                    .attr("r", 2)
+                    .style("fill", "#0066FF");
+            });
 
-			svg.select("#plot")
-				.append("g")
-				.attr("transform",  "translate(" + (margin.left - margin.bump) + ",0)")
-				.call(d3.axisLeft(y).ticks(5));
+            if (!!this.renderData[DATA].lambda) {
+                svg.select("#plot")
+                    .style("font-family", "Arial")
+                    .style("font-size", 12)
+                    .style("text-anchor", "end");
 
-			let x = d3.scaleLinear().domain([minXVal, maxXVal]).range([margin.left, width]);
-			let xReverse = d3.scaleLinear().domain([maxXVal, minXVal]).range([margin.left, width]);
+                svg.select("#plot")
+                    .append("text")
+                    .attr("x", x(8))
+                    .attr("y", y(yMin))
+                    .text(
+                        "lambda(0.95): " +
+                            this.renderData[DATA].lambda.toFixed(4)
+                    );
+            }
 
-			svg.select("#plot")
-				.append("g")
-				.attr("transform", function (d) {
-					return "translate(0, " + (margin.top + height + margin.bump) + ")";
-				})
-				.call(d3.axisBottom(x));
+            // for x axis
 
-
-			let yPosByPixel = height / (yMax - yMin);
-
-			svg.select("#plot")
-				.append("line")
-				.attr("x1", x(0))
-				.attr("x2", x(8))
-				.attr("y1", y(yMin))
-				.attr("y2", margin.top + height - 8 * yPosByPixel)
-				.attr("stroke", "#FF0000")
-				.style("stroke-width", 0.75)
-
-			qqData.map((d,yIndex) => {
-				let xPos = x(expected[expected.length-1] - expected[yIndex]),
-					yPos = y(d[yAxisField])
-
-				svg.select("#plot")
-					.append('circle')
-					.attr('cx', xPos)
-					.attr('cy', yPos)
-					.attr('r', 2)
-					.style('fill', "#0066FF");
-			})
-
-			
-
-			if (!!this.renderData[DATA].lambda) {
-
-				svg.select("#plot")
-					.style("font-family", "Arial").style("font-size", 12)
-					.style("text-anchor", "end")
-
-				svg.select("#plot")
-					.append("text")
-					.attr("x", x(8))
-					.attr("y", y(yMin))
-					.text("lambda(0.95): " + this.renderData[DATA].lambda.toFixed(4));
-			}
-
-			
-
-			// for x axis
-
-			/* 
+            /*
 
 			let totalChrsLength = 0;
 
@@ -300,14 +317,11 @@ export default Vue.component("research-qq-plot-vector", {
 				colorIndex++;
 				prevChr += this.chrLengths[chr];
 			})*/
-		},
-	},
+        },
+    },
 });
 
-$(function () { });
+$(function () {});
 </script>
 
 <style></style>
-
-
-
