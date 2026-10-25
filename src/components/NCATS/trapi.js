@@ -1,6 +1,6 @@
 import { json } from "d3";
 import queryString, { extract } from "query-string";
-import { cloneDeep, merge, get } from "lodash";
+import { get } from "@/utils/lodashUtils";
 import jsonQuery from "json-query";
 const cachedFetch = (url, options) => {
     // Use the URL as the cache key to sessionStorage

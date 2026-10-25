@@ -79,6 +79,7 @@ module.exports = {
             config.devtool = "cheap-module-source-map";
         }
     },
+    transpileDependencies: ["marked"],
     outputDir: "distPapers",
     productionSourceMap: false,
     pages

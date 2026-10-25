@@ -1,9 +1,13 @@
-import { get } from "lodash";
+import { get } from "./lodashUtils";
 
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
-    const inclusivePredicates = allPredicates.filter(predicate => predicate.inclusive);
-    const predicates = allPredicates.filter(predicate => !predicate.inclusive);
+    const inclusivePredicates = allPredicates.filter(
+        (predicate) => predicate.inclusive
+    );
+    const predicates = allPredicates.filter(
+        (predicate) => !predicate.inclusive
+    );
 
     return function filterFunction(object) {
         // Guilt is terminal: we break our investigation as soon as
@@ -63,7 +67,6 @@ export function filterFromPredicates(allPredicates, inclusive) {
             }
         }
         return included && innocent;
-
     };
 }
 
@@ -80,27 +83,27 @@ export function predicateFromSpec(
     return {
         inclusive,
         func: (obj) => {
-            
             // TODO: other ways of doing matches?
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
             //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
             // console.assert(!!field || !!computedField, 'neither field or computedField are defined');
-            let getter = !!computedField ? computedField : obj => get(obj, field); // NOTE: this technically supports nested fields.
+            let getter = !!computedField
+                ? computedField
+                : (obj) => get(obj, field); // NOTE: this technically supports nested fields.
 
             let data = getter(obj);
-            let match = strictCase ? !!data : !!data // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
+            let match = strictCase ? !!data : !!data; // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
             if (match) {
-                if (data.constructor.name === 'Array') {
-                    return data.some(el => predicate(el, threshold));
+                if (data.constructor.name === "Array") {
+                    return data.some((el) => predicate(el, threshold));
                 } else {
                     return predicate(data, threshold);
                 }
             } else {
                 return notStrictMatch;
             }
-            
-        }
+        },
     };
 }
 
@@ -148,7 +151,7 @@ export function encodeNamespace(
     // Both AssociationsTable and LocusZoom do this with different prefixes
 
     let tempObject = {};
-    Object.entries(regularObject).forEach(entry => {
+    Object.entries(regularObject).forEach((entry) => {
         const [key, value] = entry;
         const newKey = `${prefix}${pDelimiter}${key}${sDelimiter}${suffix}`;
         tempObject[newKey] = value;
@@ -165,11 +168,13 @@ export function decodeNamespace(
     // otherwise strip nothing and just return the object
 
     let tempObject = {};
-    Object.entries(namespacedObject).forEach(entry => {
+    Object.entries(namespacedObject).forEach((entry) => {
         const [key, value] = entry;
-        const newKey = key.replace(prefix, '').replace(suffix, '')
-            .replace(pDelimiter, '')
-            .replace(sDelimiter, '');
+        const newKey = key
+            .replace(prefix, "")
+            .replace(suffix, "")
+            .replace(pDelimiter, "")
+            .replace(sDelimiter, "");
         tempObject[newKey] = value;
     });
     return tempObject;
@@ -177,13 +182,15 @@ export function decodeNamespace(
 
 export function unsetFilter(filterList, filter) {
     const _filterList = _.filter(
-        filterList, 
-        el => !(el.field === filter.field && el.threshold === filter.threshold));
+        filterList,
+        (el) =>
+            !(el.field === filter.field && el.threshold === filter.threshold)
+    );
     return _filterList;
 }
 
 export function unsetFilterFromList(filterList) {
-    return filter => {
+    return (filter) => {
         filterList = unsetFilter(filterList, filter);
     };
 }
@@ -194,5 +201,5 @@ export default {
     decodeNamespace,
     encodeNamespace,
     unsetFilter,
-    unsetFilterFromList
-}
+    unsetFilterFromList,
+};

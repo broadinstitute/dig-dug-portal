@@ -308,7 +308,7 @@
 <script>
 import Vue from "vue";
 import { BIO_INDEX_HOST } from "../utils/bioIndexUtils";
-import { orderBy, groupBy, cloneDeep } from "lodash";
+import { orderBy, groupBy, cloneDeep } from "@/utils/lodashUtils";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import DataDownload from "@/components/DataDownload";
@@ -430,12 +430,7 @@ export default Vue.component("PhewasDatasets", {
             });
         },
         fillTopClumpedVariants(index, phenotype, top25) {
-            const dataFields = [
-                "pValue",
-                "maf",
-                "stdErr",
-                "consequence",
-            ];
+            const dataFields = ["pValue", "maf", "stdErr", "consequence"];
             for (let i = 0; i < 25; i++) {
                 let item = top25[i];
                 let itemRow = document.getElementById(

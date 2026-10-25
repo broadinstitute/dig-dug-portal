@@ -225,63 +225,63 @@ let pages = {
         template: "src/portals/PanKbase/index.html",
         filename: "phenotype.html",
         title: "Phenotype",
-        chunks: ["chunk-vendors", "chunk-common", "phenotype"]
+        chunks: ["chunk-vendors", "chunk-common", "phenotype"],
     },
     celltype: {
         entry: "src/portals/PanKbase/views/CellType/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "celltype.html",
         title: "Cell Type",
-        chunks: ["chunk-vendors", "chunk-common", "celltype"]
+        chunks: ["chunk-vendors", "chunk-common", "celltype"],
     },
     nmf: {
         entry: "src/portals/PanKbase/views/NMF/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "nmf.html",
         title: "NMF",
-        chunks: ["chunk-vendors", "chunk-common", "nmf"]
+        chunks: ["chunk-vendors", "chunk-common", "nmf"],
     },
     functional: {
         entry: "src/portals/PanKbase/views/Functional/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "functional.html",
         title: "Functional Data",
-        chunks: ["chunk-vendors", "chunk-common", "functional"]
+        chunks: ["chunk-vendors", "chunk-common", "functional"],
     },
     donors: {
         entry: "src/portals/PanKbase/views/Donors/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "donors.html",
         title: "Donor Metadata",
-        chunks: ["chunk-vendors", "chunk-common", "donors"]
+        chunks: ["chunk-vendors", "chunk-common", "donors"],
     },
     liger: {
         entry: "src/portals/PanKbase/views/Liger/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "liger.html",
         title: "Liger",
-        chunks: ["chunk-vendors", "chunk-common", "liger"]
+        chunks: ["chunk-vendors", "chunk-common", "liger"],
     },
     liger2: {
         entry: "src/portals/PanKbase/views/Liger2/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "liger2.html",
         title: "Liger",
-        chunks: ["chunk-vendors", "chunk-common", "liger2"]
+        chunks: ["chunk-vendors", "chunk-common", "liger2"],
     },
     cellstate: {
         entry: "src/portals/PanKbase/views/CellStateBrowser/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "cell-states.html",
         title: "Cell State Browser",
-        chunks: ["chunk-vendors", "chunk-common", "cellstate"]
+        chunks: ["chunk-vendors", "chunk-common", "cellstate"],
     },
     cellstatedocs: {
         entry: "src/portals/PanKbase/views/CellStateBrowserDocs/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "cell-states-docs.html",
         title: "Cell State Documentation",
-        chunks: ["chunk-vendors", "chunk-common", "cellstatedocs"]
+        chunks: ["chunk-vendors", "chunk-common", "cellstatedocs"],
     },
 };
 
@@ -340,16 +340,19 @@ module.exports = {
     chainWebpack: (config) => {
         // Optimize CSS extraction to prevent ordering conflicts in multi-page builds
         // when the same component CSS is used across multiple entry points
-        config.plugin("extract-css").tap((args) => {
-            args[0] = {
-                ...args[0],
-                // Ignore order warnings for CSS files that are used across multiple chunks
-                // The order doesn't affect functionality, only the build output
-                ignoreOrder: true,
-            };
-            return args;
-        });
+        if (config.plugins.has("extract-css")) {
+            config.plugin("extract-css").tap((args) => {
+                args[0] = {
+                    ...args[0],
+                    // Ignore order warnings for CSS files that are used across multiple chunks
+                    // The order doesn't affect functionality, only the build output
+                    ignoreOrder: true,
+                };
+                return args;
+            });
+        }
     },
+    transpileDependencies: ["marked"],
     outputDir: "portals/PanKbase",
     productionSourceMap: false,
     pages,

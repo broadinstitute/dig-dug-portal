@@ -1,21 +1,20 @@
 <template>
     <div>
-            <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
-            <!-- <slot>{{ field }}</slot> -->
+        <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
+        <!-- <slot>{{ field }}</slot> -->
         <!--
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
         <numeric-range-filter
-                :columnName="field"
-                :displayLabel="field"
-                :values="cleanupValues"
-                :totalRowCount="cleanupValues.length"
-                :value="presetRange"
-                :customStep="customStep"
-                @input="e => updateFilter(e)"
-
-            ></numeric-range-filter>
+            :columnName="field"
+            :displayLabel="field"
+            :values="cleanupValues"
+            :totalRowCount="cleanupValues.length"
+            :value="presetRange"
+            :customStep="customStep"
+            @input="(e) => updateFilter(e)"
+        ></numeric-range-filter>
     </div>
 </template>
 
@@ -30,7 +29,6 @@ Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import { isNull } from "lodash";
 
 export default Vue.component("filter-slider", {
     props: {
@@ -41,8 +39,8 @@ export default Vue.component("filter-slider", {
         placeholder: String,
         predicate: {
             type: Function,
-            default: (item, threshold) => 
-            isNaN(item) || (item >= threshold.min && item <= threshold.max),
+            default: (item, threshold) =>
+                isNaN(item) || (item >= threshold.min && item <= threshold.max),
         },
         color: {
             type: String,
@@ -68,10 +66,10 @@ export default Vue.component("filter-slider", {
         // called "computedField" instead of "computed" to prevent terminology collisions
         computedField: Function,
         presets: Array,
-        customStep: Number
+        customStep: Number,
     },
     components: {
-        NumericRangeFilter
+        NumericRangeFilter,
     },
     data() {
         return {
@@ -96,9 +94,9 @@ export default Vue.component("filter-slider", {
     },
     created() {
         // set initial filter value in the widget
-        if (this.presets.length > 0){
-            let preset = this.presets.find(p => p.name === this.field);
-            if (preset !== undefined){
+        if (this.presets.length > 0) {
+            let preset = this.presets.find((p) => p.name === this.field);
+            if (preset !== undefined) {
                 this.presetRange = preset;
                 this.updateFilter(preset);
             }
@@ -107,13 +105,14 @@ export default Vue.component("filter-slider", {
     mounted() {
         this.cleanupValues = this.cleanValues(this.values);
         this.overallMin = this.cleanupValues[0];
-        this.overallMax = this.cleanupValues[this.cleanupValues.length -1];
-        this.$parent.$emit('filter-mounted', this.filterDefinition);
+        this.overallMax = this.cleanupValues[this.cleanupValues.length - 1];
+        this.$parent.$emit("filter-mounted", this.filterDefinition);
     },
     methods: {
-        cleanValues(vals){
-            let output = vals.map(v => parseNumericValue(v))
-                .filter(v => !isNull(v));
+        cleanValues(vals) {
+            let output = vals
+                .map((v) => parseNumericValue(v))
+                .filter((v) => v !== null);
             return output.sort((left, right) => left - right);
         },
         updateFilter(newThreshold) {
@@ -123,10 +122,10 @@ export default Vue.component("filter-slider", {
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
                 this.$parent.$emit("change", newThreshold, {
-                        // label: this.pillFormatter,
-                        // color: this.color,
-                        ...this.filterDefinition,
-                    });
+                    // label: this.pillFormatter,
+                    // color: this.color,
+                    ...this.filterDefinition,
+                });
             }
         },
     },

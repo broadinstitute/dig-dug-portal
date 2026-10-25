@@ -11,20 +11,18 @@
         @hit="onAutoCompleteItemSelected($event)"
         @keyup.enter="onUserEnterNonAutoCompleteItem"
     >
-
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
             <small v-if="secondaryKey" class="text-secondary">{{
                 data[secondaryKey]
             }}</small>
         </template>
-
     </vue-typeahead-bootstrap>
 </template>
 
 <script>
 import Vue from "vue";
-import { cloneDeep } from "lodash";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
@@ -65,7 +63,7 @@ export default Vue.component("autocomplete", {
 
     methods: {
         tap() {
-            console.log(arguments)
+            console.log(arguments);
         },
         formatHTML(html) {
             return this.labelFormatter(cloneDeep(html));

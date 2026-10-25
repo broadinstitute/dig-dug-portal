@@ -30,7 +30,7 @@ import Alert, {
     closeAlert,
 } from "@/components/Alert";
 import { query } from "@/utils/bioIndexUtils";
-import { difference } from "lodash";
+import { difference } from "@/utils/lodashUtils";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);

@@ -14,7 +14,7 @@ import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { query, match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
-import { isEqual } from "lodash";
+import { isEqual } from "@/utils/lodashUtils";
 
 new Vue({
     store,

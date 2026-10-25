@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-import _ from "lodash";
+import { difference } from "@/utils/lodashUtils";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -562,7 +562,7 @@ new Vue({
         },
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = _.difference(
+            const removedPhenotypes = difference(
                 oldPhenotypes.map((p) => p.name),
                 phenotypes.map((p) => p.name)
             );

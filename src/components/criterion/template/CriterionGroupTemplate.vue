@@ -8,38 +8,39 @@
             <slot name="header"></slot>
             <b-container v-show="!hide" fluid class="filtering-ui-wrapper">
                 <b-row class="filtering-ui-content">
-                    
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
                     <slot v-if="inlinePills && !noPills" name="pills">
                         <criterion-pills
-                            v-if="filterListInternal != null && filterListInternal.length > 0"
+                            v-if="
+                                filterListInternal != null &&
+                                filterListInternal.length > 0
+                            "
                             :header="header"
                             :fitlerList="filterListInternal"
                             :clearable="clearable"
                             @unset="unsetFilter"
                         ></criterion-pills>
                     </slot>
-
                 </b-row>
             </b-container>
 
             <slot v-if="!inlinePills && !noPills" name="pills">
                 <criterion-pills
-                    v-if="filterListInternal != null && filterListInternal.length > 0"
+                    v-if="
+                        filterListInternal != null &&
+                        filterListInternal.length > 0
+                    "
                     :header="header"
                     :filterList="filterListInternal"
                     :clearable="clearable"
                     @unset="unsetFilter"
                 ></criterion-pills>
             </slot>
-
         </EventListener>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
-        <slot name="filtered" 
-            :filter="criterion">
-        </slot>
+        <slot name="filtered" :filter="criterion"> </slot>
     </span>
 </template>
 
@@ -53,8 +54,12 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import { isEqual, cloneDeep, groupBy } from "lodash";
-import { filterFromPredicates, predicateFromSpec, unsetFilter } from "@/utils/filterHelpers";
+import { isEqual, cloneDeep, groupBy } from "@/utils/lodashUtils";
+import {
+    filterFromPredicates,
+    predicateFromSpec,
+    unsetFilter,
+} from "@/utils/filterHelpers";
 import CriterionPills from "@/components/criterion/template/CriterionPills";
 
 const EventListener = {
@@ -125,8 +130,8 @@ export default Vue.component("criterion-group-template", {
         },
         clearable: {
             type: Boolean,
-            default: true
-        }
+            default: true,
+        },
     },
     components: {
         EventListener,
@@ -152,8 +157,7 @@ export default Vue.component("criterion-group-template", {
         };
     },
     created() {
-
-        if (typeof this.filterList !== 'undefined') {
+        if (typeof this.filterList !== "undefined") {
             this.filterListInternal = this.filterList;
         } else if (!!this.value && Array.isArray(this.value)) {
             this.filterListInternal = this.value;
@@ -161,14 +165,13 @@ export default Vue.component("criterion-group-template", {
             this.filterListInternal = [];
         }
 
-        if (typeof this.filterFunction !== 'undefined') {
+        if (typeof this.filterFunction !== "undefined") {
             this.filterFunctionInternal = this.filterFunction;
         } else if (!!this.value && typeof this.value === "function") {
             this.filterFunctionInternal = this.value;
         } else {
             this.filterFunctionInternal = (id) => true;
         }
-
     },
     mounted() {
         if (this.initialFilterDefinitions.length > 0) {
@@ -187,11 +190,12 @@ export default Vue.component("criterion-group-template", {
                     this.filterListInternal != null &&
                     Object.keys(this.initialFilterDefinitionMap).length > 0
                 ) {
-                    this.filterListInternal = this.filterListInternal.map((el) =>
-                        Object.assign(
-                            el,
-                            this.initialFilterDefinitionMap[el.field][0]
-                        )
+                    this.filterListInternal = this.filterListInternal.map(
+                        (el) =>
+                            Object.assign(
+                                el,
+                                this.initialFilterDefinitionMap[el.field][0]
+                            )
                     );
                 }
 
@@ -203,8 +207,8 @@ export default Vue.component("criterion-group-template", {
                 filter: this.criterion,
                 filterList: this.filterListInternal,
                 filterFunction: this.filterFunctionInternal,
-            }
-        }
+            };
+        },
     },
     methods: {
         onInitialFilterDefinition(filterDefinition) {
@@ -260,7 +264,10 @@ export default Vue.component("criterion-group-template", {
             // NOTE: As a result of this.filterListInternal being modified, the computed property for the filterFunctionInternal should reactively producing a new version of itself.
         },
         unsetFilter(filter) {
-            this.filterListInternal = unsetFilter(this.filterListInternal, filter);
+            this.filterListInternal = unsetFilter(
+                this.filterListInternal,
+                filter
+            );
         },
     },
     watch: {
@@ -279,7 +286,9 @@ export default Vue.component("criterion-group-template", {
             handler: function (newCriterionValue) {
                 if (this.filterType === "function") {
                     this.filterFunctionInternal = newCriterionValue;
-                    if (!isEqual(newCriterionValue, this.filterFunctionInternal)) {
+                    if (
+                        !isEqual(newCriterionValue, this.filterFunctionInternal)
+                    ) {
                         this.filterFunctionInternal = newCriterionValue;
                     }
                 } else if (this.filterType === "list") {
@@ -291,24 +300,24 @@ export default Vue.component("criterion-group-template", {
             deep: true,
         },
         filterList: {
-            handler: function(newFilterList) {
+            handler: function (newFilterList) {
                 this.filterListInternal = newFilterList;
             },
             deep: true,
         },
         filterFunction: {
-            handler: function(newFilterFunction) {
+            handler: function (newFilterFunction) {
                 this.newFilterFunction = newFilterFunction;
             },
             deep: true,
         },
         /*
-        Support events for catching new filter lists and functions 
+        Support events for catching new filter lists and functions
         seprately, regardless of the kind of criterion group.
 
-        The events are `@update:filter-list` and `@update:filter-function`. 
-        
-        They act like `@input` does with `v-model`, except it's with a filter list or 
+        The events are `@update:filter-list` and `@update:filter-function`.
+
+        They act like `@input` does with `v-model`, except it's with a filter list or
         filter function only. You can use both at the same time.
 
         ```vue
@@ -322,7 +331,7 @@ export default Vue.component("criterion-group-template", {
 
             <!-- some sibling component -->
             <!--  "clearable" prop removes `X` -->
-            <criterion-pills 
+            <criterion-pills
                 :clearable="false"
                 :filterList="$parent.displayedfilterListInternal">
             </criterion-pills>
@@ -332,14 +341,15 @@ export default Vue.component("criterion-group-template", {
         */
         filterListInternal: {
             handler: function (newfilterListInternal, oldfilterListInternal) {
-                this.$emit('update:filter-list', newfilterListInternal)
+                this.$emit("update:filter-list", newfilterListInternal);
 
                 if (newfilterListInternal.length > 0) {
-                    const predicates = newfilterListInternal.map((predicateSpec) =>
-                        this.makePredicate(predicateSpec, {
-                            strictCase: this.strictCase,
-                            notStrictMatch: this.looseMatch,
-                        })
+                    const predicates = newfilterListInternal.map(
+                        (predicateSpec) =>
+                            this.makePredicate(predicateSpec, {
+                                strictCase: this.strictCase,
+                                notStrictMatch: this.looseMatch,
+                            })
                     );
                     this.filterFunctionInternal = this.makeFilter(
                         predicates,
@@ -350,13 +360,12 @@ export default Vue.component("criterion-group-template", {
                         return true;
                     };
                 }
-
             },
             deep: true,
         },
         filterFunctionInternal: {
-            handler: function(filterFunctionInternal) {
-                this.$emit('update:filter-function', filterFunctionInternal);
+            handler: function (filterFunctionInternal) {
+                this.$emit("update:filter-function", filterFunctionInternal);
             },
             deep: true,
         },
