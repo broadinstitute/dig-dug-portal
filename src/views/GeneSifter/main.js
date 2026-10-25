@@ -990,7 +990,7 @@ new Vue({
                             phenotype
                         } rare variant associations...`
                     );
-                    return query(`gene-finder-52k`, phenotype, {
+                    return query(`gene-finder-rare`, phenotype, {
                         limitWhile: (record) => record.pValue < pValue,
                     }).then((bioIndexData) => {
                         closeAlert(alertId);
