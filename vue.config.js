@@ -402,6 +402,7 @@ module.exports = {
             });
         }
     },
+    transpileDependencies: ["marked"],
     productionSourceMap: false,
     pages,
 };
