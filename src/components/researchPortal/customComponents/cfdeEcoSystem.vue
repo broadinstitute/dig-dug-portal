@@ -284,8 +284,7 @@ export default Vue.component("cfde-eco-system", {
 			});
 		},
 		async loadFile(src){
-			//must use dataset endpoint to load csv file from hugeampkpncms (otherwise CORS error)
-			const fetchUrl = "https://hugeampkpncms.org/servedata/dataset?dataset=" + src;
+			const fetchUrl = "https://api-qa.hugeampkpnbi.org/api/cms/servedata/dataset?dataset=" + src;
 			//however, dataset enpoint parses the original csv and escapes special characters
 			let data = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 			//we must undo all of that to get the original data

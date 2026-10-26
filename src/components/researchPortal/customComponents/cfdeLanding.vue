@@ -542,8 +542,7 @@ export default Vue.component("cfde-landing", {
             this.domObserver.disconnect();
         },
         async init() {
-            //must use dataset endpoint to load csv file from hugeampkpncms (otherwise CORS error)
-            const cmsFilePrefix = "https://hugeampkpncms.org/servedata/dataset?dataset=";
+            const cmsFilePrefix = "https://api-qa.hugeampkpnbi.org/api/cms/servedata/dataset?dataset=";
             const cmsFileUrl = this.sectionConfigs["content"]["custom"]["viz data"];
             const data = await this.loadFile(cmsFilePrefix+cmsFileUrl);
             //console.log('parsedData', this.parsedData);

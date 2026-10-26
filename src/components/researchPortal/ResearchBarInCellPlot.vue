@@ -118,7 +118,7 @@ Vue.use(BootstrapVueIcons);
       "header": "Bar in cell plot test",
       "data point": {
         "type": "api",
-        "url": "https://hugeampkpncms.org/rest/directcsv?id=sysbio_program_x_tissue",
+        "url": "https://api-qa.hugeampkpnbi.org/api/cms/rest/directcsv?id=sysbio_program_x_tissue",
         "data type": "csv",
         "data wrapper": [
           0,

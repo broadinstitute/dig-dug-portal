@@ -1388,7 +1388,7 @@ export default Vue.component("research-section", {
 			let file = !!this.utils.keyParams[PARAM] ? this.utils.keyParams[PARAM] :
 				!!this.dataPoint["initial load"] ? this.dataPoint["initial load"] : null;
 			if (!!file) {
-				let dataUrl = "https://hugeampkpncms.org/servedata/dataset?dataset="
+				let dataUrl = "https://api-qa.hugeampkpnbi.org/api/cms/servedata/dataset?dataset="
 				dataUrl += (file.includes("http") || file.includes("https")) ? file : "https://hugeampkpncms.org/sites/default/files/users/user" + this.uId + "/" + file;
 
 				let contentJson = await fetch(dataUrl).then((resp) => resp.json());

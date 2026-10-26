@@ -15,6 +15,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 Vue.use(Vuex);
 
+const CONTENT_CMS_BASE_URL = "https://api-qa.hugeampkpnbi.org/api/cms";
+
 export default new Vuex.Store({
     modules: {
         bioPortal,
@@ -58,12 +60,8 @@ export default new Vuex.Store({
             context.commit("setGene", gene);
         },
         async fetchConfig(context, config) {
-            /*let json = await fetch(
-                `https://kp4cd.org/egldata/config?dataset=${config.dataset}`
-            ).then(resp => resp.json());*/
-
             let json = await fetch(
-                `https://hugeampkpncms.org/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${config.dataset}/${config.dataset}_config.json`
+                `${CONTENT_CMS_BASE_URL}/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${config.dataset}/${config.dataset}_config.json`
             ).then(resp => resp.json());
 
             let parsedJson = JSON.parse(json)
@@ -79,13 +77,8 @@ export default new Vuex.Store({
             });
         },
         async fetchData(context, dataset) {
-            /*let json = await fetch(
-                `https://kp4cd.org/egldata/dataset?dataset=${dataset.dataset}&trait=${dataset.trait}`
-            ).then(resp => resp.json());*/
-            /*context.commit("setTableData", json.data);
-            context.commit("setFilteredData", json.data);*/
             let json = await fetch(
-                `https://hugeampkpncms.org/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${dataset.dataset}/${dataset.dataset}_${dataset.trait}.json`
+                `${CONTENT_CMS_BASE_URL}/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${dataset.dataset}/${dataset.dataset}_${dataset.trait}.json`
             ).then(resp => resp.json());
 
             let parsedJson = JSON.parse(json)

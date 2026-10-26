@@ -58,7 +58,6 @@ import dataConvert from "@/utils/dataConvert";
 
 const CONTENT_CMS_BASE_URL = "https://api-qa.hugeampkpnbi.org/api/cms";
 // const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API
-// const CONTENT_CMS_BASE_URL = "https://hugeampkpncms.org"; // Drupal
 
 export default Vue.component("EglsSection", {
     components: {},

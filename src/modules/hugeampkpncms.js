@@ -10,10 +10,27 @@ import keyParams from "@/utils/keyParams";
 
 Vue.use(VueCookies);
 
-const DRUPAL_CMS_BASE_URL = "https://hugeampkpncms.org";
 const CONTENT_CMS_BASE_URL = "https://api-qa.hugeampkpnbi.org/api/cms"; // Git-backed CMS API
 // const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API
-// const CONTENT_CMS_BASE_URL = DRUPAL_CMS_BASE_URL; // Drupal
+
+const LEGACY_CMS_HOSTS = new Set([
+    "kp4cd.org",
+    "www.kp4cd.org",
+    "hugeampkpncms.org",
+    "www.hugeampkpncms.org",
+]);
+
+function retargetLegacyCmsApi(url) {
+    if (typeof url !== "string" || !url) return url;
+    try {
+        const parsed = new URL(url);
+        if (!LEGACY_CMS_HOSTS.has(parsed.hostname.toLowerCase())) return url;
+        if (!/^\/(rest|reset|egldata|servedata|view)(\/|$)/.test(parsed.pathname)) return url;
+        return `${CONTENT_CMS_BASE_URL}${parsed.pathname}${parsed.search}`;
+    } catch (error) {
+        return url;
+    }
+}
 
 function cmsUrl(baseUrl, pathname, parameters = {}) {
     const query = Object.entries(parameters)
@@ -119,7 +136,7 @@ export default {
         async getResearchDevPage(context, param) {
             if (param.devID != "" && param.devPW != "") {
                 let json = await fetch(
-                    cmsUrl(DRUPAL_CMS_BASE_URL, "/view/rest/get_research_page_dev", {
+                    cmsUrl(CONTENT_CMS_BASE_URL, "/view/rest/get_research_page_dev", {
                         pageid: param.pageID,
                         devid: param.devID,
                         devpw: param.devPW,
@@ -163,7 +180,9 @@ export default {
 
             console.log("wildCard here", param.wildCard);
 
-            let fetchUrl = (param.domain == "hugeampkpn") ? `${DRUPAL_CMS_BASE_URL}/servedata/dataset?dataset=` + param.dataPoint : param.dataPoint;
+            let fetchUrl = (param.domain == "hugeampkpn")
+                ? `${CONTENT_CMS_BASE_URL}/servedata/dataset?dataset=` + param.dataPoint
+                : retargetLegacyCmsApi(param.dataPoint);
 
             if (param.wildCard) {
                 fetchUrl = fetchUrl.replaceAll(param.wildCard + ",", "");
