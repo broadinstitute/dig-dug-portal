@@ -5,6 +5,7 @@
 
 import Vue from "vue";
 import VueCookies from "vue-cookies";
+import { cmsUrl, retargetLegacyCmsApi } from "@/utils/cmsApi";
 Vue.use(VueCookies);
 
 export default {
@@ -64,7 +65,7 @@ export default {
     actions: {
         async getResearchMode(context, param) {
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_page_access?pageid=" + param.pageID
+                cmsUrl("/view/rest/get_research_page_access?pageid=") + param.pageID
             ).then(resp => resp.json());
             //check for cookie if dev mode
             if (!!json[0].field_page_mode && json[0].field_page_mode === 'dev') {
@@ -78,7 +79,7 @@ export default {
         async getResearchMethod(context, param) {
 
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_method?method=" + param.methodID
+                cmsUrl("/view/rest/get_research_method?method=") + param.methodID
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchMethod", json);
@@ -87,14 +88,14 @@ export default {
             console.log("Is this thing on?");
 
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_menu?menu=" + param.menuID
+                cmsUrl("/view/rest/get_research_menu?menu=") + param.menuID
             ).then(resp => resp.json());
             context.commit("setResearchMenu", json);
         },
         async getResearchDevPage(context, param) {
             if (param.devID != "" && param.devPW != "") {
                 let json = await fetch(
-                    "https://hugeampkpncms.org/view/rest/get_research_page_dev?pageid=" + param.pageID + "&&devid=" + param.devID + "&&devpw=" + param.devPW
+                    cmsUrl("/view/rest/get_research_page_dev?pageid=") + param.pageID + "&&devid=" + param.devID + "&&devpw=" + param.devPW
                 ).then(resp => resp.json());
                 //if login successful, and user wants to be remembered
                 if (json.length > 0 && param.devCK) {
@@ -109,7 +110,7 @@ export default {
         },
         async getResearchPage(context, param) {
             let json = await fetch(
-                "https://hugeampkpncms.org/view/rest/get_research_page?pageid=" + param.pageID
+                cmsUrl("/view/rest/get_research_page?pageid=") + param.pageID
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchPage", json);
@@ -119,7 +120,7 @@ export default {
         },
         async getResearchData(context, param) {
 
-            let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
+            let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : retargetLegacyCmsApi(param.dataPoint);
             let csv = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
             context.commit("setResearchData", csv);

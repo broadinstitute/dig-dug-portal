@@ -7,6 +7,7 @@ import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
 import { query } from "@/utils/bioIndexUtils";
 import dataConvert from "@/utils/dataConvert";
+import { cmsUrl } from "@/utils/cmsApi";
 
 Vue.use(Vuex);
 
@@ -169,7 +170,7 @@ export default new Vuex.Store({
 
         async getEglsFullList(context) {
             let dataPoint =
-                "https://hugeampkpncms.org/rest/data?pageid=egl_241";
+                cmsUrl("/rest/data?pageid=egl_241");
 
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
@@ -184,7 +185,7 @@ export default new Vuex.Store({
 
         async getEglGenes(context, PARAMS) {
             let dataPoint =
-                "https://hugeampkpncms.org/rest/data?pageid=" + PARAMS.pageId;
+                cmsUrl("/rest/data?pageid=") + PARAMS.pageId;
 
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 

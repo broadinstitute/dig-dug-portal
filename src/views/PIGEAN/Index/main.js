@@ -22,6 +22,7 @@ import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
+import { cmsUrl } from "@/utils/cmsApi";
 
 new Vue({
     store,
@@ -425,7 +426,7 @@ new Vue({
         },
         async getStats() {
             let dataPoint =
-                "https://hugeampkpncms.org/rest/directcsv?id=Portal_stats_501";
+                cmsUrl("/rest/directcsv?id=Portal_stats_501");
 
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 

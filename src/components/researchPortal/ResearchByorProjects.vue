@@ -21,6 +21,7 @@
 </template>
 
 <script>
+import { cmsUrl } from "@/utils/cmsApi";
 import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
@@ -48,7 +49,7 @@ export default Vue.component("research-byor-projects", {
 	methods: {
 		async getByorProjects() {
 			let cmsServer =
-				"https://hugeampkpncms.org/rest/views/byor_projects";
+				cmsUrl("/rest/views/byor_projects");
 
 			let projectsJson = await fetch(cmsServer).then((resp) =>
 				resp.json()

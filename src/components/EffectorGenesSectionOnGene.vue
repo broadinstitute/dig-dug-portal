@@ -75,6 +75,7 @@
 </template>
 
 <script>
+import { cmsUrl } from "@/utils/cmsApi";
 import Vue from "vue";
 import dataConvert from "@/utils/dataConvert";
 
@@ -100,7 +101,7 @@ export default Vue.component("egls-section-on-gene", {
 	methods: {
 		async loadEglsList() {
 			let dataPoint =
-				"https://hugeampkpncms.org/rest/data?pageid=Gene_page_PEGLs_475";
+				cmsUrl("/rest/data?pageid=Gene_page_PEGLs_475");
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
@@ -122,7 +123,7 @@ export default Vue.component("egls-section-on-gene", {
 		},
 		async getEglsWithGene() {
 			let dataPoint =
-				"https://hugeampkpncms.org/rest/egls?gene=" + this.gene.name;
+				cmsUrl("/rest/egls?gene=") + this.gene.name;
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 

@@ -53,6 +53,7 @@
 </template>
 
 <script>
+import { cmsUrl } from "@/utils/cmsApi";
 import Vue from "vue";
 import dataConvert from "@/utils/dataConvert";
 
@@ -80,7 +81,7 @@ export default Vue.component("EglsSection", {
     methods: {
         async loadEglsList() {
             let dataPoint =
-                "https://hugeampkpncms.org/rest/data?pageid=egl_241";
+                cmsUrl("/rest/data?pageid=egl_241");
 
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
