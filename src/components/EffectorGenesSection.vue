@@ -56,6 +56,10 @@
 import Vue from "vue";
 import dataConvert from "@/utils/dataConvert";
 
+const CONTENT_CMS_BASE_URL = "https://api-qa.hugeampkpnbi.org/api/cms";
+// const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API
+// const CONTENT_CMS_BASE_URL = "https://hugeampkpncms.org"; // Drupal
+
 export default Vue.component("EglsSection", {
     components: {},
     props: ["phenotype"],
@@ -80,7 +84,7 @@ export default Vue.component("EglsSection", {
     methods: {
         async loadEglsList() {
             let dataPoint =
-                "https://hugeampkpncms.org/rest/data?pageid=egl_241";
+                `${CONTENT_CMS_BASE_URL}/rest/data?pageid=egl_241`;
 
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 

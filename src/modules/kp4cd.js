@@ -3,7 +3,8 @@
 
  */
 
-const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API; replace with its hosted URL later.
+const CONTENT_CMS_BASE_URL = "https://api-qa.hugeampkpnbi.org/api/cms"; // Git-backed CMS API
+// const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API
 // const CONTENT_CMS_BASE_URL = "https://hugeampkpncms.org"; // Drupal
 
 // Helper function to fetch with fallback: try hugeampkpncms.org first, fallback to kp4cd.org on error

@@ -78,6 +78,10 @@
 import Vue from "vue";
 import dataConvert from "@/utils/dataConvert";
 
+const CONTENT_CMS_BASE_URL = "https://api-qa.hugeampkpnbi.org/api/cms";
+// const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API
+// const CONTENT_CMS_BASE_URL = "https://hugeampkpncms.org"; // Drupal
+
 export default Vue.component("egls-section-on-gene", {
 	props: ["gene"],
 	components: {},
@@ -100,7 +104,7 @@ export default Vue.component("egls-section-on-gene", {
 	methods: {
 		async loadEglsList() {
 			let dataPoint =
-				"https://hugeampkpncms.org/rest/data?pageid=Gene_page_PEGLs_475";
+				`${CONTENT_CMS_BASE_URL}/rest/data?pageid=Gene_page_PEGLs_475`;
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
@@ -122,7 +126,7 @@ export default Vue.component("egls-section-on-gene", {
 		},
 		async getEglsWithGene() {
 			let dataPoint =
-				"https://hugeampkpncms.org/rest/egls?gene=" + this.gene.name;
+				`${CONTENT_CMS_BASE_URL}/rest/egls?gene=` + this.gene.name;
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 

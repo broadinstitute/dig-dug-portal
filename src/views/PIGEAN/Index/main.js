@@ -425,7 +425,7 @@ new Vue({
         },
         async getStats() {
             let dataPoint =
-                "https://hugeampkpncms.org/rest/directcsv?id=Portal_stats_501";
+                "https://api-qa.hugeampkpnbi.org/api/cms/rest/directcsv?id=Portal_stats_501";
 
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 

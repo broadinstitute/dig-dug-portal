@@ -11,7 +11,8 @@ import keyParams from "@/utils/keyParams";
 Vue.use(VueCookies);
 
 const DRUPAL_CMS_BASE_URL = "https://hugeampkpncms.org";
-const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API; replace with its hosted URL later.
+const CONTENT_CMS_BASE_URL = "https://api-qa.hugeampkpnbi.org/api/cms"; // Git-backed CMS API
+// const CONTENT_CMS_BASE_URL = "http://127.0.0.1:8787"; // Local Git-backed API
 // const CONTENT_CMS_BASE_URL = DRUPAL_CMS_BASE_URL; // Drupal
 
 function cmsUrl(baseUrl, pathname, parameters = {}) {

@@ -169,7 +169,7 @@ export default new Vuex.Store({
 
         async getEglsFullList(context) {
             let dataPoint =
-                "https://hugeampkpncms.org/rest/data?pageid=egl_241";
+                "https://api-qa.hugeampkpnbi.org/api/cms/rest/data?pageid=egl_241";
 
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
@@ -184,7 +184,7 @@ export default new Vuex.Store({
 
         async getEglGenes(context, PARAMS) {
             let dataPoint =
-                "https://hugeampkpncms.org/rest/data?pageid=" + PARAMS.pageId;
+                "https://api-qa.hugeampkpnbi.org/api/cms/rest/data?pageid=" + PARAMS.pageId;
 
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
