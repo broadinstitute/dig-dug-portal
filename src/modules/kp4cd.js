@@ -161,7 +161,7 @@ export default {
         async getFrontContents(context, selectedDiseaseGroup) {
             let portal = selectedDiseaseGroup || "md";
             let json = await fetchWithFallback(
-                `https://hugeampkpncms.org/reset/views/portal_front?portal=` + portal,
+                `${CONTENT_CMS_BASE_URL}/reset/views/portal_front?portal=` + portal,
                 `https://kp4cd.org/reset/views/portal_front?portal=` + portal
             );
             // set the data
@@ -201,7 +201,7 @@ export default {
             let portal = selectedDiseaseGroup || "md";
 
             let json = await fetchWithFallback(
-                `https://hugeampkpncms.org/rest/views/newfeatures?portal=` + selectedDiseaseGroup,
+                `${CONTENT_CMS_BASE_URL}/rest/views/newfeatures?portal=` + selectedDiseaseGroup,
                 `https://kp4cd.org/rest/views/newfeatures?portal=` + selectedDiseaseGroup
             );
             // set the data
