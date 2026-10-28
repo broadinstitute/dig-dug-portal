@@ -519,13 +519,13 @@ function emptyAssociationsState() {
     };
 }
 
-function emptyGenesState() {
+function emptyGenesState(selectedTypes = VKS_DEFAULT_GENE_TYPES) {
     return {
         ready: false,
         loading: false,
         error: null,
         data: null,
-        selectedTypes: [...VKS_DEFAULT_GENE_TYPES],
+        selectedTypes: normalizeSelectedGeneTypes(selectedTypes),
     };
 }
 
@@ -3451,7 +3451,7 @@ export default Vue.component("kp-variant-sifter", {
             this.assistantActionToken += 1;
             this.searchSession = null;
             this.associationsState = emptyAssociationsState();
-            this.genesState = emptyGenesState();
+            this.genesState = emptyGenesState(this.genesState?.selectedTypes);
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
@@ -3559,7 +3559,7 @@ export default Vue.component("kp-variant-sifter", {
             this.regionViewArea = 0;
             this.regionShiftBp = 0;
             this.dataRegion = cloneGenomicRegion(searchSession.region);
-            this.genesState = emptyGenesState();
+            this.genesState = emptyGenesState(this.genesState?.selectedTypes);
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
@@ -4094,7 +4094,7 @@ export default Vue.component("kp-variant-sifter", {
         async loadGenesTrack(session) {
             const token = ++this.genesRequestToken;
             this.genesState = {
-                ...emptyGenesState(),
+                ...emptyGenesState(this.genesState?.selectedTypes),
                 loading: true,
             };
 
@@ -4114,9 +4114,8 @@ export default Vue.component("kp-variant-sifter", {
                     loading: false,
                     error: data.length ? null : "No genes found for this locus.",
                     data: data.length ? data : null,
-                    selectedTypes: resolveSelectedGeneTypesForData(
-                        this.genesState.selectedTypes,
-                        data
+                    selectedTypes: normalizeSelectedGeneTypes(
+                        this.genesState.selectedTypes
                     ),
                 };
                 this.lastGenesRegion = cloneGenomicRegion(session.region);
@@ -4126,7 +4125,7 @@ export default Vue.component("kp-variant-sifter", {
                 }
                 console.warn("Variant Sifter genes track load failed", error);
                 this.genesState = {
-                    ...emptyGenesState(),
+                    ...emptyGenesState(this.genesState?.selectedTypes),
                     error: "Failed to load genes track for this locus.",
                 };
             }
@@ -4601,9 +4600,8 @@ export default Vue.component("kp-variant-sifter", {
                                       ? null
                                       : "No genes found for this locus.",
                                   data: data.length ? data : null,
-                                  selectedTypes: resolveSelectedGeneTypesForData(
-                                      this.genesState.selectedTypes,
-                                      data
+                                  selectedTypes: normalizeSelectedGeneTypes(
+                                      this.genesState.selectedTypes
                                   ),
                               };
                               this.lastGenesRegion = cloneGenomicRegion(session.region);
@@ -4620,7 +4618,7 @@ export default Vue.component("kp-variant-sifter", {
                                   error
                               );
                               this.genesState = {
-                                  ...emptyGenesState(),
+                                  ...emptyGenesState(this.genesState?.selectedTypes),
                                   error: "Failed to load genes track for this locus.",
                               };
                               this.setRegionLoadStep(
@@ -5893,10 +5891,7 @@ export default Vue.component("kp-variant-sifter", {
         onGenesSelectedTypesUpdate(selectedTypes) {
             this.genesState = {
                 ...this.genesState,
-                selectedTypes: resolveSelectedGeneTypesForData(
-                    selectedTypes,
-                    this.genesState.data
-                ),
+                selectedTypes: normalizeSelectedGeneTypes(selectedTypes),
             };
         },
         async refreshAssistantLlmHealth() {

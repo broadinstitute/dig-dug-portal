@@ -19,14 +19,19 @@ For system structure, session model, data flow, and assistant runtime, see [`../
 | Shell component | `../GP2Browser.vue` | Main workspace state, on-demand section data loading, and orchestration |
 | Standalone page | `/gp2browser.html` (`src/views/GP2Browser/`) | Standalone entry (`main.js`, `Template.vue`) |
 | Research section registration | `ResearchSectionComponents.vue` → `"GP2Browser"` | Multi-page Research portal registration |
-| Section registry | `./gp2BrowserSections.js` | Defines `GP2_BROWSER_SECTIONS` (including `qtl-evidences`) and `GP2_DEFAULT_VISIBLE_SECTION_IDS` (`["associations", "qtl-evidences", "genes"]`) |
+| Section registry & GP2 config | `./gp2BrowserSections.js` | Defines `GP2_BROWSER_SECTIONS` (including `qtl-evidences`), `GP2_DEFAULT_VISIBLE_SECTION_IDS` (`["associations", "qtl-evidences", "genes"]`), `GP2_BROWSER_PHENOTYPES` (`Parkinsons`), and `GP2_ASSOCIATIONS_BIOINDEX_HOST` (`https://gp2-dev.hugeampkpnbi.org`) |
 | Header menu bar | `./GP2BrowserMenuBar.vue` | **Session** (with recent searches), **Tools** (`Gene prioritization`, `Associated phenotypes`, `Literature evidence`), and **Help** (`Getting Around`) |
+| Session parameter bubbles | `./GP2BrowserSessionParamBubbles.vue` | Header session parameter bubbles & popovers using `GRCh38` (`hg38`) gene/rsID resolution and GP2 phenotype dropdown |
 | Tools modal | `./GP2BrowserResearchModal.vue` | Modal shell for Tools menu items |
-| Welcome panel | `./GP2BrowserWelcomePanel.vue` | GP2-branded welcome search modal |
+| Welcome panel | `./GP2BrowserWelcomePanel.vue` | GP2-branded welcome search modal with dropdown `<select>` for Phenotype (`Parkinsons`) |
 | Canvas | `./GP2BrowserCanvas.vue` | Workspace track stage mounting `GP2BrowserWelcomePanel` and `GP2BrowserAssociationsPlot` |
 | Section drawers | `./GP2BrowserSectionDrawers.vue` | Left drawer rail and panels (including `QTL evidences` drawer) |
-| Associations plot | `./GP2BrowserAssociationsPlot.vue` | Associations & nested tracks canvas with `QTL evidences` track placeholder |
+| Associations plot | `./GP2BrowserAssociationsPlot.vue` | Dual-track Associations stack (20%-height searching region plots first, 100%-height 50 kb viewing region plots second) and nested tracks aligned to the 50 kb `viewRegion` |
+| Association region plot | `./GP2BrowserAssociationRegionPlot.vue` | Canvas renderer supporting compact 20% height (`24px`), draggable 50 kb viewing region indicator handle, and viewing-window panning |
+| Viewing region helpers | `./gp2BrowserViewingRegion.js` | Fixed 50 kb (`±25 kb`) viewing window calculation (`computeGp2ViewingRegion`, `clampViewingCenterBp`, `extractVariantPositionBp`) |
 | Associations downsampler | `./gp2BrowserAssociationsDownsample.js` | Load-time association downsampling (`downsampleAssociationRowsOnLoad`: `p <= 0.05` kept in full; `p > 0.05` kept with probability $(1 - p)^9$) and zoomed-in row merging with cached LD score reuse (`mergeZoomedAssociationRows`, `stripZoomRefetchedRows`) |
+| LD server client | `./gp2BrowserLdServer.js` | GP2-specific UMich 1000G LD client configured for `GRCh38` (`hg38`) |
+| Genes & recombination client | `./gp2BrowserGenesAndRecomb.js` | `GRCh38` (`hg38`) region gene track query (`source in 1`), gene-symbol-to-region resolver, and recombination rate client (`id in 16`) |
 | Settings panel | `./GP2BrowserSettingsPanel.vue` | GP2-branded Settings modal (`Suggest Actions` unchecked by default; `Refetch association data for zoomed-in region` checked by default; section checkboxes drive on-demand data loading) |
 | Viewport controls | `./GP2BrowserViewportControls.vue` | Header zoom/pan/table/actions/settings toolbar (positive zoom-in snaps to `100%`) |
 | Actions panel | `./GP2BrowserAiAssistantPanel.vue` | GP2-branded Actions / AI assistant side panel |

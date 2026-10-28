@@ -64,9 +64,9 @@
                         <h3 class="vks-plot-section-title">Associations</h3>
                     </header>
                     <div
-                        v-for="series in plotSeries"
-                        :key="`assoc-${series.phenotype || 'primary'}-${series.ancestry}`"
-                        class="vks-associations-plot-series"
+                        v-for="series in searchingPlotSeries"
+                        :key="`assoc-search-${series.phenotype || 'primary'}-${series.ancestry}`"
+                        class="vks-associations-plot-series vks-associations-plot-series--searching"
                     >
                         <div
                             v-if="series.showPhenotypeHeader"
@@ -74,7 +74,7 @@
                         >
                             <span
                                 class="vks-associations-phenotype-bubble"
-                                :title="`${series.phenotypeLabel} · ${series.rows.length.toLocaleString()} associations`"
+                                :title="`${series.phenotypeLabel} · ${series.rows.length.toLocaleString()} associations (searching region)`"
                             >
                                 {{ series.phenotypeLabel }}
                             </span>
@@ -85,7 +85,7 @@
                         >
                             <span
                                 class="vks-associations-ancestry-bubble"
-                                :title="`${series.label} · ${series.rows.length.toLocaleString()} associations`"
+                                :title="`${series.label} · ${series.rows.length.toLocaleString()} associations (searching region)`"
                             >
                                 <span class="vks-associations-ancestry-bubble-code">{{ series.ancestry }}</span>
                                 <span class="vks-associations-ancestry-bubble-label">{{ series.label }}</span>
@@ -100,15 +100,87 @@
                         >
                             No association points for {{ series.label }}.
                         </div>
-                        <VariantSifterAssociationRegionPlot
+                        <GP2BrowserAssociationRegionPlot
                             v-else
                             :plot-rows="series.plotData"
+                            :display-height="24"
+                            :pan-mode="'searching'"
+                            :highlight-view-region="viewRegion"
+                            :show-view-region-handle="true"
+                            :viewing-center-bp="viewingCenterBp"
+                            :overlapping-view-genes="overlappingViewGenes"
                             :show-legend="
                                 series.ancestry === firstPlotSeriesAncestry &&
                                     series.phenotype === firstPlotSeriesPhenotype
                             "
+                            :recomb-peak-intervals="searchingRecombPeakIntervals"
+                            :region="searchingRegion"
+                            :search-session="searchSession"
+                            :region-zoom="0"
+                            :region-shift-bp="regionShiftBp"
+                            :region-view-area="0"
+                            :view-region="searchingRegion"
+                            :plot-overlays-state="plotOverlaysState"
+                            :plot-margin="plotMargin"
+                            :shared-canvas-width="stackCanvasWidth"
+                            :plot-markers="plotMarkers"
+                            :utils="utils"
+                            @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                            @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                            @update:viewingCenterBp="$emit('update:viewingCenterBp', $event)"
+                            @commit-viewing-region="$emit('commit-viewing-region')"
+                            @pan-end="$emit('pan-end')"
+                            @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                            @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                            @set-reference-variant="$emit('set-reference-variant', $event)"
+                        />
+                    </div>
+                    <div
+                        v-for="series in viewingPlotSeries"
+                        :key="`assoc-view-${series.phenotype || 'primary'}-${series.ancestry}`"
+                        class="vks-associations-plot-series vks-associations-plot-series--viewing"
+                    >
+                        <div
+                            v-if="series.showPhenotypeHeader"
+                            class="vks-associations-phenotype-header"
+                        >
+                            <span
+                                class="vks-associations-phenotype-bubble"
+                                :title="`${series.phenotypeLabel} · ${series.rows.length.toLocaleString()} associations in 50 kb viewing region`"
+                            >
+                                {{ series.phenotypeLabel }}
+                            </span>
+                        </div>
+                        <div
+                            v-if="series.showAncestryHeader"
+                            class="vks-associations-ancestry-header"
+                        >
+                            <span
+                                class="vks-associations-ancestry-bubble"
+                                :title="`${series.label} · ${series.rows.length.toLocaleString()} associations in 50 kb viewing region`"
+                            >
+                                <span class="vks-associations-ancestry-bubble-code">{{ series.ancestry }}</span>
+                                <span class="vks-associations-ancestry-bubble-label">{{ series.label }}</span>
+                                <span class="vks-associations-ancestry-bubble-count">
+                                    {{ series.rows.length.toLocaleString() }}
+                                </span>
+                            </span>
+                        </div>
+                        <div
+                            v-if="!series.rows.length"
+                            class="vks-associations-plot-status vks-associations-plot-status--inline"
+                        >
+                            No association points for {{ series.label }} in this 50 kb viewing region.
+                        </div>
+                        <GP2BrowserAssociationRegionPlot
+                            v-else
+                            :plot-rows="series.plotData"
+                            :display-height="120"
+                            :pan-mode="'viewing'"
+                            :viewing-center-bp="viewingCenterBp"
+                            :show-legend="false"
                             :recomb-peak-intervals="recombPeakIntervals"
-                            :region="searchSession?.region"
+                            :region="searchingRegion"
                             :search-session="searchSession"
                             :region-zoom="regionZoom"
                             :region-shift-bp="regionShiftBp"
@@ -121,6 +193,8 @@
                             :utils="utils"
                             @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
                             @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                            @update:viewingCenterBp="$emit('update:viewingCenterBp', $event)"
+                            @commit-viewing-region="$emit('commit-viewing-region')"
                             @pan-end="$emit('pan-end')"
                             @toggle-position-marker="$emit('toggle-position-marker', $event)"
                             @toggle-star-variant="$emit('toggle-star-variant', $event)"
@@ -271,11 +345,11 @@
                     <VariantSifterGenesTrack
                         :key="genesTrackKey"
                         :genes="genesTrackData"
-                        :recomb-peak-intervals="recombPeakIntervals"
-                        :region="searchSession?.region"
-                        :view-region="viewRegion"
+                        :recomb-peak-intervals="searchingRecombPeakIntervals"
+                        :region="searchingRegion"
+                        :view-region="searchingRegion"
                         :plot-margin="plotMargin"
-                        :region-zoom="regionZoom"
+                        :region-zoom="0"
                         :shared-canvas-width="stackCanvasWidth"
                         :plot-markers="plotMarkers"
                         :color-by-gene-type="geneTypeColors"
@@ -297,6 +371,7 @@
 import VariantSifterGenesTrack from "../kpVariantSifter/VariantSifterGenesTrack.vue";
 import VariantSifterCredibleSetsTrack from "../kpVariantSifter/VariantSifterCredibleSetsTrack.vue";
 import VariantSifterAssociationRegionPlot from "../kpVariantSifter/VariantSifterAssociationRegionPlot.vue";
+import GP2BrowserAssociationRegionPlot from "./GP2BrowserAssociationRegionPlot.vue";
 import VariantSifterAnnotationsWorkspaceTrack from "../kpVariantSifter/VariantSifterAnnotationsWorkspaceTrack.vue";
 import VariantSifterV2gTrack from "../kpVariantSifter/VariantSifterV2gTrack.vue";
 import { associationRowsToPlotData } from "../kpVariantSifter/variantSifterAssociationsPlotData.js";
@@ -318,8 +393,13 @@ import { pickLeadVariantRow, rowToLdVariant } from "../kpVariantSifter/variantSi
 import {
     buildGeneTypeOptions,
     filterGenesByTypes,
+    formatGeneTypeLabel,
+    resolveGeneType,
 } from "../kpVariantSifter/variantSifterGenesFilter.js";
-import { buildGeneTypeColorMap } from "../kpVariantSifter/variantSifterGenesColors.js";
+import {
+    buildGeneTypeColorMap,
+    geneColorForGene,
+} from "../kpVariantSifter/variantSifterGenesColors.js";
 import {
     attachPlotResizeObserver,
     computeRecombSignalIntervals,
@@ -339,6 +419,7 @@ import {
     buildZoomedViewRegionPlotData,
     prepareRawPlotRows,
     roundZoomLevelBy10,
+    stripZoomRefetchedRows,
 } from "./gp2BrowserAssociationsDownsample.js";
 
 const VIEW_MOVE_SETTLE_MS = 140;
@@ -349,6 +430,7 @@ export default {
         VariantSifterGenesTrack,
         VariantSifterCredibleSetsTrack,
         VariantSifterAssociationRegionPlot,
+        GP2BrowserAssociationRegionPlot,
         VariantSifterAnnotationsWorkspaceTrack,
         VariantSifterV2gTrack,
     },
@@ -415,6 +497,14 @@ export default {
         },
         viewRegion: {
             type: Object,
+            default: null,
+        },
+        activeSearchRegion: {
+            type: Object,
+            default: null,
+        },
+        viewingCenterBp: {
+            type: Number,
             default: null,
         },
         plotOverlaysState: {
@@ -513,9 +603,15 @@ export default {
         isGwasCeProjectActive() {
             return isGwasCeProject(this.projectId);
         },
-        plotSeries() {
+        searchingRegion() {
+            return this.activeSearchRegion || this.searchSession?.region || null;
+        },
+        searchingRows() {
+            return stripZoomRefetchedRows(this.rows);
+        },
+        searchingPlotSeries() {
             return buildAssociationPlotSeries({
-                rows: this.rows,
+                rows: this.searchingRows,
                 primaryAncestry: this.primaryAncestry,
                 selectedAncestries: this.selectedAncestries,
                 primaryPhenotype: this.searchSession?.phenotype || null,
@@ -525,6 +621,34 @@ export default {
                 ...series,
                 plotData: associationRowsToPlotData(series.rows),
             }));
+        },
+        viewingPlotSeries() {
+            const view = this.viewRegion;
+            return buildAssociationPlotSeries({
+                rows: this.rows,
+                primaryAncestry: this.primaryAncestry,
+                selectedAncestries: this.selectedAncestries,
+                primaryPhenotype: this.searchSession?.phenotype || null,
+                selectedPhenotypes: this.selectedPhenotypes,
+                project: VKS_ASSOCIATION_PROJECT_KP,
+            }).map((series) => {
+                const rowsInView = view
+                    ? series.rows.filter(
+                          (row) =>
+                              row?.Position != null &&
+                              row.Position >= view.start &&
+                              row.Position <= view.end
+                      )
+                    : series.rows;
+                return {
+                    ...series,
+                    rows: rowsInView,
+                    plotData: associationRowsToPlotData(rowsInView),
+                };
+            });
+        },
+        plotSeries() {
+            return this.searchingPlotSeries;
         },
         gwasCePlotRows() {
             return filterAssociationRowsByProject(
@@ -594,6 +718,36 @@ export default {
         geneTypeColors() {
             const genes = Array.isArray(this.genesState?.data) ? this.genesState.data : [];
             return buildGeneTypeColorMap(buildGeneTypeOptions(genes));
+        },
+        overlappingViewGenes() {
+            const view = this.viewRegion;
+            const genes = this.genesTrackData;
+            if (!view || !Array.isArray(genes) || !genes.length) {
+                return [];
+            }
+            const vStart = Number(view.start);
+            const vEnd = Number(view.end);
+            if (!Number.isFinite(vStart) || !Number.isFinite(vEnd)) {
+                return [];
+            }
+            return genes
+                .filter(
+                    (gene) =>
+                        gene?.gene_name &&
+                        Number(gene.start) <= vEnd &&
+                        Number(gene.end) >= vStart
+                )
+                .map((gene) => {
+                    const geneType = resolveGeneType(gene);
+                    return {
+                        name: gene.gene_name,
+                        type: geneType,
+                        typeLabel: formatGeneTypeLabel(geneType),
+                        color: geneColorForGene(gene, this.geneTypeColors),
+                        start: gene.start,
+                        end: gene.end,
+                    };
+                });
         },
         hasSelectedCredibleSets() {
             return (this.credibleSetsState?.selectedIds || []).length > 0;
@@ -708,8 +862,15 @@ export default {
                 };
             });
         },
+        searchingRecombPeakIntervals() {
+            const region = this.searchingRegion;
+            if (!region) {
+                return [];
+            }
+            return computeRecombSignalIntervals(this.plotOverlaysState?.recombData, region);
+        },
         recombPeakIntervals() {
-            const region = this.viewRegion || this.searchSession?.region;
+            const region = this.viewRegion || this.searchingRegion;
             if (!region) {
                 return [];
             }

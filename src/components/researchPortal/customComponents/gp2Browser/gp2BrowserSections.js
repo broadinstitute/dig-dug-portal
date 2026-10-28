@@ -70,6 +70,18 @@ export const GP2_DEFAULT_VISIBLE_SECTION_IDS = [
     "genes",
 ];
 
+/** Curated phenotype options for GP2 Browser (dropdown select). */
+export const GP2_BROWSER_PHENOTYPES = [
+    {
+        name: "Parkinsons",
+        description: "Parkinsons",
+    },
+];
+
+/** BioIndex host serving GP2 associations. */
+export const GP2_ASSOCIATIONS_BIOINDEX_HOST =
+    "https://gp2-dev.hugeampkpnbi.org";
+
 export function gp2DefaultVisibleSectionIds(sections = GP2_BROWSER_SECTIONS) {
     const allowed = new Set((sections || []).map((section) => section.id));
     const defaults = GP2_DEFAULT_VISIBLE_SECTION_IDS.filter((id) =>

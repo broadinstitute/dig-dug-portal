@@ -54,42 +54,20 @@
                         <label class="vks-welcome-label" :for="phenotypeInputId">
                             Phenotype
                         </label>
-                        <div class="vks-welcome-typeahead">
-                            <input
-                                :id="phenotypeInputId"
-                                v-model="phenotypeQuery"
-                                type="text"
-                                class="vks-welcome-input"
-                                autocomplete="off"
-                                placeholder="Search phenotype"
-                                @focus="phenotypeListOpen = true"
-                                @input="onPhenotypeInput"
-                            />
-                            <div
-                                v-if="phenotypeListOpen && phenotypeSuggestions.length"
-                                class="vks-welcome-suggestions"
-                                role="listbox"
+                        <select
+                            :id="phenotypeInputId"
+                            v-model="selectedPhenotypeName"
+                            class="vks-welcome-select"
+                            @change="onPhenotypeSelectChange"
+                        >
+                            <option
+                                v-for="phenotype in phenotypeOptions"
+                                :key="phenotype.name"
+                                :value="phenotype.name"
                             >
-                                <button
-                                    v-for="phenotype in phenotypeSuggestions"
-                                    :key="phenotype.name"
-                                    type="button"
-                                    class="vks-welcome-suggestion"
-                                    role="option"
-                                    @mousedown.prevent="selectPhenotype(phenotype)"
-                                >
-                                    <span class="vks-welcome-suggestion-label">
-                                        {{ phenotypeSuggestionLabel(phenotype) }}
-                                    </span>
-                                    <span
-                                        v-if="phenotypeSuggestionMeta(phenotype)"
-                                        class="vks-welcome-suggestion-meta"
-                                    >
-                                        {{ phenotypeSuggestionMeta(phenotype) }}
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
+                                {{ phenotypeSuggestionLabel(phenotype) }}
+                            </option>
+                        </select>
                     </div>
 
                     <div v-if="!hideAncestry" class="vks-welcome-field">
@@ -105,6 +83,7 @@
                                 v-for="ancestry in ancestryOptions"
                                 :key="ancestry"
                                 :value="ancestry"
+                                :disabled="ancestry !== 'Mixed'"
                             >
                                 {{ ancestryLabel(ancestry) }}
                             </option>
@@ -122,7 +101,7 @@
                                 type="text"
                                 class="vks-welcome-input"
                                 autocomplete="off"
-                                placeholder="e.g. PCSK9, rs11716727, chr1:155000000, chr1:100000-200000"
+                                placeholder="e.g. SNCA, rs356182, chr4:89704960, chr4:89650000-89850000"
                                 @focus="onGeneOrVariantFocus"
                                 @input="onGeneOrVariantInput"
                             />
@@ -149,7 +128,7 @@
                         <p class="vks-welcome-hint">
                             Genes, variants, and locations are converted to a genomic
                             region for the locus view. Enter a location as
-                            <strong>chr:position</strong> (e.g. chr1:155000000), or a
+                            <strong>chr:position</strong> (e.g. chr4:89704960), or a
                             region as <strong>chr:start-end</strong>.
                         </p>
                     </div>
@@ -212,8 +191,9 @@ import {
     formatRegion,
     isGeneLookupQuery,
     lookupGeneMatches,
-    resolveGeneOrVariantToRegion,
 } from "../kpVariantSifter/variantSifterSearchUtils.js";
+import { GP2_BROWSER_PHENOTYPES } from "./gp2BrowserSections.js";
+import { resolveGp2GeneOrVariantToRegion } from "./gp2BrowserGenesAndRecomb.js";
 import {
     normalizeGwasCeToken,
     projectAncestryOptions,
@@ -270,9 +250,13 @@ export default {
             ancestrySelectId: `vks-welcome-ancestry-${suffix}`,
             locusInputId: `vks-welcome-locus-${suffix}`,
             expandSelectId: `vks-welcome-expand-${suffix}`,
-            phenotypeQuery: "",
+            phenotypeQuery: GP2_BROWSER_PHENOTYPES[0]?.name || "Parkinsons",
+            selectedPhenotypeName: GP2_BROWSER_PHENOTYPES[0]?.name || "Parkinsons",
             accessToken: "",
-            selectedPhenotype: null,
+            selectedPhenotype: GP2_BROWSER_PHENOTYPES[0] || {
+                name: "Parkinsons",
+                description: "Parkinsons",
+            },
             selectedAncestry: "Mixed",
             geneOrVariantQuery: "",
             regionExpandBp: null,
@@ -296,8 +280,14 @@ export default {
         hideAncestry() {
             return projectHidesAncestry(this.projectId);
         },
+        phenotypeOptions() {
+            if (Array.isArray(this.phenotypes) && this.phenotypes.length) {
+                return this.phenotypes;
+            }
+            return GP2_BROWSER_PHENOTYPES;
+        },
         phenotypeSuggestions() {
-            return filterPhenotypes(this.phenotypes, this.phenotypeQuery);
+            return filterPhenotypes(this.phenotypeOptions, this.phenotypeQuery);
         },
         ancestryOptions() {
             return projectAncestryOptions(this.projectId);
@@ -320,13 +310,15 @@ export default {
                 this.accessToken = "";
             }
             if (
-                this.selectedPhenotype &&
-                !(this.phenotypes || []).some(
-                    (entry) => entry.name === this.selectedPhenotype.name
+                this.selectedPhenotypeName &&
+                !this.phenotypeOptions.some(
+                    (entry) => entry.name === this.selectedPhenotypeName
                 )
             ) {
-                this.phenotypeQuery = "";
-                this.selectedPhenotype = null;
+                const defaultPhenotype = this.phenotypeOptions[0] || null;
+                this.selectedPhenotypeName = defaultPhenotype?.name || "";
+                this.selectedPhenotype = defaultPhenotype;
+                this.phenotypeQuery = defaultPhenotype?.name || "";
             }
             if (
                 !this.hideAncestry &&
@@ -338,13 +330,15 @@ export default {
         },
         phenotypes() {
             if (
-                this.selectedPhenotype &&
-                !(this.phenotypes || []).some(
-                    (entry) => entry.name === this.selectedPhenotype.name
+                !this.selectedPhenotypeName ||
+                !this.phenotypeOptions.some(
+                    (entry) => entry.name === this.selectedPhenotypeName
                 )
             ) {
-                this.phenotypeQuery = "";
-                this.selectedPhenotype = null;
+                const defaultPhenotype = this.phenotypeOptions[0] || null;
+                this.selectedPhenotypeName = defaultPhenotype?.name || "";
+                this.selectedPhenotype = defaultPhenotype;
+                this.phenotypeQuery = defaultPhenotype?.name || "";
             }
         },
         geneOrVariantQuery() {
@@ -365,9 +359,14 @@ export default {
     methods: {
         ancestryLabel,
         resetFormFields() {
-            this.phenotypeQuery = "";
+            const defaultPhenotype = this.phenotypeOptions[0] || {
+                name: "Parkinsons",
+                description: "Parkinsons",
+            };
+            this.selectedPhenotypeName = defaultPhenotype.name;
+            this.selectedPhenotype = defaultPhenotype;
+            this.phenotypeQuery = this.phenotypeSuggestionLabel(defaultPhenotype);
             this.accessToken = "";
-            this.selectedPhenotype = null;
             this.selectedAncestry = "Mixed";
             this.geneOrVariantQuery = "";
             this.regionExpandBp = null;
@@ -386,13 +385,11 @@ export default {
                 );
             }
             if (values.phenotype) {
-                const match = (this.phenotypes || []).find(
+                const match = this.phenotypeOptions.find(
                     (phenotype) => phenotype.name === values.phenotype
                 );
                 if (match) {
                     this.selectPhenotype(match);
-                } else {
-                    this.phenotypeQuery = values.phenotype;
                 }
             }
             if (
@@ -485,6 +482,14 @@ export default {
             this.geneListOpen = false;
             this.errorMessage = "";
         },
+        onPhenotypeSelectChange() {
+            const match = this.phenotypeOptions.find(
+                (entry) => entry.name === this.selectedPhenotypeName
+            );
+            this.selectedPhenotype = match || null;
+            this.phenotypeQuery = match ? this.phenotypeSuggestionLabel(match) : "";
+            this.errorMessage = "";
+        },
         onPhenotypeInput() {
             this.phenotypeListOpen = true;
             this.selectedPhenotype = null;
@@ -492,6 +497,7 @@ export default {
         },
         selectPhenotype(phenotype) {
             this.selectedPhenotype = phenotype;
+            this.selectedPhenotypeName = phenotype?.name || "";
             this.phenotypeQuery = this.phenotypeSuggestionLabel(phenotype);
             this.phenotypeListOpen = false;
             this.errorMessage = "";
@@ -579,8 +585,11 @@ export default {
             }
 
             const phenotype =
+                this.phenotypeOptions.find(
+                    (entry) => entry.name === this.selectedPhenotypeName
+                ) ||
                 this.selectedPhenotype ||
-                (this.phenotypes || []).find(
+                this.phenotypeOptions.find(
                     (entry) =>
                         entry.name === this.phenotypeQuery ||
                         entry.description === this.phenotypeQuery
@@ -603,7 +612,7 @@ export default {
 
             this.submitting = true;
             try {
-                let region = await resolveGeneOrVariantToRegion(
+                let region = await resolveGp2GeneOrVariantToRegion(
                     this.geneOrVariantQuery,
                     this.utils.regionUtils,
                     this.regionExpandBp,

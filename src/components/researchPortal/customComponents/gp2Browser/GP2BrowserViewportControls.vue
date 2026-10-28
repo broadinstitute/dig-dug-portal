@@ -225,16 +225,15 @@ export default {
         onZoomInput() {
             const raw = Math.max(
                 this.sliderMin,
-                Math.min(this.sliderMax, Math.round(Number(this.localSlider) || 0))
+                Math.min(0, Math.round(Number(this.localSlider) || 0))
             );
-            const next = raw > 0 ? snapZoomSliderValue(raw) : raw;
-            this.localSlider = next;
-            this.emitZoomFromSlider({ snap: raw > 0 });
+            this.localSlider = raw;
+            this.emitZoomFromSlider({ snap: false });
         },
         onZoomCommit() {
             const next = Math.max(
                 this.sliderMin,
-                Math.min(this.sliderMax, snapZoomSliderValue(this.localSlider))
+                Math.min(0, snapZoomSliderValue(this.localSlider))
             );
             this.localSlider = next;
             this.isDragging = false;

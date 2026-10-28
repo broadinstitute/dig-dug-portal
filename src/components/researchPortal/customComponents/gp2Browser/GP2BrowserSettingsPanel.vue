@@ -218,6 +218,7 @@ import {
     VKS_SETTINGS_TABS,
 } from "../kpVariantSifter/variantSifterToolSettings.js";
 import { GP2_BROWSER_SECTIONS } from "./gp2BrowserSections.js";
+import { GP2_GENOME_BUILD } from "./gp2BrowserLdServer.js";
 import {
     listVksProjects,
     normalizeProjectId,
@@ -285,6 +286,7 @@ export default {
                 projectId: this.projectId,
                 defaultBioIndexHost: this.defaultBioIndexHost || this.bioIndexHost,
                 resolveHostForIndex: this.resolveHostForIndex,
+                genomeBuild: GP2_GENOME_BUILD,
             });
         },
         informationRows() {
@@ -299,6 +301,7 @@ export default {
                 ...buildToolInformation({
                     searchSession: this.searchSession,
                     toolName: this.toolName,
+                    genomeBuild: GP2_GENOME_BUILD,
                 }),
             ];
         },

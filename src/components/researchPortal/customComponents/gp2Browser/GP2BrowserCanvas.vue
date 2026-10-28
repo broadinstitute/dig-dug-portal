@@ -30,6 +30,8 @@
                         :region-shift-bp="regionShiftBp"
                         :region-view-area="regionViewArea"
                         :view-region="viewRegion"
+                        :active-search-region="activeSearchRegion"
+                        :viewing-center-bp="viewingCenterBp"
                         :genes-state="genesState"
                         :plot-overlays-state="plotOverlaysState"
                         :plot-markers="plotMarkers"
@@ -46,6 +48,8 @@
                         :project-id="projectId"
                         @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                        @update:viewingCenterBp="$emit('update:viewingCenterBp', $event)"
+                        @commit-viewing-region="$emit('commit-viewing-region')"
                         @pan-end="$emit('pan-end')"
                         @toggle-position-marker="$emit('toggle-position-marker', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
@@ -172,6 +176,14 @@ export default {
         },
         viewRegion: {
             type: Object,
+            default: null,
+        },
+        activeSearchRegion: {
+            type: Object,
+            default: null,
+        },
+        viewingCenterBp: {
+            type: Number,
             default: null,
         },
         dataTableOpen: {
