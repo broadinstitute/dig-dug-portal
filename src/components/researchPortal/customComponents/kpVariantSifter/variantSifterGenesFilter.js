@@ -1,8 +1,8 @@
+/** Default gene biotypes shown on the genes track. */
+export const VKS_DEFAULT_GENE_TYPES = ["protein_coding"];
+
 /** Sentinel value meaning all available gene biotypes in any locus are selected. */
 export const VKS_ALL_GENE_TYPES = "*";
-
-/** Default gene biotypes shown on the genes track. */
-export const VKS_DEFAULT_GENE_TYPES = [VKS_ALL_GENE_TYPES];
 
 export function resolveGeneType(gene) {
     return gene?.gene_type || gene?.type || null;

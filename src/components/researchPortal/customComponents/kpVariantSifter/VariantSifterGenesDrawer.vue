@@ -34,8 +34,8 @@
                     </option>
                 </select>
                 <p class="vks-ui-hint">
-                    Hold {{ modifierLabel }} to select multiple types. Default is all
-                    gene types.
+                    Hold {{ modifierLabel }} to select multiple types. Default is coding
+                    genes only.
                 </p>
                 <div class="vks-ui-btn-row">
                     <button type="button" class="vks-ui-btn vks-ui-btn--secondary" @click="selectCodingOnly">

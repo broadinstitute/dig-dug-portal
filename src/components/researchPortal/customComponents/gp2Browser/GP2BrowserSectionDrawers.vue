@@ -82,7 +82,7 @@
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                         @update:panelFilters="$emit('update:credibleSetsPanelFilters', $event)"
                     />
-                    <VariantSifterGenesDrawer
+                    <GP2BrowserGenesDrawer
                         v-else-if="openSection.id === 'genes'"
                         :genes-state="genesState"
                         @update:selectedTypes="$emit('update:genesSelectedTypes', $event)"
@@ -178,7 +178,7 @@ import {
 import { VKS_PROJECT_DEFAULT_ID } from "../kpVariantSifter/variantSifterProjects.js";
 import VariantSifterAssociationsDrawer from "../kpVariantSifter/VariantSifterAssociationsDrawer.vue";
 import VariantSifterCredibleSetsDrawer from "../kpVariantSifter/VariantSifterCredibleSetsDrawer.vue";
-import VariantSifterGenesDrawer from "../kpVariantSifter/VariantSifterGenesDrawer.vue";
+import GP2BrowserGenesDrawer from "./GP2BrowserGenesDrawer.vue";
 import VariantSifterGlobalEnrichmentDrawer from "../kpVariantSifter/VariantSifterGlobalEnrichmentDrawer.vue";
 import VariantSifterV2gDrawer from "../kpVariantSifter/VariantSifterV2gDrawer.vue";
 import VariantSifterS2gDrawer from "../kpVariantSifter/VariantSifterS2gDrawer.vue";
@@ -188,7 +188,7 @@ export default {
     components: {
         VariantSifterAssociationsDrawer,
         VariantSifterCredibleSetsDrawer,
-        VariantSifterGenesDrawer,
+        GP2BrowserGenesDrawer,
         VariantSifterGlobalEnrichmentDrawer,
         VariantSifterV2gDrawer,
         VariantSifterS2gDrawer,

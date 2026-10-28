@@ -495,6 +495,7 @@ import {
 import {
     normalizeSelectedGeneTypes,
     resolveSelectedGeneTypesForData,
+    VKS_ALL_GENE_TYPES,
     VKS_DEFAULT_GENE_TYPES,
 } from "./kpVariantSifter/variantSifterGenesFilter.js";
 import {
@@ -563,7 +564,7 @@ function emptyAssociationsState() {
     };
 }
 
-function emptyGenesState(selectedTypes = VKS_DEFAULT_GENE_TYPES) {
+function emptyGenesState(selectedTypes = [VKS_ALL_GENE_TYPES]) {
     return {
         ready: false,
         loading: false,
