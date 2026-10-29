@@ -7,6 +7,12 @@ export const MODELS = [
         cfde: true,
     },
     {
+        id: "mouse_msigdb",
+        label: "mouse_msigdb",
+        host: "https://bioindex.hugeamp.org",
+        sigma: 2,
+    },
+    {
         id: "small",
         label: "Small",
         host: "https://bioindex.hugeamp.org",

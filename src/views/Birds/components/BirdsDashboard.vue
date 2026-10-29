@@ -45,7 +45,6 @@
           </div>
         </div>
       </div>
-      <div class="footerNote">Local dashboard — no internet connection or external library required.</div>
     </div>
 </template>
 <script>
@@ -79,7 +78,6 @@ export default Vue.component("birds-dashboard", {
     }
   },
   mounted() {
-    console.log(typeof BIRD_PANEL_HTML);
     const initial = location.hash.slice(1);
     this.focus(BIRD_PANEL_HTML[initial] ? initial : 'all');
     window.addEventListener('keydown', this.onShortcut);
@@ -131,5 +129,8 @@ export default Vue.component("birds-dashboard", {
 }
 .controls {
   margin-top: 10px !important;
+}
+.page {
+  padding-top: 0px !important;
 }
 </style>

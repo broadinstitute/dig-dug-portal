@@ -20,10 +20,6 @@
                     <trait-group-selectpicker></trait-group-selectpicker>
                 </div>
                 <div class="col filter-col-md">
-                    <div class="label">Number of gene sets included</div>
-                    <geneset-size-selectpicker></geneset-size-selectpicker>
-                </div>
-                <div class="col filter-col-md">
                     <div class="label">Search</div>
                     <button
                         id="regionSearchGo"

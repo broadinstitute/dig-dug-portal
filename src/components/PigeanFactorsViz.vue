@@ -27,7 +27,7 @@
               </span>
             </div>
             <div class="legend-item">
-              <span class="legend-label">Factor relevance:</span>
+              <span class="legend-label">Loading on factor:</span>
               <span class="legend-color factor-relevance"></span>
               <span class="legend-text">Darker = more relevant</span>
             </div>
@@ -165,7 +165,7 @@ export default Vue.component("pigean-factors-viz", {
       let dynamicHeight = this.height;
       
       if (this.heatmapData && this.heatmapData.factors && this.heatmapData.factors.length > 0) {
-        const numSpecialRows = 3; // Combined score, GWAS support, Gene set support
+        const numSpecialRows = 3; // Combined support, Direct support, Indirect support
         const numFactors = this.heatmapData.factors.length;
         const cellHeight = 20;
         const margin = { top: 100, bottom: 20 };
@@ -224,11 +224,6 @@ export default Vue.component("pigean-factors-viz", {
     },
     geneSetsHeatmapData: {
       handler(newVal, oldVal) {
-        console.log('geneSetsHeatmapData watcher triggered', { 
-          newVal, 
-          hasGeneSets: newVal && newVal.geneSets && newVal.geneSets.length > 0,
-          geneSetsLength: newVal && newVal.geneSets ? newVal.geneSets.length : 0
-        });
         // Clean up any orphaned tooltips before rendering
         this.cleanupTooltips();
         if (newVal && newVal.geneSets && newVal.geneSets.length > 0) {
@@ -320,6 +315,21 @@ export default Vue.component("pigean-factors-viz", {
         return { background: "#cccccc", border: "#999999" };
       }
     },
+    getColorByRelevance(score){
+      // Same logic as the purple scoring above, but with green
+      // Clamp value to 0-1 range
+      const clampedValue = Math.max(0, Math.min(1, score));
+      
+      // Create gradient from light green to dark green
+      const r1 = 186, g1 = 253, b1 = 227; // Light green
+      const r2 = 4, g2 = 114, b2 = 72;  // Dark green
+      
+      const r = Math.round(r1 + (r2 - r1) * clampedValue);
+      const g = Math.round(g1 + (g2 - g1) * clampedValue);
+      const b = Math.round(b1 + (b2 - b1) * clampedValue);
+      
+      return `rgb(${r}, ${g}, ${b})`;
+    },
     renderTopCombinedHeatmap(retryCount) {
       if (!this.hasTopCombinedHeatmapData) {
         return;
@@ -341,20 +351,13 @@ export default Vue.component("pigean-factors-viz", {
     renderHeatmap(source, labelsContainer, heatmapContainer) {
       const heatmap = source || this.heatmapData;
       const labelsEl = labelsContainer || this.$refs.heatmapLabelsContainer;
-      const contentEl = heatmapContainer || this.$refs.heatmapContainer;
-      
-      console.log('renderHeatmap called', heatmap);
-      
+      const contentEl = heatmapContainer || this.$refs.heatmapContainer;      
       if (!heatmap || !heatmap.factors || heatmap.factors.length === 0) {
-        console.log('No heatmap data or empty factors array');
         return;
       }
-      
       if (!contentEl || !labelsEl) {
-        console.log('heatmapContainer or heatmapLabelsContainer ref not found');
         return;
       }
-      
       // Clear previous heatmap and clean up any orphaned tooltips
       // Remove any tooltips that might still be in the DOM
       const existingTooltips = document.querySelectorAll('.heatmap-tooltip');
@@ -377,20 +380,14 @@ export default Vue.component("pigean-factors-viz", {
       
       // Factors are already sorted by relevance score in PigeanFactors.vue, but ensure we have scores
       const relevanceScores = factorScores || factors.map(() => 0);
-      
-      console.log('Heatmap data:', { genes: genes.length, geneSets: geneSets.length, factors: factors.length, data: data ? data.length : 0 });
-      
       if (genes.length === 0 && geneSets.length === 0) {
-        console.log('Empty genes and gene sets arrays');
         return;
-      }
-      
+      }      
       if (genes.length > 0 && (!data || data.length === 0)) {
-        console.log('No data array');
         return;
       }
       
-      // Sort genes by combined score (descending - bigger first)
+      // Sort genes by Combined support (descending - bigger first)
       if (combinedScores && combinedScores.length === genes.length) {
         // Create array of indices with scores for sorting
         const geneIndices = genes.map((gene, index) => ({
@@ -422,10 +419,10 @@ export default Vue.component("pigean-factors-viz", {
       }
       
       // Calculate dimensions (swapped: genes on x-axis, factors on y-axis)
-      // Add 3 extra rows for Combined score, GWAS support, and Gene set support
+      // Add 3 extra rows for Combined support, Direct support, and Indirect support
       // Add 1 extra column for factor relevance score in y-axis labels
       const numSpecialRows = 3;
-      const relevanceColumnWidth = 20; // Fixed width for relevance score column in y-axis labels
+      const relevanceColumnWidth = 0; // we're no longer using this column
       const totalColumns = genes.length + geneSets.length;
       const cellWidth = Math.max(30, 300 / Math.max(totalColumns, 1)); // Dynamic width based on number of columns
       const cellHeight = 20;
@@ -470,70 +467,9 @@ export default Vue.component("pigean-factors-viz", {
       const labelsG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       labelsG.setAttribute('transform', `translate(${labelWidth - relevanceColumnWidth - 10},${labelMargin.top})`);
       
-      // Group for relevance column (cells and header)
-      const relevanceG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      relevanceG.setAttribute('transform', `translate(${labelWidth - relevanceColumnWidth},${labelMargin.top})`);
+      // Draw special row labels (Combined support, Direct support, Indirect support)
+      const specialRowLabels = ['Combined support', 'Direct support', 'Indirect support'];
       
-      // Draw relevance column header label (rotated 90 degrees)
-      // Position it further up and adjust for rotation to prevent cutoff
-      // When rotated -90 degrees, the text extends horizontally, so we need more vertical space
-      const relevanceHeaderText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      const relevanceHeaderX = 10;//relevanceColumnWidth / 2;
-      const relevanceHeaderY = -60; // Move further up to accommodate rotated text (text extends left when rotated -90)
-      relevanceHeaderText.setAttribute('x', relevanceHeaderX);
-      relevanceHeaderText.setAttribute('y', relevanceHeaderY);
-      relevanceHeaderText.setAttribute('text-anchor', 'middle');
-      relevanceHeaderText.setAttribute('alignment-baseline', 'middle');
-      relevanceHeaderText.setAttribute('class', 'heatmap-label');
-      relevanceHeaderText.setAttribute('font-size', '10px'); // Slightly smaller font to fit better
-      relevanceHeaderText.setAttribute('font-weight', '600');
-      relevanceHeaderText.setAttribute('font-family', 'Arial');
-      // Rotate -90 degrees around the center point
-      relevanceHeaderText.setAttribute('transform', `rotate(-90, ${relevanceHeaderX}, ${relevanceHeaderY})`);
-      relevanceHeaderText.textContent = 'Relevance to trait';
-      relevanceG.appendChild(relevanceHeaderText);
-      
-      // Draw special row labels (Combined score, GWAS support, Gene set support)
-      const specialRowLabels = ['Combined score', 'GWAS support', 'Gene set support'];
-      
-      // Draw relevance column cells for special rows (empty cells)
-      specialRowLabels.forEach((label, rowIndex) => {
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', 0);
-        rect.setAttribute('y', rowIndex * cellHeight);
-        rect.setAttribute('width', relevanceColumnWidth);
-        rect.setAttribute('height', cellHeight);
-        rect.setAttribute('fill', '#f5f5f5');
-        rect.setAttribute('stroke', '#fff');
-        rect.setAttribute('stroke-width', '1');
-        rect.setAttribute('class', 'heatmap-cell-bg');
-        relevanceG.appendChild(rect);
-      });
-      
-      // Draw relevance column cells for factor rows (color-coded)
-      factors.forEach((factor, factorIndex) => {
-        const relevanceScore = relevanceScores[factorIndex];
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', 0);
-        rect.setAttribute('y', (numSpecialRows + factorIndex) * cellHeight);
-        rect.setAttribute('width', relevanceColumnWidth);
-        rect.setAttribute('height', cellHeight);
-        
-        // Color code based on relevance score
-        if (relevanceScore !== null && relevanceScore !== undefined) {
-          const color = this.getColorByScore(relevanceScore);
-          rect.setAttribute('fill', color.background);
-          rect.setAttribute('stroke', color.border);
-          rect.setAttribute('stroke-width', '1');
-          rect.setAttribute('title', `Relevance to trait: ${relevanceScore.toFixed(2)}`);
-        } else {
-          rect.setAttribute('fill', '#f0f0f0');
-          rect.setAttribute('stroke', '#fff');
-          rect.setAttribute('stroke-width', '1');
-        }
-        rect.setAttribute('class', 'heatmap-cell-bg');
-        relevanceG.appendChild(rect);
-      });
       specialRowLabels.forEach((label, rowIndex) => {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', 0);
@@ -660,7 +596,6 @@ export default Vue.component("pigean-factors-viz", {
       });
       
       labelsSvg.appendChild(labelsG);
-      labelsSvg.appendChild(relevanceG);
       labelsEl.appendChild(labelsSvg);
       
       // Create scrollable heatmap SVG (cells and x-axis labels)
@@ -672,11 +607,11 @@ export default Vue.component("pigean-factors-viz", {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       g.setAttribute('transform', `translate(${margin.left},${margin.top})`);
       
-      // Draw special rows with circles (Combined score, GWAS support, Gene set support)
+      // Draw special rows with circles (Combined support, Direct support, Indirect support)
       const specialRowData = [
-        { scores: combinedScores || [], label: 'Combined score' },
-        { scores: gwasScores || [], label: 'GWAS support' },
-        { scores: geneSetScores || [], label: 'Gene set support' }
+        { scores: combinedScores || [], label: 'Combined support' },
+        { scores: gwasScores || [], label: 'Direct support' },
+        { scores: geneSetScores || [], label: 'Indirect support' }
       ];
       
       // Calculate min/max scores for circle size normalization
@@ -1077,15 +1012,15 @@ export default Vue.component("pigean-factors-viz", {
       // Draw gene labels (x-axis) - positioned higher to avoid overlap
       genes.forEach((gene, geneIndex) => {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        const labelY = -30; // Move labels further up to avoid overlap with first row
+        const labelY = -5; // Move labels further up to avoid overlap with first row
         const labelX = geneIndex * cellWidth + cellWidth / 2; // No offset needed
         text.setAttribute('x', labelX);
         text.setAttribute('y', labelY);
-        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('text-anchor', 'start');
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '11px');
         text.setAttribute('font-family', 'Arial');
-        text.setAttribute('transform', `rotate(-45, ${labelX}, ${labelY})`);
+        text.setAttribute('transform', `rotate(-90, ${labelX}, ${labelY})`);
         text.textContent = gene;
         g.appendChild(text);
       });
@@ -1103,8 +1038,8 @@ export default Vue.component("pigean-factors-viz", {
 
       geneSets.forEach((geneSet, geneSetIndex) => {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        const labelY = -15;
-        const labelX = geneSetXOffset + geneSetIndex * cellWidth;
+        const labelY = -5;
+        const labelX = geneSetXOffset + geneSetIndex * cellWidth + (cellWidth / 2);
         text.setAttribute('x', labelX);
         text.setAttribute('y', labelY);
         text.setAttribute('text-anchor', 'start');
@@ -1112,7 +1047,7 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '10px');
         text.setAttribute('font-family', 'Arial');
-        text.setAttribute('transform', `rotate(-45, ${labelX}, ${labelY})`);
+        text.setAttribute('transform', `rotate(-90, ${labelX}, ${labelY})`);
         text.textContent = this.truncateLabel(geneSet, 40);
         const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
         title.textContent = geneSet;
@@ -1124,16 +1059,12 @@ export default Vue.component("pigean-factors-viz", {
       contentEl.appendChild(svg);
     },
     renderGeneSetsHeatmap() {
-      console.log('renderGeneSetsHeatmap called', this.geneSetsHeatmapData);
-      
       if (!this.geneSetsHeatmapData || !this.geneSetsHeatmapData.geneSets || this.geneSetsHeatmapData.geneSets.length === 0) {
-        console.log('No gene sets heatmap data or empty gene sets array');
         return;
       }
       
       // Wait for refs to be available
       if (!this.$refs.geneSetsHeatmapContainer || !this.$refs.geneSetsHeatmapLabelsContainer) {
-        console.log('geneSetsHeatmapContainer or geneSetsHeatmapLabelsContainer ref not found, retrying...');
         // Retry after a short delay
         setTimeout(() => {
           this.renderGeneSetsHeatmap();
@@ -1161,16 +1092,10 @@ export default Vue.component("pigean-factors-viz", {
       let { geneSets, factors, factorLabels, factorScores, data } = this.geneSetsHeatmapData;
       const labels = factorLabels || factors;
       const relevanceScores = factorScores || factors.map(() => 0);
-      
-      console.log('Gene sets heatmap data:', { geneSets: geneSets.length, factors: factors.length, data: data ? data.length : 0 });
-      
       if (geneSets.length === 0 || factors.length === 0) {
-        console.log('Empty gene sets or factors array');
         return;
       }
-      
       if (!data || data.length === 0) {
-        console.log('No data array');
         return;
       }
       
@@ -1210,49 +1135,6 @@ export default Vue.component("pigean-factors-viz", {
       const labelsG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       labelsG.setAttribute('transform', `translate(${labelWidth - relevanceColumnWidth - 10},${labelMargin.top})`);
       
-      // Group for relevance column
-      const relevanceG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      relevanceG.setAttribute('transform', `translate(${labelWidth - relevanceColumnWidth},${labelMargin.top})`);
-      
-      // Draw relevance column header label (rotated 90 degrees)
-      const relevanceHeaderText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      const relevanceHeaderX = 10;
-      const relevanceHeaderY = -60;
-      relevanceHeaderText.setAttribute('x', relevanceHeaderX);
-      relevanceHeaderText.setAttribute('y', relevanceHeaderY);
-      relevanceHeaderText.setAttribute('text-anchor', 'middle');
-      relevanceHeaderText.setAttribute('alignment-baseline', 'middle');
-      relevanceHeaderText.setAttribute('class', 'heatmap-label');
-      relevanceHeaderText.setAttribute('font-size', '10px');
-      relevanceHeaderText.setAttribute('font-weight', '600');
-      relevanceHeaderText.setAttribute('font-family', 'Arial');
-      relevanceHeaderText.setAttribute('transform', `rotate(-90, ${relevanceHeaderX}, ${relevanceHeaderY})`);
-      relevanceHeaderText.textContent = 'Relevance to trait';
-      relevanceG.appendChild(relevanceHeaderText);
-      
-      // Draw relevance column cells for factor rows
-      factors.forEach((factor, factorIndex) => {
-        const relevanceScore = relevanceScores[factorIndex];
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', 0);
-        rect.setAttribute('y', factorIndex * cellHeight);
-        rect.setAttribute('width', relevanceColumnWidth);
-        rect.setAttribute('height', cellHeight);
-        
-        if (relevanceScore !== null && relevanceScore !== undefined) {
-          const color = this.getColorByScore(relevanceScore);
-          rect.setAttribute('fill', color.background);
-          rect.setAttribute('stroke', color.border);
-          rect.setAttribute('stroke-width', '1');
-          rect.setAttribute('title', `Relevance to trait: ${relevanceScore.toFixed(2)}`);
-        } else {
-          rect.setAttribute('fill', '#f0f0f0');
-          rect.setAttribute('stroke', '#fff');
-          rect.setAttribute('stroke-width', '1');
-        }
-        rect.setAttribute('class', 'heatmap-cell-bg');
-        relevanceG.appendChild(rect);
-      });
       
       // Draw factor labels (y-axis)
       factors.forEach((factor, factorIndex) => {
@@ -1270,7 +1152,6 @@ export default Vue.component("pigean-factors-viz", {
         labelsG.appendChild(text);
       });
       
-      labelsSvg.appendChild(relevanceG);
       labelsSvg.appendChild(labelsG);
       this.$refs.geneSetsHeatmapLabelsContainer.appendChild(labelsSvg);
       
@@ -1381,18 +1262,15 @@ export default Vue.component("pigean-factors-viz", {
       // Draw gene set labels (x-axis) - positioned to avoid overlap, left-aligned
       geneSets.forEach((geneSet, geneSetIndex) => {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        const labelY = -15; // Position labels closer to heatmap cells
-        const labelX = geneSetIndex * cellWidth; // Start at left edge of cell
+        const labelY = -5; // Position labels closer to heatmap cells
+        const labelX = geneSetIndex * cellWidth + (cellWidth / 2); // middle of cell
         text.setAttribute('x', labelX);
         text.setAttribute('y', labelY);
         text.setAttribute('text-anchor', 'start'); // Left-align so text extends right and up when rotated
-        text.setAttribute('alignment-baseline', 'middle');
         text.setAttribute('class', 'heatmap-label');
         text.setAttribute('font-size', '10px'); // Slightly smaller font
         text.setAttribute('font-family', 'Arial');
-        // Rotate -45 degrees around the start point
-        // The text will extend upward and to the right when rotated, avoiding cell overlap
-        text.setAttribute('transform', `rotate(-45, ${labelX}, ${labelY})`);
+        text.setAttribute('transform', `rotate(-90, ${labelX}, ${labelY})`);
         text.textContent = geneSet;
         g.appendChild(text);
       });
@@ -1832,15 +1710,15 @@ export default Vue.component("pigean-factors-viz", {
               values: heatmap.geneSetFactorData || []
             },
             gwasData: {
-              description: '2D array [gene][factor] of GWAS support scores (log_bf)',
+              description: '2D array [gene][factor] of Direct support scores (log_bf)',
               values: heatmap.gwasData || []
             },
             geneSetData: {
-              description: '2D array [gene][factor] of gene set support scores (prior)',
+              description: '2D array [gene][factor] of Indirect support scores (prior)',
               values: heatmap.geneSetData || []
             },
             combinedScores: {
-              description: 'Array of combined scores per gene',
+              description: 'Array of Combined supports per gene',
               values: heatmap.combinedScores || []
             },
             gwasScores: {

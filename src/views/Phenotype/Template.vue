@@ -228,12 +228,15 @@
                     :falconTraitAssociatedGenes="$store.state.falconTraitAssociatedGenes.data"
                     :phenotype="$store.state.phenotype"
                     :docDetails="$parent.docDetails"
+                    :plotColors="$parent.plotColors"
                 >
                 </pigean-phenotype>
                 <pigean-factors
                     :title="`Genetic factors underlying ${$store.state.phenotype.name}`"
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     :pigeanFactorData="$store.state.pigeanFactor.data"
+                    :utilsBox="$parent.utilsBox"
+                    :plotColors="$parent.plotColors"
                 >
                 </pigean-factors>
                 <div class="card mdkp-card">
@@ -275,6 +278,7 @@
                                     <select v-model="$parent.annotation"
                                         class="form-control"
                                         @change="$parent.onAnnotationSelected()">
+                                        <option value="">Select annotation</option>
                                         <option v-for="anno in $store.state.annotationOptions"
                                             :value="anno">
                                             {{ anno }}
@@ -732,6 +736,7 @@
                 :show-ancestry-select="false"
                 :show-link-back="true"
                 :show-page-title="false"
+                :documentation-map="$store.state.bioPortal.documentations"
             ></bottom-line-provenance>
         </b-modal>
 

@@ -515,7 +515,7 @@ export default Vue.component("pigean-phenotype", {
     TooltipDocumentation,
     PigeanLocusZoom
   },
-  props: ["phenotypeMap", "pigeanData", "hugeScores", "falconTraitAssociatedGenes", "phenotype", "docDetails", "filter"],
+  props: ["phenotypeMap", "pigeanData", "hugeScores", "falconTraitAssociatedGenes", "phenotype", "docDetails", "filter", "plotColors"],
   data() {
       return {
         perPage: 10,
@@ -607,24 +607,6 @@ export default Vue.component("pigean-phenotype", {
             bottomMargin: 100,
             bump: 11,
         },
-        plotColors: [
-            "#007bff",
-            "#048845",
-            "#8490C8",
-            "#BF61A5",
-            "#EE3124",
-            "#FCD700",
-            "#5555FF",
-            "#7aaa1c",
-            "#9F78AC",
-            "#F88084",
-            "#F5A4C7",
-            "#CEE6C1",
-            "#cccc00",
-            "#6FC7B6",
-            "#D5A768",
-            "#d4d4d4",
-        ],
         tableFields: [
           {
             key: 'Gene',

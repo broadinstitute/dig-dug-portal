@@ -5,6 +5,7 @@ import store from "./store";
 import NetworkGraph from "@/components/NetworkGraph.vue";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
+import { DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils"
 import keyParams from "@/utils/keyParams";
 import pigeanUtils from "@/utils/pigeanUtils.js";
 import { pageMixin } from "@/mixins/pageMixin.js";
@@ -31,7 +32,7 @@ new Vue({
     },
     computed: {
         genesetSize() {
-            return keyParams.genesetSize || "small";
+            return DEFAULT_GENESET_SIZE;
         },
     },
     methods: {

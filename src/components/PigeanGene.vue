@@ -737,15 +737,6 @@ export default Vue.component("pigean-gene", {
             sortable: true
           },
           {
-            key: "gene_set_score",
-            label: "Factor relevance to phenotype",
-            sortable: true,
-            formatter: (value) =>
-              value === null || value === undefined || value === ""
-                ? "N/A"
-                : Number(value).toFixed(2),
-          },
-          {
             key: "top_gene_sets",
             label: "Top gene sets",
             sortable: false,
@@ -1333,8 +1324,8 @@ export default Vue.component("pigean-gene", {
     },
     sortFactorsByRelevance(data) {
       return [...(data || [])].sort((a, b) => {
-        const scoreA = Number(a && a.gene_set_score);
-        const scoreB = Number(b && b.gene_set_score);
+        const scoreA = Number(a && a.anchor_any_joint);
+        const scoreB = Number(b && b.anchor_any_joint);
         const safeA = Number.isNaN(scoreA) ? 0 : scoreA;
         const safeB = Number.isNaN(scoreB) ? 0 : scoreB;
         return safeB - safeA;
