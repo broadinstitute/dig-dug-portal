@@ -52,12 +52,17 @@
             <div
                 v-if="showViewRegionHandle && viewRegionHandleStyle"
                 class="gp2-view-region-handle"
-                :class="{ 'is-dragging': isDraggingViewHandle }"
+                :class="{
+                    'is-dragging': isDraggingViewHandle,
+                    'is-hovered': isHoveringViewHandle,
+                }"
                 :style="viewRegionHandleStyle"
                 role="slider"
                 tabindex="0"
                 aria-label="Viewing region (50 kb) handle — drag to move viewing region"
                 :title="viewRegionHandleTitle"
+                @mouseenter="isHoveringViewHandle = true"
+                @mouseleave="isHoveringViewHandle = false"
                 @mousedown.stop.prevent="onViewHandleMouseDown"
                 @keydown="onViewHandleKeyDown"
             >
@@ -81,6 +86,19 @@
                         {{ gene.name }}
                     </span>
                 </div>
+            </div>
+            <div
+                v-if="showViewRegionBridge && viewRegionBridgeStyle"
+                class="gp2-view-region-bridge"
+                :class="{
+                    'is-active': isHoveringViewHandle || isDraggingViewHandle,
+                }"
+                :style="viewRegionBridgeStyle"
+                aria-hidden="true"
+            >
+                <span class="gp2-view-region-bridge-top"></span>
+                <span class="gp2-view-region-bridge-edge gp2-view-region-bridge-edge--left"></span>
+                <span class="gp2-view-region-bridge-edge gp2-view-region-bridge-edge--right"></span>
             </div>
         </div>
         <VariantSifterVariantDotMenu
@@ -321,6 +339,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        showViewRegionBridge: {
+            type: Boolean,
+            default: false,
+        },
         viewingCenterBp: {
             type: Number,
             default: null,
@@ -406,6 +428,7 @@ export default {
             panDidChangeShift: false,
             panMoved: false,
             isDraggingViewHandle: false,
+            isHoveringViewHandle: false,
             handleDragStartX: 0,
             handleDragStartCenterBp: null,
             handleDidMove: false,
@@ -443,7 +466,7 @@ export default {
                 return {
                     ...base,
                     top: 20,
-                    bottom: 112,
+                    bottom: 132,
                 };
             }
             return base;
@@ -519,6 +542,23 @@ export default {
                 left: `${leftPct}%`,
                 width: `${widthPct}%`,
                 top: `${topCssPx}px`,
+            };
+        },
+        viewRegionBridgeStyle() {
+            if (
+                !this.showViewRegionBridge ||
+                !this.canvasWidth ||
+                !this.plotWidth
+            ) {
+                return null;
+            }
+            const margin = this.margin;
+            const leftPct = (margin.left / this.canvasWidth) * 100;
+            const widthPct = (this.plotWidth / this.canvasWidth) * 100;
+            return {
+                left: `${leftPct}%`,
+                width: `${widthPct}%`,
+                bottom: `0px`,
             };
         },
     },
@@ -1345,6 +1385,45 @@ export default {
     font-style: italic;
     line-height: 1.25;
     white-space: nowrap;
+}
+
+.gp2-view-region-bridge {
+    position: absolute;
+    z-index: 3;
+    height: 11px;
+    pointer-events: none;
+}
+
+.gp2-view-region-bridge-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0.5px;
+    background: rgba(59, 115, 185, 0.5);
+    transition: background-color 120ms ease;
+}
+
+.gp2-view-region-bridge-edge {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0.5px;
+    background: rgba(59, 115, 185, 0.5);
+    transition: background-color 120ms ease;
+}
+
+.gp2-view-region-bridge-edge--left {
+    left: 0;
+}
+
+.gp2-view-region-bridge-edge--right {
+    right: 0;
+}
+
+.gp2-view-region-bridge.is-active .gp2-view-region-bridge-top,
+.gp2-view-region-bridge.is-active .gp2-view-region-bridge-edge {
+    background: #3b73b9;
 }
 
 .vks-association-region-plot-tooltip {

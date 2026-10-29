@@ -87,6 +87,14 @@
                         :genes-state="genesState"
                         @update:selectedTypes="$emit('update:genesSelectedTypes', $event)"
                     />
+                    <GP2BrowserQtlDrawer
+                        v-else-if="openSection.id === 'qtl-evidences'"
+                        :qtl-state="qtlState"
+                        :utils="utils"
+                        @update:selectedTypes="$emit('update:qtlSelectedTypes', $event)"
+                        @update:selectedTissues="$emit('update:qtlSelectedTissues', $event)"
+                        @update:pValueMax="$emit('update:qtlPValueMax', $event)"
+                    />
                     <VariantSifterGlobalEnrichmentDrawer
                         v-else-if="openSection.id === 'global-enrichment'"
                         :global-enrichment-state="globalEnrichmentState"
@@ -179,6 +187,7 @@ import { VKS_PROJECT_DEFAULT_ID } from "../kpVariantSifter/variantSifterProjects
 import VariantSifterAssociationsDrawer from "../kpVariantSifter/VariantSifterAssociationsDrawer.vue";
 import VariantSifterCredibleSetsDrawer from "../kpVariantSifter/VariantSifterCredibleSetsDrawer.vue";
 import GP2BrowserGenesDrawer from "./GP2BrowserGenesDrawer.vue";
+import GP2BrowserQtlDrawer from "./GP2BrowserQtlDrawer.vue";
 import VariantSifterGlobalEnrichmentDrawer from "../kpVariantSifter/VariantSifterGlobalEnrichmentDrawer.vue";
 import VariantSifterV2gDrawer from "../kpVariantSifter/VariantSifterV2gDrawer.vue";
 import VariantSifterS2gDrawer from "../kpVariantSifter/VariantSifterS2gDrawer.vue";
@@ -189,6 +198,7 @@ export default {
         VariantSifterAssociationsDrawer,
         VariantSifterCredibleSetsDrawer,
         GP2BrowserGenesDrawer,
+        GP2BrowserQtlDrawer,
         VariantSifterGlobalEnrichmentDrawer,
         VariantSifterV2gDrawer,
         VariantSifterS2gDrawer,
@@ -277,6 +287,18 @@ export default {
                 error: null,
                 data: null,
                 selectedTypes: ["protein_coding"],
+            }),
+        },
+        qtlState: {
+            type: Object,
+            default: () => ({
+                loading: false,
+                error: null,
+                rows: [],
+                selectedTypes: [],
+                selectedTissues: [],
+                pValueMax: "",
+                loadedRegionKey: null,
             }),
         },
         globalEnrichmentState: {

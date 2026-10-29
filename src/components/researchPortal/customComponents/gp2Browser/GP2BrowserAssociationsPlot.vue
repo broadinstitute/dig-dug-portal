@@ -64,7 +64,7 @@
                         <h3 class="vks-plot-section-title">Associations</h3>
                     </header>
                     <div
-                        v-for="series in searchingPlotSeries"
+                        v-for="(series, searchIndex) in searchingPlotSeries"
                         :key="`assoc-search-${series.phenotype || 'primary'}-${series.ancestry}`"
                         class="vks-associations-plot-series vks-associations-plot-series--searching"
                     >
@@ -107,6 +107,7 @@
                             :pan-mode="'searching'"
                             :highlight-view-region="viewRegion"
                             :show-view-region-handle="true"
+                            :show-view-region-bridge="searchIndex === searchingPlotSeries.length - 1"
                             :viewing-center-bp="viewingCenterBp"
                             :overlapping-view-genes="overlappingViewGenes"
                             :show-legend="

@@ -26,8 +26,9 @@ For system structure, session model, data flow, and assistant runtime, see [`../
 | Welcome panel | `./GP2BrowserWelcomePanel.vue` | GP2-branded welcome search modal with dropdown `<select>` for Phenotype (`Parkinsons`) |
 | Canvas | `./GP2BrowserCanvas.vue` | Workspace track stage mounting `GP2BrowserWelcomePanel` and `GP2BrowserAssociationsPlot` |
 | Section drawers | `./GP2BrowserSectionDrawers.vue` | Left drawer rail and panels (including `QTL evidences` drawer) |
-| Associations plot | `./GP2BrowserAssociationsPlot.vue` | Dual-track Associations stack (20%-height searching region plots first, 100%-height 50 kb viewing region plots second) and nested tracks aligned to the 50 kb `viewRegion` |
-| Association region plot | `./GP2BrowserAssociationRegionPlot.vue` | Canvas renderer supporting compact 20% height (`24px`), draggable 50 kb viewing region indicator handle, and viewing-window panning |
+| QTL drawer & table | `./GP2BrowserQtlDrawer.vue`, `./GP2BrowserQtlTable.vue`, `./gp2BrowserQtlApi.js` | Type/tissue selection, p-value filter, and QTL association table. Loads `qtl-associations` for the 50 kb viewing region when the drawer closes with at least one type and one tissue |
+| Associations plot | `./GP2BrowserAssociationsPlot.vue` | Dual-track Associations stack (20%-height searching region plots first, 100%-height 50 kb viewing region plots second). Nested tracks follow the 50 kb `viewRegion`; the genes track stays on the searching region |
+| Association region plot | `./GP2BrowserAssociationRegionPlot.vue` | Compact 20% height (`24px`), 50 kb handle (50% blue, full blue on hover/drag, gene symbols inside the handle), bridge bracket to the viewing plot, and viewing-window panning |
 | Viewing region helpers | `./gp2BrowserViewingRegion.js` | Fixed 50 kb (`±25 kb`) viewing window calculation (`computeGp2ViewingRegion`, `clampViewingCenterBp`, `extractVariantPositionBp`) |
 | Associations downsampler | `./gp2BrowserAssociationsDownsample.js` | Load-time association downsampling (`downsampleAssociationRowsOnLoad`: `p <= 0.05` kept in full; `p > 0.05` kept with probability $(1 - p)^9$) and zoomed-in row merging with cached LD score reuse (`mergeZoomedAssociationRows`, `stripZoomRefetchedRows`) |
 | LD server client | `./gp2BrowserLdServer.js` | GP2-specific UMich 1000G LD client configured for `GRCh38` (`hg38`) |

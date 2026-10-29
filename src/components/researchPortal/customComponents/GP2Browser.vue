@@ -167,6 +167,7 @@
                     :credible-sets-state="credibleSetsState"
                     :credible-set-pill-colors="credibleSetPillColors"
                     :genes-state="genesState"
+                    :qtl-state="qtlState"
                     :global-enrichment-state="globalEnrichmentState"
                     :v2g-state="v2gState"
                     :s2g-state="s2gState"
@@ -186,6 +187,9 @@
                     @remove-credible-set="onRemoveCredibleSet"
                     @update:credibleSetsPanelFilters="onCredibleSetsPanelFiltersUpdate"
                     @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
+                    @update:qtlSelectedTypes="onQtlSelectedTypesUpdate"
+                    @update:qtlSelectedTissues="onQtlSelectedTissuesUpdate"
+                    @update:qtlPValueMax="onQtlPValueMaxUpdate"
                     @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
                     @update:geEnabledMutedAnnotationTissues="
                         onGeEnabledMutedAnnotationTissuesUpdate
@@ -275,6 +279,10 @@ import {
     gp2DefaultVisibleSectionIds,
     gp2NormalizeVisibleSectionIds,
 } from "./gp2Browser/gp2BrowserSections.js";
+import {
+    fetchGp2QtlAssociations,
+    gp2QtlLoadKey,
+} from "./gp2Browser/gp2BrowserQtlApi.js";
 import GP2BrowserSessionParamBubbles from "./gp2Browser/GP2BrowserSessionParamBubbles.vue";
 import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
 import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
@@ -574,6 +582,28 @@ function emptyGenesState(selectedTypes = [VKS_ALL_GENE_TYPES]) {
     };
 }
 
+function emptyQtlState(previous = {}) {
+    return {
+        loading: false,
+        error: null,
+        rows: [],
+        selectedTypes: Array.isArray(previous.selectedTypes)
+            ? previous.selectedTypes.slice()
+            : [],
+        selectedTissues: Array.isArray(previous.selectedTissues)
+            ? previous.selectedTissues.slice()
+            : [],
+        committedTypes: Array.isArray(previous.committedTypes)
+            ? previous.committedTypes.slice()
+            : [],
+        committedTissues: Array.isArray(previous.committedTissues)
+            ? previous.committedTissues.slice()
+            : [],
+        pValueMax: previous.pValueMax != null ? String(previous.pValueMax) : "",
+        loadedRegionKey: null,
+    };
+}
+
 function emptyPlotOverlaysState() {
     return {
         ready: false,
@@ -678,6 +708,9 @@ export default Vue.component("gp2-browser", {
             openDrawerId: null,
             associationsState: emptyAssociationsState(),
             genesState: emptyGenesState(),
+            qtlState: emptyQtlState(),
+            qtlRequestToken: 0,
+            qtlRefetchTimer: null,
             plotOverlaysState: emptyPlotOverlaysState(),
             plotMarkersState: emptyPlotMarkersState(),
             credibleSetsState: emptyCredibleSetsState(),
@@ -885,6 +918,10 @@ export default Vue.component("gp2-browser", {
             clearTimeout(this.zoomViewAreaRefetchTimer);
             this.zoomViewAreaRefetchTimer = null;
         }
+        if (this.qtlRefetchTimer) {
+            clearTimeout(this.qtlRefetchTimer);
+            this.qtlRefetchTimer = null;
+        }
         this.teardownChromePin();
         if (this.regionLoadDismissTimer) {
             clearTimeout(this.regionLoadDismissTimer);
@@ -901,6 +938,20 @@ export default Vue.component("gp2-browser", {
                 this.refreshChromePinListeners();
                 this.updateChromePin();
             });
+        },
+        viewRegion(region, previous) {
+            if (
+                !this.qtlState?.committedTypes?.length ||
+                !this.qtlState?.committedTissues?.length
+            ) {
+                return;
+            }
+            if (gp2QtlLoadKey(region, this.qtlState.committedTypes, this.qtlState.committedTissues) ===
+                gp2QtlLoadKey(previous, this.qtlState.committedTypes, this.qtlState.committedTissues)
+            ) {
+                return;
+            }
+            this.scheduleQtlLoad(200);
         },
     },
     methods: {
@@ -1165,7 +1216,131 @@ export default Vue.component("gp2-browser", {
             };
         },
         onToggleDrawer(sectionId) {
+            const closingQtl =
+                sectionId === "qtl-evidences" && this.openDrawerId === "qtl-evidences";
             this.openDrawerId = this.openDrawerId === sectionId ? null : sectionId;
+            if (closingQtl) {
+                this.commitQtlSelectionAndLoad();
+            }
+        },
+        onQtlSelectedTypesUpdate(types) {
+            this.qtlState = {
+                ...this.qtlState,
+                selectedTypes: Array.isArray(types) ? types.slice() : [],
+            };
+        },
+        onQtlSelectedTissuesUpdate(tissues) {
+            this.qtlState = {
+                ...this.qtlState,
+                selectedTissues: Array.isArray(tissues) ? tissues.slice() : [],
+            };
+        },
+        onQtlPValueMaxUpdate(pValueMax) {
+            this.qtlState = {
+                ...this.qtlState,
+                pValueMax: pValueMax != null ? String(pValueMax) : "",
+            };
+        },
+        commitQtlSelectionAndLoad() {
+            const types = Array.isArray(this.qtlState?.selectedTypes)
+                ? this.qtlState.selectedTypes.slice()
+                : [];
+            const tissues = Array.isArray(this.qtlState?.selectedTissues)
+                ? this.qtlState.selectedTissues.slice()
+                : [];
+            if (!types.length || !tissues.length) {
+                this.qtlRequestToken += 1;
+                if (this.qtlRefetchTimer) {
+                    clearTimeout(this.qtlRefetchTimer);
+                    this.qtlRefetchTimer = null;
+                }
+                this.qtlState = {
+                    ...this.qtlState,
+                    loading: false,
+                    error: null,
+                    rows: [],
+                    committedTypes: [],
+                    committedTissues: [],
+                    loadedRegionKey: null,
+                };
+                return;
+            }
+            this.qtlState = {
+                ...this.qtlState,
+                committedTypes: types,
+                committedTissues: tissues,
+                loadedRegionKey: null,
+            };
+            this.scheduleQtlLoad(0);
+        },
+        scheduleQtlLoad(delay = 0) {
+            if (this.qtlRefetchTimer) {
+                clearTimeout(this.qtlRefetchTimer);
+            }
+            this.qtlRefetchTimer = setTimeout(() => {
+                this.qtlRefetchTimer = null;
+                this.loadCommittedQtlAssociations();
+            }, delay);
+        },
+        clearQtlRowsForLocusChange() {
+            this.qtlRequestToken += 1;
+            if (this.qtlRefetchTimer) {
+                clearTimeout(this.qtlRefetchTimer);
+                this.qtlRefetchTimer = null;
+            }
+            this.qtlState = {
+                ...this.qtlState,
+                loading: false,
+                error: null,
+                rows: [],
+                loadedRegionKey: null,
+            };
+        },
+        async loadCommittedQtlAssociations() {
+            const types = this.qtlState?.committedTypes || [];
+            const tissues = this.qtlState?.committedTissues || [];
+            if (!types.length || !tissues.length) {
+                return;
+            }
+            const region = this.viewRegion;
+            if (!region?.chr || region.start == null || region.end == null) {
+                return;
+            }
+            const key = gp2QtlLoadKey(region, types, tissues);
+            if (key === this.qtlState.loadedRegionKey && !this.qtlState.loading) {
+                return;
+            }
+            const token = ++this.qtlRequestToken;
+            this.qtlState = {
+                ...this.qtlState,
+                loading: true,
+                error: null,
+            };
+            try {
+                const rows = await fetchGp2QtlAssociations(region, { types, tissues });
+                if (token !== this.qtlRequestToken) {
+                    return;
+                }
+                this.qtlState = {
+                    ...this.qtlState,
+                    loading: false,
+                    error: null,
+                    rows,
+                    loadedRegionKey: key,
+                };
+            } catch (error) {
+                if (token !== this.qtlRequestToken) {
+                    return;
+                }
+                console.warn("GP2 Browser QTL associations load failed", error);
+                this.qtlState = {
+                    ...this.qtlState,
+                    loading: false,
+                    error: "QTL associations could not be loaded.",
+                    rows: [],
+                    loadedRegionKey: null,
+                };
+            }
         },
         onRegionZoomUpdate(nextZoom) {
             this.pendingPanSliderReset = false;
@@ -3438,6 +3613,12 @@ export default Vue.component("gp2-browser", {
             this.searchSession = null;
             this.associationsState = emptyAssociationsState();
             this.genesState = emptyGenesState(this.genesState?.selectedTypes);
+            this.qtlState = emptyQtlState(this.qtlState);
+            this.qtlRequestToken += 1;
+            if (this.qtlRefetchTimer) {
+                clearTimeout(this.qtlRefetchTimer);
+                this.qtlRefetchTimer = null;
+            }
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
@@ -3544,6 +3725,7 @@ export default Vue.component("gp2-browser", {
             this.regionViewArea = 0;
             this.regionShiftBp = 0;
             this.viewingCenterBp = null;
+            this.clearQtlRowsForLocusChange();
             this.dataRegion = cloneGenomicRegion(searchSession.region);
             this.genesState = emptyGenesState(this.genesState?.selectedTypes);
             this.plotOverlaysState = emptyPlotOverlaysState();
