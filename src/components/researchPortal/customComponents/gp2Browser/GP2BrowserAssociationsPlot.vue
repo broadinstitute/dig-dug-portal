@@ -61,7 +61,10 @@
                 </div>
                 <div v-if="showKpAssociationsSection" class="vks-plot-section">
                     <header class="vks-plot-section-head">
-                        <h3 class="vks-plot-section-title">Associations</h3>
+                        <h3 class="vks-plot-section-title">
+                            Associations
+                            <span class="vks-plot-section-subtitle">(search region: downsampled — all p&le;0.05 kept, p&gt;0.05 kept with probability (1&minus;p)&#8313;; viewing region: raw, un-downsampled)</span>
+                        </h3>
                     </header>
                     <div
                         v-for="(series, searchIndex) in searchingPlotSeries"
@@ -207,7 +210,10 @@
                 </div>
                 <div v-if="showQtlEvidencesSection" class="vks-plot-section">
                     <header class="vks-plot-section-head">
-                        <h3 class="vks-plot-section-title">QTL evidences</h3>
+                        <h3 class="vks-plot-section-title">
+                            QTL evidences
+                            <span class="vks-plot-section-subtitle">(search region: downsampled — all p&le;0.05 kept, p&gt;0.05 kept with probability (1&minus;p)&#8313;; viewing region: raw, un-downsampled)</span>
+                        </h3>
                     </header>
                     <div
                         v-if="qtlState.loading"
@@ -1254,6 +1260,12 @@ export default {
     font-size: 14px;
     font-weight: 700;
     color: var(--cfde-blue, #2c5c97);
+}
+
+.vks-plot-section-subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--cfde-muted, #6b6b6b);
 }
 
 .vks-associations-plot-series + .vks-associations-plot-series {
