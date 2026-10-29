@@ -27,7 +27,7 @@
 												.field_front_logo
 										"
 										:src="
-											'https://kp4cd.org/sites/default/files/vueportal/' +
+											'https://hugeampkpncms.org/sites/default/files/vueportal/' +
 											$parent.frontContents
 												.field_front_logo
 										"
@@ -52,7 +52,7 @@
 												.field_front_logo
 										"
 										:src="
-											'https://kp4cd.org/sites/default/files/vueportal/' +
+											'https://hugeampkpncms.org/sites/default/files/vueportal/' +
 											$parent.frontContents
 												.field_front_logo
 										"

@@ -11,7 +11,7 @@
 				<a
 					href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/common-metabolic-diseases"
 					><img
-						:src="'//kp4cd.org/sites/default/files/vueportal/amp_text.svg'"
+						:src="'//hugeampkpncms.org/sites/default/files/vueportal/amp_text.svg'"
 						style="
 							width: 500px;
 							margin-left: 15px;
@@ -30,7 +30,7 @@
 				<a :href="url2Md">
 					<div style="padding: 5px; text-align: center; height: 50px">
 						<img
-							:src="'//kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
+							:src="'//hugeampkpncms.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
 							:class="'portals-2-mdkp-logo'"
 						/>
 					</div>
@@ -42,14 +42,14 @@
 						<img
 							v-if="frontContents.field_banner_logo"
 							:src="
-								'//kp4cd.org/sites/default/files/vueportal/' +
+								'//hugeampkpncms.org/sites/default/files/vueportal/' +
 								frontContents.field_banner_logo
 							"
 							:class="diseaseGroup.name + 'kp-logo'"
 						/>
 						<img
 							v-else
-							src="//kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
+							src="//hugeampkpncms.org/sites/default/files/vueportal/mdkp_header_logo.svg"
 							class="mdkp-logo"
 						/>
 					</a>
@@ -189,7 +189,7 @@ export default Vue.component("page-header", {
 					if (links[i].rel == "shortcut icon") {
 						links[
 							i
-						].href = `https://kp4cd.org/sites/default/files/vueportal/favicon/${group.name}/favicon.png`;
+						].href = `https://hugeampkpncms.org/sites/default/files/vueportal/favicon/${group.name}/favicon.png`;
 					}
 				}
 			}

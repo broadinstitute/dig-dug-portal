@@ -52,7 +52,7 @@
 						<img
 							class="disease-systems-icon"
 							:src="
-								'https://kp4cd.org/sites/default/files/images/disease_systems/' +
+								'https://hugeampkpncms.org/sites/default/files/images/disease_systems/' +
 								system.toLowerCase().split(' ')[0] +
 								'.svg'
 							"
@@ -106,7 +106,7 @@
 								<a :href="communityPortalLink(kp.name)"
 									><img
 										:src="
-											'https://kp4cd.org/sites/default/files/images/disease_systems/' +
+											'https://hugeampkpncms.org/sites/default/files/images/disease_systems/' +
 											kp.name +
 											'kp.svg'
 										"
@@ -118,7 +118,7 @@
 				<div class="disease-system col-md-2">
 					<img
 						class="disease-systems-icon"
-						src="https://kp4cd.org/sites/default/files/images/disease_systems/correlation.svg"
+						src="https://hugeampkpncms.org/sites/default/files/images/disease_systems/correlation.svg"
 					/>
 
 					<div class="disease-system-options">
