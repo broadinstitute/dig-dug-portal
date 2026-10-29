@@ -104,6 +104,31 @@ export function filterQtlRowsByPValueMax(rows, pValueMax) {
     });
 }
 
+/**
+ * Unique gene names present in `rows` (the `Gene` column source), sorted
+ * alphabetically, for populating the Gene filter checklist.
+ */
+export function collectQtlGeneOptions(rows) {
+    const genes = new Set();
+    (rows || []).forEach((row) => {
+        const gene = String(row?.gene || "").trim();
+        if (gene) {
+            genes.add(gene);
+        }
+    });
+    return Array.from(genes).sort((a, b) => a.localeCompare(b));
+}
+
+/** Empty `genes` means no filter applied — every row passes. */
+export function filterQtlRowsByGenes(rows, genes) {
+    const geneList = (genes || []).map((gene) => String(gene || "").trim()).filter(Boolean);
+    if (!geneList.length) {
+        return rows || [];
+    }
+    const geneSet = new Set(geneList);
+    return (rows || []).filter((row) => geneSet.has(String(row?.gene || "").trim()));
+}
+
 export function restrictQtlRowsToRegion(rows, region) {
     if (!region || region.start == null || region.end == null) {
         return rows || [];

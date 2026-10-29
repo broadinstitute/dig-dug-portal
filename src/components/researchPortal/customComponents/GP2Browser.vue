@@ -187,6 +187,7 @@
                     @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
                     @update:qtlSelectedTypes="onQtlSelectedTypesUpdate"
                     @update:qtlSelectedTissues="onQtlSelectedTissuesUpdate"
+                    @update:qtlSelectedGenes="onQtlSelectedGenesUpdate"
                     @update:qtlPValueMax="onQtlPValueMaxUpdate"
                     @toggle-qtl-star-variant="onToggleQtlStarVariant"
                     @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
@@ -594,6 +595,9 @@ function emptyQtlState(previous = {}) {
             : [],
         selectedTissues: Array.isArray(previous.selectedTissues)
             ? previous.selectedTissues.slice()
+            : [],
+        selectedGenes: Array.isArray(previous.selectedGenes)
+            ? previous.selectedGenes.slice()
             : [],
         pValueMax: previous.pValueMax != null ? String(previous.pValueMax) : "",
         loadedRegionKey: null,
@@ -1223,6 +1227,12 @@ export default Vue.component("gp2-browser", {
             this.qtlState = {
                 ...this.qtlState,
                 pValueMax: pValueMax != null ? String(pValueMax) : "",
+            };
+        },
+        onQtlSelectedGenesUpdate(genes) {
+            this.qtlState = {
+                ...this.qtlState,
+                selectedGenes: Array.isArray(genes) ? genes.slice() : [],
             };
         },
         /**

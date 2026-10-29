@@ -94,6 +94,7 @@
                         :utils="utils"
                         @update:selectedTypes="$emit('update:qtlSelectedTypes', $event)"
                         @update:selectedTissues="$emit('update:qtlSelectedTissues', $event)"
+                        @update:selectedGenes="$emit('update:qtlSelectedGenes', $event)"
                         @update:pValueMax="$emit('update:qtlPValueMax', $event)"
                         @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
                     />
@@ -304,6 +305,7 @@ export default {
                 downsampledRows: [],
                 selectedTypes: [],
                 selectedTissues: [],
+                selectedGenes: [],
                 pValueMax: "",
                 loadedRegionKey: null,
             }),

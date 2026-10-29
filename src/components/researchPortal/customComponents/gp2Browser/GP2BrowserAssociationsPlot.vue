@@ -502,6 +502,7 @@ import {
 } from "./gp2BrowserAssociationsDownsample.js";
 import {
     filterQtlRows,
+    filterQtlRowsByGenes,
     filterQtlRowsByPValueMax,
     restrictQtlRowsToRegion,
 } from "./gp2BrowserQtlApi.js";
@@ -633,6 +634,7 @@ export default {
                 downsampledRows: [],
                 selectedTypes: [],
                 selectedTissues: [],
+                selectedGenes: [],
                 pValueMax: "",
                 loadedRegionKey: null,
             }),
@@ -886,14 +888,22 @@ export default {
                 types: this.qtlState?.selectedTypes || [],
                 tissues: this.qtlState?.selectedTissues || [],
             });
-            return filterQtlRowsByPValueMax(typeTissueFiltered, this.qtlState?.pValueMax);
+            const geneFiltered = filterQtlRowsByGenes(
+                typeTissueFiltered,
+                this.qtlState?.selectedGenes
+            );
+            return filterQtlRowsByPValueMax(geneFiltered, this.qtlState?.pValueMax);
         },
         qtlFilteredRawRows() {
             const typeTissueFiltered = filterQtlRows(this.qtlState?.rawRows || [], {
                 types: this.qtlState?.selectedTypes || [],
                 tissues: this.qtlState?.selectedTissues || [],
             });
-            return filterQtlRowsByPValueMax(typeTissueFiltered, this.qtlState?.pValueMax);
+            const geneFiltered = filterQtlRowsByGenes(
+                typeTissueFiltered,
+                this.qtlState?.selectedGenes
+            );
+            return filterQtlRowsByPValueMax(geneFiltered, this.qtlState?.pValueMax);
         },
         /** Compact searching-region overview: downsampled, like Associations. */
         qtlSearchingPlotRows() {

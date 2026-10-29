@@ -98,6 +98,30 @@
                         to show every loaded row.
                     </p>
                 </section>
+
+                <section v-if="geneOptions.length" class="vks-ui-section">
+                    <p class="vks-ui-section-title">Genes</p>
+                    <ul class="gp2-qtl-check-list gp2-qtl-check-list--genes" role="group" aria-label="Genes">
+                        <li
+                            v-for="gene in geneOptions"
+                            :key="`gene-${gene}`"
+                            class="gp2-qtl-check-item"
+                        >
+                            <label class="gp2-qtl-check">
+                                <input
+                                    type="checkbox"
+                                    :checked="isGeneSelected(gene)"
+                                    @change="onToggleGene(gene, $event)"
+                                />
+                                <span>{{ gene }}</span>
+                            </label>
+                        </li>
+                    </ul>
+                    <p class="vks-ui-hint">
+                        Leave all unchecked to show every gene. Checking one or more
+                        limits the table and plots to those genes.
+                    </p>
+                </section>
             </div>
         </section>
 
@@ -125,7 +149,9 @@ import {
     GP2_QTL_TISSUE_OPTIONS,
     GP2_QTL_TYPE_OPTIONS,
     addMissingStarredQtlRows,
+    collectQtlGeneOptions,
     filterQtlRows,
+    filterQtlRowsByGenes,
     filterQtlRowsByPValueMax,
 } from "./gp2BrowserQtlApi.js";
 
@@ -149,6 +175,7 @@ export default {
                 downsampledRows: [],
                 selectedTypes: [],
                 selectedTissues: [],
+                selectedGenes: [],
                 pValueMax: "",
                 loadedRegionKey: null,
             }),
@@ -180,6 +207,9 @@ export default {
         selectedTissues() {
             return this.qtlState?.selectedTissues || [];
         },
+        selectedGenes() {
+            return this.qtlState?.selectedGenes || [];
+        },
         pValueMax() {
             return this.qtlState?.pValueMax != null ? String(this.qtlState.pValueMax) : "";
         },
@@ -198,8 +228,14 @@ export default {
                 tissues: this.selectedTissues,
             });
         },
+        geneOptions() {
+            return collectQtlGeneOptions(this.typeTissueFilteredRows);
+        },
+        geneFilteredRows() {
+            return filterQtlRowsByGenes(this.typeTissueFilteredRows, this.selectedGenes);
+        },
         pValueFilteredRows() {
-            return filterQtlRowsByPValueMax(this.typeTissueFilteredRows, this.pValueMax);
+            return filterQtlRowsByPValueMax(this.geneFilteredRows, this.pValueMax);
         },
         filteredRows() {
             return addMissingStarredQtlRows(
@@ -250,6 +286,21 @@ export default {
         onPValueInput(event) {
             this.$emit("update:pValueMax", event?.target?.value ?? "");
         },
+        isGeneSelected(gene) {
+            return this.selectedGenes.includes(gene);
+        },
+        onToggleGene(gene, event) {
+            const next = new Set(this.selectedGenes);
+            if (event?.target?.checked) {
+                next.add(gene);
+            } else {
+                next.delete(gene);
+            }
+            this.$emit(
+                "update:selectedGenes",
+                this.geneOptions.filter((option) => next.has(option))
+            );
+        },
     },
 };
 </script>
@@ -269,6 +320,16 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 6px;
+}
+
+.gp2-qtl-check-list--genes {
+    flex-direction: row;
+    flex-wrap: wrap;
+    row-gap: 10px;
+    column-gap: 20px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
 }
 
 .gp2-qtl-check {
