@@ -217,6 +217,7 @@ import {
     buildToolInformation,
     VKS_SETTINGS_TABS,
 } from "../kpVariantSifter/variantSifterToolSettings.js";
+import { LD_SERVER_DEFAULTS } from "../kpVariantSifter/variantSifterLdServer.js";
 import { GP2_BROWSER_SECTIONS } from "./gp2BrowserSections.js";
 import { GP2_GENOME_BUILD } from "./gp2BrowserLdServer.js";
 import {
@@ -290,6 +291,20 @@ export default {
             });
         },
         informationRows() {
+            // `buildToolInformation`'s "LD reference" row is hardcoded to the
+            // shared KP Variant Sifter default (GRCh37) regardless of the
+            // `genomeBuild` passed in — GP2's own LD client actually queries
+            // GRCh38 (`gp2BrowserLdServer.js`), so fix that one row here
+            // rather than touching the shared helper.
+            const baseRows = buildToolInformation({
+                searchSession: this.searchSession,
+                toolName: this.toolName,
+                genomeBuild: GP2_GENOME_BUILD,
+            }).map((row) =>
+                row.label === "LD reference"
+                    ? { ...row, value: `${LD_SERVER_DEFAULTS.reference} (${GP2_GENOME_BUILD})` }
+                    : row
+            );
             return [
                 {
                     label: "Project",
@@ -298,11 +313,7 @@ export default {
                             (project) => project.id === this.projectId
                         )?.label || "Default (KP)",
                 },
-                ...buildToolInformation({
-                    searchSession: this.searchSession,
-                    toolName: this.toolName,
-                    genomeBuild: GP2_GENOME_BUILD,
-                }),
+                ...baseRows,
             ];
         },
     },
