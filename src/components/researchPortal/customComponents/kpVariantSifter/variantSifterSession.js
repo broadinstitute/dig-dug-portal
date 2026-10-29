@@ -604,9 +604,8 @@ function normalizeGenesState(payload) {
                 ? null
                 : "Session file did not include genes track data.",
         data: Array.isArray(exportedGenes) && exportedGenes.length ? exportedGenes : null,
-        selectedTypes: resolveSelectedGeneTypesForData(
-            payload?.genesTrack?.selectedTypes,
-            exportedGenes
+        selectedTypes: normalizeSelectedGeneTypes(
+            payload?.genesTrack?.selectedTypes
         ),
     };
 }

@@ -1744,6 +1744,9 @@ export default {
                 visibleWidthBp: this.visibleWidthBp,
             });
             if (pan.mode === "viewArea") {
+                if (pan.regionViewArea !== this.regionViewArea) {
+                    this.panDidChangeShift = true;
+                }
                 this.$emit("update:regionViewArea", pan.regionViewArea);
                 return;
             }

@@ -223,12 +223,13 @@ export default {
             window.removeEventListener("pointercancel", this.onZoomPointerUp);
         },
         onZoomInput() {
-            const next = Math.max(
+            const raw = Math.max(
                 this.sliderMin,
                 Math.min(this.sliderMax, Math.round(Number(this.localSlider) || 0))
             );
+            const next = raw > 0 ? snapZoomSliderValue(raw) : raw;
             this.localSlider = next;
-            this.emitZoomFromSlider({ snap: false });
+            this.emitZoomFromSlider({ snap: raw > 0 });
         },
         onZoomCommit() {
             const next = Math.max(

@@ -11,35 +11,30 @@
                     <span class="vks-mark">GP2</span>
                     <span class="vks-title">Browser</span>
                 </div>
-                <VariantSifterMenuBar
+                <GP2BrowserMenuBar
                     :recent-searches="recentSearches"
                     @action="onMenuAction"
                 />
             </div>
-            <VariantSifterSessionParamBubbles
+            <GP2BrowserSessionParamBubbles
                 v-if="searchSession"
                 :search-session="searchSession"
                 :project-id="projectId"
-                :phenotypes-in-use="phenotypesInUse || []"
+                :phenotypes-in-use="phenotypes"
                 :selected-phenotypes="associationsState.selectedPhenotypes || []"
                 :utils="utilsBox"
                 :bio-index-host="bioIndexHostFor('gene')"
                 @apply-search="onSessionParamApply"
                 @remove-phenotype="onRemoveAssociationPhenotype"
             />
-            <VariantSifterViewportControls
+            <GP2BrowserViewportControls
                 v-if="canvasActive"
                 class="vks-header-controls"
-                :region-zoom="regionZoom"
-                :region-zoom-out="regionZoomOut"
-                :zoom-out-at-limit="zoomOutAtLimit"
-                :region-view-area="regionViewArea"
+                :viewing-region-width-bp="viewingRegionWidthBp"
                 :data-table-open="dataTableOpen"
                 :ai-assistant-open="aiAssistantOpen"
                 :settings-open="settingsOpen"
-                @update:regionZoom="onRegionZoomUpdate"
-                @update:regionZoomOut="onRegionZoomOutUpdate"
-                @zoom-slider-commit="onRegionZoomSliderCommit"
+                @update:viewingRegionWidthBp="onViewingRegionWidthUpdate"
                 @update:dataTableOpen="dataTableOpen = $event"
                 @toggle-assistant="aiAssistantOpen = !aiAssistantOpen"
                 @toggle-settings="settingsOpen = !settingsOpen"
@@ -68,7 +63,7 @@
 
         <div class="vks-main">
             <div class="vks-stage">
-                <VariantSifterCanvas
+                <GP2BrowserCanvas
                     :sections="sections"
                     :visible-section-ids="visibleSectionIds"
                     :canvas-active="canvasActive"
@@ -85,11 +80,15 @@
                     :region-shift-bp="regionShiftBp"
                     :region-view-area="regionViewArea"
                     :view-region="viewRegion"
+                    :active-search-region="activeRegion"
+                    :viewing-center-bp="effectiveViewingCenterBp"
+                    :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
                     :data-table-open="dataTableOpen"
                     :mapping-state="mappingState"
                     :workspace-mapping-filter="workspaceMappingFilter"
                     :associations-state="associationsState"
                     :genes-state="genesState"
+                    :qtl-state="qtlState"
                     :plot-overlays-state="plotOverlaysState"
                     :plot-markers="plotMarkersState"
                     :credible-sets-state="credibleSetsState"
@@ -101,9 +100,12 @@
                     :region-load-progress-active="regionLoadProgress.active"
                     @update:regionShiftBp="onRegionShiftBpUpdate"
                     @update:regionViewArea="onRegionViewAreaUpdate"
+                    @update:viewingCenterBp="onViewingCenterBpUpdate"
+                    @commit-viewing-region="onCommitViewingRegion"
                     @pan-end="onRegionPanEnd"
                     @toggle-position-marker="onTogglePositionMarker"
                     @toggle-star-variant="onToggleStarVariant"
+                    @toggle-qtl-star-variant="onToggleQtlStarVariant"
                     @set-reference-variant="onSetReferenceVariant"
                     @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
                     @update:geSelectedBiosamples="onGeSelectedBiosamplesUpdate"
@@ -125,7 +127,7 @@
                     @start-search="onStartSearch"
                     @import-session="openSessionImport"
                 />
-                <VariantSifterAiAssistantPanel
+                <GP2BrowserAiAssistantPanel
                     :open="aiAssistantOpen"
                     :active-tab="assistantState.activeTab"
                     :thread-entries="assistantState.threadEntries"
@@ -152,7 +154,7 @@
                 />
             </div>
             <div v-if="canvasActive" class="vks-drawer-rail-slot">
-                <VariantSifterSectionDrawers
+                <GP2BrowserSectionDrawers
                     :sections="visibleSections"
                     :open-drawer-id="openDrawerId"
                     :search-session="searchSession"
@@ -163,6 +165,7 @@
                     :credible-sets-state="credibleSetsState"
                     :credible-set-pill-colors="credibleSetPillColors"
                     :genes-state="genesState"
+                    :qtl-state="qtlState"
                     :global-enrichment-state="globalEnrichmentState"
                     :v2g-state="v2gState"
                     :s2g-state="s2gState"
@@ -182,6 +185,11 @@
                     @remove-credible-set="onRemoveCredibleSet"
                     @update:credibleSetsPanelFilters="onCredibleSetsPanelFiltersUpdate"
                     @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
+                    @update:qtlSelectedTypes="onQtlSelectedTypesUpdate"
+                    @update:qtlSelectedTissues="onQtlSelectedTissuesUpdate"
+                    @update:qtlSelectedGenes="onQtlSelectedGenesUpdate"
+                    @update:qtlPValueMax="onQtlPValueMaxUpdate"
+                    @toggle-qtl-star-variant="onToggleQtlStarVariant"
                     @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
                     @update:geEnabledMutedAnnotationTissues="
                         onGeEnabledMutedAnnotationTissuesUpdate
@@ -227,7 +235,7 @@
             @export="onExportSessionConfirm"
         />
 
-        <VariantSifterSettingsPanel
+        <GP2BrowserSettingsPanel
             :open="settingsOpen"
             :sections="sections"
             :visible-section-ids="visibleSectionIds"
@@ -237,9 +245,18 @@
             :project-id="projectId"
             :resolve-host-for-index="bioIndexHostFor"
             :tool-name="'GP2 Browser'"
+            :suggest-actions-after-user-action="suggestActionsAfterUserAction"
+            :refetch-associations-on-zoom="refetchAssociationsOnZoom"
             @close="settingsOpen = false"
             @update:visibleSectionIds="onVisibleSectionIdsUpdate"
             @update:projectId="onProjectIdUpdate"
+            @update:suggestActionsAfterUserAction="onSuggestActionsAfterUserActionUpdate"
+            @update:refetchAssociationsOnZoom="onRefetchAssociationsOnZoomUpdate"
+        />
+
+        <GP2BrowserResearchModal
+            :panel-id="activeResearchPanelId"
+            @close="activeResearchPanelId = null"
         />
     </div>
 </template>
@@ -248,21 +265,30 @@
 import Vue from "vue";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 
-import VariantSifterMenuBar from "./kpVariantSifter/VariantSifterMenuBar.vue";
-import VariantSifterSessionParamBubbles from "./kpVariantSifter/VariantSifterSessionParamBubbles.vue";
+import GP2BrowserMenuBar from "./gp2Browser/GP2BrowserMenuBar.vue";
+import GP2BrowserResearchModal from "./gp2Browser/GP2BrowserResearchModal.vue";
+import GP2BrowserSectionDrawers from "./gp2Browser/GP2BrowserSectionDrawers.vue";
+import GP2BrowserCanvas from "./gp2Browser/GP2BrowserCanvas.vue";
+import GP2BrowserViewportControls from "./gp2Browser/GP2BrowserViewportControls.vue";
+import GP2BrowserAiAssistantPanel from "./gp2Browser/GP2BrowserAiAssistantPanel.vue";
+import GP2BrowserSettingsPanel from "./gp2Browser/GP2BrowserSettingsPanel.vue";
+import {
+    GP2_ASSOCIATIONS_BIOINDEX_HOST,
+    GP2_BROWSER_PHENOTYPES,
+    GP2_BROWSER_SECTIONS,
+    gp2DefaultVisibleSectionIds,
+    gp2NormalizeVisibleSectionIds,
+} from "./gp2Browser/gp2BrowserSections.js";
+import {
+    fetchGp2QtlAssociations,
+    gp2QtlLoadKey,
+} from "./gp2Browser/gp2BrowserQtlApi.js";
+import GP2BrowserSessionParamBubbles from "./gp2Browser/GP2BrowserSessionParamBubbles.vue";
 import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
-import VariantSifterViewportControls from "./kpVariantSifter/VariantSifterViewportControls.vue";
-import VariantSifterCanvas from "./kpVariantSifter/VariantSifterCanvas.vue";
-import VariantSifterSectionDrawers from "./kpVariantSifter/VariantSifterSectionDrawers.vue";
-import VariantSifterAiAssistantPanel from "./kpVariantSifter/VariantSifterAiAssistantPanel.vue";
 import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
 import VariantSifterRegionLoadBubble from "./kpVariantSifter/VariantSifterRegionLoadBubble.vue";
-import VariantSifterSettingsPanel from "./kpVariantSifter/VariantSifterSettingsPanel.vue";
-import { VARIANT_SIFTER_SECTIONS } from "./kpVariantSifter/variantSifterSections.js";
 import {
-    defaultVisibleSectionIds,
     isSectionVisible,
-    normalizeVisibleSectionIds,
 } from "./kpVariantSifter/variantSifterToolSettings.js";
 import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAncestriesParam, parseSubAncestriesParam, formatPhenotypesParam, parsePhenotypesParam } from "./kpVariantSifter/variantSifterSearchUtils.js";
 import {
@@ -277,8 +303,28 @@ import {
     fetchGlobalAssociations,
 } from "./kpVariantSifter/variantSifterAssociationsApi.js";
 import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
+import {
+    downsampleAssociationRowsOnLoad,
+    mergeZoomedAssociationRows,
+    stripZoomRefetchedRows,
+} from "./gp2Browser/gp2BrowserAssociationsDownsample.js";
 import { createFiltersIndex, applyAssociationsFilters } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
-import { enrichAssociationRowsWithLdScores, enrichAssociationRowsWithLdScoresForRef } from "./kpVariantSifter/variantSifterLdServer.js";
+import {
+    GP2_GENOME_BUILD,
+    applyLatestGp2LdScoreMap,
+    enrichAssociationRowsWithLdScores,
+    enrichAssociationRowsWithLdScoresForRef,
+    fetchLdScoreMapForRefRow,
+    pickLeadVariantRow,
+    resolveLdReferenceRow,
+    rowToLdVariant,
+} from "./gp2Browser/gp2BrowserLdServer.js";
+import {
+    GP2_VIEWING_REGION_WIDTH_BP,
+    clampViewingCenterBp,
+    computeGp2ViewingRegion,
+    extractVariantPositionBp,
+} from "./gp2Browser/gp2BrowserViewingRegion.js";
 import {
     emptyPlotMarkersState,
     createStarredVariant,
@@ -322,7 +368,10 @@ import {
     activeRegionTrimmedMessage,
     ensureRegionWithinActiveDataLimit,
 } from "./kpVariantSifter/variantSifterRegionPan.js";
-import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
+import {
+    fetchGp2GenesTrackData as fetchGenesTrackData,
+    fetchGp2RecombinationRate as fetchRecombinationRate,
+} from "./gp2Browser/gp2BrowserGenesAndRecomb.js";
 import {
     fetchGlobalEnrichment,
     fetchLocusAnnotations,
@@ -429,13 +478,6 @@ import {
     findAssistantAction,
     matchVksAssistantRequest,
 } from "./kpVariantSifter/variantSifterAssistantActionCatalog.js";
-import { fetchRecombinationRate } from "./kpVariantSifter/variantSifterPlotShared.js";
-import {
-    pickLeadVariantRow,
-    resolveLdReferenceRow,
-    rowToLdVariant,
-} from "./kpVariantSifter/variantSifterLdServer.js";
-import { buildAssociationsRegionPlotConfig } from "./kpVariantSifter/variantSifterAssociationsPlotConfig.js";
 import {
     fetchCredibleSetsList,
     fetchCredibleSetsListForAncestries,
@@ -463,6 +505,7 @@ import {
 import {
     normalizeSelectedGeneTypes,
     resolveSelectedGeneTypesForData,
+    VKS_ALL_GENE_TYPES,
     VKS_DEFAULT_GENE_TYPES,
 } from "./kpVariantSifter/variantSifterGenesFilter.js";
 import {
@@ -476,6 +519,35 @@ import {
     VKS_REGION_LOAD_STATUS,
 } from "./kpVariantSifter/variantSifterRegionLoadProgress.js";
 import "./kpVariantSifter/vksSharedStyles.css";
+
+const GP2_REGION_LOAD_STEP_CATALOG = [
+    { id: "associations", label: "Association data" },
+    { id: "genes", label: "Genes track" },
+    { id: "recomb", label: "Recombination overlay" },
+    { id: "credibleSets", label: "Credible sets list" },
+    { id: "globalEnrichment", label: "Global enrichment" },
+    { id: "geneLinks", label: "Gene links" },
+    { id: "snp2geneLinks", label: "SNP 2 gene links" },
+    { id: "ld", label: "LD scores" },
+];
+
+function startGp2RegionLoadProgress(stepIds = null) {
+    const hasFilter = Array.isArray(stepIds);
+    const allowed = hasFilter ? new Set(stepIds) : null;
+    const steps = GP2_REGION_LOAD_STEP_CATALOG.filter((step) =>
+        allowed ? allowed.has(step.id) : true
+    ).map((step) => ({
+        ...step,
+        status: VKS_REGION_LOAD_STATUS.PENDING,
+    }));
+    if (!steps.length) {
+        return emptyRegionLoadProgress();
+    }
+    return {
+        active: true,
+        steps,
+    };
+}
 
 function emptyAssociationsState() {
     return {
@@ -502,13 +574,33 @@ function emptyAssociationsState() {
     };
 }
 
-function emptyGenesState() {
+function emptyGenesState(selectedTypes = [VKS_ALL_GENE_TYPES]) {
     return {
         ready: false,
         loading: false,
         error: null,
         data: null,
-        selectedTypes: [...VKS_DEFAULT_GENE_TYPES],
+        selectedTypes: normalizeSelectedGeneTypes(selectedTypes),
+    };
+}
+
+function emptyQtlState(previous = {}) {
+    return {
+        loading: false,
+        error: null,
+        rawRows: [],
+        downsampledRows: [],
+        selectedTypes: Array.isArray(previous.selectedTypes)
+            ? previous.selectedTypes.slice()
+            : [],
+        selectedTissues: Array.isArray(previous.selectedTissues)
+            ? previous.selectedTissues.slice()
+            : [],
+        selectedGenes: Array.isArray(previous.selectedGenes)
+            ? previous.selectedGenes.slice()
+            : [],
+        pValueMax: previous.pValueMax != null ? String(previous.pValueMax) : "",
+        loadedRegionKey: null,
     };
 }
 
@@ -570,22 +662,25 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("gp2-browser", {
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
     components: {
-        VariantSifterMenuBar,
-        VariantSifterSessionParamBubbles,
+        GP2BrowserMenuBar,
+        GP2BrowserResearchModal,
+        GP2BrowserSectionDrawers,
+        GP2BrowserCanvas,
+        GP2BrowserViewportControls,
+        GP2BrowserAiAssistantPanel,
+        GP2BrowserSettingsPanel,
+        GP2BrowserSessionParamBubbles,
         VariantSifterWorkspaceGuide,
-        VariantSifterViewportControls,
-        VariantSifterCanvas,
-        VariantSifterSectionDrawers,
-        VariantSifterAiAssistantPanel,
         VariantSifterExportSessionModal,
         VariantSifterRegionLoadBubble,
-        VariantSifterSettingsPanel,
     },
     data() {
         return {
-            sections: VARIANT_SIFTER_SECTIONS,
-            visibleSectionIds: defaultVisibleSectionIds(),
+            sections: GP2_BROWSER_SECTIONS,
+            visibleSectionIds: gp2DefaultVisibleSectionIds(),
             settingsOpen: false,
+            suggestActionsAfterUserAction: false,
+            refetchAssociationsOnZoom: true,
             canvasActive: false,
             welcomeOpen: true,
             searchSession: null,
@@ -596,11 +691,14 @@ export default Vue.component("gp2-browser", {
             regionZoomOut: 0,
             regionViewArea: 0,
             regionShiftBp: 0,
+            viewingCenterBp: null,
+            viewingRegionWidthBp: GP2_VIEWING_REGION_WIDTH_BP,
             dataRegion: null,
             regionLoadProgress: emptyRegionLoadProgress(),
             regionLoadDismissTimer: null,
             regionExtendToken: 0,
             regionPanSyncTimer: null,
+            zoomViewAreaRefetchTimer: null,
             pendingPanSliderReset: false,
             dataTableOpen: false,
             mappingState: emptyMappingState(),
@@ -611,6 +709,8 @@ export default Vue.component("gp2-browser", {
             openDrawerId: null,
             associationsState: emptyAssociationsState(),
             genesState: emptyGenesState(),
+            qtlState: emptyQtlState(),
+            qtlRequestToken: 0,
             plotOverlaysState: emptyPlotOverlaysState(),
             plotMarkersState: emptyPlotMarkersState(),
             credibleSetsState: emptyCredibleSetsState(),
@@ -618,6 +718,7 @@ export default Vue.component("gp2-browser", {
             v2gState: emptyV2gState(),
             s2gState: emptyS2gState(),
             associationsRequestToken: 0,
+            zoomAssociationsRequestToken: 0,
             genesRequestToken: 0,
             plotOverlaysRequestToken: 0,
             credibleSetsRequestToken: 0,
@@ -626,10 +727,18 @@ export default Vue.component("gp2-browser", {
             s2gRequestToken: 0,
             pendingSubAncestries: [],
             pendingPhenotypes: [],
+            lastAssociationsRegion: null,
+            lastZoomedAssociationsRegion: null,
+            lastGenesRegion: null,
+            lastQtlRegion: null,
             lastCredibleSetsListRegion: null,
+            lastGlobalEnrichmentRegion: null,
+            lastV2gCatalogRegion: null,
+            lastS2gRegion: null,
             exportSessionOpen: false,
             exportSessionBusy: false,
             workspaceGuideOpen: false,
+            activeResearchPanelId: null,
             chromePinned: false,
             headerHeightPx: 53,
             assistantPanelTopPx: 53,
@@ -648,12 +757,15 @@ export default Vue.component("gp2-browser", {
             };
         },
         phenotypes() {
-            return projectPhenotypes(this.projectId, this.phenotypesInUse || []);
+            return projectPhenotypes(this.projectId, GP2_BROWSER_PHENOTYPES);
         },
         defaultBioIndexHost() {
             return this.utilsBox?.uiUtils?.biDomain?.() || "";
         },
         bioIndexHost() {
+            if (!this.projectId || this.projectId === VKS_PROJECT_DEFAULT_ID) {
+                return GP2_ASSOCIATIONS_BIOINDEX_HOST;
+            }
             return resolveProjectPrimaryBioIndexHost(
                 this.projectId,
                 this.defaultBioIndexHost
@@ -754,17 +866,37 @@ export default Vue.component("gp2-browser", {
                 this.zoomOutLimitRegion
             );
         },
-        viewRegion() {
-            if (!this.searchSession?.region) {
+        viewingRegionHalfWidthBp() {
+            return Math.round((Number(this.viewingRegionWidthBp) || GP2_VIEWING_REGION_WIDTH_BP) / 2);
+        },
+        effectiveViewingCenterBp() {
+            const searchRegion = this.activeRegion || this.searchSession?.region;
+            if (!searchRegion) {
                 return null;
             }
-            return computeViewRegion(
-                this.searchSession.region,
-                this.regionShiftBp,
-                this.regionZoom,
-                this.regionViewArea,
-                this.regionZoomOut,
-                this.zoomOutLimitRegion
+            if (this.viewingCenterBp != null) {
+                return clampViewingCenterBp(
+                    this.viewingCenterBp,
+                    searchRegion,
+                    this.viewingRegionHalfWidthBp
+                );
+            }
+            const refPos =
+                extractVariantPositionBp(this.plotOverlaysState?.refVariant) ??
+                extractVariantPositionBp(
+                    pickLeadVariantRow(this.associationsState?.rows)
+                );
+            return clampViewingCenterBp(refPos, searchRegion, this.viewingRegionHalfWidthBp);
+        },
+        viewRegion() {
+            const searchRegion = this.activeRegion || this.searchSession?.region;
+            if (!searchRegion) {
+                return null;
+            }
+            return computeGp2ViewingRegion(
+                searchRegion,
+                this.effectiveViewingCenterBp,
+                this.viewingRegionHalfWidthBp
             );
         },
         credibleSetDotColors() {
@@ -791,6 +923,10 @@ export default Vue.component("gp2-browser", {
             clearTimeout(this.regionPanSyncTimer);
             this.regionPanSyncTimer = null;
         }
+        if (this.zoomViewAreaRefetchTimer) {
+            clearTimeout(this.zoomViewAreaRefetchTimer);
+            this.zoomViewAreaRefetchTimer = null;
+        }
         this.teardownChromePin();
         if (this.regionLoadDismissTimer) {
             clearTimeout(this.regionLoadDismissTimer);
@@ -811,6 +947,12 @@ export default Vue.component("gp2-browser", {
     },
     methods: {
         bioIndexHostFor(index) {
+            if (
+                (!this.projectId || this.projectId === VKS_PROJECT_DEFAULT_ID) &&
+                String(index || "") === "associations"
+            ) {
+                return GP2_ASSOCIATIONS_BIOINDEX_HOST;
+            }
             return resolveProjectBioIndexHost(
                 index,
                 this.projectId,
@@ -821,19 +963,24 @@ export default Vue.component("gp2-browser", {
          * Fetch GWAS-CE token associations as an additive overlay (Project=GWAS-CE).
          * Soft-fails to [] when token/project is missing or the request errors.
          */
-        async fetchFormattedGwasCeAssociationRows(session, region = null) {
+        async fetchFormattedGwasCeAssociationRows(
+            session,
+            region = null,
+            { downsample = true } = {}
+        ) {
             if (!isGwasCeProject(this.projectId) || !resolveGwasCeToken(session)) {
                 return [];
             }
             try {
                 const result = await fetchGwasCeAssociations(
-                    region ? { ...session, region } : session
+                    region ? { ...session, region } : session,
+                    { downsample }
                 );
                 return formatAssociationRows(result.rows, session, {
                     project: VKS_ASSOCIATION_PROJECT_GWAS_CE,
                 });
             } catch (error) {
-                console.warn("Variant Sifter GWAS-CE associations load failed", error);
+                console.warn("GP2 Browser GWAS-CE associations load failed", error);
                 return [];
             }
         },
@@ -1062,11 +1209,113 @@ export default Vue.component("gp2-browser", {
         onToggleDrawer(sectionId) {
             this.openDrawerId = this.openDrawerId === sectionId ? null : sectionId;
         },
+        onQtlSelectedTypesUpdate(types) {
+            this.qtlState = {
+                ...this.qtlState,
+                selectedTypes: Array.isArray(types) ? types.slice() : [],
+            };
+            this.maybeLoadQtlEvidences();
+        },
+        onQtlSelectedTissuesUpdate(tissues) {
+            this.qtlState = {
+                ...this.qtlState,
+                selectedTissues: Array.isArray(tissues) ? tissues.slice() : [],
+            };
+            this.maybeLoadQtlEvidences();
+        },
+        onQtlPValueMaxUpdate(pValueMax) {
+            this.qtlState = {
+                ...this.qtlState,
+                pValueMax: pValueMax != null ? String(pValueMax) : "",
+            };
+        },
+        onQtlSelectedGenesUpdate(genes) {
+            this.qtlState = {
+                ...this.qtlState,
+                selectedGenes: Array.isArray(genes) ? genes.slice() : [],
+            };
+        },
+        /**
+         * QTL data is deliberately NOT preloaded with the rest of the
+         * searching-region sections — fetching `qtl-associations` for every
+         * type/tissue combination up front doesn't scale as more types and
+         * tissues are added. Instead, loading only starts once the user has
+         * checked at least one type and one tissue in the QTL evidences
+         * drawer, and only if the current searching region isn't already
+         * loaded or loading.
+         */
+        maybeLoadQtlEvidences() {
+            if (!this.searchSession?.region) {
+                return;
+            }
+            const hasSelection =
+                (this.qtlState?.selectedTypes || []).length &&
+                (this.qtlState?.selectedTissues || []).length;
+            if (!hasSelection || this.qtlState.loading) {
+                return;
+            }
+            const targetRegion = cloneGenomicRegion(
+                this.dataRegion || this.searchSession.region
+            );
+            if (genomicRegionsEqual(this.lastQtlRegion, targetRegion)) {
+                return;
+            }
+            this.loadQtlEvidencesForSession({
+                ...this.searchSession,
+                region: targetRegion,
+            });
+        },
+        /**
+         * Load raw `qtl-associations` rows for the whole searching region
+         * (unfiltered by type/tissue/p-value — the drawer and plot filter
+         * client-side). Mirrors `loadGenesTrack`.
+         */
+        async loadQtlEvidencesForSession(session) {
+            const region = session?.region;
+            if (!region?.chr || region.start == null || region.end == null) {
+                return false;
+            }
+            const key = gp2QtlLoadKey(region);
+            const token = ++this.qtlRequestToken;
+            this.qtlState = {
+                ...this.qtlState,
+                loading: true,
+                error: null,
+            };
+            try {
+                const rawRows = await fetchGp2QtlAssociations(region);
+                if (token !== this.qtlRequestToken) {
+                    return false;
+                }
+                this.qtlState = {
+                    ...this.qtlState,
+                    loading: false,
+                    error: null,
+                    rawRows,
+                    downsampledRows: downsampleAssociationRowsOnLoad(rawRows),
+                    loadedRegionKey: key,
+                };
+                this.lastQtlRegion = cloneGenomicRegion(region);
+                return true;
+            } catch (error) {
+                if (token !== this.qtlRequestToken) {
+                    return false;
+                }
+                console.warn("GP2 Browser QTL associations load failed", error);
+                this.qtlState = {
+                    ...emptyQtlState(this.qtlState),
+                    error: "QTL associations could not be loaded.",
+                };
+                return false;
+            }
+        },
         onRegionZoomUpdate(nextZoom) {
             this.pendingPanSliderReset = false;
             this.regionZoom = clampRegionZoom(nextZoom);
             if (this.regionZoom > 0) {
                 this.regionZoomOut = 0;
+            } else {
+                this.restoreZoom0AssociationRows();
             }
         },
         onRegionZoomOutUpdate(nextZoomOut) {
@@ -1084,19 +1333,73 @@ export default Vue.component("gp2-browser", {
             if (this.regionZoomOut > 0) {
                 this.regionZoom = 0;
                 this.regionViewArea = 0;
+                this.restoreZoom0AssociationRows();
             }
         },
         onRegionZoomSliderCommit() {
+            if (this.regionZoom > 0) {
+                this.refetchAssociationsForZoomedView();
+                return;
+            }
+            this.restoreZoom0AssociationRows();
             this.scheduleRegionDataSync(0);
         },
+        onViewingCenterBpUpdate(nextCenterBp) {
+            const searchRegion = this.activeRegion || this.searchSession?.region;
+            const clamped = clampViewingCenterBp(
+                nextCenterBp,
+                searchRegion,
+                this.viewingRegionHalfWidthBp
+            );
+            if (clamped == null || clamped === this.viewingCenterBp) {
+                return;
+            }
+            this.viewingCenterBp = clamped;
+            if (this.refetchAssociationsOnZoom) {
+                this.scheduleZoomedAssociationsRefetch(180);
+            }
+        },
+        onCommitViewingRegion() {
+            if (this.refetchAssociationsOnZoom) {
+                this.scheduleZoomedAssociationsRefetch(0);
+            }
+        },
+        onViewingRegionWidthUpdate(nextWidthBp) {
+            const width = Number(nextWidthBp);
+            if (!Number.isFinite(width) || width <= 0) {
+                return;
+            }
+            this.viewingRegionWidthBp = width;
+        },
         onRegionViewAreaUpdate(nextViewArea) {
-            this.regionViewArea = clampRegionViewArea(nextViewArea);
+            const clamped = clampRegionViewArea(nextViewArea);
+            const changed = clamped !== this.regionViewArea;
+            this.regionViewArea = clamped;
+            if (changed && this.refetchAssociationsOnZoom) {
+                this.scheduleZoomedAssociationsRefetch(180);
+            }
+        },
+        scheduleZoomedAssociationsRefetch(delayMs = 180) {
+            if (this.zoomViewAreaRefetchTimer) {
+                clearTimeout(this.zoomViewAreaRefetchTimer);
+                this.zoomViewAreaRefetchTimer = null;
+            }
+            if (delayMs <= 0) {
+                this.refetchAssociationsForZoomedView();
+                return;
+            }
+            this.zoomViewAreaRefetchTimer = setTimeout(() => {
+                this.zoomViewAreaRefetchTimer = null;
+                this.refetchAssociationsForZoomedView();
+            }, delayMs);
         },
         resetRegionViewport() {
             this.regionZoom = 0;
             this.regionZoomOut = 0;
             this.regionViewArea = 0;
             this.regionShiftBp = 0;
+            this.viewingCenterBp = null;
+            this.restoreZoom0AssociationRows();
             if (this.searchSession?.region) {
                 this.applyDataRegion(this.activeRegion);
             }
@@ -1121,6 +1424,12 @@ export default Vue.component("gp2-browser", {
             this.regionZoomOut = viewport.regionZoomOut;
         },
         finishRegionExtendSync() {
+            // Region zoom-out/pan can extend the searching region well beyond
+            // what QTL has loaded; unlike Associations/Genes this isn't
+            // gap-filled incrementally — just refetch the (now wider) region
+            // in one shot if a type+tissue selection is already active.
+            this.maybeLoadQtlEvidences();
+
             const hadZoomOut = this.regionZoomOut > 0;
             const hadPanPendingReset = this.pendingPanSliderReset;
 
@@ -1148,9 +1457,233 @@ export default Vue.component("gp2-browser", {
         },
         onRegionPanEnd() {
             if (this.regionZoom > 0) {
+                this.scheduleZoomedAssociationsRefetch(0);
                 return;
             }
             this.scheduleRegionDataSync(0);
+        },
+        restoreZoom0AssociationRows() {
+            if (this.zoomViewAreaRefetchTimer) {
+                clearTimeout(this.zoomViewAreaRefetchTimer);
+                this.zoomViewAreaRefetchTimer = null;
+            }
+            this.zoomAssociationsRequestToken += 1;
+            this.lastZoomedAssociationsRegion = null;
+            const cleaned = stripZoomRefetchedRows(this.associationsState.rows);
+            if (cleaned !== this.associationsState.rows) {
+                this.associationsState = {
+                    ...this.associationsState,
+                    rows: cleaned,
+                };
+            }
+        },
+        onRefetchAssociationsOnZoomUpdate(enabled) {
+            this.refetchAssociationsOnZoom = Boolean(enabled);
+            if (!this.refetchAssociationsOnZoom) {
+                this.restoreZoom0AssociationRows();
+            } else {
+                this.refetchAssociationsForZoomedView();
+            }
+        },
+        async refetchAssociationsForZoomedView() {
+            if (
+                !this.refetchAssociationsOnZoom ||
+                !this.searchSession?.region ||
+                !this.viewRegion ||
+                !this.isSectionChecked("associations")
+            ) {
+                if (!this.refetchAssociationsOnZoom) {
+                    this.restoreZoom0AssociationRows();
+                }
+                return;
+            }
+            const zoomRegion = cloneGenomicRegion(this.viewRegion);
+            if (genomicRegionsEqual(this.lastZoomedAssociationsRegion, zoomRegion)) {
+                return;
+            }
+            const token = ++this.zoomAssociationsRequestToken;
+            const associationsHost = this.bioIndexHostFor("associations");
+            const zoomSession = {
+                ...this.searchSession,
+                region: zoomRegion,
+            };
+            const primaryAncestry = primaryAssociationAncestry(this.searchSession);
+            let zoomedRows = [];
+
+            try {
+                if (this.searchSession?.phenotype?.name) {
+                    const primaryResult = await fetchAssociations(
+                        zoomSession,
+                        associationsHost,
+                        this.projectId,
+                        { downsample: false }
+                    );
+                    if (token !== this.zoomAssociationsRequestToken) {
+                        return;
+                    }
+                    zoomedRows = formatAssociationRows(primaryResult.rows, zoomSession, {
+                        project: VKS_ASSOCIATION_PROJECT_KP,
+                    });
+                }
+
+                const ceRows = await this.fetchFormattedGwasCeAssociationRows(
+                    this.searchSession,
+                    zoomRegion,
+                    { downsample: false }
+                );
+                if (token !== this.zoomAssociationsRequestToken) {
+                    return;
+                }
+                if (ceRows.length) {
+                    zoomedRows = mergeAssociationRowsByVariantAndAncestry(
+                        zoomedRows,
+                        ceRows,
+                        primaryAncestry
+                    );
+                }
+
+                for (const ancestry of this.associationsState.selectedAncestries || []) {
+                    if (token !== this.zoomAssociationsRequestToken) {
+                        return;
+                    }
+                    if (!ancestry || ancestry === primaryAncestry) {
+                        continue;
+                    }
+                    try {
+                        const ancestrySession = {
+                            ...zoomSession,
+                            ancestry,
+                        };
+                        const ancestryResult = await fetchAssociations(
+                            ancestrySession,
+                            associationsHost,
+                            this.projectId,
+                            { downsample: false }
+                        );
+                        const ancestryRows = formatAssociationRows(
+                            ancestryResult.rows,
+                            ancestrySession,
+                            { project: VKS_ASSOCIATION_PROJECT_KP }
+                        );
+                        zoomedRows = mergeAssociationRowsByVariantAndAncestry(
+                            zoomedRows,
+                            ancestryRows,
+                            primaryAncestry
+                        );
+                    } catch (ancestryErr) {
+                        console.warn(
+                            `GP2 Browser ${ancestry} zoomed association refetch failed`,
+                            ancestryErr
+                        );
+                    }
+                }
+
+                for (const entry of this.associationsState.selectedPhenotypes || []) {
+                    if (token !== this.zoomAssociationsRequestToken) {
+                        return;
+                    }
+                    const phenotypeName =
+                        typeof entry === "string" ? entry : entry?.name;
+                    if (
+                        !phenotypeName ||
+                        phenotypeName === this.searchSession?.phenotype?.name
+                    ) {
+                        continue;
+                    }
+                    try {
+                        const phenotypeSession = {
+                            ...zoomSession,
+                            phenotype:
+                                typeof entry === "string" ? { name: entry } : entry,
+                            ancestry: primaryAncestry,
+                        };
+                        const phenotypeResult = await fetchAssociations(
+                            phenotypeSession,
+                            associationsHost,
+                            this.projectId,
+                            { downsample: false }
+                        );
+                        const phenotypeRows = formatAssociationRows(
+                            phenotypeResult.rows,
+                            phenotypeSession,
+                            { project: VKS_ASSOCIATION_PROJECT_KP }
+                        );
+                        zoomedRows = mergeAssociationRowsByVariantAndAncestry(
+                            zoomedRows,
+                            phenotypeRows,
+                            primaryAncestry
+                        );
+                    } catch (phenotypeErr) {
+                        console.warn(
+                            `GP2 Browser ${phenotypeName} zoomed association refetch failed`,
+                            phenotypeErr
+                        );
+                    }
+
+                    for (const ancestry of entry?.selectedAncestries || []) {
+                        if (token !== this.zoomAssociationsRequestToken) {
+                            return;
+                        }
+                        if (!ancestry || ancestry === primaryAncestry) {
+                            continue;
+                        }
+                        try {
+                            const ancestrySession = {
+                                ...zoomSession,
+                                phenotype:
+                                    typeof entry === "string"
+                                        ? { name: entry }
+                                        : entry,
+                                ancestry,
+                            };
+                            const ancestryResult = await fetchAssociations(
+                                ancestrySession,
+                                associationsHost,
+                                this.projectId,
+                                { downsample: false }
+                            );
+                            const ancestryRows = formatAssociationRows(
+                                ancestryResult.rows,
+                                ancestrySession,
+                                { project: VKS_ASSOCIATION_PROJECT_KP }
+                            );
+                            zoomedRows = mergeAssociationRowsByVariantAndAncestry(
+                                zoomedRows,
+                                ancestryRows,
+                                primaryAncestry
+                            );
+                        } catch (ancestryErr) {
+                            console.warn(
+                                `GP2 Browser ${phenotypeName}/${ancestry} zoomed association refetch failed`,
+                                ancestryErr
+                            );
+                        }
+                    }
+                }
+
+                if (
+                    token !== this.zoomAssociationsRequestToken ||
+                    !this.refetchAssociationsOnZoom
+                ) {
+                    return;
+                }
+
+                this.lastZoomedAssociationsRegion = zoomRegion;
+                const zoomedWithLd = applyLatestGp2LdScoreMap(zoomedRows);
+                this.associationsState = {
+                    ...this.associationsState,
+                    rows: mergeZoomedAssociationRows(
+                        this.associationsState.rows,
+                        zoomedWithLd,
+                        primaryAncestry
+                    ),
+                };
+            } catch (error) {
+                console.warn(
+                    "GP2 Browser zoomed association refetch failed",
+                    error
+                );
+            }
         },
         onTogglePositionMarker(position) {
             const viewRegion = this.viewRegion || this.searchSession?.region;
@@ -1175,6 +1708,22 @@ export default Vue.component("gp2-browser", {
                 ),
             };
         },
+        /**
+         * Starring from a QTL dot. The row carries the full raw QTL row
+         * (plus an injected "Variant ID") so the drawer table and plots can
+         * reconstruct it later even after it falls out of the downsampled
+         * set — see GP2BrowserQtlDrawer.vue / GP2BrowserAssociationsPlot.vue.
+         */
+        onToggleQtlStarVariant(row) {
+            this.plotMarkersState = {
+                ...this.plotMarkersState,
+                starredVariants: toggleStarredVariant(
+                    this.plotMarkersState.starredVariants,
+                    row,
+                    "qtl"
+                ),
+            };
+        },
         async onSetReferenceVariant(row) {
             if (!row || !this.searchSession) {
                 return;
@@ -1182,6 +1731,14 @@ export default Vue.component("gp2-browser", {
 
             const refVariant = rowToLdVariant(row);
             const region = this.dataRegion || this.searchSession.region;
+            const refPos = extractVariantPositionBp(row);
+            if (refPos != null) {
+                this.viewingCenterBp = clampViewingCenterBp(
+                    refPos,
+                    region,
+                    this.viewingRegionHalfWidthBp
+                );
+            }
             this.associationsState = {
                 ...this.associationsState,
                 ldLoading: true,
@@ -1213,8 +1770,10 @@ export default Vue.component("gp2-browser", {
                         refVariantUserSet: true,
                     };
                 }
+                this.lastZoomedAssociationsRegion = null;
+                this.refetchAssociationsForZoomedView();
             } catch (ldError) {
-                console.warn("Variant Sifter reference LD fetch failed", ldError);
+                console.warn("GP2 Browser reference LD fetch failed", ldError);
                 this.associationsState = {
                     ...this.associationsState,
                     ldLoading: false,
@@ -1289,6 +1848,9 @@ export default Vue.component("gp2-browser", {
                 loading: false,
             };
         },
+        isSectionChecked(sectionId) {
+            return isSectionVisible(this.visibleSectionIds, sectionId);
+        },
         setRegionLoadStep(stepId, status) {
             this.regionLoadProgress = patchRegionLoadStep(
                 this.regionLoadProgress,
@@ -1301,7 +1863,19 @@ export default Vue.component("gp2-browser", {
                 clearTimeout(this.regionLoadDismissTimer);
                 this.regionLoadDismissTimer = null;
             }
-            this.regionLoadProgress = startRegionLoadProgress();
+            const stepIds = ["associations", "ld"];
+            if (!projectAssociationsOnly(this.projectId)) {
+                if (this.isSectionChecked("credible-sets")) {
+                    stepIds.push("credibleSets");
+                }
+                if (
+                    this.isSectionChecked("global-enrichment") ||
+                    this.isSectionChecked("variant-to-gene-links")
+                ) {
+                    stepIds.push("globalEnrichment");
+                }
+            }
+            this.regionLoadProgress = startGp2RegionLoadProgress(stepIds);
             this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
         },
         finishAdditivePhenotypeLoadProgress({
@@ -1453,7 +2027,20 @@ export default Vue.component("gp2-browser", {
                 clearTimeout(this.regionLoadDismissTimer);
                 this.regionLoadDismissTimer = null;
             }
-            this.regionLoadProgress = startRegionLoadProgress();
+            const associationsOnly = projectAssociationsOnly(this.projectId);
+            const extendAssoc = this.isSectionChecked("associations");
+            const extendGenes = !associationsOnly && this.isSectionChecked("genes");
+            const extendGe =
+                !associationsOnly && this.isSectionChecked("global-enrichment");
+            const extendCs =
+                !associationsOnly && this.isSectionChecked("credible-sets");
+            const extendStepIds = [
+                ...(extendAssoc ? ["associations", "recomb", "ld"] : []),
+                ...(extendGenes ? ["genes"] : []),
+                ...(extendCs ? ["credibleSets"] : []),
+                ...(extendGe ? ["globalEnrichment"] : []),
+            ];
+            this.regionLoadProgress = startGp2RegionLoadProgress(extendStepIds);
             const associationsHost = this.bioIndexHostFor("associations");
             const genesHost = this.bioIndexHostFor("genes");
             const regionsHost = this.bioIndexHostFor("regions");
@@ -1462,7 +2049,6 @@ export default Vue.component("gp2-browser", {
                 return;
             }
 
-            const plotConfig = buildAssociationsRegionPlotConfig(this.searchSession);
             let mergedRows = this.associationsState.rows;
             let mergedGenes = this.genesState.data || [];
             let mergedRecomb = this.plotOverlaysState.recombData;
@@ -1470,10 +2056,12 @@ export default Vue.component("gp2-browser", {
             let extendedAssociationRows = false;
             let associationFetchFailed = false;
 
-            this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
+            if (extendAssoc) {
+                this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
+            }
 
             try {
-                for (const gap of gaps) {
+                for (const gap of extendAssoc ? gaps : []) {
                     if (token !== this.regionExtendToken) {
                         return;
                     }
@@ -1553,7 +2141,7 @@ export default Vue.component("gp2-browser", {
                                 );
                             } catch (ancestryError) {
                                 console.warn(
-                                    `Variant Sifter ${ancestry} association gap fetch failed`,
+                                    `GP2 Browser ${ancestry} association gap fetch failed`,
                                     ancestryError
                                 );
                             }
@@ -1607,7 +2195,7 @@ export default Vue.component("gp2-browser", {
                                 );
                             } catch (phenotypeError) {
                                 console.warn(
-                                    `Variant Sifter ${phenotypeName} association gap fetch failed`,
+                                    `GP2 Browser ${phenotypeName} association gap fetch failed`,
                                     phenotypeError
                                 );
                             }
@@ -1657,7 +2245,7 @@ export default Vue.component("gp2-browser", {
                                     );
                                 } catch (ancestryError) {
                                     console.warn(
-                                        `Variant Sifter ${phenotypeName}/${ancestry} association gap fetch failed`,
+                                        `GP2 Browser ${phenotypeName}/${ancestry} association gap fetch failed`,
                                         ancestryError
                                     );
                                 }
@@ -1665,7 +2253,7 @@ export default Vue.component("gp2-browser", {
                         }
                     } catch (assocError) {
                         associationFetchFailed = true;
-                        console.warn("Variant Sifter association gap fetch failed", assocError);
+                        console.warn("GP2 Browser association gap fetch failed", assocError);
                     }
                 }
 
@@ -1675,118 +2263,21 @@ export default Vue.component("gp2-browser", {
 
                 mergedRows = filterAssociationRowsInRegion(mergedRows, activeRegion);
                 this.dataRegion = cloneGenomicRegion(activeRegion);
-                this.flushStreamedAssociationRows(mergedRows, activeRegion);
-                this.setRegionLoadStep(
-                    "associations",
-                    associationFetchFailed && !extendedAssociationRows
-                        ? VKS_REGION_LOAD_STATUS.FAILED
-                        : VKS_REGION_LOAD_STATUS.DONE
-                );
-
-                if (projectAssociationsOnly(this.projectId)) {
-                    this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.DONE);
+                if (extendAssoc) {
+                    this.lastAssociationsRegion = cloneGenomicRegion(activeRegion);
+                    this.flushStreamedAssociationRows(mergedRows, activeRegion);
                     this.setRegionLoadStep(
-                        "globalEnrichment",
-                        VKS_REGION_LOAD_STATUS.DONE
-                    );
-                    this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.DONE);
-
-                    let recombFetchFailed = false;
-                    this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
-                    for (const gap of gaps) {
-                        if (token !== this.regionExtendToken) {
-                            return;
-                        }
-                        const gapRegion = {
-                            chr: activeRegion.chr,
-                            start: gap.start,
-                            end: gap.end,
-                        };
-                        try {
-                            const newRecomb = await fetchRecombinationRate(gapRegion);
-                            if (newRecomb) {
-                                mergedRecomb = mergeRecombData(mergedRecomb, newRecomb);
-                                this.flushStreamedRecomb(mergedRecomb, activeRegion);
-                            }
-                        } catch (recombError) {
-                            recombFetchFailed = true;
-                            console.warn("Variant Sifter recomb gap fetch failed", recombError);
-                        }
-                    }
-                    if (token !== this.regionExtendToken) {
-                        return;
-                    }
-                    this.setRegionLoadStep(
-                        "recomb",
-                        recombFetchFailed && !mergedRecomb?.position?.length
+                        "associations",
+                        associationFetchFailed && !extendedAssociationRows
                             ? VKS_REGION_LOAD_STATUS.FAILED
                             : VKS_REGION_LOAD_STATUS.DONE
                     );
-
-                    if (extendedAssociationRows) {
-                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
-                        const ldOk = await this.refreshRegionLdScores(
-                            mergedRows,
-                            activeRegion,
-                            () => token !== this.regionExtendToken
-                        );
-                        if (token !== this.regionExtendToken) {
-                            return;
-                        }
-                        this.setRegionLoadStep(
-                            "ld",
-                            ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
-                        );
-                    } else {
-                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
-                    }
-
-                    this.finishRegionExtendSync();
-                    return;
                 }
 
-                let genesFetchFailed = false;
-                let recombFetchFailed = false;
-
-                this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
-                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
-                this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
-
-                await Promise.all([
-                    (async () => {
-                        for (const gap of gaps) {
-                            if (token !== this.regionExtendToken) {
-                                return;
-                            }
-                            const gapRegion = {
-                                chr: activeRegion.chr,
-                                start: gap.start,
-                                end: gap.end,
-                            };
-                            try {
-                                const newGenes = await fetchGenesTrackData(
-                                    gapRegion,
-                                    plotConfig["genome reference"],
-                                    genesHost
-                                );
-                                mergedGenes = mergeGenesByName(mergedGenes, newGenes);
-                                this.flushStreamedGenes(mergedGenes, activeRegion);
-                            } catch (genesError) {
-                                genesFetchFailed = true;
-                                console.warn("Variant Sifter genes gap fetch failed", genesError);
-                            }
-                        }
-                        if (token !== this.regionExtendToken) {
-                            return;
-                        }
-                        this.setRegionLoadStep(
-                            "genes",
-                            genesFetchFailed && !mergedGenes.length
-                                ? VKS_REGION_LOAD_STATUS.FAILED
-                                : VKS_REGION_LOAD_STATUS.DONE
-                        );
-                    })(),
-                    (async () => {
+                if (projectAssociationsOnly(this.projectId)) {
+                    if (extendAssoc) {
+                        let recombFetchFailed = false;
+                        this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
                         for (const gap of gaps) {
                             if (token !== this.regionExtendToken) {
                                 return;
@@ -1804,7 +2295,115 @@ export default Vue.component("gp2-browser", {
                                 }
                             } catch (recombError) {
                                 recombFetchFailed = true;
-                                console.warn("Variant Sifter recomb gap fetch failed", recombError);
+                                console.warn("GP2 Browser recomb gap fetch failed", recombError);
+                            }
+                        }
+                        if (token !== this.regionExtendToken) {
+                            return;
+                        }
+                        this.setRegionLoadStep(
+                            "recomb",
+                            recombFetchFailed && !mergedRecomb?.position?.length
+                                ? VKS_REGION_LOAD_STATUS.FAILED
+                                : VKS_REGION_LOAD_STATUS.DONE
+                        );
+
+                        if (extendedAssociationRows) {
+                            this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                            const ldOk = await this.refreshRegionLdScores(
+                                mergedRows,
+                                activeRegion,
+                                () => token !== this.regionExtendToken
+                            );
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            this.setRegionLoadStep(
+                                "ld",
+                                ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                            );
+                        } else {
+                            this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+                        }
+                    }
+
+                    this.finishRegionExtendSync();
+                    return;
+                }
+
+                let genesFetchFailed = false;
+                let recombFetchFailed = false;
+
+                if (extendGenes) {
+                    this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
+                }
+                if (extendAssoc) {
+                    this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+                }
+                if (extendGe) {
+                    this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
+                }
+
+                await Promise.all([
+                    (async () => {
+                        if (!extendGenes) {
+                            return;
+                        }
+                        for (const gap of gaps) {
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            const gapRegion = {
+                                chr: activeRegion.chr,
+                                start: gap.start,
+                                end: gap.end,
+                            };
+                            try {
+                                const newGenes = await fetchGenesTrackData(
+                                    gapRegion,
+                                    GP2_GENOME_BUILD,
+                                    genesHost
+                                );
+                                mergedGenes = mergeGenesByName(mergedGenes, newGenes);
+                                this.flushStreamedGenes(mergedGenes, activeRegion);
+                            } catch (genesError) {
+                                genesFetchFailed = true;
+                                console.warn("GP2 Browser genes gap fetch failed", genesError);
+                            }
+                        }
+                        if (token !== this.regionExtendToken) {
+                            return;
+                        }
+                        this.lastGenesRegion = cloneGenomicRegion(activeRegion);
+                        this.setRegionLoadStep(
+                            "genes",
+                            genesFetchFailed && !mergedGenes.length
+                                ? VKS_REGION_LOAD_STATUS.FAILED
+                                : VKS_REGION_LOAD_STATUS.DONE
+                        );
+                    })(),
+                    (async () => {
+                        if (!extendAssoc) {
+                            return;
+                        }
+                        for (const gap of gaps) {
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            const gapRegion = {
+                                chr: activeRegion.chr,
+                                start: gap.start,
+                                end: gap.end,
+                            };
+                            try {
+                                const newRecomb = await fetchRecombinationRate(gapRegion);
+                                if (newRecomb) {
+                                    mergedRecomb = mergeRecombData(mergedRecomb, newRecomb);
+                                    this.flushStreamedRecomb(mergedRecomb, activeRegion);
+                                }
+                            } catch (recombError) {
+                                recombFetchFailed = true;
+                                console.warn("GP2 Browser recomb gap fetch failed", recombError);
                             }
                         }
                         if (token !== this.regionExtendToken) {
@@ -1818,6 +2417,9 @@ export default Vue.component("gp2-browser", {
                         );
                     })(),
                     (async () => {
+                        if (!extendGe) {
+                            return;
+                        }
                         let annoFetchFailed = false;
                         for (const gap of gaps) {
                             if (token !== this.regionExtendToken) {
@@ -1837,7 +2439,7 @@ export default Vue.component("gp2-browser", {
                             } catch (annoError) {
                                 annoFetchFailed = true;
                                 console.warn(
-                                    "Variant Sifter annotation gap fetch failed",
+                                    "GP2 Browser annotation gap fetch failed",
                                     annoError
                                 );
                             }
@@ -1845,6 +2447,7 @@ export default Vue.component("gp2-browser", {
                         if (token !== this.regionExtendToken) {
                             return;
                         }
+                        this.lastGlobalEnrichmentRegion = cloneGenomicRegion(activeRegion);
                         this.flushStreamedAnnoRows(mergedAnnoRows, activeRegion);
                         this.setRegionLoadStep(
                             "globalEnrichment",
@@ -1859,48 +2462,52 @@ export default Vue.component("gp2-browser", {
                     return;
                 }
 
-                if (extendedAssociationRows) {
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
-                    const ldOk = await this.refreshRegionLdScores(
-                        mergedRows,
-                        activeRegion,
-                        () => token !== this.regionExtendToken
+                if (extendAssoc) {
+                    if (extendedAssociationRows) {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                        const ldOk = await this.refreshRegionLdScores(
+                            mergedRows,
+                            activeRegion,
+                            () => token !== this.regionExtendToken
+                        );
+                        if (token !== this.regionExtendToken) {
+                            return;
+                        }
+                        this.setRegionLoadStep(
+                            "ld",
+                            ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    } else {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+                    }
+                }
+
+                if (extendCs) {
+                    this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
+                    const credibleSetsOk = await this.loadCredibleSetsList(
+                        {
+                            ...this.searchSession,
+                            region: activeRegion,
+                        },
+                        { preserveSelection: true }
                     );
                     if (token !== this.regionExtendToken) {
                         return;
                     }
                     this.setRegionLoadStep(
-                        "ld",
-                        ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                        "credibleSets",
+                        credibleSetsOk
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
                     );
-                } else {
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
                 }
-
-                this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
-                const credibleSetsOk = await this.loadCredibleSetsList(
-                    {
-                        ...this.searchSession,
-                        region: activeRegion,
-                    },
-                    { preserveSelection: true }
-                );
-                if (token !== this.regionExtendToken) {
-                    return;
-                }
-                this.setRegionLoadStep(
-                    "credibleSets",
-                    credibleSetsOk
-                        ? VKS_REGION_LOAD_STATUS.DONE
-                        : VKS_REGION_LOAD_STATUS.FAILED
-                );
 
                 this.finishRegionExtendSync();
             } catch (error) {
                 if (token !== this.regionExtendToken) {
                     return;
                 }
-                console.warn("Variant Sifter region extension failed", error);
+                console.warn("GP2 Browser region extension failed", error);
                 this.regionLoadProgress = {
                     ...this.regionLoadProgress,
                     steps: this.regionLoadProgress.steps.map((step) =>
@@ -1918,7 +2525,10 @@ export default Vue.component("gp2-browser", {
             }
         },
         onMenuAction(payload) {
-            if (payload.action === "resetSearch") {
+            if (
+                payload.action === "resetSearch" ||
+                payload.action === "newSession"
+            ) {
                 this.resetSearch();
                 return;
             }
@@ -1940,6 +2550,14 @@ export default Vue.component("gp2-browser", {
             }
             if (payload.action === "gettingAround") {
                 this.workspaceGuideOpen = true;
+                return;
+            }
+            if (
+                payload.action === "genePrioritization" ||
+                payload.action === "associatedPhenotypes" ||
+                payload.action === "literatureEvidence"
+            ) {
+                this.activeResearchPanelId = payload.action;
             }
         },
         applyRecentSearch(entry) {
@@ -1955,7 +2573,7 @@ export default Vue.component("gp2-browser", {
 
             const phenotypes = projectPhenotypes(
                 this.projectId,
-                this.phenotypesInUse || []
+                GP2_BROWSER_PHENOTYPES
             );
             const phenotype = phenotypes.find(
                 (item) => item.name === entry.phenotypeName
@@ -2009,12 +2627,191 @@ export default Vue.component("gp2-browser", {
             );
         },
         onVisibleSectionIdsUpdate(ids) {
-            this.visibleSectionIds = normalizeVisibleSectionIds(ids, this.sections);
+            const prevSet = new Set(this.visibleSectionIds || []);
+            this.visibleSectionIds = gp2NormalizeVisibleSectionIds(ids, this.sections);
             if (
                 this.openDrawerId &&
                 !isSectionVisible(this.visibleSectionIds, this.openDrawerId)
             ) {
                 this.openDrawerId = null;
+            }
+            const newlyChecked = this.visibleSectionIds.filter(
+                (id) => !prevSet.has(id)
+            );
+            if (newlyChecked.length && this.searchSession?.region) {
+                this.loadDataForCheckedSections(newlyChecked);
+                if (newlyChecked.includes("qtl-evidences")) {
+                    this.maybeLoadQtlEvidences();
+                }
+            }
+        },
+        async loadDataForCheckedSections(sectionIds = []) {
+            if (!this.searchSession?.region) {
+                return;
+            }
+            const associationsOnly = projectAssociationsOnly(this.projectId);
+            const targetRegion = cloneGenomicRegion(
+                this.dataRegion || this.searchSession.region
+            );
+            const targetSession = {
+                ...this.searchSession,
+                region: targetRegion,
+            };
+            const checkedSet = new Set(sectionIds);
+
+            const needAssoc =
+                checkedSet.has("associations") &&
+                !genomicRegionsEqual(this.lastAssociationsRegion, targetRegion) &&
+                !this.associationsState.loading;
+            const needGenes =
+                !associationsOnly &&
+                checkedSet.has("genes") &&
+                (!this.genesState.ready ||
+                    !genomicRegionsEqual(this.lastGenesRegion, targetRegion)) &&
+                !this.genesState.loading;
+            const needCs =
+                !associationsOnly &&
+                checkedSet.has("credible-sets") &&
+                !genomicRegionsEqual(
+                    this.lastCredibleSetsListRegion,
+                    targetRegion
+                ) &&
+                !this.credibleSetsState.listLoading;
+            const needGe =
+                !associationsOnly &&
+                checkedSet.has("global-enrichment") &&
+                !genomicRegionsEqual(
+                    this.lastGlobalEnrichmentRegion,
+                    targetRegion
+                ) &&
+                !this.globalEnrichmentState.loading;
+            const needV2g =
+                !associationsOnly &&
+                checkedSet.has("variant-to-gene-links") &&
+                !needGe &&
+                !genomicRegionsEqual(
+                    this.lastGlobalEnrichmentRegion,
+                    targetRegion
+                ) &&
+                !genomicRegionsEqual(this.lastV2gCatalogRegion, targetRegion) &&
+                !this.globalEnrichmentState.loading;
+            const needS2g =
+                !associationsOnly &&
+                checkedSet.has("snp2gene-links") &&
+                (!hasS2gTrackData(this.s2gState) ||
+                    !genomicRegionsEqual(this.lastS2gRegion, targetRegion)) &&
+                !this.s2gState?.loadingTissue;
+
+            const stepIds = [
+                ...(needAssoc ? ["associations", "recomb", "ld"] : []),
+                ...(needGenes ? ["genes"] : []),
+                ...(needCs ? ["credibleSets"] : []),
+                ...(needGe ? ["globalEnrichment"] : []),
+                ...(needV2g ? ["geneLinks"] : []),
+                ...(needS2g ? ["snp2geneLinks"] : []),
+            ];
+
+            if (!stepIds.length) {
+                return;
+            }
+
+            if (this.regionLoadDismissTimer) {
+                clearTimeout(this.regionLoadDismissTimer);
+                this.regionLoadDismissTimer = null;
+            }
+            this.regionLoadProgress = startGp2RegionLoadProgress(stepIds);
+
+            await Promise.all([
+                (async () => {
+                    if (!needAssoc) {
+                        return;
+                    }
+                    await this.loadAssociationsSectionForSession(targetSession);
+                })(),
+                (async () => {
+                    if (!needGenes) {
+                        return;
+                    }
+                    this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
+                    const ok = await this.loadGenesTrack(targetSession);
+                    this.setRegionLoadStep(
+                        "genes",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+                (async () => {
+                    if (!needCs) {
+                        return;
+                    }
+                    this.setRegionLoadStep(
+                        "credibleSets",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                    const ok = await this.loadCredibleSetsList(targetSession, {
+                        preserveSelection: true,
+                    });
+                    this.setRegionLoadStep(
+                        "credibleSets",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+                (async () => {
+                    if (!needGe) {
+                        return;
+                    }
+                    await this.loadGlobalEnrichmentForSession(targetSession, {
+                        offerClassifyAction: true,
+                    });
+                })(),
+                (async () => {
+                    if (!needV2g) {
+                        return;
+                    }
+                    this.setRegionLoadStep(
+                        "geneLinks",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                    const ok = await this.loadV2gTissueCatalogForSession(
+                        targetSession
+                    );
+                    this.setRegionLoadStep(
+                        "geneLinks",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+                (async () => {
+                    if (!needS2g) {
+                        return;
+                    }
+                    this.setRegionLoadStep(
+                        "snp2geneLinks",
+                        VKS_REGION_LOAD_STATUS.LOADING
+                    );
+                    const ok = await this.onS2gLoad();
+                    this.setRegionLoadStep(
+                        "snp2geneLinks",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+            ]);
+
+            this.closeRegionLoadProgressIfSettled();
+        },
+        onSuggestActionsAfterUserActionUpdate(enabled) {
+            this.suggestActionsAfterUserAction = Boolean(enabled);
+        },
+        /** Open Actions only when Settings → Suggest Actions is enabled. */
+        openAssistantSuggestions() {
+            if (this.suggestActionsAfterUserAction) {
+                this.aiAssistantOpen = true;
             }
         },
         exportSession() {
@@ -2147,14 +2944,28 @@ export default Vue.component("gp2-browser", {
                 const projectId = normalizeProjectId(payload.projectId);
                 const phenotypes = projectPhenotypes(
                     projectId,
-                    this.phenotypesInUse || []
+                    GP2_BROWSER_PHENOTYPES
                 );
                 const restored = importVariantSifterSession(payload, phenotypes);
+                restored.visibleSectionIds = Array.isArray(
+                    payload?.ui?.visibleSectionIds
+                )
+                    ? gp2NormalizeVisibleSectionIds(
+                          payload.ui.visibleSectionIds,
+                          this.sections
+                      )
+                    : gp2DefaultVisibleSectionIds(this.sections);
+                if (typeof payload?.ui?.openDrawerId === "string") {
+                    restored.openDrawerId = payload.ui.openDrawerId;
+                }
                 this.projectId = projectId;
                 this.syncUrlProjectParam();
                 this.applyImportedSession(restored);
             } catch (error) {
-                window.alert(error.message || "Could not import session.");
+                const message = String(
+                    error?.message || "Could not import session."
+                ).replace(/Variant Sifter/gi, "GP2 Browser");
+                window.alert(message);
             } finally {
                 event.target.value = "";
             }
@@ -2228,12 +3039,37 @@ export default Vue.component("gp2-browser", {
             this.dataRegion = restored.dataRegion
                 ? cloneGenomicRegion(restored.dataRegion)
                 : cloneGenomicRegion(restored.searchSession.region);
-            this.lastCredibleSetsListRegion = computeActiveRegion(
+            const restoredActiveRegion = computeActiveRegion(
                 restored.searchSession.region,
                 restored.regionShiftBp ?? restored.viewOffsetBp ?? 0
             );
+            this.lastAssociationsRegion = restored.associationsState?.rows?.length
+                ? cloneGenomicRegion(this.dataRegion)
+                : null;
+            this.lastGenesRegion = restored.genesState?.ready
+                ? cloneGenomicRegion(this.dataRegion)
+                : null;
+            this.qtlRequestToken += 1;
+            this.qtlState = emptyQtlState(this.qtlState);
+            this.lastQtlRegion = null;
+            this.lastCredibleSetsListRegion = restored.credibleSetsState?.available
+                ?.length
+                ? restoredActiveRegion
+                : null;
+            this.lastGlobalEnrichmentRegion =
+                restored.globalEnrichmentState?.annoRows?.length ||
+                Object.keys(restored.globalEnrichmentState?.annoData || {}).length
+                    ? cloneGenomicRegion(this.dataRegion)
+                    : null;
+            this.lastV2gCatalogRegion = restored.globalEnrichmentState?.geRows
+                ?.length
+                ? cloneGenomicRegion(this.dataRegion)
+                : null;
+            this.lastS2gRegion = hasS2gTrackData(restored.s2gState)
+                ? cloneGenomicRegion(this.dataRegion)
+                : null;
             this.openDrawerId = restored.openDrawerId;
-            this.visibleSectionIds = normalizeVisibleSectionIds(
+            this.visibleSectionIds = gp2NormalizeVisibleSectionIds(
                 restored.visibleSectionIds,
                 this.sections
             );
@@ -2259,7 +3095,7 @@ export default Vue.component("gp2-browser", {
         afterSessionRestored(restored) {
             const selectedPhenotypes =
                 restored.associationsState?.selectedPhenotypes || [];
-            if (restored.searchSession) {
+            if (restored.searchSession && this.isSectionChecked("associations")) {
                 this.probeAncestryAssociationAvailabilityForSession(
                     restored.searchSession
                 );
@@ -2283,19 +3119,29 @@ export default Vue.component("gp2-browser", {
                 );
                 return;
             }
-            Promise.resolve(
-                this.loadGlobalEnrichmentForSession(restored.searchSession)
-            ).finally(() => {
+            if (this.isSectionChecked("global-enrichment")) {
+                Promise.resolve(
+                    this.loadGlobalEnrichmentForSession(restored.searchSession)
+                ).finally(() => {
+                    this.hydrateCompanionLayersForRestoredPhenotypes(
+                        selectedPhenotypes
+                    );
+                });
+            } else {
                 this.hydrateCompanionLayersForRestoredPhenotypes(
                     selectedPhenotypes
                 );
-            });
+            }
         },
         /**
          * Older or partial session files may restore additive phenotypes without
          * GE / CS companion rows. Fetch missing layers without clearing snapshot data.
          */
         hydrateCompanionLayersForRestoredPhenotypes(selectedPhenotypes) {
+            const loadGe =
+                this.isSectionChecked("global-enrichment") ||
+                this.isSectionChecked("variant-to-gene-links");
+            const loadCs = this.isSectionChecked("credible-sets");
             (selectedPhenotypes || []).forEach((entry) => {
                 const phenotypeName = String(entry?.name || "").trim();
                 if (!phenotypeName) {
@@ -2305,21 +3151,25 @@ export default Vue.component("gp2-browser", {
                     name: phenotypeName,
                     description: entry.description || null,
                 };
-                const geRows = this.globalEnrichmentState?.geRows || [];
-                const hasGe = geRows.some(
-                    (row) =>
-                        String(row?.phenotype || "").trim() === phenotypeName
-                );
-                if (!hasGe) {
-                    this.mergeGlobalEnrichmentForPhenotype(phenotype);
+                if (loadGe) {
+                    const geRows = this.globalEnrichmentState?.geRows || [];
+                    const hasGe = geRows.some(
+                        (row) =>
+                            String(row?.phenotype || "").trim() === phenotypeName
+                    );
+                    if (!hasGe) {
+                        this.mergeGlobalEnrichmentForPhenotype(phenotype);
+                    }
                 }
-                const available = this.credibleSetsState?.available || [];
-                const hasCs = available.some(
-                    (cs) =>
-                        String(cs?.phenotype || "").trim() === phenotypeName
-                );
-                if (!hasCs) {
-                    this.mergeCredibleSetsForPhenotype(phenotype);
+                if (loadCs) {
+                    const available = this.credibleSetsState?.available || [];
+                    const hasCs = available.some(
+                        (cs) =>
+                            String(cs?.phenotype || "").trim() === phenotypeName
+                    );
+                    if (!hasCs) {
+                        this.mergeCredibleSetsForPhenotype(phenotype);
+                    }
                 }
             });
         },
@@ -2352,7 +3202,7 @@ export default Vue.component("gp2-browser", {
             steps.forEach((step) => {
                 stepStates[step.id] = "pending";
             });
-            this.aiAssistantOpen = true;
+            this.openAssistantSuggestions();
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
@@ -2404,7 +3254,7 @@ export default Vue.component("gp2-browser", {
                 [stepId]: "pending",
             };
 
-            this.aiAssistantOpen = true;
+            this.openAssistantSuggestions();
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
@@ -2505,7 +3355,7 @@ export default Vue.component("gp2-browser", {
                         }
                     );
 
-            this.aiAssistantOpen = true;
+            this.openAssistantSuggestions();
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
@@ -2547,13 +3397,33 @@ export default Vue.component("gp2-browser", {
             this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
 
             try {
-                const [geRows, annoRows] = await Promise.all([
-                    fetchGlobalEnrichment(session, geHost),
+                const phenotypes =
+                    this.associationPhenotypesOnCanvas().length > 0
+                        ? this.associationPhenotypesOnCanvas()
+                        : session.phenotype
+                          ? [session.phenotype]
+                          : [];
+                const [geRowLists, annoRows] = await Promise.all([
+                    Promise.all(
+                        phenotypes.map((phenotype) =>
+                            fetchGlobalEnrichment(
+                                { ...session, phenotype },
+                                geHost
+                            )
+                        )
+                    ),
                     fetchLocusAnnotations(session.region, regionsHost),
                 ]);
                 if (geToken !== this.globalEnrichmentRequestToken) {
                     return false;
                 }
+                let geRows = [];
+                geRowLists.forEach((rows, idx) => {
+                    const pName = String(phenotypes[idx]?.name || "").trim();
+                    geRows = pName
+                        ? mergeGeRowsByPhenotype(geRows, rows, pName)
+                        : [...geRows, ...(rows || [])];
+                });
 
                 const annoData = buildAnnoDataFromRows(annoRows);
                 const catalog = extractGeCatalog(annoData);
@@ -2588,6 +3458,10 @@ export default Vue.component("gp2-browser", {
                     biosampleRegionsByAnnotation: {},
                     biosampleLoading: false,
                 };
+                this.lastGlobalEnrichmentRegion = cloneGenomicRegion(
+                    session.region
+                );
+                this.lastV2gCatalogRegion = cloneGenomicRegion(session.region);
                 this.setRegionLoadStep(
                     "globalEnrichment",
                     Object.keys(annoData).length
@@ -2608,12 +3482,81 @@ export default Vue.component("gp2-browser", {
                 if (geToken !== this.globalEnrichmentRequestToken) {
                     return false;
                 }
-                console.warn("Variant Sifter global enrichment load failed", error);
+                console.warn("GP2 Browser global enrichment load failed", error);
                 this.globalEnrichmentState = {
                     ...emptyGlobalEnrichmentState(),
                     error: "Failed to load global enrichment for this locus.",
                 };
                 this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.FAILED);
+                return false;
+            }
+        },
+        async loadV2gTissueCatalogForSession(session) {
+            if (!session?.region) {
+                return false;
+            }
+            if (
+                genomicRegionsEqual(
+                    this.lastGlobalEnrichmentRegion,
+                    session.region
+                ) ||
+                genomicRegionsEqual(this.lastV2gCatalogRegion, session.region)
+            ) {
+                return true;
+            }
+            const geHost = this.bioIndexHostFor("global-enrichment");
+            if (!geHost) {
+                return false;
+            }
+            const geToken = ++this.globalEnrichmentRequestToken;
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                loading: true,
+            };
+            try {
+                const phenotypes =
+                    this.associationPhenotypesOnCanvas().length > 0
+                        ? this.associationPhenotypesOnCanvas()
+                        : session.phenotype
+                          ? [session.phenotype]
+                          : [];
+                const geRowLists = await Promise.all(
+                    phenotypes.map((phenotype) =>
+                        fetchGlobalEnrichment(
+                            { ...session, phenotype },
+                            geHost
+                        )
+                    )
+                );
+                if (geToken !== this.globalEnrichmentRequestToken) {
+                    return false;
+                }
+                let geRows = [];
+                geRowLists.forEach((rows, idx) => {
+                    const pName = String(phenotypes[idx]?.name || "").trim();
+                    geRows = pName
+                        ? mergeGeRowsByPhenotype(geRows, rows, pName)
+                        : [...geRows, ...(rows || [])];
+                });
+                this.globalEnrichmentState = {
+                    ...this.globalEnrichmentState,
+                    loading: false,
+                    geRows,
+                };
+                this.lastV2gCatalogRegion = cloneGenomicRegion(session.region);
+                return true;
+            } catch (error) {
+                if (geToken !== this.globalEnrichmentRequestToken) {
+                    return false;
+                }
+                console.warn(
+                    "GP2 Browser V2G tissue catalog load failed",
+                    error
+                );
+                this.globalEnrichmentState = {
+                    ...this.globalEnrichmentState,
+                    loading: false,
+                };
                 return false;
             }
         },
@@ -2649,7 +3592,7 @@ export default Vue.component("gp2-browser", {
                 return true;
             } catch (error) {
                 console.warn(
-                    `Variant Sifter ${phenotypeName} global enrichment load failed`,
+                    `GP2 Browser ${phenotypeName} global enrichment load failed`,
                     error
                 );
                 return false;
@@ -2679,7 +3622,9 @@ export default Vue.component("gp2-browser", {
             this.assistantActionToken += 1;
             this.searchSession = null;
             this.associationsState = emptyAssociationsState();
-            this.genesState = emptyGenesState();
+            this.genesState = emptyGenesState(this.genesState?.selectedTypes);
+            this.qtlState = emptyQtlState(this.qtlState);
+            this.qtlRequestToken += 1;
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
@@ -2688,7 +3633,15 @@ export default Vue.component("gp2-browser", {
             this.s2gState = emptyS2gState();
             this.assistantState = emptyAssistantState();
             this.aiAssistantOpen = false;
+            this.lastAssociationsRegion = null;
+            this.lastZoomedAssociationsRegion = null;
+            this.zoomAssociationsRequestToken += 1;
+            this.lastGenesRegion = null;
+            this.lastQtlRegion = null;
             this.lastCredibleSetsListRegion = null;
+            this.lastGlobalEnrichmentRegion = null;
+            this.lastV2gCatalogRegion = null;
+            this.lastS2gRegion = null;
             this.pendingSubAncestries = [];
             this.pendingPhenotypes = [];
             this.dataRegion = null;
@@ -2700,7 +3653,7 @@ export default Vue.component("gp2-browser", {
             this.mappingState = emptyMappingState();
             this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
             this.settingsOpen = false;
-            this.visibleSectionIds = defaultVisibleSectionIds(this.sections);
+            this.visibleSectionIds = gp2DefaultVisibleSectionIds(this.sections);
             this.welcomeInitialValues = null;
             this.welcomeOpen = true;
             this.canvasActive = false;
@@ -2778,8 +3731,11 @@ export default Vue.component("gp2-browser", {
             this.regionZoomOut = 0;
             this.regionViewArea = 0;
             this.regionShiftBp = 0;
+            this.viewingCenterBp = null;
+            this.qtlRequestToken += 1;
+            this.qtlState = emptyQtlState(this.qtlState);
             this.dataRegion = cloneGenomicRegion(searchSession.region);
-            this.genesState = emptyGenesState();
+            this.genesState = emptyGenesState(this.genesState?.selectedTypes);
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
@@ -2790,7 +3746,15 @@ export default Vue.component("gp2-browser", {
             this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
             this.v2gRequestToken += 1;
             this.s2gRequestToken += 1;
+            this.lastAssociationsRegion = null;
+            this.lastZoomedAssociationsRegion = null;
+            this.zoomAssociationsRequestToken += 1;
+            this.lastGenesRegion = null;
+            this.lastQtlRegion = null;
             this.lastCredibleSetsListRegion = null;
+            this.lastGlobalEnrichmentRegion = null;
+            this.lastV2gCatalogRegion = null;
+            this.lastS2gRegion = null;
             if (projectAssociationsOnly(this.projectId)) {
                 this.visibleSectionIds = ["associations"];
                 this.openDrawerId = null;
@@ -2803,9 +3767,13 @@ export default Vue.component("gp2-browser", {
                 subAncestries: this.pendingSubAncestries,
             });
             this.loadInitialSearchData(searchSession);
+            this.maybeLoadQtlEvidences();
         },
         syncCredibleSetsToActiveRegion(activeRegion) {
-            if (projectAssociationsOnly(this.projectId)) {
+            if (
+                projectAssociationsOnly(this.projectId) ||
+                !this.isSectionChecked("credible-sets")
+            ) {
                 return;
             }
             if (!this.searchSession?.phenotype || !activeRegion) {
@@ -2916,7 +3884,7 @@ export default Vue.component("gp2-browser", {
                 if (token !== this.credibleSetsRequestToken) {
                     return false;
                 }
-                console.warn("Variant Sifter credible sets list failed", error);
+                console.warn("GP2 Browser credible sets list failed", error);
                 this.credibleSetsState = {
                     ...(preserveSelection ? this.credibleSetsState : emptyCredibleSetsState()),
                     listLoading: false,
@@ -3076,7 +4044,7 @@ export default Vue.component("gp2-browser", {
                     },
                 };
             } catch (error) {
-                console.warn("Variant Sifter credible variants load failed", error);
+                console.warn("GP2 Browser credible variants load failed", error);
                 this.credibleSetsState = {
                     ...this.credibleSetsState,
                     variantsLoading: false,
@@ -3125,7 +4093,7 @@ export default Vue.component("gp2-browser", {
                 return true;
             } catch (error) {
                 console.warn(
-                    `Variant Sifter ${phenotypeName} credible sets list failed`,
+                    `GP2 Browser ${phenotypeName} credible sets list failed`,
                     error
                 );
                 return false;
@@ -3181,7 +4149,7 @@ export default Vue.component("gp2-browser", {
                 };
             } catch (error) {
                 console.warn(
-                    `Variant Sifter ${phenotypeName}/${ancestry} credible sets list failed`,
+                    `GP2 Browser ${phenotypeName}/${ancestry} credible sets list failed`,
                     error
                 );
             }
@@ -3298,19 +4266,18 @@ export default Vue.component("gp2-browser", {
         async loadGenesTrack(session) {
             const token = ++this.genesRequestToken;
             this.genesState = {
-                ...emptyGenesState(),
+                ...emptyGenesState(this.genesState?.selectedTypes),
                 loading: true,
             };
 
             try {
-                const plotConfig = buildAssociationsRegionPlotConfig(session);
                 const data = await fetchGenesTrackData(
                     session.region,
-                    plotConfig["genome reference"],
+                    GP2_GENOME_BUILD,
                     this.bioIndexHostFor("genes")
                 );
                 if (token !== this.genesRequestToken) {
-                    return;
+                    return false;
                 }
                 this.genesState = {
                     ...this.genesState,
@@ -3318,20 +4285,22 @@ export default Vue.component("gp2-browser", {
                     loading: false,
                     error: data.length ? null : "No genes found for this locus.",
                     data: data.length ? data : null,
-                    selectedTypes: resolveSelectedGeneTypesForData(
-                        this.genesState.selectedTypes,
-                        data
+                    selectedTypes: normalizeSelectedGeneTypes(
+                        this.genesState.selectedTypes
                     ),
                 };
+                this.lastGenesRegion = cloneGenomicRegion(session.region);
+                return true;
             } catch (error) {
                 if (token !== this.genesRequestToken) {
-                    return;
+                    return false;
                 }
-                console.warn("Variant Sifter genes track load failed", error);
+                console.warn("GP2 Browser genes track load failed", error);
                 this.genesState = {
-                    ...emptyGenesState(),
+                    ...emptyGenesState(this.genesState?.selectedTypes),
                     error: "Failed to load genes track for this locus.",
                 };
+                return false;
             }
         },
         async loadPlotOverlays(session, rows) {
@@ -3347,7 +4316,7 @@ export default Vue.component("gp2-browser", {
             try {
                 recombData = await fetchRecombinationRate(session.region);
             } catch (error) {
-                console.warn("Variant Sifter plot overlays load failed", error);
+                console.warn("GP2 Browser plot overlays load failed", error);
                 overlayError = "Recombination overlay could not be loaded for this locus.";
             }
 
@@ -3506,7 +4475,7 @@ export default Vue.component("gp2-browser", {
                 if (isCancelled()) {
                     return false;
                 }
-                console.warn("Variant Sifter LD score fetch failed", ldError);
+                console.warn("GP2 Browser LD score fetch failed", ldError);
                 this.associationsState = {
                     ...this.associationsState,
                     ldLoading: false,
@@ -3515,18 +4484,9 @@ export default Vue.component("gp2-browser", {
                 return false;
             }
         },
-        async loadInitialSearchData(session) {
+        async loadAssociationsSectionForSession(session) {
             const token = ++this.associationsRequestToken;
-            ++this.genesRequestToken;
-            ++this.plotOverlaysRequestToken;
-            ++this.credibleSetsRequestToken;
-            ++this.globalEnrichmentRequestToken;
-
-            if (this.regionLoadDismissTimer) {
-                clearTimeout(this.regionLoadDismissTimer);
-                this.regionLoadDismissTimer = null;
-            }
-            this.regionLoadProgress = startRegionLoadProgress();
+            const recombToken = ++this.plotOverlaysRequestToken;
             this.associationsState = emptyAssociationsState();
 
             const host = this.bioIndexHostFor("associations");
@@ -3535,11 +4495,10 @@ export default Vue.component("gp2-browser", {
                     ...emptyAssociationsState(),
                     error: "BioIndex host is not available.",
                 };
-                for (const step of this.regionLoadProgress.steps) {
-                    this.setRegionLoadStep(step.id, VKS_REGION_LOAD_STATUS.FAILED);
-                }
-                this.closeRegionLoadProgressIfSettled();
-                return;
+                this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.FAILED);
+                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.FAILED);
+                this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                return false;
             }
 
             let formattedRows = [];
@@ -3549,17 +4508,15 @@ export default Vue.component("gp2-browser", {
             try {
                 const result = await fetchAssociations(session, host, this.projectId);
                 if (token !== this.associationsRequestToken) {
-                    return;
+                    return false;
                 }
-
                 const kpRows = formatAssociationRows(result.rows, session, {
                     project: VKS_ASSOCIATION_PROJECT_KP,
                 });
                 const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
                 if (token !== this.associationsRequestToken) {
-                    return;
+                    return false;
                 }
-
                 formattedRows = mergeAssociationRowsByVariantAndAncestry(
                     kpRows,
                     ceRows,
@@ -3568,6 +4525,7 @@ export default Vue.component("gp2-browser", {
                 if (!this.dataRegion) {
                     this.dataRegion = cloneGenomicRegion(session.region);
                 }
+                this.lastAssociationsRegion = cloneGenomicRegion(session.region);
                 this.associationsState = {
                     ...this.associationsState,
                     error: null,
@@ -3579,12 +4537,11 @@ export default Vue.component("gp2-browser", {
                 this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
             } catch (error) {
                 if (token !== this.associationsRequestToken) {
-                    return;
+                    return false;
                 }
-                // KP failed — still try CE overlay so the page is not empty.
                 const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
                 if (token !== this.associationsRequestToken) {
-                    return;
+                    return false;
                 }
                 if (ceRows.length) {
                     formattedRows = ceRows;
@@ -3592,6 +4549,7 @@ export default Vue.component("gp2-browser", {
                     if (!this.dataRegion) {
                         this.dataRegion = cloneGenomicRegion(session.region);
                     }
+                    this.lastAssociationsRegion = cloneGenomicRegion(session.region);
                     this.associationsState = {
                         ...this.associationsState,
                         error: null,
@@ -3601,36 +4559,32 @@ export default Vue.component("gp2-browser", {
                         query: null,
                     };
                     this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
-                    console.warn("Variant Sifter KP associations load failed; showing GWAS-CE only", error);
+                    console.warn(
+                        "GP2 Browser KP associations load failed; showing GWAS-CE only",
+                        error
+                    );
                 } else {
                     associationFailed = true;
-                    console.warn("Variant Sifter associations load failed", error);
+                    console.warn("GP2 Browser associations load failed", error);
                     this.associationsState = {
                         ...emptyAssociationsState(),
                         error: "Failed to load associations. Please try again.",
                     };
-                    this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.FAILED);
+                    this.setRegionLoadStep(
+                        "associations",
+                        VKS_REGION_LOAD_STATUS.FAILED
+                    );
                 }
             }
 
             if (token !== this.associationsRequestToken) {
-                return;
+                return false;
             }
 
-            if (projectAssociationsOnly(this.projectId)) {
-                this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.DONE);
-                this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.DONE);
-                this.setRegionLoadStep(
-                    "globalEnrichment",
-                    VKS_REGION_LOAD_STATUS.DONE
-                );
-
-                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
-                try {
-                    const recombData = await fetchRecombinationRate(session.region);
-                    if (token !== this.associationsRequestToken) {
-                        return;
-                    }
+            this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+            try {
+                const recombData = await fetchRecombinationRate(session.region);
+                if (recombToken === this.plotOverlaysRequestToken) {
                     const leadRow =
                         pickLeadVariantRow(
                             filterAssociationRowsByProject(
@@ -3647,11 +4601,10 @@ export default Vue.component("gp2-browser", {
                         refVariantUserSet: false,
                     };
                     this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.DONE);
-                } catch (error) {
-                    if (token !== this.associationsRequestToken) {
-                        return;
-                    }
-                    console.warn("Variant Sifter plot overlays load failed", error);
+                }
+            } catch (error) {
+                if (recombToken === this.plotOverlaysRequestToken) {
+                    console.warn("GP2 Browser plot overlays load failed", error);
                     this.plotOverlaysState = {
                         ...emptyPlotOverlaysState(),
                         ready: true,
@@ -3659,77 +4612,338 @@ export default Vue.component("gp2-browser", {
                     };
                     this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.FAILED);
                 }
+            }
 
-                if (!associationFailed && formattedRows.length) {
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+            if (!associationFailed && formattedRows.length) {
+                this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                try {
+                    const ldResult = await this.enrichAssociationRowsByProject(
+                        formattedRows,
+                        session
+                    );
+                    const rowsWithLd = ldResult.rows;
+                    if (token !== this.associationsRequestToken) {
+                        return false;
+                    }
+                    const ldAvailable = rowsWithLd.some(
+                        (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                    );
+                    this.associationsState = {
+                        ...this.associationsState,
+                        ldError: ldAvailable
+                            ? null
+                            : "LD scores could not be loaded for this locus.",
+                        rows: rowsWithLd,
+                    };
+                    const resolvedRef =
+                        ldResult.refVariant ||
+                        rowToLdVariant(pickLeadVariantRow(rowsWithLd));
+                    this.plotOverlaysState = {
+                        ...this.plotOverlaysState,
+                        refVariant: resolvedRef,
+                    };
+                    if (this.viewingCenterBp == null) {
+                        const refPos = extractVariantPositionBp(resolvedRef);
+                        if (refPos != null) {
+                            this.viewingCenterBp = clampViewingCenterBp(
+                                refPos,
+                                session.region,
+                                this.viewingRegionHalfWidthBp
+                            );
+                        }
+                    }
+                    this.setRegionLoadStep(
+                        "ld",
+                        ldAvailable
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                } catch (ldError) {
+                    if (token !== this.associationsRequestToken) {
+                        return false;
+                    }
+                    console.warn("GP2 Browser LD score fetch failed", ldError);
+                    this.associationsState = {
+                        ...this.associationsState,
+                        ldError: "LD scores could not be loaded for this locus.",
+                    };
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                }
+            } else {
+                this.setRegionLoadStep(
+                    "ld",
+                    associationFailed
+                        ? VKS_REGION_LOAD_STATUS.FAILED
+                        : VKS_REGION_LOAD_STATUS.DONE
+                );
+            }
+
+            if (!associationFailed) {
+                this.probeAncestryAssociationAvailabilityForSession(session);
+                this.lastZoomedAssociationsRegion = null;
+                this.refetchAssociationsForZoomedView();
+            }
+            this.loadPendingAssociationExtras();
+            return !associationFailed;
+        },
+        async loadInitialSearchData(session) {
+            const token = ++this.associationsRequestToken;
+            ++this.genesRequestToken;
+            ++this.plotOverlaysRequestToken;
+            ++this.credibleSetsRequestToken;
+            ++this.globalEnrichmentRequestToken;
+
+            if (this.regionLoadDismissTimer) {
+                clearTimeout(this.regionLoadDismissTimer);
+                this.regionLoadDismissTimer = null;
+            }
+            const associationsOnly = projectAssociationsOnly(this.projectId);
+            const loadAssoc = this.isSectionChecked("associations");
+            const loadGenes = !associationsOnly && this.isSectionChecked("genes");
+            const loadCs =
+                !associationsOnly && this.isSectionChecked("credible-sets");
+            const loadGe =
+                !associationsOnly && this.isSectionChecked("global-enrichment");
+            const loadV2g =
+                !associationsOnly &&
+                this.isSectionChecked("variant-to-gene-links") &&
+                !loadGe;
+            const loadS2g =
+                !associationsOnly && this.isSectionChecked("snp2gene-links");
+
+            const initialStepIds = [
+                ...(loadAssoc ? ["associations", "recomb", "ld"] : []),
+                ...(loadGenes ? ["genes"] : []),
+                ...(loadCs ? ["credibleSets"] : []),
+                ...(loadGe ? ["globalEnrichment"] : []),
+                ...(loadV2g ? ["geneLinks"] : []),
+                ...(loadS2g ? ["snp2geneLinks"] : []),
+            ];
+
+            this.regionLoadProgress = startGp2RegionLoadProgress(initialStepIds);
+            this.associationsState = emptyAssociationsState();
+
+            if (!initialStepIds.length) {
+                this.closeRegionLoadProgressIfSettled();
+                return;
+            }
+
+            const host = this.bioIndexHostFor("associations");
+            if (loadAssoc && !host) {
+                this.associationsState = {
+                    ...emptyAssociationsState(),
+                    error: "BioIndex host is not available.",
+                };
+                for (const step of this.regionLoadProgress.steps) {
+                    this.setRegionLoadStep(step.id, VKS_REGION_LOAD_STATUS.FAILED);
+                }
+                this.closeRegionLoadProgressIfSettled();
+                return;
+            }
+
+            let formattedRows = [];
+            let associationFailed = false;
+
+            if (loadAssoc) {
+                this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
+                try {
+                    const result = await fetchAssociations(session, host, this.projectId);
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+
+                    const kpRows = formatAssociationRows(result.rows, session, {
+                        project: VKS_ASSOCIATION_PROJECT_KP,
+                    });
+                    const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+
+                    formattedRows = mergeAssociationRowsByVariantAndAncestry(
+                        kpRows,
+                        ceRows,
+                        primaryAssociationAncestry(session)
+                    );
+                    if (!this.dataRegion) {
+                        this.dataRegion = cloneGenomicRegion(session.region);
+                    }
+                    this.lastAssociationsRegion = cloneGenomicRegion(session.region);
+                    this.associationsState = {
+                        ...this.associationsState,
+                        error: null,
+                        ldError: null,
+                        rows: formattedRows,
+                        index: result.index,
+                        query: result.q,
+                    };
+                    this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
+                } catch (error) {
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+                    // KP failed — still try CE overlay so the page is not empty.
+                    const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+                    if (ceRows.length) {
+                        formattedRows = ceRows;
+                        associationFailed = false;
+                        if (!this.dataRegion) {
+                            this.dataRegion = cloneGenomicRegion(session.region);
+                        }
+                        this.lastAssociationsRegion = cloneGenomicRegion(session.region);
+                        this.associationsState = {
+                            ...this.associationsState,
+                            error: null,
+                            ldError: null,
+                            rows: formattedRows,
+                            index: null,
+                            query: null,
+                        };
+                        this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
+                        console.warn("GP2 Browser KP associations load failed; showing GWAS-CE only", error);
+                    } else {
+                        associationFailed = true;
+                        console.warn("GP2 Browser associations load failed", error);
+                        this.associationsState = {
+                            ...emptyAssociationsState(),
+                            error: "Failed to load associations. Please try again.",
+                        };
+                        this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.FAILED);
+                    }
+                }
+            }
+
+            if (token !== this.associationsRequestToken) {
+                return;
+            }
+
+            if (projectAssociationsOnly(this.projectId)) {
+                if (loadAssoc) {
+                    this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
                     try {
-                        const ldResult = await this.enrichAssociationRowsByProject(
-                            formattedRows,
-                            session
-                        );
-                        const rowsWithLd = ldResult.rows;
+                        const recombData = await fetchRecombinationRate(session.region);
                         if (token !== this.associationsRequestToken) {
                             return;
                         }
-                        const ldAvailable = rowsWithLd.some(
-                            (row) => row.LDS != null && !Number.isNaN(row.LDS)
-                        );
-                        this.associationsState = {
-                            ...this.associationsState,
-                            rows: rowsWithLd,
-                            ldLoading: false,
-                            ldError: ldAvailable
-                                ? null
-                                : "LD scores could not be loaded for this locus.",
+                        const leadRow =
+                            pickLeadVariantRow(
+                                filterAssociationRowsByProject(
+                                    formattedRows,
+                                    VKS_ASSOCIATION_PROJECT_KP
+                                )
+                            ) || pickLeadVariantRow(formattedRows);
+                        this.plotOverlaysState = {
+                            ready: true,
+                            loading: false,
+                            error: null,
+                            recombData,
+                            refVariant: rowToLdVariant(leadRow),
+                            refVariantUserSet: false,
                         };
-                        if (ldResult.refVariant) {
-                            this.plotOverlaysState = {
-                                ...this.plotOverlaysState,
-                                refVariant: ldResult.refVariant,
-                            };
-                        }
-                        this.setRegionLoadStep(
-                            "ld",
-                            ldAvailable
-                                ? VKS_REGION_LOAD_STATUS.DONE
-                                : VKS_REGION_LOAD_STATUS.FAILED
-                        );
+                        this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.DONE);
                     } catch (error) {
                         if (token !== this.associationsRequestToken) {
                             return;
                         }
-                        console.warn("Variant Sifter LD enrich failed", error);
-                        this.associationsState = {
-                            ...this.associationsState,
-                            ldLoading: false,
-                            ldError: "LD scores could not be loaded for this locus.",
+                        console.warn("GP2 Browser plot overlays load failed", error);
+                        this.plotOverlaysState = {
+                            ...emptyPlotOverlaysState(),
+                            ready: true,
+                            error: "Recombination overlay could not be loaded for this locus.",
                         };
-                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                        this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.FAILED);
                     }
-                } else {
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+
+                    if (!associationFailed && formattedRows.length) {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                        try {
+                            const ldResult = await this.enrichAssociationRowsByProject(
+                                formattedRows,
+                                session
+                            );
+                            const rowsWithLd = ldResult.rows;
+                            if (token !== this.associationsRequestToken) {
+                                return;
+                            }
+                            const ldAvailable = rowsWithLd.some(
+                                (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                            );
+                            this.associationsState = {
+                                ...this.associationsState,
+                                rows: rowsWithLd,
+                                ldLoading: false,
+                                ldError: ldAvailable
+                                    ? null
+                                    : "LD scores could not be loaded for this locus.",
+                            };
+                            if (ldResult.refVariant) {
+                                this.plotOverlaysState = {
+                                    ...this.plotOverlaysState,
+                                    refVariant: ldResult.refVariant,
+                                };
+                            }
+                            this.setRegionLoadStep(
+                                "ld",
+                                ldAvailable
+                                    ? VKS_REGION_LOAD_STATUS.DONE
+                                    : VKS_REGION_LOAD_STATUS.FAILED
+                            );
+                        } catch (error) {
+                            if (token !== this.associationsRequestToken) {
+                                return;
+                            }
+                            console.warn("GP2 Browser LD enrich failed", error);
+                            this.associationsState = {
+                                ...this.associationsState,
+                                ldLoading: false,
+                                ldError: "LD scores could not be loaded for this locus.",
+                            };
+                            this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                        }
+                    } else {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+                    }
                 }
 
                 this.closeRegionLoadProgressIfSettled();
                 return;
             }
 
-            const plotConfig = buildAssociationsRegionPlotConfig(session);
             const genesToken = ++this.genesRequestToken;
             const recombToken = ++this.plotOverlaysRequestToken;
             const globalEnrichmentToken = ++this.globalEnrichmentRequestToken;
 
-            this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
-            this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
-            this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
-            this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
+            if (loadGenes) {
+                this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadAssoc) {
+                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadCs) {
+                this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadGe) {
+                this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadV2g) {
+                this.setRegionLoadStep("geneLinks", VKS_REGION_LOAD_STATUS.LOADING);
+            }
+            if (loadS2g) {
+                this.setRegionLoadStep("snp2geneLinks", VKS_REGION_LOAD_STATUS.LOADING);
+            }
 
             await Promise.all([
                 (async () => {
+                    if (!loadGenes) {
+                        return;
+                    }
                     try {
                         const data = await fetchGenesTrackData(
                             session.region,
-                            plotConfig["genome reference"],
+                            GP2_GENOME_BUILD,
                             this.bioIndexHostFor("genes")
                         );
                         if (genesToken !== this.genesRequestToken) {
@@ -3741,25 +4955,28 @@ export default Vue.component("gp2-browser", {
                             loading: false,
                             error: data.length ? null : "No genes found for this locus.",
                             data: data.length ? data : null,
-                            selectedTypes: resolveSelectedGeneTypesForData(
-                                this.genesState.selectedTypes,
-                                data
+                            selectedTypes: normalizeSelectedGeneTypes(
+                                this.genesState.selectedTypes
                             ),
                         };
+                        this.lastGenesRegion = cloneGenomicRegion(session.region);
                         this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.DONE);
                     } catch (error) {
                         if (genesToken !== this.genesRequestToken) {
                             return;
                         }
-                        console.warn("Variant Sifter genes track load failed", error);
+                        console.warn("GP2 Browser genes track load failed", error);
                         this.genesState = {
-                            ...emptyGenesState(),
+                            ...emptyGenesState(this.genesState?.selectedTypes),
                             error: "Failed to load genes track for this locus.",
                         };
                         this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.FAILED);
                     }
                 })(),
                 (async () => {
+                    if (!loadAssoc) {
+                        return;
+                    }
                     try {
                         const recombData = await fetchRecombinationRate(session.region);
                         if (recombToken !== this.plotOverlaysRequestToken) {
@@ -3779,7 +4996,7 @@ export default Vue.component("gp2-browser", {
                         if (recombToken !== this.plotOverlaysRequestToken) {
                             return;
                         }
-                        console.warn("Variant Sifter plot overlays load failed", error);
+                        console.warn("GP2 Browser plot overlays load failed", error);
                         this.plotOverlaysState = {
                             ...emptyPlotOverlaysState(),
                             ready: true,
@@ -3789,6 +5006,9 @@ export default Vue.component("gp2-browser", {
                     }
                 })(),
                 (async () => {
+                    if (!loadCs) {
+                        return;
+                    }
                     const ok = await this.loadCredibleSetsList(session);
                     if (ok) {
                         this.setRegionLoadStep(
@@ -3803,10 +5023,37 @@ export default Vue.component("gp2-browser", {
                     }
                 })(),
                 (async () => {
+                    if (!loadGe) {
+                        return;
+                    }
                     await this.loadGlobalEnrichmentForSession(session, {
                         offerClassifyAction: true,
                         requestToken: globalEnrichmentToken,
                     });
+                })(),
+                (async () => {
+                    if (!loadV2g) {
+                        return;
+                    }
+                    const ok = await this.loadV2gTissueCatalogForSession(session);
+                    this.setRegionLoadStep(
+                        "geneLinks",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                })(),
+                (async () => {
+                    if (!loadS2g) {
+                        return;
+                    }
+                    const ok = await this.onS2gLoad();
+                    this.setRegionLoadStep(
+                        "snp2geneLinks",
+                        ok
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
                 })(),
             ]);
 
@@ -3814,66 +5061,84 @@ export default Vue.component("gp2-browser", {
                 return;
             }
 
-            if (!associationFailed && formattedRows.length) {
-                this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
-                try {
-                    const ldResult = await this.enrichAssociationRowsByProject(
-                        formattedRows,
-                        session
-                    );
-                    const rowsWithLd = ldResult.rows;
-                    if (token !== this.associationsRequestToken) {
-                        return;
-                    }
-                    const ldAvailable = rowsWithLd.some(
-                        (row) => row.LDS != null && !Number.isNaN(row.LDS)
-                    );
-                    this.associationsState = {
-                        ...this.associationsState,
-                        ldError: ldAvailable
-                            ? null
-                            : "LD scores could not be loaded for this locus.",
-                        rows: rowsWithLd,
-                    };
-                    this.plotOverlaysState = {
-                        ...this.plotOverlaysState,
-                        refVariant:
+            if (loadAssoc) {
+                if (!associationFailed && formattedRows.length) {
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                    try {
+                        const ldResult = await this.enrichAssociationRowsByProject(
+                            formattedRows,
+                            session
+                        );
+                        const rowsWithLd = ldResult.rows;
+                        if (token !== this.associationsRequestToken) {
+                            return;
+                        }
+                        const ldAvailable = rowsWithLd.some(
+                            (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                        );
+                        this.associationsState = {
+                            ...this.associationsState,
+                            ldError: ldAvailable
+                                ? null
+                                : "LD scores could not be loaded for this locus.",
+                            rows: rowsWithLd,
+                        };
+                        const resolvedRef =
                             ldResult.refVariant ||
-                            rowToLdVariant(pickLeadVariantRow(rowsWithLd)),
-                    };
+                            rowToLdVariant(pickLeadVariantRow(rowsWithLd));
+                        this.plotOverlaysState = {
+                            ...this.plotOverlaysState,
+                            refVariant: resolvedRef,
+                        };
+                        if (this.viewingCenterBp == null) {
+                            const refPos = extractVariantPositionBp(resolvedRef);
+                            if (refPos != null) {
+                                this.viewingCenterBp = clampViewingCenterBp(
+                                    refPos,
+                                    session.region,
+                                    this.viewingRegionHalfWidthBp
+                                );
+                            }
+                        }
+                        this.setRegionLoadStep(
+                            "ld",
+                            ldAvailable
+                                ? VKS_REGION_LOAD_STATUS.DONE
+                                : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    } catch (ldError) {
+                        if (token !== this.associationsRequestToken) {
+                            return;
+                        }
+                        console.warn("GP2 Browser LD score fetch failed", ldError);
+                        this.associationsState = {
+                            ...this.associationsState,
+                            ldLoading: false,
+                            ldError: "LD scores could not be loaded for this locus.",
+                        };
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                    }
+                } else {
                     this.setRegionLoadStep(
                         "ld",
-                        ldAvailable
-                            ? VKS_REGION_LOAD_STATUS.DONE
-                            : VKS_REGION_LOAD_STATUS.FAILED
+                        associationFailed
+                            ? VKS_REGION_LOAD_STATUS.FAILED
+                            : VKS_REGION_LOAD_STATUS.DONE
                     );
-                } catch (ldError) {
-                    if (token !== this.associationsRequestToken) {
-                        return;
-                    }
-                    console.warn("Variant Sifter LD score fetch failed", ldError);
-                    this.associationsState = {
-                        ...this.associationsState,
-                        ldError: "LD scores could not be loaded for this locus.",
-                    };
-                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
                 }
-            } else {
-                this.setRegionLoadStep(
-                    "ld",
-                    associationFailed
-                        ? VKS_REGION_LOAD_STATUS.FAILED
-                        : VKS_REGION_LOAD_STATUS.DONE
-                );
             }
 
             this.closeRegionLoadProgressIfSettled();
-            if (!associationFailed) {
-                this.probeAncestryAssociationAvailabilityForSession(session);
+            if (loadAssoc) {
+                if (!associationFailed) {
+                    this.probeAncestryAssociationAvailabilityForSession(session);
+                    this.lastZoomedAssociationsRegion = null;
+                    this.refetchAssociationsForZoomedView();
+                }
+                // Primary page data is loaded; now fetch URL/session sub-ancestries
+                // and additive phenotypes.
+                this.loadPendingAssociationExtras();
             }
-            // Primary page data is loaded; now fetch URL/session sub-ancestries
-            // and additive phenotypes.
-            this.loadPendingAssociationExtras();
         },
         async loadPendingAssociationExtras() {
             const pendingAncestries = parseSubAncestriesParam(
@@ -3906,7 +5171,7 @@ export default Vue.component("gp2-browser", {
                 });
             } catch (error) {
                 associationsOk = false;
-                console.warn("Variant Sifter pending association extras failed", error);
+                console.warn("GP2 Browser pending association extras failed", error);
             }
 
             if (showProgress) {
@@ -4009,7 +5274,7 @@ export default Vue.component("gp2-browser", {
                     continue;
                 }
                 const phenotype =
-                    (this.phenotypesInUse || this.phenotypes || []).find(
+                    (this.phenotypes || this.phenotypesInUse || []).find(
                         (entry) => entry.name === name
                     ) || { name, description: null };
                 await this.loadAssociationPhenotypeSeries(phenotype, {
@@ -4106,7 +5371,7 @@ export default Vue.component("gp2-browser", {
                     return;
                 }
                 console.warn(
-                    `Variant Sifter ancestry availability probe failed for ${phenotypeName}`,
+                    `GP2 Browser ancestry availability probe failed for ${phenotypeName}`,
                     error
                 );
                 this.associationsState = {
@@ -4324,7 +5589,7 @@ export default Vue.component("gp2-browser", {
                         formattedRows = ldResult.rows;
                     }
                 } catch (ldError) {
-                    console.warn(`Variant Sifter ${ancestry} LD enrich failed`, ldError);
+                    console.warn(`GP2 Browser ${ancestry} LD enrich failed`, ldError);
                 }
 
                 if (token !== this.associationsRequestToken) {
@@ -4356,7 +5621,11 @@ export default Vue.component("gp2-browser", {
                             [ancestry]: emptyMessage,
                         },
                     };
-                    await this.mergeCredibleSetsForAncestry(ancestry);
+                    if (this.isSectionChecked("credible-sets")) {
+                        await this.mergeCredibleSetsForAncestry(ancestry);
+                    } else {
+                        this.lastCredibleSetsListRegion = null;
+                    }
                     this.offerUnderstudiedForAncestry(ancestry);
                 } else {
                     this.associationsState = {
@@ -4384,17 +5653,23 @@ export default Vue.component("gp2-browser", {
                             [loadingKey]: emptyMessage,
                         },
                     };
-                    await this.mergeCredibleSetsForPhenotypeAncestry(
-                        phenotypeObj,
-                        ancestry
-                    );
+                    if (this.isSectionChecked("credible-sets")) {
+                        await this.mergeCredibleSetsForPhenotypeAncestry(
+                            phenotypeObj,
+                            ancestry
+                        );
+                    } else {
+                        this.lastCredibleSetsListRegion = null;
+                    }
                 }
+                this.lastZoomedAssociationsRegion = null;
+                this.refetchAssociationsForZoomedView();
                 return true;
             } catch (error) {
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
-                console.warn(`Variant Sifter ${ancestry} associations load failed`, error);
+                console.warn(`GP2 Browser ${ancestry} associations load failed`, error);
                 this.associationsState = {
                     ...this.associationsState,
                     ancestrySeriesLoading: {
@@ -4519,7 +5794,7 @@ export default Vue.component("gp2-browser", {
                 } catch (ldError) {
                     ldOk = false;
                     console.warn(
-                        `Variant Sifter ${phenotypeName} LD enrich failed`,
+                        `GP2 Browser ${phenotypeName} LD enrich failed`,
                         ldError
                     );
                 }
@@ -4557,7 +5832,16 @@ export default Vue.component("gp2-browser", {
                     phenotype,
                     this.searchSession
                 );
+                this.lastZoomedAssociationsRegion = null;
+                this.refetchAssociationsForZoomedView();
                 associationsOk = true;
+                const loadCs =
+                    !projectAssociationsOnly(this.projectId) &&
+                    this.isSectionChecked("credible-sets");
+                const loadGe =
+                    !projectAssociationsOnly(this.projectId) &&
+                    (this.isSectionChecked("global-enrichment") ||
+                        this.isSectionChecked("variant-to-gene-links"));
                 if (ownsProgress) {
                     this.setRegionLoadStep(
                         "ld",
@@ -4565,60 +5849,77 @@ export default Vue.component("gp2-browser", {
                             ? VKS_REGION_LOAD_STATUS.DONE
                             : VKS_REGION_LOAD_STATUS.FAILED
                     );
-                    this.setRegionLoadStep(
-                        "credibleSets",
-                        VKS_REGION_LOAD_STATUS.LOADING
-                    );
+                    if (loadCs) {
+                        this.setRegionLoadStep(
+                            "credibleSets",
+                            VKS_REGION_LOAD_STATUS.LOADING
+                        );
+                    }
                 }
                 let credibleSetsOk = true;
-                try {
-                    credibleSetsOk = await this.mergeCredibleSetsForPhenotype(
-                        phenotype
-                    );
-                } catch (csError) {
-                    credibleSetsOk = false;
-                    console.warn(
-                        `Variant Sifter ${phenotypeName} credible sets merge failed`,
-                        csError
-                    );
+                if (loadCs) {
+                    try {
+                        credibleSetsOk = await this.mergeCredibleSetsForPhenotype(
+                            phenotype
+                        );
+                    } catch (csError) {
+                        credibleSetsOk = false;
+                        console.warn(
+                            `GP2 Browser ${phenotypeName} credible sets merge failed`,
+                            csError
+                        );
+                    }
+                } else {
+                    this.lastCredibleSetsListRegion = null;
                 }
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
                 if (ownsProgress) {
-                    this.setRegionLoadStep(
-                        "credibleSets",
-                        credibleSetsOk
-                            ? VKS_REGION_LOAD_STATUS.DONE
-                            : VKS_REGION_LOAD_STATUS.FAILED
-                    );
-                    this.setRegionLoadStep(
-                        "globalEnrichment",
-                        VKS_REGION_LOAD_STATUS.LOADING
-                    );
+                    if (loadCs) {
+                        this.setRegionLoadStep(
+                            "credibleSets",
+                            credibleSetsOk
+                                ? VKS_REGION_LOAD_STATUS.DONE
+                                : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    }
+                    if (loadGe) {
+                        this.setRegionLoadStep(
+                            "globalEnrichment",
+                            VKS_REGION_LOAD_STATUS.LOADING
+                        );
+                    }
                 }
                 let globalEnrichmentOk = true;
-                try {
-                    globalEnrichmentOk = await this.mergeGlobalEnrichmentForPhenotype(
-                        phenotype
-                    );
-                } catch (geError) {
-                    globalEnrichmentOk = false;
-                    console.warn(
-                        `Variant Sifter ${phenotypeName} global enrichment merge failed`,
-                        geError
-                    );
+                if (loadGe) {
+                    try {
+                        globalEnrichmentOk = await this.mergeGlobalEnrichmentForPhenotype(
+                            phenotype
+                        );
+                    } catch (geError) {
+                        globalEnrichmentOk = false;
+                        console.warn(
+                            `GP2 Browser ${phenotypeName} global enrichment merge failed`,
+                            geError
+                        );
+                    }
+                } else {
+                    this.lastGlobalEnrichmentRegion = null;
+                    this.lastV2gCatalogRegion = null;
                 }
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
                 if (ownsProgress) {
-                    this.setRegionLoadStep(
-                        "globalEnrichment",
-                        globalEnrichmentOk
-                            ? VKS_REGION_LOAD_STATUS.DONE
-                            : VKS_REGION_LOAD_STATUS.FAILED
-                    );
+                    if (loadGe) {
+                        this.setRegionLoadStep(
+                            "globalEnrichment",
+                            globalEnrichmentOk
+                                ? VKS_REGION_LOAD_STATUS.DONE
+                                : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    }
                     this.finishAdditivePhenotypeLoadProgress({
                         associationsOk: true,
                         ldOk,
@@ -4635,7 +5936,7 @@ export default Vue.component("gp2-browser", {
                     return false;
                 }
                 console.warn(
-                    `Variant Sifter ${phenotypeName} associations load failed`,
+                    `GP2 Browser ${phenotypeName} associations load failed`,
                     error
                 );
                 this.associationsState = {
@@ -4682,7 +5983,7 @@ export default Vue.component("gp2-browser", {
                     return;
                 }
                 const nextPhenotype =
-                    (this.phenotypesInUse || this.phenotypes || []).find(
+                    (this.phenotypes || this.phenotypesInUse || []).find(
                         (entry) => entry.name === nextEntry.name
                     ) || {
                         name: nextEntry.name,
@@ -4872,10 +6173,7 @@ export default Vue.component("gp2-browser", {
         onGenesSelectedTypesUpdate(selectedTypes) {
             this.genesState = {
                 ...this.genesState,
-                selectedTypes: resolveSelectedGeneTypesForData(
-                    selectedTypes,
-                    this.genesState.data
-                ),
+                selectedTypes: normalizeSelectedGeneTypes(selectedTypes),
             };
         },
         async refreshAssistantLlmHealth() {
@@ -4976,7 +6274,7 @@ export default Vue.component("gp2-browser", {
                     stepStates: {},
                     threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
                         createAssistantMessage(
-                            "I could not match that to a Variant Sifter action yet. Browse the Actions tab for supported requests, or try phrasing like “Classify tissues by phenotype relevance”, “Find understudied bottom-line variants in this locus”, or “Open Global enrich.”",
+                            "I could not match that to a GP2 Browser action yet. Browse the Actions tab for supported requests, or try phrasing like “Classify tissues by phenotype relevance”, “Find understudied bottom-line variants in this locus”, or “Open Global enrich.”",
                             { isClarify: true }
                         ),
                     ]),
@@ -5274,7 +6572,7 @@ export default Vue.component("gp2-browser", {
                 ) {
                     return;
                 }
-                console.warn("Variant Sifter CS2CT tissue classification failed", error);
+                console.warn("GP2 Browser CS2CT tissue classification failed", error);
                 const errorMessage =
                     error?.message ||
                     "CS2CT tissue filtering is unavailable; using enrichment p-value filtering only.";
@@ -5454,7 +6752,7 @@ export default Vue.component("gp2-browser", {
                         }
                         hadError = true;
                         console.warn(
-                            `Variant Sifter understudied bottom-line search failed (${ancestry})`,
+                            `GP2 Browser understudied bottom-line search failed (${ancestry})`,
                             error
                         );
                         const errorMessage =
@@ -5499,7 +6797,7 @@ export default Vue.component("gp2-browser", {
                     return;
                 }
                 console.warn(
-                    "Variant Sifter understudied bottom-line search failed",
+                    "GP2 Browser understudied bottom-line search failed",
                     error
                 );
                 const errorMessage =
@@ -5744,7 +7042,7 @@ export default Vue.component("gp2-browser", {
                         );
                     } catch (error) {
                         console.warn(
-                            `Variant Sifter genetic correlation failed (${ancestry})`,
+                            `GP2 Browser genetic correlation failed (${ancestry})`,
                             error
                         );
                         groups.push({
@@ -5763,6 +7061,10 @@ export default Vue.component("gp2-browser", {
                     session,
                     groups,
                 });
+                const resultText = String(result.text || "").replace(
+                    /Variant Sifter/gi,
+                    "GP2 Browser"
+                );
                 this.markAssistantStepState(resolvedStepId, "done");
                 if (!silent) {
                     this.assistantState = {
@@ -5771,7 +7073,7 @@ export default Vue.component("gp2-browser", {
                         executionProgressLabel: "",
                         threadEntries: replacePendingAssistantEntry(
                             this.assistantState.threadEntries,
-                            result.text,
+                            resultText,
                             { phenotypeGroups: result.phenotypeGroups }
                         ),
                     };
@@ -5786,7 +7088,7 @@ export default Vue.component("gp2-browser", {
                 if (actionToken !== this.assistantActionToken) {
                     return;
                 }
-                console.warn("Variant Sifter genetic correlation search failed", error);
+                console.warn("GP2 Browser genetic correlation search failed", error);
                 this.markAssistantStepState(resolvedStepId, "error");
                 if (!silent) {
                     this.assistantState = {
@@ -6061,7 +7363,7 @@ export default Vue.component("gp2-browser", {
                     if (token !== this.v2gRequestToken) {
                         return;
                     }
-                    console.warn("Variant Sifter gene-links fetch failed", tissue, error);
+                    console.warn("GP2 Browser gene-links fetch failed", tissue, error);
                     const selectedWithoutFailed = (this.v2gState.selectedTissues || []).filter(
                         (entry) => entry !== tissue
                     );
@@ -6118,9 +7420,10 @@ export default Vue.component("gp2-browser", {
             };
         },
         async onS2gLoad() {
-            const region = this.viewRegion || this.searchSession?.region;
+            const region =
+                this.dataRegion || this.viewRegion || this.searchSession?.region;
             if (!region) {
-                return;
+                return false;
             }
             const host = this.bioIndexHostFor("variant-links");
             const token = ++this.s2gRequestToken;
@@ -6132,14 +7435,15 @@ export default Vue.component("gp2-browser", {
             try {
                 const rows = await fetchVariantLinks(region, host);
                 if (token !== this.s2gRequestToken) {
-                    return;
+                    return false;
                 }
+                this.lastS2gRegion = cloneGenomicRegion(region);
                 if (!rows.length) {
                     this.s2gState = {
                         ...emptyS2gState(),
                         error: "No SNP-to-gene links found in this region.",
                     };
-                    return;
+                    return true;
                 }
                 const tissueData = buildS2gTissueData(rows);
                 const methods = collectMethodsFromTissueData(tissueData);
@@ -6161,20 +7465,23 @@ export default Vue.component("gp2-browser", {
                     deselectedGenes,
                     viewMode: "tracks",
                 };
+                return true;
             } catch (error) {
                 if (token !== this.s2gRequestToken) {
-                    return;
+                    return false;
                 }
-                console.warn("Variant Sifter variant-links fetch failed", error);
+                console.warn("GP2 Browser variant-links fetch failed", error);
                 this.s2gState = {
                     ...this.s2gState,
                     loadingTissue: null,
                     error: "Failed to load SNP-to-gene links for this region.",
                 };
+                return false;
             }
         },
         onS2gClear() {
             this.s2gRequestToken += 1;
+            this.lastS2gRegion = null;
             this.s2gState = emptyS2gState();
         },
         onS2gDeselectedMethodsUpdate(deselectedMethods) {
@@ -6602,5 +7909,80 @@ export default Vue.component("gp2-browser", {
 
 .vks-session-import-input {
     display: none;
+}
+
+.kp-variant-sifter-workspace >>> table.research-data-table {
+    border-top: solid 1px #ddd;
+    border-right: solid 1px #ddd;
+    border-collapse: inherit;
+    text-align: center;
+    clear: both;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table > thead > tr > th {
+    background-color: #eeeeee;
+    border: none !important;
+    border-left: solid 1px #ddd !important;
+    border-bottom: solid 2px #ccc !important;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table > thead > tr > th.sortable-th {
+    color: #007bff;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table > thead > tr > th.sortable-th:hover {
+    color: #004bcf;
+    cursor: pointer;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table td {
+    border: none !important;
+    border-left: solid 1px #eee !important;
+    border-bottom: solid 1px #ddd !important;
+    font-size: 13px;
+    height: 27px;
+    vertical-align: middle;
+    position: relative;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table td a {
+    color: #007bff;
+}
+
+.kp-variant-sifter-workspace >>> .research-data-table td a:hover {
+    color: #004bcf;
+}
+
+.kp-variant-sifter-workspace >>> .byor-tooltip {
+    position: relative;
+    overflow: visible;
+}
+
+.kp-variant-sifter-workspace >>> .byor-tooltip .tooltiptext {
+    visibility: hidden;
+    width: 220px;
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 4px;
+    padding: 8px 10px;
+    position: absolute;
+    z-index: 100;
+    top: calc(100% + 4px);
+    left: 0;
+    bottom: auto;
+    margin-left: 0;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: normal;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.kp-variant-sifter-workspace >>> .byor-tooltip:hover .tooltiptext {
+    visibility: visible;
 }
 </style>

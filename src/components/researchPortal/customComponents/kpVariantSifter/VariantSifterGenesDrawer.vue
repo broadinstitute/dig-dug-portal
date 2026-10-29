@@ -79,6 +79,7 @@ import {
     filterGenesByTypes,
     formatGeneTypeLabel,
     resolveSelectedGeneTypesForData,
+    VKS_ALL_GENE_TYPES,
     VKS_DEFAULT_GENE_TYPES,
 } from "./variantSifterGenesFilter.js";
 import { buildGeneTypeColorMap } from "./variantSifterGenesColors.js";
@@ -150,26 +151,31 @@ export default {
     methods: {
         formatGeneTypeLabel,
         onTypesChange(event) {
-            const selected = Array.from(event.target.selectedOptions).map(
+            const selectedInLocus = Array.from(event.target.selectedOptions).map(
                 (option) => option.value
             );
+            const prevRaw = Array.isArray(this.genesState?.selectedTypes)
+                ? this.genesState.selectedTypes
+                : [];
+            const preservedFromOtherLoci = prevRaw.includes(VKS_ALL_GENE_TYPES)
+                ? []
+                : prevRaw.filter(
+                      (type) =>
+                          type &&
+                          type !== VKS_ALL_GENE_TYPES &&
+                          !this.geneTypeOptions.includes(type)
+                  );
+            const combined = [...preservedFromOtherLoci, ...selectedInLocus];
             this.$emit(
                 "update:selectedTypes",
-                resolveSelectedGeneTypesForData(
-                    selected.length ? selected : VKS_DEFAULT_GENE_TYPES,
-                    this.allGenes
-                )
+                combined.length ? combined : [...VKS_DEFAULT_GENE_TYPES]
             );
         },
         selectCodingOnly() {
-            if (this.geneTypeOptions.includes("protein_coding")) {
-                this.$emit("update:selectedTypes", ["protein_coding"]);
-                return;
-            }
-            this.$emit("update:selectedTypes", [...this.geneTypeOptions]);
+            this.$emit("update:selectedTypes", ["protein_coding"]);
         },
         selectAllTypes() {
-            this.$emit("update:selectedTypes", [...this.geneTypeOptions]);
+            this.$emit("update:selectedTypes", [VKS_ALL_GENE_TYPES]);
         },
     },
 };

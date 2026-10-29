@@ -39,7 +39,7 @@ export function zoomFromSliderValue(sliderValue, { snap = false } = {}) {
 
     if (value > 0) {
         return {
-            regionZoom: clampRegionZoom(Math.round((value / 100) * VKS_REGION_ZOOM_MAX)),
+            regionZoom: VKS_REGION_ZOOM_MAX,
             regionZoomOut: 0,
         };
     }
@@ -50,7 +50,10 @@ export function zoomFromSliderValue(sliderValue, { snap = false } = {}) {
     };
 }
 
-/** Snap near-center slider values to 0 for a stable no-zoom detent. */
+/**
+ * Snap near-center slider values to 0 for a stable no-zoom detent,
+ * and snap positive zoom-in values to 100% (VKS_REGION_ZOOM_SLIDER_MAX).
+ */
 export function snapZoomSliderValue(
     sliderValue,
     snapThreshold = VKS_REGION_ZOOM_SLIDER_SNAP
@@ -59,6 +62,9 @@ export function snapZoomSliderValue(
     const threshold = Math.max(0, Math.round(Number(snapThreshold) || 0));
     if (Math.abs(value) <= threshold) {
         return 0;
+    }
+    if (value > threshold) {
+        return VKS_REGION_ZOOM_SLIDER_MAX;
     }
     return value;
 }
@@ -71,7 +77,7 @@ export function sliderValueFromZoom(regionZoom = 0, regionZoomOut = 0) {
 
     const zoomIn = clampRegionZoom(regionZoom);
     if (zoomIn > 0) {
-        return Math.round((zoomIn / VKS_REGION_ZOOM_MAX) * 100);
+        return VKS_REGION_ZOOM_SLIDER_MAX;
     }
 
     return 0;
@@ -113,10 +119,10 @@ export function computeVisibleRegion(searchRegion, regionZoom = 0, regionViewAre
 
 export function clampRegionZoom(value) {
     const zoom = Number(value);
-    if (!Number.isFinite(zoom)) {
+    if (!Number.isFinite(zoom) || zoom <= 0) {
         return VKS_REGION_ZOOM_MIN;
     }
-    return Math.max(VKS_REGION_ZOOM_MIN, Math.min(VKS_REGION_ZOOM_MAX, Math.round(zoom)));
+    return VKS_REGION_ZOOM_MAX;
 }
 
 export function clampRegionViewArea(value) {
