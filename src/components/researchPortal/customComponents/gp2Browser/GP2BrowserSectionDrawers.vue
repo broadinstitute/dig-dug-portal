@@ -33,7 +33,7 @@
                 <div class="vks-section-drawer-body">
                     <VariantSifterAssociationsDrawer
                         v-if="openSection.id === 'associations'"
-                        :rows="associationsState.rows"
+                        :rows="associationsDrawerRows"
                         :filters-index="associationsState.filtersIndex"
                         :loading="associationsState.loading"
                         :hide-loading-status="regionLoadProgressActive"
@@ -90,10 +90,12 @@
                     <GP2BrowserQtlDrawer
                         v-else-if="openSection.id === 'qtl-evidences'"
                         :qtl-state="qtlState"
+                        :plot-markers="plotMarkers"
                         :utils="utils"
                         @update:selectedTypes="$emit('update:qtlSelectedTypes', $event)"
                         @update:selectedTissues="$emit('update:qtlSelectedTissues', $event)"
                         @update:pValueMax="$emit('update:qtlPValueMax', $event)"
+                        @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
                     />
                     <VariantSifterGlobalEnrichmentDrawer
                         v-else-if="openSection.id === 'global-enrichment'"
@@ -184,6 +186,10 @@ import {
     primaryAssociationAncestry,
 } from "../kpVariantSifter/variantSifterAssociationsApi.js";
 import { VKS_PROJECT_DEFAULT_ID } from "../kpVariantSifter/variantSifterProjects.js";
+import {
+    addMissingStarredAssociationRows,
+    stripZoomRefetchedRows,
+} from "./gp2BrowserAssociationsDownsample.js";
 import VariantSifterAssociationsDrawer from "../kpVariantSifter/VariantSifterAssociationsDrawer.vue";
 import VariantSifterCredibleSetsDrawer from "../kpVariantSifter/VariantSifterCredibleSetsDrawer.vue";
 import GP2BrowserGenesDrawer from "./GP2BrowserGenesDrawer.vue";
@@ -294,7 +300,8 @@ export default {
             default: () => ({
                 loading: false,
                 error: null,
-                rows: [],
+                rawRows: [],
+                downsampledRows: [],
                 selectedTypes: [],
                 selectedTissues: [],
                 pValueMax: "",
@@ -382,6 +389,18 @@ export default {
         starredVariantIds() {
             return (this.plotMarkers?.starredVariants || []).map(
                 (entry) => entry.variantId
+            );
+        },
+        /**
+         * Associations drawer table: the stable, downsampled searching-region
+         * baseline (not whatever raw rows a 100%-zoom refetch temporarily
+         * added), plus any starred variant that would otherwise be missing.
+         */
+        associationsDrawerRows() {
+            const baseline = stripZoomRefetchedRows(this.associationsState?.rows || []);
+            return addMissingStarredAssociationRows(
+                baseline,
+                this.plotMarkers?.starredVariants
             );
         },
         openSection() {

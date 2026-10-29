@@ -26,6 +26,13 @@
                     >
                         <thead>
                             <tr>
+                                <th>
+                                    <b-icon
+                                        :icon="showStarredOnly ? 'star-fill' : 'star'"
+                                        style="color: #ffcc00; cursor: pointer"
+                                        @click="toggleStarredOnly"
+                                    ></b-icon>
+                                </th>
                                 <th
                                     v-for="column in visibleTableColumns"
                                     :key="column"
@@ -42,6 +49,16 @@
                                 v-for="(row, rowIndex) in pagedRows"
                                 :key="rowKey(row, rowIndex)"
                             >
+                                <td>
+                                    <b-icon
+                                        :icon="isStarred(row) ? 'star-fill' : 'star'"
+                                        :style="{
+                                            color: isStarred(row) ? '#ffcc00' : '#aaaaaa',
+                                            cursor: 'pointer',
+                                        }"
+                                        @click="toggleStar(row)"
+                                    ></b-icon>
+                                </td>
                                 <td
                                     v-for="column in visibleTableColumns"
                                     :key="`${rowKey(row, rowIndex)}-${column}`"
@@ -100,6 +117,10 @@ export default {
             type: Array,
             default: () => [],
         },
+        starredVariantIds: {
+            type: Array,
+            default: () => [],
+        },
         utils: {
             type: Object,
             default: null,
@@ -112,6 +133,7 @@ export default {
             sortKey: "P-value",
             sortDirection: "asc",
             visibleColumns: {},
+            showStarredOnly: false,
         };
     },
     computed: {
@@ -123,8 +145,16 @@ export default {
                 (column) => this.visibleColumns[column] !== false
             );
         },
+        starredFilteredRows() {
+            if (!this.showStarredOnly) {
+                return this.rows || [];
+            }
+            return (this.rows || []).filter((row) =>
+                this.starredVariantIds.includes(qtlVariantLabel(row))
+            );
+        },
         sortedRows() {
-            const sourceRows = this.rows || [];
+            const sourceRows = this.starredFilteredRows;
             const key = this.sortKey;
             const ascending = this.sortDirection === "asc";
             if (!key) {
@@ -193,6 +223,9 @@ export default {
         rows() {
             this.currentPage = 1;
         },
+        showStarredOnly() {
+            this.currentPage = 1;
+        },
         perPageNumber() {
             this.currentPage = 1;
         },
@@ -234,6 +267,15 @@ export default {
                 this.sortDirection = "asc";
             }
             this.currentPage = 1;
+        },
+        isStarred(row) {
+            return this.starredVariantIds.includes(qtlVariantLabel(row));
+        },
+        toggleStar(row) {
+            this.$emit("toggle-star-variant", { ...row, "Variant ID": qtlVariantLabel(row) });
+        },
+        toggleStarredOnly() {
+            this.showStarredOnly = !this.showStarredOnly;
         },
         isDirectionalColumn(column) {
             return DIRECTIONAL_COLUMNS.has(column);

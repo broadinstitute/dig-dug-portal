@@ -30,16 +30,11 @@
             <GP2BrowserViewportControls
                 v-if="canvasActive"
                 class="vks-header-controls"
-                :region-zoom="regionZoom"
-                :region-zoom-out="regionZoomOut"
-                :zoom-out-at-limit="zoomOutAtLimit"
-                :region-view-area="regionViewArea"
+                :viewing-region-width-bp="viewingRegionWidthBp"
                 :data-table-open="dataTableOpen"
                 :ai-assistant-open="aiAssistantOpen"
                 :settings-open="settingsOpen"
-                @update:regionZoom="onRegionZoomUpdate"
-                @update:regionZoomOut="onRegionZoomOutUpdate"
-                @zoom-slider-commit="onRegionZoomSliderCommit"
+                @update:viewingRegionWidthBp="onViewingRegionWidthUpdate"
                 @update:dataTableOpen="dataTableOpen = $event"
                 @toggle-assistant="aiAssistantOpen = !aiAssistantOpen"
                 @toggle-settings="settingsOpen = !settingsOpen"
@@ -87,11 +82,13 @@
                     :view-region="viewRegion"
                     :active-search-region="activeRegion"
                     :viewing-center-bp="effectiveViewingCenterBp"
+                    :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
                     :data-table-open="dataTableOpen"
                     :mapping-state="mappingState"
                     :workspace-mapping-filter="workspaceMappingFilter"
                     :associations-state="associationsState"
                     :genes-state="genesState"
+                    :qtl-state="qtlState"
                     :plot-overlays-state="plotOverlaysState"
                     :plot-markers="plotMarkersState"
                     :credible-sets-state="credibleSetsState"
@@ -108,6 +105,7 @@
                     @pan-end="onRegionPanEnd"
                     @toggle-position-marker="onTogglePositionMarker"
                     @toggle-star-variant="onToggleStarVariant"
+                    @toggle-qtl-star-variant="onToggleQtlStarVariant"
                     @set-reference-variant="onSetReferenceVariant"
                     @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
                     @update:geSelectedBiosamples="onGeSelectedBiosamplesUpdate"
@@ -190,6 +188,7 @@
                     @update:qtlSelectedTypes="onQtlSelectedTypesUpdate"
                     @update:qtlSelectedTissues="onQtlSelectedTissuesUpdate"
                     @update:qtlPValueMax="onQtlPValueMaxUpdate"
+                    @toggle-qtl-star-variant="onToggleQtlStarVariant"
                     @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
                     @update:geEnabledMutedAnnotationTissues="
                         onGeEnabledMutedAnnotationTissuesUpdate
@@ -304,6 +303,7 @@ import {
 } from "./kpVariantSifter/variantSifterAssociationsApi.js";
 import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
 import {
+    downsampleAssociationRowsOnLoad,
     mergeZoomedAssociationRows,
     stripZoomRefetchedRows,
 } from "./gp2Browser/gp2BrowserAssociationsDownsample.js";
@@ -319,6 +319,7 @@ import {
     rowToLdVariant,
 } from "./gp2Browser/gp2BrowserLdServer.js";
 import {
+    GP2_VIEWING_REGION_WIDTH_BP,
     clampViewingCenterBp,
     computeGp2ViewingRegion,
     extractVariantPositionBp,
@@ -586,18 +587,13 @@ function emptyQtlState(previous = {}) {
     return {
         loading: false,
         error: null,
-        rows: [],
+        rawRows: [],
+        downsampledRows: [],
         selectedTypes: Array.isArray(previous.selectedTypes)
             ? previous.selectedTypes.slice()
             : [],
         selectedTissues: Array.isArray(previous.selectedTissues)
             ? previous.selectedTissues.slice()
-            : [],
-        committedTypes: Array.isArray(previous.committedTypes)
-            ? previous.committedTypes.slice()
-            : [],
-        committedTissues: Array.isArray(previous.committedTissues)
-            ? previous.committedTissues.slice()
             : [],
         pValueMax: previous.pValueMax != null ? String(previous.pValueMax) : "",
         loadedRegionKey: null,
@@ -692,6 +688,7 @@ export default Vue.component("gp2-browser", {
             regionViewArea: 0,
             regionShiftBp: 0,
             viewingCenterBp: null,
+            viewingRegionWidthBp: GP2_VIEWING_REGION_WIDTH_BP,
             dataRegion: null,
             regionLoadProgress: emptyRegionLoadProgress(),
             regionLoadDismissTimer: null,
@@ -710,7 +707,6 @@ export default Vue.component("gp2-browser", {
             genesState: emptyGenesState(),
             qtlState: emptyQtlState(),
             qtlRequestToken: 0,
-            qtlRefetchTimer: null,
             plotOverlaysState: emptyPlotOverlaysState(),
             plotMarkersState: emptyPlotMarkersState(),
             credibleSetsState: emptyCredibleSetsState(),
@@ -730,6 +726,7 @@ export default Vue.component("gp2-browser", {
             lastAssociationsRegion: null,
             lastZoomedAssociationsRegion: null,
             lastGenesRegion: null,
+            lastQtlRegion: null,
             lastCredibleSetsListRegion: null,
             lastGlobalEnrichmentRegion: null,
             lastV2gCatalogRegion: null,
@@ -865,20 +862,27 @@ export default Vue.component("gp2-browser", {
                 this.zoomOutLimitRegion
             );
         },
+        viewingRegionHalfWidthBp() {
+            return Math.round((Number(this.viewingRegionWidthBp) || GP2_VIEWING_REGION_WIDTH_BP) / 2);
+        },
         effectiveViewingCenterBp() {
             const searchRegion = this.activeRegion || this.searchSession?.region;
             if (!searchRegion) {
                 return null;
             }
             if (this.viewingCenterBp != null) {
-                return clampViewingCenterBp(this.viewingCenterBp, searchRegion);
+                return clampViewingCenterBp(
+                    this.viewingCenterBp,
+                    searchRegion,
+                    this.viewingRegionHalfWidthBp
+                );
             }
             const refPos =
                 extractVariantPositionBp(this.plotOverlaysState?.refVariant) ??
                 extractVariantPositionBp(
                     pickLeadVariantRow(this.associationsState?.rows)
                 );
-            return clampViewingCenterBp(refPos, searchRegion);
+            return clampViewingCenterBp(refPos, searchRegion, this.viewingRegionHalfWidthBp);
         },
         viewRegion() {
             const searchRegion = this.activeRegion || this.searchSession?.region;
@@ -887,7 +891,8 @@ export default Vue.component("gp2-browser", {
             }
             return computeGp2ViewingRegion(
                 searchRegion,
-                this.effectiveViewingCenterBp
+                this.effectiveViewingCenterBp,
+                this.viewingRegionHalfWidthBp
             );
         },
         credibleSetDotColors() {
@@ -918,10 +923,6 @@ export default Vue.component("gp2-browser", {
             clearTimeout(this.zoomViewAreaRefetchTimer);
             this.zoomViewAreaRefetchTimer = null;
         }
-        if (this.qtlRefetchTimer) {
-            clearTimeout(this.qtlRefetchTimer);
-            this.qtlRefetchTimer = null;
-        }
         this.teardownChromePin();
         if (this.regionLoadDismissTimer) {
             clearTimeout(this.regionLoadDismissTimer);
@@ -938,20 +939,6 @@ export default Vue.component("gp2-browser", {
                 this.refreshChromePinListeners();
                 this.updateChromePin();
             });
-        },
-        viewRegion(region, previous) {
-            if (
-                !this.qtlState?.committedTypes?.length ||
-                !this.qtlState?.committedTissues?.length
-            ) {
-                return;
-            }
-            if (gp2QtlLoadKey(region, this.qtlState.committedTypes, this.qtlState.committedTissues) ===
-                gp2QtlLoadKey(previous, this.qtlState.committedTypes, this.qtlState.committedTissues)
-            ) {
-                return;
-            }
-            this.scheduleQtlLoad(200);
         },
     },
     methods: {
@@ -1216,24 +1203,21 @@ export default Vue.component("gp2-browser", {
             };
         },
         onToggleDrawer(sectionId) {
-            const closingQtl =
-                sectionId === "qtl-evidences" && this.openDrawerId === "qtl-evidences";
             this.openDrawerId = this.openDrawerId === sectionId ? null : sectionId;
-            if (closingQtl) {
-                this.commitQtlSelectionAndLoad();
-            }
         },
         onQtlSelectedTypesUpdate(types) {
             this.qtlState = {
                 ...this.qtlState,
                 selectedTypes: Array.isArray(types) ? types.slice() : [],
             };
+            this.maybeLoadQtlEvidences();
         },
         onQtlSelectedTissuesUpdate(tissues) {
             this.qtlState = {
                 ...this.qtlState,
                 selectedTissues: Array.isArray(tissues) ? tissues.slice() : [],
             };
+            this.maybeLoadQtlEvidences();
         },
         onQtlPValueMaxUpdate(pValueMax) {
             this.qtlState = {
@@ -1241,75 +1225,47 @@ export default Vue.component("gp2-browser", {
                 pValueMax: pValueMax != null ? String(pValueMax) : "",
             };
         },
-        commitQtlSelectionAndLoad() {
-            const types = Array.isArray(this.qtlState?.selectedTypes)
-                ? this.qtlState.selectedTypes.slice()
-                : [];
-            const tissues = Array.isArray(this.qtlState?.selectedTissues)
-                ? this.qtlState.selectedTissues.slice()
-                : [];
-            if (!types.length || !tissues.length) {
-                this.qtlRequestToken += 1;
-                if (this.qtlRefetchTimer) {
-                    clearTimeout(this.qtlRefetchTimer);
-                    this.qtlRefetchTimer = null;
-                }
-                this.qtlState = {
-                    ...this.qtlState,
-                    loading: false,
-                    error: null,
-                    rows: [],
-                    committedTypes: [],
-                    committedTissues: [],
-                    loadedRegionKey: null,
-                };
+        /**
+         * QTL data is deliberately NOT preloaded with the rest of the
+         * searching-region sections — fetching `qtl-associations` for every
+         * type/tissue combination up front doesn't scale as more types and
+         * tissues are added. Instead, loading only starts once the user has
+         * checked at least one type and one tissue in the QTL evidences
+         * drawer, and only if the current searching region isn't already
+         * loaded or loading.
+         */
+        maybeLoadQtlEvidences() {
+            if (!this.searchSession?.region) {
                 return;
             }
-            this.qtlState = {
-                ...this.qtlState,
-                committedTypes: types,
-                committedTissues: tissues,
-                loadedRegionKey: null,
-            };
-            this.scheduleQtlLoad(0);
-        },
-        scheduleQtlLoad(delay = 0) {
-            if (this.qtlRefetchTimer) {
-                clearTimeout(this.qtlRefetchTimer);
-            }
-            this.qtlRefetchTimer = setTimeout(() => {
-                this.qtlRefetchTimer = null;
-                this.loadCommittedQtlAssociations();
-            }, delay);
-        },
-        clearQtlRowsForLocusChange() {
-            this.qtlRequestToken += 1;
-            if (this.qtlRefetchTimer) {
-                clearTimeout(this.qtlRefetchTimer);
-                this.qtlRefetchTimer = null;
-            }
-            this.qtlState = {
-                ...this.qtlState,
-                loading: false,
-                error: null,
-                rows: [],
-                loadedRegionKey: null,
-            };
-        },
-        async loadCommittedQtlAssociations() {
-            const types = this.qtlState?.committedTypes || [];
-            const tissues = this.qtlState?.committedTissues || [];
-            if (!types.length || !tissues.length) {
+            const hasSelection =
+                (this.qtlState?.selectedTypes || []).length &&
+                (this.qtlState?.selectedTissues || []).length;
+            if (!hasSelection || this.qtlState.loading) {
                 return;
             }
-            const region = this.viewRegion;
+            const targetRegion = cloneGenomicRegion(
+                this.dataRegion || this.searchSession.region
+            );
+            if (genomicRegionsEqual(this.lastQtlRegion, targetRegion)) {
+                return;
+            }
+            this.loadQtlEvidencesForSession({
+                ...this.searchSession,
+                region: targetRegion,
+            });
+        },
+        /**
+         * Load raw `qtl-associations` rows for the whole searching region
+         * (unfiltered by type/tissue/p-value — the drawer and plot filter
+         * client-side). Mirrors `loadGenesTrack`.
+         */
+        async loadQtlEvidencesForSession(session) {
+            const region = session?.region;
             if (!region?.chr || region.start == null || region.end == null) {
-                return;
+                return false;
             }
-            const key = gp2QtlLoadKey(region, types, tissues);
-            if (key === this.qtlState.loadedRegionKey && !this.qtlState.loading) {
-                return;
-            }
+            const key = gp2QtlLoadKey(region);
             const token = ++this.qtlRequestToken;
             this.qtlState = {
                 ...this.qtlState,
@@ -1317,29 +1273,30 @@ export default Vue.component("gp2-browser", {
                 error: null,
             };
             try {
-                const rows = await fetchGp2QtlAssociations(region, { types, tissues });
+                const rawRows = await fetchGp2QtlAssociations(region);
                 if (token !== this.qtlRequestToken) {
-                    return;
+                    return false;
                 }
                 this.qtlState = {
                     ...this.qtlState,
                     loading: false,
                     error: null,
-                    rows,
+                    rawRows,
+                    downsampledRows: downsampleAssociationRowsOnLoad(rawRows),
                     loadedRegionKey: key,
                 };
+                this.lastQtlRegion = cloneGenomicRegion(region);
+                return true;
             } catch (error) {
                 if (token !== this.qtlRequestToken) {
-                    return;
+                    return false;
                 }
                 console.warn("GP2 Browser QTL associations load failed", error);
                 this.qtlState = {
-                    ...this.qtlState,
-                    loading: false,
+                    ...emptyQtlState(this.qtlState),
                     error: "QTL associations could not be loaded.",
-                    rows: [],
-                    loadedRegionKey: null,
                 };
+                return false;
             }
         },
         onRegionZoomUpdate(nextZoom) {
@@ -1379,7 +1336,11 @@ export default Vue.component("gp2-browser", {
         },
         onViewingCenterBpUpdate(nextCenterBp) {
             const searchRegion = this.activeRegion || this.searchSession?.region;
-            const clamped = clampViewingCenterBp(nextCenterBp, searchRegion);
+            const clamped = clampViewingCenterBp(
+                nextCenterBp,
+                searchRegion,
+                this.viewingRegionHalfWidthBp
+            );
             if (clamped == null || clamped === this.viewingCenterBp) {
                 return;
             }
@@ -1392,6 +1353,13 @@ export default Vue.component("gp2-browser", {
             if (this.refetchAssociationsOnZoom) {
                 this.scheduleZoomedAssociationsRefetch(0);
             }
+        },
+        onViewingRegionWidthUpdate(nextWidthBp) {
+            const width = Number(nextWidthBp);
+            if (!Number.isFinite(width) || width <= 0) {
+                return;
+            }
+            this.viewingRegionWidthBp = width;
         },
         onRegionViewAreaUpdate(nextViewArea) {
             const clamped = clampRegionViewArea(nextViewArea);
@@ -1446,6 +1414,12 @@ export default Vue.component("gp2-browser", {
             this.regionZoomOut = viewport.regionZoomOut;
         },
         finishRegionExtendSync() {
+            // Region zoom-out/pan can extend the searching region well beyond
+            // what QTL has loaded; unlike Associations/Genes this isn't
+            // gap-filled incrementally — just refetch the (now wider) region
+            // in one shot if a type+tissue selection is already active.
+            this.maybeLoadQtlEvidences();
+
             const hadZoomOut = this.regionZoomOut > 0;
             const hadPanPendingReset = this.pendingPanSliderReset;
 
@@ -1724,6 +1698,22 @@ export default Vue.component("gp2-browser", {
                 ),
             };
         },
+        /**
+         * Starring from a QTL dot. The row carries the full raw QTL row
+         * (plus an injected "Variant ID") so the drawer table and plots can
+         * reconstruct it later even after it falls out of the downsampled
+         * set — see GP2BrowserQtlDrawer.vue / GP2BrowserAssociationsPlot.vue.
+         */
+        onToggleQtlStarVariant(row) {
+            this.plotMarkersState = {
+                ...this.plotMarkersState,
+                starredVariants: toggleStarredVariant(
+                    this.plotMarkersState.starredVariants,
+                    row,
+                    "qtl"
+                ),
+            };
+        },
         async onSetReferenceVariant(row) {
             if (!row || !this.searchSession) {
                 return;
@@ -1733,7 +1723,11 @@ export default Vue.component("gp2-browser", {
             const region = this.dataRegion || this.searchSession.region;
             const refPos = extractVariantPositionBp(row);
             if (refPos != null) {
-                this.viewingCenterBp = clampViewingCenterBp(refPos, region);
+                this.viewingCenterBp = clampViewingCenterBp(
+                    refPos,
+                    region,
+                    this.viewingRegionHalfWidthBp
+                );
             }
             this.associationsState = {
                 ...this.associationsState,
@@ -2636,6 +2630,9 @@ export default Vue.component("gp2-browser", {
             );
             if (newlyChecked.length && this.searchSession?.region) {
                 this.loadDataForCheckedSections(newlyChecked);
+                if (newlyChecked.includes("qtl-evidences")) {
+                    this.maybeLoadQtlEvidences();
+                }
             }
         },
         async loadDataForCheckedSections(sectionIds = []) {
@@ -3042,6 +3039,9 @@ export default Vue.component("gp2-browser", {
             this.lastGenesRegion = restored.genesState?.ready
                 ? cloneGenomicRegion(this.dataRegion)
                 : null;
+            this.qtlRequestToken += 1;
+            this.qtlState = emptyQtlState(this.qtlState);
+            this.lastQtlRegion = null;
             this.lastCredibleSetsListRegion = restored.credibleSetsState?.available
                 ?.length
                 ? restoredActiveRegion
@@ -3615,10 +3615,6 @@ export default Vue.component("gp2-browser", {
             this.genesState = emptyGenesState(this.genesState?.selectedTypes);
             this.qtlState = emptyQtlState(this.qtlState);
             this.qtlRequestToken += 1;
-            if (this.qtlRefetchTimer) {
-                clearTimeout(this.qtlRefetchTimer);
-                this.qtlRefetchTimer = null;
-            }
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
@@ -3631,6 +3627,7 @@ export default Vue.component("gp2-browser", {
             this.lastZoomedAssociationsRegion = null;
             this.zoomAssociationsRequestToken += 1;
             this.lastGenesRegion = null;
+            this.lastQtlRegion = null;
             this.lastCredibleSetsListRegion = null;
             this.lastGlobalEnrichmentRegion = null;
             this.lastV2gCatalogRegion = null;
@@ -3725,7 +3722,8 @@ export default Vue.component("gp2-browser", {
             this.regionViewArea = 0;
             this.regionShiftBp = 0;
             this.viewingCenterBp = null;
-            this.clearQtlRowsForLocusChange();
+            this.qtlRequestToken += 1;
+            this.qtlState = emptyQtlState(this.qtlState);
             this.dataRegion = cloneGenomicRegion(searchSession.region);
             this.genesState = emptyGenesState(this.genesState?.selectedTypes);
             this.plotOverlaysState = emptyPlotOverlaysState();
@@ -3742,6 +3740,7 @@ export default Vue.component("gp2-browser", {
             this.lastZoomedAssociationsRegion = null;
             this.zoomAssociationsRequestToken += 1;
             this.lastGenesRegion = null;
+            this.lastQtlRegion = null;
             this.lastCredibleSetsListRegion = null;
             this.lastGlobalEnrichmentRegion = null;
             this.lastV2gCatalogRegion = null;
@@ -3758,6 +3757,7 @@ export default Vue.component("gp2-browser", {
                 subAncestries: this.pendingSubAncestries,
             });
             this.loadInitialSearchData(searchSession);
+            this.maybeLoadQtlEvidences();
         },
         syncCredibleSetsToActiveRegion(activeRegion) {
             if (
@@ -4637,7 +4637,8 @@ export default Vue.component("gp2-browser", {
                         if (refPos != null) {
                             this.viewingCenterBp = clampViewingCenterBp(
                                 refPos,
-                                session.region
+                                session.region,
+                                this.viewingRegionHalfWidthBp
                             );
                         }
                     }
@@ -5084,7 +5085,8 @@ export default Vue.component("gp2-browser", {
                             if (refPos != null) {
                                 this.viewingCenterBp = clampViewingCenterBp(
                                     refPos,
-                                    session.region
+                                    session.region,
+                                    this.viewingRegionHalfWidthBp
                                 );
                             }
                         }

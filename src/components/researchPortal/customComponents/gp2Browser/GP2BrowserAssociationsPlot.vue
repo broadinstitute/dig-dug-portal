@@ -108,8 +108,9 @@
                             :highlight-view-region="viewRegion"
                             :show-view-region-handle="true"
                             :show-view-region-bridge="searchIndex === searchingPlotSeries.length - 1"
+                            :bridge-genes="bridgeGenesForPlot"
                             :viewing-center-bp="viewingCenterBp"
-                            :overlapping-view-genes="overlappingViewGenes"
+                            :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
                             :show-legend="
                                 series.ancestry === firstPlotSeriesAncestry &&
                                     series.phenotype === firstPlotSeriesPhenotype
@@ -147,7 +148,7 @@
                         >
                             <span
                                 class="vks-associations-phenotype-bubble"
-                                :title="`${series.phenotypeLabel} · ${series.rows.length.toLocaleString()} associations in 50 kb viewing region`"
+                                :title="`${series.phenotypeLabel} · ${series.rows.length.toLocaleString()} associations in ${viewingRegionWidthLabel} viewing region`"
                             >
                                 {{ series.phenotypeLabel }}
                             </span>
@@ -158,7 +159,7 @@
                         >
                             <span
                                 class="vks-associations-ancestry-bubble"
-                                :title="`${series.label} · ${series.rows.length.toLocaleString()} associations in 50 kb viewing region`"
+                                :title="`${series.label} · ${series.rows.length.toLocaleString()} associations in ${viewingRegionWidthLabel} viewing region`"
                             >
                                 <span class="vks-associations-ancestry-bubble-code">{{ series.ancestry }}</span>
                                 <span class="vks-associations-ancestry-bubble-label">{{ series.label }}</span>
@@ -171,7 +172,7 @@
                             v-if="!series.rows.length"
                             class="vks-associations-plot-status vks-associations-plot-status--inline"
                         >
-                            No association points for {{ series.label }} in this 50 kb viewing region.
+                            No association points for {{ series.label }} in this {{ viewingRegionWidthLabel }} viewing region.
                         </div>
                         <GP2BrowserAssociationRegionPlot
                             v-else
@@ -179,6 +180,7 @@
                             :display-height="120"
                             :pan-mode="'viewing'"
                             :viewing-center-bp="viewingCenterBp"
+                            :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
                             :show-legend="false"
                             :recomb-peak-intervals="recombPeakIntervals"
                             :region="searchingRegion"
@@ -207,14 +209,91 @@
                     <header class="vks-plot-section-head">
                         <h3 class="vks-plot-section-title">QTL evidences</h3>
                     </header>
-                    <div class="gp2-qtl-placeholder-body">
-                        <div class="gp2-qtl-placeholder">
-                            <span class="gp2-qtl-placeholder-mark">QTL</span>
-                            <p class="gp2-qtl-placeholder-text">
-                                QTL evidences visualizer will render here.
-                            </p>
-                        </div>
+                    <div
+                        v-if="qtlState.loading"
+                        class="vks-associations-plot-status vks-associations-plot-status--inline"
+                    >
+                        Loading QTL evidences…
                     </div>
+                    <div
+                        v-else-if="qtlState.error"
+                        class="vks-associations-plot-status vks-associations-plot-status--inline vks-associations-plot-status--warning"
+                        role="status"
+                    >
+                        {{ qtlState.error }}
+                    </div>
+                    <template v-else>
+                        <div
+                            v-if="!qtlSearchingPlotRows"
+                            class="vks-associations-plot-status vks-associations-plot-status--inline"
+                        >
+                            No QTL evidence for this locus.
+                        </div>
+                        <GP2BrowserQtlRegionPlot
+                            v-else
+                            :plot-rows="qtlSearchingPlotRows"
+                            :display-height="24"
+                            pan-mode="searching"
+                            :highlight-view-region="viewRegion"
+                            :show-view-region-handle="true"
+                            :show-view-region-bridge="true"
+                            :bridge-genes="bridgeGenesForPlot"
+                            :viewing-center-bp="viewingCenterBp"
+                            :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
+                            :show-legend="true"
+                            :recomb-peak-intervals="searchingRecombPeakIntervals"
+                            :region="searchingRegion"
+                            :region-zoom="0"
+                            :region-shift-bp="regionShiftBp"
+                            :region-view-area="0"
+                            :view-region="searchingRegion"
+                            :plot-margin="plotMargin"
+                            :shared-canvas-width="stackCanvasWidth"
+                            :plot-markers="plotMarkers"
+                            :utils="utils"
+                            @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                            @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                            @update:viewingCenterBp="$emit('update:viewingCenterBp', $event)"
+                            @commit-viewing-region="$emit('commit-viewing-region')"
+                            @pan-end="$emit('pan-end')"
+                            @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                            @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
+                            @set-reference-variant="$emit('set-reference-variant', $event)"
+                        />
+                        <div
+                            v-if="!qtlViewingPlotRows"
+                            class="vks-associations-plot-status vks-associations-plot-status--inline"
+                        >
+                            No QTL evidence in this {{ viewingRegionWidthLabel }} viewing region.
+                        </div>
+                        <GP2BrowserQtlRegionPlot
+                            v-else
+                            :plot-rows="qtlViewingPlotRows"
+                            :display-height="120"
+                            pan-mode="viewing"
+                            :viewing-center-bp="viewingCenterBp"
+                            :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
+                            :show-legend="false"
+                            :recomb-peak-intervals="recombPeakIntervals"
+                            :region="searchingRegion"
+                            :region-zoom="regionZoom"
+                            :region-shift-bp="regionShiftBp"
+                            :region-view-area="regionViewArea"
+                            :view-region="viewRegion"
+                            :plot-margin="plotMargin"
+                            :shared-canvas-width="stackCanvasWidth"
+                            :plot-markers="plotMarkers"
+                            :utils="utils"
+                            @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                            @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                            @update:viewingCenterBp="$emit('update:viewingCenterBp', $event)"
+                            @commit-viewing-region="$emit('commit-viewing-region')"
+                            @pan-end="$emit('pan-end')"
+                            @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                            @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
+                            @set-reference-variant="$emit('set-reference-variant', $event)"
+                        />
+                    </template>
                 </div>
                 <div v-if="showCredibleSetsSection" class="vks-plot-section">
                     <header class="vks-plot-section-head">
@@ -373,6 +452,7 @@ import VariantSifterGenesTrack from "../kpVariantSifter/VariantSifterGenesTrack.
 import VariantSifterCredibleSetsTrack from "../kpVariantSifter/VariantSifterCredibleSetsTrack.vue";
 import VariantSifterAssociationRegionPlot from "../kpVariantSifter/VariantSifterAssociationRegionPlot.vue";
 import GP2BrowserAssociationRegionPlot from "./GP2BrowserAssociationRegionPlot.vue";
+import GP2BrowserQtlRegionPlot from "./GP2BrowserQtlRegionPlot.vue";
 import VariantSifterAnnotationsWorkspaceTrack from "../kpVariantSifter/VariantSifterAnnotationsWorkspaceTrack.vue";
 import VariantSifterV2gTrack from "../kpVariantSifter/VariantSifterV2gTrack.vue";
 import { associationRowsToPlotData } from "../kpVariantSifter/variantSifterAssociationsPlotData.js";
@@ -394,8 +474,6 @@ import { pickLeadVariantRow, rowToLdVariant } from "../kpVariantSifter/variantSi
 import {
     buildGeneTypeOptions,
     filterGenesByTypes,
-    formatGeneTypeLabel,
-    resolveGeneType,
 } from "../kpVariantSifter/variantSifterGenesFilter.js";
 import {
     buildGeneTypeColorMap,
@@ -422,6 +500,13 @@ import {
     roundZoomLevelBy10,
     stripZoomRefetchedRows,
 } from "./gp2BrowserAssociationsDownsample.js";
+import {
+    filterQtlRows,
+    filterQtlRowsByPValueMax,
+    restrictQtlRowsToRegion,
+} from "./gp2BrowserQtlApi.js";
+import { qtlRowsToPlotData } from "./gp2BrowserQtlPlotData.js";
+import { GP2_VIEWING_REGION_HALF_BP } from "./gp2BrowserViewingRegion.js";
 
 const VIEW_MOVE_SETTLE_MS = 140;
 
@@ -432,6 +517,7 @@ export default {
         VariantSifterCredibleSetsTrack,
         VariantSifterAssociationRegionPlot,
         GP2BrowserAssociationRegionPlot,
+        GP2BrowserQtlRegionPlot,
         VariantSifterAnnotationsWorkspaceTrack,
         VariantSifterV2gTrack,
     },
@@ -508,6 +594,10 @@ export default {
             type: Number,
             default: null,
         },
+        viewingRegionHalfWidthBp: {
+            type: Number,
+            default: null,
+        },
         plotOverlaysState: {
             type: Object,
             default: () => ({
@@ -532,6 +622,19 @@ export default {
                 loading: false,
                 error: null,
                 data: null,
+            }),
+        },
+        qtlState: {
+            type: Object,
+            default: () => ({
+                loading: false,
+                error: null,
+                rawRows: [],
+                downsampledRows: [],
+                selectedTypes: [],
+                selectedTissues: [],
+                pValueMax: "",
+                loadedRegionKey: null,
             }),
         },
         utils: {
@@ -598,6 +701,10 @@ export default {
         },
     },
     computed: {
+        viewingRegionWidthLabel() {
+            const halfWidthBp = Number(this.viewingRegionHalfWidthBp) || GP2_VIEWING_REGION_HALF_BP;
+            return `${Math.round((halfWidthBp * 2) / 1000)} kb`;
+        },
         primaryAncestry() {
             return primaryAssociationAncestry(this.searchSession);
         },
@@ -720,35 +827,19 @@ export default {
             const genes = Array.isArray(this.genesState?.data) ? this.genesState.data : [];
             return buildGeneTypeColorMap(buildGeneTypeOptions(genes));
         },
-        overlappingViewGenes() {
-            const view = this.viewRegion;
+        /** Genes (with exons + color) for the bridge hairline's collapsed exon marks. */
+        bridgeGenesForPlot() {
             const genes = this.genesTrackData;
-            if (!view || !Array.isArray(genes) || !genes.length) {
-                return [];
-            }
-            const vStart = Number(view.start);
-            const vEnd = Number(view.end);
-            if (!Number.isFinite(vStart) || !Number.isFinite(vEnd)) {
+            if (!Array.isArray(genes) || !genes.length) {
                 return [];
             }
             return genes
-                .filter(
-                    (gene) =>
-                        gene?.gene_name &&
-                        Number(gene.start) <= vEnd &&
-                        Number(gene.end) >= vStart
-                )
-                .map((gene) => {
-                    const geneType = resolveGeneType(gene);
-                    return {
-                        name: gene.gene_name,
-                        type: geneType,
-                        typeLabel: formatGeneTypeLabel(geneType),
-                        color: geneColorForGene(gene, this.geneTypeColors),
-                        start: gene.start,
-                        end: gene.end,
-                    };
-                });
+                .filter((gene) => gene?.gene_name)
+                .map((gene) => ({
+                    name: gene.gene_name,
+                    color: geneColorForGene(gene, this.geneTypeColors),
+                    exons: Array.isArray(gene.exons) ? gene.exons : [],
+                }));
         },
         hasSelectedCredibleSets() {
             return (this.credibleSetsState?.selectedIds || []).length > 0;
@@ -778,8 +869,41 @@ export default {
         showAssociationsSection() {
             return isSectionVisible(this.visibleSectionIds, "associations");
         },
+        qtlHasSelection() {
+            return Boolean(
+                (this.qtlState?.selectedTypes || []).length &&
+                    (this.qtlState?.selectedTissues || []).length
+            );
+        },
         showQtlEvidencesSection() {
-            return isSectionVisible(this.visibleSectionIds, "qtl-evidences");
+            return (
+                isSectionVisible(this.visibleSectionIds, "qtl-evidences") &&
+                this.qtlHasSelection
+            );
+        },
+        qtlFilteredDownsampledRows() {
+            const typeTissueFiltered = filterQtlRows(this.qtlState?.downsampledRows || [], {
+                types: this.qtlState?.selectedTypes || [],
+                tissues: this.qtlState?.selectedTissues || [],
+            });
+            return filterQtlRowsByPValueMax(typeTissueFiltered, this.qtlState?.pValueMax);
+        },
+        qtlFilteredRawRows() {
+            const typeTissueFiltered = filterQtlRows(this.qtlState?.rawRows || [], {
+                types: this.qtlState?.selectedTypes || [],
+                tissues: this.qtlState?.selectedTissues || [],
+            });
+            return filterQtlRowsByPValueMax(typeTissueFiltered, this.qtlState?.pValueMax);
+        },
+        /** Compact searching-region overview: downsampled, like Associations. */
+        qtlSearchingPlotRows() {
+            return qtlRowsToPlotData(this.qtlFilteredDownsampledRows);
+        },
+        /** 50 kb viewing-region detail plot: raw (undownsampled), like Associations. */
+        qtlViewingPlotRows() {
+            return qtlRowsToPlotData(
+                restrictQtlRowsToRegion(this.qtlFilteredRawRows, this.viewRegion)
+            );
         },
         showCredibleSetsSection() {
             return (
@@ -1120,48 +1244,6 @@ export default {
     font-size: 14px;
     font-weight: 700;
     color: var(--cfde-blue, #2c5c97);
-}
-
-.gp2-qtl-placeholder-body {
-    position: relative;
-    overflow: hidden;
-    min-height: 120px;
-    border-radius: 6px;
-    background:
-        radial-gradient(circle at 1px 1px, rgba(20, 22, 30, 0.06) 1px, transparent 0);
-    background-size: 22px 22px;
-    background-color: var(--cfde-header-bg, #f6f5f2);
-}
-
-.gp2-qtl-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 120px;
-    padding: 20px;
-    text-align: center;
-}
-
-.gp2-qtl-placeholder-mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: var(--cfde-orange, #e07b39);
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    margin-bottom: 8px;
-}
-
-.gp2-qtl-placeholder-text {
-    margin: 0;
-    font-size: 13px;
-    color: var(--cfde-muted, #6b6b6b);
 }
 
 .vks-associations-plot-series + .vks-associations-plot-series {

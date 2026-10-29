@@ -1,8 +1,9 @@
 <template>
     <div class="gp2-qtl-drawer">
         <p class="vks-ui-intro">
-            QTL associations for the 50 kb viewing region. Check at least one QTL
-            type and one tissue, then close this drawer to load data.
+            QTL associations for the searching region (downsampled). Check at
+            least one QTL type and one tissue to show matching rows; starring a
+            variant on the zoomed-in plot always keeps it visible here.
         </p>
 
         <section class="vks-drawer-section vks-drawer-section--controls">
@@ -105,13 +106,14 @@
             <div v-if="loading" class="vks-ui-status">Loading QTL associations…</div>
             <div v-else-if="error" class="vks-ui-error" role="alert">{{ error }}</div>
             <GP2BrowserQtlTable
-                v-if="showTable"
+                v-else-if="showTable"
                 :rows="filteredRows"
+                :starred-variant-ids="starredVariantIds"
                 :utils="utils"
+                @toggle-star-variant="$emit('toggle-star-variant', $event)"
             />
-            <p v-else-if="!loading && !error" class="vks-ui-hint">
-                Select at least one QTL type and one tissue, then close the drawer
-                to load data.
+            <p v-else class="vks-ui-hint">
+                Select at least one QTL type and one tissue to view evidence.
             </p>
         </section>
     </div>
@@ -122,24 +124,15 @@ import GP2BrowserQtlTable from "./GP2BrowserQtlTable.vue";
 import {
     GP2_QTL_TISSUE_OPTIONS,
     GP2_QTL_TYPE_OPTIONS,
+    addMissingStarredQtlRows,
+    filterQtlRows,
+    filterQtlRowsByPValueMax,
 } from "./gp2BrowserQtlApi.js";
 
 const QTL_DRAWER_TABS = [
     { id: "type-tissue", label: "Type / Tissue" },
     { id: "filter-setting", label: "Filter / Setting" },
 ];
-
-function parsePValueMax(value) {
-    const text = String(value || "").trim();
-    if (!text) {
-        return null;
-    }
-    const number = Number(text);
-    if (!Number.isFinite(number) || number < 0) {
-        return null;
-    }
-    return number;
-}
 
 export default {
     name: "GP2BrowserQtlDrawer",
@@ -152,11 +145,19 @@ export default {
             default: () => ({
                 loading: false,
                 error: null,
-                rows: [],
+                rawRows: [],
+                downsampledRows: [],
                 selectedTypes: [],
                 selectedTissues: [],
                 pValueMax: "",
                 loadedRegionKey: null,
+            }),
+        },
+        plotMarkers: {
+            type: Object,
+            default: () => ({
+                starredVariants: [],
+                positionMarkers: [],
             }),
         },
         utils: {
@@ -188,22 +189,31 @@ export default {
         error() {
             return this.qtlState?.error || null;
         },
-        hasLoaded() {
-            return Boolean(this.qtlState?.loadedRegionKey);
+        hasSelection() {
+            return Boolean(this.selectedTypes.length && this.selectedTissues.length);
         },
-        showTable() {
-            return this.hasLoaded || (this.qtlState?.rows || []).length > 0;
+        typeTissueFilteredRows() {
+            return filterQtlRows(this.qtlState?.downsampledRows || [], {
+                types: this.selectedTypes,
+                tissues: this.selectedTissues,
+            });
+        },
+        pValueFilteredRows() {
+            return filterQtlRowsByPValueMax(this.typeTissueFilteredRows, this.pValueMax);
         },
         filteredRows() {
-            const rows = this.qtlState?.rows || [];
-            const max = parsePValueMax(this.pValueMax);
-            if (max == null) {
-                return rows;
-            }
-            return rows.filter((row) => {
-                const pValue = Number(row?.pValue);
-                return Number.isFinite(pValue) && pValue <= max;
-            });
+            return addMissingStarredQtlRows(
+                this.pValueFilteredRows,
+                this.plotMarkers?.starredVariants
+            );
+        },
+        showTable() {
+            return this.hasSelection;
+        },
+        starredVariantIds() {
+            return (this.plotMarkers?.starredVariants || []).map(
+                (entry) => entry.variantId
+            );
         },
     },
     methods: {

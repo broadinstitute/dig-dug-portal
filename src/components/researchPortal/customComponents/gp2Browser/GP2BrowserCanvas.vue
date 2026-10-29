@@ -32,7 +32,9 @@
                         :view-region="viewRegion"
                         :active-search-region="activeSearchRegion"
                         :viewing-center-bp="viewingCenterBp"
+                        :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
                         :genes-state="genesState"
+                        :qtl-state="qtlState"
                         :plot-overlays-state="plotOverlaysState"
                         :plot-markers="plotMarkers"
                         :credible-sets-state="credibleSetsState"
@@ -53,6 +55,7 @@
                         @pan-end="$emit('pan-end')"
                         @toggle-position-marker="$emit('toggle-position-marker', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                        @toggle-qtl-star-variant="$emit('toggle-qtl-star-variant', $event)"
                         @set-reference-variant="$emit('set-reference-variant', $event)"
                         @update:geSelectedBiosamples="$emit('update:geSelectedBiosamples', $event)"
                         @update:geActiveAnnotation="$emit('update:geActiveAnnotation', $event)"
@@ -108,6 +111,10 @@ import GP2BrowserWelcomePanel from "./GP2BrowserWelcomePanel.vue";
 import { drawerRailMinHeight, sectionHasCanvasTrack } from "./gp2BrowserSections.js";
 import { applyAssociationsFilters } from "../kpVariantSifter/variantSifterAssociationsFilters.js";
 import { applyWorkspaceMappingToAssociationRows } from "../kpVariantSifter/variantSifterMappingData.js";
+import {
+    addMissingStarredAssociationRows,
+    stripZoomRefetchedRows,
+} from "./gp2BrowserAssociationsDownsample.js";
 
 export default {
     name: "GP2BrowserCanvas",
@@ -186,6 +193,10 @@ export default {
             type: Number,
             default: null,
         },
+        viewingRegionHalfWidthBp: {
+            type: Number,
+            default: null,
+        },
         dataTableOpen: {
             type: Boolean,
             default: false,
@@ -221,6 +232,18 @@ export default {
                 loading: false,
                 error: null,
                 data: null,
+            }),
+        },
+        qtlState: {
+            type: Object,
+            default: () => ({
+                loading: false,
+                error: null,
+                rawRows: [],
+                selectedTypes: [],
+                selectedTissues: [],
+                pValueMax: "",
+                loadedRegionKey: null,
             }),
         },
         plotOverlaysState: {
@@ -317,13 +340,21 @@ export default {
                 this.workspaceMappingFilter
             );
         },
-        /** Same association-filter view as the Associations drawer table (before mapping chips). */
+        /**
+         * Same association-filter view as the Associations drawer table
+         * (before mapping chips): the stable, downsampled searching-region
+         * baseline plus any starred variant that would otherwise be missing.
+         */
         associationTableRows() {
             const { rows, filtersIndex } = this.associationsState;
             if (!rows?.length) {
                 return [];
             }
-            return applyAssociationsFilters(rows, filtersIndex);
+            const baseline = addMissingStarredAssociationRows(
+                stripZoomRefetchedRows(rows),
+                this.plotMarkers?.starredVariants
+            );
+            return applyAssociationsFilters(baseline, filtersIndex);
         },
         viewportStyle() {
             return {

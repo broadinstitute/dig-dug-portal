@@ -59,7 +59,7 @@
                 :style="viewRegionHandleStyle"
                 role="slider"
                 tabindex="0"
-                aria-label="Viewing region (50 kb) handle — drag to move viewing region"
+                :aria-label="`Viewing region (${viewingRegionWidthLabel}) handle — drag to move viewing region`"
                 :title="viewRegionHandleTitle"
                 @mouseenter="isHoveringViewHandle = true"
                 @mouseleave="isHoveringViewHandle = false"
@@ -71,22 +71,16 @@
                     <span class="gp2-view-region-handle-bar"></span>
                     <span class="gp2-view-region-handle-edge gp2-view-region-handle-edge--right"></span>
                 </div>
-                <div
-                    v-if="overlappingViewGenes && overlappingViewGenes.length"
-                    class="gp2-view-region-handle-genes"
-                    aria-label="Genes overlapping the viewing region"
-                >
-                    <span
-                        v-for="gene in overlappingViewGenes"
-                        :key="gene.name"
-                        class="gp2-view-region-handle-gene"
-                        :style="{ color: gene.color }"
-                        :title="`${gene.name} (${gene.typeLabel})`"
-                    >
-                        {{ gene.name }}
-                    </span>
-                </div>
             </div>
+            <div
+                v-if="showViewRegionBridge && viewRegionConnectorStyle"
+                class="gp2-view-region-connector"
+                :class="{
+                    'is-active': isHoveringViewHandle || isDraggingViewHandle,
+                }"
+                :style="viewRegionConnectorStyle"
+                aria-hidden="true"
+            ></div>
             <div
                 v-if="showViewRegionBridge && viewRegionBridgeStyle"
                 class="gp2-view-region-bridge"
@@ -99,7 +93,27 @@
                 <span class="gp2-view-region-bridge-top"></span>
                 <span class="gp2-view-region-bridge-edge gp2-view-region-bridge-edge--left"></span>
                 <span class="gp2-view-region-bridge-edge gp2-view-region-bridge-edge--right"></span>
+                <span
+                    v-for="mark in bridgeExonMarks"
+                    :key="mark.key"
+                    class="gp2-view-region-bridge-exon"
+                    :style="{ left: `${mark.left}%`, width: `${mark.width}%`, backgroundColor: mark.color }"
+                ></span>
             </div>
+        </div>
+        <div
+            v-if="showViewRegionBridge && bridgeViewGenes.length"
+            class="gp2-view-region-bridge-genes"
+            aria-label="Genes overlapping the viewing region"
+        >
+            <span
+                v-for="gene in bridgeViewGenes"
+                :key="gene.name"
+                class="gp2-view-region-bridge-gene"
+                :style="{ color: gene.color }"
+            >
+                {{ gene.name }}
+            </span>
         </div>
         <VariantSifterVariantDotMenu
             :open="dotMenuOpen"
@@ -161,153 +175,15 @@ import {
     VKS_LD_REFERENCE_COLOR,
 } from "../kpVariantSifter/variantSifterPlotShared.js";
 import { positionAnchoredPopupElement } from "../kpVariantSifter/variantSifterPopupPosition.js";
-import { clampViewingCenterBp } from "./gp2BrowserViewingRegion.js";
-
-function renderCompactSearchingPlotAxis(ctx, options) {
-    const {
-        margin,
-        plotWidth,
-        plotHeight,
-        yMin,
-        yMax,
-        xMin,
-        xMax,
-        utils,
-    } = options;
-
-    const bump = margin.bump ?? 10;
-    const recomXpos = Math.round(margin.left + plotWidth + bump);
-    const yMaxMinGap = yMax - yMin;
-    const yDecimal = yMaxMinGap <= 1 ? 2 : yMaxMinGap <= 50 ? 1 : 0;
-    const xMaxMinGap = xMax - xMin;
-    const xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
-
-    const formatVal = (val, dec) => {
-        if (utils?.Formatters?.decimalFormatter) {
-            return utils.Formatters.decimalFormatter(val, dec);
-        }
-        return String(Math.round(val));
-    };
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "#000000";
-    ctx.font = "22px Arial";
-    ctx.fillStyle = "#000000";
-    ctx.setLineDash([]);
-
-    // Left Y axis
-    ctx.moveTo(margin.left - bump, margin.top);
-    ctx.lineTo(margin.left - bump, plotHeight + margin.top + bump);
-    ctx.stroke();
-
-    // Right Recomb axis
-    ctx.moveTo(recomXpos, margin.top);
-    ctx.lineTo(recomXpos, plotHeight + margin.top + bump);
-    ctx.stroke();
-
-    // Bottom X axis
-    ctx.moveTo(margin.left - bump, plotHeight + margin.top + bump);
-    ctx.lineTo(plotWidth + margin.left + bump, plotHeight + margin.top + bump);
-    ctx.stroke();
-
-    // Compact Y ticks: bottom (yMin) and top (yMax)
-    const yTicks = [
-        { val: yMin, y: margin.top + plotHeight },
-        { val: yMax, y: margin.top },
-    ];
-    yTicks.forEach(({ val, y }) => {
-        const adjY = Math.floor(y);
-        ctx.beginPath();
-        ctx.moveTo(margin.left - bump * 2, adjY);
-        ctx.lineTo(margin.left - bump, adjY);
-        ctx.stroke();
-        ctx.textAlign = "right";
-        ctx.fillText(
-            formatVal(val, yDecimal),
-            margin.left - bump * 3,
-            adjY + 7
-        );
-    });
-
-    // Compact right recomb ticks: 0 and 100
-    [
-        { label: "0", y: margin.top + plotHeight },
-        { label: "100", y: margin.top },
-    ].forEach(({ label, y }) => {
-        const adjY = Math.floor(y);
-        ctx.beginPath();
-        ctx.moveTo(recomXpos, adjY);
-        ctx.lineTo(recomXpos + bump, adjY);
-        ctx.stroke();
-        ctx.textAlign = "left";
-        ctx.fillText(label, margin.left + plotWidth + bump * 3, adjY + 7);
-    });
-
-    // X ticks
-    const xStep = Math.ceil((xMax - xMin) / 5);
-    const xTickDistance = plotWidth / 5;
-    for (let i = 0; i < 6; i += 1) {
-        const tickXPos = margin.left + i * xTickDistance;
-        const adjTickXPos = Math.floor(tickXPos);
-        ctx.beginPath();
-        ctx.moveTo(adjTickXPos, margin.top + plotHeight + bump);
-        ctx.lineTo(adjTickXPos, margin.top + plotHeight + bump * 2);
-        ctx.stroke();
-
-        ctx.textAlign = "center";
-        let positionLabel = formatVal(xMin + i * xStep, xDecimal);
-        if (Number(positionLabel) >= 100000) {
-            positionLabel = `${Math.round(Number(positionLabel) * 0.001)}k`;
-        }
-        ctx.fillText(
-            positionLabel,
-            adjTickXPos,
-            margin.top + plotHeight + bump * 4
-        );
-    }
-
-    ctx.restore();
-}
-
-function renderViewRegionIndicatorOnCanvas(ctx, {
-    highlightViewRegion,
-    visibleRegion,
-    margin,
-    plotWidth,
-    plotHeight,
-}) {
-    if (!highlightViewRegion || !visibleRegion || !plotWidth || !plotHeight) {
-        return;
-    }
-    const xMin = Number(visibleRegion.start);
-    const xMax = Number(visibleRegion.end);
-    const span = xMax - xMin;
-    if (!Number.isFinite(span) || span <= 0) {
-        return;
-    }
-
-    const startBp = Math.max(xMin, Number(highlightViewRegion.start));
-    const endBp = Math.min(xMax, Number(highlightViewRegion.end));
-    if (!Number.isFinite(startBp) || !Number.isFinite(endBp) || endBp <= startBp) {
-        return;
-    }
-
-    const xPosByPixel = plotWidth / span;
-    const x1 = margin.left + (startBp - xMin) * xPosByPixel;
-    const x2 = margin.left + (endBp - xMin) * xPosByPixel;
-    const width = Math.max(6, x2 - x1);
-
-    ctx.save();
-    ctx.fillStyle = "rgba(44, 92, 151, 0.14)";
-    ctx.fillRect(x1, margin.top, width, plotHeight);
-
-    ctx.strokeStyle = "#2c5c97";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x1, margin.top, width, plotHeight);
-    ctx.restore();
-}
+import {
+    GP2_VIEWING_REGION_HALF_BP,
+    clampViewingCenterBp,
+} from "./gp2BrowserViewingRegion.js";
+import {
+    computeBridgeExonMarks,
+    filterGenesOverlappingRegion,
+    renderCompactSearchingPlotAxis,
+} from "./gp2BrowserRegionPlotAxis.js";
 
 export default {
     name: "GP2BrowserAssociationRegionPlot",
@@ -343,13 +219,17 @@ export default {
             type: Boolean,
             default: false,
         },
+        bridgeGenes: {
+            type: Array,
+            default: () => [],
+        },
         viewingCenterBp: {
             type: Number,
             default: null,
         },
-        overlappingViewGenes: {
-            type: Array,
-            default: () => [],
+        viewingRegionHalfWidthBp: {
+            type: Number,
+            default: null,
         },
         region: {
             type: Object,
@@ -418,6 +298,7 @@ export default {
             refVariant: null,
             dotPositions: [],
             canvasWidth: 0,
+            canvasHeight: 0,
             plotWidth: 0,
             containerClientWidth: 0,
             isPanning: false,
@@ -444,6 +325,9 @@ export default {
     computed: {
         isCompactPlot() {
             return Number(this.displayHeight) > 0 && Number(this.displayHeight) <= 36;
+        },
+        effectiveHalfWidthBp() {
+            return Number(this.viewingRegionHalfWidthBp) || GP2_VIEWING_REGION_HALF_BP;
         },
         activeRefVariant() {
             return this.plotOverlaysState?.refVariant || this.refVariant;
@@ -498,16 +382,22 @@ export default {
         canPan() {
             return Boolean(this.region && this.plotRows?.length);
         },
+        viewingRegionWidthLabel() {
+            const widthBp = this.effectiveHalfWidthBp * 2;
+            if (!Number.isFinite(widthBp) || widthBp <= 0) {
+                return "50 kb";
+            }
+            return `${Math.round(widthBp / 1000)} kb`;
+        },
         viewRegionHandleTitle() {
             if (!this.highlightViewRegion) {
-                return "Viewing region (50 kb) — drag to move";
+                return `Viewing region (${this.viewingRegionWidthLabel}) — drag to move`;
             }
             const { chr, start, end } = this.highlightViewRegion;
-            return `Viewing region: ${chr}:${ Number(start).toLocaleString() }-${ Number(end).toLocaleString() } (50 kb) — drag to move`;
+            return `Viewing region: ${chr}:${ Number(start).toLocaleString() }-${ Number(end).toLocaleString() } (${this.viewingRegionWidthLabel}) — drag to move`;
         },
-        viewRegionHandleStyle() {
+        viewRegionHandleBox() {
             if (
-                !this.showViewRegionHandle ||
                 !this.highlightViewRegion ||
                 !this.visibleRegion ||
                 !this.canvasWidth ||
@@ -538,6 +428,13 @@ export default {
             const widthPct = (internalWidth / this.canvasWidth) * 100;
             const topCssPx = (margin.top + this.plotHeight + bump * 4 + 10) / 2;
 
+            return { leftPct, widthPct, topCssPx };
+        },
+        viewRegionHandleStyle() {
+            if (!this.showViewRegionHandle || !this.viewRegionHandleBox) {
+                return null;
+            }
+            const { leftPct, widthPct, topCssPx } = this.viewRegionHandleBox;
             return {
                 left: `${leftPct}%`,
                 width: `${widthPct}%`,
@@ -560,6 +457,34 @@ export default {
                 width: `${widthPct}%`,
                 bottom: `0px`,
             };
+        },
+        viewRegionConnectorStyle() {
+            if (
+                !this.showViewRegionBridge ||
+                !this.viewRegionHandleBox ||
+                !this.canvasHeight
+            ) {
+                return null;
+            }
+            const { leftPct, widthPct, topCssPx } = this.viewRegionHandleBox;
+            const handleBracketHeight = 12;
+            const bridgeHeight = 11;
+            const connectorTop = topCssPx + handleBracketHeight;
+            const connectorBottomGap = bridgeHeight;
+            if (connectorTop >= this.canvasHeight - connectorBottomGap) {
+                return null;
+            }
+            return {
+                left: `${leftPct + widthPct / 2}%`,
+                top: `${connectorTop}px`,
+                bottom: `${connectorBottomGap}px`,
+            };
+        },
+        bridgeExonMarks() {
+            return computeBridgeExonMarks(this.bridgeGenes, this.highlightViewRegion);
+        },
+        bridgeViewGenes() {
+            return filterGenesOverlappingRegion(this.bridgeGenes, this.highlightViewRegion);
         },
     },
     watch: {
@@ -830,6 +755,7 @@ export default {
             }
 
             this.canvasWidth = canvasWidth;
+            this.canvasHeight = canvasHeight;
             this.plotWidth = plotWidth;
             this.containerClientWidth = container.clientWidth || 0;
         },
@@ -879,7 +805,8 @@ export default {
             const deltaBp = Math.round((deltaClientX / cssPlotWidth) * searchSpanBp);
             const nextCenter = clampViewingCenterBp(
                 this.handleDragStartCenterBp + deltaBp,
-                this.visibleRegion
+                this.visibleRegion,
+                this.effectiveHalfWidthBp
             );
             if (nextCenter != null && nextCenter !== this.viewingCenterBp) {
                 this.handleDidMove = true;
@@ -924,7 +851,8 @@ export default {
                 );
             const nextCenter = clampViewingCenterBp(
                 baseCenter + stepBp,
-                this.visibleRegion
+                this.visibleRegion,
+                this.effectiveHalfWidthBp
             );
             if (nextCenter != null && nextCenter !== this.viewingCenterBp) {
                 this.$emit("update:viewingCenterBp", nextCenter);
@@ -1108,7 +1036,8 @@ export default {
                 );
                 const nextCenter = clampViewingCenterBp(
                     (this.panStartViewingCenterBp || 0) + deltaBp,
-                    this.region
+                    this.region,
+                    this.effectiveHalfWidthBp
                 );
                 if (nextCenter != null && nextCenter !== this.viewingCenterBp) {
                     this.panDidChangeShift = true;
@@ -1367,24 +1296,18 @@ export default {
     background: #3b73b9;
 }
 
-.gp2-view-region-handle-genes {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 2px 8px;
-    margin-top: 3px;
-    min-width: max-content;
-    max-width: 360px;
-    text-align: center;
+.gp2-view-region-connector {
+    position: absolute;
+    z-index: 3;
+    width: 0.5px;
+    background: rgba(59, 115, 185, 0.5);
+    transition: background-color 120ms ease;
+    pointer-events: none;
+    transform: translateX(-50%);
 }
 
-.gp2-view-region-handle-gene {
-    font-size: 11px;
-    font-weight: 700;
-    font-style: italic;
-    line-height: 1.25;
-    white-space: nowrap;
+.gp2-view-region-connector.is-active {
+    background: #3b73b9;
 }
 
 .gp2-view-region-bridge {
@@ -1424,6 +1347,33 @@ export default {
 .gp2-view-region-bridge.is-active .gp2-view-region-bridge-top,
 .gp2-view-region-bridge.is-active .gp2-view-region-bridge-edge {
     background: #3b73b9;
+}
+
+.gp2-view-region-bridge-exon {
+    position: absolute;
+    top: 0;
+    height: 4px;
+    border-radius: 1px;
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+.gp2-view-region-bridge-genes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2px 8px;
+    margin: 2px 0 0;
+    text-align: center;
+}
+
+.gp2-view-region-bridge-gene {
+    font-size: 11px;
+    font-weight: 700;
+    font-style: italic;
+    line-height: 1.25;
+    white-space: nowrap;
 }
 
 .vks-association-region-plot-tooltip {

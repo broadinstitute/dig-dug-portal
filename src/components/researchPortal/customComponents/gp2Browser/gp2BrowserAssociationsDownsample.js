@@ -358,6 +358,28 @@ export function stripZoomRefetchedRows(rows = []) {
 }
 
 /**
+ * Add back association-starred rows (starred from an Associations plot dot —
+ * `source: "associations"`) that are missing from `baseRows` (for example
+ * because they only ever existed as a 100%-zoom-refetched raw row), matched
+ * by `Variant ID`. Starred rows bypass any other filtering entirely —
+ * starring a variant is an explicit user override to keep it visible in the
+ * table regardless of the current downsampled/filtered baseline.
+ */
+export function addMissingStarredAssociationRows(baseRows, starredVariants) {
+    const starredRows = (starredVariants || [])
+        .filter((entry) => (entry?.source || "associations") === "associations" && entry.row)
+        .map((entry) => entry.row);
+    if (!starredRows.length) {
+        return baseRows || [];
+    }
+    const baseIds = new Set((baseRows || []).map((row) => row?.["Variant ID"]));
+    const missing = starredRows.filter(
+        (row) => row?.["Variant ID"] && !baseIds.has(row["Variant ID"])
+    );
+    return missing.length ? [...(baseRows || []), ...missing] : baseRows || [];
+}
+
+/**
  * Merge newly refetched zoomed-in rows with the 0%-zoom baseline rows:
  * - Strips any prior `_zoomRefetched` rows
  * - Copies cached LD scores from the baseline onto incoming rows (no LD server call)

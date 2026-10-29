@@ -77,30 +77,81 @@ export function filterQtlRows(rows, { types = [], tissues = [] } = {}) {
     );
 }
 
-export function gp2QtlLoadKey(region, types, tissues) {
-    const locus = formatRegion(region);
-    const typeKey = [...(types || [])].map((type) => String(type)).sort().join(",");
-    const tissueKey = [...(tissues || [])]
-        .map((tissue) => String(tissue))
-        .sort()
-        .join(",");
-    return `${locus}|${typeKey}|${tissueKey}`;
+export function gp2QtlLoadKey(region) {
+    return formatRegion(region);
+}
+
+export function parseQtlPValueMax(value) {
+    const text = String(value || "").trim();
+    if (!text) {
+        return null;
+    }
+    const number = Number(text);
+    if (!Number.isFinite(number) || number < 0) {
+        return null;
+    }
+    return number;
+}
+
+export function filterQtlRowsByPValueMax(rows, pValueMax) {
+    const max = parseQtlPValueMax(pValueMax);
+    if (max == null) {
+        return rows || [];
+    }
+    return (rows || []).filter((row) => {
+        const pValue = Number(row?.pValue);
+        return Number.isFinite(pValue) && pValue <= max;
+    });
+}
+
+export function restrictQtlRowsToRegion(rows, region) {
+    if (!region || region.start == null || region.end == null) {
+        return rows || [];
+    }
+    const start = Number(region.start);
+    const end = Number(region.end);
+    return (rows || []).filter((row) => {
+        const pos = Number(row?.position);
+        return Number.isFinite(pos) && pos >= start && pos <= end;
+    });
 }
 
 /**
- * Load QTL associations for a locus.
- * `qtl-associations` currently accepts only `chromosome:start-end`.
- * Selected types and tissues are applied client-side until the index
- * accepts those parameters on the query.
+ * Add back QTL-starred rows (starred from a QTL plot dot — `source: "qtl"`)
+ * that are missing from `baseRows`, matched by `qtlVariantLabel`. Starred
+ * rows bypass type/tissue/p-value filtering entirely: starring a variant is
+ * an explicit user override to keep it visible in the table regardless of
+ * the current filter selection.
+ */
+export function addMissingStarredQtlRows(baseRows, starredVariants) {
+    const starredRows = (starredVariants || [])
+        .filter((entry) => entry?.source === "qtl" && entry.row)
+        .map((entry) => entry.row);
+    if (!starredRows.length) {
+        return baseRows || [];
+    }
+    const baseIds = new Set((baseRows || []).map((row) => qtlVariantLabel(row)));
+    const missing = starredRows.filter((row) => {
+        const id = qtlVariantLabel(row);
+        return id && !baseIds.has(id);
+    });
+    return missing.length ? [...(baseRows || []), ...missing] : baseRows || [];
+}
+
+/**
+ * Fetch raw `qtl-associations` rows for a locus (whole searching region or
+ * 50 kb viewing region), unfiltered by type/tissue/p-value.
+ * `qtl-associations` currently accepts only `chromosome:start-end`; type,
+ * tissue, and p-value selections are applied client-side.
  */
 export async function fetchGp2QtlAssociations(
     region,
-    { types = [], tissues = [], host = GP2_ASSOCIATIONS_BIOINDEX_HOST } = {}
+    { host = GP2_ASSOCIATIONS_BIOINDEX_HOST } = {}
 ) {
     const q = formatRegion(region);
     if (!q) {
         throw new Error("QTL associations need a genomic region.");
     }
     const result = await queryComplete(GP2_QTL_INDEX, q, { host });
-    return filterQtlRows(result?.data || [], { types, tissues });
+    return result?.data || [];
 }

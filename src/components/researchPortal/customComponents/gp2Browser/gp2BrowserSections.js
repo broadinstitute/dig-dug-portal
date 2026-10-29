@@ -19,7 +19,7 @@ export const GP2_BROWSER_SECTIONS = [
         label: "QTL evidences",
         drawerLabel: "QTL evidences",
         shortLabel: "QTL",
-        description: "QTL associations for the 50 kb viewing region.",
+        description: "QTL associations for the viewing region.",
         trackImplemented: false,
     },
     {
