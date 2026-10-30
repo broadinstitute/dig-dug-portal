@@ -59,7 +59,7 @@ export default new Vuex.Store({
         },
         async fetchConfig(context, config) {
             /*let json = await fetch(
-                `https://kp4cd.org/egldata/config?dataset=${config.dataset}`
+                `https://hugeampkpncms.org/egldata/config?dataset=${config.dataset}`
             ).then(resp => resp.json());*/
 
             let json = await fetch(
@@ -80,7 +80,7 @@ export default new Vuex.Store({
         },
         async fetchData(context, dataset) {
             /*let json = await fetch(
-                `https://kp4cd.org/egldata/dataset?dataset=${dataset.dataset}&trait=${dataset.trait}`
+                `https://hugeampkpncms.org/egldata/dataset?dataset=${dataset.dataset}&trait=${dataset.trait}`
             ).then(resp => resp.json());*/
             /*context.commit("setTableData", json.data);
             context.commit("setFilteredData", json.data);*/
