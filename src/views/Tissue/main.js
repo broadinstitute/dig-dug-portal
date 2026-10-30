@@ -300,6 +300,9 @@ new Vue({
         setComparison(type, isCrispr){
             let action = isCrispr ? "changeSelectedComparisonCrispr" : "changeSelectedComparison";
             this.$store.dispatch(action, type);
+        },
+        setPlotScale(isLog){
+            this.logScale = isLog;
         }
     },
     watch: {

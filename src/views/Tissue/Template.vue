@@ -53,15 +53,12 @@
                         <criterion-function-group>
                             <div class="col filter-col-md">
                                 <div class="label">Plot Scale</div>
-                                <select
-                                    v-model="$parent.logScale"
-                                    class="form-control"
-                                >
-                                    <option :value="false">Linear</option>
-                                    <option :value="true">
-                                        Logarithmic: log10(TPM+1)
-                                    </option>
-                                </select>
+                                <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
+                                    :matches="[false, true]"
+                                    :labelFormatter="(val) => !val ? 'Linear' : 'Logarithmic: log10(TPM+1)'"
+                                    @item-select="$parent.setPlotScale($event, false)"
+                                    :placeholder="!$parent.logScale ? 'Linear' : 'Logarithmic: log10(TPM+1)'"
+                                ></autocomplete>
                             </div>
                             <filter-enumeration-control
                                 field="gene"
