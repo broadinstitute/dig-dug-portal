@@ -700,7 +700,7 @@
                                     )
                                 "
                             >
-                                <div class="label">Search pathway</div>
+                                <div class="label">Search gene</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div
@@ -761,10 +761,13 @@
                                         "
                                         :per-page="10"
                                         :fields="
-                                            $parent.connectivityCrisprFields
+                                            $parent.connectivityCrisprFields.filter(
+                                                (f) => !f.compoundOnly
+                                            )
                                         "
                                         small
                                     >
+                                        <template #head(pathway)>Gene</template>
                                         <template #cell(target_name)="row">
                                             <button
                                                 v-if="

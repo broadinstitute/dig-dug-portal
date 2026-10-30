@@ -111,7 +111,8 @@ new Vue({
             connectivityPage: 1,
             connectivityCrisprPage: 1,
             connectivityCrisprFields: [
-                { key: "pathway", sortable: true},
+                { key: "pathway", sortable: true, compoundOnly: true},
+                { key: "pathway", label: "Gene", sortable: true, crisprOnly: true},
                 { key: "best_direction", label: "Direction", sortable: true},
                 { key: "NES_difference", formatter: Formatters.tpmFormatter, sortable: true},
                 { key: "concordant_p_adj", formatter: Formatters.pValueFormatter, sortable: true},
