@@ -222,7 +222,8 @@ new Vue({
         if (this.tissue) {
             this.$store.dispatch("getTissue");
         }
-        this.$store.dispatch("getAnnotations");
+        await this.$store.dispatch("getAnnotations");
+        this.onAnnotationSelected(this.$store.state.annotationOptions[0]);
         this.$store.dispatch("getAncestries");
         this.$store.dispatch("getSingleCellDatasets");
     },
@@ -243,7 +244,8 @@ new Vue({
                 this.$store.dispatch("onPhenotypeChange", phenotype);
             }
         },
-        onAnnotationSelected(){
+        onAnnotationSelected(annotation){
+            this.annotation = annotation;
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");
         },

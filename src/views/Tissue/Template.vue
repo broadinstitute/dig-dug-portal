@@ -53,7 +53,7 @@
                         <criterion-function-group>
                             <div class="col filter-col-md">
                                 <div class="label">Plot Scale</div>
-                                <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
+                                <autocomplete
                                     :matches="[false, true]"
                                     :labelFormatter="(val) => !val ? 'Linear' : 'Logarithmic: log10(TPM+1)'"
                                     @item-select="$parent.setPlotScale($event, false)"
@@ -289,19 +289,11 @@
                                             Search by annotation
                                         </div>
                                     </span>
-                                    <select
-                                        v-model="$parent.annotation"
-                                        class="form-control"
-                                        @change="$parent.onAnnotationSelected()"
-                                    >
-                                        <option
-                                            v-for="anno in $store.state
-                                                .annotationOptions"
-                                            :value="anno"
-                                        >
-                                            {{ anno }}
-                                        </option>
-                                    </select>
+                                    <autocomplete
+                                        :matches="$store.state.annotationOptions"
+                                        @item-select="$parent.onAnnotationSelected($event)"
+                                        :placeholder="$parent.annotation"
+                                    ></autocomplete>
                                 </div>
                             </div>
                         </div>
