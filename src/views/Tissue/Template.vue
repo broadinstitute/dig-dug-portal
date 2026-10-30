@@ -439,51 +439,25 @@
                             >
                                 <div class="label">Direction</div>
                             </filter-enumeration-control>
-                            <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
-                                <autocomplete
+                            <div class="col filter-col-md">
+                                <div class="label">Tissue type</div>
+                                <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
                                     :matches="['adipose_subcutaneous', 'adipose_visceral']"
                                     @item-select="$parent.setAdiposeType($event, false)"
                                     :placeholder="$store.state.adiposeType"
                                 ></autocomplete>
-                            </div>
-                            <div class="col filter-col-md">
-                                <div class="label">Tissue type</div>
-                                <select
-                                    v-model="$store.state.adiposeType"
-                                    v-if="
-                                        $store.state.tissueName ===
-                                        'adipose_tissue'
-                                    "
-                                >
-                                    <option value="adipose_subcutaneous">
-                                        Adipose - Subcutaneous
-                                    </option>
-                                    <option value="adipose_visceral">
-                                        Adipose - Visceral
-                                    </option>
-                                </select>
-                                <select v-else>
-                                    <option :value="$store.state.tissueName">
-                                        {{
-                                            $parent.tissueFormatter(
-                                                $store.state.tissueName
-                                            )
-                                        }}
-                                    </option>
-                                </select>
+                                <autocomplete v-else
+                                    :matches="[$store.state.connectivityKey]"
+                                    :placeholder="$store.state.connectivityKey"
+                                ></autocomplete>
                             </div>
                             <div class="col filter-col-md">
                                 <div class="label">Trait-cell type comparison</div>
-                                <select
-                                    v-model="$store.state.selectedComparison"
-                                >
-                                    <option
-                                        v-for="comp in $store.state.comparisons"
-                                        :value="comp"
-                                    >
-                                        {{ comp }}
-                                    </option>
-                                </select>
+                                <autocomplete
+                                    :matches="$store.state.comparisons"
+                                    @item-select="$parent.setComparison($event, false)"
+                                    :placeholder="$store.state.selectedComparison">
+                                </autocomplete>
                             </div>
                             <filter-less-control field="pAdj">
                                 <div class="label">Max p-adj</div>

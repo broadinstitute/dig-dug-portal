@@ -294,12 +294,12 @@ new Vue({
 
         },
         setAdiposeType(type, isCrispr){
-            console.log(type, isCrispr);
-            if (!isCrispr){
-                this.$store.dispatch("changeAdiposeType", type);
-            } else {
-                this.$store.dispatch("changeAdiposeTypeCrispr", type);
-            }
+            let action = isCrispr ? "changeAdiposeTypeCrispr" : "changeAdiposeType";
+            this.$store.dispatch(action, type);
+        },
+        setComparison(type, isCrispr){
+            let action = isCrispr ? "changeSelectedComparisonCrispr" : "changeSelectedComparison";
+            this.$store.dispatch(action, type);
         }
     },
     watch: {

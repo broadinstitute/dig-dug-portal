@@ -45,6 +45,7 @@ export default new Vuex.Store({
         annotationOptions: [],
         selectedAnnotation: "",
         singleCellDatasets: null,
+        connectivityKey: null,
         connectKeys: [],
         connectCrisprKeys: [],
         comparisons: [],
@@ -78,6 +79,12 @@ export default new Vuex.Store({
         changeAdiposeTypeCrispr(context, type){
             context.state.adiposeTypeCrispr = type;
         },
+        changeSelectedComparison(context, comp){
+            context.state.selectedComparison = comp;
+        },
+        changeSelectedComparisonCrispr(context, comp){
+            context.state.selectedComparisonCrispr = comp;
+        },
         async getTissue(context) {
             context.state.tissueName = context.state.selectedTissue || context.state.tissueName;
             context.dispatch("tissue/query", {
@@ -85,6 +92,7 @@ export default new Vuex.Store({
             });
             let name = context.state.tissueName;
             let connectivityKey = CONNECTIVITY_KEYS[name];
+            context.state.connectivityKey = connectivityKey;
             if (name === 'adipose_tissue'){
                 name = 'adipose';
             }
