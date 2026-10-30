@@ -410,25 +410,20 @@
                             Library of Integrated Network-Based Cellular
                             Signature (<a href="https://lincsproject.org/LINCS/"
                                 >LINCS</a
-                            >). For each perturbation, we calculated whether
-                            perturbation signatures showed significantly
-                            reversed or concordant effects compared to
-                            differential expression. We performed cell
-                            type-specific differential expression and
-                            connectivity mapping analyses using all available
-                            <a href="https://hugeamp.org/r/scb"
-                                >CMDKP single-cell maps</a
-                            >. Connectivity mapping results are summarized with
-                            volcano plots for each cell type-trait pair, and the
-                            top 100 significantly reversed CRISPR perturbations
-                            are used to perform pathway enrichment analysis to
-                            characterize biological processes associated with
-                            prioritized targets for a cell type-trait
-                            combination. In addition, the top 100 significantly
-                            reversed CRISPR targets were matched with the ChEMBL
-                            database to identify known antagonists and other
-                            therapeutically relevant compounds targeting these
-                            genes or their protein products.
+                            >). These perturbation signatures record the gene expression
+                            changes induced by small-molecule treatments in the LINCS L1000
+                            dataset, with compounds identified using Broad Institute
+                            compound identifiers (BRD IDs).
+                        </p>
+                        <p>For each perturbation, enrichment scores are calculated separately
+                            for genes upregulated and downregulated in the differential
+                            expression signature. The direction of the normalized enrichment
+                            score (NES) difference indicates whether the perturbation is
+                            concordant with or reversed relative to the differential expression,
+                            while its absolute value reflects the strength of the connectivity.
+                            Connectivity mapping results are summarized volcano plots for each
+                            cell type-trait pair, highlighting compound perturbation with
+                            significant reversed or concordant effects.
                         </p>
                         <criterion-function-group
                             @update:filter-list="
@@ -607,7 +602,8 @@
                             Integrated Network-Based Cellular Signature (<a
                                 href="https://lincsproject.org/LINCS/"
                                 >LINCS</a
-                            >). For each perturbation, we calculated whether
+                            >). As with compound connectivity mapping,
+                            for each perturbation, we calculated whether
                             perturbation signatures showed significantly
                             reversed or concordant effects compared to
                             differential expression. We performed cell
@@ -621,7 +617,9 @@
                             are used to perform pathway enrichment analysis to
                             characterize biological processes associated with
                             prioritized targets for a cell type-trait
-                            combination.
+                            combination.  Additionally, we also report the TPM
+                            expression level for each gene in the corresponding
+                            cell type to provide context on target gene expression.
                         </p>
                         <criterion-function-group
                             @update:filter-list="
