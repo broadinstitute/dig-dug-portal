@@ -85,6 +85,9 @@ export default new Vuex.Store({
         changeSelectedComparisonCrispr(context, comp){
             context.state.selectedComparisonCrispr = comp;
         },
+        onAncestryChange(context, ancestry){
+            context.state.selectedAncestry = ancestry;
+        },
         async getTissue(context) {
             context.state.tissueName = context.state.selectedTissue || context.state.tissueName;
             context.dispatch("tissue/query", {

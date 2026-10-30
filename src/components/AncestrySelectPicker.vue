@@ -1,18 +1,15 @@
 <template>
-    <select class="form-control"
-        v-model="$store.state.selectedAncestry"
-        ref="ancestrySelect"
-        @change="onAncestrySelected()">
-        <option value="" selected>
-            {{ defaultMixed ? "Mixed (meta-analysis)" : "All ancestries" }}
-        </option>
-        <option v-for="ancestry in ancestryOptions" :value="ancestry">{{ ancestryFormatter(ancestry) }}</option>
-    </select>
+    <autocomplete
+        :matches="['DEFAULT'].concat(ancestryOptions)"
+        :labelFormatter="(val) => labelText(val)"
+        @item-select="onAncestrySelected($event)"
+        :placeholder="labelText($store.state.selectedAncestry)"
+    ></autocomplete>
 </template>
 
 <script>
 import Vue from "vue";
-
+import Autocomplete from "@/components/Autocomplete.vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
@@ -47,13 +44,17 @@ export default Vue.component("ancestry-selectpicker", {
             }
             return ancestryList.sort();
         },
+        defaultLabel(){
+            return this.defaultMixed ? "Mixed (meta-analysis)" : "All ancestries"
+        }
     },
     methods: {
         ancestryFormatter: Formatters.ancestryFormatter,
-        onAncestrySelected() {
-            if (this.pageLevel){
-                this.$store.dispatch("onAncestryChange");
+        onAncestrySelected(ancestry) {
+            if (ancestry === 'DEFAULT'){
+                ancestry = '';
             }
+            this.$store.dispatch("onAncestryChange", ancestry);
         },
 
         setFocus() {
@@ -61,6 +62,12 @@ export default Vue.component("ancestry-selectpicker", {
                 this.$refs.ancestrySelect.$refs.input.focus();
             });
         },
+        labelText(ancestry){
+            if (ancestry === '' || ancestry === 'DEFAULT'){
+                return this.defaultLabel;
+            }
+            return Formatters.ancestryFormatter(ancestry);
+        }
     },
 });
 </script>
