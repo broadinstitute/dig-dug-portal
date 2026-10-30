@@ -280,7 +280,7 @@
 											<li>
 												Download example input file:
 												<a
-													href="https://kp4cd.org/sites/default/files/sample_input.vcf"
+													href="https://hugeampkpncms.org/sites/default/files/sample_input.vcf"
 													download="sample_input.vcf"
 													>sample_input.vcf</a
 												>
