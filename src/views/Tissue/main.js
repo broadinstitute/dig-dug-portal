@@ -253,8 +253,8 @@ new Vue({
                 "xAxisLabel": "NES_difference",
                 "yAxisField": "minusLogAdjP",
                 "yAxisLabel": "-log10(adjusted p-value)",
-                "width": 300,
-                "height": 200,
+                "width": 900,
+                "height": 300,
                 "diffExpVolcano": true
             };
             return config;
