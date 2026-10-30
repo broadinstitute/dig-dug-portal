@@ -1,14 +1,17 @@
 <template>
   <div class="mbm-plot-content row">
-		<div class="col-md-12">
+    <div class="col-md-2"></div>
+    <div class="col-md-8">
+      <div :id="plotId">
+        <p>Loading...</p>
+      </div>
+    </div>
+    <div class="col-md-2">
       <download-chart
 				:filename="!plotName ? 'scatterplot' : plotName"
 				:chartId="`chart-${plotId}`"
 				>
 			</download-chart>
-      <div :id="plotId">
-        <p>Loading...</p>
-      </div>
     </div>
   </div>
 </template>

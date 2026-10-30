@@ -90,9 +90,8 @@
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div class="row">
-                                    <div class="col-md-2"></div>
-                                    <div class="col-md-8">
+                                
+                                    <div>
                                         <scatterplot
                                             v-if="$parent.tissueData.length > 0"
                                             :log-scale="$parent.logScale"
@@ -104,8 +103,7 @@
                                         >
                                         </scatterplot>
                                     </div>
-                                    <div class="col-md-2"></div>
-                                </div>
+                                
                                 <div class="mt-4"></div>
                                 <tissue-expression-table
                                     :tissue-data="$parent.tissueData"
