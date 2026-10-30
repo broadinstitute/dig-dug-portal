@@ -55,7 +55,7 @@
                 </template>
                 <template #cell(variantSifter)="r">
                     <a :href="exploreVariantSifter(r.item)">
-                        <button type="button" class="btn btn-primary btn-sm">
+                        <button type="button" class="btn btn-secondary btn-sm">
                             Open
                         </button>
                     </a>
