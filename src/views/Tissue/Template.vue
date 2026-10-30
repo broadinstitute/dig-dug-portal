@@ -618,45 +618,23 @@
                             </filter-enumeration-control>
                             <div class="col filter-col-md">
                                 <div class="label">Tissue type</div>
-                                <select
-                                    v-model="$store.state.adiposeTypeCrispr"
-                                    v-if="
-                                        $store.state.tissueName ===
-                                        'adipose_tissue'
-                                    "
-                                >
-                                    <option value="adipose_subcutaneous">
-                                        Adipose - Subcutaneous
-                                    </option>
-                                    <option value="adipose_visceral">
-                                        Adipose - Visceral
-                                    </option>
-                                </select>
-                                <select v-else>
-                                    <option :value="$store.state.tissueName">
-                                        {{
-                                            $parent.tissueFormatter(
-                                                $store.state.tissueName
-                                            )
-                                        }}
-                                    </option>
-                                </select>
+                                <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
+                                    :matches="['adipose_subcutaneous', 'adipose_visceral']"
+                                    @item-select="$parent.setAdiposeType($event, true)"
+                                    :placeholder="$store.state.adiposeTypeCrispr"
+                                ></autocomplete>
+                                <autocomplete v-else
+                                    :matches="[$store.state.connectivityKey]"
+                                    :placeholder="$store.state.connectivityKey"
+                                ></autocomplete>
                             </div>
                             <div class="col filter-col-md">
                                 <div class="label">Trait-cell type comparison</div>
-                                <select
-                                    v-model="
-                                        $store.state.selectedComparisonCrispr
-                                    "
-                                >
-                                    <option
-                                        v-for="comp in $store.state
-                                            .crisprComparisons"
-                                        :value="comp"
-                                    >
-                                        {{ comp }}
-                                    </option>
-                                </select>
+                                <autocomplete
+                                    :matches="$store.state.comparisons"
+                                    @item-select="$parent.setComparison($event, true)"
+                                    :placeholder="$store.state.selectedComparisonCrispr">
+                                </autocomplete>
                             </div>
                             <filter-enumeration-control
                                 field="is_expressed"
