@@ -468,7 +468,7 @@
                                 </select>
                             </div>
                             <div class="col filter-col-md">
-                                <div class="label">Cell type comparison</div>
+                                <div class="label">Trait-cell type comparison</div>
                                 <select
                                     v-model="$store.state.selectedComparison"
                                 >
@@ -664,7 +664,7 @@
                                 </select>
                             </div>
                             <div class="col filter-col-md">
-                                <div class="label">Cell type comparison</div>
+                                <div class="label">Trait-cell type comparison</div>
                                 <select
                                     v-model="
                                         $store.state.selectedComparisonCrispr
