@@ -13,6 +13,8 @@ import TissueSelectPicker from "@/components/TissueSelectPicker.vue";
 import Scatterplot from "@/components/Scatterplot.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
+import Autocomplete from "@/components/Autocomplete.vue";
+import NewStyleSelect from "@/components/NewStyleSelect.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import ResearchSingleCellBrowser from "../../components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
@@ -46,6 +48,8 @@ new Vue({
         Scatterplot,
         MouseSummaryTable,
         C2ctTable,
+        Autocomplete,
+        NewStyleSelect,
         PhenotypeSelectPicker,
         AncestrySelectPicker,
         ResearchSingleCellBrowser,
@@ -288,6 +292,14 @@ new Vue({
                 this.compoundPathway = pathway;
             }
 
+        },
+        setAdiposeType(type, isCrispr){
+            console.log(type, isCrispr);
+            if (!isCrispr){
+                this.$store.dispatch("changeAdiposeType", type);
+            } else {
+                this.$store.dispatch("changeAdiposeTypeCrispr", type);
+            }
         }
     },
     watch: {

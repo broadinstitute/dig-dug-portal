@@ -439,6 +439,13 @@
                             >
                                 <div class="label">Direction</div>
                             </filter-enumeration-control>
+                            <div class="col filter-col-md" v-if="$store.state.tissueName === 'adipose_tissue'">
+                                <autocomplete
+                                    :matches="['adipose_subcutaneous', 'adipose_visceral']"
+                                    @item-select="$parent.setAdiposeType($event, false)"
+                                    :placeholder="$store.state.adiposeType"
+                                ></autocomplete>
+                            </div>
                             <div class="col filter-col-md">
                                 <div class="label">Tissue type</div>
                                 <select

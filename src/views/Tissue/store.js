@@ -72,6 +72,12 @@ export default new Vuex.Store({
         },
     },
     actions: {
+        changeAdiposeType(context, type){
+            context.state.adiposeType = type;
+        },
+        changeAdiposeTypeCrispr(context, type){
+            context.state.adiposeTypeCrispr = type;
+        },
         async getTissue(context) {
             context.state.tissueName = context.state.selectedTissue || context.state.tissueName;
             context.dispatch("tissue/query", {
