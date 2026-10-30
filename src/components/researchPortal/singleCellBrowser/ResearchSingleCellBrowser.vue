@@ -10,7 +10,7 @@
                 </select>
                 <b-pagination 
                     v-model="currentDatasetsPage"
-                    class="pagination justify-content-center"
+                    class="pagination datasets-page justify-content-center"
                     :total-rows="totalDatasets"
                     :per-page="datasetsPerPage"
                 ></b-pagination>
@@ -1082,6 +1082,7 @@
                                 <div style="display:flex; flex-direction: column; gap:20px; min-width: 50%;">
                                     <div style="display:flex; justify-content: space-between;">
                                         <div style="display:flex; flex-direction: column;">
+                                            <!-- This is where we want to edit TODO-->
                                             <strong style="font-size: 16px;">{{ dotPlotCellType!=""?`Marker Genes for ${dotPlotCellType}` : 'Top Marker Genes by Cell Type' }}</strong>
                                             <div  style="font-size:12px; opacity:0.5">Ranked by {{ markerRankingLabel }}</div>
                                         </div>
@@ -1115,17 +1116,21 @@
                                     />
                                 </div>
                                 <b-table v-if="markerGenesTable"
-                                        style="font-size:12px;"
                                         :items="markerGenesTable"
                                         :fields="markerTableColumns"
-                                        striped
+                                        :current-page="markerGenesPage"
+                                        :per-page="10"
                                         hover
                                         small
                                         responsive="sm"
-                                        head-variant="light"
-                                        sticky-header="300px" 
                                     >
                                 </b-table>
+                                <b-pagination
+                                    v-model="markerGenesPage"
+                                    :total-rows="markerGenesTable.length"
+                                    :per-page="10"
+                                >
+                                </b-pagination>
                             </div>
                         </div>
                     </div>
@@ -1485,6 +1490,7 @@
                 markerFile: null,
                 markersHaveZscores: false,
                 markerTableColumns: null,
+                markerGenesPage: 1,
                 markerDesiredColumns: [
                     {
                         key: 'cell_type',
@@ -3398,13 +3404,13 @@
 </script>
 
 <style scoped>
-.pagination.b-pagination{
+.pagination.b-pagination.datasets-page{
     margin:0;
     padding:0;
     font-size:14px;
     border:0;
 }
-.pagination.b-pagination .page-link{
+.pagination.b-pagination.datasets-page .page-link{
     line-height: 1 !important;
     height:25px;
     min-width: 25px;
