@@ -433,11 +433,13 @@
                                 <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
                                     :matches="['adipose_subcutaneous', 'adipose_visceral']"
                                     @item-select="$parent.setAdiposeType($event, false)"
-                                    :placeholder="$store.state.adiposeType"
+                                    :placeholder="$parent.tissueFormatter($store.state.adiposeType)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
                                 ></autocomplete>
                                 <autocomplete v-else
                                     :matches="[$store.state.connectivityKey]"
-                                    :placeholder="$store.state.connectivityKey"
+                                    :placeholder="$parent.tissueFormatter($store.state.connectivityKey)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
                                 ></autocomplete>
                             </div>
                             <div class="col filter-col-md">
@@ -445,7 +447,8 @@
                                 <autocomplete
                                     :matches="$store.state.comparisons"
                                     @item-select="$parent.setComparison($event, false)"
-                                    :placeholder="$store.state.selectedComparison">
+                                    :placeholder="$parent.tissueFormatter($store.state.selectedComparison)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)">
                                 </autocomplete>
                             </div>
                             <filter-less-control field="pAdj">
@@ -610,11 +613,13 @@
                                 <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
                                     :matches="['adipose_subcutaneous', 'adipose_visceral']"
                                     @item-select="$parent.setAdiposeType($event, true)"
-                                    :placeholder="$store.state.adiposeTypeCrispr"
+                                    :placeholder="$parent.tissueFormatter($store.state.adiposeTypeCrispr)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
                                 ></autocomplete>
                                 <autocomplete v-else
                                     :matches="[$store.state.connectivityKey]"
-                                    :placeholder="$store.state.connectivityKey"
+                                    :placeholder="$parent.tissueFormatter($store.state.connectivityKey)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
                                 ></autocomplete>
                             </div>
                             <div class="col filter-col-md">
@@ -622,7 +627,8 @@
                                 <autocomplete
                                     :matches="$store.state.comparisons"
                                     @item-select="$parent.setComparison($event, true)"
-                                    :placeholder="$store.state.selectedComparisonCrispr">
+                                    :placeholder="$parent.tissueFormatter($store.state.selectedComparisonCrispr)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)">
                                 </autocomplete>
                             </div>
                             <filter-enumeration-control
