@@ -50,6 +50,7 @@ async function main() {
         './phenotypeModel': model, './hpoSearch': search,
         './geneReferenceEvidence': require('../src/views/PbPhenotype/geneReferenceEvidence'),
         './PhenotypeQueryInput.vue': { default: inputOptions, __esModule: true },
+        './PhenotypeHelp.vue': {},
         './sampleSelection': require('../src/views/PbPhenotype/sampleSelection'),
         './profileGeneApi': {}, '../../utils/rphersUnits': require('../src/utils/rphersUnits'),
         '@/utils/bioIndexUtils': { request: async (_, { q }) => {

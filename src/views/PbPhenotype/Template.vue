@@ -90,7 +90,6 @@
                                 <span>≥2 of {{ ids.length }}: {{ countChange(matchesLoaded ? atLeastTwoSampleCount : null, matchingSampleGroups.atLeastTwo.length, 'samples', combinedCountRemovalLabel) }}</span>
                                 <span>{{ cohortSampleCount ? cohortSampleCount.toLocaleString() : "—" }} total samples</span>
                             </div>
-                            <p class="pbp-term-summary-note">Per-term counts show before → after Exclude. Combined sample counts also include current page filters and match the sample-group gene counts below. Disease counts use direct Orphanet annotations. High-frequency diseases list this phenotype as very frequent (80–99%) or obligate (100%).<template v-if="excluded.length"> Red rows show each excluded term separately; overlapping exclusions are counted once in the remaining totals.</template></p>
                         </div>
                         <div v-if="multi" class="pbp-scope-picker" role="group" aria-label="Choose sample matching group">
                             <span>Show samples</span>
@@ -116,37 +115,45 @@
                             <phenotype-query-input class="pbp-add exclude" :search-index="hpoSearchIndex"
                                 input-label="Exclude phenotype" placeholder="+ Add a phenotype to exclude"
                                 @select="addExcluded" />
-                            <span class="pbp-helper"
-                                >Matching samples and diseases are removed from the result tables.
-                                Exclude does not change rPheRS Z-scores or Profile score.</span
-                            >
+                            <phenotype-help label="Exclude">
+                                <p>
+                                    Matching samples and diseases are removed from the result tables. Exclude does not change rPheRS Z-scores or
+                                    Profile score.
+                                </p>
+                            </phenotype-help>
                         </div>
-                        <p v-if="multi" class="pbp-banner">
-                            This set is scored as one profile. Samples are
-                            ranked by rPheRS Z-score. Genes are tested across
-                            the approved full gene-score source; reference databases
-                            provide phenotype-matched disease–gene links.
-                            {{ isOrphanet ? "Orphanet profile scores combine query and disease phenotype coverage; diseases" : `${diseaseSourceLabel} results use unweighted HPO overlap; records` }}
-                            matching an excluded term are removed. None
-                            of this is a diagnosis.
-                        </p>
-                        <details v-else class="pbp-definition">
-                            <summary>Definition and ontology</summary>
-                            <p class="pbp-context-note">
-                            {{ term ? term[1] : "" }} Parent:
-                            {{
-                                term ? (term[2] || []).map(name).join(", ") : ""
-                            }}
-                            ·
-                            <a
-                                :href="`https://hpo.jax.org/browse/term/${ids[0]}`"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                >Ontology and definition</a
-                            >
-                            · {{ reference.meta.hpoOBO }}
+                        <phenotype-help label="Counts and query">
+                            <p>
+                                Per-term counts show before → after Exclude. Combined sample counts also include current page filters and
+                                match the sample-group gene counts below. Disease counts use direct Orphanet annotations. High-frequency
+                                diseases list this phenotype as very frequent (80–99%) or obligate (100%).<template v-if="excluded.length">
+                                    Red rows show each excluded term separately; overlapping exclusions are counted once in the remaining
+                                    totals.</template
+                                >
                             </p>
-                        </details>
+                            <p v-if="multi">
+                                This set is scored as one profile. Samples are ranked by rPheRS Z-score. Genes are tested across the
+                                approved full gene-score source; reference databases provide phenotype-matched disease–gene links.
+                                {{
+                                    isOrphanet
+                                        ? "Orphanet profile scores combine query and disease phenotype coverage; diseases"
+                                        : `${diseaseSourceLabel} results use unweighted HPO overlap; records`
+                                }}
+                                matching an excluded term are removed. None of this is a diagnosis.
+                            </p>
+                            <template v-else>
+                                <h3>Definition and ontology</h3>
+                                <p class="pbp-context-note">
+                                    {{ term ? term[1] : "" }} Parent:
+                                    {{ term ? (term[2] || []).map(name).join(", ") : "" }}
+                                    ·
+                                    <a :href="`https://hpo.jax.org/browse/term/${ids[0]}`" target="_blank" rel="noopener noreferrer"
+                                        >Ontology and definition</a
+                                    >
+                                    · {{ reference.meta.hpoOBO }}
+                                </p>
+                            </template>
+                        </phenotype-help>
                     </section>
                     <section class="pbp-card pbp-samples">
                         <div class="pbp-rowhead">
@@ -158,13 +165,26 @@
                                     Samples ranked by rPheRS Z-score
                                     <span class="pbp-heading-count">· {{ matchesLoaded ? qualifyingSamples.length.toLocaleString() : "—" }}</span>
                                 </h2>
-                                <p class="pbp-sub">
-                                    {{
-                                        multi
-                                            ? `${selectedSampleLabel} · ${qualifyingSamples.length.toLocaleString()} selected samples, ranked by rPheRS Z-score.`
-                                            : "Samples with this recorded HPO term, ranked by rPheRS Z-score."
-                                    }}
-                                </p>
+                                <phenotype-help label="About these samples">
+                                    <p class="pbp-sub">
+                                        {{
+                                            multi
+                                                ? `${selectedSampleLabel} · ${qualifyingSamples.length.toLocaleString()} selected samples, ranked by rPheRS Z-score.`
+                                                : "Samples with this recorded HPO term, ranked by rPheRS Z-score."
+                                        }}
+                                    </p>
+                                    <p v-if="matchesLoaded" class="pbp-sub">{{ rphersReferenceLabel(sampleStandardization) }}</p>
+                                    <p class="pbp-note">
+                                        Filled colour marks a recorded query HPO; a white box with a dashed outline means it was not recorded.
+                                        Colours follow the query chips above. An unmatched term is unknown, not clinically absent. Matches use the
+                                        parent-expanded CRDC HPO observations. rPheRS Z-scores use the full scoring-cohort reference above; page
+                                        filters and Exclude do not change the scores or reference. Sample disease / project labels and cohort
+                                        categories use their available source records.<template v-if="excluded.length">
+                                            {{ hiddenCount }} returned samples were removed using confirmed recorded HPO terms;
+                                            {{ unknownExclusionCount }} have no exposed HPO list for exclusion verification.</template
+                                        >
+                                    </p>
+                                </phenotype-help>
                             </div>
                             <div class="pbp-controls">
                                 <select
@@ -183,7 +203,7 @@
                             </div>
                         </div>
                         <p v-if="sampleInfoLoading" class="pbp-sub" role="status">Loading Project labels for matching samples…</p>
-                        <p v-if="matchesLoaded" class="pbp-sub">{{ rphersReferenceLabel(sampleStandardization) }}</p>
+
                         <p v-if="sampleLoading" class="pbp-status">
                             Loading CRDC samples…
                         </p>
@@ -264,7 +284,16 @@
                                     <h3>Age at record</h3>
                                     <span>{{ ageSummary.remaining.toLocaleString() }} / {{ ageSummary.before.toLocaleString() }} samples remain</span>
                                 </div>
-                                <p class="pbp-sub">{{ selectedSampleLabel }} · {{ qualifyingSamples.length.toLocaleString() }} selected samples · current age, sex, affected and Project filters applied.</p>
+                                <phenotype-help label="Age and filters">
+                                    <p class="pbp-sub">
+                                        {{ selectedSampleLabel }} · {{ qualifyingSamples.length.toLocaleString() }} selected samples · current age,
+                                        sex, affected and Project filters applied.
+                                    </p>
+                                    <p class="pbp-note">
+                                        Age is measured at enrollment, not symptom onset. Gray shading shows samples removed by Exclude; each bar
+                                        keeps its original length. Ages outside 0–100 or missing values are Unknown.
+                                    </p>
+                                </phenotype-help>
                                 <div class="pbp-age-legend">
                                     <span><i class="remaining"></i>Remaining</span>
                                     <span><i class="excluded"></i>Excluded{{ ageSummary.excluded ? ` · ${ageSummary.excluded.toLocaleString()}` : "" }}</span>
@@ -280,7 +309,6 @@
                                         <span class="pbp-age-count"><b>{{ bin.remaining.toLocaleString() }}</b> / {{ bin.before.toLocaleString() }}<small v-if="bin.excluded">−{{ bin.excluded.toLocaleString() }}</small></span>
                                     </div>
                                 </div>
-                                <p class="pbp-note">Age is measured at enrollment, not symptom onset. Gray shading shows samples removed by Exclude; each bar keeps its original length. Ages outside 0–100 or missing values are Unknown.</p>
                             </section>
                             <section class="pbp-context-panel pbp-sex-panel" aria-label="Sex and co-recorded phenotypes">
                                 <h3>Sex · {{ qualifyingSamples.length.toLocaleString() }} selected samples</h3>
@@ -299,9 +327,18 @@
                                         <span class="pbp-age-count"><b>{{ bin.remaining.toLocaleString() }}</b> / {{ bin.before.toLocaleString() }}<small v-if="bin.excluded">−{{ bin.excluded.toLocaleString() }}</small></span>
                                     </div>
                                 </div>
-                                <p class="pbp-note">Same samples and filters as Age at record. Gray shading shows samples removed by Exclude.</p>
+                                <phenotype-help label="Sex and exclusions">
+                                    <p class="pbp-note">
+                                        Same samples and filters as Age at record. Gray shading shows samples removed by Exclude.
+                                    </p></phenotype-help
+                                >
                                 <h3>Co-recorded phenotypes</h3>
-                                <p class="pbp-sub">{{ hpoKnownCount.toLocaleString() }} remaining samples with expanded HPO profiles. Select a term to add it to the query.</p>
+                                <phenotype-help label="Co-recorded phenotypes">
+                                    <p class="pbp-sub">
+                                        {{ hpoKnownCount.toLocaleString() }} remaining samples with expanded HPO profiles. Select a term to add it
+                                        to the query.
+                                    </p></phenotype-help
+                                >
                                 <div class="pbp-coterms">
                                     <button v-for="item in coTerms" :key="item.id" type="button" @click="addFeature(item.id)">
                                         {{ name(item.id) }}<em>{{ item.percent }}%</em>
@@ -312,7 +349,13 @@
                         </div>
                         <details v-if="matchesLoaded" open class="pbp-cohort-details">
                             <summary>Project groups · {{ cohortDiseaseSummary.length }} groups · {{ qualifyingSamples.length.toLocaleString() }} selected samples</summary>
-                            <p class="pbp-sub">{{ selectedSampleLabel }}. Same samples as the sample table, after filters and Exclude. Project names use the same metadata as the sample rows. Age: median (25th–75th percentile), years. Sex: female / male / unknown.</p>
+                            <phenotype-help label="Project summary">
+                                <p class="pbp-sub">
+                                    {{ selectedSampleLabel }}. Same samples as the sample table, after filters and Exclude. Project names use
+                                    the same metadata as the sample rows. Age: median (25th–75th percentile), years. Sex: female / male /
+                                    unknown.
+                                </p></phenotype-help
+                            >
                             <div class="pbp-table-scroll">
                                 <table>
                                     <thead><tr>
@@ -337,15 +380,6 @@
                                 <button type="button" :disabled="cohortPage >= cohortPageCount" @click="cohortPage++">Next</button>
                             </div>
                         </details>
-                        <p class="pbp-note">
-                            Filled colour marks a recorded query HPO; a white box with a dashed outline means it was not recorded. Colours follow the query chips above. An unmatched term is unknown, not clinically
-                            absent. Matches use the parent-expanded CRDC HPO observations. rPheRS Z-scores use the full scoring-cohort reference above; page filters and Exclude do not change the scores or reference. Sample disease / project labels and cohort categories use their available source records.<template v-if="excluded.length">
-                                {{ hiddenCount }} returned samples were removed
-                                using confirmed recorded HPO terms;
-                                {{ unknownExclusionCount }} have no exposed HPO
-                                list for exclusion verification.</template
-                            >
-                        </p>
                     </section>
                     <section class="pbp-card">
                         <div class="pbp-rowhead">
@@ -363,19 +397,47 @@
                                     }}
                                     <span class="pbp-heading-count">· {{ multi ? (geneSampleScope === 'whole' ? 'Whole-cohort results' : `${selectedSampleLabel} · ${qualifyingSamples.length.toLocaleString()} samples`) : genes ? `${genes.total.toLocaleString()} significant` : '—' }}</span>
                                 </h2>
-                                <p class="pbp-sub">
-                                    {{
-                                        multi
-                                            ? (geneSampleScope === 'whole' ? 'Whole-cohort results are retained. Use the sample-group filters below to see genes with GRS Max > 0 in matching samples.' : 'Rows are filtered to genes with GRS Max > 0 in the selected group. Shared by all requires score coverage for every selected sample.')
-                                            : "Existing approximate binary-HPO score-test β: change in HPO log-odds per 0.1 increase in GRS, without rPheRS SD standardization. Coefficient, SE and 95% CI are rescaled by 0.1; release p/q values and analysis samples are unchanged. Reference database links are shown separately."
-                                    }}
-                                </p>
-                                <p v-if="multi" class="pbp-sub pbp-analysis-scope"><strong>Full-cohort association reference:</strong> {{ genes && genes.analysisSampleCount ? genes.analysisSampleCount.toLocaleString() + ' analysis samples' : scoreMembership ? scoreMembership.analysisSampleCount.toLocaleString() + ' analysis samples' : 'Loading analysis sample count' }} · {{ genes ? genes.nTests.toLocaleString() : '—' }} tested genes. β / p / q below are from this full-cohort analysis; changing the selected group does not refit it.</p>
-                                <p v-if="multi && scoreMembership" class="pbp-sub">Score coverage: ≥2/{{ ids.length }}: {{ atLeastGeneSummary.covered }} / {{ atLeastGeneSummary.total }} samples · All {{ ids.length }}: {{ allGeneSummary.covered }} / {{ allGeneSummary.total }} samples. Missing score coverage is unavailable, not zero.</p>
-                                <p v-if="multi && genes" class="pbp-sub">{{ rphersReferenceLabel(geneStandardization) }}</p>
-                                <p v-if="rphersReferencesDiffer" class="pbp-sub">Sample scores and gene effects use different existing scoring cohorts. Each SD value uses its own stated reference; they are not a shared-reference scale.</p>
-                                <p class="pbp-sub">Reference links match the entered HPOs and respect Exclude. Ranks are within each database; overlapping databases are not independent replications.<template v-if="!geneReferenceSources.find(source => source.key === 'decipher').available"> DECIPHER gene mappings are unavailable in this reference release.</template></p>
-                                <details class="pbp-definition"><summary>Reference evidence criteria</summary><p>For multiple HPOs, Orphanet retains its existing profile-score cutoff (≥0.10). OMIM and DDG2P links require at least one matching HPO. Excluded HPO matches remove the disease record in every database. These links do not alter CRDC β, p, q or sample-group counts.</p></details>
+                                <p v-if="multi" class="pbp-sub pbp-analysis-scope"><strong>Full-cohort association reference:</strong> {{ genes && genes.analysisSampleCount ? genes.analysisSampleCount.toLocaleString() + ' analysis samples' : scoreMembership ? scoreMembership.analysisSampleCount.toLocaleString() + ' analysis samples' : 'Loading analysis sample count' }} · {{ genes ? genes.nTests.toLocaleString() : '—' }} tested genes. β / p / q use the full cohort.</p>
+                                <p v-if="rphersReferencesDiffer" class="pbp-sub">Sample scores and gene effects use different reference cohorts.</p>
+                                <phenotype-help label="Methods and reference evidence">
+                                    <p class="pbp-sub">
+                                        {{
+                                            multi
+                                                ? geneSampleScope === "whole"
+                                                    ? "Whole-cohort results are retained. Use the sample-group filters below to see genes with GRS Max > 0 in matching samples."
+                                                    : "Rows are filtered to genes with GRS Max > 0 in the selected group. Shared by all requires score coverage for every selected sample."
+                                                : "Existing approximate binary-HPO score-test β: change in HPO log-odds per 0.1 increase in GRS, without rPheRS SD standardization. Coefficient, SE and 95% CI are rescaled by 0.1; release p/q values and analysis samples are unchanged. Reference database links are shown separately."
+                                        }}
+                                    </p>
+
+                                    <p v-if="multi && scoreMembership" class="pbp-sub">
+                                        Score coverage: ≥2/{{ ids.length }}: {{ atLeastGeneSummary.covered }} /
+                                        {{ atLeastGeneSummary.total }} samples · All {{ ids.length }}: {{ allGeneSummary.covered }} /
+                                        {{ allGeneSummary.total }} samples. Missing score coverage is unavailable, not zero.
+                                    </p>
+                                    <p v-if="multi && genes" class="pbp-sub">{{ rphersReferenceLabel(geneStandardization) }}</p>
+                                    <p v-if="rphersReferencesDiffer" class="pbp-sub">
+                                        Sample scores and gene effects use different existing scoring cohorts. Each SD value uses its own stated
+                                        reference; they are not a shared-reference scale.
+                                    </p>
+                                    <p class="pbp-sub">
+                                        Reference links match the entered HPOs and respect Exclude. Ranks are within each database; overlapping
+                                        databases are not independent replications.<template
+                                            v-if="!geneReferenceSources.find((source) => source.key === 'decipher').available"
+                                        >
+                                            DECIPHER gene mappings are unavailable in this reference release.</template
+                                        >
+                                    </p>
+                                    <h3>Reference evidence criteria</h3>
+                                    <p>
+                                        For multiple HPOs, Orphanet retains its existing profile-score cutoff (≥0.10). OMIM and DDG2P links require
+                                        at least one matching HPO. Excluded HPO matches remove the disease record in every database. These links do
+                                        not alter CRDC β, p, q or sample-group counts.
+                                    </p>
+                                    <p v-if="multi">
+                                        Changing the selected sample group filters gene rows; it does not refit the full-cohort association.
+                                    </p>
+                                </phenotype-help>
                             </div>
                             <div class="pbp-controls">
                                 <input v-model.trim="geneSearch" class="pbp-gene-search" type="search" placeholder="Search gene" aria-label="Search gene results" />
@@ -577,15 +639,36 @@
                                         }}
                                         <span class="pbp-heading-count">· {{ diseases.length.toLocaleString() }} matched</span>
                                     </h2>
-                                    <p class="pbp-sub">
-                                        {{
-                                            !isOrphanet
-                                                ? "Ranked by the number of disease HPOs matched, then query terms matched and disease coverage. Frequency weights are not used."
-                                                : multi
-                                                ? "Orphanet disease profiles, ranked by harmonic coverage of query and disease phenotypes. Expand a row to inspect the calculation and annotations."
-                                                : "Orphanet disease profiles, sorted by phenotype frequency class and diagnostic criterion."
-                                        }}
-                                    </p>
+                                    <phenotype-help label="About these diseases">
+                                        <p class="pbp-sub">
+                                            {{
+                                                !isOrphanet
+                                                    ? "Ranked by the number of disease HPOs matched, then query terms matched and disease coverage. Frequency weights are not used."
+                                                    : multi
+                                                    ? "Orphanet disease profiles, ranked by harmonic coverage of query and disease phenotypes. Expand a row to inspect the calculation and annotations."
+                                                    : "Orphanet disease profiles, sorted by phenotype frequency class and diagnostic criterion."
+                                            }}
+                                        </p>
+                                        <p class="pbp-note">
+                                            {{
+                                                !isOrphanet
+                                                    ? "Disease HPOs matched = matched phenotype annotations / all unique phenotype annotations for this record (for example, 2/8). Inheritance and clinical modifiers are omitted. Query terms matched uses the input term count as its denominator. A query also matches a more specific disease annotation; matching several queries counts an annotation once. Excluded phenotypes remove matching records. No frequency weights or Profile score are assigned. "
+                                                    : multi
+                                                    ? "Profile score is the harmonic mean of disease and query coverage. Diseases matching a user-excluded HPO are removed from these results. The score ranks the remaining diseases; it is not a probability. Orphanet Excluded (0%) annotations are ignored. "
+                                                    : ""
+                                            }}{{
+                                                isOrphanet
+                                                    ? "Orphadata Products 4 and 6 · July 2026 reference snapshot."
+                                                    : diseaseSource === "ddg2p"
+                                                    ? "DDG2P phenotype reference · local release; each row is a gene–condition record."
+                                                    : "HPOA disease phenotype annotations · 2026-02-16 local release."
+                                            }}
+                                        </p>
+                                        <p v-if="isOrphanet" class="pbp-note">
+                                            * Included in an established diagnostic criteria set; this finding alone does not establish a diagnosis.
+                                            Excluded (0%) annotations are omitted.
+                                        </p>
+                                    </phenotype-help>
                                 </div>
                                 <input
                                     v-model.trim="diseaseQuery"
@@ -871,35 +954,20 @@
                                 <span>Page {{ diseasePage }} / {{ diseasePageCount }} · {{ filteredDiseases.length }} {{ diseaseSource === "ddg2p" ? "gene–condition records" : "diseases" }}</span>
                                 <button type="button" :disabled="diseasePage >= diseasePageCount" @click="diseasePage++">Next</button>
                             </div>
-                            <p class="pbp-note">
-                                {{
-                                    !isOrphanet
-                                        ? "Disease HPOs matched = matched phenotype annotations / all unique phenotype annotations for this record (for example, 2/8). Inheritance and clinical modifiers are omitted. Query terms matched uses the input term count as its denominator. A query also matches a more specific disease annotation; matching several queries counts an annotation once. Excluded phenotypes remove matching records. No frequency weights or Profile score are assigned. "
-                                        : multi
-                                        ? "Profile score is the harmonic mean of disease and query coverage. Diseases matching a user-excluded HPO are removed from these results. The score ranks the remaining diseases; it is not a probability. Orphanet Excluded (0%) annotations are ignored. "
-                                        : ""
-                                }}{{ isOrphanet ? "Orphadata Products 4 and 6 · July 2026 reference snapshot." : diseaseSource === "ddg2p" ? "DDG2P phenotype reference · local release; each row is a gene–condition record." : "HPOA disease phenotype annotations · 2026-02-16 local release." }}
-                            </p>
-                            <p v-if="isOrphanet" class="pbp-note">
-                                * Included in an established diagnostic criteria
-                                set; this finding alone does not establish a
-                                diagnosis. Excluded (0%) annotations are
-                                omitted.
-                            </p>
                         </section>
                         <aside v-if="multi" class="pbp-card pbp-narrow">
                             <span class="pbp-tag orpha"
                                 >{{ diseaseSourceLabel.toUpperCase() }} REFERENCE</span
                             >
                             <h3>What would narrow this?</h3>
-                            <p class="pbp-sub">
-                                Each row is a different phenotype. The count
-                                shows how many of the top
-                                {{ Math.min(10, candidates.length) }} {{ diseaseSourceLabel }} candidate
-                                {{ diseaseSource === "ddg2p" ? "gene–condition records" : "diseases" }} are annotated with it. + adds a
-                                recorded phenotype; - marks a confirmed
-                                excluded phenotype.
-                            </p>
+                            <phenotype-help label="Using these suggestions">
+                                <p class="pbp-sub">
+                                    Each row is a different phenotype. The count shows how many of the top
+                                    {{ Math.min(10, candidates.length) }} {{ diseaseSourceLabel }} candidate
+                                    {{ diseaseSource === "ddg2p" ? "gene–condition records" : "diseases" }} are annotated with it. + adds a
+                                    recorded phenotype; - marks a confirmed excluded phenotype.
+                                </p></phenotype-help
+                            >
                             <table>
                                 <thead>
                                     <tr>
@@ -991,6 +1059,7 @@ import { request as bioIndexRequest } from "@/utils/bioIndexUtils";
 import { fetchProfileGeneAssociations } from "./profileGeneApi";
 import { fetchSampleGeneScores, summarizeSampleGenes } from "./sampleSelection";
 import PhenotypeQueryInput from "./PhenotypeQueryInput.vue";
+import PhenotypeHelp from "./PhenotypeHelp.vue";
 import { createHpoSearchIndex } from "./hpoSearch";
 import { buildGeneReferenceEvidence } from "./geneReferenceEvidence";
 import { referenceAvailable, standardizedField, sameReference, contextMatches, referenceDescription } from "../../utils/rphersUnits";
@@ -1025,7 +1094,7 @@ function leafTerms(ids) {
 }
 export default {
     name: "PbPhenotypeTemplate",
-    components: { PhenotypeQueryInput },
+    components: { PhenotypeQueryInput, PhenotypeHelp },
     data() {
         const params = new URLSearchParams(window.location.search);
         const query = params.get("query") || params.get("hpo") || "HP:0001250";

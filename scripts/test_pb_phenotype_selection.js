@@ -35,6 +35,7 @@ const options=load('src/views/PbPhenotype/Template.vue',{
  ]},
  './phenotypeModel':model,
  './PhenotypeQueryInput.vue':{},
+ './PhenotypeHelp.vue': {},
  './hpoSearch':require('../src/views/PbPhenotype/hpoSearch'),
  './geneReferenceEvidence':require('../src/views/PbPhenotype/geneReferenceEvidence'),
  '@/utils/bioIndexUtils':{request:async()=>{throw new Error('No metadata I/O expected');}},
