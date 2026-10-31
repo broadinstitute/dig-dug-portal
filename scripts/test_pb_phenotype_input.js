@@ -6,7 +6,7 @@ const compiler = require('vue-template-compiler');
 const Vue = require('vue');
 const search = require('../src/views/PbPhenotype/hpoSearch');
 
-function load(file, imports = {}) {
+function load(file, imports = {}, globals = {}) {
     const raw = fs.readFileSync(file, 'utf8');
     const sfc = file.endsWith('.vue') ? compiler.parseComponent(raw) : null;
     const exports = {};
@@ -18,7 +18,7 @@ function load(file, imports = {}) {
         if (Object.hasOwn(imports, name)) return imports[name];
         throw new Error(`Unexpected import: ${name}`);
     }, window: { location: { search: '?query=HP:0000001,HP:0000002' } },
-    URLSearchParams, AbortController, setTimeout, clearTimeout, console });
+    URLSearchParams, AbortController, setTimeout, clearTimeout, console, ...globals });
     if (sfc) {
         const compiled = compiler.compile(sfc.template.content);
         assert.deepEqual(compiled.errors, []);
@@ -44,6 +44,7 @@ async function main() {
     const inputOptions = load('src/views/PbPhenotype/PhenotypeQueryInput.vue', { './hpoSearch': search }).default;
     const model = load('src/views/PbPhenotype/phenotypeModel.js');
     let metadataRequests = 0;
+    let profileRows = [];
     const pageOptions = load('src/views/PbPhenotype/Template.vue', {
         './orphanetReference.generated': { ORPHANET_REFERENCE: { terms, diseases: [], associations: {}, meta: {} } },
         './additionalDiseaseReferences.generated.json': { terms: {}, profiles: [] },
@@ -57,7 +58,10 @@ async function main() {
             metadataRequests++;
             return { ok: true, json: async () => ({ data: [{ SampleInVCF: q, sample_id: q.slice(0, -4), clean_name: 'Project P' }] }) };
         } },
-    }).default;
+    }, { fetch: async () => ({ ok: true, json: async () => ({
+        samples: profileRows, pagination: { total: profileRows.length },
+        scoring_method: 'residual PheRS: rphers_fast.score_samples', cohort_sample_count: 16366,
+    }) }) }).default;
     const page = new Vue({ ...pageOptions, parent: new Vue({ data: { diseaseGroup: '', frontContents: {} } }) });
     assert.equal(page.reference.__ob__, undefined, 'The static ontology must not be recursively observed');
     let parentRenders = 0;
@@ -91,6 +95,41 @@ async function main() {
     assert.equal(submissions.length, 0);
     profile.submit(); assert.deepEqual(submissions, ['HP:0000001,HP:0000002']);
     profile.value = 'HP:0031352'; await Vue.nextTick(); assert.equal(profile.draft, 'HP:0031352');
+
+    // Full profile responses already contain the joined cohort mapping and
+    // demographics. Summarizing thousands of them must not fan out to BioIndex.
+    const completeSamples = Array.from({ length: 16366 }, (_, i) => ({
+        sample_id: `Complete${i}`, profileMetadataComplete: true,
+        cohort_category: i % 2 ? 'Project A' : 'Project B', age_at_enrollment: 10,
+        gender: 'female', expanded_hpo_ids: ['HP:0000001', 'HP:0000002'],
+        matches: '2/2', rphers_z: 1,
+    }));
+    profileRows = completeSamples.slice(0, 6).map(({ profileMetadataComplete, ...row }) => row);
+    await page.loadSamples(); await Vue.nextTick();
+    assert.equal(page.matches.length, 6);
+    assert.ok(page.matches.every(row => row.profileMetadataComplete), 'Profile loading must recognize metadata already supplied by the API');
+    assert.equal(metadataRequests, 0, 'Normal profile loading must not issue sample-by-sample BioIndex requests');
+    const started = process.hrtime.bigint();
+    await page.loadSampleInfo(completeSamples);
+    assert.equal(metadataRequests, 0, 'Complete profile metadata must require zero per-sample requests');
+    assert.equal(page.sampleInfoLoading, false, 'Project controls must not wait for redundant metadata');
+    page.sampleInfo = { Complete0: { clean_name: 'Different legacy label' } };
+    assert.equal(page.sampleCohortDisease(completeSamples[0]), 'Project B', 'Profile mapping stays stable when BioIndex metadata differs');
+    assert.equal(page.sampleCohortDisease({ ...completeSamples[0], cohort_category: '' }), 'Unknown', 'A missing profile mapping is explicit, not silently substituted');
+    page.matches = completeSamples;
+    await Vue.nextTick();
+    assert.equal(page.cohortDiseaseSummary.length, 2);
+    assert.equal(page.qualifyingSamples.length, 16366);
+    page.selectedProjects = ['Project A'];
+    await Vue.nextTick();
+    assert.equal(page.qualifyingSamples.length, 8183);
+    assert.equal(page.ageSummary.remaining, 8183);
+    assert.equal(page.sexSummary.remaining, 8183);
+    assert.equal(metadataRequests, 0, 'Changing projects must reuse the profile metadata');
+    console.log(`Complete profile: 16,366 rows, 0 metadata requests, summary + selection ${Number(process.hrtime.bigint() - started) / 1e6} ms`);
+    page.matches = []; page.selectedProjects = [];
+    await Vue.nextTick();
+    page.sampleInfo = {};
 
     let metadataUpdates = 0;
     page.$watch('sampleInfo', () => metadataUpdates++);

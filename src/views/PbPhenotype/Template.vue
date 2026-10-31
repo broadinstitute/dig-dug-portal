@@ -189,6 +189,8 @@
                                     the same metadata as the sample rows. Age: median (25th–75th percentile), years. Sex: female / male /
                                     unknown. Hover over or focus an age or mean score to see how many samples contributed.
                                     An asterisk (*) indicates missing or unavailable values; those samples are omitted from that statistic.
+                                    Project names use the profile service's cohort mapping. Missing mapping is shown as Unknown;
+                                    BioIndex metadata is used only for older responses without profile metadata.
                                 </p></phenotype-help
                             >
                             <div class="pbp-table-scroll">
@@ -1755,6 +1757,13 @@ export default {
             return ageBand(this.sampleAge(sample));
         },
         sampleCohortDisease(sample) {
+            // The profile service has already joined the approved cohort mapping.
+            // Keep selection and counts stable instead of replacing these labels
+            // as hundreds of per-sample BioIndex requests finish.
+            if (sample.profileMetadataComplete) {
+                return typeof sample.cohort_category === "string" && sample.cohort_category.trim()
+                    ? sample.cohort_category.trim() : "Unknown";
+            }
             const info = this.sampleInfo[sampleKey(sample)] || {};
             const label =
                 info.clean_name ||
@@ -1851,6 +1860,9 @@ export default {
                 if (request === this.sampleRequest) {
                     this.sampleStandardization = reference;
                     this.matches = matches.map((row, index) => ({ ...row, rank: index + 1,
+                        profileMetadataComplete: ["cohort_category", "age_at_enrollment", "gender"].every(
+                            field => Object.prototype.hasOwnProperty.call(row, field)
+                        ) && Array.isArray(row.expanded_hpo_ids),
                         rphers_z: referenceAvailable(reference) && typeof row.rphers_z === "number" && Number.isFinite(row.rphers_z)
                             ? row.rphers_z : null }));
                     this.matchesLoaded = true;
@@ -1865,7 +1877,7 @@ export default {
         },
         async loadSampleInfo(samples) {
             const request = ++this.infoRequest;
-            const pending = samples.filter(sample => !this.sampleInfoChecked[sampleKey(sample)]);
+            const pending = samples.filter(sample => !sample.profileMetadataComplete && !this.sampleInfoChecked[sampleKey(sample)]);
             this.sampleInfoLoading = pending.length > 0;
             let cursor = 0;
             let received = {}, checked = {}, publishTimer = null;
