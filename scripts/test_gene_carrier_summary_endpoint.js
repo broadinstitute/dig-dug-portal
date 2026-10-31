@@ -33,6 +33,7 @@ global.fetch = async url => {
             ...(q === sampleA ? { Project: "Project Alpha" } : { clean_name: "Project Beta" }),
             initial_study_affected: q === sampleA ? "Y" : "N",
             genes: q === sampleA ? ["TEST", "OTHER"] : ["TEST", "OTHER", "THIRD"],
+            phenotypes: q === sampleA ? [{ hpo_id: "HP:0001250" }, { hpo_id: "HP:0001250" }, { hpo_id: "HP:0001249" }] : [],
         }] }) };
     }
     throw new Error(`Unexpected request: ${parsed.pathname}`);
@@ -73,6 +74,10 @@ async function waitForReady(query) {
     const gene = await waitForReady({ gene: "TEST" });
     assert.strictEqual(gene.carrierTotal, 2);
     assert.strictEqual(gene.matchedMetadataCount, 2);
+    assert.strictEqual(gene.phenotypeMetadataCount, 2);
+    assert.strictEqual(gene.geneListMetadataCount, 2);
+    assert.deepStrictEqual(gene.observedPhenotypes.find(row => row.hpoId === "HP:0001250"),
+        { hpoId: "HP:0001250", count: 1, denominator: 2 });
     assert.deepStrictEqual(gene.coCarrierGenes.find(row => row.gene === "OTHER"),
         { gene: "OTHER", count: 2, denominator: 2 });
     assert.deepStrictEqual(gene.geneCarrierDemographics.bySex,
@@ -107,6 +112,9 @@ async function waitForReady(query) {
     const variant = await waitForReady({ gene: "TEST", variant: variantA });
     assert.strictEqual(variant.carrierTotal, 1);
     assert.strictEqual(variant.matchedMetadataCount, 1);
+    assert.strictEqual(variant.phenotypeMetadataCount, 1);
+    assert.deepStrictEqual(variant.observedPhenotypes.find(row => row.hpoId === "HP:0001250"),
+        { hpoId: "HP:0001250", count: 1, denominator: 1 });
     assert.strictEqual(requests.filter(path => path.endsWith(sampleA)).length, 1);
 
     // A failed BioIndex lookup must not become a cached "ready, 0 metadata" result.
@@ -152,6 +160,8 @@ async function waitForReady(query) {
     }
     assert.strictEqual(recovered.status, "ready");
     assert.strictEqual(recovered.matchedMetadataCount, 1);
+    assert.strictEqual(recovered.phenotypeMetadataCount, 0);
+    assert.deepStrictEqual(recovered.observedPhenotypes, []);
     assert.deepStrictEqual(recovered.coCarrierGenes,
         [{ gene: "OTHER", count: 1, denominator: 1 }]);
 
@@ -282,7 +292,40 @@ async function waitForReady(query) {
         [{ project: "Project Beta", count: 1 }]);
     assert(authCalls.length >= 4);
     assert(authCalls.every(call => call.token === "session-one" || call.token === "session-two"));
-    console.log("Gene and variant carrier summaries: PASS");
+    // One slow sample must not hold all later 120-sample batches hostage.
+    const streamingHandlers = {};
+    const streamingIds = Array.from({length: 150}, (_, index) => `STREAM-${index}_G38`);
+    let releaseSlowSample;
+    const slowSample = new Promise(resolve => { releaseSlowSample = resolve; });
+    global.fetch = async url => {
+        const parsed = new URL(url);
+        if (parsed.pathname.endsWith('/gene-variants-crdc')) return {ok:true,json:async()=>({data:[{chromosome:'1',position:900,reference:'A',alt:'G',samples:streamingIds}]})};
+        if (parsed.pathname.endsWith('/samples-info')) {
+            const id = parsed.searchParams.get('q');
+            if (id === streamingIds[0]) await slowSample;
+            return {ok:true,json:async()=>({data:[{SampleInVCF:id,sex:'female',Project:'Streaming',genes:['TEST'],phenotypes:[]}]})};
+        }
+        throw new Error('Unexpected streaming request');
+    };
+    register({get(path,callback){streamingHandlers[path]=callback;}},'http://bioindex.test');
+    const readStreaming = () => new Promise(resolve=>streamingHandlers['/__gene_carrier_summary__']({query:{gene:'TEST'}},{set(){},json:resolve,status(code){throw new Error(`Unexpected ${code}`);}}));
+    let streaming;
+    for(let attempt=0;attempt<50;attempt++) {
+        streaming=await readStreaming();
+        if(streaming.completed>120)break;
+        await new Promise(resolve=>setTimeout(resolve,5));
+    }
+    const progressed = streaming.completed;
+    releaseSlowSample();
+    assert(progressed>120,'Later samples proceed before the first slow sample returns');
+    for(let attempt=0;attempt<50;attempt++) {
+        streaming=await readStreaming();
+        if(streaming.status==='ready')break;
+        await new Promise(resolve=>setTimeout(resolve,5));
+    }
+    assert.strictEqual(streaming.status,'ready');
+    assert.strictEqual(streaming.matchedMetadataCount,150);
+    console.log("Gene and variant carrier summaries, scoped cache and streaming progress: PASS");
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => {
     global.fetch = originalFetch;
 });

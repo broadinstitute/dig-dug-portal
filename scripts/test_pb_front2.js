@@ -1,0 +1,21 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const compiler = require('vue-template-compiler');
+const { resolveSearchTarget, buildSearchHref } = require('../src/views/PbFront2/searchModel');
+
+const genes = new Set(['gjb2']);
+assert.equal(buildSearchHref(resolveSearchTarget('gjb2', '', genes)), '/pb_gene2.html?query=GJB2');
+assert.equal(resolveSearchTarget('BCH-22-44945-01', '', genes), null);
+assert.equal(resolveSearchTarget('CRDC-001', '', genes), null);
+assert.equal(resolveSearchTarget('rs80338939', '', genes).path, '/pb_variant.html');
+assert.equal(resolveSearchTarget('Chest tightness [HP:0031352]', 'Phenotype', genes).path, '/pb_phenotype.html');
+assert.equal(resolveSearchTarget('', '', genes), null);
+const source = fs.readFileSync('src/views/PbFront2/Template.vue', 'utf8');
+const { template } = compiler.parseComponent(source);
+assert.deepEqual(compiler.compile(template.content).errors, []);
+assert.ok(template.content.includes('href="/pb_gene2.html"'));
+assert.ok(!/href="[^"]*(?:sample|Sample)/.test(template.content));
+assert.ok(!template.content.includes('Sample ·'));
+const gene2 = fs.readFileSync('src/views/PbGene2/Template.vue', 'utf8');
+assert.ok(gene2.includes('href="/pb_front2.html"'));
+console.log('PB Front2: Gene2 navigation, sample exclusion, variant/phenotype routes and template PASS');

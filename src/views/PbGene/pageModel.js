@@ -1677,6 +1677,7 @@ export const pbGeneMethods = {
                 hpo: Array.isArray(raw.phenotypes) ? raw.phenotypes.map(row => row && row.hpo_id).filter(Boolean).join(", ") || "None" : "Unavailable",
                 genes: Array.isArray(raw.genes) ? raw.genes : "Unavailable",
                 group: display(pick("investigator", "cohort", "study", "study_code")),
+                project: display(pick("clean_name", "Project", "project", "project_name")),
                 affected: flag(pick("initial_study_affected", "affected_flag", "affected", "is_affected")),
                 proband: String(pick("family_relationship") || "").toLowerCase() === "proband" ? "Proband" : "Unavailable",
                 gendx: display(pick("GeneDx", "gendx_detail_label", "gendx")),

@@ -3,6 +3,7 @@ import { displayGeneHpoAssociations } from "./geneHpoDisplay";
 import { getGeneReferenceAnnotation } from "./geneAnnotationReference";
 import { getGeneExons } from "./geneExonReference";
 import { PB_GENE_ID_REFERENCE } from "./geneIdReference.generated";
+import { collectVariantIdentifiers } from "./variantLookup";
 
 const DENSITY_BINS = 50;
 const MAX_CACHED_GENES = 5;
@@ -177,6 +178,7 @@ function buildVariantRow(entry) {
         consequence,
         hgvsc,
         hgvsp,
+        ...collectVariantIdentifiers(entry.variantRows),
         csq_detail: hgvsp || consequence,
         phenotypeMatchScore: null,
         carrierCount,

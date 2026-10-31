@@ -59,6 +59,13 @@ let pages = {
         title: "PB Gene Search",
         chunks: ["chunk-vendors", "chunk-common", "pbGeneLowercase"]
     },
+    pbGene2: {
+        entry: "src/views/PbGene2/main.js",
+        template: "public/index.html",
+        filename: "pb_gene2.html",
+        title: "PB Gene 2 · Layout review",
+        chunks: ["chunk-vendors", "chunk-common", "pbGene2"]
+    },
     publicGene: {
         entry: "src/views/PublicGene/main.js",
         template: "public/index.html",
@@ -79,6 +86,13 @@ let pages = {
         filename: "pb_Front.html",
         title: "CRDC Cohort Explorer",
         chunks: ["chunk-vendors", "chunk-common", "pbFront"]
+    },
+    pbFront2: {
+        entry: "src/views/PbFront2/main.js",
+        template: "public/index.html",
+        filename: "pb_front2.html",
+        title: "CRDC Cohort Explorer 2",
+        chunks: ["chunk-vendors", "chunk-common", "pbFront2"]
     },
     pbFrontLegacy: {
         entry: "src/views/KrFront/main.js",

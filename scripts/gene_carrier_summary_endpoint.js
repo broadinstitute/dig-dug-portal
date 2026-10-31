@@ -5,8 +5,9 @@ const cookie = require("cookie");
 const MAX_PAGES = 100;
 const SAMPLE_CONCURRENCY = 12;
 const MAX_GENE_CACHE = 5;
-const MAX_SAMPLE_CACHE = 1000;
-const GENE_BATCH_SIZE = 120;
+const MAX_SAMPLE_CACHE = 5000;
+const MAX_SAMPLE_CACHE_BYTES = 32 * 1024 * 1024;
+const SAMPLE_CACHE_TTL_MS = 15 * 60 * 1000;
 const SAMPLE_REQUEST_TIMEOUT_MS = 20000;
 const DEBUG_SAMPLE_LOOKUPS = process.env.PB_GENE_CARRIER_DEBUG === "1";
 
@@ -70,9 +71,13 @@ function normalizeInfo(row, queriedId) {
         age: normalizedAge(row),
         sex: display(first(row, ["sex", "gender"])),
         investigator: display(first(row, ["investigator", "cohort", "study", "study_code"])),
-        project: display(first(row, ["Project", "project", "project_name", "clean_name"])),
+        project: display(first(row, ["clean_name", "Project", "project", "project_name"])),
         affected: affectedLabel(first(row, ["initial_study_affected", "affected_flag", "affected", "is_affected"])),
         proband: String(first(row, ["family_relationship"]) || "").trim().toLowerCase() === "proband",
+        geneListAvailable: Array.isArray(row.genes),
+        hpoIds: Array.isArray(row.phenotypes)
+            ? [...new Set(row.phenotypes.map(term => String(typeof term === "string" ? term : term && (term.hpo_id || term.hpoId || term.id) || "").toUpperCase()).filter(id => /^HP:\d{7}$/.test(id)))]
+            : null,
         genes: Array.isArray(row.genes)
             ? [...new Set(row.genes.filter(value => typeof value === "string" && /^[A-Z0-9.-]{1,40}$/i.test(value)).map(value => value.toUpperCase()))]
             : [],
@@ -91,12 +96,20 @@ function createSummary(gene, carrierTotal) {
     const project = new Map();
     const affected = new Map();
     const genes = new Map();
+    const hpos = new Map();
     const add = (map, value) => { if (value) map.set(value, (map.get(value) || 0) + 1); };
     let matchedMetadataCount = 0;
+    let phenotypeMetadataCount = 0;
+    let geneListMetadataCount = 0;
     return {
         add(info) {
             if (!info) return;
             matchedMetadataCount += 1;
+            if (info.geneListAvailable) geneListMetadataCount += 1;
+            if (info.hpoIds !== null) {
+                phenotypeMetadataCount += 1;
+                for (const id of info.hpoIds) add(hpos, id);
+            }
             add(age, ageBand(info.age));
             add(sex, info.sex);
             add(investigator, info.investigator);
@@ -110,6 +123,9 @@ function createSummary(gene, carrierTotal) {
             return {
                 carrierTotal,
                 matchedMetadataCount,
+                phenotypeMetadataCount,
+                geneListMetadataCount,
+                observedPhenotypes: rowsFromCounts(hpos, "hpoId").map(row => ({ ...row, denominator: phenotypeMetadataCount })),
                 geneCarrierDemographics: {
                     byAge: ["0", "1-2", "3-5", "6-9", "10-13", "14-17", "18+", "Unknown"]
                         .filter(band => age.has(band))
@@ -132,6 +148,22 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
     const highQueue = [];
     const lowQueue = [];
     let active = 0;
+    let sampleCacheBytes = 0;
+
+    function removeCachedSample(key, entry) {
+        if (sampleCache.get(key) !== entry) return;
+        sampleCache.delete(key);
+        sampleCacheBytes -= entry.bytes || 0;
+    }
+
+    function trimSampleCache() {
+        // Keep in-flight lookups until they settle so a high-priority variant
+        // can reuse/promote the same request instead of fetching it twice.
+        for (const [key, entry] of sampleCache) {
+            if (sampleCache.size <= MAX_SAMPLE_CACHE && sampleCacheBytes <= MAX_SAMPLE_CACHE_BYTES) break;
+            if (entry.ready) removeCachedSample(key, entry);
+        }
+    }
 
     function accessScope(accessToken) {
         return accessToken
@@ -220,8 +252,14 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
 
     function sampleInfo(id, highPriority, accessToken) {
         const cacheKey = `${accessScope(accessToken)}|${id}`;
-        const cached = sampleCache.get(cacheKey);
+        let cached = sampleCache.get(cacheKey);
+        if (cached && cached.ready && cached.expiresAt <= Date.now()) {
+            removeCachedSample(cacheKey, cached);
+            cached = null;
+        }
         if (cached) {
+            sampleCache.delete(cacheKey);
+            sampleCache.set(cacheKey, cached);
             if (highPriority && cached.task && !cached.task.started) {
                 const index = lowQueue.indexOf(cached.task);
                 if (index >= 0) {
@@ -235,15 +273,21 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
         let reject;
         const promise = new Promise((done, fail) => { resolve = done; reject = fail; });
         const task = { id, accessToken, resolve, reject, started: false };
-        const entry = { promise, task };
+        const entry = { promise, task, ready: false, bytes: 0, expiresAt: 0 };
         sampleCache.set(cacheKey, entry);
         promise.then(info => {
-            if (!info && sampleCache.get(cacheKey) === entry) sampleCache.delete(cacheKey);
+            if (!info) { removeCachedSample(cacheKey, entry); return; }
+            if (sampleCache.get(cacheKey) !== entry) return;
+            entry.ready = true;
+            entry.bytes = Buffer.byteLength(JSON.stringify(info), 'utf8');
+            entry.expiresAt = Date.now() + SAMPLE_CACHE_TTL_MS;
+            sampleCacheBytes += entry.bytes;
+            trimSampleCache();
         }, () => {
-            if (sampleCache.get(cacheKey) === entry) sampleCache.delete(cacheKey);
+            removeCachedSample(cacheKey, entry);
         });
         (highPriority ? highQueue : lowQueue).push(task);
-        if (sampleCache.size > MAX_SAMPLE_CACHE) sampleCache.delete(sampleCache.keys().next().value);
+        trimSampleCache();
         drain();
         return promise;
     }
@@ -263,17 +307,20 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             const sampleIds = [...ids];
             job.total = sampleIds.length;
             job.summary = createSummary(gene, sampleIds.length);
-            for (let offset = 0; offset < sampleIds.length; offset += GENE_BATCH_SIZE) {
-                await Promise.all(sampleIds.slice(offset, offset + GENE_BATCH_SIZE).map(id =>
-                    sampleInfo(id, Boolean(requestedVariant), accessToken).then(info => {
-                        job.summary.add(info);
-                        if (job.filterInfo) job.filterInfo.set(id, info && {
-                            age: info.age, sex: info.sex, investigator: info.investigator,
-                            project: info.project, affected: info.affected, proband: info.proband,
-                        });
-                        job.completed += 1;
-                    })));
-            }
+            let nextSample = 0;
+            const workers = Array.from({ length: Math.min(SAMPLE_CONCURRENCY * 2, sampleIds.length) }, async () => {
+                while (nextSample < sampleIds.length && job.status === 'loading') {
+                    const id = sampleIds[nextSample++];
+                    const info = await sampleInfo(id, Boolean(requestedVariant), accessToken);
+                    job.summary.add(info);
+                    if (job.filterInfo) job.filterInfo.set(id, info && {
+                        age: info.age, sex: info.sex, investigator: info.investigator,
+                        project: info.project, affected: info.affected, proband: info.proband,
+                    });
+                    job.completed += 1;
+                }
+            });
+            await Promise.all(workers);
             job.result = job.summary.snapshot();
             job.summary = null;
             job.snapshot = null;
