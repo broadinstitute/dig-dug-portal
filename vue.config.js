@@ -452,6 +452,11 @@ module.exports = {
             });
         },
         proxy: {
+            "/__pb_sample_gene_scores__": {
+                target: process.env.PB_SAMPLE_GENE_SCORE_HOST || "http://127.0.0.1:8094",
+                changeOrigin: true,
+                pathRewrite: { "^/__pb_sample_gene_scores__": "/phenotype-analyzer-api" },
+            },
             "/__pb_phenotype_profile__": {
                 target: `http://127.0.0.1:${phenotypeProfilePort}`,
                 changeOrigin: true,

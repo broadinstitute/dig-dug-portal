@@ -200,10 +200,11 @@ function profilesFor(reference) {
 }
 
 export function resolveHpoId(reference, query) {
-    const id = String(query || "")
-        .trim()
-        .match(/^HP:\d{7}$/i);
-    if (id) return id[0].toUpperCase();
+    const text = String(query || "").trim();
+    // Front autocomplete submits "Term name [HP:0000000]". The identifier
+    // is authoritative, just as it is when submitted without a label.
+    const id = text.match(/^(HP:\d{7})$/i) || text.match(/\[\s*(HP:\d{7})\s*\]$/i);
+    if (id) return id[1].toUpperCase();
     const name = String(query || "")
         .trim()
         .toLocaleLowerCase();

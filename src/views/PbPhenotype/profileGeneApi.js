@@ -1,4 +1,5 @@
 import approvedCatalog from "./profileGeneCatalog.generated.json";
+import { fetchContextAssociations } from "../../utils/contextAssociationRequest";
 
 const FULL_SCOPE = "all valid genes in approved score source";
 
@@ -8,16 +9,10 @@ export async function fetchProfileGeneAssociations(hpoIds, fetcher = fetch, cata
     const genes = catalog.genes;
     if (!genes.length || genes.length > 25000 || new Set(genes).size !== genes.length)
         throw new Error("The complete gene-score catalog is unavailable.");
-    const response = await fetcher("/phenotype-analyzer-api/co-gene-associations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            gene: genes[0], terms: hpoIds, co_genes: genes.slice(1),
-            score_type: "max", affected_only: false,
-        }),
-    });
-    if (!response.ok) throw new Error(`CRDC gene analysis returned ${response.status}.`);
-    const result = await response.json();
+    const result = await fetchContextAssociations({
+        gene: genes[0], terms: hpoIds, co_genes: genes.slice(1),
+        score_type: "max", affected_only: false,
+    }, fetcher);
     const rows = result.gene_associations || {};
     if (result.n_requested !== genes.length || Object.keys(rows).length !== genes.length ||
         genes.some((gene) => !Object.prototype.hasOwnProperty.call(rows, gene)) ||

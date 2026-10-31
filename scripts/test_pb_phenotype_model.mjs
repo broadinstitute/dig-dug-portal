@@ -5,6 +5,17 @@ const source = readFileSync("src/views/PbPhenotype/phenotypeModel.js");
 const model = await import(`data:text/javascript;base64,${source.toString("base64")}`);
 const { diseaseRows, unweightedDiseaseRows, narrowingTerms, ageBand, validAge, ageExclusionSummary, sexExclusionSummary, sexCategory, cohortSampleSummary, sortTableRows, formatStatistic } = model;
 
+// Front's selected-term URL and direct Phenotype search must resolve identically.
+const releaseSource = readFileSync('src/views/PbPhenotype/orphanetReference.generated.js', 'utf8');
+const release = JSON.parse(releaseSource.slice(releaseSource.indexOf(' = ') + 3).trim().replace(/;$/, ''));
+const frontUrl = new URL('http://localhost/pb_phenotype.html?query=Chest%20tightness%20%5BHP%3A0031352%5D');
+assert.equal(release.terms['HP:0031352'][0], 'Chest tightness');
+for (const query of [frontUrl.searchParams.get('query'), 'Chest tightness', 'HP:0031352', 'chest tightness [hp:0031352]', 'Chest tightness [ HP:0031352 ]']) {
+    assert.deepEqual(model.resolveHpoIds(release, query), ['HP:0031352']);
+}
+assert.deepEqual(model.resolveHpoIds(release, 'Chest tightness [HP:0031352], Seizure [HP:0001250]; HP:0031352'), ['HP:0031352', 'HP:0001250']);
+assert.deepEqual(model.resolveHpoIds(release, 'not a phenotype'), []);
+
 const terms = {};
 const associations = {};
 const add = (id, frequency, parents = []) => {

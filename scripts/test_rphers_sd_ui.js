@@ -87,14 +87,19 @@ const hpoMock = { resolveHpoTerms: () => terms, contextApiError: async () => 'er
     assert.equal(Number(variant.geneAssociationCell('HBB', 'fdr')), .08);
 
     const component = load('src/views/PbPhenotype/Template.vue', {
-        './orphanetReference.generated': { ORPHANET_REFERENCE: { terms: {} } },
-        './additionalDiseaseReferences.generated.json': { terms: {} },
+        './orphanetReference.generated': { ORPHANET_REFERENCE: { terms: {}, diseases: [] } },
+        './additionalDiseaseReferences.generated.json': { terms: {}, profiles: [] },
     }, {
         Blob: class { constructor(parts) { csvText = parts.join(''); } },
         URL: { createObjectURL: () => 'blob:export', revokeObjectURL() {} },
         document: { createElement: () => ({ click() {}, remove() {} }), body: { appendChild() {} } },
     }).default;
     const phenotype = { ids: terms, multi: true, geneStandardization: reference, significantGene: () => true,
+        geneSampleScope: 'whole', selectedSampleLabel: 'All 2 HPOs', geneReferenceSource: 'all',
+        selectedGeneSummary: { total: 2, covered: 2, genes: {} },
+        atLeastGeneSummary: { total: 2, covered: 2, genes: {} }, allGeneSummary: { total: 2, covered: 2, genes: {} },
+        genes: { analysisSampleCount: 100 }, referenceSourceLabel: source => source,
+        geneReferenceSources: ['orphanet', 'omim', 'ddg2p', 'decipher'].map(key => ({key, available: key !== 'decipher'})),
         sortedGenes: [{ gene: 'HBB', diseases: [], association: { beta: 8, betaSdPer0_1Grs: .2,
             standardErrorSdPer0_1Grs: .05, nPositive: 12, pValue: .04, qValue: .08 } }] };
     component.methods.exportGenes.call(phenotype);

@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+globalThis.__pbContextAssociationRequest = createRequire(import.meta.url)('../src/utils/contextAssociationRequest');
 
 const source = readFileSync("src/views/PbPhenotype/profileGeneApi.js", "utf8")
-    .replace('import approvedCatalog from "./profileGeneCatalog.generated.json";', "const approvedCatalog = {genes: []};");
+    .replace('import approvedCatalog from "./profileGeneCatalog.generated.json";', "const approvedCatalog = {genes: []};")
+    .replace('import { fetchContextAssociations } from "../../utils/contextAssociationRequest";', 'const { fetchContextAssociations } = globalThis.__pbContextAssociationRequest;');
 const { fetchProfileGeneAssociations } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
 const catalog = { genes: ["A", "B", "C"], source: "approved.tsv", sha256: "test" };
 const terms = ["HP:0001250", "HP:0001945"];

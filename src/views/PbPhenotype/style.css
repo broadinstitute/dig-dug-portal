@@ -110,6 +110,15 @@
     font-size: 14px;
     margin: 0 0 14px;
 }
+.pbp-scope-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0; }
+.pbp-scope-picker .scope-active { color: #fff; background: var(--blue); border-color: var(--blue); }
+.pbp-scope-picker small { color: var(--muted); }
+.pbp-analysis-scope { padding: 10px 12px; background: #f3f6f9; border-left: 3px solid var(--line); }
+.pbp-page .pbp-selected-group-column { background: #edf5ff; }
+.pbp-page .pbp-sort small { display: block; font-weight: 400; }
+.pbp-page .pbp-gene-table { min-width: 1050px; }
+.pbp-page .pbp-gene-scope-head th { background: #f3f6f9; text-align: center; }
+.pbp-gene-search { width: 150px; min-width: 0; min-height: 36px; border: 1px solid var(--line); border-radius: 6px; padding: 0 10px; }
 .pbp-tag {
     display: inline-block;
     font-size: 11px;
@@ -594,6 +603,17 @@
 .pbp-legend .orpha {
     background: #c9b3f3;
 }
+.pbp-reference-picker { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin: 0; }
+.pbp-reference-picker select { max-width: 240px; padding: 7px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--ink); }
+.pbp-reference-badge { display: inline-block; margin: 2px 3px 2px 0; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.pbp-reference-badge.crdc { background: #e4f4f1; color: #176b61; }
+.pbp-reference-badge.orphanet { background: #eee7fa; color: #7042a2; }
+.pbp-reference-badge.omim { background: #e4efff; color: #245da1; }
+.pbp-reference-badge.ddg2p { background: #fff0dc; color: #875200; }
+.pbp-reference-badge.decipher { background: #fce7f0; color: #91375b; }
+.pbp-gene-reference { margin-bottom: 5px; }
+.pbp-gene-reference small { display: block; color: var(--muted); }
+.pbp-more-references summary { cursor: pointer; color: var(--blue); font-size: 12px; }
 .pbp-evidence {
     display: inline-block;
     width: 26px;

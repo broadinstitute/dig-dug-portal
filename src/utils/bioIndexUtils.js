@@ -59,11 +59,12 @@ export function rawUrl(path, query_params, query_private=false) {
 
 /* Build a generic request to a BioIndex end-point.
  */
-export async function request(path, query_params, query_private=false) {
+export async function request(path, query_params, query_private=false, options={}) {
     return fetch(rawUrl(path, query_params, query_private), {
         headers: {
             "x-bioindex-access-token": session_cookie,
         },
+        signal: options.signal,
     });
 }
 
