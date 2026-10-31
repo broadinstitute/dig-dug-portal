@@ -440,6 +440,7 @@
 }
 .pbp-cohort-details {
     padding: 12px 14px;
+    color: var(--ink);
     border: 1px solid var(--line);
     border-radius: 8px;
     background: #fff;
@@ -453,6 +454,32 @@
 .pbp-cohort-stat {
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+}
+.pbp-project-selection { margin: 4px 0 10px; font-size: 13px; color: var(--muted); }
+.pbp-project-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.pbp-project-chips .pbp-btn { background: #edf5ff; border-color: #b6d4fe; color: #174ea6; }
+.pbp-page .pbp-project-check { width: 36px; padding-right: 4px; }
+.pbp-project-check input { width: 17px; height: 17px; margin: 2px 0 0; accent-color: var(--blue); cursor: pointer; }
+.pbp-project-check input:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.pbp-project-selected { background: #edf5ff; }
+.pbp-project-table { color: var(--ink); }
+.pbp-linked-samples {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+}
+.pbp-stat-help {
+    cursor: help;
+    border-radius: 3px;
+}
+.pbp-stat-help:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+}
+.pbp-stat-missing {
+    margin-left: 3px;
+    color: #92400e;
+    font-weight: 600;
 }
 .pbp-table-scroll {
     overflow: auto;

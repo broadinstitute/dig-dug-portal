@@ -72,6 +72,24 @@ async function main(){
  assert.equal(page.qualifyingSamples.length,4);
  assert.equal(page.cohortDiseaseSummary.length,2,'Project group and sample row use identical current labels');
  assert.deepEqual(Array.from(page.sortedGenes,row=>row.gene),['X','Y','Z'],'List and sort follow the selected samples, not smallest full-cohort q');
+ page.samplePage=2;page.selectedProjects=['Project Q'];await Vue.nextTick();
+ assert.equal(page.qualifyingSamples.length,2,'Project checkbox filters samples');
+ assert.equal(page.ageSummary.remaining,2);assert.equal(page.sexSummary.remaining,2);
+ assert.equal(page.selectedGeneSummary.total,2,'Selected-group support uses checked projects');
+ assert.equal(page.cohortDiseaseSummary.length,2,'Unselected projects stay available for additional selection');
+ assert.equal(page.samplePage,1,'Project selection resets sample pagination');
+ assert.ok(page.qualifyingSamples.every(row=>page.sampleCohortDisease(row)==='Project Q'));
+ page.selectedProjects=['Project P','Project Q'];await Vue.nextTick();
+ assert.equal(page.qualifyingSamples.length,4,'Multiple checked projects form a union');
+ assert.equal(page.genes,originalGenes,'Project selection must preserve full-cohort regression');
+ assert.equal(analysisCalls,0);assert.equal(membershipCalls,1,'Project filtering must reuse loaded scores');
+ page.selectedProjects=[];await Vue.nextTick();
+ assert.equal(page.qualifyingSamples.length,4,'Clearing project selection restores all matching samples');
+ const ranked=[1,2,3,4,5,6];
+ assert.deepEqual(Array.from(options.computed.visibleSamples.call({sortedSamples:ranked,samplePage:1})),[1,2,3,4]);
+ assert.deepEqual(Array.from(options.computed.visibleSamples.call({sortedSamples:ranked,samplePage:2})),[5,6]);
+ assert.equal(options.computed.samplePageCount.call({qualifyingSamples:ranked}),2);
+
  assert.equal(page.groupScoreCell('X',page.atLeastGeneSummary),'3/4');
  assert.equal(page.groupScoreCell('X',page.allGeneSummary),'2/2');
  assert.deepEqual(Array.from(page.geneRows.find(row=>row.gene==='X').diseases,item=>item.source),['omim']);
@@ -127,9 +145,9 @@ async function main(){
  page.geneFilter='shared';
  page.excluded=[];page.ageBandFilter='3–5';await Vue.nextTick();
  assert.equal(page.qualifyingSamples.length,1);assert.equal(page.selectedGeneSummary.total,1);
- page.ageBandFilter='';page.cohortDiseaseFilter='Project Q';await Vue.nextTick();
+ page.ageBandFilter='';page.selectedProjects=['Project Q'];await Vue.nextTick();
  assert.equal(page.qualifyingSamples.length,0);assert.equal(page.filteredGenes.length,0,'Zero-case group must not show universally shared genes');
- page.cohortDiseaseFilter='';
+ page.selectedProjects=[];
  page.scoreMembership=decodeSampleGeneScores({...payload,available_sample_ids:['A','C','D'],unavailable_sample_ids:['B'],sample_gene_indices:{A:[0,1],C:[0],D:[2]}},['A','B','C','D']);
  await Vue.nextTick();
  assert.equal(page.allGeneSummary.covered,1);assert.equal(page.groupScoreCell('X',page.allGeneSummary),'1/1');

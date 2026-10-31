@@ -155,52 +155,20 @@
                             </template>
                         </phenotype-help>
                     </section>
-                    <section class="pbp-card pbp-samples">
+                    <section class="pbp-card pbp-projects">
                         <div class="pbp-rowhead">
                             <div>
-                                <span class="pbp-tag crdc"
-                                    >CRDC · OBSERVED HPO</span
-                                >
-                                <h2>
-                                    Samples ranked by rPheRS Z-score
-                                    <span class="pbp-heading-count">· {{ matchesLoaded ? qualifyingSamples.length.toLocaleString() : "—" }}</span>
-                                </h2>
-                                <phenotype-help label="About these samples">
-                                    <p class="pbp-sub">
-                                        {{
-                                            multi
-                                                ? `${selectedSampleLabel} · ${qualifyingSamples.length.toLocaleString()} selected samples, ranked by rPheRS Z-score.`
-                                                : "Samples with this recorded HPO term, ranked by rPheRS Z-score."
-                                        }}
-                                    </p>
-                                    <p v-if="matchesLoaded" class="pbp-sub">{{ rphersReferenceLabel(sampleStandardization) }}</p>
-                                    <p class="pbp-note">
-                                        Filled colour marks a recorded query HPO; a white box with a dashed outline means it was not recorded.
-                                        Colours follow the query chips above. An unmatched term is unknown, not clinically absent. Matches use the
-                                        parent-expanded CRDC HPO observations. rPheRS Z-scores use the full scoring-cohort reference above; page
-                                        filters and Exclude do not change the scores or reference. Sample disease / project labels and cohort
-                                        categories use their available source records.<template v-if="excluded.length">
-                                            {{ hiddenCount }} returned samples were removed using confirmed recorded HPO terms;
-                                            {{ unknownExclusionCount }} have no exposed HPO list for exclusion verification.</template
-                                        >
-                                    </p>
-                                </phenotype-help>
+                                <span class="pbp-tag crdc">CRDC · OBSERVED HPO</span>
+                                <h2>Project summary <span class="pbp-heading-count">· {{ cohortDiseaseSummary.length }} groups</span></h2>
+                                <p class="pbp-project-selection" aria-live="polite">{{ selectedProjects.length ? `${selectedProjects.length} ${selectedProjects.length === 1 ? 'project' : 'projects'} selected` : 'All projects' }} · {{ matchesLoaded ? qualifyingSamples.length.toLocaleString() : '—' }} samples</p>
                             </div>
-                            <div class="pbp-controls">
-                                <select
-                                    v-model="cohortDiseaseFilter"
-                                    aria-label="Project group" :disabled="sampleInfoLoading"
-                                >
-                                    <option value="">All Project groups</option>
-                                    <option
-                                        v-for="item in cohortDiseases"
-                                        :key="item"
-                                        :value="item"
-                                    >
-                                        {{ item }}
-                                    </option></select
-                                >
-                            </div>
+                            <button v-if="selectedProjects.length" type="button" class="pbp-btn" @click="selectedProjects = []">Show all projects</button>
+                        </div>
+                        <div v-if="selectedProjects.length" class="pbp-project-chips" aria-label="Selected projects">
+                            <button v-for="project in selectedProjects" :key="project" type="button" class="pbp-btn small"
+                                :aria-label="`Remove project filter ${project}`" @click="selectedProjects = selectedProjects.filter(name => name !== project)">
+                                {{ project }} <span aria-hidden="true">×</span>
+                            </button>
                         </div>
                         <p v-if="sampleInfoLoading" class="pbp-sub" role="status">Loading Project labels for matching samples…</p>
 
@@ -213,70 +181,53 @@
                                 Retry
                             </button>
                         </p>
-                        <div class="pbp-table-scroll">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'rank')">Rank {{ sortIndicator('samples', 'rank') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'sample')">Sample {{ sortIndicator('samples', 'sample') }}</button></th>
-                                        <th><button class="pbp-sort" title="How many scoring-cohort sample SDs this patient's residual PheRS lies above or below that cohort's mean." @click="toggleSort('samples', 'phers')">rPheRS Z-score {{ sortIndicator('samples', 'phers') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'matches')">Query HPOs matched {{ sortIndicator('samples', 'matches') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'ageSex')">Age · sex {{ sortIndicator('samples', 'ageSex') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'cohort')">Project {{ sortIndicator('samples', 'cohort') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'affected')">Affected {{ sortIndicator('samples', 'affected') }}</button></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="sample in visibleSamples"
-                                        :key="sampleKey(sample)"
-                                    >
-                                        <td>
-                                            <span
-                                                class="pbp-rank"
-                                                >{{ sample.rank }}</span
-                                            >
+                        <div v-if="matchesLoaded" class="pbp-project-table">
+
+                            <phenotype-help label="Project summary">
+                                <p class="pbp-sub">
+                                    {{ selectedSampleLabel }}. Projects include matching samples after age, sex, affected and Exclude filters. Select project checkboxes to update the demographics and sample list below. With no projects selected, all projects are included. Project names use
+                                    the same metadata as the sample rows. Age: median (25th–75th percentile), years. Sex: female / male /
+                                    unknown. Hover over or focus an age or mean score to see how many samples contributed.
+                                    An asterisk (*) indicates missing or unavailable values; those samples are omitted from that statistic.
+                                </p></phenotype-help
+                            >
+                            <div class="pbp-table-scroll">
+                                <table>
+                                    <thead><tr>
+                                        <th class="pbp-project-check"><span class="sr-only">Select project</span></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'name')">Project {{ sortIndicator('cohorts', 'name') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'total')">Samples {{ sortIndicator('cohorts', 'total') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'affected')">Affected {{ sortIndicator('cohorts', 'affected') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'medianAge')">Age · median (Q1–Q3) {{ sortIndicator('cohorts', 'medianAge') }}</button></th>
+                                        <th><button class="pbp-sort" title="Sort by female sample count" @click="toggleSort('cohorts', 'sex')">Sex · F / M / unknown {{ sortIndicator('cohorts', 'sex') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'phers')">Mean rPheRS Z-score {{ sortIndicator('cohorts', 'phers') }}</button></th>
+                                    </tr></thead>
+                                    <tbody><tr v-for="item in visibleCohortDiseaseSummary" :key="item.name" :class="{ 'pbp-project-selected': selectedProjects.includes(item.name) }">
+                                        <td class="pbp-project-check"><input type="checkbox" v-model="selectedProjects" :value="item.name" :aria-label="`Include project ${item.name}`" :disabled="sampleInfoLoading" /></td>
+                                        <td>{{ item.name }}</td><td>{{ item.total.toLocaleString() }}</td><td>{{ item.affected.toLocaleString() }}</td>
+                                        <td class="pbp-cohort-stat">
+                                            <span class="pbp-stat-help" tabindex="0" v-b-tooltip.hover.focus.top
+                                                :title="`${item.ageKnown.toLocaleString()} / ${item.total.toLocaleString()} valid ages; ${item.total - item.ageKnown} missing or outside 0–100 years. Statistics use valid ages only.`"
+                                                :aria-label="`Age: median ${ageStat(item.medianAge)}${item.medianAge != null ? `, Q1 ${ageStat(item.q1Age)}, Q3 ${ageStat(item.q3Age)}` : ''}. ${item.ageKnown} of ${item.total} valid ages; ${item.total - item.ageKnown} unavailable.`">
+                                                {{ ageStat(item.medianAge) }}<template v-if="item.medianAge != null"> ({{ ageStat(item.q1Age) }}–{{ ageStat(item.q3Age) }})</template><sup v-if="item.ageKnown < item.total" class="pbp-stat-missing" aria-hidden="true">*</sup>
+                                            </span>
                                         </td>
-                                        <td>
-                                            <a
-                                                :href="`/pb_sample.html?query=${encodeURIComponent(
-                                                    sample.unique_sample_ID ||
-                                                        sample.SampleInVCF
-                                                )}`"
-                                                >{{ sampleKey(sample) }}</a
-                                            >
+                                        <td class="pbp-cohort-stat">{{ item.sex.female.toLocaleString() }} / {{ item.sex.male.toLocaleString() }} / {{ item.sex.unknown.toLocaleString() }}</td>
+                                        <td class="pbp-cohort-stat">
+                                            <span class="pbp-stat-help" tabindex="0" v-b-tooltip.hover.focus.top
+                                                :title="`${item.phersKnown.toLocaleString()} / ${item.total.toLocaleString()} scored; ${item.total - item.phersKnown} unavailable. Mean uses available rPheRS Z-scores only.`"
+                                                :aria-label="`Mean rPheRS Z-score: ${item.meanResidualPhers == null ? 'unavailable' : score(item.meanResidualPhers)}. ${item.phersKnown} of ${item.total} scored; ${item.total - item.phersKnown} unavailable.`">
+                                                {{ item.meanResidualPhers == null ? "—" : score(item.meanResidualPhers) }}<sup v-if="item.phersKnown < item.total" class="pbp-stat-missing" aria-hidden="true">*</sup>
+                                            </span>
                                         </td>
-                                        <td>
-                                            {{ score(sample.rphers_z) }}
-                                        </td>
-                                        <td>
-                                            <span class="pbp-segments" role="img" :aria-label="sampleMatchDescription(sample)">
-                                                <i v-for="id in ids" :key="id" :class="{ missing: !sampleTerms(sample).includes(id) }" :style="termStyle(id)" :title="`${name(id)}: ${sampleTerms(sample).includes(id) ? 'recorded' : 'not recorded (unknown)'}`"></i>
-                                            </span><b>{{ sample.matches || "—" }}</b>
-                                        </td>
-                                        <td>{{ sampleAge(sample) == null ? "—" : sampleAge(sample) }} · {{ sampleSex(sample) }}</td>
-                                        <td>
-                                            {{ sampleCohortDisease(sample) }}
-                                        </td>
-                                        <td>
-                                            {{
-                                                sample.initial_study_affected ===
-                                                "Y"
-                                                    ? "Yes"
-                                                    : sample.initial_study_affected ===
-                                                      "N"
-                                                    ? "No"
-                                                    : "Unknown"
-                                            }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="pbp-pagination">
-                            <button type="button" :disabled="samplePage <= 1" @click="samplePage--">Previous</button>
-                            <span>Page {{ samplePage }} / {{ samplePageCount }} · {{ qualifyingSamples.length }} samples</span>
-                            <button type="button" :disabled="samplePage >= samplePageCount" @click="samplePage++">Next</button>
+                                    </tr></tbody>
+                                </table>
+                            </div>
+                            <div class="pbp-pagination">
+                                <button type="button" :disabled="cohortPage <= 1" @click="cohortPage--">Previous</button>
+                                <span>Page {{ cohortPage }} / {{ cohortPageCount }} · {{ cohortDiseaseSummary.length }} groups</span>
+                                <button type="button" :disabled="cohortPage >= cohortPageCount" @click="cohortPage++">Next</button>
+                            </div>
                         </div>
                         <div v-if="matchesLoaded" class="pbp-sample-context">
                             <section class="pbp-context-panel pbp-age-panel" aria-label="Age at record">
@@ -347,39 +298,102 @@
                                 </div>
                             </section>
                         </div>
-                        <details v-if="matchesLoaded" open class="pbp-cohort-details">
-                            <summary>Project groups · {{ cohortDiseaseSummary.length }} groups · {{ qualifyingSamples.length.toLocaleString() }} selected samples</summary>
-                            <phenotype-help label="Project summary">
-                                <p class="pbp-sub">
-                                    {{ selectedSampleLabel }}. Same samples as the sample table, after filters and Exclude. Project names use
-                                    the same metadata as the sample rows. Age: median (25th–75th percentile), years. Sex: female / male /
-                                    unknown.
-                                </p></phenotype-help
-                            >
-                            <div class="pbp-table-scroll">
-                                <table>
-                                    <thead><tr>
-                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'name')">Project {{ sortIndicator('cohorts', 'name') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'total')">Samples {{ sortIndicator('cohorts', 'total') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'affected')">Affected {{ sortIndicator('cohorts', 'affected') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'medianAge')">Age · median (Q1–Q3) {{ sortIndicator('cohorts', 'medianAge') }}</button></th>
-                                        <th><button class="pbp-sort" title="Sort by female sample count" @click="toggleSort('cohorts', 'sex')">Sex · F / M / unknown {{ sortIndicator('cohorts', 'sex') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'phers')">Mean rPheRS Z-score {{ sortIndicator('cohorts', 'phers') }}</button></th>
-                                    </tr></thead>
-                                    <tbody><tr v-for="item in visibleCohortDiseaseSummary" :key="item.name">
-                                        <td>{{ item.name }}</td><td>{{ item.total.toLocaleString() }}</td><td>{{ item.affected.toLocaleString() }}</td>
-                                        <td class="pbp-cohort-stat"><b>{{ ageStat(item.medianAge) }}</b><span v-if="item.medianAge != null"> ({{ ageStat(item.q1Age) }}–{{ ageStat(item.q3Age) }})</span><small>{{ item.ageKnown.toLocaleString() }} / {{ item.total.toLocaleString() }} valid ages</small></td>
-                                        <td class="pbp-cohort-stat">{{ item.sex.female.toLocaleString() }} / {{ item.sex.male.toLocaleString() }} / {{ item.sex.unknown.toLocaleString() }}</td>
-                                        <td class="pbp-cohort-stat"><b>{{ item.meanResidualPhers == null ? "—" : score(item.meanResidualPhers) }}</b><small>{{ item.phersKnown.toLocaleString() }} / {{ item.total.toLocaleString() }} scored</small></td>
-                                    </tr></tbody>
-                                </table>
+                        <div class="pbp-samples pbp-linked-samples">
+                        <div class="pbp-rowhead">
+                            <div>
+                                <h2>
+                                    Samples ranked by rPheRS Z-score
+                                    <span class="pbp-heading-count">· {{ matchesLoaded ? qualifyingSamples.length.toLocaleString() : "—" }}</span>
+                                </h2>
+                                <phenotype-help label="About these samples">
+                                    <p class="pbp-sub">
+                                        {{
+                                            multi
+                                                ? `${selectedSampleLabel} · ${qualifyingSamples.length.toLocaleString()} selected samples, ranked by rPheRS Z-score.`
+                                                : "Samples with this recorded HPO term, ranked by rPheRS Z-score."
+                                        }}
+                                    </p>
+                                    <p v-if="matchesLoaded" class="pbp-sub">{{ rphersReferenceLabel(sampleStandardization) }}</p>
+                                    <p class="pbp-note">
+                                        Filled colour marks a recorded query HPO; a white box with a dashed outline means it was not recorded.
+                                        Colours follow the query chips above. An unmatched term is unknown, not clinically absent. Matches use the
+                                        parent-expanded CRDC HPO observations. rPheRS Z-scores use the full scoring-cohort reference above; page
+                                        filters and Exclude do not change the scores or reference. Sample disease / project labels and cohort
+                                        categories use their available source records.<template v-if="excluded.length">
+                                            {{ hiddenCount }} returned samples were removed using confirmed recorded HPO terms;
+                                            {{ unknownExclusionCount }} have no exposed HPO list for exclusion verification.</template
+                                        >
+                                    </p>
+                                </phenotype-help>
                             </div>
-                            <div class="pbp-pagination">
-                                <button type="button" :disabled="cohortPage <= 1" @click="cohortPage--">Previous</button>
-                                <span>Page {{ cohortPage }} / {{ cohortPageCount }} · {{ cohortDiseaseSummary.length }} groups</span>
-                                <button type="button" :disabled="cohortPage >= cohortPageCount" @click="cohortPage++">Next</button>
-                            </div>
-                        </details>
+                        </div>
+                        <div class="pbp-table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'rank')">Rank {{ sortIndicator('samples', 'rank') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'sample')">Sample {{ sortIndicator('samples', 'sample') }}</button></th>
+                                        <th><button class="pbp-sort" title="How many scoring-cohort sample SDs this patient's residual PheRS lies above or below that cohort's mean." @click="toggleSort('samples', 'phers')">rPheRS Z-score {{ sortIndicator('samples', 'phers') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'matches')">Query HPOs matched {{ sortIndicator('samples', 'matches') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'ageSex')">Age · sex {{ sortIndicator('samples', 'ageSex') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'cohort')">Project {{ sortIndicator('samples', 'cohort') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('samples', 'affected')">Affected {{ sortIndicator('samples', 'affected') }}</button></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="sample in visibleSamples"
+                                        :key="sampleKey(sample)"
+                                    >
+                                        <td>
+                                            <span
+                                                class="pbp-rank"
+                                                >{{ sample.rank }}</span
+                                            >
+                                        </td>
+                                        <td>
+                                            <a
+                                                :href="`/pb_sample.html?query=${encodeURIComponent(
+                                                    sample.unique_sample_ID ||
+                                                        sample.SampleInVCF
+                                                )}`"
+                                                >{{ sampleKey(sample) }}</a
+                                            >
+                                        </td>
+                                        <td>
+                                            {{ score(sample.rphers_z) }}
+                                        </td>
+                                        <td>
+                                            <span class="pbp-segments" role="img" :aria-label="sampleMatchDescription(sample)">
+                                                <i v-for="id in ids" :key="id" :class="{ missing: !sampleTerms(sample).includes(id) }" :style="termStyle(id)" :title="`${name(id)}: ${sampleTerms(sample).includes(id) ? 'recorded' : 'not recorded (unknown)'}`"></i>
+                                            </span><b>{{ sample.matches || "—" }}</b>
+                                        </td>
+                                        <td>{{ sampleAge(sample) == null ? "—" : sampleAge(sample) }} · {{ sampleSex(sample) }}</td>
+                                        <td>
+                                            {{ sampleCohortDisease(sample) }}
+                                        </td>
+                                        <td>
+                                            {{
+                                                sample.initial_study_affected ===
+                                                "Y"
+                                                    ? "Yes"
+                                                    : sample.initial_study_affected ===
+                                                      "N"
+                                                    ? "No"
+                                                    : "Unknown"
+                                            }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pbp-pagination">
+                            <button type="button" :disabled="samplePage <= 1" @click="samplePage--">Previous</button>
+                            <span>Page {{ samplePage }} / {{ samplePageCount }} · {{ qualifyingSamples.length }} samples</span>
+                            <button type="button" :disabled="samplePage >= samplePageCount" @click="samplePage++">Next</button>
+                        </div>
+                        <p v-if="matchesLoaded && !qualifyingSamples.length" class="pbp-status">No samples match the selected projects and filters.</p>
+                        </div>
                     </section>
                     <section class="pbp-card">
                         <div class="pbp-rowhead">
@@ -1113,7 +1127,7 @@ export default {
             sampleInfoLoading: false,
             ageBandFilter: "",
             sexFilter: "",
-            cohortDiseaseFilter: "",
+            selectedProjects: [],
             affectedFilter: "",
             samplePage: 1,
             cohortPage: 1,
@@ -1171,7 +1185,7 @@ export default {
                 this.genes = null;
                 this.samplePage = 1;
                 this.cohortPage = 1;
-                this.cohortDiseaseFilter = "";
+                this.selectedProjects = [];
                 this.genePage = 1;
                 this.diseasePage = 1;
                 this.expandedGeneReferences = [];
@@ -1183,7 +1197,7 @@ export default {
         ageBandFilter() { this.resetSelectedPages(); },
         sexFilter() { this.resetSelectedPages(); },
         affectedFilter() { this.resetSelectedPages(); },
-        cohortDiseaseFilter() { this.resetSelectedPages(); },
+        selectedProjects() { this.samplePage = 1; this.genePage = 1; },
         excluded: { deep: true, handler() {
             this.samplePage = 1;
             this.cohortPage = 1;
@@ -1197,10 +1211,9 @@ export default {
             }
         } },
         metadataSamples(samples) {
-            if (this.multi) this.loadSampleInfo(samples);
+            this.loadSampleInfo(samples);
             this.loadSampleGeneScores(samples);
         },
-        visibleSamples(samples) { if (!this.multi && samples.length) this.loadSampleInfo(samples); },
         sampleMatchMode() {
             this.geneSampleScope = this.sampleMatchMode;
             this.geneFilter = 'selected';
@@ -1247,7 +1260,7 @@ export default {
             return { all, byTerm };
         },
         combinedCountRemovalLabel() {
-            return this.ageBandFilter || this.sexFilter || this.affectedFilter || this.cohortDiseaseFilter ? 'filtered out' : 'excluded';
+            return this.ageBandFilter || this.sexFilter || this.affectedFilter || this.selectedProjects.length ? 'filtered out' : 'excluded';
         },
         termSummaries() {
             return this.ids.map((id) => {
@@ -1305,8 +1318,13 @@ export default {
         atLeastGeneSummary() { return summarizeSampleGenes(this.matchingSampleGroups.atLeastTwo, this.scoreMembership, sampleKey, this.sampleCohortDisease); },
         allGeneSummary() { return summarizeSampleGenes(this.matchingSampleGroups.all, this.scoreMembership, sampleKey, this.sampleCohortDisease); },
         cohortDiseases() { return [...new Set(this.metadataSamples.map(this.sampleCohortDisease))].sort(); },
+        projectSamples() {
+            return this.metadataSamples.filter(row => this.matchesSampleFilters(row, true)
+                && (!this.multi || this.sampleMatchMode !== 'all' || sampleMatchCount(row) === this.ids.length)
+                && !this.excluded.some(id => this.sampleTerms(row).includes(id)));
+        },
         cohortDiseaseSummary() {
-            return cohortSampleSummary(this.qualifyingSamples, {
+            return cohortSampleSummary(this.projectSamples, {
                 cohortOf: (row) => this.sampleCohortDisease(row),
                 ageOf: (row) => this.sampleAge(row),
                 sexOf: (row) => row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender,
@@ -1387,7 +1405,7 @@ export default {
             return this.filteredSamples;
         },
         visibleSamples() {
-            return this.sortedSamples.slice((this.samplePage - 1) * 5, this.samplePage * 5);
+            return this.sortedSamples.slice((this.samplePage - 1) * 4, this.samplePage * 4);
         },
         sortedSamples() {
             return sortTableRows(this.qualifyingSamples, this.tableSort.samples, {
@@ -1403,7 +1421,7 @@ export default {
                 affected: (row) => row.initial_study_affected || null,
             });
         },
-        samplePageCount() { return Math.max(1, Math.ceil(this.qualifyingSamples.length / 5)); },
+        samplePageCount() { return Math.max(1, Math.ceil(this.qualifyingSamples.length / 4)); },
         allOrphanetDiseases() {
             return diseaseRows(REF, this.ids, this.excluded).map((row) => ({
                 ...row, source: "orphanet", referenceId: `ORPHA:${row.code}`, mondoIds: [],
@@ -1632,8 +1650,8 @@ export default {
             this.syncUrl();
         },
         resetSelectedPages() { this.samplePage = 1; this.cohortPage = 1; this.genePage = 1; },
-        matchesSampleFilters(row) {
-            return (!this.cohortDiseaseFilter || this.sampleCohortDisease(row) === this.cohortDiseaseFilter) &&
+        matchesSampleFilters(row, ignoreProject = false) {
+            return (ignoreProject || !this.selectedProjects.length || this.selectedProjects.includes(this.sampleCohortDisease(row))) &&
                 (!this.affectedFilter || row.initial_study_affected === this.affectedFilter) &&
                 (!this.ageBandFilter || this.sampleAgeBand(row) === this.ageBandFilter) &&
                 (!this.sexFilter || sexCategory(row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender).toLowerCase() === this.sexFilter);
