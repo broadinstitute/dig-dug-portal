@@ -353,3 +353,17 @@ python3 scripts/build_pb_profile_gene_catalog.py \
 Single-HPO는 기존 binary-HPO release의 저장 β·SE에 0.1만 곱해 **β per 0.1 GRS (log-odds)**로 표시한다. 기존 OR 주 표시를 교체하며, rPheRS SD로 나누지 않는다. 원래 OR CI의 양의 유한한 경계를 로그 변환한 계수 CI도 0.1배한다. 저장 β가 있으므로 OR에서 β를 복원하지 않는다. 기존 p/q·N·결과 선택 범위는 보존하고 과거 분석을 재실행하지 않는다.
 
 Context Gene은 **Effect per 0.1 GRS (SD)** = `0.1 × β / s`, Context Variant는 carrier 0→1의 **Variant effect β (SD)** = `β / s`를 유지한다. 따라서 Single-HPO와 Context의 β 제목·도움말·정렬·CSV 단위를 명확히 구분한다. Single-HPO CSV는 `beta_log_odds_per_0_1_grs` 및 대응 SE/CI, 실제 분석 N, 모델·단위·근사 계수·release 정보를 포함한다. API 필드와 검증은 Gene Context handoff 맨 위의 최종 표시 규칙을 따른다. 앞 절의 OR 유지 설명은 이 후속 결정으로 대체한다.
+
+
+## 2026-10-31: Phenotype browsing and layout refinements
+
+Scope: `pb_phenotype.html` only. This is mainly a presentation and browsing update, with no new scoring method or subgroup regression. Existing scoring definitions and full-cohort beta/p/q are preserved.
+
+- Organize sample-group evidence separately from full-cohort associations. All N / >=2 of N buttons synchronize samples, demographics, Project summaries and selected-group gene support after page filters and Exclude. Whole-cohort results remain accessible. Add gene search, support sorting and Shared by all; missing score coverage is not treated as zero.
+- Show before → after counts when excluding phenotypes, including overlapping exclusions counted once. Exclude updates the selected-group gene list without unnecessarily rerunning the existing full-cohort analysis.
+- Add source-labelled OMIM and DDG2P disease–gene links alongside Orphanet, a reference DB filter and source-aware CSV export. References respect Exclude. Orphanet retains its multi-HPO profile-score cutoff of 0.10; OMIM/DDG2P require at least one matched HPO. Database ranks remain separate. This release has no DECIPHER gene mappings, which is shown as unavailable rather than negative evidence.
+- Improve typing responsiveness using isolated input components, at most 30 autocomplete suggestions, static reference data and batched metadata updates. Resolve selected terms such as `Chest tightness [HP:0031352]` correctly; bound existing association requests with timeouts/retry errors.
+
+Implementation: add these controls to the existing production page and reuse its current data services. For selected-group gene support, use the filtered sample IDs and existing approved GRS Max > 0 membership. Count positive samples and their Projects within that set; Shared by all requires complete score coverage and support equal to the selected sample count. Reuse the existing roster/sample-ID mapping and distinguish unavailable scores from observed zeros. These are lookups and summaries of existing results, not new scores or statistical tests. The prototype's localhost ports, standalone helper service and demo launch scripts are not deployment requirements.
+
+Acceptance check: with Short stature (HP:0004322), Hearing impairment (HP:0000365) and Scoliosis (HP:0002650), excluding Seizure (HP:0001250) changes All 3 from 22 to 15 samples and >=2/3 from 201 to 136 in the current data. When All 3 is selected, sample summaries and gene support must use those same 15 samples. Switching sample groups or excluding samples must not refit or replace the full-cohort beta/p/q. Gene2, Front2 and Sample-page changes are outside this handoff.
