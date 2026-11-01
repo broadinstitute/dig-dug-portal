@@ -66,7 +66,7 @@ export default Vue.component("news-feed-section", {
 	margin-right: 15px;
 	float: left;
 	background-color: #eeeeee;
-	background-image: url("https://kp4cd.org/sites/default/files/images/news.svg");
+	background-image: url("https://hugeampkpncms.org/sites/default/files/images/news.svg");
 	border-radius: 5px;
 	border: solid 1px #ccc;
 	overflow: hidden;
