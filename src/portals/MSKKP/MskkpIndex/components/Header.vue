@@ -2,7 +2,7 @@
     <header class="mskkp-landing-header">
         <div class="mskkp-landing-header-logo">
             <img
-                src="//kp4cd.org/sites/default/files/vueportal/mskkp_header_logo.png"
+                src="//hugeampkpncms.org/sites/default/files/vueportal/mskkp_header_logo.png"
                 alt="MSK-KP"
             />
         </div>

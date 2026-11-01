@@ -83,70 +83,70 @@ export default Vue.component("mskkp-landing-support", {
                     alt: "IFMRS",
                     href: "http://www.ifmrs.org",
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/IFMRS_logo_large.jpeg",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/IFMRS_logo_large.jpeg",
                     height: "50px",
                 },
                 {
                     alt: "ASBMR",
                     href: "http://www.asbmr.org",
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/ASBMR_logo.png",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/ASBMR_logo.png",
                     height: "70px",
                 },
                 {
                     alt: "ICMH",
                     href: null,
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/ICMH_logo.png",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/ICMH_logo.png",
                     height: "45px",
                 },
                 {
                     alt: "Cancer & Bone Society",
                     href: "http://www.cancerandbone.org/",
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/CABS_logo_small.png",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/CABS_logo_small.png",
                     height: "85px",
                 },
                 {
                     alt: "ETH Zürich",
                     href: "https://ethz.ch/en.html",
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/ETH_ZURICH.png",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/ETH_ZURICH.png",
                     height: "40px",
                 },
                 {
                     alt: "University of Colorado Orthopedics",
                     href: "https://www.cuanschutz.edu",
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/u_of_colorado.png",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/u_of_colorado.png",
                     height: "80px",
                 },
                 {
                     alt: "ORS",
                     href: "https://www.ors.org/",
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/ORS_logo.jpeg",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/ORS_logo.jpeg",
                     height: "50px",
                 },
                 {
                     alt: "ECTS",
                     href: "https://ectsoc.org/",
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/ECTS_logo.jpeg",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/ECTS_logo.jpeg",
                     height: "45px",
                 },
                 {
                     alt: "JSBMR",
                     href: "https://ectsoc.org/",
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/JSBMR_logo_cropped.png",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/JSBMR_logo_cropped.png",
                     height: "85px",
                 },
                 {
                     alt: "Broad Institute",
                     href: "https://www.broadinstitute.org",
                     src:
-                        "https://kp4cd.org/sites/default/files/vueportal/BroadInstLogoforDigitalRGB.png",
+                        "https://hugeampkpncms.org/sites/default/files/vueportal/BroadInstLogoforDigitalRGB.png",
                     height: "40px",
                 },
             ],
