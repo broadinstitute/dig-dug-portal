@@ -102,7 +102,7 @@ export default {
             let portal = selectedDiseaseGroup || "md";
 
             let json = await fetch(
-                `https://kp4cd.org/rest/views/news2vueportal?portal=` + portal
+                `https://hugeampkpncms.org/rest/views/news2vueportal?portal=` + portal
             ).then((resp) => resp.json());
             // set the data
             context.commit("setNewsFeed", json);
@@ -110,7 +110,7 @@ export default {
 
         async getFrontContents(context, selectedDiseaseGroup) {
             // Disabled: kp4cd portal_front feed is not used for current CFDE/REVEAL local work
-            // (was: https://kp4cd.org/reset/views/portal_front?portal=…).
+            // (was: https://hugeampkpncms.org/reset/views/portal_front?portal=…).
             context.commit("setFrontContents", []);
         },
 
@@ -118,7 +118,7 @@ export default {
             let portal =
                 selectedDiseaseGroup == "md" ? "" : selectedDiseaseGroup;
             let json = await fetch(
-                "https://kp4cd.org/rest/views/kpdatasets?portal=" + portal
+                "https://hugeampkpncms.org/rest/views/kpdatasets?portal=" + portal
             ).then((resp) => resp.json());
             // set the data
             context.commit("setDatasetsInfo", json);
@@ -126,7 +126,7 @@ export default {
 
         async getDatasetInfo(context, datasetId) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/datasetinfo?datasetid=" +
+                "https://hugeampkpncms.org/rest/views/datasetinfo?datasetid=" +
                     datasetId
             ).then((resp) => resp.json());
             // set the data
@@ -135,7 +135,7 @@ export default {
 
         async getPageInfo(context, query) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/" +
+                "https://hugeampkpncms.org/rest/views/" +
                     query.page +
                     "?portal=" +
                     query.portal
@@ -148,7 +148,7 @@ export default {
             let portal = selectedDiseaseGroup || "md";
 
             let json = await fetch(
-                "https://kp4cd.org/rest/views/newfeatures?portal=" +
+                "https://hugeampkpncms.org/rest/views/newfeatures?portal=" +
                     selectedDiseaseGroup
             ).then((resp) => resp.json());
             // set the data
@@ -158,7 +158,7 @@ export default {
             let portal = selectedDiseaseGroup || "md";
 
             let json = await fetch(
-                "https://kp4cd.org/rest/views/newresources?portal=" +
+                "https://hugeampkpncms.org/rest/views/newresources?portal=" +
                     selectedDiseaseGroup
             ).then((resp) => resp.json());
             // set the data
@@ -166,7 +166,7 @@ export default {
         },
         async getResearchMethod(context, methodFrom) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/eglmethod?from=" + methodFrom
+                "https://hugeampkpncms.org/rest/views/eglmethod?from=" + methodFrom
             ).then((resp) => resp.json());
             // set the data
             context.commit("setResearchMethod", json);
@@ -175,7 +175,7 @@ export default {
             let portal = selectedDiseaseGroup || "md";
 
             let json = await fetch(
-                "https://kp4cd.org/rest/views/eglmethodsperportal?portal=" +
+                "https://hugeampkpncms.org/rest/views/eglmethodsperportal?portal=" +
                     selectedDiseaseGroup
             ).then((resp) => resp.json());
             // set the data
@@ -183,7 +183,7 @@ export default {
         },
         async getEglData(context, targetData) {
             let json = await fetch(
-                "https://kp4cd.org/egldata/dataset?dataset=" +
+                "https://hugeampkpncms.org/egldata/dataset?dataset=" +
                     targetData.dataset +
                     "&trait=" +
                     targetData.trait
@@ -198,7 +198,7 @@ export default {
         },
         async getResearchDataPage(context, param) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/research_data?dataid=" +
+                "https://hugeampkpncms.org/rest/views/research_data?dataid=" +
                     param.pageID +
                     "&&reviewerid=" +
                     param.reviewerID +
@@ -210,7 +210,7 @@ export default {
         },
         async getEglConfig(context, targetData) {
             let json = await fetch(
-                "https://kp4cd.org/egldata/config?dataset=" +
+                "https://hugeampkpncms.org/egldata/config?dataset=" +
                     targetData.dataset +
                     "&trait=" +
                     targetData.trait
@@ -227,14 +227,14 @@ export default {
         },
         async getStaticContent(context, page) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/static_content?field_page=" + page
+                "https://hugeampkpncms.org/rest/views/static_content?field_page=" + page
             ).then((resp) => resp.json());
             // set the data
             context.commit("setStaticContent", json);
         },
         async getPaperMenu(context, paperPage) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/paperheadermenu?paper=" +
+                "https://hugeampkpncms.org/rest/views/paperheadermenu?paper=" +
                     paperPage
             ).then((resp) => resp.json());
             // set the data
@@ -242,28 +242,28 @@ export default {
         },
         async getPortals(context) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/a2f_community_kps"
+                "https://hugeampkpncms.org/rest/views/a2f_community_kps"
             ).then((resp) => resp.json());
             // set the data
             context.commit("setPortals", json);
         },
         async getHelpBook(context) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/help_book"
+                "https://hugeampkpncms.org/rest/views/help_book"
             ).then((resp) => resp.json());
             // set the data
             context.commit("setHelpBook", json);
         },
         async getContentByID(context, nid) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/content_by_id?nid=" + nid
+                "https://hugeampkpncms.org/rest/views/content_by_id?nid=" + nid
             ).then((resp) => resp.json());
             // set the data
             context.commit("setContentByID", json);
         },
         async getHelpBookSearch(context, searchKey) {
             let json = await fetch(
-                "https://kp4cd.org/rest/views/help_book_search?body=" +
+                "https://hugeampkpncms.org/rest/views/help_book_search?body=" +
                     searchKey
             ).then((resp) => resp.json());
             // set the data
