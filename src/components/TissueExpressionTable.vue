@@ -32,13 +32,10 @@
                 </a>
             </template>
             <template #cell(show_datasets)="row">
-                <b-button
-                    variant="outline-primary"
-                    size="sm"
-                    @click="showEvidence(row)"
-                >
+                <button class="btn btn-secondary btn-sm"
+                    @click="showEvidence(row)">
                     {{ row.detailsShowing ? "Hide" : "Show" }} Datasets
-                </b-button>
+                </button>
             </template>
             <template #row-details="row">
                 <tissue-expression-subtable

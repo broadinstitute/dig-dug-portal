@@ -10,7 +10,7 @@
                 </select>
                 <b-pagination 
                     v-model="currentDatasetsPage"
-                    class="pagination justify-content-center"
+                    class="pagination datasets-page justify-content-center"
                     :total-rows="totalDatasets"
                     :per-page="datasetsPerPage"
                 ></b-pagination>
@@ -454,8 +454,7 @@
                                         </template>
                                     </div>
 
-                                    <download-chart 
-                                        class="download"
+                                    <download-chart
                                         :chartId="countDownloadChartId"
                                         :titleText="countSectionTitle"
                                         :filename="countDownloadFilename"
@@ -558,8 +557,7 @@
                                             </div>
                                         </span>
 
-                                        <download-chart 
-                                            class="download"
+                                        <download-chart
                                             :chartId="expressionDownloadChartId"
                                             :titleText="expressionSectionTitle"
                                             :filename="expressionDownloadFilename"
@@ -766,8 +764,7 @@
                                             <strong v-else style="font-size: 16px;">Cell Types</strong>
                                         </div>
                                     </div>
-                                    <download-chart 
-                                    class="download"
+                                    <download-chart
                                     chartId="sc_marker_dot_plot"
                                     :titleText="markerDotPlotTitle"
                                     :filename="markerDownloadFilename"
@@ -1022,7 +1019,6 @@
                                 </div>
 
                                 <download-chart 
-                                    class="download"
                                     :chartId="countDownloadChartId"
                                     :titleText="countSectionTitle"
                                     :filename="countDownloadFilename"
@@ -1082,12 +1078,12 @@
                                 <div style="display:flex; flex-direction: column; gap:20px; min-width: 50%;">
                                     <div style="display:flex; justify-content: space-between;">
                                         <div style="display:flex; flex-direction: column;">
+                                            <!-- This is where we want to edit TODO-->
                                             <strong style="font-size: 16px;">{{ dotPlotCellType!=""?`Marker Genes for ${dotPlotCellType}` : 'Top Marker Genes by Cell Type' }}</strong>
                                             <div  style="font-size:12px; opacity:0.5">Ranked by {{ markerRankingLabel }}</div>
                                         </div>
                                         <div style="display:flex; gap:20px">
-                                            <download-chart 
-                                                class="download"
+                                            <download-chart
                                                 chartId="sc_dot_plot"
                                                 :filename="markerDownloadFilename"
                                                 style="width: 125px; align-self: flex-start;"
@@ -1115,17 +1111,21 @@
                                     />
                                 </div>
                                 <b-table v-if="markerGenesTable"
-                                        style="font-size:12px;"
                                         :items="markerGenesTable"
                                         :fields="markerTableColumns"
-                                        striped
+                                        :current-page="markerGenesPage"
+                                        :per-page="10"
                                         hover
                                         small
                                         responsive="sm"
-                                        head-variant="light"
-                                        sticky-header="300px" 
                                     >
                                 </b-table>
+                                <b-pagination
+                                    v-model="markerGenesPage"
+                                    :total-rows="markerGenesTable.length"
+                                    :per-page="10"
+                                >
+                                </b-pagination>
                             </div>
                         </div>
                     </div>
@@ -1485,6 +1485,7 @@
                 markerFile: null,
                 markersHaveZscores: false,
                 markerTableColumns: null,
+                markerGenesPage: 1,
                 markerDesiredColumns: [
                     {
                         key: 'cell_type',
@@ -3398,13 +3399,13 @@
 </script>
 
 <style scoped>
-.pagination.b-pagination{
+.pagination.b-pagination.datasets-page{
     margin:0;
     padding:0;
     font-size:14px;
     border:0;
 }
-.pagination.b-pagination .page-link{
+.pagination.b-pagination.datasets-page .page-link{
     line-height: 1 !important;
     height:25px;
     min-width: 25px;
@@ -3600,41 +3601,7 @@ button:hover {
     font-size:12px;
     opacity:0.5;
   }
-
-    .download {
-        margin: 0;
-        float: unset;
-        margin: 0;
-        float: unset;
-        width: fit-content;
-    }
-    ::v-deep .download button{
-        color: black;
-        background-color: white;
-        padding: 0.25rem 0.5rem;
-        border: 1px solid rgba(0,0,0,.25);
-        font-size: 12px;
-    }
-    ::v-deep .download button:hover{
-        color: black;
-        border: 1px solid rgba(0,0,0,1);
-    }
-    ::v-deep .download.show button{
-        background: white;
-        color:black;
-    }
-    ::v-deep .download.show ul li:nth-child(-n+2){
-        display:none;
-    }
-    ::v-deep .download.show .dropdown-menu {
-        min-width: 0;
-        width: 100%;
-        transform: none !important;
-        top: 100% !important;
-    }
-    ::v-deep .download.show .dropdown-item{
-        text-align: center;
-    }
+    
 
     ::v-deep .b-table-sticky-header {
         padding: 0 10px;

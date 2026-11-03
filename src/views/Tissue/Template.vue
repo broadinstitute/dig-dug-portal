@@ -53,15 +53,12 @@
                         <criterion-function-group>
                             <div class="col filter-col-md">
                                 <div class="label">Plot Scale</div>
-                                <select
-                                    v-model="$parent.logScale"
-                                    class="form-control"
-                                >
-                                    <option :value="false">Linear</option>
-                                    <option :value="true">
-                                        Logarithmic: log10(TPM+1)
-                                    </option>
-                                </select>
+                                <autocomplete
+                                    :matches="[false, true]"
+                                    :labelFormatter="(val) => !val ? 'Linear' : 'Logarithmic: log10(TPM+1)'"
+                                    @item-select="$parent.setPlotScale($event, false)"
+                                    :placeholder="!$parent.logScale ? 'Linear' : 'Logarithmic: log10(TPM+1)'"
+                                ></autocomplete>
                             </div>
                             <filter-enumeration-control
                                 field="gene"
@@ -90,9 +87,8 @@
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div class="row">
-                                    <div class="col-md-2"></div>
-                                    <div class="col-md-8">
+                                
+                                    <div>
                                         <scatterplot
                                             v-if="$parent.tissueData.length > 0"
                                             :log-scale="$parent.logScale"
@@ -104,8 +100,7 @@
                                         >
                                         </scatterplot>
                                     </div>
-                                    <div class="col-md-2"></div>
-                                </div>
+                                
                                 <div class="mt-4"></div>
                                 <tissue-expression-table
                                     :tissue-data="$parent.tissueData"
@@ -294,19 +289,11 @@
                                             Search by annotation
                                         </div>
                                     </span>
-                                    <select
-                                        v-model="$parent.annotation"
-                                        class="form-control"
-                                        @change="$parent.onAnnotationSelected()"
-                                    >
-                                        <option
-                                            v-for="anno in $store.state
-                                                .annotationOptions"
-                                            :value="anno"
-                                        >
-                                            {{ anno }}
-                                        </option>
-                                    </select>
+                                    <autocomplete
+                                        :matches="$store.state.annotationOptions"
+                                        @item-select="$parent.onAnnotationSelected($event)"
+                                        :placeholder="$parent.annotation"
+                                    ></autocomplete>
                                 </div>
                             </div>
                         </div>
@@ -410,25 +397,20 @@
                             Library of Integrated Network-Based Cellular
                             Signature (<a href="https://lincsproject.org/LINCS/"
                                 >LINCS</a
-                            >). For each perturbation, we calculated whether
-                            perturbation signatures showed significantly
-                            reversed or concordant effects compared to
-                            differential expression. We performed cell
-                            type-specific differential expression and
-                            connectivity mapping analyses using all available
-                            <a href="https://hugeamp.org/r/scb"
-                                >CMDKP single-cell maps</a
-                            >. Connectivity mapping results are summarized with
-                            volcano plots for each cell type-trait pair, and the
-                            top 100 significantly reversed CRISPR perturbations
-                            are used to perform pathway enrichment analysis to
-                            characterize biological processes associated with
-                            prioritized targets for a cell type-trait
-                            combination. In addition, the top 100 significantly
-                            reversed CRISPR targets were matched with the ChEMBL
-                            database to identify known antagonists and other
-                            therapeutically relevant compounds targeting these
-                            genes or their protein products.
+                            >). These perturbation signatures record the gene expression
+                            changes induced by small-molecule treatments in the LINCS L1000
+                            dataset, with compounds identified using Broad Institute
+                            compound identifiers (BRD IDs).
+                        </p>
+                        <p>For each perturbation, enrichment scores are calculated separately
+                            for genes upregulated and downregulated in the differential
+                            expression signature. The direction of the normalized enrichment
+                            score (NES) difference indicates whether the perturbation is
+                            concordant with or reversed relative to the differential expression,
+                            while its absolute value reflects the strength of the connectivity.
+                            Connectivity mapping results are summarized volcano plots for each
+                            cell type-trait pair, highlighting compound perturbation with
+                            significant reversed or concordant effects.
                         </p>
                         <criterion-function-group
                             @update:filter-list="
@@ -448,42 +430,26 @@
                             </filter-enumeration-control>
                             <div class="col filter-col-md">
                                 <div class="label">Tissue type</div>
-                                <select
-                                    v-model="$store.state.adiposeType"
-                                    v-if="
-                                        $store.state.tissueName ===
-                                        'adipose_tissue'
-                                    "
-                                >
-                                    <option value="adipose_subcutaneous">
-                                        Adipose - Subcutaneous
-                                    </option>
-                                    <option value="adipose_visceral">
-                                        Adipose - Visceral
-                                    </option>
-                                </select>
-                                <select v-else>
-                                    <option :value="$store.state.tissueName">
-                                        {{
-                                            $parent.tissueFormatter(
-                                                $store.state.tissueName
-                                            )
-                                        }}
-                                    </option>
-                                </select>
+                                <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
+                                    :matches="['adipose_subcutaneous', 'adipose_visceral']"
+                                    @item-select="$parent.setAdiposeType($event, false)"
+                                    :placeholder="$parent.tissueFormatter($store.state.adiposeType)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
+                                ></autocomplete>
+                                <autocomplete v-else
+                                    :matches="[$store.state.connectivityKey]"
+                                    :placeholder="$parent.tissueFormatter($store.state.connectivityKey)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
+                                ></autocomplete>
                             </div>
                             <div class="col filter-col-md">
-                                <div class="label">Cell type comparison</div>
-                                <select
-                                    v-model="$store.state.selectedComparison"
-                                >
-                                    <option
-                                        v-for="comp in $store.state.comparisons"
-                                        :value="comp"
-                                    >
-                                        {{ comp }}
-                                    </option>
-                                </select>
+                                <div class="label">Trait-cell type comparison</div>
+                                <autocomplete
+                                    :matches="$store.state.comparisons"
+                                    @item-select="$parent.setComparison($event, false)"
+                                    :placeholder="$parent.tissueFormatter($store.state.selectedComparison)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)">
+                                </autocomplete>
                             </div>
                             <filter-less-control field="pAdj">
                                 <div class="label">Max p-adj</div>
@@ -607,7 +573,8 @@
                             Integrated Network-Based Cellular Signature (<a
                                 href="https://lincsproject.org/LINCS/"
                                 >LINCS</a
-                            >). For each perturbation, we calculated whether
+                            >). As with compound connectivity mapping,
+                            for each perturbation, we calculated whether
                             perturbation signatures showed significantly
                             reversed or concordant effects compared to
                             differential expression. We performed cell
@@ -621,7 +588,9 @@
                             are used to perform pathway enrichment analysis to
                             characterize biological processes associated with
                             prioritized targets for a cell type-trait
-                            combination.
+                            combination.  Additionally, we also report the TPM
+                            expression level for each gene in the corresponding
+                            cell type to provide context on target gene expression.
                         </p>
                         <criterion-function-group
                             @update:filter-list="
@@ -641,45 +610,26 @@
                             </filter-enumeration-control>
                             <div class="col filter-col-md">
                                 <div class="label">Tissue type</div>
-                                <select
-                                    v-model="$store.state.adiposeTypeCrispr"
-                                    v-if="
-                                        $store.state.tissueName ===
-                                        'adipose_tissue'
-                                    "
-                                >
-                                    <option value="adipose_subcutaneous">
-                                        Adipose - Subcutaneous
-                                    </option>
-                                    <option value="adipose_visceral">
-                                        Adipose - Visceral
-                                    </option>
-                                </select>
-                                <select v-else>
-                                    <option :value="$store.state.tissueName">
-                                        {{
-                                            $parent.tissueFormatter(
-                                                $store.state.tissueName
-                                            )
-                                        }}
-                                    </option>
-                                </select>
+                                <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
+                                    :matches="['adipose_subcutaneous', 'adipose_visceral']"
+                                    @item-select="$parent.setAdiposeType($event, true)"
+                                    :placeholder="$parent.tissueFormatter($store.state.adiposeTypeCrispr)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
+                                ></autocomplete>
+                                <autocomplete v-else
+                                    :matches="[$store.state.connectivityKey]"
+                                    :placeholder="$parent.tissueFormatter($store.state.connectivityKey)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
+                                ></autocomplete>
                             </div>
                             <div class="col filter-col-md">
-                                <div class="label">Cell type comparison</div>
-                                <select
-                                    v-model="
-                                        $store.state.selectedComparisonCrispr
-                                    "
-                                >
-                                    <option
-                                        v-for="comp in $store.state
-                                            .crisprComparisons"
-                                        :value="comp"
-                                    >
-                                        {{ comp }}
-                                    </option>
-                                </select>
+                                <div class="label">Trait-cell type comparison</div>
+                                <autocomplete
+                                    :matches="$store.state.comparisons"
+                                    @item-select="$parent.setComparison($event, true)"
+                                    :placeholder="$parent.tissueFormatter($store.state.selectedComparisonCrispr)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)">
+                                </autocomplete>
                             </div>
                             <filter-enumeration-control
                                 field="is_expressed"
@@ -702,7 +652,7 @@
                                     )
                                 "
                             >
-                                <div class="label">Search pathway</div>
+                                <div class="label">Search gene</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div
@@ -763,10 +713,13 @@
                                         "
                                         :per-page="10"
                                         :fields="
-                                            $parent.connectivityCrisprFields
+                                            $parent.connectivityCrisprFields.filter(
+                                                (f) => !f.compoundOnly
+                                            )
                                         "
                                         small
                                     >
+                                        <template #head(pathway)>Gene</template>
                                         <template #cell(target_name)="row">
                                             <button
                                                 v-if="
