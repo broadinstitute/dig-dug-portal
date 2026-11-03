@@ -330,7 +330,9 @@ import {
 } from "./kpVariantSifter/variantSifterRegionPan.js";
 import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
 import {
+    adoptGwasCeGeRows,
     fetchGlobalEnrichment,
+    fetchGwasCeGlobalEnrichment,
     fetchLocusAnnotations,
     mergeGeRowsByPhenotype,
     removeGeRowsForPhenotype,
@@ -3317,13 +3319,20 @@ export default Vue.component("kp-variant-sifter", {
             this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
 
             try {
-                const [geRows, annoRows] = await Promise.all([
+                const isCe = isGwasCeProject(this.projectId);
+                const [kpGeRows, ceGeRows, annoRows] = await Promise.all([
                     fetchGlobalEnrichment(session, geHost),
+                    isCe ? fetchGwasCeGlobalEnrichment(session) : [],
                     fetchLocusAnnotations(session.region, regionsHost),
                 ]);
                 if (geToken !== this.globalEnrichmentRequestToken) {
                     return false;
                 }
+                // A GWAS-CE dataset with S-LDSC results is shown with its own
+                // enrichment; the KP phenotype's is the fallback when it has none.
+                const geRows = ceGeRows.length
+                    ? adoptGwasCeGeRows(ceGeRows, session)
+                    : kpGeRows;
 
                 const annoData = buildAnnoDataFromRows(annoRows);
                 const catalog = extractGeCatalog(annoData);
