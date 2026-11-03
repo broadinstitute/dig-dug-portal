@@ -2,8 +2,8 @@
     <div class="bottom-line-provenance">
         <div v-if="showPageTitle || showLinkBack" class="page-heading">
             <h2 v-if="showPageTitle" class="page-title">Bottom-Line Provenance</h2>
-            <div style="display:flex; flex-direction: column; gap: 15px;">
-                <div v-if="documentationMap" class="card-body temporary-card">
+            <div v-if="documentationMap" style="display:flex; flex-direction: column; gap: 15px;">
+                <div class="card-body temporary-card">
                     <documentation
                         name="bottomline.provenance.tooltip"
                         :content-map="documentationMap"
