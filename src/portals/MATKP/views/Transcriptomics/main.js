@@ -15,6 +15,13 @@ import VolcanoPlot from "./VolcanoPlot.vue";
 Vue.component("volcano-plot", VolcanoPlot);
 
 const VOLCANO_OUTCOME_FALLBACK_IDS = new Set(["genotype_status"]);
+// Add outcome IDs here to opt additional sections into comparison grouping.
+const COMPARISON_GROUPED_OUTCOME_IDS = new Set([
+    "depot_binary",
+    "depot_tissue",
+]);
+// Set to true to enable comparison grouping for every outcome section.
+const GROUP_ALL_OUTCOMES_BY_COMPARISON = false;
 const NA = "N/A";
 
 const FILTER_DROPDOWN_POPPER_OPTS = {
@@ -146,7 +153,11 @@ new Vue({
                     this.isRowFilterVisible(row, outcome.outcome_id)
                 );
                 const domain = this.getOutcomeDomain(visibleRows);
-                const plotRows = visibleRows.map((row, index) =>
+                const sortedRows = this.sortRowsForOutcome(
+                    visibleRows,
+                    outcome.outcome_id
+                );
+                const plotRows = sortedRows.map((row, index) =>
                     this.decorateRowForPlot(row, domain, outcome.outcome_id, index)
                 );
 
@@ -162,7 +173,10 @@ new Vue({
                     domain,
                     ticks: this.buildTicks(domain),
                     plotRows,
-                    plotRowGroups: this.buildPlotRowGroups(plotRows),
+                    plotRowGroups: this.buildPlotRowGroups(
+                        plotRows,
+                        outcome.outcome_id
+                    ),
                     pooledEffectLeft: pooledPlotRow
                         ? pooledPlotRow.effectLeft
                         : null,
@@ -777,12 +791,185 @@ new Vue({
 
             return !Number.isNaN(Number(maxValue));
         },
-        buildPlotRowGroups(plotRows) {
-            return plotRows.map((row, index) => ({
-                type: "row",
-                key: `${row.display_label_short}-${row.row_type}-${index}`,
-                row,
+        normalizeComparisonTerm(value) {
+            return String(value || "")
+                .trim()
+                .replace(/\s+/g, " ");
+        },
+        getComparisonGroup(row) {
+            if (row.row_type === "pooled") {
+                return { key: "__pooled__", label: "Pooled result" };
+            }
+
+            const first = this.normalizeComparisonTerm(row.comparison_level_a);
+            const second = this.normalizeComparisonTerm(row.comparison_level_b);
+
+            if (first && second) {
+                return {
+                    key: `${first.toLocaleLowerCase()}::${second.toLocaleLowerCase()}`,
+                    label: `${second} vs. ${first}`,
+                };
+            }
+
+            const fallback = this.normalizeComparisonTerm(
+                row.comparison_name || row.direction_label
+            );
+
+            if (fallback) {
+                return {
+                    key: `comparison::${fallback.toLocaleLowerCase()}`,
+                    label: fallback,
+                };
+            }
+
+            return { key: "__other__", label: "Other comparisons" };
+        },
+        compareRowsByEffectDescending(a, b) {
+            const aEffect = Number(a.effect);
+            const bEffect = Number(b.effect);
+            const aHasEffect = Number.isFinite(aEffect);
+            const bHasEffect = Number.isFinite(bEffect);
+
+            if (aHasEffect && bHasEffect && aEffect !== bEffect) {
+                return bEffect - aEffect;
+            }
+
+            if (aHasEffect !== bHasEffect) {
+                return aHasEffect ? -1 : 1;
+            }
+
+            return String(a.display_label_short || "").localeCompare(
+                String(b.display_label_short || "")
+            );
+        },
+        shouldGroupOutcomeByComparison(outcomeId) {
+            return (
+                GROUP_ALL_OUTCOMES_BY_COMPARISON ||
+                COMPARISON_GROUPED_OUTCOME_IDS.has(outcomeId)
+            );
+        },
+        sortRowsByEffect(rows) {
+            const datasetRows = rows.filter((row) => row.row_type !== "pooled");
+            const pooledRows = rows.filter((row) => row.row_type === "pooled");
+
+            return [
+                ...datasetRows.sort(this.compareRowsByEffectDescending),
+                ...pooledRows.sort(this.compareRowsByEffectDescending),
+            ];
+        },
+        sortRowsForOutcome(rows, outcomeId) {
+            return this.shouldGroupOutcomeByComparison(outcomeId)
+                ? this.sortRowsByComparison(rows)
+                : this.sortRowsByEffect([...rows]);
+        },
+        sortRowsByComparison(rows) {
+            const groups = new Map();
+            const pooledRows = [];
+
+            rows.forEach((row) => {
+                if (row.row_type === "pooled") {
+                    pooledRows.push(row);
+                    return;
+                }
+
+                const comparison = this.getComparisonGroup(row);
+
+                if (!groups.has(comparison.key)) {
+                    groups.set(comparison.key, { ...comparison, rows: [] });
+                }
+
+                groups.get(comparison.key).rows.push(row);
+            });
+
+            const sortedGroups = Array.from(groups.values()).map((group) => ({
+                ...group,
+                rows: [...group.rows].sort(this.compareRowsByEffectDescending),
             }));
+
+            sortedGroups.sort((a, b) => {
+                const effectCompare = this.compareRowsByEffectDescending(
+                    a.rows[0],
+                    b.rows[0]
+                );
+
+                return effectCompare || a.label.localeCompare(b.label);
+            });
+
+            return [
+                ...sortedGroups.flatMap((group) => group.rows),
+                ...[...pooledRows].sort(this.compareRowsByEffectDescending),
+            ];
+        },
+        getComparisonQualifier(row) {
+            const label = this.normalizeComparisonTerm(
+                row.direction_label || row.comparison_name
+            );
+            const parenthetical = label.match(/\(([^()]*)\)\s*$/);
+
+            if (parenthetical) {
+                return parenthetical[1];
+            }
+
+            const commaIndex = label.indexOf(",");
+
+            return commaIndex >= 0 ? label.slice(commaIndex + 1).trim() : "";
+        },
+        buildPlotRowGroups(plotRows, outcomeId) {
+            if (!this.shouldGroupOutcomeByComparison(outcomeId)) {
+                return plotRows.map((row, index) => ({
+                    type: "row",
+                    key: `${row.plot_key || row.display_label_short}-${index}`,
+                    qualifier: "",
+                    row,
+                }));
+            }
+
+            const datasetCountsByGroup = {};
+
+            plotRows.forEach((row) => {
+                const group = this.getComparisonGroup(row);
+                const datasetKey = row.dataset_id || row.display_label_short;
+
+                datasetCountsByGroup[group.key] =
+                    datasetCountsByGroup[group.key] || {};
+                datasetCountsByGroup[group.key][datasetKey] =
+                    (datasetCountsByGroup[group.key][datasetKey] || 0) + 1;
+            });
+
+            const items = [];
+            let previousGroupKey = null;
+
+            plotRows.forEach((row, index) => {
+                const group = this.getComparisonGroup(row);
+
+                if (
+                    row.row_type !== "pooled" &&
+                    group.key !== previousGroupKey
+                ) {
+                    items.push({
+                        type: "group",
+                        key: `group-${group.key}`,
+                        label: group.label,
+                    });
+                }
+
+                const datasetKey = row.dataset_id || row.display_label_short;
+                const showQualifier =
+                    row.row_type !== "pooled" &&
+                    datasetCountsByGroup[group.key][datasetKey] > 1;
+
+                items.push({
+                    type: "row",
+                    key: `${row.plot_key || row.display_label_short}-${index}`,
+                    qualifier: showQualifier
+                        ? this.getComparisonQualifier(row)
+                        : "",
+                    row,
+                });
+                previousGroupKey = group.key;
+            });
+
+            return items;
         },
         setViewSpecies(species) {
             this.viewSpecies = species;
@@ -1124,12 +1311,15 @@ new Vue({
             ].join("::");
         },
         evidenceRowsForOutcome(outcome) {
-            if (!outcome || !outcome.rows) {
+            if (!outcome || (!outcome.rows && !outcome.plotRows)) {
                 return [];
             }
 
-            const visibleRows = outcome.rows.filter((row) =>
-                this.isRowFilterVisible(row, outcome.outcome_id)
+            const visibleRows = outcome.plotRows || this.sortRowsForOutcome(
+                outcome.rows.filter((row) =>
+                    this.isRowFilterVisible(row, outcome.outcome_id)
+                ),
+                outcome.outcome_id
             );
 
             if (this.isEvidenceTableExpanded(outcome.outcome_id)) {
