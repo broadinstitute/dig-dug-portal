@@ -298,8 +298,14 @@
                     </div>
 
                     <div class="plot-rows f-col">
-                      <div
-                        v-for="item in outcome.plotRowGroups"
+                      <template v-for="item in outcome.plotRowGroups">
+                        <div
+                          v-if="item.type === 'group'"
+                          :key="item.key"
+                          class="comparison-group-header"
+                        >{{ item.label }}</div>
+                        <div
+                        v-else
                         :key="item.key"
                         class="plot-row"
                         :class="{
@@ -328,6 +334,7 @@
                               "
                             >
                               {{ item.row.display_label_short }}
+                              <span v-if="item.qualifier" class="row-title__qualifier"> — {{ item.qualifier }}</span>
                             </div>
                           </div>
 
@@ -379,7 +386,8 @@
                               :title="item.row.comparison_level_a"
                             >{{ item.row.comparison_level_a }}</span>
                           </div>
-                      </div>
+                        </div>
+                      </template>
                     </div>
                   </template>
 
@@ -1142,6 +1150,20 @@
   gap: 0px;
 }
 
+.comparison-group-header {
+  border-bottom: 1px solid #e3e3e3;
+  color: #555555;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 14px 0 5px;
+  padding: 0 0 3px 220px;
+}
+
+.comparison-group-header:first-child {
+  margin-top: 0;
+}
+
 .plot-row {
   align-items: center;
   cursor: pointer;
@@ -1149,6 +1171,10 @@
   gap: 8px;
   grid-template-columns: 220px minmax(0, 1fr);
   min-height: 20px;
+}
+
+.plot-row.pooled {
+  margin-top: 14px;
 }
 
 .plot-row:focus {
@@ -1280,6 +1306,11 @@
   white-space: nowrap;
 }
 
+.row-title__qualifier {
+  color: #666666;
+  font-weight: 400;
+}
+
 .plot-rail {
   cursor: default;
   height: 20px;
@@ -1326,7 +1357,8 @@
 
 .effect-marker {
   background: #424242;
-  border: 2px solid #ffe514;
+  background-clip: padding-box;
+  border: 2px solid transparent;
   border-radius: 999px;
   height: 10px;
   position: absolute;
@@ -1340,6 +1372,7 @@
 }
 
 .effect-marker--adj-p-significant {
+  border-color: #ffe514;
   box-shadow: 0 0 0 3px rgba(255, 108, 2, 0.28);
 }
 
@@ -1373,7 +1406,8 @@
 
 .legend-dot {
   background: #424242;
-  border: 2px solid #ffe514;
+  background-clip: padding-box;
+  border: 2px solid transparent;
   border-radius: 999px;
   display: inline-block;
   flex-shrink: 0;
@@ -1387,6 +1421,7 @@
 }
 
 .legend-dot--adj-p {
+  border-color: #ffe514;
   box-shadow: 0 0 0 3px rgba(255, 108, 2, 0.28);
 }
 
