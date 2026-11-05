@@ -48,7 +48,7 @@ This document explains how to build and run the Portal using Docker.
 - `BIOINDEX_HOST_PRIVATE`: Private BioIndex URL (defaults to the public production host)
 - `DATASET_ASSOC_URL`: Dataset-associations endpoint for the genetic studies browser
 - `DEFAULT_PORTAL`: Default portal identifier (default: empty)
-- `GA4_ID`: Google Analytics 4 measurement ID (default: `G-D3G6XZYGBR`)
+- `GA4_ID`: Google Analytics 4 measurement ID; use a comma-separated list (e.g. `G-AAA,G-BBB`) to send to multiple properties (default: `G-D3G6XZYGBR`)
 - `SYSBIO_HOST`: SysBio API URL (default: `https://sysbio.hugeampkpnbi.org`)
 - `ENRICHR_HOST`: Enrichr API URL (default: `https://sysbio.hugeampkpnbi.org`)
 - `SHOW_LOGIN`: Show login controls when set to `true` (default: `false`)
