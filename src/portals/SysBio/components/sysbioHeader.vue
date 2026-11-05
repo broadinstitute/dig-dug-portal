@@ -1,5 +1,6 @@
 <template>
     <div class="header-container f-col">
+        <google-analytics style="display: none"></google-analytics>
         <div class="header-message">
             Welcome to SysBio FAIRplex. This platform is newly launched and actively scaling. Stay updated or <a href="https://redcap.vumc.org/surveys/?s=4FPLKJEYAWFCHRNL" target="_blank">send feedback</a>.
         </div>
@@ -88,10 +89,11 @@
 import Vue from "vue";
 
 import sysbioMenu from "@/portals/SysBio/assets/sysbioMenu.json";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics4.vue";
 import { SHOW_LOGIN } from "@/utils/runtimeConfig";
 
 export default Vue.component("sysbio-header", {
-    components: {},
+    components: { GoogleAnalytics },
     props: { showBeta: {type: Boolean, default: false}},
     data() {
         return {
