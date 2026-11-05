@@ -1717,7 +1717,7 @@
   flex-shrink: 0;
   padding: 20px 0 0;
   width: 220px;
-  height: 320px;
+  height: 400px;
   overflow: scroll;
   box-shadow: inset 0 -30px 25px -30px rgba(0, 0, 0, 0.1);
 }

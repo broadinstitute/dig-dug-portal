@@ -50,6 +50,21 @@
         stroke="#e0e0e0" stroke-width="1.5"
       />
 
+      <!-- Fold-change thresholds used to qualify permanent labels. -->
+      <g v-for="threshold in foldChangeGuides" :key="`fc-${threshold.value}`">
+        <line
+          :x1="threshold.x" :y1="pad.t"
+          :x2="threshold.x" :y2="pad.t + plotH"
+          stroke="#ff6c02" stroke-width="1" stroke-dasharray="5,3" opacity="0.32"
+        />
+        <text
+          :x="threshold.x + (threshold.value < 0 ? -4 : 4)"
+          :y="pad.t + 12"
+          :text-anchor="threshold.value < 0 ? 'end' : 'start'"
+          font-size="9" fill="#cc5500" opacity="0.72"
+        >{{ threshold.label }}</text>
+      </g>
+
       <!-- p=0.05 threshold -->
       <g v-if="y05 != null">
         <line
@@ -100,11 +115,23 @@
         @click="$emit('select', pt.key)"
       />
 
-      <!-- Labels for significant dots -->
+      <!-- Leader lines connect displaced labels to their points. -->
+      <line
+        v-for="pt in displacedLabelPoints"
+        :key="`leader-${pt.key}`"
+        :x1="pt.x" :y1="pt.y"
+        :x2="pt.labelLineX" :y2="pt.labelLineY"
+        :stroke="pt.color"
+        stroke-width="0.75"
+        opacity="0.55"
+        style="pointer-events:none"
+      />
+
+      <!-- Labels for the strongest results, plus the active result. -->
       <text
-        v-for="pt in fgPoints"
+        v-for="pt in labeledFgPoints"
         :key="`lbl-${pt.key}`"
-        :x="pt.labelX" :y="pt.y + 4"
+        :x="pt.labelX" :y="pt.labelY + 4"
         :text-anchor="pt.labelAnchor"
         font-size="10"
         :fill="isPointActive(pt) ? '#333333' : pt.color"
@@ -136,7 +163,6 @@ const DEPOT_COLORS = [
   "#6a3d9a",
   "#4d4d4d",
 ];
-
 export default {
   name: "VolcanoPlot",
 
@@ -145,13 +171,14 @@ export default {
     rowTooltip: { type: Function, default: () => "" },
     hoveredKey: { type: String,   default: null },
     selectedKey: { type: String,  default: null },
+    foldChangeThreshold: { type: Number, default: 0.5 },
   },
 
   data() {
     return {
       svgW: 500,
-      svgH: 340,
-      pad: { l: 120, r: 140, t: 24, b: 36 },
+      svgH: 420,
+      pad: { l: 82, r: 92, t: 34, b: 40 },
       hoverEndTimer: null,
     };
   },
@@ -166,27 +193,42 @@ export default {
       );
     },
 
-    xScale() {
-      const maxAbs = this.dataRows.length
-        ? d3.max(this.dataRows, (r) => Math.abs(r.effect))
+    fullXMax() {
+      return this.dataRows.length
+        ? d3.max(this.dataRows, (row) => Math.abs(row.effect))
         : 3;
+    },
+
+    xScale() {
       return d3.scaleLinear()
-        .domain([-(maxAbs * 1.25), maxAbs * 1.25])
-        .range([this.pad.l, this.pad.l + this.plotW])
-        .nice();
+        .domain([-(this.fullXMax * 1.35), this.fullXMax * 1.35])
+        .range([this.pad.l, this.pad.l + this.plotW]);
+    },
+
+    fullYMax() {
+      return this.dataRows.length
+        ? d3.max(this.dataRows, (row) => -Math.log10(row.p_value))
+        : 4;
     },
 
     yScale() {
-      const yMax = this.dataRows.length
-        ? d3.max(this.dataRows, (r) => -Math.log10(r.p_value))
-        : 4;
       return d3.scaleLinear()
-        .domain([0, yMax * 1.18])
+        .domain([0, this.fullYMax * 1.08])
         .range([this.pad.t + this.plotH, this.pad.t])
         .nice();
     },
 
     x0()  { return this.xScale(0); },
+    foldChangeGuides() {
+      const [domainMin, domainMax] = this.xScale.domain();
+      return [-this.foldChangeThreshold, this.foldChangeThreshold]
+        .filter((value) => value >= domainMin && value <= domainMax)
+        .map((value) => ({
+          value,
+          x: this.xScale(value),
+          label: `${value > 0 ? "+" : ""}${value}`,
+        }));
+    },
     y05() {
       const y = this.yScale(-Math.log10(0.05));
       return y >= this.pad.t && y <= this.pad.t + this.plotH ? y : null;
@@ -200,7 +242,9 @@ export default {
       return [
         ...new Set(
           this.dataRows
-            .filter((row) => row.p_value <= 0.05)
+            .filter((row) =>
+              row.p_value <= 0.05 && Math.abs(row.effect) >= this.foldChangeThreshold
+            )
             .map((row) => this.formatDepotLabel(row.depot))
         ),
       ].sort((a, b) => a.localeCompare(b));
@@ -222,9 +266,11 @@ export default {
 
     allPoints() {
       return this.dataRows.map((row, i) => {
+        const yValue = -Math.log10(row.p_value);
         const x = this.xScale(row.effect);
-        const y = this.yScale(-Math.log10(row.p_value));
-        const significant = row.p_value <= 0.05;
+        const y = this.yScale(yValue);
+        const significant = row.p_value <= 0.05 &&
+          Math.abs(row.effect) >= this.foldChangeThreshold;
         const fullLabel = row.comparison_level_a || row.first_term || "";
         const label = fullLabel.length > 24 ? fullLabel.slice(0, 23) + "..." : fullLabel;
         const labelRight = row.effect >= 0;
@@ -233,6 +279,7 @@ export default {
         return {
           key,
           x, y,
+          row,
           significant,
           color:       significant ? this.depotColorMap[depotLabel] : "#bbbbbb",
           dimmed:      row.isAdjPFilteredOut,
@@ -246,6 +293,27 @@ export default {
 
     bgPoints() { return this.allPoints.filter((pt) => !pt.significant); },
     fgPoints() { return this.allPoints.filter((pt) =>  pt.significant); },
+
+    labeledFgPoints() {
+      const ranked = this.fgPoints
+        .filter((point) => !point.dimmed)
+        .slice()
+        .sort((a, b) => {
+          const aP = a.row.p_value_adj != null ? a.row.p_value_adj : a.row.p_value;
+          const bP = b.row.p_value_adj != null ? b.row.p_value_adj : b.row.p_value;
+          return aP - bP || Math.abs(b.row.effect) - Math.abs(a.row.effect);
+        });
+      const selected = ranked;
+      const active = this.fgPoints.find((point) => this.isPointActive(point));
+      if (active && !selected.some((point) => point.key === active.key)) selected.push(active);
+      return this.positionLabels(selected);
+    },
+
+    displacedLabelPoints() {
+      return this.labeledFgPoints.filter((point) =>
+        Math.hypot(point.labelX - point.x, point.labelY - point.y) > 12
+      );
+    },
 
     hoveredPoint() {
       if (!this.hoveredKey) return null;
@@ -348,7 +416,149 @@ export default {
       d3.select(this.$refs.xAxis)
         .call(d3.axisBottom(this.xScale).ticks(5).tickFormat(d3.format(".2~g")));
       d3.select(this.$refs.yAxis)
-        .call(d3.axisLeft(this.yScale).ticks(5).tickFormat(d3.format(".1~g")));
+        .call(d3.axisLeft(this.yScale).ticks(6).tickFormat(d3.format("~g")));
+    },
+    positionLabels(points) {
+      const fixedBoxes = [
+        ...(this.y01 == null ? [] : [{
+          left: this.pad.l,
+          right: this.pad.l + 52,
+          top: this.y01 - 16,
+          bottom: this.y01 + 3,
+        }]),
+        ...(this.y05 == null ? [] : [{
+          left: this.pad.l,
+          right: this.pad.l + 52,
+          top: this.y05 - 16,
+          bottom: this.y05 + 3,
+        }]),
+        ...this.foldChangeGuides.map((guide) => ({
+          left: guide.x - 24,
+          right: guide.x + 24,
+          top: this.pad.t,
+          bottom: this.pad.t + 20,
+        })),
+      ];
+      const placedBoxes = fixedBoxes.slice();
+      const pointObstacles = this.allPoints.map((point) => ({
+        x: point.x,
+        y: point.y,
+        r: this.isPointActive(point) ? 9 : 7,
+      }));
+      const legendBox = {
+        left: this.svgW - 188,
+        right: this.svgW - 2,
+        top: 0,
+        bottom: 112,
+      };
+      const minY = this.pad.t + 10;
+      const maxY = this.pad.t + this.plotH - 10;
+
+      const layoutSide = (sidePoints, side) => {
+        const sorted = sidePoints.slice().sort((a, b) => a.y - b.y || a.x - b.x);
+        if (!sorted.length) return [];
+        const gap = Math.min(22, (maxY - minY) / Math.max(1, sorted.length - 1));
+        const labelYs = sorted.map((point) => Math.max(minY, Math.min(maxY, point.y)));
+
+        // Forward/backward passes preserve point order while enforcing label spacing.
+        for (let i = 1; i < labelYs.length; i += 1) {
+          labelYs[i] = Math.max(labelYs[i], labelYs[i - 1] + gap);
+        }
+        if (labelYs[labelYs.length - 1] > maxY) {
+          labelYs[labelYs.length - 1] = maxY;
+          for (let i = labelYs.length - 2; i >= 0; i -= 1) {
+            labelYs[i] = Math.min(labelYs[i], labelYs[i + 1] - gap);
+          }
+        }
+
+        return sorted.map((point, index) => {
+          const width = this.measureLabelWidth(point.label);
+          const labelY = labelYs[index];
+          const candidates = [];
+
+          for (let extra = 0; extra <= 180; extra += 10) {
+            const labelX = point.x + side * (14 + extra);
+            const box = {
+              left: side < 0 ? labelX - width - 6 : labelX - 6,
+              right: side < 0 ? labelX + 6 : labelX + width + 6,
+              top: labelY - 10,
+              bottom: labelY + 10,
+            };
+            if (box.left < this.pad.l + 2 || box.right > this.pad.l + this.plotW - 2) continue;
+            if (this.boxesOverlap(box, legendBox)) continue;
+
+            const boxCollisions = placedBoxes.filter((placed) =>
+              this.boxesOverlap(box, placed)
+            ).length;
+            const pointCollisions = pointObstacles.filter((obstacle) =>
+              this.circleOverlapsBox(obstacle, box)
+            ).length;
+            const lineEnd = {
+              x: labelX - side * 4,
+              y: labelY,
+            };
+            const crossedPoints = pointObstacles.filter((obstacle) =>
+              Math.hypot(obstacle.x - point.x, obstacle.y - point.y) > 2 &&
+              this.pointToSegmentDistance(obstacle, point, lineEnd) < obstacle.r + 3
+            ).length;
+            const score = boxCollisions * 1000000 + pointCollisions * 100000 +
+              crossedPoints * 3000 + extra;
+            candidates.push({ box, labelX, lineEnd, score });
+          }
+
+          candidates.sort((a, b) => a.score - b.score);
+          const best = candidates[0] || {
+            box: {
+              left: side < 0 ? this.pad.l + 2 : this.pad.l + this.plotW - width - 2,
+              right: side < 0 ? this.pad.l + width + 2 : this.pad.l + this.plotW - 2,
+              top: labelY - 10,
+              bottom: labelY + 10,
+            },
+            labelX: side < 0 ? this.pad.l + width + 2 : this.pad.l + this.plotW - width - 2,
+            lineEnd: { x: point.x + side * 10, y: labelY },
+          };
+          placedBoxes.push(best.box);
+          return {
+            ...point,
+            labelX: best.labelX,
+            labelY,
+            labelAnchor: side < 0 ? "end" : "start",
+            labelLineX: best.lineEnd.x,
+            labelLineY: best.lineEnd.y,
+          };
+        });
+      };
+
+      return [
+        ...layoutSide(points.filter((point) => point.row.effect < 0), -1),
+        ...layoutSide(points.filter((point) => point.row.effect >= 0), 1),
+      ];
+    },
+    boxesOverlap(a, b) {
+      return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    },
+    measureLabelWidth(label) {
+      if (typeof document === "undefined") return Math.max(36, label.length * 6.4);
+      if (!this._labelMeasureContext) {
+        const canvas = document.createElement("canvas");
+        this._labelMeasureContext = canvas.getContext("2d");
+        this._labelMeasureContext.font = "10px Arial, sans-serif";
+      }
+      return Math.max(36, Math.ceil(this._labelMeasureContext.measureText(label).width) + 12);
+    },
+    circleOverlapsBox(circle, box) {
+      const nearestX = Math.max(box.left, Math.min(circle.x, box.right));
+      const nearestY = Math.max(box.top, Math.min(circle.y, box.bottom));
+      return Math.hypot(circle.x - nearestX, circle.y - nearestY) < circle.r;
+    },
+    pointToSegmentDistance(point, start, end) {
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+      if (dx === 0 && dy === 0) return Math.hypot(point.x - start.x, point.y - start.y);
+      const t = Math.max(0, Math.min(1,
+        ((point.x - start.x) * dx + (point.y - start.y) * dy) / (dx * dx + dy * dy)
+      ));
+      return Math.hypot(point.x - (start.x + t * dx), point.y - (start.y + t * dy));
     },
   },
 };
