@@ -463,6 +463,8 @@
                                       $store.state.bioPortal.phenotypeMap
                                   "
                                   :filter="filter"
+                                  :hide-cfde-gene-sets="true"
+                                  :hide-huge-calculator="true"
                               >
                               </huge-scores-table>
                           </b-tab>

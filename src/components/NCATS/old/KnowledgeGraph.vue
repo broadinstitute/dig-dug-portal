@@ -1,20 +1,4 @@
 <template>
-<<<<<<< HEAD
-    <network
-        v-if="nodes.length > 0 && edges.length > 0"
-        ref="network"
-        :nodes="nodes"
-        :edges="edges"
-        :options="{
-            height: '800px',
-        }"
-    >
-    </network>
-</template>
-<script>
-import Vue from "vue";
-import { Network } from "vue-vis-network";
-=======
     <div
         v-if="nodes.length > 0 && edges.length > 0"
         ref="networkContainer"
@@ -25,7 +9,6 @@ import { Network } from "vue-vis-network";
 import Vue from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
->>>>>>> master
 import { uniqBy } from "@/utils/lodashUtils";
 
 const makeGraph = (query_graph, knowledge_graph_results) => {
@@ -85,23 +68,12 @@ const makeGraph = (query_graph, knowledge_graph_results) => {
         });
     });
 
-<<<<<<< HEAD
     graph.nodes = uniqBy(graph.nodes, "id");
-=======
-    graph.nodes = uniqBy(graph.nodes, 'id')
->>>>>>> master
     return graph;
 };
 
 export default Vue.component("translator-knowledge-graph", {
-<<<<<<< HEAD
-    props: ["query_graph", "results"],
-    components: {
-        Network,
-    },
-=======
     props: ['query_graph', 'results'],
->>>>>>> master
     computed: {
         graph: function () {
             return makeGraph(this.query_graph, this.results);
@@ -130,13 +102,6 @@ export default Vue.component("translator-knowledge-graph", {
         }
     },
     methods: {
-<<<<<<< HEAD
-        onNodeHovered() {
-            console.log(arguments);
-        },
-    },
-});
-=======
         renderNetwork() {
             const container = this.$refs.networkContainer;
             if (!container || this.nodes.length === 0) return;
@@ -154,5 +119,4 @@ export default Vue.component("translator-knowledge-graph", {
         }
     }
 })
->>>>>>> master
 </script>

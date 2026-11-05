@@ -1,13 +1,10 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-<<<<<<< HEAD
-=======
 import {
     CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
     CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
 } from "./cellStateExpressionDocumentation";
->>>>>>> master
 import { difference } from "@/utils/lodashUtils";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";

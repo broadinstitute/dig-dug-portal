@@ -63,21 +63,13 @@
                     {{ r.item.gene }}
                 </a>
             </template>
-<<<<<<< HEAD
-            <!-- <template #cell(link)="r">
-                <a class="btn view-features-btn btn-secondary"
-=======
             <template #cell(link)="r">
                 <a
                     class="btn view-features-btn btn-secondary"
->>>>>>> master
                     style="color: #ffffff !important"
                     :href="`/hugecalculator.html?gene=${r.item.gene}&phenotype=${r.item.phenotype}&prior=0.3696`"
                     >Open</a
                 >
-<<<<<<< HEAD
-            </template> -->
-=======
             </template>
             <template #cell(cfde_gene_set)="r">
                 <button
@@ -163,7 +155,6 @@
                     </template>
                 </div>
             </template>
->>>>>>> master
         </b-table>
         <div v-else>
             <b-alert show variant="warning" class="text-center">
@@ -333,6 +324,7 @@ function joinMultiValues(fieldsToJoin, joinBy, row) {
 export default Vue.component("HugeScoresTable", {
     components: {
         DataDownload,
+        KcCfdeLogo,
     },
     props: [
         "leadTableField",
@@ -341,6 +333,7 @@ export default Vue.component("HugeScoresTable", {
         "phenotypeMap",
         "filter",
         "hideCfdeGeneSets",
+        "hideHugeCalculator",
     ],
     data() {
         return {
@@ -401,9 +394,6 @@ export default Vue.component("HugeScoresTable", {
                     key: "range",
                     label: "Evidence Range",
                 },
-<<<<<<< HEAD
-                //{ key: "link", label: "HuGE Calculator",},
-=======
                 {
                     key: "link",
                     label: "HuGE Calculator",
@@ -412,7 +402,6 @@ export default Vue.component("HugeScoresTable", {
                     key: "cfde_gene_set",
                     label: "CFDE Gene Sets",
                 },
->>>>>>> master
             ],
         };
     },
@@ -427,6 +416,9 @@ export default Vue.component("HugeScoresTable", {
                     return false;
                 }
                 if (this.hideCfdeGeneSets && f.key === "cfde_gene_set") {
+                    return false;
+                }
+                if (this.hideHugeCalculator && f.key === "link") {
                     return false;
                 }
                 return true;

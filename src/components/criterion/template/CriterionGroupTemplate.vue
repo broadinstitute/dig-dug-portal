@@ -55,15 +55,11 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import { isEqual, cloneDeep, groupBy } from "@/utils/lodashUtils";
-<<<<<<< HEAD
 import {
     filterFromPredicates,
     predicateFromSpec,
     unsetFilter,
 } from "@/utils/filterHelpers";
-=======
-import { filterFromPredicates, predicateFromSpec, unsetFilter } from "@/utils/filterHelpers";
->>>>>>> master
 import CriterionPills from "@/components/criterion/template/CriterionPills";
 
 const EventListener = {

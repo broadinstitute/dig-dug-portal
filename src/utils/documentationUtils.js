@@ -7,13 +7,8 @@ function findTemplateTagsFromContent(content) {
     // we use a slice here because some browsers (firefox) don't support named capture groups in regexp
     // we are able to use a slice here because the structure is always padded by both `{{` and `}}`
     return content
-<<<<<<< HEAD
         ? [...content.matchAll(regexp)].map((match) =>
               match[0] ? match[0].slice(2, -2) : "?"
-=======
-        ? [...content.matchAll(regexp)].map((m) =>
-              m[0] ? m[0].slice(2, -2) : "?"
->>>>>>> master
           )
         : [];
 }
@@ -46,10 +41,7 @@ function make_name_and_class_extensions(name) {
     };
 
     const safeName = String(name || "");
-<<<<<<< HEAD
-=======
 
->>>>>>> master
     const name_and_class_extensions = Object.keys(classMap).map((key) => ({
         regex: new RegExp(`<${key}(\\s[^>]*)?>`, "g"),
         replace: (_match, attrs = "") => {
@@ -75,16 +67,6 @@ function makeConverter(content, contentFill, name) {
 
     const name_and_class_extensions = make_name_and_class_extensions(name);
 
-<<<<<<< HEAD
-    function applyReplacements(input, replacements) {
-        return replacements.reduce(
-            (result, rule) => result.replace(rule.regex, rule.replace),
-            input
-        );
-    }
-
-=======
->>>>>>> master
     return {
         makeHtml(markdown = "") {
             const withTemplateValues = applyReplacements(

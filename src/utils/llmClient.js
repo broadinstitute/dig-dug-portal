@@ -1,24 +1,16 @@
 /**
     // llmClient.js
 
-<<<<<<< HEAD
-    // Utility for calling LLM APIs (Gemini / OpenAI) from Vue (or plain JS)
-=======
     // Utility for calling LLM APIs (Bedrock / OpenAI / Gemini) from Vue (or plain JS)
->>>>>>> master
     // using hugeamp passthrough api.
 
     // Each client is isolated and can run concurrently.
 
-<<<<<<< HEAD
-    // Responses are retuned as-is from llm, it is up to dev to parse them appropriately.
-=======
     // Responses are returned as-is from llm, it is up to dev to parse them appropriately.
 
     // Default provider is Bedrock (`https://llm.hugeamp.org/bedrock`). OpenAI fallback is
     // OFF by default (set fallbackLlm: "openai" to re-enable) to avoid burning tokens on
     // Bedrock JSON parse failures.
->>>>>>> master
 
     // How to use:
 
@@ -38,24 +30,17 @@
             system_prompt: "You are a pirate"
         });
 
-<<<<<<< HEAD
-        // Send a prompt with per-call handlers
-=======
         // Default: Bedrock only (no OpenAI fallback unless fallbackLlm is set)
         const defaultClient = createLLMClient({
             system_prompt: "You are a helpful assistant"
         });
 
         // Send a prompt with per-call handlers (optional systemPrompt overrides the client default)
->>>>>>> master
         summarizer.sendPrompt({
             userPrompt: "Summarize this paragraph...",
             onToken: token => console.log("token:", token),
             onResponse: resp => console.log("full response:", resp),
-<<<<<<< HEAD
-=======
             onUsage: usage => console.log("token usage:", usage),
->>>>>>> master
             onState: state => console.log("state:", state),
             onError: err => console.error("error:", err),
             onEnd: () => console.log("done")
@@ -63,10 +48,7 @@
 
         pirate.sendPrompt({
             userPrompt: "Grep this grog",
-<<<<<<< HEAD
-=======
             systemPrompt: "You are a privateer",
->>>>>>> master
             onResponse: resp => console.log("response:", resp)
         });
 
@@ -75,12 +57,6 @@
         pirate.abort();
 **/
 
-<<<<<<< HEAD
-export function createLLMClient({ llm = "gemini", model, system_prompt, stream = false }) {
-  let abortController = null;
-
-  async function sendPrompt({ userPrompt, onResponse, onToken, onError, onState, onEnd }) {
-=======
 import {
   extractOpenAiResponseText,
   isViableLlmText,
@@ -162,7 +138,6 @@ export function createLLMClient({
   const jsonResponsePrefix = shouldForceJsonReply ? DEFAULT_JSON_RESPONSE_PREFIX : null;
 
   async function sendPrompt({ userPrompt, systemPrompt, onResponse, onUsage, onToken, onError, onState, onEnd }) {
->>>>>>> master
     if (!userPrompt) {
       onError?.(new Error("Missing prompt"));
       return;
@@ -175,35 +150,6 @@ export function createLLMClient({
 
     onState?.("Thinking...");
 
-<<<<<<< HEAD
-    const url =
-      llm === "openai"
-        ? "https://llm.hugeamp.org/openai"
-        : "https://llm.hugeamp.org/gemini";
-
-    const payload = {
-      model,
-      systemPrompt: system_prompt,
-      userPrompt,
-    };
-
-    const options = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: signal, // Pass signal to fetch
-    };
-
-    try {
-      if (stream) {
-        await callStreaming(url, options, { onToken, onState, onEnd, onError, signal });
-      } else {
-        await callOnce(url, options, { onResponse, onState, onEnd, onError, signal });
-      }
-    } catch (err) {
-      // This catches AbortError if fetch() or reader.read() is cancelled
-      if (err.name === 'AbortError') {
-=======
     const effectiveSystem =
       systemPrompt !== undefined && systemPrompt !== null ? systemPrompt : system_prompt;
 
@@ -287,7 +233,6 @@ export function createLLMClient({
     } catch (err) {
       // This catches AbortError if fetch() or reader.read() is cancelled
       if (err.name === "AbortError") {
->>>>>>> master
         onState?.("Aborted");
         // This is an intentional abort, not an "error"
         console.log("Request was aborted.");
@@ -297,10 +242,6 @@ export function createLLMClient({
     }
   }
 
-<<<<<<< HEAD
-  async function callOnce(url, options, { onResponse, onError, onState, onEnd, signal }) {
-    const response = await fetch(url, options); // This will throw AbortError if aborted
-=======
   async function callOnce(url, options, {
     llm: provider,
     model: attemptModel,
@@ -323,23 +264,11 @@ export function createLLMClient({
       }
       return { ok: false, aborted: false, error: err };
     }
->>>>>>> master
 
     // --- FIX ---
     // Handle race condition: fetch succeeded but abort was called right after
     if (signal.aborted) {
       onState?.("Aborted");
-<<<<<<< HEAD
-      return;
-    }
-
-    if (!response.ok) {
-      onError?.(new Error("Fetch error"));
-      return;
-    }
-
-    const res = await response.json();
-=======
       return { ok: false, aborted: true };
     }
 
@@ -371,24 +300,11 @@ export function createLLMClient({
         error: err && err.message ? err : new Error("Invalid LLM JSON response"),
       };
     }
->>>>>>> master
 
     // --- FIX ---
     // Check again after await response.json()
     if (signal.aborted) {
       onState?.("Aborted");
-<<<<<<< HEAD
-      return;
-    }
-
-    const data =
-      llm === "openai"
-        ? res.data[0].openai_response
-        : res.data[0].gemini_response;
-
-    // Check before firing callback
-    if (data && !signal.aborted) {
-=======
       return { ok: false, aborted: true };
     }
 
@@ -429,7 +345,6 @@ export function createLLMClient({
 
     // Check before firing callback
     if (!signal.aborted) {
->>>>>>> master
       onResponse?.(data);
     }
 
@@ -437,19 +352,12 @@ export function createLLMClient({
     // Final check before marking as "Done"
     if (signal.aborted) {
       onState?.("Aborted");
-<<<<<<< HEAD
-      return;
-=======
       return { ok: false, aborted: true };
->>>>>>> master
     }
 
     onState?.("Done");
     onEnd?.();
-<<<<<<< HEAD
-=======
     return { ok: true, aborted: false };
->>>>>>> master
   }
 
   async function callStreaming(url, options, { onToken, onState, onEnd, onError, signal }) {
@@ -462,9 +370,6 @@ export function createLLMClient({
     }
 
     if (!response.ok) {
-<<<<<<< HEAD
-      onError?.(new Error("Fetch error"));
-=======
       let detail = "";
       try {
         detail = String((await response.text()) || "").slice(0, 300);
@@ -478,7 +383,6 @@ export function createLLMClient({
           }`
         )
       );
->>>>>>> master
       return;
     }
 
@@ -505,11 +409,7 @@ export function createLLMClient({
       for (const line of lines) {
         if (signal.aborted) break; // Stop processing lines
         if (!line.trim()) continue;
-<<<<<<< HEAD
-        
-=======
 
->>>>>>> master
         const event = JSON.parse(line);
 
         if (event.event === "add_message") {
@@ -541,9 +441,6 @@ export function createLLMClient({
   }
 
   return { sendPrompt, abort };
-<<<<<<< HEAD
-}
-=======
 }
 
 export {
@@ -554,4 +451,3 @@ export {
   extractHugeampResponseText,
   llmEndpointUrl,
 };
->>>>>>> master

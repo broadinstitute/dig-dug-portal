@@ -51,21 +51,14 @@
 
         <div v-if="showDatasetSelect" style="display:flex; flex-direction: column; gap:10px;">
             <div>
-<<<<<<< HEAD
-                <div style="font-weight: bold; font-size:16px;">Select Tissue</div>
-=======
-                <div style="font-weight: bold; font-size:16px;">Select Tissue ({{ singleCellMetadata.length }})</div>
->>>>>>> master
+                <div style="font-weight: bold; font-size:16px;">Select Tissue ({{ singleCellMetadata ? singleCellMetadata.length : 0 }})</div>
                 <div>Click on a row to select</div>
             </div>
             <!-- datasets table -->
             <b-table v-if="singleCellMetadata"
                 :items="singleCellMetadata"
                 :fields="tableColumns"
-<<<<<<< HEAD
-=======
                 sort-by="tissue"
->>>>>>> master
                 small
                 striped
                 hover
@@ -461,12 +454,8 @@
                                         </template>
                                     </div>
 
-<<<<<<< HEAD
                                     <download-chart 
                                         class="download"
-=======
-                                    <download-chart
->>>>>>> master
                                         :chartId="countDownloadChartId"
                                         :titleText="countSectionTitle"
                                         :filename="countDownloadFilename"
@@ -569,12 +558,8 @@
                                             </div>
                                         </span>
 
-<<<<<<< HEAD
                                         <download-chart 
                                             class="download"
-=======
-                                        <download-chart
->>>>>>> master
                                             :chartId="expressionDownloadChartId"
                                             :titleText="expressionSectionTitle"
                                             :filename="expressionDownloadFilename"
@@ -781,12 +766,8 @@
                                             <strong v-else style="font-size: 16px;">Cell Types</strong>
                                         </div>
                                     </div>
-<<<<<<< HEAD
                                     <download-chart 
                                     class="download"
-=======
-                                    <download-chart
->>>>>>> master
                                     chartId="sc_marker_dot_plot"
                                     :titleText="markerDotPlotTitle"
                                     :filename="markerDownloadFilename"
@@ -1041,10 +1022,7 @@
                                 </div>
 
                                 <download-chart 
-<<<<<<< HEAD
                                     class="download"
-=======
->>>>>>> master
                                     :chartId="countDownloadChartId"
                                     :titleText="countSectionTitle"
                                     :filename="countDownloadFilename"
@@ -1104,20 +1082,12 @@
                                 <div style="display:flex; flex-direction: column; gap:20px; min-width: 50%;">
                                     <div style="display:flex; justify-content: space-between;">
                                         <div style="display:flex; flex-direction: column;">
-<<<<<<< HEAD
-=======
-                                            <!-- This is where we want to edit TODO-->
->>>>>>> master
                                             <strong style="font-size: 16px;">{{ dotPlotCellType!=""?`Marker Genes for ${dotPlotCellType}` : 'Top Marker Genes by Cell Type' }}</strong>
                                             <div  style="font-size:12px; opacity:0.5">Ranked by {{ markerRankingLabel }}</div>
                                         </div>
                                         <div style="display:flex; gap:20px">
-<<<<<<< HEAD
                                             <download-chart 
                                                 class="download"
-=======
-                                            <download-chart
->>>>>>> master
                                                 chartId="sc_dot_plot"
                                                 :filename="markerDownloadFilename"
                                                 style="width: 125px; align-self: flex-start;"
@@ -1145,35 +1115,26 @@
                                     />
                                 </div>
                                 <b-table v-if="markerGenesTable"
-<<<<<<< HEAD
                                         style="font-size:12px;"
                                         :items="markerGenesTable"
                                         :fields="markerTableColumns"
+                                        :current-page="markerGenesPage"
+                                        :per-page="10"
                                         striped
                                         hover
                                         small
                                         responsive="sm"
                                         head-variant="light"
-                                        sticky-header="300px" 
-                                    >
-                                </b-table>
-=======
-                                        :items="markerGenesTable"
-                                        :fields="markerTableColumns"
-                                        :current-page="markerGenesPage"
-                                        :per-page="10"
-                                        hover
-                                        small
-                                        responsive="sm"
+                                        sticky-header="300px"
                                     >
                                 </b-table>
                                 <b-pagination
+                                    v-if="markerGenesTable"
                                     v-model="markerGenesPage"
                                     :total-rows="markerGenesTable.length"
                                     :per-page="10"
                                 >
                                 </b-pagination>
->>>>>>> master
                             </div>
                         </div>
                     </div>
@@ -1470,21 +1431,12 @@
                 viewType: 1,
                 
                 baseTableColumns: [
-<<<<<<< HEAD
-                    {key: "tissue", label: "Tissue", class:"capitalize"},
-                    {key: "depot", label: "Depot", class:"capitalize"}, 
-                    {key: "sourceDataset", label: "Source"},
-                    {key: "totalDonors", label: "Donors", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
-                    {key: "totalBiosamples", label: "Biosamples", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
-                    {key: "totalSamples", label: "Cells", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
-=======
                     {key: "tissue", label: "Tissue", class:"capitalize", sortable: true},
                     {key: "depot", label: "Depot", class:"capitalize", sortable: true}, 
                     {key: "sourceDataset", label: "Source", sortable: true},
                     {key: "totalDonors", label: "Donors", sortable: true, formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
                     {key: "totalBiosamples", label: "Biosamples", sortable: true, formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
                     {key: "totalSamples", label: "Cells", sortable: true, formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
->>>>>>> master
                 ],
                 currentDatasetsPage: 1,
                 totalDatasets: null,
@@ -1792,11 +1744,7 @@
                 const isHugeamp = (hostname === 'hugeamp.org') || hostname.endsWith('.hugeamp.org');
                 const isLocalhost = hostname.includes('localhost');
                 const parts = hostname.split('.');
-<<<<<<< HEAD
-                let subdomain = null;
-=======
                 let subdomain = isHugeamp ? 'md' : null;
->>>>>>> master
                 if(isLocalhost){
                     if (parts.length === 2 && parts[0] !== 'www' && parts[0] !== 'dev') {
                         subdomain = parts[0];
@@ -2254,13 +2202,11 @@
                     //get matching portals
                     if(this.portalGroup){
                         filteredMetadata =  filteredMetadata.filter(item => {
-<<<<<<< HEAD
-=======
                             //TODO REMOVE THIS SPECIAL CASE ONCE DATA UPDATES
-                            if (item.datasetId === 'FNIH_Muscle_scRNA_v2.2'){
+                            if (item.datasetId === 'FNIH_Muscle_scRNA_v2.2' &&
+                                Array.isArray(item.portals) && !item.portals.includes('a2f')) {
                                 item.portals.push('a2f');
                             }
->>>>>>> master
                             if(item.portals){
                                 return item.portals.includes(this.portalGroup);
                             }
@@ -2269,11 +2215,7 @@
                     return filteredMetadata;
                 };
 
-<<<<<<< HEAD
-                this.singleCellMetadata = filterSingleCellMetadata()
-=======
                 this.singleCellMetadata = filterSingleCellMetadata();
->>>>>>> master
                 llog('singleCellMetadata', this.singleCellMetadata);
                 
                 //find metadata for current dataset
