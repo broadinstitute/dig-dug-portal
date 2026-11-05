@@ -548,7 +548,7 @@
                                                 hover
                                                 small
                                                 sort-icon-left
-                                                responsive="sm"
+                                                responsive
                                                 sticky-header="400px"
                                                 :items="$parent.tableData"
                                                 :fields="$parent.visibleFields"
@@ -738,7 +738,7 @@
                                                     striped
                                                     hover
                                                     small
-                                                    responsive="sm"
+                                                    responsive
                                                     :items="
                                                         $parent.formatTestData(
                                                             p.samples,

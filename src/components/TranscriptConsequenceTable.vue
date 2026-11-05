@@ -48,7 +48,7 @@
                     hover
                     small
                     sort-icon-left
-                    responsive="sm"
+                    responsive
                     :items="tableData"
                     :fields="fields"
                     :per-page="perPage"
@@ -128,6 +128,7 @@ export default Vue.component("TranscriptConsequenceTable", {
                 {
                     key: "transcriptId",
                     label: "Feature",
+                    stickyColumn: true,
                 },
                 {
                     key: "position",

@@ -32,11 +32,27 @@
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
                         <strong v-if="!linkPhenotypes">
+<<<<<<< HEAD
                             {{ phenotypeMap[ptKey]?.description || ptKey }}
                         </strong>
                         <strong v-else>
                             <a :href="phenotypeLink(ptKey)">
                                 {{ phenotypeMap[ptKey]?.description || ptKey }}
+=======
+                            {{
+                                (phenotypeMap[ptKey] &&
+                                    phenotypeMap[ptKey].description) ||
+                                ptKey
+                            }}
+                        </strong>
+                        <strong v-else>
+                            <a :href="phenotypeLink(ptKey)">
+                                {{
+                                    (phenotypeMap[ptKey] &&
+                                        phenotypeMap[ptKey].description) ||
+                                    ptKey
+                                }}
+>>>>>>> master
                             </a>
                         </strong>
                         <br />
@@ -261,7 +277,6 @@ export default Vue.component("ResearchPhewasPlot", {
             if (this.filter) {
                 content.data = content.data.filter(this.filter);
             }
-
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
@@ -297,9 +312,12 @@ export default Vue.component("ResearchPhewasPlot", {
         renderData(content) {
             this.renderPheWas();
         },
+<<<<<<< HEAD
         matchingHoverDots(newDots) {
             console.log("received by phewas", newDots);
         },
+=======
+>>>>>>> master
     },
     created: function () {
         this.renderPheWas();
@@ -576,7 +594,6 @@ export default Vue.component("ResearchPhewasPlot", {
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
                 this.pheWasPosData = {};
-
                 let renderData = this.groupData(this.renderData);
 
                 let groups = {};
@@ -723,6 +740,7 @@ export default Vue.component("ResearchPhewasPlot", {
                 let groupsArr = Object.keys(groups).sort();
 
                 let dotIndex = 0;
+                let pigeanColors = {};
 
                 if (totalNum > 1) {
                     for (const [key, value] of Object.entries(renderData)) {
@@ -730,7 +748,7 @@ export default Vue.component("ResearchPhewasPlot", {
                             groupsArr.indexOf(key) % this.colors.length;
                         let fillColor = this.colors[keyIndex];
                         let strokeColor = "#00000075"; //this.colors[keyIndex];
-
+                        pigeanColors[key] = fillColor;
                         let labelIndex = 0;
                         let labelOrigin = 0;
                         let maxWidthPerGroup =
@@ -897,6 +915,7 @@ export default Vue.component("ResearchPhewasPlot", {
                         let keyIndex =
                             groupsArr.indexOf(key) % this.colors.length;
                         let fillColor = this.colors[keyIndex];
+                        pigeanColors[key] = fillColor;
                         let strokeColor = "#00000075"; //this.colors[keyIndex];
                         value.map((p) => {
                             let xPos = canvasWidth / 2;
@@ -978,6 +997,7 @@ export default Vue.component("ResearchPhewasPlot", {
                         });
                     }
                 }
+                this.$emit("pigeanColors", pigeanColors);
             }
         },
 

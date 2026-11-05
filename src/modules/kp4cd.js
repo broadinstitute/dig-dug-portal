@@ -3,6 +3,15 @@
 
  */
 
+// Fetch JSON from hugeampkpncms.org. A non-OK answer is an error; an empty array is a valid answer.
+async function fetchJson(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`${url} returned ${response.status}`);
+    }
+    return response.json();
+}
+
 export default {
     namespaced: true,
 
@@ -101,18 +110,30 @@ export default {
         async getNewsFeed(context, selectedDiseaseGroup) {
             let portal = selectedDiseaseGroup || "md";
 
+<<<<<<< HEAD
             let json = await fetch(
                 `https://hugeampkpncms.org/rest/views/news2vueportal?portal=` + portal
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/news2vueportal?portal=` + portal
+            );
+>>>>>>> master
             // set the data
             context.commit("setNewsFeed", json);
         },
 
         async getFrontContents(context, selectedDiseaseGroup) {
             let portal = selectedDiseaseGroup || "md";
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/reset/views/portal_front?portal=" + portal
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/reset/views/portal_front?portal=` + portal
+            );
+>>>>>>> master
             // set the data
             context.commit("setFrontContents", json);
         },
@@ -120,29 +141,48 @@ export default {
         async getDatasetsInfo(context, selectedDiseaseGroup) {
             let portal =
                 selectedDiseaseGroup == "md" ? "" : selectedDiseaseGroup;
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/kpdatasets?portal=" + portal
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/kpdatasets?portal=` + portal
+            );
+>>>>>>> master
             // set the data
             context.commit("setDatasetsInfo", json);
         },
 
         async getDatasetInfo(context, datasetId) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/datasetinfo?datasetid=" +
                     datasetId
             ).then((resp) => resp.json());
             // set the data
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/datasetinfo?datasetid=` + datasetId
+            );
+            // set the dat
+>>>>>>> master
             context.commit("setDatasetInfo", json);
         },
 
         async getPageInfo(context, query) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/" +
                     query.page +
                     "?portal=" +
                     query.portal
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/${query.page}?portal=${query.portal}`
+            );
+>>>>>>> master
             // set the data
             context.commit("setPageInfo", json);
         },
@@ -150,47 +190,81 @@ export default {
         async getNewFeatures(context, selectedDiseaseGroup) {
             let portal = selectedDiseaseGroup || "md";
 
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/newfeatures?portal=" +
                     selectedDiseaseGroup
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/newfeatures?portal=` + selectedDiseaseGroup
+            );
+>>>>>>> master
             // set the data
             context.commit("setNewFeatures", json);
         },
         async getResources(context, selectedDiseaseGroup) {
             let portal = selectedDiseaseGroup || "md";
 
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/newresources?portal=" +
                     selectedDiseaseGroup
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/newresources?portal=` + selectedDiseaseGroup
+            );
+>>>>>>> master
             // set the data
             context.commit("setResources", json);
         },
         async getResearchMethod(context, methodFrom) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/eglmethod?from=" + methodFrom
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/eglmethod?from=` + methodFrom
+            );
+>>>>>>> master
             // set the data
             context.commit("setResearchMethod", json);
         },
         async getEglSummaries(context, selectedDiseaseGroup) {
             let portal = selectedDiseaseGroup || "md";
 
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/eglmethodsperportal?portal=" +
                     selectedDiseaseGroup
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/eglmethodsperportal?portal=` +
+                selectedDiseaseGroup
+            );
+>>>>>>> master
             // set the data
             context.commit("setEglSummaries", json);
         },
         async getEglData(context, targetData) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/egldata/dataset?dataset=" +
                     targetData.dataset +
                     "&trait=" +
                     targetData.trait
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/egldata/dataset?dataset=` +
+                targetData.dataset +
+                "&trait=" +
+                targetData.trait
+            );
+>>>>>>> master
 
             context.commit("setEglData", json);
         },
@@ -200,6 +274,7 @@ export default {
             context.commit("setResearchData", json);
         },
         async getResearchDataPage(context, param) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/research_data?dataid=" +
                     param.pageID +
@@ -208,16 +283,35 @@ export default {
                     "&&reviewercode=" +
                     param.reviewerCode
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/research_data?dataid=` +
+                param.pageID +
+                "&&reviewerid=" +
+                param.reviewerID +
+                "&&reviewercode=" +
+                param.reviewerCode
+            );
+>>>>>>> master
             // set the data
             context.commit("setResearchDataPage", json);
         },
         async getEglConfig(context, targetData) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/egldata/config?dataset=" +
                     targetData.dataset +
                     "&trait=" +
                     targetData.trait
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/egldata/config?dataset=` +
+                targetData.dataset +
+                "&trait=" +
+                targetData.trait
+            );
+>>>>>>> master
 
             context.commit("setEglConfig", json);
         },
@@ -229,46 +323,84 @@ export default {
             context.commit("setForestPlotData", json);
         },
         async getStaticContent(context, page) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/static_content?field_page=" + page
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/static_content?field_page=` + page
+            );
+>>>>>>> master
             // set the data
             context.commit("setStaticContent", json);
         },
         async getPaperMenu(context, paperPage) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/paperheadermenu?paper=" +
                     paperPage
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/paperheadermenu?paper=` +
+                paperPage
+            );
+>>>>>>> master
             // set the data
             context.commit("setPaperMenu", json);
         },
         async getPortals(context) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/a2f_community_kps"
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/a2f_community_kps`
+            );
+>>>>>>> master
             // set the data
             context.commit("setPortals", json);
         },
         async getHelpBook(context) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/help_book"
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/help_book`
+            );
+>>>>>>> master
             // set the data
             context.commit("setHelpBook", json);
         },
         async getContentByID(context, nid) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/content_by_id?nid=" + nid
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/content_by_id?nid=` + nid
+            );
+>>>>>>> master
             // set the data
             context.commit("setContentByID", json);
         },
         async getHelpBookSearch(context, searchKey) {
+<<<<<<< HEAD
             let json = await fetch(
                 "https://hugeampkpncms.org/rest/views/help_book_search?body=" +
                     searchKey
             ).then((resp) => resp.json());
+=======
+            let json = await fetchJson(
+                `https://hugeampkpncms.org/rest/views/help_book_search?body=` +
+                searchKey
+            );
+>>>>>>> master
             // set the data
             context.commit("setHelpBookSearch", json);
         },

@@ -1,0 +1,106 @@
+import Vue from "vue";
+import Vuex from "vuex";
+import bioPortal from "@/modules/bioPortal";
+import bioIndex from "@/modules/bioIndex";
+import kp4cd from "@/modules/kp4cd";
+import keyParams from "@/utils/keyParams";
+
+import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
+
+Vue.use(Vuex);
+
+export default new Vuex.Store({
+    modules: {
+        bioPortal,
+        kp4cd,
+        gene: bioIndex("gene"),
+        pigeanGene: bioIndex("pigean-gene", undefined, { host: cvdiBioIndexUtils.BIO_INDEX_HOST }),
+        // Is there a CVDI specific bioindex for this? For now use the regular pigean phenotype map
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
+    },
+    state: {
+        geneName: keyParams.gene,
+        geneToQuery: "",
+        aliasName: null,
+        traitGroup: keyParams.traitGroup || cvdiBioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroupToQuery: null,
+        phewasData: [],
+    },
+
+    mutations: {
+        setGeneName(state, geneName) {
+            state.geneName = geneName || state.geneName;
+            keyParams.set({ gene: state.geneName });
+        },
+        setTraitGroup(state, traitGroup){
+            state.traitGroup = traitGroup || state.traitGroup;
+            keyParams.set({ traitGroup: state.traitGroup });
+        },
+        setGene(state, { name, chromosome, start, end }) {
+            state.geneName = name;
+            state.geneRegion = `${chromosome}:${start}-${end}`;
+        },
+        setAliasName(state, aliasName) {
+            state.aliasName = aliasName || state.aliasName;
+        },
+        setPhewasData(state, phewasData){
+            state.phewasData = phewasData;
+        }
+    },
+
+    getters: {
+        region(state) {
+            let data = state.gene.data;
+
+            if (data.length > 0) {
+                let gene = data[0];
+
+                return {
+                    chromosome: gene.chromosome,
+                    start: gene.start,
+                    end: gene.end,
+                };
+            }
+        },
+        canonicalSymbol(state) {
+            let data = state.gene.data;
+            if (data.length > 0) {
+                return data[0].symbol;
+            }
+            return null;
+        },
+    },
+
+    actions: {
+        async queryGeneName(context, symbol) {
+            await context.commit("setPhewasData", []);
+            let name = context.state.geneToQuery || context.state.geneName;
+            let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
+            context.commit("setGeneName", name);
+            context.commit("setTraitGroup", traitGroup);
+            let param3 = cvdiBioIndexUtils.DEFAULT_MODEL;
+            if (!!name) {
+                context.dispatch("gene/query", { q: name });
+                if (!traitGroup.startsWith('all')){
+                    await context.dispatch("pigeanGene/query", { q: 
+                        `${traitGroup},${name},${param3}`});
+                    context.commit("setPhewasData", context.state.pigeanGene.data);
+                } else {
+                    let traits = Object.keys(cvdiBioIndexUtils.TRAIT_GROUPS)
+                    let traitsData = [];
+                    for (let i = 0; i < traits.length; i++){
+                        let group = traits[i];
+                        let traitQuery = `${group},${name},${param3},`;
+                        let groupData = await cvdiBioIndexUtils.query("pigean-gene", traitQuery);
+                        traitsData = traitsData.concat(groupData);
+                    }
+                    traitsData = traitsData.sort((a,b) => b.combined - a.combined);
+                    context.commit("setPhewasData", traitsData.slice(0,1500));
+                }
+            }
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
+        },
+    },
+});

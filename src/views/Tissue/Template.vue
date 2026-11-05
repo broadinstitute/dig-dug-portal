@@ -53,15 +53,12 @@
                         <criterion-function-group>
                             <div class="col filter-col-md">
                                 <div class="label">Plot Scale</div>
-                                <select
-                                    v-model="$parent.logScale"
-                                    class="form-control"
-                                >
-                                    <option :value="false">Linear</option>
-                                    <option :value="true">
-                                        Logarithmic: log10(TPM+1)
-                                    </option>
-                                </select>
+                                <autocomplete
+                                    :matches="[false, true]"
+                                    :labelFormatter="(val) => !val ? 'Linear' : 'Logarithmic: log10(TPM+1)'"
+                                    @item-select="$parent.setPlotScale($event, false)"
+                                    :placeholder="!$parent.logScale ? 'Linear' : 'Logarithmic: log10(TPM+1)'"
+                                ></autocomplete>
                             </div>
                             <filter-enumeration-control
                                 field="gene"
@@ -90,9 +87,8 @@
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div class="row">
-                                    <div class="col-md-2"></div>
-                                    <div class="col-md-8">
+                                
+                                    <div>
                                         <scatterplot
                                             v-if="$parent.tissueData.length > 0"
                                             :log-scale="$parent.logScale"
@@ -104,8 +100,7 @@
                                         >
                                         </scatterplot>
                                     </div>
-                                    <div class="col-md-2"></div>
-                                </div>
+                                
                                 <div class="mt-4"></div>
                                 <tissue-expression-table
                                     :tissue-data="$parent.tissueData"
@@ -119,11 +114,117 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <h4>
+                            {{
+                                `Cell type clusters for ${$parent.tissueFormatter(
+                                    $parent.tissue
+                                )}`
+                            }}
+                        </h4>
+                        <documentation
+                            name="tissue.single-cell.subheader"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
+                        ></documentation>
+
+                        <template v-if="$parent.hasMatchingSingleCellTissue">
+                            <div>
+                                See <strong>more</strong> interactive plots for
+                                {{ $parent.tissueFormatter($parent.tissue) }}
+                                cell type clusters, gene expression by trait,
+                                cell type abundance, and marker gene expression
+                                on the
+                                <a
+                                    :href="`/r/scb?datasetId=${$parent.scbConfig.presets.datasetId}`"
+                                    >Single Cell Browser</a
+                                >.
+                            </div>
+                            <research-single-cell-browser
+                                v-if="$parent.scbConfig"
+                                style="margin: 40px 0 0"
+                                sectionId="scb"
+                                :renderConfig="$parent.scbConfig"
+                                :utils="$parent.utilsBox"
+                                :data="[]"
+                            >
+                            </research-single-cell-browser>
+                        </template>
+                        <template v-else>
+                            <b-alert show variant="warning" class="text-center">
+                                <b-icon icon="exclamation-triangle"></b-icon> No
+                                data available for this query.
+                            </b-alert>
+                        </template>
+                    </div>
+                </div>
+                <!-- This is not ready yet. Reinstate when ready. -->
+                <div v-if="$parent.showDiffExp && false" class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Differential gene expression in
+                            {{ $parent.tissueFormatter($parent.tissue) }}, in
+                            mouse founder strains
+                            <tooltip-documentation
+                                name="tissue.mice-diff-exp.tooltip"
+                                :content-fill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
+                            >
+                            </tooltip-documentation>
+                        </h4>
+                        <documentation
+                            name="tissue.mice-diff-exp.subheader"
+                            :content-fill="$parent.docDetails"
+                            :content-map="$store.state.bioPortal.documentations"
+                        >
+                        </documentation>
+                        <criterion-function-group>
+                            <filter-pvalue-control
+                                field="P_adj_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: sex (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: strain (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <filter-pvalue-control
+                                field="P_adj_strain_sex"
+                                placeholder="Set P-Value ..."
+                            >
+                                <div class="label">
+                                    Adjusted p-value: strain and sex (&le;)
+                                </div>
+                            </filter-pvalue-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <mouse-summary-table
+                                    :items="$store.state.mouseSummary.data"
+                                    :filter="filter"
+                                >
+                                </mouse-summary-table>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
                         <h4 class="card-title">
                             Credible Sets to Cell Type (CS2CT) results
-                            {{ !$store.state.selectedPhenotype 
-                                        ? ''
-                                        : `for ${$store.state.selectedPhenotype.description}` }}
+                            {{
+                                !$store.state.selectedPhenotype
+                                    ? ""
+                                    : `for ${$store.state.selectedPhenotype.description}`
+                            }}
                             (Ancestry:
                             {{
                                 $store.state.selectedAncestry == ""
@@ -188,19 +289,11 @@
                                             Search by annotation
                                         </div>
                                     </span>
-                                    <select
-                                        v-model="$parent.annotation"
-                                        class="form-control"
-                                        @change="$parent.onAnnotationSelected()"
-                                    >
-                                        <option
-                                            v-for="anno in $store.state
-                                                .annotationOptions"
-                                            :value="anno"
-                                        >
-                                            {{ anno }}
-                                        </option>
-                                    </select>
+                                    <autocomplete
+                                        :matches="$store.state.annotationOptions"
+                                        @item-select="$parent.onAnnotationSelected($event)"
+                                        :placeholder="$parent.annotation"
+                                    ></autocomplete>
                                 </div>
                             </div>
                         </div>
@@ -239,72 +332,46 @@
                         </criterion-function-group>
                     </div>
                 </div>
-                <div
-                    v-if="
-                        $parent.deployment !== 'production' &&
-                        $store.state.mouseSummary.data.length > 0
-                    "
-                    class="card mdkp-card"
-                >
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            Differential gene expression in
-                            {{ $parent.tissueFormatter($parent.tissue) }}, in
-                            mouse founder strains
-                            <tooltip-documentation
-                                name="tissue.mice-diff-exp.tooltip"
-                                :content-fill="$parent.docDetails"
-                                :is-hover="true"
-                                :no-icon="false"
-                                :content-map="
-                                    $store.state.bioPortal.documentations
-                                "
-                            >
-                            </tooltip-documentation>
-                        </h4>
-                        <documentation
-                            name="tissue.mice-diff-exp.subheader"
-                            :content-fill="$parent.docDetails"
-                            :content-map="$store.state.bioPortal.documentations"
-                        >
-                        </documentation>
-                        <criterion-function-group>
-                            <filter-pvalue-control
-                                field="P_adj_sex"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">
-                                    Adjusted p-value: sex (&le;)
-                                </div>
-                            </filter-pvalue-control>
-                            <filter-pvalue-control
-                                field="P_adj_strain"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">
-                                    Adjusted p-value: strain (&le;)
-                                </div>
-                            </filter-pvalue-control>
-                            <filter-pvalue-control
-                                field="P_adj_strain_sex"
-                                placeholder="Set P-Value ..."
-                            >
-                                <div class="label">
-                                    Adjusted p-value: strain and sex (&le;)
-                                </div>
-                            </filter-pvalue-control>
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <mouse-summary-table
-                                    :items="$store.state.mouseSummary.data"
-                                    :filter="filter"
-                                >
-                                </mouse-summary-table>
-                            </template>
-                        </criterion-function-group>
-                    </div>
-                </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <h4>
+                            Global enrichment for
+                            {{
+                                $parent.tissueFormatter($parent.tissue)
+                            }}
+                            (Ancestry:
+                            {{
+                                $store.state.selectedAncestry === ""
+                                    ? "Mixed meta-analysis"
+                                    : $parent.ancestryFormatter(
+                                          $store.state.selectedAncestry
+                                      )
+                            }})
+                        </h4>
+                        <documentation
+                            name="tissue.global-enrichment.subheader"
+                            :contentFill="$parent.docDetails"
+                            :contentMap="$store.state.bioPortal.documentations"
+                        ></documentation>
+                        <div
+                            class="filtering-ui-wrapper container-fluid temporary-card"
+                        >
+                            <div class="row filtering-ui-content">
+                                <div class="col filter-col-md">
+                                    <span>
+                                        <div class="label">
+                                            Search by ancestry
+                                        </div>
+                                    </span>
+                                    <ancestry-selectpicker
+                                        :ancestries="
+                                            $store.state.ancestryOptions
+                                        "
+                                    >
+                                    </ancestry-selectpicker>
+                                </div>
+                            </div>
+                        </div>
                         <tissue-heritability-table
                             :tissue="$parent.tissue"
                             :phenotype-map="$store.state.bioPortal.phenotypeMap"
@@ -312,6 +379,382 @@
                                 (d) => $parent.getTopPhenotype(d)
                             "
                         ></tissue-heritability-table>
+                    </div>
+                </div>
+
+                <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
+                    <div class="card-body">
+                        <h4>
+                            Compound connectivity mapping: which small molecules
+                            reproduce or reverse disease signatures?
+                        </h4>
+                        <p>
+                            Predict which small molecules reproduce or reverse
+                            disease signatures using connectivity mapping
+                            analysis. Analyses link disease-associated
+                            differential expression analyses to small molecule
+                            compound-based perturbation signatures from the
+                            Library of Integrated Network-Based Cellular
+                            Signature (<a href="https://lincsproject.org/LINCS/"
+                                >LINCS</a
+                            >). These perturbation signatures record the gene expression
+                            changes induced by small-molecule treatments in the LINCS L1000
+                            dataset, with compounds identified using Broad Institute
+                            compound identifiers (BRD IDs).
+                        </p>
+                        <p>For each perturbation, enrichment scores are calculated separately
+                            for genes upregulated and downregulated in the differential
+                            expression signature. The direction of the normalized enrichment
+                            score (NES) difference indicates whether the perturbation is
+                            concordant with or reversed relative to the differential expression,
+                            while its absolute value reflects the strength of the connectivity.
+                            Connectivity mapping results are summarized volcano plots for each
+                            cell type-trait pair, highlighting compound perturbation with
+                            significant reversed or concordant effects.
+                        </p>
+                        <criterion-function-group
+                            @update:filter-list="
+                                ($event) =>
+                                    $parent.getSelectedPathway($event, false)
+                            "
+                        >
+                            <filter-enumeration-control
+                                field="best_direction"
+                                :options="
+                                    $parent.connectivityData.map(
+                                        (d) => d.best_direction
+                                    )
+                                "
+                            >
+                                <div class="label">Direction</div>
+                            </filter-enumeration-control>
+                            <div class="col filter-col-md">
+                                <div class="label">Tissue type</div>
+                                <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
+                                    :matches="['adipose_subcutaneous', 'adipose_visceral']"
+                                    @item-select="$parent.setAdiposeType($event, false)"
+                                    :placeholder="$parent.tissueFormatter($store.state.adiposeType)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
+                                ></autocomplete>
+                                <autocomplete v-else
+                                    :matches="[$store.state.connectivityKey]"
+                                    :placeholder="$parent.tissueFormatter($store.state.connectivityKey)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
+                                ></autocomplete>
+                            </div>
+                            <div class="col filter-col-md">
+                                <div class="label">Trait-cell type comparison</div>
+                                <autocomplete
+                                    :matches="$store.state.comparisons"
+                                    @item-select="$parent.setComparison($event, false)"
+                                    :placeholder="$parent.tissueFormatter($store.state.selectedComparison)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)">
+                                </autocomplete>
+                            </div>
+                            <filter-less-control field="pAdj">
+                                <div class="label">Max p-adj</div>
+                            </filter-less-control>
+                            <filter-enumeration-control
+                                :field="$parent.selectedPathwayDescriptor"
+                                :options="
+                                    $parent.connectivityData.map(
+                                        (d) => d.pathway
+                                    )
+                                "
+                            >
+                                <div class="label">Search pathway</div>
+                            </filter-enumeration-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <div v-if="$parent.connectivityData.length > 0">
+                                    <volcano-plot
+                                        :renderConfig="$parent.volcanoConfig()"
+                                        :plotData="
+                                            $parent.connectivityData.filter(
+                                                filter
+                                            )
+                                        "
+                                        :chartName="
+                                            $parent.chartName(
+                                                $parent.connectivityData[0]
+                                            )
+                                        "
+                                        :geneOfInterest="
+                                            $parent.compoundPathway
+                                        "
+                                    >
+                                    </volcano-plot>
+                                </div>
+                                <div class="table-total-rows">
+                                    Total rows:
+                                    {{
+                                        $parent.connectivityData.filter(filter)
+                                            .length
+                                    }}
+                                </div>
+                                <div class="text-right mb-2">
+                                    <data-download
+                                        :data="
+                                            $parent.connectivityData.filter(
+                                                filter
+                                            )
+                                        "
+                                        :filename="`data_${$parent.chartName(
+                                            $parent.connectivityData.filter(
+                                                filter
+                                            )[0]
+                                        )}`"
+                                    ></data-download>
+                                </div>
+                                <div style="display: block; overflow-x: scroll">
+                                    <b-table
+                                        :items="
+                                            $parent.connectivityData.filter(
+                                                filter
+                                            )
+                                        "
+                                        :current-page="$parent.connectivityPage"
+                                        :per-page="10"
+                                        :fields="
+                                            $parent.connectivityCrisprFields.filter(
+                                                (f) => !f.crisprOnly
+                                            )
+                                        "
+                                        small
+                                    >
+                                        <template #cell(target_name)="row">
+                                            <button
+                                                v-if="
+                                                    row.item.GO_terms.length > 0
+                                                "
+                                                class="btn btn-outline-primary btn-sm"
+                                                @click="row.toggleDetails()"
+                                            >
+                                                {{
+                                                    row.detailsShowing
+                                                        ? "Hide"
+                                                        : "Show"
+                                                }}
+                                            </button>
+                                            <span v-else>N/A</span>
+                                        </template>
+                                        <template #row-details="row">
+                                            <div style="text-align: right">
+                                                <strong>{{
+                                                    row.item.GO_terms
+                                                }}</strong>
+                                            </div>
+                                        </template>
+                                    </b-table>
+                                </div>
+                                <b-pagination
+                                    v-model="$parent.connectivityPage"
+                                    :total-rows="
+                                        $parent.connectivityData.length
+                                    "
+                                    :per-page="10"
+                                >
+                                </b-pagination>
+                            </template>
+                        </criterion-function-group>
+                    </div>
+                </div>
+                <div class="card mdkp-card" v-if="!!$store.state.queryTissue">
+                    <div class="card-body">
+                        <h4>
+                            CRISPR connectivity mapping: which gene knockouts
+                            reproduce or reverse disease signatures?
+                        </h4>
+                        <p>
+                            Predict which gene knockouts reproduce or reverse
+                            disease signatures using connectivity mapping
+                            analysis. Analyses link disease-associated
+                            differential expression analyses to CRISPR-based
+                            perturbation signatures from the Library of
+                            Integrated Network-Based Cellular Signature (<a
+                                href="https://lincsproject.org/LINCS/"
+                                >LINCS</a
+                            >). As with compound connectivity mapping,
+                            for each perturbation, we calculated whether
+                            perturbation signatures showed significantly
+                            reversed or concordant effects compared to
+                            differential expression. We performed cell
+                            type-specific differential expression and
+                            connectivity mapping analyses using all available
+                            <a href="https://hugeamp.org/r/scb"
+                                >CMDKP single-cell maps</a
+                            >. Connectivity mapping results are summarized with
+                            volcano plots for each cell type-trait pair, and the
+                            top 100 significantly reversed CRISPR perturbations
+                            are used to perform pathway enrichment analysis to
+                            characterize biological processes associated with
+                            prioritized targets for a cell type-trait
+                            combination.  Additionally, we also report the TPM
+                            expression level for each gene in the corresponding
+                            cell type to provide context on target gene expression.
+                        </p>
+                        <criterion-function-group
+                            @update:filter-list="
+                                ($event) =>
+                                    $parent.getSelectedPathway($event, true)
+                            "
+                        >
+                            <filter-enumeration-control
+                                field="best_direction"
+                                :options="
+                                    $parent.connectivityCrisprData.map(
+                                        (d) => d.best_direction
+                                    )
+                                "
+                            >
+                                <div class="label">Direction</div>
+                            </filter-enumeration-control>
+                            <div class="col filter-col-md">
+                                <div class="label">Tissue type</div>
+                                <autocomplete v-if="$store.state.tissueName === 'adipose_tissue'"
+                                    :matches="['adipose_subcutaneous', 'adipose_visceral']"
+                                    @item-select="$parent.setAdiposeType($event, true)"
+                                    :placeholder="$parent.tissueFormatter($store.state.adiposeTypeCrispr)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
+                                ></autocomplete>
+                                <autocomplete v-else
+                                    :matches="[$store.state.connectivityKey]"
+                                    :placeholder="$parent.tissueFormatter($store.state.connectivityKey)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)"
+                                ></autocomplete>
+                            </div>
+                            <div class="col filter-col-md">
+                                <div class="label">Trait-cell type comparison</div>
+                                <autocomplete
+                                    :matches="$store.state.comparisons"
+                                    @item-select="$parent.setComparison($event, true)"
+                                    :placeholder="$parent.tissueFormatter($store.state.selectedComparisonCrispr)"
+                                    :labelFormatter="item => $parent.tissueFormatter(item)">
+                                </autocomplete>
+                            </div>
+                            <filter-enumeration-control
+                                field="is_expressed"
+                                :options="
+                                    $parent.connectivityCrisprData.map(
+                                        (d) => d.is_expressed
+                                    )
+                                "
+                            >
+                                <div class="label">Expressed</div>
+                            </filter-enumeration-control>
+                            <filter-less-control field="pAdj">
+                                <div class="label">Max p-adj</div>
+                            </filter-less-control>
+                            <filter-enumeration-control
+                                :field="$parent.selectedPathwayDescriptor"
+                                :options="
+                                    $parent.connectivityCrisprData.map(
+                                        (d) => d.pathway
+                                    )
+                                "
+                            >
+                                <div class="label">Search gene</div>
+                            </filter-enumeration-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <div
+                                    v-if="
+                                        $parent.connectivityCrisprData.length >
+                                        0
+                                    "
+                                >
+                                    <volcano-plot
+                                        :renderConfig="$parent.volcanoConfig()"
+                                        :plotData="
+                                            $parent.connectivityCrisprData.filter(
+                                                filter
+                                            )
+                                        "
+                                        :chartName="
+                                            $parent.chartName(
+                                                $parent
+                                                    .connectivityCrisprData[0],
+                                                true
+                                            )
+                                        "
+                                        :geneOfInterest="$parent.crisprPathway"
+                                    >
+                                    </volcano-plot>
+                                </div>
+                                <div class="table-total-rows">
+                                    Total rows:
+                                    {{
+                                        $parent.connectivityCrisprData.filter(
+                                            filter
+                                        ).length
+                                    }}
+                                </div>
+                                <div class="text-right mb-2">
+                                    <data-download
+                                        :data="
+                                            $parent.connectivityCrisprData.filter(
+                                                filter
+                                            )
+                                        "
+                                        :filename="`data_${$parent.chartName(
+                                            $parent.connectivityData.filter(
+                                                filter
+                                            )[0]
+                                        )}`"
+                                    ></data-download>
+                                </div>
+                                <div style="display: block; overflow-x: scroll">
+                                    <b-table
+                                        :items="
+                                            $parent.connectivityCrisprData.filter(
+                                                filter
+                                            )
+                                        "
+                                        :current-page="
+                                            $parent.connectivityCrisprPage
+                                        "
+                                        :per-page="10"
+                                        :fields="
+                                            $parent.connectivityCrisprFields.filter(
+                                                (f) => !f.compoundOnly
+                                            )
+                                        "
+                                        small
+                                    >
+                                        <template #head(pathway)>Gene</template>
+                                        <template #cell(target_name)="row">
+                                            <button
+                                                v-if="
+                                                    row.item.GO_terms.length > 0
+                                                "
+                                                class="btn btn-outline-primary btn-sm"
+                                                @click="row.toggleDetails()"
+                                            >
+                                                {{
+                                                    row.detailsShowing
+                                                        ? "Hide"
+                                                        : "Show"
+                                                }}
+                                            </button>
+                                            <span v-else>N/A</span>
+                                        </template>
+                                        <template #row-details="row">
+                                            <div style="text-align: right">
+                                                <strong>{{
+                                                    row.item.GO_terms
+                                                }}</strong>
+                                            </div>
+                                        </template>
+                                    </b-table>
+                                </div>
+                                <b-pagination
+                                    v-model="$parent.connectivityCrisprPage"
+                                    :total-rows="
+                                        $parent.connectivityCrisprData.length
+                                    "
+                                    :per-page="10"
+                                >
+                                </b-pagination>
+                            </template>
+                        </criterion-function-group>
                     </div>
                 </div>
             </div>

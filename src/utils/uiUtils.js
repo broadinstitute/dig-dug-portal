@@ -571,13 +571,22 @@ let isIdFixed = function (ID) {
 
 function biDomain() {
     let url = parseUrl(window.location.href);
+    const hostname = String(url.hostname || "");
+    // Local watch builds usually have a non-empty port (e.g. :8080).
+    const hasLocalPort = url.port !== "";
+    // Dev when any hostname label other than the TLD contains "dev"
+    // (a2f.dev.hugeamp.org, cmd.dev.hugeamp.org, bioindex-dev.hugeamp.org),
+    // or when served from a local hostname.
+    const isDevHost =
+        ["localhost", "127.0.0.1", "0.0.0.0"].includes(hostname) ||
+        hostname
+            .split(".")
+            .slice(0, -1)
+            .some((part) => part.includes("dev"));
 
-    let content =
-        url.port == ""
-            ? "https://bioindex.hugeamp.org"
-            : "https://bioindex-dev.hugeamp.org";
-
-    return content;
+    return hasLocalPort || isDevHost
+        ? "https://bioindex-dev.hugeamp.org"
+        : "https://bioindex.hugeamp.org";
 }
 
 function getUrl() {

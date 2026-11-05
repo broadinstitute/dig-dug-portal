@@ -75,6 +75,10 @@ export default Vue.component("filter-control-template", {
         disabled: Boolean,
         // called "computedField" instead of "computed" to prevent terminology collisions
         computedField: Function,
+        fillFirstItem: {
+            type: Boolean,
+            default: false
+        }
     },
     components: {
         Autocomplete,
@@ -93,7 +97,9 @@ export default Vue.component("filter-control-template", {
                 inclusive: !!this.inclusive || !!this.splitBy ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
                 computedField: this.computedField,
             },
-            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            filterThreshold: this.fillFirstItem && !!this.options && Array.isArray(this.options) 
+                ? this.options[0] 
+                : this.default, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
     },
     created() {

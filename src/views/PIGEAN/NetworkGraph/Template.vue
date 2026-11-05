@@ -60,10 +60,6 @@
                         </template>
                     </ul>
                 </div>
-                <div class="col filter-col-md">
-                    <div class="label">Number of gene sets included</div>
-                    <geneset-size-selectpicker></geneset-size-selectpicker>
-                </div>
                 <div class="region-search col filter-col-md hidden">
                     <div class="label">Search</div>
                     <button
@@ -78,12 +74,15 @@
             </search-header-wrapper>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Mechanism Graph
+                    <h4 class="card-title">
+                        Mechanism Graph
                         <span v-if="!!$store.state.phenotype">
-                            for {{ $store.state.phenotype?.description }}
+                            for {{ $store.state.phenotype.description }}
                         </span>
                     </h4>
-                    <template v-if="$store.state.phenotype && $parent.genesetSize">
+                    <template
+                        v-if="$store.state.phenotype && $parent.genesetSize"
+                    >
                         <network-graph
                             :phenotype="$store.state.phenotype.name"
                             :geneset-size="$store.state.genesetSize"

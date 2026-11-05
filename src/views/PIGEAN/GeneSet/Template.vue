@@ -20,10 +20,6 @@
                     <trait-group-selectpicker></trait-group-selectpicker>
                 </div>
                 <div class="col filter-col-md">
-                    <div class="label">Number of gene sets included</div>
-                    <geneset-size-selectpicker></geneset-size-selectpicker>
-                </div>
-                <div class="col filter-col-md">
                     <div class="label">Search</div>
                     <button
                         id="regionSearchGo"
@@ -72,11 +68,10 @@
                         Traits in which gene set affects genetic support
                     </h4>
                     <div>
-                        Gene sets affect the log-odds of the probability 
-                        that a gene is involved in a trait. Effect sizes
-                        are calculated for the gene set in isolation 
-                        (marginal) and in a joint model with all 
-                        gene sets together (joint).
+                        Gene sets affect the log-odds of the probability that a
+                        gene is involved in a trait. Effect sizes are calculated
+                        for the gene set in isolation (marginal) and in a joint
+                        model with all gene sets together (joint).
                     </div>
                 </div>
                 <div class="card-body">
@@ -85,16 +80,14 @@
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
-                                $parent.phewasAllData.map(
-                                    (d) => d.phenotype
-                                )
+                                $parent.phewasAllData.map((d) => d.phenotype)
                             "
                             :label-formatter="
                                 (phenotype) =>
-                                    $parent.pigeanMap[
-                                            phenotype
-                                        ]?.description
-                                    || phenotype
+                                    ($parent.pigeanMap[phenotype] &&
+                                        $parent.pigeanMap[phenotype]
+                                            .description) ||
+                                    phenotype
                             "
                             :multiple="true"
                         >
@@ -126,12 +119,14 @@
                                         :utils="$parent.utilsBox"
                                         :filter="filter"
                                         :native-dl-btn="false"
+                                        @pigeanColors="(colors) => $parent.storeColors(colors)"
                                     >
                                     </research-phewas-plot>
                                 </div>
                                 <div class="col-md-4">
                                     <pigean-plot
                                         v-if="$parent.plotReady"
+                                        :pigeanColors="$parent.pigeanColors"
                                         :pigean-data="$parent.phewasAllData"
                                         :config="$parent.pigeanPlotConfig"
                                         :phenotype-map="$parent.pigeanMap"

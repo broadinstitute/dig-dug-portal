@@ -6,11 +6,16 @@ import {
 } from "@/components/Alert";
 
 import { merge } from "@/utils/lodashUtils";
+<<<<<<< HEAD
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
+=======
+import { BIO_INDEX_HOST } from '@/utils/bioIndexUtils'
+>>>>>>> master
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
-export default function (index, extend) {
+export default function (index, extend, opts = {}) {
+    let { host } = opts;
     let module = {
         namespaced: true,
         limit: null,
@@ -98,7 +103,7 @@ export default function (index, extend) {
                     // if user is querying variant index with rsid, convert to varId
                     if (index === "variant" && q.startsWith("rs")) {
                         await fetch(
-                            `${BIO_INDEX_HOST}/api/bio/varIdLookup/${q}`
+                            `${host || BIO_INDEX_HOST}/api/bio/varIdLookup/${q}`
                         )
                             .then((res) => res.json())
                             .then((res) => {
@@ -110,6 +115,7 @@ export default function (index, extend) {
                     let data = await query(index, q, {
                         limit: limit || context.state.limit,
                         limitWhile: limitWhile,
+                        host,
                         // updates progress
                         onResolve: (json) => {
                             profile.fetch += json.profile.fetch || 0;

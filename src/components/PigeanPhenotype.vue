@@ -1,0 +1,1133 @@
+<template>
+  <div class="card mdkp-card">
+    <div class="card-body">
+      <h4 class="card-title">
+        Genes with genetic support for {{ phenotypeName }}
+      </h4>
+
+      <b-tabs v-model="activeTab">
+        <b-tab title="Combined genetic support (direct + indirect)">
+            <div class="tab-documentation">
+                The results below are produced by three Bayesian statistical methods — FALCON, PIGEAN and EAGGL — 
+                which address complementary questions regarding genetic support for a gene. FALCON models 
+                genetic associations and functional genomic annotations to infer “direct genetic support” 
+                for the involvement of a gene in a phenotype; it improves upon and replaces the HuGE (
+                Human Genetic Evidence; <a href="https://pubmed.ncbi.nlm.nih.gov/35421386/">
+                Dornbos et al. 2022</a>) method. PIGEAN uses gene annotations to extend 
+                this direct support to assign “indirect genetic support” to additional genes functionally 
+                similar to genes with direct support. EAGGL uses combined (direct + indirect) genetic support, 
+                and the specific gene annotations responsible for indirect support, to group genes into latent 
+                factors underlying each phenotype, which are a proxy for genetically anchored “mechanisms”. 
+                More information on the overall framework and each method can be found <a href="/birds.html">here</a>.
+            </div>
+            <research-pigean-phewas-plot
+                v-if="pigeanDataFiltered.length > 0"
+                ref="combinedPhewasPlot"
+                canvas-id="combinedPlot"
+                :plot-name="`combined_${phenotypeKey}`"
+                :phenotypes-data="pigeanDataFiltered"
+                :phenotype-map="phenotypeMap"
+                :colors="plotColors"
+                :plot-margin="phewasPlotMargin"
+                :render-config="combinedConfig"
+                :pkg-data="null"
+                :pkg-data-selected="null"
+                :filter="null"
+                :utils="utilsBox"
+                :options="['open gene page']"
+            >
+            </research-pigean-phewas-plot>
+            <div class="mt-3" style="position: relative">
+                <div
+                    v-html="'Total rows: ' + pigeanDataFiltered.length"
+                    class="table-total-rows"
+                ></div>
+                <div class="text-right mb-2" v-if="pigeanDataFiltered.length > 0">
+                    <data-download
+                        :data="pigeanDataFiltered"
+                        :filename="`pigean_phenotype_${phenotypeKey}`"
+                    ></data-download>
+                </div>
+                <div
+                    v-if="pigeanDataFiltered.length > 0"
+                    class="evidence-range-legend"
+                >
+                    <strong>Evidence range (Combined support):</strong>
+                    <span class="very-strong">Very Strong</span> &gt; 3 |
+                    <span class="strongly-suggestive">Strongly Suggestive</span>: 2-3 |
+                    <span class="nominally-significant">Nominally Significant</span>: 1-2 |
+                    <span class="not-significant">Not Significant</span>: &lt; 1
+                </div>
+                <b-table
+                    striped
+                    hover
+                    :items="pigeanTableItems"
+                    :fields="tableFields"
+                    :per-page="perPage"
+                    :current-page="currentPage"
+                    responsive
+                >
+                    <template #head(Combined_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.phenotype.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['COMBINED_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template #head(Direct_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['DIRECT_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template #head(Indirect_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['INDIRECT_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template v-slot:cell(Gene)="row">
+                        <a :href="'/gene.html?gene='+row.item.gene">{{ row.item.Gene }}</a>
+                    </template>
+                    <template #cell(Combined_support)="row">
+                        <span class="combined-score-cell">
+                            <span class="score-piece">
+                                <span
+                                    :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_support)]"
+                                ></span>
+                                {{ formatScore(row.item.Combined_support) }}
+                            </span>
+                          </span>
+                    </template>
+                    <template #cell(Direct_support)="row">
+                      <div>
+                        <span class="score-piece">
+                          <span
+                              :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Direct_support)]"
+                          ></span>
+                            {{ formatScore(row.item.Direct_support) }}
+                        </span>
+                        <b-button
+                          style="margin-left: 5px;"
+                          variant="outline-primary"
+                          size="sm"
+                          class="view-more-btn"
+                          @click="toggleDetails(row.item, 'locus')"
+                      >
+                          {{ isDetailsOpen(row.item, 'locus') ? "Hide" : "View evidence" }}
+                      </b-button>
+                      </div>
+                    </template>
+                    <template #cell(Indirect_support)="row">
+                      <div>
+                        <span class="score-piece">
+                          <span
+                              :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Indirect_support)]"
+                          ></span>
+                            {{ formatScore(row.item.Indirect_support) }}
+                        </span>
+                        <b-button
+                          style="margin-left: 5px;"
+                          variant="outline-primary"
+                          size="sm"
+                          class="view-more-btn"
+                          @click="toggleDetails(row.item, 'genesets')"
+                      >
+                          {{ isDetailsOpen(row.item, 'genesets') ? "Hide" : "View evidence" }}
+                      </b-button>
+                      </div>
+                    </template>
+                    <template #row-details="row">
+                        <div
+                            class="p-3"
+                            style="
+                                background-color: #eeeeee;
+                                border-left: 5px solid #cccccc;
+                            "
+                        >
+                            <template v-if="expandedDetailType === 'locus'">
+                              <pigean-locus-zoom :phenotype="phenotype.name" :gene="row.item.gene"></pigean-locus-zoom>
+                            </template>
+                            <template v-if="expandedDetailType === 'genesets'">
+                              <div v-if="row.item.gene === pigeanSubtableGene">
+                                <b-table
+                                    hover
+                                    small
+                                    responsive
+                                    :items="currentPigeanSubtableData"
+                                    :fields="pigeanSubtableFields"
+                                    sort-by="beta"
+                                    :sort-desc="true"
+                                    :sort-null-last="true"
+                                    :per-page="10"
+                                    :current-page="pigeanSubtableIndex"
+                                  >
+                                  </b-table>
+                                  <b-pagination 
+                                    v-model="pigeanSubtableIndex"
+                                    class="pagination-sm justify-content-center"
+                                    :total-rows="currentPigeanSubtableData.length"
+                                    :per-page="10"
+                                ></b-pagination>
+                              </div>
+                            </template>
+                        </div>
+                    </template>
+                </b-table>
+                <b-pagination
+                    v-model="currentPage"
+                    class="pagination-sm justify-content-center"
+                    :total-rows="pigeanDataFiltered.length"
+                    :per-page="perPage"
+                ></b-pagination>
+            </div>
+        </b-tab>
+        <b-tab title="HuGE Scores">
+            <span>
+                <documentation
+                    name="gene.hugecal.subheader"
+                    :content-fill="docDetails"
+                    :content-map="documentations"
+                >
+                </documentation>
+            </span>
+            <criterion-function-group>
+                <filter-enumeration-control
+                    :field="'gene'"
+                    placeholder="Select a gene ..."
+                    :options="hugeScoreGenes"
+                    :multiple="true"
+                >
+                    <div class="label">Genes</div>
+                </filter-enumeration-control>
+                <filter-greater-control
+                    :field="'huge'"
+                    placeholder="Set HuGE..."
+                >
+                    <div>
+                        <strong>HuGE Score (&ge;)</strong>
+                    </div>
+                </filter-greater-control>
+                <template slot="filtered" slot-scope="{ filter }">
+                    <research-pigean-phewas-plot
+                        v-if="hugePhewasData.length > 0"
+                        ref="hugeScorePhewasPlot"
+                        canvas-id="hugeScorePlot"
+                        :plot-name="`huge_scores_${phenotypeKey}`"
+                        :phenotypes-data="hugePhewasData"
+                        :phenotype-map="phenotypeMap"
+                        :colors="plotColors"
+                        :plot-margin="phewasPlotMargin"
+                        :render-config="hugeScoreRenderConfig"
+                        :pkg-data="null"
+                        :pkg-data-selected="null"
+                        :filter="filter"
+                        :utils="utilsBox"
+                        :options="['open gene page']"
+                    >
+                    </research-pigean-phewas-plot>
+                    <huge-scores-table
+                        v-if="hugeScores && hugeScores.length > 0"
+                        lead-table-field="gene"
+                        :page-key="phenotypeKey"
+                        :huge-scores="hugeScores"
+                        :phenotype-map="phenotypeMap"
+                        :filter="filter"
+                        :hide-cfde-gene-sets="true"
+                    >
+                    </huge-scores-table>
+                </template>
+            </criterion-function-group>
+        </b-tab>
+        <b-tab title="Combined support vs HuGE">
+            <div class="tab-documentation">
+            </div>
+            <research-pigean-phewas-plot
+                v-if="combinedVsHugeData.length > 0"
+                ref="pigeanPhewasPlot"
+                canvas-id="pigeanPlot"
+                :plot-name="`combined_vs_huge_${phenotypeKey}`"
+                :phenotypes-data="combinedVsHugeData"
+                :phenotype-map="phenotypeMap"
+                :colors="plotColors"
+                :plot-margin="phewasPlotMargin"
+                :render-config="pigeanConfig"
+                :pkg-data="null"
+                :pkg-data-selected="null"
+                :filter="null"
+                :utils="utilsBox"
+                :options="['open gene page']"
+            >
+            </research-pigean-phewas-plot>
+            <div class="mt-3" style="position: relative">
+                <div
+                    v-html="'Total rows: ' + combinedVsHugeData.length"
+                    class="table-total-rows"
+                ></div>
+                <div class="text-right mb-2" v-if="combinedVsHugeData.length > 0">
+                    <data-download
+                        :data="combinedVsHugeData"
+                        :filename="`combined_vs_huge_${phenotypeKey}`"
+                    ></data-download>
+                </div>
+                <div
+                    v-if="combinedVsHugeData.length > 0"
+                    class="evidence-range-legend"
+                >
+                    <strong>Evidence range:</strong>
+                    <span class="very-strong">Very Strong</span> &gt; 3 |
+                    <span class="strongly-suggestive">Strongly Suggestive</span>: 2-3 |
+                    <span class="nominally-significant">Nominally Significant</span>: 1-2 |
+                    <span class="not-significant">Not Significant</span>: &lt; 1
+                </div>
+                <b-table
+                    striped
+                    hover
+                    :items="combinedVsHugeData"
+                    :fields="combinedVsHugeFields"
+                    :per-page="perPage"
+                    :current-page="combinedVsHugePage"
+                    responsive
+                >
+                    <template #head(Combined_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.phenotype.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['COMBINED_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template v-slot:cell(Gene)="row">
+                        <a :href="'/gene.html?gene='+row.item.gene">{{ row.item.Gene }}</a>
+                    </template>
+                    <template #cell(Combined_support)="row">
+                        <span class="score-piece">
+                            <span
+                                :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_support)]"
+                            ></span>
+                            {{ formatScore(row.item.Combined_support) }}
+                        </span>
+                    </template>
+                    <template #cell(HuGE_Score)="row">
+                        {{ formatScore(row.item.HuGE_Score) }}
+                    </template>
+                </b-table>
+                <b-pagination
+                    v-model="combinedVsHugePage"
+                    class="pagination-sm justify-content-center"
+                    :total-rows="combinedVsHugeData.length"
+                    :per-page="perPage"
+                ></b-pagination>
+            </div>
+        </b-tab>
+        <b-tab title="Direct vs. indirect support" lazy>
+            <div class="tab-documentation">
+                Direct (GWAS) support versus indirect (gene annotation) support for
+                each gene. Dashed lines mark a score of 1 (considered nominally significant) on each axis.
+            </div>
+            <div class="direct-indirect-plot">
+                <pigean-support-plot
+                    v-if="directVsIndirectRows.length > 0"
+                    ref="directIndirectPlot"
+                    :rows="directVsIndirectRows"
+                    x-key="Direct_support"
+                    y-key="Indirect_support"
+                    x-label="Direct support"
+                    y-label="Indirect support"
+                    title="Direct vs. indirect support"
+                    :threshold="1"
+                    :point-radius="5"
+                    @select="openGeneFromPlot"
+                    :labelQuadrants="true"
+                />
+            </div>
+            <div class="mt-3" style="position: relative">
+                <div
+                    v-html="'Total rows: ' + directVsIndirectRows.length"
+                    class="table-total-rows"
+                ></div>
+                <div class="text-right mb-2" v-if="directVsIndirectRows.length > 0">
+                    <data-download
+                        :data="directVsIndirectRows"
+                        :filename="`direct_vs_indirect_${phenotypeKey}`"
+                    ></data-download>
+                </div>
+                <div
+                    v-if="directVsIndirectRows.length > 0"
+                    class="evidence-range-legend"
+                >
+                    <strong>Evidence range:</strong>
+                    <span class="very-strong">Very Strong</span> &gt; 3 |
+                    <span class="strongly-suggestive">Strongly Suggestive</span>: 2-3 |
+                    <span class="nominally-significant">Nominally Significant</span>: 1-2 |
+                    <span class="not-significant">Not Significant</span>: &lt; 1
+                </div>
+                <b-table
+                    striped
+                    hover
+                    :items="directVsIndirectRows"
+                    :fields="directVsIndirectFields"
+                    :per-page="perPage"
+                    :current-page="directVsIndirectPage"
+                    responsive
+                >
+                    <template #head(Combined_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.phenotype.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['COMBINED_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template #head(Direct_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.phenotype.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['DIRECT_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template #head(Indirect_support)="data">
+                        <span class="column-header-with-tooltip">
+                            <span>{{ data.label }}</span>
+                            <span @click.stop>
+                                <tooltip-documentation
+                                    name="pigean.phenotype.column.pigean.tooltip"
+                                    :is-hover="true"
+                                    :no-icon="false"
+                                    :supply-text="tooltipMap['INDIRECT_SUPPORT']"
+                                ></tooltip-documentation>
+                            </span>
+                        </span>
+                    </template>
+                    <template v-slot:cell(Gene)="row">
+                        <a :href="'/gene.html?gene='+row.item.gene">{{ row.item.Gene }}</a>
+                    </template>
+                    <template #cell(Combined_support)="row">
+                        <span class="score-piece">
+                            <span
+                                :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_support)]"
+                            ></span>
+                            {{ formatScore(row.item.Combined_support) }}
+                        </span>
+                    </template>
+                    <template #cell(Direct_support)="row">
+                        <span class="score-piece">
+                            <span
+                                :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Direct_support)]"
+                            ></span>
+                            {{ formatScore(row.item.Direct_support) }}
+                        </span>
+                    </template>
+                    <template #cell(Indirect_support)="row">
+                        <span class="score-piece">
+                            <span
+                                :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Indirect_support)]"
+                            ></span>
+                            {{ formatScore(row.item.Indirect_support) }}
+                        </span>
+                    </template>
+                </b-table>
+                <b-pagination
+                    v-model="directVsIndirectPage"
+                    class="pagination-sm justify-content-center"
+                    :total-rows="directVsIndirectRows.length"
+                    :per-page="perPage"
+                ></b-pagination>
+            </div>
+        </b-tab>
+      </b-tabs>
+    </div>
+  </div>
+</template>
+<script>
+import Vue from "vue";
+
+import DataDownload from "@/components/DataDownload.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import ResearchPigeanPheWAS from "@/components/researchPortal/PIGEAN/ResearchPigeanPheWAS.vue";
+import PigeanSupportPlot from "@/components/researchPortal/PIGEAN/PigeanSupportPlot.vue";
+import HugeScoresTable from "@/components/HugeScoresTable.vue";
+import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import PigeanLocusZoom from "@/components/PigeanLocusZoom.vue";
+
+import uiUtils from "@/utils/uiUtils";
+import plotUtils from "@/utils/plotUtils";
+import sortUtils from "@/utils/sortUtils";
+import alertUtils from "@/utils/alertUtils";
+import Formatters from "@/utils/formatters";
+import dataConvert from "@/utils/dataConvert";
+import keyParams from "@/utils/keyParams";
+import filterUtils from "@/utils/filterUtils";
+import regionUtils from "@/utils/regionUtils";
+import userUtils from "@/utils/userUtils.js";
+import { TOOLTIP_MAP } from "../utils/pigeanUtils";
+import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
+
+export default Vue.component("pigean-phenotype", {
+  components: {
+    DataDownload,
+    FilterEnumeration,
+    FilterGreaterThan,
+    CriterionFunctionGroup,
+    ResearchPigeanPheWAS,
+    PigeanSupportPlot,
+    HugeScoresTable,
+    Documentation,
+    TooltipDocumentation,
+    PigeanLocusZoom
+  },
+  props: ["phenotypeMap", "pigeanData", "hugeScores", "falconTraitAssociatedGenes", "phenotype", "docDetails", "filter", "plotColors"],
+  data() {
+      return {
+        perPage: 10,
+        currentPage: 1,
+        combinedVsHugePage: 1,
+        directVsIndirectPage: 1,
+        activeTab: 0,
+        expandedRowKey: null,
+        expandedDetailType: null,
+        combinedConfig: {
+            "type": "pigean phewas plot",
+            "render by": "Gene",
+            "group by": "Factor",
+            "phenotype map": null,
+            "y axis fields": ["Combined_support","Direct_support","Indirect_support"],
+            "y axis field labels": ["Combined (direct support + indirect support)","Direct support","Indirect support"],
+            "primary y axis field": "Combined_support",
+            "convert y -log10": "false",
+            "y axis label": "Combined (direct + indirect)",
+            "x axis label": "",
+            "beta field": "null",
+            "hover content": ["Gene", "Factor", "Combined_support", "Direct_support", "Indirect_support"],
+            "filter by threshold": true,
+            thresholds: [2],
+            "label in black": "greater than",
+            height: "600",
+            "ppa field": "PPA",
+            "ppa axis label": "PPA",
+            "ppa strip height": 30,
+            "plot margin": {
+                left: 150,
+                right: 180,
+                top: 250,
+                bottom: 300,
+            },
+        },
+        pigeanConfig: {
+            "type": "pigean phewas plot",
+            "render by": "Gene",
+            "group by": "Factor",
+            "phenotype map": null,
+            "y axis fields": ["Combined_support","Log_HuGE_Score"],
+            "y axis field labels": ["Combined support","Log(HuGE scores)"],
+            "primary y axis field": "Combined_support",
+            "secondary y axis field": "Log_HuGE_Score",
+            "secondary y axis label": "Log(HuGE scores)",
+            "convert y -log10": "false",
+            "y axis label": "Combined support",
+            "x axis label": "",
+            "beta field": "null",
+            "hover content": ["Gene", "Factor","Combined_support", "HuGE_Score", "Log_HuGE_Score"],
+            "filter by threshold": true,
+            "thresholds": [2],
+            "label in black": "greater than",
+            "height": "600",
+            "plot margin": {
+                "left": 150,
+                "right": 180,
+                "top": 250,
+                "bottom": 300,
+            },
+        },
+        hugeScoreRenderConfig: {
+            "type": "pigean phewas plot",
+            "render by": "Gene",
+            "group by": "Factor",
+            "phenotype map": null,
+            "y axis field": "renderScore",
+            "convert y -log10": "false",
+            "y axis label": "Log(HuGE score)",
+            "x axis label": "",
+            "beta field": "null",
+            "hover content": ["Gene", "Factor", "huge"],
+            "filter by threshold": true,
+            thresholds: [Math.log(3), Math.log(30)],
+            "label in black": "greater than",
+            height: "600",
+            "plot margin": {
+                left: 150,
+                right: 150,
+                top: 250,
+                bottom: 300,
+            },
+        },
+        phewasPlotMargin: {
+            leftMargin: 150,
+            rightMargin: 40,
+            topMargin: 20,
+            bottomMargin: 100,
+            bump: 11,
+        },
+        tableFields: [
+          {
+            key: 'Gene',
+            label: 'Gene',
+            sortable: true
+          },
+          {
+            key: 'Combined_support',
+            sortable: true
+          },
+          {
+            key: "Direct_support",
+            sortable: true
+          },
+          {
+            key: "Indirect_support",
+            sortable: true
+          }
+        ],
+        combinedVsHugeFields: [
+          {
+            key: 'Gene',
+            label: 'Gene',
+            sortable: true
+          },
+          {
+            key: 'Combined_support',
+            label: 'Combined support',
+            sortable: true
+          },
+          {
+            key: 'HuGE_Score',
+            label: 'HuGE score',
+            sortable: true
+          }
+        ],
+        directVsIndirectFields: [
+          {
+            key: 'Gene',
+            label: 'Gene',
+            sortable: true
+          },
+          {
+            key: 'Combined_support',
+            label: 'Combined support',
+            sortable: true
+          },
+          {
+            key: 'Direct_support',
+            label: 'Direct support',
+            sortable: true
+          },
+          {
+            key: 'Indirect_support',
+            label: 'Indirect support',
+            sortable: true
+          }
+        ],
+        pigeanSubtableEndpoint: "pigean-joined-gene",
+        pigeanSubtableFields: [
+            { key: "gene_set", label: "Gene set", sortable: true },
+            { key: "beta", label: "Effect (joint)", sortable: true },
+        ],
+        pigeanSubtableData: {},
+        pigeanSubtableIndex: 1,
+        pigeanSubtableGene: null
+      };
+  },
+  computed: {
+    utilsBox() {
+        let utils = {
+            Formatters: Formatters,
+            uiUtils: uiUtils,
+            alertUtils: alertUtils,
+            keyParams: keyParams,
+            dataConvert: dataConvert,
+            sortUtils: sortUtils,
+            plotUtils: plotUtils,
+            filterUtils: filterUtils,
+            regionUtils: regionUtils,
+            userUtils: userUtils,
+        };
+        return utils;
+    },
+    documentations() {
+      return this.$store.state.bioPortal.documentations;
+    },
+    phenotypeKey() {
+      if (this.phenotype && this.phenotype.name) {
+        return this.phenotype.name;
+      }
+      if (this.pigeanData && this.pigeanData.length > 0 && this.pigeanData[0].phenotype) {
+        return this.pigeanData[0].phenotype;
+      }
+      return "";
+    },
+    phenotypeName() {
+      if (this.phenotype && this.phenotype.description) {
+        return this.phenotype.description;
+      }
+      const key = this.phenotypeKey;
+      if (key && this.phenotypeMap && this.phenotypeMap[key]) {
+        return this.phenotypeMap[key].description;
+      }
+      return key || "this phenotype";
+    },
+    hugeScoreGenes() {
+      return (this.hugeScores || []).map((score) => score.gene).filter(Boolean);
+    },
+    ppaByGene() {
+      const map = {};
+      (this.falconTraitAssociatedGenes || []).forEach((row) => {
+        const gene = row && (row.GENE != null ? row.GENE : row.gene);
+        if (gene == null || gene === "") {
+          return;
+        }
+        const pipRaw = row.PIP != null ? row.PIP : row.pip;
+        if (pipRaw == null || pipRaw === "") {
+          return;
+        }
+        const pip = Number(pipRaw);
+        if (Number.isNaN(pip)) {
+          return;
+        }
+        const key = String(gene).toLowerCase();
+        if (map[key] == null || pip > map[key]) {
+          map[key] = pip;
+        }
+      });
+      return map;
+    },
+    hugePhewasData() {
+      const factorByGene = {};
+      (this.pigeanDataFiltered || []).forEach((item) => {
+        if (!item.gene) {
+          return;
+        }
+        const key = String(item.gene).toLowerCase();
+        const combined = Number(item.Combined_support);
+        const existing = factorByGene[key];
+        if (
+          !existing ||
+          (!Number.isNaN(combined) && combined > existing.combined)
+        ) {
+          factorByGene[key] = {
+            factor: item.Factor || "N/A",
+            combined: Number.isNaN(combined) ? -Infinity : combined,
+          };
+        }
+      });
+      return (this.hugeScores || []).reduce((rows, score) => {
+        const gene = score.gene;
+        if (!gene) {
+          return rows;
+        }
+        const factorInfo = factorByGene[String(gene).toLowerCase()];
+        if (!factorInfo) {
+          return rows;
+        }
+        const hugeValue =
+          score.huge != null && score.huge !== "" ? Number(score.huge) : null;
+        const renderScore =
+          hugeValue != null && !Number.isNaN(hugeValue) && hugeValue > 0
+            ? Math.log(hugeValue)
+            : null;
+        rows.push({
+          ...score,
+          Gene: gene,
+          gene,
+          Factor: factorInfo.factor,
+          renderScore,
+        });
+        return rows;
+      }, []);
+    },
+    pigeanDataFiltered() {
+      if (!this.pigeanData) {
+        return [];
+      }
+
+      const fieldMapping = {
+        'gene': 'Gene',
+        'phenotype': 'Phenotype',
+        'label': 'Factor',
+        'combined': 'Combined_support',
+        'log_bf': 'Direct_support',
+        'prior': 'Indirect_support',
+        'huge_score': 'HuGE_Score'
+      };
+
+      return this.pigeanData
+        .map(item => {
+          const reformattedItem = {};
+
+          Object.keys(fieldMapping).forEach(rawKey => {
+            if (item.hasOwnProperty(rawKey)) {
+              reformattedItem[fieldMapping[rawKey]] = item[rawKey];
+            }
+          });
+
+          if (item.hasOwnProperty('gene')) {
+            reformattedItem.gene = item.gene;
+          }
+          if (item.hasOwnProperty('phenotype')) {
+            reformattedItem.phenotype = item.phenotype;
+          }
+
+          const ppaKey = item.gene != null ? String(item.gene).toLowerCase() : "";
+          reformattedItem.PPA = ppaKey && this.ppaByGene[ppaKey] != null
+            ? this.ppaByGene[ppaKey]
+            : null;
+
+          Object.keys(item).forEach(key => {
+            if (!fieldMapping.hasOwnProperty(key) && key !== 'gene' && key !== 'phenotype') {
+              reformattedItem[key] = item[key];
+            }
+          });
+
+          return reformattedItem;
+        });
+    },
+    pigeanTableItems() {
+      const key = this.expandedRowKey;
+      return (this.pigeanDataFiltered || []).map((item) => ({
+        ...item,
+        _rowKey: this.getRowKey(item),
+        _showDetails: key !== null && key === this.getRowKey(item),
+      }));
+    },
+    combinedVsHugeData() {
+      const hugeByGene = {};
+      (this.hugeScores || []).forEach((score) => {
+        if (score && score.gene) {
+          hugeByGene[String(score.gene).toLowerCase()] = score;
+        }
+      });
+      return (this.pigeanDataFiltered || []).map((item) => {
+        const geneKey = item.gene != null ? String(item.gene).toLowerCase() : "";
+        const hugeRow = geneKey ? hugeByGene[geneKey] : null;
+        const hugeValue =
+          hugeRow && hugeRow.huge != null && hugeRow.huge !== ""
+            ? Number(hugeRow.huge)
+            : null;
+        const logHuge =
+          hugeValue != null && !Number.isNaN(hugeValue) && hugeValue > 0
+            ? Math.log(hugeValue)
+            : null;
+        return {
+          ...item,
+          HuGE_Score: hugeValue,
+          Log_HuGE_Score: logHuge,
+        };
+      });
+    },
+    directVsIndirectRows() {
+      return (this.pigeanDataFiltered || [])
+        .filter((item) => item.gene || item.Gene)
+        .map((item) => ({
+          ...item,
+          id: item.gene || item.Gene,
+        }));
+    },
+    currentPigeanSubtableData(){
+      if (this.pigeanSubtableGene === null){
+        return [];
+      }
+      let queryKey = this.subtableKey(this.pigeanSubtableGene);
+      return this.pigeanSubtableData[queryKey];
+    },
+    tooltipMap(){
+      return TOOLTIP_MAP;
+    }
+  },
+  watch: {
+    pigeanDataFiltered: {
+      handler(newData) {
+        if (newData && newData.length > 0 && (this.activeTab === 0 || this.activeTab === 1 || this.activeTab === 2 || this.activeTab === 3)) {
+          this.$nextTick(() => {
+            this.$nextTick(() => {
+              setTimeout(() => {
+                this.renderActiveTab();
+              }, 300);
+            });
+          });
+        }
+      },
+      immediate: true
+    },
+    hugeScores: {
+      handler() {
+        if (this.activeTab === 1 || this.activeTab === 2) {
+          this.$nextTick(() => {
+            this.$nextTick(() => {
+              setTimeout(() => {
+                this.renderActiveTab();
+              }, 300);
+            });
+          });
+        }
+      }
+    },
+    activeTab() {
+      this.$nextTick(() => {
+        this.$nextTick(() => {
+          this.$nextTick(() => {
+            setTimeout(() => {
+              this.renderActiveTab();
+            }, 500);
+          });
+        });
+      });
+    }
+  },
+  mounted() {
+    this.$nextTick(() => {
+      setTimeout(() => {
+        this.renderActiveTab();
+      }, 1000);
+    });
+  },
+  methods: {
+    formatScore(value) {
+      if (value === null || value === undefined || value === "") {
+        return "N/A";
+      }
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      return Number.isNaN(numValue) ? "N/A" : numValue.toFixed(2);
+    },
+    formatPpa(value) {
+      if (value === null || value === undefined || value === "") {
+        return "N/A";
+      }
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      return Number.isNaN(numValue) ? "N/A" : numValue.toFixed(4);
+    },
+    evidenceRangeClass(value) {
+      if (value === null || value === undefined || value === "") {
+        return "not-significant";
+      }
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      if (Number.isNaN(numValue) || numValue < 1) {
+        return "not-significant";
+      }
+      if (numValue > 3) {
+        return "very-strong";
+      }
+      if (numValue >= 2) {
+        return "strongly-suggestive";
+      }
+      return "nominally-significant";
+    },
+    openGeneFromPlot(row) {
+      const gene = row && (row.id || row.gene || row.Gene);
+      if (gene) {
+        window.location.href = `/gene.html?gene=${encodeURIComponent(gene)}`;
+      }
+    },
+    renderActiveTab() {
+      let refName = null;
+      if (this.activeTab === 0) {
+        refName = 'combinedPhewasPlot';
+      } else if (this.activeTab === 1) {
+        refName = 'hugeScorePhewasPlot';
+      } else if (this.activeTab === 2) {
+        refName = 'pigeanPhewasPlot';
+      } else if (this.activeTab === 3) {
+        const tryDraw = (attempts = 0) => {
+          const plot = this.$refs.directIndirectPlot;
+          if (plot && typeof plot.draw === "function") {
+            plot.draw();
+            return;
+          }
+          if (attempts < 20) {
+            setTimeout(() => {
+              tryDraw(attempts + 1);
+            }, 250);
+          }
+        };
+        tryDraw();
+        return;
+      }
+
+      if (refName) {
+        this.renderPhewas(refName);
+      }
+    },
+    renderPhewas(refName) {
+      const tryRender = (attempts = 0) => {
+        const ref = this.$refs[refName];
+        if (ref) {
+          if (typeof ref.renderPheWas === 'function') {
+            try {
+              ref.renderPheWas();
+              return;
+            } catch (error) {
+              console.warn(`Error rendering ${refName}:`, error);
+            }
+          }
+        }
+
+        if (attempts < 20) {
+          setTimeout(() => {
+            tryRender(attempts + 1);
+          }, 250);
+        }
+      };
+      setTimeout(() => {
+        tryRender();
+      }, 600);
+    },
+    async toggleDetails(item, detailType="locus") {
+      const key = this.getRowKey(item);
+      await this.getPigeanSubtable(item);
+      if (this.expandedRowKey === key && this.expandedDetailType === detailType) {
+        this.expandedRowKey = null;
+        this.expandedDetailType = null;
+        this.pigeanSubtableGene = null;
+        return;
+      }
+      if (detailType === "genesets" && this.expandedRowKey !== key){
+        this.pigeanSubtableIndex = 1;
+      }
+      this.expandedRowKey = key;
+      this.expandedDetailType = detailType;
+      this.pigeanSubtableGene = item.gene;
+    },
+    getRowKey(item) {
+      return `${item.gene || ""}|${item.Factor || ""}`;
+    },
+    isDetailsOpen(item, detailType="locus") {
+      return (
+        this.expandedRowKey === this.getRowKey(item) &&
+        this.expandedDetailType === detailType
+      );
+    },
+    subtableKey(gene){
+      return `${this.phenotype.name},${gene},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE}`;
+    },
+    async getPigeanSubtable(item) {
+      let queryKey = this.subtableKey(item.gene);
+      if (!this.pigeanSubtableData[queryKey]) {
+          let data = await query(this.pigeanSubtableEndpoint, queryKey);
+          Vue.set(this.pigeanSubtableData, queryKey, data);
+      }
+    },
+  }
+});
+</script>
+<style scoped>
+  .tab-documentation {
+    padding: 20px 0;
+  }
+  .direct-indirect-plot {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .column-header-with-tooltip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .combined-score-cell {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    gap: 6px;
+  }
+  .score-piece {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .score-swatch {
+    display: inline-block;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+  }
+  .score-swatch-combined {
+    width: 17px;
+    height: 17px;
+  }
+  .score-swatch-part {
+    width: 13px;
+    height: 13px;
+  }
+  .score-swatch.very-strong {
+    background-color: #4a90e2;
+  }
+  .score-swatch.strongly-suggestive {
+    background-color: #f5a623;
+  }
+  .score-swatch.nominally-significant {
+    background-color: #f8e71c;
+  }
+  .score-swatch.not-significant {
+    background-color: #ffffff;
+  }
+  .evidence-range-legend {
+    font-size: 12px;
+    white-space: nowrap;
+    margin-bottom: 10px;
+    padding-top: 5px;
+  }
+  ::v-deep .very-strong {
+    background-color: #4a90e2 !important;
+    color: #ffffff !important;
+    padding: 2px 4px;
+  }
+  ::v-deep .strongly-suggestive {
+    background-color: #f5a623 !important;
+    color: #ffffff !important;
+    padding: 2px 4px;
+  }
+  ::v-deep .nominally-significant {
+    background-color: #f8e71c !important;
+    color: #333333 !important;
+    padding: 2px 4px;
+  }
+  ::v-deep .not-significant {
+    background-color: transparent !important;
+  }
+</style>

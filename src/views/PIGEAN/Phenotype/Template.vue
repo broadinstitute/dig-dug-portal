@@ -60,10 +60,6 @@
                         </template>
                     </ul>
                 </div>
-                <div class="col filter-col-md">
-                    <div class="label">Number of gene sets included</div>
-                    <geneset-size-selectpicker></geneset-size-selectpicker>
-                </div>
                 <div class="region-search col filter-col-md hidden">
                     <div class="label">Search</div>
                     <button
@@ -129,6 +125,7 @@
                                 :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
+                                :pigeanColors="$parent.pigeanColors"
                             >
                             </pigean-plot>
                             <pigean-table
@@ -184,6 +181,7 @@
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetPigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
+                                :pigeanColors="$parent.pigeanColors"
                                 :filter="filter"
                             >
                             </pigean-plot>
@@ -266,6 +264,7 @@
                                 :heatmapData="$parent.heatmapData"
                                 :renderConfig="$parent.heatmapConfig"
                                 :sectionId="`${$store.state.phenotype.name}_topPhewas`"
+                                :alwaysHideTooltip="true"
                             >
                             </heatmap>
                         </div>

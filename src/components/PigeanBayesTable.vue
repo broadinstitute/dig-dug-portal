@@ -14,7 +14,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
@@ -24,9 +24,7 @@
             >
                 <template #cell(label)="r">
                     <span v-if="!!r.item.label">
-                        {{
-                            shorten(r.item.label)
-                        }}    
+                        {{ shorten(r.item.label) }}
                     </span>
                 </template>
                 <template #cell(gene)="r">
@@ -107,14 +105,22 @@
                 <template #row-details="row">
                     <pigean-bayes-table
                         v-if="row.item.subtableActive === 1"
-                        :pigeanData="geneData.filter(g => g.label_factor === row.item.factor)"
+                        :pigeanData="
+                            geneData.filter(
+                                (g) => g.label_factor === row.item.factor
+                            )
+                        "
                         :fields="geneFields"
                         :is-subtable="true"
                     >
                     </pigean-bayes-table>
                     <pigean-bayes-table
                         v-if="row.item.subtableActive === 2"
-                        :pigeanData="genesetData.filter(g => g.label_factor === row.item.factor)"
+                        :pigeanData="
+                            genesetData.filter(
+                                (g) => g.label_factor === row.item.factor
+                            )
+                        "
                         :fields="genesetFields"
                         :is-subtable="true"
                     >
@@ -145,8 +151,16 @@ export default Vue.component("pigean-bayes-table", {
     components: {
         DataDownload,
     },
-    props: ["pigeanData", "filter", "fields", "geneData", "genesetData", "isSubtable",
-        "geneFields", "genesetFields", "phenotypeMap"
+    props: [
+        "pigeanData",
+        "filter",
+        "fields",
+        "geneData",
+        "genesetData",
+        "isSubtable",
+        "geneFields",
+        "genesetFields",
+        "phenotypeMap",
     ],
     data() {
         return {
@@ -174,21 +188,20 @@ export default Vue.component("pigean-bayes-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        shorten(longString){
+        shorten(longString) {
             return longString.length > 40
                 ? `${longString.slice(0, 40)}...`
-                : longString
+                : longString;
         },
-        formatList(textList){
-            return textList.split(";")
-                .map(item => this.shorten(item));
+        formatList(textList) {
+            return textList.split(";").map((item) => this.shorten(item));
         },
         showDetails(row, tableNum) {
-            this.toggleTable(row, tableNum);            
+            this.toggleTable(row, tableNum);
         },
-        toggleTable(row, subtable){
+        toggleTable(row, subtable) {
             let show = false;
-            if (subtable === 'phewas'){
+            if (subtable === "phewas") {
                 show = !row.item.phewasActive;
             } else if (subtable === row.item.subtableActive) {
                 show = false;
@@ -196,25 +209,28 @@ export default Vue.component("pigean-bayes-table", {
                 show = true;
             }
             // Toggle active table
-            if (subtable === 'phewas'){
+            if (subtable === "phewas") {
                 row.item.phewasActive = !row.item.phewasActive;
             } else {
                 row.item.subtableActive = !show ? 0 : subtable;
             }
             // Hide details if it's currently showing and no tables should be active
-            if (!show 
-                && row.detailsShowing 
-                && !row.item.phewasActive 
-                && row.item.subtableActive === 0){
+            if (
+                !show &&
+                row.detailsShowing &&
+                !row.item.phewasActive &&
+                row.item.subtableActive === 0
+            ) {
                 row.toggleDetails();
             }
             // Show details if it's currently not showing but it should be
-            if (show 
-                && !row.detailsShowing 
-                && (row.item.phewasActive || row.item.subtableActive !== 0)){
-                    row.toggleDetails();
-                }
-            
+            if (
+                show &&
+                !row.detailsShowing &&
+                (row.item.phewasActive || row.item.subtableActive !== 0)
+            ) {
+                row.toggleDetails();
+            }
         },
     },
 });

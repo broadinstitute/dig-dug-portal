@@ -296,7 +296,7 @@ for (let i in chromosomes) {
     opacity: 0.65 !important;
     fill: currentColor;
 }
-</script > <style > div.manhattan-tooltip table {
+div.manhattan-tooltip table {
     background-color: white;
     font-size: small;
     border: 1px solid darkgray;
