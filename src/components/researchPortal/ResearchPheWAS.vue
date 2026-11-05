@@ -32,13 +32,6 @@
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
                         <strong v-if="!linkPhenotypes">
-<<<<<<< HEAD
-                            {{ phenotypeMap[ptKey]?.description || ptKey }}
-                        </strong>
-                        <strong v-else>
-                            <a :href="phenotypeLink(ptKey)">
-                                {{ phenotypeMap[ptKey]?.description || ptKey }}
-=======
                             {{
                                 (phenotypeMap[ptKey] &&
                                     phenotypeMap[ptKey].description) ||
@@ -52,7 +45,6 @@
                                         phenotypeMap[ptKey].description) ||
                                     ptKey
                                 }}
->>>>>>> master
                             </a>
                         </strong>
                         <br />
@@ -312,12 +304,9 @@ export default Vue.component("ResearchPhewasPlot", {
         renderData(content) {
             this.renderPheWas();
         },
-<<<<<<< HEAD
         matchingHoverDots(newDots) {
             console.log("received by phewas", newDots);
         },
-=======
->>>>>>> master
     },
     created: function () {
         this.renderPheWas();

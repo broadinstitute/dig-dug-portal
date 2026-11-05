@@ -181,16 +181,8 @@ export function decodeNamespace(
 }
 
 export function unsetFilter(filterList, filter) {
-<<<<<<< HEAD
-    const _filterList = _.filter(
-        filterList,
-        (el) =>
-            !(el.field === filter.field && el.threshold === filter.threshold)
-    );
-=======
     const _filterList = filterList.filter(
         el => !(el.field === filter.field && el.threshold === filter.threshold));
->>>>>>> master
     return _filterList;
 }
 
