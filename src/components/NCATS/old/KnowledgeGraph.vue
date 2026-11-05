@@ -1,4 +1,5 @@
 <template>
+<<<<<<< HEAD
     <network
         v-if="nodes.length > 0 && edges.length > 0"
         ref="network"
@@ -13,6 +14,18 @@
 <script>
 import Vue from "vue";
 import { Network } from "vue-vis-network";
+=======
+    <div
+        v-if="nodes.length > 0 && edges.length > 0"
+        ref="networkContainer"
+        style="height: 800px; width: 100%;">
+    </div>
+</template>
+<script>
+import Vue from "vue";
+import { Network } from "vis-network";
+import { DataSet } from "vis-data";
+>>>>>>> master
 import { uniqBy } from "@/utils/lodashUtils";
 
 const makeGraph = (query_graph, knowledge_graph_results) => {
@@ -72,15 +85,23 @@ const makeGraph = (query_graph, knowledge_graph_results) => {
         });
     });
 
+<<<<<<< HEAD
     graph.nodes = uniqBy(graph.nodes, "id");
+=======
+    graph.nodes = uniqBy(graph.nodes, 'id')
+>>>>>>> master
     return graph;
 };
 
 export default Vue.component("translator-knowledge-graph", {
+<<<<<<< HEAD
     props: ["query_graph", "results"],
     components: {
         Network,
     },
+=======
+    props: ['query_graph', 'results'],
+>>>>>>> master
     computed: {
         graph: function () {
             return makeGraph(this.query_graph, this.results);
@@ -92,10 +113,46 @@ export default Vue.component("translator-knowledge-graph", {
             return this.graph.links;
         },
     },
+    watch: {
+        results: {
+            handler() {
+                this.$nextTick(() => this.renderNetwork());
+            },
+            deep: true,
+        },
+    },
+    mounted() {
+        this.$nextTick(() => this.renderNetwork());
+    },
+    beforeDestroy() {
+        if (this.network) {
+            this.network.destroy();
+        }
+    },
     methods: {
+<<<<<<< HEAD
         onNodeHovered() {
             console.log(arguments);
         },
     },
 });
+=======
+        renderNetwork() {
+            const container = this.$refs.networkContainer;
+            if (!container || this.nodes.length === 0) return;
+            if (this.network) {
+                this.network.destroy();
+            }
+            const data = {
+                nodes: new DataSet(this.nodes),
+                edges: new DataSet(this.edges),
+            };
+            this.network = new Network(container, data, {});
+        },
+        onNodeHovered() {
+            console.log(arguments)
+        }
+    }
+})
+>>>>>>> master
 </script>

@@ -136,10 +136,6 @@ new Vue({
                     key: "Ethnicities",
                     sortable: true
                 },
-                isolation: {
-                    key: "Isolation_center",
-                    sortable: true
-                },
                 cultureTime: {
                     key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
                     isNumeric: true,

@@ -1,0 +1,130 @@
+/** GEM package table format for Variant Sifter associations. */
+export const ASSOCIATIONS_TABLE_FORMAT = {
+    "custom table": {
+        name: "gem package",
+        "Credible Set": { "key field": "Variant ID", PPA: "posteriorProbability" },
+        Annotation: { "key field": "Position" },
+        Tissue: { "key field": "Position" },
+    },
+    "data convert": [
+        { type: "raw", "field name": "Ancestry", "raw field": "ancestry" },
+        { type: "raw", "field name": "chromosome", "raw field": "chromosome" },
+        { type: "raw", "field name": "Position", "raw field": "position" },
+        { type: "raw", "field name": "ref", "raw field": "reference" },
+        { type: "raw", "field name": "alt", "raw field": "alt" },
+        { type: "raw", "field name": "Beta", "raw field": "beta" },
+        { type: "raw", "field name": "MAF", "raw field": "maf" },
+        { type: "raw", "field name": "Standard Error", "raw field": "stdErr" },
+        { type: "raw", "field name": "Consequence", "raw field": "consequence" },
+        { type: "raw", "field name": "Z Score", "raw field": "zScore" },
+        { type: "raw", "field name": "P-Value", "raw field": "pValue" },
+        { type: "raw", "field name": "rsID", "raw field": "dbSNP" },
+        { type: "raw", "field name": "LDS", "raw field": "ldScore" },
+        { type: "raw", "field name": "EAF", "raw field": "eaf" },
+        {
+            type: "join",
+            "field name": "Ref/Alt",
+            "fields to join": ["reference", "alt"],
+            "join by": "/",
+        },
+        {
+            type: "join",
+            "field name": "Locus",
+            "fields to join": ["chromosome", "position"],
+            "join by": ":",
+        },
+        {
+            type: "join multi",
+            "field name": "Variant ID",
+            "fields to join": ["chromosome", "position", "reference", "alt"],
+            "join by": [":", "_", "/"],
+        },
+        { type: "raw", "field name": "chr", "raw field": "chromosome" },
+        {
+            type: "calculate",
+            "field name": "-log10(P-Value)",
+            "raw field": "pValue",
+            "calculation type": "-log10",
+        },
+    ],
+    "top rows": [
+        "Variant ID",
+        "rsID",
+        "Ref/Alt",
+        "P-Value",
+        "Beta",
+        "MAF",
+        "Standard Error",
+        "Z Score",
+        "Consequence",
+        "Ancestry",
+        "Project",
+    ],
+    "tool tips": {
+        "Variant ID": "chromosome:position (hg19)_ref/alt",
+        rsID: "Variant ID from dbGaP",
+        "Ref/Alt": "Reference allele/alternate allele",
+        "P-Value": "Significance of association with the selected phenotype(s)",
+        Beta: "Effect size",
+        MAF: "Minor allele frequency",
+        "Z Score": "Beta / Standard error",
+        Consequence:
+            "Impact of the variant for overlapping genes or transcripts, as predicted by the Ensembl Variant Effect Predictor (VEP)",
+        Phenotype: "Phenotype series for the association row",
+        Ancestry: "Ancestry series for the association row",
+        Project: "Data source project (KP portal associations or GWAS-CE overlay)",
+        "Credible Set":
+            "Posterior Probability of Association for the variant in the selected credible set(s)",
+        "Cred. sets":
+            "Highest Posterior Probability of Association among mapped credible sets. Click to expand matched sets.",
+    },
+    "locus field": "Locus",
+    "star column": "Variant ID",
+    "column formatting": {
+        "P-Value": { type: ["scientific notation"] },
+        "Odds Ratio": { type: ["scientific notation"] },
+        Beta: { type: ["scientific notation"] },
+        EAF: { type: ["scientific notation"] },
+        MAF: { type: ["scientific notation"] },
+        "Standard Error": { type: ["scientific notation"] },
+        "Z Score": { type: ["scientific notation"] },
+        "Variant ID": {
+            type: ["link"],
+            "link to": "/variant.html?variant=",
+            "new tab": "true",
+        },
+        rsID: {
+            type: ["link"],
+            "link to": "/variant.html?variant=",
+            "new tab": "true",
+        },
+        "Target Gene": {
+            type: ["link"],
+            "link to": "/gene.html?gene=",
+            "new tab": "true",
+        },
+    },
+};
+
+/**
+ * Resolve associations table columns for the current search context.
+ * Project is shown only for GWAS-CE (KP + CE overlay); Phenotype when
+ * more than one phenotype series is on the canvas.
+ */
+export function resolveAssociationsTopRows({
+    baseRows = ASSOCIATIONS_TABLE_FORMAT["top rows"],
+    includeProject = false,
+    includePhenotype = false,
+} = {}) {
+    let rows = (baseRows || []).filter(
+        (column) => includeProject || column !== "Project"
+    );
+    if (includePhenotype && !rows.includes("Phenotype")) {
+        const ancestryIdx = rows.indexOf("Ancestry");
+        rows = [...rows];
+        rows.splice(ancestryIdx >= 0 ? ancestryIdx : rows.length, 0, "Phenotype");
+    } else if (!includePhenotype) {
+        rows = rows.filter((column) => column !== "Phenotype");
+    }
+    return rows;
+}

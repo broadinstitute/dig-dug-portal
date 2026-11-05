@@ -100,6 +100,13 @@ export default new Vuex.Store({
     },
     getters: {
         region(state) {
+            // null until chr/start/end are all set; otherwise the page would
+            // query the bioindex with "undefined:undefined-undefined" (400s)
+            const isCoord = x =>
+                x !== undefined && x !== null && x !== "" && Number.isFinite(Number(x));
+            if (!state.chr || !isCoord(state.start) || !isCoord(state.end)) {
+                return null;
+            }
             return `${state.chr}:${state.start}-${state.end}`;
         }
     },
@@ -149,6 +156,11 @@ export default new Vuex.Store({
                 context.commit("ancestryAssoc/clearData");
                 context.commit("ancestryTopAssoc/clearData")
 
+                // no (valid) region yet, e.g. bare region.html or ?gene= redirect
+                if (!newRegion) {
+                    return;
+                }
+
                 if (
                     context.state.newChr !== context.state.chr ||
                     context.state.newStart !== context.state.start ||
@@ -185,7 +197,8 @@ export default new Vuex.Store({
             });
         },
 
-        onAncestryChange(context){
+        onAncestryChange(context, ancestry){
+            context.state.selectedAncestry = ancestry;
             context.dispatch("queryRegion");
         },
 

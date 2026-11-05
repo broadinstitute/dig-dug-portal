@@ -54,6 +54,9 @@ export default new Vuex.Store({
               fileText = timeHeaders.concat(fileText);
             }
             let tsv = dataConvert.tsv2Json(fileText);
+            tsv.forEach(item => {
+              delete item["Isolation_center"];
+            })
             context.state[fileLabel] = tsv;
         }
     },

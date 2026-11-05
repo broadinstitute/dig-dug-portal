@@ -1542,6 +1542,7 @@ div.filtering-ui-content div.col {
     width: auto !important;
     font-size: 14px;
     padding: 5px 7px;
+    vertical-align: bottom;
 }
 
 div.filtering-ui-content div.col.hidden-search {
@@ -2104,7 +2105,8 @@ button.btn.btn-mini {
 }
 
 /* for volcano plot. Move it to it's own CSS when there's too much */
-#volcanoPlot {
+#volcanoPlot,
+.volcanoPlot {
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -2143,7 +2145,8 @@ span.volcano-score-2 {
 
 #clicked_dot_value,
 #ld_clicked_dot_value,
-#clicked_cell_value {
+#clicked_cell_value,
+.clicked_dot_value {
     position: absolute;
     background-color: #fff;
     border: solid 1px #aaa;
@@ -2486,4 +2489,9 @@ span.spacer-5 {
     border-radius: 5px;
     font-size: 1.15em;
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+/* Overriding standard width for autofill menu on the CVDI geneset page*/
+.geneset-cvdi-search-box .vbt-autcomplete-list{
+    width: 440px !important;
 }

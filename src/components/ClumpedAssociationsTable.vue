@@ -12,7 +12,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="clumpedAssociations"
                 :fields="fields"
                 :per-page="perPage"

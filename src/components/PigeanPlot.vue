@@ -26,7 +26,7 @@ export default Vue.component("pigean-plot", {
   },
   props: [
     "pigeanData", "config", "phenotypeMap", "filter", 
-    "genesetSize", "traitGroup", "matchingHoverDots"
+    "genesetSize", "traitGroup", "matchingHoverDots", "pigeanColors"
   ],
   data() {
       return {
@@ -41,7 +41,6 @@ export default Vue.component("pigean-plot", {
         tooltip: null,
         tooltipElement: null,
         tooltipPinned: false,
-        colorMap: this.groupColors(),
         allHoverFields: this.getHoverFields(),
         hoverBoxPosition: this.config.hoverBoxPosition || "left",
         dotOutlineColor: "#00000075"
@@ -58,7 +57,7 @@ export default Vue.component("pigean-plot", {
   },
   computed: {
     chartData(){
-      let data = this.pigeanData;
+      let data = structuredClone(this.pigeanData);
       if (this.filter){
         data = data.filter(this.filter);
       }
@@ -72,6 +71,9 @@ export default Vue.component("pigean-plot", {
     }
   },
   methods: {
+    dotClassId(value){
+      return `dot_${String(value ?? "").replaceAll(".", "point")}`;
+    },
     drawChart(){
       this.tooltipPinned = false;
       let margin = {
@@ -150,7 +152,7 @@ export default Vue.component("pigean-plot", {
         .data(this.chartData)
         .enter()
         .append("circle")
-          .attr("class", d => `dot_${d[this.config.dotKey]}`)
+          .attr("class", d => this.dotClassId(d[this.config.dotKey]))
           .attr("cx", d => 
             d[this.config.xField] === undefined
               ? this.xScale(0) 
@@ -228,7 +230,8 @@ export default Vue.component("pigean-plot", {
       let dKey = this.config.dotKey;
       let dKeyContent = dot[dKey]; // Get raw content before formatting
       dot.phenotype = this.phDesc(dot.phenotype);
-      let linkAddress = `/pigean/${dKey}.html?${dKey}=${dKeyContent}${this.linkSuffix}`;
+      let linkRoot = this.config.linkRoot || "/pigean";
+      let linkAddress = `${linkRoot}/${dKey}.html?${dKey}=${dKeyContent}${this.linkSuffix}`;
       let tooltipText = '<p class="close-tooltip"><a>';
       tooltipText = tooltipText.concat('x</a><p>')
       tooltipText=tooltipText.concat(`${
@@ -257,29 +260,14 @@ export default Vue.component("pigean-plot", {
         this.tooltip.style("opacity", 0);
       }
     },
-    groupColors(){
-      // Based on pigeanData not filtered data. Phenotypes should always match PheWAS
-      let groupsInUse = this.pigeanData.map(d => d.phenotype)
-        .map(p => !!this.phenotypeMap[p] ? this.phenotypeMap[p]["group"] : "")
-        .filter(g => g !== "");
-      let uniqueGroups = [];
-      groupsInUse.forEach(g => {
-        if (!uniqueGroups.includes(g)){
-          uniqueGroups.push(g);
-        }});
-      uniqueGroups.sort();
-      let colorMap = {};
-      let colors = plotUtils.plotColors();
-      for (let i = 0; i < uniqueGroups.length; i++){
-        colorMap[uniqueGroups[i]] = colors[i % colors.length];
-      }
-      return colorMap;
-    },
     dotColor(phenotype){
       if (!this.phenotypeMap[phenotype]){
         return this.dotOutlineColor;
       }
-      return this.colorMap[this.phenotypeMap[phenotype].group];
+      if (this.pigeanColors === null){
+        return "lightgray";
+      }
+      return this.pigeanColors[this.phenotypeMap[phenotype].group];
     },
     phDesc(phenotype){
       if (!this.phenotypeMap[phenotype]){
@@ -302,7 +290,7 @@ export default Vue.component("pigean-plot", {
       return fields;
     },
     highlightDot(phenotype){
-      let dot = this.svg.select(`circle.dot_${phenotype}`);
+      let dot = this.svg.select(`circle.${this.dotClassId(phenotype)}`);
       dot.attr("r", 7)
           .attr("stroke", "black")
     },
@@ -320,6 +308,9 @@ export default Vue.component("pigean-plot", {
       this.unHighlightDots();
       let phenotypes = Object.keys(JSON.parse(newDots));
       phenotypes.forEach(phenotype => this.highlightDot(phenotype));
+    },
+    pigeanColors(newColors){
+      this.drawChart();
     }
   }
 });

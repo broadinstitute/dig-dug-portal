@@ -36,7 +36,7 @@
             <b-table
                 small
                 hover
-                responsive="sm"
+                responsive
                 :items="variants"
                 :fields="fields"
                 :per-page="perPage"

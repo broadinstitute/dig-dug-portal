@@ -529,7 +529,7 @@ export default Vue.component("cfde-landing", {
     },
     beforeDestroy() {
         window.removeEventListener("resize", this.handleResize);
-        window.addEventListener("scroll", this.highlightTopmostTitle);
+        window.removeEventListener("scroll", this.highlightTopmostTitle);
     },
     computed: {},
     watch: {},

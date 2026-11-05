@@ -45,6 +45,9 @@ export default new Vuex.Store({
         phenotypeCorrelation: null,
         /// muti-sections use
         capturedData: [],
+        topLevelLDData: null,
+        topLevelLDServer: null,
+        selectedSplice: null,
         ///
     },
     mutations: {
@@ -154,6 +157,15 @@ export default new Vuex.Store({
         },
         setPhenotypeCorrelation(state, Correlation) {
             state.phenotypeCorrelation = Correlation;
+        },
+        setTopLevelLDData(state, DATA){
+            state.topLevelLDData = DATA;
+        },
+        setTopLevelLDServer(state, DATA){
+            state.topLevelLDServer = DATA;
+        },
+        setSelectedSplice(state, DATA){
+            state.selectedSplice = DATA;
         }
     },
     getters: {},
@@ -218,5 +230,12 @@ export default new Vuex.Store({
         phenotypeCorrelation(context, DATA) {
             context.commit("setPhenotypeCorrelation", DATA);
         },
+        sendLDData(context, DATA){
+            context.commit("setTopLevelLDData", DATA.data);
+            context.commit("setTopLevelLDServer", DATA.server);
+        },
+        selectSplice(context, DATA){
+            context.commit("setSelectedSplice", DATA);
+        }
     }
 });

@@ -86,9 +86,11 @@ new Vue({
         },
 
         generateSession() {
+            // Use cryptographically secure randomness for session ID
+            const randVals = window.crypto.getRandomValues(new Uint16Array(2));
             let sessionId =
-                this.fourHexDigits(new Date().getTime() % 65536) +
-                this.fourHexDigits(Math.floor(Math.random() * 65537));
+                this.fourHexDigits(randVals[0]) +
+                this.fourHexDigits(randVals[1]);
             this.setSessionId(sessionId, false);
         },
 

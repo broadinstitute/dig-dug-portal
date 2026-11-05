@@ -52,7 +52,11 @@
 </template>
 <script>
 import Vue from "vue";
+<<<<<<< HEAD
 import { BIO_INDEX_HOST, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
+=======
+import { BIO_INDEX_HOST, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
+>>>>>>> master
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 
@@ -66,7 +70,7 @@ export default Vue.component("NetworkGraph", {
         genesetSize: {
             type: String,
             required: true,
-            default: "small",
+            default: DEFAULT_GENESET_SIZE,
         },
         isEmbed: {
             type: Boolean,

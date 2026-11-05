@@ -327,10 +327,12 @@
             <!-- end -->
         </div>
         <!-- Footer-->
-        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
+        <page-footer
+            :disease-group="$parent.diseaseGroup || 'cd'"
+        ></page-footer>
         <!-- Only for CDKP -->
         <div
-            v-if="$parent.diseaseGroup.name == 'cd'"
+            v-if="$parent.diseaseGroup && $parent.diseaseGroup.name == 'cd'"
             style="
                 position: sticky;
                 bottom: 0;

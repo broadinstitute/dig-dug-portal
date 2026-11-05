@@ -18,7 +18,7 @@
                 :class="!!showBottomLine ? 'assoc-table-bottom-line' : ''"
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="groupedAssociations"
                 :fields="fields"
                 :per-page="perPage"
@@ -145,7 +145,10 @@ import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
+<<<<<<< HEAD
 import { isEqual } from "@/utils/lodashUtils";
+=======
+>>>>>>> master
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
@@ -155,6 +158,11 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import DataDownload from "@/components/DataDownload";
 import Chi from "chi-squared";
 
+<<<<<<< HEAD
+=======
+import { isEqual } from "@/utils/lodashUtils";
+
+>>>>>>> master
 export default Vue.component("AssociationsTable", {
     components: {
         DataDownload,

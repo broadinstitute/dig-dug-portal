@@ -38,6 +38,7 @@ import filterHelpers from "@/utils/filterHelpers";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
+import { difference } from "@/utils/lodashUtils";
 import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
@@ -236,7 +237,7 @@ new Vue({
             if (x[0]) {
                 //This is our top phenotype.
                 keyParams.set({ phenotype: x[0].phenotype });
-                if (this.$store.state.ancestry) {
+                if (this.$store.state.ancestry && this.$store.getters.region) {
                     let ancestryAssocQuery = `${x[0].phenotype},${this.$store.state.ancestry},${this.$store.getters.region}`;
                     this.$store.dispatch("ancestryAssoc/query", {
                         q: ancestryAssocQuery,
@@ -321,7 +322,7 @@ new Vue({
             this.enrichmentScoring = groups;
         },
         selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = _.difference(
+            const removedPhenotypes = difference(
                 oldPhenotypes.map((p) => p.name),
                 phenotypes.map((p) => p.name)
             );

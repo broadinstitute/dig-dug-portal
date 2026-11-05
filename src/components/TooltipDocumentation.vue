@@ -59,7 +59,16 @@ Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("tooltip-documentation", {
-    props: ["name", "group", "contentFill", "contentMap", "isHover", "noIcon", "supplyText"],
+    props: [
+        "name",
+        "group",
+        "contentFill",
+        "contentMap",
+        "isHover",
+        "noIcon",
+        "supplyText",
+        "defaultContent",
+    ],
     components: {
         Documentation,
     },
@@ -72,17 +81,26 @@ export default Vue.component("tooltip-documentation", {
     },
     computed: {
         tooltipDocumentationContent() {
-            if (!!this.contentMap && !!this.contentMap[this.name]){
-                let content = this.contentMap[this.name].content;
-                let contentFill = this.contentFill || {};
-                let converter = documentationParser.makeConverter(
-                    content,
-                    contentFill,
-                    this.name
-                );
-                return converter.makeHtml(content);
+            let content = null;
+            if (!!this.contentMap && !!this.contentMap[this.name]) {
+                content = this.contentMap[this.name].content;
             }
-            return "";
+            if (typeof content === "string") {
+                content = content.trim();
+            }
+            if (!content && this.defaultContent) {
+                content = this.defaultContent;
+            }
+            if (!content) {
+                return "";
+            }
+            let contentFill = this.contentFill || {};
+            let converter = documentationParser.makeConverter(
+                content,
+                contentFill,
+                this.name
+            );
+            return converter.makeHtml(content);
         },
         contentID() {
             if (!!this.name) {

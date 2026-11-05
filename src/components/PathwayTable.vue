@@ -10,7 +10,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
@@ -50,7 +50,7 @@ export default Vue.component("PathwayTable", {
                 {
                     key: "pathwayName",
                     label: "Pathway",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "pValue",
@@ -71,7 +71,7 @@ export default Vue.component("PathwayTable", {
                     key: "stdErr",
                     label: "Standard error",
                     formatter: Formatters.effectFormatter,
-                    sortable: true
+                    sortable: true,
                 },
             ],
         };
