@@ -108,6 +108,8 @@
                                     >
                                         Donors with assays
                                     </button>
+                                    <!--
+                                    Donors table tab button, temporarily disabled
                                     <button
                                         class="dataset-content-tab"
                                         :class="{ 'is-active': activeContentTab === 'table' }"
@@ -118,6 +120,7 @@
                                     >
                                         Table
                                     </button>
+                                    -->
                                     <button
                                         v-for="tab in openTableTabs"
                                         :key="tab.key"
@@ -149,6 +152,7 @@
                                                 <div class="availability-plot-summary-value">{{ donorAvailabilityAssayDonorCount.toLocaleString() }}</div>
                                                 <div class="availability-plot-summary-label">Donors with assays in PanKbase</div>
                                             </div>
+                                            <!--
                                             <button
                                                 class="availability-plot-summary-link"
                                                 type="button"
@@ -156,6 +160,7 @@
                                             >
                                                 See table
                                             </button>
+                                            -->
                                         </div>
 
                                         <div class="availability-plot-grid">
@@ -313,6 +318,7 @@
                                                             <span class="availability-data-type-metric-value">{{ item.donorCount.toLocaleString() }}</span>
                                                             <span class="availability-data-type-metric-label">Donors</span>
                                                         </div>
+                                                        <!--
                                                         <button
                                                             class="availability-data-type-link availability-data-type-table-link"
                                                             type="button"
@@ -320,6 +326,7 @@
                                                         >
                                                             See table
                                                         </button>
+                                                        -->
                                                     </div>
                                                     <div class="availability-data-type-sections">
                                                         <div class="availability-data-type-section-block">
@@ -365,7 +372,7 @@
                                                     >
                                                         <div class="availability-data-type-segments-header">
                                                             <div class="availability-data-type-segments-title">
-                                                                View Donors
+                                                                Donor Breakdown
                                                             </div>
                                                         </div>
                                                         <div class="availability-data-type-segments-subheader">
@@ -386,6 +393,7 @@
                                                                 <span class="availability-data-type-segment-label">{{ segment.groupValue }}</span>
                                                                 <span class="availability-data-type-segment-count">{{ segment.donorCount.toLocaleString() }}</span>
                                                             </div>
+                                                            <!--
                                                             <button
                                                                 class="availability-data-type-link availability-data-type-segment-link"
                                                                 type="button"
@@ -393,6 +401,7 @@
                                                             >
                                                                 See table
                                                             </button>
+                                                            -->
                                                         </div>
                                                     </div>
                                                 </article>
