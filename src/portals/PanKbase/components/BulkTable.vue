@@ -58,32 +58,6 @@
                     <div class="subtable-all" v-if="
                             subtableData[subtableKey(row.item)]?.length > 0"
                     >
-                    <div class="row subtable-selectors">
-                        <div class="col-md-1"></div>
-                        <div class="col-md-4">
-                            <div class="label">View data by categorical field.</div>
-                            <select v-model="catField">
-                                <option v-for="field in
-                                    subtableFields[subtableKey(row.item)].filter(f => f.isCat)"
-                                    :value="field">
-                                    {{ field.label }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="col-md-2"></div>
-                        <div class="col-md-4">
-                            
-                            <div class="label">View data by continuous field.</div>
-                            <select v-model="contField">
-                                <option v-for="field in 
-                                    subtableFields[subtableKey(row.item)].filter(f => f.isNumerical)"
-                                    :value="field">
-                                    {{ field.label }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="col-md-1"></div>
-                    </div>
                     <bulk-table              
                         :bulkData="subtableData[subtableKey(row.item)]"
                         :config="{fields : subtableFields[subtableKey(row.item)]}"
