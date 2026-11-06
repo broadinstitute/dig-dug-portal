@@ -1,4 +1,4 @@
-import tracks from "@/portals/PanKbase/assets/data/pkb-atac-no-abc-uniformed_peaks.json";
+import tracks from "@/portals/PanKbase/assets/data/pkb-atac-abc-by-celltype-genes.json";
 
 export const TRACKS = tracks;
 
