@@ -314,7 +314,7 @@
                         </h2>
                         <p>
                             <a
-                                href="https://docs.google.com/forms/d/e/1FAIpQLSdA8Wn6QDLNLoUejq-BJrPW7SFAM7DsFggu8iPOIhOP0WS2Tw/viewform"
+                                href="https://docs.google.com/forms/d/e/1FAIpQLSd1mcMDAvztctyVc5-U4GjvFflr0YnLJn_GA6ca83Dzvc_bHw/viewform"
                                 target="_blank"
                                 >Sign up</a
                             >
