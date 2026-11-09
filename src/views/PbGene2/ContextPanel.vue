@@ -16,12 +16,11 @@
         <div class="pg2-context-applied">
             <span v-if="currentRunId">Applied to variants below: <strong>{{ appliedLabel }}</strong><span v-if="appliedSettings"> · {{ appliedSettings }}</span></span>
             <span v-else class="pg2-muted">Variant context values appear after a successful calculation.</span>
-            <a v-if="externalPhenotypeResultUrl" :href="externalPhenotypeResultUrl" target="_blank" rel="noopener noreferrer">Open phenotype result <b-icon-box-arrow-up-right /></a>
         </div>
         <p v-if="contextError" class="pg2-error" role="alert">{{ contextError }}</p>
         <div class="pg2-table-scroll">
             <table class="pg2-table pg2-context-history">
-                <thead><tr><th>HPO profile (entered terms)</th><th class="pg2-numeric">Effect per 0.1 GRS (SD)</th><th class="pg2-numeric">p-value</th><th>Settings</th><th>Status / score coverage</th></tr></thead>
+                <thead><tr><th>HPO profile (entered terms)</th><th class="pg2-numeric">Effect per 0.1 GRS (SD)</th><th class="pg2-numeric">p-value</th><th>Settings</th><th>Status / score coverage</th><th>Phenotype result</th></tr></thead>
                 <tbody>
                     <tr v-for="run in contextRuns" :key="run.id" :class="{ 'pg2-applied-row': run.id === currentRunId }">
                         <td><strong>{{ profileLabel(run.hpos) }}</strong><span v-if="run.id === currentRunId" class="pg2-applied-tag">Applied</span><small>{{ run.hpos }}</small></td>
@@ -30,8 +29,9 @@
                         <td><span :class="{ 'pg2-error': run.noteIsWarning }">{{ run.statusLabel }}</span><small>{{ run.coverageLabel }}</small>
                             <details class="pg2-method"><summary>Analysis details</summary><div><p>{{ run.modelLabel }}</p><p>{{ run.referenceLabel }}</p><p>{{ run.note }}</p><p>Source: {{ run.sourceLabel }}</p></div></details>
                         </td>
+                        <td><a v-if="phenotypeResultUrl(run)" :href="phenotypeResultUrl(run)" target="_blank" rel="noopener noreferrer" :aria-label="'Open phenotype result for ' + profileLabel(run.hpos)">Open result <b-icon-box-arrow-up-right /></a><span v-else>—</span></td>
                     </tr>
-                    <tr v-if="!contextRuns.length"><td colspan="5" class="pg2-empty">Enter an HPO profile and select Go to add a result.</td></tr>
+                    <tr v-if="!contextRuns.length"><td colspan="6" class="pg2-empty">Enter an HPO profile and select Go to add a result.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -53,6 +53,10 @@ export default {
         appliedSettings() { return this.appliedRun ? this.settings(this.appliedRun) : ''; },
     },
     methods: {
+        phenotypeResultUrl(run) {
+            const terms = [...new Set(String(run.hpos || '').toUpperCase().match(/HP:\d{7}/g) || [])];
+            return terms.length ? '/pb_phenotype.html?query=' + encodeURIComponent(terms.join(',')) : '';
+        },
         profileLabel(value) { return String(value || '').split(/[,;\s]+/).filter(Boolean).map(hpoLabel).join(' + '); },
         settings(run) {
             const meta = this.runMeta[run.id];

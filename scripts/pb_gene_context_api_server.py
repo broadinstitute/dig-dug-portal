@@ -14,6 +14,8 @@ CONTEXT_PATH = "/phenotype-analyzer-api/analyze"
 PUBLIC_CONTEXT_PATH = "/phenotype-analyzer-api/public-analyze"
 CO_GENE_PATH = "/phenotype-analyzer-api/co-gene-associations"
 PROFILE_PATH = "/phenotype-analyzer-api/profile"
+SAMPLE_MATCH_PATH = "/phenotype-analyzer-api/sample-matches"
+SAMPLE_VARIANT_PATH = "/phenotype-analyzer-api/sample-variants"
 MAX_REQUEST_BYTES = 64 * 1024
 MAX_CO_GENE_REQUEST_BYTES = 512 * 1024
 MAX_CO_GENES = 25000
@@ -176,10 +178,10 @@ def create_server(address, engine, profile_only=False):
                 self._send_json(404, {"error": "not_found"})
 
         def do_POST(self):
-            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH, PROFILE_PATH}:
+            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH, PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH}:
                 self._send_json(404, {"error": "not_found"})
                 return
-            if profile_only and self.path != PROFILE_PATH:
+            if profile_only and self.path not in {PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH}:
                 self._send_json(404, {"error": "not_found"})
                 return
             try:
@@ -188,6 +190,12 @@ def create_server(address, engine, profile_only=False):
                 if length <= 0 or length > limit:
                     raise ValueError("invalid request body size")
                 payload = json.loads(self.rfile.read(length))
+                if self.path in {SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH}:
+                    if not profile_only or not isinstance(payload, dict) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', str(payload.get('sample_id', ''))):
+                        raise ValueError('A valid sample_id is required by the private profile service.')
+                    result = engine.sample_matches(payload['sample_id']) if self.path == SAMPLE_MATCH_PATH else engine.sample_variants(payload['sample_id'])
+                    self._send_json(200, result)
+                    return
                 if self.path == PROFILE_PATH:
                     request = parse_profile_request(payload)
                     self._send_json(200, engine.phenotype_profile(

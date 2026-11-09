@@ -53,7 +53,7 @@
                         <div class="pg2-metrics">
                             <div><span>Distinct carriers</span><strong>{{ Number(totalGeneCarriers).toLocaleString() }}</strong></div>
                             <div><span>Variants with carriers</span><strong>{{ variantRows.length.toLocaleString() }}</strong></div>
-                            <div><span>Variants with prediction annotations <button class="pg2-info" type="button" title="Variants with at least one LoFTEE, AlphaMissense or REVEL annotation. This counts available annotations, not pathogenic clinical diagnoses." aria-label="About prediction annotation coverage"><b-icon-info-circle /></button></span><strong>{{ predictionAnnotatedVariantCount.toLocaleString() }} <small>/ {{ variantRows.length.toLocaleString() }}</small></strong></div>
+                            <div><span>Variants with prediction annotations <help-tooltip label="About prediction annotation coverage" text="Variants with at least one LoFTEE, AlphaMissense or REVEL annotation. This counts available annotations, not pathogenic clinical diagnoses." /></span><strong>{{ predictionAnnotatedVariantCount.toLocaleString() }} <small>/ {{ variantRows.length.toLocaleString() }}</small></strong></div>
                             <div><span>Phenotype associations</span><strong>{{ genePhenotypeAssociations.length.toLocaleString() }}</strong></div>
                         </div>
                         <div class="pg2-variant-mix"><span>ClinVar</span><button v-for="item in variantMix.clinvar" :key="item.label" type="button" class="pg2-mix-item" :class="{ 'pg2-mix-active': variantFilters.clinvar.includes(item.label) }" :aria-pressed="String(variantFilters.clinvar.includes(item.label))" @click="toggleVariantFilter('clinvar', item.label)">{{ item.label }} <strong>{{ item.count }}</strong></button></div>
@@ -65,7 +65,7 @@
                         </details>
                     </section>
                     <section class="pg2-card pg2-associations" aria-labelledby="pg2-associations-title">
-                        <div class="pg2-section-heading"><h2 id="pg2-associations-title">Precomputed gene–phenotype associations</h2><button type="button" class="pg2-info" aria-label="About precomputed association units" title="Approximate binary-HPO score-test coefficients in log-odds per 0.1 GRS; not residual-PheRS SD units. Original release p/q values and row order are preserved. q is adjusted across genes within each HPO."><b-icon-info-circle /></button></div>
+                        <div class="pg2-section-heading"><h2 id="pg2-associations-title">Precomputed gene–phenotype associations</h2><help-tooltip label="About precomputed association units" text="Approximate binary-HPO score-test coefficients in log-odds per 0.1 GRS; not residual-PheRS SD units. Original release p/q values and row order are preserved. q is adjusted across genes within each HPO." /></div>
                         <label class="pg2-association-search">Find a phenotype<input v-model="associationSearch" type="search" placeholder="Search phenotype names or HPO IDs" aria-label="Find a precomputed phenotype" /></label>
                         <div class="pg2-table-scroll">
                             <table class="pg2-table pg2-association-table">
@@ -93,7 +93,7 @@
                         </div>
                         <div class="pg2-association-foot"><span>Pinned rows stay visible when you change the search.</span><button v-if="filteredAssociations.length > 5" type="button" class="pg2-text-button" @click="showAllAssociations = !showAllAssociations">{{ showAllAssociations ? 'Show fewer' : 'Show all ' + filteredAssociations.length }}</button></div>
                     </section>
-                    <context-panel :active-context-terms="activeContextTerms" :context-term-details="contextTermDetails" :context-input.sync="contextInput" :context-loading="contextLoading || searchGeneLoading" :context-score-type.sync="contextScoreType" :context-analysis-set.sync="contextAnalysisSet" :context-significance-threshold.sync="contextSignificanceThreshold" :context-min-carriers.sync="contextMinCarriers" :external-phenotype-result-url="externalPhenotypeResultUrl" :context-error="contextError" :context-runs="contextRuns" :run-meta="contextRunMeta" :current-run-id="currentContextRunId" @run="runContextAnalysis" />
+                    <context-panel :active-context-terms="activeContextTerms" :context-term-details="contextTermDetails" :context-input.sync="contextInput" :context-loading="contextLoading || searchGeneLoading" :context-score-type.sync="contextScoreType" :context-analysis-set.sync="contextAnalysisSet" :context-significance-threshold.sync="contextSignificanceThreshold" :context-min-carriers.sync="contextMinCarriers" :context-error="contextError" :context-runs="contextRuns" :run-meta="contextRunMeta" :current-run-id="currentContextRunId" @run="runContextAnalysis" />
                     <section id="pg2-variant-evidence" class="pg2-card pg2-variant-evidence">
                         <p class="pg2-variant-applied">{{ appliedContextLabel }}</p>
                     <div class="pbg-variant-evidence-block">
@@ -123,7 +123,7 @@
                                 <i>{{ variantSortIndicator('variant') }}</i><span>Variant</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('carriers')">
-                                <i>{{ variantSortIndicator('carriers') }}</i><span>Carriers</span>
+                                <i>{{ variantSortIndicator('carriers') }}</i><span>Total carriers</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('consequence')">
                                 <i>{{ variantSortIndicator('consequence') }}</i><span>Consequence</span>
@@ -131,30 +131,23 @@
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('clinvar')">
                                 <i>{{ variantSortIndicator('clinvar') }}</i><span>ClinVar</span>
                             </button>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">
                                 <i>{{ variantSortIndicator('variantScore') }}</i>
                                 <span>
                                     Variant Score
-                                    <abbr class="pbg-score-help"
-                                          title="In silico Variant Effect Prediction Score(LOFTEE-HC, AlphaMissense)"
-                                          aria-label="In silico Variant Effect Prediction Score(LOFTEE-HC, AlphaMissense)"
-                                          @click.stop>?</abbr>
                                     <em>CRDC</em>
                                 </span>
-                            </button>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">
+                            </button><help-tooltip label="About Variant Score" text="In silico variant effect prediction score: 1 for LoFTEE high-confidence loss of function; otherwise the available AlphaMissense score. REVEL is shown separately and is not included in this score." /></div>
+                            <span class="pg2-scored-carriers-heading" title="Carriers with an individual rPheRS Z-score in the applied analysis / all carriers of this variant. This is score coverage, not the number with the queried HPO terms.">Scored carriers</span>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">
                                 <i>{{ variantSortIndicator('matchScore') }}</i>
                                 <span>
                                     Mean rPheRS Z-score
-                                    <abbr class="pbg-score-help"
-                                          title="Mean of the unique carriers' individual residual PheRS Z-scores for this HPO context, using the full scoring-cohort reference. No partial mean is shown when any carrier score is missing."
-                                          aria-label="Mean rPheRS Z-score: average individual Z-score across unique carriers."
-                                          @click.stop>?</abbr>
                                     <em>CRDC</em>
                                 </span>
-                            </button>
-                            <button class="pbg-ve-sort" type="button" title="Covariate-adjusted residual PheRS difference between variant noncarriers (0) and carriers (1), in full scoring-cohort SD units. This is a regression effect, not the carrier mean." @click="sortVariantsBy('effectScore')"><i>{{ variantSortIndicator('effectScore') }}</i><span>Variant effect β (SD)</span></button>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('pValue')"><i>{{ variantSortIndicator('pValue') }}</i><span>p-value</span></button>
+                            </button><help-tooltip label="About Mean rPheRS Z-score" text="Mean individual residual PheRS Z-score among carriers in the selected analysis cohort. Scored carriers shows how many of all variant carriers have scores. The reference is the full scoring cohort; carriers outside the selected analysis cohort are excluded." /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('effectScore')"><i>{{ variantSortIndicator('effectScore') }}</i><span>Variant effect β (SD)</span></button><help-tooltip label="About Variant effect beta in SD units" text="Adjusted difference in residual PheRS between carriers and noncarriers, in full scoring-cohort SD units. The model adjusts for age, missing age, sex and PC1–PC10. Positive β means higher scores in carriers; negative β means lower scores. For example, β = 0.5 means 0.5 SD higher. This is a regression effect, not the carrier mean or a causal effect. Results with fewer than 10 scored carriers are exploratory." /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('pValue')"><i>{{ variantSortIndicator('pValue') }}</i><span>p-value</span></button><help-tooltip label="About variant p-value" text="Unadjusted two-sided OLS p-value for the variant effect. No multiple-testing correction is applied here. Comparing many variants requires a defined testing family and an appropriate correction; p &lt; 0.05 alone does not establish an FDR-significant association." /></div>
                         </div>
                         <details class="pg2-score-notes"><summary>Score annotation notes</summary><p class="pbg-score-legend">
                             <strong>—*</strong> REVEL available; excluded from this score.
@@ -192,6 +185,7 @@
                                         {{ variantScoreDisplay(row) }}<sup v-if="hasRevelOnlyScore(row)" class="pbg-revel-only-star">*</sup>
                                     </strong>
                                 </span>
+                                <span class="pg2-scored-carriers" title="Carriers with a Z-score in the applied analysis / total variant carriers.">{{ scoredCarrierCoverage(row) }}</span>
                                 <span v-if="!activeContextTerms.length" class="pbg-no-context">no context</span>
                                 <strong v-else-if="row.phenotypeMatchScore != null" class="pbg-score-badge">
                                     {{ row.phenotypeMatchScore.toFixed(2) }}
@@ -268,12 +262,10 @@
                                             <span>Sex</span>
                                             <span>GT</span>
                                             <span>HPO terms</span>
-                                            <span title="Individual residual PheRS relative to the scoring-cohort mean, in sample SD units; unavailable when individual scores are not supplied.">rPheRS Z-score</span>
+                                            <span title="Individual residual PheRS relative to the scoring-cohort mean, in sample SD units, for the applied HPO context.">rPheRS Z-score</span>
                                             <span>Co-genes</span>
                                             <span>Project</span>
                                             <span>Affected</span>
-                                            <span>Proband</span>
-                                            <span>GenDx</span>
                                         </div>
                                         <div v-for="s in visibleCarrierRows(row)" :key="row.id + '-' + s.id" class="pbg-selected-sample-row">
                                             <a class="pbg-sample-link" :href="`/pb_sample.html?query=${encodeURIComponent(s.id)}`" @click.stop>{{ s.id }}</a>
@@ -281,7 +273,7 @@
                                             <span>{{ carrierSampleField(s, 'sex') }}</span>
                                             <span>{{ s.gt }}</span>
                                             <span>{{ carrierSampleField(s, 'hpo') || '—' }}</span>
-                                            <span class="pbg-no-context" :title="activeContextTerms.length ? 'Individual rPheRS Z-scores are not available for these carriers.' : 'Run an HPO context analysis to request matching.'">{{ activeContextTerms.length ? '—' : 'no context' }}</span>
+                                            <span>{{ individualCarrierScore(s) }}</span>
                                             <div class="pbg-co-gene-cell">
                                                 <span>{{ coGenePreview(carrierSampleField(s, 'genes')) }}</span>
                                                 <details v-if="coGeneRemaining(carrierSampleField(s, 'genes')).length">
@@ -291,11 +283,10 @@
                                             </div>
                                             <span>{{ carrierSampleField(s, 'project') || 'Unavailable' }}</span>
                                             <span>{{ carrierSampleField(s, 'affected') }}</span>
-                                            <span>{{ carrierSampleField(s, 'proband') }}</span>
-                                            <span :class="{ 'pbg-gendx-conflict': s.gendxConflict }"
-                                                  :title="s.gendxNote || carrierSampleField(s, 'gendx') || '-'">{{ carrierSampleField(s, 'gendx') || '-' }}</span>
                                         </div>
                                     </div>
+                                    <p v-if="hasMissingCarrierScores" class="pg2-score-notes">* No individual score is available in the current analysis dataset or selected analysis group. This does not indicate absence of the queried HPO terms.</p>
+                                    <p v-if="currentCarrierScores.status === 'error'" class="pg2-score-notes" role="status">{{ currentCarrierScores.error }} <button type="button" class="pg2-text-button" @click="loadIndividualCarrierScores">Retry</button></p>
                                     <button v-if="(showCountCarrierMap[row.id] || 5) < row.carrierSamples.length"
                                             class="pbg-show-more-btn" type="button"
                                             @click.stop="showMoreCarriers(row.id, row.carrierSamples.length)">
@@ -341,12 +332,15 @@ import GeneIdentity from "./GeneIdentity";
 import Demographics from "./Demographics";
 import ContextPanel from "./ContextPanel";
 import VariantSummary from "./VariantSummary";
+import HelpTooltip from "./HelpTooltip";
+import { carrierScoreMixin } from "./carrierScores";
 import "../PbGene/style.css";
 import "./style.css";
 
 export default {
     name: "PbGene2Template",
-    components: { GeneIdentity, Demographics, ContextPanel, VariantSummary },
+    mixins: [carrierScoreMixin],
+    components: { GeneIdentity, Demographics, ContextPanel, VariantSummary, HelpTooltip },
     data() {
         return { ...createPbGeneState(), associationSearch: '', associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], loftee: false }, showAllAssociations: false, contextRunMeta: {}, currentContextRunId: '', appliedContext: null, receivedContextReference: null };
     },

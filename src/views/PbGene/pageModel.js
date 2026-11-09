@@ -2464,6 +2464,10 @@ export const pbGeneMethods = {
         return row.crdcAF || row.cohortAF || "—";
     },
 
+    crdcFrequencyLabel(row) {
+        return row.crdcFrequencyKind === 'allele' || row.crdcAlleleFrequency != null ? "CRDC allele frequency" : "CRDC carrier frequency";
+    },
+
     parseAfValue(value) {
         const raw = String(value == null ? "" : value).trim();
         if (!raw || raw === "-" || raw === "—") return null;
@@ -2479,7 +2483,7 @@ export const pbGeneMethods = {
         const crdc = this.parseAfValue(this.crdcAF(row));
         const gnomad = this.parseAfValue(row.gnomadAF || this.variantEvidenceValue(row, "gnomAD AF"));
         const sources = [];
-        if (crdc != null && crdc >= 0.10) sources.push(`CRDC carrier frequency ${(crdc * 100).toFixed(1)}%`);
+        if (crdc != null && crdc >= 0.10) sources.push(`${this.crdcFrequencyLabel(row)} ${(crdc * 100).toFixed(1)}%`);
         if (gnomad != null && gnomad >= 0.10) sources.push(`gnomAD AF ${(gnomad * 100).toFixed(1)}%`);
         return sources;
     },
@@ -2553,7 +2557,7 @@ export const pbGeneMethods = {
 
     variantEvidenceRows(row) {
         return [
-            { label: "CRDC carrier frequency", value: this.crdcAF(row) },
+            { label: this.crdcFrequencyLabel(row), value: this.crdcAF(row) },
             { label: "HGVS.c", value: hgvsNotation(row.hgvsc, "c") },
             { label: "HGVS.p", value: hgvsNotation(row.hgvsp || row.csq_detail, "p") },
             { label: "AlphaMissense", value: this.variantEvidenceValue(row, "AlphaMissense") },

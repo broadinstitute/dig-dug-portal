@@ -11,7 +11,7 @@
     background: var(--bg);
     color: var(--ink);
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 15px;
+    font-size: 18px;
     line-height: 1.5;
     padding: 18px 20px 60px;
 }
@@ -19,7 +19,7 @@
     box-sizing: border-box;
 }
 .pbp-shell {
-    max-width: 1180px;
+    max-width: 1380px;
     margin: 0 auto;
 }
 .pbp-page a {
@@ -82,18 +82,18 @@
     margin-bottom: 16px;
 }
 .pbp-card h2 {
-    font-size: 22px;
+    font-size: 25px;
     font-weight: 600;
     margin: 0 0 2px;
 }
 .pbp-heading-count {
     color: var(--muted);
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 500;
     white-space: nowrap;
 }
 .pbp-card h3 {
-    font-size: 17px;
+    font-size: 20px;
     font-weight: 600;
     margin: 0 0 8px;
 }
@@ -107,13 +107,13 @@
 }
 .pbp-sub {
     color: var(--muted);
-    font-size: 14px;
+    font-size: 17px;
     margin: 0 0 14px;
 }
 .pbp-help {
     margin: 6px 0 10px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 400;
 }
 .pbp-help > summary {
@@ -137,7 +137,7 @@
     flex: 0 0 19px;
     border: 1px solid currentColor;
     border-radius: 50%;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 600;
 }
 .pbp-help > summary:hover,
@@ -156,8 +156,8 @@
 }
 .pbp-help-content p,
 .pbp-help-content .pbp-sub,
-.pbp-help-content .pbp-note { margin: 0 0 8px; font-size: 13px; color: inherit; }
-.pbp-help-content h3 { margin: 10px 0 6px; font-size: 14px; }
+.pbp-help-content .pbp-note { margin: 0 0 8px; font-size: 16px; color: inherit; }
+.pbp-help-content h3 { margin: 10px 0 6px; font-size: 17px; }
 .pbp-help-close {
     padding: 2px 0;
     border: 0;
@@ -180,7 +180,7 @@
 .pbp-gene-search { width: 150px; min-width: 0; min-height: 36px; border: 1px solid var(--line); border-radius: 6px; padding: 0 10px; }
 .pbp-tag {
     display: inline-block;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.3px;
     padding: 3px 8px;
@@ -220,11 +220,11 @@
 }
 .pbp-chip b {
     color: var(--tc);
-    font-size: 15px;
+    font-size: 18px;
     line-height: 1.2;
 }
 .pbp-chip small {
-    font-size: 11px;
+    font-size: 14px;
     color: var(--muted);
 }
 .pbp-chip.neutral {
@@ -260,7 +260,7 @@
     padding: 0 8px;
     border: 0;
     background: transparent;
-    font-size: 13px;
+    font-size: 16px;
 }
 .pbp-add button {
     height: 30px;
@@ -271,7 +271,7 @@
     cursor: pointer;
 }
 .pbp-patient {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--muted);
     white-space: nowrap;
 }
@@ -294,7 +294,7 @@
     border: 1px solid #dc2626;
     border-radius: 8px;
     background: #fff7f7;
-    font-size: 14px;
+    font-size: 17px;
 }
 .pbp-exrow > b {
     color: var(--red);
@@ -317,12 +317,12 @@
 }
 .pbp-helper {
     color: var(--hint);
-    font-size: 12px;
+    font-size: 15px;
 }
 .pbp-context-note {
     margin: 10px 0 0;
     color: var(--hint);
-    font-size: 12px;
+    font-size: 15px;
 }
 .pbp-banner {
     margin: 12px 0 0;
@@ -330,7 +330,7 @@
     border-left: 4px solid var(--teal);
     background: #e4f4f1;
     color: #134e48;
-    font-size: 13px;
+    font-size: 16px;
 }
 .pbp-term-summary {
     margin-top: 16px;
@@ -344,7 +344,7 @@
     align-items: center;
     gap: 12px;
     padding: 5px 0;
-    font-size: 13px;
+    font-size: 16px;
     font-variant-numeric: tabular-nums;
 }
 .pbp-term-summary-name {
@@ -368,7 +368,7 @@
     gap: 12px;
     padding: 1px 0 2px 18px;
     color: var(--red);
-    font-size: 12px;
+    font-size: 15px;
 }
 .pbp-term-summary-total {
     margin-top: 7px;
@@ -378,7 +378,7 @@
 .pbp-term-summary-note {
     margin: 6px 0 0;
     color: var(--hint);
-    font-size: 11px;
+    font-size: 14px;
 }
 .pbp-controls {
     flex-wrap: wrap;
@@ -387,7 +387,7 @@
 .pbp-controls select {
     height: 32px;
     min-height: 32px;
-    font-size: 13px;
+    font-size: 16px;
 }
 .pbp-sample-context {
     display: grid;
@@ -405,7 +405,7 @@
     background: #f8fafc;
 }
 .pbp-context-panel .pbp-sub {
-    font-size: 12px;
+    font-size: 15px;
     margin-bottom: 10px;
 }
 .pbp-context-heading {
@@ -421,7 +421,7 @@
 }
 .pbp-context-heading > span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: 15px;
     font-variant-numeric: tabular-nums;
 }
 .pbp-sex-panel > h3:not(:first-child) {
@@ -431,7 +431,7 @@
 .pbp-cohort-details {
     margin-top: 12px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 16px;
 }
 .pbp-definition summary,
 .pbp-cohort-details summary {
@@ -455,7 +455,7 @@
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
-.pbp-project-selection { margin: 4px 0 10px; font-size: 13px; color: var(--muted); }
+.pbp-project-selection { margin: 4px 0 10px; font-size: 16px; color: var(--muted); }
 .pbp-project-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .pbp-project-chips .pbp-btn { background: #edf5ff; border-color: #b6d4fe; color: #174ea6; }
 .pbp-page .pbp-project-check { width: 36px; padding-right: 4px; }
@@ -491,13 +491,13 @@
 .pbp-page th {
     text-align: left;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 600;
     padding: 8px 10px;
     border-bottom: 1px solid var(--line);
 }
 .pbp-page td {
-    font-size: 14px;
+    font-size: 17px;
     padding: 11px 10px;
     vertical-align: top;
     border-bottom: 1px solid #eef2f6;
@@ -507,7 +507,7 @@
 }
 .pbp-page td small {
     display: block;
-    font-size: 12px;
+    font-size: 15px;
     color: var(--muted);
     margin-top: 2px;
 }
@@ -517,7 +517,7 @@
     background: #f7fafc;
     border: 1px dashed var(--line);
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 16px;
 }
 .pbp-status.compact {
     margin: 4px 0 16px;
@@ -552,7 +552,7 @@
     gap: 14px;
     margin-top: 12px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 16px;
 }
 .pbp-pagination button {
     padding: 6px 11px;
@@ -569,14 +569,14 @@
 }
 .pbp-note {
     color: var(--hint);
-    font-size: 12px;
+    font-size: 15px;
     margin: 12px 0 0;
 }
 .pbp-term-legend {
     flex-wrap: wrap;
     gap: 14px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 15px;
     margin: 0 0 8px;
 }
 .pbp-term-legend i,
@@ -597,7 +597,7 @@
     color: var(--muted);
     text-align: center;
     line-height: 26px;
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
 }
 .pbp-bar {
@@ -618,7 +618,7 @@
     background: #7fc5bd;
 }
 .pbp-bar b {
-    font-size: 14px;
+    font-size: 17px;
     min-width: 30px;
 }
 .pbp-segments {
@@ -663,7 +663,7 @@
     margin: 0 0 14px;
 }
 .pbp-filters button {
-    font-size: 13px;
+    font-size: 16px;
     padding: 5px 12px;
     border: 1px solid var(--line);
     border-radius: 999px;
@@ -681,7 +681,7 @@
     gap: 16px;
     margin-bottom: 8px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 15px;
 }
 .pbp-legend .burden {
     background: #7fc5bd;
@@ -689,9 +689,9 @@
 .pbp-legend .orpha {
     background: #c9b3f3;
 }
-.pbp-reference-picker { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin: 0; }
+.pbp-reference-picker { display: flex; align-items: center; gap: 6px; font-size: 15px; color: var(--muted); margin: 0; }
 .pbp-reference-picker select { max-width: 240px; padding: 7px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--ink); }
-.pbp-reference-badge { display: inline-block; margin: 2px 3px 2px 0; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.pbp-reference-badge { display: inline-block; margin: 2px 3px 2px 0; padding: 2px 5px; border-radius: 3px; font-size: 13px; font-weight: 600; white-space: nowrap; }
 .pbp-reference-badge.crdc { background: #e4f4f1; color: #176b61; }
 .pbp-reference-badge.orphanet { background: #eee7fa; color: #7042a2; }
 .pbp-reference-badge.omim { background: #e4efff; color: #245da1; }
@@ -699,7 +699,7 @@
 .pbp-reference-badge.decipher { background: #fce7f0; color: #91375b; }
 .pbp-gene-reference { margin-bottom: 5px; }
 .pbp-gene-reference small { display: block; color: var(--muted); }
-.pbp-more-references summary { cursor: pointer; color: var(--blue); font-size: 12px; }
+.pbp-more-references summary { cursor: pointer; color: var(--blue); font-size: 15px; }
 .pbp-evidence {
     display: inline-block;
     width: 26px;
@@ -747,7 +747,7 @@
 }
 .pbp-caret {
     color: var(--blue);
-    font-size: 12px;
+    font-size: 15px;
     margin-left: 6px;
 }
 .pbp-frequency {
@@ -756,7 +756,7 @@
     border-radius: 4px;
     background: #eef2f6;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 600;
 }
 .pbp-frequency.obligate {
@@ -771,7 +771,7 @@
     background: #f6f9fc;
 }
 .pbp-expanded p {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--muted);
 }
 .pbp-feature-table {
@@ -789,7 +789,7 @@
     border-radius: 4px;
     background: #fff;
     color: var(--ink);
-    font-size: 12px;
+    font-size: 15px;
     cursor: pointer;
 }
 .pbp-feature small {
@@ -850,7 +850,7 @@
     border-color: #f0c2c5;
 }
 .pbp-narrow table td {
-    font-size: 13px;
+    font-size: 16px;
 }
 .pbp-narrow table td:first-child {
     max-width: 190px;
@@ -915,7 +915,7 @@
     border-radius: 999px;
     background: #fff;
     color: var(--ink);
-    font-size: 13px;
+    font-size: 16px;
     cursor: pointer;
 }
 .pbp-coterms button em {
@@ -934,12 +934,12 @@
     grid-template-columns: 46px minmax(0, 1fr) 124px;
     align-items: center;
     gap: 9px;
-    font-size: 12px;
+    font-size: 15px;
     font-variant-numeric: tabular-nums;
 }
 .pbp-age-labels {
     color: var(--muted);
-    font-size: 10px;
+    font-size: 13px;
     margin-top: 12px;
 }
 .pbp-age-labels span:last-child {
@@ -978,13 +978,13 @@
     min-width: 30px;
     margin-left: 4px;
     color: #64748b;
-    font-size: 10px;
+    font-size: 13px;
 }
 .pbp-age-legend {
     display: flex;
     gap: 16px;
     color: var(--muted);
-    font-size: 11px;
+    font-size: 14px;
 }
 .pbp-age-legend i {
     display: inline-block;

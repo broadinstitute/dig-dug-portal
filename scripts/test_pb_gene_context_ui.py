@@ -147,10 +147,11 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn('value: this.variantEvidenceValue(row, "ClinVar", "Unavailable")', MODEL)
         self.assertIn('href: this.variantEvidenceHref(row, "ClinVar")', MODEL)
 
-    def test_crdc_frequency_is_labeled_as_carrier_frequency(self):
+    def test_crdc_frequency_distinguishes_alleles_from_carriers(self):
         self.assertNotIn("sortVariantsBy('crdcAF')", TEMPLATE)
         self.assertNotIn('class="pbg-ve-af"', TEMPLATE)
-        self.assertIn('label: "CRDC carrier frequency"', MODEL)
+        self.assertIn('label: this.crdcFrequencyLabel(row)', MODEL)
+        self.assertIn('row.crdcAlleleFrequency != null ? "CRDC allele frequency" : "CRDC carrier frequency"', MODEL)
         self.assertNotIn("CRDC AF", TEMPLATE)
         self.assertNotIn('label: "CRDC AF"', MODEL)
 

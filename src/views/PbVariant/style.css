@@ -2,36 +2,51 @@
 
 .pbv-page {
     background: #f4f6f9;
+    font-size: 18px;
     color: var(--pbg-text);
     line-height: 1.45;
 }
 
-.pbv-toolbar-gene-label { font-size: 0.9rem; font-weight: 700; color: var(--pbg-text-soft); }
+/* Enlarge shared Gene components only on the Variant page. */
+.pbv-page .pbg-home-link, .pbv-page .pbg-breadcrumb-link, .pbv-page .pbg-nav-link,
+.pbv-page .pbg-gene-search-input, .pbv-page .pbg-gene-search-submit,
+.pbv-page .pbg-hpo-input-shell input, .pbv-page .pbg-context-form > button { font-size: 18px; }
+.pbv-page .pbg-selected-kv-row > span:first-child, .pbv-page .pbg-selected-kv-row > strong,
+.pbv-page .pbg-selected-kv-row .pbv-evidence-value, .pbv-page .pbg-context-result-row,
+.pbv-page .pbg-context-head p, .pbv-page .pbg-sample-link { font-size: 17px; }
+.pbv-page .pbg-context-result-head, .pbv-page .pbg-context-summary-sub,
+.pbv-page .pbg-context-status, .pbv-page .pbg-hpo-selected span,
+.pbv-page .pbg-summary-pagination, .pbv-page .pbg-summary-pagination button,
+.pbv-page .pbg-summary-page-jump { font-size: 15px; }
+.pbv-page .pbg-context-result-row small { font-size: 14px; }
+.pbv-page .pbg-context-disclosure > summary { font-size: 19px; }
+
+.pbv-toolbar-gene-label { font-size: 1.0875rem; font-weight: 700; color: var(--pbg-text-soft); }
 
 .pbv-gene-choice { margin: 1rem 0; padding: 1rem; border: 1px solid var(--pbg-border); border-radius: 0.5rem; background: #fff; }
-.pbv-gene-choice h2 { margin: 0; color: var(--pbg-text-strong); font-size: 1.15rem; }
+.pbv-gene-choice h2 { margin: 0; color: var(--pbg-text-strong); font-size: 1.3375rem; }
 .pbv-gene-choice p { margin: 0.3rem 0 0.8rem; color: var(--pbg-text-soft); }
 .pbv-gene-choice div { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .pbv-gene-choice button { border: 1px solid var(--pbg-primary); border-radius: 0.4rem; background: #fff; color: var(--pbg-primary); padding: 0.45rem 0.8rem; font-weight: 800; }
 .pbv-gene-choice button:hover, .pbv-gene-choice button:focus-visible { background: var(--pbg-primary); color: #fff; }
 
 .pbv-context-result-grid { grid-template-columns: minmax(14rem, 1fr) minmax(8rem, 0.45fr) minmax(9rem, 0.4fr) minmax(8rem, 0.4fr) minmax(7rem, 0.35fr) minmax(7rem, 0.3fr); min-width: 70rem; }
-.pbv-context-crossref { font-size: 0.9rem; color: var(--pbg-text-soft); margin: 0.6rem 0 0; padding: 0.5rem 0.7rem; background: var(--pbg-surface-subtle); border-radius: 0.4rem; }
+.pbv-context-crossref { font-size: 1.0875rem; color: var(--pbg-text-soft); margin: 0.6rem 0 0; padding: 0.5rem 0.7rem; background: var(--pbg-surface-subtle); border-radius: 0.4rem; }
 .pbv-context-crossref strong { color: var(--pbg-text-strong); }
-.pbv-context-warning { margin: 0.55rem 0 0; padding: 0.45rem 0.65rem; border-left: 3px solid #c28623; background: #fff7e8; color: #704a12; font-size: 0.86rem; }
-.pbv-context-help { display: inline-flex; justify-content: center; align-items: center; width: 1.1rem; height: 1.1rem; border: 1px solid var(--pbg-primary); border-radius: 50%; color: var(--pbg-primary); font-size: 0.72rem; text-decoration: none; cursor: help; vertical-align: middle; }
+.pbv-context-warning { margin: 0.55rem 0 0; padding: 0.45rem 0.65rem; border-left: 3px solid #c28623; background: #fff7e8; color: #704a12; font-size: 1.0475rem; }
+.pbv-context-help { display: inline-flex; justify-content: center; align-items: center; width: 1.1rem; height: 1.1rem; border: 1px solid var(--pbg-primary); border-radius: 50%; color: var(--pbg-primary); font-size: 0.9075rem; text-decoration: none; cursor: help; vertical-align: middle; }
 .pbv-page .pbg-context-head { margin-bottom: 0.3rem; }
 .pbv-page .pbg-context-form { grid-template-columns: minmax(16rem, 1fr) auto auto auto; align-items: start; }
-.pbv-context-option { display: inline-flex; align-items: center; gap: 0.3rem; min-height: 2.2rem; color: var(--pbg-text-soft); font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
-.pbv-context-option select { min-height: 2.2rem; padding: 0.3rem 0.45rem; border: 1px solid #aebfd1; border-radius: 0.35rem; background: white; color: var(--pbg-text-strong); font-size: 0.9rem; }
+.pbv-context-option { display: inline-flex; align-items: center; gap: 0.3rem; min-height: 2.2rem; color: var(--pbg-text-soft); font-size: 0.9375rem; font-weight: 700; white-space: nowrap; }
+.pbv-context-option select { min-height: 2.2rem; padding: 0.3rem 0.45rem; border: 1px solid #aebfd1; border-radius: 0.35rem; background: white; color: var(--pbg-text-strong); font-size: 1.0875rem; }
 @media (max-width: 850px) { .pbv-page .pbg-context-form { grid-template-columns: 1fr 1fr; } .pbv-page .pbg-context-form > .pbg-hpo-input-shell { grid-column: 1 / -1; } }
 
 /* Variant identity — two column: identity (wide) + gene-level side panel (narrow) */
 .pbv-identity-card { grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.42fr); gap: 1.5rem; }
-.pbv-identity-card .pbg-section-label { margin-bottom: 0.55rem; font-size: 1.05rem; color: var(--pbg-primary-dark); }
+.pbv-identity-card .pbg-section-label { margin-bottom: 0.55rem; font-size: 1.2375rem; color: var(--pbg-primary-dark); }
 .pbv-kv-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 2rem; }
 .pbv-variant-score-row > span:first-child { flex-basis: auto; white-space: nowrap; }
-.pbv-variant-score-source { color: var(--pbg-text-soft); font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+.pbv-variant-score-source { color: var(--pbg-text-soft); font-size: 0.9375rem; font-weight: 700; white-space: nowrap; }
 .pbv-identity-card .pbg-selected-kv-row > strong.pbv-variant-score-highlight { display: inline; padding: 0 0.15rem; border: 0; border-radius: 0; background: linear-gradient(transparent 38%, #ffe484 38%, #ffe484 92%, transparent 92%); color: var(--pbg-ink-strong); box-decoration-break: clone; }
 
 /* Collapsed by default (details/summary) — a tall gene panel must never force the hero card taller than the variant identity column */
@@ -44,15 +59,15 @@
 .pbv-identity-stat { border-right: 1px solid var(--pbg-border); padding-right: 0.9rem; }
 .pbv-identity-gene { padding-left: 0.9rem; }
 .pbv-identity-stat > span, .pbv-identity-gene > span {
-    display: block; color: var(--pbg-text-muted); font-size: 0.8rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;
+    display: block; color: var(--pbg-text-muted); font-size: 0.9875rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;
 }
 .pbv-identity-stat > strong, .pbv-identity-gene > strong {
-    display: block; margin: 0.12rem 0; color: var(--pbg-ink-strong); font-size: 1.25rem; font-weight: 900; line-height: 1.1;
+    display: block; margin: 0.12rem 0; color: var(--pbg-ink-strong); font-size: 1.4375rem; font-weight: 900; line-height: 1.1;
 }
-.pbv-identity-stat > small, .pbv-identity-gene > small { display: block; color: var(--pbg-text-secondary); font-size: 0.85rem; font-weight: 750; line-height: 1.35; }
-.pbv-identity-stat > em { display: block; margin-top: 0.22rem; color: var(--pbg-text-soft); font-size: 0.8rem; font-style: normal; }
+.pbv-identity-stat > small, .pbv-identity-gene > small { display: block; color: var(--pbg-text-secondary); font-size: 1.0375rem; font-weight: 750; line-height: 1.35; }
+.pbv-identity-stat > em { display: block; margin-top: 0.22rem; color: var(--pbg-text-soft); font-size: 0.9875rem; font-style: normal; }
 .pbv-identity-gene { color: inherit; text-decoration: none; }
-.pbv-identity-gene > strong { color: var(--pbg-primary); font-size: 1.55rem; letter-spacing: -0.02em; }
+.pbv-identity-gene > strong { color: var(--pbg-primary); font-size: 1.7375rem; letter-spacing: -0.02em; }
 .pbv-identity-gene:hover > strong, .pbv-identity-gene:focus-visible > strong { color: var(--pbg-primary-dark); text-decoration: underline; }
 .pbv-identity-gene:focus-visible { outline: 3px solid var(--pbg-focus); outline-offset: -3px; }
 .pbv-gene-side-panel { border-bottom: 1px solid var(--pbg-border); padding: 0.35rem 0 0.65rem; }
@@ -61,27 +76,27 @@
 .pbv-gene-side-panel summary::before { content: "▸ "; color: #0ea5a3; font-weight: 800; font-size: 0.95em; }
 .pbv-gene-side-panel[open] summary::before { content: "▾ "; }
 .pbv-gene-side-body { margin-top: 0.6rem; }
-.pbv-gene-side-heading { margin: 0 0 0.1rem; font-size: 0.95rem; font-weight: 800; color: var(--pbg-text-strong); }
-.pbv-gene-side-note { font-size: 0.82rem; color: var(--pbg-text-soft); font-weight: 400; display: block; margin: 0.1rem 0 0.6rem; }
+.pbv-gene-side-heading { margin: 0 0 0.1rem; font-size: 1.1375rem; font-weight: 800; color: var(--pbg-text-strong); }
+.pbv-gene-side-note { font-size: 1.0075rem; color: var(--pbg-text-soft); font-weight: 400; display: block; margin: 0.1rem 0 0.6rem; }
 .pbv-gene-side-hr { border: none; border-top: 1px solid var(--pbg-border-soft); margin: 0.7rem 0; }
 .pbv-condition-label {
-    font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+    font-size: 0.9875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
     color: var(--pbg-text-faint); margin: 0 0 0.4rem;
 }
-.pbv-condition-row-item { font-size: 0.92rem; font-weight: 700; color: var(--pbg-text-strong); margin: 0 0 0.5rem; }
-.pbv-condition-row-item small { display: block; font-weight: 500; color: var(--pbg-text-soft); font-size: 0.82rem; margin-top: 0.05rem; }
-.pbv-gene-annotation-none { margin: 0 0 0.7rem; font-size: 0.86rem; color: var(--pbg-text-soft); }
+.pbv-condition-row-item { font-size: 1.1075rem; font-weight: 700; color: var(--pbg-text-strong); margin: 0 0 0.5rem; }
+.pbv-condition-row-item small { display: block; font-weight: 500; color: var(--pbg-text-soft); font-size: 1.0075rem; margin-top: 0.05rem; }
+.pbv-gene-annotation-none { margin: 0 0 0.7rem; font-size: 1.0475rem; color: var(--pbg-text-soft); }
 .pbv-pathway-summary { margin-bottom: 0.35rem; }
-.pbv-pathway-summary p { margin: 0 0 0.25rem; font-size: 0.88rem; font-weight: 700; color: var(--pbg-text-strong); }
-.pbv-pathway-summary small { color: var(--pbg-text-soft); font-size: 0.8rem; }
-.pbv-gene-stat-row { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.9rem; padding: 0.28rem 0; border-bottom: 1px solid var(--pbg-border-soft); }
+.pbv-pathway-summary p { margin: 0 0 0.25rem; font-size: 1.0675rem; font-weight: 700; color: var(--pbg-text-strong); }
+.pbv-pathway-summary small { color: var(--pbg-text-soft); font-size: 0.9875rem; }
+.pbv-gene-stat-row { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 1.0875rem; padding: 0.28rem 0; border-bottom: 1px solid var(--pbg-border-soft); }
 .pbv-gene-stat-row:last-of-type { border-bottom: none; }
 .pbv-gene-stat-row span { color: var(--pbg-text-soft); }
 .pbv-gene-stat-row strong { color: var(--pbg-text-strong); }
-.pbv-gene-side-link { display: inline-block; margin-top: 0.7rem; font-size: 0.9rem; font-weight: 800; }
+.pbv-gene-side-link { display: inline-block; margin-top: 0.7rem; font-size: 1.0875rem; font-weight: 800; }
 .pbv-gene-panel-list { list-style: none; margin: 0.2rem 0 0.6rem; padding: 0; }
 .pbv-gene-panel-list li {
-    font-size: 0.85rem; color: var(--pbg-text-soft); padding: 0.2rem 0; border-bottom: 1px solid var(--pbg-border-soft);
+    font-size: 1.0375rem; color: var(--pbg-text-soft); padding: 0.2rem 0; border-bottom: 1px solid var(--pbg-border-soft);
 }
 .pbv-gene-panel-list li:last-child { border-bottom: none; }
 
@@ -114,23 +129,23 @@
 .pbv-filter-group--phenotype { min-width: 0; }
 .pbv-carrier-heading { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 0.35rem 0.75rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--pbg-border); }
 .pbv-carrier-heading-main { display:flex; align-items:baseline; flex-wrap:wrap; gap:.45rem 1rem; min-width:0; }
-.pbv-carrier-heading h2 { margin: 0; color: var(--pbg-text-strong); font-size: 1.65rem; font-weight: 800; letter-spacing: -0.02em; }
+.pbv-carrier-heading h2 { margin: 0; color: var(--pbg-text-strong); font-size: 1.8375rem; font-weight: 800; letter-spacing: -0.02em; }
 .pbv-carrier-heading-aside { position: relative; flex: none; max-width: 34rem; text-align: left; }
-.pbv-carrier-heading-aside > p { margin: 0; color: var(--pbg-text-soft); font-size: 0.9rem; line-height: 1.45; }
+.pbv-carrier-heading-aside > p { margin: 0; color: var(--pbg-text-soft); font-size: 1.0875rem; line-height: 1.45; }
 .pbv-filter-group-label {
-    font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+    font-size: 1.0075rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
     color: var(--pbg-text-faint); margin: 0 0 0.4rem;
 }
 .pbv-add-row { display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.5rem; }
 .pbv-add-row select {
     width: 100%; height: 2.25rem;
-    font-size: 0.95rem; padding: 0.28rem 0.5rem; border: 1px solid var(--pbg-border); border-radius: 0.35rem;
+    font-size: 1.1375rem; padding: 0.28rem 0.5rem; border: 1px solid var(--pbg-border); border-radius: 0.35rem;
     color: var(--pbg-text-strong); background: #fff;
 }
 /* Phenotype search — a real element tree we build and style ourselves, not a native <datalist> popup */
 .pbv-pheno-suggest-wrap { position: relative; flex: 1 1 auto; min-width: 0; }
 .pbv-pheno-suggest-wrap input {
-    width: 100%; box-sizing: border-box; font-size: 0.95rem; padding: 0.42rem 0.5rem;
+    width: 100%; box-sizing: border-box; font-size: 1.1375rem; padding: 0.42rem 0.5rem;
     border: 1px solid var(--pbg-border); border-radius: 0.35rem; color: var(--pbg-text-strong); background: #fff;
 }
 .pbv-pheno-suggest {
@@ -139,24 +154,24 @@
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.14); max-height: 18rem; overflow-y: auto; padding: 0.4rem 0;
 }
 .pbv-pheno-suggest-cat {
-    padding: 0.3rem 0.7rem; font-size: 0.76rem; font-weight: 800; color: var(--pbg-text-strong); cursor: pointer;
+    padding: 0.3rem 0.7rem; font-size: 0.9475rem; font-weight: 800; color: var(--pbg-text-strong); cursor: pointer;
 }
 .pbv-pheno-suggest-cat:hover { background: var(--pbg-surface-subtle); color: var(--pbg-primary); }
 .pbv-pheno-suggest-cat .pbv-hp-code { display: inline; margin-left: 0.35rem; }
 .pbv-pheno-suggest-terms { margin: 0 0.6rem 0.3rem 1.1rem; font-family: "SF Mono", Menlo, Consolas, monospace; }
 .pbv-pheno-suggest-term {
-    padding: 0.22rem 0.5rem; font-size: 0.74rem; color: var(--pbg-text-soft); cursor: pointer; border-radius: 0.25rem;
+    padding: 0.22rem 0.5rem; font-size: 0.9275rem; color: var(--pbg-text-soft); cursor: pointer; border-radius: 0.25rem;
 }
 .pbv-pheno-suggest-terms .pbv-pheno-suggest-term:not(:last-child)::before { content: "├─ "; color: var(--pbg-text-faint); }
 .pbv-pheno-suggest-terms .pbv-pheno-suggest-term:last-child::before { content: "└─ "; color: var(--pbg-text-faint); }
 .pbv-pheno-suggest-term:hover { background: var(--pbg-surface-subtle); color: var(--pbg-primary); }
-.pbv-pheno-suggest-empty { padding: 0.4rem 0.7rem; font-size: 0.76rem; color: var(--pbg-text-faint); }
+.pbv-pheno-suggest-empty { padding: 0.4rem 0.7rem; font-size: 0.9475rem; color: var(--pbg-text-faint); }
 .pbv-all-btn:disabled { cursor: not-allowed; opacity: 0.45; }
 .pbv-add-row select:disabled, .pbv-pheno-suggest-wrap input:disabled { color: var(--pbg-text-faint); background: var(--pbg-surface-muted); cursor: not-allowed; }
 .pbv-selected-chip-row { display: flex; flex-wrap: wrap; gap: 0.35rem 0.65rem; min-height: 1.2rem; }
 .pbv-selected-chip {
     display:inline-flex; align-items:baseline; gap:.18rem; max-width:100%;
-    color:var(--pbg-text-strong); font-size:.86rem; font-weight:700;
+    color:var(--pbg-text-strong); font-size: 1.0475rem; font-weight:700;
 }
 .pbv-selected-chip-text { overflow:hidden; min-width:0; text-overflow:ellipsis; white-space:nowrap; padding:0 .08rem; background:linear-gradient(transparent 48%, #ffe484 48%); }
 .pbv-selected-chip button { background:none; border:none; color:var(--pbg-text-soft); cursor:pointer; font-weight:800; padding:0 .1rem; line-height:1; }
@@ -164,13 +179,13 @@
 .pbv-match-block {
     display:flex; align-items:baseline; gap:.15rem; min-width:0; margin:0; padding:0; text-align:left;
 }
-.pbv-match-number { display: inline; font-size: 1.1rem; font-weight: 800; color: var(--pbg-primary); line-height: 1.2; }
-.pbv-match-label { display: inline; margin-left: 0.25rem; font-size: 0.9rem; color: var(--pbg-text-soft); font-weight: 700; }
-.pbv-clear-filters { margin:0 0 0 .5rem; padding:0; border:0; background:transparent; color:var(--pbg-primary); font-size:.82rem; font-weight:800; cursor:pointer; }
+.pbv-match-number { display: inline; font-size: 1.2875rem; font-weight: 800; color: var(--pbg-primary); line-height: 1.2; }
+.pbv-match-label { display: inline; margin-left: 0.25rem; font-size: 1.0875rem; color: var(--pbg-text-soft); font-weight: 700; }
+.pbv-clear-filters { margin:0 0 0 .5rem; padding:0; border:0; background:transparent; color:var(--pbg-primary); font-size: 1.0075rem; font-weight:800; cursor:pointer; }
 .pbv-clear-filters:hover { text-decoration: underline; }
 
 .pbv-recompute-connector {
-    display: flex; align-items: center; gap: 0.6rem; margin: 0.9rem 0; font-size: 0.74rem; font-weight: 800;
+    display: flex; align-items: center; gap: 0.6rem; margin: 0.9rem 0; font-size: 0.9275rem; font-weight: 800;
     color: var(--pbg-primary); text-transform: uppercase; letter-spacing: 0.05em;
 }
 .pbv-analysis-layout .pbv-recompute-connector { grid-column: 2; grid-row: 1; margin: 0 0 0.5rem; }
@@ -182,16 +197,16 @@
 .pbv-result-block { margin-bottom: 0; padding: 1.25rem 0; border-bottom: 1px solid var(--pbg-border); }
 .pbv-result-block:first-child { padding-top: 0; }
 .pbv-result-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
-.pbv-result-block > h3, .pbv-result-heading > h3, .pbv-cooccur-section-heading > h3 { margin: 0 0 0.25rem; font-size: 1.16rem; line-height: 1.3; color: var(--pbg-primary-dark); font-weight: 900; }
-.pbv-result-block .pbv-sub { margin: 0 0 0.75rem; font-size: 0.9rem; color: var(--pbg-text-soft); }
-.pbv-empty-note { font-size: 0.95rem; color: var(--pbg-text-soft); padding: 0.5rem 0; }
+.pbv-result-block > h3, .pbv-result-heading > h3, .pbv-cooccur-section-heading > h3 { margin: 0 0 0.25rem; font-size: 1.3475rem; line-height: 1.3; color: var(--pbg-primary-dark); font-weight: 900; }
+.pbv-result-block .pbv-sub { margin: 0 0 0.75rem; font-size: 1.0875rem; color: var(--pbg-text-soft); }
+.pbv-empty-note { font-size: 1.1375rem; color: var(--pbg-text-soft); padding: 0.5rem 0; }
 
 .pbv-pheno-row { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.35rem; }
 .pbv-pheno-toggle {
     background: none; border: none; color: var(--pbg-primary); font-weight: 800; cursor: pointer;
-    font-size: 0.95rem; padding: 0.1rem 0.15rem; width: 1.25rem; flex-shrink: 0; text-align: center;
+    font-size: 1.1375rem; padding: 0.1rem 0.15rem; width: 1.25rem; flex-shrink: 0; text-align: center;
 }
-.pbv-bar-row { display: grid; grid-template-columns: 5rem 1fr 3.2rem; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; font-size: 0.95rem; }
+.pbv-bar-row { display: grid; grid-template-columns: 5rem 1fr 3.2rem; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; font-size: 1.1375rem; }
 .pbv-bar-row--pheno { grid-template-columns: minmax(13rem, 0.9fr) 1fr 6.2rem; }
 .pbv-bar-row--pheno > strong { text-align: right; font-variant-numeric: tabular-nums; }
 .pbv-pheno-header { margin-bottom: 0.5rem; }
@@ -201,9 +216,9 @@
 .pbv-pheno-header button i { font-style: normal; color: var(--pbg-primary); }
 .pbv-bar-track { height: 0.5rem; background: var(--pbg-surface-muted); border-radius: 999px; overflow: hidden; }
 .pbv-bar-fill { height: 100%; background: var(--pbg-primary); border-radius: 999px; }
-.pbv-hp-code { display: block; color: var(--pbg-text-soft); font-weight: 400; font-size: 0.8rem; }
+.pbv-hp-code { display: block; color: var(--pbg-text-soft); font-weight: 400; font-size: 0.9875rem; }
 .pbv-pheno-terms { margin: 0.05rem 0 0.9rem 0.45rem; max-height: 25rem; overflow-y: auto; }
-.pbv-bar-row--nested { grid-template-columns: minmax(17rem, 1fr) 1fr 4rem; font-size: 0.88rem; margin-bottom: 0.35rem; }
+.pbv-bar-row--nested { grid-template-columns: minmax(17rem, 1fr) 1fr 4rem; font-size: 1.0675rem; margin-bottom: 0.35rem; }
 .pbv-hpo-node-label { display:flex; align-items:center; min-width:0; min-height:1.8rem; color:var(--pbg-text-soft); }
 .pbv-hpo-node-label > span:last-child { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .pbv-hpo-leaf-marker { width:1.25rem; flex:0 0 1.25rem; text-align:center; color:var(--pbg-text-faint); }
@@ -222,13 +237,13 @@
 .pbv-result-heading { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
 .pbv-carrier-inline-scores { display: flex; align-items: baseline; gap: 0.75rem; }
 .pbv-carrier-inline-score { display: inline-flex; align-items: baseline; gap: 0.35rem; padding-left: 0.75rem; border-left: 1px solid var(--pbg-border); white-space: nowrap; }
-.pbv-carrier-inline-score small { color: var(--pbg-text-soft); font-size: 0.82rem; font-weight: 800; }
-.pbv-carrier-inline-score strong { color: var(--pbg-text-strong); font-size: 0.96rem; font-variant-numeric: tabular-nums; }
-.pbv-carrier-inline-score strong.pbg-unavailable-value { font-size: 0.88rem; }
-.pbv-sample-score-note { margin: -0.25rem 0 0.4rem; font-size: 0.82rem; color: var(--pbg-text-soft); }
+.pbv-carrier-inline-score small { color: var(--pbg-text-soft); font-size: 1.0075rem; font-weight: 800; }
+.pbv-carrier-inline-score strong { color: var(--pbg-text-strong); font-size: 1.1475rem; font-variant-numeric: tabular-nums; }
+.pbv-carrier-inline-score strong.pbg-unavailable-value { font-size: 1.0675rem; }
+.pbv-sample-score-note { margin: -0.25rem 0 0.4rem; font-size: 1.0075rem; color: var(--pbg-text-soft); }
 .pbv-carrier-table-head { display: flex; justify-content: flex-end; padding: 0 0 0.35rem; }
-.pbv-carrier-table-head span { color: var(--pbg-text-soft); font-size: 0.82rem; }
-.pbv-carrier-table .pbg-selected-sample-head { font-size: 0.78rem; }
+.pbv-carrier-table-head span { color: var(--pbg-text-soft); font-size: 1.0075rem; }
+.pbv-carrier-table .pbg-selected-sample-head { font-size: 0.9675rem; }
 .pbv-carrier-table .pbg-selected-sample-head button,
 .pbv-cooccur-head button { border:0; padding:0; background:none; color:inherit; font:inherit; font-weight:inherit; text-align:left; text-transform:inherit; letter-spacing:inherit; cursor:pointer; white-space:nowrap; }
 .pbv-carrier-table .pbg-selected-sample-head button:hover,
@@ -239,7 +254,7 @@
 .pbv-rphers-head { display: inline-flex; align-items: center; gap: 0.1rem; white-space: nowrap; }
 .pbv-rphers-head .pbg-score-help { margin-left: 0.1rem; }
 .pbv-rphers-head .pbg-score-help:focus-visible { outline: 2px solid var(--pbg-primary); outline-offset: 2px; }
-.pbv-carrier-table .pbg-selected-sample-row { font-size: 0.95rem; }
+.pbv-carrier-table .pbg-selected-sample-row { font-size: 1.1375rem; }
 .pbv-carrier-table .pbg-selected-sample-head,
 .pbv-carrier-table .pbg-selected-sample-row {
     grid-template-columns: minmax(10rem, 1.2fr) 4rem 3.5rem 5.5rem 7.5rem 6.5rem minmax(15rem, 1fr);
@@ -249,7 +264,7 @@
 .pbv-result-pagination { justify-content: center; padding: 0.7rem 0 0.2rem; }
 
 .pbv-cooccur-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem 1rem; flex-wrap: wrap; }
-.pbv-context-link-status { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--pbg-text-soft); font-size: 0.8rem; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.pbv-context-link-status { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--pbg-text-soft); font-size: 0.9875rem; font-weight: 800; text-decoration: none; white-space: nowrap; }
 .pbv-context-link-status::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--pbg-text-faint); }
 .pbv-context-link-status.is-active { color: var(--pbg-primary-dark); }
 .pbv-context-link-status.is-active::before { background: var(--pbg-primary); }
@@ -257,9 +272,9 @@
 .pbv-cooccur-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 .pbv-cooccur-card { min-width: 0; padding: 0.35rem 0; }
 .pbv-cooccur-card + .pbv-cooccur-card { border-top: 1px solid var(--pbg-border); padding-top: 1.2rem; }
-.pbv-cooccur-card h3 { margin: 0 0 0.15rem; font-size: 1rem; color: var(--pbg-text-strong); }
-.pbv-cooccur-card p.pbv-sub { margin: 0 0 0.6rem; font-size: 0.88rem; color: var(--pbg-text-soft); }
-.pbv-cooccur-table { display: grid; font-size: 0.92rem; }
+.pbv-cooccur-card h3 { margin: 0 0 0.15rem; font-size: 1.1875rem; color: var(--pbg-text-strong); }
+.pbv-cooccur-card p.pbv-sub { margin: 0 0 0.6rem; font-size: 1.0675rem; color: var(--pbg-text-soft); }
+.pbv-cooccur-table { display: grid; font-size: 1.1075rem; }
 .pbv-cooccur-head, .pbv-cooccur-row {
     display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 0.5rem; padding: 0.4rem 0; align-items: center;
 }
@@ -267,14 +282,14 @@
 .pbv-cooccur-table--genes .pbv-cooccur-head,
 .pbv-cooccur-table--genes .pbv-cooccur-row { grid-template-columns: minmax(6rem, 1fr) minmax(10rem, 1.35fr) minmax(5.5rem, 0.75fr) minmax(5.5rem, 0.75fr) minmax(5.5rem, 0.75fr); min-width: 35rem; }
 .pbv-cooccur-row--target { background: #eaf2fb; font-weight: 700; }
-.pbv-cooccur-row--target small { display: block; color: var(--pbg-text-soft); font-size: 0.72rem; font-weight: 600; }
+.pbv-cooccur-row--target small { display: block; color: var(--pbg-text-soft); font-size: 0.9075rem; font-weight: 600; }
 .pbv-cooccur-table--variants { overflow-x: auto; }
 .pbv-cooccur-table--variants .pbv-cooccur-head,
 .pbv-cooccur-table--variants .pbv-cooccur-row { grid-template-columns: minmax(8.5rem, 1.25fr) minmax(6.5rem, 0.9fr) minmax(6.3rem, 0.8fr) minmax(7rem, 0.85fr) minmax(8.5rem, 1fr); min-width: 39rem; }
 .pbv-cooccur-table--variants .pbv-cooccur-row span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pbv-cooccur-residual { white-space: nowrap; }
-.pbv-cooccur-residual small { display: block; color: var(--pbg-text-soft); font-size: 0.74rem; }
-.pbv-cooccur-head { color: var(--pbg-text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid var(--pbg-border-soft); }
+.pbv-cooccur-residual small { display: block; color: var(--pbg-text-soft); font-size: 0.9275rem; }
+.pbv-cooccur-head { color: var(--pbg-text-muted); font-size: 0.9675rem; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid var(--pbg-border-soft); }
 .pbv-cooccur-head .pbv-effect-score-heading { text-transform: none; letter-spacing: normal; }
 .pbv-cooccur-head .pbv-mean-residual-heading { text-transform: none; letter-spacing: normal; }
 .pbv-cooccur-row { border-bottom: 1px solid var(--pbg-border-soft); }
@@ -283,14 +298,14 @@
 /* Collapsed by default — supplementary data notes, not something that should block or look like a wall */
 .pbv-notes-details { margin: 0.3rem 0 0; }
 .pbv-notes-details summary {
-    cursor: pointer; list-style: none; font-size: 0.86rem; font-weight: 700; color: var(--pbg-text-soft);
+    cursor: pointer; list-style: none; font-size: 1.0475rem; font-weight: 700; color: var(--pbg-text-soft);
 }
 .pbv-notes-details summary::-webkit-details-marker { display: none; }
 .pbv-notes-details summary::before { content: "▸ "; color: var(--pbg-text-faint); }
 .pbv-notes-details[open] summary::before { content: "▾ "; }
 .pbv-notes-body {
     position: absolute; right: 0; z-index: 20; width: min(32rem, calc(100vw - 2rem));
-    font-size: 0.88rem; color: var(--pbg-text-soft); background: var(--pbg-surface);
+    font-size: 1.0675rem; color: var(--pbg-text-soft); background: var(--pbg-surface);
     border: 1px solid var(--pbg-border); border-radius: 0.4rem; padding: 0.6rem 0.8rem; margin-top: 0.4rem;
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12); text-align: left;
 }
@@ -309,3 +324,10 @@
     .pbv-analysis-layout .pbv-recompute-connector { margin: 0.9rem 0; }
     .pbv-phenotype-results { border-left: 0; padding-left: 0; }
 }
+
+/* Carrier score and affected headers each own their full grid track. */
+.pbv-carrier-table .pbg-selected-sample-head,.pbv-carrier-table .pbg-selected-sample-row { grid-template-columns:minmax(15rem,1.4fr) 4rem 4rem 6rem minmax(12rem,.8fr) 7.5rem minmax(16rem,1fr); min-width:1160px; }
+.pbv-carrier-table .pbg-selected-sample-head > span { min-width:0; white-space:normal; line-height:1.35; }
+.pbv-carrier-table .pbg-selected-sample-head button { white-space:normal; }
+.pbv-carrier-table .pbv-rphers-head { flex-wrap:wrap; }
+.pbv-carrier-table .pbg-sample-link { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

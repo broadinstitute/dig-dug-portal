@@ -14,6 +14,7 @@ export const PB_SAMPLE_MOCK = {
     ageAtEnrollment: "11 years",
     affected: "Yes",
     investigator: "Investigator A",
+    projectName: "Illustrative project A",
     familyMembers: [
         { sampleId: "BCH-00-00000-01", role: "case" },
         { sampleId: "BCH-00-00000-02", role: "twin" },

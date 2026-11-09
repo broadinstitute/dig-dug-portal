@@ -12,6 +12,60 @@ Audience: frontend, backend, data, and platform engineers and their coding agent
 
 ## 1. Read this first
 
+### Live metadata update — 2026-11-09
+
+#### Connected local sample analysis and variants
+
+`/__pb_phenotype_profile__/sample-matches` now reads the reference sample's
+complete `hpo_terms_raw` metadata, runs the existing `rphers_fast.score_samples`
+method and ranks all other HPO-annotated matrix samples by residual PheRS.
+Self and family are excluded using the canonical BCH family-ID prefix. The
+metadata `family` column is a relationship, not a family ID. Investigator
+median/IQR/n use all eligible candidates. No first-10-term truncation is used.
+
+`/__pb_phenotype_profile__/sample-variants` is a local bridge to the frozen
+processed `sample_variant_gene.jsonl.gz` source, version
+`2025_crdc_16366_dp20_af001_20260907`, SHA-256
+`e602b847ccdba8961f788701b43004514346490f55164dd3023be23aa7c6bbc7`.
+Configure `PB_SAMPLE_VARIANT_SOURCE` for automatic local service startup, or
+pass `--sample-variant-source` to `scripts.pb_phenotype_profile_api`. Current
+local input is `/private/tmp/pb-sample-live-source/sample_variant_gene.jsonl.gz`.
+This is processed nonsynonymous/DP>=20/AF<0.01 evidence, not an unfiltered
+genome-wide call set or a newly deployed private BioIndex. Queries stream the
+compressed source and cache eight sample responses. Missing sample rows show
+unavailable coverage. GT conflicts are rejected; AF is labelled allele frequency.
+
+`SampleVariants.vue` renders the flat table with a searchable gene checklist,
+variant search, consequence and annotation filters, sorting and 10/20/50-row
+pagination. Phenotype columns use a 4:6 split, with explicit seven-column
+sample table widths and horizontal scrolling when necessary.
+
+Verified for BCH-22-11943-01: 53 HPO terms; 8,180 eligible candidates after
+excluding four self/family records; 50 ranked matches; 38 investigator groups,
+whose n sums to 8,180; 418 variant rows across 389 genes, all with GT. These
+connections supersede the older unconnected-state notes below for these two
+sections. Precomputed prioritized Type results remain a separate input.
+
+The Sample UI now separates `Phenotype profile`, `Variants & genotype`, and
+`Prioritized findings`, matching the supplied synthetic-demo screen's workflow.
+`PrioritizedFindings.vue` renders six Type selectors, disease-evidence record
+counts, gene/condition search, a selectable results list and an adjacent detail
+panel. Only explicit fixture mode supplies illustrative findings. Live mode
+shows unconnected counts as `—`, not zero. Counts expand each existing
+variant/disease evidence pair; the UI does not classify variants. The current
+live metadata payload still does not supply prioritized results, inheritance
+assessments or disease-specific percentile comparisons.
+
+The current sample adapter reads the built private `samples-info` index keyed
+by `SampleInVCF`. Canonical IDs try `_E38`, then `_G38`; explicit VCF keys are
+matched exactly. Age, sex, affected status, investigator, recorded observed
+HPO terms (`is_observed === true`), and available gene names now load live.
+The old `patient`-index limitation below is historical for metadata. Both
+`samples-info` and `samples` were verified as metadata records, not complete
+sample variant calls. The requirements for `All` variants and precomputed
+Tier/Type results below still apply. Gene names must not be converted into
+variant calls or inferred classifications.
+
 The PB Sample page is implemented as an approved interactive prototype, but
 most Sample data sources are not connected. The next implementation must keep
 the approved UI behavior and replace fixture sections only when their approved
@@ -91,6 +145,16 @@ Cross-page Sample links already use:
 They do not attach a gene to the Sample URL.
 
 ## 4. Current source audit
+
+The frozen 2026-09-07 processed carrier/HPO build that can supply the missing
+sample-keyed inputs is documented in
+`docs/pb_front_gene_variant_merge_handoff.md`, section **Cross-page processed
+BioIndex handoff (2026-09-07)**. It creates canonical
+`sample_variant_gene.jsonl.gz`, `sample_hpo.jsonl.gz`, and
+`sample_gene.jsonl.gz` artifacts plus a hash/count manifest. These files are
+build inputs, not evidence that `sample-variants-crdc` or a sample-HPO endpoint
+has already been deployed. Sample `All` remains unconnected until Helen
+materializes and registers the sample-keyed private index.
 
 The following was verified against the private BioIndex host on 2026-08-21:
 
@@ -681,3 +745,19 @@ PB Sample is production-connected only when all of the following are true:
 
 Until items 2 and 3 are satisfied, do not describe Sample Genotype `All` or
 Tier/Type as production-connected.
+
+
+### Sample profile presentation update — 2026-11-09
+
+HPO categories are paginated five groups per page. Expanding a group renders
+the same frozen primary-parent ontology paths used by PB Variant, with
+collapsible intermediate parents. Recorded terms are orange-highlighted;
+added parent nodes are context only and do not increase the sample term count.
+The total remains the deduplicated recorded HPO count.
+
+The identity card removes the BCH SAMPLE eyebrow, caps sample ID at 32px,
+reduces padding, enlarges metadata, and breaks tied dominant HPO groups into
+separate lines. Project names follow the gene-page clean_name mapping.
+Similar-sample rows use primary cohort project names and project summaries
+now group by project (not raw investigator). The current project label is red.
+The checked sample has 49 project groups; their n still sums to 8,180.

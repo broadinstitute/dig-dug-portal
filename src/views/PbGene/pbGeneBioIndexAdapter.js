@@ -10,6 +10,17 @@ const MAX_CACHED_GENES = 5;
 const GENE_STATE_CACHE = new Map();
 const GENE_STATE_PENDING = new Map();
 
+// BioIndex af is alternate-allele frequency (AC / AN), not carriers / people.
+export function sourceAlleleFrequency(row) {
+    const number = v => v == null || String(v).trim() === '' ? null : Number(v);
+    const an = number(row.an);
+    const ac = number(row.ac);
+    if (an != null && (!Number.isFinite(an) || an <= 0)) return null;
+    const af = number(row.af);
+    if (af != null) return Number.isFinite(af) && af >= 0 && af <= 1 ? af : null;
+    return Number.isFinite(ac) && Number.isFinite(an) && ac >= 0 && ac <= an ? ac / an : null;
+}
+
 export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
     const gene = normalizeGene(geneSymbol);
     if (!gene) throw new Error("Provide a valid HGNC gene symbol.");
@@ -167,7 +178,10 @@ function buildVariantRow(entry) {
     const reportedCarrierCount = entry.variantRows.reduce((max, row) =>
         Math.max(max, numericValue(row, ["carrier_count", "carrierCount", "n_carriers"]) || 0), 0);
     const carrierCount = carrierSamples.length || reportedCarrierCount;
-    const crdcAf = displayValue(value(primary, ["crdc_vcf_af", "crdcAF", "cohortAF", "cohort_AF_dp20", "cohort_af_dp20", "AF"]), "Unavailable");
+    const crdcAlleleFrequency = sourceAlleleFrequency(primary);
+    const crdcAf = crdcAlleleFrequency == null
+        ? displayValue(value(primary, ["crdc_vcf_af", "crdcAF", "cohortAF", "cohort_AF_dp20", "cohort_af_dp20", "AF"]), "Unavailable")
+        : String(crdcAlleleFrequency);
     const gnomadAf = displayValue(value(primary, ["gnomAD_AF", "gnomad_AF", "gnomad_exome_af", "gnomADe_AF"]), "Unavailable");
     const revel = optionalAnnotationValue(primary, ["REVEL", "revel", "revel_score"]);
     const alphaMissense = optionalAnnotationValue(primary, ["alphamissense", "AlphaMissense", "alphamissense_score", "am_pathogenicity"]);
@@ -187,6 +201,8 @@ function buildVariantRow(entry) {
         topTerms: [],
         gnomadAF: gnomadAf,
         crdcAF: crdcAf,
+        crdcAlleleFrequency,
+        crdcFrequencyKind: ['af', 'ac', 'an'].some(key => Object.prototype.hasOwnProperty.call(primary, key)) ? 'allele' : 'carrier',
         cohortAF: crdcAf,
         clinvar,
         classification: displayValue(value(primary, ["variant_class", "variantClass"]), clinvar),

@@ -87,6 +87,13 @@ let pages = {
         title: "CRDC Cohort Explorer",
         chunks: ["chunk-vendors", "chunk-common", "pbFront"]
     },
+    pbFrontLowercase: {
+        entry: "src/views/PbFront/main.js",
+        template: "public/index.html",
+        filename: "pb_front.html",
+        title: "CRDC Cohort Explorer",
+        chunks: ["chunk-vendors", "chunk-common", "pbFrontLowercase"]
+    },
     pbFront2: {
         entry: "src/views/PbFront2/main.js",
         template: "public/index.html",
@@ -361,11 +368,13 @@ function startLocalPhenotypeProfileApi() {
     for (const file of [matrix, metadata, mapping]) {
         if (!fs.existsSync(file)) throw new Error(`PB Phenotype profile input missing: ${file}`);
     }
-    localPhenotypeProfileProcess = spawn(process.env.PB_PHENOTYPE_PYTHON || "python3", [
+    const profileArgs = [
         "-m", "scripts.pb_phenotype_profile_api",
         "--hpo-matrix", matrix, "--metadata", metadata,
         "--cohort-mapping", mapping, "--port", String(phenotypeProfilePort),
-    ], { cwd: __dirname, env: process.env, stdio: "inherit" });
+    ];
+    if (process.env.PB_SAMPLE_VARIANT_SOURCE) profileArgs.push('--sample-variant-source', process.env.PB_SAMPLE_VARIANT_SOURCE);
+    localPhenotypeProfileProcess = spawn(process.env.PB_PHENOTYPE_PYTHON || "python3", profileArgs, { cwd: __dirname, env: process.env, stdio: "inherit" });
     localPhenotypeProfileProcess.on("exit", (code, signal) => {
         console.error(`PB Phenotype profile API exited: ${signal || code}`);
         localPhenotypeProfileProcess = null;

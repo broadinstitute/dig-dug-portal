@@ -49,15 +49,24 @@ const options = load('src/views/PbGene2/Template.vue', {
     '../PbGene/hpoContextSearch': { hpoLabel: id => id },
     './associationRows': { filterAssociations, togglePinnedAssociation, sortAssociationRows },
     './variantFacets': require('../src/views/PbGene2/variantFacets'),
+    './carrierScores': require('../src/views/PbGene2/carrierScores'),
     '../PbGene/variantLookup': require('../src/views/PbGene/variantLookup'),
     '../PbGene/variantTableNavigation': load('src/views/PbGene/variantTableNavigation.js'),
-    './GeneIdentity': {}, './Demographics': {}, './ContextPanel': {}, './VariantSummary': {},
+    './GeneIdentity': {}, './Demographics': {}, './ContextPanel': {}, './VariantSummary': {}, './HelpTooltip': {},
 }, true).default;
-for (const name of ['GeneIdentity', 'Demographics', 'ContextPanel', 'VariantSummary']) {
+for (const name of ['GeneIdentity', 'Demographics', 'ContextPanel', 'VariantSummary', 'HelpTooltip']) {
     const parsed = compiler.parseComponent(fs.readFileSync(path.join(root, `src/views/PbGene2/${name}.vue`), 'utf8'));
     assert.deepEqual(compiler.compile(parsed.template.content).errors, []);
 }
 async function main() {
+    const contextPanel = load('src/views/PbGene2/ContextPanel.vue', {
+        '../PbGene/HpoContextPanel': {}, '../PbGene/hpoContextSearch': { hpoLabel: id => id },
+    }, true).default;
+    const resultUrl = contextPanel.methods.phenotypeResultUrl;
+    assert.equal(resultUrl({ hpos: 'HP:0000364' }), '/pb_phenotype.html?query=HP%3A0000364');
+    assert.equal(resultUrl({ hpos: 'HP:0000364, HP:0001250' }), '/pb_phenotype.html?query=HP%3A0000364%2CHP%3A0001250');
+    assert.equal(resultUrl({ hpos: 'HP:0001250' }), '/pb_phenotype.html?query=HP%3A0001250', 'Each history row links its own profile');
+    assert.equal(resultUrl({ hpos: '' }), '', 'No unrelated default phenotype for an empty run');
     const rows = [ { hpoId: 'HP:0001250', label: 'Seizure', betaPer0_1Grs: .123, pValue: .001 }, { hpoId: 'HP:0001252', label: 'Hypotonia', betaPer0_1Grs: -.01, pValue: .4 } ];
     const pinned = togglePinnedAssociation([], rows[0]);
     assert.notEqual(pinned[0], rows[0], 'Pin keeps an independent release-row snapshot');

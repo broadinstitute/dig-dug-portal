@@ -14,7 +14,7 @@
                     </tbody></table>
                     <SummaryPager v-if="filteredPhenotypes.length > 5" compact :page="phenotypePage" :total-pages="Math.ceil(filteredPhenotypes.length / 5)" label="Observed phenotype pages" :input-id="'pg2-phenotypes-' + variant.id" @change="phenotypePage = $event" />
                 </template>
-                <p v-if="context && variant.phenotypeMatchScore != null" class="pg2-coverage">Mean rPheRS Z-score <strong>{{ statistic(variant.phenotypeMatchScore) }}</strong> · {{ variant.phenotypeMatchScoredCarrierCount }} / {{ variant.phenotypeMatchCarrierCount }} scored</p>
+                <p v-if="context && variant.phenotypeMatchScore != null" class="pg2-coverage">Mean rPheRS Z-score <strong>{{ statistic(variant.phenotypeMatchScore) }}</strong> · {{ variant.phenotypeMatchScoredCarrierCount }} / {{ variant.carrierCount }} total carriers scored ({{ variant.phenotypeMatchCarrierCount }} in analysis)</p>
             </div>
             <div>
                 <h3>Co-genes · current HPO context</h3>

@@ -1,0 +1,27 @@
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+const compiler = require('vue-template-compiler');
+const { samplePhenotypeTree } = require('./samplePhenotypeHierarchy');
+const { hpoPath } = require('../PbVariant/hpoHierarchy');
+
+const id = 'HP:0000407';
+const fullPath = hpoPath(id);
+const groupId = fullPath[1];
+const tree = samplePhenotypeTree({ id: groupId, terms: [{ id }, { id }] });
+const flat = rows => rows.flatMap(row => [row, ...flat(row.children)]);
+const nodes = flat(tree);
+assert.deepEqual(nodes.map(row => row.id), fullPath.slice(2));
+assert.equal(nodes.filter(row => row.recorded).length, 1, 'Added ancestors must not become sample observations');
+assert.equal(nodes.at(-1).id, id);
+assert.equal(new Set(nodes.map(row => row.id)).size, nodes.length);
+const parent = nodes[0].id;
+const recordedParent = flat(samplePhenotypeTree({ id: groupId, terms: [{ id }, { id: parent }] }));
+assert(recordedParent.find(row => row.id === parent).recorded, 'A genuinely recorded ancestor keeps its observation marker');
+const unknown = samplePhenotypeTree({ id: 'other', terms: [{ id: 'HP:9999999', label: 'Unknown term' }] });
+assert.equal(unknown[0].label, 'Unknown term');
+assert(unknown[0].recorded);
+assert.deepEqual(samplePhenotypeTree({ id: groupId, terms: [{ id: groupId }] }), [], 'Category root is already shown in the group header');
+const parsed = compiler.parseComponent(fs.readFileSync(path.join(__dirname, 'SampleHpoTree.vue'), 'utf8'));
+assert.deepEqual(compiler.compile(parsed.template.content).errors, []);
+console.log('Sample HPO hierarchy: real ancestry, deduplication, recorded/context distinction, unknown terms and recursive template PASS');
