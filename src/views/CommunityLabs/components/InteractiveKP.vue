@@ -26,8 +26,8 @@
     <h1 class="card-title">Physiological Assays for T2D Research</h1>
     <p class="card-lead">Explore the assays in the scatter plot (panel A) or browse, filter and sort them in the reference matrix (panel B).</p>
     <div class="tabs-bar">
-      <button class="tab-btn active" onclick="switchTab('scatter',this)">A &thinsp; Translational Relevance vs. Scalability</button>
-      <button class="tab-btn" onclick="switchTab('matrix',this)">B &thinsp; Assay Reference Matrix</button>
+      <button class="scatter tab-btn active" @click="switchTab('scatter')">A &thinsp; Translational Relevance vs. Scalability</button>
+      <button class="matrix tab-btn" @click="switchTab('matrix')">B &thinsp; Assay Reference Matrix</button>
     </div>
 
 <!-- PANEL A -->
@@ -366,13 +366,14 @@ export default Vue.component("interactive-kp", {
           hoverlabel:{bgcolor:"white",bordercolor:"#ccc",font:{size:11,family:FONT},align:"left"},
         },{responsive:true,displayModeBar:false});
       },
-      switchTab(tab,btn){
+      switchTab(tab){
         document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
         document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
         document.getElementById("panel-"+tab).classList.add("active");
+        let btn = document.querySelectorAll(`button.${tab}`)[0];
         btn.classList.add("active");
         if(!built[tab]){
-          if(tab==="matrix")buildMatrix();
+          if(tab==="matrix") this.buildMatrix();
           built[tab]=true;
         }
       }
