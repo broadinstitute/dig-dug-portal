@@ -90,20 +90,20 @@
   <div class="control-bar">
     <div class="ctrl-group">
       <span class="ctrl-label">Category</span>
-      <button class="ctrl-btn active" onclick="setFilter('all',this)">All</button>
-      <button class="ctrl-btn cat-ir" onclick="setFilter('IR',this)">Insulin responsiveness and glucose handling</button>
-      <button class="ctrl-btn cat-is" onclick="setFilter('IS',this)">Insulin secretion</button>
-      <button class="ctrl-btn cat-eb" onclick="setFilter('EB',this)">Energy balance</button>
-      <button class="ctrl-btn cat-lm" onclick="setFilter('LM',this)">Lipid metabolism</button>
+      <button class="ctrl-btn filter-btn all active" @click="setFilter('all')">All</button>
+      <button class="ctrl-btn filter-btn IR cat-ir" @click="setFilter('IR')">Insulin responsiveness and glucose handling</button>
+      <button class="ctrl-btn filter-btn IS cat-is" @click="setFilter('IS')">Insulin secretion</button>
+      <button class="ctrl-btn filter-btn EB cat-eb" @click="setFilter('EB')">Energy balance</button>
+      <button class="ctrl-btn filter-btn LM cat-lm" @click="setFilter('LM')">Lipid metabolism</button>
     </div>
     <div class="ctrl-divider"></div>
     <div class="ctrl-group">
       <span class="ctrl-label">Sort by</span>
-      <button class="ctrl-btn active" onclick="setSort('cat',this)">Category</button>
-      <button class="ctrl-btn" onclick="setSort('sc-desc',this)">Scalability &#8595;</button>
-      <button class="ctrl-btn" onclick="setSort('tr-desc',this)">Translational &#8595;</button>
-      <button class="ctrl-btn" onclick="setSort('sc-asc',this)">Scalability &#8593;</button>
-      <button class="ctrl-btn" onclick="setSort('tr-asc',this)">Translational &#8593;</button>
+      <button class="cat sort-btn ctrl-btn active" @click="setSort('cat')">Category</button>
+      <button class="sc-desc sort-btn ctrl-btn" @click="setSort('sc-desc')">Scalability &#8595;</button>
+      <button class="tr-desc sort-btn ctrl-btn" @click="setSort('tr-desc')">Translational &#8595;</button>
+      <button class="sc-asc sort-btn ctrl-btn" @click="setSort('sc-asc')">Scalability &#8593;</button>
+      <button class="tr-asc sort-btn ctrl-btn" @click="setSort('tr-asc')">Translational &#8593;</button>
     </div>
   </div>
   <div class="chart-card">
@@ -284,15 +284,19 @@ export default Vue.component("interactive-kp", {
           hoverlabel:{bgcolor:"white",bordercolor:"#ccc",font:{size:12,family:FONT},align:"left"},
         },{responsive:true,displayModeBar:true,modeBarButtonsToRemove:["select2d","lasso2d","toggleSpikelines"],displaylogo:false});
       },
-      setFilter(f,btn){
+      setFilter(f){
         this.mFilter=f;
-        document.querySelectorAll(".ctrl-btn[onclick*=setFilter]").forEach(b=>b.classList.remove("active"));
-        btn.classList.add("active"); buildMatrix();
+        document.querySelectorAll(".ctrl-btn.filter-btn").forEach(b=>b.classList.remove("active"));
+        let btn = document.querySelectorAll(`.ctrl-btn.filter-btn.${f}`)[0]
+        btn.classList.add("active");
+        this.buildMatrix();
       },
-      setSort(s,btn){
+      setSort(s){
         this.mSort=s;
-        document.querySelectorAll(".ctrl-btn[onclick*=setSort]").forEach(b=>b.classList.remove("active"));
-        btn.classList.add("active"); buildMatrix();
+        document.querySelectorAll(".ctrl-btn.sort-btn").forEach(b=>b.classList.remove("active"));
+        let btn = document.querySelectorAll(`.ctrl-btn.sort-btn${s}`)[0];
+        btn.classList.add("active");
+        this.buildMatrix();
       },
       buildMatrix(){
         const catIdx = c => CAT_ORDER.findIndex(o=>o.code===c);
@@ -370,7 +374,7 @@ export default Vue.component("interactive-kp", {
         document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
         document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
         document.getElementById("panel-"+tab).classList.add("active");
-        let btn = document.querySelectorAll(`button.${tab}`)[0];
+        let btn = document.querySelectorAll(`button.tab-btn.${tab}`)[0];
         btn.classList.add("active");
         if(!built[tab]){
           if(tab==="matrix") this.buildMatrix();
