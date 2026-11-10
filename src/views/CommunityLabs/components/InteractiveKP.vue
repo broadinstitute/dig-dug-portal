@@ -294,7 +294,7 @@ export default Vue.component("interactive-kp", {
       setSort(s){
         this.mSort=s;
         document.querySelectorAll(".ctrl-btn.sort-btn").forEach(b=>b.classList.remove("active"));
-        let btn = document.querySelectorAll(`.ctrl-btn.sort-btn${s}`)[0];
+        let btn = document.querySelectorAll(`.ctrl-btn.sort-btn.${s}`)[0];
         btn.classList.add("active");
         this.buildMatrix();
       },
