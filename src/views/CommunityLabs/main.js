@@ -15,21 +15,20 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import InteractiveKP from "./components/InteractiveKP.vue";
 
-import assays from "./data/assays.json";
-const ASSAYS = assays;
 
 new Vue({
     store,
     components: {
         PageHeader,
         PageFooter,
-        Alert
+        Alert,
+        InteractiveKP
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
-        console.log(assays.length);
     },
 
     render(createElement, context) {

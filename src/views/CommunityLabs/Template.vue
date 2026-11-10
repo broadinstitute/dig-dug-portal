@@ -1,3 +1,5 @@
 <template>
-    <div> Coming soon</div>
+    <div>
+        <interactive-kp></interactive-kp>
+    </div>
 </template>
