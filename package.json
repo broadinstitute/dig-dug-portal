@@ -63,6 +63,8 @@
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-vue": "9.17.0",
+    "plotly": "^1.0.6",
+    "plotly.js-dist": "^4.3.0",
     "prettier": "2.8.8",
     "regenerator-runtime": "0.13.11",
     "serve": "14.2.6",

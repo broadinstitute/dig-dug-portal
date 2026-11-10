@@ -186,13 +186,13 @@
   .ctrl-btn.cat-lm.active {background:#332288; border-color:#332288; color:white;}
   .ctrl-divider { width: 1px; height: 26px; background: var(--filter-border); margin: 0 4px; }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
 <script>if (new URLSearchParams(location.search).get("embed") === "1") document.body.classList.add("embed");</script>
 <script>
 import Vue from "vue";
 import { BootstrapVue } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import * as plotly from "plotly.js-dist";
 
 Vue.use(BootstrapVue);
 
@@ -227,7 +227,7 @@ export default Vue.component("interactive-kp", {
         };
     },
     created(){
-      window.addEventListener("load",()=>{buildScatter();built.scatter=true;});
+      window.addEventListener("load",()=>{this.buildScatter();built.scatter=true;});
       console.log(assays.length);
     },
     computed: {
@@ -256,7 +256,7 @@ export default Vue.component("interactive-kp", {
           type:"scatter", mode:"markers",
           marker:{color:CAT_COLORS[g.cat],symbol:MODEL_SYMBOLS[g.model]||"circle",
             size:g.model==="Drosophila"?18:14,opacity:0.87,line:{color:"white",width:1.5}},
-          hovertemplate:g.idx.map(i=>hoverText(ASSAYS[i])), showlegend:false,
+          hovertemplate:g.idx.map(i=>this.hoverText(ASSAYS[i])), showlegend:false,
         }));
 
         const Q=QUADRANT_SPLIT, XR=(Q+5.5)/2, XL=(0.5+Q)/2;
@@ -273,7 +273,7 @@ export default Vue.component("interactive-kp", {
           .filter(q=>QUADRANTS[q[0]])
           .map(([k,x,y,ya,c])=>({x,y,yanchor:ya,text:`<b>${QUADRANTS[k]}</b>`,showarrow:false,
             font:{size:9,color:c,family:FONT},bgcolor:"rgba(255,255,255,0.85)",borderpad:3}));
-        Plotly.newPlot("scatter-plot",traces,{
+        plotly.newPlot("scatter-plot",traces,{
           paper_bgcolor:"white",plot_bgcolor:"white",
           margin:{t:16,b:60,l:70,r:20},
           xaxis:{...AXIS,title:{text:"Translational relevance score",font:{size:11.5,family:FONT,color:"#212529"}},
@@ -305,7 +305,7 @@ export default Vue.component("interactive-kp", {
 
         const n=rows.length;
         const yV=rows.map((_,i)=>n-1-i);
-        const hov=rows.map(hoverText);
+        const hov=rows.map(r => this.hoverText(r));
 
         const scTr={x:rows.map(()=>0),y:yV,type:"scatter",mode:"markers+text",
           marker:{color:rows.map(d=>SC_COLORS[d.sc]),size:22,symbol:"circle",line:{color:"white",width:1.5}},
@@ -357,7 +357,7 @@ export default Vue.component("interactive-kp", {
 
         const H=Math.max(500,n*24+80);
         document.getElementById("matrix-plot").style.height=H+"px";
-        Plotly.newPlot("matrix-plot",[scTr,trTr,modelTr,nameTr],{
+        plotly.newPlot("matrix-plot",[scTr,trTr,modelTr,nameTr],{
           paper_bgcolor:"white",plot_bgcolor:"white",
           margin:{t:30,b:20,l:20,r:40},
           xaxis:{visible:false,range:[-0.6,14],fixedrange:true},
