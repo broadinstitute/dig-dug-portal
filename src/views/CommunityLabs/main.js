@@ -16,6 +16,9 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import assays from "./data/assays.json";
+const ASSAYS = assays;
+
 new Vue({
     store,
     components: {
@@ -26,6 +29,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        console.log(assays.length);
     },
 
     render(createElement, context) {
