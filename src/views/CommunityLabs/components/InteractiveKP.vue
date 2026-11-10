@@ -1,3 +1,4 @@
+<!-- Adapted from HTML file sent by Andrena.-->
 <template>
   <div>Coming soon</div>
 </template>
@@ -71,11 +72,17 @@
   .ctrl-btn.cat-lm.active {background:#332288; border-color:#332288; color:white;}
   .ctrl-divider { width: 1px; height: 26px; background: var(--filter-border); margin: 0 4px; }
 </style>
+
 <script>
-// ════════════════════════════════════════════════════════════════
-// DATA — injected from the Excel input by generate_figures.py
-// ════════════════════════════════════════════════════════════════
-// TODO import assays data
+import Vue from "vue";
+import { BootstrapVue } from "bootstrap-vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
+
+Vue.use(BootstrapVue);
+
+import assays from "../data/assays.json";
+const ASSAYS = assays;
 const CAT_COLORS = {"IR": "#117733", "IS": "#CC6677", "EB": "#CC8833", "LM": "#332288"};
 const CAT_ORDER  = [{"code": "IR", "full": "Insulin responsiveness and glucose handling"}, {"code": "IS", "full": "Insulin secretion"}, {"code": "EB", "full": "Energy balance"}, {"code": "LM", "full": "Lipid metabolism"}];
 const SC_TICKS   = {"1": "Low", "3": "Medium", "5": "High"};
@@ -93,165 +100,167 @@ const AXIS = {showline:true,linecolor:"#212529",linewidth:1.2,ticks:"outside",ti
 
 const catName = code => (CAT_ORDER.find(c=>c.code===code)||{}).full || code;
 const ticktext = labels => [1,2,3,4,5].map(t => labels[t] ? `${t}<br><i style='font-size:9px'>${labels[t]}</i>` : String(t));
-
-function hoverText(d){
-  const details = d.details.length>160 ? d.details.slice(0,160)+"…" : d.details;
-  return `<b>${d.assay}</b><br>`+
-    `<span style="color:#888">${catName(d.cat)}</span><br>`+
-    (d.process ? `<b>Process:</b> ${d.process}<br>` : "")+
-    `<b>Model:</b> ${d.model_raw}<br>`+
-    `<b>Scalability:</b> ${d.sc}/5${d.sc_label?" ("+d.sc_label+")":""} &nbsp;&middot;&nbsp; <b>Translational:</b> ${d.tr}/5`+
-    (details ? `<br><span style="font-size:11px">${details}</span>` : "")+
-    `<extra></extra>`;
-}
-
-// ════════════════════════════════════════════════════════════════
-// PANEL A — scatter
-// ════════════════════════════════════════════════════════════════
-function buildScatter() {
-  const groups = {};
-  ASSAYS.forEach((d,i) => {
-    const k=d.cat+"|"+d.model;
-    if (!groups[k]) groups[k]={cat:d.cat,model:d.model,idx:[]};
-    groups[k].idx.push(i);
-  });
-
-  const traces = Object.values(groups).map(g => ({
-    x:g.idx.map(i=>ASSAYS[i].tr+JITTER[i][0]), y:g.idx.map(i=>ASSAYS[i].sc+JITTER[i][1]),
-    type:"scatter", mode:"markers",
-    marker:{color:CAT_COLORS[g.cat],symbol:MODEL_SYMBOLS[g.model]||"circle",
-      size:g.model==="Drosophila"?18:14,opacity:0.87,line:{color:"white",width:1.5}},
-    hovertemplate:g.idx.map(i=>hoverText(ASSAYS[i])), showlegend:false,
-  }));
-
-  const Q=QUADRANT_SPLIT, XR=(Q+5.5)/2, XL=(0.5+Q)/2;
-  const shapes=[
-    {type:"rect",x0:Q,x1:5.5,y0:Q,y1:5.5,fillcolor:"rgba(1,108,89,0.06)",line:{width:0},layer:"below"},
-    {type:"rect",x0:0.5,x1:Q,y0:Q,y1:5.5,fillcolor:"rgba(204,102,119,0.05)",line:{width:0},layer:"below"},
-    {type:"rect",x0:Q,x1:5.5,y0:0.5,y1:Q,fillcolor:"rgba(8,81,156,0.05)",line:{width:0},layer:"below"},
-    {type:"line",x0:Q,x1:Q,y0:0.5,y1:5.5,line:{color:"#BBBBBB",width:1,dash:"dot"}},
-    {type:"line",x0:0.5,x1:5.5,y0:Q,y1:Q,line:{color:"#BBBBBB",width:1,dash:"dot"}},
-  ];
-  // Quadrant names come from the Excel (key = scalability + translational, H/L)
-  const ann=[["HH",XR,5.59,"top","#016C59"],["HL",XL,5.59,"top","#CC6677"],
-             ["LH",XR,0.41,"bottom","#08519C"],["LL",XL,0.41,"bottom","#888"]]
-    .filter(q=>QUADRANTS[q[0]])
-    .map(([k,x,y,ya,c])=>({x,y,yanchor:ya,text:`<b>${QUADRANTS[k]}</b>`,showarrow:false,
-      font:{size:9,color:c,family:FONT},bgcolor:"rgba(255,255,255,0.85)",borderpad:3}));
-  Plotly.newPlot("scatter-plot",traces,{
-    paper_bgcolor:"white",plot_bgcolor:"white",
-    margin:{t:16,b:60,l:70,r:20},
-    xaxis:{...AXIS,title:{text:"Translational relevance score",font:{size:11.5,family:FONT,color:"#212529"}},
-      range:[0.4,5.6],tickvals:[1,2,3,4,5],ticktext:ticktext(TR_TICKS)},
-    yaxis:{...AXIS,title:{text:"Scalability score",font:{size:11.5,family:FONT,color:"#212529"}},
-      range:[0.4,5.6],tickvals:[1,2,3,4,5],ticktext:ticktext(SC_TICKS)},
-    shapes,annotations:ann,hovermode:"closest",
-    hoverlabel:{bgcolor:"white",bordercolor:"#ccc",font:{size:12,family:FONT},align:"left"},
-  },{responsive:true,displayModeBar:true,modeBarButtonsToRemove:["select2d","lasso2d","toggleSpikelines"],displaylogo:false});
-}
-
-// ════════════════════════════════════════════════════════════════
-// PANEL B — reference matrix
-// ════════════════════════════════════════════════════════════════
-let mFilter="all", mSort="cat";
-
-function setFilter(f,btn){
-  mFilter=f;
-  document.querySelectorAll(".ctrl-btn[onclick*=setFilter]").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active"); buildMatrix();
-}
-function setSort(s,btn){
-  mSort=s;
-  document.querySelectorAll(".ctrl-btn[onclick*=setSort]").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active"); buildMatrix();
-}
-
-function buildMatrix(){
-  const catIdx = c => CAT_ORDER.findIndex(o=>o.code===c);
-  let rows = mFilter==="all" ? [...ASSAYS] : ASSAYS.filter(d => d.cat===mFilter);
-
-  if (mSort==="sc-desc") rows.sort((a,b)=>b.sc-a.sc||b.tr-a.tr||catIdx(a.cat)-catIdx(b.cat));
-  else if (mSort==="tr-desc") rows.sort((a,b)=>b.tr-a.tr||b.sc-a.sc||catIdx(a.cat)-catIdx(b.cat));
-  else if (mSort==="sc-asc")  rows.sort((a,b)=>a.sc-b.sc||a.tr-b.tr||catIdx(a.cat)-catIdx(b.cat));
-  else if (mSort==="tr-asc")  rows.sort((a,b)=>a.tr-b.tr||a.sc-b.sc||catIdx(a.cat)-catIdx(b.cat));
-
-  const n=rows.length;
-  const yV=rows.map((_,i)=>n-1-i);
-  const hov=rows.map(hoverText);
-
-  const scTr={x:rows.map(()=>0),y:yV,type:"scatter",mode:"markers+text",
-    marker:{color:rows.map(d=>SC_COLORS[d.sc]),size:22,symbol:"circle",line:{color:"white",width:1.5}},
-    text:rows.map(d=>String(d.sc)),
-    textfont:{size:9,color:rows.map(d=>d.sc>=3?"#fff":"#333"),family:FONT},
-    textposition:"middle center",hovertemplate:hov,showlegend:false};
-
-  const trTr={x:rows.map(()=>1),y:yV,type:"scatter",mode:"markers+text",
-    marker:{color:rows.map(d=>TR_COLORS[d.tr]),size:22,symbol:"circle",line:{color:"white",width:1.5}},
-    text:rows.map(d=>String(d.tr)),
-    textfont:{size:9,color:rows.map(d=>d.tr>=3?"#fff":"#333"),family:FONT},
-    textposition:"middle center",hovertemplate:hov,showlegend:false};
-
-  const modelTr={x:rows.map(()=>1.75),y:yV,type:"scatter",mode:"markers",
-    marker:{color:rows.map(d=>CAT_COLORS[d.cat]),symbol:rows.map(d=>MODEL_SYMBOLS[d.model]||"circle"),
-      size:11,opacity:0.8,line:{color:"white",width:0.8}},
-    hovertemplate:hov,showlegend:false};
-
-  const nameTr={x:rows.map(()=>2.1),y:yV,type:"scatter",mode:"text",
-    text:rows.map(d=>`${d.assay}${d.process?`  <span style="color:#999">· ${d.process}</span>`:""}`),
-    textfont:{size:10.5,color:rows.map(d=>CAT_COLORS[d.cat]),family:FONT},
-    textposition:"middle right",hovertemplate:hov,showlegend:false};
-
-  const shapes=[];
-  const annotations=[
-    {x:0,y:n+0.15,text:"<b>SC</b>",showarrow:false,font:{size:11,color:"#08519C",family:FONT}},
-    {x:1,y:n+0.15,text:"<b>TR</b>",showarrow:false,font:{size:11,color:"#016C59",family:FONT}},
-    {x:0,y:n+0.85,text:"Scalability",showarrow:false,font:{size:9,color:"#555",family:FONT}},
-    {x:1,y:n+0.85,text:"Translational",showarrow:false,font:{size:9,color:"#555",family:FONT}},
-  ];
-
-  // Category bands + names when rows are grouped by category
-  if (mSort==="cat"||mFilter!=="all"){
-    let prev=null,start=0;
-    const bands=[];
-    rows.forEach((d,i)=>{
-      if(d.cat!==prev){if(prev)bands.push({cat:prev,s:start,e:i-1});start=i;prev=d.cat;}
-    });
-    if(prev)bands.push({cat:prev,s:start,e:rows.length-1});
-    bands.forEach(b=>{
-      shapes.push({type:"rect",xref:"paper",x0:0,x1:1,
-        y0:n-1-b.e-0.5,y1:n-1-b.s+0.5,
-        fillcolor:CAT_COLORS[b.cat]+"14",line:{width:0},layer:"below"});
-      if (mSort==="cat") annotations.push({xref:"paper",x:0.99,xanchor:"right",y:n-1-b.s,
-        text:`<b>${catName(b.cat).toUpperCase()}</b>`,showarrow:false,
-        font:{size:9,color:CAT_COLORS[b.cat],family:FONT}});
-    });
-  }
-
-  const H=Math.max(500,n*24+80);
-  document.getElementById("matrix-plot").style.height=H+"px";
-  Plotly.newPlot("matrix-plot",[scTr,trTr,modelTr,nameTr],{
-    paper_bgcolor:"white",plot_bgcolor:"white",
-    margin:{t:30,b:20,l:20,r:40},
-    xaxis:{visible:false,range:[-0.6,14],fixedrange:true},
-    yaxis:{visible:false,range:[-0.7,n+1.3],fixedrange:true},
-    shapes,annotations,hovermode:"closest",height:H,
-    hoverlabel:{bgcolor:"white",bordercolor:"#ccc",font:{size:11,family:FONT},align:"left"},
-  },{responsive:true,displayModeBar:false});
-}
-
-// ════════════════════════════════════════════════════════════════
-// TABS
-// ════════════════════════════════════════════════════════════════
 const built={};
-function switchTab(tab,btn){
-  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-  document.getElementById("panel-"+tab).classList.add("active");
-  btn.classList.add("active");
-  if(!built[tab]){
-    if(tab==="matrix")buildMatrix();
-    built[tab]=true;
-  }
-}
-window.addEventListener("load",()=>{buildScatter();built.scatter=true;});
+
+export default Vue.component("interactive-kp", {
+    props: [],
+
+    data() {
+        return {
+          mFilter: "all",
+          mSort: "cat"
+        };
+    },
+    created(){
+      window.addEventListener("load",()=>{buildScatter();built.scatter=true;});
+      console.log(assays.length);
+    },
+    computed: {
+    },
+    methods: {
+      hoverText(d){
+        const details = d.details.length>160 ? d.details.slice(0,160)+"…" : d.details;
+        return `<b>${d.assay}</b><br>`+
+          `<span style="color:#888">${catName(d.cat)}</span><br>`+
+          (d.process ? `<b>Process:</b> ${d.process}<br>` : "")+
+          `<b>Model:</b> ${d.model_raw}<br>`+
+          `<b>Scalability:</b> ${d.sc}/5${d.sc_label?" ("+d.sc_label+")":""} &nbsp;&middot;&nbsp; <b>Translational:</b> ${d.tr}/5`+
+          (details ? `<br><span style="font-size:11px">${details}</span>` : "")+
+          `<extra></extra>`;
+      },
+      buildScatter() {
+        const groups = {};
+        ASSAYS.forEach((d,i) => {
+          const k=d.cat+"|"+d.model;
+          if (!groups[k]) groups[k]={cat:d.cat,model:d.model,idx:[]};
+          groups[k].idx.push(i);
+        });
+
+        const traces = Object.values(groups).map(g => ({
+          x:g.idx.map(i=>ASSAYS[i].tr+JITTER[i][0]), y:g.idx.map(i=>ASSAYS[i].sc+JITTER[i][1]),
+          type:"scatter", mode:"markers",
+          marker:{color:CAT_COLORS[g.cat],symbol:MODEL_SYMBOLS[g.model]||"circle",
+            size:g.model==="Drosophila"?18:14,opacity:0.87,line:{color:"white",width:1.5}},
+          hovertemplate:g.idx.map(i=>hoverText(ASSAYS[i])), showlegend:false,
+        }));
+
+        const Q=QUADRANT_SPLIT, XR=(Q+5.5)/2, XL=(0.5+Q)/2;
+        const shapes=[
+          {type:"rect",x0:Q,x1:5.5,y0:Q,y1:5.5,fillcolor:"rgba(1,108,89,0.06)",line:{width:0},layer:"below"},
+          {type:"rect",x0:0.5,x1:Q,y0:Q,y1:5.5,fillcolor:"rgba(204,102,119,0.05)",line:{width:0},layer:"below"},
+          {type:"rect",x0:Q,x1:5.5,y0:0.5,y1:Q,fillcolor:"rgba(8,81,156,0.05)",line:{width:0},layer:"below"},
+          {type:"line",x0:Q,x1:Q,y0:0.5,y1:5.5,line:{color:"#BBBBBB",width:1,dash:"dot"}},
+          {type:"line",x0:0.5,x1:5.5,y0:Q,y1:Q,line:{color:"#BBBBBB",width:1,dash:"dot"}},
+        ];
+        // Quadrant names come from the Excel (key = scalability + translational, H/L)
+        const ann=[["HH",XR,5.59,"top","#016C59"],["HL",XL,5.59,"top","#CC6677"],
+                  ["LH",XR,0.41,"bottom","#08519C"],["LL",XL,0.41,"bottom","#888"]]
+          .filter(q=>QUADRANTS[q[0]])
+          .map(([k,x,y,ya,c])=>({x,y,yanchor:ya,text:`<b>${QUADRANTS[k]}</b>`,showarrow:false,
+            font:{size:9,color:c,family:FONT},bgcolor:"rgba(255,255,255,0.85)",borderpad:3}));
+        Plotly.newPlot("scatter-plot",traces,{
+          paper_bgcolor:"white",plot_bgcolor:"white",
+          margin:{t:16,b:60,l:70,r:20},
+          xaxis:{...AXIS,title:{text:"Translational relevance score",font:{size:11.5,family:FONT,color:"#212529"}},
+            range:[0.4,5.6],tickvals:[1,2,3,4,5],ticktext:ticktext(TR_TICKS)},
+          yaxis:{...AXIS,title:{text:"Scalability score",font:{size:11.5,family:FONT,color:"#212529"}},
+            range:[0.4,5.6],tickvals:[1,2,3,4,5],ticktext:ticktext(SC_TICKS)},
+          shapes,annotations:ann,hovermode:"closest",
+          hoverlabel:{bgcolor:"white",bordercolor:"#ccc",font:{size:12,family:FONT},align:"left"},
+        },{responsive:true,displayModeBar:true,modeBarButtonsToRemove:["select2d","lasso2d","toggleSpikelines"],displaylogo:false});
+      },
+      setFilter(f,btn){
+        this.mFilter=f;
+        document.querySelectorAll(".ctrl-btn[onclick*=setFilter]").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active"); buildMatrix();
+      },
+      setSort(s,btn){
+        this.mSort=s;
+        document.querySelectorAll(".ctrl-btn[onclick*=setSort]").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active"); buildMatrix();
+      },
+      buildMatrix(){
+        const catIdx = c => CAT_ORDER.findIndex(o=>o.code===c);
+        let rows = this.mFilter==="all" ? [...ASSAYS] : ASSAYS.filter(d => d.cat===this.mFilter);
+
+        if (this.mSort==="sc-desc") rows.sort((a,b)=>b.sc-a.sc||b.tr-a.tr||catIdx(a.cat)-catIdx(b.cat));
+        else if (this.mSort==="tr-desc") rows.sort((a,b)=>b.tr-a.tr||b.sc-a.sc||catIdx(a.cat)-catIdx(b.cat));
+        else if (this.mSort==="sc-asc")  rows.sort((a,b)=>a.sc-b.sc||a.tr-b.tr||catIdx(a.cat)-catIdx(b.cat));
+        else if (this.mSort==="tr-asc")  rows.sort((a,b)=>a.tr-b.tr||a.sc-b.sc||catIdx(a.cat)-catIdx(b.cat));
+
+        const n=rows.length;
+        const yV=rows.map((_,i)=>n-1-i);
+        const hov=rows.map(hoverText);
+
+        const scTr={x:rows.map(()=>0),y:yV,type:"scatter",mode:"markers+text",
+          marker:{color:rows.map(d=>SC_COLORS[d.sc]),size:22,symbol:"circle",line:{color:"white",width:1.5}},
+          text:rows.map(d=>String(d.sc)),
+          textfont:{size:9,color:rows.map(d=>d.sc>=3?"#fff":"#333"),family:FONT},
+          textposition:"middle center",hovertemplate:hov,showlegend:false};
+
+        const trTr={x:rows.map(()=>1),y:yV,type:"scatter",mode:"markers+text",
+          marker:{color:rows.map(d=>TR_COLORS[d.tr]),size:22,symbol:"circle",line:{color:"white",width:1.5}},
+          text:rows.map(d=>String(d.tr)),
+          textfont:{size:9,color:rows.map(d=>d.tr>=3?"#fff":"#333"),family:FONT},
+          textposition:"middle center",hovertemplate:hov,showlegend:false};
+
+        const modelTr={x:rows.map(()=>1.75),y:yV,type:"scatter",mode:"markers",
+          marker:{color:rows.map(d=>CAT_COLORS[d.cat]),symbol:rows.map(d=>MODEL_SYMBOLS[d.model]||"circle"),
+            size:11,opacity:0.8,line:{color:"white",width:0.8}},
+          hovertemplate:hov,showlegend:false};
+
+        const nameTr={x:rows.map(()=>2.1),y:yV,type:"scatter",mode:"text",
+          text:rows.map(d=>`${d.assay}${d.process?`  <span style="color:#999">· ${d.process}</span>`:""}`),
+          textfont:{size:10.5,color:rows.map(d=>CAT_COLORS[d.cat]),family:FONT},
+          textposition:"middle right",hovertemplate:hov,showlegend:false};
+
+        const shapes=[];
+        const annotations=[
+          {x:0,y:n+0.15,text:"<b>SC</b>",showarrow:false,font:{size:11,color:"#08519C",family:FONT}},
+          {x:1,y:n+0.15,text:"<b>TR</b>",showarrow:false,font:{size:11,color:"#016C59",family:FONT}},
+          {x:0,y:n+0.85,text:"Scalability",showarrow:false,font:{size:9,color:"#555",family:FONT}},
+          {x:1,y:n+0.85,text:"Translational",showarrow:false,font:{size:9,color:"#555",family:FONT}},
+        ];
+
+        // Category bands + names when rows are grouped by category
+        if (this.mSort==="cat"||this.mFilter!=="all"){
+          let prev=null,start=0;
+          const bands=[];
+          rows.forEach((d,i)=>{
+            if(d.cat!==prev){if(prev)bands.push({cat:prev,s:start,e:i-1});start=i;prev=d.cat;}
+          });
+          if(prev)bands.push({cat:prev,s:start,e:rows.length-1});
+          bands.forEach(b=>{
+            shapes.push({type:"rect",xref:"paper",x0:0,x1:1,
+              y0:n-1-b.e-0.5,y1:n-1-b.s+0.5,
+              fillcolor:CAT_COLORS[b.cat]+"14",line:{width:0},layer:"below"});
+            if (this.mSort==="cat") annotations.push({xref:"paper",x:0.99,xanchor:"right",y:n-1-b.s,
+              text:`<b>${catName(b.cat).toUpperCase()}</b>`,showarrow:false,
+              font:{size:9,color:CAT_COLORS[b.cat],family:FONT}});
+          });
+        }
+
+        const H=Math.max(500,n*24+80);
+        document.getElementById("matrix-plot").style.height=H+"px";
+        Plotly.newPlot("matrix-plot",[scTr,trTr,modelTr,nameTr],{
+          paper_bgcolor:"white",plot_bgcolor:"white",
+          margin:{t:30,b:20,l:20,r:40},
+          xaxis:{visible:false,range:[-0.6,14],fixedrange:true},
+          yaxis:{visible:false,range:[-0.7,n+1.3],fixedrange:true},
+          shapes,annotations,hovermode:"closest",height:H,
+          hoverlabel:{bgcolor:"white",bordercolor:"#ccc",font:{size:11,family:FONT},align:"left"},
+        },{responsive:true,displayModeBar:false});
+      },
+      switchTab(tab,btn){
+        document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+        document.getElementById("panel-"+tab).classList.add("active");
+        btn.classList.add("active");
+        if(!built[tab]){
+          if(tab==="matrix")buildMatrix();
+          built[tab]=true;
+        }
+      }
+    },
+});
 </script>
