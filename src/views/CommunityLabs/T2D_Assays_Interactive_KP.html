@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T2D Physiological Assays</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+
+</head>
+<body>
+<header class="kp-header">
+  <span class="brand"><b>T2D</b> Physiological Assays</span>
+  <span class="sub">Scalability and translational relevance of assays for type 2 diabetes research</span>
+</header>
+
+<div class="kp-body">
+  <div class="card"><div class="card-body intro">
+    <svg width="64" height="64" viewBox="0 0 72 72" aria-hidden="true">
+      <polygon points="36,3 65,19.5 65,52.5 36,69 7,52.5 7,19.5" fill="#fff" stroke="#c6defa" stroke-width="3"/>
+      <line x1="20" y1="54" x2="54" y2="54" stroke="#212529" stroke-width="2"/>
+      <line x1="20" y1="54" x2="20" y2="18" stroke="#212529" stroke-width="2"/>
+      <circle cx="30" cy="42" r="5" fill="#117733"/><circle cx="44" cy="26" r="5" fill="#332288"/>
+      <circle cx="47" cy="40" r="5" fill="#CC8833"/><circle cx="34" cy="28" r="5" fill="#CC6677"/>
+    </svg>
+    <div>
+      <p>81 physiological assays used in type 2 diabetes research, scored for <b>scalability</b>
+      and <b>translational relevance</b>, across 4 physiological categories and 5 model systems.</p>
+      <div class="cats"><div class="legend-item"><div class="swatch" style="background:#117733"></div>Insulin responsiveness and glucose handling</div><div class="legend-item"><div class="swatch" style="background:#CC6677"></div>Insulin secretion</div><div class="legend-item"><div class="swatch" style="background:#CC8833"></div>Energy balance</div><div class="legend-item"><div class="swatch" style="background:#332288"></div>Lipid metabolism</div></div>
+    </div>
+  </div></div>
+
+  <div class="card"><div class="card-body">
+    <h1 class="card-title">Physiological Assays for T2D Research</h1>
+    <p class="card-lead">Explore the assays in the scatter plot (panel A) or browse, filter and sort them in the reference matrix (panel B).</p>
+    <div class="tabs-bar">
+      <button class="tab-btn active" onclick="switchTab('scatter',this)">A &thinsp; Translational Relevance vs. Scalability</button>
+      <button class="tab-btn" onclick="switchTab('matrix',this)">B &thinsp; Assay Reference Matrix</button>
+    </div>
+
+<!-- PANEL A -->
+<div class="panel active" id="panel-scatter">
+  <div class="panel-sub">
+    Each point is one assay. <strong>Hover for full details.</strong>
+    X-axis: translational relevance score (5 = highest relevance to human T2D; 1 = lowest relevance to human T2D). Y-axis: scalability score (5 = high-throughput; 1 = technically demanding).
+    Colour = category. Shape = model system.
+  </div>
+  <div class="chart-card">
+    <div id="scatter-plot" style="height:640px"></div>
+    <div class="legend-strip">
+      <div class="legend-block">
+        <div class="legend-title">Category</div>
+        <div class="legend-items"><div class="legend-item"><div class="swatch" style="background:#117733"></div>Insulin responsiveness and glucose handling</div><div class="legend-item"><div class="swatch" style="background:#CC6677"></div>Insulin secretion</div><div class="legend-item"><div class="swatch" style="background:#CC8833"></div>Energy balance</div><div class="legend-item"><div class="swatch" style="background:#332288"></div>Lipid metabolism</div></div>
+      </div>
+      <div class="legend-block">
+        <div class="legend-title">Model system</div>
+        <div class="legend-items">
+          <div class="legend-item">&#9679; In vitro</div>
+          <div class="legend-item">&#9650; Mice</div>
+          <div class="legend-item">&#9670; Zebrafish</div>
+          <div class="legend-item">&#9733; Drosophila</div>
+          <div class="legend-item">&#9632; Multi-model</div>
+        </div>
+      </div>
+      <div class="legend-block">
+        <div class="legend-title">Scalability</div>
+        <div class="score-scale">
+          <div class="score-pip" style="background:#08519C">5</div>
+          <div class="score-pip" style="background:#3182BD">4</div>
+          <div class="score-pip" style="background:#6BAED6;color:#333">3</div>
+          <div class="score-pip" style="background:#BDD7E7;color:#333">2</div>
+          <div class="score-pip" style="background:#EFF3FF;color:#333;border:1px solid #ccc">1</div>
+          <span style="font-size:13px;color:var(--muted);margin-left:4px">High &#8594; Low</span>
+        </div>
+      </div>
+      <div class="legend-block">
+        <div class="legend-title">Translational relevance</div>
+        <div class="score-scale">
+          <div class="score-pip" style="background:#016C59">5</div>
+          <div class="score-pip" style="background:#1C9099">4</div>
+          <div class="score-pip" style="background:#67A9CF;color:#333">3</div>
+          <div class="score-pip" style="background:#BDC9E1;color:#333">2</div>
+          <div class="score-pip" style="background:#F1EEF6;color:#333;border:1px solid #ccc">1</div>
+          <span style="font-size:13px;color:var(--muted);margin-left:4px">High &#8594; Low</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL B -->
+<div class="panel" id="panel-matrix">
+  <div class="panel-sub">
+    Every assay with Scalability (SC, blue) and Translational Relevance (TR, teal) scores shown as colour-coded dots,
+    followed by the model system, assay name and the process it measures. <strong>Hover for full details.</strong>
+    Filter by category and sort using the controls below.
+  </div>
+  <div class="control-bar">
+    <div class="ctrl-group">
+      <span class="ctrl-label">Category</span>
+      <button class="ctrl-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="ctrl-btn cat-ir" onclick="setFilter('IR',this)">Insulin responsiveness and glucose handling</button>
+      <button class="ctrl-btn cat-is" onclick="setFilter('IS',this)">Insulin secretion</button>
+      <button class="ctrl-btn cat-eb" onclick="setFilter('EB',this)">Energy balance</button>
+      <button class="ctrl-btn cat-lm" onclick="setFilter('LM',this)">Lipid metabolism</button>
+    </div>
+    <div class="ctrl-divider"></div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Sort by</span>
+      <button class="ctrl-btn active" onclick="setSort('cat',this)">Category</button>
+      <button class="ctrl-btn" onclick="setSort('sc-desc',this)">Scalability &#8595;</button>
+      <button class="ctrl-btn" onclick="setSort('tr-desc',this)">Translational &#8595;</button>
+      <button class="ctrl-btn" onclick="setSort('sc-asc',this)">Scalability &#8593;</button>
+      <button class="ctrl-btn" onclick="setSort('tr-asc',this)">Translational &#8593;</button>
+    </div>
+  </div>
+  <div class="chart-card">
+    <div id="matrix-plot" style="min-height:400px"></div>
+  </div>
+</div>
+  </div></div>
+</div>
+
+<footer class="kp-footer">Data: Physiological assays_EM.xlsx &nbsp;|&nbsp; Scores: 1 = lowest, 5 = highest</footer>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// DATA — injected from the Excel input by generate_figures.py
+// ════════════════════════════════════════════════════════════════
+const ASSAYS = [{"cat": "IR", "sc": 5, "sc_label": "High", "tr": 5, "process": "Insulin-stimulated glucose uptake", "assay": "Fluorescent Glucose Analogs (e.g., 2-NBDG)", "details": "Measures glucose uptake by cells using fluorescent glucose analogs like 2-NBDG.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 5, "process": "Insulin-stimulated glucose uptake", "assay": "Glucose Uptake Colorimetric Assay", "details": "glucose (2-Deoxyglucose) uptake is indirectly measured using a colorimetric reaction", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 5, "process": "Insulin-stimulated glucose uptake", "assay": "Glucose-Glo™", "details": "homogeneous bioluminescent method for measuring glucose uptake in mammalian cells based on the detection of 2-deoxyglucose-6-phosphate (2DG6P)", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 5, "process": "Basal glucose", "assay": "Glucose-Glo™", "details": "7 days-old unfed zebrafish larvae homogenates", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 4, "process": "Insulin content", "assay": "Fluorescence Polarization", "details": "Measures insulin concentration based on changes in fluorescence polarization upon binding to an antibody.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 4, "process": "Insulin content", "assay": "Electrochemiluminescence Immunoassay (ECLIA)", "details": "Measures insulin levels using electrochemiluminescence detection combined with specific antibodies.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 3, "process": "Glucose tolerance test", "assay": "Glucose-Glo™", "details": "7 days-old zebrafish larvae exposed to 1h of 5% glucose water and glucose meassured in homogenated samples from different timepoints", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "IR", "sc": 5, "sc_label": "high", "tr": 4, "process": "Glycogen content", "assay": "HPLC (High-Performance Liquid Chromatography)", "details": "Measures glycogen directly by separating and quantifying glucose units.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 4, "process": "Insulin content", "assay": "HPLC (High-Performance Liquid Chromatography)", "details": "Separates and quantifies insulin from other proteins or peptides, able to detect different insulin isoforms", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 4, "process": "Glycogen content", "assay": "Glycogen Amyloglucosidase Assay kit", "details": "Using specially prepared tissue homogenates or serum or cultured cells, this assay hydrolyzes glycogen via enzyme amyloglucosidase to form D-Glucose. D-Glucose is then oxdized by glucose oxidase to form hydrogen peroxidase which reacts with 10-acetyl-3,7-dihydrophenoazine (ADHP) to produce fluorophore resorufin which can be measured via spectrophotometer at a wavelength of 585-595 nm or at an absorbance of 570 nm.", "model": "Multi", "model_raw": "Mice and In vitro"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 2, "process": "Glucose/trehalose levels (circulating or whole-body)", "assay": "Colorimetric glucose/trehalase assay", "details": "Whole-animal or hemolymph homogenates incubated with trehalase to convert trehalose to glucose, then quantified spectrophotometrically.", "model": "Drosophila", "model_raw": "Drosophila larvae & adults"}, {"cat": "IR", "sc": 5, "sc_label": "High", "tr": 3, "process": "Insulin signaling", "assay": "pAkt ELISA with AktHF transgenic system", "details": "Transgenic flies express epitope-tagged Akt (AktHF) in specific tissues. Tissue-specific phospho-Akt quantified by ELISA in single flies.", "model": "Drosophila", "model_raw": "Drosophila adults"}, {"cat": "IR", "sc": 4, "sc_label": "Medium/high", "tr": 3, "process": "Glucose uptake", "assay": "Fluorescent imaging of glucose analogues (2-NBDG)", "details": "Live larvae incubated with 2-NBDG. Uptake measured by fluorescence imaging in liver or eye/lens.", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "IR", "sc": 3, "sc_label": "Medium", "tr": 5, "process": "Glucose tolerance test", "assay": "OGTT / IPGTT", "details": "After a 6-hr or overnight fast, mice are given an IP og 2 g/kg of glucose. BG is collected at time 0 and 15-min post glucose administration for insulin measurements. BG is measured every 15-min for 2-hr via glucometer", "model": "Mice", "model_raw": "Mice"}, {"cat": "IR", "sc": 3, "sc_label": "Medium", "tr": 5, "process": "Insulin tolerance test", "assay": "Insulin", "details": "After administration of 0.8U/kg insulin via IP, BG is measured every 15-min for 2-hr via glucometer", "model": "Mice", "model_raw": "Mice"}, {"cat": "IR", "sc": 3, "sc_label": "Medium", "tr": 5, "process": "Insulin content", "assay": "ELISA", "details": "Measures insulin levels in response to glucose or other stimuli. Serum isolated from mice during GTT/ITT can be analyzed using this assay. Whole body pooled and single zebrafish larvae can be used. Hemolyph from drosophila can be analyzed for circulating DILP2", "model": "Multi", "model_raw": "Mice, Zebrafish, Drosophila and In vitro"}, {"cat": "IR", "sc": 3, "sc_label": "Medium", "tr": 4, "process": "Insulin content", "assay": "Radioimmunoassay (RIA)", "details": "measure insulin levels in response to glucose or other stimuli", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 3, "sc_label": "Medium", "tr": 4, "process": "Insulin content", "assay": "Mass Spectrometry", "details": "Quantifies insulin with high precision and sensitivity.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 3, "sc_label": "Medium", "tr": 2, "process": "Glucose tolerance test", "assay": "OGTT and hemolymph glucose measurements", "details": "Adult flies fasted briefly then exposed to glucose/sucrose; hemolymph extracted at multiple time points (pooled flies) and gluocose measured spectrophotometrically.", "model": "Drosophila", "model_raw": "Drosophila adults"}, {"cat": "IR", "sc": 2, "sc_label": "Low/Medium", "tr": 5, "process": "Insulin-stimulated glucose uptake", "assay": "3H-Glucose Uptake", "details": "Measures glucose uptake by cells using radiolabeled ³H-glucose.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IR", "sc": 1, "sc_label": "Low", "tr": 5, "process": "Glucose tracing", "assay": "Stable isotope tracing", "details": "Labeled glucose given by gavage, injection, or infusion (mice) or tank water/injection (zebrafish); ¹³C in serum and tissue metabolites measured by LC-MS or GC-MS to assess glucose utilization and flux.", "model": "Multi", "model_raw": "Mice and Zebrafish larvae"}, {"cat": "IR", "sc": 1, "sc_label": "Low", "tr": 4, "process": "Insulin tolerance test", "assay": "Insuiln injections", "details": "Insulin injections in zebrafish adults and glucose meassured in tail blood drops", "model": "Zebrafish", "model_raw": "Zebrafish adults"}, {"cat": "IR", "sc": 1, "sc_label": "Low", "tr": 5, "process": "insulin sensitiviy", "assay": "hyperinsulinemic-euglycemic clamps", "details": "Measures whole body insulin action, and the ability of insulin to stimulate glucose uptake into specific peripheral tissues, whiles also assessing the suppression of glucose production. In this assay, Insulin concentrations are acutely raised and then subsequently maintained by a continuous infusion of insulin. Plasma glucose levels are held contant at a basal level through infusion of glucose (euglycemia). Once steady-state is reached, the glucose infusion rate will equal glucose uptake by all the peripheral tissues, and be analyzed as a measure of how sensitive beta cells in a specific system are to insulin action.", "model": "Mice", "model_raw": "Mice"}, {"cat": "IS", "sc": 5, "sc_label": "High", "tr": 3, "process": "Insulin promoter activity", "assay": "In vivo Luminiscence assay", "details": "Zebrafish transgenic line Tg(ins:Nluc)", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "IS", "sc": 4, "sc_label": "Medium/high", "tr": 5, "process": "Insulin secretion", "assay": "Glucose-Stimulated Insulin Secretion (GSIS)", "details": "assay insulin secretion in response to glucose stimulaiton (allows single cell resolution)", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IS", "sc": 4, "sc_label": "Medium/high", "tr": 3, "process": "Insulin promoter activity", "assay": "in vivo fluorescent imaging", "details": "Zebrafish transgenic line Tg(-1.2insH2b:mCherry), fluorescence intensity as a proxy for expression", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "IS", "sc": 4, "sc_label": "Medium/high", "tr": 3, "process": "Beta-cell hypertrophy and hyperplasia", "assay": "in vivo fluorescent imaging", "details": "Zebrafish transgenic line Tg(-1.2insH2b:mCherry).Cell number and nuclear volume can be quantified", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "IS", "sc": 4, "sc_label": "Medium/high", "tr": 2, "process": "Insulin promoter activity", "assay": "in vivo fluorescent imaging", "details": "Drosophila transgenic line (DILP2-GFP / ins:mCherry) allows quantification of IPC number, volume, and DILP expression from whole-mount larval brains.", "model": "Drosophila", "model_raw": "Drosophila (larvae & adults)"}, {"cat": "IS", "sc": 3, "sc_label": "Medium", "tr": 5, "process": "Insulin secretion", "assay": "Insulin Secretion Test (Static Incubation)", "details": "Measures insulin secretion from isolated pancreatic islets or beta-cells under controlled conditions.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IS", "sc": 3, "sc_label": "Medium", "tr": 3, "process": "Beta-cell excitability", "assay": "In vivo calcium imaging in beta cells", "details": "Zebrafish lineTg(ins:GCaMP6s; cryaa:mCherry)", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "IS", "sc": 3, "sc_label": "Medium", "tr": 2, "process": "Beta-cell excitability", "assay": "In vivo calcium imaging in IPC", "details": "Transgenic flies expressing GCaMP under IPC promoter allow real-time Ca²⁺ imaging ex vivo or in intact larvae by confocal microscopy.", "model": "Drosophila", "model_raw": "Drosophila larvae"}, {"cat": "IS", "sc": 1, "sc_label": "Low", "tr": 5, "process": "Beta-cell excitability", "assay": "Patch clamping", "details": "isolated cells", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IS", "sc": 1, "sc_label": "Low", "tr": 4, "process": "Insulin secretion", "assay": "Total internal reflection fluorescence (TIRF) microscopy", "details": "assay insulin secretion (allows in single cells)", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "IS", "sc": 1, "sc_label": "Low", "tr": 5, "process": "Insulin secretion", "assay": "Hyperglycemic clamp", "details": "Plasma glucose concentrations are rasied acutely above basal levels, through continuous infusion of glucose. The subsequent hyperglycemic plateau is then maintained through adjustment of glucose being infused, which changes based on the rate of insulin being secreted and glucose being metabolized. The resulting glucose infusion rate acts as an index of insulin secretion.", "model": "Mice", "model_raw": "Mice"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 4, "process": "mitochondrial function", "assay": "SeaHorse", "details": "Assess mitochondrial function by measuring oxygen consumption rate (OCR) in response to modulators of the electron transport chain", "model": "Multi", "model_raw": "In vitro and Zebrafish larvae"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 4, "process": "mitochondrial function", "assay": "ATP production (Luminescent ATP Assay)", "details": "Quantifies ATP levels in cells as a readout of cellular energy production.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 5, "process": "AMPK activation (Phosphorylation)", "assay": "ELISA", "details": "Measures the activation of AMP-activated protein kinase (AMPK) using specific antibodies", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 5, "process": "AMPK activation (Phosphorylation)", "assay": "Flow Cytometry", "details": "Measures AMPK phosphorylation in individual cells using phospho-specific antibodies and fluorescence-based detection.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 4, "process": "Lactate Production Measurement", "assay": "Lactate Assay Kits", "details": "Assesses the amount of lactate produced by cells, which is an indicator of glycolytic activity and anaerobic metabolism.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 4, "process": "Lactate Production Measurement", "assay": "Lactate Dehydrogenase (LDH) Assay", "details": "Measures LDH activity, which is linked to lactate production.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 5, "process": "Lactate Production Measurement", "assay": "HPLC (High-Performance Liquid Chromatography)", "details": "Separates and quantifies lactate from other metabolites.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 4, "process": "Glycolytic Flux Assay", "assay": "SeaHorse", "details": "Assesses glycolytic function by measuring changes in ECAR as an indirect readout of glycolytic activity.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 5, "process": "Glycolytic Flux Assay", "assay": "Labeled Glucose Tracing", "details": "Uses stable isotope-labeled glucose to track glycolytic flux and its conversion into various metabolites.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 5, "sc_label": "High", "tr": 3, "process": "Behavioral profiling", "assay": "Locomotor activity", "details": "Automated rest/wake behavioral assay to monitor the activity of larvae (4dpf) exposed to small molecules at 10–30 µM for three days. Up to 96-well plate assays with one larva per well", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "EB", "sc": 4, "sc_label": "Medium/high", "tr": 3, "process": "mitochondrial function", "assay": "Oxygen consumption (MitoXpress)", "details": "Measures oxygen consumption in vivo and in real time in pools of seven 5 dpf zebrafish larvae, using a fluorescent probe (MitoXpress Xtra) whose signal is quenched by oxygen in a 96-well plate", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "EB", "sc": 4, "sc_label": "Medium/high", "tr": 4, "process": "mitochondrial function", "assay": "Mitochondrial membrane potential", "details": "Dyes like TMRM (Tetramethylrhodamine methyl ester) or TMRE (Tetramethylrhodamine ethyl ester) accumulate in healthy, polarized mitochondria and fluoresce, allowing quantification of mitochondrial membrane potential", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 4, "sc_label": "Medium/high", "tr": 3, "process": "mitochondrial function", "assay": "Calcium imaging", "details": "Dyes like Rhod-2 specifically measure calcium levels within mitochondria.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 3, "sc_label": "Medium", "tr": 3, "process": "Food Intake (solid)", "assay": "Fluorescent imaging", "details": "Fluorescently labeled zebrafish food is administered and quantified in the intestine of transparent larvae", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "EB", "sc": 2, "sc_label": "Low/Medium", "tr": 4, "process": "AMPK activation (Phosphorylation)", "assay": "Immunofluorescence or Immunohistochemistry", "details": "Visualizes AMPK phosphorylation in cultured cells using fluorescently labeled antibodies.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 2, "sc_label": "Low/Medium", "tr": 4, "process": "AMPK activation (Phosphorylation)", "assay": "Western Blotting", "details": "Detects and quantifies phosphorylated AMPK in cell lysates.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "EB", "sc": 2, "sc_label": "Low/Medium", "tr": 4, "process": "Body Composition", "assay": "EchoMRI", "details": "A quantitative nuclear magnetic resonance system that provides measurements of whole body compsition including total fat mass, lean mass, and total body water in mice 10-130 g and rats up to 500 g.", "model": "Mice", "model_raw": "Mice"}, {"cat": "EB", "sc": 2, "sc_label": "Low/Medium", "tr": 3, "process": "Excercise induced growth", "assay": "Oxigen consumption assays", "details": "Swimming at optimal speed fro 6h/day, 5 days/week for 4 weeks", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "EB", "sc": 2, "sc_label": "Low/Medium", "tr": 2, "process": "Food Intake (liquid)", "assay": "CAFÉ Assay (Capillary Feeder)", "details": "Flies consume liquid food from graduated glass microcapillaries; meniscus descent directly measured over minutes to days.", "model": "Drosophila", "model_raw": "Drosophila (adults)"}, {"cat": "EB", "sc": 2, "sc_label": "Low/Medium", "tr": 2, "process": "Food Intake (solid)", "assay": "DIETS Assay", "details": "Gravimetric assay measuring consumption of solid (including high-fat) diets by small groups of flies; eliminates dye labeling artifacts.", "model": "Drosophila", "model_raw": "Drosophila (adults)"}, {"cat": "EB", "sc": 1, "sc_label": "Low", "tr": 2, "process": "Physical activity", "assay": "DAM Locomotor Activity Monitor", "details": "Trikinetics DAM system uses infrared beam breaks to continuously record locomotion of individual flies over days.", "model": "Drosophila", "model_raw": "Drosophila (adults)"}, {"cat": "EB", "sc": 1, "sc_label": "Low", "tr": 5, "process": "Whole body activity assessment", "assay": "Indirect calorimetry", "details": "Respiratory exchange ratio (RER) is calculated by the measurement of oxygen consumption (VO2) and carbon dioxide production (VCO2) to assess energy expenditure and energy fuel utilization. Food and water intake can also be monitored.", "model": "Mice", "model_raw": "Mice"}, {"cat": "LM", "sc": 5, "sc_label": "High", "tr": 4, "process": "Cell morphology and cardiometabolic cellular phenotypes", "assay": "LipocyteProfiler", "details": "High-dimensional imaging based quantitative representation of morphological and cellular phenotypes in cardiometabolic cell types", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 5, "sc_label": "High", "tr": 5, "process": "Lipolysis", "assay": "Glycerol Release (catecholamine-induced and insulin repression)", "details": "Measures the glycerol released into the culture medium using a colorimetric or fluorometric assay after stimulating cells with catecholamines (like isoproterenol) or inhibiting with insulin", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 5, "sc_label": "High", "tr": 5, "process": "Lipolysis", "assay": "Free Fatty Acid (FFA) Release", "details": "FFAs released into the culture medium are quantified using a colorimetric or fluorometric assay", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 5, "sc_label": "High", "tr": 4, "process": "Lipolysis", "assay": "Cholesterol quantification", "details": "Cholesterol is quantified using colorimetric or fluorometric cholesterol assay kits on lysed cells. Filipin staining can also be used to visualize cholesterol distribution in cells.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 5, "sc_label": "High", "tr": 5, "process": "Lipolysis", "assay": "Triglyceride Accumulation", "details": "triglyceride content is measured using colorimetric or fluorometric kits when cells are treated with FFAs. Oil Red O staining can also be used to visualize lipid droplets.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 5, "sc_label": "High", "tr": 5, "process": "Cytokine/Adipokine secretion", "assay": "ELISA", "details": "Quantify specific cytokines or adipokines in cell culture medium", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 5, "sc_label": "High", "tr": 5, "process": "Cytokine/Adipokine secretion", "assay": "Luminex or Bio-Plex Assay", "details": "bead-based multiplex assay for simultaneously cytokine/adipokine quantification", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 4, "sc_label": "Medium/high", "tr": 4, "process": "Celluar metabolism and signaling", "assay": "Metabolomics", "details": "Comprehensive analysis of metabolites within a biological sample to study metabolic pathways and their changes in response to stimuli or conditions.", "model": "Multi", "model_raw": "In vitro, Mice, Zebrafish"}, {"cat": "LM", "sc": 4, "sc_label": "Medium/high", "tr": 4, "process": "Celluar metabolism and signaling", "assay": "Lipidomics", "details": "A branch of metabolomics focused on the comprehensive analysis of lipids in biological samples to study lipid metabolism, signaling, and lipid-related disorders.", "model": "Multi", "model_raw": "In vitro, Mice, Zebrafish"}, {"cat": "LM", "sc": 4, "sc_label": "Medium/high", "tr": 4, "process": "Cytokine/Adipokine secretion", "assay": "Mass Spectrometry", "details": "Quantifies cytokines/adipokines and other secreted proteins with high sensitivity and specificity.", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 4, "sc_label": "Medium/high", "tr": 4, "process": "Cytokine/Adipokine secretion", "assay": "ELISPOT", "details": "Detects cytokine secretion at the single-cell level, identifying cells that produce specific cytokines", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 3, "sc_label": "Medium", "tr": 4, "process": "Lipogenesis", "assay": "In vivo fluorescent imaging", "details": "Lipid staining with monodansylpentane", "model": "Zebrafish", "model_raw": "Zebrafish larvae"}, {"cat": "LM", "sc": 2, "sc_label": "Low/Medium", "tr": 3, "process": "Cytokine/Adipokine secretion", "assay": "Western Blotting or qPCR", "details": "Detects and quantifies cytokines/adipokines or the mRNA levels of cytokines/adipokines in cell lysates or culture supernatants", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 2, "sc_label": "Low/Medium", "tr": 2, "process": "Circulating glycerides", "assay": "Hemolymph Total Glyceride Measurement", "details": "Hemolymph extracted from adult flies. Total glycerides quantified using the Infinity Triglycerides Reagent or glycerol-based colorimetric kits and reported as TAG equivalents. Does not distinguish TAG from DAG", "model": "Drosophila", "model_raw": "Drosophila (adults)"}, {"cat": "LM", "sc": 2, "sc_label": "Low/Medium", "tr": 3, "process": "Lipid storage / lipid droplet content", "assay": "Neutral lipid staining", "details": "Tissue sections (e.g. cryosectioned liver or adipose) or whole-mount preparations (dissected Drosophila fat body, whole fly or zebrafish larvae) fixed and stained with lipophilic dyes to visualize neutral lipid (mainly TAG). Lipid dyes: Oil Red O, BODIPY, Nile Red, Sudan Black B / Solvent Black 3.", "model": "Multi", "model_raw": "Mice, Zebrafish and Drosophila"}, {"cat": "LM", "sc": 2, "sc_label": "Low/Medium", "tr": 2, "process": "Lipid storage / lipid droplet content", "assay": "CARS microscopy", "details": "Label-free imaging of lipid droplets using coherent anti-Stokes Raman scattering tuned to C–H bond vibrations; no fixation or dyes required, allowing live and repeated imaging of the same animal.", "model": "Drosophila", "model_raw": "Drosophila (larvae & adults)"}, {"cat": "LM", "sc": 1, "sc_label": "Low", "tr": 4, "process": "Lipolysis", "assay": "Radioactive Tracer", "details": "Meatures the released radiolabeled glycerol and FFAs using scintillation counting", "model": "In vitro", "model_raw": "In vitro"}, {"cat": "LM", "sc": 1, "sc_label": "Low", "tr": 4, "process": "Lipolysis", "assay": "Catecholamine-induced lipolysis assay", "details": "Measures the breakdown of triglycerides into free fatty acids (FFAs), in isolated adipocytes and in the serum of mice stimulated/treated by catecholamines such as, noradrenaline and adrenaline, or B-adrenergic agonist such as, isoproterenol.", "model": "Mice", "model_raw": "Mice"}, {"cat": "LM", "sc": 1, "sc_label": "Low", "tr": 4, "process": "Lipolysis", "assay": "NEFA Assay (ACOD-ACS Method)", "details": "Non-esterified fatty acids (NEFAs) are primarily derived from the hydrolysis of triglycerides in the adipose tissue by hormone-sensisitive lipase (HSL). NEFAs in each sample is converted to Acetyl-CoA, AMP, and pyrophosphoric acid (PPi) via Acetyl-COA synthetase (ACS). Acetyl-CoA is oxidized to form 2,3-trans-Enoyl-CoA and hysrogen peroxide via enzyme Acetyl-CoA oxidase (ACOD). The hydrogen peroxide reacts with peroxidase to produce a blue purple pigment via oxidation condensation with 3-Methyl-N-Ethyl-N-(B-Hydroxyethyl)-Aniline (MEHA) and 4-amino-antipyrine (4-AA).", "model": "Mice", "model_raw": "Mice"}, {"cat": "LM", "sc": 1, "sc_label": "Low", "tr": 2, "process": "AKH-mediated lipolysis", "assay": "Hemolymph DAG Measurement by densitometry", "details": "Hemolymph extracted from adult flies. DAGs separated from other lipid classes by TLC and quantified by densitometry.", "model": "Drosophila", "model_raw": "Drosophila (adults)"}, {"cat": "LM", "sc": 1, "sc_label": "Low", "tr": 4, "process": "Fatty Acid Oxidation", "assay": "Ketone Assay", "details": "B-hydroxybutryate (ketone) production is measured in serum and metabolic tissue homogenates (liver; kidneys).", "model": "Mice", "model_raw": "Mice"}, {"cat": "LM", "sc": 1, "sc_label": "Low", "tr": 4, "process": "Lipogenesis", "assay": "TAG Assay", "details": "Assay utilizes hydrolysis reaction of triglycerides found in sample by lipase into glycerol and FFAs. Glycerol is then phosphorylated by ATP via Glycerol kinase (GK) to produce Glycerol-3-phosphate which is oxidized via dihydroxyacetone phosphate (DAP) and hydrogen peroxide. 4-aminoantipyrine (4-AAP) and 3,5-dichloro-2-hydroxybenzene sulfonate (DHBS) reacts with sample to produce a red-colored pigment measured via absorbance between 500 - 550 nm.", "model": "Mice", "model_raw": "Mice"}, {"cat": "LM", "sc": 1, "sc_label": "Low", "tr": 5, "process": "Spatial lipid profiling", "assay": "Matrix-assisted Laser Desorption/Ionization (MALDI-MSI)", "details": "Mass spectometry-based imaging technique in which pre-frozen, thin liver sections, are processed within a matrix using analyte (lipid) specific specific solvents, capable of absorbing laser wavelengths for subsequent analyte ionization which can be visualized and spatially mapped.", "model": "Mice", "model_raw": "Mice"}, {"cat": "LM", "sc": 1, "sc_label": "Low", "tr": 5, "process": "Spatial lipid profiling", "assay": "Desorption Electrospray Ionization (DESI-MSI)", "details": "Mass spectometry-based imaging technique in which an electrically charged solvent is sprayed onto the freshly frozen, or FFPE embedded tissue sections, desorbing, and ionizing analytes (lipids) which are then detected and visualized.", "model": "Mice", "model_raw": "Mice"}, {"cat": "LM", "sc": 1, "sc_label": "Low", "tr": 4, "process": "Spatial lipid profiling", "assay": "Time-of-flight Secondary Ion MassSpectometry (TOF-SIMS)", "details": "Mass spectometry-based imaging technique in which ions on a sample surface are accelerated by a primary ion beam. Incorporating the time it takes heavy vs lighter ions across a sample, to reach the detector, lipids within samples can be identified by differences in mass and spatially mapped with sub-micrometer resolution.", "model": "Mice", "model_raw": "mice"}];
+const CAT_COLORS = {"IR": "#117733", "IS": "#CC6677", "EB": "#CC8833", "LM": "#332288"};
+const CAT_ORDER  = [{"code": "IR", "full": "Insulin responsiveness and glucose handling"}, {"code": "IS", "full": "Insulin secretion"}, {"code": "EB", "full": "Energy balance"}, {"code": "LM", "full": "Lipid metabolism"}];
+const SC_TICKS   = {"1": "Low", "3": "Medium", "5": "High"};
+const TR_TICKS   = {"1": "Low", "3": "Medium", "5": "High"};
+const JITTER     = [[0.0707, 0.0], [-0.0903, 0.0827], [0.0138, -0.1575], [0.1138, 0.1485], [0.0707, 0.0], [-0.0903, 0.0827], [0.0707, 0.0], [0.0138, -0.1575], [0.1138, 0.1485], [-0.2089, -0.0369], [0.0, 0.0], [-0.0903, 0.0827], [0.0707, 0.0], [0.0707, 0.0], [-0.0903, 0.0827], [0.0138, -0.1575], [0.0707, 0.0], [-0.0903, 0.0827], [0.0707, 0.0], [0.0, 0.0], [0.0707, 0.0], [0.0707, 0.0], [-0.0903, 0.0827], [0.0138, -0.1575], [0.0, 0.0], [-0.0903, 0.0827], [0.0138, -0.1575], [0.0, 0.0], [0.1138, 0.1485], [0.0707, 0.0], [-0.0903, 0.0827], [0.0138, -0.1575], [-0.0903, 0.0827], [0.1138, 0.1485], [0.1979, -0.1259], [-0.0662, 0.2462], [-0.2089, -0.0369], [0.1979, -0.1259], [-0.1262, -0.243], [0.2739, 0.1], [-0.0662, 0.2462], [-0.2849, 0.1176], [-0.1262, -0.243], [0.1138, 0.1485], [0.1138, 0.1485], [0.0707, 0.0], [-0.2089, -0.0369], [-0.0903, 0.0827], [0.0707, 0.0], [-0.0903, 0.0827], [0.0138, -0.1575], [0.0707, 0.0], [0.0707, 0.0], [-0.0903, 0.0827], [0.0707, 0.0], [-0.2089, -0.0369], [0.1373, -0.2935], [0.2739, 0.1], [-0.2849, 0.1176], [0.1015, 0.3236], [0.1373, -0.2935], [0.1015, 0.3236], [-0.3059, -0.1773], [-0.0903, 0.0827], [0.0138, -0.1575], [0.1138, 0.1485], [-0.2089, -0.0369], [0.0138, -0.1575], [-0.0903, 0.0827], [0.0138, -0.1575], [0.0138, -0.1575], [0.1138, 0.1485], [0.0138, -0.1575], [0.1138, 0.1485], [-0.2089, -0.0369], [-0.0903, 0.0827], [0.1979, -0.1259], [-0.0662, 0.2462], [0.1979, -0.1259], [-0.0662, 0.2462], [-0.1262, -0.243]];
+const QUADRANT_SPLIT = 2.5;
+const QUADRANTS = {"HH": "High scalability &amp; high translatability", "HL": "Screen-ready; model-distant", "LH": "Gold standard; throughput-limited", "LL": "Niche / specialist"};
+const SC_COLORS  = {5:"#08519C",4:"#3182BD",3:"#6BAED6",2:"#BDD7E7",1:"#EFF3FF"};
+const TR_COLORS  = {5:"#016C59",4:"#1C9099",3:"#67A9CF",2:"#BDC9E1",1:"#F1EEF6"};
+const MODEL_SYMBOLS = {"In vitro":"circle","Mice":"triangle-up","Zebrafish":"diamond","Drosophila":"star","Multi":"square"};
+const FONT = "Roboto, Arial, sans-serif";
+const AXIS = {showline:true,linecolor:"#212529",linewidth:1.2,ticks:"outside",ticklen:4,
+  tickwidth:1,tickcolor:"#212529",gridcolor:"#e8e8e8",gridwidth:1,zeroline:false,
+  tickfont:{size:10,family:FONT,color:"#212529"},title:{font:{size:11.5,family:FONT,color:"#212529"}}};
+
+const catName = code => (CAT_ORDER.find(c=>c.code===code)||{}).full || code;
+const ticktext = labels => [1,2,3,4,5].map(t => labels[t] ? `${t}<br><i style='font-size:9px'>${labels[t]}</i>` : String(t));
+
+function hoverText(d){
+  const details = d.details.length>160 ? d.details.slice(0,160)+"…" : d.details;
+  return `<b>${d.assay}</b><br>`+
+    `<span style="color:#888">${catName(d.cat)}</span><br>`+
+    (d.process ? `<b>Process:</b> ${d.process}<br>` : "")+
+    `<b>Model:</b> ${d.model_raw}<br>`+
+    `<b>Scalability:</b> ${d.sc}/5${d.sc_label?" ("+d.sc_label+")":""} &nbsp;&middot;&nbsp; <b>Translational:</b> ${d.tr}/5`+
+    (details ? `<br><span style="font-size:11px">${details}</span>` : "")+
+    `<extra></extra>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// PANEL A — scatter
+// ════════════════════════════════════════════════════════════════
+function buildScatter() {
+  const groups = {};
+  ASSAYS.forEach((d,i) => {
+    const k=d.cat+"|"+d.model;
+    if (!groups[k]) groups[k]={cat:d.cat,model:d.model,idx:[]};
+    groups[k].idx.push(i);
+  });
+
+  const traces = Object.values(groups).map(g => ({
+    x:g.idx.map(i=>ASSAYS[i].tr+JITTER[i][0]), y:g.idx.map(i=>ASSAYS[i].sc+JITTER[i][1]),
+    type:"scatter", mode:"markers",
+    marker:{color:CAT_COLORS[g.cat],symbol:MODEL_SYMBOLS[g.model]||"circle",
+      size:g.model==="Drosophila"?18:14,opacity:0.87,line:{color:"white",width:1.5}},
+    hovertemplate:g.idx.map(i=>hoverText(ASSAYS[i])), showlegend:false,
+  }));
+
+  const Q=QUADRANT_SPLIT, XR=(Q+5.5)/2, XL=(0.5+Q)/2;
+  const shapes=[
+    {type:"rect",x0:Q,x1:5.5,y0:Q,y1:5.5,fillcolor:"rgba(1,108,89,0.06)",line:{width:0},layer:"below"},
+    {type:"rect",x0:0.5,x1:Q,y0:Q,y1:5.5,fillcolor:"rgba(204,102,119,0.05)",line:{width:0},layer:"below"},
+    {type:"rect",x0:Q,x1:5.5,y0:0.5,y1:Q,fillcolor:"rgba(8,81,156,0.05)",line:{width:0},layer:"below"},
+    {type:"line",x0:Q,x1:Q,y0:0.5,y1:5.5,line:{color:"#BBBBBB",width:1,dash:"dot"}},
+    {type:"line",x0:0.5,x1:5.5,y0:Q,y1:Q,line:{color:"#BBBBBB",width:1,dash:"dot"}},
+  ];
+  // Quadrant names come from the Excel (key = scalability + translational, H/L)
+  const ann=[["HH",XR,5.59,"top","#016C59"],["HL",XL,5.59,"top","#CC6677"],
+             ["LH",XR,0.41,"bottom","#08519C"],["LL",XL,0.41,"bottom","#888"]]
+    .filter(q=>QUADRANTS[q[0]])
+    .map(([k,x,y,ya,c])=>({x,y,yanchor:ya,text:`<b>${QUADRANTS[k]}</b>`,showarrow:false,
+      font:{size:9,color:c,family:FONT},bgcolor:"rgba(255,255,255,0.85)",borderpad:3}));
+  Plotly.newPlot("scatter-plot",traces,{
+    paper_bgcolor:"white",plot_bgcolor:"white",
+    margin:{t:16,b:60,l:70,r:20},
+    xaxis:{...AXIS,title:{text:"Translational relevance score",font:{size:11.5,family:FONT,color:"#212529"}},
+      range:[0.4,5.6],tickvals:[1,2,3,4,5],ticktext:ticktext(TR_TICKS)},
+    yaxis:{...AXIS,title:{text:"Scalability score",font:{size:11.5,family:FONT,color:"#212529"}},
+      range:[0.4,5.6],tickvals:[1,2,3,4,5],ticktext:ticktext(SC_TICKS)},
+    shapes,annotations:ann,hovermode:"closest",
+    hoverlabel:{bgcolor:"white",bordercolor:"#ccc",font:{size:12,family:FONT},align:"left"},
+  },{responsive:true,displayModeBar:true,modeBarButtonsToRemove:["select2d","lasso2d","toggleSpikelines"],displaylogo:false});
+}
+
+// ════════════════════════════════════════════════════════════════
+// PANEL B — reference matrix
+// ════════════════════════════════════════════════════════════════
+let mFilter="all", mSort="cat";
+
+function setFilter(f,btn){
+  mFilter=f;
+  document.querySelectorAll(".ctrl-btn[onclick*=setFilter]").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active"); buildMatrix();
+}
+function setSort(s,btn){
+  mSort=s;
+  document.querySelectorAll(".ctrl-btn[onclick*=setSort]").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active"); buildMatrix();
+}
+
+function buildMatrix(){
+  const catIdx = c => CAT_ORDER.findIndex(o=>o.code===c);
+  let rows = mFilter==="all" ? [...ASSAYS] : ASSAYS.filter(d => d.cat===mFilter);
+
+  if (mSort==="sc-desc") rows.sort((a,b)=>b.sc-a.sc||b.tr-a.tr||catIdx(a.cat)-catIdx(b.cat));
+  else if (mSort==="tr-desc") rows.sort((a,b)=>b.tr-a.tr||b.sc-a.sc||catIdx(a.cat)-catIdx(b.cat));
+  else if (mSort==="sc-asc")  rows.sort((a,b)=>a.sc-b.sc||a.tr-b.tr||catIdx(a.cat)-catIdx(b.cat));
+  else if (mSort==="tr-asc")  rows.sort((a,b)=>a.tr-b.tr||a.sc-b.sc||catIdx(a.cat)-catIdx(b.cat));
+
+  const n=rows.length;
+  const yV=rows.map((_,i)=>n-1-i);
+  const hov=rows.map(hoverText);
+
+  const scTr={x:rows.map(()=>0),y:yV,type:"scatter",mode:"markers+text",
+    marker:{color:rows.map(d=>SC_COLORS[d.sc]),size:22,symbol:"circle",line:{color:"white",width:1.5}},
+    text:rows.map(d=>String(d.sc)),
+    textfont:{size:9,color:rows.map(d=>d.sc>=3?"#fff":"#333"),family:FONT},
+    textposition:"middle center",hovertemplate:hov,showlegend:false};
+
+  const trTr={x:rows.map(()=>1),y:yV,type:"scatter",mode:"markers+text",
+    marker:{color:rows.map(d=>TR_COLORS[d.tr]),size:22,symbol:"circle",line:{color:"white",width:1.5}},
+    text:rows.map(d=>String(d.tr)),
+    textfont:{size:9,color:rows.map(d=>d.tr>=3?"#fff":"#333"),family:FONT},
+    textposition:"middle center",hovertemplate:hov,showlegend:false};
+
+  const modelTr={x:rows.map(()=>1.75),y:yV,type:"scatter",mode:"markers",
+    marker:{color:rows.map(d=>CAT_COLORS[d.cat]),symbol:rows.map(d=>MODEL_SYMBOLS[d.model]||"circle"),
+      size:11,opacity:0.8,line:{color:"white",width:0.8}},
+    hovertemplate:hov,showlegend:false};
+
+  const nameTr={x:rows.map(()=>2.1),y:yV,type:"scatter",mode:"text",
+    text:rows.map(d=>`${d.assay}${d.process?`  <span style="color:#999">· ${d.process}</span>`:""}`),
+    textfont:{size:10.5,color:rows.map(d=>CAT_COLORS[d.cat]),family:FONT},
+    textposition:"middle right",hovertemplate:hov,showlegend:false};
+
+  const shapes=[];
+  const annotations=[
+    {x:0,y:n+0.15,text:"<b>SC</b>",showarrow:false,font:{size:11,color:"#08519C",family:FONT}},
+    {x:1,y:n+0.15,text:"<b>TR</b>",showarrow:false,font:{size:11,color:"#016C59",family:FONT}},
+    {x:0,y:n+0.85,text:"Scalability",showarrow:false,font:{size:9,color:"#555",family:FONT}},
+    {x:1,y:n+0.85,text:"Translational",showarrow:false,font:{size:9,color:"#555",family:FONT}},
+  ];
+
+  // Category bands + names when rows are grouped by category
+  if (mSort==="cat"||mFilter!=="all"){
+    let prev=null,start=0;
+    const bands=[];
+    rows.forEach((d,i)=>{
+      if(d.cat!==prev){if(prev)bands.push({cat:prev,s:start,e:i-1});start=i;prev=d.cat;}
+    });
+    if(prev)bands.push({cat:prev,s:start,e:rows.length-1});
+    bands.forEach(b=>{
+      shapes.push({type:"rect",xref:"paper",x0:0,x1:1,
+        y0:n-1-b.e-0.5,y1:n-1-b.s+0.5,
+        fillcolor:CAT_COLORS[b.cat]+"14",line:{width:0},layer:"below"});
+      if (mSort==="cat") annotations.push({xref:"paper",x:0.99,xanchor:"right",y:n-1-b.s,
+        text:`<b>${catName(b.cat).toUpperCase()}</b>`,showarrow:false,
+        font:{size:9,color:CAT_COLORS[b.cat],family:FONT}});
+    });
+  }
+
+  const H=Math.max(500,n*24+80);
+  document.getElementById("matrix-plot").style.height=H+"px";
+  Plotly.newPlot("matrix-plot",[scTr,trTr,modelTr,nameTr],{
+    paper_bgcolor:"white",plot_bgcolor:"white",
+    margin:{t:30,b:20,l:20,r:40},
+    xaxis:{visible:false,range:[-0.6,14],fixedrange:true},
+    yaxis:{visible:false,range:[-0.7,n+1.3],fixedrange:true},
+    shapes,annotations,hovermode:"closest",height:H,
+    hoverlabel:{bgcolor:"white",bordercolor:"#ccc",font:{size:11,family:FONT},align:"left"},
+  },{responsive:true,displayModeBar:false});
+}
+
+// ════════════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════════════
+const built={};
+function switchTab(tab,btn){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("panel-"+tab).classList.add("active");
+  btn.classList.add("active");
+  if(!built[tab]){
+    if(tab==="matrix")buildMatrix();
+    built[tab]=true;
+  }
+}
+window.addEventListener("load",()=>{buildScatter();built.scatter=true;});
+</script>
+<script>if (new URLSearchParams(location.search).get("embed") === "1") document.body.classList.add("embed");</script>
+</body>
+</html>
