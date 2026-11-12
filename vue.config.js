@@ -389,11 +389,11 @@ let pages = {
         title: "Bird Methods",
         chunks: ["chunk-vendors", "chunk-common", "birds"]
     },
-    communitylabs: {
-        entry: "src/views/CommunityLabs/main.js",
+    t2d_assays: {
+        entry: "src/views/T2DAssays/main.js",
         template: "public/index.html",
-        title: "Community Labs",
-        chunks: ["chunk-vendors", "chunk-common", "communitylabs"]
+        title: "Physiological Assays for T2D Research",
+        chunks: ["chunk-vendors", "chunk-common", "t2d_assays"]
     }
 };
 
