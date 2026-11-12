@@ -388,6 +388,12 @@ let pages = {
         template: "public/index.html",
         title: "Bird Methods",
         chunks: ["chunk-vendors", "chunk-common", "birds"]
+    },
+    communitylabs: {
+        entry: "src/views/CommunityLabs/main.js",
+        template: "public/index.html",
+        title: "Community Labs",
+        chunks: ["chunk-vendors", "chunk-common", "communitylabs"]
     }
 };
 
