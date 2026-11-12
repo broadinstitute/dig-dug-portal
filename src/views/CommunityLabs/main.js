@@ -16,7 +16,7 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 import InteractiveKP from "./components/InteractiveKP.vue";
-
+import TissueExplorer from "./components/TissueExplorer.vue";
 
 new Vue({
     store,
@@ -24,7 +24,8 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
-        InteractiveKP
+        InteractiveKP,
+        TissueExplorer
     },
 
     created() {

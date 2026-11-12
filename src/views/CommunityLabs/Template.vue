@@ -10,6 +10,11 @@
                     <interactive-kp></interactive-kp>
                 </div>
             </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <tissue-explorer></tissue-explorer>
+                </div>
+            </div>
         </div>
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>

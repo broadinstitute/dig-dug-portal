@@ -118,22 +118,20 @@ export default Vue.component("tissue-explorer", {
         const f = ev.target.dataset && ev.target.dataset.f;
         if (!f) return;
         const v = ev.target.value || null;
-        set(f === "tissue" ? {tissue: v, model: null} : {[f]: v});
+        this.set(f === "tissue" ? {tissue: v, model: null} : {[f]: v});
         });
         document.addEventListener("click", ev => {
         const el = ev.target.closest("[data-act]");
         if (!el) return;
         const id = el.dataset.id || null;
+        const same = S.tissue === el.dataset.t && S.cat === el.dataset.c;
         switch (el.dataset.act) {
-            case "tissue": set({tissue: S.tissue === id ? null : id, model: null}); break;
-            case "cat":    set({cat: S.cat === id ? null : id}); break;
-            case "cell": {
-            const same = S.tissue === el.dataset.t && S.cat === el.dataset.c;
-            set(same ? {tissue: null, cat: null, model: null} : {tissue: el.dataset.t, cat: el.dataset.c, model: null}); break;
-            }
-            case "model":  set({model: S.model === id ? null : id}); break;
-            case "assay":  set({assay: S.assay === id ? null : id}); break;
-            case "reset":  set({tissue: null, cat: null, model: null, assay: null}); break;
+            case "tissue": this.set({tissue: S.tissue === id ? null : id, model: null}); break;
+            case "cat":    this.set({cat: S.cat === id ? null : id}); break;
+            case "cell":   this.set({tissue: same ? null : el.dataset.t, cat: same ? null : el.dataset.c, model: null}); break;            
+            case "model":  this.set({model: S.model === id ? null : id}); break;
+            case "assay":  this.set({assay: S.assay === id ? null : id}); break;
+            case "reset":  this.set({tissue: null, cat: null, model: null, assay: null}); break;
             case "copy": {
             const done = () => { el.textContent = "Link copied"; setTimeout(() => el.textContent = "Copy link", 1500); };
             if (navigator.clipboard) navigator.clipboard.writeText(location.href).then(done, () => prompt("Copy this link:", location.href));
@@ -142,7 +140,7 @@ export default Vue.component("tissue-explorer", {
             }
         }
         });
-        window.addEventListener("hashchange", () => { readHash(); render(); });
+        window.addEventListener("hashchange", () => { readHash(); this.render(); });
 
         if (new URLSearchParams(location.search).get("embed") === "1") document.body.classList.add("embed");
         document.getElementById("type-legend").innerHTML = D.types.map(t =>
@@ -166,11 +164,11 @@ export default Vue.component("tissue-explorer", {
         },
         hasScope() { return !!(S.tissue || S.cat || S.model); },
         activeAssays() {
-            if (!hasScope()) return null;
-            const ms = scopeModels();
-            return new Set(D.assays.filter(a => (!S.cat || a.cat === S.cat) && ms.some(m => compatible(m, a))).map(a => a.id));
+            if (!this.hasScope()) return null;
+            const ms = this.scopeModels();
+            return new Set(D.assays.filter(a => (!S.cat || a.cat === S.cat) && ms.some(m => this.compatible(m, a))).map(a => a.id));
         },
-        assayModels(a) { return D.models.filter(m => compatible(m, a)); },
+        assayModels(a) { return D.models.filter(m => this.compatible(m, a)); },
         
         // ── State & URL ─────────────────────────────────────────────────
         set(patch) {
@@ -181,7 +179,7 @@ export default Vue.component("tissue-explorer", {
             if (S.model && S.cat && !modelById[S.model].cats.includes(S.cat)) S.cat = null;
             const h = Object.entries(S).filter(([,v]) => v).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join("&");
             history.replaceState(null, "", location.pathname + location.search + (h ? "#" + h : ""));
-            render();
+            this.render();
         },
         readHash() {
             const p = new URLSearchParams(location.hash.slice(1));
@@ -199,7 +197,7 @@ export default Vue.component("tissue-explorer", {
             document.getElementById("f-tissue").innerHTML = opt("", `All tissues (${D.models.length} models)`, !S.tissue) +
                 D.tissues.map(t => {
                 const ms = D.models.filter(m => m.tissue_id === t.id);
-                const n = a ? ms.filter(m => compatible(m, a)).length : ms.length;
+                const n = a ? ms.filter(m => this.compatible(m, a)).length : ms.length;
                 return opt(t.id, `${t.name} (${n} ${a ? "compatible" : "models"})`, S.tissue === t.id);
                 }).join("");
 
@@ -215,7 +213,7 @@ export default Vue.component("tissue-explorer", {
             }));
             document.getElementById("f-model").innerHTML = mo;
 
-            const act = activeAssays();
+            const act = this.activeAssays();
             let ao = opt("", act ? `Any compatible assay (${act.size})` : `Any assay (${D.assays.length})`, !S.assay);
             D.cats.forEach(c => {
                 const g = D.assays.filter(x => x.cat === c.code && (!act || act.has(x.id) || x.id === S.assay));
@@ -223,7 +221,7 @@ export default Vue.component("tissue-explorer", {
             });
             document.getElementById("f-assay").innerHTML = ao;
 
-            const nm = scopeModels().length;
+            const nm = this.scopeModels().length;
             let st;
             if (a) st = `<b>${esc(a.assay)}</b> can be used with <b>${assayModels(a).length}</b> of the ${D.models.length} models`;
             else if (act) st = `<b>${nm}</b> model${nm === 1 ? "" : "s"} selected · <b>${act.size}</b> compatible in vitro assays`;
@@ -242,7 +240,7 @@ export default Vue.component("tissue-explorer", {
                 D.cats.forEach(c => {
                 const ms = D.models.filter(m => m.tissue_id === t.id && m.cats.includes(c.code));
                 if (!ms.length) { h += `<td class="empty" title="No ${esc(t.name)} models listed for ${esc(c.full)}">—</td>`; return; }
-                const nComp = a ? (c.code === a.cat ? ms.filter(m => compatible(m, a)).length : 0) : null;
+                const nComp = a ? (c.code === a.cat ? ms.filter(m => this.compatible(m, a)).length : 0) : null;
                 const cls = [S.tissue===t.id && S.cat===c.code ? "sel" : "",
                             S.tissue===t.id ? "sel-row" : "", S.cat===c.code ? "sel-col" : "",
                             a && nComp === 0 ? "dim" : ""].join(" ");
@@ -263,9 +261,9 @@ export default Vue.component("tissue-explorer", {
         },
         // ── 2. Models ───────────────────────────────────────────────────
         modelHTML(m, a) {
-            const match = a && compatible(m, a);
+            const match = a && this.compatible(m, a);
             const cls = ["model", S.model===m.id ? "sel" : "", a && !match ? "dim" : "", match ? "match" : ""].join(" ");
-            const nAssays = D.assays.filter(x => compatible(m, x)).length;
+            const nAssays = D.assays.filter(x => this.compatible(m, x)).length;
             const refs = m.pmids.length
                 ? m.pmids.map(p => `<a href="https://pubmed.ncbi.nlm.nih.gov/${p}/" target="_blank" rel="noopener">PMID ${p}</a>`).join(", ")
                 : esc(m.refs || "—");
@@ -298,7 +296,7 @@ export default Vue.component("tissue-explorer", {
                 let inner = "";
                 D.types.forEach(ty => {
                 const g = ms.filter(m => m.type === ty.code);
-                if (g.length) inner += `<div class="type-group"><h6><span class="swatch-sq" style="background:${typeColor(ty.code)}"></span>${esc(ty.name)} (${g.length})</h6>${g.map(m => modelHTML(m, a)).join("")}</div>`;
+                if (g.length) inner += `<div class="type-group"><h6><span class="swatch-sq" style="background:${typeColor(ty.code)}"></span>${esc(ty.name)} (${g.length})</h6>${g.map(m => this.modelHTML(m, a)).join("")}</div>`;
                 });
                 if (!inner) inner = `<div class="empty-note">No ${esc(t.name)} models listed for ${esc(catById[S.cat].full)}.</div>`;
                 h += `<div class="tissue-group">${S.tissue ? "" : `<h5>${esc(t.name)}</h5>`}${inner}</div>`;
@@ -314,7 +312,7 @@ export default Vue.component("tissue-explorer", {
                 (details ? `<br><span style="font-size:11px">${esc(details)}</span>` : "") + `<extra></extra>`;
         },
         renderScatter() {
-            const act = activeAssays();
+            const act = this.activeAssays();
             const groups = {};
             D.assays.forEach((d, i) => { const k = d.cat + "|" + d.model; (groups[k] = groups[k] || {cat: d.cat, model: d.model, idx: []}).idx.push(i); });
             const traces = Object.values(groups).map(g => ({
@@ -325,7 +323,7 @@ export default Vue.component("tissue-explorer", {
                 opacity: g.idx.map(i => (!act || act.has(D.assays[i].id) || D.assays[i].id === S.assay) ? 0.9 : 0.12),
                 line: {color: g.idx.map(i => D.assays[i].id === S.assay ? "#212529" : "white"),
                         width: g.idx.map(i => D.assays[i].id === S.assay ? 2.5 : 1.2)}},
-                hovertemplate: g.idx.map(i => hoverText(D.assays[i])), showlegend: false,
+                hovertemplate: g.idx.map(i => this.hoverText(D.assays[i])), showlegend: false,
             }));
             const Q = D.split, XR = (Q + 5.5) / 2, XL = (0.5 + Q) / 2;
             const AX = {showline:true, linecolor:"#212529", linewidth:1, ticks:"outside", ticklen:3, tickcolor:"#212529",
@@ -351,10 +349,10 @@ export default Vue.component("tissue-explorer", {
                 hovermode:"closest", hoverlabel:{bgcolor:"white", bordercolor:"#ccc", font:{size:12, family:FONT}, align:"left"},
             };
             const el = document.getElementById("scatter");
-            Plotly.react(el, traces, layout, {responsive:true, displayModeBar:false});
-            if (!plotReady) {
-                el.on("plotly_click", ev => { const id = ev.points[0].customdata; set({assay: S.assay === id ? null : id}); });
-                plotReady = true;
+            plotly.react(el, traces, layout, {responsive:true, displayModeBar:false});
+            if (!this.plotReady) {
+                el.on("plotly_click", ev => { const id = ev.points[0].customdata; this.set({assay: S.assay === id ? null : id}); });
+                this.plotReady = true;
             }
         },
         renderAssayLegend() {
@@ -384,7 +382,7 @@ export default Vue.component("tissue-explorer", {
             </div>`;
         },
         renderAssayList() {
-            const act = activeAssays();
+            const act = this.activeAssays();
             let rows = act ? D.assays.filter(a => act.has(a.id)) : D.assays.filter(a => !S.cat || a.cat === S.cat);
             rows = [...rows].sort((a, b) => D.cats.findIndex(c => c.code === a.cat) - D.cats.findIndex(c => c.code === b.cat) || b.sc - a.sc || b.tr - a.tr);
             const scope = S.model ? modelById[S.model].name : S.tissue ? tissueById[S.tissue].name + " models" : S.cat ? "models in this category" : null;
@@ -401,7 +399,7 @@ export default Vue.component("tissue-explorer", {
                     <span><span>${esc(a.assay)}</span> <span class="a-proc">· ${esc(a.process)}</span> <span class="a-model">· ${esc(a.model_raw)}</span></span></div>`).join("") + `</div>`;
             });
             if (scope) {
-                const cats = new Set(scopeModels().flatMap(m => m.cats));
+                const cats = new Set(this.scopeModels().flatMap(m => m.cats));
                 const nVivo = D.assays.filter(a => !a.invitro && cats.has(a.cat) && (!S.cat || a.cat === S.cat)).length;
                 if (nVivo) h += `<div class="note">${nVivo} in vivo assays in these categories are not linked to in vitro models (shown faded in the plot).</div>`;
             }
