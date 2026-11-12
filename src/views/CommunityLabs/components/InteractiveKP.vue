@@ -1,122 +1,116 @@
-<!-- Adapted from HTML file sent by Andrena.-->
+<!-- Adapted from HTML file sent by Endrina.-->
 <template>
   <div>
-<header class="kp-header">
-  <span class="brand"><b>T2D</b> Physiological Assays</span>
-  <span class="sub">Scalability and translational relevance of assays for type 2 diabetes research</span>
-</header>
+  <div class="kp-body">
+    <div class="card"><div class="card-body intro">
+      <svg width="64" height="64" viewBox="0 0 72 72" aria-hidden="true">
+        <polygon points="36,3 65,19.5 65,52.5 36,69 7,52.5 7,19.5" fill="#fff" stroke="#c6defa" stroke-width="3"/>
+        <line x1="20" y1="54" x2="54" y2="54" stroke="#212529" stroke-width="2"/>
+        <line x1="20" y1="54" x2="20" y2="18" stroke="#212529" stroke-width="2"/>
+        <circle cx="30" cy="42" r="5" fill="#117733"/><circle cx="44" cy="26" r="5" fill="#332288"/>
+        <circle cx="47" cy="40" r="5" fill="#CC8833"/><circle cx="34" cy="28" r="5" fill="#CC6677"/>
+      </svg>
+      <div>
+        <p>81 physiological assays used in type 2 diabetes research, scored for <b>scalability</b>
+        and <b>translational relevance</b>, across 4 physiological categories and 5 model systems.</p>
+        <div class="cats"><div class="legend-item"><div class="swatch" style="background:#117733"></div>Insulin responsiveness and glucose handling</div><div class="legend-item"><div class="swatch" style="background:#CC6677"></div>Insulin secretion</div><div class="legend-item"><div class="swatch" style="background:#CC8833"></div>Energy balance</div><div class="legend-item"><div class="swatch" style="background:#332288"></div>Lipid metabolism</div></div>
+      </div>
+    </div></div>
 
-<div class="kp-body">
-  <div class="card"><div class="card-body intro">
-    <svg width="64" height="64" viewBox="0 0 72 72" aria-hidden="true">
-      <polygon points="36,3 65,19.5 65,52.5 36,69 7,52.5 7,19.5" fill="#fff" stroke="#c6defa" stroke-width="3"/>
-      <line x1="20" y1="54" x2="54" y2="54" stroke="#212529" stroke-width="2"/>
-      <line x1="20" y1="54" x2="20" y2="18" stroke="#212529" stroke-width="2"/>
-      <circle cx="30" cy="42" r="5" fill="#117733"/><circle cx="44" cy="26" r="5" fill="#332288"/>
-      <circle cx="47" cy="40" r="5" fill="#CC8833"/><circle cx="34" cy="28" r="5" fill="#CC6677"/>
-    </svg>
-    <div>
-      <p>81 physiological assays used in type 2 diabetes research, scored for <b>scalability</b>
-      and <b>translational relevance</b>, across 4 physiological categories and 5 model systems.</p>
-      <div class="cats"><div class="legend-item"><div class="swatch" style="background:#117733"></div>Insulin responsiveness and glucose handling</div><div class="legend-item"><div class="swatch" style="background:#CC6677"></div>Insulin secretion</div><div class="legend-item"><div class="swatch" style="background:#CC8833"></div>Energy balance</div><div class="legend-item"><div class="swatch" style="background:#332288"></div>Lipid metabolism</div></div>
+    <div class="card"><div class="card-body">
+      <h1 class="card-title">Physiological Assays for T2D Research</h1>
+      <p class="card-lead">Explore the assays in the scatter plot (panel A) or browse, filter and sort them in the reference matrix (panel B).</p>
+      <div class="tabs-bar">
+        <button class="scatter tab-btn active" @click="switchTab('scatter')">A &thinsp; Translational Relevance vs. Scalability</button>
+        <button class="matrix tab-btn" @click="switchTab('matrix')">B &thinsp; Assay Reference Matrix</button>
+      </div>
+
+  <!-- PANEL A -->
+  <div class="panel active" id="panel-scatter">
+    <div class="panel-sub">
+      Each point is one assay. <strong>Hover for full details.</strong>
+      X-axis: translational relevance score (5 = highest relevance to human T2D; 1 = lowest relevance to human T2D). Y-axis: scalability score (5 = high-throughput; 1 = technically demanding).
+      Colour = category. Shape = model system.
     </div>
-  </div></div>
-
-  <div class="card"><div class="card-body">
-    <h1 class="card-title">Physiological Assays for T2D Research</h1>
-    <p class="card-lead">Explore the assays in the scatter plot (panel A) or browse, filter and sort them in the reference matrix (panel B).</p>
-    <div class="tabs-bar">
-      <button class="scatter tab-btn active" @click="switchTab('scatter')">A &thinsp; Translational Relevance vs. Scalability</button>
-      <button class="matrix tab-btn" @click="switchTab('matrix')">B &thinsp; Assay Reference Matrix</button>
-    </div>
-
-<!-- PANEL A -->
-<div class="panel active" id="panel-scatter">
-  <div class="panel-sub">
-    Each point is one assay. <strong>Hover for full details.</strong>
-    X-axis: translational relevance score (5 = highest relevance to human T2D; 1 = lowest relevance to human T2D). Y-axis: scalability score (5 = high-throughput; 1 = technically demanding).
-    Colour = category. Shape = model system.
-  </div>
-  <div class="chart-card">
-    <div id="scatter-plot" style="height:640px"></div>
-    <div class="legend-strip">
-      <div class="legend-block">
-        <div class="legend-title">Category</div>
-        <div class="legend-items"><div class="legend-item"><div class="swatch" style="background:#117733"></div>Insulin responsiveness and glucose handling</div><div class="legend-item"><div class="swatch" style="background:#CC6677"></div>Insulin secretion</div><div class="legend-item"><div class="swatch" style="background:#CC8833"></div>Energy balance</div><div class="legend-item"><div class="swatch" style="background:#332288"></div>Lipid metabolism</div></div>
-      </div>
-      <div class="legend-block">
-        <div class="legend-title">Model system</div>
-        <div class="legend-items">
-          <div class="legend-item">&#9679; In vitro</div>
-          <div class="legend-item">&#9650; Mice</div>
-          <div class="legend-item">&#9670; Zebrafish</div>
-          <div class="legend-item">&#9733; Drosophila</div>
-          <div class="legend-item">&#9632; Multi-model</div>
+    <div class="chart-card">
+      <div id="scatter-plot" style="height:640px"></div>
+      <div class="legend-strip">
+        <div class="legend-block">
+          <div class="legend-title">Category</div>
+          <div class="legend-items"><div class="legend-item"><div class="swatch" style="background:#117733"></div>Insulin responsiveness and glucose handling</div><div class="legend-item"><div class="swatch" style="background:#CC6677"></div>Insulin secretion</div><div class="legend-item"><div class="swatch" style="background:#CC8833"></div>Energy balance</div><div class="legend-item"><div class="swatch" style="background:#332288"></div>Lipid metabolism</div></div>
         </div>
-      </div>
-      <div class="legend-block">
-        <div class="legend-title">Scalability</div>
-        <div class="score-scale">
-          <div class="score-pip" style="background:#08519C">5</div>
-          <div class="score-pip" style="background:#3182BD">4</div>
-          <div class="score-pip" style="background:#6BAED6;color:#333">3</div>
-          <div class="score-pip" style="background:#BDD7E7;color:#333">2</div>
-          <div class="score-pip" style="background:#EFF3FF;color:#333;border:1px solid #ccc">1</div>
-          <span style="font-size:13px;color:var(--muted);margin-left:4px">High &#8594; Low</span>
+        <div class="legend-block">
+          <div class="legend-title">Model system</div>
+          <div class="legend-items">
+            <div class="legend-item">&#9679; In vitro</div>
+            <div class="legend-item">&#9650; Mice</div>
+            <div class="legend-item">&#9670; Zebrafish</div>
+            <div class="legend-item">&#9733; Drosophila</div>
+            <div class="legend-item">&#9632; Multi-model</div>
+          </div>
         </div>
-      </div>
-      <div class="legend-block">
-        <div class="legend-title">Translational relevance</div>
-        <div class="score-scale">
-          <div class="score-pip" style="background:#016C59">5</div>
-          <div class="score-pip" style="background:#1C9099">4</div>
-          <div class="score-pip" style="background:#67A9CF;color:#333">3</div>
-          <div class="score-pip" style="background:#BDC9E1;color:#333">2</div>
-          <div class="score-pip" style="background:#F1EEF6;color:#333;border:1px solid #ccc">1</div>
-          <span style="font-size:13px;color:var(--muted);margin-left:4px">High &#8594; Low</span>
+        <div class="legend-block">
+          <div class="legend-title">Scalability</div>
+          <div class="score-scale">
+            <div class="score-pip" style="background:#08519C">5</div>
+            <div class="score-pip" style="background:#3182BD">4</div>
+            <div class="score-pip" style="background:#6BAED6;color:#333">3</div>
+            <div class="score-pip" style="background:#BDD7E7;color:#333">2</div>
+            <div class="score-pip" style="background:#EFF3FF;color:#333;border:1px solid #ccc">1</div>
+            <span style="font-size:13px;color:var(--muted);margin-left:4px">High &#8594; Low</span>
+          </div>
+        </div>
+        <div class="legend-block">
+          <div class="legend-title">Translational relevance</div>
+          <div class="score-scale">
+            <div class="score-pip" style="background:#016C59">5</div>
+            <div class="score-pip" style="background:#1C9099">4</div>
+            <div class="score-pip" style="background:#67A9CF;color:#333">3</div>
+            <div class="score-pip" style="background:#BDC9E1;color:#333">2</div>
+            <div class="score-pip" style="background:#F1EEF6;color:#333;border:1px solid #ccc">1</div>
+            <span style="font-size:13px;color:var(--muted);margin-left:4px">High &#8594; Low</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- PANEL B -->
-<div class="panel" id="panel-matrix">
-  <div class="panel-sub">
-    Every assay with Scalability (SC, blue) and Translational Relevance (TR, teal) scores shown as colour-coded dots,
-    followed by the model system, assay name and the process it measures. <strong>Hover for full details.</strong>
-    Filter by category and sort using the controls below.
-  </div>
-  <div class="control-bar">
-    <div class="ctrl-group">
-      <span class="ctrl-label">Category</span>
-      <button class="ctrl-btn filter-btn all active" @click="setFilter('all')">All</button>
-      <button class="ctrl-btn filter-btn IR cat-ir" @click="setFilter('IR')">Insulin responsiveness and glucose handling</button>
-      <button class="ctrl-btn filter-btn IS cat-is" @click="setFilter('IS')">Insulin secretion</button>
-      <button class="ctrl-btn filter-btn EB cat-eb" @click="setFilter('EB')">Energy balance</button>
-      <button class="ctrl-btn filter-btn LM cat-lm" @click="setFilter('LM')">Lipid metabolism</button>
+  <!-- PANEL B -->
+  <div class="panel" id="panel-matrix">
+    <div class="panel-sub">
+      Every assay with Scalability (SC, blue) and Translational Relevance (TR, teal) scores shown as colour-coded dots,
+      followed by the model system, assay name and the process it measures. <strong>Hover for full details.</strong>
+      Filter by category and sort using the controls below.
     </div>
-    <div class="ctrl-divider"></div>
-    <div class="ctrl-group">
-      <span class="ctrl-label">Sort by</span>
-      <button class="cat sort-btn ctrl-btn active" @click="setSort('cat')">Category</button>
-      <button class="sc-desc sort-btn ctrl-btn" @click="setSort('sc-desc')">Scalability &#8595;</button>
-      <button class="tr-desc sort-btn ctrl-btn" @click="setSort('tr-desc')">Translational &#8595;</button>
-      <button class="sc-asc sort-btn ctrl-btn" @click="setSort('sc-asc')">Scalability &#8593;</button>
-      <button class="tr-asc sort-btn ctrl-btn" @click="setSort('tr-asc')">Translational &#8593;</button>
+    <div class="control-bar">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Category</span>
+        <button class="ctrl-btn filter-btn all active" @click="setFilter('all')">All</button>
+        <button class="ctrl-btn filter-btn IR cat-ir" @click="setFilter('IR')">Insulin responsiveness and glucose handling</button>
+        <button class="ctrl-btn filter-btn IS cat-is" @click="setFilter('IS')">Insulin secretion</button>
+        <button class="ctrl-btn filter-btn EB cat-eb" @click="setFilter('EB')">Energy balance</button>
+        <button class="ctrl-btn filter-btn LM cat-lm" @click="setFilter('LM')">Lipid metabolism</button>
+      </div>
+      <div class="ctrl-divider"></div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Sort by</span>
+        <button class="cat sort-btn ctrl-btn active" @click="setSort('cat')">Category</button>
+        <button class="sc-desc sort-btn ctrl-btn" @click="setSort('sc-desc')">Scalability &#8595;</button>
+        <button class="tr-desc sort-btn ctrl-btn" @click="setSort('tr-desc')">Translational &#8595;</button>
+        <button class="sc-asc sort-btn ctrl-btn" @click="setSort('sc-asc')">Scalability &#8593;</button>
+        <button class="tr-asc sort-btn ctrl-btn" @click="setSort('tr-asc')">Translational &#8593;</button>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div id="matrix-plot" style="min-height:400px"></div>
     </div>
   </div>
-  <div class="chart-card">
-    <div id="matrix-plot" style="min-height:400px"></div>
+    </div></div>
   </div>
-</div>
-  </div></div>
-</div>
-
-<footer class="kp-footer">Data: Physiological assays_EM.xlsx &nbsp;|&nbsp; Scores: 1 = lowest, 5 = highest</footer>
+  <footer>Data: Physiological assays_EM.xlsx &nbsp;|&nbsp; Scores: 1 = lowest, 5 = highest</footer>
 </div>
 </template>
-<style scoped>
+<style>
   /* Styled after the Knowledge Portal pages (hugeamp.org): Roboto/Arial, #eee page,
     #0077b6 header and footer bands, white cards, light-blue intro and filter panels. */
   :root {
