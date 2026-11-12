@@ -10,12 +10,7 @@ Vue.config.productionTip = false;
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import uiUtils from "@/utils/uiUtils";
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert
-} from "@/components/Alert";
+import Alert from "@/components/Alert";
 import InteractiveKP from "./components/InteractiveKP.vue";
 import TissueExplorer from "./components/TissueExplorer.vue";
 

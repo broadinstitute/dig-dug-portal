@@ -224,7 +224,7 @@ export default Vue.component("tissue-explorer", {
 
             const nm = this.scopeModels().length;
             let st;
-            if (a) st = `<b>${esc(a.assay)}</b> can be used with <b>${assayModels(a).length}</b> of the ${D.models.length} models`;
+            if (a) st = `<b>${esc(a.assay)}</b> can be used with <b>${this.assayModels(a).length}</b> of the ${D.models.length} models`;
             else if (act) st = `<b>${nm}</b> model${nm === 1 ? "" : "s"} selected · <b>${act.size}</b> compatible in vitro assays`;
             else st = `Showing all ${D.tissues.length} tissues, ${D.models.length} models and ${D.assays.length} assays`;
             document.getElementById("status").innerHTML = st;
@@ -366,7 +366,7 @@ export default Vue.component("tissue-explorer", {
             const box = document.getElementById("assay-detail");
             if (!S.assay) { box.innerHTML = ""; return; }
             const a = assayById[S.assay];
-            const ms = assayModels(a);
+            const ms = this.assayModels(a);
             let compat;
             if (!a.invitro) compat = `<i>Not an in vitro assay (${esc(a.model_raw)}) — not linked to the in vitro models.</i>`;
             else if (!ms.length) compat = `<i>No in vitro models listed for this category.</i>`;
