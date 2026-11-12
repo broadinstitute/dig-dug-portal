@@ -1,3 +1,4 @@
+<!-- Adapted from Endrina's LLM generated html files.-->
 <template>
     <div>
         <div class="kp-body">

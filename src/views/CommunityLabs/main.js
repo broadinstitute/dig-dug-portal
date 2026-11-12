@@ -1,3 +1,4 @@
+// Adapted from Endrina's LLM generated html files.
 import Vue from "vue";
 import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
