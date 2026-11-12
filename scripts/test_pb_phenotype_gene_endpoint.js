@@ -9,11 +9,12 @@ async function main() {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "pb-phenotype-gene-"));
     const file = path.join(root, "associations.jsonl.gz");
     const rows = [
-        { gene: "SCN1A", associations: [{ hpo_id: "HP:0001250", q_significant: true,
+        { gene: "SCN1A", n_q_significant: 7, n_q_significant_by_gene: 1, n_tested_hpos: 5000, n_associations: 1, associations: [{ hpo_id: "HP:0001250", q_significant: true, q_significant_by_gene: false, q_significant_by_hpo: true, q_by_gene: .7,
             positive_direction: true, beta_gene_score_sum_approx: 2, se_gene_score_sum_approx: .5, n_samples: 15574, odds_ratio_approx: 4, ci_lower_approx: Math.exp(1.02),
             ci_upper_approx: Math.exp(2.98), p_value: 0.001, q_by_hpo: 0.01 }] },
         { gene: "NEGATIVE", associations: [{ hpo_id: "HP:0001250", q_significant: true,
             positive_direction: false, odds_ratio_approx: 0.5, q_by_hpo: 0.002 }] },
+        { gene: 'LARGE', n_q_significant: 99, n_q_significant_by_gene: 2, associations: Array.from({length: 31}, (_, index) => ({hpo_id: 'HP:' + String(index + 1).padStart(7, '0'), p_value: .0001 + index / 10000, q_by_gene: index < 2 ? .01 : .4, q_by_hpo: .001, q_significant: true, q_significant_by_gene: index < 2, positive_direction: index % 2 === 0})) },
     ];
     fs.writeFileSync(file, zlib.gzipSync(rows.map(row => JSON.stringify(row)).join("\n") + "\n"));
     const handlers = {};
@@ -40,6 +41,16 @@ async function main() {
     await handlers["/__gene_hpo_associations__"]({ query: { gene: "SCN1A" } }, response);
     assert.equal(response.payload.associations[0].betaPer0_1Grs, association.betaPer0_1Grs);
     assert.equal(response.payload.associations[0].oddsRatio, 4, 'Existing raw OR remains available');
+    assert.equal(response.payload.associations[0].qValue, .7, 'Gene q uses the gene testing family, not the HPO-wise q');
+    assert.equal(response.payload.associations[0].qSignificant, false, 'Legacy HPO significance is not used on Gene');
+    assert.equal(response.payload.nQSignificant, 1);
+    assert.equal(response.payload.nTestedHpos, 5000);
+    await handlers['/__gene_hpo_associations__']({query: {gene: 'LARGE'}}, response);
+    assert.equal(response.payload.associations.length, 31, 'All delivered rows are returned without a top-15 cutoff');
+    assert.equal(response.payload.associations.filter(row => row.qSignificant).length, 2);
+    assert.equal(response.payload.associations.filter(row => !row.positiveDirection).length, 15, 'Negative directions remain in the delivery');
+    await handlers['/__gene_hpo_associations__']({query: {gene: 'NEGATIVE'}}, response);
+    assert.equal(response.payload.associations[0].qValue, null, 'A missing gene-wise q is not replaced by HPO-wise q');
     fs.unlinkSync(file);
     fs.rmdirSync(root);
     console.log("PB_PHENOTYPE_GENE_ENDPOINT_PASS");

@@ -15,7 +15,7 @@ function finiteNumber(value) {
     return Number.isFinite(number) ? number : null;
 }
 
-function projectAssociation(row) {
+function projectAssociation(row, scope = 'gene') {
     const hpoId = String(row.hpo_id || "");
     const coefficientBoundary = value => {
         const odds = finiteNumber(value);
@@ -29,7 +29,7 @@ function projectAssociation(row) {
         nSamples: finiteNumber(row.n_samples),
         betaCiLow: coefficientBoundary(row.ci_lower_approx),
         betaCiHigh: coefficientBoundary(row.ci_upper_approx),
-        sourceRelease: process.env.PB_GENE_HPO_RELEASE_ID || "gene_hpo_release_20260905",
+        sourceRelease: process.env.PB_GENE_HPO_RELEASE_ID || "configured_gene_hpo_release",
         model: "binomial_logit_mixed_score_test",
         modelFormula: row.model_formula || null,
         outcome: "hpo_binary",
@@ -38,8 +38,11 @@ function projectAssociation(row) {
         ciLow: finiteNumber(row.ci_lower_approx),
         ciHigh: finiteNumber(row.ci_upper_approx),
         pValue: finiteNumber(row.p_value),
-        qValue: finiteNumber(row.q_by_hpo),
-        qSignificant: row.q_significant === true,
+        qValue: finiteNumber(scope === 'gene' ? row.q_by_gene : row.q_by_hpo),
+        qSignificant: scope === 'gene' ? row.q_significant_by_gene === true : (row.q_significant_by_hpo ?? row.q_significant) === true,
+        qByGene: finiteNumber(row.q_by_gene),
+        qByHpo: finiteNumber(row.q_by_hpo),
+        qScope: scope === 'gene' ? 'within_gene' : 'within_hpo',
         positiveDirection: row.positive_direction === true,
         rank: Number(row.rank) || null,
     });
@@ -57,8 +60,10 @@ async function readGene(filePath, gene) {
             return {
                 gene,
                 selectionRule: record.selection_rule || "",
-                nQSignificant: Number(record.n_q_significant) || 0,
-                associations: (Array.isArray(record.associations) ? record.associations : []).map(projectAssociation),
+                nQSignificant: finiteNumber(record.n_q_significant_by_gene),
+                nTestedHpos: finiteNumber(record.n_tested_hpos),
+                nAssociations: finiteNumber(record.n_associations),
+                associations: (Array.isArray(record.associations) ? record.associations : []).map(row => projectAssociation(row, 'gene')),
             };
         }
         return { gene, selectionRule: "", nQSignificant: 0, associations: [] };
@@ -78,9 +83,9 @@ async function readHpo(filePath, hpoId) {
         for await (const line of lines) {
             const record = JSON.parse(line);
             const match = (Array.isArray(record.associations) ? record.associations : [])
-                .find(row => row.hpo_id === hpoId && row.q_significant === true && row.positive_direction === true);
+                .find(row => row.hpo_id === hpoId && (row.q_significant_by_hpo ?? row.q_significant) === true && row.positive_direction === true);
             if (!match) continue;
-            const projected = projectAssociation(match);
+            const projected = projectAssociation(match, 'hpo');
             const perTenth = value => value == null || value <= 0 ? null : Math.pow(value, 0.1);
             associations.push({ gene: String(record.gene || ""), ...projected,
                 oddsRatio: perTenth(projected.oddsRatio), ciLow: perTenth(projected.ciLow),
@@ -97,6 +102,10 @@ async function readHpo(filePath, hpoId) {
 }
 
 module.exports = function registerGeneHpoAssociationEndpoint(app, filePath) {
+    function sourceKey() {
+        const stat = fs.statSync(filePath);
+        return `${filePath}:${stat.size}:${stat.mtimeMs}:${process.env.PB_GENE_HPO_RELEASE_ID || ''}:page-q-v2`;
+    }
     app.get("/__hpo_gene_associations__", async (request, response) => {
         response.set("Cache-Control", "private, no-store");
         const hpoId = String(request.query.hpo || "").trim().toUpperCase();
@@ -109,7 +118,7 @@ module.exports = function registerGeneHpoAssociationEndpoint(app, filePath) {
             return;
         }
         try {
-            const key = `hpo:${hpoId}`;
+            const key = `${sourceKey()}:hpo:${hpoId}`;
             if (!cache.has(key)) {
                 if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value);
                 cache.set(key, readHpo(filePath, hpoId).catch(error => { cache.delete(key); throw error; }));
@@ -131,14 +140,15 @@ module.exports = function registerGeneHpoAssociationEndpoint(app, filePath) {
             return;
         }
         try {
-            if (!cache.has(gene)) {
+            const key = `${sourceKey()}:gene:${gene}`;
+            if (!cache.has(key)) {
                 if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value);
-                cache.set(gene, readGene(filePath, gene).catch(error => {
-                    cache.delete(gene);
+                cache.set(key, readGene(filePath, gene).catch(error => {
+                    cache.delete(key);
                     throw error;
                 }));
             }
-            response.json(await cache.get(gene));
+            response.json(await cache.get(key));
         } catch (error) {
             response.status(502).json({ error: "Gene-HPO associations could not be loaded." });
         }

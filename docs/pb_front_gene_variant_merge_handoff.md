@@ -1,6 +1,6 @@
 # PB Portal Front, Gene, Variant, and Phenotype Implementation Handoff
 
-- Updated: 2026-08-16
+- Updated: 2026-11-12 (precomputed gene-HPO data contract; prior carrier updates retained)
 - Source branch: `kyuryung/bch-prototype`
 - Required feature commits: `a58f3a7a` through `f604dfa3`
 - Audience: engineer or coding agent integrating the mockup into the authenticated BCH test server
@@ -132,6 +132,12 @@ Recent UI decisions that must be preserved:
 
 ## 3. Precomputed gene-HPO burden associations
 
+The November 12 [DB import contract](pb_gene_context_association_engineering_handoff.md#precomputed-association-db-import--november-12-2026)
+is authoritative for this section. Import the single runtime file
+`/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/single_gene_burden_with_HPO/gene_hpo_release_20261112/browser_gene_hpo.jsonl.gz`
+(360,812,435 bytes; 17,952 genes; 2,337,904 PASS p<0.05 pairs). The full archive
+and build records under `internal/` are not needed for runtime ingestion.
+
 The portal displays completed results; it does not run the burden analysis.
 Use one approved result table and publish two query indexes over that same
 table:
@@ -141,7 +147,10 @@ table:
 | `gene-hpo-burden-by-gene` | `gene_symbol` | PB Gene `Top phenotype associations` |
 | `gene-hpo-burden-by-hpo` | `hpo_id` | PB Phenotype `Top associated genes` |
 
-Both indexes must return the same rows. Required fields:
+Both indexes refer to the same underlying pairs. Carry the JSONL record's
+`gene` into the indexed `gene_symbol`. Preserve both stored q fields and choose
+the displayed q by page. This example shows a normalized indexed row, not
+literal production values:
 
 ```json
 {
@@ -152,7 +161,8 @@ Both indexes must return the same rows. Required fields:
   "ci_low": 1.60,
   "ci_high": 2.97,
   "p_value": 0.000001,
-  "q_value_global": 0.0001,
+  "q_by_gene": 0.0001,
+  "q_by_hpo": 0.0002,
   "analysis_sample_count": 15000,
   "model_version": "...",
   "burden_score_version": "...",
@@ -172,11 +182,16 @@ OR = exp(beta)
   burden score.
 - The same `(gene, HPO)` OR is shown on both pages. Never invert it and never
   rerun a reverse model for the Phenotype page.
-- The result publisher, not the browser, applies the approved positive-effect,
-  p-value, and global-FDR filters. The intended thresholds are `p < 0.05` and
-  the analysis-approved global `q` threshold (`0.05` or `0.10`).
-- Sort displayed rows by `q_value_global`, then `p_value`. Do not describe OR
-  magnitude as a valid ranking across genes.
+- The delivery contains every PASS `p < 0.05` pair, both beta directions,
+  without a top-15 or q filter. Both q values were calculated before this
+  filtering; do not recalculate them from the import or displayed subset.
+- Gene q is BH-adjusted across PASS HPOs within one gene (`q_by_gene`).
+  Phenotype q is BH-adjusted across PASS genes within one HPO (`q_by_hpo`).
+  There is no `q_value_global` in this release, and the two displayed q values
+  need not match for a shared pair.
+- Initial Gene order is p-value ascending, then HPO ID. Q sorting/filtering
+  and exports must use the page-specific q. Do not describe OR magnitude as
+  a valid ranking across genes.
 - Display `analysis_sample_count` from the fitted model, not a general cohort
   total.
 - If no rows pass, show `No passing precomputed associations`; do not load the
@@ -192,7 +207,7 @@ Map the live row to the existing Gene component shape as follows:
 | `ci_low` | `ciLow` |
 | `ci_high` | `ciHigh` |
 | `p_value` | `pValue` |
-| `q_value_global` | `qValue` |
+| `q_by_gene` (Gene) / `q_by_hpo` (Phenotype) | `qValue` |
 
 Remove the `genePhenotypeAssociations` mock import from the live Gene state
 once this source is connected.
@@ -383,9 +398,10 @@ Browser acceptance checklist:
 - [ ] A known exact variant maps to its gene and returns distinct exact carriers.
 - [ ] BioIndex network requests use the authenticated private same-origin route,
       not the public fallback.
-- [ ] Gene and Phenotype show the identical OR, p-value, q-value, and model N
-      for the same gene-HPO pair.
-- [ ] Gene-HPO rows are ordered by global q-value, then p-value.
+- [ ] Gene and Phenotype retain identical raw beta/SE/OR, p-value and model N
+      for the same pair; Gene displays `q_by_gene` and Phenotype `q_by_hpo`.
+- [ ] Gene initially lists all delivered p<0.05 rows in p-value/HPO-ID order
+      across pagination; page-specific q is used for q sorting and filtering.
 - [ ] A single HPO term shows definition, immediate ontology relations,
       Orphanet diseases, diagnostic criteria, and all available related genes.
 - [ ] Two or more HPO terms switch to profile view and refresh with real API data.
@@ -405,7 +421,8 @@ The implementing agent should return only verifiable evidence:
 4. automated test and build results;
 5. browser screenshots for Front, a live Gene, a live Variant, one HPO term,
    and a multi-HPO profile;
-6. one cross-page gene-HPO row proving identical OR/p/q/model N;
+6. one shared gene-HPO row proving identical raw effect/p/model N and correct
+   Gene `q_by_gene` versus Phenotype `q_by_hpo` mapping;
 7. confirmation that all mock phenotype statistics and sample rows were removed.
 
 ## Related repository documentation

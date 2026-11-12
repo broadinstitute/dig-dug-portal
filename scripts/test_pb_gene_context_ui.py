@@ -233,7 +233,7 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn("overflow-wrap: anywhere", STYLE[classification_start:classification_end])
         self.assertIn('.replace(/_/g, " ")', CLINVAR_BADGE)
         self.assertIn(".split(/[&,;|/]+/)", CLINVAR_BADGE)
-        self.assertIn("Unavailable — the live BioIndex gene index does not provide an NCBI summary.", ADAPTER)
+        self.assertIn("NCBI summary unavailable", ADAPTER)
 
     def test_match_score_help_and_desktop_variant_table_are_lightweight(self):
         self.assertIn('class="pbg-score-help"', TEMPLATE)

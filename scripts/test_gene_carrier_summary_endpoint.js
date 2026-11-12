@@ -1,5 +1,10 @@
 const assert = require("assert");
-const register = require("./gene_carrier_summary_endpoint");
+const registerEndpoint = require("./gene_carrier_summary_endpoint");
+function register(app, ...args) {
+    // Feed parsed request bodies directly to the endpoint under test.
+    app.post = (path, ...callbacks) => app.get(path, callbacks[callbacks.length - 1]);
+    return registerEndpoint(app, ...args, {diskCache:false});
+}
 
 const sampleA = "TEST-A_G38";
 const sampleB = "TEST-B_G38";
@@ -84,6 +89,8 @@ async function waitForReady(query) {
         [{ label: "female", count: 1 }, { label: "male", count: 1 }]);
     assert.deepStrictEqual(gene.geneCarrierDemographics.byProject,
         [{ project: "Project Alpha", count: 1 }, { project: "Project Beta", count: 1 }]);
+    assert.deepStrictEqual(gene.geneCarrierDemographics.projectInvestigators,
+        { 'Project Alpha': ['test'], 'Project Beta': ['test'] }, 'Investigator labels are connected to their source projects');
     assert.deepStrictEqual(gene.geneCarrierDemographics.byAge,
         [{ band: "10-13", count: 1 }, { band: "Unknown", count: 1 }]);
     assert.ok(!JSON.stringify(gene).includes(sampleA));
@@ -116,6 +123,32 @@ async function waitForReady(query) {
     assert.deepStrictEqual(variant.observedPhenotypes.find(row => row.hpoId === "HP:0001250"),
         { hpoId: "HP:0001250", count: 1, denominator: 1 });
     assert.strictEqual(requests.filter(path => path.endsWith(sampleA)).length, 1);
+
+    const selection = variantIds => new Promise(resolve => handlers['/__gene_carrier_demographics__'](
+        {body:{gene:'TEST',variant_ids:variantIds}}, {set(){},json:resolve,status(code){throw new Error(`Unexpected ${code}`);}}
+    ));
+    const selectedReady = async variantIds => {
+        for (let attempt=0;attempt<30;attempt++) {
+            const result=await selection(variantIds);
+            if(result.status==='ready')return result;
+            await new Promise(resolve=>setTimeout(resolve,5));
+        }
+        throw new Error('Filtered demographics did not finish');
+    };
+    const readsBeforeSelection=requests.length;
+    const subset=await selectedReady([variantA]);
+    assert.strictEqual(subset.carrierTotal,1);
+    assert.deepStrictEqual(subset.geneCarrierDemographics.byProject,[{project:'Project Alpha',count:1}]);
+    assert.deepStrictEqual(subset.geneCarrierDemographics.bySex,[{label:'female',count:1}]);
+    assert.deepStrictEqual(subset.geneCarrierDemographics.byAge,[{band:'10-13',count:1}]);
+    assert.deepStrictEqual(subset.geneCarrierDemographics.byAffected,[{label:'Yes',count:1}]);
+    const union=await selectedReady([variantB,variantA,variantA]);
+    assert.strictEqual(union.carrierTotal,2,'A carrier shared by selected variants is counted once');
+    assert.deepStrictEqual(union.geneCarrierDemographics.byProject,gene.geneCarrierDemographics.byProject);
+    assert.deepStrictEqual(union.geneCarrierDemographics.projectInvestigators,gene.geneCarrierDemographics.projectInvestigators);
+    assert.strictEqual(requests.length,readsBeforeSelection,'Selections reuse loaded gene metadata without more BioIndex requests');
+    assert.strictEqual((await selectedReady([])).carrierTotal,0);
+    assert.ok(!JSON.stringify(union).includes(sampleA) && !JSON.stringify(union).includes(sampleB),'Only aggregate demographics leave the server');
 
     // A failed BioIndex lookup must not become a cached "ready, 0 metadata" result.
     const retryHandlers = {};
@@ -292,6 +325,19 @@ async function waitForReady(query) {
         [{ project: "Project Beta", count: 1 }]);
     assert(authCalls.length >= 4);
     assert(authCalls.every(call => call.token === "session-one" || call.token === "session-two"));
+    const authenticatedSelection = async token => {
+        for(let attempt=0;attempt<30;attempt++) {
+            const result=await new Promise(resolve=>authHandlers['/__gene_carrier_demographics__'](
+                {body:{gene:'TEST',variant_ids:[authVariant]},headers:{cookie:`session=${token}`}},
+                {set(){},json:resolve,status(code){throw new Error(`Unexpected ${code}`);}}
+            ));
+            if(result.status==='ready')return result;
+            await new Promise(resolve=>setTimeout(resolve,5));
+        }
+        throw new Error('Authenticated selection did not finish');
+    };
+    assert.deepStrictEqual((await authenticatedSelection('session-one')).geneCarrierDemographics.byProject,[{project:'Project Alpha',count:1}]);
+    assert.deepStrictEqual((await authenticatedSelection('session-two')).geneCarrierDemographics.byProject,[{project:'Project Beta',count:1}],'Filtered summary caches remain session-scoped');
     // One slow sample must not hold all later 120-sample batches hostage.
     const streamingHandlers = {};
     const streamingIds = Array.from({length: 150}, (_, index) => `STREAM-${index}_G38`);
@@ -303,7 +349,7 @@ async function waitForReady(query) {
         if (parsed.pathname.endsWith('/samples-info')) {
             const id = parsed.searchParams.get('q');
             if (id === streamingIds[0]) await slowSample;
-            return {ok:true,json:async()=>({data:[{SampleInVCF:id,sex:'female',Project:'Streaming',genes:['TEST'],phenotypes:[]}]})};
+            return {ok:true,json:async()=>({data:[{SampleInVCF:id,sex:'female',Project:'Streaming',investigator: id === streamingIds[0] ? 'Investigator A' : 'Investigator B',genes:['TEST'],phenotypes:[]}]})};
         }
         throw new Error('Unexpected streaming request');
     };
@@ -325,6 +371,8 @@ async function waitForReady(query) {
     }
     assert.strictEqual(streaming.status,'ready');
     assert.strictEqual(streaming.matchedMetadataCount,150);
+    assert.deepStrictEqual(streaming.geneCarrierDemographics.projectInvestigators.Streaming, ['Investigator A', 'Investigator B'], 'Multiple investigators in one project are deduplicated');
+    assert.deepStrictEqual(streaming.geneCarrierDemographics.byProject, [{project:'Streaming',count:150}], 'Investigator associations do not inflate project carrier counts');
     console.log("Gene and variant carrier summaries, scoped cache and streaming progress: PASS");
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => {
     global.fetch = originalFetch;

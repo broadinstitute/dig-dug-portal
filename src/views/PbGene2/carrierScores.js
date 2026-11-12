@@ -54,6 +54,14 @@ const carrierScoreMixin = {
     watch: { carrierScoreRequestKey: { immediate: true, handler() { this.loadIndividualCarrierScores(); } } },
     beforeDestroy() { this.carrierScoreSequence++; },
     methods: {
+        scoredCarrierCount(row) {
+            if (!this.appliedContext) return '—';
+            const count = row.phenotypeMatchScoredCarrierCount;
+            return referenceAvailable(this.appliedContext.reference) && Number.isInteger(count) && count >= 0 ? count.toLocaleString() : 'Unavailable';
+        },
+        scoredCarrierTitle(row) {
+            return !this.appliedContext ? 'Apply a phenotype profile to see scoring coverage.' : `${this.scoredCarrierCount(row)} scored / ${row.phenotypeMatchCarrierCount == null ? 'unknown' : row.phenotypeMatchCarrierCount} analysis-eligible carriers; ${row.carrierCount} total observed variant carriers. Scored does not mean HPO-positive.`;
+        },
         scoredCarrierCoverage(row) {
             if (!this.appliedContext) return 'no context';
             const count = row.phenotypeMatchScoredCarrierCount;

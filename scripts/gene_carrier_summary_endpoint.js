@@ -1,7 +1,12 @@
 // Aggregate private samples-info records for the Gene summary cards.
-// Responses contain counts only; no sample identifiers or individual metadata.
+// Responses contain aggregate counts and project-level investigator labels;
+// no sample identifiers or individual metadata.
 const crypto = require("crypto");
 const cookie = require("cookie");
+const express = require("express");
+const os = require('os');
+const path = require('path');
+const { openCarrierDiskCache } = require('./gene_carrier_disk_cache');
 const MAX_PAGES = 100;
 const SAMPLE_CONCURRENCY = 12;
 const MAX_GENE_CACHE = 5;
@@ -94,6 +99,7 @@ function createSummary(gene, carrierTotal) {
     const sex = new Map();
     const investigator = new Map();
     const project = new Map();
+    const projectInvestigators = new Map();
     const affected = new Map();
     const genes = new Map();
     const hpos = new Map();
@@ -114,6 +120,10 @@ function createSummary(gene, carrierTotal) {
             add(sex, info.sex);
             add(investigator, info.investigator);
             add(project, info.project);
+            if (info.project && info.investigator) {
+                if (!projectInvestigators.has(info.project)) projectInvestigators.set(info.project, new Set());
+                projectInvestigators.get(info.project).add(info.investigator);
+            }
             add(affected, info.affected);
             for (const symbol of info.genes) {
                 if (symbol !== gene) add(genes, symbol);
@@ -132,6 +142,7 @@ function createSummary(gene, carrierTotal) {
                         .map(band => ({ band, count: age.get(band) })),
                     byInvestigator: rowsFromCounts(investigator, "inv"),
                     byProject: rowsFromCounts(project, "project"),
+                    projectInvestigators: Object.fromEntries([...projectInvestigators].map(([name, investigators]) => [name, [...investigators].sort()])),
                     bySex: rowsFromCounts(sex, "label"),
                     byAffected: rowsFromCounts(affected, "label"),
                 },
@@ -141,14 +152,22 @@ function createSummary(gene, carrierTotal) {
     };
 }
 
-module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) {
+module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, options = {}) {
     const geneCache = new Map();
     const sampleCache = new Map();
     const jobs = new Map();
+    const selectedJobs = new Map();
+    const diskContexts = new Map();
     const highQueue = [];
     const lowQueue = [];
     let active = 0;
     let sampleCacheBytes = 0;
+
+    require('./gene_variant_hpo_counts_endpoint')(app, {
+        accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
+        carriersForGene,
+        sampleInfo: (id, token) => sampleInfo(id, true, token),
+    });
 
     function removeCachedSample(key, entry) {
         if (sampleCache.get(key) !== entry) return;
@@ -171,6 +190,25 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             : "anonymous";
     }
 
+    function diskCache(accessToken) {
+        if (options.diskCache === false) return Promise.resolve(null);
+        const scope=accessScope(accessToken);
+        if (!diskContexts.has(scope)) {
+            const pending=(async()=>{
+                const indexes=await read('/api/bio/indexes',{},10000,accessToken);
+                const sources=['samples-info','gene-variants-crdc'].map(name=>{
+                    const row=(indexes.data||[]).find(value=>value.index===name);
+                    if(!row || !row.built)throw new Error('Cannot verify carrier cache source version');
+                    return [name,row.built,row.schema];
+                });
+                const namespace=crypto.createHash('sha256').update(JSON.stringify([bioIndexBase,scope,sources])).digest('hex');
+                return openCarrierDiskCache(process.env.PB_GENE_CARRIER_CACHE_DIR || path.join(os.tmpdir(),'pb-gene-carrier-cache-v1'),namespace);
+            })().catch(()=>null);
+            diskContexts.set(scope,pending);
+        }
+        return diskContexts.get(scope);
+    }
+
     async function read(path, params, timeoutMs = 60000, accessToken = "") {
         const url = new URL(path, `${bioIndexBase.replace(/\/$/, "")}/`);
         for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
@@ -186,6 +224,9 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
     }
 
     async function readSample(id, accessToken) {
+        const disk=await diskCache(accessToken);
+        const stored=disk && disk.getSample(id);
+        if(stored)return stored;
         for (let attempt = 0; attempt < 3; attempt += 1) {
             try {
                 const payload = await read("/api/bio/query/samples-info",
@@ -196,7 +237,7 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
                 if (DEBUG_SAMPLE_LOOKUPS && !info) {
                     console.warn(`[gene-carrier-summary] samples-info ${row ? "ID mismatch" : "no row"}`);
                 }
-                if (info || attempt === 2) return info;
+                if (info || attempt === 2) { if(info && disk)disk.putSample(id,info); return info; }
                 await new Promise(resolve => setTimeout(resolve, 250 * (attempt + 1)));
             } catch (error) {
                 if (DEBUG_SAMPLE_LOOKUPS) {
@@ -212,6 +253,9 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
         const cacheKey = `${accessScope(accessToken)}|${gene}`;
         if (geneCache.has(cacheKey)) return geneCache.get(cacheKey);
         const pending = (async () => {
+            const disk=await diskCache(accessToken);
+            const stored=disk && await disk.getCarriers(gene);
+            if(stored)return stored;
             const all = new Set();
             const byVariant = new Map();
             let page = await read("/api/bio/query/gene-variants-crdc", { q: gene }, 60000, accessToken);
@@ -231,7 +275,9 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
                 }
                 page = page.continuation ? await read("/api/bio/cont", { token: page.continuation }, 60000, accessToken) : null;
             }
-            return { all, byVariant };
+            const result={ all, byVariant };
+            if(disk)disk.putCarriers(gene,result);
+            return result;
         })();
         geneCache.set(cacheKey, pending);
         pending.catch(() => geneCache.delete(cacheKey));
@@ -306,6 +352,14 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             if (!ids) throw new Error("Variant is unavailable for this gene");
             const sampleIds = [...ids];
             job.total = sampleIds.length;
+            const disk=await diskCache(accessToken);
+            const stored=!requestedVariant && !refreshAttemptCount && disk && await disk.getSummary(gene);
+            if(stored && stored.carrierTotal===sampleIds.length && stored.matchedMetadataCount===sampleIds.length &&
+                sampleIds.every(id=>disk.getSample(id))) {
+                job.result=stored;job.completed=sampleIds.length;job.status='ready';
+                for(const id of sampleIds) { const info=disk.getSample(id); if(info)job.filterInfo.set(id,info); }
+                return;
+            }
             job.summary = createSummary(gene, sampleIds.length);
             let nextSample = 0;
             const workers = Array.from({ length: Math.min(SAMPLE_CONCURRENCY * 2, sampleIds.length) }, async () => {
@@ -325,12 +379,72 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase) 
             job.summary = null;
             job.snapshot = null;
             job.status = "ready";
+            if(!requestedVariant && disk && job.result.matchedMetadataCount===job.total)disk.putSummary(gene,job.result);
         })().catch(error => {
             job.error = String(error && error.message ? error.message : error);
             job.status = "error";
         });
         return job;
     }
+
+    app.post("/__gene_carrier_demographics__", express.json({ limit: "1mb" }), (request, response) => {
+        response.set("Cache-Control", "private, no-store");
+        response.set("X-Content-Type-Options", "nosniff");
+        const gene = String((request.body || {}).gene || "").trim().toUpperCase();
+        const requested = (request.body || {}).variant_ids;
+        if (!/^[A-Z0-9][A-Z0-9.-]{0,31}$/.test(gene) || !Array.isArray(requested) || requested.length > 20000 ||
+            requested.some(id => typeof id !== 'string' || !/^chr(?:[0-9]{1,2}|X|Y|M|MT):[1-9][0-9]*:[ACGTN*.-]+:[ACGTN*.,-]+$/i.test(id))) {
+            response.status(400).json({ error: "Enter a valid gene and variant selection." });
+            return;
+        }
+        if (!bioIndexBase) { response.status(503).json({ error: "Private BioIndex is not configured." }); return; }
+        const variants = [...new Set(requested)].sort();
+        if (!variants.length) {
+            const empty = createSummary(gene, 0).snapshot();
+            response.json({ status: 'ready', completed: 0, total: 0, carrierTotal: 0, matchedMetadataCount: 0, geneCarrierDemographics: empty.geneCarrierDemographics });
+            return;
+        }
+        const accessToken = cookie.parse((request.headers && request.headers.cookie) || "").session || "";
+        const scope = accessScope(accessToken);
+        const key = `${scope}|${gene}|${crypto.createHash('sha256').update(JSON.stringify(variants)).digest('hex')}`;
+        let job = selectedJobs.get(key);
+        if (!job) {
+            job = { status: 'loading', completed: 0, total: 0, summary: null, error: null };
+            selectedJobs.set(key, job);
+            if (selectedJobs.size > 20) selectedJobs.delete(selectedJobs.keys().next().value);
+            (async () => {
+                const carrierSets = await carriersForGene(gene, accessToken);
+                const selected = new Set();
+                for (const id of variants) {
+                    const carriers = carrierSets.byVariant.get(id);
+                    if (!carriers) throw new Error('A selected variant is unavailable for this gene.');
+                    for (const sample of carriers) selected.add(sample);
+                }
+                const ids = [...selected];
+                job.total = ids.length;
+                job.summary = createSummary(gene, ids.length);
+                let next = 0;
+                await Promise.all(Array.from({ length: Math.min(SAMPLE_CONCURRENCY * 2, ids.length) }, async () => {
+                    while (next < ids.length && job.status === 'loading') {
+                        const id = ids[next++];
+                        const geneJob = jobs.get(`${scope}|${gene}|`);
+                        const cached = geneJob && geneJob.filterInfo;
+                        const info = cached && cached.has(id) ? cached.get(id) : await sampleInfo(id, true, accessToken);
+                        // Only demographics are aggregated. Reuse gene-level metadata when present;
+                        // the union above counts a person once even if they carry several selected variants.
+                        job.summary.add(info && { ...info, genes: [], hpoIds: null });
+                        job.completed += 1;
+                    }
+                }));
+                job.status = 'ready';
+            })().catch(error => { job.error = String(error.message || error); job.status = 'error'; });
+        }
+        const snapshot = job.summary && job.summary.snapshot();
+        response.json({ status: job.status, completed: job.completed, total: job.total,
+            ...(snapshot ? { carrierTotal: snapshot.carrierTotal, matchedMetadataCount: snapshot.matchedMetadataCount, geneCarrierDemographics: snapshot.geneCarrierDemographics } : {}),
+            ...(job.error ? { error: job.error } : {}) });
+        if (job.status === 'error') selectedJobs.delete(key);
+    });
 
     app.get("/__gene_carrier_summary__", (request, response) => {
         response.set("Cache-Control", "private, no-store");

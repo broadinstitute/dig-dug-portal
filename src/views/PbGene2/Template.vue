@@ -1,7 +1,7 @@
 <template>
     <div>
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents" />
-        <main class="container-fluid mdkp-body pbg-page pg2-page">
+        <main class="container-fluid mdkp-body pbg-page pg2-page" :class="{ 'pg2-info-reserved': infoRailReserved }">
             <div class="pbg-shell">
                 <div class="pbg-toolbar">
                     <div class="pbg-toolbar-left">
@@ -50,62 +50,51 @@
                 <template v-if="liveDataLoaded">
                     <section class="pg2-card pg2-overview">
                         <gene-identity :gene-info="geneInfo" />
-                        <div class="pg2-metrics">
-                            <div><span>Distinct carriers</span><strong>{{ Number(totalGeneCarriers).toLocaleString() }}</strong></div>
-                            <div><span>Variants with carriers</span><strong>{{ variantRows.length.toLocaleString() }}</strong></div>
-                            <div><span>Variants with prediction annotations <help-tooltip label="About prediction annotation coverage" text="Variants with at least one LoFTEE, AlphaMissense or REVEL annotation. This counts available annotations, not pathogenic clinical diagnoses." /></span><strong>{{ predictionAnnotatedVariantCount.toLocaleString() }} <small>/ {{ variantRows.length.toLocaleString() }}</small></strong></div>
-                            <div><span>Phenotype associations</span><strong>{{ genePhenotypeAssociations.length.toLocaleString() }}</strong></div>
-                        </div>
-                        <div class="pg2-variant-mix"><span>ClinVar</span><button v-for="item in variantMix.clinvar" :key="item.label" type="button" class="pg2-mix-item" :class="{ 'pg2-mix-active': variantFilters.clinvar.includes(item.label) }" :aria-pressed="String(variantFilters.clinvar.includes(item.label))" @click="toggleVariantFilter('clinvar', item.label)">{{ item.label }} <strong>{{ item.count }}</strong></button></div>
-                        <div class="pg2-variant-mix"><span>Consequence / annotation</span><button v-for="item in variantMix.consequence" :key="item.label" type="button" class="pg2-mix-item" :title="item.label === 'Missense' ? 'Missense consequence: an amino-acid substitution.' : 'All non-missense consequences, including frameshift, stop-gained and splice variants. This is not a clinical classification.'" :class="{ 'pg2-mix-active': variantFilters.consequence.includes(item.label) }" :aria-pressed="String(variantFilters.consequence.includes(item.label))" @click="toggleVariantFilter('consequence', item.label)">{{ item.label }} <strong>{{ item.count }}</strong></button><button v-for="item in variantMix.annotations" :key="item.label" type="button" class="pg2-mix-item pg2-mix-annotation" :title="item.label === 'AM annotated' ? 'Variants with an AlphaMissense score, including zero. Counts annotation availability.' : 'Variants with a REVEL score, including zero. Counts annotation availability.'" :class="{ 'pg2-mix-active': variantFilters.annotations.includes(item.label) }" :aria-pressed="String(variantFilters.annotations.includes(item.label))" @click="toggleVariantFilter('annotations', item.label)">{{ item.label }} <strong>{{ item.count }}</strong></button><button type="button" class="pg2-mix-item pg2-mix-annotation" :class="{ 'pg2-mix-active': variantFilters.loftee }" :aria-pressed="String(variantFilters.loftee)" @click="toggleVariantFilter('loftee')">LoFTEE HC <strong>{{ variantMix.loftee }}</strong></button></div>
+                    </section>
+                    <section class="pg2-card pg2-crdc" aria-label="CRDC variants and carrier demographics">
+                        <variant-overview :gene="geneInfo.symbol" :mix="variantMix" :total="variantRows.length" :annotated-count="predictionAnnotatedVariantCount" :sample-count="Number(totalGeneCarriers) || 0" :filters="variantFilters" @filter="toggleVariantFilter" @filter-consequences="toggleConsequenceGroup" />
                         <div v-if="variantFiltersActive" class="pg2-variant-filter-status"><a href="#pg2-variant-evidence">{{ matchingVariantRows.length }} / {{ variantRows.length }} matching variants</a><span>{{ variantFilterLabel }}</span><button class="pg2-text-button" type="button" @click="clearVariantFilters">Clear filters</button></div>
-                        <details class="pg2-detail" data-testid="gene-demographics">
-                            <summary><b-icon-chevron-right /> Gene carrier demographics <small>{{ geneMetadataLabel }}</small></summary>
-                            <demographics :summary="geneCarrierSummary" :fallback="{}" :carrier-count="Number(totalGeneCarriers) || 0" :status="carrierSummaryProgress.__gene__ || carrierSummaryErrors.__gene__ || ''" scope="gene" />
-                        </details>
+                        <div class="pg2-carrier-overview" data-testid="gene-demographics">
+                            <p v-if="carrierSelectionActive" class="pg2-demographic-scope">Carriers of {{ matchingVariantRows.length.toLocaleString() }} selected variants · {{ displayedCarrierCount.toLocaleString() }} samples</p>
+                            <demographics :key="selectedCarrierKey || geneInfo.symbol" :summary="displayedCarrierSummary" :fallback="{}" :carrier-count="displayedCarrierCount" :status="displayedCarrierStatus" :scope="carrierSelectionActive ? 'selected variants' : 'gene'" overview />
+                        </div>
                     </section>
                     <section class="pg2-card pg2-associations" aria-labelledby="pg2-associations-title">
-                        <div class="pg2-section-heading"><h2 id="pg2-associations-title">Precomputed gene–phenotype associations</h2><help-tooltip label="About precomputed association units" text="Approximate binary-HPO score-test coefficients in log-odds per 0.1 GRS; not residual-PheRS SD units. Original release p/q values and row order are preserved. q is adjusted across genes within each HPO." /></div>
-                        <label class="pg2-association-search">Find a phenotype<input v-model="associationSearch" type="search" placeholder="Search phenotype names or HPO IDs" aria-label="Find a precomputed phenotype" /></label>
+                        <div class="pg2-section-heading"><div class="pg2-association-title"><h2 id="pg2-associations-title">Single-phenotype associations <help-tooltip label="Single-phenotype associations" :text="help.precomputedMethods" /></h2><span>Precomputed · CRDC</span></div></div>
+                        <div class="pg2-association-controls"><label for="pg2-association-search">Find a phenotype</label><input id="pg2-association-search" v-model="associationSearch" type="search" placeholder="Search phenotype names or HPO IDs" aria-label="Find a precomputed phenotype" /></div>
                         <div class="pg2-table-scroll">
                             <table class="pg2-table pg2-association-table">
-                                <thead><tr><th>Phenotype</th>
+                                <thead><tr><th class="pg2-association-pin"><b-icon-pin-angle aria-label="Pin result" /></th><th>Phenotype</th>
                                     <th v-for="column in associationColumns" :key="column.key" class="pg2-numeric" :aria-sort="associationAriaSort(column.key)">
-                                        <button class="pg2-sort-button" type="button" :title="column.help || 'Sort by ' + column.label" @click="sortAssociationColumn(column.key)">{{ column.label }}
-                                            <small v-if="column.key === 'beta'">(log-odds)</small>
-                                            <b-icon-sort-down v-if="associationSortKey === column.key && associationSortDirection === 'desc'" /><b-icon-sort-up v-else-if="associationSortKey === column.key" /><b-icon-arrow-down-up v-else />
-                                        </button>
-                                    </th><th><span class="pg2-sr-only">Pin result</span></th></tr></thead>
-                                <tbody v-if="pinnedAssociations.length" class="pg2-pinned" data-testid="pinned-associations">
-                                    <tr class="pg2-group-label"><td colspan="7"><b-icon-pin-angle-fill /> Pinned · {{ pinnedAssociations.length }}</td></tr>
-                                    <tr v-for="row in sortedPinnedAssociations" :key="'pin-' + row.hpoId" class="pg2-pinned-row">
-                                        <td><a :href="phenotypeUrl(row.hpoId)">{{ row.label }}</a><small>{{ row.hpoId }}</small></td><td class="pg2-numeric">{{ contextStatistic(row.betaPer0_1Grs) }}</td><td class="pg2-numeric">{{ associationInterval(row) }}</td><td class="pg2-numeric">{{ contextStatistic(row.pValue) }}</td><td class="pg2-numeric">{{ contextStatistic(row.qValue) }}</td><td class="pg2-numeric" :title="phenotypeCountTitle">{{ phenotypeCarrierCount(row.hpoId) }}</td><td><button class="pg2-pin" type="button" :aria-label="'Unpin ' + row.label" aria-pressed="true" @click="toggleAssociationPin(row)"><b-icon-pin-angle-fill /></button></td>
-                                    </tr>
-                                </tbody>
+                                        <div class="pg2-column-heading"><button class="pg2-sort-button" type="button" :aria-label="'Sort by ' + column.label" @click="sortAssociationColumn(column.key)">{{ column.label }}<b-icon-sort-down v-if="associationSortKey === column.key && associationSortDirection === 'desc'" /><b-icon-sort-up v-else-if="associationSortKey === column.key" /><b-icon-arrow-down-up v-else /></button><help-tooltip v-if="column.help" info :label="'About ' + column.label" :text="column.help" /></div>
+                                    </th></tr></thead>
                                 <tbody data-testid="association-search-results">
-                                    <tr class="pg2-group-label"><td colspan="7">{{ associationSearch ? 'Search results' : 'Release results' }} · {{ filteredAssociations.length }}</td></tr>
-                                    <tr v-for="row in visibleAssociations" :key="row.hpoId">
-                                        <td><a :href="phenotypeUrl(row.hpoId)">{{ row.label }}</a><small>{{ row.hpoId }}</small></td><td class="pg2-numeric">{{ contextStatistic(row.betaPer0_1Grs) }}</td><td class="pg2-numeric">{{ associationInterval(row) }}</td><td class="pg2-numeric">{{ contextStatistic(row.pValue) }}</td><td class="pg2-numeric">{{ contextStatistic(row.qValue) }}</td><td class="pg2-numeric" :title="phenotypeCountTitle">{{ phenotypeCarrierCount(row.hpoId) }}</td><td><button class="pg2-pin" type="button" :aria-label="'Pin ' + row.label" aria-pressed="false" @click="toggleAssociationPin(row)"><b-icon-pin-angle /></button></td>
+                                    <tr v-for="row in associationDisplayRows" :key="row.hpoId" :class="{ 'pg2-pinned-row': isAssociationPinned(row) }">
+                                        <td class="pg2-association-pin"><button class="pg2-pin" type="button" :aria-label="(isAssociationPinned(row) ? 'Unpin ' : 'Pin ') + row.label" :aria-pressed="String(isAssociationPinned(row))" @click="toggleAssociationPin(row)"><b-icon-pin-angle-fill v-if="isAssociationPinned(row)" /><b-icon-pin-angle v-else /></button></td>
+                                        <td><a :href="phenotypeUrl(row.hpoId)">{{ row.label }}</a><span class="pg2-association-hpo">{{ row.hpoId }}</span></td><td class="pg2-numeric">{{ contextStatistic(row.betaPer0_1Grs) }}</td><td class="pg2-numeric">{{ associationInterval(row) }}</td><td class="pg2-numeric">{{ contextStatistic(row.pValue) }}</td><td class="pg2-numeric">{{ contextStatistic(row.qValue) }}</td><td class="pg2-numeric">{{ phenotypeCarrierCount(row.hpoId) }}</td>
                                     </tr>
-                                    <tr v-if="!filteredAssociations.length"><td colspan="7" class="pg2-empty">{{ associationSearch ? 'No other release results match this search.' : genePhenotypeAssociations.length ? 'All release results are pinned above.' : 'Precomputed results are not available for this gene.' }}</td></tr>
+                                    <tr v-if="!associationDisplayRows.length"><td colspan="7" class="pg2-empty">{{ genePhenotypeAssociations.length ? 'No results match this search and significance filter.' : 'Precomputed results are not available for this gene.' }}</td></tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div class="pg2-association-foot"><span>Pinned rows stay visible when you change the search.</span><button v-if="filteredAssociations.length > 5" type="button" class="pg2-text-button" @click="showAllAssociations = !showAllAssociations">{{ showAllAssociations ? 'Show fewer' : 'Show all ' + filteredAssociations.length }}</button></div>
+                        <nav v-if="associationPageCount > 1" class="pg2-evidence-pagination" aria-label="Single-phenotype association pages">
+                            <button type="button" :disabled="associationPage <= 1" aria-label="Previous association page" @click="associationPage--"><b-icon-chevron-left /></button>
+                            <template v-for="(page, index) in associationPageNumbers"><span v-if="page === '…'" :key="'gap-' + index">…</span><button v-else :key="page" type="button" :class="{ 'pg2-current-page': associationPage === page }" :aria-current="associationPage === page ? 'page' : null" @click="associationPage = page">{{ page }}</button></template>
+                            <button type="button" :disabled="associationPage >= associationPageCount" aria-label="Next association page" @click="associationPage++"><b-icon-chevron-right /></button>
+                        </nav>
                     </section>
-                    <context-panel :active-context-terms="activeContextTerms" :context-term-details="contextTermDetails" :context-input.sync="contextInput" :context-loading="contextLoading || searchGeneLoading" :context-score-type.sync="contextScoreType" :context-analysis-set.sync="contextAnalysisSet" :context-significance-threshold.sync="contextSignificanceThreshold" :context-min-carriers.sync="contextMinCarriers" :context-error="contextError" :context-runs="contextRuns" :run-meta="contextRunMeta" :current-run-id="currentContextRunId" @run="runContextAnalysis" />
+                    <context-panel :active-context-terms="activeContextTerms" :context-term-details="contextTermDetails" :context-input.sync="contextInput" :context-loading="contextLoading || searchGeneLoading" :context-score-type.sync="contextScoreType" :context-analysis-set.sync="contextAnalysisSet" :context-significance-threshold.sync="contextSignificanceThreshold" :context-min-carriers.sync="contextMinCarriers" :context-error="contextError" :context-runs="contextRuns" :run-meta="contextRunMeta" :current-run-id="currentContextRunId" :rerunning-run-id="rerunningContextRunId" @run="runContextAnalysis" @rerun="rerunContextAnalysis" @remove="deleteContextRun" />
                     <section id="pg2-variant-evidence" class="pg2-card pg2-variant-evidence">
-                        <p class="pg2-variant-applied">{{ appliedContextLabel }}</p>
                     <div class="pbg-variant-evidence-block">
                         <div class="pbg-variant-evidence-head">
                             <p class="pbg-section-label">
                                 Variant evidence for {{ geneInfo.symbol }}
                                 <span class="pbg-crdc-badge" title="Source: CRDC cohort">CRDC</span>
                             </p>
-                            <span>{{ matchingVariantRows.length }} / {{ variantRows.length }} variants with carriers</span>
+                            <span class="pg2-variant-total">{{ matchingVariantRows.length.toLocaleString() }}{{ variantFiltersActive || variantIdentifierIds !== null ? " / " + variantRows.length.toLocaleString() : "" }} variants</span><span v-if="appliedContext" class="pg2-profile-chip">{{ appliedContext.terms.map(contextTermLabel).join(" + ") }}</span>
                         </div>
 
-                        <div class="pbg-ve-context-group-row">
+                        <div class="pg2-variant-tools">
                             <form class="pbg-ve-position-search" role="search" aria-label="Find variant by position, HGVS or rsID" @submit.prevent="searchVariantPosition">
                                 <label for="pbg-variant-position">Find variant</label>
                                 <input id="pbg-variant-position" v-model.trim="variantPositionQuery" type="search"
@@ -115,44 +104,20 @@
                                 <span v-if="variantPositionError" class="pbg-ve-position-error" role="alert">{{ variantPositionError }}</span>
                                 <span v-if="variantIdentifierIds !== null" class="pg2-identifier-search-state">{{ variantIdentifierIds.length }} variant match{{ variantIdentifierIds.length === 1 ? '' : 'es' }} · {{ appliedVariantQuery }} <button class="pg2-text-button" type="button" @click="clearVariantIdentifierSearch">Clear search</button></span>
                             </form>
-                            <span class="pbg-ve-context-group">Custom HPO context-based</span>
+                            <label class="pg2-variant-sort-select">Sort by: <select :value="variantSortSelection" aria-label="Sort variant evidence" @change="setVariantSortSelection($event.target.value)"><option value="variantScore:desc">In Silico Predictors ↓</option><option value="carriers:desc">Total carriers ↓</option><option value="matchScore:desc">Mean carrier rPheRS Z ↓</option><option value="effectScore:desc">Variant β ↓</option><option value="pValue:asc">P ↑</option><option value="variant:asc">Variant position ↑</option><option value="variant:desc">Variant position ↓</option><option v-if="!variantSortOptions.includes(variantSortSelection)" :value="variantSortSelection">{{ variantSortLabel }}</option></select></label>
                         </div>
+                        <div class="pg2-variant-information-band"><span>Variant information</span><span>Phenotype-based evidence</span></div>
                         <div class="pbg-ve-table-head">
                             <span></span>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variant')">
-                                <i>{{ variantSortIndicator('variant') }}</i><span>Variant</span>
-                            </button>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('carriers')">
-                                <i>{{ variantSortIndicator('carriers') }}</i><span>Total carriers</span>
-                            </button>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('consequence')">
-                                <i>{{ variantSortIndicator('consequence') }}</i><span>Consequence</span>
-                            </button>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('clinvar')">
-                                <i>{{ variantSortIndicator('clinvar') }}</i><span>ClinVar</span>
-                            </button>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">
-                                <i>{{ variantSortIndicator('variantScore') }}</i>
-                                <span>
-                                    Variant Score
-                                    <em>CRDC</em>
-                                </span>
-                            </button><help-tooltip label="About Variant Score" text="In silico variant effect prediction score: 1 for LoFTEE high-confidence loss of function; otherwise the available AlphaMissense score. REVEL is shown separately and is not included in this score." /></div>
-                            <span class="pg2-scored-carriers-heading" title="Carriers with an individual rPheRS Z-score in the applied analysis / all carriers of this variant. This is score coverage, not the number with the queried HPO terms.">Scored carriers</span>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">
-                                <i>{{ variantSortIndicator('matchScore') }}</i>
-                                <span>
-                                    Mean rPheRS Z-score
-                                    <em>CRDC</em>
-                                </span>
-                            </button><help-tooltip label="About Mean rPheRS Z-score" text="Mean individual residual PheRS Z-score among carriers in the selected analysis cohort. Scored carriers shows how many of all variant carriers have scores. The reference is the full scoring cohort; carriers outside the selected analysis cohort are excluded." /></div>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('effectScore')"><i>{{ variantSortIndicator('effectScore') }}</i><span>Variant effect β (SD)</span></button><help-tooltip label="About Variant effect beta in SD units" text="Adjusted difference in residual PheRS between carriers and noncarriers, in full scoring-cohort SD units. The model adjusts for age, missing age, sex and PC1–PC10. Positive β means higher scores in carriers; negative β means lower scores. For example, β = 0.5 means 0.5 SD higher. This is a regression effect, not the carrier mean or a causal effect. Results with fewer than 10 scored carriers are exploratory." /></div>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('pValue')"><i>{{ variantSortIndicator('pValue') }}</i><span>p-value</span></button><help-tooltip label="About variant p-value" text="Unadjusted two-sided OLS p-value for the variant effect. No multiple-testing correction is applied here. Comparing many variants requires a defined testing family and an appropriate correction; p &lt; 0.05 alone does not establish an FDR-significant association." /></div>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variant')"><span>Variant</span><b-icon-arrow-down-up /></button>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('clinvar')"><span>ClinVar</span><b-icon-arrow-down-up /></button>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('carriers')">Total<br>carriers</button><help-tooltip info label="About total variant carriers" :text="help.totalCarriers" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">In Silico<br>Predictors</button><help-tooltip info label="About In Silico Predictors" :text="help.pathogenicity + '\n\n' + annotationSources.predictors.text" :links="annotationSources.predictors.links" /></div>
+                            <div class="pg2-score-heading"><span>Carriers<br>with HPO</span><help-tooltip info label="About carriers with the applied HPO profile" :text="help.hpoCarriers" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">Mean carrier<br>rPheRS Z</button><help-tooltip info label="About mean carrier rPheRS Z" :text="help.meanZ" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('effectScore')">Variant β<br><small>(rPheRS SD)</small></button><help-tooltip info label="About variant beta" :text="help.variantBeta" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('pValue')">P</button><help-tooltip info label="About variant p-value" :text="help.variantP" /></div>
                         </div>
-                        <details class="pg2-score-notes"><summary>Score annotation notes</summary><p class="pbg-score-legend">
-                            <strong>—*</strong> REVEL available; excluded from this score.
-                            <span><strong>—</strong> No LoFTEE HC, AlphaMissense, or REVEL annotation.</span>
-                        </p></details>
 
                         <template v-for="row in comparisonVariantRows">
                             <p v-if="pinnedVariantRows.length && row.id === pinnedVariantRows[0].id" :key="row.id + '-pinned-heading'" class="pg2-variant-pin-heading"><b-icon-pin-angle-fill /> Pinned variants · {{ pinnedVariantRows.length }}</p>
@@ -170,34 +135,25 @@
                                 @keydown.space.self.prevent="toggleVariant(row.id)">
                                 <span class="pbg-ve-chevron"><b-icon-chevron-down v-if="expandedVariantId === row.id" /><b-icon-chevron-right v-else /></span>
                                 <span class="pbg-variant-id">
-                                    <span>{{ row.id }}<small v-if="isVariantPinned(row.id) && (!matchesVariantFilters(row) || !matchesVariantIdentifier(row))" class="pg2-outside-filter">Pinned · outside filter</small><sup v-if="variantHasHighAf(row)" class="pbg-af-star" :title="variantAfWarningText(row)">*</sup></span>
+                                    <span class="pg2-variant-label" :title="row.id">{{ row.id }}<small class="pg2-variant-consequence">{{ consequenceLabel(row) }}</small><small v-if="isVariantPinned(row.id) && (!matchesVariantFilters(row) || !matchesVariantIdentifier(row))" class="pg2-outside-filter">Pinned · outside filter</small><sup v-if="variantHasHighAf(row)" class="pbg-af-star" :title="variantAfWarningText(row)">*</sup></span>
                                     <button class="pg2-pin pg2-variant-pin" type="button" :aria-label="(isVariantPinned(row.id) ? 'Unpin ' : 'Pin ') + row.id" :aria-pressed="String(isVariantPinned(row.id))" :title="isVariantPinned(row.id) ? 'Unpin variant' : 'Keep this variant visible across pages and sorting'" @click.stop="toggleVariantPin(row.id)"><b-icon-pin-angle-fill v-if="isVariantPinned(row.id)" /><b-icon-pin-angle v-else /></button>
                                 </span>
-                                <span class="pbg-ve-carriers">
-                                    {{ row.carrierCount }}
-                                </span>
-                                <span class="pbg-ve-consequence">{{ row.consequence || 'Unavailable' }}</span>
-                                <span class="pbg-ve-clinvar"><span class="pbg-clinvar-badge" :class="pathogenicityClass(row.clinvar)">{{ row.clinvar || 'Unavailable' }}</span></span>
-                                <span>
-                                    <strong class="pbg-score-badge"
-                                            :class="variantScoreClass(row)"
-                                            :title="variantScoreTitle(row)">
-                                        {{ variantScoreDisplay(row) }}<sup v-if="hasRevelOnlyScore(row)" class="pbg-revel-only-star">*</sup>
-                                    </strong>
-                                </span>
-                                <span class="pg2-scored-carriers" title="Carriers with a Z-score in the applied analysis / total variant carriers.">{{ scoredCarrierCoverage(row) }}</span>
-                                <span v-if="!activeContextTerms.length" class="pbg-no-context">no context</span>
-                                <strong v-else-if="row.phenotypeMatchScore != null" class="pbg-score-badge">
+                                <span class="pbg-ve-clinvar" :title="row.clinvar"><span class="pbg-clinvar-badge" :class="pathogenicityClass(row.clinvar)">{{ clinvarLabel(row) }}</span></span>
+                                <span class="pbg-ve-carriers">{{ Number(row.carrierCount).toLocaleString() }}</span>
+                                <span><strong class="pbg-score-badge" :class="variantScoreClass(row)" :title="variantScoreTitle(row)">{{ variantScoreDisplay(row) }}<sup v-if="hasRevelOnlyScore(row)">*</sup></strong></span>
+                                <span class="pg2-hpo-carriers" :title="variantHpoCountTitle(row)">{{ variantHpoCountDisplay(row) }}</span>
+                                <span v-if="!activeContextTerms.length" class="pbg-no-context" title="Apply a phenotype profile to calculate this value.">—</span>
+                                <strong v-else-if="row.phenotypeMatchScore != null" class="pbg-score-badge" :title="scoredCarrierTitle(row)">
                                     {{ row.phenotypeMatchScore.toFixed(2) }}
                                 </strong>
                                 <span v-else class="pbg-no-context" :title="row.phenotypeMatchStatus || ''">Unavailable</span>
-                                <span v-if="!activeContextTerms.length" class="pbg-no-context">no context</span>
+                                <span v-if="!activeContextTerms.length" class="pbg-no-context" title="Apply a phenotype profile to calculate this value.">—</span>
                                 <strong v-else-if="row.variantEffectBeta != null" class="pbg-score-badge"
                                         :title="row.variantAssociationLowCarrierCount ? 'Covariate-adjusted carrier versus noncarrier difference in residual PheRS, in reference-cohort SD units; exploratory because fewer than 10 carriers were scored.' : 'Covariate-adjusted carrier versus noncarrier difference in residual PheRS, in reference-cohort SD units.'">
                                     {{ contextStatistic(row.variantEffectBeta) }}
                                 </strong>
                                 <span v-else class="pbg-no-context" :title="row.variantAssociationStatus || 'not_returned'">Unavailable</span>
-                                <span v-if="!activeContextTerms.length" class="pbg-no-context">no context</span>
+                                <span v-if="!activeContextTerms.length" class="pbg-no-context" title="Apply a phenotype profile to calculate this value.">—</span>
                                 <strong v-else-if="row.variantEffectPValue != null" class="pbg-score-badge"
                                         :title="row.variantAssociationLowCarrierCount ? 'Unadjusted two-sided OLS p-value; exploratory because fewer than 10 carriers were scored.' : 'Unadjusted two-sided OLS p-value.'">
                                     {{ variantPValueDisplay(row.variantEffectPValue) }}
@@ -207,116 +163,53 @@
 
                             <div v-if="expandedVariantId === row.id" :id="'variant-detail-' + row.id"
                                  :key="row.id + '-details'"
-                                 class="pbg-variant-expanded">
-                                <variant-summary :variant="row" :gene="geneInfo.symbol" :summary="variantCarrierSummaries[row.id] || null" :status="carrierSummaryProgress[row.id] || carrierSummaryErrors[row.id] || ''" :context="appliedContext" />
-                                <details class="pg2-detail pg2-variant-demographics">
-                                    <summary><b-icon-chevron-right /> Variant carrier demographics · {{ row.carrierCount }} carriers</summary>
-                                    <demographics :summary="variantCarrierSummaries[row.id] || null" :carrier-count="Number(row.carrierCount) || 0" :status="carrierSummaryProgress[row.id] || carrierSummaryErrors[row.id] || ''" :scope="row.id" />
-                                </details>
-                                <details class="pg2-detail"><summary><b-icon-chevron-right /> Variant annotation</summary>
-                                <div class="pbg-selected-variant-evidence">
-                                    <div class="pbg-selected-variant-head">
-                                        <p class="pbg-section-label">Selected variant evidence</p>
-                                        <a class="pbg-nav-link pbg-nav-link--variant-page"
-                                           :href="`/pb_variant.html?query=${row.id}&gene=${geneInfo.symbol}`"
-                                           @click.stop>Variant ↗</a>
-                                    </div>
-                                    <div v-if="variantHasHighAf(row)" class="pbg-af-warning-note">
-                                        <strong>* High AF review</strong>
-                                        <span>{{ variantAfWarningText(row) }}</span>
-                                    </div>
-                                    <div class="pbg-selected-kv">
-                                        <div v-for="item in variantEvidenceRows(row)" :key="'evidence-' + item.label" class="pbg-selected-kv-row">
-                                            <span>{{ item.label }}</span>
-                                            <a v-if="item.href" class="pbg-ext-link"
-                                               :class="[
-                                                   item.label === 'ClinVar' ? 'pbg-selected-clinvar' : '',
-                                                   item.label === 'ClinVar' ? pathogenicityClass(item.value) : ''
-                                               ]"
-                                               :href="item.href" target="_blank" rel="noopener noreferrer"
-                                               @click.stop>{{ item.value }} ↗</a>
-                                            <strong v-else
-                                                    :class="[
-                                                        item.label === 'ClinVar' ? 'pbg-selected-clinvar' : '',
-                                                        item.label === 'ClinVar' ? pathogenicityClass(item.value) : ''
-                                                    ]">
-                                                {{ item.value }}<sup v-if="item.label === 'REVEL' && hasRevelOnlyScore(row)"
-                                                                    class="pbg-revel-only-star"
-                                                                    title="REVEL is available but excluded from Burden Pathogenic Score.">*</sup>
-                                            </strong>
-                                        </div>
-                                    </div>
-                                    <p v-if="hasRevelOnlyScore(row)" class="pbg-revel-only-note">
-                                        <strong>*</strong> REVEL is available for reference but excluded from Burden Pathogenic Score.
-                                    </p>
-                                </div>
-
-                                </details>
-                                <details class="pg2-detail"><summary><b-icon-chevron-right /> Carrier samples · {{ row.carrierCount }}</summary>
-                                <div class="pbg-selected-carriers">
-                                    <p class="pbg-section-label">Carrier samples - {{ row.carrierCount }} total</p>
-                                    <div class="pbg-selected-sample-table">
-                                        <div class="pbg-selected-sample-head">
-                                            <span>Sample</span>
-                                            <span>Age</span>
-                                            <span>Sex</span>
-                                            <span>GT</span>
-                                            <span>HPO terms</span>
-                                            <span title="Individual residual PheRS relative to the scoring-cohort mean, in sample SD units, for the applied HPO context.">rPheRS Z-score</span>
-                                            <span>Co-genes</span>
-                                            <span>Project</span>
-                                            <span>Affected</span>
-                                        </div>
-                                        <div v-for="s in visibleCarrierRows(row)" :key="row.id + '-' + s.id" class="pbg-selected-sample-row">
-                                            <a class="pbg-sample-link" :href="`/pb_sample.html?query=${encodeURIComponent(s.id)}`" @click.stop>{{ s.id }}</a>
-                                            <span>{{ carrierSampleField(s, 'age') }}</span>
-                                            <span>{{ carrierSampleField(s, 'sex') }}</span>
-                                            <span>{{ s.gt }}</span>
-                                            <span>{{ carrierSampleField(s, 'hpo') || '—' }}</span>
-                                            <span>{{ individualCarrierScore(s) }}</span>
-                                            <div class="pbg-co-gene-cell">
-                                                <span>{{ coGenePreview(carrierSampleField(s, 'genes')) }}</span>
-                                                <details v-if="coGeneRemaining(carrierSampleField(s, 'genes')).length">
-                                                    <summary>+{{ coGeneRemaining(carrierSampleField(s, 'genes')).length }} more</summary>
-                                                    <span>{{ coGeneRemaining(carrierSampleField(s, 'genes')).join(', ') }}</span>
-                                                </details>
-                                            </div>
-                                            <span>{{ carrierSampleField(s, 'project') || 'Unavailable' }}</span>
-                                            <span>{{ carrierSampleField(s, 'affected') }}</span>
-                                        </div>
-                                    </div>
-                                    <p v-if="hasMissingCarrierScores" class="pg2-score-notes">* No individual score is available in the current analysis dataset or selected analysis group. This does not indicate absence of the queried HPO terms.</p>
-                                    <p v-if="currentCarrierScores.status === 'error'" class="pg2-score-notes" role="status">{{ currentCarrierScores.error }} <button type="button" class="pg2-text-button" @click="loadIndividualCarrierScores">Retry</button></p>
-                                    <button v-if="(showCountCarrierMap[row.id] || 5) < row.carrierSamples.length"
-                                            class="pbg-show-more-btn" type="button"
-                                            @click.stop="showMoreCarriers(row.id, row.carrierSamples.length)">
-                                        +5 more ({{ row.carrierSamples.length - (showCountCarrierMap[row.id] || 5) }} remaining)
-                                    </button>
-                                </div>
-                                </details>
+                                 class="pbg-variant-expanded pg2-variant-detail">
+                                <variant-annotation :items="variantEvidenceRows(row)" :variant-url="variantPageUrl(row)" :warning="variantHasHighAf(row) ? variantAfWarningText(row) : ''" />
+                                <section class="pg2-expanded-section pg2-carrier-summary" aria-label="Variant carrier summary">
+                                    <div class="pg2-expanded-heading"><h3>Carrier summary <span class="pg2-expanded-count">· {{ Number(row.carrierCount).toLocaleString() }} carriers</span> <help-tooltip label="Variant carrier summary" :text="help.carrierSummary" /></h3></div>
+                                    <demographics :summary="variantCarrierSummaries[row.id] || null" :carrier-count="Number(row.carrierCount) || 0" :status="carrierSummaryProgress[row.id] || carrierSummaryErrors[row.id] || ''" :scope="row.id" compact />
+                                </section>
+                                <section class="pg2-expanded-section pg2-carrier-samples" aria-label="Variant carrier samples">
+                                    <div class="pg2-expanded-heading"><h3>Carrier samples <span class="pg2-expanded-count">· {{ Number(row.carrierCount).toLocaleString() }}</span> <span class="pg2-internal-label">Internal</span> <help-tooltip label="Variant carrier samples" :text="help.carrierSamples" /></h3></div>
+                                    <div class="pg2-carrier-table-tools"><input v-model="carrierTableSearch" type="search" placeholder="Find sample ID" aria-label="Find a carrier by sample ID" /><span class="pg2-carrier-table-range" role="status">{{ carrierTableRange }}</span></div>
+                                    <div class="pg2-table-scroll"><table class="pg2-table pg2-carrier-sample-table">
+                                        <colgroup><col style="width:28%"><col style="width:7%"><col style="width:9%"><col style="width:7%"><col style="width:13%"><col style="width:26%"><col style="width:10%"></colgroup>
+                                        <thead><tr>
+                                            <th :aria-sort="carrierTableSort === 'asc' ? 'ascending' : 'descending'"><button type="button" class="pg2-sort-button" @click="toggleCarrierTableSort">Sample <b-icon-sort-up v-if="carrierTableSort === 'asc'" /><b-icon-sort-down v-else /></button></th>
+                                            <th>Age</th><th>Sex</th><th class="pg2-carrier-gt-heading">GT <help-tooltip label="Carrier genotype" :text="help.genotype" /></th>
+                                            <th class="pg2-numeric">rPheRS Z <help-tooltip label="Individual carrier rPheRS Z" :text="help.individualZ" /></th>
+                                            <th>Project</th><th>Affected</th>
+                                        </tr></thead>
+                                        <tbody>
+                                            <tr v-for="s in visibleCarrierRows(row)" :key="row.id + '-' + s.id">
+                                                <td><a class="pg2-carrier-sample-link" :href="`/pb_sample.html?query=${encodeURIComponent(s.id)}`">{{ s.id }}</a></td>
+                                                <td :title="String(carrierSampleField(s, 'age') || '')">{{ carrierDisplayField(s, 'age') }}</td>
+                                                <td :title="String(carrierSampleField(s, 'sex') || '')">{{ carrierDisplayField(s, 'sex') }}</td>
+                                                <td>{{ s.gt == null || isMissingMetadataValue(s.gt) ? '—' : s.gt }}</td>
+                                                <td class="pg2-numeric" :class="{ 'pg2-muted': currentCarrierScores.status !== 'ready' }">{{ individualCarrierScore(s) }}</td>
+                                                <td><div class="pg2-carrier-project-cell"><span :title="carrierDisplayField(s, 'project')">{{ carrierDisplayField(s, 'project') }}</span><help-tooltip v-if="!isMissingMetadataValue(carrierSampleField(s, 'project'))" :label="'Project for ' + s.id" :text="String(carrierSampleField(s, 'project'))" /></div></td>
+                                                <td>{{ carrierDisplayField(s, 'affected') }}</td>
+                                            </tr>
+                                            <tr v-if="!visibleCarrierRows(row).length"><td colspan="7" class="pg2-empty">{{ row.carrierSamples.length ? 'No sample IDs match this search.' : 'Carrier sample IDs unavailable.' }}</td></tr>
+                                        </tbody>
+                                    </table></div>
+                                    <div v-if="currentCarrierScores.status === 'error'" class="pg2-carrier-score-error" role="status"><span>Individual scores unavailable.</span><help-tooltip label="Individual score request error" :text="currentCarrierScores.error" /><button type="button" class="pg2-text-button" @click="loadIndividualCarrierScores">Retry</button></div>
+                                    <nav v-if="carrierTablePageCount > 1" class="pg2-evidence-pagination" aria-label="Carrier sample pages"><button type="button" :disabled="carrierTableCurrentPage <= 1" aria-label="Previous carrier page" @click="goToCarrierTablePage(carrierTableCurrentPage - 1)"><b-icon-chevron-left /></button><template v-for="(page,index) in carrierTablePageNumbers"><span v-if="page === '…'" :key="'carrier-gap-' + index">…</span><button v-else :key="page" type="button" :class="{ 'pg2-current-page': carrierTableCurrentPage === page }" :aria-current="carrierTableCurrentPage === page ? 'page' : null" @click="goToCarrierTablePage(page)">{{ page }}</button></template><button type="button" :disabled="carrierTableCurrentPage >= carrierTablePageCount" aria-label="Next carrier page" @click="goToCarrierTablePage(carrierTableCurrentPage + 1)"><b-icon-chevron-right /></button></nav>
+                                </section>
                             </div>
                         </template>
                         <p v-if="!comparisonVariantRows.length" class="pg2-empty">No variants match the current filters. <button v-if="variantFiltersActive" class="pg2-text-button" type="button" @click="clearVariantFilters">Clear filters</button></p>
                         <nav v-if="variantPageCount > 1" class="pbg-ve-pagination" aria-label="Variant evidence pages">
                             <span v-if="variantSearchStart != null" class="pbg-ve-search-state">Closest variant centered</span>
-                            <button type="button" :disabled="variantPage <= 1" @click.stop="goToVariantPage(variantPage - 1)">Previous</button>
-                            <button v-for="page in variantPageNumbers" :key="page" type="button"
-                                    :class="{ 'pbg-ve-page-active': variantSearchStart == null && variantPage === page }"
-                                    :aria-current="variantSearchStart == null && variantPage === page ? 'page' : null"
-                                    @click.stop="goToVariantPage(page)">{{ page }}</button>
-                            <button type="button" :disabled="variantPage >= variantPageCount" @click.stop="goToVariantPage(variantPage + 1)">Next</button>
-                            <form class="pbg-ve-page-jump" aria-label="Go to variant page" @submit.prevent="jumpToVariantPage">
-                                <label for="pbg-variant-page-jump">Page</label>
-                                <input id="pbg-variant-page-jump" v-model.trim="variantPageJump" type="text" inputmode="numeric"
-                                       :aria-invalid="variantPageJumpError ? 'true' : 'false'" :placeholder="String(variantPageCount)">
-                                <button type="submit">Go</button>
-                                <span v-if="variantPageJumpError" class="pbg-ve-page-jump-error" role="alert">{{ variantPageJumpError }}</span>
-                            </form>
-                            <span class="pbg-ve-page-total">{{ variantPage }} / {{ variantPageCount }}</span>
+                            <button type="button" :disabled="variantPage <= 1" aria-label="Previous variant page" @click.stop="goToVariantPage(variantPage - 1)"><b-icon-chevron-left /></button>
+                            <template v-for="(page, index) in variantEvidencePages"><span v-if="page === '…'" :key="'variant-gap-' + index">…</span><button v-else :key="page" type="button" :class="{ 'pbg-ve-page-active': variantSearchStart == null && variantPage === page }" :aria-current="variantSearchStart == null && variantPage === page ? 'page' : null" @click.stop="goToVariantPage(page)">{{ page }}</button></template>
+                            <button type="button" :disabled="variantPage >= variantPageCount" aria-label="Next variant page" @click.stop="goToVariantPage(variantPage + 1)"><b-icon-chevron-right /></button>
+                            <span class="pg2-sr-only">Page {{ variantPage }} of {{ variantPageCount }}</span>
                         </nav>
                     </div>
                     </section>
                 </template>
+                <info-rail @reserve="infoRailReserved = $event" />
             </div>
         </main>
     </div>
@@ -331,18 +224,26 @@ import { matchVariantIdentifiers } from "../PbGene/variantLookup";
 import GeneIdentity from "./GeneIdentity";
 import Demographics from "./Demographics";
 import ContextPanel from "./ContextPanel";
-import VariantSummary from "./VariantSummary";
+import VariantOverview from "./VariantOverview";
 import HelpTooltip from "./HelpTooltip";
 import { carrierScoreMixin } from "./carrierScores";
+import { filteredCarrierDemographicsMixin } from "./filteredCarrierDemographics";
+import help from './evidenceHelp';
+import { VARIANT_ANNOTATION_SOURCES } from './referenceProvenance';
+import { pageNumbers } from './evidencePagination';
+import { variantHpoCountsMixin } from './variantHpoCounts';
+import InfoRail from './InfoRail';
+import VariantAnnotation from './VariantAnnotation';
+import {carrierTableMixin} from './carrierTable';
 import "../PbGene/style.css";
 import "./style.css";
 
 export default {
     name: "PbGene2Template",
-    mixins: [carrierScoreMixin],
-    components: { GeneIdentity, Demographics, ContextPanel, VariantSummary, HelpTooltip },
+    mixins: [carrierScoreMixin, filteredCarrierDemographicsMixin, variantHpoCountsMixin, carrierTableMixin],
+    components: { GeneIdentity, Demographics, ContextPanel, VariantOverview, HelpTooltip, InfoRail, VariantAnnotation },
     data() {
-        return { ...createPbGeneState(), associationSearch: '', associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], loftee: false }, showAllAssociations: false, contextRunMeta: {}, currentContextRunId: '', appliedContext: null, receivedContextReference: null };
+        return { ...createPbGeneState(), help, annotationSources: VARIANT_ANNOTATION_SOURCES, infoRailReserved: false, associationSearch: '', associationPage: 1, associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }, contextRunMeta: {}, currentContextRunId: '', rerunningContextRunId: '', appliedContext: null, receivedContextReference: null };
     },
     mounted() { this.loadLiveGeneData(this.searchGeneQuery, false).catch(() => {}); },
     computed: {
@@ -352,46 +253,60 @@ export default {
         sortedVariantRows() { return pbGeneComputed.sortedVariantRows.call(this).filter(row => this.matchesVariantFilters(row) && this.matchesVariantIdentifier(row)); },
         positionSortedVariantRows() { return pbGeneComputed.positionSortedVariantRows.call(this).filter(row => this.matchesVariantFilters(row) && this.matchesVariantIdentifier(row)); },
         variantPageCount() { return Math.ceil(this.matchingVariantRows.length / VARIANT_PAGE_SIZE); },
-        variantFiltersActive() { return Boolean(this.variantFilters.clinvar.length || this.variantFilters.consequence.length || this.variantFilters.annotations.length || this.variantFilters.loftee); },
-        variantFilterLabel() { return [...this.variantFilters.clinvar, ...this.variantFilters.consequence, ...this.variantFilters.annotations, ...(this.variantFilters.loftee ? ['LoFTEE HC'] : [])].join(' · '); },
+        variantFiltersActive() { return Boolean(this.variantFilters.clinvar.length || this.variantFilters.consequence.length || this.variantFilters.annotations.length || (this.variantFilters.predictionCoverage || []).length || this.variantFilters.loftee); },
+        variantFilterLabel() { return [...this.variantFilters.clinvar, ...this.variantFilters.consequence, ...this.variantFilters.annotations, ...(this.variantFilters.predictionCoverage || []), ...(this.variantFilters.loftee ? ['LoFTEE HC'] : [])].join(' · '); },
         pinnedVariantRows() { const rows = new Map(this.variantRows.map(row => [row.id, row])); return this.pinnedVariantIds.map(id => rows.get(id)).filter(Boolean); },
         unpinnedVisibleVariantRows() { const pinned = new Set(this.pinnedVariantIds); return this.visibleVariantRows.filter(row => !pinned.has(row.id)); },
         comparisonVariantRows() { return [...this.pinnedVariantRows, ...this.unpinnedVisibleVariantRows]; },
-        associationColumns() { return [ { key: 'beta', label: 'β per 0.1 GRS' }, { key: 'ci', label: '95% CI', help: 'Sort by lower confidence limit, then upper limit' }, { key: 'p', label: 'p' }, { key: 'q', label: 'q' }, { key: 'carriers', label: 'Carriers with term', help: 'Sort by recorded HPO carrier count; partial HPO metadata coverage is labelled' } ]; },
-        filteredAssociations() { return filterAssociations(this.genePhenotypeAssociations, this.associationSearch, this.pinnedAssociations); },
+        variantSortSelection() { return `${this.variantSortKey}:${this.variantSortDir}`; },
+        variantSortOptions() { return ['variantScore:desc', 'carriers:desc', 'matchScore:desc', 'effectScore:desc', 'pValue:asc', 'variant:asc', 'variant:desc']; },
+        variantSortLabel() { return `${{ variant: 'Variant', carriers: 'Total carriers', consequence: 'Consequence', clinvar: 'ClinVar', variantScore: 'In Silico Predictors', matchScore: 'Mean carrier rPheRS Z', effectScore: 'Variant β', pValue: 'P' }[this.variantSortKey] || this.variantSortKey} ${this.variantSortDir === 'asc' ? '↑' : '↓'}`; },
+        variantEvidencePages() { return pageNumbers(this.variantPage, this.variantPageCount); },
+        associationColumns() { return [ { key: 'beta', label: 'β', help: help.precomputedBeta }, { key: 'ci', label: '95% CI', help: help.precomputedCI }, { key: 'p', label: 'P' }, { key: 'q', label: 'q', help: help.geneQ }, { key: 'carriers', label: 'Carriers with term', help: 'Number of gene carriers with this HPO term recorded. Counts use the entire gene carrier set independently of variant display filters. The shared denominator is shown here instead of repeated in each row. ' + this.phenotypeCountTitle } ]; },
+        filteredAssociations() { return filterAssociations(this.genePhenotypeAssociations, this.associationSearch, this.pinnedAssociations).filter(row => row.pValue != null && row.pValue < .05); },
         sortedAssociations() { return sortAssociationRows(this.filteredAssociations, this.associationSortKey, this.associationSortDirection, this.associationCarrierCountValue); },
         sortedPinnedAssociations() { return sortAssociationRows(this.pinnedAssociations, this.associationSortKey, this.associationSortDirection, this.associationCarrierCountValue); },
-        visibleAssociations() { return this.showAllAssociations ? this.sortedAssociations : this.sortedAssociations.slice(0, 5); },
-        geneMetadataLabel() { const summary = this.geneCarrierSummary; return summary ? `${Number(summary.matchedMetadataCount).toLocaleString()} / ${Number(total(summary, this.totalGeneCarriers)).toLocaleString()} records` : 'Loading metadata'; },
+        associationPageCount() { return Math.max(1, Math.ceil(this.filteredAssociations.length / 5)); },
+        associationPageNumbers() { return pageNumbers(this.associationPage, this.associationPageCount); },
+        visibleAssociations() { return this.sortedAssociations.slice((this.associationPage - 1) * 5, this.associationPage * 5); },
+        associationDisplayRows() { return [...this.sortedPinnedAssociations, ...this.visibleAssociations]; },
         phenotypeCountTitle() { const summary = this.geneCarrierSummary; return summary && summary.phenotypeMetadataCount != null ? `${summary.phenotypeMetadataCount} / ${this.totalGeneCarriers} gene carriers have HPO metadata${summary.status === 'ready' ? '' : '; partial results'}.` : 'HPO carrier counts are not supplied by the current metadata service.'; },
         appliedContextLabel() { return this.appliedContext ? `Applied HPO: ${this.appliedContext.terms.map(hpoLabel).join(' + ')} · ${this.appliedContext.scoreType === 'sum' ? 'Sum' : 'Max'} · ${this.appliedContext.analysisSet === 'affected' ? 'Affected only' : 'All'}` : 'Custom HPO context not calculated'; },
         variantMix() {
             const clinvar = { 'P/LP': 0, VUS: 0, 'B/LB': 0, 'Other classification': 0, 'No ClinVar': 0 };
-            const consequence = { Missense: 0, Other: 0 };
+            const consequence = new Map();
             const annotations = { 'AM annotated': 0, 'REVEL annotated': 0 };
             let loftee = 0;
             this.variantRows.forEach(row => {
                 const facets = this.variantRowFacets(row);
                 clinvar[facets.clinvar]++;
-                consequence[facets.consequence]++;
+                consequence.set(facets.consequence, (consequence.get(facets.consequence) || 0) + 1);
                 if (facets.loftee) loftee++;
                 facets.annotations.forEach(label => annotations[label]++);
             });
-            return { clinvar: Object.entries(clinvar).filter(([, count]) => count || this.variantRows.length === 0).map(([label, count]) => ({ label, count })), consequence: Object.entries(consequence).map(([label, count]) => ({ label, count })), annotations: Object.entries(annotations).map(([label, count]) => ({ label, count })), loftee };
+            return { clinvar: Object.entries(clinvar).filter(([, count]) => count || this.variantRows.length === 0).map(([label, count]) => ({ label, count })), consequence: [...consequence].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)), annotations: Object.entries(annotations).map(([label, count]) => ({ label, count })), loftee };
         },
     },
     methods: {
         ...pbGeneMethods,
+        visibleCarrierRows: carrierTableMixin.methods.visibleCarrierRows,
         // Gene2 intentionally has no locus surface or locus-filter requests.
         refreshLocusFilter() {},
-        variantRowFacets(row) { return variantFacets(row, this.variantEvidenceValue(row, 'LOFTEE'), this.parseEvidenceNumber(row, 'AlphaMissense'), this.parseEvidenceNumber(row, 'REVEL')); },
+        variantRowFacets(row) { return variantFacets(row, this.variantEvidenceValue(row, 'LOFTEE'), this.parseEvidenceNumber(row, 'AlphaMissense'), this.parseEvidenceNumber(row, 'REVEL'), ['LOFTEE', 'AlphaMissense', 'REVEL'].some(label => !this.isMissingMetadataValue(this.variantEvidenceValue(row, label)))); },
         matchesVariantFilters(row) { return matchesVariantFacets(this.variantRowFacets(row), this.variantFilters); },
         toggleVariantFilter(group, label) {
             if (group === 'loftee') this.variantFilters.loftee = !this.variantFilters.loftee;
-            else this.variantFilters[group] = this.variantFilters[group].includes(label) ? this.variantFilters[group].filter(value => value !== label) : [...this.variantFilters[group], label];
+            else { const selected = this.variantFilters[group] || []; this.$set(this.variantFilters, group, selected.includes(label) ? selected.filter(value => value !== label) : [...selected, label]); }
             this.goToVariantPage(1);
         },
-        clearVariantFilters() { this.variantFilters = { clinvar: [], consequence: [], annotations: [], loftee: false }; this.goToVariantPage(1); },
+        toggleConsequenceGroup(labels) {
+            const selected = this.variantFilters.consequence;
+            this.variantFilters.consequence = labels.every(label => selected.includes(label))
+                ? selected.filter(label => !labels.includes(label))
+                : [...new Set([...selected, ...labels])];
+            this.goToVariantPage(1);
+        },
+        clearVariantFilters() { this.variantFilters = { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }; this.goToVariantPage(1); },
         isVariantPinned(id) { return this.pinnedVariantIds.includes(id); },
         toggleVariantPin(id) {
             if (!this.variantRows.some(row => row.id === id)) return;
@@ -440,9 +355,16 @@ export default {
             if (!selected || !this.isVariantPinned(selected)) { this.expandedVariantId = null; this.geneTab = 'gene'; }
         },
         sortVariantsBy(key) { this.retainPinnedExpansion('sortVariantsBy', key); if (this.variantIdentifierIds !== null) this.variantPositionQuery = this.appliedVariantQuery; },
+        setVariantSortSelection(value) { const [key, direction] = value.split(':'); this.sortVariantsBy(key); this.variantSortDir = direction; },
+        contextTermLabel(id) { return hpoLabel(id); },
+        consequenceLabel(row) { return String(row.consequence || 'Unavailable').replace(/_variant\b/g, '').replace(/_/g, ' ').replace(/^./, letter => letter.toUpperCase()); },
+        clinvarLabel(row) {
+            const value = String(row.clinvar || 'Unavailable');
+            return ({'Pathogenic/Likely_pathogenic': 'P/LP', 'Benign/Likely_benign': 'B/LB', 'Uncertain_significance': 'VUS', 'Conflicting_classifications_of_pathogenicity': 'Conflicting'})[value] || value.replace(/_/g, ' ');
+        },
         async submitGeneSearch() { if (!this.contextLoading) await pbGeneMethods.submitGeneSearch.call(this); },
         associationAriaSort(key) { return this.associationSortKey !== key ? 'none' : this.associationSortDirection === 'asc' ? 'ascending' : 'descending'; },
-        sortAssociationColumn(key) { this.associationSortDirection = this.associationSortKey === key && this.associationSortDirection === 'asc' ? 'desc' : 'asc'; this.associationSortKey = key; },
+        sortAssociationColumn(key) { this.associationSortDirection = this.associationSortKey === key && this.associationSortDirection === 'asc' ? 'desc' : 'asc'; this.associationSortKey = key; this.associationPage = 1; },
         associationCarrierCountValue(hpoId) {
             const summary = this.geneCarrierSummary;
             if (!summary || !summary.phenotypeMetadataCount) return null;
@@ -450,26 +372,56 @@ export default {
             return term ? Number(term.count) : 0;
         },
         phenotypeUrl(hpoId) { return '/pb_phenotype.html?query=' + encodeURIComponent(hpoId); },
-        toggleAssociationPin(row) { this.pinnedAssociations = togglePinnedAssociation(this.pinnedAssociations, row); },
+        isAssociationPinned(row) { return this.pinnedAssociations.some(item => item.hpoId === row.hpoId); },
+        toggleAssociationPin(row) { this.pinnedAssociations = togglePinnedAssociation(this.pinnedAssociations, row); this.associationPage = 1; },
         associationInterval(row) { return row.betaCiLowPer0_1Grs == null || row.betaCiHighPer0_1Grs == null ? '—' : `${this.contextStatistic(row.betaCiLowPer0_1Grs)}–${this.contextStatistic(row.betaCiHighPer0_1Grs)}`; },
         phenotypeCarrierCount(hpoId) {
             const summary = this.geneCarrierSummary;
             if (!summary || !summary.phenotypeMetadataCount) return '—';
             const term = (summary.observedPhenotypes || []).find(item => item.hpoId === hpoId);
-            return `${term ? Number(term.count).toLocaleString() : '0'} / ${Number(summary.phenotypeMetadataCount).toLocaleString()}${summary.status !== 'ready' || summary.phenotypeMetadataCount < summary.carrierTotal ? ' (partial)' : ''}`;
+            return `${term ? Number(term.count).toLocaleString() : '0'}${summary.status !== 'ready' || summary.phenotypeMetadataCount < summary.carrierTotal ? ' (partial)' : ''}`;
         },
         applyVariantContextScores(result) {
             pbGeneMethods.applyVariantContextScores.call(this, result);
             this.receivedContextReference = result.rphers_standardization || null;
         },
+        deleteContextRun(run) {
+            if (this.contextLoading || this.searchGeneLoading || !this.contextRuns.some(item => item.id === run.id)) return;
+            this.contextRuns = this.contextRuns.filter(item => item.id !== run.id);
+            this.$delete(this.contextRunMeta, run.id);
+            if (this.currentContextRunId === run.id) {
+                this.currentContextRunId = '';
+                this.appliedContext = null;
+                this.activeContextTerms = [];
+                this.contextTermDetails = [];
+                this.contextError = '';
+                this.applyVariantContextScores({});
+            }
+        },
+        async rerunContextAnalysis(run) {
+            if (this.contextLoading || this.searchGeneLoading || !this.contextRuns.some(item => item.id === run.id)) return;
+            const meta = this.contextRunMeta[run.id];
+            if (!meta || !['max','sum'].includes(meta.scoreType) || !['all','affected'].includes(meta.analysisSet) || !Number.isFinite(meta.significanceThreshold) || !Number.isInteger(meta.minCarriers)) return;
+            this.contextInput = run.hpos;
+            this.contextScoreType = meta.scoreType;
+            this.contextAnalysisSet = meta.analysisSet;
+            this.contextSignificanceThreshold = meta.significanceThreshold;
+            this.contextMinCarriers = meta.minCarriers;
+            this.rerunningContextRunId = run.id;
+            try { await this.runContextAnalysis(); }
+            finally { this.rerunningContextRunId = ''; }
+        },
         async runContextAnalysis() {
+            if (this.contextLoading || this.searchGeneLoading) return;
             const before = new Set(this.contextRuns.map(run => run.id));
             const scoreType = this.contextScoreType;
             const analysisSet = this.contextAnalysisSet;
+            const significanceThreshold = Number(this.contextSignificanceThreshold);
+            const minCarriers = Number(this.contextMinCarriers);
             await pbGeneMethods.runContextAnalysis.call(this);
             const run = this.contextRuns.find(item => !before.has(item.id));
             if (!run) return;
-            this.$set(this.contextRunMeta, run.id, { scoreType, analysisSet });
+            this.$set(this.contextRunMeta, run.id, { scoreType, analysisSet, significanceThreshold, minCarriers });
             this.currentContextRunId = run.id;
             this.appliedContext = { terms: [...this.activeContextTerms], scoreType, analysisSet, reference: this.receivedContextReference };
         },
@@ -477,7 +429,7 @@ export default {
             const previousGene = this.geneInfo.symbol;
             await pbGeneMethods.loadLiveGeneData.call(this, query, false);
             if (this.geneInfo.symbol !== previousGene) {
-                this.associationSearch = ''; this.associationSortKey = ''; this.associationSortDirection = 'asc'; this.pinnedAssociations = []; this.pinnedVariantIds = []; this.variantIdentifierIds = null; this.appliedVariantQuery = ''; this.variantFilters = { clinvar: [], consequence: [], annotations: [], loftee: false }; this.showAllAssociations = false;
+                this.associationSearch = ''; this.associationSortKey = ''; this.associationSortDirection = 'asc'; this.pinnedAssociations = []; this.pinnedVariantIds = []; this.variantIdentifierIds = null; this.appliedVariantQuery = ''; this.variantFilters = { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }; this.associationPage = 1;
             }
             this.contextRunMeta = {}; this.currentContextRunId = ''; this.appliedContext = null;
             if (updateUrl) {
@@ -490,13 +442,12 @@ export default {
         },
     },
     watch: {
-        associationSearch() { this.showAllAssociations = false; },
+        associationSearch() { this.associationPage = 1; },
         'geneInfo.symbol'(symbol, previous) {
             if (symbol === previous) return;
-            this.associationSearch = ''; this.associationSortKey = ''; this.associationSortDirection = 'asc'; this.pinnedAssociations = []; this.pinnedVariantIds = []; this.variantIdentifierIds = null; this.appliedVariantQuery = ''; this.variantFilters = { clinvar: [], consequence: [], annotations: [], loftee: false }; this.showAllAssociations = false;
+            this.associationSearch = ''; this.associationSortKey = ''; this.associationSortDirection = 'asc'; this.pinnedAssociations = []; this.pinnedVariantIds = []; this.variantIdentifierIds = null; this.appliedVariantQuery = ''; this.variantFilters = { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }; this.associationPage = 1;
             this.contextRunMeta = {}; this.currentContextRunId = ''; this.appliedContext = null;
         },
     },
 };
-function total(summary, fallback) { return summary.carrierTotal == null ? fallback : summary.carrierTotal; }
 </script>

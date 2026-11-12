@@ -1,8 +1,99 @@
 # PB Gene Context Association Engineering Handoff
 
+## Precomputed association DB import — November 12, 2026
+
+This is the current engineering contract for the precomputed single-HPO
+association dataset. It supersedes older top-15 projections, global-q proposals,
+same-q-on-both-pages requirements, and preservation of the old browser selection.
+The October 19 effect-unit formulas below still apply. No association models or
+original p-values were recomputed; only per-gene BH adjustment and data export
+were performed. Production ingestion and page-specific q wiring remain required.
+
+### One runtime data file
+
+Helen should retrieve this file and import it as the source dataset for the
+server-side association DB/BioIndex:
+
+```text
+/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/single_gene_burden_with_HPO/gene_hpo_release_20261112/browser_gene_hpo.jsonl.gz
+```
+
+| Property | Verified value |
+|---|---|
+| Format | gzip-compressed JSON Lines; one object per gene with an `associations` array |
+| Compressed bytes | 360,812,435 (about 361 MB / 344 MiB) |
+| Genes | 17,952 |
+| Delivered gene–HPO associations | 2,337,904 |
+| Selection | `fit_status=PASS` and original `p_value < 0.05`; both beta directions; no top-15 or q filter |
+| SHA-256 | `e2e032fe388e2d9b2d99e1fb539bb576a046f20df723e1cd91336e8b1a3f5bff` |
+
+The release root contains this runtime file, a pointer note and its checksum.
+`internal/` contains the complete 49,798,848-row archive, calculation scripts,
+validation and logs; Helen does not need those files for service deployment.
+The previous three November working directories were consolidated into this
+one release. Historical paths in archived logs/manifests are recorded in
+`internal/relocation_inventory.json`; do not use them as current input paths.
+
+### Import and page-specific q mapping
+
+Import every delivered association, carrying the outer `gene` into each indexed
+row. Support queries by gene and by `hpo_id` over the same underlying pairs.
+Return only the requested query's rows to the browser, with pagination and
+continuations where appropriate. Do not download the whole file to the browser
+or rescan/decompress it for every uncached request. This JSONL is an ingestion
+source, not an already indexed database binary.
+
+| Consumer | `qValue` | `qSignificant` | Gene-record significant count |
+|---|---|---|---|
+| Gene page | `association.q_by_gene` | `association.q_significant_by_gene` | `record.n_q_significant_by_gene` |
+| Phenotype page | `association.q_by_hpo` | `association.q_significant_by_hpo` | Not the Gene-page count |
+
+- `q_by_gene`: BH adjustment of original p-values across **all PASS HPO tests
+  within one gene**, before the delivery p filter. Actual family sizes are
+  2,563–2,774, depending on failed combinations. Both beta directions contribute.
+- `q_by_hpo`: original BH adjustment across PASS genes within one HPO; unchanged.
+- Legacy `association.q_significant` and `record.n_q_significant` retain their
+  HPO-wise meanings. Do not use them for the new Gene-page significance display.
+- `record.n_tested_hpos` is the full pre-filter BH family size;
+  `record.n_associations` is the delivered p<0.05 row count for that gene.
+- Use the page-specific q for sorting, significance filters, counts, tooltips
+  and CSV. The two pages may show different q-values for the same pair; beta,
+  SE, p-value and fitted N must agree. Neither q is a global pairwise correction.
+- Do not recompute q from the filtered file, visible rows, search results or a
+  page of results. Render the filter as `P < 0.05`, not `P ≤ 0.05`. The delivered
+  dataset does not contain p≥0.05 rows. Missing q displays `—`, but an available
+  stored q must not be replaced by the illustrative dashes in a layout image.
+
+Preserve original coefficient/SE/OR/CI, sample counts, `model_formula`, p-values
+and both q fields during ingestion. Stored `beta_gene_score_sum_approx` remains
+an approximate binary-HPO log-odds effect per one `gene_score_sum` unit. Its
+per-0.1-GRS display scales beta/SE/CI by 0.1; do not divide it by rPheRS SD.
+This dataset does not replace the custom HPO regression inputs or formulas.
+
+The current prototype `scripts/gene_hpo_association_endpoint.js` understands
+the outer JSONL shape but still maps Gene `qValue` to `q_by_hpo`. Replacing the
+file alone does not implement this contract. Wire the indexed data source and
+page-specific fields together. Set response release metadata to
+`gene_hpo_release_20261112` (the prototype supports `PB_GENE_HPO_RELEASE_ID`) and
+invalidate old association response caches. `PB_GENE_HPO_FILE` is the local
+reference reader's configured file path, not a browser asset URL.
+
+### Release verification and integration acceptance
+
+All genes' BH results were checked against statsmodels `fdr_bh`. The complete
+archive was read back and its original columns/order matched the source hash;
+all filtered JSONL records were read back and validated. Dataset preparation
+passed, but this does not claim that production ingestion has been deployed.
+
+For integration, verify a gene can expose all its delivered p<0.05 associations
+across pagination, Gene q/flags/counts use the gene-wise fields, Phenotype q uses
+the HPO-wise fields, and one shared pair retains identical beta/SE/p/N on both
+pages. Verify Gene sorting/filtering/CSV use `q_by_gene`, the whole gzip file is
+not sent to the browser, and old cached rows/release labels are invalidated.
+
 ## Confirmed display units — October 19, 2026 follow-up
 
-The user's final decision supersedes earlier OR-retention and pending-source proposals in this document. No new single-HPO regression is needed or authorized for this change.
+This October 19 unit-only decision supersedes earlier OR-retention and pending-source proposals. The November 12 section above adds the current data-selection/q contract; neither change reruns single-HPO regression.
 
 | Result | Primary display | Formula |
 |---|---|---|
@@ -10,7 +101,7 @@ The user's final decision supersedes earlier OR-retention and pending-source pro
 | Live Context Gene | Effect per 0.1 GRS (SD) | 0.1 × raw linear β / original scoring-cohort SD |
 | Live Context Variant | Variant effect β (SD) | raw linear β / original scoring-cohort SD, carrier 0→1 |
 
-Single-HPO uses the stored `beta_gene_score_sum_approx` and `se_gene_score_sum_approx`, without rPheRS SD division. Its existing coefficient CI is scaled by 0.1; where the release supplies OR bounds, the endpoint takes the log of the original one-GRS positive finite bounds before scaling. It never recovers β from an already available OR. Original score-test p/q, release selection/order, and fitted N are retained. No Wald p-values or new q-values are calculated.
+Single-HPO uses the stored `beta_gene_score_sum_approx` and `se_gene_score_sum_approx`, without rPheRS SD division. Its existing coefficient CI is scaled by 0.1; where the release supplies OR bounds, the endpoint takes the log of the original one-GRS positive finite bounds before scaling. It never recovers β from an already available OR. The October 19 display conversion retained p/q/selection/order/N and did not calculate Wald p-values or q-values. The November 12 export separately adds `q_by_gene` and replaces the old selected projection, as specified above.
 
 `gene_hpo_association_endpoint.js` preserves legacy OR fields and adds raw `beta`, `standardError`, `betaCiLow`, `betaCiHigh`, plus `betaPer0_1Grs`, `standardErrorPer0_1Grs`, `betaCiLowPer0_1Grs`, and `betaCiHighPer0_1Grs`. Metadata includes `nSamples`, `sourceRelease` (default `gene_hpo_release_20260905`, configurable through `PB_GENE_HPO_RELEASE_ID`), `model`, `modelFormula`, `outcome=hpo_binary`, `predictor=gene_score_sum`, `effectUnit=log_odds_per_0_1_grs`, `effectApproximation=score_test`, `displayPredictorStep=0.1`, and `displayVersion=single_hpo_beta_per_0_1_grs_v1`. A missing stored β or unmatched CI remains unavailable. `singleHpoUnits.js` derives display fields only from original coefficient fields, preventing a repeated 0.1 conversion.
 
@@ -50,7 +141,7 @@ Deliver the code and these documents from the same commit. This document is the 
 
 Apply the Python entry points together with `rphers_standardization.py`; apply the Node endpoint together with `singleHpoUnits.js`; then deploy all three pages with both frontend helpers. Restart the relevant API processes and Node release cache. Preserve the existing analysis inputs and raw fields. Production BioIndex schemas and historical single-HPO result files do not need conversion for this display change.
 
-Updated: 2026-10-19
+Updated: 2026-11-12 (precomputed DB import); Context unit implementation: 2026-10-19
 Target branch: `kyuryung/bch-prototype`
 Pages: `/pb_gene.html`, `/public_gene.html`
 Audience: frontend, backend, data, and platform engineers integrating HPO-dependent Gene associations
