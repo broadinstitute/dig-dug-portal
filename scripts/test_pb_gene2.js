@@ -52,6 +52,7 @@ const options = load('src/views/PbGene2/Template.vue', {
     './carrierScores': require('../src/views/PbGene2/carrierScores'),
     './filteredCarrierDemographics': load('src/views/PbGene2/filteredCarrierDemographics.js'),
     './variantHpoCounts': load('src/views/PbGene2/variantHpoCounts.js'),
+    './carrierHpoTotals': load('src/views/PbGene2/carrierHpoTotals.js'),
     './carrierTable': load('src/views/PbGene2/carrierTable.js', {'./evidencePagination':require('../src/views/PbGene2/evidencePagination')}),
     './evidenceHelp': require('../src/views/PbGene2/evidenceHelp'),
     './referenceProvenance': load('src/views/PbGene2/referenceProvenance.js'),
@@ -65,6 +66,25 @@ for (const name of ['GeneIdentity', 'Demographics', 'ContextPanel', 'VariantSumm
     assert.deepEqual(compiler.compile(parsed.template.content).errors, []);
 }
 async function main() {
+    const numericSorter = {
+        variantRows: [
+            {id:'chr1:1:A:G',carrierCount:2,phenotypeMatchScore:-2,variantEffectBeta:-1,variantEffectPValue:0.1},
+            {id:'chr1:2:A:G',carrierCount:10,phenotypeMatchScore:0,variantEffectBeta:0,variantEffectPValue:1e-9},
+            {id:'chr1:3:A:G',carrierCount:0,phenotypeMatchScore:2,variantEffectBeta:1,variantEffectPValue:0.2},
+            {id:'chr1:4:A:G',carrierCount:0,phenotypeMatchScore:null,variantEffectBeta:null,variantEffectPValue:null},
+        ],
+        appliedContext:{},variantHpoCountStatus:'ready',variantHpoCounts:{'chr1:1:A:G':{count:10},'chr1:2:A:G':{count:2},'chr1:3:A:G':{count:0}},
+        variantSortValue(row,key){return options.methods.variantSortValue.call(this,row,key);},
+    };
+    const checkNumericSort=(key,direction,expected)=>{
+        Object.assign(numericSorter,{variantSortKey:key,variantSortDir:direction});
+        assert.deepEqual(Array.from(base.pbGeneComputed.sortedVariantRows.call(numericSorter),row=>Number(row.id.split(':')[1])),expected,`${key} must sort numerically with missing last`);
+    };
+    checkNumericSort('hpoCarriers','asc',[3,2,1,4]);checkNumericSort('hpoCarriers','desc',[1,2,3,4]);
+    checkNumericSort('matchScore','asc',[1,2,3,4]);checkNumericSort('matchScore','desc',[3,2,1,4]);
+    checkNumericSort('effectScore','asc',[1,2,3,4]);checkNumericSort('effectScore','desc',[3,2,1,4]);
+    checkNumericSort('pValue','asc',[2,1,3,4]);checkNumericSort('pValue','desc',[3,1,2,4]);
+    checkNumericSort('carriers','desc',[2,1,3,4]);
     const identityBase = load('src/views/PbGene/GeneIdentityPanel.vue', {}, true).default;
     const identityOptions = load('src/views/PbGene2/GeneIdentity.vue', {
         '../PbGene/GeneIdentityPanel': identityBase, './HelpTooltip': {},

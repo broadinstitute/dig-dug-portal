@@ -177,6 +177,19 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
         carriersForGene,
         sampleInfo: (id, token) => sampleInfo(id, true, token),
     });
+    require('./gene_carrier_hpo_totals_endpoint')(app, {
+        accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
+        carriersForGene,
+        sampleInfo: (id, token, gene) => {
+            const job = jobs.get(`${accessScope(token)}|${gene}|`);
+            const cached = job && job.filterInfo;
+            return cached && cached.has(id) ? Promise.resolve(cached.get(id)) : sampleInfo(id, true, token);
+        },
+    }, {
+        matrixPath: process.env.PB_GENE_SCORING_HPO_MATRIX,
+        aliasesPath: process.env.PB_GENE_SCORING_SAMPLE_MAP,
+        expectedSha256: process.env.PB_GENE_SCORING_HPO_SHA256,
+    });
     require('./variant_carrier_metadata_endpoint')(app, {
         accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
         carriersForGene,

@@ -104,19 +104,19 @@
                                 <span v-if="variantPositionError" class="pbg-ve-position-error" role="alert">{{ variantPositionError }}</span>
                                 <span v-if="variantIdentifierIds !== null" class="pg2-identifier-search-state">{{ variantIdentifierIds.length }} variant match{{ variantIdentifierIds.length === 1 ? '' : 'es' }} · {{ appliedVariantQuery }} <button class="pg2-text-button" type="button" @click="clearVariantIdentifierSearch">Clear search</button></span>
                             </form>
-                            <label class="pg2-variant-sort-select">Sort by: <select :value="variantSortSelection" aria-label="Sort variant evidence" @change="setVariantSortSelection($event.target.value)"><option value="variantScore:desc">In Silico Predictors ↓</option><option value="carriers:desc">Total carriers ↓</option><option value="matchScore:desc">Mean carrier rPheRS Z ↓</option><option value="effectScore:desc">Variant β ↓</option><option value="pValue:asc">P ↑</option><option value="variant:asc">Variant position ↑</option><option value="variant:desc">Variant position ↓</option><option v-if="!variantSortOptions.includes(variantSortSelection)" :value="variantSortSelection">{{ variantSortLabel }}</option></select></label>
+                            <label class="pg2-variant-sort-select">Sort by: <select :value="variantSortSelection" aria-label="Sort variant evidence" @change="setVariantSortSelection($event.target.value)"><option value="variantScore:desc">In Silico Predictors ↓</option><option value="carriers:desc">Total carriers ↓</option><option value="hpoCarriers:desc">Carriers with HPO ↓</option><option value="matchScore:desc">Mean carrier rPheRS Z ↓</option><option value="effectScore:desc">Variant β ↓</option><option value="pValue:asc">P ↑</option><option value="variant:asc">Variant position ↑</option><option value="variant:desc">Variant position ↓</option><option v-if="!variantSortOptions.includes(variantSortSelection)" :value="variantSortSelection">{{ variantSortLabel }}</option></select></label>
                         </div>
                         <div class="pg2-variant-information-band"><span>Variant information</span><span>Phenotype-based evidence</span></div>
                         <div class="pbg-ve-table-head">
                             <span></span>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variant')"><span>Variant</span><b-icon-arrow-down-up /></button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('clinvar')"><span>ClinVar</span><b-icon-arrow-down-up /></button>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('carriers')">Total<br>carriers</button><help-tooltip info label="About total variant carriers" :text="help.totalCarriers" /></div>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">In Silico<br>Predictors</button><help-tooltip info label="About In Silico Predictors" :text="help.pathogenicity + '\n\n' + annotationSources.predictors.text" :links="annotationSources.predictors.links" /></div>
-                            <div class="pg2-score-heading"><span>Carriers<br>with HPO</span><help-tooltip info label="About carriers with the applied HPO profile" :text="help.hpoCarriers" /></div>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">Mean carrier<br>rPheRS Z</button><help-tooltip info label="About mean carrier rPheRS Z" :text="help.meanZ" /></div>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('effectScore')">Variant β<br><small>(rPheRS SD)</small></button><help-tooltip info label="About variant beta" :text="help.variantBeta" /></div>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" @click="sortVariantsBy('pValue')">P</button><help-tooltip info label="About variant p-value" :text="help.variantP" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Total carriers" @click="sortVariantsBy('carriers')"><span>Total<br>carriers</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('carriers') }}</span></button><help-tooltip info label="About total variant carriers" :text="help.totalCarriers" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by In Silico Predictors" @click="sortVariantsBy('variantScore')"><span>In Silico<br>Predictors</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('variantScore') }}</span></button><help-tooltip info label="About In Silico Predictors" :text="help.pathogenicity + '\n\n' + annotationSources.predictors.text" :links="annotationSources.predictors.links" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Carriers with HPO" @click="sortVariantsBy('hpoCarriers')"><span>Carriers<br>with HPO</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('hpoCarriers') }}</span></button><help-tooltip info label="About carriers with the applied HPO profile" :text="help.hpoCarriers" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Mean carrier rPheRS Z" @click="sortVariantsBy('matchScore')"><span>Mean carrier<br>rPheRS Z</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('matchScore') }}</span></button><help-tooltip info label="About mean carrier rPheRS Z" :text="help.meanZ" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Variant beta" @click="sortVariantsBy('effectScore')"><span>Variant β<br><small>(rPheRS SD)</small></span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('effectScore') }}</span></button><help-tooltip info label="About variant beta" :text="help.variantBeta" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by P" @click="sortVariantsBy('pValue')">P<span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('pValue') }}</span></button><help-tooltip info label="About variant p-value" :text="help.variantP" /></div>
                         </div>
 
                         <template v-for="row in comparisonVariantRows">
@@ -164,20 +164,21 @@
                             <div v-if="expandedVariantId === row.id" :id="'variant-detail-' + row.id"
                                  :key="row.id + '-details'"
                                  class="pbg-variant-expanded pg2-variant-detail">
-                                <variant-annotation :items="variantEvidenceRows(row)" :variant-url="variantPageUrl(row)" :warning="variantHasHighAf(row) ? variantAfWarningText(row) : ''" />
+                                <variant-annotation :items="variantEvidenceRows(row)" :variant="row" :gene-info="geneInfo" :variant-url="variantPageUrl(row)" :warning="variantHasHighAf(row) ? variantAfWarningText(row) : ''" />
                                 <section class="pg2-expanded-section pg2-carrier-summary" aria-label="Variant carrier summary">
                                     <div class="pg2-expanded-heading"><h3>Carrier summary <span class="pg2-expanded-count">· {{ Number(row.carrierCount).toLocaleString() }} carriers</span> <help-tooltip label="Variant carrier summary" :text="help.carrierSummary" /></h3></div>
-                                    <demographics :summary="variantCarrierSummaries[row.id] || null" :carrier-count="Number(row.carrierCount) || 0" :status="carrierSummaryProgress[row.id] || carrierSummaryErrors[row.id] || ''" :scope="row.id" compact />
+                                    <demographics :summary="variantCarrierSummaries[row.id] || null" :carrier-count="Number(row.carrierCount) || 0" :status="carrierSummaryProgress[row.id] || carrierSummaryErrors[row.id] || ''" :scope="row.id" compact inline-project-search />
                                 </section>
                                 <section class="pg2-expanded-section pg2-carrier-samples" aria-label="Variant carrier samples">
                                     <div class="pg2-expanded-heading"><h3>Carrier samples <span class="pg2-expanded-count">· {{ Number(row.carrierCount).toLocaleString() }}</span> <span class="pg2-internal-label">Internal</span> <help-tooltip label="Variant carrier samples" :text="help.carrierSamples" /></h3></div>
-                                    <div class="pg2-carrier-table-tools"><input v-model="carrierTableSearch" type="search" placeholder="Find sample ID" aria-label="Find a carrier by sample ID" /><span class="pg2-carrier-table-range" role="status">{{ carrierTableRange }}</span></div>
+                                    <div class="pg2-carrier-table-tools"><input v-model="carrierTableSearch" type="search" placeholder="Find sample ID" aria-label="Find a carrier by sample ID" /><span v-if="carrierSortValues.status === 'loading'" role="status">Loading sort values… {{ carrierSortValues.completed.toLocaleString() }} / {{ row.carrierSamples.length.toLocaleString() }}</span><span v-else-if="carrierSortValues.status === 'unavailable'" role="status">Sort values unavailable. <button class="pg2-text-button" type="button" @click="loadCarrierSortValues(carrierSortRequestKey)">Retry</button></span><span class="pg2-carrier-table-range" role="status">{{ carrierTableRange }}</span></div>
                                     <div class="pg2-table-scroll"><table class="pg2-table pg2-carrier-sample-table">
-                                        <colgroup><col style="width:28%"><col style="width:7%"><col style="width:9%"><col style="width:7%"><col style="width:13%"><col style="width:26%"><col style="width:10%"></colgroup>
+                                        <colgroup><col style="width:25%"><col style="width:6%"><col style="width:8%"><col style="width:6%"><col style="width:13%"><col style="width:12%"><col style="width:21%"><col style="width:9%"></colgroup>
                                         <thead><tr>
-                                            <th :aria-sort="carrierTableSort === 'asc' ? 'ascending' : 'descending'"><button type="button" class="pg2-sort-button" @click="toggleCarrierTableSort">Sample <b-icon-sort-up v-if="carrierTableSort === 'asc'" /><b-icon-sort-down v-else /></button></th>
-                                            <th>Age</th><th>Sex</th><th class="pg2-carrier-gt-heading">GT <help-tooltip label="Carrier genotype" :text="help.genotype" /></th>
-                                            <th class="pg2-numeric">rPheRS Z <help-tooltip label="Individual carrier rPheRS Z" :text="help.individualZ" /></th>
+                                            <th :aria-sort="carrierAriaSort('sample')"><button type="button" class="pg2-sort-button" @click="toggleCarrierTableSort('sample')">Sample <span class="pg2-sort-indicator" aria-hidden="true">{{ carrierSortIndicator('sample') }}</span></button></th>
+                                            <th :aria-sort="carrierAriaSort('age')"><button type="button" class="pg2-sort-button" @click="toggleCarrierTableSort('age')">Age <span class="pg2-sort-indicator" aria-hidden="true">{{ carrierSortIndicator('age') }}</span></button></th><th>Sex</th><th class="pg2-carrier-gt-heading">GT <help-tooltip label="Carrier genotype" :text="help.genotype" /></th>
+                                            <th class="pg2-numeric" :aria-sort="carrierAriaSort('hpoTerms')"><button type="button" class="pg2-sort-button" @click="toggleCarrierTableSort('hpoTerms')">Total HPO terms <span class="pg2-sort-indicator" aria-hidden="true">{{ carrierSortIndicator('hpoTerms') }}</span></button><help-tooltip label="About total HPO terms" :text="help.totalHpoTerms" /></th>
+                                            <th class="pg2-numeric" :aria-sort="carrierAriaSort('rphers')"><button type="button" class="pg2-sort-button" @click="toggleCarrierTableSort('rphers')">rPheRS Z <span class="pg2-sort-indicator" aria-hidden="true">{{ carrierSortIndicator('rphers') }}</span></button><help-tooltip label="Individual carrier rPheRS Z" :text="help.individualZ" /></th>
                                             <th>Project</th><th>Affected</th>
                                         </tr></thead>
                                         <tbody>
@@ -186,11 +187,12 @@
                                                 <td :title="String(carrierSampleField(s, 'age') || '')">{{ carrierDisplayField(s, 'age') }}</td>
                                                 <td :title="String(carrierSampleField(s, 'sex') || '')">{{ carrierDisplayField(s, 'sex') }}</td>
                                                 <td>{{ s.gt == null || isMissingMetadataValue(s.gt) ? '—' : s.gt }}</td>
+                                                <td class="pg2-numeric">{{ carrierHpoTotalDisplay(s) }}</td>
                                                 <td class="pg2-numeric" :class="{ 'pg2-muted': currentCarrierScores.status !== 'ready' }">{{ individualCarrierScore(s) }}</td>
                                                 <td><div class="pg2-carrier-project-cell"><span :title="carrierDisplayField(s, 'project')">{{ carrierDisplayField(s, 'project') }}</span><help-tooltip v-if="!isMissingMetadataValue(carrierSampleField(s, 'project'))" :label="'Project for ' + s.id" :text="String(carrierSampleField(s, 'project'))" /></div></td>
                                                 <td>{{ carrierDisplayField(s, 'affected') }}</td>
                                             </tr>
-                                            <tr v-if="!visibleCarrierRows(row).length"><td colspan="7" class="pg2-empty">{{ row.carrierSamples.length ? 'No sample IDs match this search.' : 'Carrier sample IDs unavailable.' }}</td></tr>
+                                            <tr v-if="!visibleCarrierRows(row).length"><td colspan="8" class="pg2-empty">{{ row.carrierSamples.length ? 'No sample IDs match this search.' : 'Carrier sample IDs unavailable.' }}</td></tr>
                                         </tbody>
                                     </table></div>
                                     <div v-if="currentCarrierScores.status === 'error'" class="pg2-carrier-score-error" role="status"><span>Individual scores unavailable.</span><help-tooltip label="Individual score request error" :text="currentCarrierScores.error" /><button type="button" class="pg2-text-button" @click="loadIndividualCarrierScores">Retry</button></div>
@@ -235,12 +237,13 @@ import { variantHpoCountsMixin } from './variantHpoCounts';
 import InfoRail from './InfoRail';
 import VariantAnnotation from './VariantAnnotation';
 import {carrierTableMixin} from './carrierTable';
+import {carrierHpoTotalsMixin} from './carrierHpoTotals';
 import "../PbGene/style.css";
 import "./style.css";
 
 export default {
     name: "PbGene2Template",
-    mixins: [carrierScoreMixin, filteredCarrierDemographicsMixin, variantHpoCountsMixin, carrierTableMixin],
+    mixins: [carrierScoreMixin, filteredCarrierDemographicsMixin, variantHpoCountsMixin, carrierTableMixin, carrierHpoTotalsMixin],
     components: { GeneIdentity, Demographics, ContextPanel, VariantOverview, HelpTooltip, InfoRail, VariantAnnotation },
     data() {
         return { ...createPbGeneState(), help, annotationSources: VARIANT_ANNOTATION_SOURCES, infoRailReserved: false, associationSearch: '', associationPage: 1, associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }, contextRunMeta: {}, currentContextRunId: '', rerunningContextRunId: '', appliedContext: null, receivedContextReference: null };
@@ -259,8 +262,8 @@ export default {
         unpinnedVisibleVariantRows() { const pinned = new Set(this.pinnedVariantIds); return this.visibleVariantRows.filter(row => !pinned.has(row.id)); },
         comparisonVariantRows() { return [...this.pinnedVariantRows, ...this.unpinnedVisibleVariantRows]; },
         variantSortSelection() { return `${this.variantSortKey}:${this.variantSortDir}`; },
-        variantSortOptions() { return ['variantScore:desc', 'carriers:desc', 'matchScore:desc', 'effectScore:desc', 'pValue:asc', 'variant:asc', 'variant:desc']; },
-        variantSortLabel() { return `${{ variant: 'Variant', carriers: 'Total carriers', consequence: 'Consequence', clinvar: 'ClinVar', variantScore: 'In Silico Predictors', matchScore: 'Mean carrier rPheRS Z', effectScore: 'Variant β', pValue: 'P' }[this.variantSortKey] || this.variantSortKey} ${this.variantSortDir === 'asc' ? '↑' : '↓'}`; },
+        variantSortOptions() { return ['variantScore:desc', 'carriers:desc', 'hpoCarriers:desc', 'matchScore:desc', 'effectScore:desc', 'pValue:asc', 'variant:asc', 'variant:desc']; },
+        variantSortLabel() { return `${{ variant: 'Variant', carriers: 'Total carriers', hpoCarriers: 'Carriers with HPO', consequence: 'Consequence', clinvar: 'ClinVar', variantScore: 'In Silico Predictors', matchScore: 'Mean carrier rPheRS Z', effectScore: 'Variant β', pValue: 'P' }[this.variantSortKey] || this.variantSortKey} ${this.variantSortDir === 'asc' ? '↑' : '↓'}`; },
         variantEvidencePages() { return pageNumbers(this.variantPage, this.variantPageCount); },
         associationColumns() { return [ { key: 'beta', label: 'β', help: help.precomputedBeta }, { key: 'ci', label: '95% CI', help: help.precomputedCI }, { key: 'p', label: 'P' }, { key: 'q', label: 'q', help: help.geneQ }, { key: 'carriers', label: 'Carriers with term', help: 'Number of gene carriers with this HPO term recorded. Counts use the entire gene carrier set independently of variant display filters. The shared denominator is shown here instead of repeated in each row. ' + this.phenotypeCountTitle } ]; },
         filteredAssociations() { return filterAssociations(this.genePhenotypeAssociations, this.associationSearch, this.pinnedAssociations).filter(row => row.pValue != null && row.pValue < .05); },
@@ -355,6 +358,14 @@ export default {
             if (!selected || !this.isVariantPinned(selected)) { this.expandedVariantId = null; this.geneTab = 'gene'; }
         },
         sortVariantsBy(key) { this.retainPinnedExpansion('sortVariantsBy', key); if (this.variantIdentifierIds !== null) this.variantPositionQuery = this.appliedVariantQuery; },
+        variantColumnSortIndicator(key) { return this.variantSortKey === key ? (this.variantSortDir === 'asc' ? '↑' : '↓') : '↕'; },
+        variantSortValue(row, key) {
+            if (key === 'hpoCarriers') {
+                const record = this.variantHpoCountStatus === 'ready' && this.appliedContext && this.variantHpoCounts[row.id];
+                return record && record.count != null ? Number(record.count) : null;
+            }
+            return pbGeneMethods.variantSortValue.call(this, row, key);
+        },
         setVariantSortSelection(value) { const [key, direction] = value.split(':'); this.sortVariantsBy(key); this.variantSortDir = direction; },
         contextTermLabel(id) { return hpoLabel(id); },
         consequenceLabel(row) { return String(row.consequence || 'Unavailable').replace(/_variant\b/g, '').replace(/_/g, ' ').replace(/^./, letter => letter.toUpperCase()); },

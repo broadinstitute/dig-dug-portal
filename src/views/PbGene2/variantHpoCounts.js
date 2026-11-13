@@ -2,8 +2,10 @@ export const variantHpoCountsMixin = {
     data: () => ({ variantHpoCounts: {}, variantHpoCountStatus: '', variantHpoRevision: 0 }),
     computed: {
         variantHpoCountKey() {
-            return this.appliedContext && this.comparisonVariantRows.length ? JSON.stringify([
-                this.geneInfo.symbol, [...this.appliedContext.terms].sort(), [...new Set(this.comparisonVariantRows.map(row => row.id))].sort(),
+            const rows = this.variantSortKey === 'hpoCarriers'
+                ? [...this.matchingVariantRows, ...this.pinnedVariantRows] : this.comparisonVariantRows;
+            return this.appliedContext && rows.length ? JSON.stringify([
+                this.geneInfo.symbol, [...this.appliedContext.terms].sort(), [...new Set(rows.map(row => row.id))].sort(),
             ]) : '';
         },
     },

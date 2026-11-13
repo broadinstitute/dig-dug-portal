@@ -12,6 +12,9 @@ for (const [name, fn] of Object.entries(mixin.methods)) page[name]=fn.bind(page)
 Object.defineProperty(page,'variantHpoCountKey',{get:()=>mixin.computed.variantHpoCountKey.call(page)});
 const reply=(term,count,match='any')=>({ok:true,json:async()=>({gene:'TEST',hpo_terms:[term],match,variants:{'chr1:1:A:G':{count,metadataCount:3,carrierTotal:3,complete:true}}})});
 (async()=>{
+    const allRows=Array.from({length:12},(_,i)=>({id:`chr1:${i+1}:A:G`}));
+    const sortKey=mixin.computed.variantHpoCountKey.call({...page,variantSortKey:'hpoCarriers',matchingVariantRows:allRows,pinnedVariantRows:[allRows[0]],comparisonVariantRows:allRows.slice(0,5)});
+    assert.equal(JSON.parse(sortKey)[2].length,12,'HPO sorting requests counts for the full filtered set, not only the visible page');
     const first=page.loadVariantHpoCounts(page.variantHpoCountKey);
     assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'Loading…');
     page.appliedContext={terms:['HP:0001252']};

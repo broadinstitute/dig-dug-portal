@@ -1,0 +1,44 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const babel = require('@babel/core');
+const exported = {}, pending = [];
+const code = babel.transformSync(fs.readFileSync('src/views/PbGene2/carrierHpoTotals.js', 'utf8'),
+    {babelrc: false, configFile: false, plugins: ['@babel/plugin-transform-modules-commonjs']}).code;
+vm.runInNewContext(code, {exports: exported, AbortController, fetch: (_url, options) => new Promise(resolve => pending.push({options, resolve}))});
+const mixin = exported.carrierHpoTotalsMixin;
+const variant = 'chr1:100:A:G';
+const key = ids => JSON.stringify(['TEST', variant, ids]);
+const page = {...mixin.data(), carrierTableRequestKey: key(['A', 'B'])};
+for (const [name, method] of Object.entries(mixin.methods)) page[name] = method.bind(page);
+const reply = counts => ({ok: true, json: async () => ({gene: 'TEST', variant, counts,
+    source: {method: 'binary_hpo_matrix_row_sum', covariate: 'n_terms'}})});
+(async () => {
+    const first = page.loadCarrierHpoTotals(page.carrierTableRequestKey);
+    assert.equal(page.carrierHpoTotalDisplay({id: 'A'}), 'Loading…');
+    const request = JSON.parse(pending[0].options.body);
+    assert.deepEqual(request.sample_ids, ['A', 'B']);
+    assert.equal(request.hpo_terms, undefined, 'Total terms must not depend on an applied HPO profile');
+    pending[0].resolve(reply({A: 11, B: 0})); await first;
+    assert.equal(page.carrierHpoTotalDisplay({id: 'A'}), '11');
+    assert.equal(page.carrierHpoTotalDisplay({id: 'B'}), '0');
+    page.carrierTableRequestKey = key(['C']);
+    const second = page.loadCarrierHpoTotals(page.carrierTableRequestKey);
+    page.carrierTableRequestKey = key(['D']);
+    const third = page.loadCarrierHpoTotals(page.carrierTableRequestKey);
+    assert.equal(pending[1].options.signal.aborted, true);
+    pending[2].resolve(reply({D: null})); await third;
+    pending[1].resolve(reply({C: 99})); await second;
+    assert.equal(page.carrierHpoTotalDisplay({id: 'D'}), 'Unavailable');
+    assert.equal(page.carrierHpoTotalResult.counts.C, undefined, 'A stale page cannot replace current totals');
+    const invalid = page.loadCarrierHpoTotals(page.carrierTableRequestKey);
+    pending[3].resolve(reply({D: -1})); await invalid;
+    assert.equal(page.carrierHpoTotalResult.status, 'unavailable');
+    page.carrierTableRequestKey = ''; await page.loadCarrierHpoTotals('');
+    assert.equal(page.carrierHpoTotalResult.status, 'idle');
+    page.carrierTableRequestKey = key(['A']);
+    const reopened = page.loadCarrierHpoTotals(page.carrierTableRequestKey);
+    pending[4].resolve(reply({A: 12})); await reopened;
+    assert.equal(page.carrierHpoTotalDisplay({id: 'A'}), '12', 'Reopening fetches the current source value');
+    console.log('Gene2 scoring HPO totals: visible-page requests, no profile requirement, zero/missing, stale pages and reopen refresh PASS');
+})().catch(error => {console.error(error); process.exitCode = 1;});

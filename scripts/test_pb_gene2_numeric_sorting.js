@@ -1,0 +1,51 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const babel=require('@babel/core');
+const Vue=require('vue');
+const exported={},requests=[];
+const samples=Array.from({length:207},(_,i)=>({id:`S${String(i).padStart(3,'0')}`}));
+const terms=Object.fromEntries(samples.map((s,i)=>[s.id,i===206?999:i===4?null:i%11]));
+const ages=Object.fromEntries(samples.map((s,i)=>[s.id,i===4?null:i%100]));
+const code=babel.transformSync(fs.readFileSync('src/views/PbGene2/carrierTable.js','utf8'),{babelrc:false,configFile:false,plugins:['@babel/plugin-transform-modules-commonjs']}).code;
+vm.runInNewContext(code,{exports:exported,URLSearchParams,AbortController,require:()=>require('../src/views/PbGene2/evidencePagination'),fetch:async(_url,options)=>{
+    const body=JSON.parse(options.body);requests.push(body);
+    assert.ok(body.sample_ids.length<=100);
+    const source=body.field==='age'?ages:terms;
+    return {ok:true,json:async()=>({...body,values:Object.fromEntries(body.sample_ids.map(id=>[id,source[id]]))})};
+}});
+const mixin=exported.carrierTableMixin;
+async function ready(page){
+    await Vue.nextTick();
+    for(let i=0;i<20&&page.carrierSortValues.status==='loading';i++)await new Promise(resolve=>setTimeout(resolve,0));
+    assert.equal(page.carrierSortValues.status,'ready');
+    await Vue.nextTick();
+}
+(async()=>{
+    const variant={id:'chr1:100:A:G',carrierSamples:samples};
+    const page=new Vue({mixins:[mixin],data:()=>({liveDataLoaded:true,geneInfo:{symbol:'TEST'},expandedVariantId:variant.id,variantRows:[variant],currentCarrierScores:{status:'ready',scores:{s000:-2.4,s001:-0.01,s002:0,s003:0.4}}}),methods:{fetchVisibleCarrierSampleDetails(){},carrierSampleField(s,field){return s[field];}}});
+    assert.equal(requests.length,0,'Opening by Sample sort must retain five-row metadata loading');
+    page.goToCarrierTablePage(4);page.toggleCarrierTableSort('hpoTerms');await ready(page);
+    assert.equal(page.carrierTablePage,1);
+    assert.equal(requests.length,3,'207 carriers use three bounded numeric-only batches');
+    assert.equal(new Set(requests.flatMap(r=>r.sample_ids)).size,207);
+    assert.equal(page.matchingCarrierSamples[0].id,'S000','A real zero sorts before positive counts');
+    assert.equal(page.matchingCarrierSamples.at(-1).id,'S004','Missing sorts last ascending');
+    page.toggleCarrierTableSort('hpoTerms');await Vue.nextTick();
+    assert.equal(page.currentCarrierTableRows[0].id,'S206','A carrier outside the first page becomes first globally');
+    assert.equal(page.matchingCarrierSamples.at(-1).id,'S004','Missing remains last descending');
+    assert.equal(requests.length,3,'Changing direction reuses the same source values');
+    page.carrierTableSearch='S010';await Vue.nextTick();assert.equal(page.currentCarrierTableRows[0].id,'S010');
+    page.carrierTableSearch='';await Vue.nextTick();assert.equal(page.currentCarrierTableRows[0].id,'S206');
+    page.toggleCarrierTableSort('age');await ready(page);
+    assert.equal(page.matchingCarrierSamples[0].id,'S000');
+    page.toggleCarrierTableSort('age');await Vue.nextTick();assert.equal(page.matchingCarrierSamples[0].id,'S099');
+    assert.equal(page.matchingCarrierSamples.at(-1).id,'S004');
+    page.toggleCarrierTableSort('rphers');await Vue.nextTick();
+    assert.deepEqual(Array.from(page.matchingCarrierSamples.slice(0,4),s=>s.id),['S000','S001','S002','S003']);
+    page.toggleCarrierTableSort('rphers');await Vue.nextTick();
+    assert.deepEqual(Array.from(page.matchingCarrierSamples.slice(0,4),s=>s.id),['S003','S002','S001','S000']);
+    assert.equal(page.carrierAriaSort('rphers'),'descending');assert.equal(page.carrierAriaSort('age'),'none');
+    page.$destroy();
+    console.log('Gene2 numeric sorting: all 207 carriers, bounded source batches, direction toggle, zero/negative/missing, stable ties and search PASS');
+})().catch(error=>{console.error(error);process.exitCode=1;});

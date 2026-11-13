@@ -410,6 +410,7 @@ html.pb-gene2-default-scale { zoom: .8; }
 .pg2-page .pbg-ve-sort svg { width: 13px; flex-shrink: 0; }
 .pg2-page .pbg-ve-sort small { font-size: 17px; font-weight: 400; }
 .pg2-score-heading { flex-wrap: wrap; gap: 5px; text-align: center; }
+.pg2-sort-indicator { display: inline-block; flex-shrink: 0; font-size: 13px; color: #52688b; margin-left: 3px; }
 .pg2-page .pbg-ve-row { min-height: 78px; padding-top: 0; padding-bottom: 0; border-bottom: 1px solid #dfe7f7; font-size: 20px; }
 .pg2-page .pbg-ve-row > * { padding: 14px 10px; line-height: 1.5; text-align: center; white-space: normal; font-variant-numeric: tabular-nums; }
 .pg2-page .pbg-ve-row > .pbg-ve-chevron { padding: 0 3px; }
@@ -486,11 +487,17 @@ html.pb-gene2-default-scale { zoom: .8; }
 .pg2-page .pg2-annotation-warning { color: #a85a14; }
 .pg2-annotation-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 36px; }
 .pg2-annotation-list { margin: 0; min-width: 0; }
-.pg2-annotation-list + .pg2-annotation-list { padding-left: 30px; border-left: 1px solid #e3e9f1; }
-.pg2-annotation-row { display: grid; grid-template-columns: minmax(145px,.9fr) minmax(0,1fr); align-items: start; gap: 18px; padding: 9px 0; border-bottom: 1px solid #edf1f6; font-size: 19px; line-height: 1.5; }
-.pg2-annotation-row:last-child { border-bottom: 0; }
-.pg2-annotation-row dt { font-weight: 400; margin: 0; color: #334155; }
-.pg2-annotation-row dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+.pg2-annotation-row { display: grid; grid-template-columns: max-content minmax(0,1fr); align-items: baseline; gap: 16px; padding: 6px 0; min-height: 34px; border-bottom: 1px solid #edf1f6; font-size: 18px; line-height: 1.45; }
+.pg2-annotation-row dt { font-weight: 400; margin: 0; color: #526071; white-space: nowrap; }
+.pg2-annotation-row dd { margin: 0; min-width: 0; font-size: inherit; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.pg2-annotation-row dd a { font-size: inherit; }
+.pg2-annotation-group-start { margin-top: 10px; }
+.pg2-annotation-score-source { margin-left: 4px; font-size: inherit; font-weight: 400; }
+.pg2-annotation-marker { padding: 0 0.15rem; background: linear-gradient(transparent 38%, #ffe484 38%, #ffe484 92%, transparent 92%); box-decoration-break: clone; }
+.pg2-annotation-clinvar > a { display: inline-block; padding: 2px 6px; border-left: 3px solid #94a3b8; border-radius: 4px; background: #f1f5f9; }
+.pg2-annotation-clinvar.is-pathogenic > a { border-color: #ef4444; background: #fff1f2; }
+.pg2-annotation-clinvar.is-benign > a { border-color: #16a34a; background: #f0fdf4; }
+.pg2-annotation-clinvar.is-uncertain > a { border-color: #d69b22; background: #fffbeb; }
 .pg2-annotation-row dt .pg2-help { margin-left: 3px; }
 .pg2-annotation-row dd a > svg { width: 14px; height: 14px; margin-left: 3px; }
 .pg2-demographics.pg2-demographics-compact { grid-template-columns: minmax(0,2.4fr) repeat(2,minmax(0,1fr)); align-items: start; gap: 24px; padding: 0; }
@@ -505,6 +512,13 @@ html.pb-gene2-default-scale { zoom: .8; }
 .pg2-demographics-compact .pg2-project-count { grid-template-columns: minmax(6ch,max-content) minmax(35px,1fr); gap: 12px; }
 .pg2-demographics-compact .pg2-project-count strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .pg2-demographics-compact .pg2-project-pagination { margin-top: 10px; gap: 10px; font-size: 17px; }
+.pg2-demographics-compact .pg2-project-heading-search { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-width: 0; }
+.pg2-demographics-compact .pg2-project-heading-search > span { flex: 0 0 auto; white-space: nowrap; }
+.pg2-page .pg2-demographics-compact .pg2-project-heading-search > .pg2-project-search { flex: 1 1 140px; min-width: 0; max-width: 230px; width: auto; margin: 0; min-height: 34px; font-size: 18px; font-weight: 400; }
+.pg2-demographics-compact .pg2-project-table thead th { vertical-align: middle; padding-top: 0; }
+.pg2-demographics-compact .pg2-project-table tbody tr { height: 82px; }
+.pg2-demographics-compact .pg2-project-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.35; }
+.pg2-demographics-compact .pg2-project-table small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pg2-internal-label { display: inline-block; margin-left: 9px; padding: 2px 9px; border-radius: 12px; background: #edf3fb; color: #466180; font-size: 15px; font-weight: 500; vertical-align: middle; }
 .pg2-carrier-table-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; margin: 0 0 16px; font-size: 18px; }
 .pg2-page .pg2-carrier-table-tools > input { flex: 0 1 320px; min-width: 190px; min-height: 38px; font-size: 18px; }
@@ -538,6 +552,10 @@ html.pb-gene2-default-scale { zoom: .8; }
 }
 @media (max-width:700px) {
     .pg2-annotation-columns { grid-template-columns: 1fr; gap: 4px; }
+    .pg2-annotation-row { grid-template-columns: minmax(0,1fr); gap: 2px; }
+    .pg2-annotation-row dt { white-space: normal; }
+    .pg2-annotation-row dd { text-align: left; }
+    .pg2-page .pg2-demographics-compact .pg2-project-heading-search > .pg2-project-search { max-width: none; }
     .pg2-annotation-list + .pg2-annotation-list { border-left: 0; padding-left: 0; }
     .pg2-demographics.pg2-demographics-compact { grid-template-columns: 1fr; }
     .pg2-demographics-compact .pg2-demo-column { border-left: 0; padding-left: 0; }
