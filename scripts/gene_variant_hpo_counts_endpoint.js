@@ -47,12 +47,12 @@ module.exports = function registerVariantHpoCounts(app, provider) {
                             const record = info.get(sid);
                             if (!record || !Array.isArray(record.hpoIds)) continue;
                             known++;
-                            if (hpos.every(term => record.hpoIds.includes(term))) matched++;
+                            if (hpos.some(term => record.hpoIds.includes(term))) matched++;
                         }
                         counts[id] = {count: known || !people.size ? matched : null, metadataCount: known,
                             carrierTotal: people.size, complete: known === people.size};
                     }
-                    return {gene, hpo_terms: hpos, match: 'all', population: 'observed_variant_carriers', variants: counts};
+                    return {gene, hpo_terms: hpos, match: 'any', population: 'observed_variant_carriers', variants: counts};
                 })();
                 jobs.set(key, {promise, expires: Date.now() + 15 * 60 * 1000});
                 if (jobs.size > 20) jobs.delete(jobs.keys().next().value);

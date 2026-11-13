@@ -10,7 +10,7 @@ const mixin = exportsObject.variantHpoCountsMixin;
 const page = {...mixin.data(), geneInfo:{symbol:'TEST'}, appliedContext:{terms:['HP:0001250']}, comparisonVariantRows:[{id:'chr1:1:A:G'}]};
 for (const [name, fn] of Object.entries(mixin.methods)) page[name]=fn.bind(page);
 Object.defineProperty(page,'variantHpoCountKey',{get:()=>mixin.computed.variantHpoCountKey.call(page)});
-const reply=(term,count)=>({ok:true,json:async()=>({gene:'TEST',hpo_terms:[term],match:'all',variants:{'chr1:1:A:G':{count,metadataCount:3,carrierTotal:3,complete:true}}})});
+const reply=(term,count,match='any')=>({ok:true,json:async()=>({gene:'TEST',hpo_terms:[term],match,variants:{'chr1:1:A:G':{count,metadataCount:3,carrierTotal:3,complete:true}}})});
 (async()=>{
     const first=page.loadVariantHpoCounts(page.variantHpoCountKey);
     assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'Loading…');
@@ -24,6 +24,9 @@ const reply=(term,count)=>({ok:true,json:async()=>({gene:'TEST',hpo_terms:[term]
     assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'2 (partial)');
     page.variantHpoCounts['chr1:1:A:G'].count=null;
     assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'Unavailable');
+    const legacy=page.loadVariantHpoCounts(page.variantHpoCountKey);
+    pending[2].resolve(reply('HP:0001252',1,'all'));await legacy;
+    assert.equal(page.variantHpoCountStatus,'unavailable','An old AND-count response must not be displayed as an OR count');
     page.appliedContext=null;await page.loadVariantHpoCounts('');
     assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'—');
     assert.equal(Object.keys(page.variantHpoCounts).length,0);

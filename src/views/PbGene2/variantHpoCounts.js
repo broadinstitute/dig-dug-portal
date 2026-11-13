@@ -23,7 +23,7 @@ export const variantHpoCountsMixin = {
                 if (!response.ok) throw new Error('Recorded HPO metadata is unavailable.');
                 const result = await response.json();
                 if (revision !== this.variantHpoRevision || key !== this.variantHpoCountKey) return;
-                if (result.gene !== gene || result.match !== 'all' || JSON.stringify(result.hpo_terms) !== JSON.stringify(terms)) throw new Error('Recorded HPO metadata did not match the applied profile.');
+                if (result.gene !== gene || result.match !== 'any' || JSON.stringify(result.hpo_terms) !== JSON.stringify(terms)) throw new Error('Recorded HPO metadata did not match the applied profile.');
                 this.variantHpoCounts = result.variants || {}; this.variantHpoCountStatus = 'ready';
             } catch (error) {
                 if (revision === this.variantHpoRevision && key === this.variantHpoCountKey) this.variantHpoCountStatus = 'unavailable';
@@ -37,7 +37,7 @@ export const variantHpoCountsMixin = {
         },
         variantHpoCountTitle(row) {
             const count = this.variantHpoCounts[row.id];
-            return count ? `${count.metadataCount} / ${count.carrierTotal} observed variant carriers have HPO metadata. Counts require every applied HPO term and are independent of scoring eligibility.` : 'Apply a phenotype profile; recorded HPO metadata is required to count carriers with all profile terms.';
+            return count ? `${count.metadataCount} / ${count.carrierTotal} observed variant carriers have HPO metadata available. Counts require at least ONE HPO term in the applied profile (OR): with 3 terms, 1/3, 2/3 or 3/3 matches all count. Each carrier is counted once. Exact recorded HPO IDs are matched. This reference count does not filter the analysis population or enter the GRS, rPheRS, mean carrier Z-score, beta or p-value calculations.` : 'Apply a phenotype profile to count carriers with at least ONE of its HPO terms recorded (OR). With 3 terms, 1/3, 2/3 or 3/3 matches all count. Each carrier is counted once. This reference count does not affect score or regression calculations.';
         },
     },
 };

@@ -95,6 +95,19 @@ assert.deepStrictEqual(metadata.phenotypes[0].terms.map(row => row.id), ["HP:001
 assert.strictEqual(sampleMetadataFromRows([{ SampleInVCF: "internal-a", genes: [] }], "internal-a", "GENE1").coGeneCount, 0, "a known empty gene list must be zero");
 assert.strictEqual(sampleMetadataFromRows([{ SampleInVCF: "internal-a" }], "internal-a", "GENE1").coGeneCount, null, "a missing gene list must remain unavailable");
 assert.strictEqual(sampleMetadataFromRows([{ SampleInVCF: "another-sample" }], "internal-a"), null, "a different sample must never be joined");
+const hpoMetadata = sampleMetadataFromRows([{SampleInVCF:'internal-a',n_terms:4,phenotypes:[
+    {hpo_id:'HP:0001250',is_observed:true},
+    {hpo_id:'HP:0001250',is_observed:true},
+    {hpo_id:'HP:0000364',is_observed:false},
+]}],'internal-a','GENE1');
+assert.equal(hpoMetadata.hpoCount,4,'use supplied scoring n_terms rather than metadata or browser tree counts');
+assert.equal(sampleMetadataFromRows([{SampleInVCF:'internal-a',phenotypes:[{hpo_id:'HP:0001250',is_observed:true}]}],'internal-a','GENE1').hpoCount,null,'do not substitute metadata list length for scoring n_terms');
+assert.equal(sampleMetadataFromRows([{SampleInVCF:'internal-a',phenotypes:[]}],'internal-a','GENE1').hpoCount,0);
+assert.equal(sampleMetadataFromRows([{SampleInVCF:'internal-a'}],'internal-a','GENE1').hpoCount,null);
+assert.equal(stats.normalizeCarrierRecords([{id:'zero',hpoCount:0}])[0].hpoCount,'0','normalization must preserve a known zero');
+const hpoSortRows=[{id:'zero',hpoCount:0},{id:'ten',hpoCount:10},{id:'two',hpoCount:2},{id:'unknown'}];
+assert.deepEqual(sortCarrierRows(hpoSortRows,{key:'hpoCount',dir:'asc'},{}).map(row=>row.id),['zero','two','ten','unknown']);
+assert.deepEqual(sortCarrierRows(hpoSortRows,{key:'hpoCount',dir:'desc'},{}).map(row=>row.id),['ten','two','zero','unknown']);
 const mergedMetadata = mergeCarrierMetadata(records, { "internal-a": metadata });
 assert.strictEqual(mergedMetadata[0].geneBurden, records[0].geneBurden, "metadata must preserve variant carrier evidence");
 assert.strictEqual(mergedMetadata[1].investigator, records[1].investigator, "unmatched carriers must retain their original values");
@@ -214,22 +227,28 @@ assert.deepStrictEqual(stats.exactVariantCarrierResiduals({ variant_carrier_resi
 
 const variantTemplate = fs.readFileSync(path.join(__dirname, "../src/views/PbVariant/Template.vue"), "utf8");
 const equalRankHeadings = [
-    "<h3>Observed phenotypes</h3>",
-    "<h3>Carrier samples</h3>",
-    "<h3>Co-occurrence among this variant's carriers</h3>",
+    'id="pbv-crdc-carriers-title"',
+    'id="pbv-context-title">Test a phenotype profile',
+    'class="pbv-recompute-results pbv-carrier-samples"',
+    "<h2>Carrier phenotypes",
+    "<summary><span>Co-carried genes",
+    "<summary><span>Other {{ variantIdentity.gene }} variants observed in these carriers",
 ].map(heading => variantTemplate.indexOf(heading));
-assert(equalRankHeadings.every(index => index >= 0), "carrier result sections must use explicit equal-rank headings");
-assert(equalRankHeadings.every((index, position) => position === 0 || index > equalRankHeadings[position - 1]), "carrier result sections must retain phenotype, samples, co-occurrence order");
-assert(variantTemplate.includes("people with this exact variant"), "variant identity must label carrier counts as people");
-assert(variantTemplate.includes("<h2>Carrier statistics <abbr") && variantTemplate.includes("Filter this variant's carriers. Phenotype, sample, and co-occurrence results update together."), "carrier workspace must show the heading and help tooltip");
+assert(equalRankHeadings.every(index => index >= 0), "variant sections must use the requested headings");
+assert(equalRankHeadings.every((index, position) => position === 0 || index > equalRankHeadings[position - 1]), "variant sections must retain identity, CRDC summary, profile, samples, phenotypes and co-occurrence details order");
+assert(variantTemplate.includes("variantIdentity.distinctCarriers.toLocaleString()") && !variantTemplate.includes('class="pbv-inline-frequency"'), "CRDC heading must show carriers without repeating AF");
+assert(variantTemplate.includes("<h2>Carrier phenotypes <help-tooltip") && variantTemplate.includes(':text="carrierPhenotypesHelp"'), "carrier workspace must show the unified heading and shared information control");
 assert(!variantTemplate.includes("Carrier statistics — filter to explore"), "carrier workspace must not retain the old oversized compound heading");
 assert(variantTemplate.includes("Carrier sample table") && !variantTemplate.includes("5 rows per page"), "carrier table must avoid redundant page-size copy");
-assert.strictEqual((variantTemplate.match(/<SummaryPager class="pbv-result-pagination"/g) || []).length, 4, "phenotypes and all three result tables must use numbered pagination");
-assert(variantTemplate.includes("Count (%)") && variantTemplate.includes("visiblePhenotypeRows"), "phenotype count header and paginated rows must be present");
+assert.strictEqual((variantTemplate.match(/<SummaryPager[^>]*class="pbv-result-pagination"/g) || []).length, 4, "phenotypes and all three result tables must use numbered pagination");
+assert(variantTemplate.includes("Carriers / with data") && variantTemplate.includes("visiblePhenotypeRows"), "phenotype count header and paginated rows must be present");
 assert(!variantTemplate.includes("sortTableColumn('carriers', 'coGenes')") && !variantTemplate.includes("carrierCoGeneCount(carrier)"), "carrier sample table must omit numeric co-gene column");
-const contextResultMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbg-context-results"'), variantTemplate.indexOf('class="pbv-context-crossref"'));
-const carrierTableMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-carrier-table"'), variantTemplate.indexOf('class="pbv-result-block"', variantTemplate.indexOf('class="pbv-carrier-table"')));
-assert(["Variant effect β (SD)", "p-value"].every(label => contextResultMarkup.includes(label)), "HPO Context must show exact-variant association results");
+const contextResultMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-profile-table"'), variantTemplate.indexOf('class="pbv-workspace pg2-card"'));
+const carrierTableMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-carrier-table"'), variantTemplate.indexOf('<summary><span>Co-carried genes'));
+assert(contextResultMarkup.includes('<th>β <help-tooltip') && contextResultMarkup.includes('<th>P <help-tooltip'), "profile must show beta and P with the requested labels");
+assert(contextResultMarkup.includes('Mean carrier<br>rPheRS Z'), "carrier mean must remain a separate descriptive column");
+assert(!/<th[^>]*>\s*(?:q|FDR)\b/i.test(contextResultMarkup), "one variant by one profile must not acquire a q column");
+assert(!variantTemplate.includes('pbv-context-crossref') && !variantTemplate.includes('pbv-sample-score-note'), "method and scoring definitions must be available through information icons");
 assert(carrierTableMarkup.includes("rPheRS Z-score") && carrierTableMarkup.includes("What is an rPheRS Z-score?"), "carrier table must explain individual residual PheRS");
 assert(!carrierTableMarkup.includes("Variant Score"), "carrier table must not repeat the exact-variant score");
 assert(!carrierTableMarkup.includes("Effect Score (β)") && !carrierTableMarkup.includes("p-value"), "carrier rows must not repeat exact-variant association results");
@@ -238,7 +257,7 @@ assert(variantTemplate.includes("pbv-variant-score-highlight"), "identity must h
 assert(!variantTemplate.includes("displayVariantMatch(contextMatch.matchScore)"), "carrier rows must not repeat the aggregate Match Score as an individual residual");
 assert(variantTemplate.includes("carrierResidualScore(carrier)"), "carrier table must show each carrier's individual residual when returned by the private Context API");
 assert(!variantTemplate.includes("+3 more") && !variantTemplate.includes("+10 more"), "incremental show-more controls must be removed");
-assert(variantTemplate.includes("pbv-carrier-inline-scores"), "carrier scores must stay inline with the section heading");
+assert(!variantTemplate.includes("pbv-carrier-inline-scores"), "sample card must not repeat aggregate scores already shown in profile results");
 assert(!variantTemplate.includes(">Proband<"), "Variant filters and carrier table must not expose Proband");
 assert(!variantTemplate.includes('class="pbv-add-btn"'), "facet selection must not require a separate plus button");
 assert(variantTemplate.includes('@change="addFacet(facet.key)"') && variantTemplate.includes('@change="addFacet(\'age\')"'), "selecting a facet must add it immediately");
@@ -248,23 +267,40 @@ const variantPageModel = fs.readFileSync(path.join(__dirname, "../src/views/PbVa
 assert(variantPageModel.includes("const CARRIER_TABLE_LIMIT = 5;"), "carrier table must show five samples per page");
 assert(variantPageModel.includes("const COOCCURRENCE_LIMIT = 4;"), "both co-occurrence tables must show four rows per page");
 assert(variantTemplate.includes("Variant Score") && variantTemplate.includes("ClinVar"), "co-variant table must label score and ClinVar");
-const coGeneMarkup = variantTemplate.slice(variantTemplate.indexOf("<h3>Different-gene co-carriers"), variantTemplate.indexOf("<h3>Other {{ variantIdentity.gene }} variants"));
+const coGeneMarkup = variantTemplate.slice(variantTemplate.indexOf("<h3>Different-gene co-carriers"), variantTemplate.indexOf("<summary><span>Other {{ variantIdentity.gene }} variants"));
 assert(coGeneMarkup.includes("pbv-cooccur-row--target") && coGeneMarkup.includes("visibleCooccurGeneRows"), "target gene must stay fixed above paginated co-genes");
-assert(coGeneMarkup.includes("Carrier overlap uses the current filters.") && !coGeneMarkup.includes("coGeneScoreType") && !variantTemplate.includes("5 rows per page"), "co-occurrence help must be in the heading without redundant option or row-count copy");
+assert(coGeneMarkup.includes(':text="coGeneAnalysisDetails"') && !coGeneMarkup.includes("coGeneScoreType") && !variantTemplate.includes("5 rows per page"), "co-occurrence help must be in the heading without redundant option or row-count copy");
 assert(["'beta'", "'pValue'", "'fdr'"].every(key => coGeneMarkup.includes(key)), "gene association columns must be sortable");
 assert(variantTemplate.includes('v-model="contextScoreTypeInput"') && variantTemplate.includes('v-model="contextAnalysisSetInput"'), "HPO Go form must offer max/sum and all/affected controls");
-assert(variantTemplate.includes('class="pbg-context-disclosure" open'), "HPO Context must start expanded");
-assert(variantTemplate.includes('<hpo-term-input v-model="contextInput"') && variantPageModel.includes("resolveHpoTerms(this.contextInput)"), "Variant HPO context must reuse Gene phenotype search and name resolution");
+assert(variantTemplate.includes('class="pbv-card pg2-card pbv-profile"') && variantTemplate.includes('class="pbv-advanced"'), "profile must be visible with advanced options initially closed");
+assert(variantTemplate.includes('<hpo-term-input ref="profile" v-model="contextInput"') && variantPageModel.includes("resolveHpoTerms(this.contextInput)"), "Variant HPO context must reuse Gene phenotype search and name resolution");
 assert(variantPageModel.includes("contextApiError(response)"), "Variant HPO context must show the API's specific validation error");
 assert(!coGeneMarkup.includes("sortTableColumn('coGenes', 'pct')") && !coGeneMarkup.includes("sortTableColumn('coGenes', 'note')"), "co-gene overlap and note must not occupy separate columns");
 assert.deepStrictEqual(sortCoGeneRows([
     { gene: "A", beta: -0.2, pValue: 0.01, fdr: 0.02 },
     { gene: "B", beta: 0.1, pValue: 0.04, fdr: 0.04 },
 ], { key: "fdr", dir: "asc" }).map(row => row.gene), ["A", "B"], "co-gene FDR must sort numerically");
-const coVariantMarkup = variantTemplate.slice(variantTemplate.indexOf("<h3>Other {{ variantIdentity.gene }} variants"), variantTemplate.indexOf('label="Other same-gene variant pages"'));
+const coVariantMarkup = variantTemplate.slice(variantTemplate.indexOf("<summary><span>Other {{ variantIdentity.gene }} variants"), variantTemplate.indexOf('label="Other same-gene variant pages"'));
 assert(!coVariantMarkup.includes("sortTableColumn('coVariants', 'pct')") && coVariantMarkup.includes("{{ row.count }} / {{ matchCount }} ({{ row.pct }}%)"), "co-variant carriers and overlap percentage must share one column");
 assert(variantPageModel.includes("emptyResultMessage"), "missing BioIndex carrier data must use the neutral empty-result state");
 assert(variantTemplate.includes("Search this variant in ClinVar ↗"), "empty variant results must retain a public reference path");
 assert(!variantPageModel.includes('key: "proband"'), "Variant filter state must not expose Proband");
 
 console.log("PB_VARIANT_CARRIER_STATISTICS_PASS");
+
+const {carrierFrequency, crdcSummaryFrequency, carrierDemographicSummary} = require('../src/views/PbVariant/layoutSummary');
+assert.equal(carrierFrequency({distinctCarriers: 2, totalSampleUniverse: null, crdcAF: '0.0001'}), null, 'allele frequency must never imply a people denominator');
+assert.equal(carrierFrequency({distinctCarriers: 2, totalSampleUniverse: 100}), 0.02);
+assert.equal(carrierFrequency({distinctCarriers: 2, totalSampleUniverse: 1}), null);
+assert.equal(crdcSummaryFrequency({distinctCarriers: 2, crdcAF: '0.0000870549', crdcFrequencyKind: 'allele'}).label, 'AF 0.0000870549');
+assert.equal(crdcSummaryFrequency({distinctCarriers: 2, crdcAF: 'Unavailable', crdcFrequencyKind: 'allele'}).value, null);
+assert.equal(crdcSummaryFrequency({distinctCarriers: 0, crdcAF: '0', crdcFrequencyKind: 'allele'}).value, 0);
+const demographics = carrierDemographicSummary([{id:'a'}, {id:'a'}, {id:'b'}, {id:'c'}], {
+    a: {age:'18', sex:'M', affected:'Yes', project:'Project A', investigator:'Investigator A'},
+    b: {age:'Unavailable', sex:null, affected:'No', project:'Project A', investigator:'Investigator B'},
+}, 'ready');
+assert.equal(demographics.matchedMetadataCount, 2, 'deduplicate people and do not synthesize missing metadata');
+assert.equal(demographics.status, 'partial', 'missing metadata must retain partial coverage');
+assert.deepEqual(demographics.geneCarrierDemographics.byProject, [{project:'Project A',count:2,investigators:['Investigator A','Investigator B']}]);
+assert.deepEqual(demographics.geneCarrierDemographics.bySex, [{label:'Male',count:1},{label:'Female',count:0},{label:'Unknown',count:1}]);
+console.log('PB_VARIANT_LAYOUT_SUMMARY_PASS');

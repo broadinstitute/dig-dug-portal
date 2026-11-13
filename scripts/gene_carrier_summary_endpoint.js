@@ -83,6 +83,10 @@ function normalizeInfo(row, queriedId) {
         hpoIds: Array.isArray(row.phenotypes)
             ? [...new Set(row.phenotypes.map(term => String(typeof term === "string" ? term : term && (term.hpo_id || term.hpoId || term.id) || "").toUpperCase()).filter(id => /^HP:\d{7}$/.test(id)))]
             : null,
+        observedHpoIds: Array.isArray(row.phenotypes)
+            ? [...new Set(row.phenotypes.filter(term => term && term.is_observed === true)
+                .map(term => String(term.hpo_id || term.hpoId || term.id || '').toUpperCase())
+                .filter(id => /^HP:\d{7}$/.test(id)))] : null,
         genes: Array.isArray(row.genes)
             ? [...new Set(row.genes.filter(value => typeof value === "string" && /^[A-Z0-9.-]{1,40}$/i.test(value)).map(value => value.toUpperCase()))]
             : [],
@@ -163,10 +167,21 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
     let active = 0;
     let sampleCacheBytes = 0;
 
+    require('./gene_genotype_endpoint')(app, {
+        accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
+        carriersForGene,
+    }, { readGenotypes: options.readGenotypes });
+
     require('./gene_variant_hpo_counts_endpoint')(app, {
         accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
         carriersForGene,
         sampleInfo: (id, token) => sampleInfo(id, true, token),
+    });
+    require('./variant_carrier_metadata_endpoint')(app, {
+        accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
+        carriersForGene,
+        sampleInfo: (id, token) => sampleInfo(id, true, token),
+        readHpoCounts: options.readHpoCounts,
     });
 
     function removeCachedSample(key, entry) {
@@ -226,7 +241,9 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
     async function readSample(id, accessToken) {
         const disk=await diskCache(accessToken);
         const stored=disk && disk.getSample(id);
-        if(stored)return stored;
+        // Older cached records do not retain observed versus negated HPO terms.
+        // Refresh them once before using them in the Variant phenotype hierarchy.
+        if(stored && Object.prototype.hasOwnProperty.call(stored, 'observedHpoIds'))return stored;
         for (let attempt = 0; attempt < 3; attempt += 1) {
             try {
                 const payload = await read("/api/bio/query/samples-info",

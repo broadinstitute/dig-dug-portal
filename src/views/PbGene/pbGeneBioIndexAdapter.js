@@ -4,6 +4,7 @@ import { getGeneReferenceAnnotation } from "./geneAnnotationReference";
 import { getGeneExons } from "./geneExonReference";
 import { PB_GENE_ID_REFERENCE } from "./geneIdReference.generated";
 import { collectVariantIdentifiers } from "./variantLookup";
+const { applyCarrierGenotypes } = require('./carrierGenotypes');
 
 const DENSITY_BINS = 50;
 const MAX_CACHED_GENES = 5;
@@ -49,6 +50,7 @@ export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
 async function loadPbGeneBioIndexState(gene, options) {
     const variantRowsPromise = safeBioIndexQuery("gene-variants-crdc", gene, null, options);
     const associationPromise = loadGeneHpoAssociations(gene);
+    const genotypePromise = loadGeneGenotypes(gene);
     const geneRows = await safeBioIndexQuery("gene", gene, 5, options);
     if (options.onPartial) options.onPartial(buildPbGeneState(gene, geneRows, []));
     const variantRows = await variantRowsPromise;
@@ -57,7 +59,19 @@ async function loadPbGeneBioIndexState(gene, options) {
         throw new Error(`No live BioIndex variant rows returned for ${gene}.`);
     }
 
-    return buildPbGeneState(gene, geneRows, variantRows, await associationPromise);
+    const state = buildPbGeneState(gene, geneRows, variantRows, await associationPromise);
+    const genotypes = await genotypePromise;
+    if (genotypes) state.variantRows = applyCarrierGenotypes(state.variantRows, genotypes);
+    return state;
+}
+
+async function loadGeneGenotypes(gene) {
+    try {
+        const response = await fetch(`/__pb_gene_genotypes__?gene=${encodeURIComponent(gene)}`);
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data.gene === gene && Array.isArray(data.rows) ? data : null;
+    } catch (_) { return null; }
 }
 
 async function safeBioIndexQuery(index, q, limit = null, options = {}) {

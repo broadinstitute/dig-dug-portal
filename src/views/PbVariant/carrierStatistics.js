@@ -142,7 +142,7 @@ function normalizeCarrier(sample, index) {
         id: key,
         age: clean(sample.age),
         genotype: clean(sample.gt || sample.genotype),
-        hpoCount: clean(sample.hpo || sample.hpoCount || sample.hpo_count),
+        hpoCount: clean(sample.hpo ?? sample.hpoCount ?? sample.hpo_count),
         coGeneCount: clean(sample.genes || sample.coGeneCount || sample.co_gene_count),
         gendx: clean(sample.gendx || sample.genDx),
         gendxNote: clean(sample.gendxNote || sample.genDxNote),

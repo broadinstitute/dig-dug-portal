@@ -4,14 +4,14 @@ const vm = require('vm');
 const babel = require('@babel/core');
 const record = require('../src/views/PbSample/sampleRecord');
 
-function load(file, imports) {
+function load(file, imports, runtime = {}) {
     const exports = {};
     const code = babel.transformSync(fs.readFileSync(file, 'utf8'), { babelrc: false, configFile: false,
         plugins: ['@babel/plugin-transform-modules-commonjs'] }).code;
     vm.runInNewContext(code, { exports, require: name => {
         if (!(name in imports)) throw Error(`Missing test import: ${name}`);
         return imports[name];
-    }, structuredClone });
+    }, structuredClone, ...runtime });
     return exports;
 }
 
@@ -58,12 +58,20 @@ async function main() {
         './geneExonReference': { getGeneExons: () => [] },
         './geneIdReference.generated': { PB_GENE_ID_REFERENCE: {} },
         './variantLookup': { collectVariantIdentifiers: () => ({}) },
-    });
+        './carrierGenotypes': require('../src/views/PbGene/carrierGenotypes'),
+    }, {fetch: async url => ({ok:true,json:async()=>url.startsWith('/__pb_gene_genotypes__')
+        ? {gene:'GJB2', rows:[{variant_id:'chr13:20189005:CTG:C',sample_id:'sample1_E38',gt:'0/1',status:'matched'}],
+            source:{data_version:'2025_crdc_16366_dp20_af001_20260907'}}
+        : {associations:[]}})});
     const state = await gene.fetchPbGeneBioIndexState('GJB2');
     assert.equal(state.variantRows.length, 1);
     assert.equal(state.variantRows[0].carrierCount, 2);
     assert.equal(state.variantRows[0].crdcFrequencyKind, 'allele');
     assert.equal(Number(state.variantRows[0].crdcAF), 8.70549e-5);
+    assert.equal(state.variantRows[0].carrierSamples[0].gt, '0/1', 'Gene2 shared adapter receives GT');
+    assert.equal(state.variantRows[0].carrierSamples[1].gt, 'Unavailable', 'missing GT must not become a carrier-derived genotype');
+    const variantCarriers = require('../src/views/PbVariant/carrierStatistics').normalizeCarrierRecords(state.variantRows[0].carrierSamples);
+    assert.equal(variantCarriers[0].genotype, '0/1', 'Variant carrier table receives the same exact GT');
     const af = gene.sourceAlleleFrequency;
     assert.equal(af({ af: 0, ac: 0, an: 100 }), 0);
     assert.equal(af({ af: 0, ac: 0, an: 0 }), null);

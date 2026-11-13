@@ -4,14 +4,14 @@
         <div class="pg2-demographics" :class="{ 'pg2-demographics-overview': overview, 'pg2-demographics-compact': compact }">
             <div v-for="(column, index) in columns" :key="index" class="pg2-demo-column">
                 <div v-for="group in column" :key="group.key" class="pg2-demo-group">
-                    <div class="pg2-demo-heading"><h3>{{ overview || compact ? overviewTitles[group.key] : group.label }} <help-tooltip v-if="compact" :label="'About variant carrier ' + overviewTitles[group.key]" :text="compactHelp[group.key]" /></h3><span v-if="group.key === 'byProject'">{{ (overview || compact) ? `${projects.length.toLocaleString()} projects` : `${filteredProjects.length} / ${projects.length}` }}</span></div>
+                    <div v-if="!(inlineProjectSearch && group.key === 'byProject')" class="pg2-demo-heading"><h3>{{ overview || compact ? overviewTitles[group.key] : group.label }} <help-tooltip v-if="compact" :label="'About variant carrier ' + overviewTitles[group.key]" :text="compactHelp[group.key]" /></h3><span v-if="group.key === 'byProject'">{{ (overview || compact) ? `${projects.length.toLocaleString()} projects` : `${filteredProjects.length} / ${projects.length}` }}</span></div>
                     <template v-if="(overview || compact) && group.key === 'byProject'">
-                        <input v-model="projectSearch" type="search" class="pg2-project-search" placeholder="Search projects" :aria-label="'Search ' + scope + ' projects and investigators'" />
+                        <input v-if="!inlineProjectSearch" v-model="projectSearch" type="search" class="pg2-project-search" placeholder="Search projects" :aria-label="'Search ' + scope + ' projects and investigators'" />
                         <table class="pg2-project-table">
-                            <thead><tr><th scope="col">Project / Investigator</th><th scope="col" :aria-sort="projectSortDirection === 'desc' ? 'descending' : 'ascending'"><button type="button" class="pg2-project-sort" @click="toggleProjectSort">{{ compact ? 'Carriers' : 'Samples' }} <b-icon-arrow-down v-if="projectSortDirection === 'desc'" /><b-icon-arrow-up v-else /></button></th></tr></thead>
+                            <thead><tr><th scope="col"><div :class="{ 'pg2-project-heading-search': inlineProjectSearch }"><span>Project / Investigator <help-tooltip v-if="inlineProjectSearch" label="About variant carrier projects" :text="compactHelp.byProject" /></span><input v-if="inlineProjectSearch" v-model="projectSearch" type="search" class="pg2-project-search" placeholder="Search projects" :aria-label="'Search ' + scope + ' projects and investigators'" /></div></th><th scope="col" :aria-sort="projectSortDirection === 'desc' ? 'descending' : 'ascending'"><button type="button" class="pg2-project-sort" @click="toggleProjectSort">{{ compact ? 'Carriers' : 'Samples' }} <b-icon-arrow-down v-if="projectSortDirection === 'desc'" /><b-icon-arrow-up v-else /></button></th></tr></thead>
                             <tbody>
                                 <tr v-for="row in visibleProjects" :key="row.label">
-                                    <td>{{ row.label }}<small :class="{ 'pg2-muted': !row.investigator }">{{ row.investigator ? 'Investigator: ' + row.investigator : 'Investigator unavailable' }}</small></td>
+                                    <td><span class="pg2-project-name" :title="row.label">{{ row.label }}</span><small :title="row.investigator" :class="{ 'pg2-muted': !row.investigator }">{{ row.investigator ? 'Investigator: ' + row.investigator : 'Investigator unavailable' }}</small></td>
                                     <td><div class="pg2-project-count"><strong>{{ row.count.toLocaleString() }}</strong><progress :max="Math.max(Number(carrierCount), 1)" :value="row.count" :aria-label="`${row.label}: ${row.count} of ${carrierCount} samples`" /></div></td>
                                 </tr>
                                 <tr v-if="!visibleProjects.length"><td colspan="2" class="pg2-muted">{{ projectSearch.trim() && projects.length ? 'No projects match this search.' : 'Project metadata unavailable.' }}</td></tr>
@@ -57,6 +57,7 @@ export default {
         scope: { type: String, required: true },
         overview: { type: Boolean, default: false },
         compact: { type: Boolean, default: false },
+        inlineProjectSearch: { type: Boolean, default: false },
     },
     data: () => ({ projectSearch: '', expandProjects: false, projectPage: 1, projectSortDirection: 'desc', overviewTitles: { byProject: 'Project', byAge: 'Age', bySex: 'Sex', byAffected: 'Affected' }, compactHelp: {
         byProject: 'Project counts among distinct observed carriers of this variant. Project and investigator labels come from carrier metadata. Search matches both projects and investigators.',

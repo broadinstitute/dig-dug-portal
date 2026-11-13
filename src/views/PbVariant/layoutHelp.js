@@ -1,0 +1,11 @@
+const help = require('../PbGene2/evidenceHelp');
+
+const profileSettingsHelp = help.settings + ' Pathogenicity score is 1 for LoFTEE HC; otherwise AlphaMissense, with missing scores set to 0. REVEL is excluded. Max takes the maximum dosage-weighted variant score; Sum adds those scores. Dosage is applied once. Max/Sum applies to gene and co-gene regressions, not the variant carrier 0/1 predictor.';
+module.exports = {
+    profileSettingsHelp,
+    profileMethods: help.variantBeta + ' The regression is fitted across the selected All or Affected only analysis population, including noncarriers, using raw residual PheRS as the outcome. Displayed Variant β = raw β / reference sample SD; Gene β = 0.1 × raw β / reference sample SD. ' + help.meanZ + ' ' + profileSettingsHelp + ' Carrier display filters do not refit these regressions.',
+    carrierPhenotypesHelp: "Phenotype statistics include only variant carriers with at least one recorded HPO term in their sample metadata. Carriers with empty or unavailable HPO records are excluded from the phenotype-statistics denominator. Observed HPO terms are rolled up through their parent hierarchy. This is the set of carriers with any phenotype records, independently of whether the applied profile terms are recorded. Filter this variant's carriers; phenotype, sample, and co-occurrence results update together. These display filters do not refit the phenotype profile regressions or change their scoring reference. Missing metadata is not evidence of phenotype absence.",
+    coGeneHelp: help.carrierGenes + ' Carrier overlap uses the current filters. Gene regression effects are fitted in the full selected analysis population.',
+    coGeneFdrHelp: 'Benjamini–Hochberg adjusted p-value across the target gene plus all different-gene co-carriers before display filters or pagination. Only valid p-values enter the correction. This family is separate from the precomputed single-HPO q within gene (q_by_gene).',
+    meanGrsHelp: "Mean of each selected carrier's sum of available per-variant pathogenicity scores in this gene (LoFTEE HC = 1; otherwise AlphaMissense). REVEL is excluded. This display summary does not apply ALT dosage and is separate from the dosage-aware GRS used for regression. Shown only when every selected carrier has at least one scored variant.",
+};

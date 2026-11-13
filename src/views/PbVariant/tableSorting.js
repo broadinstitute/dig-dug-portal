@@ -1,4 +1,5 @@
 const MISSING = new Set(["", "unavailable", "loading…", "n/a", "—"]);
+const { carrierHpoTermCount } = require('./sampleMetadata');
 
 function normalized(value, numeric) {
     if (value == null || MISSING.has(String(value).trim().toLowerCase())) return null;
@@ -28,6 +29,7 @@ function carrierValue(carrier, key, metadataById = {}, residualById = {}) {
     case "sex": return metadata.sex ?? carrier.sex;
     case "gt": return carrier.genotype;
     case "residual": return residualById[String(carrier.id || "").toLowerCase()];
+    case "hpoCount": return carrierHpoTermCount(carrier, metadataById);
     case "affected": return metadata.affected ?? carrier.affected;
     case "project": return metadata.project ?? carrier.project;
     default: return null;
@@ -35,7 +37,7 @@ function carrierValue(carrier, key, metadataById = {}, residualById = {}) {
 }
 
 function sortCarrierRows(rows, sort, metadataById, residualById) {
-    return sortRows(rows, sort, (row, key) => carrierValue(row, key, metadataById, residualById), ["age", "residual"]);
+    return sortRows(rows, sort, (row, key) => carrierValue(row, key, metadataById, residualById), ["age", "residual", "hpoCount"]);
 }
 
 function sortPhenotypeRows(rows, sort) {
