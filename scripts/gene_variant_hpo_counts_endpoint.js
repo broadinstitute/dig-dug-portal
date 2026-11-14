@@ -12,16 +12,20 @@ module.exports = function registerVariantHpoCounts(app, provider) {
         const gene = String(body.gene || '').trim().toUpperCase();
         const variants = body.variant_ids;
         const terms = body.hpo_terms;
+        const selection = body.sample_ids;
         if (!/^[A-Z0-9][A-Z0-9.-]{0,31}$/.test(gene) || !Array.isArray(variants) || variants.length > 20000 ||
             variants.some(id => typeof id !== 'string' || !VARIANT.test(id)) || !Array.isArray(terms) || !terms.length || terms.length > 50 ||
-            terms.some(id => typeof id !== 'string' || !/^HP:\d{7}$/.test(id))) {
+            terms.some(id => typeof id !== 'string' || !/^HP:\d{7}$/.test(id)) ||
+            (selection != null && (!Array.isArray(selection) || selection.length > 50000 || selection.some(id => typeof id !== 'string' || !/^[A-Za-z0-9_.-]{1,150}$/.test(id))))) {
             response.status(400).json({error: 'Enter a valid gene, variant selection and HPO profile.'}); return;
         }
         const ids = [...new Set(variants)].sort();
         const hpos = [...new Set(terms)].sort();
+        const sampleIds = selection == null ? null : [...new Set(selection)].sort();
+        const selected = sampleIds == null ? null : new Set(sampleIds);
         const token = provider.accessToken(request);
         const scope = crypto.createHash('sha256').update(token).digest('hex');
-        const key = JSON.stringify([scope, gene, ids, hpos]);
+        const key = JSON.stringify([scope, gene, ids, hpos, sampleIds]);
         try {
             if (jobs.has(key) && jobs.get(key).expires < Date.now()) jobs.delete(key);
             if (!jobs.has(key)) {
@@ -30,7 +34,11 @@ module.exports = function registerVariantHpoCounts(app, provider) {
                     if (ids.some(id => !carriers.byVariant.has(id))) {
                         const error = new Error('A selected variant is unavailable for this gene.'); error.status = 400; throw error;
                     }
-                    const samples = [...new Set(ids.flatMap(id => [...carriers.byVariant.get(id)]))];
+                    const allSamples = new Set(ids.flatMap(id => [...carriers.byVariant.get(id)]));
+                    if (sampleIds && sampleIds.some(id => !allSamples.has(id))) {
+                        const error = new Error('A selected sample is not a carrier of the requested variant.'); error.status = 400; throw error;
+                    }
+                    const samples = [...allSamples].filter(id => !selected || selected.has(id));
                     const info = new Map();
                     let next = 0;
                     await Promise.all(Array.from({length: Math.min(24, samples.length)}, async () => {
@@ -41,7 +49,7 @@ module.exports = function registerVariantHpoCounts(app, provider) {
                     }));
                     const counts = {};
                     for (const id of ids) {
-                        const people = carriers.byVariant.get(id);
+                        const people = new Set([...carriers.byVariant.get(id)].filter(sid => !selected || selected.has(sid)));
                         let known = 0, matched = 0;
                         for (const sid of people) {
                             const record = info.get(sid);
@@ -52,7 +60,8 @@ module.exports = function registerVariantHpoCounts(app, provider) {
                         counts[id] = {count: known || !people.size ? matched : null, metadataCount: known,
                             carrierTotal: people.size, complete: known === people.size};
                     }
-                    return {gene, hpo_terms: hpos, match: 'any', population: 'observed_variant_carriers', variants: counts};
+                    return {gene, hpo_terms: hpos, match: 'any', population: 'observed_variant_carriers', variants: counts,
+                        ...(sampleIds == null ? {} : {sample_scope: {sample_ids: sampleIds}})};
                 })();
                 jobs.set(key, {promise, expires: Date.now() + 15 * 60 * 1000});
                 if (jobs.size > 20) jobs.delete(jobs.keys().next().value);

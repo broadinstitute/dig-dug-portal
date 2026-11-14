@@ -231,20 +231,18 @@ const equalRankHeadings = [
     'id="pbv-context-title">Test a phenotype profile',
     'class="pbv-recompute-results pbv-carrier-samples"',
     "<h2>Carrier phenotypes",
-    "<summary><span>Co-carried genes",
-    "<summary><span>Other {{ variantIdentity.gene }} variants observed in these carriers",
 ].map(heading => variantTemplate.indexOf(heading));
 assert(equalRankHeadings.every(index => index >= 0), "variant sections must use the requested headings");
-assert(equalRankHeadings.every((index, position) => position === 0 || index > equalRankHeadings[position - 1]), "variant sections must retain identity, CRDC summary, profile, samples, phenotypes and co-occurrence details order");
+assert(equalRankHeadings.every((index, position) => position === 0 || index > equalRankHeadings[position - 1]), "variant sections must retain identity, CRDC summary, profile, samples and phenotypes order");
 assert(variantTemplate.includes("variantIdentity.distinctCarriers.toLocaleString()") && !variantTemplate.includes('class="pbv-inline-frequency"'), "CRDC heading must show carriers without repeating AF");
 assert(variantTemplate.includes("<h2>Carrier phenotypes <help-tooltip") && variantTemplate.includes(':text="carrierPhenotypesHelp"'), "carrier workspace must show the unified heading and shared information control");
 assert(!variantTemplate.includes("Carrier statistics — filter to explore"), "carrier workspace must not retain the old oversized compound heading");
 assert(variantTemplate.includes("Carrier sample table") && !variantTemplate.includes("5 rows per page"), "carrier table must avoid redundant page-size copy");
-assert.strictEqual((variantTemplate.match(/<SummaryPager[^>]*class="pbv-result-pagination"/g) || []).length, 4, "phenotypes and all three result tables must use numbered pagination");
+assert.strictEqual((variantTemplate.match(/<SummaryPager[^>]*class="pbv-result-pagination"/g) || []).length, 2, "phenotypes and carrier samples must use numbered pagination");
 assert(variantTemplate.includes("Carriers / with data") && variantTemplate.includes("visiblePhenotypeRows"), "phenotype count header and paginated rows must be present");
 assert(!variantTemplate.includes("sortTableColumn('carriers', 'coGenes')") && !variantTemplate.includes("carrierCoGeneCount(carrier)"), "carrier sample table must omit numeric co-gene column");
 const contextResultMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-profile-table"'), variantTemplate.indexOf('class="pbv-workspace pg2-card"'));
-const carrierTableMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-carrier-table"'), variantTemplate.indexOf('<summary><span>Co-carried genes'));
+const carrierTableMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-carrier-table"'), variantTemplate.indexOf('<section class="pbv-recompute-results pbv-phenotype-results">'));
 assert(contextResultMarkup.includes('<th>β <help-tooltip') && contextResultMarkup.includes('<th>P <help-tooltip'), "profile must show beta and P with the requested labels");
 assert(contextResultMarkup.includes('Mean carrier<br>rPheRS Z'), "carrier mean must remain a separate descriptive column");
 assert(!/<th[^>]*>\s*(?:q|FDR)\b/i.test(contextResultMarkup), "one variant by one profile must not acquire a q column");
@@ -266,22 +264,16 @@ assert(!variantTemplate.includes("<span>Investigator</span>"), "carrier statisti
 const variantPageModel = fs.readFileSync(path.join(__dirname, "../src/views/PbVariant/pageModel.js"), "utf8");
 assert(variantPageModel.includes("const CARRIER_TABLE_LIMIT = 5;"), "carrier table must show five samples per page");
 assert(variantPageModel.includes("const COOCCURRENCE_LIMIT = 4;"), "both co-occurrence tables must show four rows per page");
-assert(variantTemplate.includes("Variant Score") && variantTemplate.includes("ClinVar"), "co-variant table must label score and ClinVar");
-const coGeneMarkup = variantTemplate.slice(variantTemplate.indexOf("<h3>Different-gene co-carriers"), variantTemplate.indexOf("<summary><span>Other {{ variantIdentity.gene }} variants"));
-assert(coGeneMarkup.includes("pbv-cooccur-row--target") && coGeneMarkup.includes("visibleCooccurGeneRows"), "target gene must stay fixed above paginated co-genes");
-assert(coGeneMarkup.includes(':text="coGeneAnalysisDetails"') && !coGeneMarkup.includes("coGeneScoreType") && !variantTemplate.includes("5 rows per page"), "co-occurrence help must be in the heading without redundant option or row-count copy");
-assert(["'beta'", "'pValue'", "'fdr'"].every(key => coGeneMarkup.includes(key)), "gene association columns must be sortable");
+assert(!variantTemplate.includes("Co-carried genes") && !variantTemplate.includes("visibleCooccurGeneRows") && !variantTemplate.includes("pbv-detail-results"), "the co-gene block and its empty wrapper must be removed");
+assert(!variantTemplate.includes("variants observed in these carriers") && !variantTemplate.includes("visibleCooccurVariantRows"), "the other same-gene variants section must be removed");
 assert(variantTemplate.includes('v-model="contextScoreTypeInput"') && variantTemplate.includes('v-model="contextAnalysisSetInput"'), "HPO Go form must offer max/sum and all/affected controls");
 assert(variantTemplate.includes('class="pbv-card pg2-card pbv-profile"') && variantTemplate.includes('class="pbv-advanced"'), "profile must be visible with advanced options initially closed");
 assert(variantTemplate.includes('<hpo-term-input ref="profile" v-model="contextInput"') && variantPageModel.includes("resolveHpoTerms(this.contextInput)"), "Variant HPO context must reuse Gene phenotype search and name resolution");
 assert(variantPageModel.includes("contextApiError(response)"), "Variant HPO context must show the API's specific validation error");
-assert(!coGeneMarkup.includes("sortTableColumn('coGenes', 'pct')") && !coGeneMarkup.includes("sortTableColumn('coGenes', 'note')"), "co-gene overlap and note must not occupy separate columns");
 assert.deepStrictEqual(sortCoGeneRows([
     { gene: "A", beta: -0.2, pValue: 0.01, fdr: 0.02 },
     { gene: "B", beta: 0.1, pValue: 0.04, fdr: 0.04 },
 ], { key: "fdr", dir: "asc" }).map(row => row.gene), ["A", "B"], "co-gene FDR must sort numerically");
-const coVariantMarkup = variantTemplate.slice(variantTemplate.indexOf("<summary><span>Other {{ variantIdentity.gene }} variants"), variantTemplate.indexOf('label="Other same-gene variant pages"'));
-assert(!coVariantMarkup.includes("sortTableColumn('coVariants', 'pct')") && coVariantMarkup.includes("{{ row.count }} / {{ matchCount }} ({{ row.pct }}%)"), "co-variant carriers and overlap percentage must share one column");
 assert(variantPageModel.includes("emptyResultMessage"), "missing BioIndex carrier data must use the neutral empty-result state");
 assert(variantTemplate.includes("Search this variant in ClinVar ↗"), "empty variant results must retain a public reference path");
 assert(!variantPageModel.includes('key: "proband"'), "Variant filter state must not expose Proband");
@@ -304,3 +296,12 @@ assert.equal(demographics.status, 'partial', 'missing metadata must retain parti
 assert.deepEqual(demographics.geneCarrierDemographics.byProject, [{project:'Project A',count:2,investigators:['Investigator A','Investigator B']}]);
 assert.deepEqual(demographics.geneCarrierDemographics.bySex, [{label:'Male',count:1},{label:'Female',count:0},{label:'Unknown',count:1}]);
 console.log('PB_VARIANT_LAYOUT_SUMMARY_PASS');
+
+const {allGenotypes,genotypeGroup,selectGenotypeCarriers} = require('../src/views/PbVariant/genotypeSelection');
+const genotypeRows = ['1/1','1|1','0/1','1|0','0/2','1/2',null,'0/.','0/0','1'].map((genotype,id)=>({id,genotype}));
+assert.deepEqual(genotypeRows.map(genotypeGroup),['homozygous','homozygous','heterozygous','heterozygous','heterozygous','heterozygous','unknown','unknown','unknown','unknown']);
+assert.equal(selectGenotypeCarriers(genotypeRows,allGenotypes()).length,10,'Default All includes unknown GT records');
+assert.equal(selectGenotypeCarriers(genotypeRows,['homozygous']).length,2);
+assert.equal(selectGenotypeCarriers(genotypeRows,['homozygous','heterozygous']).length,6,'Genotypes combine with OR');
+assert.equal(selectGenotypeCarriers(genotypeRows,[]).length,0,'Empty selection must never fall back to all carriers');
+console.log('PB_VARIANT_GENOTYPE_CLASSIFICATION_AND_MULTISELECT_PASS');

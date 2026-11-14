@@ -37,7 +37,7 @@ vm.runInNewContext(code, {
     },
 });
 const model = output.exports;
-function response(terms, beta, mean) {
+function response(terms, beta, mean, ids = ['sample-a', 'sample-b']) {
     const reference = {
         version: 'rphers_scoring_cohort_sample_sd_v1', status: 'ok',
         reference_id: terms.join(','), data_release_id: 'data', scoring_cohort_id: 'cohort',
@@ -45,6 +45,7 @@ function response(terms, beta, mean) {
     };
     const standardized = { standardization_status: 'ok', standardization_reference_id: reference.reference_id };
     return { ok: true, json: async () => ({
+        sample_scope: {sample_ids: ids},
         rphers_standardization: reference,
         variant_match_scores: { [variantId]: { ...standardized, status: 'ok', carrier_count: 1, scored_carrier_count: 1, mean_rphers_z: mean } },
         variant_associations: { [variantId]: { ...standardized, status: 'ok', beta_sd: beta, beta: beta * 4, p_value: 0.54, n_carriers: 1, n_samples: 100, model_version: 'ols' } },
@@ -59,6 +60,7 @@ async function main() {
         methods: { ...model.pbVariantMethods, revealAppliedPhenotypes() {}, runCoGeneAssociations(terms, id) { coGeneRuns.push({ terms, id }); } },
     });
     app.variantIdentity = { ...app.variantIdentity, canonicalId: variantId, gene: 'GJB2' };
+    app.carrierRecords = [{id:'sample-a',genotype:'1/1',phenotypes:[],coGenes:[]},{id:'sample-b',genotype:'0/1',phenotypes:[],coGenes:[]}];
     app.$refs.profile = { resetDraft() {} };
     app.contextInput = 'HP:0000364';
     replies.push(response(['HP:0000364'], -0.608, -0.549));
@@ -125,7 +127,7 @@ async function main() {
     app.contextAssociation = {beta:-0.608};
     app.activeContextTerms = ['HP:0000364', 'HP:0030766'];
     const key = app.variantHpoCountKey;
-    const hpoResponse = (terms, count, complete=true) => ({ok:true,json:async()=>({gene:'GJB2',hpo_terms:terms,match:'any',variants:{[variantId]:{count,metadataCount:complete?2:1,carrierTotal:2,complete}}})});
+    const hpoResponse = (terms, count, complete=true) => ({ok:true,json:async()=>({gene:'GJB2',hpo_terms:terms,match:'any',sample_scope:{sample_ids:['sample-a','sample-b']},variants:{[variantId]:{count,metadataCount:complete?2:1,carrierTotal:2,complete}}})});
     replies.push(hpoResponse(['HP:0000364','HP:0030766'],1));
     await app.loadVariantHpoCounts(key);
     assert.equal(app.variantHpoCountDisplay,'1');
@@ -160,6 +162,24 @@ async function main() {
     await staleRun;
     assert.equal(app.profileRuns.length, 0, 'Late response cannot appear in another variant history');
     assert.equal(app.contextAssociation, null);
+    // Genotype application replaces every result with a new scoped calculation.
+    app.variantIdentity = {...app.variantIdentity,canonicalId:variantId};
+    app.$refs.genotypeFilter = {hide() {}};
+    app.profileRuns = [first];
+    app.genotypeDraft = ['homozygous'];
+    replies.push(response(['HP:0000364'], null, 0.3, ['sample-a']));
+    await app.applyGenotypeFilter();
+    assert.equal(app.genotypeCarrierCount,1);
+    assert.equal(app.matchCount,1);
+    assert.deepEqual(requests.at(-1).sample_ids,['sample-a']);
+    assert.equal(app.profileRuns.length,1);
+    assert.equal(app.profileRuns[0].genotypeLabel,'Homozygous');
+    assert(!app.profileRuns.includes(first),'Old all-carrier results cannot remain under the new scope');
+    app.contextInput='HP:0000364';
+    replies.push(response(['HP:0000364'],9,9,['sample-a','sample-b']));
+    await app.runVariantContext();
+    assert(app.contextError.includes('did not apply the genotype sample selection'));
+    assert.equal(app.profileRuns.length,1,'A legacy/unscoped response must never populate a filtered result');
     console.log('PB_VARIANT_PROFILE_HISTORY_AND_ASYNC_LIFECYCLE_PASS');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

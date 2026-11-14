@@ -57,6 +57,21 @@ const { sampleVariantRows } = require('../src/views/PbSample/sampleEvidence');
         assert.equal(variants[0].carrierSamples[0].gt,undefined,'do not mutate the shared original state');
         assert.equal(merged[0].carrierSamples.length,variants[0].carrierSamples.length,'GT source must not change carrier counts');
         assert.equal(merged[0].carrierSamples[3].gtStatus,'conflict');
+        assert.equal(applyCarrierGenotypes(variants,{rows:[],lookup_status:'unavailable'})[0].carrierSamples[0].gtStatus,
+            'lookup_unavailable','Service failure must stay distinct from a missing source call');
+        const vcfSource={kind:'original_vcf',source_file:'fixture.vcf.gz'};
+        register({get(_,fn){handler=fn;}},{accessToken:req=>req.token,
+            carriersForGene:async()=>({byVariant:new Map([['chr1:100:A:G',new Set(['A_E38','NEW'])]])})},
+            {readGenotypes,readVariantGenotypes:async(variant,samples)=>{
+                assert.equal(variant,'chr1:100:A:G');assert.deepEqual(samples,['NEW']);
+                return {source:vcfSource,rows:[{variant_id:variant,sample_id:'NEW',gt:'1/1',status:'matched'},
+                    {variant_id:variant,sample_id:'OUTSIDE',gt:'1/1',status:'matched'}]};
+            }});
+        const supplemented=await new Promise(resolve=>handler({query:{gene:'TEST',variant:'chr1:100:A:G'}},
+            {set(){},status(){return this;},json:resolve}));
+        assert.equal(supplemented.vcf_lookup_status,'ready');
+        assert.deepEqual(supplemented.rows.map(row=>row.sample_id),['A_E38','NEW'],'VCF calls must remain inside the authorized selected variant');
+        assert.equal(applyCarrierGenotypes(variants,supplemented)[0].carrierSamples.at(-1).gtSource.kind,'original_vcf');
         assert.equal(sampleVariantRows([{gene_symbol:'TEST',variant_id:'chr1:100:A:G',gt:'0/2'}])[0].genotype,merged[0].carrierSamples[1].gt);
         await fs.writeFile(path.join(directory,filename),Buffer.from('corrupted'));
         await assert.rejects(()=>source(directory)('TEST'),/checksum/);

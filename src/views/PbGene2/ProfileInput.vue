@@ -1,6 +1,6 @@
 <template>
     <div class="pbg-hpo-input-shell pg2-profile-input">
-        <span v-for="id in selected" :key="id" class="pg2-profile-token"><span>{{ label(id) }} · {{ id }}</span><button type="button" :aria-label="'Remove ' + label(id)" @click="remove(id)"><b-icon-x aria-hidden="true" /></button></span>
+        <span v-for="id in selected" :key="id" class="pg2-profile-token"><span>{{ label(id) }} · <a v-if="linkHpoIds" :href="phenotypeHref(id)" @click.stop>{{ id }}</a><template v-else>{{ id }}</template></span><button type="button" :aria-label="'Remove ' + label(id)" @click="remove(id)"><b-icon-x aria-hidden="true" /></button></span>
         <input :value="query" type="text" aria-label="HPO context terms" aria-labelledby="pg2-profile-input-label"
                role="combobox" aria-autocomplete="list" :aria-expanded="String(open && suggestions.length > 0)"
                :aria-controls="listId" :aria-activedescendant="active >= 0 ? listId + '-' + active : null"
@@ -17,10 +17,12 @@ import { hpoSuggestions } from '../PbGene/hpoContextSearch';
 export default {
     name: 'Gene2ProfileInput',
     extends: HpoTermInput,
+    props: { linkHpoIds: { type: Boolean, default: false } },
     data: () => ({ query: '' }),
     computed: { suggestions() { return this.query.trim() ? hpoSuggestions(this.query) : []; } },
     watch: { value(value) { if (!value) this.query = ''; } },
     methods: {
+        phenotypeHref(id) { return '/pb_phenotype.html?query=' + encodeURIComponent(id); },
         resetDraft() { this.query = ''; this.open = false; this.active = -1; },
         edit(event) { this.query = event.target.value; this.open = true; this.active = -1; this.$emit('input', [...this.selected, this.query].filter(Boolean).join(', ')); },
         choose(term) { this.$emit('input', [...new Set([...this.selected, term.id])].join(', ')); this.query = ''; this.open = false; this.active = -1; },

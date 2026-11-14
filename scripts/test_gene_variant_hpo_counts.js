@@ -33,5 +33,11 @@ async function call(body, session = '') {
     assert.equal(missing.value.variants[b].complete,false,'Missing metadata is not a confirmed HPO absence');
     assert.equal((await call({...body,variant_ids:['chr2:1:A:C']})).code,400);
     assert.equal((await call({...body,hpo_terms:['invalid']})).code,400);
+    const scoped = await call({...body,variant_ids:[a],sample_ids:['A','E']});
+    assert.deepEqual(scoped.value.variants[a],{count:1,metadataCount:2,carrierTotal:2,complete:true});
+    assert.deepEqual(scoped.value.sample_scope.sample_ids,['A','E']);
+    const differentScope = await call({...body,variant_ids:[a],sample_ids:['B','D','F']});
+    assert.equal(differentScope.value.variants[a].count,2,'Different genotype selections must not reuse a cached denominator');
+    assert.equal((await call({...body,sample_ids:['not-a-carrier']})).code,400);
     console.log('Recorded variant HPO counts: any-term matching, distinct carriers, empty/unrelated/missing metadata, sessions and validation PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

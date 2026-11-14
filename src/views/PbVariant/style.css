@@ -484,7 +484,24 @@
 .pbv-page .pg2-info-rail { max-height: calc(100vh - 40px); overflow-y: auto; }
 
 /* Review refinements: compact summaries, result actions and consistent tree columns. */
-.pbv-crdc-carriers .pbv-section-heading { gap: 0; }
+.pbv-crdc-carriers .pbv-section-heading { gap: 12px; margin-bottom: 6px; }
+.pbv-genotype-population { margin: 0 0 20px; color: #526071; font-size: 16px; }
+.pbv-page .pbv-genotype-toggle, .pbv-page .pbv-genotype-toggle:hover, .pbv-page .pbv-genotype-toggle:focus { padding: 0; border: 0; border-radius: 0; background: transparent; color: #14213d; box-shadow: none; text-decoration: none; font-size: 18px; font-weight: 600; }
+.pbv-genotype-toggle svg { width: 16px; height: 16px; margin-left: 5px; vertical-align: middle; }
+.pbv-genotype-label { padding: 0 0.15rem; background: linear-gradient(transparent 38%, #ffe484 38%, #ffe484 92%, transparent 92%); box-decoration-break: clone; }
+.pbv-page .pbv-genotype-menu { top: 100%; left: 0; min-width: 300px; padding: 16px; border: 1px solid #c6d5e9; border-radius: 7px; box-shadow: 0 8px 24px #14213d26; color: #14213d; font-size: 16px; }
+.pbv-genotype-menu .b-dropdown-form { padding: 0; }
+.pbv-genotype-menu legend { margin-bottom: 10px; font-size: 18px; font-weight: 600; }
+.pbv-genotype-shortcuts { padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #dfe7f0; }
+.pbv-page .pbv-genotype-text-button { padding: 0; border: 0; background: transparent; color: #0b66d8; font-size: 16px; }
+.pbv-genotype-option { display: flex; align-items: center; gap: 10px; padding: 8px 0; margin: 0; cursor: pointer; font-weight: 400; }
+.pbv-genotype-option input { width: 17px; height: 17px; accent-color: #0b66d8; flex-shrink: 0; }
+.pbv-genotype-option small { margin-left: auto; padding-left: 12px; font-size: 14px; color: #64748b; font-variant-numeric: tabular-nums; }
+.pbv-genotype-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #dfe7f0; }
+.pbv-page .pbv-genotype-apply { padding: 5px 18px; border: 1px solid #0b66d8; border-radius: 5px; background: #0b66d8; color: #fff; font-size: 16px; }
+.pbv-genotype-apply:disabled { opacity: .5; cursor: default; }
+.pbv-genotype-hint { margin: 8px 0 0; color: #9f321e; font-size: 14px; }
+.pbv-genotype-toggle:focus-visible, .pbv-genotype-option input:focus-visible, .pbv-genotype-text-button:focus-visible { outline: 2px solid #0b66d8; outline-offset: 3px; }
 .pbv-crdc-carriers .pbv-inline-total { color: #0648f4; }
 .pbv-crdc-carriers .pbv-inline-frequency { font-size: .85em; font-weight: 500; }
 .pbv-page .pg2-project-table tbody tr { height: 82px; }
@@ -510,6 +527,11 @@
 .pbv-page .pbv-phenotype-root { width: auto; gap: 8px; padding: 6px 10px; margin-bottom: 4px; border-radius: 0; background: transparent; color: #526071; font-size: 16px; font-weight: 500; }
 .pbv-phenotype-root svg { width: 15px; }
 .pbv-phenotype-root small { display: inline; margin-left: 8px; color: #64748b; font-size: 14px; }
+.pbv-page .pbv-phenotype-name { display: inline-flex; align-items: center; gap: 8px; border: 0; padding: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.pbv-page .pbv-hpo-link, .pbv-page .pg2-profile-token a { color: #0b66d8; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.pbv-page .pbv-hpo-link:hover, .pbv-page .pg2-profile-token a:hover { color: #0648a2; }
+.pbv-page .pbv-hpo-link:focus-visible, .pbv-page .pbv-phenotype-name:focus-visible, .pbv-page .pg2-profile-token a:focus-visible { outline: 2px solid #0b66d8; outline-offset: 3px; }
+.pbv-hpo-node-label > span:last-child { white-space: normal; }
 .pbv-pheno-branch { border-left: 2px solid #6f86a3; }
 .pbv-pheno-branch::before { top: 23px; border-top: 2px solid #6f86a3; }
 .pbv-pheno-terms { margin: 0 0 10px; overflow-x: auto; }
@@ -621,3 +643,13 @@
 .pbv-profile-rerunning svg { animation: pbv-profile-rerun-spin 1s linear infinite; }
 @keyframes pbv-profile-rerun-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .pbv-profile-rerunning svg { animation: none; } }
+
+/* Carrier filter selections are purple; applied scoring profiles stay yellow. */
+.pbv-pheno-row.is-filter-ancestor, .pbv-bar-row--nested.is-filter-ancestor { background: #faf7ff; }
+.pbv-pheno-row.is-filter-term, .pbv-bar-row--nested.is-filter-term { background: #f0e8ff; border-radius: 4px; box-shadow: inset 3px 0 #8655bf; }
+.pbv-page .pbv-phenotype-root.is-filter-ancestor { background: #faf7ff; }
+.pbv-page .pbv-phenotype-root.is-filter-term { background: #f0e8ff; color: #59328b; box-shadow: inset 3px 0 #8655bf; }
+.pbv-pheno-row.is-filter-term.is-profile-term, .pbv-bar-row--nested.is-filter-term.is-profile-term { background: linear-gradient(90deg, #fff6d8, #f0e8ff); box-shadow: inset 3px 0 #c99926, inset 7px 0 #8655bf; }
+.pbv-pheno-row.is-profile-term.is-filter-ancestor, .pbv-bar-row--nested.is-profile-term.is-filter-ancestor { background: #fff6d8; }
+.pbv-filter-node-tag { display: inline-block; margin-left: 8px; padding: 0 5px; border-radius: 3px; background: #dfcdf6; color: #59328b; font-size: 13px; font-weight: 600; }
+.pbv-phenotype-filter-chip .pbv-selected-chip-text { background: linear-gradient(transparent 48%, #e5d6fa 48%); color: #59328b; }

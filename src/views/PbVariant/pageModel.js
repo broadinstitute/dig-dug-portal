@@ -27,6 +27,7 @@ const { profileTermCounts, profileTermClass, phenotypeDepthColor, phenotypeDataS
 const { crdcSummaryFrequency, carrierDemographicSummary } = require("./layoutSummary");
 const help = require('../PbGene2/evidenceHelp');
 const layoutHelp = require('./layoutHelp');
+const { GENOTYPES, allGenotypes, genotypeGroup, selectGenotypeCarriers, matchesSampleScope } = require('./genotypeSelection');
 const {
     buildTranscriptIdentity,
     canonicalVariantId,
@@ -133,6 +134,9 @@ export function createPbVariantState() {
             pathways: { count: 0, displayNames: [], moreCount: 0 },
         },
         carrierRecords: [],
+        genotypeSelection: allGenotypes(),
+        genotypeDraft: allGenotypes(),
+        genotypeRevision: 0,
         sampleMetadataById: {},
         sampleMetadataStatus: "idle",
         sampleMetadataCompleted: 0,
@@ -270,13 +274,30 @@ function uniqueOptions(records, key, labelMap = {}) {
 }
 
 export const pbVariantComputed = {
+    genotypeLookupFailed() { return this.carrierRecords.some(record => record.gtStatus === 'lookup_unavailable'); },
+    genotypeSourceHelp() {
+        if (this.genotypeLookupFailed) return 'GT lookup failed. Check the private genotype service and its configured index. A failed lookup is not evidence that a genotype is absent from the original data.';
+        const vcf = this.carrierRecords.find(record => record.gtSource && record.gtSource.kind === 'original_vcf');
+        return vcf ? `GT is read from the original indexed GRCh38 VCF for this exact variant and the current carrier sample IDs, with DP ≥ 20. Original allele indices and phase are preserved. Source: ${vcf.gtSource.source_file}. The processed GT release is reused where it has coverage; original VCF calls supplement missing coverage.` : help.genotype;
+    },
+    genotypeOptions() {
+        return GENOTYPES.map(option => ({...option, count: this.carrierRecords.filter(record => genotypeGroup(record) === option.value).length}));
+    },
+    allGenotypesSelected() { return GENOTYPES.every(option => this.genotypeDraft.includes(option.value)); },
+    genotypeCarriers() { return selectGenotypeCarriers(this.carrierRecords, this.genotypeSelection); },
+    genotypeCarrierCount() { return this.genotypeCarriers.length; },
+    genotypeSampleIds() { return this.genotypeCarriers.map(record => record.id).sort(); },
+    genotypeLabel() {
+        return this.genotypeSelection.length === GENOTYPES.length ? 'All'
+            : GENOTYPES.filter(option => this.genotypeSelection.includes(option.value)).map(option => option.label).join(' + ');
+    },
     variantConsequenceLabel() {
         const value = String(this.variantIdentity.consequence || '').replace(/_variant$/, '').replace(/_/g, ' ');
         return value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Unavailable';
     },
     variantHpoCountKey() {
         return this.variantAvailable && this.appliedProfileTerms.length ? JSON.stringify([
-            this.variantIdentity.gene, [...new Set(this.appliedProfileTerms)].sort(), this.variantIdentity.canonicalId, this.currentProfileRunId,
+            this.variantIdentity.gene, [...new Set(this.appliedProfileTerms)].sort(), this.variantIdentity.canonicalId, this.currentProfileRunId, this.genotypeSampleIds,
         ]) : '';
     },
     variantHpoCountDisplay() {
@@ -287,7 +308,7 @@ export const pbVariantComputed = {
     },
     variantHpoCountTitle() {
         const result = this.variantHpoResponseKey === this.variantHpoCountKey && this.variantHpoCount;
-        return help.hpoCarriers + (result ? ` HPO metadata available for ${result.metadataCount} of ${result.carrierTotal} observed variant carriers.` : '');
+        return help.hpoCarriers + ' Counts use the current genotype selection.' + (result ? ` HPO metadata available for ${result.metadataCount} of ${result.carrierTotal} selected variant carriers.` : '');
     },
     appliedProfileTerms() {
         return this.contextMatch || this.contextAssociation ? this.activeContextTerms : [];
@@ -307,21 +328,21 @@ export const pbVariantComputed = {
         return 'Not listed among observed carrier phenotypes';
     },
     carrierDisplayLabel() {
-        return this.filtersActive ? `${this.matchCount} of ${this.variantIdentity.distinctCarriers} variant carriers shown`
+        return this.filtersActive ? `${this.matchCount} of ${this.genotypeCarrierCount} variant carriers shown`
             : `${this.matchCount} variant ${this.matchCount === 1 ? 'carrier' : 'carriers'} shown`;
     },
     phenotypeCarrierSelection() {
         return phenotypeDataSelection(this.filteredCarriers, this.sampleMetadataById);
     },
     allPhenotypeCarrierSelection() {
-        return phenotypeDataSelection(this.carrierRecords, this.sampleMetadataById);
+        return phenotypeDataSelection(this.genotypeCarriers, this.sampleMetadataById);
     },
     phenotypePopulationLabel() {
         const selection = this.phenotypeCarrierSelection;
         return `Phenotype data available: ${selection.present.length} of ${selection.total} carriers${selection.unknown.length ? ` · ${selection.unknown.length} pending/unavailable` : ''}`;
     },
     carrierDemographicSummary() {
-        return carrierDemographicSummary(this.carrierRecords, this.sampleMetadataById, this.sampleMetadataStatus);
+        return carrierDemographicSummary(this.genotypeCarriers, this.sampleMetadataById, this.sampleMetadataStatus);
     },
     crdcFrequencyLabel() {
         return crdcSummaryFrequency(this.variantIdentity).label;
@@ -351,7 +372,8 @@ export const pbVariantComputed = {
         ].filter(Boolean).join('. ');
     },
     observedPhenotypesHelp() {
-        return `Observed HPO terms among the ${this.phenotypeCarrierSelection.present.length} displayed carriers with phenotype data. The denominator excludes carriers with empty or unavailable phenotype records. Counts roll up unique carriers with observed descendants using the HPO ${this.hpoVersion} parent–child hierarchy. For multiple parents, one valid parent path is shown. Expand a branch to see its terms. Metadata matched ${this.sampleMetadataMatched} / ${this.carrierRecords.length} carriers. Missing metadata is not counted as absence.`;
+        const matched = this.genotypeCarriers.filter(carrier => this.sampleMetadataById[carrier.id]).length;
+        return `Observed HPO terms among the ${this.phenotypeCarrierSelection.present.length} displayed carriers with phenotype data. The denominator excludes carriers with empty or unavailable phenotype records. Counts roll up unique carriers with observed descendants using the HPO ${this.hpoVersion} parent–child hierarchy. For multiple parents, one valid parent path is shown. Expand a branch to see its terms. Metadata matched ${matched} / ${this.genotypeCarrierCount} selected carriers. Missing metadata is not counted as absence.`;
     },
     coGeneAnalysisDetails() {
         return [layoutHelp.coGeneHelp, help.customBeta, layoutHelp.coGeneFdrHelp,
@@ -370,18 +392,18 @@ export const pbVariantComputed = {
     },
     carrierFacetOptions() {
         return {
-            affected: uniqueOptions(this.carrierRecords, "affected", { Yes: "Affected", No: "Not affected" }),
-            sex: uniqueOptions(this.carrierRecords, "sex", { F: "Female", M: "Male", unknown: "Unknown" }),
-            project: uniqueOptions(this.carrierRecords, "project"),
+            affected: uniqueOptions(this.genotypeCarriers, "affected", { Yes: "Affected", No: "Not affected" }),
+            sex: uniqueOptions(this.genotypeCarriers, "sex", { F: "Female", M: "Male", unknown: "Unknown" }),
+            project: uniqueOptions(this.genotypeCarriers, "project"),
         };
     },
     ageOptions() {
-        const bins = Array.from(new Set(this.carrierRecords.map(record => record.ageBin).filter(Boolean)))
+        const bins = Array.from(new Set(this.genotypeCarriers.map(record => record.ageBin).filter(Boolean)))
             .map(value => ({ value: `bin:${value}`, label: value, group: "Age band" }));
-        const years = Array.from(new Set(this.carrierRecords.map(record => record.ageYears).filter(value => value != null)))
+        const years = Array.from(new Set(this.genotypeCarriers.map(record => record.ageYears).filter(value => value != null)))
             .sort((a, b) => a - b)
             .map(value => ({ value: `year:${value}`, label: String(value), group: "Exact age (years)" }));
-        const unknown = (bins.length || years.length) && this.carrierRecords.some(record => record.ageBin == null && record.ageYears == null)
+        const unknown = (bins.length || years.length) && this.genotypeCarriers.some(record => record.ageBin == null && record.ageYears == null)
             ? [{ value: "unknown", label: "Unknown", group: "" }]
             : [];
         return [...unknown, ...bins, ...years];
@@ -394,7 +416,19 @@ export const pbVariantComputed = {
         ].filter(group => group.options.length);
     },
     phenotypeCatalog() {
-        return phenotypeCatalog(this.carrierRecords);
+        return phenotypeCatalog(this.genotypeCarriers);
+    },
+    carrierPhenotypeFilterTerms() {
+        const tokens = this.filters.phenotype;
+        return this.phenotypeCatalog.flatMap(category => [
+            ...(tokens.includes(`cat:${category.key}`) ? [{token:`cat:${category.key}`,id:category.id,categoryKey:category.key}] : []),
+            ...category.terms.filter(term => tokens.includes(`term:${term.key}`))
+                .map(term => ({token:`term:${term.key}`,id:term.id,categoryKey:category.key})),
+        ]).sort((a,b) => tokens.indexOf(a.token) - tokens.indexOf(b.token));
+    },
+    carrierPhenotypeRevealKey() {
+        if (!this.filters.phenotype.length) return '';
+        return JSON.stringify([this.filters.phenotype, this.sortedPhenotypeRows.map(row => [row.key, row.terms.map(term => term.key)])]);
     },
     phenotypeSuggestions() {
         const query = this.phenotypeQuery.trim().toLowerCase();
@@ -415,7 +449,7 @@ export const pbVariantComputed = {
         return null;
     },
     filteredCarriers() {
-        return filterCarrierRecords(this.carrierRecords, this.filters);
+        return filterCarrierRecords(this.genotypeCarriers, this.filters);
     },
     sortedCarrierRows() {
         return sortCarrierRows(this.filteredCarriers, this.tableSort.carriers, this.sampleMetadataById, this.contextResidualById);
@@ -442,7 +476,7 @@ export const pbVariantComputed = {
         return Boolean(
             this.contextMatch
             && this.contextMatch.matchScore != null
-            && this.filteredCarriers.length === this.carrierRecords.length
+            && this.filteredCarriers.length === this.genotypeCarriers.length
         );
     },
     variantScore() {
@@ -513,7 +547,7 @@ export const pbVariantComputed = {
         return this.phenotypeCatalog.length > 0;
     },
     hasCoGeneData() {
-        return this.carrierRecords.some(record => record.coGeneCount != null || record.coGenes.length);
+        return this.genotypeCarriers.some(record => record.coGeneCount != null || record.coGenes.length);
     },
     hasCoVariantData() {
         return this.sameGeneCoOccurrenceAvailable;
@@ -521,22 +555,70 @@ export const pbVariantComputed = {
 };
 
 export const pbVariantMethods = {
+    openGenotypeFilter() { this.genotypeDraft = [...this.genotypeSelection]; },
+    toggleAllGenotypes() { this.genotypeDraft = this.allGenotypesSelected ? [] : allGenotypes(); },
+    async applyGenotypeFilter() {
+        if (!this.genotypeDraft.length) return;
+        const selection = allGenotypes().filter(value => this.genotypeDraft.includes(value));
+        this.$refs.genotypeFilter.hide(true);
+        if (JSON.stringify(selection) === JSON.stringify(this.genotypeSelection)) return;
+        const previousRuns = [...this.profileRuns];
+        const input = this.contextInput;
+        const scoreType = this.contextScoreTypeInput;
+        const analysisSet = this.contextAnalysisSetInput;
+        this.genotypeSelection = selection;
+        const revision = ++this.genotypeRevision;
+        this.contextRunId++;
+        this.contextLoading = false;
+        this.currentProfileRunId = null;
+        this.contextMatch = null;
+        this.contextAssociation = null;
+        this.contextGeneAssociation = null;
+        this.contextStandardization = null;
+        this.contextResidualById = {};
+        this.coGeneAssociationByGene = {};
+        this.coGeneStandardization = null;
+        this.coGeneAssociationStatus = 'idle';
+        this.coGeneAssociationSummary = null;
+        this.profileRuns = [];
+        this.contextError = '';
+        this.contextWarning = '';
+        this.clearFilters();
+        this.resetResultPages();
+        try {
+            if (!this.genotypeCarrierCount) return;
+            for (const run of previousRuns.reverse()) {
+                if (revision !== this.genotypeRevision) break;
+                this.contextInput = run.terms.join(', ');
+                this.contextScoreTypeInput = run.scoreType;
+                this.contextAnalysisSetInput = run.analysisSet;
+                await this.runVariantContext();
+            }
+        } finally {
+            if (revision === this.genotypeRevision) {
+                this.contextInput = input;
+                this.contextScoreTypeInput = scoreType;
+                this.contextAnalysisSetInput = analysisSet;
+            }
+        }
+    },
     async loadVariantHpoCounts(key) {
         const revision = ++this.variantHpoRevision;
         this.variantHpoCount = null;
         this.variantHpoResponseKey = '';
         this.variantHpoCountStatus = key ? 'loading' : 'idle';
         if (!key) return;
-        const [gene, terms, variant] = JSON.parse(key);
+        const [gene, terms, variant, , sampleIds] = JSON.parse(key);
         try {
             const response = await fetch('/__gene_variant_hpo_counts__', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({gene, hpo_terms: terms, variant_ids: [variant]}),
+                body: JSON.stringify({gene, hpo_terms: terms, variant_ids: [variant], sample_ids: sampleIds}),
             });
             if (!response.ok) throw new Error('Recorded HPO metadata unavailable');
             const result = await response.json();
             if (revision !== this.variantHpoRevision || key !== this.variantHpoCountKey) return;
             if (result.gene !== gene || result.match !== 'any' || JSON.stringify(result.hpo_terms) !== JSON.stringify(terms)) throw new Error('HPO profile mismatch');
+            if (!matchesSampleScope(result, sampleIds)) throw new Error('Carrier selection mismatch');
             this.variantHpoCount = result.variants && result.variants[variant] || null;
             this.variantHpoResponseKey = key;
             this.variantHpoCountStatus = 'ready';
@@ -546,6 +628,22 @@ export const pbVariantMethods = {
     },
     phenotypeProfileClass(id) {
         return profileTermClass(id, this.appliedProfileTerms);
+    },
+    phenotypeFilterClass(id) {
+        return profileTermClass(id, this.carrierPhenotypeFilterTerms.map(term => term.id).filter(Boolean)).replace('is-profile-', 'is-filter-');
+    },
+    phenotypeTreeClass(id) {
+        return [this.phenotypeProfileClass(id), this.phenotypeFilterClass(id)].filter(Boolean).join(' ');
+    },
+    revealFilteredPhenotypes() {
+        const targets = this.carrierPhenotypeFilterTerms;
+        const rows = this.sortedPhenotypeRows;
+        const latest = [...targets].reverse().find(target => rows.some(row => row.key === target.categoryKey));
+        if (!latest) return;
+        this.phenotypeRootExpanded = true;
+        this.resultPages.phenotypes = Math.floor(rows.findIndex(row => row.key === latest.categoryKey) / PHENOTYPE_PAGE_LIMIT) + 1;
+        this.expandedCategories = [...new Set([...this.expandedCategories, ...targets.map(target => target.categoryKey)])];
+        this.expandedPhenotypeNodes = [...new Set([...this.expandedPhenotypeNodes, ...targets.flatMap(target => hpoPath(target.id))])];
     },
     phenotypeDepthColor,
     profileTermMetadataHelp(term) {
@@ -606,6 +704,7 @@ export const pbVariantMethods = {
         return `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(variantId)}`;
     },
     clinvarDisplayLabel,
+    phenotypeHref(id) { return '/pb_phenotype.html?query=' + encodeURIComponent(id); },
     clinvarClass(value) {
         const labels = String(value || "")
             .toLowerCase()
@@ -664,6 +763,7 @@ export const pbVariantMethods = {
         }
         this.phenotypeQuery = "";
         this.phenotypeSuggestOpen = false;
+        this.revealFilteredPhenotypes();
     },
     addTypedPhenotype() {
         this.addPhenotypeToken(this.phenotypeExactMatch);
@@ -816,7 +916,11 @@ export const pbVariantMethods = {
         const value = this.contextResidualById[String(carrier.id || "").toLowerCase()];
         return this.displayMean(value);
     },
-    rphersReferenceLabel(reference) { return referenceDescription(reference); },
+    rphersReferenceLabel(reference) {
+        if (referenceAvailable(reference))
+            return `SD reference: ${reference.reference_n.toLocaleString()} valid scores in the selected genotype carriers. Scoring and analysis are recomputed for this selection.`;
+        return referenceDescription(reference);
+    },
     geneAssociationCell(gene, field) {
         if (this.coGeneAssociationStatus === "idle") return "No context";
         if (this.coGeneAssociationStatus === "loading") return "Calculating…";
@@ -837,19 +941,21 @@ export const pbVariantMethods = {
         try {
             if (this.sampleMetadataPromise) await this.sampleMetadataPromise;
             if (runId !== this.currentProfileRunId) return;
-            if (this.sampleMetadataStatus !== "ready" || this.sampleMetadataMatched !== this.carrierRecords.length) {
+            if (this.genotypeCarriers.some(carrier => !this.sampleMetadataById[carrier.id] || this.sampleMetadataById[carrier.id].coGenes == null)) {
                 throw new Error("Complete carrier gene lists are required to define the FDR gene set.");
             }
-            const coGenes = summarizeCooccurrence(this.carrierRecords, "coGenes", "gene")
+            const sampleIds = [...this.genotypeSampleIds];
+            const coGenes = summarizeCooccurrence(this.genotypeCarriers, "coGenes", "gene")
                 .map(row => row.gene)
                 .filter(gene => gene !== this.variantIdentity.gene);
-            const response = await fetch("/phenotype-analyzer-api/co-gene-associations", {
+            const response = await fetch("/__pb_variant_context__/co-gene-associations", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     gene: this.variantIdentity.gene,
                     terms: terms.join(","),
                     co_genes: coGenes,
+                    sample_ids: sampleIds,
                     score_type: scoreType,
                     affected_only: analysisSet === "affected",
                 }),
@@ -857,6 +963,7 @@ export const pbVariantMethods = {
             if (!response.ok) throw new Error(await contextApiError(response));
             const result = await response.json();
             if (runId !== this.currentProfileRunId) return;
+            if (!matchesSampleScope(result, sampleIds)) throw new Error('The analysis service did not apply the genotype sample selection.');
             if (result.target_gene !== this.variantIdentity.gene
                 || terms.some(term => !result.query_hpo.includes(term))
                 || result.query_hpo.length !== terms.length
@@ -884,6 +991,7 @@ export const pbVariantMethods = {
     },
     async runVariantContext() {
         if (this.contextLoading || this.searchLoading) return;
+        if (!this.genotypeCarrierCount) { this.contextError = 'No carriers match the genotype selection.'; return; }
         let terms;
         try { terms = resolveHpoTerms(this.contextInput); }
         catch (error) { this.contextError = error.message; return; }
@@ -895,17 +1003,19 @@ export const pbVariantMethods = {
         const gene = this.variantIdentity.gene;
         const scoreType = this.contextScoreTypeInput;
         const analysisSet = this.contextAnalysisSetInput;
+        const sampleIds = [...this.genotypeSampleIds];
         const isCurrentRequest = () => runId === this.contextRunId && variantId === this.variantIdentity.canonicalId;
         this.contextError = "";
         this.contextWarning = "";
         try {
-            const analyze = (analysisTerms) => fetch("/phenotype-analyzer-api/analyze", {
+            const analyze = (analysisTerms) => fetch("/__pb_variant_context__/analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     terms: analysisTerms.join(","),
                     gene,
                     variant_id: variantId,
+                    sample_ids: sampleIds,
                     score_type: scoreType,
                     affected_only: analysisSet === "affected",
                     advanced: { significance_metric: "p_value", significance_threshold: 0.05, min_carriers: 10 },
@@ -931,6 +1041,7 @@ export const pbVariantMethods = {
             const result = payload.genes && payload.genes[gene]
                 ? payload.genes[gene]
                 : payload;
+            if (!matchesSampleScope(result, sampleIds)) throw new Error('The analysis service did not apply the genotype sample selection.');
             if (!contextMatches(result.rphers_standardization, analysisTerms)) result.rphers_standardization = null;
             const match = exactVariantContext(result, variantId);
             const association = exactVariantAssociation(result, variantId);
@@ -959,7 +1070,7 @@ export const pbVariantMethods = {
             });
             this.profileRuns.unshift(Object.freeze({
                 id: runId, variantId, terms: Object.freeze([...analysisTerms]),
-                label: analysisTerms.map(hpoLabel).join(' + '), scoreType, analysisSet,
+                label: analysisTerms.map(hpoLabel).join(' + '), scoreType, analysisSet, genotypeLabel: this.genotypeLabel,
                 match: match && Object.freeze({ ...match }),
                 association: association && Object.freeze({ ...association }),
                 analysisDetails: this.profileAnalysisDetails,
@@ -979,6 +1090,9 @@ export const pbVariantMethods = {
         await this.loadLiveVariantData(true);
     },
     async loadLiveVariantData(updateUrl = false) {
+        this.genotypeRevision++;
+        this.genotypeSelection = allGenotypes();
+        this.genotypeDraft = allGenotypes();
         this.carrierSamplesExpanded = false;
         this.sampleMetadataLoadId += 1;
         this.contextRunId += 1;
@@ -1035,6 +1149,7 @@ export const pbVariantMethods = {
             }
             this.searchProgress = `Loading complete ${gene} carrier evidence`;
             const geneState = await fetchPbGeneBioIndexState(gene, {
+                genotypeVariantId: canonicalVariantId(variant),
                 onProgress: index => {
                     pages[index] = (pages[index] || 0) + 1;
                     this.searchProgress = `Loading ${index} · page ${pages[index]}`;

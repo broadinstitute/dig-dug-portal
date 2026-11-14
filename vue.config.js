@@ -461,6 +461,12 @@ module.exports = {
             });
         },
         proxy: {
+            "/__pb_variant_context__": {
+                target: process.env.PB_VARIANT_CONTEXT_HOST_PRIVATE || "http://127.0.0.1:8095",
+                changeOrigin: true,
+                pathRewrite: { "^/__pb_variant_context__": "/phenotype-analyzer-api" },
+                proxyTimeout: 600000,
+            },
             "/__pb_sample_gene_scores__": {
                 target: process.env.PB_SAMPLE_GENE_SCORE_HOST || "http://127.0.0.1:8094",
                 changeOrigin: true,

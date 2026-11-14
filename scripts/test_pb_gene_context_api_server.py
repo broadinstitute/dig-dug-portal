@@ -8,6 +8,11 @@ from scripts.pb_gene_context_api_server import create_server, parse_co_gene_requ
 
 
 class _FakeEngine:
+    def for_sample_ids(self, sample_ids):
+        selected = _FakeEngine()
+        selected.analysis_sample_ids = list(sample_ids)
+        selected.hpo = {'sample_ids': list(sample_ids)}
+        return selected
     def phenotype_profile(self, query_hpo, filters, page, page_size):
         return {"query_hpo_ids": query_hpo, "summary": {"eligible_sample_count": 1},
                 "samples": [{"sample_id": "private-sample", "exact_match_count": 1}],
@@ -16,6 +21,7 @@ class _FakeEngine:
     def analyze(self, gene, query_hpo, min_carriers=10, score_type="max", affected_only=False):
         return {
             "gene": gene,
+            "analysis_sample_count": len(getattr(self, 'analysis_sample_ids', ['full-cohort'] * 100)),
             "query_hpo": list(query_hpo),
             "variant_match_scores": {},
             "gene_burden": {
@@ -40,6 +46,46 @@ class _FakeEngine:
 
 
 class PbGeneContextApiServerTest(unittest.TestCase):
+    def test_original_vcf_route_receives_only_the_requested_calls(self):
+        class Source:
+            def lookup(self,variant,ids):
+                return {'variant_id':variant,'rows':[{'sample_id':sid,'gt':'1/1'} for sid in ids]}
+        server = create_server(('127.0.0.1',0),_FakeEngine(),genotype_source=Source())
+        thread = threading.Thread(target=server.serve_forever,daemon=True)
+        thread.start()
+        try:
+            body={'variant_id':'chr13:20189546:AC:A','sample_ids':['A_E38']}
+            request = Request(f'http://127.0.0.1:{server.server_port}/phenotype-analyzer-api/carrier-genotypes',
+                data=json.dumps(body).encode(),headers={'Content-Type':'application/json'},method='POST')
+            with urlopen(request,timeout=2) as response:
+                result=json.load(response)
+            self.assertEqual(result['variant_id'],body['variant_id'])
+            self.assertEqual(result['rows'],[{'sample_id':'A_E38','gt':'1/1'}])
+        finally:
+            server.shutdown();server.server_close();thread.join(timeout=2)
+
+    def test_private_selected_sample_scope_is_applied_and_echoed(self):
+        for ids in ([], 'sample', ['bad/id']):
+            with self.assertRaises(ValueError):
+                parse_context_request({'gene':'HBB','terms':['HP:0001250'],'sample_ids':ids})
+        server = create_server(('127.0.0.1',0),_FakeEngine())
+        thread = threading.Thread(target=server.serve_forever,daemon=True)
+        thread.start()
+        try:
+            for path in ('analyze','co-gene-associations'):
+                body = {'gene':'HBB','terms':['HP:0001250'],'sample_ids':['A','B'],'co_genes':['HBA1']}
+                request = Request(f'http://127.0.0.1:{server.server_port}/phenotype-analyzer-api/{path}',
+                                  data=json.dumps(body).encode(),headers={'Content-Type':'application/json'},method='POST')
+                with urlopen(request,timeout=2) as response:
+                    result = json.load(response)
+                self.assertEqual(result['sample_scope'],{'sample_ids':['A','B'],'analysis_sample_count':2,'scoring_sample_count':2})
+                if path == 'analyze':
+                    self.assertEqual(result['analysis_sample_count'],2)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
     def test_profile_request_validates_terms_filters_and_paging(self):
         parsed = parse_profile_request({"hpo_ids": ["hp:0001250", "HP:0001250"],
                                         "filters": {"sex": "Female", "exact_age": 11},

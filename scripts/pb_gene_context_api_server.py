@@ -16,8 +16,9 @@ CO_GENE_PATH = "/phenotype-analyzer-api/co-gene-associations"
 PROFILE_PATH = "/phenotype-analyzer-api/profile"
 SAMPLE_MATCH_PATH = "/phenotype-analyzer-api/sample-matches"
 SAMPLE_VARIANT_PATH = "/phenotype-analyzer-api/sample-variants"
-MAX_REQUEST_BYTES = 64 * 1024
-MAX_CO_GENE_REQUEST_BYTES = 512 * 1024
+GENOTYPE_PATH = "/phenotype-analyzer-api/carrier-genotypes"
+MAX_REQUEST_BYTES = 2 * 1024 * 1024
+MAX_CO_GENE_REQUEST_BYTES = 2 * 1024 * 1024
 MAX_CO_GENES = 25000
 HPO_PATTERN = re.compile(r"^HP:\d{7}$")
 GENE_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9.-]*$")
@@ -65,6 +66,13 @@ def parse_context_request(payload):
     affected_only = payload.get("affected_only", False)
     if score_type not in {"max", "sum"} or not isinstance(affected_only, bool):
         raise ValueError("score_type must be max or sum and affected_only must be boolean")
+    sample_ids = payload.get('sample_ids')
+    if sample_ids is not None:
+        if not isinstance(sample_ids, list) or not 1 <= len(sample_ids) <= 50000 or any(
+            not isinstance(sid, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,150}', sid) for sid in sample_ids
+        ):
+            raise ValueError('sample_ids must be a nonempty list of valid sample IDs')
+        sample_ids = sorted(set(sample_ids))
     return {
         "gene": gene,
         "terms": terms,
@@ -74,6 +82,7 @@ def parse_context_request(payload):
         "variant_id": variant_id or None,
         "score_type": score_type,
         "affected_only": affected_only,
+        "sample_ids": sample_ids,
     }
 
 
@@ -160,7 +169,7 @@ def public_context_projection(result, min_support=10):
     }
 
 
-def create_server(address, engine, profile_only=False):
+def create_server(address, engine, profile_only=False, genotype_source=None):
     class ContextHandler(BaseHTTPRequestHandler):
         def _send_json(self, status, payload):
             body = json.dumps(payload, allow_nan=False, separators=(",", ":")).encode()
@@ -178,7 +187,7 @@ def create_server(address, engine, profile_only=False):
                 self._send_json(404, {"error": "not_found"})
 
         def do_POST(self):
-            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH, PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH}:
+            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH, PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH, GENOTYPE_PATH}:
                 self._send_json(404, {"error": "not_found"})
                 return
             if profile_only and self.path not in {PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH}:
@@ -190,6 +199,18 @@ def create_server(address, engine, profile_only=False):
                 if length <= 0 or length > limit:
                     raise ValueError("invalid request body size")
                 payload = json.loads(self.rfile.read(length))
+                if self.path == GENOTYPE_PATH:
+                    if genotype_source is None:
+                        self._send_json(503, {'error': 'original_vcf_not_configured'})
+                        return
+                    variant = payload.get('variant_id') if isinstance(payload, dict) else None
+                    ids = payload.get('sample_ids') if isinstance(payload, dict) else None
+                    if not isinstance(variant, str) or not VARIANT_PATTERN.fullmatch(variant) or not isinstance(ids, list) or not 1 <= len(ids) <= 50000 or any(
+                        not isinstance(sid, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,150}', sid) for sid in ids
+                    ):
+                        raise ValueError('An exact variant and selected sample IDs are required.')
+                    self._send_json(200, genotype_source.lookup(variant, ids))
+                    return
                 if self.path in {SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH}:
                     if not profile_only or not isinstance(payload, dict) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', str(payload.get('sample_id', ''))):
                         raise ValueError('A valid sample_id is required by the private profile service.')
@@ -202,19 +223,29 @@ def create_server(address, engine, profile_only=False):
                         request["terms"], request["filters"], request["page"], request["page_size"]))
                     return
                 request = parse_co_gene_request(payload) if self.path == CO_GENE_PATH else parse_context_request(payload)
+                if request['sample_ids'] is not None and self.path == PUBLIC_CONTEXT_PATH:
+                    raise ValueError('sample selection is private-only')
+                selected_engine = engine if request['sample_ids'] is None else engine.for_sample_ids(tuple(request['sample_ids']))
+                scope = None if request['sample_ids'] is None else {
+                    'sample_ids': request['sample_ids'],
+                    'analysis_sample_count': len(selected_engine.analysis_sample_ids),
+                    'scoring_sample_count': len(selected_engine.hpo['sample_ids']),
+                }
                 if self.path == CO_GENE_PATH:
                     started = perf_counter()
-                    result = engine.co_gene_associations(
+                    result = selected_engine.co_gene_associations(
                         request["gene"], request["terms"], request["co_genes"],
                         score_type=request["score_type"], affected_only=request["affected_only"],
                     )
                     result["request_ms"] = round((perf_counter() - started) * 1000, 3)
+                    if scope is not None:
+                        result['sample_scope'] = scope
                     self._send_json(200, result)
                     return
                 if self.path == PUBLIC_CONTEXT_PATH and request["variant_id"]:
                     raise ValueError("individual variant carrier scores are private-only")
                 started = perf_counter()
-                result = engine.analyze(
+                result = selected_engine.analyze(
                     request["gene"],
                     request["terms"],
                     min_carriers=request["min_carriers"],
@@ -233,11 +264,13 @@ def create_server(address, engine, profile_only=False):
                     self._send_json(200, public_context_projection(result, request["min_carriers"]))
                 else:
                     if request["variant_id"]:
-                        result["variant_carrier_residuals"] = engine.variant_carrier_residuals(
+                        result["variant_carrier_residuals"] = selected_engine.variant_carrier_residuals(
                             request["gene"], request["variant_id"], request["terms"],
                             affected_only=request["affected_only"],
                         )
                     result["request_ms"] = round((perf_counter() - started) * 1000, 3)
+                    if scope is not None:
+                        result['sample_scope'] = scope
                     self._send_json(200, result)
             except (ValueError, json.JSONDecodeError) as error:
                 self._send_json(400, {"error": "invalid_request", "detail": str(error)})
@@ -271,6 +304,8 @@ def main(argv=None):
     parser.add_argument("--gene-score-affected-only", action="store_true")
     parser.add_argument("--grm-prefix")
     parser.add_argument("--rscript", default="Rscript")
+    parser.add_argument('--genotype-vcf')
+    parser.add_argument('--bcftools', default='bcftools')
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8092)
     args = parser.parse_args(argv)
@@ -305,7 +340,11 @@ def main(argv=None):
         bioindex_access_token=access_token,
         bioindex_evidence_index=args.bioindex_evidence_index,
     )
-    server = create_server((args.host, args.port), engine)
+    genotype_source = None
+    if args.genotype_vcf:
+        from scripts.vcf_carrier_genotypes import VcfCarrierGenotypes
+        genotype_source = VcfCarrierGenotypes(args.genotype_vcf, bcftools=args.bcftools)
+    server = create_server((args.host, args.port), engine, genotype_source=genotype_source)
     print(f"pb_Gene Context API listening on http://{args.host}:{server.server_port}")
     server.serve_forever()
 

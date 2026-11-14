@@ -25,32 +25,33 @@ export function sourceAlleleFrequency(row) {
 export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
     const gene = normalizeGene(geneSymbol);
     if (!gene) throw new Error("Provide a valid HGNC gene symbol.");
+    const cacheKey = options.genotypeVariantId ? `${gene}|${options.genotypeVariantId}` : gene;
 
-    if (GENE_STATE_CACHE.has(gene)) {
-        const cached = GENE_STATE_CACHE.get(gene);
-        GENE_STATE_CACHE.delete(gene);
-        GENE_STATE_CACHE.set(gene, cached);
+    if (GENE_STATE_CACHE.has(cacheKey)) {
+        const cached = GENE_STATE_CACHE.get(cacheKey);
+        GENE_STATE_CACHE.delete(cacheKey);
+        GENE_STATE_CACHE.set(cacheKey, cached);
         return structuredClone(cached);
     }
-    if (!GENE_STATE_PENDING.has(gene)) {
-        GENE_STATE_PENDING.set(gene, loadPbGeneBioIndexState(gene, options)
+    if (!GENE_STATE_PENDING.has(cacheKey)) {
+        GENE_STATE_PENDING.set(cacheKey, loadPbGeneBioIndexState(gene, options)
             .then(state => {
                 // ponytail: tab-local five-gene cache; move caching server-side if cross-session reuse is needed.
                 if (GENE_STATE_CACHE.size >= MAX_CACHED_GENES) {
                     GENE_STATE_CACHE.delete(GENE_STATE_CACHE.keys().next().value);
                 }
-                GENE_STATE_CACHE.set(gene, state);
+                GENE_STATE_CACHE.set(cacheKey, state);
                 return state;
             })
-            .finally(() => GENE_STATE_PENDING.delete(gene)));
+            .finally(() => GENE_STATE_PENDING.delete(cacheKey)));
     }
-    return structuredClone(await GENE_STATE_PENDING.get(gene));
+    return structuredClone(await GENE_STATE_PENDING.get(cacheKey));
 }
 
 async function loadPbGeneBioIndexState(gene, options) {
     const variantRowsPromise = safeBioIndexQuery("gene-variants-crdc", gene, null, options);
     const associationPromise = loadGeneHpoAssociations(gene);
-    const genotypePromise = loadGeneGenotypes(gene);
+    const genotypePromise = loadGeneGenotypes(gene, options.genotypeVariantId);
     const geneRows = await safeBioIndexQuery("gene", gene, 5, options);
     if (options.onPartial) options.onPartial(buildPbGeneState(gene, geneRows, []));
     const variantRows = await variantRowsPromise;
@@ -65,13 +66,13 @@ async function loadPbGeneBioIndexState(gene, options) {
     return state;
 }
 
-async function loadGeneGenotypes(gene) {
+async function loadGeneGenotypes(gene, variant) {
     try {
-        const response = await fetch(`/__pb_gene_genotypes__?gene=${encodeURIComponent(gene)}`);
-        if (!response.ok) return null;
+        const response = await fetch(`/__pb_gene_genotypes__?gene=${encodeURIComponent(gene)}${variant ? '&variant=' + encodeURIComponent(variant) : ''}`);
+        if (!response.ok) return {gene, rows:[], source:null, lookup_status:'unavailable'};
         const data = await response.json();
-        return data.gene === gene && Array.isArray(data.rows) ? data : null;
-    } catch (_) { return null; }
+        return data.gene === gene && Array.isArray(data.rows) ? data : {gene, rows:[], source:null, lookup_status:'unavailable'};
+    } catch (_) { return {gene, rows:[], source:null, lookup_status:'unavailable'}; }
 }
 
 async function safeBioIndexQuery(index, q, limit = null, options = {}) {

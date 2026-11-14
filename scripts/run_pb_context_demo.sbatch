@@ -1,0 +1,75 @@
+#!/bin/bash
+#SBATCH --job-name=pb_context_demo
+#SBATCH --partition=bch-compute
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=16G
+#SBATCH --time=1-00:00:00
+
+# Run only through sbatch. All durable inputs and logs stay on lab-share.
+demo_root=${1:?Pass the persistent deployment directory}
+case "$demo_root" in
+  /lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/pb_context_demo/*) ;;
+  *) echo 'Unexpected demo directory' >&2; exit 2 ;;
+esac
+umask 077
+cd "$demo_root" || exit $?
+source /programs/biogrids.shrc || exit $?
+export PYTHON_X=3.12.2 R_X=4.4.2 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+export OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2
+unset PYTHONPATH
+python_bin=/programs/x86_64-linux/python/3.12.2/mamba/bin/python3
+"$python_bin" -c 'import numpy, scipy' || exit $?
+Rscript -e 'stopifnot(requireNamespace("data.table", quietly=TRUE))' || exit $?
+mkdir -p runtime logs work || exit $?
+export TMPDIR="$demo_root/work"
+
+source_root=/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung
+matrix=2025_crdc_15764sample_hpo_parent_expanded_binary.tsv.gz
+metadata=CRDC20251009_updated_07142026_Aditi_confirmed_metadata_16366.tsv
+if [[ ! -f inputs.ready ]]; then
+  mkdir -p source || exit $?
+  cp -p "$source_root/browser_paper/data/$matrix" "source/$matrix" || exit $?
+  cp -p "$source_root/browser_paper/data/$metadata" "source/$metadata" || exit $?
+  cp -p "$source_root/browser_paper/pca_grm_15761_20260816/roster.tsv" source/roster.tsv || exit $?
+  cp -p "$source_root/browser_paper/pca_grm_15761_20260816/results/pca_pc1_20.tsv" source/pca_pc1_20.tsv || exit $?
+  cp -p "$source_root/share/dig-dug-portal/custom_hpo_regression/input/CRDC2025_step4_sample_gene_burden_nonsyn_dosage_LOFTEE_AM.tsv" source/gene_scores.tsv || exit $?
+  "$python_bin" scripts/prepare_pb_gene_context_inputs.py \
+    --hpo-matrix "$demo_root/source/$matrix" --metadata "$demo_root/source/$metadata" \
+    --roster "$demo_root/source/roster.tsv" --pca "$demo_root/source/pca_pc1_20.tsv" \
+    --output-dir "$demo_root/inputs" || exit $?
+  sha256sum source/* inputs/roster.tsv inputs/covariates.tsv > inputs.sha256 || exit $?
+  touch inputs.ready || exit $?
+fi
+for required in "source/$matrix" source/gene_scores.tsv inputs/roster.tsv inputs/covariates.tsv; do
+  [[ -s "$required" ]] || { echo "Missing input: $required" >&2; exit 2; }
+done
+hostname > runtime/node || exit $?
+printf '%s\n' "$SLURM_JOB_ID" > runtime/job_id || exit $?
+bioindex_host=http://100.80.30.199:5000
+if ! curl -sS --connect-timeout 3 --max-time 5 -o /dev/null "$bioindex_host/"; then
+  bioindex_host=http://127.0.0.1:18095
+fi
+printf '%s\n' "$bioindex_host" > runtime/bioindex_host || exit $?
+echo "Context API node=$(hostname) job=$SLURM_JOB_ID port=18092 BioIndex=$bioindex_host"
+if [[ -f scripts/pb_sample_gene_scores.py ]]; then
+  "$python_bin" -m scripts.pb_sample_gene_scores \
+    --gene-scores "$demo_root/source/gene_scores.tsv" \
+    --covariates "$demo_root/inputs/covariates.tsv" --roster "$demo_root/inputs/roster.tsv" \
+    --host 127.0.0.1 --port 18094 > "$demo_root/logs/sample-gene-scores-$SLURM_JOB_ID.log" 2>&1 &
+fi
+# The variant service accepts an explicit selected-carrier roster. Keep its
+# process independent of the existing Gene/Sample APIs.
+variant_api_root=${PB_VARIANT_API_ROOT:-$demo_root/variant-genotype-20261114}
+if [[ ! -f "$variant_api_root/scripts/pb_gene_context_api_server.py" ]]; then
+  variant_api_root=$demo_root
+fi
+(cd "$variant_api_root" || exit $?
+exec "$python_bin" -m scripts.pb_gene_context_api_server \
+  --hpo-matrix "$demo_root/source/$matrix" --overlap-roster "$demo_root/inputs/roster.tsv" \
+  --covariates "$demo_root/inputs/covariates.tsv" --gene-scores "$demo_root/source/gene_scores.tsv" \
+  --genotype-vcf "${PB_GENOTYPE_VCF_SOURCE:-/lab-share/RC-Data-Science-NR-e2/Public/gnomad/helen/VEP_pipeline/cleanVCF/finalresult/Data_with_af_dp/combined_crdc.with_af_formatDP.vcf.gz}" \
+  --bioindex-host "$bioindex_host" --host 127.0.0.1 --port 18096) > "$demo_root/logs/variant-genotype-$SLURM_JOB_ID.log" 2>&1 &
+exec "$python_bin" -m scripts.pb_gene_context_api_server \
+  --hpo-matrix "$demo_root/source/$matrix" --overlap-roster "$demo_root/inputs/roster.tsv" \
+  --covariates "$demo_root/inputs/covariates.tsv" --gene-scores "$demo_root/source/gene_scores.tsv" \
+  --bioindex-host "$bioindex_host" --host 127.0.0.1 --port 18092

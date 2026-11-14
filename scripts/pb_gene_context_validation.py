@@ -2,11 +2,13 @@
 
 import argparse
 from collections import Counter
+from copy import copy
 import csv
 from functools import lru_cache
 import gzip
 import hashlib
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -476,17 +478,64 @@ class ContextAnalysisEngine:
         )
         self.gene_association_runner = gene_association_runner
 
+    @lru_cache(maxsize=8)
+    def for_sample_ids(self, sample_ids):
+        """Isolated scoring/analysis inputs for an explicit private carrier selection.
+
+        Never mutate the shared full-cohort engine or reuse its score/reference
+        caches. Browser VCF IDs and analysis IDs join through the approved map.
+        """
+        canonical = lambda value: re.sub(r'_[EG]38$', '', str(value).strip(), flags=re.I).upper()
+        requested = {canonical(value) for value in sample_ids}
+        selected = {
+            sid for sid in self.hpo['sample_ids'].tolist()
+            if canonical(sid) in requested
+            or canonical(self.browser_sample_id_by_analysis.get(sid, sid)) in requested
+        }
+        ids = [sid for sid in self.analysis_sample_ids if sid in selected]
+        if not ids:
+            raise ValueError('None of the selected carriers are eligible for the analysis roster.')
+        scoped = copy(self)
+        scoped.selected_sample_scope = True
+        hpo_mask = np.asarray([sid in selected for sid in self.hpo['sample_ids']], dtype=bool)
+        scoped.hpo = {**self.hpo, 'sample_ids': self.hpo['sample_ids'][hpo_mask],
+                      'matrix': self.hpo['matrix'][hpo_mask]}
+        scoped.analysis_sample_ids = ids
+        scoped.analysis_sample_set = set(ids)
+        hpo_index = {sid: i for i, sid in enumerate(scoped.hpo['sample_ids'])}
+        scoped.analysis_hpo_indices = np.asarray([hpo_index[sid] for sid in ids], dtype=int)
+        if self.covariates is not None:
+            mask = np.asarray([sid in selected for sid in self.analysis_sample_ids], dtype=bool)
+            scoped.covariates = {**self.covariates, 'values': self.covariates['values'][mask].copy()}
+            affected = self.covariates['affected_mask']
+            scoped.covariates['affected_mask'] = None if affected is None else affected[mask]
+            metadata = self.covariates.get('sample_metadata', {})
+            scoped.covariates['sample_metadata'] = {sid: metadata[sid] for sid in ids if sid in metadata}
+            observed_ages = [metadata[sid]['age'] for sid in ids if sid in metadata and metadata[sid]['age'] is not None]
+            median = float(np.median(observed_ages)) if observed_ages else 0.0
+            scoped.covariates['age_median'] = median
+            if 'age' in scoped.covariates['names'] and 'age_missing' in scoped.covariates['names']:
+                values = scoped.covariates['values']
+                missing = values[:, scoped.covariates['names'].index('age_missing')].astype(bool)
+                values[missing, scoped.covariates['names'].index('age')] = median
+                scoped.covariates['age_missing_count'] = int(missing.sum())
+            scoped.covariates['sex_counts'] = dict(Counter(metadata[sid]['sex'] for sid in ids if sid in metadata))
+        return scoped
+
     @lru_cache(maxsize=32)
     def _scoring(self, normalized_query_hpo):
         missing = [term for term in normalized_query_hpo if term not in set(self.hpo["hpo_columns"])]
         if missing:
             raise ValueError("missing query HPO columns: " + ", ".join(missing))
-        return score_samples(
+        result = score_samples(
             self.hpo["matrix"],
             self.hpo["hpo_columns"],
             normalized_query_hpo,
             sample_ids=self.hpo["sample_ids"],
         )
+        if getattr(self, 'selected_sample_scope', False):
+            result['rphers_standardization']['scope'] = 'selected_variant_carriers'
+        return result
 
     def _standardization(self, normalized_query_hpo):
         if "sample_ids" not in getattr(self, "hpo", {}):

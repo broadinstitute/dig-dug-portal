@@ -132,9 +132,23 @@
 
                     <section class="pbv-card pg2-card pbv-crdc-carriers" aria-labelledby="pbv-crdc-carriers-title">
                         <div class="pbv-section-heading">
-                            <h2 id="pbv-crdc-carriers-title"><span class="pbv-inline-total">{{ variantIdentity.distinctCarriers.toLocaleString() }} {{ variantIdentity.distinctCarriers === 1 ? 'carrier' : 'carriers' }}</span> observed in CRDC <help-tooltip label="About observed CRDC carriers" :text="help.carrierSummary" /></h2>
+                            <h2 id="pbv-crdc-carriers-title"><span class="pbv-inline-total">{{ genotypeCarrierCount.toLocaleString() }} {{ genotypeCarrierCount === 1 ? 'carrier' : 'carriers' }}</span> observed in CRDC <help-tooltip label="About observed CRDC carriers" :text="help.carrierSummary" /></h2>
+                            <b-dropdown id="pbv-genotype-filter" ref="genotypeFilter" no-caret no-flip variant="link" :popper-opts="{ modifiers: { applyStyle: { enabled: false } } }" toggle-class="pbv-genotype-toggle" menu-class="pbv-genotype-menu" :title="'Genotype: ' + genotypeLabel" @show="openGenotypeFilter">
+                                <template #button-content><span class="pbv-genotype-label">Genotype</span> <b-icon-funnel v-if="genotypeSelection.length === genotypeOptions.length" aria-hidden="true" /><b-icon-funnel-fill v-else aria-hidden="true" /></template>
+                                <b-dropdown-form @submit.prevent="applyGenotypeFilter">
+                                    <fieldset>
+                                        <legend>Filter Genotype</legend>
+                                        <div class="pbv-genotype-shortcuts"><button type="button" class="pbv-genotype-text-button" @click="toggleAllGenotypes">{{ allGenotypesSelected ? 'Deselect all' : 'Select all' }}</button></div>
+                                        <label v-for="option in genotypeOptions" :key="option.value" class="pbv-genotype-option"><input v-model="genotypeDraft" type="checkbox" :value="option.value"><span>{{ option.label }}</span><small>{{ option.count.toLocaleString() }}</small></label>
+                                    </fieldset>
+                                    <p v-if="!genotypeDraft.length" class="pbv-genotype-hint">Select at least one genotype.</p>
+                                    <p v-if="genotypeLookupFailed" class="pbv-genotype-hint" role="alert">GT lookup unavailable. Check the genotype service.</p>
+                                    <div class="pbv-genotype-actions"><button type="button" class="pbv-genotype-text-button" @click="$refs.genotypeFilter.hide(true)">Cancel</button><button type="submit" class="pbv-genotype-apply" :disabled="!genotypeDraft.length">Apply</button></div>
+                                </b-dropdown-form>
+                            </b-dropdown>
                         </div>
-                        <carrier-demographics :summary="carrierDemographicSummary" :carrier-count="variantIdentity.distinctCarriers" :scope="variantIdentity.canonicalId" compact inline-project-search />
+                        <p class="pbv-genotype-population">{{ genotypeCarrierCount.toLocaleString() }} / {{ variantIdentity.distinctCarriers.toLocaleString() }} total carriers · {{ genotypeLabel }}</p>
+                        <carrier-demographics :summary="carrierDemographicSummary" :carrier-count="genotypeCarrierCount" :scope="variantIdentity.canonicalId + ':' + genotypeSelection.join(',')" compact inline-project-search />
                     </section>
 
                     <section class="pbv-card pg2-card pbv-profile" aria-labelledby="pbv-context-title">
@@ -144,7 +158,7 @@
                         </div>
                         <form class="pbv-profile-form" @submit.prevent="applyVariantProfile">
                             <label id="pg2-profile-input-label" class="pbv-profile-label">Phenotype profile</label>
-                            <hpo-term-input ref="profile" v-model="contextInput" />
+                            <hpo-term-input ref="profile" v-model="contextInput" link-hpo-ids />
                             <button class="pbv-primary" type="submit" :disabled="contextLoading">{{ contextLoading ? 'Calculating…' : 'Apply' }}</button>
                             <details class="pbv-advanced">
                                 <summary><b-icon-gear aria-hidden="true" /> Advanced options <b-icon-chevron-down aria-hidden="true" /></summary>
@@ -169,11 +183,11 @@
                                 </tr></thead>
                                 <tbody>
                                     <tr v-for="run in profileRuns" :key="run.id" :class="{ 'pbv-profile-applied': run.id === currentProfileRunId }">
-                                        <td><strong>{{ run.label }}</strong><span v-if="run.id === currentProfileRunId" class="pbv-applied-tag">Applied</span><small>{{ run.terms.join(', ') }} <help-tooltip v-if="run.warning" :label="'Analysis warning for ' + run.label" :text="run.warning" /></small></td>
+                                        <td><strong>{{ run.label }}</strong><span v-if="run.id === currentProfileRunId" class="pbv-applied-tag">Applied</span><small><span v-for="(id, index) in run.terms" :key="id"><template v-if="index">, </template><a class="pbv-hpo-link" :href="phenotypeHref(id)" @click.stop>{{ id }}</a></span> <help-tooltip v-if="run.warning" :label="'Analysis warning for ' + run.label" :text="run.warning" /></small></td>
                                         <td>{{ run.association ? displayMean(run.association.beta) : 'Unavailable' }}</td>
                                         <td>{{ run.association ? displayPValue(run.association.pValue) : 'Unavailable' }}</td>
                                         <td>{{ run.match ? displayMean(run.match.matchScore) : 'Unavailable' }}</td>
-                                        <td>{{ run.scoreType === 'sum' ? 'Sum' : 'Max' }} · {{ run.analysisSet === 'affected' ? 'Affected only' : 'All' }} <help-tooltip :label="'Analysis details for ' + run.label" :text="run.analysisDetails" /></td>
+                                        <td>{{ run.scoreType === 'sum' ? 'Sum' : 'Max' }} · {{ run.analysisSet === 'affected' ? 'Affected only' : 'All' }} · GT {{ run.genotypeLabel || 'All' }} <help-tooltip :label="'Analysis details for ' + run.label" :text="run.analysisDetails" /></td>
                                         <td class="pbv-profile-actions-cell"><div class="pbv-profile-actions">
                                             <button type="button" class="pbv-profile-action" :class="{ 'pbv-profile-rerunning': contextLoading && rerunningProfileRunId === run.id }" :disabled="contextLoading || searchLoading" :aria-label="'Re-run ' + run.label" :aria-busy="String(contextLoading && rerunningProfileRunId === run.id)" title="Re-run" @click="rerunVariantProfile(run)"><b-icon-arrow-clockwise aria-hidden="true" /></button>
                                             <button type="button" class="pbv-profile-action pbv-remove-profile" :disabled="contextLoading || searchLoading" :aria-label="'Delete result for ' + run.label" title="Delete row" @click="deleteVariantProfile(run)"><b-icon-x aria-hidden="true" /></button>
@@ -189,7 +203,7 @@
                     <div class="pbv-workspace pg2-card" :class="{ 'pbv-single-phenotype-carrier': phenotypeCarrierSelection.present.length <= 1 }">
                     <section class="pbv-recompute-results pbv-carrier-samples">
                         <div class="pbv-section-heading pbv-carrier-samples-heading">
-                            <h2>{{ variantIdentity.distinctCarriers.toLocaleString() }} {{ variantIdentity.distinctCarriers === 1 ? 'carrier sample' : 'carrier samples' }}</h2><span class="pbv-internal-tag">Internal only</span>
+                            <h2>{{ genotypeCarrierCount.toLocaleString() }} {{ genotypeCarrierCount === 1 ? 'carrier sample' : 'carrier samples' }}</h2><span class="pbv-internal-tag">Internal only</span>
                         </div>
                         <div class="pbv-variant-evidence-group" :class="{ 'is-expanded': carrierSamplesExpanded }">
                         <div class="pbv-variant-evidence-scroll">
@@ -200,7 +214,7 @@
                                     <tr>
                                         <th scope="col">Variant</th>
                                         <th scope="col">ClinVar <help-tooltip label="About ClinVar classification" :text="help.clinvarAnnotation" /></th>
-                                        <th scope="col">Total<br>carriers <help-tooltip label="About total variant carriers" :text="help.totalCarriers" /></th>
+                                        <th scope="col">Total<br>carriers <help-tooltip label="About total variant carriers" text="Distinct variant carriers in the current genotype selection." /></th>
                                         <th scope="col">In Silico<br>Predictors <help-tooltip label="About In Silico Predictors" :text="help.pathogenicity + '\n\n' + sources.predictors.text" :links="sources.predictors.links" /></th>
                                         <th scope="col">Carriers<br>with HPO <help-tooltip label="About carriers with the applied HPO profile" :text="variantHpoCountTitle" /></th>
                                         <th scope="col">Mean carrier<br>rPheRS Z <help-tooltip label="About variant mean carrier rPheRS Z" :text="meanZHelp" /></th>
@@ -211,7 +225,7 @@
                                 <tbody><tr class="pbv-variant-evidence-row" :class="{ 'is-expanded': carrierSamplesExpanded }" @click="carrierSamplesExpanded = !carrierSamplesExpanded">
                                     <td><button type="button" class="pbv-evidence-expand" :aria-label="(carrierSamplesExpanded ? 'Hide' : 'Show') + ' carrier samples for ' + variantIdentity.canonicalId" :aria-expanded="String(carrierSamplesExpanded)" aria-controls="pbv-carrier-sample-details" @click.stop="carrierSamplesExpanded = !carrierSamplesExpanded"><b-icon-chevron-down v-if="carrierSamplesExpanded" aria-hidden="true" /><b-icon-chevron-right v-else aria-hidden="true" /><span>{{ variantIdentity.canonicalId }}<small>{{ variantConsequenceLabel }}</small></span></button></td>
                                     <td><span class="pbv-evidence-clinvar" :class="{ 'is-pathogenic': /pathogenic/i.test(clinvarDisplayLabel(variantIdentity.clinvar || variantIdentity.classification)) }">{{ clinvarDisplayLabel(variantIdentity.clinvar || variantIdentity.classification) || 'Unavailable' }}</span></td>
-                                    <td>{{ variantIdentity.distinctCarriers.toLocaleString() }}</td>
+                                    <td>{{ genotypeCarrierCount.toLocaleString() }}</td>
                                     <td><strong v-if="variantScore != null" class="pbv-evidence-score">{{ variantScore.toFixed(2) }}</strong><span v-else>—</span></td>
                                     <td :title="variantHpoCountTitle">{{ variantHpoCountDisplay }}</td>
                                     <td>{{ !appliedProfileTerms.length ? '—' : contextMatch ? displayMean(contextMatch.matchScore) : 'Unavailable' }}</td>
@@ -230,7 +244,7 @@
                                                 <span><button type="button" @click="sortTableColumn('carriers', 'sample')">Sample <i>{{ tableSortIndicator('carriers', 'sample') }}</i></button></span>
                                                 <span><button type="button" @click="sortTableColumn('carriers', 'age')">Age <i>{{ tableSortIndicator('carriers', 'age') }}</i></button></span>
                                                 <span><button type="button" @click="sortTableColumn('carriers', 'sex')">Sex <i>{{ tableSortIndicator('carriers', 'sex') }}</i></button></span>
-                                                <span><button type="button" @click="sortTableColumn('carriers', 'gt')">GT <i>{{ tableSortIndicator('carriers', 'gt') }}</i></button> <help-tooltip label="Carrier genotype source" :text="help.genotype" /></span>
+                                                <span><button type="button" @click="sortTableColumn('carriers', 'gt')">GT <i>{{ tableSortIndicator('carriers', 'gt') }}</i></button> <help-tooltip label="Carrier genotype source" :text="genotypeSourceHelp" /></span>
                                                 <span class="pbv-rphers-head">
                                                     <button type="button" @click="sortTableColumn('carriers', 'residual')">rPheRS Z-score <i>{{ tableSortIndicator('carriers', 'residual') }}</i></button>
                                                     <help-tooltip label="What is an rPheRS Z-score?" :text="help.individualZ" />
@@ -356,7 +370,7 @@
                                     </div>
                                 </div>
                                 <div class="pbv-selected-chip-row">
-                                    <span v-for="token in filters.phenotype" :key="token" class="pbv-selected-chip">
+                                    <span v-for="token in filters.phenotype" :key="token" class="pbv-selected-chip pbv-phenotype-filter-chip">
                                         <span class="pbv-selected-chip-text">{{ formatPhenotypeChip(token) }}</span>
                                         <button type="button" :aria-label="`Remove ${formatPhenotypeChip(token)}`" @click="removeFacet('phenotype', token)">&times;</button>
                                     </span>
@@ -371,7 +385,7 @@
                         <div class="pbv-result-block">
                             <div v-if="unlistedProfileTerms.length" class="pbv-unlisted-profile" aria-label="Applied profile terms outside the observed phenotype tree">
                                 <span class="pbv-unlisted-profile-label">Applied profile <help-tooltip label="About applied profile highlighting" text="Yellow highlights identify terms in the currently Applied phenotype profile. Terms recorded in the current carrier selection are highlighted in the tree below. Other applied terms remain here as a reference; missing or unrecorded terms do not establish clinical absence. Applying a profile does not filter carriers." /></span>
-                                <span v-for="term in unlistedProfileTerms" :key="term.id" class="pbv-unlisted-profile-term">{{ term.label }} <small>{{ term.id }}</small></span>
+                                <span v-for="term in unlistedProfileTerms" :key="term.id" class="pbv-unlisted-profile-term">{{ term.label }} <small><a class="pbv-hpo-link" :href="phenotypeHref(term.id)" @click.stop>{{ term.id }}</a></small></span>
                                 <span class="pbv-unlisted-profile-status" role="status">{{ unlistedProfileStatus }}</span>
                             </div>
                             <p v-if="!hasPhenotypeData && sampleMetadataStatus === 'loading'" class="pbv-empty-note">Loading observed HPO terms from sample metadata…</p>
@@ -379,26 +393,26 @@
                             <p v-else-if="!phenotypeCarrierSelection.present.length" class="pbv-empty-note">No recorded phenotype data are available for the current carrier selection.</p>
                             <template v-else>
                                 <div class="pbv-pheno-header">
-                                    <span>Observed phenotypes among carriers with phenotype data <help-tooltip label="About observed phenotypes" :text="observedPhenotypesHelp + ' Bar colour indicates hierarchy depth. Highlighted Profile terms are the applied HPO input. Parent counts include descendants and must not be added together.'" /></span>
+                                    <span>Observed phenotypes among carriers with phenotype data <help-tooltip label="About observed phenotypes" :text="observedPhenotypesHelp + ' Bar colour indicates hierarchy depth. Yellow Profile highlights identify the applied HPO input; purple Filter highlights identify Carrier phenotypes selections. Parent counts include descendants and must not be added together.'" /></span>
                                     <button type="button" @click="sortTableColumn('phenotypes', 'count')">{{ phenotypeCarrierSelection.present.length > 1 ? 'Carriers / with data (%)' : 'Carriers / with data' }} <i>{{ tableSortIndicator('phenotypes', 'count') }}</i></button>
                                 </div>
-                                <button class="pbv-phenotype-root" :class="phenotypeProfileClass('HP:0000118')" type="button" :aria-expanded="String(phenotypeRootExpanded)" @click="phenotypeRootExpanded = !phenotypeRootExpanded">
-                                    <b-icon-chevron-down v-if="phenotypeRootExpanded" aria-hidden="true" /><b-icon-chevron-right v-else aria-hidden="true" />
-                                    <span>Phenotypic abnormality <small>HP:0000118</small></span>
-                                </button>
+                                <div class="pbv-phenotype-root" :class="phenotypeTreeClass('HP:0000118')">
+                                    <button class="pbv-phenotype-name" type="button" :aria-expanded="String(phenotypeRootExpanded)" @click="phenotypeRootExpanded = !phenotypeRootExpanded"><b-icon-chevron-down v-if="phenotypeRootExpanded" aria-hidden="true" /><b-icon-chevron-right v-else aria-hidden="true" />Phenotypic abnormality</button>
+                                    <small><a class="pbv-hpo-link" :href="phenotypeHref('HP:0000118')" @click.stop>HP:0000118</a></small>
+                                </div>
                                 <div v-for="(row, rowIndex) in phenotypeRootExpanded ? visiblePhenotypeRows : []" :key="row.key" class="pbv-pheno-branch" :class="{ 'is-expanded': expandedCategories.includes(row.key), 'is-last-branch': rowIndex === visiblePhenotypeRows.length - 1 }">
-                                    <div class="pbv-pheno-row" :class="phenotypeProfileClass(row.id)">
+                                    <div class="pbv-pheno-row" :class="phenotypeTreeClass(row.id)">
                                         <button class="pbv-pheno-toggle" type="button" :aria-label="`${expandedCategories.includes(row.key) ? 'Collapse' : 'Expand'} ${row.label}`" :aria-expanded="expandedCategories.includes(row.key) ? 'true' : 'false'" @click="toggleCategory(row.key)">
                                             {{ expandedCategories.includes(row.key) ? '▾' : '▸' }}
                                         </button>
                                         <div class="pbv-bar-row pbv-bar-row--pheno" style="flex:1;margin-bottom:0;">
-                                            <span>{{ row.label }}<span v-if="appliedProfileTerms.includes(row.id)" class="pbv-profile-node-tag">Profile</span><span v-if="row.id" class="pbv-hp-code">{{ row.id }}</span></span>
+                                            <span><button class="pbv-phenotype-name" type="button" :aria-expanded="String(expandedCategories.includes(row.key))" @click="toggleCategory(row.key)">{{ row.label }}</button><span v-if="appliedProfileTerms.includes(row.id)" class="pbv-profile-node-tag">Profile</span><span v-if="phenotypeFilterClass(row.id) === 'is-filter-term'" class="pbv-filter-node-tag">Filter</span><a v-if="row.id" class="pbv-hp-code pbv-hpo-link" :href="phenotypeHref(row.id)" @click.stop>{{ row.id }}</a></span>
                                             <div class="pbv-bar-track"><div class="pbv-bar-fill" :style="{ width: `${row.pct}%`, backgroundColor: phenotypeDepthColor(0) }"></div></div>
                                             <strong>{{ row.count }} / {{ phenotypeCarrierSelection.present.length }}<template v-if="phenotypeCarrierSelection.present.length > 1"> ({{ row.pct }}%)</template></strong>
                                         </div>
                                     </div>
                                     <div v-if="expandedCategories.includes(row.key)" class="pbv-pheno-terms">
-                                        <div v-for="term in visiblePhenotypeTerms(row)" :key="term.key" class="pbv-bar-row pbv-bar-row--nested" :class="phenotypeProfileClass(term.id)" :style="{ '--pbv-tree-depth': term.depth }">
+                                        <div v-for="term in visiblePhenotypeTerms(row)" :key="term.key" class="pbv-bar-row pbv-bar-row--nested" :class="phenotypeTreeClass(term.id)" :style="{ '--pbv-tree-depth': term.depth }">
                                             <span class="pbv-hpo-node-label">
                                                 <span v-for="(guide, index) in term.treeGuides" :key="index" class="pbv-tree-guide"
                                                       :class="{ 'is-elbow': guide.elbow, 'is-last': guide.last, 'is-continuing': guide.continuing }" aria-hidden="true"></span>
@@ -407,7 +421,7 @@
                                                         :aria-expanded="expandedPhenotypeNodes.includes(term.id) ? 'true' : 'false'"
                                                         @click="togglePhenotypeNode(term.id)">{{ expandedPhenotypeNodes.includes(term.id) ? '▾' : '▸' }}</button>
                                                 <span v-else class="pbv-hpo-leaf-marker">·</span>
-                                                <span>{{ term.label }}<template v-if="term.id"> [{{ term.id }}]</template><span v-if="appliedProfileTerms.includes(term.id)" class="pbv-profile-node-tag">Profile</span></span>
+                                                <span><button v-if="term.hasChildren" class="pbv-phenotype-name" type="button" :aria-expanded="String(expandedPhenotypeNodes.includes(term.id))" @click="togglePhenotypeNode(term.id)">{{ term.label }}</button><template v-else>{{ term.label }}</template><template v-if="term.id"> [<a class="pbv-hpo-link" :href="phenotypeHref(term.id)" @click.stop>{{ term.id }}</a>]</template><span v-if="appliedProfileTerms.includes(term.id)" class="pbv-profile-node-tag">Profile</span><span v-if="phenotypeFilterClass(term.id) === 'is-filter-term'" class="pbv-filter-node-tag">Filter</span></span>
                                             </span>
                                             <div class="pbv-bar-track"><div class="pbv-bar-fill" :style="{ width: `${term.pct}%`, backgroundColor: phenotypeDepthColor(term.depth) }"></div></div>
                                             <strong>{{ term.count }} / {{ phenotypeCarrierSelection.present.length }}<template v-if="phenotypeCarrierSelection.present.length > 1"> ({{ term.pct }}%)</template></strong>
@@ -425,87 +439,6 @@
 
                     </div>
 
-                    <section class="pbv-recompute-results pbv-detail-results">
-
-
-
-                        <details class="pbv-card pg2-card pbv-result-block">
-                            <summary><span>Co-carried genes</span><help-tooltip label="About co-carried genes" :text="coGeneHelp" /><b-icon-chevron-down class="pbv-disclosure-chevron" aria-hidden="true" /></summary>
-                            <div class="pbv-disclosure-body">
-                            <div class="pbv-cooccur-section-heading">
-                                <h3>Co-occurrence among this variant's carriers</h3>
-                                <a href="#pbv-context-title" class="pbv-context-link-status"
-                                   :class="{ 'is-active': contextMatch || contextAssociation }"
-                                   title="The applied phenotype profile controls gene effects per 0.1 GRS in SD units and co-variant mean carrier rPheRS Z. Carrier overlap, Variant Score, and ClinVar are independent of the profile.">
-                                    {{ contextMatch || contextAssociation ? 'Profile applied' : 'Test a phenotype profile' }} ↑
-                                </a>
-                            </div>
-                            <p class="pbv-sub">Counts use the same {{ matchCount }} distinct-carrier selection shown above.</p>
-                            <div class="pbv-cooccur-grid">
-                                <article class="pbv-cooccur-card">
-                                    <h3>Different-gene co-carriers <help-tooltip label="Co-gene analysis details" :text="coGeneAnalysisDetails" /></h3>
-                                    <p v-if="coGeneAssociationStatus === 'error'" class="pbv-empty-note">Gene associations unavailable: {{ coGeneAssociationError }}</p>
-                                    <p v-if="!hasCoGeneData && sampleMetadataStatus === 'loading'" class="pbv-empty-note">Loading sample gene lists…</p>
-                                    <p v-else-if="!hasCoGeneData" class="pbv-empty-note">Not calculated — sample gene lists are unavailable.</p>
-                                    <p v-else-if="!matchCount" class="pbv-empty-note">No carriers match the current filter combination.</p>
-                                    <div v-else class="pbv-cooccur-table pbv-cooccur-table--genes">
-                                        <div class="pbv-cooccur-head">
-                                            <span><button type="button" @click="sortTableColumn('coGenes', 'gene')">Gene <i>{{ tableSortIndicator('coGenes', 'gene') }}</i></button></span>
-                                            <span title="Shared carriers / selected target-variant carriers (overlap percentage)."><button type="button" @click="sortTableColumn('coGenes', 'count')">Carriers <i>{{ tableSortIndicator('coGenes', 'count') }}</i></button></span>
-                                            <span title="Covariate-adjusted residual PheRS change in reference-cohort SD units per 0.1 increase in the selected Max/Sum gene burden score."><button class="pbv-effect-score-heading" type="button" @click="sortTableColumn('coGenes', 'beta')">Gene β (rPheRS SD) <i>{{ tableSortIndicator('coGenes', 'beta') }}</i></button><help-tooltip label="About Custom Gene beta" :text="help.customBeta" /></span>
-                                            <span><button type="button" @click="sortTableColumn('coGenes', 'pValue')">P <i>{{ tableSortIndicator('coGenes', 'pValue') }}</i></button></span>
-                                            <span title="Benjamini–Hochberg adjusted p-value across the target gene and all unfiltered co-genes."><button type="button" @click="sortTableColumn('coGenes', 'fdr')">FDR <i>{{ tableSortIndicator('coGenes', 'fdr') }}</i></button><help-tooltip label="About co-gene FDR" :text="coGeneFdrHelp" /></span>
-                                        </div>
-                                        <div class="pbv-cooccur-row pbv-cooccur-row--target">
-                                            <span><a :href="`/pb_gene2.html?query=${variantIdentity.gene}`">{{ variantIdentity.gene }}</a> <small>Target gene</small></span>
-                                            <span>{{ matchCount }} / {{ matchCount }} (100%)</span>
-                                            <span>{{ geneAssociationCell(variantIdentity.gene, 'beta') }}</span>
-                                            <span>{{ geneAssociationCell(variantIdentity.gene, 'p_value') }}</span>
-                                            <span>{{ geneAssociationCell(variantIdentity.gene, 'fdr') }}</span>
-                                        </div>
-                                        <div v-for="row in visibleCooccurGeneRows" :key="row.gene" class="pbv-cooccur-row">
-                                            <a :href="`/pb_gene2.html?query=${row.gene}`">{{ row.gene }}</a><span>{{ row.count }} / {{ matchCount }} ({{ row.pct }}%)</span><span>{{ geneAssociationCell(row.gene, 'beta') }}</span><span>{{ geneAssociationCell(row.gene, 'p_value') }}</span><span>{{ geneAssociationCell(row.gene, 'fdr') }}</span>
-                                        </div>
-                                        <p v-if="!cooccurGeneRows.length" class="pbv-empty-note">No different-gene co-carriers in the current selection.</p>
-                                        <SummaryPager class="pbv-result-pagination" :page="resultPages.coGenes" :total-pages="coGenePageCount"
-                                                      label="Different-gene co-carrier pages" input-id="pb-variant-cogene-page"
-                                                      @change="setResultPage('coGenes', $event)" />
-                                    </div>
-                                </article>
-                            </div>
-                            </div>
-                        </details>
-                        <details class="pbv-card pg2-card pbv-result-block">
-                            <summary><span>Other {{ variantIdentity.gene }} variants observed in these carriers</span> <help-tooltip label="About other variants" text="Target-variant carriers who also carry each other variant in this gene. Counts use the current carrier filters. Mean carrier rPheRS Z requires complete coverage among eligible co-carriers for the applied phenotype profile." /><b-icon-chevron-down class="pbv-disclosure-chevron" aria-hidden="true" /></summary>
-                            <div class="pbv-disclosure-body">
-                                    <p v-if="!hasCoVariantData" class="pbv-empty-note">Unavailable — the current API response has no same-gene co-variant field.</p>
-                                    <p v-else-if="!matchCount" class="pbv-empty-note">No carriers match the current filter combination.</p>
-                                    <p v-else-if="!cooccurVariantRows.length" class="pbv-empty-note">No other {{ variantIdentity.gene }} variants were observed among the current carrier selection.</p>
-                                    <div v-else class="pbv-cooccur-table pbv-cooccur-table--variants">
-                                        <div class="pbv-cooccur-head">
-                                            <span><button type="button" @click="sortTableColumn('coVariants', 'id')">Variant <i>{{ tableSortIndicator('coVariants', 'id') }}</i></button></span>
-                                            <span title="Carriers shared with the selected target variant, out of all selected target-variant carriers. The percentage uses the same denominator."><button type="button" @click="sortTableColumn('coVariants', 'count')">Carriers <i>{{ tableSortIndicator('coVariants', 'count') }}</i></button></span>
-                                            <span title="LoFTEE HC = 1; otherwise AlphaMissense when available."><button type="button" @click="sortTableColumn('coVariants', 'variantScore')">Variant Score <i>{{ tableSortIndicator('coVariants', 'variantScore') }}</i></button></span>
-                                            <span title="Mean of individual rPheRS Z-scores among current filtered target-variant carriers who also carry this variant, using the phenotype profile analysis sample setting. Shown only with complete eligible co-carrier coverage; the SD reference does not change with filters."><button class="pbv-mean-residual-heading" type="button" @click="sortTableColumn('coVariants', 'meanResidual')">Mean carrier rPheRS Z <i>{{ tableSortIndicator('coVariants', 'meanResidual') }}</i></button></span>
-                                            <span><button type="button" @click="sortTableColumn('coVariants', 'clinvar')">ClinVar <i>{{ tableSortIndicator('coVariants', 'clinvar') }}</i></button></span>
-                                        </div>
-                                        <div v-for="row in visibleCooccurVariantRows" :key="row.id" class="pbv-cooccur-row">
-                                            <a :href="`/pb_variant.html?query=${row.id}&gene=${row.gene || variantIdentity.gene}`">{{ row.id }}</a><span>{{ row.count }} / {{ matchCount }} ({{ row.pct }}%)</span><span>{{ row.variantScore == null ? 'Unavailable' : String(row.variantScore) }}</span>
-                                            <span class="pbv-cooccur-residual" :title="`${row.scoredCarrierCount || 0} / ${row.eligibleCarrierCount || 0} eligible co-carriers scored for the selected phenotype profile${coGeneAnalysisSet === 'affected' ? ' (affected only)' : ''}.`">
-                                                <template v-if="contextLoading">Calculating…</template>
-                                                <template v-else-if="row.meanResidual != null">{{ displayMean(row.meanResidual) }}</template>
-                                                <template v-else-if="!contextMatch && !contextAssociation && !contextError">No applied profile</template>
-                                                <template v-else>Unavailable <small>{{ row.eligibleCarrierCount ? `${row.scoredCarrierCount || 0}/${row.eligibleCarrierCount} scored` : '0 eligible' }}</small></template>
-                                            </span>
-                                            <span :title="row.clinvar || 'Unavailable'">{{ clinvarDisplayLabel(row.clinvar) || 'Unavailable' }}</span>
-                                        </div>
-                                        <SummaryPager class="pbv-result-pagination" :page="resultPages.coVariants" :total-pages="coVariantPageCount"
-                                                      label="Other same-gene variant pages" input-id="pb-variant-covariant-page"
-                                                      @change="setResultPage('coVariants', $event)" />
-                                    </div>
-                            </div>
-                        </details>
-                    </section>
                 </template>
                 <info-rail @reserve="infoReserved = $event" />
             </div>
@@ -534,7 +467,10 @@ export default {
         return { ...createPbVariantState(), ...layoutHelp, infoReserved: false, phenotypeRootExpanded: true, help, sources: VARIANT_ANNOTATION_SOURCES };
     },
     computed: pbVariantComputed,
-    watch: { variantHpoCountKey: {immediate: true, handler: 'loadVariantHpoCounts'} },
+    watch: {
+        variantHpoCountKey: {immediate: true, handler: 'loadVariantHpoCounts'},
+        carrierPhenotypeRevealKey: {immediate: true, handler() { this.revealFilteredPhenotypes(); }},
+    },
     beforeDestroy() { this.variantHpoRevision++; },
     mounted() {
         if (this.searchQuery) {

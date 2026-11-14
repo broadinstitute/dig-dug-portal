@@ -49,6 +49,7 @@ assert(!errors.length,errors.join('\n'));
 const table=instance._render();
 function find(node,predicate) {if(predicate(node))return node;for(const child of node.children||[]){const result=find(child,predicate);if(result)return result;}return null;}
 const profile=find(table,node=>node.tag==='table'&&node.data?.staticClass==='pbv-profile-table');
+assert(find(profile,node=>node.tag==='a'&&node.data?.attrs?.href==='/pb_phenotype.html?query=HP%3A0000364'),'Each history term links to its own phenotype page');
 assert(rendered.indexOf('2 carrier samples') < rendered.indexOf('Carrier phenotypes'),'samples must precede carrier phenotype statistics');
 const carrierCard=find(table,node=>node.tag==='section'&&node.data?.staticClass?.includes('pbv-carrier-samples'));
 const carrierWorkspace=find(table,node=>node.data?.staticClass==='pbv-workspace pg2-card');
@@ -139,6 +140,21 @@ assert.equal(instance.phenotypeProfileClass('HP:0000364'),'is-profile-term');
 assert.equal(instance.profilePhenotypeCounts[0].count,1);
 assert.equal(instance.unlistedProfileTerms.length,0,'recorded profile terms are highlighted in the tree, not duplicated above it');
 assert(find(instance._render(),node=>node.data?.class==='is-profile-term'),'recorded applied HPO must render with the yellow highlight class');
+const phenotypeTree=instance._render();
+const categoryLink=find(phenotypeTree,node=>node.tag==='a'&&node.data?.attrs?.href==='/pb_phenotype.html?query=HP%3A0000598');
+assert(categoryLink,'Carrier phenotype category IDs are links');
+let stopped=0;
+const categoriesBefore=JSON.stringify(instance.expandedCategories);
+categoryLink.data.on.click({stopPropagation(){stopped++;}});
+assert.equal(stopped,1);
+assert.equal(JSON.stringify(instance.expandedCategories),categoriesBefore,'Following an HPO ID does not expand or collapse its category');
+const rootNode=find(phenotypeTree,node=>node.data?.staticClass==='pbv-phenotype-root');
+const rootLink=find(rootNode,node=>node.tag==='a');
+assert.equal(rootLink.data.attrs.href,'/pb_phenotype.html?query=HP%3A0000118');
+assert(!find(rootNode,node=>node.tag==='button'&&find(node,child=>child.tag==='a')),'Links must be siblings of expansion buttons');
+const rootButton=find(rootNode,node=>node.tag==='button');
+rootButton.data.on.click();assert.equal(instance.phenotypeRootExpanded,false,'The phenotype name keeps its expansion action');
+rootButton.data.on.click();assert.equal(instance.phenotypeRootExpanded,true);
 const unlisted = req('./src/views/PbVariant/hpoHierarchy').observedPhenotypeCategories([{hpo_id:'HP:0001250',is_observed:true}]);
 instance.carrierRecords=[{id:'a',phenotypes:unlisted,phenotypeDataAvailable:true},{id:'b',phenotypes:[],phenotypeDataAvailable:false}].map(row=>({...row,coGenes:[],coVariants:[]}));
 instance.sampleMetadataById={a:{phenotypes:unlisted,phenotypeDataAvailable:true},b:{phenotypes:[],phenotypeDataAvailable:false}};
@@ -199,3 +215,55 @@ assert.equal(demo.$options.props.inlineProjectSearch.default,false,'Gene2 keeps 
 const inlineDemo=new Vue({...demoModule.exports.default,propsData:{summary,carrierCount:1001,scope:'test',compact:true,inlineProjectSearch:true}});
 assert.equal(inlineDemo.visibleProjects.length,4);inlineDemo.projectSearch='Project 12';assert.equal(inlineDemo.visibleProjects.length,1);
 console.log('PB_VARIANT_COMPACT_HEADER_AND_FIXED_DEMOGRAPHICS_PASS');
+
+async function verifyCarrierPhenotypeSearch() {
+    const templateModule={exports:{}};
+    vm.runInNewContext(babel.transformSync(parsed.script.content,{babelrc:false,configFile:false,plugins:[req.resolve('@babel/plugin-transform-modules-commonjs')]}).code,{
+        module:templateModule,exports:templateModule.exports,require:name=>name==='./pageModel'?model:{},
+    });
+    const search=new Vue({data:()=>({...model.createPbVariantState(),...req('./src/views/PbVariant/layoutHelp'),phenotypeRootExpanded:false,help:instance.help,sources:instance.sources,infoReserved:false}),
+        computed:model.pbVariantComputed,methods:model.pbVariantMethods,...functions,
+        watch:{carrierPhenotypeRevealKey:templateModule.exports.default.watch.carrierPhenotypeRevealKey}});
+    const ontology=req('./src/views/PbVariant/hpoTree.generated.json');
+    const topIds=Object.entries(ontology.nodes).filter(([,node])=>node[1]===ontology.root).map(([id])=>id);
+    const allCategories=req('./src/views/PbVariant/hpoHierarchy').observedPhenotypeCategories([...topIds,'HP:0008619'].map(hpo_id=>({hpo_id,is_observed:true})));
+    search.variantAvailable=true;
+    search.variantIdentity={...state.variantIdentity,gene:'GJB2',distinctCarriers:2};
+    search.carrierRecords=['a','b'].map(id=>({id,phenotypes:allCategories,phenotypeDataAvailable:true,coGenes:[],coVariants:[]}));
+    search.sampleMetadataById=Object.fromEntries(search.carrierRecords.map(row=>[row.id,{phenotypes:allCategories,phenotypeDataAvailable:true}]));
+    search.activeContextTerms=['HP:0008619'];
+    search.contextMatch={matchScore:1};
+    search.tableSort.phenotypes={key:'label',dir:'asc'};
+    const lastCategory=search.sortedPhenotypeRows.at(-1);
+    assert(search.phenotypePageCount>1,'The regression fixture must include an off-page category');
+    search.addPhenotypeToken(`cat:${lastCategory.key}`);
+    assert(search.visiblePhenotypeRows.some(row=>row.key===lastCategory.key),'Search navigates to the selected category page');
+    assert(search.expandedCategories.includes(lastCategory.key),'Selecting any-term expands its category');
+    assert.equal(search.phenotypeRootExpanded,true);
+    assert.equal(search.phenotypeFilterClass(lastCategory.id),'is-filter-term');
+    assert.equal(search.phenotypeProfileClass('HP:0008619'),'is-profile-term','Carrier searching preserves the applied scoring profile');
+    assert.equal(search.matchCount,2,'Search keeps the existing carrier-filter counts');
+    search.clearFilters();
+    assert.equal(search.phenotypeFilterClass(lastCategory.id),'');
+    search.phenotypeRootExpanded=false;search.expandedCategories=[];search.expandedPhenotypeNodes=[];
+    search.addPhenotypeToken('term:HP:0008619');
+    const ear=search.visiblePhenotypeRows.find(row=>row.id==='HP:0000598');
+    assert(ear&&search.expandedCategories.includes(ear.key));
+    assert(search.visiblePhenotypeTerms(ear).some(term=>term.id==='HP:0008619'),'Deep matches reveal all ancestor nodes');
+    assert.equal(search.phenotypeFilterClass('HP:0000598'),'is-filter-ancestor');
+    assert.equal(search.phenotypeTreeClass('HP:0008619'),'is-profile-term is-filter-term','Both cues remain when the profile and filter select the same term');
+    const matchNode=find(search._render(),node=>node.data?.class==='is-profile-term is-filter-term');
+    assert(matchNode&&text(matchNode).includes('Filter')&&text(matchNode).includes('Profile'));
+    search.expandedCategories=[];search.expandedPhenotypeNodes=[];search.phenotypeRootExpanded=false;
+    search.tableSort.phenotypes={key:'label',dir:'desc'};
+    await Vue.nextTick();
+    assert.equal(search.phenotypeRootExpanded,true,'The actual component watcher reveals the match after result ordering changes');
+    assert(search.visiblePhenotypeRows.some(row=>row.id==='HP:0000598'));
+    assert(search.expandedPhenotypeNodes.includes('HP:0000407'));
+    search.removeFacet('phenotype','term:HP:0008619');
+    assert.equal(search.phenotypeFilterClass('HP:0008619'),'');
+    assert.equal(search.phenotypeProfileClass('HP:0008619'),'is-profile-term','Removing a filter keeps profile highlighting');
+    search.$destroy();
+    console.log('PB_VARIANT_CARRIER_SEARCH_REVEAL_PAGINATION_AND_DISTINCT_HIGHLIGHTS_PASS');
+}
+verifyCarrierPhenotypeSearch().catch(error=>{console.error(error);process.exitCode=1;});

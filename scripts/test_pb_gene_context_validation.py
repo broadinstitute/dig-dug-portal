@@ -26,6 +26,36 @@ QUERY_HPO = ["HP:0001336", "HP:0002353", "HP:0001270", "HP:0012373"]
 
 
 class PbGeneContextValidationTest(unittest.TestCase):
+    def test_selected_carriers_define_scoring_regression_and_residual_populations(self):
+        from scripts.rphers_fast import score_samples
+        hpo = self.write_tsv('selected-hpo.tsv', ['sample_id', *QUERY_HPO], [
+            ['A', 1, 0, 0, 0], ['B', 0, 1, 1, 0], ['C', 1, 1, 1, 1],
+            ['D', 0, 0, 0, 0], ['E', 1, 1, 0, 0],
+        ])
+        roster = self.write_tsv('selected-roster.tsv', ['sample_id','overlap_status'], [[sid,'both'] for sid in 'ABCDE'])
+        evidence = self.write_tsv('selected-evidence.tsv', ['sample_id','gene_symbol','Variant_ID','GT','pathogenicity_score','Alphamissense'],
+                                  [[sid,'HBB','chr11:5227002:T:A','1/1',0.8,0.8] for sid in 'ABCDE'])
+        engine = ContextAnalysisEngine(hpo, roster, evidence)
+        engine.browser_sample_id_by_analysis = {'A':'A_E38','B':'B_E38','C':'C_E38'}
+        full_y, _ = engine._phenotype((QUERY_HPO[0],))
+        scoped = engine.for_sample_ids(('A_E38','B_E38','C_E38'))
+        self.assertEqual(scoped.analysis_sample_ids,['A','B','C'])
+        self.assertEqual(scoped.hpo['sample_ids'].tolist(),['A','B','C'])
+        expected = score_samples(engine.hpo['matrix'][:3], QUERY_HPO, [QUERY_HPO[0]], sample_ids=['A','B','C'])
+        selected_y, _ = scoped._phenotype((QUERY_HPO[0],))
+        np.testing.assert_allclose(selected_y, expected['phenotype_match_score_resid'])
+        self.assertFalse(np.allclose(selected_y, full_y[:3]), 'Scoring must be recomputed inside the selected genotype cohort')
+        result = scoped.analyze('HBB',[QUERY_HPO[0]])
+        self.assertEqual(result['analysis_sample_count'],3)
+        self.assertEqual(result['variant_match_scores']['chr11:5227002:T:A']['carrier_count'],3)
+        self.assertEqual(result['rphers_standardization']['reference_n'],3)
+        scores = scoped.variant_carrier_residuals('HBB','chr11:5227002:T:A',[QUERY_HPO[0]])
+        self.assertEqual(set(scores['sample_scores']),{'A_E38','B_E38','C_E38'})
+        self.assertEqual(engine.analysis_sample_ids,list('ABCDE'),'Shared Gene engine must remain unchanged')
+        self.assertEqual(engine._standardization((QUERY_HPO[0],))['reference_n'],5)
+        with self.assertRaisesRegex(ValueError,'None of the selected carriers'):
+            engine.for_sample_ids(('missing',))
+
     def test_profile_uses_real_hpo_counts_filters_and_stable_paging(self):
         engine = ContextAnalysisEngine.__new__(ContextAnalysisEngine)
         engine.hpo = {"hpo_columns": ["HP:0001250", "HP:0001252"],
