@@ -9,5 +9,4 @@ fi
 
 script_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd) || exit $?
 cd "$script_root" || exit $?
-source scripts/prepare_pb_genotypes.sh
 exec ./node_modules/.bin/vue-cli-service serve --port 8095 "$@"

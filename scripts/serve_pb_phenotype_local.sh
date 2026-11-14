@@ -18,5 +18,4 @@ for input_file in "$PB_PHENOTYPE_HPO_MATRIX" "$PB_PHENOTYPE_METADATA" "$PB_PHENO
     fi
 done
 
-source scripts/prepare_pb_genotypes.sh
 exec node ./node_modules/.bin/vue-cli-service serve --port 8098 --host 127.0.0.1 "$@"
