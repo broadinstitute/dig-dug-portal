@@ -59,6 +59,49 @@ C:\> $env:BIOINDEX_DEV=1
 C:\> npm run watch
 ```
 
+## Local PB portal: automatic private GT setup
+
+Keep using the existing launch command (Python 3 and OpenSSH are required):
+
+```bash
+PHENOTYPE_ANALYZER_HOST_PRIVATE=http://127.0.0.1:8092 \
+NODE_OPTIONS=--openssl-legacy-provider \
+npm run serve:pb-phenotype
+```
+
+Both `serve:pb-phenotype` and `serve:pb-gene` prepare the GT cache before starting
+Vue. On first use, the launcher downloads the pinned processed release over SSH
+from the company server (default SSH alias: `e3`), verifies its SHA-256, and builds
+the private lookup. Later launches verify and reuse the local index without a
+server connection. An interrupted or unauthorized download installs no GT data;
+the launcher explains the failure and continues with GT unavailable. Existing
+BioIndex, phenotype and cohort-input prerequisites still apply independently.
+
+The cache is in `.pb-private-data/genotypes/2025_crdc_16366_dp20_af001_20260907/`
+under this checkout. It contains the original processed source and `index/`;
+the entire `.pb-private-data/` directory is ignored by Git and is outside the
+public assets. Setup uses the developer's own SSH identity and existing trusted
+host configuration. No password, private key or dataset is included in Git.
+Someone without company SSH/file permissions cannot download this source.
+An authorized machine can keep using its already downloaded cache offline.
+
+For a different company SSH alias, set `PB_GT_SSH_HOST=user@company-host` in the
+launch command or shell environment. The default original source is
+`/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/ref/dig-dug-portal/bioindex_handoff_20260907/sample_variant_gene.jsonl.gz`.
+`PB_GT_REMOTE_SOURCE` can point to a copy of that same release; a different
+release is rejected by checksum. SSH must already work non-interactively and
+the host must already be in `known_hosts`.
+
+Optional settings: `PB_GENOTYPE_INDEX` selects a custom private index directory;
+`PB_GT_AUTO_DOWNLOAD=0` uses only cached files; `PB_GT_PYTHON` selects Python.
+These are shell settings for the launcher. No machine-specific GT setting is
+needed in `.env.development.local`. To prepare or retry GT alone, run
+`npm run setup:pb-genotypes` (a failed setup exits nonzero).
+
+The first setup downloads approximately 138 MB and retains approximately 201 MB
+for source plus index. GT remains limited to the processed release's exact
+variant/sample coverage; missing calls remain unavailable.
+
 ## Front-end framework
 
 ### Vue.js / Vuex
