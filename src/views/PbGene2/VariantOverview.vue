@@ -59,14 +59,14 @@ export default {
     data: () => ({ showPredictors: false, consequencePage: 1, consequenceSortDirection: 'desc' }),
     computed: {
         groups() {
-            const clinvarColors = { 'P/LP': 'pg2-bar-pathogenic', VUS: 'pg2-bar-vus', 'B/LB': 'pg2-bar-benign', 'Other classification': 'pg2-bar-other', 'No ClinVar': 'pg2-bar-missing' };
+            const clinvarColors = { 'P/LP': 'pg2-bar-pathogenic', VUS: 'pg2-bar-vus', 'B/LB': 'pg2-bar-benign', Conflict: 'pg2-bar-other', 'No ClinVar': 'pg2-bar-missing' };
             return [
                 { key: 'consequence', source: VARIANT_ANNOTATION_SOURCES.consequence, title: 'Consequence', segments: this.mix.consequence.map(item => ({ ...item, label: item.label.replace(/_/g, ' '), filterLabel: item.label, color: this.consequenceColor(item.label), filter: 'consequence' })) },
                 { key: 'predictors', source: VARIANT_ANNOTATION_SOURCES.predictors, title: 'In Silico Predictors', segments: [
                     { label: 'Annotated', count: this.annotatedCount, color: 'pg2-bar-benign', filter: 'predictionCoverage' },
                     { label: 'Not annotated', count: Math.max(0, this.total - this.annotatedCount), color: 'pg2-bar-missing', filter: 'predictionCoverage' },
                 ] },
-                { key: 'clinvar', source: VARIANT_ANNOTATION_SOURCES.clinvar, title: 'ClinVar pathogenicity', segments: this.mix.clinvar.map(item => ({ ...item, label: item.label === 'Other classification' ? 'Other' : item.label, filterLabel: item.label, color: clinvarColors[item.label], filter: 'clinvar' })) },
+                { key: 'clinvar', source: VARIANT_ANNOTATION_SOURCES.clinvar, title: 'ClinVar pathogenicity', segments: this.mix.clinvar.map(item => ({ ...item, filterLabel: item.label, color: clinvarColors[item.label] || 'pg2-bar-other', filter: 'clinvar' })) },
             ];
         },
         predictorRows() {

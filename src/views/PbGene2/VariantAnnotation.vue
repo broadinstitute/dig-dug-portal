@@ -18,6 +18,7 @@ import { VARIANT_ANNOTATION_SOURCES } from './referenceProvenance';
 import { query } from '@/utils/bioIndexUtils';
 import { buildTranscriptIdentity, canonicalVariantId, resolveVariantReference, gnomadVariantHref, splitHgvs } from '../PbVariant/variantIdentifiers';
 const transcriptCache = new Map();
+const { clinvarDisplayLabel } = require('../../utils/clinvarLabels');
 export default {
     name: 'Gene2VariantAnnotation',
     components: {HelpTooltip},
@@ -62,7 +63,7 @@ export default {
                 const variantScore = item.label === this.scoreSource;
                 const source = item.source || ({ClinVar:this.sources.clinvar,AlphaMissense:this.sources.alphaMissense,REVEL:this.sources.revel,LOFTEE:this.sources.loftee,'gnomAD AF':this.sources.gnomadAF})[item.label];
                 return {...item,source,variantScore,highlight:item.highlight || variantScore,
-                    value:item.label === 'LOFTEE' && variantScore ? `${item.value} = 1.00` : item.value,
+                    value:item.label === 'ClinVar' ? clinvarDisplayLabel(item.value) : item.label === 'LOFTEE' && variantScore ? `${item.value} = 1.00` : item.value,
                     displayLabel: /^CRDC /i.test(item.label) && !/carrier/i.test(item.label) ? 'CRDC AF' : item.label === 'LOFTEE' ? 'LoFTEE' : item.label,
                     help:item.help || (/^CRDC /i.test(item.label) ? /carrier/i.test(item.label) ? help.carrierFrequency : help.crdcAF : source && source.text),
                 };

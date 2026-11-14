@@ -14,6 +14,7 @@ import { query as queryBioIndex } from "@/utils/bioIndexUtils";
 import { VARIANT_PAGE_SIZE, findPositionWindow, positionOrderedVariants, positionSearchPlaceholder, variantPosition, visiblePageNumbers } from "./variantTableNavigation";
 import { readClinicalFocus } from "../KrClinicalFocus/focusStore";
 import { pathogenicityClass as clinvarBadgeClass } from "./clinvarBadge";
+const { clinvarDisplayLabel } = require('../../utils/clinvarLabels');
 import { hgvsNotation } from "./hgvsNotation";
 
 const LOCAL_CONTEXT_FIXTURE_ENABLED = process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE === "true";
@@ -2597,6 +2598,7 @@ export const pbGeneMethods = {
     pathogenicityClass(clinvar) {
         return clinvarBadgeClass(clinvar);
     },
+    clinvarDisplayLabel,
 
     consequenceClass(csq) {
         if (!csq) return "";

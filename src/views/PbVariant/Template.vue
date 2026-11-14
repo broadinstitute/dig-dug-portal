@@ -64,7 +64,7 @@
                                 <strong style="font-size:1.25rem;color:var(--pbg-text-strong);">{{ variantIdentity.displayLabel }}</strong>
                                 <span class="pbg-crdc-badge">{{ variantIdentity.build }}</span>
                                 <span v-if="variantIdentity.classification" class="pbg-context-status pbg-context-status--active">
-                                    {{ variantIdentity.classification }}
+                                    {{ clinvarDisplayLabel(variantIdentity.classification) }}
                                 </span>
                             </div>
 
@@ -98,7 +98,7 @@
                                             :href="clinvarHref(variantIdentity.canonicalId)"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                        >{{ variantIdentity.clinvar }} ↗</a>
+                                        >{{ clinvarDisplayLabel(variantIdentity.clinvar) }} ↗</a>
                                         <strong v-else class="pbv-evidence-value pbv-evidence--other">Unavailable</strong>
                                     </div>
                                     <div class="pbg-selected-kv-row pbv-kv-group-start"><span>{{ variantIdentity.crdcFrequencyKind === 'carrier' ? 'CRDC carrier frequency' : 'CRDC AF' }} <help-tooltip label="About CRDC frequency" :text="variantIdentity.crdcFrequencyKind === 'carrier' ? help.carrierFrequency : help.crdcAF" /></span><strong :class="{ 'pbv-crdc-af-highlight': !isUnavailableValue(variantIdentity.crdcAF) }">{{ variantIdentity.crdcAF || 'Unavailable' }}</strong></div>
@@ -210,7 +210,7 @@
                                 </thead>
                                 <tbody><tr class="pbv-variant-evidence-row" :class="{ 'is-expanded': carrierSamplesExpanded }" @click="carrierSamplesExpanded = !carrierSamplesExpanded">
                                     <td><button type="button" class="pbv-evidence-expand" :aria-label="(carrierSamplesExpanded ? 'Hide' : 'Show') + ' carrier samples for ' + variantIdentity.canonicalId" :aria-expanded="String(carrierSamplesExpanded)" aria-controls="pbv-carrier-sample-details" @click.stop="carrierSamplesExpanded = !carrierSamplesExpanded"><b-icon-chevron-down v-if="carrierSamplesExpanded" aria-hidden="true" /><b-icon-chevron-right v-else aria-hidden="true" /><span>{{ variantIdentity.canonicalId }}<small>{{ variantConsequenceLabel }}</small></span></button></td>
-                                    <td><span class="pbv-evidence-clinvar" :class="{ 'is-pathogenic': /pathogenic/i.test(variantIdentity.clinvar || variantIdentity.classification || '') }">{{ variantIdentity.clinvar || variantIdentity.classification || 'Unavailable' }}</span></td>
+                                    <td><span class="pbv-evidence-clinvar" :class="{ 'is-pathogenic': /pathogenic/i.test(clinvarDisplayLabel(variantIdentity.clinvar || variantIdentity.classification)) }">{{ clinvarDisplayLabel(variantIdentity.clinvar || variantIdentity.classification) || 'Unavailable' }}</span></td>
                                     <td>{{ variantIdentity.distinctCarriers.toLocaleString() }}</td>
                                     <td><strong v-if="variantScore != null" class="pbv-evidence-score">{{ variantScore.toFixed(2) }}</strong><span v-else>—</span></td>
                                     <td :title="variantHpoCountTitle">{{ variantHpoCountDisplay }}</td>
@@ -497,7 +497,7 @@
                                                 <template v-else-if="!contextMatch && !contextAssociation && !contextError">No applied profile</template>
                                                 <template v-else>Unavailable <small>{{ row.eligibleCarrierCount ? `${row.scoredCarrierCount || 0}/${row.eligibleCarrierCount} scored` : '0 eligible' }}</small></template>
                                             </span>
-                                            <span :title="row.clinvar || 'Unavailable'">{{ row.clinvar || 'Unavailable' }}</span>
+                                            <span :title="row.clinvar || 'Unavailable'">{{ clinvarDisplayLabel(row.clinvar) || 'Unavailable' }}</span>
                                         </div>
                                         <SummaryPager class="pbv-result-pagination" :page="resultPages.coVariants" :total-pages="coVariantPageCount"
                                                       label="Other same-gene variant pages" input-id="pb-variant-covariant-page"

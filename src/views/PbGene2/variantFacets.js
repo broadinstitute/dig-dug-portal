@@ -1,10 +1,10 @@
 function variantFacets(row, lofteeValue, amValue, revelValue, annotated) {
     const value = String(row.clinvar || row.classification || '').toLowerCase();
     const clinvar = !value || /unavailable|no assertion|not provided|^—$/.test(value) ? 'No ClinVar'
-        : /conflict/.test(value) ? 'Other classification'
+        : /conflict/.test(value) ? 'Conflict'
         : /pathogenic/.test(value) ? 'P/LP'
         : /uncertain|vus/.test(value) ? 'VUS'
-        : /benign/.test(value) ? 'B/LB' : 'Other classification';
+        : /benign/.test(value) ? 'B/LB' : String(row.clinvar || row.classification).replace(/_/g, ' ');
     const rawConsequence = String(row.consequence || '').trim();
     const consequence = !rawConsequence || /^(?:unavailable|unknown|n\/?a|[-—])$/i.test(rawConsequence) ? 'Unavailable' : rawConsequence;
     if (annotated === undefined) annotated = Number.isFinite(amValue) || Number.isFinite(revelValue) || Boolean(lofteeValue && !/^(?:unavailable|unknown|n\/?a|[-—])$/i.test(String(lofteeValue).trim()));

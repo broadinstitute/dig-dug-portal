@@ -3,6 +3,7 @@ import { query, request } from "@/utils/bioIndexUtils";
 import { readClinicalFocus } from "@/views/KrClinicalFocus/focusStore";
 import { contextApiError, contextApiFailure, hpoLabel, resolveHpoTerms } from "@/views/PbGene/hpoContextSearch";
 import { standardizedField, referenceDescription, referenceAvailable, contextMatches, sameReference } from "../../utils/rphersUnits";
+const { clinvarDisplayLabel } = require('../../utils/clinvarLabels');
 
 const {
     attachSameGeneCoVariants,
@@ -604,6 +605,7 @@ export const pbVariantMethods = {
     clinvarHref(variantId) {
         return `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(variantId)}`;
     },
+    clinvarDisplayLabel,
     clinvarClass(value) {
         const labels = String(value || "")
             .toLowerCase()

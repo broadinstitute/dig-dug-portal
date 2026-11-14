@@ -39,6 +39,7 @@ const model = load('src/views/PbGene/pageModel.js', {
     './locusFilters': locusFilters,
     './summaryTable': summaryTable,
     './clinvarBadge': clinvarBadge,
+    '../../utils/clinvarLabels': require('../src/utils/clinvarLabels'),
     './hgvsNotation': hgvsNotation,
     '@/utils/bioIndexUtils': { query: async () => ({}) },
     '../KrClinicalFocus/focusStore': { readClinicalFocus: () => null },

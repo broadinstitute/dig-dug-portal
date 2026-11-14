@@ -110,7 +110,20 @@
                         <div class="pbg-ve-table-head">
                             <span></span>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variant')"><span>Variant</span><b-icon-arrow-down-up /></button>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('clinvar')"><span>ClinVar</span><b-icon-arrow-down-up /></button>
+                            <div class="pg2-clinvar-heading">
+                                <b-dropdown id="pg2-clinvar-filter" ref="clinvarFilter" no-caret no-flip variant="link" :popper-opts="{ modifiers: { applyStyle: { enabled: false } } }" toggle-class="pg2-clinvar-filter-toggle" menu-class="pg2-clinvar-filter-menu" :title="variantFilters.clinvar.length ? 'ClinVar: ' + variantFilters.clinvar.join(', ') : 'Filter ClinVar classifications'" :class="{ 'is-filtered': variantFilters.clinvar.length }" @show="openClinvarFilter">
+                                    <template #button-content><span>ClinVar <b-icon-funnel-fill v-if="variantFilters.clinvar.length" aria-hidden="true" /><b-icon-funnel v-else aria-hidden="true" /></span><span class="pg2-sr-only">Filter variants by ClinVar classification{{ variantFilters.clinvar.length ? ': ' + variantFilters.clinvar.join(', ') : '' }}</span></template>
+                                    <b-dropdown-form @submit.prevent="applyClinvarFilter">
+                                        <fieldset>
+                                            <legend>Filter ClinVar</legend>
+                                            <div class="pg2-clinvar-filter-shortcuts"><button type="button" class="pg2-text-button" @click="toggleAllClinvarFilters">{{ allClinvarFiltersSelected ? 'Deselect all' : 'Select all' }}</button></div>
+                                            <label v-for="option in clinvarFilterOptions" :key="option.value" class="pg2-clinvar-filter-option"><input v-model="clinvarFilterDraft" type="checkbox" :value="option.value"><span>{{ option.label }}</span><small>{{ option.count.toLocaleString() }}</small></label>
+                                        </fieldset>
+                                        <p v-if="!clinvarFilterDraft.length" class="pg2-clinvar-filter-hint">Select at least one classification.</p>
+                                        <div class="pg2-clinvar-filter-actions"><button type="button" class="pg2-text-button" @click="$refs.clinvarFilter.hide(true)">Cancel</button><button type="submit" class="pg2-clinvar-filter-apply" :disabled="!clinvarFilterDraft.length">Apply</button></div>
+                                    </b-dropdown-form>
+                                </b-dropdown>
+                            </div>
                             <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Total carriers" @click="sortVariantsBy('carriers')"><span>Total<br>carriers</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('carriers') }}</span></button><help-tooltip info label="About total variant carriers" :text="help.totalCarriers" /></div>
                             <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by In Silico Predictors" @click="sortVariantsBy('variantScore')"><span>In Silico<br>Predictors</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('variantScore') }}</span></button><help-tooltip info label="About In Silico Predictors" :text="help.pathogenicity + '\n\n' + annotationSources.predictors.text" :links="annotationSources.predictors.links" /></div>
                             <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Carriers with HPO" @click="sortVariantsBy('hpoCarriers')"><span>Carriers<br>with HPO</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('hpoCarriers') }}</span></button><help-tooltip info label="About carriers with the applied HPO profile" :text="help.hpoCarriers" /></div>
@@ -246,11 +259,23 @@ export default {
     mixins: [carrierScoreMixin, filteredCarrierDemographicsMixin, variantHpoCountsMixin, carrierTableMixin, carrierHpoTotalsMixin],
     components: { GeneIdentity, Demographics, ContextPanel, VariantOverview, HelpTooltip, InfoRail, VariantAnnotation },
     data() {
-        return { ...createPbGeneState(), help, annotationSources: VARIANT_ANNOTATION_SOURCES, infoRailReserved: false, associationSearch: '', associationPage: 1, associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }, contextRunMeta: {}, currentContextRunId: '', rerunningContextRunId: '', appliedContext: null, receivedContextReference: null };
+        return { ...createPbGeneState(), help, annotationSources: VARIANT_ANNOTATION_SOURCES, infoRailReserved: false, clinvarFilterDraft: [], associationSearch: '', associationPage: 1, associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }, contextRunMeta: {}, currentContextRunId: '', rerunningContextRunId: '', appliedContext: null, receivedContextReference: null };
     },
     mounted() { this.loadLiveGeneData(this.searchGeneQuery, false).catch(() => {}); },
     computed: {
         ...pbGeneComputed,
+        allClinvarFiltersSelected() { return this.clinvarFilterOptions.every(option => this.clinvarFilterDraft.includes(option.value)); },
+        clinvarFilterOptions() {
+            const counts = new Map(this.variantMix.clinvar.map(item => [item.label, item.count]));
+            return [
+                ['P/LP', 'Pathogenic / Likely pathogenic'],
+                ['VUS', 'Uncertain significance (VUS)'],
+                ['B/LB', 'Benign / Likely benign'],
+                ['Conflict', 'Conflict'],
+                ['No ClinVar', 'No ClinVar'],
+            ].concat([...counts.keys()].filter(value => !['P/LP', 'VUS', 'B/LB', 'Conflict', 'No ClinVar'].includes(value)).map(value => [value, value]))
+                .map(([value, label]) => ({ value, label, count: counts.get(value) || 0 }));
+        },
         facetMatchingVariantRows() { return this.variantRows.filter(this.matchesVariantFilters); },
         matchingVariantRows() { return this.facetMatchingVariantRows.filter(this.matchesVariantIdentifier); },
         sortedVariantRows() { return pbGeneComputed.sortedVariantRows.call(this).filter(row => this.matchesVariantFilters(row) && this.matchesVariantIdentifier(row)); },
@@ -276,13 +301,13 @@ export default {
         phenotypeCountTitle() { const summary = this.geneCarrierSummary; return summary && summary.phenotypeMetadataCount != null ? `${summary.phenotypeMetadataCount} / ${this.totalGeneCarriers} gene carriers have HPO metadata${summary.status === 'ready' ? '' : '; partial results'}.` : 'HPO carrier counts are not supplied by the current metadata service.'; },
         appliedContextLabel() { return this.appliedContext ? `Applied HPO: ${this.appliedContext.terms.map(hpoLabel).join(' + ')} · ${this.appliedContext.scoreType === 'sum' ? 'Sum' : 'Max'} · ${this.appliedContext.analysisSet === 'affected' ? 'Affected only' : 'All'}` : 'Custom HPO context not calculated'; },
         variantMix() {
-            const clinvar = { 'P/LP': 0, VUS: 0, 'B/LB': 0, 'Other classification': 0, 'No ClinVar': 0 };
+            const clinvar = { 'P/LP': 0, VUS: 0, 'B/LB': 0, Conflict: 0, 'No ClinVar': 0 };
             const consequence = new Map();
             const annotations = { 'AM annotated': 0, 'REVEL annotated': 0 };
             let loftee = 0;
             this.variantRows.forEach(row => {
                 const facets = this.variantRowFacets(row);
-                clinvar[facets.clinvar]++;
+                clinvar[facets.clinvar] = (clinvar[facets.clinvar] || 0) + 1;
                 consequence.set(facets.consequence, (consequence.get(facets.consequence) || 0) + 1);
                 if (facets.loftee) loftee++;
                 facets.annotations.forEach(label => annotations[label]++);
@@ -292,6 +317,18 @@ export default {
     },
     methods: {
         ...pbGeneMethods,
+        toggleAllClinvarFilters() {
+            this.clinvarFilterDraft = this.allClinvarFiltersSelected ? [] : this.clinvarFilterOptions.map(option => option.value);
+        },
+        openClinvarFilter() {
+            this.clinvarFilterDraft = this.variantFilters.clinvar.length ? [...this.variantFilters.clinvar] : this.clinvarFilterOptions.map(option => option.value);
+        },
+        applyClinvarFilter() {
+            if (!this.clinvarFilterDraft.length) return;
+            this.variantFilters.clinvar = this.clinvarFilterOptions.every(option => this.clinvarFilterDraft.includes(option.value)) ? [] : [...this.clinvarFilterDraft];
+            this.goToVariantPage(1);
+            if (this.$refs.clinvarFilter) this.$refs.clinvarFilter.hide(true);
+        },
         visibleCarrierRows: carrierTableMixin.methods.visibleCarrierRows,
         // Gene2 intentionally has no locus surface or locus-filter requests.
         refreshLocusFilter() {},
@@ -371,7 +408,7 @@ export default {
         consequenceLabel(row) { return String(row.consequence || 'Unavailable').replace(/_variant\b/g, '').replace(/_/g, ' ').replace(/^./, letter => letter.toUpperCase()); },
         clinvarLabel(row) {
             const value = String(row.clinvar || 'Unavailable');
-            return ({'Pathogenic/Likely_pathogenic': 'P/LP', 'Benign/Likely_benign': 'B/LB', 'Uncertain_significance': 'VUS', 'Conflicting_classifications_of_pathogenicity': 'Conflicting'})[value] || value.replace(/_/g, ' ');
+            return this.clinvarDisplayLabel(({'Pathogenic/Likely_pathogenic': 'P/LP', 'Benign/Likely_benign': 'B/LB', 'Uncertain_significance': 'VUS'})[value] || value.replace(/_/g, ' '));
         },
         async submitGeneSearch() { if (!this.contextLoading) await pbGeneMethods.submitGeneSearch.call(this); },
         associationAriaSort(key) { return this.associationSortKey !== key ? 'none' : this.associationSortDirection === 'asc' ? 'ascending' : 'descending'; },

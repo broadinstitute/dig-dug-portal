@@ -553,7 +553,7 @@
                                     {{ row.carrierCount }}
                                 </span>
                                 <span class="pbg-ve-consequence">{{ row.consequence || 'Unavailable' }}</span>
-                                <span class="pbg-ve-clinvar"><span class="pbg-clinvar-badge" :class="pathogenicityClass(row.clinvar)">{{ row.clinvar || 'Unavailable' }}</span></span>
+                                <span class="pbg-ve-clinvar"><span class="pbg-clinvar-badge" :class="pathogenicityClass(row.clinvar)">{{ clinvarDisplayLabel(row.clinvar) || 'Unavailable' }}</span></span>
                                 <span>
                                     <strong class="pbg-score-badge"
                                             :class="variantScoreClass(row)"
@@ -603,13 +603,13 @@
                                                    item.label === 'ClinVar' ? pathogenicityClass(item.value) : ''
                                                ]"
                                                :href="item.href" target="_blank" rel="noopener noreferrer"
-                                               @click.stop>{{ item.value }} ↗</a>
+                                               @click.stop>{{ item.label === 'ClinVar' ? clinvarDisplayLabel(item.value) : item.value }} ↗</a>
                                             <strong v-else
                                                     :class="[
                                                         item.label === 'ClinVar' ? 'pbg-selected-clinvar' : '',
                                                         item.label === 'ClinVar' ? pathogenicityClass(item.value) : ''
                                                     ]">
-                                                {{ item.value }}<sup v-if="item.label === 'REVEL' && hasRevelOnlyScore(row)"
+                                                {{ item.label === 'ClinVar' ? clinvarDisplayLabel(item.value) : item.value }}<sup v-if="item.label === 'REVEL' && hasRevelOnlyScore(row)"
                                                                     class="pbg-revel-only-star"
                                                                     title="REVEL is available but excluded from Burden Pathogenic Score.">*</sup>
                                             </strong>

@@ -31,6 +31,8 @@ req('postcss').parse(fs.readFileSync(path.join(root,'src/views/PbVariant/style.c
 const state=model.createPbVariantState();
 const instance=new Vue({data:()=>({...state,...req('./src/views/PbVariant/layoutHelp'),help:req('./src/views/PbGene2/evidenceHelp'),sources:load('src/views/PbGene2/referenceProvenance.js').VARIANT_ANNOTATION_SOURCES,phenotypeRootExpanded:true,infoReserved:false}),computed:model.pbVariantComputed,methods:model.pbVariantMethods,...functions});
 instance.variantAvailable=true;
+assert.equal(instance.clinvarDisplayLabel('Conflicting_classifications_of_pathogenicity'),'Conflict');
+assert.equal(instance.clinvarDisplayLabel('Benign'),'Benign');
 instance.variantIdentity={...state.variantIdentity,gene:'GJB2',distinctCarriers:2,crdcAF:'0.0000870549',crdcFrequencyKind:'allele',displayLabel:'chr13:20,189,005 CTG>C',loftee:'HC',clinvar:'Pathogenic'};
 instance.carrierRecords=req('./src/views/PbVariant/carrierStatistics').normalizeCarrierRecords([{id:'sample-a',hpoCount:2},{id:'sample-b',hpoCount:0}]);
 instance.activeContextTerms=['HP:0000364'];

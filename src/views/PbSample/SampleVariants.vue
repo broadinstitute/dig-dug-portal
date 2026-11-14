@@ -35,6 +35,7 @@
 <script>
 import ColumnHeaderFilter from './ColumnHeaderFilter';
 const { burdenPathogenicScore } = require('./variantEvidence');
+const { clinvarDisplayLabel } = require('../../utils/clinvarLabels');
 export default {
     components: { ColumnHeaderFilter },
     props: { variants: { type: Array, default: () => [] } },
@@ -72,7 +73,7 @@ export default {
         score: burdenPathogenicScore,
         valueOptions(getValue) { const counts = new Map(); this.variants.forEach(row => { const value = getValue(row) || 'Unavailable'; counts.set(value,(counts.get(value) || 0) + 1); }); return [...counts].map(([value,count]) => ({value,count})).sort((a,b)=>a.value.localeCompare(b.value)); },
         setSort(key,direction) { this.sortKey = key; this.sortDirection = direction; this.page = 1; },
-        clinvarValue(row) { const value = String(row.clinvar == null ? '' : row.clinvar).trim(); return ['', '-', '—', '.'].includes(value) ? 'Unavailable' : value; },
+        clinvarValue(row) { const value = String(row.clinvar == null ? '' : row.clinvar).trim(); return ['', '-', '—', '.'].includes(value) ? 'Unavailable' : clinvarDisplayLabel(value); },
         annotationKind(row) { return row.loftee === 'HC' ? 'HC' : row.alphaMissense != null ? 'AM' : row.revel != null ? 'REVEL' : 'none'; },
         annotation(row) { const kind = this.annotationKind(row); return kind === 'HC' ? 'LoFTEE HC' : kind === 'AM' ? `AlphaMissense ${this.score(row).display}` : this.score(row).display; },
         frequency(value) { if (value == null || value === '' || !Number.isFinite(Number(value))) return 'Unavailable'; return Number(value).toPrecision(4); },

@@ -8,7 +8,7 @@ function load(file, dependencies) {
     return output.default;
 }
 const header=load('ColumnHeaderFilter.vue',{'bootstrap-vue':{BPopover:{}}});
-const options=load('SampleVariants.vue',{'./variantEvidence':require('./variantEvidence'),'./ColumnHeaderFilter':header});
+const options=load('SampleVariants.vue',{'./variantEvidence':require('./variantEvidence'),'./ColumnHeaderFilter':header,'../../utils/clinvarLabels':require('../../utils/clinvarLabels')});
 const ctx={...options.data(),variants:Array.from({length:25},(_,i)=>({id:`chr1:${i+1}:A:T`,gene:i<12?'GENEA':'GENEB',consequence:i%2?'missense':'stop_gained',loftee:i%2?null:'HC',genotype:i%2?'0/1':'1/1',clinvar:['Pathogenic','Uncertain significance','Likely benign'][i%3],crdcAlleleFrequency:i===0?'Unavailable':i/100}))};
 Object.assign(ctx,options.methods);
 for (const key of Object.keys(options.computed)) Object.defineProperty(ctx,key,{get:()=>options.computed[key].call(ctx),configurable:true});
@@ -25,6 +25,7 @@ ctx.selectedClinvar=['Pathogenic'];assert.equal(ctx.filtered.length,9);
 ctx.selectedClinvar=['Pathogenic','Likely benign'];assert.equal(ctx.filtered.length,17);
 ctx.selectedClinvar=[];assert.equal(ctx.filtered.length,0);ctx.selectedClinvar=null;
 assert.equal(ctx.clinvarValue({clinvar:null}),'Unavailable');
+assert.equal(ctx.clinvarValue({clinvar:'Conflicting_classifications_of_pathogenicity'}),'Conflict');
 assert.equal(ctx.clinvarValue({clinvar:'Pathogenic/Likely pathogenic'}),'Pathogenic/Likely pathogenic');
 assert.equal(ctx.genotypeOptions.length,2);assert.equal(ctx.annotationOptions.length,2);
 assert.equal(ctx.clinvarOptions.reduce((sum,row)=>sum+row.count,0),25);

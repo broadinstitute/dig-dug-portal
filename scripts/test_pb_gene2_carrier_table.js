@@ -9,7 +9,7 @@ function load(file,imports={},sfc=false) {
     if(sfc)source=compiler.parseComponent(source).script.content;
     const exported={};
     const code=babel.transformSync(source,{babelrc:false,configFile:false,plugins:['@babel/plugin-transform-modules-commonjs']}).code;
-    vm.runInNewContext(code,{exports:exported,URLSearchParams,require:name=>{if(name in imports)return imports[name];throw new Error('Unexpected dependency '+name);}});
+    vm.runInNewContext(code,{exports:exported,URLSearchParams,require:name=>{if(name === '../../utils/clinvarLabels') return require('../src/utils/clinvarLabels');if(name in imports)return imports[name];throw new Error('Unexpected dependency '+name);}});
     return exported;
 }
 const mixin=load('src/views/PbGene2/carrierTable.js',{'./evidencePagination':require('../src/views/PbGene2/evidencePagination')}).carrierTableMixin;
@@ -72,6 +72,9 @@ const mixin=load('src/views/PbGene2/carrierTable.js',{'./evidencePagination':req
     details.items=[{label:'LOFTEE',value:'LC'},{label:'AlphaMissense',value:0},{label:'REVEL',value:0.9}];
     assert.equal(details.scoreSource,'AlphaMissense');assert.equal(details.columns[1][5].highlight,true);assert.equal(details.columns[1][6].variantScore,false);
     assert.equal(details.clinvarTone('Benign'),'is-benign');assert.equal(details.clinvarTone('Uncertain_significance'),'is-uncertain');
+    details.items=[{label:'ClinVar',value:'Conflicting_classifications_of_pathogenicity'}];
+    assert.equal(details.columns[1][1].value,'Conflict');
+    assert.equal(details.items[0].value,'Conflicting_classifications_of_pathogenicity','Display labels preserve the original annotation');
     details.$destroy();
     console.log('Gene2 carrier detail: 20,000 carriers, bounded metadata pages, full ID search, sorting, reset, links and missing/zero values PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

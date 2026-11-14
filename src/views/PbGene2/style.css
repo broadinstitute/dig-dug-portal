@@ -409,6 +409,25 @@ html.pb-gene2-default-scale { zoom: .8; }
 .pg2-page .pbg-ve-sort { font-size: 18px; line-height: 1.45; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0; font-weight: 600; flex: 0 1 auto; text-align: center; }
 .pg2-page .pbg-ve-sort svg { width: 13px; flex-shrink: 0; }
 .pg2-page .pbg-ve-sort small { font-size: 17px; font-weight: 400; }
+.pg2-page .pg2-clinvar-filter-toggle, .pg2-page .pg2-clinvar-filter-toggle:hover, .pg2-page .pg2-clinvar-filter-toggle:focus, .pg2-page .show > .pg2-clinvar-filter-toggle { background: transparent; color: #14213d; border: 0; border-radius: 0; padding: 0; box-shadow: none; font-size: 18px; font-weight: 600; white-space: normal; text-decoration: none; }
+.pg2-clinvar-filter-toggle > span:first-child { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.pg2-clinvar-filter-toggle svg { width: 14px; height: 14px; }
+.pg2-page .is-filtered > .pg2-clinvar-filter-toggle { color: #14213d; background: transparent; }
+.pg2-page .pg2-clinvar-filter-menu { top: 100%; left: 0; min-width: 365px; padding: 16px; border: 1px solid #c6d5e9; border-radius: 7px; box-shadow: 0 8px 24px #14213d26; color: #14213d; font-size: 16px; }
+/* Anchor to the header directly: Popper coordinates drift under the page's CSS zoom. */
+.pg2-page .pbg-variant-evidence-block:has(.pg2-clinvar-filter-menu.show) { min-height: 660px; }
+.pg2-clinvar-filter-menu .b-dropdown-form { padding: 0; }
+.pg2-clinvar-filter-menu legend { margin-bottom: 10px; font-size: 18px; font-weight: 600; }
+.pg2-clinvar-filter-shortcuts, .pg2-clinvar-filter-actions { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.pg2-clinvar-filter-shortcuts { padding-bottom: 8px; border-bottom: 1px solid #dfe7f0; margin-bottom: 8px; }
+.pg2-clinvar-filter-option { display: flex; align-items: center; gap: 10px; padding: 8px 0; margin: 0; cursor: pointer; font-weight: 400; }
+.pg2-clinvar-filter-option input { width: 17px; height: 17px; accent-color: #0b66d8; flex-shrink: 0; }
+.pg2-clinvar-filter-option > small { margin-left: auto; padding-left: 12px; font-size: 14px; color: #64748b; font-variant-numeric: tabular-nums; }
+.pg2-clinvar-filter-actions { margin-top: 12px; padding-top: 12px; border-top: 1px solid #dfe7f0; }
+.pg2-page .pg2-clinvar-filter-apply { padding: 5px 18px; border: 1px solid #0b66d8; border-radius: 5px; background: #0b66d8; color: #fff; font-size: 16px; }
+.pg2-clinvar-filter-apply:disabled { opacity: .5; cursor: default; }
+.pg2-clinvar-filter-hint { margin: 8px 0 0; font-size: 14px; color: #9f321e; }
+.pg2-clinvar-filter-toggle:focus-visible, .pg2-clinvar-filter-option input:focus-visible { outline: 2px solid #0b66d8; outline-offset: 3px; }
 .pg2-score-heading { flex-wrap: wrap; gap: 5px; text-align: center; }
 .pg2-sort-indicator { display: inline-block; flex-shrink: 0; font-size: 13px; color: #52688b; margin-left: 3px; }
 .pg2-page .pbg-ve-row { min-height: 78px; padding-top: 0; padding-bottom: 0; border-bottom: 1px solid #dfe7f7; font-size: 20px; }
