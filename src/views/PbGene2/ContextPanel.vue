@@ -1,6 +1,6 @@
 <template>
     <section class="pg2-card pg2-context" aria-labelledby="pg2-context-title">
-        <div class="pg2-section-heading"><h2 id="pg2-context-title">Test a phenotype profile <help-tooltip label="Test a phenotype profile" :text="help.settings + ' ' + help.customBeta + ' ' + help.meanZ" /></h2></div>
+        <div class="pg2-section-heading"><h2 id="pg2-context-title">Test a phenotype profile <help-tooltip label="Test a phenotype profile" :text="help.customMethods" /></h2></div>
         <form class="pg2-context-form" @submit.prevent="applyProfile">
             <label id="pg2-profile-input-label" class="pg2-profile-input-label">Phenotype profile</label>
             <hpo-term-input :key="currentRunId" ref="profile" v-model="contextInputModel" />

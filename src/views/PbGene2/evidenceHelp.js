@@ -1,10 +1,19 @@
 // These effects have different outcomes and units; keep their definitions separate.
 module.exports = {
-    precomputedBeta: 'Approximate score-test coefficient: change in HPO log-odds per 0.1 increase in Sum GRS.',
+    precomputedBeta: 'Approximate score-test coefficient: change in the log-odds of a recorded HPO term being present per 0.1 increase in Sum GRS. This is a binary-HPO effect, not a change in rPheRS; its magnitude is not directly comparable to Custom Gene beta.',
     precomputedCI: 'Approximate 95% confidence interval for the precomputed coefficient, in the same HPO log-odds units per 0.1 Sum GRS.',
     geneQ: 'Benjamini–Hochberg adjusted p-value across all PASS HPO tests within this gene. Calculated before the P < 0.05 delivery filter and before any screen filters. Uses q_by_gene, not q_by_hpo.',
-    precomputedMethods: 'Precomputed binary-HPO score tests using Sum GRS. This release contains every PASS result with P < 0.05, in either effect direction. β and 95% CI use HPO log-odds per 0.1 Sum GRS. q within gene is corrected across the full PASS HPO testing family before filtering. Pins stay visible independently of search and pagination.',
-    customBeta: 'Change in rPheRS, in SD units, per 0.1 increase in gene GRS. This custom-profile regression uses a different outcome and units from the precomputed binary-HPO coefficients.',
+    precomputedMethods: [
+        'Tests whether higher Sum GRS is associated with a recorded HPO term being present (0/1). Uses precomputed binomial-logit mixed-model score tests; β and 95% CI are approximate log-odds effects per 0.1 Sum GRS.',
+        'The live profile regression instead uses continuous rPheRS, even with one HPO. The two beta magnitudes are not directly comparable, and agreement is not independent replication.',
+        'This release contains every PASS result with P < 0.05, in either direction. q within gene is corrected across the full PASS HPO testing family before filtering. Pins stay visible independently of search and pagination.',
+    ].join('\n\n'),
+    customMethods: [
+        'Tests whether higher gene GRS is associated with a higher continuous score for your selected phenotype profile. HPO matches are weighted and adjusted for each person\'s total HPO term count to obtain residual PheRS (rPheRS).',
+        'The default gene model is linear regression with age, missing age, sex, sequencing platform and PC1–PC10 covariates; each result records its model. Beta is the rPheRS SD change per 0.1 GRS.',
+        'Even one HPO uses rPheRS rather than the precomputed present/absent outcome. The beta magnitudes are not directly comparable; agreement is not independent replication. A higher profile score does not establish greater clinical severity.',
+    ].join('\n\n'),
+    customBeta: 'Change in continuous rPheRS, in SD units, per 0.1 increase in gene GRS. This measures association with the selected phenotype-profile score, not HPO presence/absence or established clinical severity. Its magnitude is not directly comparable to the precomputed log-odds beta, even for a one-HPO profile.',
     settings: 'For each person and gene, aggregate variant ALT dosage × pathogenicity score using the selected Max or Sum method. Samples selects All or Affected only for the analysis; variant display filters do not change that analysis population.',
     variantBeta: 'Carrier-versus-noncarrier effect in rPheRS SD units. Both heterozygous and homozygous ALT genotypes are coded carrier = 1. The model adjusts for age, missing age, sex and PC1–PC10; fewer than 10 scored carriers is exploratory.',
     meanZ: 'Mean Z-score among analysis-eligible carriers. The reference mean and sample SD are calculated in the full scoring cohort for this HPO profile. Coverage requires an individual score for every analysis-eligible carrier; it is independent of recorded HPO presence. If any eligible carrier lacks a score, the mean is Unavailable. Carriers outside the analysis roster do not make coverage incomplete.',

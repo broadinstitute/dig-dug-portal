@@ -163,6 +163,31 @@
 - Delete ×: delete one row; deleting Applied clears associated variant profile evidence.
 - Disable re-run/delete during calculation; reject re-run with missing settings or different gene.
 
+### 5.1 Explaining precomputed single-HPO versus custom-profile association
+
+The section-title hover/focus help and beta-header help in
+`src/views/PbGene2/evidenceHelp.js` must explain the scientific question as well
+as the units. `ContextPanel.vue` uses `customMethods` for its section-title help;
+score-coverage details remain in their own Mean Z help.
+
+| Analysis | Question / outcome | Gene effect |
+|---|---|---|
+| Precomputed single-HPO | Is higher Sum GRS associated with one recorded HPO being present (0/1)? Binomial-logit mixed-model score test. | Approximate log-odds change per 0.1 Sum GRS; retain the score-test approximation label. |
+| Custom profile | Is higher selected Max/Sum GRS associated with a higher continuous residual PheRS for the selected HPO profile? Gene LM is the default; retain each run's actual model metadata. | rPheRS SD change per 0.1 GRS. |
+
+- A one-HPO custom profile still uses weighted PheRS adjusted for total HPO
+  count, rather than reusing the precomputed binary-HPO test.
+- Precomputation versus live execution and all-sample versus filtered analysis
+  are not the fundamental statistical distinction. The outcome, model and
+  effect scale differ; actual rosters, score aggregation and covariates must also
+  be checked before comparing results.
+- Do not compare the numerical magnitudes of the two betas. Agreement can be
+  supportive but is not independent replication when based on the same cohort
+  and phenotype information. A profile score is not established clinical
+  severity. Neither association establishes causality or a diagnosis.
+- Existing release P/q/selection rules and all calculation code are unchanged
+  by this explanatory update.
+
 ## 6. API inventory
 
 | Method / route | Request | Response / consumer |
