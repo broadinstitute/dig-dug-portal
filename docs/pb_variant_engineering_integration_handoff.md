@@ -4,6 +4,10 @@ Source delivery: [source delta/checksums against the baseline](pb_page_source_de
 
 Updated: 2026-11-15 · Branch: `kyuryung/bch-prototype` · Entry: `/pb_variant.html`
 
+## 2026-11-15 UI follow-up — included in this delivery
+
+The shared Guide PDF popup and default 100% scale are implemented locally. Carry the component, public PDF/preview, page imports and styles from the [common Guide contract](pb_front_gene_variant_merge_handoff.md#shared-guide-popup). Use the delivery commit containing this document and its full repository dependencies; the earlier `ddf455104` alone does not include this follow-up. APIs, data releases and analysis contracts below are unchanged.
+
 ## Test-server source and shared q rule
 
 Use the existing test-server private BioIndex `http://100.80.30.199:5000/api/bio/query/<index>?q=…`, authenticated through the same-origin gateway. Current variant membership comes from `gene-variants-crdc` (`gene` key), metadata/Project/PI from `samples-info` (`SampleInVCF`), exact annotation from `variants-annotation` (`varID`) and `transcript-consequences` (`varId`). Consume all continuations. The similarly named Helen POST analysis route is a different contract; local input/cache paths below are server preparation provenance, not replacement API sources.
@@ -19,7 +23,7 @@ Baseline: `859cd905d49e61f3a1e6765bb88ff0a2555c3128`. The genotype-scope impleme
 - Profile input/Apply/rerun now use `GET /__pb_phenotype_profile__/hpo-counts`; each HPO must have count ≥1. Zero/missing/loading/error prevents application; provide retry on failure. Respect failed `finish()` and stale-request checks.
 - The common private profile service (default 8093) serves `/phenotype-analyzer-api/hpo-counts`. Port its proxy and required inputs as well as the dedicated Variant 8095 service. See [Sample runtime](pb_sample_engineering_integration_handoff.md#6-private-inputs-and-startup).
 - These are **16,366-sample parent-expanded availability counts**, not selected-carrier counts or Variant scoring statistics. Keep scoped backend validation and the approved scoring input. Do not replace the Variant matrix with the availability matrix.
-- Default prototype display is 80% before first paint, including WebKit; keep shared help positioning. This does not change the browser's own zoom preference.
+- Default prototype display is 100% before first paint, including WebKit; keep shared help positioning. This does not change the browser's own zoom preference.
 - `serve:pb-gene` / `serve:pb-phenotype` now prepare/reuse the persistent verified GT cache using `prepare_pb_genotypes.sh` and `setup_pb_genotypes.py`. Only the approved `/share/dig-dug-portal/sample_variant_gene.jsonl.gz` may be downloaded; existing valid caches work offline. The reader alone still does not download. No private `/ref/` fallback.
 - The new dependencies are included in this delivery commit. The baseline commit alone is incomplete; static build output alone does not install private gateway handlers or Python services. This audit does not establish test-server deployment. Do not point the existing Gene Context base at Helen's differently contracted analysis endpoint.
 

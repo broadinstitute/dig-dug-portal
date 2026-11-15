@@ -1,5 +1,6 @@
 <template>
-    <div>
+    <div class="pb-guide-page">
+        <portal-guide />
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
@@ -195,7 +196,7 @@
                                                 <thead>
                                                     <tr>
                                                         <th scope="col" class="pbs-match-pin" aria-label="Pin sample"><b-icon-pin-angle aria-hidden="true" /></th>
-                                                        <th scope="col" :aria-sort="tableAriaSort('samples', 'rank')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'rank')">Rank <span aria-hidden="true">{{ tableSortIndicator('samples', 'rank') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('samples', 'rank')"><div class="pbs-column-heading"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'rank')">Rank <span aria-hidden="true">{{ tableSortIndicator('samples', 'rank') }}</span></button><SampleInfo label="Sample rank" :text="help.sampleRank" /></div></th>
                                                         <th scope="col" :aria-sort="tableAriaSort('samples', 'sampleId')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'sampleId')">Sample <span aria-hidden="true">{{ tableSortIndicator('samples', 'sampleId') }}</span></button></th>
                                                         <th scope="col" :aria-sort="tableAriaSort('samples', 'matchedHpo')"><div class="pbs-column-heading"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'matchedHpo', 'desc')">Matched <span aria-hidden="true">{{ tableSortIndicator('samples', 'matchedHpo') }}</span></button><SampleInfo label="Matched HPO terms" :text="help.matched" /></div></th>
                                                         <th scope="col" :aria-sort="tableAriaSort('samples', 'recordedHpoCount')"><div class="pbs-column-heading"><button type="button" class="pbs-sort-button" @click="toggleTableSort('samples', 'recordedHpoCount', 'desc')">Recorded HPO <span aria-hidden="true">{{ tableSortIndicator('samples', 'recordedHpoCount') }}</span></button><SampleInfo label="Recorded HPO count" :text="help.recordedHpo" /></div></th>
@@ -210,7 +211,7 @@
                                                     <tr :key="match.sampleId" :class="{ 'pbs-pinned-match': pinnedPhenotypeMatchIds.includes(match.sampleId) }">
                                                         <td class="pbs-match-pin"><button type="button" :aria-label="(pinnedPhenotypeMatchIds.includes(match.sampleId) ? 'Unpin ' : 'Pin ') + match.sampleId" :aria-pressed="String(pinnedPhenotypeMatchIds.includes(match.sampleId))" @click="togglePhenotypeMatchPin(match.sampleId)"><b-icon-pin-angle-fill v-if="pinnedPhenotypeMatchIds.includes(match.sampleId)" aria-hidden="true" /><b-icon-pin-angle v-else aria-hidden="true" /></button></td>
                                                         <td><strong>#{{ match.rank }}</strong></td>
-                                                        <td><button type="button" class="pbs-disclosure" :aria-label="'Compare ' + match.sampleId" :aria-expanded="String(expandedMatchIds.includes(match.sampleId))" :aria-controls="'pbs-comparison-' + match.sampleId" @click="toggleMatchComparison(match.sampleId)">{{ expandedMatchIds.includes(match.sampleId) ? '▾' : '▸' }}</button><a class="pbs-sample-mark pbs-compared-id" :href="sampleHref(match.sampleId)">{{ match.sampleId }}</a></td>
+                                                        <td><div class="pbs-sample-identity"><button type="button" class="pbs-disclosure" :aria-label="'Compare ' + match.sampleId" :aria-expanded="String(expandedMatchIds.includes(match.sampleId))" :aria-controls="'pbs-comparison-' + match.sampleId" @click="toggleMatchComparison(match.sampleId)"><b-icon-caret-down-fill v-if="expandedMatchIds.includes(match.sampleId)" aria-hidden="true"/><b-icon-caret-right-fill v-else aria-hidden="true"/></button><a class="pbs-sample-mark pbs-compared-id" :href="sampleHref(match.sampleId)">{{ match.sampleId }}</a></div></td>
                                                         <td><button v-if="match.matchedHpo != null" type="button" class="pbs-count-link" @click="toggleMatchComparison(match.sampleId)">{{ match.matchedHpo }} / {{ matchReferenceCount || sample.phenotypeTotal }}</button><span v-else>Unavailable</span></td>
                                                         <td>{{ match.recordedHpoCount == null ? 'Unavailable' : match.recordedHpoCount }}</td>
                                                         <td>{{ match.rphersZ == null ? 'Unavailable' : match.rphersZ.toFixed(2) }}</td>
@@ -238,7 +239,7 @@
                                                 <colgroup><col style="width:6%" /><col style="width:48%" /><col style="width:20%" /><col style="width:16%" /><col style="width:10%" /></colgroup>
                                                 <thead>
                                                     <tr>
-                                                        <th scope="col" :aria-sort="tableAriaSort('investigators', 'rank')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'rank')">Rank <span aria-hidden="true">{{ tableSortIndicator('investigators', 'rank') }}</span></button></th>
+                                                        <th scope="col" :aria-sort="tableAriaSort('investigators', 'rank')"><div class="pbs-column-heading"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'rank')">Rank <span aria-hidden="true">{{ tableSortIndicator('investigators', 'rank') }}</span></button><SampleInfo label="Project rank" :text="help.projectRank" /></div></th>
                                                         <th scope="col" :aria-sort="tableAriaSort('investigators', 'project')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'project')">Project <span aria-hidden="true">{{ tableSortIndicator('investigators', 'project') }}</span></button></th>
                                                         <th scope="col" :aria-sort="tableAriaSort('investigators', 'medianResidual')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'medianResidual', 'desc')">Median residual PheRS <span aria-hidden="true">{{ tableSortIndicator('investigators', 'medianResidual') }}</span></button></th>
                                                         <th scope="col" :aria-sort="tableAriaSort('investigators', 'iqr')"><button type="button" class="pbs-sort-button" @click="toggleTableSort('investigators', 'iqr')">IQR <span aria-hidden="true">{{ tableSortIndicator('investigators', 'iqr') }}</span></button></th>
@@ -248,7 +249,7 @@
                                                 <tbody>
                                                     <template v-for="group in visibleInvestigatorSummary"><tr :key="group.project" :class="{ 'pbs-current-investigator-row': group.currentGroup }">
                                                         <td><strong>#{{ group.rank }}</strong></td>
-                                                        <td><button type="button" class="pbs-project-toggle" :aria-label="'Project statistics for ' + group.project" :aria-expanded="String(expandedProjectNames.includes(group.project))" @click="toggleProjectComparison(group.project)"><span class="pbs-gene-chevron" aria-hidden="true">{{ expandedProjectNames.includes(group.project) ? '▾' : '▸' }}</span><strong>{{ group.project || 'Unavailable' }}</strong></button><small class="pbs-project-investigator">{{ projectInvestigators(group) }}</small><small v-if="group.currentGroup" class="pbs-current-project-label">Current sample project</small></td>
+                                                        <td><button type="button" class="pbs-project-toggle" :aria-label="'Project statistics for ' + group.project" :aria-expanded="String(expandedProjectNames.includes(group.project))" @click="toggleProjectComparison(group.project)"><span class="pbs-gene-chevron" aria-hidden="true"><b-icon-caret-down-fill v-if="expandedProjectNames.includes(group.project)"/><b-icon-caret-right-fill v-else/></span><strong>{{ group.project || 'Unavailable' }}</strong></button><small class="pbs-project-investigator">{{ projectInvestigators(group) }}</small><small v-if="group.currentGroup" class="pbs-current-project-label">Current sample project</small></td>
                                                         <td>{{ group.medianResidual.toFixed(2) }}</td>
                                                         <td>{{ group.iqr }}</td>
                                                         <td>{{ group.n.toLocaleString() }}</td>
@@ -294,6 +295,7 @@
 </template>
 
 <script>
+import PortalGuide from "@/components/pb/PortalGuide.vue";
 import SampleHpoTree from "./SampleHpoTree";
 import SampleVariants from "./SampleVariants";
 import SamplePagination from "./SamplePagination";
@@ -315,7 +317,7 @@ import "./style.css";
 
 export default {
     name: "PbSampleTemplate",
-    components: { PrioritizedFindings, SampleVariants, SampleHpoTree, SamplePagination, SampleInfo, SampleComparison, ProjectComparison },
+    components: { PortalGuide, PrioritizedFindings, SampleVariants, SampleHpoTree, SamplePagination, SampleInfo, SampleComparison, ProjectComparison },
     data() {
         const params = new URLSearchParams(window.location.search);
         const fixtureMode = params.get("fixture") === "1";

@@ -1,5 +1,5 @@
-/* The prototype remains at 80%; increase the result text and use desktop space. */
-.pbp-page .pbp-shell { max-width: 1800px; }
+/* Use readable result text at the default 100% scale with the Guide gutter. */
+.pbp-page .pbp-shell { max-width: 1440px; position: relative; }
 .pbs-results { min-width: 0; font-size: 21px; line-height: 1.5; }
 .pbs-results .pbp-card { margin-top: 22px; padding: 28px; }
 .pbs-results h2 { font-size: 28px; line-height: 1.35; margin: 0; font-weight: 600; }
@@ -196,3 +196,16 @@
     .pbs-results .pbs-genes { min-width: 1100px; }
     .pbs-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Use the same superscript icon and same-height margin rail as Gene2 / Variant. */
+.pbp-page button.pg2-help { display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; position:relative; top:-.4em; width:14px; height:14px; min-height:14px; padding:0; margin:0 0 0 3px; border:0; border-radius:50%; color:#14213d; background:transparent; font:400 14px/1 Arial,Helvetica,sans-serif; vertical-align:baseline; cursor:pointer; }
+.pbp-page .pbs-heading-help { display:inline-flex; align-items:baseline; max-width:100%; }
+.pbp-page .pbs-heading-help > .pbp-sort { min-width:0; }
+.pbp-page .pg2-help > svg { width:14px; height:14px; }
+.pbp-page.pbp-info-reserved { padding-right:432px; }
+.pbp-page .pg2-info-rail { position:absolute; z-index:50; box-sizing:border-box; padding:16px; border:1px solid #d8e1ec; border-radius:8px; background:#fff; color:#334155; box-shadow:0 5px 18px #18274014; font:400 18px/1.6 Arial,Helvetica,sans-serif; text-align:left; max-height:calc(100vh - 40px); overflow-y:auto; }
+.pbp-page .pg2-info-rail-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
+.pbp-page .pg2-info-rail-heading > strong { font-size:18px; line-height:1.45; font-weight:600; color:#17233b; }
+.pbp-page .pg2-info-rail-heading > button { display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; min-height:24px; width:24px; padding:1px; border:0; background:transparent; color:#64748b; }
+.pbp-page .pg2-info-rail-heading svg { width:21px; height:21px; }
+.pbp-page .pg2-info-rail p { margin:0; white-space:pre-line; overflow-wrap:anywhere; }

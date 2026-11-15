@@ -1,9 +1,9 @@
 {
-  "purpose": "Source delta/checksum checklist bundled with the Git commit containing this manifest; not a standalone app or deployment record",
+  "purpose": "Source/checksum inventory bundled with the delivery commit containing this file; not a standalone app or deployment record",
   "baseline_head": "859cd905d49e61f3a1e6765bb88ff0a2555c3128",
   "branch": "kyuryung/bch-prototype",
-  "primary_data_api": "http://100.80.30.199:5000/api/bio/query/<index>?q=…",
-  "delivery_rule": "Use the commit containing this manifest together with its baseline dependencies. Merge gateway registration into the target app; do not upload private inputs as static assets. This manifest records changed sources/tests, not the full dependency closure.",
+  "primary_data_api": "http://100.80.30.199:5000/api/bio/query/<index>?q=\u2026",
+  "delivery_rule": "Use the commit containing this manifest together with its baseline dependencies. The earlier ddf455104 alone is insufficient. Merge routes/gateway registration into the target app; never upload private inputs as static assets. This is a source/test inventory, not the full dependency closure.",
   "q_scope": {
     "Gene/Gene2": "q_by_gene over valid HPO tests for fixed gene, before P<0.05 filtering",
     "Phenotype": "q_by_hpo over valid gene tests for fixed HPO, before P<0.05 filtering"
@@ -11,489 +11,425 @@
   "files": [
     {
       "path": "package.json",
-      "git_status": "M",
       "sha256": "bcad982e82612b4649305dc6b9e9d36007b9a859e54b3dc4e812b2e0cef7013b"
     },
     {
+      "path": "public/guides/quick_guide_en.pdf",
+      "sha256": "ebf3f56ffcfed7d6f4edd9a02f33cbb17561d4b480a7adf1e4c5c4c41b194777"
+    },
+    {
+      "path": "public/guides/quick_guide_en_preview.png",
+      "sha256": "386ee74123419a6457c56006c12452ff9b1120b83cf80dfe2243adfc70a57467"
+    },
+    {
       "path": "public/index.html",
-      "git_status": "M",
-      "sha256": "46e6c1d69b97e81c780f98f9f3569a673b257f00b7d21319dba54e47dd31ed61"
-    },
-    {
-      "path": "scripts/gene_carrier_summary_endpoint.js",
-      "git_status": "M",
-      "sha256": "385e653e4fad494d768bed611f1db9acc6ccfec640e9b1203e7b0c220da38289"
-    },
-    {
-      "path": "scripts/gene_hpo_association_endpoint.js",
-      "git_status": "M",
-      "sha256": "3e9131ca3e583e6909cae56ecd746e4f51120242003e445ede7d8c0d387d6cc0"
-    },
-    {
-      "path": "scripts/pb_gene_context_api_server.py",
-      "git_status": "M",
-      "sha256": "712d40526bf266aaca040110805692afec4895603618c9e32bbf7cc8750ceee3"
-    },
-    {
-      "path": "scripts/pb_phenotype_profile_api.py",
-      "git_status": "M",
-      "sha256": "a05f6cb6d15d82fda63d64ae65d1354788ba836308981a8ef8560e36a6b4f041"
-    },
-    {
-      "path": "scripts/pb_profile_metadata.py",
-      "git_status": "M",
-      "sha256": "1cc39fcc7d972aa471ff153a19ec4954e019bf6184518a4eaf1f4075e2d7d899"
-    },
-    {
-      "path": "scripts/serve_pb_gene_context.sh",
-      "git_status": "M",
-      "sha256": "bf905166144ffe651d9cef99500933479447d177ac5ec15fe77d15e300584793"
-    },
-    {
-      "path": "scripts/serve_pb_phenotype_local.sh",
-      "git_status": "M",
-      "sha256": "a0f9ef177679e37ad5068a4334bb657ac55562e8f2caf885627019fd8b8ff94e"
-    },
-    {
-      "path": "scripts/test_pb_front_search.js",
-      "git_status": "M",
-      "sha256": "11c20e4b5294a442caff403e0f3ba7e8f032759ce95d7d7f2bafc945ac6070d1"
-    },
-    {
-      "path": "scripts/test_pb_gene2.js",
-      "git_status": "M",
-      "sha256": "eff5b3f171dcd4c279f4f1fc83046d09b90c0973ec9bae42d5487dfc6503ea53"
-    },
-    {
-      "path": "scripts/test_pb_gene2_info_rail.js",
-      "git_status": "M",
-      "sha256": "e4aa97df160a16e8142cf2ec500005b324174c74ab009013bcc8d5246c1ee07a"
-    },
-    {
-      "path": "scripts/test_pb_gene_context_api_server.py",
-      "git_status": "M",
-      "sha256": "080c3a717b906b9cb298f988633a7ca9f35bf27b0d3b5fffb6e04b0f6f51a920"
-    },
-    {
-      "path": "scripts/test_pb_phenotype_gene_endpoint.js",
-      "git_status": "M",
-      "sha256": "b69416e9aa7ace124e02a13bf999eddbf771a29002963ba1570a490dbcbc5dde"
-    },
-    {
-      "path": "scripts/test_pb_phenotype_input.js",
-      "git_status": "M",
-      "sha256": "d39863522970aee606346a4eb3dfa5a82fc9bf0dd16c278b020e86a8e567f3c4"
-    },
-    {
-      "path": "scripts/test_pb_phenotype_model.mjs",
-      "git_status": "M",
-      "sha256": "8be58e9bf72f1f5d10e9360a0a8a990e7669d7d96dc8a71441ae96bb3137aaf4"
-    },
-    {
-      "path": "scripts/test_pb_phenotype_selection.js",
-      "git_status": "M",
-      "sha256": "38c749943d28c96e8fa9155462186c713a9169637e19159e91df25e31785f2d6"
-    },
-    {
-      "path": "scripts/test_pb_profile_metadata.py",
-      "git_status": "M",
-      "sha256": "9e72f77c318ee723346bfa833bbd559353009cf2298631bf8a789b0f6886ed8b"
-    },
-    {
-      "path": "scripts/test_pb_sample_analysis.py",
-      "git_status": "M",
-      "sha256": "c8500c8bb1dae59c2f9ab714c168dae7cf3fcdb2b00fdc04ba301b606afaf63f"
-    },
-    {
-      "path": "scripts/test_pb_variant_profile_history.js",
-      "git_status": "M",
-      "sha256": "3259bfd2c8cd8386cb142ce5cb701382abd977fde946a8c90e06ee8c2b15bf5f"
-    },
-    {
-      "path": "src/views/KrFront/pageModel.js",
-      "git_status": "M",
-      "sha256": "03764d5afcdd9bf754b13fb501c15300aa2baa6740b0a1199dfd96551a9e2e16"
-    },
-    {
-      "path": "src/views/PbFront/Template.vue",
-      "git_status": "M",
-      "sha256": "7eb1467d4e762050446bb75467b75df314f796f3b65e4cd15120134738690160"
-    },
-    {
-      "path": "src/views/PbFront/searchModel.js",
-      "git_status": "M",
-      "sha256": "361ea4a3fd952abf11f2e8da4a1261783aeb0a830f96c312a88402a161b64f41"
-    },
-    {
-      "path": "src/views/PbFront2/searchModel.js",
-      "git_status": "M",
-      "sha256": "9ffe29da2a1e60efbede16856213feb9d6f82980071a8c61b5d8e2f286fa89e8"
-    },
-    {
-      "path": "src/views/PbGene/Template.vue",
-      "git_status": "M",
-      "sha256": "df5d3a823d7982940617ac3619439ec6699f7c23da757ea7252b57182097993e"
-    },
-    {
-      "path": "src/views/PbGene2/ContextPanel.vue",
-      "git_status": "M",
-      "sha256": "1f6870c717dc18db1ebdf35c6c7a5552f1f0996a5ceb7c1a6f7af2862ec59612"
-    },
-    {
-      "path": "src/views/PbGene2/InfoRail.vue",
-      "git_status": "M",
-      "sha256": "5cb9e14029431ecd21c937746fd3acbc915085eee5e0e28ef338e74045d25181"
-    },
-    {
-      "path": "src/views/PbGene2/ProfileInput.vue",
-      "git_status": "M",
-      "sha256": "eee522050b16434502f2edb3c67e450fb8be126de4cd5c6181b6151d67129725"
-    },
-    {
-      "path": "src/views/PbGene2/Template.vue",
-      "git_status": "M",
-      "sha256": "37b6709036f91f960d871135427bfdc6ca7dfa52e27352107759ca2909a87dbd"
-    },
-    {
-      "path": "src/views/PbGene2/VariantOverview.vue",
-      "git_status": "M",
-      "sha256": "08f44a16bff6cbe5de22f5f38814e94ee0eac40938063f81cacb4b9747426d36"
-    },
-    {
-      "path": "src/views/PbGene2/infoRailPosition.js",
-      "git_status": "M",
-      "sha256": "6c398853397f876273b59ed3ad34aeac3af1b33e8a68922f8b57528f98495f8d"
-    },
-    {
-      "path": "src/views/PbGene2/style.css",
-      "git_status": "M",
-      "sha256": "9df6c2604ad8412dbd0340fb377c13a703a615e6400e202c47838b2ddb6650d4"
-    },
-    {
-      "path": "src/views/PbPhenotype/Template.vue",
-      "git_status": "M",
-      "sha256": "8ee8e801f0b0fe474ef2bb9dc4c567fa030857f3796678ebb7573e1905f22c92"
-    },
-    {
-      "path": "src/views/PbPhenotype/phenotypeModel.js",
-      "git_status": "M",
-      "sha256": "20f0ddc4d5313c21e9006181d8ddbb553c2fc47bc69cb6d171c59737a30f3e80"
-    },
-    {
-      "path": "src/views/PbPhenotype/style.css",
-      "git_status": "M",
-      "sha256": "60e1b6fdd87ce9299bbe77bab4df69ffab8e30353799078da2bf0da41b8d6e88"
-    },
-    {
-      "path": "src/views/PbSample/SampleHpoTree.vue",
-      "git_status": "M",
-      "sha256": "8a5038d7ea149e25fa251c0f60c830238616e4248cecabd450375c13a22e72cb"
-    },
-    {
-      "path": "src/views/PbSample/SampleVariants.vue",
-      "git_status": "M",
-      "sha256": "ba1303b84f4d7a9acc99cd71519f62b91f1b4b064e28d9ce3ae4fbbb4f546914"
-    },
-    {
-      "path": "src/views/PbSample/Template.vue",
-      "git_status": "M",
-      "sha256": "6cbd80b6f3f1c5d7629f0976fb3729060eec68e63cef6e8b86462b3f65e1198b"
-    },
-    {
-      "path": "src/views/PbSample/sampleEvidence.js",
-      "git_status": "M",
-      "sha256": "ef6bef148abeb4fcf877ac262c2e1448d6a54dec90aeb7e9252235077bd0df5c"
-    },
-    {
-      "path": "src/views/PbSample/sampleVariants.test.js",
-      "git_status": "M",
-      "sha256": "7e2779a2772889285731b208e4c73273feeb383c45b2590199d3d9b5c567093b"
-    },
-    {
-      "path": "src/views/PbSample/style.css",
-      "git_status": "M",
-      "sha256": "3b34614b5822d4e78eb8720fb56270a8e8ce02baaeb7392d927b222febeae59e"
-    },
-    {
-      "path": "src/views/PbSample/tableSort.js",
-      "git_status": "M",
-      "sha256": "cadab0f1c8ea7cbc2eea55ace09ce94406eded350042eab25db4aab4bc045f27"
-    },
-    {
-      "path": "src/views/PbSample/tableSort.test.js",
-      "git_status": "M",
-      "sha256": "d91b5b5445906001375212a00de737eca8c904275dbc075b26f63ea89bbd14d0"
-    },
-    {
-      "path": "src/views/PbSample/variantEvidence.js",
-      "git_status": "M",
-      "sha256": "546503b159b9b5314784aa2e194ea4c234a9713015f8f66b6c14eb3f00458d38"
-    },
-    {
-      "path": "src/views/PbSample/variantEvidence.test.js",
-      "git_status": "M",
-      "sha256": "4e1b4d553d654dbb9df1996a70340248b9653f6c99dc3704190f3af9ce54b2ba"
-    },
-    {
-      "path": "src/views/PbVariant/pageModel.js",
-      "git_status": "M",
-      "sha256": "a73cf4879450914e1b856867e7a4f6d7392dc9d311397073bf036c3811d7bec1"
-    },
-    {
-      "path": "scripts/export_pb_burden_memberships.R",
-      "git_status": "??",
-      "sha256": "57f3b3ae6129182e56a1174531902c65a0e07d523a65559f1d7f0c2fb6ffadb0"
-    },
-    {
-      "path": "scripts/pb_burden_memberships.py",
-      "git_status": "??",
-      "sha256": "1a447d9c1d672b186f47a53e0a8dca725340040e802ad04bdcee88b055d3a4ae"
-    },
-    {
-      "path": "scripts/pb_hpo_gene_index.py",
-      "git_status": "??",
-      "sha256": "40ea7672f13ab9d3ffeededfdd9144356c3af851d5bc8ce15358657d4268e08f"
-    },
-    {
-      "path": "scripts/pb_phenotype_carrier_counts.py",
-      "git_status": "??",
-      "sha256": "5571b0e3010d5ca7acf391d5bcec6cf82b32f154ea26a8a4411f8742fee992cc"
-    },
-    {
-      "path": "scripts/prepare_pb_genotypes.sh",
-      "git_status": "??",
-      "sha256": "7d2e457d0e4f44c0c32fe71841ad098d8bf117788fcf16accc4b42866f71780a"
-    },
-    {
-      "path": "scripts/sample_match_projects_endpoint.js",
-      "git_status": "??",
-      "sha256": "1ccadad09a6d85a9870903b38f216579f9117d6cbbb7c675147776063ecd9e1c"
-    },
-    {
-      "path": "scripts/sample_overlap_index.py",
-      "git_status": "??",
-      "sha256": "a520802cb49f1f81d81983633fde26ba1bb94aaf81599e7c737f0a1e16a060c6"
-    },
-    {
-      "path": "scripts/setup_pb_genotypes.py",
-      "git_status": "??",
-      "sha256": "609715d9c01719e5d25ec99e06d252b0d493d7ee8c758cf97aafec1d6f91dfc7"
-    },
-    {
-      "path": "scripts/test_audit_pb_prioritized_source.py",
-      "git_status": "??",
-      "sha256": "50f4be3b26132a832b8909d318d96d1dbbbd511c5f7d28156ff5c908b568361f"
-    },
-    {
-      "path": "scripts/test_crdc_hpo_availability.js",
-      "git_status": "??",
-      "sha256": "0a7a316bdadcb56158600028a2dc4daea758514dd0c76ce4d8728a4ac970b8f6"
-    },
-    {
-      "path": "scripts/test_pb_burden_frontend_carriers.js",
-      "git_status": "??",
-      "sha256": "fa8b7d32b504a73f7ac17bc7fcb601ff91d182bda46fda65ffdfa69ef4f3d146"
-    },
-    {
-      "path": "scripts/test_pb_gene_synthetic100_server.py",
-      "git_status": "??",
-      "sha256": "5d5aeddfb2f5caf29a1b37718b695f04266e798e8b6ec68396b5bcf7b2d9dc3d"
-    },
-    {
-      "path": "scripts/test_pb_phenotype_carrier_comparison.py",
-      "git_status": "??",
-      "sha256": "f15fa6c6e6aef87b509bebd04522b3a58707434354c94b0c430295297f49a06c"
-    },
-    {
-      "path": "scripts/test_pb_phenotype_profile_editor.js",
-      "git_status": "??",
-      "sha256": "f9bf9592383055871a5789bc2f456f48af46a4348c872b20341ab02a1c53b8bf"
-    },
-    {
-      "path": "scripts/test_pb_phenotype_single.mjs",
-      "git_status": "??",
-      "sha256": "8462b677dce60b41aaada7c68f5083a5faa7566c7ec99e954e573041f3e9c496"
-    },
-    {
-      "path": "scripts/test_pb_phenotype_tooltip.mjs",
-      "git_status": "??",
-      "sha256": "eb69e5c9a00227ea8257e6e362ee0b292b93b85cfa4d3ec02cc9f603b277ba16"
-    },
-    {
-      "path": "scripts/test_pb_prototype_scale.js",
-      "git_status": "??",
-      "sha256": "16136b27d6fdc90167f3e67788891d6122cda31a8228fae99d051f50277f6ec6"
-    },
-    {
-      "path": "scripts/test_sample_match_projects_endpoint.js",
-      "git_status": "??",
-      "sha256": "5a6ce40caf71533fd726b35820e4dc35b4275f57d235e2a5f7cf5a09fbd12dae"
-    },
-    {
-      "path": "scripts/test_sample_overlap_index.py",
-      "git_status": "??",
-      "sha256": "bb897fe28cec6d7b81c7d889c7b830ac43a55149e08b07aabdbaf0c6a757e166"
-    },
-    {
-      "path": "scripts/test_setup_pb_genotypes.py",
-      "git_status": "??",
-      "sha256": "81dc235927a83874dcd35e52c3dc6df9a5d0e55d333d00c1a53dda35dea9c5f6"
-    },
-    {
-      "path": "src/utils/crdcHpoAvailability.js",
-      "git_status": "??",
-      "sha256": "c9d0eba589d1983d85c2d0a29cebbabe6827063041c450961f026a421423373e"
-    },
-    {
-      "path": "src/views/PbPhenotype/PhenotypeCountTable.vue",
-      "git_status": "??",
-      "sha256": "0d51143565242be575999377b043b3bd035304c1189bdc69688544f0f6f7a07c"
-    },
-    {
-      "path": "src/views/PbPhenotype/PhenotypeProfileEditor.vue",
-      "git_status": "??",
-      "sha256": "444115849fa0f3f553eb4dd5dd2ff21b58708dad2a0ee7f0751027717643fdb0"
-    },
-    {
-      "path": "src/views/PbPhenotype/PhenotypeTermPicker.vue",
-      "git_status": "??",
-      "sha256": "7220e3c02b94506fb4db69389bf5cdc846ef5eec18dc118980c28315697abc9d"
-    },
-    {
-      "path": "src/views/PbPhenotype/ProjectTableFilter.vue",
-      "git_status": "??",
-      "sha256": "65080e539d00ba2e454a497696f685e3cbeecf4aac666c848c8d5000bfb2c805"
-    },
-    {
-      "path": "src/views/PbPhenotype/QueryMatchMarkers.vue",
-      "git_status": "??",
-      "sha256": "79db135ca24a899213dcf4362aa3011845957c80e8a0866c8068ffd6ff27822f"
-    },
-    {
-      "path": "src/views/PbPhenotype/RefineButton.vue",
-      "git_status": "??",
-      "sha256": "7ce22fa9433322d5bd984e57806bdb3e7935e59bc6056300fc13c999bb4fee0e"
-    },
-    {
-      "path": "src/views/PbPhenotype/ResultPagination.vue",
-      "git_status": "??",
-      "sha256": "a7908e16428aaf38e65a311bd6fecb82befeefefc1070b588b167e166a47bedf"
-    },
-    {
-      "path": "src/views/PbPhenotype/SinglePhenotypeResults.vue",
-      "git_status": "??",
-      "sha256": "e36b9df2f7e674a0163d7cf00b61e893c64a5eba478f91afff881ba9b11c50e3"
-    },
-    {
-      "path": "src/views/PbPhenotype/matchingRule.js",
-      "git_status": "??",
-      "sha256": "d33990943603dec5990487d05946de9c6bb1bb544e458e3d58cde4d06a28695f"
-    },
-    {
-      "path": "src/views/PbPhenotype/profileEditor.css",
-      "git_status": "??",
-      "sha256": "2dd4c34cffb65d1d3eae05978ff311a5fb03883578fc8d3266e95f663580142d"
-    },
-    {
-      "path": "src/views/PbPhenotype/profileFilters.js",
-      "git_status": "??",
-      "sha256": "ae3281c8e87627a3aa5f0815af44bed5a8ca9db02a226f0e5b9bd1207429afff"
-    },
-    {
-      "path": "src/views/PbPhenotype/resultTooltip.js",
-      "git_status": "??",
-      "sha256": "ffeff88313d4e9adcdbb176308e386f44627c098e8b082e86f7bbf42048edafa"
-    },
-    {
-      "path": "src/views/PbPhenotype/singleBurdenCarriers.js",
-      "git_status": "??",
-      "sha256": "9373a3cf3d472f16f2cdb7a3b20404133952b246429b2c0ee45dee6c57dd91ce"
-    },
-    {
-      "path": "src/views/PbPhenotype/singlePhenotypeModel.js",
-      "git_status": "??",
-      "sha256": "d5f30fbf0ad5443fd8ff18824a1554df3ab78746d16f8563718c57b721431acd"
-    },
-    {
-      "path": "src/views/PbPhenotype/singlePhenotypeResults.css",
-      "git_status": "??",
-      "sha256": "b2f3c623148e9d49d9290d53e128937a197c17e89de7cdefadbe5d0f027d8c8f"
-    },
-    {
-      "path": "src/views/PbPhenotype/tooltipPosition.js",
-      "git_status": "??",
-      "sha256": "fde26bfdbed35dfd35a11124314c53006cb98a629886ae75edd212fde0947e90"
-    },
-    {
-      "path": "src/views/PbSample/ProjectComparison.vue",
-      "git_status": "??",
-      "sha256": "231d385b40f63bc4aedaf6abcc35568407eee17d13d62e0bbb11d89283e2487e"
-    },
-    {
-      "path": "src/views/PbSample/SampleComparison.vue",
-      "git_status": "??",
-      "sha256": "f04b5e86d90bff3fdf092bd238e5a0b2ac9040ec441700827537257509d56178"
-    },
-    {
-      "path": "src/views/PbSample/SampleInfo.vue",
-      "git_status": "??",
-      "sha256": "b75d6392e717dbb78eb6ec11230a01ad8aa9f914780a6ea1d88a78e782ffecdd"
-    },
-    {
-      "path": "src/views/PbSample/SamplePagination.vue",
-      "git_status": "??",
-      "sha256": "71d7d877d87b2c9adef117ed34dd189b3f9559cf151c8ddc8e620b0ff462e95c"
-    },
-    {
-      "path": "src/views/PbSample/projectComparison.test.js",
-      "git_status": "??",
-      "sha256": "ad6adedd63f1b90d5e4c389b567b91f11d2c4ad817b277d72806e60e00363258"
-    },
-    {
-      "path": "src/views/PbSample/projectComparisonStats.js",
-      "git_status": "??",
-      "sha256": "65475915010b30111ed47525f002efa1723bac2e10cd49ae5574503a27afa9ab"
-    },
-    {
-      "path": "src/views/PbSample/sampleComparison.test.js",
-      "git_status": "??",
-      "sha256": "f9ee828f20d21e17f9907affe3ff2b68c89ddddef54fd63b843ffc7c558639e8"
-    },
-    {
-      "path": "src/views/PbSample/sampleHelp.js",
-      "git_status": "??",
-      "sha256": "fb2060fc13550272db6ece514c1f07b3b2daa6f6ef6894d6debf623433903957"
-    },
-    {
-      "path": "src/views/PbSample/sampleInfoPosition.js",
-      "git_status": "??",
-      "sha256": "8ba57966f6eb8868f9093cec581d90dacb6aa3ca02d7466a0d94cec0785d62f4"
-    },
-    {
-      "path": "src/views/PbSample/sampleInfoPosition.test.js",
-      "git_status": "??",
-      "sha256": "338a87dd26ad9230491d10a72a3550198743535b0705c8ba03c59b53f620f4b3"
+      "sha256": "1637e54c2f78bb3f689b6870677bd691c8fa0c81434749fbee3c326b7db3e207"
     },
     {
       "path": "scripts/audit_pb_prioritized_source.py",
-      "git_status": "??",
       "sha256": "f8d130d1359cb8d30d5183501ab364893f5a579062a3f8bb87fd935bf498a92b"
     },
     {
       "path": "scripts/benchmark_pb_prioritized_payload.py",
-      "git_status": "??",
       "sha256": "9490f7bcf371a2a60d1e7b9c8d0281006054f2ef208474015df088c937a76edf"
     },
     {
+      "path": "scripts/export_pb_burden_memberships.R",
+      "sha256": "57f3b3ae6129182e56a1174531902c65a0e07d523a65559f1d7f0c2fb6ffadb0"
+    },
+    {
+      "path": "scripts/gene_carrier_summary_endpoint.js",
+      "sha256": "385e653e4fad494d768bed611f1db9acc6ccfec640e9b1203e7b0c220da38289"
+    },
+    {
+      "path": "scripts/gene_hpo_association_endpoint.js",
+      "sha256": "3e9131ca3e583e6909cae56ecd746e4f51120242003e445ede7d8c0d387d6cc0"
+    },
+    {
+      "path": "scripts/pb_burden_memberships.py",
+      "sha256": "1a447d9c1d672b186f47a53e0a8dca725340040e802ad04bdcee88b055d3a4ae"
+    },
+    {
+      "path": "scripts/pb_gene_context_api_server.py",
+      "sha256": "712d40526bf266aaca040110805692afec4895603618c9e32bbf7cc8750ceee3"
+    },
+    {
+      "path": "scripts/pb_hpo_gene_index.py",
+      "sha256": "40ea7672f13ab9d3ffeededfdd9144356c3af851d5bc8ce15358657d4268e08f"
+    },
+    {
+      "path": "scripts/pb_phenotype_carrier_counts.py",
+      "sha256": "5571b0e3010d5ca7acf391d5bcec6cf82b32f154ea26a8a4411f8742fee992cc"
+    },
+    {
+      "path": "scripts/pb_phenotype_profile_api.py",
+      "sha256": "a05f6cb6d15d82fda63d64ae65d1354788ba836308981a8ef8560e36a6b4f041"
+    },
+    {
+      "path": "scripts/pb_profile_metadata.py",
+      "sha256": "1cc39fcc7d972aa471ff153a19ec4954e019bf6184518a4eaf1f4075e2d7d899"
+    },
+    {
+      "path": "scripts/prepare_pb_genotypes.sh",
+      "sha256": "7d2e457d0e4f44c0c32fe71841ad098d8bf117788fcf16accc4b42866f71780a"
+    },
+    {
       "path": "scripts/run_pb_gene_synthetic100.sbatch",
-      "git_status": "??",
       "sha256": "799fbe525c466d6af686af0e6dad3b6343ecc76e37c183d9fea5476070af88e8"
     },
     {
+      "path": "scripts/sample_match_projects_endpoint.js",
+      "sha256": "1ccadad09a6d85a9870903b38f216579f9117d6cbbb7c675147776063ecd9e1c"
+    },
+    {
+      "path": "scripts/sample_overlap_index.py",
+      "sha256": "a520802cb49f1f81d81983633fde26ba1bb94aaf81599e7c737f0a1e16a060c6"
+    },
+    {
+      "path": "scripts/serve_pb_gene_context.sh",
+      "sha256": "bf905166144ffe651d9cef99500933479447d177ac5ec15fe77d15e300584793"
+    },
+    {
+      "path": "scripts/serve_pb_phenotype_local.sh",
+      "sha256": "a0f9ef177679e37ad5068a4334bb657ac55562e8f2caf885627019fd8b8ff94e"
+    },
+    {
+      "path": "scripts/setup_pb_genotypes.py",
+      "sha256": "609715d9c01719e5d25ec99e06d252b0d493d7ee8c758cf97aafec1d6f91dfc7"
+    },
+    {
+      "path": "scripts/test_audit_pb_prioritized_source.py",
+      "sha256": "50f4be3b26132a832b8909d318d96d1dbbbd511c5f7d28156ff5c908b568361f"
+    },
+    {
+      "path": "scripts/test_crdc_hpo_availability.js",
+      "sha256": "0a7a316bdadcb56158600028a2dc4daea758514dd0c76ce4d8728a4ac970b8f6"
+    },
+    {
+      "path": "scripts/test_pb_burden_frontend_carriers.js",
+      "sha256": "fa8b7d32b504a73f7ac17bc7fcb601ff91d182bda46fda65ffdfa69ef4f3d146"
+    },
+    {
+      "path": "scripts/test_pb_front_search.js",
+      "sha256": "11c20e4b5294a442caff403e0f3ba7e8f032759ce95d7d7f2bafc945ac6070d1"
+    },
+    {
+      "path": "scripts/test_pb_gene2.js",
+      "sha256": "eff5b3f171dcd4c279f4f1fc83046d09b90c0973ec9bae42d5487dfc6503ea53"
+    },
+    {
+      "path": "scripts/test_pb_gene2_info_rail.js",
+      "sha256": "e4aa97df160a16e8142cf2ec500005b324174c74ab009013bcc8d5246c1ee07a"
+    },
+    {
+      "path": "scripts/test_pb_gene_context_api_server.py",
+      "sha256": "080c3a717b906b9cb298f988633a7ca9f35bf27b0d3b5fffb6e04b0f6f51a920"
+    },
+    {
+      "path": "scripts/test_pb_gene_synthetic100_server.py",
+      "sha256": "5d5aeddfb2f5caf29a1b37718b695f04266e798e8b6ec68396b5bcf7b2d9dc3d"
+    },
+    {
+      "path": "scripts/test_pb_phenotype_carrier_comparison.py",
+      "sha256": "f15fa6c6e6aef87b509bebd04522b3a58707434354c94b0c430295297f49a06c"
+    },
+    {
+      "path": "scripts/test_pb_phenotype_gene_endpoint.js",
+      "sha256": "b69416e9aa7ace124e02a13bf999eddbf771a29002963ba1570a490dbcbc5dde"
+    },
+    {
+      "path": "scripts/test_pb_phenotype_input.js",
+      "sha256": "d39863522970aee606346a4eb3dfa5a82fc9bf0dd16c278b020e86a8e567f3c4"
+    },
+    {
+      "path": "scripts/test_pb_phenotype_model.mjs",
+      "sha256": "8be58e9bf72f1f5d10e9360a0a8a990e7669d7d96dc8a71441ae96bb3137aaf4"
+    },
+    {
+      "path": "scripts/test_pb_phenotype_profile_editor.js",
+      "sha256": "f9bf9592383055871a5789bc2f456f48af46a4348c872b20341ab02a1c53b8bf"
+    },
+    {
+      "path": "scripts/test_pb_phenotype_selection.js",
+      "sha256": "38c749943d28c96e8fa9155462186c713a9169637e19159e91df25e31785f2d6"
+    },
+    {
+      "path": "scripts/test_pb_phenotype_single.mjs",
+      "sha256": "8462b677dce60b41aaada7c68f5083a5faa7566c7ec99e954e573041f3e9c496"
+    },
+    {
+      "path": "scripts/test_pb_phenotype_tooltip.mjs",
+      "sha256": "eb69e5c9a00227ea8257e6e362ee0b292b93b85cfa4d3ec02cc9f603b277ba16"
+    },
+    {
+      "path": "scripts/test_pb_profile_metadata.py",
+      "sha256": "9e72f77c318ee723346bfa833bbd559353009cf2298631bf8a789b0f6886ed8b"
+    },
+    {
+      "path": "scripts/test_pb_prototype_scale.js",
+      "sha256": "6f8ffdd814b1155a4b890ece386a859e3cc5fb16890b99f6ee114693862b3f43"
+    },
+    {
+      "path": "scripts/test_pb_sample_analysis.py",
+      "sha256": "c8500c8bb1dae59c2f9ab714c168dae7cf3fcdb2b00fdc04ba301b606afaf63f"
+    },
+    {
+      "path": "scripts/test_pb_variant_profile_history.js",
+      "sha256": "3259bfd2c8cd8386cb142ce5cb701382abd977fde946a8c90e06ee8c2b15bf5f"
+    },
+    {
+      "path": "scripts/test_sample_match_projects_endpoint.js",
+      "sha256": "5a6ce40caf71533fd726b35820e4dc35b4275f57d235e2a5f7cf5a09fbd12dae"
+    },
+    {
+      "path": "scripts/test_sample_overlap_index.py",
+      "sha256": "bb897fe28cec6d7b81c7d889c7b830ac43a55149e08b07aabdbaf0c6a757e166"
+    },
+    {
+      "path": "scripts/test_setup_pb_genotypes.py",
+      "sha256": "81dc235927a83874dcd35e52c3dc6df9a5d0e55d333d00c1a53dda35dea9c5f6"
+    },
+    {
       "path": "scripts/verify_pb_gene_synthetic100.R",
-      "git_status": "??",
       "sha256": "761b9143c7dd1913945c46393821ea4920df88682566c58abee599d3baac3261"
+    },
+    {
+      "path": "src/components/pb/PortalGuide.vue",
+      "sha256": "f6ef97906b2b500efe7891f7bd5aa5d178fa64d290522d91d6bce6d299136f7e"
+    },
+    {
+      "path": "src/utils/crdcHpoAvailability.js",
+      "sha256": "c9d0eba589d1983d85c2d0a29cebbabe6827063041c450961f026a421423373e"
+    },
+    {
+      "path": "src/views/KrFront/pageModel.js",
+      "sha256": "03764d5afcdd9bf754b13fb501c15300aa2baa6740b0a1199dfd96551a9e2e16"
+    },
+    {
+      "path": "src/views/PbFront/Template.vue",
+      "sha256": "450d3d7f692f538644963899052fbcd0247813ee4de08220f869746ebf4b08aa"
+    },
+    {
+      "path": "src/views/PbFront/searchModel.js",
+      "sha256": "361ea4a3fd952abf11f2e8da4a1261783aeb0a830f96c312a88402a161b64f41"
+    },
+    {
+      "path": "src/views/PbFront2/Template.vue",
+      "sha256": "6747eeeceb5e5d6c01490508860f3351c295a8ecf37ae884eeab57dcc4862eb5"
+    },
+    {
+      "path": "src/views/PbFront2/searchModel.js",
+      "sha256": "9ffe29da2a1e60efbede16856213feb9d6f82980071a8c61b5d8e2f286fa89e8"
+    },
+    {
+      "path": "src/views/PbGene/Template.vue",
+      "sha256": "df5d3a823d7982940617ac3619439ec6699f7c23da757ea7252b57182097993e"
+    },
+    {
+      "path": "src/views/PbGene2/ContextPanel.vue",
+      "sha256": "1f6870c717dc18db1ebdf35c6c7a5552f1f0996a5ceb7c1a6f7af2862ec59612"
+    },
+    {
+      "path": "src/views/PbGene2/InfoRail.vue",
+      "sha256": "5414596971e9e528a47676f3e1c6f07e88340784afab3ec90c1b3a8385ba6eec"
+    },
+    {
+      "path": "src/views/PbGene2/ProfileInput.vue",
+      "sha256": "eee522050b16434502f2edb3c67e450fb8be126de4cd5c6181b6151d67129725"
+    },
+    {
+      "path": "src/views/PbGene2/Template.vue",
+      "sha256": "37d517972d029d9d5851272ec3b0cd68c2dc4be20f5f5b3d0df9258319a4e38a"
+    },
+    {
+      "path": "src/views/PbGene2/VariantOverview.vue",
+      "sha256": "08f44a16bff6cbe5de22f5f38814e94ee0eac40938063f81cacb4b9747426d36"
+    },
+    {
+      "path": "src/views/PbGene2/infoRailPosition.js",
+      "sha256": "6c398853397f876273b59ed3ad34aeac3af1b33e8a68922f8b57528f98495f8d"
+    },
+    {
+      "path": "src/views/PbGene2/style.css",
+      "sha256": "eb061c2f3dac34bdae7aaf62c30a0915ac68ec8ea64eceee122c13d4c8b48d22"
+    },
+    {
+      "path": "src/views/PbPhenotype/PhenotypeCountTable.vue",
+      "sha256": "0d51143565242be575999377b043b3bd035304c1189bdc69688544f0f6f7a07c"
+    },
+    {
+      "path": "src/views/PbPhenotype/PhenotypeProfileEditor.vue",
+      "sha256": "444115849fa0f3f553eb4dd5dd2ff21b58708dad2a0ee7f0751027717643fdb0"
+    },
+    {
+      "path": "src/views/PbPhenotype/PhenotypeTermPicker.vue",
+      "sha256": "7220e3c02b94506fb4db69389bf5cdc846ef5eec18dc118980c28315697abc9d"
+    },
+    {
+      "path": "src/views/PbPhenotype/ProjectTableFilter.vue",
+      "sha256": "65080e539d00ba2e454a497696f685e3cbeecf4aac666c848c8d5000bfb2c805"
+    },
+    {
+      "path": "src/views/PbPhenotype/QueryMatchMarkers.vue",
+      "sha256": "79db135ca24a899213dcf4362aa3011845957c80e8a0866c8068ffd6ff27822f"
+    },
+    {
+      "path": "src/views/PbPhenotype/RefineButton.vue",
+      "sha256": "7ce22fa9433322d5bd984e57806bdb3e7935e59bc6056300fc13c999bb4fee0e"
+    },
+    {
+      "path": "src/views/PbPhenotype/ResultInfo.vue",
+      "sha256": "10e5234593d8927649d7fd27819ed519e54ecfe392d7b3e5aa2e2bf7af417d3c"
+    },
+    {
+      "path": "src/views/PbPhenotype/ResultPagination.vue",
+      "sha256": "a7908e16428aaf38e65a311bd6fecb82befeefefc1070b588b167e166a47bedf"
+    },
+    {
+      "path": "src/views/PbPhenotype/SinglePhenotypeResults.vue",
+      "sha256": "2cd26d99443da4e0506e3ac46970355044a7938446f6259e660e9da18cdaa880"
+    },
+    {
+      "path": "src/views/PbPhenotype/Template.vue",
+      "sha256": "35539dc80ccb92940b7cafa97c2882066c902cd0d2a1880aa4695837fce6325b"
+    },
+    {
+      "path": "src/views/PbPhenotype/matchingRule.js",
+      "sha256": "d33990943603dec5990487d05946de9c6bb1bb544e458e3d58cde4d06a28695f"
+    },
+    {
+      "path": "src/views/PbPhenotype/phenotypeModel.js",
+      "sha256": "20f0ddc4d5313c21e9006181d8ddbb553c2fc47bc69cb6d171c59737a30f3e80"
+    },
+    {
+      "path": "src/views/PbPhenotype/profileEditor.css",
+      "sha256": "2dd4c34cffb65d1d3eae05978ff311a5fb03883578fc8d3266e95f663580142d"
+    },
+    {
+      "path": "src/views/PbPhenotype/profileFilters.js",
+      "sha256": "ae3281c8e87627a3aa5f0815af44bed5a8ca9db02a226f0e5b9bd1207429afff"
+    },
+    {
+      "path": "src/views/PbPhenotype/resultTooltip.js",
+      "sha256": "ffeff88313d4e9adcdbb176308e386f44627c098e8b082e86f7bbf42048edafa"
+    },
+    {
+      "path": "src/views/PbPhenotype/singleBurdenCarriers.js",
+      "sha256": "9373a3cf3d472f16f2cdb7a3b20404133952b246429b2c0ee45dee6c57dd91ce"
+    },
+    {
+      "path": "src/views/PbPhenotype/singlePhenotypeModel.js",
+      "sha256": "d5f30fbf0ad5443fd8ff18824a1554df3ab78746d16f8563718c57b721431acd"
+    },
+    {
+      "path": "src/views/PbPhenotype/singlePhenotypeResults.css",
+      "sha256": "6eeffd77a8c3797d46b659d118888688bab47bcc68d89ca099a67d988c72d9d1"
+    },
+    {
+      "path": "src/views/PbPhenotype/style.css",
+      "sha256": "60e1b6fdd87ce9299bbe77bab4df69ffab8e30353799078da2bf0da41b8d6e88"
+    },
+    {
+      "path": "src/views/PbPhenotype/tooltipPosition.js",
+      "sha256": "fde26bfdbed35dfd35a11124314c53006cb98a629886ae75edd212fde0947e90"
+    },
+    {
+      "path": "src/views/PbSample/ProjectComparison.vue",
+      "sha256": "231d385b40f63bc4aedaf6abcc35568407eee17d13d62e0bbb11d89283e2487e"
+    },
+    {
+      "path": "src/views/PbSample/SampleComparison.vue",
+      "sha256": "3d277a090fc4c871aa2026125b7a48bd83092ac223f3a56866717cbe06105275"
+    },
+    {
+      "path": "src/views/PbSample/SampleHpoTree.vue",
+      "sha256": "8a5038d7ea149e25fa251c0f60c830238616e4248cecabd450375c13a22e72cb"
+    },
+    {
+      "path": "src/views/PbSample/SampleInfo.vue",
+      "sha256": "b75d6392e717dbb78eb6ec11230a01ad8aa9f914780a6ea1d88a78e782ffecdd"
+    },
+    {
+      "path": "src/views/PbSample/SamplePagination.vue",
+      "sha256": "7c7e3bc148845ba867d3303557775a7469202079881f0e3a32bd889614746b34"
+    },
+    {
+      "path": "src/views/PbSample/SampleVariants.vue",
+      "sha256": "ba1303b84f4d7a9acc99cd71519f62b91f1b4b064e28d9ce3ae4fbbb4f546914"
+    },
+    {
+      "path": "src/views/PbSample/SharedGeneComparison.vue",
+      "sha256": "218562eba24b0241595b900f9a074d59d6402c3ef954e83d81feedb76e61d8cd"
+    },
+    {
+      "path": "src/views/PbSample/Template.vue",
+      "sha256": "8f3c1aa182b49202b8eb201f2243edd211d1ad211c8d9afc84f9fa1555a16e05"
+    },
+    {
+      "path": "src/views/PbSample/projectComparison.test.js",
+      "sha256": "ad6adedd63f1b90d5e4c389b567b91f11d2c4ad817b277d72806e60e00363258"
+    },
+    {
+      "path": "src/views/PbSample/projectComparisonStats.js",
+      "sha256": "65475915010b30111ed47525f002efa1723bac2e10cd49ae5574503a27afa9ab"
+    },
+    {
+      "path": "src/views/PbSample/sampleComparison.test.js",
+      "sha256": "2b8217bbe6f55c57b9ca2ca496132dc05ab33a1e251414964f5e8cb9a268fb6f"
+    },
+    {
+      "path": "src/views/PbSample/sampleEvidence.js",
+      "sha256": "ef6bef148abeb4fcf877ac262c2e1448d6a54dec90aeb7e9252235077bd0df5c"
+    },
+    {
+      "path": "src/views/PbSample/sampleHelp.js",
+      "sha256": "af2a215aefd91437f8913622b09b63edd3285a88b9b18448d36def3b2f58efc0"
+    },
+    {
+      "path": "src/views/PbSample/sampleInfoPosition.js",
+      "sha256": "8ba57966f6eb8868f9093cec581d90dacb6aa3ca02d7466a0d94cec0785d62f4"
+    },
+    {
+      "path": "src/views/PbSample/sampleInfoPosition.test.js",
+      "sha256": "338a87dd26ad9230491d10a72a3550198743535b0705c8ba03c59b53f620f4b3"
+    },
+    {
+      "path": "src/views/PbSample/sampleVariants.test.js",
+      "sha256": "7e2779a2772889285731b208e4c73273feeb383c45b2590199d3d9b5c567093b"
+    },
+    {
+      "path": "src/views/PbSample/sharedComparison.js",
+      "sha256": "ec21bda73cbab7d15db76b5c8c7fab2e391afe0a3e405566c0913353e9edbd66"
+    },
+    {
+      "path": "src/views/PbSample/sharedComparison.test.js",
+      "sha256": "076dd46bf289f772b06d16ea65a8aed8a57732e5097d20c5d380f55fbf67bda7"
+    },
+    {
+      "path": "src/views/PbSample/style.css",
+      "sha256": "bfbe14b4a14268c4a94e4cb6b668b0f00e2f7d6306cdbb9e9e1e826727559763"
+    },
+    {
+      "path": "src/views/PbSample/tableSort.js",
+      "sha256": "cadab0f1c8ea7cbc2eea55ace09ce94406eded350042eab25db4aab4bc045f27"
+    },
+    {
+      "path": "src/views/PbSample/tableSort.test.js",
+      "sha256": "d91b5b5445906001375212a00de737eca8c904275dbc075b26f63ea89bbd14d0"
+    },
+    {
+      "path": "src/views/PbSample/variantEvidence.js",
+      "sha256": "546503b159b9b5314784aa2e194ea4c234a9713015f8f66b6c14eb3f00458d38"
+    },
+    {
+      "path": "src/views/PbSample/variantEvidence.test.js",
+      "sha256": "4e1b4d553d654dbb9df1996a70340248b9653f6c99dc3704190f3af9ce54b2ba"
+    },
+    {
+      "path": "src/views/PbVariant/pageModel.js",
+      "sha256": "a73cf4879450914e1b856867e7a4f6d7392dc9d311397073bf036c3811d7bec1"
     }
   ],
-  "status_note": "git_status values are the pre-commit comparison against baseline_head, not the checkout status after this delivery commit."
+  "status_note": "git_status values are the pre-commit comparison against baseline_head, not the checkout status after this delivery commit.",
+  "delivery_status": "Guide/100%-scale/Phenotype help and Sample comparison source/assets/tests are included in this delivery; use the containing commit plus baseline dependencies. Test-server deployment is separate."
 }

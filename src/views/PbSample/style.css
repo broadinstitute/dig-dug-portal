@@ -376,7 +376,7 @@
 .pbs-column-filter-footer { padding-bottom:0; color:#64758a; font-size:var(--pbs-secondary-font,18px); }
 .pbs-header-filter-button:focus-visible { outline:2px solid var(--pbg-primary); outline-offset:4px; }
 
-/* Match Gene2/Variant's 20px detail and 18px supporting text at the shared 80% scale. */
+/* Match Gene2/Variant's 20px detail and 18px supporting text at the default 100% scale. */
 .pbs-page .pbg-home-link,.pbs-page .pbg-breadcrumb-link,.pbs-page .pbg-nav-link,
 .pbs-page .pbg-gene-search-input,.pbs-page .pbg-gene-search-submit { font-size:var(--pbs-secondary-font); }
 .pbs-page button,.pbs-page input,.pbs-page select { font-family:inherit; }
@@ -534,3 +534,51 @@
 .pbs-detail-pager > span:first-child { margin-right:auto; }
 .pbs-detail-pager button { min-width:32px; height:30px; padding:0 8px; border:1px solid #d8e1ec; border-radius:4px; background:white; color:#174a7c; font:22px/1 Arial,Helvetica,sans-serif; cursor:pointer; }
 .pbs-detail-pager button:disabled { opacity:.4; cursor:default; }
+
+/* Shared evidence inside an already expanded sample comparison; no nested disclosure. */
+.pbs-shared-summary { display:flex; align-items:center; flex-wrap:wrap; gap:10px; color:#596b86; margin:16px 0 26px; font-size:18px; }
+.pbs-shared-summary strong { font-weight:600; color:#24334a; }
+.pbs-shared-bar { width:27%; min-width:170px; height:11px; background:#cad3e1; border-radius:6px; overflow:hidden; }
+.pbs-shared-bar > span { display:block; height:100%; background:#2858da; }
+.pbs-shared-section-heading { display:flex; align-items:baseline; flex-wrap:wrap; gap:10px; margin:26px 0 12px; }
+.pbs-shared-section-heading h5 { margin:0; }
+.pbs-shared-section-heading > span { color:#596b86; font-size:18px; }
+.pbs-shared-scroll { width:100%; overflow-x:auto; }
+.pbs-shared-comparison .pbs-identical-table { min-width:1150px; }
+.pbs-shared-comparison .pbs-different-table { min-width:850px; }
+.pbs-page .pbs-shared-comparison .pbs-comparison-table th,.pbs-page .pbs-shared-comparison .pbs-comparison-table td { border:1px solid #d5deeb; padding:12px 14px; vertical-align:middle; }
+.pbs-page .pbs-shared-comparison .pbs-comparison-table th { background:#f1f4f9; font-weight:600; }
+.pbs-shared-comparison th button { display:inline; min-height:0; border:0; padding:0; background:transparent; color:inherit; text-align:left; font:inherit; cursor:pointer; }
+.pbs-shared-comparison th button svg { width:13px; height:13px; color:#2156d9; vertical-align:baseline; }
+.pbs-shared-comparison th[aria-sort=ascending],.pbs-shared-comparison th[aria-sort=descending] { box-shadow:inset 0 -2px #2858da; }
+.pbs-shared-comparison .pbs-column-heading { gap:4px; }
+.pbs-shared-gene-cell small { display:block; margin:5px 0; color:#596b86; font-size:16px; }
+.pbs-identical-id a { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; overflow-wrap:anywhere; }
+.pbs-page .pbs-shared-comparison td.pbs-shared-number { text-align:right; font-variant-numeric:tabular-nums; }
+.pbs-pair-label { display:inline; }
+.pbs-sample-dot { display:inline-block; width:10px; height:10px; border:1px solid; border-radius:2px; margin-right:6px; }
+.pbs-searched-dot { background:#fff080; border-color:#d4bd49; }
+.pbs-compared-dot { background:#cde9a7; border-color:#85ad59; }
+.pbs-shared-comparison .pbs-shared-muted { color:#6b7c94; }
+.pbs-score-source { color:#596b86; font-size:16px; }
+.pbs-page .pbs-shared-comparison .pbs-plp-text { color:#b52d21; }
+.pbs-plp-label { color:#596b86; font-size:17px; }
+.pbs-plp-both,.pbs-plp-reference,.pbs-plp-candidate { display:inline-block; padding:3px 10px; border:1px solid #d5deeb; border-radius:16px; }
+.pbs-plp-both { color:#b52d21; background:#fff5f3; border-color:#e9aaa2; }
+.pbs-shared-comparison button:focus-visible,.pbs-shared-scroll:focus-visible { outline:2px solid #2461d6; outline-offset:3px; }
+
+/* One boundary around the entire expanded sample, separating adjacent parent rows. */
+.pbs-page .pbs-sample-match-table > tbody > .pbs-comparison-row > td { padding:12px 10px 20px; background:#f3f6fb; }
+.pbs-page .pbs-comparison { margin:0; padding:22px 24px 24px; border:1px solid #b9c9de; border-left:3px solid #527abd; border-radius:8px; background:#fff; }
+.pbs-page .pbs-sample-identity { display:flex; align-items:center; gap:6px; }
+.pbs-page .pbs-disclosure { display:inline-flex; align-items:center; justify-content:center; flex:0 0 44px; width:44px; height:44px; min-height:44px; padding:9px; margin:0; border:0; border-radius:0; background:transparent; color:#075bc8; }
+.pbs-page .pbs-disclosure svg,.pbs-project-toggle .pbs-gene-chevron svg { width:24px; height:24px; }
+.pbs-page .pbs-disclosure:hover,.pbs-page .pbs-disclosure[aria-expanded=true] { background:transparent; color:#034aa8; }
+.pbs-page .pbs-disclosure:focus-visible { outline:3px solid #2461d6; outline-offset:3px; }
+.pbs-page .pbs-project-toggle { min-height:44px; }
+/* Keep expanded content and its pagers visible even when the parent table scrolls horizontally. */
+.pbs-page .pbs-match-table-wrap { container-type:inline-size; }
+@supports (width:1cqw) { .pbs-page .pbs-comparison { box-sizing:border-box; width:calc(100cqw - 20px); max-width:100%; } }
+.pbs-page .pbs-shared-comparison .pbs-comparison-table th,.pbs-page .pbs-shared-comparison .pbs-comparison-table td { padding-left:10px; padding-right:10px; }
+.pbs-page .pbs-shared-comparison .pbs-comparison-table th { overflow-wrap:normal; word-break:normal; }
+.pbs-shared-comparison th button { overflow-wrap:normal; word-break:normal; }

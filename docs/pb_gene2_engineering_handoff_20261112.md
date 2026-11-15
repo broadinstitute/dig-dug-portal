@@ -4,6 +4,10 @@ Source delivery: [source delta/checksums against the baseline](pb_page_source_de
 
 Updated: 2026-11-15. Entry/default Gene destination: `/pb_gene2.html?query=<encoded gene>`; bare navigation defaults to GJB2. Baseline HEAD `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; the follow-up source is included in the commit containing this document. This is an implementation contract, not deployment evidence. Legacy `/pb_Gene.html` is separately addressable; do not send new Gene links there.
 
+## 2026-11-15 UI follow-up — included in this delivery
+
+The shared Guide PDF popup and default 100% scale are implemented locally. Carry the component, public PDF/preview, page imports and styles from the [common Guide contract](pb_front_gene_variant_merge_handoff.md#shared-guide-popup). Use the delivery commit containing this document and its full repository dependencies; the earlier `ddf455104` alone does not include this follow-up. APIs, data releases and analysis contracts below are unchanged.
+
 ## 1. Connect to the existing test-server BioIndex
 
 Base: `http://100.80.30.199:5000`. Browser access stays behind the existing same-origin private proxy/authentication. Use `GET /api/bio/query/<index>?q=…`, then every returned `/api/bio/cont?token=…`; validate returned identifiers. A `limit=1` diagnostic is not a complete data load.
@@ -54,7 +58,7 @@ Order: Gene identity → CRDC variant overview → carrier demographics → sing
 | Predictor score | LoFTEE HC=1, otherwise available AlphaMissense; REVEL reference-only. Valid zero is not missing. Do not substitute REVEL into the burden predictor. |
 | HPO reference count | Exact recorded applied IDs combined with **OR**, person counted once. Different from n_terms and rPheRS coverage. |
 | Total HPO terms | Full approved scoring-matrix row sum `n_terms`; not metadata list length or HPO match count. Missing row is unavailable; a measured zero remains zero. |
-| Help / scale | 80% before first paint through `public/index.html`; do not apply a second mounted zoom. Hover/focus should not move its icon by resizing the page; pin may reserve a rail. Preserve zoom-aware InfoRail behavior. |
+| Help / scale | 100% before first paint through `public/index.html`; do not apply a second mounted zoom. Hover/focus should not move its icon by resizing the page; pin may reserve a rail. Preserve zoom-aware InfoRail behavior. |
 
 ## 4. Shared HPO availability — new dependency
 
@@ -111,7 +115,7 @@ Current approved processed GT release is `2025_crdc_16366_dp20_af001_20260907`, 
 2. Complete association rows and Gene-wise q; same pair beta/p/N and HPO-wise q match the source. Do not use a top-15 preview as the entire table.
 3. Global sorting/pins/search/pagination, unknown versus zero, ClinVar draft/Apply/Cancel and off-page numeric maxima work; source 0 and negative/scientific numeric values sort correctly.
 4. Missing HPO blocks all entry paths; exactly one globally recorded sample is allowed; service failure/Retry and valid Enter submission work. No actual model needs to be run solely to validate input gating.
-5. Target-service context reference/scope, exact variant IDs, GT source/cache reuse and restart/auth behavior pass. Verify 80% first paint and hover/pin placement on desktop.
+5. Target-service context reference/scope, exact variant IDs, GT source/cache reuse and restart/auth behavior pass. Verify 100% first paint and hover/pin placement on desktop.
 
 ```sh
 node scripts/test_pb_gene2.js

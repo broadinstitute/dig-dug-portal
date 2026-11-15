@@ -1,5 +1,6 @@
 <template>
-    <div>
+    <div class="pb-guide-page">
+        <portal-guide />
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents" />
         <main class="container-fluid mdkp-body pbg-page pg2-page" :class="{ 'pg2-info-reserved': infoRailReserved }">
             <div class="pbg-shell">
@@ -230,6 +231,7 @@
     </div>
 </template>
 <script>
+import PortalGuide from "@/components/pb/PortalGuide.vue";
 import { createPbGeneState, pbGeneComputed, pbGeneMethods } from "../PbGene/pageModel";
 import { hpoLabel, resolveHpoTerms } from "../PbGene/hpoContextSearch";
 import { requireCrdcHpos } from '../../utils/crdcHpoAvailability';
@@ -258,7 +260,7 @@ import "./style.css";
 export default {
     name: "PbGene2Template",
     mixins: [carrierScoreMixin, filteredCarrierDemographicsMixin, variantHpoCountsMixin, carrierTableMixin, carrierHpoTotalsMixin],
-    components: { GeneIdentity, Demographics, ContextPanel, VariantOverview, HelpTooltip, InfoRail, VariantAnnotation },
+    components: { PortalGuide, GeneIdentity, Demographics, ContextPanel, VariantOverview, HelpTooltip, InfoRail, VariantAnnotation },
     data() {
         return { ...createPbGeneState(), help, annotationSources: VARIANT_ANNOTATION_SOURCES, infoRailReserved: false, clinvarFilterDraft: [], associationSearch: '', associationPage: 1, associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }, contextRunMeta: {}, currentContextRunId: '', rerunningContextRunId: '', appliedContext: null, receivedContextReference: null };
     },

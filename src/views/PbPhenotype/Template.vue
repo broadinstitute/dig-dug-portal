@@ -1,11 +1,13 @@
 <template>
-    <div>
+    <div class="pb-guide-page">
+        <portal-guide />
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
         ></page-header>
-        <main class="container-fluid mdkp-body pbp-page">
+        <main class="container-fluid mdkp-body pbp-page" :class="{ 'pbp-info-reserved': infoRailReserved }">
             <div class="pbp-shell">
+                <info-rail shell-selector=".pbp-shell" card-selector=".pbp-card" :right-inset="92" reserve-on-hover @reserve="infoRailReserved = $event" />
                 <div class="pbp-toolbar">
                     <div class="pbp-toolbar-left">
                         <a href="/pb_front2.html" class="pbp-home-link"><b-icon-house-door-fill aria-hidden="true" /><span>Home</span></a>
@@ -988,6 +990,8 @@
     </div>
 </template>
 <script>
+import InfoRail from "../PbGene2/InfoRail.vue";
+import PortalGuide from "@/components/pb/PortalGuide.vue";
 import { ORPHANET_REFERENCE } from "./orphanetReference.generated";
 import additionalReferences from "./additionalDiseaseReferences.generated.json";
 import {
@@ -1053,7 +1057,7 @@ function leafTerms(ids) {
 }
 export default {
     name: "PbPhenotypeTemplate",
-    components: { PhenotypeProfileEditor, PhenotypeHelp, SinglePhenotypeResults },
+    components: { InfoRail, PortalGuide, PhenotypeProfileEditor, PhenotypeHelp, SinglePhenotypeResults },
     data() {
         const params = new URLSearchParams(window.location.search);
         const query = params.has("query") ? params.get("query") : params.get("hpo") || "HP:0001250";
@@ -1063,6 +1067,7 @@ export default {
         const requestedMinimum = Number(params.get('min_match'));
         const matchingMode = geneScope !== 'whole' ? geneScope : ['any', 'all', 'atLeastTwo'].includes(params.get('match')) ? params.get('match') : Number.isInteger(requestedMinimum) && requestedMinimum > 0 ? 'atLeastTwo' : 'all';
         return {
+            infoRailReserved: false,
             reference: REF,
             ids,
             advancedRules: initialRules,

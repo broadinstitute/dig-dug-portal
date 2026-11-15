@@ -10,6 +10,7 @@
 import {infoRailPosition} from './infoRailPosition';
 export default {
     name: 'Gene2InfoRail',
+    props: { shellSelector: { type: String, default: '.pbg-shell' }, cardSelector: { type: String, default: '.pg2-card' }, rightInset: { type: Number, default: 0 }, reserveOnHover: { type: Boolean, default: false } },
     data: () => ({current: null, pinned: false, reserved: false, placement: null}),
     computed: {
         panelStyle() {
@@ -63,16 +64,16 @@ export default {
             const current = this.current;
             const anchor = current.anchor;
             if (!anchor.isConnected) {this.close(); return;}
-            const shell = anchor.closest('.pbg-shell');
-            const card = anchor.closest('.pg2-card');
+            const shell = anchor.closest(this.shellSelector || '.pbg-shell');
+            const card = anchor.closest(this.cardSelector || '.pg2-card');
             if (!shell) return;
             const bounds = anchor.getBoundingClientRect();
             if (bounds.bottom < 0 || bounds.top > window.innerHeight) {this.close(); return;}
             this.placement = infoRailPosition({shell: shell.getBoundingClientRect(), shellWidth: shell.offsetWidth,
-                anchor: bounds, card: card && card.getBoundingClientRect(), viewportWidth: window.innerWidth,
-                reserved: this.reserved, allowReserve: this.pinned});
+                anchor: bounds, card: card && card.getBoundingClientRect(), viewportWidth: window.innerWidth - (this.rightInset || 0),
+                reserved: this.reserved, allowReserve: Boolean(this.pinned || this.reserveOnHover)});
             if (this.placement.layout === 'reserve') {
-                this.reserved = true; this.$emit('reserve', true); this.$nextTick(this.reposition); return;
+                this.reserved = true; if (this.reserveOnHover) this.pinned = true; this.$emit('reserve', true); this.$nextTick(this.reposition); return;
             }
             this.$nextTick(() => {
                 if (this.current !== current || !this.$refs.panel) return;

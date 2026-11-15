@@ -3,7 +3,7 @@ const parsed=compiler.parseComponent(fs.readFileSync(__dirname+'/SampleCompariso
 assert.deepEqual(compiler.compile(parsed.template.content).errors,[]);
 const requests=[];
 let deferred;
-const dependencies={'./SampleInfo':{},'./SamplePagination':{},'./sampleHelp':require('./sampleHelp'),'../PbVariant/hpoTree.generated.json':{nodes:{}},'./sampleEvidence':{requestSampleEvidence:async(route,id,body)=>{
+const dependencies={'./SampleInfo':{},'./SharedGeneComparison.vue':{},'./sampleHelp':require('./sampleHelp'),'../PbVariant/hpoTree.generated.json':{nodes:{}},'./sampleEvidence':{requestSampleEvidence:async(route,id,body)=>{
  requests.push({route,id,body});
  if(deferred)return deferred;
  const row={gene:'TEST',referenceVariants:Array.from({length:7},(_,i)=>({id:'chr1:'+i+':A:T',gt:'0/1',gtStatus:'recorded'})),candidateVariants:[{id:'chr1:0:A:T',gt:'1|1',gtStatus:'recorded'}],sharedVariantIds:['1:0:A:T']};
@@ -22,13 +22,8 @@ const options=output.default;
  ctx.detail.reference_scores={rphersZ:4.123};ctx.detail.candidate_scores={rphersZ:2.111};
  assert.equal(ctx.profileScore('reference'),'4.12');assert.equal(ctx.profileScore('candidate'),'2.11');
  assert.equal(requests[0].route,'sample-matches');assert.equal(requests[0].body.candidate_id,'CAND');assert.equal(ctx.detail.genes.page,2);
- await ctx.fetchGene('TEST');
- assert.equal(ctx.visibleCalls('TEST','reference').length,5);assert.equal(ctx.callPageCount('TEST','reference'),2);
- ctx.callPages.TESTreference=2;assert.equal(ctx.visibleCalls('TEST','reference').length,2);
- assert.equal(ctx.visibleCalls('TEST','candidate')[0].gt,'1|1');
- assert(ctx.isSharedVariant('TEST','chr1:0:A:T'));
  let resolve;deferred=new Promise(done=>{resolve=done;});
  const pending=ctx.loadPage(3);options.beforeDestroy.call(ctx);resolve({genes:{page:3}});await pending;
  assert.equal(ctx.detail.genes.page,2,'A late response must not update a destroyed comparison');
- console.log('Sample comparison: existing route, selected candidate/gene, separate variant pagination, phase and stale response PASS');
+ console.log('Sample comparison: existing detail route, unchanged HPO pagination/scores and stale response PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

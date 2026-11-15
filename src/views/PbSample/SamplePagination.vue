@@ -11,7 +11,7 @@
 <script>
 const { pageNumbers } = require('../PbGene2/evidencePagination');
 export default {
-    props: { label: String, page: {type: Number, default: 1}, pageCount: {type: Number, default: 1} },
-    computed: { numbers() { return pageNumbers(this.page, this.pageCount); } },
+    props: { compact: Boolean, label: String, page: {type: Number, default: 1}, pageCount: {type: Number, default: 1} },
+    computed: { numbers() { if (this.compact) { const start = Math.max(1, Math.min(this.page - 2, this.pageCount - 4)); return Array.from({length: Math.min(5, this.pageCount)}, (_, i) => start + i); } return pageNumbers(this.page, this.pageCount); } },
 };
 </script>

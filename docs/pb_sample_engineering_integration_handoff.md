@@ -6,6 +6,10 @@ Updated: 2026-11-15 · Entry: `/pb_sample.html?query=<sample-ID>` · Vue 2.
 Reference: the source commit containing this document, compared with baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128` on `kyuryung/bch-prototype`.
 This is the implementation contract for test-server migration, not a deployment record. It supersedes the older Sample mockup/unconnected-source instructions.
 
+## 2026-11-15 UI follow-up — included in this delivery
+
+The shared Guide PDF popup and default 100% scale are implemented locally. Carry the component, public PDF/preview, page imports and styles from the [common Guide contract](pb_front_gene_variant_merge_handoff.md#shared-guide-popup). Use the delivery commit containing this document and its full repository dependencies; the earlier `ddf455104` alone does not include this follow-up. APIs, data releases and analysis contracts below are unchanged.
+
 ## Test-server source first
 
 The primary live data source is the test server's existing private BioIndex API: `http://100.80.30.199:5000/api/bio/query/<index>?q=…`, retaining authentication and all continuation pages. `samples-info` is queried by exact `SampleInVCF`; its `clean_name`/`investigator` remain authoritative. Current `gene-variants-crdc` supplies the Gene2/Variant membership universe. The pinned processed GT/overlap source below is a distinct, explicitly versioned derived-evidence dataset, not a replacement BioIndex universe.
@@ -16,6 +20,20 @@ Linked single-gene burden views use different q families: Gene2 `q_by_gene`, Phe
 
 Latest shared changes: the common HPO-count adapter is also required by Phenotype/Gene2/Variant input validation (≥1 globally recorded sample, unknown/error distinct from zero). Sample's observed HPO display is not this Custom-input gate. Keep the current case-safe `ProjectComparison.vue` / `projectComparisonStats.js` imports. See [Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md), [Gene2](pb_gene2_engineering_handoff_20261112.md), [Variant](pb_variant_engineering_integration_handoff.md) for their current screen contracts.
 
+## Sample shared-evidence comparison — included in this delivery
+
+The selected two-table mockup is now implemented **inside the already expanded comparison-sample row**. Identity/rPheRS and matched-HPO contents/pagination are unchanged. The whole expansion has a visible border, blue left edge and a pale outer background separating it from parent/next rows. Sample disclosure buttons use bare 24px caret icons (no visible box/background) in 44×44px hit targets; project disclosure icons follow the same size. Rank has a superscript information icon: unrounded rPheRS Z/residual descending, then raw rarity-weighted PheRS descending on exact residual ties, then stable source-cohort order. Unscored samples follow in sample-ID order; displayed rounding/pinning/table sorts do not change assigned ranks. Project Rank explains median residual descending and project-name ties. Ranking calculations are unchanged.
+
+- Summary partitions shared genes into genes with ≥1 identical variant and genes with different variants only. Use actual source counts, not the mockup's examples.
+- **Identical variants:** one row per unique chromosome/position/REF/ALT record, with all associated gene labels, per-gene identical count, both raw GTs, consequence, gnomAD AF, ClinVar and raw variant score/source. Multiple-gene annotations count once. Adjacent same-gene rows merge only within the current page; labels repeat at page boundaries. Default sort is per-gene identical count descending (maximum count for a multi-gene row); ties use gene/variant ID. Other displayed annotation/ID columns sort globally before pagination; GT columns are not sortable. Missing values remain last in either direction.
+- **Same gene, different variants:** one row per shared gene with zero identical variants; both sample variant counts and source-recorded ClinVar P/LP status. Default order: both samples, searched only, comparison only, no recorded P/LP, unannotated. Conflict classifications do not qualify as P/LP. Numeric counts and gene name are sortable.
+- Both tables show five rows per page and at most five numbered buttons plus Previous/Next. There is **no nested gene expansion** and no separate Gene page column. Gene names link to `/pb_gene2.html?query=…`; exact variant IDs link to `/pb_variant.html?query=…&gene=…`.
+- Annotations come from both complete existing `sample-variants` responses, pinned to `2025_crdc_16366_dp20_af001_20260907`, GRCh38. `gnomade_af` means **gnomAD exome AF**, never CRDC AF; the supplied field has no release label. `clinvar_sig` missing is **Not annotated**, not proof of absence from current ClinVar. Scores retain LoFTEE HC=1, otherwise AlphaMissense; No_score=0 is missing, measured AlphaMissense=0 is valid. REVEL is excluded, GT does not multiply the displayed score. Conflicting/missing GT is unavailable; differing gene-specific numeric scores show Varies by gene. Multiallelic source IDs/GT are preserved without splitting or allele reassignment.
+- No API/model change or new backend is required. `sample-matches` still supplies identity/HPO/score context and expected shared-gene total. The UI requests the two full `sample-variants` lists concurrently, validates sample IDs/release/build, checks the gene total against the comparison index and rejects inconsistent data with retry. Existing legacy `gene_page`/`gene` detail API remains available for compatibility but the new shared tables do not fetch per-gene pages.
+- Verified source example `BCH-19-08881-01_E38` vs `BCH-23-18712-01`: 229 shared genes = 59 with identical variants + 170 different-only genes; 64 unique identical variants. The mockup's 57/172 and clinical examples are not live values.
+
+Private rollback backup: `.pb-private-data/backups/sample-shared-genes-before-20261115-101612/` (ignored by Git). `source.zip` preserves the pre-change Sample source/docs, `manifest.json` records hashes, and `working-tree.patch` records the pre-existing uncommitted changes. Restore only affected files; do not reset the whole repository or discard the earlier Guide work.
+
 ## 1. What to port
 
 Port the page **and its Node gateway, Python profile service and private inputs** together. A static `npm run build` deployment alone does not install the `/__…__` server routes.
@@ -25,12 +43,12 @@ Runtime prerequisites: retain the existing Node/Vue dependencies; the gateway re
 | Layer | Required implementation |
 |---|---|
 | Sample UI | `src/views/PbSample/Template.vue`, `style.css`, `SampleHpoTree.vue`, `SampleVariants.vue`, `sampleEvidence.js`, `variantEvidence.js`, `tableSort.js`; retain the other existing Sample adapters/components |
-| Comparison UI | `SampleComparison.vue`, `ProjectComparison.vue`, **`projectComparisonStats.js`**, `SamplePagination.vue`, `SampleInfo.vue`, `sampleInfoPosition.js`, `sampleHelp.js` in the same directory |
+| Comparison UI | `SampleComparison.vue`, **`SharedGeneComparison.vue`**, **`sharedComparison.js`**, `ProjectComparison.vue`, **`projectComparisonStats.js`**, `SamplePagination.vue`, `SampleInfo.vue`, `sampleInfoPosition.js`, `sampleHelp.js` in the same directory |
 | Metadata | Existing `sampleRecord.js` and `pbSampleBioIndexAdapter.js`; shared Gene/Variant `samples-info` provider in `scripts/gene_carrier_summary_endpoint.js` |
 | Gateway | `scripts/sample_match_projects_endpoint.js`, registered by `gene_carrier_summary_endpoint.js`; `vue.config.js` registration/proxies |
 | Calculation | `scripts/pb_phenotype_profile_api.py`, `pb_profile_metadata.py`, `sample_overlap_index.py`; existing `pb_gene_context_api_server.py`, `rphers_fast.py`, `rphers_standardization.py` and their imports |
 | GT installation | `scripts/prepare_pb_genotypes.sh`, `setup_pb_genotypes.py`, existing `build_pb_genotype_index.py` / processed-GT reader |
-| Shared display | `public/index.html` first-paint 80% scale; existing Gene2/Variant fonts, navigation and help dependencies |
+| Shared display | `public/index.html` first-paint 100% scale; existing Gene2/Variant fonts, navigation and help dependencies |
 
 **New files are included in this delivery commit.** Carry the complete dependency set, including its baseline imports. `ProjectComparison.vue` must import explicitly with `.vue`; the helper is `projectComparisonStats.js`. Do not restore the former case-only `projectComparison.js` name: it caused module resolution failure on macOS.
 
@@ -81,10 +99,10 @@ Candidate fields: `rank`, `sampleId`, `matchedHpo`, `recordedHpoCount`, `rphersZ
 - Top card: sample ID, family state, affected, sex, age, Project/Investigator, recorded HPO count and dominant HPO group. No variant count beside/under the sample name.
 - `Phenotype profile`: full-width clean hierarchy; no blue band; thin branch guides end at the last child. Names expand, HPO IDs link to `/pb_phenotype.html?query=…`. Explanations belong in superscript i help.
 - Similar profiles: Samples and Projects views, numbered pagination, sample pins. Searched IDs use yellow text highlighting; comparison IDs green, consistently in headers and variant lists. Candidate detail shows **matched HPOs only**, five per page with ‹/›. Show searched and comparison rPheRS Z from the same query/reference.
-- Gene chevron/name button expands; a separate `Gene page ↗` link opens `/pb_gene2.html?query=…` in a new tab. Do not make the expansion button navigate. Each sample's variants stay in its own labeled list.
+- The sample disclosure opens the bordered comparison. Its Shared genes section uses the two direct tables above; gene and variant IDs navigate, with no additional gene disclosure. Both GTs appear on the same identical-variant row.
 - `Variant profile`: five rows/page; Gene / Variant / Consequence / Score source / In silico score / ClinVar / CRDC AF / GT. Keep compact header padding and readable fonts; consequence may wrap. Footer **`1–5 of 440 variants / 420 genes`** (dynamic totals, bold count). No repeated scope paragraph, subtitle, `5 per page`, or duplicate top-card totals.
 - Source labels: LoFTEE / AM / REVEL / None. Numeric score = LoFTEE HC 1, otherwise AlphaMissense, rounded to two decimals. REVEL-only `—*`, missing `—`; REVEL is not added to this burden score. **Do not multiply the displayed annotation score by GT**. Example `chr2:21006574:G:C`, GT `1/1`, raw AM `0.073` → `0.07`, not `0.146`.
-- Superscript help: processed scope, Gene/GRCh38, predictor names/reference limitations, raw score/GT, matched/recorded HPO and rPheRS definitions. Position help below its icon using side margins at 80% scale; avoid mount-time zoom/layout jumps.
+- Superscript help: processed scope, Gene/GRCh38, predictor names/reference limitations, raw score/GT, matched/recorded HPO and rPheRS definitions. Position help below its icon using side margins at 100% scale; avoid mount-time zoom/layout jumps.
 
 ## 6. Private inputs and startup
 

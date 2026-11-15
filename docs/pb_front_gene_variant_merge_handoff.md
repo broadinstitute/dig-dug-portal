@@ -2,7 +2,7 @@
 
 ## Current integration map — 2026-11-15
 
-The four-page implementation, required adapters, tests and handoffs are committed and pushed as `cea55b953fd21068301168ff666b61db8f44ae98` on `kyuryung/bch-prototype`. This document and subsequent documentation-only corrections accompany that implementation; Git delivery does not establish test-server deployment. Use the current per-page contracts first: [Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md), [Sample](pb_sample_engineering_integration_handoff.md), [Gene2](pb_gene2_engineering_handoff_20261112.md), [Variant](pb_variant_engineering_integration_handoff.md). The collapsed material below is historical provenance, not current implementation instructions. Do not merge its old field/model/layout rules into the current contracts.
+The four-page implementation, required adapters, tests and handoffs are committed and pushed as `cea55b953fd21068301168ff666b61db8f44ae98` on `kyuryung/bch-prototype`. Use the later delivery commit containing this document for the shared Guide, scale, Phenotype help and Sample comparison updates; Git delivery does not establish test-server deployment. Use the current per-page contracts first: [Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md), [Sample](pb_sample_engineering_integration_handoff.md), [Gene2](pb_gene2_engineering_handoff_20261112.md), [Variant](pb_variant_engineering_integration_handoff.md). The collapsed material below is historical provenance, not current implementation instructions. Do not merge its old field/model/layout rules into the current contracts.
 
 | Role | Current source / boundary |
 |---|---|
@@ -23,11 +23,29 @@ BioIndex GET `:5000/api/bio/query/gene-variants-crdc?q=…` and Helen POST `/phe
 
 ## Delivery boundary and outstanding server work
 
-- **Code:** use implementation commit `cea55b953fd21068301168ff666b61db8f44ae98` plus subsequent documentation corrections on this branch. The source manifest compares that implementation with baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; its pre-commit status fields are historical, not missing files to request.
+- **Code:** use implementation commit `cea55b953fd21068301168ff666b61db8f44ae98` plus the subsequent documentation and UI changes in the delivery commit containing this document. The source manifest compares this snapshot with baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; its file entries are checksums, not a deployment record.
 - **Four current contracts:** follow the linked Gene2, Phenotype, Variant and Sample documents. The legacy Gene document and collapsed history are reference material, not additional current page specifications. The file checklist is an inventory, not 112 implementation instructions.
 - **Primary source:** retain the existing test-server BioIndex/authentication. Private paths and local ports describe reference preparation; configure equivalent private server services, never browser access to developer files.
 - **Required server integration:** connect the complete approved burden release with both q fields and efficient HPO lookup; implement the HPO-count and full Sample comparison adapters; configure the documented private scoring/GT inputs and service routes. These are explicit migration tasks, not features already proven deployed.
 - **Completion evidence:** the delivered source passed the frontend build, 23 JavaScript test commands and 38 Python tests. The build has the existing locuszoom/tabix-reader export warning. Test-server acceptance in each page contract is still required after integration; a Git push or successful static build alone is insufficient.
+
+## 2026-11-15 UI delivery — Guide, margin help and Sample comparison
+
+This delivery includes the shared Guide/PDF preview, default 100% scale, Phenotype margin help, and Sample two-table comparison with rank help and accessible disclosure controls. It follows implementation `cea55b953` and documentation `ddf455104`; use the full commit containing this document, not only those earlier commits. The [source checklist](pb_page_source_delivery_20261115.json) records shipped file hashes and required baseline sources. Private backup, QA screenshots and authoring/scratch directories are deliberately excluded; the actual served Guide PDF and preview are included under `public/guides/`. Git delivery is separate from test-server deployment.
+
+No API, BioIndex index/build, private data release, model, q family or carrier definition changed in this UI update. Keep the test-server BioIndex contract above. The subsequently selected Sample two-table shared-evidence mockup is now implemented locally inside the existing expansion; see the Sample contract. It replaces the rejected nested-expansion proposal, retains the same backend APIs, and is included in this delivery.
+
+## Shared Guide popup
+
+Front (`pb_front.html`, its uppercase alias and `pb_front2.html`) shows a Guide thumbnail at the upper right. Gene2, Phenotype, Variant and Sample show a compact Guide button in a reserved right gutter. All use `src/components/pb/PortalGuide.vue` and the same static `/guides/quick_guide_en.pdf`; ship `public/guides/quick_guide_en.pdf` and `quick_guide_en_preview.png` with the frontend. The preview is rendered from that exact PDF. No private data API is needed to open it.
+
+The five current pages (including Front aliases) now start at 100% CSS scale. The Guide gutter stays reserved; browser zoom remains under the user’s control. Legacy prototype entries retain their previous scale.
+
+The component uses a native modal dialog with an embedded PDF, an Open PDF fallback, close button, Escape/backdrop dismissal and focus restoration. It compensates for the existing prototype zoom; retain the reserved gutter so the trigger does not cover result tables. To update the guide, replace the public PDF and regenerate its preview together. The `output/pdf/` authoring directory is not a runtime dependency. The selected source is `output/pdf/crdc-first-visit/quick_guide_en.pdf` (not the similarly named `crdc_quick_guide_en.pdf`); the served copy must match it byte for byte. The deployed URL is `/guides/quick_guide_en.pdf`, never a local filesystem path. Serve it as `application/pdf` and permit the same-origin PDF frame under the deployment CSP.
+
+Required shared files are `PortalGuide.vue`, both `public/guides/` assets, `public/index.html`, the six Front/Front2/Gene2/Phenotype/Variant/Sample `Template.vue` imports, and the associated page styles. Phenotype additionally requires `ResultInfo.vue`, the shared Gene2 `HelpTooltip.vue` / `InfoRail.vue` / `infoRailPosition.js`, and its result styles. Keep the InfoRail prop defaults for existing Gene2 consumers; Phenotype selects its own shell/card and reserves 92px for the outer Guide strip.
+
+Validation: the local desktop Guide was checked on all six entries for PDF URL, modal opening/closing, Escape/backdrop, focus restoration and gutter separation. Phenotype superscript/margin alignment passed at 1440px and 1980px. The margin-layout checks held API requests pending to isolate UI geometry; they are not a fresh data or backend acceptance test. Scale, Gene2 information-rail, Sample information-position and single-HPO tests passed. Production build passed with the existing locuszoom/tabix-reader warning. Repeat deployed static-asset/CSP/modal checks on the target server after integration.
 
 ## Implementation order for an AI-assisted migration
 

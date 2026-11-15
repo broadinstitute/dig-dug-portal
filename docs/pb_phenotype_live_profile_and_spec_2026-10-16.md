@@ -4,6 +4,10 @@ Source delivery: [source delta/checksums against the baseline](pb_page_source_de
 
 Updated: 2026-11-15. Entry: `/pb_phenotype.html`. Baseline HEAD: `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; the implementation and required new files are included in the commit containing this document. This document replaces the older layout/spec instructions in this file. It does not establish deployment.
 
+## 2026-11-15 UI follow-up — included in this delivery
+
+The shared Guide PDF popup and default 100% scale are implemented locally. Carry the component, public PDF/preview, page imports and styles from the [common Guide contract](pb_front_gene_variant_merge_handoff.md#shared-guide-popup). Use the delivery commit containing this document and its full repository dependencies; the earlier `ddf455104` alone does not include this follow-up. APIs, data releases and analysis contracts below are unchanged.
+
 ## 1. Engineer / implementation-AI starting point
 
 1. **Use the test server's private BioIndex API as the data source:** `http://100.80.30.199:5000/api/bio/query/<index>?q=…`. Retain authentication, exact query keys and every continuation. Use a same-origin private gateway in the deployed portal.
@@ -73,7 +77,9 @@ Current single-HPO UI expects `carrierCoverage.sampleMembership` with schema `or
 - Sample Project/Investigator header offers a searchable multi-select filter and A→Z/Z→A sort. It affects sample-table pins/copy/CSV only, with X of N caption; Advanced Project remains the global search condition.
 - Who retains the phenotype +/− table, sorts before pagination and omits query HPOs/ancestors. Percentages use the complete matching group. `Subtype of` is an ontology relationship, not a different denominator. Require adds an external AND rule; Exclude removes matching observations.
 - Zero intersection is valid even when each HPO individually exists: show a full-width gray bar, explicit no-match/rule explanation, no 0/0 age/affected figures; hide empty CRDC detail cards, retain external references. Unavailable HPO is a separate validation state before calculation.
-- Keep readable desktop fonts/grid lines at the existing 80% scale. Hover/focus panels must account for zoom, stay within the viewport, flip above/below and close on Escape/navigation. Sample/Gene/Variant links retain exact encoded query IDs.
+- Keep readable desktop fonts/grid lines at the existing 100% scale. Compact row-label tooltips retain zoom-aware above/below placement and Escape/navigation cleanup. Superscript information icons use the separate same-height margin rail described below. Sample/Gene/Variant links retain exact encoded query IDs.
+
+Visible info icons accompany the six result-card headings and the Z, beta, CI, p, q and carrier headers. `ResultInfo.vue` reuses Gene2/Variant `HelpTooltip.vue` and `InfoRail.vue`: the icon is superscript and hover/focus/click opens a margin panel aligned to its top. When the margin is too narrow, reserve a side rail and keep it open until Close, Escape or an outside click so layout reflow does not dismiss it. Reserve Guide space outside the rail. Keep info clicks separate from sorting. Single-HPO q is within HPO across genes; multi-HPO carrier comparison uses unadjusted Fisher p. Help text does not change the calculations.
 
 ## 6. Source files and reference backend
 

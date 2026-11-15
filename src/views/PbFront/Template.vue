@@ -1,5 +1,6 @@
 <template>
-    <div class="crdc-front" @click="closeOverlays">
+    <div class="crdc-front pb-guide-front" @click="closeOverlays">
+        <portal-guide front />
         <main class="crdc-front-main">
             <h1>
                 <span class="headline-line"><span class="brand">CRDC</span> is a rare disease</span>
@@ -102,6 +103,7 @@
 </template>
 
 <script>
+import PortalGuide from "@/components/pb/PortalGuide.vue";
 import { hpoTerms } from "../KrClinicalFocus/clinicalContextReference.generated";
 import { PB_GENE_ID_REFERENCE } from "../PbGene/geneIdReference.generated";
 
@@ -143,6 +145,7 @@ const SEARCH_OPTIONS = [...GENE_OPTIONS, ...HPO_OPTIONS];
 const GENE_SYMBOLS = new Set(GENE_OPTIONS.map((option) => option.normalizedLabel));
 
 export default {
+    components: { PortalGuide },
     name: "PbFrontTemplate",
     data() {
         return {

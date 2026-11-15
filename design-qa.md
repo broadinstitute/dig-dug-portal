@@ -1,3 +1,34 @@
+# Latest: Sample shared comparison — 2026-11-15
+
+final result: passed
+
+Source visual truth: `/Users/kyuryung/Downloads/sample_comparison_shared_genes_mockup.png` (2250×1920 raster), plus user corrections: border the expanded region, enlarge disclosure triangles, remove their boxes, and add superscript Rank methodology help.
+
+Implementation: existing live `http://127.0.0.1:8101/pb_sample.html?query=BCH-19-08881-01_E38`, comparison BCH-23-18712-01 expanded. Desktop viewport 2250×1450 / 2250×2250 and 1440×1100, device scale factor 1, CSS zoom 1. The existing page's ~1440px content shell is retained instead of stretching it to the mockup's wider card. Captures are native CSS pixels; content-only crops vary in height because actual consequences/annotations and all five unchanged HPO rows replace illustrative data.
+
+Evidence in `.pb-private-data/layout-qa/sample-shared-20261115/`:
+- `parent-and-next-row-2250.png`: full expansion in context, parent and following sample rows, border separation and large bare carets.
+- `expanded-2250.png`, `expanded-1440.png`: focused two-table structure, fonts, rowspans, summary, cell rules and independent five-row pagination.
+- `margin-help-2250.png`, `rank-help-2250.png`: superscript information panels in the outer margin.
+- `verification.json`: browser interactions/counts/errors. Private screenshots are not deployment assets.
+
+Comparison: source and rendered captures opened and inspected. Arial/Helvetica, navy text, blue links, yellow/green sample association, pale table headers and visible cell borders follow existing page tokens. Two table units are distinct; no nested disclosure or Gene page column. Text uses existing 18px body/20px headings with restrained emphasis. Native Bootstrap caret/info/sort icons retained; no generated illustration assets required. Consequence labels retain source terms with readable separators. Long variant IDs wrap without truncation.
+
+Iteration history:
+- P2: 1440px parent table minimum width initially clipped the expansion's right edge/pagination. Fixed using the scroll-container width for the bordered expansion; post-fix screenshot has both page controls inside the frame.
+- P2: compact columns broke GT/gnomAD header words mid-word. Adjusted column proportions, padding and word wrapping; post-fix captures retain whole words.
+- User refinement: added the single expansion border/outer spacing, 24px caret and 44px hit target; removed visible caret button box; added exact backend rank tie rules in superscript help. Post-fix browser assertions check no button border, minimum hit target, help text, and collapse.
+
+Intentional source differences: real counts are 229=59+170, with 64 distinct identical variants, not mockup 57/172. Missing ClinVar source annotation says Not annotated; it does not claim absence from current ClinVar. The source is gnomAD exome AF, with no release label inferred. Gene cells may show multiple genes for one deduplicated variant. Actual no-score and raw GT values retained. No backend/scorer/API changes.
+
+Primary checks: next page changes rows, at most five numbered buttons, AF ascending/descending and per-sample count sorting, gene/variant query links, no nested gene toggle, tooltip margin location, border and caret hit target, both desktop widths without page overflow, collapse, browser pageerror list empty. Pure-data tests cover multigene deduplication, phase/raw multiallelic IDs, missing/zero score and AF, ClinVar conflict vs P/LP, release/identity checks, count mismatch, GT conflict, and page-boundary rowspans. Existing HPO detail/lifecycle tests pass. Production build passed; final text/CSS refinements additionally compiled and passed browser checks.
+
+No actionable P0/P1/P2 findings. Backend deployment, full-cohort scientific revalidation and mobile QA are outside this UI task. These verified changes are included in the subsequent user-authorized Git delivery. Private rollback snapshot: `.pb-private-data/backups/sample-shared-genes-before-20261115-101612/`.
+
+---
+
+## Earlier QA history (superseded for changed areas)
+
 # Latest: matching rules, HPO eligibility, zero results and desktop tables — 2026-11-15
 
 final result: passed

@@ -1,5 +1,6 @@
 <template>
-    <div>
+    <div class="pb-guide-page">
+        <portal-guide />
         <div class="container-fluid mdkp-body pbg-page pbv-page" :class="{ 'pbv-info-reserved': infoReserved }">
             <div class="pbg-shell">
                 <div class="pbg-toolbar">
@@ -448,6 +449,7 @@
 </template>
 
 <script>
+import PortalGuide from "@/components/pb/PortalGuide.vue";
 import { createPbVariantState, pbVariantComputed, pbVariantMethods } from "./pageModel";
 import HpoTermInput from "@/views/PbGene2/ProfileInput";
 import HelpTooltip from "@/views/PbGene2/HelpTooltip";
@@ -462,7 +464,7 @@ import "./style.css";
 
 export default {
     name: "PbVariantTemplate",
-    components: { HpoTermInput, SummaryPager, HelpTooltip, InfoRail, CarrierDemographics },
+    components: { PortalGuide, HpoTermInput, SummaryPager, HelpTooltip, InfoRail, CarrierDemographics },
     data() {
         return { ...createPbVariantState(), ...layoutHelp, infoReserved: false, phenotypeRootExpanded: true, help, sources: VARIANT_ANNOTATION_SOURCES };
     },

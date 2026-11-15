@@ -1,4 +1,6 @@
 module.exports = {
+    sampleRank: 'Default rank uses:\n1. Unrounded rPheRS Z-score, highest first (equivalent to residual PheRS within the same scoring cohort).\n2. If residual scores are exactly tied, raw rarity-weighted PheRS, highest first.\n3. If both are tied, the original scoring-cohort order is retained.\nSamples without phenotype scores follow scored samples, ordered by sample ID. The searched sample and its family are excluded. Shared genes, shared variants and ClinVar do not determine this rank. Displayed Z-scores are rounded, so apparent ties can have different ranks. Pinning or clicking another sort header changes row order, not the assigned rank.',
+    projectRank: 'Projects are ranked by median residual PheRS among candidates with an available score, highest first. Ties are ordered by project name. Scored n is the number contributing to that median; shared-variant counts do not determine project rank.',
     variantScope: 'Nonsynonymous variants with DP ≥ 20 and cohort AF < 0.01. This processed dataset does not include every genome-wide variant call.',
     gene: 'Gene symbol. Variant coordinates use GRCh38 (hg38). Select a gene to open its Gene page.',
     hierarchy: 'Recorded terms are highlighted; parents show the hierarchy without increasing the count. Names expand branches; HPO IDs open the phenotype page.',

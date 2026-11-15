@@ -1,5 +1,5 @@
 /* Compatibility for a Gene2 tab opened before the shared pre-paint HTML scale. */
-html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: .8; }
+html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: 1; }
 .pg2-page { --pg2-detail-font: 20px; --pg2-secondary-font: 18px; background: #f6f8fb; padding: 24px 24px 48px; color: #24334a; font-family: Arial, Helvetica, sans-serif; font-size: var(--pg2-detail-font, 20px); line-height: 1.5; }
 .pg2-page .pbg-shell { max-width: 1440px; position: relative; }
 .pg2-page h1, .pg2-page h2, .pg2-page h3 { color: #14213d; font-family: inherit; }

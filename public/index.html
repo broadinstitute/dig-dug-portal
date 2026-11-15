@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <% const pbPrototypePage = /^(?:pb_|public_gene|krfront|krgene|krvariant|krphenotype|krsample)/i.test((htmlWebpackPlugin.options.filename || '').split('/').pop()); %>
+<% const pbFullSizePage = /^pb_(?:front2?|gene2|variant|phenotype|sample)\.html$/i.test((htmlWebpackPlugin.options.filename || '').split('/').pop()); %>
 <html lang="en"<%= pbPrototypePage ? ' class="pb-prototype-scale"' : '' %>>
     <head>
         <meta charset="utf-8" />
@@ -9,11 +10,12 @@
         <!-- Apply the prototype scale before styles/scripts or Vue can paint. -->
         <style id="pb-prototype-default-scale">
             html.pb-prototype-scale {
-                zoom: 0.8;
+                zoom: <%= pbFullSizePage ? '1' : '0.8' %>;
                 scrollbar-gutter: stable;
                 -webkit-text-size-adjust: 100%;
                 text-size-adjust: 100%;
             }
+            <% if (!pbFullSizePage) { %>
             @supports not (zoom: 0.8) {
                 html.pb-prototype-scale body {
                     width: 125%;
@@ -21,6 +23,7 @@
                     transform-origin: top left;
                 }
             }
+            <% } %>
         </style>
         <% } %>
         <link rel="shortcut icon" type="image/png" href="/favicon.png" />
