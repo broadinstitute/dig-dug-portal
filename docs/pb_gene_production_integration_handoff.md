@@ -19,7 +19,7 @@ with a checkbox filter (all/none toggle, Apply/Cancel). The original
 conflicting ClinVar classifications as `Conflict`, preserving the raw source
 annotation. Use the linked Gene2 specification §3 and §6 for the exact UI
 and approved-share GT startup contract. Current Variant-page changes remain
-outside this Gene handoff. These documentation changes are local and unpushed.
+outside this Gene handoff. The four-page implementation and documentation are delivered in `cea55b953fd21068301168ff666b61db8f44ae98`; this legacy-page document is reference material.
 
 ## Current API/q clarification — 2026-11-15
 
@@ -41,6 +41,9 @@ before delivery filtering. Do not recompute q on visible/delivered rows or use
 the legacy HPO-wise flags for Gene. The source JSONL is not a browser download
 or an already indexed DB; update data ingestion and page mappings together.
 The release's `internal/` folder is not part of the runtime delivery.
+
+<details>
+<summary>Legacy pb_Gene implementation history — not the current Gene2 contract</summary>
 
 ## Start With the Mockup
 
@@ -234,3 +237,5 @@ selections should union carrier IDs and aggregate the server-local metadata,
 instead of issuing sample-by-sample BioIndex calls. The local cache implementation
 does not by itself deploy this production data preparation or replace the
 production service/authentication integration.
+
+</details>

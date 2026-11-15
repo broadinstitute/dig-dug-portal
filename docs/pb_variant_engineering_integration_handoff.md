@@ -79,7 +79,7 @@ The existing committed GT connection (`c98902622`) uses **filtered processed dat
 
 For the current compute demo, `run_pb_context_demo.sbatch` starts Variant on 18096 from `PB_VARIANT_API_ROOT`, the staged `variant-genotype-20261114` directory, or the demo root; stage the current API modules there. `PB_GENOTYPE_VCF_SOURCE` overrides the VCF path. `start_pb_context_demo.sh` / `connect_pb_context_demo.sh` reuse/start the job and forward 8095 →18096 alongside existing 8092/8094 forwards. Keep the tunnel terminal open.
 
-A Git push does not deploy the service or install private inputs. Keep VCFs, matrices, indexes, caches and captures outside Git/public assets. Other page layouts are outside this delivery.
+A Git push does not deploy the service or install private inputs. Keep VCFs, matrices, indexes, caches and captures outside Git/public assets. This document specifies Variant; the other three pages have their own current contracts linked from the shared integration guide.
 
 ## Verification
 

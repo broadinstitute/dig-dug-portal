@@ -7,7 +7,7 @@ Updated: 2026-11-15. Entry: `/pb_phenotype.html`. Baseline HEAD: `859cd905d49e61
 ## 1. Engineer / implementation-AI starting point
 
 1. **Use the test server's private BioIndex API as the data source:** `http://100.80.30.199:5000/api/bio/query/<index>?q=…`. Retain authentication, exact query keys and every continuation. Use a same-origin private gateway in the deployed portal.
-2. Port the current source, including new files; do not implement from the mockup numbers or HEAD alone. Preserve the portal's existing routing/build configuration and merge the required handlers.
+2. Port the complete delivered implementation commit, including its new files and baseline dependencies; mockup numbers are examples, not source data. Preserve the portal's existing routing/build configuration and merge the required handlers.
 3. Reuse the test server's existing cohort/scoring integration. Where the existing API response is insufficient, implement the missing server-side adapter/aggregate/index described below. The prototype's Python/SQLite readers are reference implementations, **not an instruction to replace BioIndex with a developer's Mac files**.
 4. Read the calculation/denominator table before connecting fields. Same-looking values from different cohorts or q scopes are not interchangeable.
 5. Verify complete payloads, IDs, source identity, unavailable states and UI behavior on the target server. An HTTP 200 or a frontend build is insufficient.

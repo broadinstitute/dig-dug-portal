@@ -1,8 +1,8 @@
-# PB Portal Front, Gene, Variant, and Phenotype Implementation Handoff
+# PB Gene2, Phenotype, Variant and Sample — integration starting point
 
 ## Current integration map — 2026-11-15
 
-Current local working tree is ahead of HEAD `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; this document is not evidence of deployment. Use the current per-page contracts first: [Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md), [Sample](pb_sample_engineering_integration_handoff.md), [Gene2](pb_gene2_engineering_handoff_20261112.md), [Variant](pb_variant_engineering_integration_handoff.md). The collapsed material below is historical provenance, not current implementation instructions. Do not merge its old field/model/layout rules into the current contracts.
+The four-page implementation, required adapters, tests and handoffs are committed and pushed as `cea55b953fd21068301168ff666b61db8f44ae98` on `kyuryung/bch-prototype`. This document and subsequent documentation-only corrections accompany that implementation; Git delivery does not establish test-server deployment. Use the current per-page contracts first: [Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md), [Sample](pb_sample_engineering_integration_handoff.md), [Gene2](pb_gene2_engineering_handoff_20261112.md), [Variant](pb_variant_engineering_integration_handoff.md). The collapsed material below is historical provenance, not current implementation instructions. Do not merge its old field/model/layout rules into the current contracts.
 
 | Role | Current source / boundary |
 |---|---|
@@ -20,6 +20,14 @@ Current local working tree is ahead of HEAD `859cd905d49e61f3a1e6765bb88ff0a2555
 | Prioritized findings | Not connected live; do not infer Type/Tier in the browser |
 
 BioIndex GET `:5000/api/bio/query/gene-variants-crdc?q=…` and Helen POST `/phenotype-analyzer-api/gene-variants-crdc` are different contracts despite sharing a name. Do not redirect the whole prototype analysis base to the latter. Private sources are not bundled in static assets or Git. Exact paths/build timestamps/checksums are maintained in the existing Obsidian source handoff.
+
+## Delivery boundary and outstanding server work
+
+- **Code:** use implementation commit `cea55b953fd21068301168ff666b61db8f44ae98` plus subsequent documentation corrections on this branch. The source manifest compares that implementation with baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; its pre-commit status fields are historical, not missing files to request.
+- **Four current contracts:** follow the linked Gene2, Phenotype, Variant and Sample documents. The legacy Gene document and collapsed history are reference material, not additional current page specifications. The file checklist is an inventory, not 112 implementation instructions.
+- **Primary source:** retain the existing test-server BioIndex/authentication. Private paths and local ports describe reference preparation; configure equivalent private server services, never browser access to developer files.
+- **Required server integration:** connect the complete approved burden release with both q fields and efficient HPO lookup; implement the HPO-count and full Sample comparison adapters; configure the documented private scoring/GT inputs and service routes. These are explicit migration tasks, not features already proven deployed.
+- **Completion evidence:** the delivered source passed the frontend build, 23 JavaScript test commands and 38 Python tests. The build has the existing locuszoom/tabix-reader export warning. Test-server acceptance in each page contract is still required after integration; a Git push or successful static build alone is insufficient.
 
 ## Implementation order for an AI-assisted migration
 

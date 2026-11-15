@@ -8,6 +8,10 @@ This is the shared code base of the front-end-only resources for the new knowled
 > different portals. You can choose to work on them as separate
 > branches, forked repos, etc ...
 
+## PB four-page engineering handoff
+
+Start with the [Gene2, Phenotype, Variant and Sample integration guide](docs/pb_front_gene_variant_merge_handoff.md). It links the four current contracts and separates delivered code from required test-server API/service integration.
+
 ## Getting Started
 
 ### Installing npm
