@@ -21,7 +21,7 @@ function load(relative, imports = {}, sfc = false) {
     }
     const code = babel.transformSync(text, { filename, babelrc: false, configFile: false, plugins: ['@babel/plugin-transform-modules-commonjs'] }).code;
     const exports = {};
-    vm.runInNewContext(code, { exports, module: { exports }, require: name => {if(name === '../../utils/clinvarLabels') return require('../src/utils/clinvarLabels');
+    vm.runInNewContext(code, { exports, module: { exports }, require: name => {if(name === '../../utils/crdcHpoAvailability') return require('../src/utils/crdcHpoAvailability');if(name === '../../utils/clinvarLabels') return require('../src/utils/clinvarLabels');
         if (Object.hasOwn(imports, name)) return imports[name];
         if (name.endsWith('.css')) return {};
         throw new Error(`Unexpected dependency ${name}`);
@@ -66,6 +66,13 @@ for (const name of ['GeneIdentity', 'Demographics', 'ContextPanel', 'VariantSumm
     assert.deepEqual(compiler.compile(parsed.template.content).errors, []);
 }
 async function main() {
+    const templateAst = compiler.compile(compiler.parseComponent(fs.readFileSync(path.join(root, 'src/views/PbGene2/Template.vue'), 'utf8')).template.content).ast;
+    const findTemplateNode = (node, className) => node.attrsMap && (node.attrsMap.class || '').split(' ').includes(className) ? node : (node.children || []).map(child => findTemplateNode(child, className)).find(Boolean);
+    const phenotypeName = findTemplateNode(templateAst, 'pg2-association-name');
+    const phenotypeLink = findTemplateNode(templateAst, 'pg2-association-hpo');
+    assert.equal(phenotypeName.tag, 'span', 'Phenotype names remain ordinary dark text');
+    assert.equal(phenotypeLink.tag, 'a', 'Only the HPO ID is a phenotype navigation link');
+    assert.equal(phenotypeLink.attrsMap[':href'], 'phenotypeUrl(row.hpoId)');
     const numericSorter = {
         variantRows: [
             {id:'chr1:1:A:G',carrierCount:2,phenotypeMatchScore:-2,variantEffectBeta:-1,variantEffectPValue:0.1},
@@ -111,14 +118,30 @@ async function main() {
         './HelpTooltip': {}, './ProfileInput': {}, './evidenceHelp': require('../src/views/PbGene2/evidenceHelp'),
     }, true).default;
     const profile = load('src/views/PbGene2/ProfileInput.vue', {
-        '../PbGene/HpoTermInput': {}, '../PbGene/hpoContextSearch': {hpoSuggestions:()=>[]},
+        '../PbGene/HpoTermInput': load('src/views/PbGene/HpoTermInput.vue', {
+            './hpoContextSearch': {hpoLabel:id=>id,hpoSuggestions:()=>[]},
+        }, true).default, '../PbGene/hpoContextSearch': {hpoSuggestions:()=>[],resolveHpoTerms:input=>input.toUpperCase().match(/HP:\d{7}/g)||[]},
     }, true).default;
+    const profileTemplate = compiler.parseComponent(fs.readFileSync(path.join(root, 'src/views/PbGene2/ProfileInput.vue'), 'utf8')).template.content;
+    const linkedProfile = new Vue({...profile,...compiler.compileToFunctions(profileTemplate),propsData:{value:'HP:0000598',linkHpoIds:true}});
+    const findProfileLink = node => node.tag === 'a' ? node : (node.children || []).map(findProfileLink).find(Boolean);
+    assert.equal(findProfileLink(linkedProfile._render()).data.attrs.href, '/pb_phenotype.html?query=HP%3A0000598');
+    linkedProfile.linkHpoIds = false;
+    assert.equal(findProfileLink(linkedProfile._render()), undefined, 'Other consumers retain their current input behavior');
+    linkedProfile.$destroy();
     const events=[];
-    const input={query:'HP:0001250',selected:['HP:0001250'],open:true,$emit:(name,value)=>events.push([name,value])};
+    const input={sampleCounts:{'HP:0001250':1},countsStatus:'ready',label:id=>id,query:'HP:0001250',selected:['HP:0001250'],open:true,$emit:(name,value)=>events.push([name,value])};
     profile.methods.finish.call(input);
     assert.equal(input.query,'','Committed HPO IDs leave a chip and an empty query');
     assert.equal(input.open,false,'Submitting a profile closes suggestions');
     assert.deepEqual(events[0],['input','HP:0001250']);
+    input.query='HP:9999999';const before=events.length;assert.equal(profile.methods.finish.call(input),false);assert.equal(events.length,before);assert.match(input.availabilityError,/at least 1 CRDC sample/);
+    profile.methods.edit.call(input,{target:{value:'HP:9999999'}});assert.equal(events.length,before,'Typing unsupported IDs must not commit chips');
+    let prevented=0;const enter={preventDefault(){prevented++;}};
+    profile.methods.onEnter.call({open:false,suggestions:[],finish:()=>true},enter);
+    assert.equal(prevented,0,'Enter still submits a valid profile');
+    profile.methods.onEnter.call({open:false,suggestions:[],finish:()=>false},enter);
+    assert.equal(prevented,1,'Invalid pasted terms cannot submit with Enter');
     const resultUrl = contextPanel.methods.phenotypeResultUrl;
     assert.equal(resultUrl({ hpos: 'HP:0000364' }), '/pb_phenotype.html?query=HP%3A0000364');
     assert.equal(resultUrl({ hpos: 'HP:0000364, HP:0001250' }), '/pb_phenotype.html?query=HP%3A0000364%2CHP%3A0001250');
@@ -389,7 +412,9 @@ async function main() {
     page.clearVariantFilters();
     overview.filters = page.variantFilters;
     overview.total = 392;
-    assert.equal(overview.segmentFontSize({ label: 'Other', count: 21 }), 18, 'Narrow ClinVar segments retain readable type below the main count size');
+    assert.equal(overview.segmentFontSize({ label: 'Conflict', count: 21 }), 22, 'Annotation counts keep a stable font across genes');
+    assert.equal(overview.segmentFontSize({ label: 'P/LP', count: 3 }), overview.segmentFontSize({ label: 'No ClinVar', count: 1153 }), 'Rare NFKB1 classifications must not shrink their count font');
+    assert.ok(overview.segmentWeight({count:1153}) / overview.segmentWeight({count:3}) <= 3, 'Dominant missing annotations must leave readable room for rare classifications');
     overview.gene = 'OTHER';
     await Vue.nextTick();
     assert.equal(overview.showPredictors, false, 'Changing genes resets disclosure state');
@@ -401,6 +426,8 @@ async function main() {
     const othersSegment = pagedOverview.consequenceBarSegments[4];
     assert.equal(othersSegment.members.length, 12);
     assert.equal(pagedOverview.otherDividers(othersSegment).length, 11, 'Others retains internal subdivisions without crowding the numbers');
+    const dividers=pagedOverview.otherDividers(othersSegment);
+    assert(dividers.every((position,index)=>index===0||Math.abs(position-dividers[index-1]-100/othersSegment.members.length)<1e-8),'Others subdivisions keep even readable spacing');
     assert.equal(pagedOverview.consequencePageCount, 4);
     pagedOverview.goToConsequencePage(4);
     assert.equal(pagedOverview.visibleConsequences.length, 4);

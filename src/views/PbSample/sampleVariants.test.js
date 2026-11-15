@@ -8,19 +8,20 @@ function load(file, dependencies) {
     return output.default;
 }
 const header=load('ColumnHeaderFilter.vue',{'bootstrap-vue':{BPopover:{}}});
-const options=load('SampleVariants.vue',{'./variantEvidence':require('./variantEvidence'),'./ColumnHeaderFilter':header,'../../utils/clinvarLabels':require('../../utils/clinvarLabels')});
+const options=load('SampleVariants.vue',{'./variantEvidence':require('./variantEvidence'),'./ColumnHeaderFilter':header,'./SampleInfo':{},'./sampleHelp':require('./sampleHelp'),'../PbGene2/referenceProvenance':{VARIANT_ANNOTATION_SOURCES:{predictors:{links:[]}}},'../../utils/clinvarLabels':require('../../utils/clinvarLabels')});
 const ctx={...options.data(),variants:Array.from({length:25},(_,i)=>({id:`chr1:${i+1}:A:T`,gene:i<12?'GENEA':'GENEB',consequence:i%2?'missense':'stop_gained',loftee:i%2?null:'HC',genotype:i%2?'0/1':'1/1',clinvar:['Pathogenic','Uncertain significance','Likely benign'][i%3],crdcAlleleFrequency:i===0?'Unavailable':i/100}))};
 Object.assign(ctx,options.methods);
 for (const key of Object.keys(options.computed)) Object.defineProperty(ctx,key,{get:()=>options.computed[key].call(ctx),configurable:true});
-assert.equal(ctx.visible.length,10);ctx.page=3;assert.equal(ctx.visible.length,5);
-ctx.selectedGenes=[];assert.equal(ctx.filtered.length,0);ctx.selectedGenes=['GENEA'];assert.equal(ctx.filtered.length,12);
+assert.equal(ctx.visible.length,5);assert.equal(ctx.pageCount,5);ctx.page=2;assert.equal(ctx.visible.length,5);assert(!ctx.visible.some(row=>row.id==='chr1:1:A:T'),'Next page replaces the first five rows');
+assert.equal(ctx.filteredGeneCount,2);
+ctx.selectedGenes=[];assert.equal(ctx.filtered.length,0);assert.equal(ctx.filteredGeneCount,0);ctx.selectedGenes=['GENEA'];assert.equal(ctx.filtered.length,12);assert.equal(ctx.filteredGeneCount,1);
 ctx.selectedGenes=null;ctx.selectedConsequences=['missense'];assert.equal(ctx.filtered.length,12);
 ctx.selectedAnnotations=['HC'];assert.equal(ctx.filtered.length,0,'Column filters combine with AND');
 ctx.selectedConsequences=['missense','stop_gained'];assert.equal(ctx.filtered.length,13,'Selections within one column use OR');
 ctx.selectedConsequences=null;ctx.selectedAnnotations=null;ctx.selectedGenotypes=['0/1'];assert.equal(ctx.filtered.length,12);
 ctx.selectedGenotypes=null;ctx.search='chr1:25:';assert.equal(ctx.filtered.length,1);ctx.search='';
 ctx.sortBy('crdcAlleleFrequency');assert.equal(ctx.sorted.at(-1).crdcAlleleFrequency,'Unavailable');
-ctx.goToPage(999);assert.equal(ctx.page,3);ctx.goToPage('bad');assert.equal(ctx.page,1);
+ctx.goToPage(999);assert.equal(ctx.page,5);ctx.goToPage('bad');assert.equal(ctx.page,1);
 ctx.selectedClinvar=['Pathogenic'];assert.equal(ctx.filtered.length,9);
 ctx.selectedClinvar=['Pathogenic','Likely benign'];assert.equal(ctx.filtered.length,17);
 ctx.selectedClinvar=[];assert.equal(ctx.filtered.length,0);ctx.selectedClinvar=null;
@@ -37,4 +38,12 @@ menu.selected=[];header.methods.toggle.call(menu,'A');assert.deepEqual(Array.fro
 const found=header.computed.visibleOptions.call({...menu,search:'b'});assert.equal(found.length,1);assert.equal(found[0].value,'B');
 assert(header.computed.active.call({searchOnly:false,selected:[]}));
 assert(header.computed.active.call({searchOnly:true,query:'chr1:25:'}));
+ctx.variants=[{id:'1',gene:'TEST',loftee:'HC',alphaMissense:.2},{id:'2',gene:'TEST',alphaMissense:0},{id:'3',gene:'TEST',alphaMissense:.81},{id:'4',gene:'TEST',revel:.99},{id:'5',gene:'TEST'}];
+ctx.setSort('score',1);
+assert.deepEqual(Array.from(ctx.sorted,row=>row.id),['2','3','1','4','5']);
+ctx.setSort('score',-1);
+assert.deepEqual(Array.from(ctx.sorted,row=>row.id),['1','3','2','4','5'],'Numeric scores sort correctly in both directions with missing last');
+assert.equal(ctx.annotation({alphaMissense:.1}),'AM');
+assert.equal(ctx.annotation({loftee:'HC'}),'LoFTEE');
+assert.equal(ctx.score({alphaMissense:.1}).display,'0.10','Numeric score contains no predictor name');
 console.log('Column header filters: all/none, search, multi-selection, cross-column combinations, GT, counts, pagination and Vue templates PASS');

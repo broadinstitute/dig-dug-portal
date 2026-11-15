@@ -1,15 +1,29 @@
 # pb_Gene Production Integration Handoff
 
-Updated: 2026-11-12 (precomputed association DB delivery and carrier integration)
+Updated: 2026-11-14 (Gene/Gene2 ClinVar display and approved GT-source instructions)
 Target branch: `kyuryung/bch-prototype`  
 Revision: use the delivered branch HEAD; production deployment is separate
 
 This is the starting document for an engineer or AI agent integrating the
 tested `pb_Gene` page into the production BCH portal.
 
-For the current `pb_gene2.html` screen, start with the concise
+`pb_gene2.html` is the default Gene page and PB prototype gene-link destination.
+For that screen, start with the concise
 [Gene2 integration handoff](pb_gene2_engineering_handoff_20261112.md).
-The original `pb_Gene.html` notes below remain applicable to that page.
+The original `pb_Gene.html` notes below remain applicable to the legacy page;
+new hyperlinks/search results must target `pb_gene2.html?query=<encoded gene>`.
+
+The November 14 Gene2 specification replaces that page's ClinVar header sort
+with a checkbox filter (all/none toggle, Apply/Cancel). The original
+`pb_Gene.html` keeps its existing header behavior; both Gene views display
+conflicting ClinVar classifications as `Conflict`, preserving the raw source
+annotation. Use the linked Gene2 specification §3 and §6 for the exact UI
+and approved-share GT startup contract. Current Variant-page changes remain
+outside this Gene handoff. These documentation changes are local and unpushed.
+
+## Current API/q clarification — 2026-11-15
+
+This remains the **legacy Gene page** document. For current Gene2 implementation use the linked current Gene2 contract, and for Phenotype use [its current contract](pb_phenotype_live_profile_and_spec_2026-10-16.md). The test server BioIndex is the primary source. Same single-gene burden pairs: Gene2 uses q_by_gene across valid HPOs per gene, Phenotype uses q_by_hpo across valid genes per HPO; original beta/p/N agree and q may differ. The live legacy gene-hpo15 preview exposes only HPO-wise q/top15, so its Gene-wise-q/full-lookup connection remains a server integration requirement. Do not implement current pages from older model/layout examples below.
 
 ## Current precomputed association delivery — November 12, 2026
 
@@ -56,7 +70,7 @@ The loading screenshot is retained as a secondary reference:
 | Burden Pathogenic Score | Model/table score uses LoFTEE HC, then AlphaMissense; REVEL is excluded |
 | REVEL-only row | Red `—*`, sorted after numeric scores and before fully missing rows |
 | Evidence count | Variants with any LoFTEE, AlphaMissense, or REVEL value divided by all observed variants |
-| ClinVar | Restrained red Pathogenic and orange Likely pathogenic badges; never color the whole row |
+| ClinVar | Restrained red Pathogenic and orange Likely pathogenic badges; conflicting classifications display as `Conflict`; never color the whole row |
 | Variant row | Opens/closes evidence and switches carrier statistics without replacing the phenotype profile component |
 | Classification | Long values wrap inside the table cell |
 | Match Score | Mean residual PheRS across every unique carrier of that variant |

@@ -1,0 +1,34 @@
+const assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm'),compiler=require('vue-template-compiler'),babel=require('@babel/core');
+const parsed=compiler.parseComponent(fs.readFileSync(__dirname+'/SampleComparison.vue','utf8'));
+assert.deepEqual(compiler.compile(parsed.template.content).errors,[]);
+const requests=[];
+let deferred;
+const dependencies={'./SampleInfo':{},'./SamplePagination':{},'./sampleHelp':require('./sampleHelp'),'../PbVariant/hpoTree.generated.json':{nodes:{}},'./sampleEvidence':{requestSampleEvidence:async(route,id,body)=>{
+ requests.push({route,id,body});
+ if(deferred)return deferred;
+ const row={gene:'TEST',referenceVariants:Array.from({length:7},(_,i)=>({id:'chr1:'+i+':A:T',gt:'0/1',gtStatus:'recorded'})),candidateVariants:[{id:'chr1:0:A:T',gt:'1|1',gtStatus:'recorded'}],sharedVariantIds:['1:0:A:T']};
+ return {candidate_id:body.candidate_id,hpo_matches:[],genes:{status:'ready',total:12,page:body.gene_page||1,page_count:3,rows:[row]}};
+}}};
+const output={};vm.runInNewContext(babel.transformSync(parsed.script.content,{babelrc:false,configFile:false,plugins:['@babel/plugin-transform-modules-commonjs']}).code,{exports:output,require:key=>dependencies[key]});
+const options=output.default;
+(async()=>{
+ const ctx={...options.data(),referenceId:'REF',candidateId:'CAND',$set:(object,key,value)=>{object[key]=value;}};
+ Object.assign(ctx,options.methods);
+ for (const key of Object.keys(options.computed)) Object.defineProperty(ctx,key,{get:()=>options.computed[key].call(ctx)});
+ await ctx.loadPage(2);
+ ctx.detail.hpo_matches=[...Array.from({length:12},(_,i)=>({id:'HP:'+i,matched:true})),{id:'unmatched',matched:false},{id:'missing',matched:null}];
+ assert.equal(ctx.matchedTerms.length,12);assert.equal(ctx.visibleHpos.length,5);assert.equal(ctx.hpoPageCount,3);
+ ctx.hpoPage=3;assert.equal(ctx.visibleHpos.length,2,'Matched terms use five-row pages and exclude unmatched/missing terms');
+ ctx.detail.reference_scores={rphersZ:4.123};ctx.detail.candidate_scores={rphersZ:2.111};
+ assert.equal(ctx.profileScore('reference'),'4.12');assert.equal(ctx.profileScore('candidate'),'2.11');
+ assert.equal(requests[0].route,'sample-matches');assert.equal(requests[0].body.candidate_id,'CAND');assert.equal(ctx.detail.genes.page,2);
+ await ctx.fetchGene('TEST');
+ assert.equal(ctx.visibleCalls('TEST','reference').length,5);assert.equal(ctx.callPageCount('TEST','reference'),2);
+ ctx.callPages.TESTreference=2;assert.equal(ctx.visibleCalls('TEST','reference').length,2);
+ assert.equal(ctx.visibleCalls('TEST','candidate')[0].gt,'1|1');
+ assert(ctx.isSharedVariant('TEST','chr1:0:A:T'));
+ let resolve;deferred=new Promise(done=>{resolve=done;});
+ const pending=ctx.loadPage(3);options.beforeDestroy.call(ctx);resolve({genes:{page:3}});await pending;
+ assert.equal(ctx.detail.genes.page,2,'A late response must not update a destroyed comparison');
+ console.log('Sample comparison: existing route, selected candidate/gene, separate variant pagination, phase and stale response PASS');
+})().catch(error=>{console.error(error);process.exitCode=1;});

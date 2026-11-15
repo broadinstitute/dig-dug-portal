@@ -14,7 +14,9 @@ CONTEXT_PATH = "/phenotype-analyzer-api/analyze"
 PUBLIC_CONTEXT_PATH = "/phenotype-analyzer-api/public-analyze"
 CO_GENE_PATH = "/phenotype-analyzer-api/co-gene-associations"
 PROFILE_PATH = "/phenotype-analyzer-api/profile"
+HPO_COUNTS_PATH = "/phenotype-analyzer-api/hpo-counts"
 SAMPLE_MATCH_PATH = "/phenotype-analyzer-api/sample-matches"
+SAMPLE_MATCH_INPUT_PATH = "/phenotype-analyzer-api/sample-match-inputs"
 SAMPLE_VARIANT_PATH = "/phenotype-analyzer-api/sample-variants"
 GENOTYPE_PATH = "/phenotype-analyzer-api/carrier-genotypes"
 MAX_REQUEST_BYTES = 2 * 1024 * 1024
@@ -183,14 +185,16 @@ def create_server(address, engine, profile_only=False, genotype_source=None):
         def do_GET(self):
             if self.path == "/health":
                 self._send_json(200, {"status": "ok"})
+            elif self.path == HPO_COUNTS_PATH and profile_only:
+                self._send_json(200, engine.phenotype_term_counts())
             else:
                 self._send_json(404, {"error": "not_found"})
 
         def do_POST(self):
-            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH, PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH, GENOTYPE_PATH}:
+            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH, PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_MATCH_INPUT_PATH, SAMPLE_VARIANT_PATH, GENOTYPE_PATH}:
                 self._send_json(404, {"error": "not_found"})
                 return
-            if profile_only and self.path not in {PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH}:
+            if profile_only and self.path not in {PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_MATCH_INPUT_PATH, SAMPLE_VARIANT_PATH}:
                 self._send_json(404, {"error": "not_found"})
                 return
             try:
@@ -211,10 +215,22 @@ def create_server(address, engine, profile_only=False, genotype_source=None):
                         raise ValueError('An exact variant and selected sample IDs are required.')
                     self._send_json(200, genotype_source.lookup(variant, ids))
                     return
-                if self.path in {SAMPLE_MATCH_PATH, SAMPLE_VARIANT_PATH}:
+                if self.path in {SAMPLE_MATCH_PATH, SAMPLE_MATCH_INPUT_PATH, SAMPLE_VARIANT_PATH}:
                     if not profile_only or not isinstance(payload, dict) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', str(payload.get('sample_id', ''))):
                         raise ValueError('A valid sample_id is required by the private profile service.')
-                    result = engine.sample_matches(payload['sample_id']) if self.path == SAMPLE_MATCH_PATH else engine.sample_variants(payload['sample_id'])
+                    if self.path in {SAMPLE_MATCH_PATH, SAMPLE_MATCH_INPUT_PATH} and 'candidate_id' in payload:
+                        candidate = payload['candidate_id']
+                        page = payload.get('gene_page', 1)
+                        gene = payload.get('gene')
+                        if (not isinstance(candidate, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', candidate)
+                                or type(page) is not int or not 1 <= page <= 10000
+                                or gene is not None and (not isinstance(gene, str) or not re.fullmatch(r'[A-Za-z0-9.-]{1,40}', gene))):
+                            raise ValueError('A valid candidate, gene page and optional gene are required.')
+                        result = engine.sample_match_detail(payload['sample_id'], candidate, gene_page=page, gene=gene)
+                    elif self.path == SAMPLE_MATCH_INPUT_PATH:
+                        result = engine.sample_matches(payload['sample_id'], include_project_inputs=True)
+                    else:
+                        result = engine.sample_matches(payload['sample_id']) if self.path == SAMPLE_MATCH_PATH else engine.sample_variants(payload['sample_id'])
                     self._send_json(200, result)
                     return
                 if self.path == PROFILE_PATH:

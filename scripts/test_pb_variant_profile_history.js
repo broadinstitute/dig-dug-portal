@@ -12,6 +12,7 @@ const variantId = 'chr13:20189005:CTG:C';
 const requests = [];
 const replies = [];
 const overrides = {
+    '../../utils/crdcHpoAvailability': { requireCrdcHpos: async () => ({}) },
     '@/views/PbGene/pbGeneBioIndexAdapter': {},
     '@/utils/bioIndexUtils': {},
     '@/views/KrClinicalFocus/focusStore': { readClinicalFocus: () => null },
@@ -152,7 +153,10 @@ async function main() {
 
     const late = deferred();
     replies.push(late.promise);
+    const beforeLate = requests.length;
     const staleRun = app.runVariantContext();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(requests.length, beforeLate + 1, 'Wait for availability validation and API dispatch before changing the variant');
     app.contextRunId++;
     app.contextLoading = false;
     app.currentProfileRunId = null;

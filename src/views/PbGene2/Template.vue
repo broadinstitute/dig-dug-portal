@@ -71,7 +71,7 @@
                                 <tbody data-testid="association-search-results">
                                     <tr v-for="row in associationDisplayRows" :key="row.hpoId" :class="{ 'pg2-pinned-row': isAssociationPinned(row) }">
                                         <td class="pg2-association-pin"><button class="pg2-pin" type="button" :aria-label="(isAssociationPinned(row) ? 'Unpin ' : 'Pin ') + row.label" :aria-pressed="String(isAssociationPinned(row))" @click="toggleAssociationPin(row)"><b-icon-pin-angle-fill v-if="isAssociationPinned(row)" /><b-icon-pin-angle v-else /></button></td>
-                                        <td><a :href="phenotypeUrl(row.hpoId)">{{ row.label }}</a><span class="pg2-association-hpo">{{ row.hpoId }}</span></td><td class="pg2-numeric">{{ contextStatistic(row.betaPer0_1Grs) }}</td><td class="pg2-numeric">{{ associationInterval(row) }}</td><td class="pg2-numeric">{{ contextStatistic(row.pValue) }}</td><td class="pg2-numeric">{{ contextStatistic(row.qValue) }}</td><td class="pg2-numeric">{{ phenotypeCarrierCount(row.hpoId) }}</td>
+                                        <td><span class="pg2-association-name">{{ row.label }}</span><a class="pg2-association-hpo" :href="phenotypeUrl(row.hpoId)">{{ row.hpoId }}</a></td><td class="pg2-numeric">{{ contextStatistic(row.betaPer0_1Grs) }}</td><td class="pg2-numeric">{{ associationInterval(row) }}</td><td class="pg2-numeric">{{ contextStatistic(row.pValue) }}</td><td class="pg2-numeric">{{ contextStatistic(row.qValue) }}</td><td class="pg2-numeric">{{ phenotypeCarrierCount(row.hpoId) }}</td>
                                     </tr>
                                     <tr v-if="!associationDisplayRows.length"><td colspan="7" class="pg2-empty">{{ genePhenotypeAssociations.length ? 'No results match this search and significance filter.' : 'Precomputed results are not available for this gene.' }}</td></tr>
                                 </tbody>
@@ -231,7 +231,8 @@
 </template>
 <script>
 import { createPbGeneState, pbGeneComputed, pbGeneMethods } from "../PbGene/pageModel";
-import { hpoLabel } from "../PbGene/hpoContextSearch";
+import { hpoLabel, resolveHpoTerms } from "../PbGene/hpoContextSearch";
+import { requireCrdcHpos } from '../../utils/crdcHpoAvailability';
 import { filterAssociations, togglePinnedAssociation, sortAssociationRows } from "./associationRows";
 import { variantFacets, matchesVariantFacets } from "./variantFacets";
 import { findPositionWindow, parsePositionQuery, VARIANT_PAGE_SIZE } from "../PbGene/variantTableNavigation";
@@ -461,6 +462,12 @@ export default {
         },
         async runContextAnalysis() {
             if (this.contextLoading || this.searchGeneLoading) return;
+            const requestedGene = this.geneInfo.symbol;
+            this.contextLoading = true;
+            try { await requireCrdcHpos(resolveHpoTerms(this.contextInput), hpoLabel); }
+            catch (error) { this.contextError = error.message; return; }
+            finally { this.contextLoading = false; }
+            if (requestedGene !== this.geneInfo.symbol || this.searchGeneLoading) return;
             const before = new Set(this.contextRuns.map(run => run.id));
             const scoreType = this.contextScoreType;
             const analysisSet = this.contextAnalysisSet;

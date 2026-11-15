@@ -2,6 +2,7 @@ import { fetchPbGeneBioIndexState } from "@/views/PbGene/pbGeneBioIndexAdapter";
 import { query, request } from "@/utils/bioIndexUtils";
 import { readClinicalFocus } from "@/views/KrClinicalFocus/focusStore";
 import { contextApiError, contextApiFailure, hpoLabel, resolveHpoTerms } from "@/views/PbGene/hpoContextSearch";
+import { requireCrdcHpos } from '../../utils/crdcHpoAvailability';
 import { standardizedField, referenceDescription, referenceAvailable, contextMatches, sameReference } from "../../utils/rphersUnits";
 const { clinvarDisplayLabel } = require('../../utils/clinvarLabels');
 
@@ -662,7 +663,7 @@ export const pbVariantMethods = {
     },
     applyVariantProfile() {
         if (this.contextLoading || this.searchLoading) return;
-        this.$refs.profile.finish();
+        if (this.$refs.profile.finish() === false) return;
         return this.runVariantContext();
     },
     async rerunVariantProfile(run) {
@@ -1008,6 +1009,8 @@ export const pbVariantMethods = {
         this.contextError = "";
         this.contextWarning = "";
         try {
+            await requireCrdcHpos(terms, hpoLabel);
+            if (!isCurrentRequest()) return;
             const analyze = (analysisTerms) => fetch("/__pb_variant_context__/analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

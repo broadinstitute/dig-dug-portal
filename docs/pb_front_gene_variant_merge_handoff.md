@@ -1,5 +1,136 @@
 # PB Portal Front, Gene, Variant, and Phenotype Implementation Handoff
 
+## Current integration map — 2026-11-15
+
+Current local working tree is ahead of HEAD `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; this document is not evidence of deployment. Use the current per-page contracts first: [Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md), [Sample](pb_sample_engineering_integration_handoff.md), [Gene2](pb_gene2_engineering_handoff_20261112.md), [Variant](pb_variant_engineering_integration_handoff.md). The collapsed material below is historical provenance, not current implementation instructions. Do not merge its old field/model/layout rules into the current contracts.
+
+| Role | Current source / boundary |
+|---|---|
+| Default gene navigation | `/pb_gene2.html?query=…` |
+| **Primary live API** | **Test-server BioIndex** `http://100.80.30.199:5000/api/bio/query/<index>?q=…`; preserve authentication, query keys and all continuations |
+| Gene2/Variant carrier universe | BioIndex `gene-variants-crdc`, with all continuations; **not historical `gene-samples`** |
+| Gene2/Variant/Sample Project, PI | Same private BioIndex `samples-info`: `clean_name`, `investigator` |
+| Processed GT / Sample variant rows / all-candidate shared evidence | Pinned approved-share release below; Sample overlaps are evidence counts, not a new similarity score |
+| Original-VCF supplementation | Variant exact-target missing GT only; separate provenance/service in Variant handoff |
+| Sample profile and common HPO availability | Private profile service 8093, 16,366 × 6,440 matrix; `/__pb_phenotype_profile__/hpo-counts` now also required by Gene2/Variant |
+| Gene2 scoring/n_terms | Approved 15,764 × 6,440 matrix and matching covariates; do not substitute Sample matrix |
+| Variant analysis | Dedicated selected-carrier Context service 8095; echo exact scope |
+| Single-gene burden q | Same tests: Gene2=`q_by_gene` over HPOs for a fixed gene; Phenotype=`q_by_hpo` over genes for a fixed HPO. Both precede P<0.05 delivery filtering; beta/p/N unchanged. |
+| Current association API gap | Live `gene-hpo15` is top-15 with HPO-wise q. Complete P<0.05/Gene-wise-q and efficient HPO-key lookup need the server API/index connection; do not claim already deployed. |
+| Prioritized findings | Not connected live; do not infer Type/Tier in the browser |
+
+BioIndex GET `:5000/api/bio/query/gene-variants-crdc?q=…` and Helen POST `/phenotype-analyzer-api/gene-variants-crdc` are different contracts despite sharing a name. Do not redirect the whole prototype analysis base to the latter. Private sources are not bundled in static assets or Git. Exact paths/build timestamps/checksums are maintained in the existing Obsidian source handoff.
+
+## Implementation order for an AI-assisted migration
+
+1. Read the four current per-page documents above and the source registry; establish the actual target BioIndex API/release first.
+2. Use the commit containing the [source delta/checksums](pb_page_source_delivery_20261115.json) and its declared baseline dependencies, including the new helpers. Merge application routes; do not replace the portal configuration wholesale.
+3. Use existing test-server BioIndex for live rows. Add the documented private aggregates/lookup adapters where the current response is insufficient. Local file/cache paths are reference backend provenance, not browser data sources.
+4. Verify both q scopes, cohorts, complete pagination, exact IDs, units and null handling. Do not fit new models or adjust q merely to connect a display.
+5. Run target-server acceptance including auth/restart/source version. Record actual deployment evidence separately from local tests and Git state.
+
+<details>
+<summary>Historical implementation/source notes — not the current four-page contract</summary>
+
+## Shared carrier GT source — 2026-11-13
+
+Use the approved shared `sample_variant_gene.jsonl.gz` for exact per-sample GT
+(distribution path corrected November 14, 2026):
+
+```text
+/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/sample_variant_gene.jsonl.gz
+```
+
+SHA-256: `e602b847ccdba8961f788701b43004514346490f55164dd3023be23aa7c6bbc7`.
+Release: `2025_crdc_16366_dp20_af001_20260907`; GRCh38; nonsynonymous,
+DP ≥ 20, cohort AF < 0.01. Full-file counts verified on November 13:
+16,343 samples; 19,152 gene identifiers (19,090 symbols + 62 Ensembl fallbacks);
+1,659,133 unique exact variants; 11,403,462 sample × gene × variant rows;
+138,299,457 compressed bytes. This is a filtered release, not a complete VCF.
+The files and handoff instructions are recorded as prepared; actual receipt or
+production ingestion by Helen is not established by that record.
+
+For distribution and automatic downloads, use only the shared directory above;
+do not use a private reference-directory fallback. The shared copy's size and
+SHA-256 were rechecked on November 14 and match this pinned release. The current
+Gene/Gene2 startup/cache contract is in the existing
+[current Gene2 server setup](pb_gene2_engineering_handoff_20261112.md#6-files-and-server-setup).
+Variant delivery and later local changes are tracked separately in the Variant handoff.
+
+### Runtime wiring
+
+- **Gene / Gene2 / Variant:** `pbGeneBioIndexAdapter.js` requests
+  `GET /__pb_gene_genotypes__?gene=GJB2`. The private endpoint reads the processed
+  GT source and returns only exact variants and samples present in the caller's
+  current `gene-variants-crdc` carrier universe. Existing annotations, carrier
+  lists/counts and association models remain sourced from their current inputs.
+- Match canonical GRCh38 chromosome/position/REF/ALT **and** sample ID. Remove
+  only the terminal `_E38` or `_G38` assay suffix when looking up canonical
+  source sample IDs. Return the original current carrier ID to the frontend.
+  Do not match by gene alone or require raw suffixed ID equality with canonical
+  source IDs. Preserve original GT (`0/1`, `1|1`, `0/2`, haploid calls, etc.).
+- Missing, partial/no-call or conflicting GT stays unavailable. Never infer
+  `0/1` or `0/0` from carrier membership or absence. Conflicting duplicate calls
+  are reported as `status: conflict`. GT stays attached to the variant-specific
+  carrier, never to the shared sample-only metadata cache.
+- **Sample:** the existing private
+  `POST /__pb_phenotype_profile__/sample-variants` reads the same original
+  `sample_variant_gene.jsonl.gz` through `PB_SAMPLE_VARIANT_SOURCE`, and maps
+  `gt` to `genotype` in the Variants & genotype table. Prioritized findings
+  remain disconnected in live mode; do not enable or invent findings merely
+  because a GT is available. Their illustrative fixture is unchanged. Full
+  annotation records still come from the original file, not from the compact
+  GT index.
+- **Phenotype:** no genotype column or single-variant sample context exists in
+  the present sample/gene summaries. Its linked Sample, Gene2 and Variant detail
+  pages use the above source. Do not attach one patient-wide GT to phenotype
+  sample rows, or recalculate precomputed GRS from this display lookup.
+
+### Local index and deployment
+
+Build the private gene-keyed lookup once, outside the public assets directory:
+
+```bash
+python3 scripts/build_pb_genotype_index.py --source /path/to/sample_variant_gene.jsonl.gz --out /private/path/genotype-index
+```
+
+Configure `PB_GENOTYPE_INDEX=/private/path/genotype-index` on the Vue prototype
+server, then restart it. `gene_carrier_summary_endpoint.js` registers the route
+and forwards the existing BioIndex access scope. The builder checks the original
+source SHA-256. The lookup verifies its content-addressed packed-file checksum,
+reads only one gene's gzip member and keeps at most five genes in memory.
+The full-source index has 19,152 genes / 11,403,462 rows; packed payload is
+62,335,236 bytes, plus its small offset manifest. No whole-cohort download is
+sent to the browser. Set `PB_SAMPLE_VARIANT_SOURCE` to the same verified original
+release for the existing Sample profile service; its current sample bridge
+still streams the original source on an uncached sample request.
+
+Historical November 13 session index: `/private/tmp/pb-genotype-index-20261113`.
+The current Gene launchers instead default to the verified persistent checkout
+cache `.pb-private-data/genotypes/shared/2025_crdc_16366_dp20_af001_20260907/index`;
+see the linked Gene2 specification for setup and offline/failure behavior.
+The builder's original source pin is intentional: changing releases requires
+updating the expected hash/data-version contract and rebuilding, not relabeling
+old calls. For production Helen may index the same processed rows directly in
+BioIndex keyed by gene, variant and sample; the frontend response/join contract
+above must be preserved. These local routes do not deploy changes to
+`100.80.30.199` by themselves.
+
+Acceptance: exact-variant/sample join; `_E38`/`_G38` mapping; distinct GTs for
+one sample at two variants; phase/multiallelic/haploid preservation; conflict
+and no-call missingness; unchanged current carrier universe; access-scope
+filtering; pack corruption rejection; shared Gene2/Variant adapter propagation;
+Sample evidence consistency. Live target `chr13:20189005:CTG:C` has two matching
+current carriers in the processed source, both `0/1`.
+Live local endpoints 8098 and 8099 return 1,241 matched GJB2 calls across
+89 variants, including those two carriers and the two `chr13:20189353:A:G`
+carriers (also `0/1`). `chr13:20185461:C:T` remains unavailable in this source.
+The existing Sample route independently returns the target `0/1` call among
+700 records for the checked carrier. Both development servers compiled after
+restart. The existing `test_pb_gene_selection.js` separately fails at its
+missing `rphersUnits` mock, before exercising the GT connection.
+
+
 - Updated: 2026-11-12 (precomputed gene-HPO data contract; prior carrier updates retained)
 - Source branch: `kyuryung/bch-prototype`
 - Required feature commits: `a58f3a7a` through `f604dfa3`
@@ -41,15 +172,284 @@ synthetic values, or public BioIndex responses.
 |---|---|---|---|
 | PB Front search and autocomplete | Generated gene and HPO references | Implemented | Deploy unchanged; rebuild references only through their generators |
 | PB Gene identity, variants, and carriers | Private BioIndex | Live-capable | Configure the private browser proxy and retain continuation handling |
-| PB Gene `Top phenotype associations` | `src/views/PbGene/mockData.js` in mock state; live adapter returns an empty array | Illustrative only | Connect the approved precomputed gene-HPO burden result source |
+| PB Gene precomputed associations | Approved November 12 p<0.05 JSONL release; prototype reader retains legacy q mapping | Data prepared; production ingestion/mapping required | Index all delivered rows by gene and display `q_by_gene`; see section 3 |
 | PB Variant identity and exact carriers | Private BioIndex | Live-capable | Configure the private browser proxy and retain exact-variant resolution |
 | HPO Context on Gene and Variant | Session context plus `POST /phenotype-analyzer-api/analyze` on demand | Implemented, service-dependent | Configure the existing analyzer service; do not run it automatically |
 | Phenotype definition and ontology | Generated HPO reference | Implemented static reference | Deploy the generated artifact and its provenance metadata |
 | Phenotype diseases, frequencies, criteria, and related genes | Generated Orphanet Product 4 and Product 6 reference | Implemented static reference | Deploy the generated artifact; external ORPHA and internal gene links must remain active |
-| Phenotype `Top associated genes` | No live source | Unavailable | Connect the same precomputed gene-HPO result table used by PB Gene |
+| Phenotype associated genes | Same November 12 association release | Production ingestion/mapping required | Index the same pairs by HPO and display `q_by_hpo`; see section 3 |
 | Single-HPO CRDC statistics and samples | No live source | Unavailable | Connect the approved phenotype-profile endpoint |
 | Multi-HPO CRDC summary and sample rows | Hard-coded illustrative values in `PbPhenotype/Template.vue` | Must be replaced | Remove all hard-coded values and connect the phenotype-profile endpoint |
 | Multi-HPO Orphanet overlap | Generated Orphanet reference, client-side exact overlap | Implemented preview | Keep as exact overlap unless an approved semantic-similarity service replaces it |
+
+## Cross-page processed BioIndex handoff (2026-09-07)
+
+This section is the build and ingestion record for the processed carrier and
+HPO data prepared for Helen. It covers the shared evidence needed by Gene,
+Variant, Sample, and Phenotype. The files are canonical private build inputs;
+they are not browser assets and must not be committed to this repository or
+served as static files.
+
+### Approved inputs and provenance
+
+The build deliberately uses the following frozen inputs. Do not replace a path
+with a similarly named file from another project or release.
+
+| Input | Full path | SHA-256 | Role |
+|---|---|---|---|
+| Processed nonsynonymous carrier evidence | `/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/ref/BCH/VCF_versions/VCF_2025_WES_WGS/nonsyn_sample_gene_variant_score_evidence_dp20_af001.tsv.gz` | `882f69f8d380580670927e61d577ee14e81dc4c8935e6ba4dc46c7e7a098ed16` | `sample_id`, gene, variant, GT, AF and score/annotation fields after DP20 and cohort AF < 0.01 filtering |
+| Confirmed 16,366-sample metadata | `/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/browser_paper/data/CRDC20251009_updated_07142026_Aditi_confirmed_metadata_16366.tsv` | `28ece1a4f3c61e98be674657bf6745d97b3583ec81f44082dbd8730261e9c6c9` | Original observed `hpo_terms`; other metadata exists but is not copied into this handoff |
+| Parent-expanded binary HPO matrix | `/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/browser_paper/data/2025_crdc_16366sample_hpo_parent_expanded_binary.tsv.gz` | `bf3b5e45bb7b2f08cc33b96947fd11025671ec87d62f075d8eb5aee730db08d1` | `sample_id` plus 6,440 binary HPO columns |
+| HPO ontology provenance | `/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/ref/HPO/hp_260216.obo` | `8d6c23798667d4506767ce643fc3c028f0d1c85e7e1d8810e491181a345d53cd` | Documented parent-expansion lineage, `hp/releases/2026-02-16` |
+
+The first path is a symbolic link. Its resolved source is:
+
+```text
+/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/browser_paper/genotype_2025/evidence/nonsyn_sample_gene_variant_score_evidence_dp20_af001.tsv.gz
+```
+
+Record the symbolic-link path and resolved path in operational review. The
+approved input identity is the SHA-256 above, not the filename alone.
+
+> **Provenance boundary:** Obsidian records identify `hp_260216.obo` as the
+> ontology used by the parent-expanded matrix lineage. No record naming this
+> exact 16,366-sample matrix build was found. Keep that distinction in audit
+> records; do not silently relabel it as the June 2026 ontology.
+
+### Builder and exact execution
+
+Repository source:
+
+```text
+/Users/kyuryung/Documents/github_dir/dig-dug-portal/scripts/build_bioindex_handoff.py
+/Users/kyuryung/Documents/github_dir/dig-dug-portal/scripts/test_build_bioindex_handoff.py
+/Users/kyuryung/Documents/github_dir/dig-dug-portal/scripts/run_bioindex_handoff_20260907.sbatch
+```
+
+Server copies and output directory:
+
+```text
+/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/ref/dig-dug-portal/bioindex_handoff_20260907/build_bioindex_handoff.py
+/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/ref/dig-dug-portal/bioindex_handoff_20260907/run_bioindex_handoff_20260907.sbatch
+/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/ref/dig-dug-portal/bioindex_handoff_20260907/
+```
+
+The Python builder is the reusable automation. The Slurm file fixes this
+specific release's inputs, output, and versions. Re-run the frozen build with:
+
+```bash
+sbatch /lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/ref/dig-dug-portal/bioindex_handoff_20260907/run_bioindex_handoff_20260907.sbatch
+```
+
+Current build attempt: job `23511915`, submitted 2026-09-07, ended `FAILED`
+after 7 minutes 12 seconds with exit code `1:0`. It found 23 variant-evidence
+samples absent from the metadata/HPO roster and correctly stopped before
+publishing outputs. Do not ingest this directory until that cohort mismatch is
+resolved and a later job produces a complete manifest.
+
+For a later release, call the reusable builder with new explicit inputs rather
+than editing page code:
+
+```bash
+python3 build_bioindex_handoff.py \
+  --variant-evidence /absolute/path/to/processed_variant_evidence.tsv.gz \
+  --metadata /absolute/path/to/confirmed_metadata.tsv \
+  --expanded-hpo /absolute/path/to/parent_expanded_binary.tsv.gz \
+  --output-dir /absolute/path/to/new_empty_release_directory \
+  --data-version RELEASE_NAME \
+  --hpo-ontology-version HPO_RELEASE
+```
+
+Run the local self-check before copying a modified builder to the server:
+
+```bash
+cd /Users/kyuryung/Documents/github_dir/dig-dug-portal
+python3 scripts/test_build_bioindex_handoff.py
+```
+
+Expected terminal line:
+
+```text
+BIOINDEX_HANDOFF_BUILD_PASS
+```
+
+### What the builder does
+
+1. Validates the required processed-evidence headers.
+2. Retains one canonical row per `sample_id × gene × variant` and rejects a
+   duplicate key instead of silently selecting one row.
+3. Prefixes a variant such as `3:151828170:T:C` with `chr` so cross-page links
+   receive `chr3:151828170:T:C`.
+4. Uses `gene_symbol` when supplied. If `gene_symbol` is empty but `gene_id`
+   exists, it uses the Ensembl gene ID as the published `gene_symbol` value.
+   It still rejects a row missing both identifiers.
+5. Extracts observed HPO IDs from the metadata `hpo_terms` field.
+6. Reads every positive cell in the parent-expanded matrix and merges it with
+   the observed HPO rows. `is_observed=true` wins when a term occurs in both.
+7. Derives distinct `sample_id × gene_symbol` rows from the variant evidence;
+   no separate gene-carrier input is used.
+8. Requires the metadata and expanded matrix sample sets to match exactly and
+   requires every variant sample to occur in that shared HPO roster.
+9. Uses compute-node temporary SQLite storage for uniqueness and sorting. It
+   does not load the 440 MB compressed variant input into browser memory.
+10. Refuses to overwrite final output files, writes gzip files through a
+    temporary name, and publishes `manifest.json` with input/output hashes,
+    sizes, versions, and counts.
+
+### Known build failures and restart procedure
+
+The following failures are retained so the next engineer does not repeat them:
+
+| Job | Failure | Resolution/status |
+|---|---|---|
+| `23511391` | Server Python rejected a `Path` object passed to `sqlite3.connect()` | Fixed by passing the path as a string; no output was produced |
+| `23511495` | A processed-evidence row had no `gene_symbol` | Fixed: use the same row's Ensembl `gene_id`; still fail if both are absent |
+| `23511915` | 23 variant samples were absent from both approved metadata/HPO inputs | Unresolved data-contract decision; no output was produced |
+
+Before the next submission, produce a private QC list for the 23 unmatched
+sample IDs and choose one documented policy with the data owner:
+
+1. supply the matching approved HPO/metadata rows; or
+2. keep their variant rows but publish no HPO rows and record the missing-HPO
+   count in the manifest; or
+3. exclude them from all three artifacts and record the excluded sample and
+   variant-row counts in the manifest.
+
+Do not silently choose policy 2 or 3. Gene/Variant carrier denominators, Sample
+availability, Phenotype counts, and co-gene counts must all use the same
+documented cohort policy. After updating the builder, run the local self-check,
+copy the verified script to the server path above, compare local and server
+script SHA-256, and then submit the same Slurm wrapper.
+
+### Output files and row contracts
+
+Data version for this release:
+
+```text
+2025_crdc_16366_dp20_af001_20260907
+```
+
+#### `sample_variant_gene.jsonl.gz`
+
+Grain: one `sample_id × canonical variant_id × gene_symbol`.
+
+```json
+{
+  "sample_id": "0104K",
+  "gene_symbol": "AADAC",
+  "gene_id": "ENSG00000114771",
+  "variant_id": "chr3:151828170:T:C",
+  "gt": "0/1",
+  "cohort_af_dp20": 0.00387999511181718,
+  "gnomade_af": 0.00557,
+  "clinvar_sig": "Likely_benign",
+  "pathogenicity_score": 0.0,
+  "score_source": "No_score",
+  "consequence": "stop_lost",
+  "impact": "HIGH",
+  "biotype": "protein_coding"
+}
+```
+
+The builder also retains available `lof`, `revel`, and `alphamissense` fields.
+Missing source values are omitted, not written as zero. The generated file is
+ordered by `gene_symbol`, `sample_id`, and `variant_id`.
+
+#### `sample_hpo.jsonl.gz`
+
+Grain: one unique `sample_id × hpo_id`.
+
+```json
+{"sample_id":"0104K","hpo_id":"HP:0001250","is_observed":true}
+{"sample_id":"0104K","hpo_id":"HP:0000707","is_observed":false}
+```
+
+Use `is_observed=true` for a patient's reported phenotype display. Expanded
+rows support ontology-aware search and calculation; never present every
+ancestor as if it were directly observed. The file is ordered by `sample_id`
+and `hpo_id`.
+
+#### `sample_gene.jsonl.gz`
+
+Grain: one distinct `sample_id × gene_symbol` from the approved processed
+variant universe.
+
+```json
+{"sample_id":"0104K","gene_symbol":"AADAC"}
+```
+
+For a selected gene, co-genes are the same sample's distinct rows after
+excluding that selected gene. Therefore:
+
+```text
+co_gene_count = distinct qualifying genes for the sample - 1
+```
+
+Do not interpret this as every gene in the person's genome. It is limited to
+the same nonsynonymous, DP20, cohort AF < 0.01 evidence universe as the variant
+input.
+
+#### `manifest.json`
+
+The manifest is the release gate. It records data and HPO versions, variant
+scope, creation time, input SHA-256 values, row/sample/HPO counts, output byte
+sizes, and output SHA-256 values. Do not ingest files from a build without a
+completed manifest.
+
+### BioIndex materialization and page use
+
+The output files are normalized canonical artifacts. BioIndex query keys must
+be top-level fields. Build query-specific indexes or sorted materializations as
+required by the platform; do not ask the browser to scan a whole file.
+
+| Logical source | Query key | Suggested index | Consumer |
+|---|---|---|---|
+| `sample_variant_gene` | `gene_symbol` | existing/extended `gene-samples` | Gene carriers and variants; Variant gene context |
+| `sample_variant_gene` | `variant_id` | `variant-sample` or replacement | Variant exact carriers and GT |
+| `sample_variant_gene` | `sample_id` | proposed `sample-variants-crdc` | Sample `All` variants and GT |
+| `sample_hpo` | `sample_id` | proposed private sample-HPO index | Sample phenotype; carrier-detail join |
+| `sample_hpo` | `hpo_id` | proposed private HPO-samples index | Phenotype CRDC samples and counts |
+| `sample_gene` | `sample_id` | proposed private sample-gene index | Co-gene list/count and Sample gene grouping |
+| `sample_gene` | `gene_symbol` | optional gene-carrier projection | Gene carrier membership when variant detail is unnecessary |
+
+The canonical variant file is already gene-sorted, while the HPO and
+sample-gene files are sample-sorted. A BioIndex build keyed in another direction
+may require a separately sorted materialization. Creating another index does
+not change the logical row contract.
+
+Do not perform one browser request per carrier to obtain HPO or co-gene data.
+For Gene and Variant carrier tables, join or materialize approved sample HPO
+and sample-gene values in the private backend/BioIndex build. For Sample and
+Phenotype, query their direct sample/HPO indexes. Patient-level HPO and carrier
+data remain private; public pages and logs must not expose unrestricted rows.
+
+The current `pbGeneBioIndexAdapter` expects flat carrier-variant rows, so
+`sample_variant_gene` is compatible with its row grain. It is not compatible
+with a nested `variants[]`-per-sample document without an adapter rewrite.
+Keep missing connected fields explicitly `Unavailable` until the relevant
+private index or server-side join is deployed.
+
+### Release verification before Helen ingests the files
+
+1. Confirm the Slurm job ended `COMPLETED` with exit code `0:0`.
+2. Confirm all three `.jsonl.gz` files and `manifest.json` exist and no `.tmp`
+   or `.build.sqlite` remains.
+3. Run `gzip -t` on every gzip output.
+4. Compare output line counts to the manifest.
+5. Confirm `sample_hpo` contains both observed and expanded rows and that
+   observed rows are a subset of the parent-expanded matrix for the same HPO
+   release, allowing only explicitly documented exceptions.
+6. Confirm `sample_gene` equals the distinct sample/gene projection of
+   `sample_variant_gene`.
+7. Confirm variant IDs use one GRCh38 representation and all GT values come
+   from the sample-specific evidence row.
+8. Review the count and examples of records where Ensembl `gene_id` replaced a
+   missing `gene_symbol`; do not silently call an Ensembl ID an HGNC symbol in
+   UI labels.
+9. Record the final manifest and BioIndex build/index identifiers in this
+   document before enabling live page consumption.
+10. Test one Gene, exact Variant, Sample, and HPO query through the authenticated
+    private route, including continuation and zero-result behavior.
 
 ## Routes and navigation
 
@@ -435,3 +835,5 @@ The implementing agent should return only verifiable evidence:
 
 Those documents contain page-specific history. This document is the current
 cross-page implementation contract when they differ.
+
+</details>

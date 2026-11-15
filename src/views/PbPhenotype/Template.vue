@@ -7,154 +7,21 @@
         <main class="container-fluid mdkp-body pbp-page">
             <div class="pbp-shell">
                 <div class="pbp-toolbar">
-                    <div class="pbp-crumb">
-                        <a href="/pb_Front.html">Home</a><span>›</span
-                        ><b>Phenotype search</b>
+                    <div class="pbp-toolbar-left">
+                        <a href="/pb_front2.html" class="pbp-home-link"><b-icon-house-door-fill aria-hidden="true" /><span>Home</span></a>
+                        <span class="pbp-breadcrumb-sep">›</span><span class="pbp-breadcrumb-link">Phenotype search</span>
                     </div>
-                    <phenotype-query-input class="pbp-search" :value="searchQuery"
-                        input-label="HPO IDs" placeholder="Comma-separated HPO IDs"
-                        button-label="Search" button-class="pbp-btn primary" @submit="submitSearch" />
+                    <div class="pbp-toolbar-right"><a href="/pb_gene2.html" class="pbp-nav-link">Gene search</a><a href="/pb_variant.html" class="pbp-nav-link">Variant search</a></div>
                 </div>
-                <template v-if="ids.length">
-                    <section class="pbp-card pbp-context">
-                        <div class="pbp-rowhead">
-                            <div>
-                                <span class="pbp-tag ont"
-                                    >HPO CONTEXT · ON-DEMAND TOOL ·
-                                    {{ ids.length }}
-                                    {{
-                                        ids.length === 1 ? "TERM" : "TERMS"
-                                    }}</span
-                                >
-                                <div class="pbp-chips">
-                                    <span
-                                        v-for="id in ids"
-                                        :key="id"
-                                        class="pbp-chip"
-                                        :class="{ neutral: ids.length > 8 }"
-                                        :style="termStyle(id)"
-                                        ><span
-                                            ><b>{{ name(id) }}</b
-                                            ><small>{{ id }}</small></span
-                                        ><button
-                                            type="button"
-                                            :aria-label="`Remove ${name(id)}`"
-                                            @click="removeTerm(id)"
-                                        >
-                                            ×
-                                        </button></span
-                                    >
-                                    <phenotype-query-input class="pbp-add" :search-index="hpoSearchIndex"
-                                        input-label="Add phenotype" placeholder="+ Add phenotype or HPO ID"
-                                        @select="addFeature" />
-                                </div>
-                            </div>
-                            <div class="pbp-patient">
-                                <span>Patient context</span
-                                ><select v-model="ageBandFilter" aria-label="Age range">
-                                    <option value="">Any age</option>
-                                    <option v-for="band in ageBands" :key="band.label" :value="band.label">{{ band.label }}</option>
-                                    <option value="Unknown">Unknown age</option>
-                                </select><select v-model="sexFilter" aria-label="Sex">
-                                    <option value="">Any sex</option>
-                                    <option value="female">Female</option>
-                                    <option value="male">Male</option></select
-                                ><select v-model="affectedFilter" aria-label="Affected">
-                                    <option value="">Affected: any</option>
-                                    <option value="Y">Affected: yes</option>
-                                    <option value="N">Affected: no</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="pbp-term-summary" aria-label="Query term context">
-                            <div
-                                v-for="item in termSummaries"
-                                :key="item.id"
-                                class="pbp-term-summary-row"
-                                :style="termStyle(item.id)"
-                            >
-                                <span class="pbp-term-summary-name"><i></i>{{ name(item.id) }}</span>
-                                <span>{{ countChange(item.samples, item.remainingSamples, 'samples') }}{{ excluded.length || item.percent == null ? "" : ` (${item.percent}%)` }}</span>
-                                <span>{{ countChange(item.diseases, item.remainingDiseases, 'diseases') }}</span>
-                                <span>{{ countChange(item.veryFrequent, item.remainingVeryFrequent, 'diseases with ≥80% frequency') }}</span>
-                                <div v-for="excludedItem in item.exclusions" :key="excludedItem.id" class="pbp-term-summary-excluded">
-                                    <span>− {{ name(excludedItem.id) }}</span>
-                                    <span>{{ excludedItem.samples == null ? "—" : excludedItem.samples.toLocaleString() }} samples excluded</span>
-                                    <span>{{ excludedItem.diseases.toLocaleString() }} {{ excludedItem.diseases === 1 ? "disease" : "diseases" }} excluded</span>
-                                    <span>{{ excludedItem.veryFrequent.toLocaleString() }} high-frequency {{ excludedItem.veryFrequent === 1 ? "disease" : "diseases" }} excluded</span>
-                                </div>
-                            </div>
-                            <div v-if="multi" class="pbp-term-summary-total">
-                                <strong>All {{ ids.length }} together</strong>
-                                <span>{{ countChange(matchesLoaded ? allTermsSampleCount : null, matchingSampleGroups.all.length, 'samples', combinedCountRemovalLabel) }}</span>
-                                <span>≥2 of {{ ids.length }}: {{ countChange(matchesLoaded ? atLeastTwoSampleCount : null, matchingSampleGroups.atLeastTwo.length, 'samples', combinedCountRemovalLabel) }}</span>
-                                <span>{{ cohortSampleCount ? cohortSampleCount.toLocaleString() : "—" }} total samples</span>
-                            </div>
-                        </div>
-                        <div v-if="multi" class="pbp-scope-picker" role="group" aria-label="Choose sample matching group">
-                            <span>Show samples</span>
-                            <button type="button" class="pbp-btn" :class="{ 'scope-active': sampleMatchMode === 'all' || ids.length === 2 }" :aria-pressed="String(sampleMatchMode === 'all' || ids.length === 2)" @click="selectGeneSampleScope('all')">All {{ ids.length }} together · {{ matchesLoaded ? matchingSampleGroups.all.length.toLocaleString() : '—' }}</button>
-                            <button v-if="ids.length > 2" type="button" class="pbp-btn" :class="{ 'scope-active': sampleMatchMode === 'atLeastTwo' }" :aria-pressed="String(sampleMatchMode === 'atLeastTwo')" @click="selectGeneSampleScope('atLeastTwo')">≥2 of {{ ids.length }} · {{ matchesLoaded ? matchingSampleGroups.atLeastTwo.length.toLocaleString() : '—' }}</button>
-                            <small>Counts include current page filters and Exclude.</small>
-                        </div>
-                        <div class="pbp-exrow" role="group" aria-label="Excluded phenotypes">
-                            <b>⊘ Exclude</b
-                            ><span
-                                v-for="id in excluded"
-                                :key="id"
-                                class="pbp-excluded"
-                                >{{ name(id) }} <small>{{ id }}</small
-                                ><button
-                                    type="button"
-                                    :aria-label="`Remove excluded ${name(id)}`"
-                                    @click="removeExcluded(id)"
-                                >
-                                    ×
-                                </button></span
-                            >
-                            <phenotype-query-input class="pbp-add exclude" :search-index="hpoSearchIndex"
-                                input-label="Exclude phenotype" placeholder="+ Add a phenotype to exclude"
-                                @select="addExcluded" />
-                            <phenotype-help label="Exclude">
-                                <p>
-                                    Matching samples and diseases are removed from the result tables. Exclude does not change rPheRS Z-scores or
-                                    Profile score.
-                                </p>
-                            </phenotype-help>
-                        </div>
-                        <phenotype-help label="Counts and query">
-                            <p>
-                                Per-term counts show before → after Exclude. Combined sample counts also include current page filters and
-                                match the sample-group gene counts below. Disease counts use direct Orphanet annotations. High-frequency
-                                diseases list this phenotype as very frequent (80–99%) or obligate (100%).<template v-if="excluded.length">
-                                    Red rows show each excluded term separately; overlapping exclusions are counted once in the remaining
-                                    totals.</template
-                                >
-                            </p>
-                            <p v-if="multi">
-                                This set is scored as one profile. Samples are ranked by rPheRS Z-score. Genes are tested across the
-                                approved full gene-score source; reference databases provide phenotype-matched disease–gene links.
-                                {{
-                                    isOrphanet
-                                        ? "Orphanet profile scores combine query and disease phenotype coverage; diseases"
-                                        : `${diseaseSourceLabel} results use unweighted HPO overlap; records`
-                                }}
-                                matching an excluded term are removed. None of this is a diagnosis.
-                            </p>
-                            <template v-else>
-                                <h3>Definition and ontology</h3>
-                                <p class="pbp-context-note">
-                                    {{ term ? term[1] : "" }} Parent:
-                                    {{ term ? (term[2] || []).map(name).join(", ") : "" }}
-                                    ·
-                                    <a :href="`https://hpo.jax.org/browse/term/${ids[0]}`" target="_blank" rel="noopener noreferrer"
-                                        >Ontology and definition</a
-                                    >
-                                    · {{ reference.meta.hpoOBO }}
-                                </p>
-                            </template>
-                        </phenotype-help>
-                    </section>
+                <section class="pbp-card pbp-search-results">
+                    <phenotype-profile-editor ref="profileEditor" :ids="ids" :excluded="excluded" :rules="advancedRules" :match-mode="sampleMatchMode" :minimum="sampleMatchMinimum" :search-index="hpoSearchIndex" :terms="reference.terms"
+                        :investigators="investigatorOptions" :projects="projectOptions" :sample-counts="hpoSampleCounts" :counts-status="hpoCountsStatus" :term-style="termStyle" @apply="applyProfile" @retry-counts="retryHpoAvailability" />
+                </section>
+                <single-phenotype-results v-if="singlePhenotypeView || multi" :key="ids.join(',')" :hpo="ids[0]" :profile-ids="ids" :match-mode="sampleMatchMode" :minimum="effectiveMatchMinimum" :term-style="termStyle" :multi-gene-result="multiGeneResult" :multi-gene-loading="multiGeneLoading" :multi-gene-error="multiGeneError" :terms="reference.terms" :samples="singlePhenotypeSamples"
+                    :cohort-count="cohortSampleCount" :counts="hpoSampleCounts" :ready="matchesLoaded" :loading="sampleLoading" :error="sampleError"
+                    :gene-rows="geneRows" :gene-release="genes" :gene-loading="geneLoading" :gene-error="geneError" :diseases="diseases" :sources="diseaseSources" :source="diseaseSource"
+                    @require="requireSingleFeature" @exclude="excludeSingleFeature" @retry-comparison="loadMultiGeneComparison" @source="diseaseSource = $event" @retry-samples="loadSamples" @retry-genes="loadGenes" />
+                <template v-else-if="ids.length">
                     <section class="pbp-card pbp-projects">
                         <div class="pbp-rowhead">
                             <div>
@@ -189,15 +56,15 @@
                                     the same metadata as the sample rows. Age: median (25th–75th percentile), years. Sex: female / male /
                                     unknown. Hover over or focus an age or mean score to see how many samples contributed.
                                     An asterisk (*) indicates missing or unavailable values; those samples are omitted from that statistic.
-                                    Project names use the profile service's cohort mapping. Missing mapping is shown as Unknown;
-                                    BioIndex metadata is used only for older responses without profile metadata.
+                                    {{ projectMetadataSource === 'samples-info' ? 'Project and investigator labels use the same samples-info metadata as Gene and Variant.' : 'Project and investigator labels use the configured cohort mapping.' }}
+                                    Missing project labels are shown as Unknown. Investigators are listed once per project.
                                 </p></phenotype-help
                             >
                             <div class="pbp-table-scroll">
                                 <table>
                                     <thead><tr>
                                         <th class="pbp-project-check"><span class="sr-only">Select project</span></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'name')">Project {{ sortIndicator('cohorts', 'name') }}</button></th>
+                                        <th><button class="pbp-sort" @click="toggleSort('cohorts', 'name')">Project / Investigator {{ sortIndicator('cohorts', 'name') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('cohorts', 'total')">Samples {{ sortIndicator('cohorts', 'total') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('cohorts', 'affected')">Affected {{ sortIndicator('cohorts', 'affected') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('cohorts', 'medianAge')">Age · median (Q1–Q3) {{ sortIndicator('cohorts', 'medianAge') }}</button></th>
@@ -206,7 +73,7 @@
                                     </tr></thead>
                                     <tbody><tr v-for="item in visibleCohortDiseaseSummary" :key="item.name" :class="{ 'pbp-project-selected': selectedProjects.includes(item.name) }">
                                         <td class="pbp-project-check"><input type="checkbox" v-model="selectedProjects" :value="item.name" :aria-label="`Include project ${item.name}`" :disabled="sampleInfoLoading" /></td>
-                                        <td>{{ item.name }}</td><td>{{ item.total.toLocaleString() }}</td><td>{{ item.affected.toLocaleString() }}</td>
+                                        <td>{{ item.name }}<small class="pbp-project-investigator">{{ item.investigators.length ? `Investigator: ${item.investigators.join(', ')}` : 'Investigator unavailable' }}</small></td><td>{{ item.total.toLocaleString() }}</td><td>{{ item.affected.toLocaleString() }}</td>
                                         <td class="pbp-cohort-stat">
                                             <span class="pbp-stat-help" tabindex="0" v-b-tooltip.hover.focus.top
                                                 :title="`${item.ageKnown.toLocaleString()} / ${item.total.toLocaleString()} valid ages; ${item.total - item.ageKnown} missing or outside 0–100 years. Statistics use valid ages only.`"
@@ -231,6 +98,78 @@
                                 <button type="button" :disabled="cohortPage >= cohortPageCount" @click="cohortPage++">Next</button>
                             </div>
                         </div>
+                        <details class="pbp-query-details">
+                            <summary>
+                                <span>Phenotype counts and context</span>
+                                <span v-if="ageBandFilter || sexFilter || affectedFilter || excluded.length || advancedRules.length" class="pbp-active-filters">Filters active</span>
+                            </summary>
+                            <div class="pbp-query-details-content">
+                                <div class="pbp-term-summary" aria-label="Query term context">
+                                    <p class="pbp-term-summary-note">Disease counts use external Orphanet annotations.</p>
+                                    <div
+                                        v-for="item in termSummaries"
+                                        :key="item.id"
+                                        class="pbp-term-summary-row"
+                                        :style="termStyle(item.id)"
+                                    >
+                                        <span class="pbp-term-summary-name"><i></i>{{ name(item.id) }}</span>
+                                        <span>{{ countChange(item.samples, item.remainingSamples, 'samples') }}{{ excluded.length || item.percent == null ? "" : ` (${item.percent}%)` }}</span>
+                                        <span>{{ countChange(item.diseases, item.remainingDiseases, 'diseases') }}</span>
+                                        <span>{{ countChange(item.veryFrequent, item.remainingVeryFrequent, 'diseases with ≥80% frequency') }}</span>
+                                        <div v-for="excludedItem in item.exclusions" :key="excludedItem.id" class="pbp-term-summary-excluded">
+                                            <span>− {{ name(excludedItem.id) }}</span>
+                                            <span>{{ excludedItem.samples == null ? "—" : excludedItem.samples.toLocaleString() }} samples excluded</span>
+                                            <span>{{ excludedItem.diseases.toLocaleString() }} {{ excludedItem.diseases === 1 ? "disease" : "diseases" }} excluded</span>
+                                            <span>{{ excludedItem.veryFrequent.toLocaleString() }} high-frequency {{ excludedItem.veryFrequent === 1 ? "disease" : "diseases" }} excluded</span>
+                                        </div>
+                                    </div>
+                                    <div v-if="multi" class="pbp-term-summary-total">
+                                        <strong>All {{ ids.length }} together</strong>
+                                        <span>{{ countChange(matchesLoaded ? allTermsSampleCount : null, matchingSampleGroups.all.length, 'samples', combinedCountRemovalLabel) }}</span>
+                                        <span>≥2 of {{ ids.length }}: {{ countChange(matchesLoaded ? atLeastTwoSampleCount : null, matchingSampleGroups.atLeastTwo.length, 'samples', combinedCountRemovalLabel) }}</span>
+                                        <span>{{ cohortSampleCount ? cohortSampleCount.toLocaleString() : "—" }} total samples</span>
+                                    </div>
+                                </div>
+                                <div v-if="multi" class="pbp-scope-picker" role="group" aria-label="Choose sample matching group">
+                                    <span>Show samples</span>
+                                    <button type="button" class="pbp-btn" :class="{ 'scope-active': sampleMatchMode === 'all' || ids.length === 2 }" :aria-pressed="String(sampleMatchMode === 'all' || ids.length === 2)" @click="selectGeneSampleScope('all')">All {{ ids.length }} together · {{ matchesLoaded ? matchingSampleGroups.all.length.toLocaleString() : '—' }}</button>
+                                    <button v-if="ids.length > 2" type="button" class="pbp-btn" :class="{ 'scope-active': sampleMatchMode === 'atLeastTwo' }" :aria-pressed="String(sampleMatchMode === 'atLeastTwo')" @click="selectGeneSampleScope('atLeastTwo')">≥2 of {{ ids.length }} · {{ matchesLoaded ? matchingSampleGroups.atLeastTwo.length.toLocaleString() : '—' }}</button>
+                                    <small>Counts include current page filters and Exclude.</small>
+                                </div>
+                                <phenotype-help label="Counts and query">
+                                    <p>
+                                        Per-term counts show before → after Exclude. Combined sample counts also include current page filters and
+                                        match the sample-group gene counts below. Disease counts use direct Orphanet annotations. High-frequency
+                                        diseases list this phenotype as very frequent (80–99%) or obligate (100%).<template v-if="excluded.length">
+                                            Red rows show each excluded term separately; overlapping exclusions are counted once in the remaining
+                                            totals.</template
+                                        >
+                                    </p>
+                                    <p v-if="multi">
+                                        This set is scored as one profile. Samples are ranked by rPheRS Z-score. Genes are tested across the
+                                        approved full gene-score source; reference databases provide phenotype-matched disease–gene links.
+                                        {{
+                                            isOrphanet
+                                                ? "Orphanet profile scores combine query and disease phenotype coverage; diseases"
+                                                : `${diseaseSourceLabel} results use unweighted HPO overlap; records`
+                                        }}
+                                        matching an excluded term are removed. None of this is a diagnosis.
+                                    </p>
+                                    <template v-else>
+                                        <h3>Definition and ontology</h3>
+                                        <p class="pbp-context-note">
+                                            {{ term ? term[1] : "" }} Parent:
+                                            {{ term ? (term[2] || []).map(name).join(", ") : "" }}
+                                            ·
+                                            <a :href="`https://hpo.jax.org/browse/term/${ids[0]}`" target="_blank" rel="noopener noreferrer"
+                                                >Ontology and definition</a
+                                            >
+                                            · {{ reference.meta.hpoOBO }}
+                                        </p>
+                                    </template>
+                                </phenotype-help>
+                            </div>
+                        </details>
                         <div v-if="matchesLoaded" class="pbp-sample-context">
                             <section class="pbp-context-panel pbp-age-panel" aria-label="Age at record">
                                 <div class="pbp-context-heading">
@@ -293,7 +232,7 @@
                                     </p></phenotype-help
                                 >
                                 <div class="pbp-coterms">
-                                    <button v-for="item in coTerms" :key="item.id" type="button" @click="addFeature(item.id)">
+                                    <button v-for="item in coTerms" :key="item.id" type="button" @click="queueFeature(item.id)">
                                         {{ name(item.id) }}<em>{{ item.percent }}%</em>
                                     </button>
                                     <span v-if="!coTerms.length" class="pbp-muted">No co-recorded phenotypes are available.</span>
@@ -422,7 +361,7 @@
                                                 ? geneSampleScope === "whole"
                                                     ? "Whole-cohort results are retained. Use the sample-group filters below to see genes with GRS Max > 0 in matching samples."
                                                     : "Rows are filtered to genes with GRS Max > 0 in the selected group. Shared by all requires score coverage for every selected sample."
-                                                : "Existing approximate binary-HPO score-test β: change in HPO log-odds per 0.1 increase in GRS, without rPheRS SD standardization. Coefficient, SE and 95% CI are rescaled by 0.1; release p/q values and analysis samples are unchanged. Reference database links are shown separately."
+                                                : "Existing approximate binary-HPO score-test β per 0.1 increase in Sum GRS. Sum GRS is the gene-level genetic risk score: summed ALT dosage × variant pathogenicity score. Coefficient, SE and 95% CI are rescaled by 0.1; release p/q values and analysis samples are unchanged. Reference database links are shown separately."
                                         }}
                                     </p>
 
@@ -519,7 +458,7 @@
                                         <th v-if="multi" :class="{ 'pbp-selected-group-column': sampleMatchMode === 'atLeastTwo' }"><button class="pbp-sort" @click="toggleSort('genes', 'groupAtLeast')">GRS &gt; 0 · ≥2/{{ ids.length }} <small>{{ atLeastGeneSummary.total }} samples</small> {{ sortIndicator('genes', 'groupAtLeast') }}</button></th>
                                         <th v-if="multi" :class="{ 'pbp-selected-group-column': sampleMatchMode === 'all' }"><button class="pbp-sort" @click="toggleSort('genes', 'groupAll')">GRS &gt; 0 · {{ ids.length }}/{{ ids.length }} <small>{{ allGeneSummary.total }} samples</small> {{ sortIndicator('genes', 'groupAll') }}</button></th>
                                         <th v-if="multi"><button class="pbp-sort" @click="toggleSort('genes', 'projects')">Projects <small>Selected score-positive samples</small> {{ sortIndicator('genes', 'projects') }}</button></th>
-                                        <th><button class="pbp-sort" @click="toggleSort('genes', 'effect')">{{ multi ? "β per 0.1 GRS (SD)" : "β per 0.1 GRS (log-odds)" }} {{ sortIndicator('genes', 'effect') }}</button></th>
+                                        <th><button class="pbp-sort" v-b-tooltip.hover.focus.top title="β per 0.1 GRS summarizes the gene burden association. Sum GRS adds ALT allele dosage × pathogenicity score across a gene: 1 for LoFTEE high-confidence loss of function, otherwise available AlphaMissense." @click="toggleSort('genes', 'effect')">β {{ sortIndicator('genes', 'effect') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('genes', 'support')">{{ multi ? "GRS > 0 samples" : "95% CI" }} {{ sortIndicator('genes', 'support') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('genes', 'p')">p {{ sortIndicator('genes', 'p') }}</button></th>
                                         <th><button class="pbp-sort" @click="toggleSort('genes', 'q')">q {{ sortIndicator('genes', 'q') }}</button></th>
@@ -533,7 +472,7 @@
                                     >
                                         <td>
                                             <a
-                                                :href="`/pb_Gene.html?query=${encodeURIComponent(
+                                                :href="`/pb_gene2.html?query=${encodeURIComponent(
                                                     row.gene
                                                 )}`"
                                                 >{{ row.gene }}</a
@@ -816,7 +755,7 @@
                                                             3
                                                         )"
                                                         :key="gene[0]"
-                                                        :href="`/pb_Gene.html?query=${encodeURIComponent(
+                                                        :href="`/pb_gene2.html?query=${encodeURIComponent(
                                                             gene[0]
                                                         )}`"
                                                         @click.stop
@@ -902,7 +841,7 @@
                                                                             excluded.includes(item.hpoId)
                                                                         "
                                                                         @click.stop="
-                                                                            addFeature(
+                                                                            queueFeature(
                                                                                 item.hpoId
                                                                             )
                                                                         "
@@ -1017,7 +956,7 @@
                                                 class="pbp-narrow-add"
                                                 title="Add as present"
                                                 aria-label="Add as present phenotype"
-                                                @click="addFeature(item.hpoId)"
+                                                @click="queueFeature(item.hpoId)"
                                             >
                                                 +</button
                                             ><button
@@ -1025,7 +964,7 @@
                                                 class="pbp-narrow-exclude"
                                                 title="Add as excluded"
                                                 aria-label="Add as excluded phenotype"
-                                                @click="addExcluded(item.hpoId)"
+                                                @click="queueExcluded(item.hpoId)"
                                             >
                                                 -
                                             </button>
@@ -1074,7 +1013,11 @@ import {
 import { request as bioIndexRequest } from "@/utils/bioIndexUtils";
 import { fetchProfileGeneAssociations } from "./profileGeneApi";
 import { fetchSampleGeneScores, summarizeSampleGenes } from "./sampleSelection";
-import PhenotypeQueryInput from "./PhenotypeQueryInput.vue";
+import PhenotypeProfileEditor from "./PhenotypeProfileEditor.vue";
+import SinglePhenotypeResults from "./SinglePhenotypeResults.vue";
+import { loadCrdcHpoCounts, validateCrdcHpos } from '../../utils/crdcHpoAvailability';
+import { isSinglePhenotypeView } from "./singlePhenotypeModel";
+import { readRules, matchesRules } from "./profileFilters";
 import PhenotypeHelp from "./PhenotypeHelp.vue";
 import { createHpoSearchIndex } from "./hpoSearch";
 import { buildGeneReferenceEvidence } from "./geneReferenceEvidence";
@@ -1110,23 +1053,29 @@ function leafTerms(ids) {
 }
 export default {
     name: "PbPhenotypeTemplate",
-    components: { PhenotypeQueryInput, PhenotypeHelp },
+    components: { PhenotypeProfileEditor, PhenotypeHelp, SinglePhenotypeResults },
     data() {
         const params = new URLSearchParams(window.location.search);
-        const query = params.get("query") || params.get("hpo") || "HP:0001250";
+        const query = params.has("query") ? params.get("query") : params.get("hpo") || "HP:0001250";
         const ids = resolveHpoIds(REF, query);
-        const geneScope = ["all", "atLeastTwo"].includes(params.get("gene_scope")) ? params.get("gene_scope") : "whole";
-        const matchingMode = geneScope !== 'whole' ? geneScope : params.get('match') === 'all' ? 'all' : 'atLeastTwo';
+        const geneScope = ["any", "all", "atLeastTwo"].includes(params.get("gene_scope")) ? params.get("gene_scope") : "whole";
+        const initialRules = readRules(params.get('filters'), value => { const resolved = resolveHpoIds(REF, value); return resolved.length === 1 ? resolved[0] : ''; });
+        const requestedMinimum = Number(params.get('min_match'));
+        const matchingMode = geneScope !== 'whole' ? geneScope : ['any', 'all', 'atLeastTwo'].includes(params.get('match')) ? params.get('match') : Number.isInteger(requestedMinimum) && requestedMinimum > 0 ? 'atLeastTwo' : 'all';
         return {
             reference: REF,
             ids,
-            excluded: resolveHpoIds(REF, params.get("exclude") || ""),
+            advancedRules: initialRules,
+            excluded: [...new Set([...resolveHpoIds(REF, params.get('exclude') || ''), ...initialRules.filter(row => row.field === 'phenotype' && row.operator === 'exclude').map(row => row.value)])],
             colors: Object.fromEntries(ids.map((id, i) => [id, i % 8])),
             searchQuery: query,
             sampleMatchMode: matchingMode,
+            sampleMatchMinimum: Number.isInteger(requestedMinimum) && requestedMinimum > 0 ? Math.min(requestedMinimum, Math.max(ids.length, 2)) : 2,
+            hpoSampleCounts: null, hpoCountsStatus: 'loading',
             geneSampleScope: geneScope,
             scoreMembership: null, membershipLoading: false, membershipError: "", membershipRequest: 0,
             sampleInfoLoading: false,
+            projectMetadataSource: "",
             ageBandFilter: "",
             sexFilter: "",
             selectedProjects: [],
@@ -1136,7 +1085,7 @@ export default {
             tableSort: {
                 cohorts: { key: "total", dir: "desc" },
                 samples: { key: "rank", dir: "asc" },
-                genes: { key: ids.length > 1 && ["all", "atLeastTwo"].includes(params.get("gene_scope")) ? (params.get("gene_scope") === "all" ? "groupAll" : "groupAtLeast") : "", dir: "desc" },
+                genes: { key: ids.length > 1 && ["any", "all", "atLeastTwo"].includes(params.get("gene_scope")) ? (params.get("gene_scope") === "all" ? "groupAll" : params.get("gene_scope") === "any" ? "groupAny" : "groupAtLeast") : "", dir: "desc" },
                 diseases: { key: "rank", dir: "asc" },
                 narrowing: { key: "", dir: "asc" },
             },
@@ -1152,10 +1101,11 @@ export default {
             sampleInfoChecked: {},
             infoRequest: 0,
             genes: null,
+            multiGeneResult: null, multiGeneLoading: false, multiGeneError: "", multiComparisonRequest: 0,
             geneLoading: false,
             geneError: "",
             geneRequest: 0,
-            geneFilter: ids.length > 1 && ["all", "atLeastTwo"].includes(params.get("gene_scope")) ? "selected" : "significant",
+            geneFilter: ids.length > 1 && ["any", "all", "atLeastTwo"].includes(params.get("gene_scope")) ? "selected" : "significant",
             genePage: 1,
             geneSearch: "",
             geneReferenceSource: 'all',
@@ -1169,15 +1119,19 @@ export default {
         };
     },
     mounted() {
+        this.loadHpoCounts();
         if (this.ids.length) {
             this.loadSamples();
             this.loadGenes();
         }
     },
     watch: {
+        qualifyingSamples() { if (this.multi && this._isMounted) this.scheduleMultiGeneComparison(); },
         ids: {
             deep: true,
             handler() {
+                this.sampleRequest++; this.geneRequest++;
+                this.sampleLoading = false; this.geneLoading = false;
                 this.matches = [];
                 this.scoreMembership = null;
                 this.membershipRequest++;
@@ -1196,6 +1150,7 @@ export default {
                 this.loadGenes();
             },
         },
+        advancedRules: { deep: true, handler() { this.resetSelectedPages(); } },
         ageBandFilter() { this.resetSelectedPages(); },
         sexFilter() { this.resetSelectedPages(); },
         affectedFilter() { this.resetSelectedPages(); },
@@ -1209,19 +1164,20 @@ export default {
                 this.diseaseFilter = "all";
                 // Exclude updates the current sample-group gene view, while
                 // whole-cohort association statistics remain its reference.
-                if (this.geneSampleScope === 'whole') this.selectGeneSampleScope(this.sampleMatchMode);
+                if (this.geneSampleScope === 'whole') this.selectGeneSampleScope(this.sampleMatchMode, this.sampleMatchMinimum);
             }
         } },
         metadataSamples(samples) {
             this.loadSampleInfo(samples);
             this.loadSampleGeneScores(samples);
         },
+        sampleMatchMinimum() { this.resetSelectedPages(); this.syncUrl(); },
         sampleMatchMode() {
             this.geneSampleScope = this.sampleMatchMode;
             this.geneFilter = 'selected';
             this.samplePage = 1; this.cohortPage = 1; this.genePage = 1;
-            if (["groupAll", "groupAtLeast"].includes(this.tableSort.genes.key))
-                this.$set(this.tableSort, "genes", {key: this.sampleMatchMode === "all" ? "groupAll" : "groupAtLeast", dir: "desc"});
+            if (["groupAny", "groupAll", "groupAtLeast"].includes(this.tableSort.genes.key))
+                this.$set(this.tableSort, "genes", {key: this.sampleMatchMode === "all" ? "groupAll" : this.sampleMatchMode === "any" ? "groupAny" : "groupAtLeast", dir: "desc"});
             this.syncUrl();
         },
         diseaseQuery() { this.diseasePage = 1; },
@@ -1237,8 +1193,18 @@ export default {
             this.syncUrl();
         },
     },
-    beforeDestroy() { this.membershipRequest++; this.infoRequest++; this.sampleRequest++; this.geneRequest++; },
+    beforeDestroy() { clearTimeout(this._multiComparisonTimer); if (this._multiComparisonAbort) this._multiComparisonAbort.abort(); this.multiComparisonRequest++; this.membershipRequest++; this.infoRequest++; this.sampleRequest++; this.geneRequest++; },
     computed: {
+        singlePhenotypeView() { return isSinglePhenotypeView(this); },
+        singlePhenotypeSamples() {
+            return this.qualifyingSamples.map(row => ({
+                id: sampleKey(row), project: this.sampleCohortDisease(row), investigator: this.sampleInvestigator(row),
+                age: this.sampleAge(row), sex: this.sampleSex(row), affected: row.initial_study_affected,
+                z: row.rphers_z, terms: this.sampleTerms(row), matchedCount: sampleMatchCount(row),
+            }));
+        },
+        investigatorOptions() { return [...new Set(this.matches.map(row => this.sampleInvestigator(row)).filter(Boolean))].sort(); },
+        projectOptions() { return [...new Set(this.matches.map(row => this.sampleCohortDisease(row)))].sort(); },
         ageBands() { return AGE_BANDS; },
         multi() {
             return this.ids.length > 1;
@@ -1262,7 +1228,7 @@ export default {
             return { all, byTerm };
         },
         combinedCountRemovalLabel() {
-            return this.ageBandFilter || this.sexFilter || this.affectedFilter || this.selectedProjects.length ? 'filtered out' : 'excluded';
+            return this.ageBandFilter || this.sexFilter || this.affectedFilter || this.selectedProjects.length || this.advancedRules.some(row => row.field !== 'phenotype' || row.operator !== 'exclude') ? 'filtered out' : 'excluded';
         },
         termSummaries() {
             return this.ids.map((id) => {
@@ -1310,24 +1276,28 @@ export default {
             return this.matches.filter((row) => sampleMatchCount(row) >= 2).length;
         },
         hpoSearchIndex() { return HPO_SEARCH_INDEX; },
-        metadataSamples() { return this.matches.filter(row => !this.multi || sampleMatchCount(row) >= 2); },
+        metadataSamples() { return this.matches; },
         matchingSampleGroups() {
             const candidates = this.metadataSamples.filter(row => this.matchesSampleFilters(row) && !this.excluded.some(id => this.sampleTerms(row).includes(id)));
-            return {atLeastTwo: candidates, all: candidates.filter(row => sampleMatchCount(row) === this.ids.length)};
+            return {any: candidates, atLeastTwo: candidates.filter(row => sampleMatchCount(row) >= Math.min(2, this.ids.length)), threshold: candidates.filter(row => sampleMatchCount(row) >= this.effectiveMatchMinimum), all: candidates.filter(row => sampleMatchCount(row) === this.ids.length)};
         },
-        selectedSampleLabel() { return this.multi ? (this.sampleMatchMode === 'all' || this.ids.length === 2 ? `All ${this.ids.length} HPOs` : `≥2 of ${this.ids.length} HPOs`) : 'This HPO'; },
-        selectedGeneSummary() { return (this.geneSampleScope === 'whole' ? this.sampleMatchMode : this.geneSampleScope) === 'all' ? this.allGeneSummary : this.atLeastGeneSummary; },
+        effectiveMatchMinimum() { return Math.max(1, Math.min(this.ids.length || 1, this.sampleMatchMinimum)); },
+        selectedSampleLabel() { return this.multi ? this.sampleMatchMode === 'any' ? 'Any included HPO' : this.sampleMatchMode === 'all' ? `All ${this.ids.length} HPOs` : `≥${this.effectiveMatchMinimum} of ${this.ids.length} HPOs` : 'This HPO'; },
+        selectedGeneSummary() { const mode = this.geneSampleScope === 'whole' ? this.sampleMatchMode : this.geneSampleScope; return mode === 'all' ? this.allGeneSummary : mode === 'any' ? this.anyGeneSummary : this.thresholdGeneSummary; },
+        anyGeneSummary() { return summarizeSampleGenes(this.matchingSampleGroups.any, this.scoreMembership, sampleKey, this.sampleCohortDisease); },
+        thresholdGeneSummary() { return summarizeSampleGenes(this.matchingSampleGroups.threshold, this.scoreMembership, sampleKey, this.sampleCohortDisease); },
         atLeastGeneSummary() { return summarizeSampleGenes(this.matchingSampleGroups.atLeastTwo, this.scoreMembership, sampleKey, this.sampleCohortDisease); },
         allGeneSummary() { return summarizeSampleGenes(this.matchingSampleGroups.all, this.scoreMembership, sampleKey, this.sampleCohortDisease); },
         cohortDiseases() { return [...new Set(this.metadataSamples.map(this.sampleCohortDisease))].sort(); },
         projectSamples() {
             return this.metadataSamples.filter(row => this.matchesSampleFilters(row, true)
-                && (!this.multi || this.sampleMatchMode !== 'all' || sampleMatchCount(row) === this.ids.length)
+                && this.matchesIncludedMode(row)
                 && !this.excluded.some(id => this.sampleTerms(row).includes(id)));
         },
         cohortDiseaseSummary() {
             return cohortSampleSummary(this.projectSamples, {
                 cohortOf: (row) => this.sampleCohortDisease(row),
+                investigatorOf: (row) => this.sampleInvestigator(row),
                 ageOf: (row) => this.sampleAge(row),
                 sexOf: (row) => row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender,
                 affectedOf: (row) => row.initial_study_affected,
@@ -1396,7 +1366,7 @@ export default {
                 : 0;
         },
         samplesBeforeExclusion() {
-            return this.metadataSamples.filter(row => this.matchesSampleFilters(row) && (!this.multi || this.sampleMatchMode !== 'all' || sampleMatchCount(row) === this.ids.length));
+            return this.metadataSamples.filter(row => this.matchesSampleFilters(row) && this.matchesIncludedMode(row));
         },
         filteredSamples() {
             return this.samplesBeforeExclusion.filter((row) =>
@@ -1536,6 +1506,7 @@ export default {
         sortedGenes() {
             return sortTableRows(this.filteredGenes, this.tableSort.genes, {
                 gene: (row) => row.gene,
+                groupAny: (row) => this.anyGeneSummary.covered ? (this.anyGeneSummary.genes[row.gene]?.count || 0) : null,
                 groupAtLeast: (row) => this.atLeastGeneSummary.covered ? (this.atLeastGeneSummary.genes[row.gene]?.count || 0) : null,
                 groupAll: (row) => this.allGeneSummary.covered ? (this.allGeneSummary.genes[row.gene]?.count || 0) : null,
                 projects: (row) => this.selectedGeneSummary.genes[row.gene]?.projects.size ?? null,
@@ -1629,6 +1600,41 @@ export default {
         },
     },
     methods: {
+        scheduleMultiGeneComparison() {
+            clearTimeout(this._multiComparisonTimer);
+            if (this._multiComparisonAbort) this._multiComparisonAbort.abort();
+            this.multiComparisonRequest++; this.multiGeneResult = null;
+            if (!this.multi || !this.matchesLoaded) { this.multiGeneLoading = false; return; }
+            this.multiGeneLoading = true;
+            this._multiComparisonTimer = setTimeout(() => this.loadMultiGeneComparison(), 180);
+        },
+        async loadMultiGeneComparison() {
+            if (!this.multi || !this.matchesLoaded) return;
+            const request = ++this.multiComparisonRequest;
+            if (this._multiComparisonAbort) this._multiComparisonAbort.abort();
+            const controller = new AbortController(); this._multiComparisonAbort = controller;
+            this.multiGeneLoading = true; this.multiGeneError = '';
+            try {
+                const response = await fetch('/__hpo_gene_carrier_comparison__', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
+                    body: JSON.stringify({ hpo_ids: [...this.ids], minimum: this.sampleMatchMode === 'any' ? 1 : this.sampleMatchMode === 'all' ? this.ids.length : this.effectiveMatchMinimum, sample_ids: this.qualifyingSamples.map(sampleKey) }) });
+                if (!response.ok) throw new Error('Profile carrier comparison is unavailable.');
+                const result = await response.json();
+                if (!Array.isArray(result.rows) || result.adjusted !== false || result.matchingSampleCount !== this.qualifyingSamples.length) throw new Error('Unexpected profile comparison result.');
+                if (request === this.multiComparisonRequest) this.multiGeneResult = Object.freeze(result);
+            } catch (error) { if (request === this.multiComparisonRequest && !controller.signal.aborted) this.multiGeneError = error.message; }
+            finally { if (request === this.multiComparisonRequest) this.multiGeneLoading = false; }
+        },
+        requireSingleFeature(id) {
+            if (this.multi) {
+                if (!this.advancedRules.some(row => row.field === 'phenotype' && row.operator === 'contains' && row.value === id))
+                    this.applyProfile({ ids: [...this.ids], excluded: this.excluded.filter(value => value !== id), rules: [...this.advancedRules, { field: 'phenotype', operator: 'contains', value: id, required: true }], matchMode: this.sampleMatchMode, minimum: this.sampleMatchMinimum });
+                return;
+            }
+            this.applyProfile({ ids: [...new Set([...this.ids, id])], excluded: [...this.excluded], rules: [...this.advancedRules], matchMode: 'all', minimum: 2 });
+        },
+        excludeSingleFeature(id) {
+            this.applyProfile({ ids: [...this.ids], excluded: [...new Set([...this.excluded, id])], rules: this.advancedRules.filter(row => !(row.field === 'phenotype' && row.value === id)), matchMode: this.sampleMatchMode, minimum: this.sampleMatchMinimum });
+        },
         referenceSourceLabel(source) { return DISEASE_SOURCES.find(item => item.key === source)?.label || source; },
         geneDiseaseLinks(row) { return this.geneReferenceSource === 'all' ? row.diseases : row.diseases.filter(disease => disease.source === this.geneReferenceSource); },
         toggleGeneReferences(gene, open) {
@@ -1642,21 +1648,29 @@ export default {
                 ? `${before.toLocaleString()} → ${after.toLocaleString()} ${unit} (${(before - after).toLocaleString()} ${reason})`
                 : `${before.toLocaleString()} ${unit}`;
         },
-        selectGeneSampleScope(scope) {
-            if (!['whole', 'all', 'atLeastTwo'].includes(scope)) return;
+        selectGeneSampleScope(scope, minimum = 2) {
+            if (!['whole', 'any', 'all', 'atLeastTwo'].includes(scope)) return;
+            if (scope === 'atLeastTwo') this.sampleMatchMinimum = minimum;
             this.geneSampleScope = scope;
             this.geneFilter = scope === 'whole' ? 'all' : 'selected';
             this.genePage = 1;
             if (scope !== 'whole') this.sampleMatchMode = scope;
-            this.$set(this.tableSort, 'genes', {key: scope === 'whole' ? '' : scope === 'all' ? 'groupAll' : 'groupAtLeast', dir: 'desc'});
+            this.$set(this.tableSort, 'genes', {key: scope === 'whole' ? '' : scope === 'all' ? 'groupAll' : scope === 'any' ? 'groupAny' : 'groupAtLeast', dir: 'desc'});
             this.syncUrl();
         },
+        matchesIncludedMode(row) { const minimum = this.sampleMatchMode === 'any' ? 1 : this.sampleMatchMode === 'all' ? this.ids.length : this.effectiveMatchMinimum; return sampleMatchCount(row) >= minimum; },
         resetSelectedPages() { this.samplePage = 1; this.cohortPage = 1; this.genePage = 1; },
         matchesSampleFilters(row, ignoreProject = false) {
             return (ignoreProject || !this.selectedProjects.length || this.selectedProjects.includes(this.sampleCohortDisease(row))) &&
                 (!this.affectedFilter || row.initial_study_affected === this.affectedFilter) &&
                 (!this.ageBandFilter || this.sampleAgeBand(row) === this.ageBandFilter) &&
-                (!this.sexFilter || sexCategory(row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender).toLowerCase() === this.sexFilter);
+                (!this.sexFilter || sexCategory(row.gender || (this.sampleInfo[sampleKey(row)] || {}).gender).toLowerCase() === this.sexFilter) &&
+                matchesRules(row, this.advancedRules, {
+                    termsOf: sample => this.sampleTerms(sample), ageOf: sample => this.sampleAge(sample),
+                    sexOf: sample => sexCategory(sample.gender || (this.sampleInfo[sampleKey(sample)] || {}).gender).toLowerCase(),
+                    affectedOf: sample => sample.initial_study_affected || 'unknown',
+                    investigatorOf: sample => this.sampleInvestigator(sample), projectOf: sample => this.sampleCohortDisease(sample),
+                });
         },
         selectedGeneCount(gene) { return this.selectedGeneSummary.genes[gene]?.count || 0; },
         sharedByAllSelected(gene) {
@@ -1675,6 +1689,7 @@ export default {
             return `${value.projects.size}${value.unknownProjectCount ? ' (partial)' : ''}`;
         },
         async loadSampleGeneScores(samples = this.metadataSamples) {
+            if (this.multi && this._isMounted) return;
             const request = ++this.membershipRequest;
             this.scoreMembership = null; this.membershipError = ''; this.membershipLoading = false;
             if (!this.multi || !samples.length) return;
@@ -1757,7 +1772,7 @@ export default {
             return ageBand(this.sampleAge(sample));
         },
         sampleCohortDisease(sample) {
-            // The profile service has already joined the approved cohort mapping.
+            // The profile service has already joined project metadata.
             // Keep selection and counts stable instead of replacing these labels
             // as hundreds of per-sample BioIndex requests finish.
             if (sample.profileMetadataComplete) {
@@ -1775,26 +1790,56 @@ export default {
                 ? label.trim()
                 : "Unknown";
         },
+        sampleInvestigator(sample) {
+            if (sample.profileMetadataComplete) return sample.investigator || '';
+            const info = this.sampleInfo[sampleKey(sample)] || {};
+            return sample.investigator || info.investigator || info.cohort || info.study || info.study_code || '';
+        },
         syncUrl() {
             this.searchQuery = this.ids.join(",");
             const url = new URL(window.location.href);
             url.searchParams.set("query", this.searchQuery);
             if (this.multi) {
                 url.searchParams.set("match", this.sampleMatchMode);
+                if (this.sampleMatchMode === 'atLeastTwo' && this.effectiveMatchMinimum !== 2) url.searchParams.set('min_match', String(this.effectiveMatchMinimum));
+                else url.searchParams.delete('min_match');
                 url.searchParams.set("gene_scope", this.geneSampleScope);
             } else {
-                url.searchParams.delete("match"); url.searchParams.delete("gene_scope");
+                url.searchParams.delete("match"); url.searchParams.delete("gene_scope"); url.searchParams.delete("min_match");
             }
             if (this.excluded.length)
                 url.searchParams.set("exclude", this.excluded.join(","));
             else url.searchParams.delete("exclude");
+            if (this.advancedRules.length) url.searchParams.set('filters', JSON.stringify(this.advancedRules));
+            else url.searchParams.delete('filters');
             if (!this.isOrphanet) url.searchParams.set("source", this.diseaseSource);
             else url.searchParams.delete("source");
             window.history.replaceState({}, "", url.pathname + url.search);
         },
+        queueFeature(id) { const editor = this.$refs.profileEditor; editor.setMode('include'); editor.choose(id); },
+        queueExcluded(id) { const editor = this.$refs.profileEditor; editor.setMode('exclude'); editor.choose(id); },
+        applyProfile(profile) {
+            const changed = this.ids.join(',') !== profile.ids.join(',');
+            if (profile.matchMode && this.sampleMatchMode !== profile.matchMode) this.sampleMatchMode = profile.matchMode;
+            if (profile.minimum != null) this.sampleMatchMinimum = profile.minimum;
+            if (!profile.ids.length) this.selectedProjects = [];
+            if (JSON.stringify(this.advancedRules) !== JSON.stringify(profile.rules)) this.advancedRules = profile.rules;
+            if (this.excluded.join(',') !== profile.excluded.join(',')) this.excluded = profile.excluded;
+            this.ageBandFilter = ''; this.sexFilter = ''; this.affectedFilter = '';
+            if (changed) this.ids = profile.ids;
+            const colors = { ...this.colors };
+            this.ids.forEach(id => { if (colors[id] == null) colors[id] = Object.keys(colors).length % 8; });
+            this.colors = this.ids.length ? colors : {};
+            this.resetSelectedPages(); this.diseasePage = 1;
+            this.syncUrl();
+        },
         submitSearch(query = this.searchQuery) {
+            const ids = resolveHpoIds(REF, query);
+            if (!ids.length) { this.$refs.profileEditor.error = 'Enter a valid phenotype name or HPO ID.'; return; }
             this.searchQuery = query;
-            const ids = resolveHpoIds(REF, this.searchQuery);
+            this.advancedRules = [];
+            this.excluded = [];
+            this.ageBandFilter = ''; this.sexFilter = ''; this.affectedFilter = '';
             this.ids = ids;
             this.colors = Object.fromEntries(ids.map((id, i) => [id, i % 8]));
             this.excluded = this.excluded.filter((id) => !ids.includes(id));
@@ -1820,8 +1865,19 @@ export default {
             this.syncUrl();
         },
         removeExcluded(id) {
+            this.advancedRules = this.advancedRules.filter(row => !(row.field === 'phenotype' && row.operator === 'exclude' && row.value === id));
             this.excluded = this.excluded.filter((item) => item !== id);
             this.syncUrl();
+        },
+        async loadHpoCounts() {
+            this.hpoCountsStatus = 'loading';
+            try { this.hpoSampleCounts = await loadCrdcHpoCounts(); this.hpoCountsStatus = 'ready'; }
+            catch (_) { this.hpoCountsStatus = 'error'; }
+        },
+        async retryHpoAvailability() { await this.loadHpoCounts(); if (this.ids.length) { this.loadSamples(); this.loadGenes(); } },
+        async checkSearchAvailability(ids) {
+            if (this.hpoCountsStatus !== 'ready') await this.loadHpoCounts();
+            validateCrdcHpos(ids, this.hpoSampleCounts, this.hpoCountsStatus, this.name);
         },
         async loadSamples() {
             if (!this.ids.length) return;
@@ -1829,6 +1885,8 @@ export default {
             this.sampleLoading = true;
             this.sampleError = "";
             try {
+                await this.checkSearchAvailability([...this.ids, ...this.excluded, ...this.advancedRules.filter(row => row.field === 'phenotype').map(row => row.value)]);
+                if (request !== this.sampleRequest) return;
                 const endpoint = "/__pb_phenotype_profile__/profile";
                 const fetchPage = async (page) => {
                     const response = await fetch(endpoint, {
@@ -1859,6 +1917,7 @@ export default {
                 }
                 if (request === this.sampleRequest) {
                     this.sampleStandardization = reference;
+                    this.projectMetadataSource = first.project_metadata_source || "";
                     this.matches = matches.map((row, index) => ({ ...row, rank: index + 1,
                         profileMetadataComplete: ["cohort_category", "age_at_enrollment", "gender"].every(
                             field => Object.prototype.hasOwnProperty.call(row, field)
@@ -1918,6 +1977,7 @@ export default {
             if (request === this.infoRequest) { publish(); this.sampleInfoLoading = false; }
         },
         async loadGenes() {
+            if (this.multi) { this.genes = null; this.geneLoading = false; this.scheduleMultiGeneComparison(); return; }
             const request = ++this.geneRequest;
             if (!this.ids.length) {
                 this.genes = null;
@@ -1930,11 +1990,13 @@ export default {
             this.geneLoading = true;
             this.geneError = "";
             try {
+                await this.checkSearchAvailability(ids);
+                if (request !== this.geneRequest) return;
                 let data;
                 if (this.multi) {
                     data = await fetchProfileGeneAssociations(ids);
                 } else {
-                    const response = await fetch(`/__hpo_gene_associations__?hpo=${encodeURIComponent(ids[0])}`);
+                    const response = await fetch(`/__hpo_gene_associations__?hpo=${encodeURIComponent(ids[0])}&view=all-genes`);
                     if (!response.ok) throw new Error(`CRDC gene analysis returned ${response.status}.`);
                     data = await response.json();
                 }

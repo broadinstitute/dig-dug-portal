@@ -157,6 +157,14 @@ assert.equal(cohortB.meanResidualPhers, null);
 assert.equal(cohortStats.find(row => row.name === "D").meanResidualPhers, -3); // retain negative residuals
 assert.equal(cohortSampleSummary(cohortSamples.filter(row => !row.excluded), cohortAccessors).find(row => row.name === "A").meanResidualPhers, 0.5);
 assert.ok(cohortStats.every(row => row.sex.female + row.sex.male + row.sex.unknown === row.total));
+const investigatorStats = cohortSampleSummary([
+    {...cohortSamples[0], investigator: 'inv_b'},
+    {...cohortSamples[1], investigator: 'inv_a'},
+    {...cohortSamples[2], investigator: 'inv_a'},
+    {...cohortSamples[3], investigator: 'Unknown'},
+], {...cohortAccessors, investigatorOf: row => row.investigator});
+assert.deepEqual(investigatorStats[0].investigators, ['inv_a', 'inv_b']);
+assert.equal(investigatorStats[0].total, 4, 'Investigators do not split or duplicate a project');
 
 const sortable = [{ id: "B", value: 2 }, { id: "A", value: null }, { id: "C", value: 1 }];
 assert.deepEqual(sortTableRows(sortable, { key: "value", dir: "asc" }, { value: (row) => row.value }).map((row) => row.id), ["C", "B", "A"]);

@@ -1,18 +1,19 @@
 const { canonicalSampleId } = require('./sampleRecord');
 
-async function requestSampleEvidence(route, sampleId) {
+async function requestSampleEvidence(route, sampleId, comparison = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 180000);
     try {
         const response = await fetch(`/__pb_phenotype_profile__/${route}`, { method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sample_id: canonicalSampleId(sampleId) }), signal: controller.signal });
+            body: JSON.stringify({ ...comparison, sample_id: canonicalSampleId(sampleId) }), signal: controller.signal });
         const raw = await response.text();
         let result;
         try { result = JSON.parse(raw); }
         catch (_) { throw Error('Sample analysis service is temporarily unavailable. Please retry.'); }
         if (!response.ok) throw Error(result.detail || 'Sample analysis failed.');
         if (result.sample_id !== canonicalSampleId(sampleId)) throw Error('Sample response ID mismatch.');
+        if (comparison.candidate_id && result.candidate_id !== canonicalSampleId(comparison.candidate_id)) throw Error('Comparison response ID mismatch.');
         return result;
     } finally { clearTimeout(timer); }
 }

@@ -48,10 +48,13 @@ async function main() {
     const pageOptions = load('src/views/PbPhenotype/Template.vue', {
         './orphanetReference.generated': { ORPHANET_REFERENCE: { terms, diseases: [], associations: {}, meta: {} } },
         './additionalDiseaseReferences.generated.json': { terms: {}, profiles: [] },
-        './phenotypeModel': model, './hpoSearch': search,
+        './SinglePhenotypeResults.vue': {}, './singlePhenotypeModel': load('src/views/PbPhenotype/singlePhenotypeModel.js', {'./phenotypeModel': model}),
+ './phenotypeModel': model, './hpoSearch': search,
+        '../../utils/crdcHpoAvailability': {...require('../src/utils/crdcHpoAvailability'),loadCrdcHpoCounts:async()=>Object.freeze(Object.fromEntries(Object.keys(terms).map(id=>[id,1])))},
         './geneReferenceEvidence': require('../src/views/PbPhenotype/geneReferenceEvidence'),
         './PhenotypeQueryInput.vue': { default: inputOptions, __esModule: true },
         './PhenotypeHelp.vue': {},
+        './PhenotypeProfileEditor.vue': {}, './profileFilters': require('../src/views/PbPhenotype/profileFilters'),
         './sampleSelection': require('../src/views/PbPhenotype/sampleSelection'),
         './profileGeneApi': {}, '../../utils/rphersUnits': require('../src/utils/rphersUnits'),
         '@/utils/bioIndexUtils': { request: async (_, { q }) => {
@@ -100,7 +103,7 @@ async function main() {
     // demographics. Summarizing thousands of them must not fan out to BioIndex.
     const completeSamples = Array.from({ length: 16366 }, (_, i) => ({
         sample_id: `Complete${i}`, profileMetadataComplete: true,
-        cohort_category: i % 2 ? 'Project A' : 'Project B', age_at_enrollment: 10,
+        cohort_category: i % 2 ? 'Project A' : 'Project B', investigator: i % 2 ? 'inv_a' : 'inv_b', age_at_enrollment: 10,
         gender: 'female', expanded_hpo_ids: ['HP:0000001', 'HP:0000002'],
         matches: '2/2', rphers_z: 1,
     }));
@@ -119,6 +122,7 @@ async function main() {
     page.matches = completeSamples;
     await Vue.nextTick();
     assert.equal(page.cohortDiseaseSummary.length, 2);
+    assert.deepEqual(Array.from(page.cohortDiseaseSummary.find(row => row.name === 'Project B').investigators), ['inv_b']);
     assert.equal(page.qualifyingSamples.length, 16366);
     page.selectedProjects = ['Project A'];
     await Vue.nextTick();
@@ -126,6 +130,11 @@ async function main() {
     assert.equal(page.ageSummary.remaining, 8183);
     assert.equal(page.sexSummary.remaining, 8183);
     assert.equal(metadataRequests, 0, 'Changing projects must reuse the profile metadata');
+    page.geneSampleScope = 'all';
+    page.excluded = ['HP:0031352'];
+    page.advancedRules = [{ field: 'phenotype', operator: 'exclude', value: 'HP:0031352' }];
+    await Vue.nextTick();
+    page.excluded = []; page.advancedRules = [];
     console.log(`Complete profile: 16,366 rows, 0 metadata requests, summary + selection ${Number(process.hrtime.bigint() - started) / 1e6} ms`);
     page.matches = []; page.selectedProjects = [];
     await Vue.nextTick();

@@ -1,4 +1,5 @@
-html.pb-gene2-default-scale { zoom: .8; }
+/* Compatibility for a Gene2 tab opened before the shared pre-paint HTML scale. */
+html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: .8; }
 .pg2-page { --pg2-detail-font: 20px; --pg2-secondary-font: 18px; background: #f6f8fb; padding: 24px 24px 48px; color: #24334a; font-family: Arial, Helvetica, sans-serif; font-size: var(--pg2-detail-font, 20px); line-height: 1.5; }
 .pg2-page .pbg-shell { max-width: 1440px; position: relative; }
 .pg2-page h1, .pg2-page h2, .pg2-page h3 { color: #14213d; font-family: inherit; }
@@ -93,7 +94,7 @@ html.pb-gene2-default-scale { zoom: .8; }
 .pg2-page .pg2-overview-column h3 { font-size: 23px; margin: 0 0 24px; line-height: 1.4; }
 .pg2-overview-denominator { font-weight: 400; }
 .pg2-stacked-bar { display: flex; height: 48px; border-radius: 3px; overflow: hidden; background: #e1e9ef; }
-.pg2-page button.pg2-bar-segment { display: flex; flex-basis: 0; min-width: 34px; min-height: 0; align-items: center; justify-content: center; overflow: hidden; border: 0; border-radius: 0; padding: 0; background: var(--pg2-segment-bg); color: white; font-weight: 600; line-height: 1; position: relative; }
+.pg2-page button.pg2-bar-segment { display: flex; flex-basis: 0; min-width: 58px; min-height: 0; align-items: center; justify-content: center; overflow: hidden; border: 0; border-radius: 0; padding: 0 6px; background: var(--pg2-segment-bg); color: white; font-weight: 600; line-height: 1; position: relative; }
 .pg2-page button.pg2-bar-segment.pg2-bar-missing { color: #52647b; font-weight: 400; }
 .pg2-page button.pg2-bar-selected { box-shadow: inset 0 0 0 2px #14213d; }
 .pg2-page button.pg2-bar-segment:focus-visible { outline: 2px solid #14213d; outline-offset: -3px; }
@@ -106,7 +107,7 @@ html.pb-gene2-default-scale { zoom: .8; }
 .pg2-bar-other { --pg2-segment-bg: #9e84b8; background: var(--pg2-segment-bg); }
 .pg2-bar-missing { --pg2-segment-bg: #dce6ed; background: var(--pg2-segment-bg); color: #24334a; }
 .pg2-bar-consequence-others { --pg2-segment-bg: #747e8d; background: var(--pg2-segment-bg); }
-.pg2-page button.pg2-others-segment { min-width: 110px; }
+.pg2-page button.pg2-others-segment { min-width: 138px; }
 .pg2-others-dividers { position: absolute; inset: 0; pointer-events: none; }
 .pg2-others-dividers i { position: absolute; top: 0; bottom: 0; border-left: 1px solid rgba(255, 255, 255, .75); }
 .pg2-others-segment .pg2-segment-label { position: relative; z-index: 1; background: var(--pg2-segment-bg); padding: 3px; white-space: nowrap; }
@@ -347,7 +348,8 @@ html.pb-gene2-default-scale { zoom: .8; }
 .pg2-page .pg2-association-table th:first-child, .pg2-page .pg2-association-table td:first-child { width: 48px; max-width: 48px; padding-left: 8px; padding-right: 8px; }
 .pg2-association-table th:nth-child(2) { width: 36%; }
 .pg2-association-table .pg2-numeric { text-align: center; }
-.pg2-association-hpo { display: inline-block; margin-left: 8px; color: #17213d; font-size: 18px; white-space: nowrap; }
+.pg2-page .pg2-association-name { color: #14213d; font-size: var(--pg2-detail-font, 20px); overflow-wrap: anywhere; }
+.pg2-page .pg2-association-hpo { display: inline-block; margin-left: 8px; color: #0b66d8; font-size: var(--pg2-secondary-font, 18px); white-space: nowrap; text-decoration: underline; text-underline-offset: 2px; }
 .pg2-column-heading { display: flex; justify-content: center; align-items: center; gap: 7px; }
 .pg2-page .pg2-column-heading .pg2-sort-button { text-align: center; font-size: inherit; line-height: inherit; }
 .pg2-association-table th > small { display: block; font-size: 18px; font-weight: 400; }

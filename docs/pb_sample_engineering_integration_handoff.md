@@ -1,763 +1,156 @@
-# PB Sample Engineering Integration Handoff
+# PB Sample engineering integration handoff
 
-Updated: 2026-08-21
+Source delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). Use the Git commit containing this document together with its baseline dependencies; the checklist is not a standalone application or deployment record.
 
-Target branch: `kyuryung/bch-prototype`
+Updated: 2026-11-15 · Entry: `/pb_sample.html?query=<sample-ID>` · Vue 2.
+Reference: the source commit containing this document, compared with baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128` on `kyuryung/bch-prototype`.
+This is the implementation contract for test-server migration, not a deployment record. It supersedes the older Sample mockup/unconnected-source instructions.
 
-Prototype integration commit: `07024747`
+## Test-server source first
 
-Page: `/pb_sample.html`
+The primary live data source is the test server's existing private BioIndex API: `http://100.80.30.199:5000/api/bio/query/<index>?q=…`, retaining authentication and all continuation pages. `samples-info` is queried by exact `SampleInVCF`; its `clean_name`/`investigator` remain authoritative. Current `gene-variants-crdc` supplies the Gene2/Variant membership universe. The pinned processed GT/overlap source below is a distinct, explicitly versioned derived-evidence dataset, not a replacement BioIndex universe.
 
-Audience: frontend, backend, data, and platform engineers and their coding agents
+The `/__pb_phenotype_profile__/…` paths below are prototype adapter contracts. Reuse the test server's existing cohort integration and implement the missing full-candidate/join responses there; do not point the browser at local Mac files. Historical Helen `analyze` top-30 matches and `top_phenotypes` over a displayed subset cannot produce complete Sample comparisons. Paths/hashes below describe backend preparation/reproducibility where an equivalent server materialization is required.
 
-## 1. Read this first
+Linked single-gene burden views use different q families: Gene2 `q_by_gene`, Phenotype `q_by_hpo`, both before delivery filtering. Sample overlap tables do not calculate or substitute either q.
 
-### Live metadata update — 2026-11-09
+Latest shared changes: the common HPO-count adapter is also required by Phenotype/Gene2/Variant input validation (≥1 globally recorded sample, unknown/error distinct from zero). Sample's observed HPO display is not this Custom-input gate. Keep the current case-safe `ProjectComparison.vue` / `projectComparisonStats.js` imports. See [Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md), [Gene2](pb_gene2_engineering_handoff_20261112.md), [Variant](pb_variant_engineering_integration_handoff.md) for their current screen contracts.
 
-#### Connected local sample analysis and variants
+## 1. What to port
 
-`/__pb_phenotype_profile__/sample-matches` now reads the reference sample's
-complete `hpo_terms_raw` metadata, runs the existing `rphers_fast.score_samples`
-method and ranks all other HPO-annotated matrix samples by residual PheRS.
-Self and family are excluded using the canonical BCH family-ID prefix. The
-metadata `family` column is a relationship, not a family ID. Investigator
-median/IQR/n use all eligible candidates. No first-10-term truncation is used.
+Port the page **and its Node gateway, Python profile service and private inputs** together. A static `npm run build` deployment alone does not install the `/__…__` server routes.
 
-`/__pb_phenotype_profile__/sample-variants` is a local bridge to the frozen
-processed `sample_variant_gene.jsonl.gz` source, version
-`2025_crdc_16366_dp20_af001_20260907`, SHA-256
-`e602b847ccdba8961f788701b43004514346490f55164dd3023be23aa7c6bbc7`.
-Configure `PB_SAMPLE_VARIANT_SOURCE` for automatic local service startup, or
-pass `--sample-variant-source` to `scripts.pb_phenotype_profile_api`. Current
-local input is `/private/tmp/pb-sample-live-source/sample_variant_gene.jsonl.gz`.
-This is processed nonsynonymous/DP>=20/AF<0.01 evidence, not an unfiltered
-genome-wide call set or a newly deployed private BioIndex. Queries stream the
-compressed source and cache eight sample responses. Missing sample rows show
-unavailable coverage. GT conflicts are rejected; AF is labelled allele frequency.
+Runtime prerequisites: retain the existing Node/Vue dependencies; the gateway requires global `fetch` and `AbortSignal.timeout`. The Python environment must load NumPy/SciPy and the existing analysis modules imported by the profile service. Keep the existing Gene/Variant R environment separately. Dependency versions are not pinned by this handoff; verify imports and `/health` in the target service environment before connecting the UI.
 
-`SampleVariants.vue` renders the flat table with a searchable gene checklist,
-variant search, consequence and annotation filters, sorting and 10/20/50-row
-pagination. Phenotype columns use a 4:6 split, with explicit seven-column
-sample table widths and horizontal scrolling when necessary.
-
-Verified for BCH-22-11943-01: 53 HPO terms; 8,180 eligible candidates after
-excluding four self/family records; 50 ranked matches; 38 investigator groups,
-whose n sums to 8,180; 418 variant rows across 389 genes, all with GT. These
-connections supersede the older unconnected-state notes below for these two
-sections. Precomputed prioritized Type results remain a separate input.
-
-The Sample UI now separates `Phenotype profile`, `Variants & genotype`, and
-`Prioritized findings`, matching the supplied synthetic-demo screen's workflow.
-`PrioritizedFindings.vue` renders six Type selectors, disease-evidence record
-counts, gene/condition search, a selectable results list and an adjacent detail
-panel. Only explicit fixture mode supplies illustrative findings. Live mode
-shows unconnected counts as `—`, not zero. Counts expand each existing
-variant/disease evidence pair; the UI does not classify variants. The current
-live metadata payload still does not supply prioritized results, inheritance
-assessments or disease-specific percentile comparisons.
-
-The current sample adapter reads the built private `samples-info` index keyed
-by `SampleInVCF`. Canonical IDs try `_E38`, then `_G38`; explicit VCF keys are
-matched exactly. Age, sex, affected status, investigator, recorded observed
-HPO terms (`is_observed === true`), and available gene names now load live.
-The old `patient`-index limitation below is historical for metadata. Both
-`samples-info` and `samples` were verified as metadata records, not complete
-sample variant calls. The requirements for `All` variants and precomputed
-Tier/Type results below still apply. Gene names must not be converted into
-variant calls or inferred classifications.
-
-The PB Sample page is implemented as an approved interactive prototype, but
-most Sample data sources are not connected. The next implementation must keep
-the approved UI behavior and replace fixture sections only when their approved
-production payloads exist.
-
-Two inputs are mandatory:
-
-1. A **sample-keyed API/BioIndex** for Sample `All` variants.
-2. A **separately precomputed and versioned Tier/Type result** supplied by the
-   approved classification workflow.
-
-Do not attempt either task by filtering the Gene page in the browser.
-
-### Non-negotiable boundaries
-
-- `patient_id` and `sample_id` mean the same identifier for this page. Use one
-  canonical `sample_id` in published payloads and joins.
-- `All` is a sample-level variant set. A gene-keyed result is not Sample `All`.
-- `gene-variants-crdc?q={gene}` is an annotation/format reference. It is not a
-  sample-variant discovery API.
-- Tier and Type are not present in the currently verified BioIndex sources.
-  The user will provide a precomputed classifier result.
-- The frontend must not infer Tier or Type from ClinVar, gene identity,
-  LoFTEE, AlphaMissense, REVEL, or Gene-page filters.
-- Live mode must never fall back to fixture values.
-- Missing production data renders as `Unavailable`, `—`, or an explicit
-  unconnected state. Missing is not zero.
-
-## 2. Current checkout and review URLs
-
-Start the BCH prototype from its own checkout:
-
-```bash
-cd /Users/kyuryung/Documents/github_dir/dig-dug-portal-bch-prototype
-BIOINDEX_HOST_PRIVATE=http://100.80.30.199:5000 \
-NODE_OPTIONS=--openssl-legacy-provider \
-./node_modules/.bin/vue-cli-service serve --port 8095 --host 127.0.0.1
-```
-
-Approved visual and interaction fixture:
-
-<http://127.0.0.1:8095/pb_sample.html?query=BCH-00-00000-01&fixture=1>
-
-Live-mode route:
-
-<http://127.0.0.1:8095/pb_sample.html?query=BCH-23-61402-01>
-
-`fixture=1` is an explicit design-review switch. It is not a production
-fallback. Without it, the page queries live sources and shows unavailable
-states for unconnected sections.
-
-`npm run watch` is not the browser dev server and does not provide the private
-BioIndex proxy.
-
-## 3. Existing implementation map
-
-| File | Responsibility |
+| Layer | Required implementation |
 |---|---|
-| `vue.config.js` | Registers the `pbSample` page entry and `pb_sample.html` |
-| `src/views/PbSample/main.js` | Vue entry point |
-| `src/views/PbSample/Template.vue` | Page state, layout, interactions, routing |
-| `src/views/PbSample/style.css` | Sample-specific layout and responsive styles |
-| `src/views/PbSample/pbSampleBioIndexAdapter.js` | Current private `patient` query boundary |
-| `src/views/PbSample/sampleRecord.js` | Canonical ID and empty/live record normalization |
-| `src/views/PbSample/mockData.js` | Explicit fixture-only values |
-| `src/views/PbSample/familyModel.js` | Family ID and relationship ordering |
-| `src/views/PbSample/tableSort.js` | Shared table sorting behavior |
-| `src/views/PbSample/variantEvidence.js` | Pathogenic Score display calculation |
-| `src/views/PbFront/searchModel.js` | BCH/CRDC sample search routing |
+| Sample UI | `src/views/PbSample/Template.vue`, `style.css`, `SampleHpoTree.vue`, `SampleVariants.vue`, `sampleEvidence.js`, `variantEvidence.js`, `tableSort.js`; retain the other existing Sample adapters/components |
+| Comparison UI | `SampleComparison.vue`, `ProjectComparison.vue`, **`projectComparisonStats.js`**, `SamplePagination.vue`, `SampleInfo.vue`, `sampleInfoPosition.js`, `sampleHelp.js` in the same directory |
+| Metadata | Existing `sampleRecord.js` and `pbSampleBioIndexAdapter.js`; shared Gene/Variant `samples-info` provider in `scripts/gene_carrier_summary_endpoint.js` |
+| Gateway | `scripts/sample_match_projects_endpoint.js`, registered by `gene_carrier_summary_endpoint.js`; `vue.config.js` registration/proxies |
+| Calculation | `scripts/pb_phenotype_profile_api.py`, `pb_profile_metadata.py`, `sample_overlap_index.py`; existing `pb_gene_context_api_server.py`, `rphers_fast.py`, `rphers_standardization.py` and their imports |
+| GT installation | `scripts/prepare_pb_genotypes.sh`, `setup_pb_genotypes.py`, existing `build_pb_genotype_index.py` / processed-GT reader |
+| Shared display | `public/index.html` first-paint 80% scale; existing Gene2/Variant fonts, navigation and help dependencies |
 
-Cross-page Sample links already use:
+**New files are included in this delivery commit.** Carry the complete dependency set, including its baseline imports. `ProjectComparison.vue` must import explicitly with `.vue`; the helper is `projectComparisonStats.js`. Do not restore the former case-only `projectComparison.js` name: it caused module resolution failure on macOS.
 
-```text
-/pb_sample.html?query={sample_id}
-```
+## 2. Source contract
 
-They do not attach a gene to the Sample URL.
+| Value | Authoritative source / rule |
+|---|---|
+| Top-card metadata, Project and Investigator; comparison labels | Private BioIndex `samples-info`, keyed by exact `SampleInVCF`; **Project = `clean_name`, Investigator = `investigator`**, same as Gene2/Variant. No local CSV substitution for displayed labels. |
+| Sample identity | Honor an explicit `_E38`/`_G38` key; canonical requests try `_E38`, then `_G38`. Validate the returned ID. Strip only the terminal assay suffix for canonical joins. |
+| Recorded HPO | Distinct `phenotypes[]` with `is_observed === true`; inferred ancestors do not increase this count. Candidate counts use shared metadata when available, otherwise the scorer's recorded terms. |
+| Sample scoring/query | Approved 16,366 × 6,440 parent-expanded matrix plus matching metadata. Use the searched sample's **complete deduplicated `hpo_terms_raw`** profile; no first-10 limit. |
+| Variant profile / shared counts | Frozen processed `sample_variant_gene.jsonl.gz` and its verified GT pack. This is nonsynonymous, DP ≥20, cohort AF <0.01, GRCh38; not genome-wide calls. |
+| Prioritized findings | **Not connected live.** Fixture examples are allowed only with `?fixture=1`; never infer Tier/Type from the variant table. See [the existing source handoff](pb_prioritized_findings_data_handoff.md). |
 
-## 4. Current source audit
+The `samples-info.genes` list is not a list of variant calls or genotypes. Historical `gene-samples` must not replace current `gene-variants-crdc` membership or this pinned processed release. BioIndex and processed-release cohorts differ; their counts need not match.
 
-The frozen 2026-09-07 processed carrier/HPO build that can supply the missing
-sample-keyed inputs is documented in
-`docs/pb_front_gene_variant_merge_handoff.md`, section **Cross-page processed
-BioIndex handoff (2026-09-07)**. It creates canonical
-`sample_variant_gene.jsonl.gz`, `sample_hpo.jsonl.gz`, and
-`sample_gene.jsonl.gz` artifacts plus a hash/count manifest. These files are
-build inputs, not evidence that `sample-variants-crdc` or a sample-HPO endpoint
-has already been deployed. Sample `All` remains unconnected until Helen
-materializes and registers the sample-keyed private index.
+## 3. Browser routes and gateway
 
-The following was verified against the private BioIndex host on 2026-08-21:
+All sample data routes remain private; retain the existing application authentication and BioIndex token scope. Never expose the Python service/internal join vector directly as a public API.
 
-| Index | Query key | Built | Relevance to Sample |
-|---|---|---:|---|
-| `patient` | `patient_id` | No | Intended sample metadata source, currently unusable |
-| `gene-samples` | `gene_symbol` | Yes | Gene-first carrier rows; cannot discover all variants from a sample ID |
-| `gene-variants-crdc` | `gene` | Yes | Gene-first annotation and sample-list rows; format reference only |
-| `variant-sample` | `variant_ID` | Yes | Variant-first sample lookup; cannot discover variants from a sample ID |
-| `variant-sample-unique` | `variant_ID` | Yes | Variant-first sample lookup; cannot discover variants from a sample ID |
-| `variants-annotation` | `varID` | Yes | Variant-first annotation; requires a known variant ID |
+| Browser request | Server behavior |
+|---|---|
+| Private BioIndex `/__bioindex_private__/api/bio/query/samples-info?q=<SampleInVCF>` | Proxy to `BIOINDEX_HOST_PRIVATE` (current `http://100.80.30.199:5000`). Consume `/api/bio/cont?token=…` when present; retain access-token handling. |
+| `POST /__pb_phenotype_profile__/sample-matches`, `{sample_id}` | Node handler calls private `/phenotype-analyzer-api/sample-match-inputs`; joins all candidate metadata through the existing source/auth-scoped provider; returns full candidate list and project summaries. |
+| Same route, `{sample_id,candidate_id,gene_page:1}` | Comparison details; shared-gene page size five. Reject self/family, unknown candidates, invalid pages and nonshared genes. |
+| Same route, `{sample_id,candidate_id,gene:"ABCA13"}` | Separate searched/comparison variant+raw-GT lists for that shared gene. No cartesian pairing. |
+| `POST /__pb_phenotype_profile__/sample-variants`, `{sample_id}` | Proxy to `/phenotype-analyzer-api/sample-variants`: `sample_id, rows, data_version, scope, genome_build, complete_genome:false`. |
+| `GET /__pb_phenotype_profile__/hpo-counts` | Proxy to `/phenotype-analyzer-api/hpo-counts`: aggregate parent-expanded counts. Also required by current Gene2/Variant HPO input validation. |
+| Browser `POST /__pb_phenotype_profile__/sample-match-inputs` | **404**. Internal input vector is not the public browser DTO. |
 
-The `patient` query currently returns:
+Gateway implementation: `sample_match_projects_endpoint.js`. Register this handler **before** the generic profile proxy. Preserve request/sample-ID validation, `private, no-store`, timeouts and error states. Strip `_project_inputs` and `_reference_vcf_sample_id` before responding. Private backend default: `127.0.0.1:8093`, configured by `PB_PHENOTYPE_PROFILE_PORT`.
 
-```json
-{ "detail": "Index \"patient\" is not built" }
-```
+Summary fields: `sample_id`, `reference_hpo_ids`, `reference_hpo_count`, `reference_scores`, `eligible_sample_count`, `phenotype_scored_sample_count`, `genotype_comparable_sample_count`, `excluded_self_family_count`, `phenotypeMatches[]`, `projectPhenotypeSummary[]`, `overlap_source`, `overlap_error`, `rphers_standardization`.
 
-There is no verified built index whose query key is `sample_id` and whose rows
-are that sample's variants. This is the blocker for live Sample `All`.
+Candidate fields: `rank`, `sampleId`, `matchedHpo`, `recordedHpoCount`, `rphersZ`, `residual`, `phenotypeStatus`, `sharedGenes`, `sharedVariants`, `genotypeStatus`, `project`, `investigator`, `age`, `sex`. Detail additionally returns `hpo_matches`, `reference_scores`, `candidate_scores` and shared-gene/variant details. Null/unavailable is different from zero.
 
-## 5. Target data flow
+## 4. Calculations and denominators
 
-```mermaid
-flowchart TD
-    Q[Route query: canonical sample_id]
-    S[Sample metadata and family]
-    H[Sample HPO profile]
-    P[Precomputed similar-sample and investigator PheRS]
-    V[Sample-keyed published variant rows]
-    A[Variant annotations]
-    T[Precomputed Tier/Type rows]
-    D[Precomputed disease-specific PheRS]
-    U[PB Sample Vue page]
+- Return **all nonfamily candidates in the matrix roster**, including candidates without phenotype scores. Exclude self and canonical BCH family-ID prefix matches (`BCH-YY-NNNNN`); a relationship label is not a family ID. No 50-person cutoff.
+- Default order remains existing `rphers_fast.score_samples` residual descending; unscored candidates follow. Sorting applies to the full returned set, missing last in both directions; preserve original rank. UI pages contain five unpinned rows plus pinned rows.
+- `Matched` = query HPO IDs present in the candidate's parent-expanded matrix / total reference query IDs. It is neither a proportion of the candidate's recorded HPO count nor a weighted genetic similarity.
+- Existing score: IC-weighted binary matches, residualized on total expanded HPO count, then Z standardized using full scoring-cohort mean/sample SD **before** family exclusion. `reference_scores` exposes the searched sample's own row from the same scorer; do not refit for that display. No disease probability or new combined genetic/phenotype score.
+- `Shared genes` = distinct genes with processed evidence in both samples, even if variants differ. `Shared variants` = identical chromosome/position/REF/ALT present in both, deduplicated across gene annotations; GT need not match. Missing reference/candidate source means null, not inferred zero. These are evidence intersections, not genome-wide genetic similarity, pathogenicity or a validated similarity ranking.
+- Project summary row `n` is **Scored n**; median/IQR use scored residual PheRS. Project expansion includes **all project candidates**: coverage, available-value medians/IQR/available-n, matched-HPO distribution with Unavailable, and member list. Distribution percentages use all group members; quartiles use linear interpolation. Do not switch these denominators silently.
 
-    Q --> S --> U
-    Q --> H --> U
-    Q --> P --> U
-    Q --> V --> A --> U
-    Q --> T --> U
-    Q --> D --> U
-```
+## 5. Display contract
 
-The browser may join normalized response objects for presentation. The browser
-does not run HPO ontology expansion, PheRS residualization, percentile
-calculation, investigator aggregation, Tier assignment, or Type assignment.
+- Top card: sample ID, family state, affected, sex, age, Project/Investigator, recorded HPO count and dominant HPO group. No variant count beside/under the sample name.
+- `Phenotype profile`: full-width clean hierarchy; no blue band; thin branch guides end at the last child. Names expand, HPO IDs link to `/pb_phenotype.html?query=…`. Explanations belong in superscript i help.
+- Similar profiles: Samples and Projects views, numbered pagination, sample pins. Searched IDs use yellow text highlighting; comparison IDs green, consistently in headers and variant lists. Candidate detail shows **matched HPOs only**, five per page with ‹/›. Show searched and comparison rPheRS Z from the same query/reference.
+- Gene chevron/name button expands; a separate `Gene page ↗` link opens `/pb_gene2.html?query=…` in a new tab. Do not make the expansion button navigate. Each sample's variants stay in its own labeled list.
+- `Variant profile`: five rows/page; Gene / Variant / Consequence / Score source / In silico score / ClinVar / CRDC AF / GT. Keep compact header padding and readable fonts; consequence may wrap. Footer **`1–5 of 440 variants / 420 genes`** (dynamic totals, bold count). No repeated scope paragraph, subtitle, `5 per page`, or duplicate top-card totals.
+- Source labels: LoFTEE / AM / REVEL / None. Numeric score = LoFTEE HC 1, otherwise AlphaMissense, rounded to two decimals. REVEL-only `—*`, missing `—`; REVEL is not added to this burden score. **Do not multiply the displayed annotation score by GT**. Example `chr2:21006574:G:C`, GT `1/1`, raw AM `0.073` → `0.07`, not `0.146`.
+- Superscript help: processed scope, Gene/GRCh38, predictor names/reference limitations, raw score/GT, matched/recorded HPO and rPheRS definitions. Position help below its icon using side margins at 80% scale; avoid mount-time zoom/layout jumps.
 
-## 6. Required source contracts
+## 6. Private inputs and startup
 
-Endpoint and index names below are proposed unless explicitly identified as
-existing. An engineer may change a proposed route name, but not its query key,
-row grain, semantics, provenance, or privacy boundary.
-
-### SAMPLE-01: sample metadata and family
-
-Status: required. The advertised private `patient` index is not built.
-
-Minimum logical payload:
-
-```json
-{
-  "sample_id": "BCH-22-12345-01",
-  "affected": true,
-  "sex": "Female",
-  "age_at_enrollment": 11,
-  "investigator": "Investigator A",
-  "family_id": "BCH-22-12345",
-  "family_members": [
-    { "sample_id": "BCH-22-12345-01", "role": "case" },
-    { "sample_id": "BCH-22-12345-02", "role": "twin" },
-    { "sample_id": "BCH-22-12345-11", "role": "mother" }
-  ],
-  "data_version": "required"
-}
-```
-
-Rules:
-
-- The canonical response key is `sample_id`; accept `patient_id` as an input
-  alias only at the boundary.
-- Do not display diagnosed/undiagnosed status without an approved source.
-- Do not restore Proband or rare-coding-carrier-gene count.
-- Use the approved family table/field as the source of truth. The shared ID
-  prefix before the final member suffix is a validation check, not the only
-  family assignment method.
-- Relationship display order is `case`, `twin`, `sibling`, then `mother` and
-  `father` at equal priority.
-- No approved family rows means `No family data available for this sample.`
-
-Validation required before publication:
-
-- source row count and distinct canonical sample count;
-- duplicate `sample_id` rows;
-- invalid/unknown role values;
-- family members whose family ID conflicts with the approved family field;
-- missing or unauthorized investigator labels;
-- data version and generation timestamp.
-
-### PHENO-01: sample HPO profile and direct-child grouping
-
-Status: required; not connected.
-
-Minimum logical payload:
-
-```json
-{
-  "sample_id": "BCH-22-12345-01",
-  "hpo_terms": [
-    { "hpo_id": "HP:0000252", "label": "Microcephaly" }
-  ],
-  "ontology_version": "required",
-  "data_version": "required"
-}
-```
-
-Dominant HPO group rule:
-
-1. Deduplicate the sample's HPO IDs.
-2. Map every term to the direct child or children of
-   `Phenotypic abnormality [HP:0000118]` using the declared HPO version.
-3. Count distinct assigned sample terms per direct-child group.
-4. Sort by count descending.
-5. Preserve all tied maximum groups. Do not choose one arbitrarily.
-
-The preferred implementation publishes the grouped result with its HPO
-version. Do not fetch a changing ontology in the browser and recompute a
-release-dependent hierarchy there.
-
-### PHERS-01: similar phenotype profiles
-
-Status: required; precomputed by the approved PheRS workflow.
-
-The queried sample's complete HPO set is the reference. The current analysis
-contract uses `wp = HPO information content` and binary `fi = 0/1`. Eligibility,
-residualization, exclusions, and rank direction are owned by the scoring
-pipeline and must be versioned in the result.
-
-Minimum logical payload:
-
-```json
-{
-  "sample_id": "BCH-22-12345-01",
-  "reference_hpo_count": 131,
-  "eligible_sample_count": 12475,
-  "similar_samples": [
-    {
-      "rank": 1,
-      "sample_id": "BCH-20-00001-01",
-      "residual_phers": 2.14,
-      "matched_hpo_count": 84,
-      "investigator": "Investigator B",
-      "age_at_enrollment": 9,
-      "sex": "Female"
-    }
-  ],
-  "investigator_summaries": [
-    {
-      "rank": 1,
-      "investigator": "Investigator B",
-      "median_residual_phers": 1.42,
-      "q1": 0.88,
-      "q3": 1.91,
-      "eligible_n": 96,
-      "is_current_sample_group": false
-    }
-  ],
-  "scoring_version": "required",
-  "data_version": "required"
-}
-```
-
-Rules:
-
-- Exclude the queried sample and its known family from similar-sample rows.
-- Publish the approved rank. Vue must not rerank by matched-HPO count.
-- Publish at least the top 50 sample rows. The page shows 5 initially and adds
-  5 at a time.
-- Investigator summaries use all eligible samples, not the displayed top 50.
-- Publish median, Q1, Q3, and eligible n. The page displays median and IQR.
-- Sample rows keep age and sex in separate columns. Age is numeric.
-- Every column in both tables remains sortable in the browser.
-
-Validation required before publication:
-
-- reference sample and HPO count;
-- eligible denominator and exclusion counts;
-- scoring direction used for rank 1;
-- current sample/family exclusion audit;
-- duplicate candidate sample IDs;
-- investigator group n versus the eligible source rows;
-- scoring, ontology, covariate, and data versions.
-
-### SAMPLE-VARIANTS-01: mandatory sample-keyed `All`
-
-Status: required; no verified built index satisfies this contract.
-
-The implementation may create a private BioIndex named
-`sample-variants-crdc`, but the name is proposed. Its required contract is:
+**Approved GT download path only:**
 
 ```text
-query key: sample_id
-row grain: one sample × canonical variant
-optional expanded grain: one sample × canonical variant × transcript
+/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/sample_variant_gene.jsonl.gz
 ```
 
-Example request if published through BioIndex:
-
-```http
-GET /api/bio/query/sample-variants-crdc?q=BCH-22-12345-01
-x-bioindex-access-token: <session cookie value>
-```
-
-Minimum row:
-
-```json
-{
-  "sample_id": "BCH-22-12345-01",
-  "variant_id": "chr6:79518824:A:T",
-  "genome_build": "GRCh38",
-  "gene_symbol": "LCA5",
-  "transcript_id": "NM_181714.4",
-  "gt": "1/1",
-  "consequence": "stop_gained",
-  "crdc_carrier_frequency": 0.0001,
-  "gnomad_af": null,
-  "loftee": "HC",
-  "alphamissense": null,
-  "revel": null,
-  "clinvar_classification": "Pathogenic",
-  "published_variant_scope": "required",
-  "data_version": "required"
-}
-```
-
-Required semantics:
-
-- `All` means every variant for the sample within the documented published
-  portal call/QC scope. It must not mean Tier/Type findings only.
-- The publisher documents genome build, PASS/QC rules, call-quality filters,
-  variant normalization, transcript selection, and release version.
-- GT comes from the sample-specific call row.
-- The query returns only the requested sample's rows.
-- The frontend follows every continuation before displaying a final total, or
-  consumes explicit server-side pagination with a stable total and sort key.
-- Canonical variants are deduplicated. If multiple transcript rows are
-  returned, the publisher supplies a deterministic display transcript rule.
-- Gene-page annotation fields may be joined during publication by canonical
-  variant ID. The browser must not discover sample variants by scanning genes.
-- A field absent from the approved source is null. Do not derive it from a
-  different score or display zero.
-
-`gene-variants-crdc` may guide field naming and normalization because it is an
-existing Gene/Variant annotation source. It does not replace this sample-keyed
-contract.
-
-Validation required before publication:
-
-- input sample count, distinct sample count, and duplicate keys;
-- published variant row count per sample distribution;
-- canonical variant normalization failures;
-- missing gene/transcript/GT/consequence counts;
-- invalid or unexpected genotype values;
-- sample IDs unmatched to SAMPLE-01;
-- genome build, QC scope, input versions, build time, and artifact hash.
-
-### TIER-TYPE-01: precomputed Tier and Type artifact
-
-Status: required; not present in the currently verified APIs. The user will
-supply the classifier result separately.
-
-Tier/Type must be calculated before portal ingestion. Treat the classifier
-result like a versioned data product, not a frontend rule.
-
-Required preparation sequence:
-
-1. Receive the approved classifier output and its input/version metadata.
-2. Validate row count, unique keys, allowed Tier/Type values, missing IDs, and
-   duplicates.
-3. Normalize `patient_id`/`sample_id` to canonical `sample_id` and normalize
-   variant IDs to the same GRCh38 representation as SAMPLE-VARIANTS-01.
-4. Materialize a private sample-keyed table or BioIndex.
-5. Join it to Sample `All` by `sample_id + variant_id`.
-6. Retain `disease_id`; one variant can have multiple disease rows.
-7. Publish classifier version, source data version, and calculation timestamp.
-
-Minimum row grain:
+Release `2025_crdc_16366_dp20_af001_20260907`; gzip SHA-256 `e602b847ccdba8961f788701b43004514346490f55164dd3023be23aa7c6bbc7`.
+Default private cache relative to checkout:
 
 ```text
-sample_id × variant_id × disease_id
+.pb-private-data/genotypes/shared/2025_crdc_16366_dp20_af001_20260907/
+  sample_variant_gene.jsonl.gz
+  index/manifest.json
+  index/genotypes-06622cb5e148898fdf28de90ed6fb98b0de3d4e3dfa26ab5e011c0e3b6f051fb.bin
 ```
 
-Minimum logical row:
+Packed SHA-256 is the hex in its filename. Installer verifies source/pack; overlap loader verifies pack and source release. Explicit source overrides must also be this verified release. The sample-variants response's release label alone does not prove a substituted file's contents.
 
-```json
-{
-  "sample_id": "BCH-22-12345-01",
-  "variant_id": "chr6:79518824:A:T",
-  "gene_symbol": "LCA5",
-  "disease_id": "ORPHA:364055",
-  "tier": "Tier 1",
-  "type": "Type 1",
-  "type_group": "1-2",
-  "scope_result": "MATCH",
-  "scope_basis": "approved classifier output",
-  "clinvar_review_stars": 3,
-  "classifier_version": "required",
-  "input_data_version": "required",
-  "calculated_at": "required"
-}
+| Setting | Test-server requirement |
+|---|---|
+| `BIOINDEX_HOST_PRIVATE` | Existing authenticated private BioIndex; current `http://100.80.30.199:5000`. |
+| `PB_PHENOTYPE_HPO_MATRIX` | Durable copy of approved **16,366-sample** matrix; SHA-256 `bf3b5e45bb7b2f08cc33b96947fd11025671ec87d62f075d8eb5aee730db08d1`. Do not substitute Gene2's 15,764 matrix. |
+| `PB_PHENOTYPE_METADATA` | Matching approved metadata. Reader requires `sample_id, age, sex, affected`, preserves `hpo_terms_raw`/VCF IDs. Current local TSV has the wrong schema and falls back to sibling XLSX `#xl/worksheets/sheet1.xml`. Configure that verified XLSX directly or a validated equivalent TSV; copying the existing TSV alone is insufficient. |
+| `PB_PHENOTYPE_COHORT_MAPPING` | Verified `samples-info-projects.jsonl` snapshot. Do not use legacy `Cohort mapping (8).csv` as replacement for live Sample Project/PI. Gateway labels remain authoritative. |
+| `PB_GENOTYPE_INDEX` | Verified index above; launchers discover/install the persistent default. Old `/private/tmp/pb-genotype-index-20261113` is not a portable path. |
+| `PB_SAMPLE_VARIANT_SOURCE` | Original pinned gzip. Explicit env/CLI wins; otherwise gzip beside GT index if present, then persistent shared cache. The pack alone cannot supply Sample annotation rows. |
+| `PB_PHENOTYPE_PROFILE_PORT` | Default 8093; configure matching gateway target. Run one service per listener. |
+
+Existing local startup (requires this checkout's private HPO/metadata/precomputed inputs):
+
+```sh
+PHENOTYPE_ANALYZER_HOST_PRIVATE=http://127.0.0.1:8092 \
+NODE_OPTIONS=--openssl-legacy-provider \
+npm run serve:pb-phenotype
 ```
 
-Display grouping:
+`serve_pb_phenotype_local.sh` sets local input defaults, sources `prepare_pb_genotypes.sh`, then serves frontend 8098 (a busy port can increment). First GT preparation uses the caller's existing SSH access (`PB_GT_SSH_HOST`, default `e3`) to the approved share; valid caches work offline. `PB_GT_AUTO_DOWNLOAD=0` disables new downloads. No private `/ref/` fallback; users without company access cannot download a fresh private source. This startup does not download/install the HPO matrix, metadata or precomputed association files.
 
-- Types 1–2: ClinVar RCV pathogenic/likely pathogenic evidence.
-- Types 3–4: qualifying known-gene evidence without the Types 1–2 ClinVar
-  basis.
-- Types 5–6: high-impact unknown-gene discovery evidence.
+For migration, override machine-specific paths with durable private paths. Port the existing route registration to the actual application server, start `python3 -m scripts.pb_phenotype_profile_api --hpo-matrix … --metadata … --cohort-mapping … --sample-variant-source … --port 8093` (same approved data), and reverse-proxy only the documented routes. Keep the existing Gene Context 8092 and scoped Variant 8095 services distinct. Keep data, GT packs, snapshots and captures outside Git/public assets.
 
-These descriptions are UI group labels, not executable classification rules.
-Exact Tier and Type values come only from the supplied artifact. Tier records
-variant evidence; Type adds cohort/discovery context. They remain separate
-fields.
+Annotation provenance used by help is recorded in `src/views/PbGene2/referenceProvenance.js`: VEP 115.1/cache 115, GRCh38.p14/GENCODE 49, ClinVar GRCh38 VCF 2025-08-24, gnomAD exomes 4.1. AM/REVEL release IDs and original download dates, and the LoFTEE commit, are **not recorded**; November 12 is provenance review date, not a download date.
 
-Do not:
+## 7. Acceptance and known limits
 
-- infer Type 1–2 from a ClinVar string in Vue;
-- infer Type 3–4 from a known-gene lookup in Vue;
-- infer Type 5–6 from a high pathogenicity score in Vue;
-- claim Gene-page filters reproduce the classifier result;
-- silently drop disease rows when one variant maps to multiple diseases;
-- read a developer's local analysis directory from the web application.
+1. Load `BCH-24-03906-01`: identity matches, Project=`Primary Immunodeficiency`, Investigator=`janet_chou`; hierarchy and linked HPO IDs preserve observed/parent distinction.
+2. Summary returns all candidates, not 50; private join fields are absent. Reference/candidate IDs must match requests. Validate auth-scoped metadata and unavailable states.
+3. Check both sample/project expansion, five-row pages, pins, searched/comparison highlights and separate variant lists; clicking expansion must not navigate.
+4. Check same release/hash on all inputs; a missing comparison sample is unavailable. Check dosage-free score, raw GT, count footer and help placement.
+5. Repeat after restart with the persistent cache; confirm no dependency on temporary paths and no duplicate 8093 listener. HTTP 200 alone is insufficient: compare IDs, counts, scope and source metadata.
 
-Validation required before publication:
+Previously verified local evidence (not production constants): searched sample has 440 variant-table rows / 420 genes, 16,363 nonfamily candidates, 8,182 phenotype-scored and 16,340 processed-evidence candidates (23 unavailable). Reference Z=16.868440600716905; first candidate Z=15.987602823365746. Primary Immunodeficiency expansion: 951 total, 525 phenotype-scored, 951 with processed evidence. Last recorded full-response timing after restart: 16.78 s first / 4.47 s repeat, ~5.33 MB; this includes startup/metadata/HTTP, not just compute. Production latency and complete latest visual QA remain to be checked after migration.
 
-- exact classifier input and output versions;
-- allowed Tier and Type values and cross-tabulation;
-- unique `sample_id + variant_id + disease_id` key audit;
-- duplicate and missing disease IDs;
-- unmatched rows against SAMPLE-VARIANTS-01;
-- row counts before and after normalization/join;
-- classifier provenance and artifact hash.
+Relevant checks (run on the delivered code, not as proof of server deployment):
 
-### DISEASE-PHERS-01: disease-specific PheRS for Type findings
-
-Status: required; precomputed and joined at sample-disease grain.
-
-One variant may map to multiple diseases. Do not publish one variant-level
-PheRS value. Reuse one sample-disease result wherever multiple variants point
-to the same disease.
-
-Minimum row grain:
-
-```text
-sample_id × disease_id
-```
-
-Minimum logical row:
-
-```json
-{
-  "sample_id": "BCH-22-12345-01",
-  "disease_id": "ORPHA:364055",
-  "matched_hpo_count": 24,
-  "disease_hpo_count": 64,
-  "phenotype_coverage": 37.5,
-  "residual_phers": 2.14,
-  "eligible_sample_count": 12480,
-  "sample_percentile": 90,
-  "investigator": "Investigator A",
-  "investigator_mean_percentile": 92,
-  "investigator_eligible_n": 216,
-  "leave_one_out": true,
-  "scoring_version": "required",
-  "data_version": "required"
-}
-```
-
-Rules:
-
-- The percentile reference set is all PheRS-eligible samples scored for the
-  same disease.
-- The investigator comparison excludes the queried sample.
-- Publish matched and total disease HPO counts; Vue does not recompute them.
-- The page shows sample percentile, investigator mean percentile, and their
-  percentile-point difference in one row.
-- Below the investigator value is green; above is red.
-- The investigator marker is a vertical line. Do not use a diamond.
-
-### VARIANT-PHERS-01: Mean carrier residual PheRS in `All`
-
-Status: required if the `Mean carrier residual PheRS` column remains enabled.
-
-For each sample reference profile and variant:
-
-1. Use the queried sample's HPO set as the PheRS reference.
-2. Score all PheRS-eligible samples with the approved pipeline.
-3. Select unique carriers of the variant.
-4. Average their residual PheRS values.
-5. Publish the unique carrier denominator and scored-carrier denominator.
-
-Minimum logical fields attached to the variant row:
-
-```json
-{
-  "mean_carrier_residual_phers": 1.23,
-  "carrier_count": 80,
-  "scored_carrier_count": 80,
-  "status": "ok",
-  "scoring_version": "required"
-}
-```
-
-Do not display a mean when coverage is partial unless the UI and payload
-explicitly describe that partial denominator. This value replaces the old
-generic `Match Score (Context-based)` label on Sample because the context is
-always the queried sample's HPO profile.
-
-## 7. UI behavior that must be preserved
-
-### Sample summary
-
-- Show affected, sex, age at enrollment, investigator, total HPO count, and
-  dominant direct-child HPO group.
-- Show family ID and related samples when available.
-- Do not show Proband, diagnosis status, or rare-coding-carrier-gene count.
-
-### Phenotype tab
-
-- Keep Phenotype and Genotype as separate top-level tabs.
-- On wide screens, use 4.5:5.5 for phenotype composition versus similar
-  profiles. Stack the panels on narrow screens.
-- Each direct-child HPO group is a native disclosure row.
-- The row shows group name and `group HPO count / total sample HPO count`.
-- Opened groups show 5 terms first, then Show more/Show fewer.
-- Similar phenotype profiles open on Investigator, then Samples.
-- Both tables sort by every displayed column.
-- Both tables show 5 rows initially and add 5 rows at a time.
-- Samples display only the approved top 50.
-
-### Genotype `All`
-
-- Group sample variants by gene before rendering variant rows.
-- The gene row shows gene symbol, display transcript, variant count, and Gene
-  page navigation.
-- Expanded rows follow the PB Gene variant-evidence visual language.
-- Replace carrier count with this sample's GT.
-- Keep Variant page navigation next to the canonical variant ID.
-- Keep columns: Variant, GT, CRDC carrier frequency,
-  classification/consequence, Pathogenic Score, and Mean carrier residual
-  PheRS.
-- Avoid nested tables and horizontal-scroll-dependent interaction when a
-  simpler row layout is possible.
-
-Pathogenic Score display order:
-
-1. LoFTEE HC displays `1.00`.
-2. Otherwise numeric AlphaMissense is used.
-3. REVEL-only displays `—*` and is excluded from the score.
-4. No supported value displays `—`.
-
-### Tier/Type findings
-
-- Filters are All, Types 1–2, Types 3–4, and Types 5–6.
-- Clicking the active filter again closes the result.
-- Show Tier and ClinVar review evidence when supplied.
-- Render disease/PheRS rows per disease, not one aggregate per variant.
-- Tooltip controls must work on hover and keyboard focus.
-
-## 8. Frontend implementation sequence
-
-An implementation agent should work in this order:
-
-1. Verify branch, clean worktree, and commit `07024747` ancestry.
-2. Inventory the deployed private indexes and capture their actual schemas.
-3. Do not change the UI while required sample-keyed sources are absent.
-4. Connect SAMPLE-01 and verify missing/family states.
-5. Connect PHENO-01 and PHERS-01; verify counts, exclusions, sorting, and
-   5-row increments.
-6. Connect SAMPLE-VARIANTS-01; remove fixture use only from live `All` state.
-7. Connect the supplied TIER-TYPE-01 artifact without implementing classifier
-   logic in Vue.
-8. Join DISEASE-PHERS-01 and VARIANT-PHERS-01.
-9. Verify every PB route, desktop/narrow layout, keyboard behavior, loading,
-   error, empty, and partial-data state.
-10. Commit only files required for Sample integration and its tests/docs.
-
-### Recommended adapter boundary
-
-Keep API-specific field aliases and normalization in a Sample adapter/model,
-not in the template. Reuse the existing private BioIndex helper:
-
-```js
-query(index, q, options, true)
-```
-
-The fourth `true` preserves the private-query path and token behavior. Follow
-all continuation tokens before deriving totals.
-
-## 9. Stop conditions for an AI implementation agent
-
-Stop and report the exact blocker instead of inventing a workaround when:
-
-- no sample-keyed variant API exists;
-- the proposed sample-keyed endpoint schema differs from this grain;
-- Tier/Type output or its version/provenance is not supplied;
-- `patient_id` and `sample_id` cannot be deterministically normalized;
-- genome build or canonical variant representation is unclear;
-- multiple transcript rows lack a deterministic display rule;
-- PheRS eligibility, residual direction, or investigator exclusion is unclear;
-- a response would expose unauthorized patient-level data;
-- a production route would require fixture fallback.
-
-Do not scan all genes, scrape another page, fabricate fixture rows, or silently
-choose a classifier rule to keep working.
-
-## 10. Authentication and deployment
-
-- Private BioIndex requests require the existing authenticated private-query
-  path.
-- Continuation tokens are opaque. Do not decode, persist, or log them.
-- Do not expose the private BioIndex upstream directly to an unauthenticated
-  browser.
-- Local `/__bioindex_private__` behavior comes from the Vue development proxy.
-  It does not exist in a static production build.
-- Production must provide an authenticated same-origin reverse proxy or an
-  approved equivalent configured by the platform engineer.
-
-## 11. Acceptance checklist
-
-### Backend and data
-
-- [ ] Sample metadata/family is queryable by canonical `sample_id`.
-- [ ] A sample-keyed variant source returns the complete documented published
-      variant scope without a gene query.
-- [ ] Genome build, QC/filter scope, transcript rule, release version, and
-      artifact hash are recorded.
-- [ ] HPO grouping and PheRS outputs record ontology/scoring/data versions.
-- [ ] Current sample and family exclusions are audited.
-- [ ] Tier/Type is precomputed, validated, versioned, and sample-keyed before
-      frontend integration.
-- [ ] Tier/Type retains sample-variant-disease grain.
-- [ ] Sample-disease PheRS is reused consistently across variants.
-- [ ] Duplicate keys, unmatched IDs, missing joins, and row-count changes are
-      reported before release.
-
-### Frontend
-
-- [ ] Live mode never imports fixture values after loading or API failure.
-- [ ] Sample URLs contain only the canonical sample query, not a forced gene.
-- [ ] `All` never shows a gene-scoped or Tier/Type-only subset.
-- [ ] Final counts come from complete continuations or explicit pagination.
-- [ ] Missing optional values display as unavailable, not zero.
-- [ ] Tabs, disclosures, sorting, filters, tooltips, links, and show-more
-      controls match the approved fixture.
-- [ ] Desktop and narrow-screen layouts are verified.
-- [ ] Keyboard focus and disclosure state are verified.
-
-### Required checks
-
-```bash
-node src/views/PbSample/sampleRecord.test.js
-node src/views/PbSample/familyModel.test.js
+```sh
+node scripts/test_sample_match_projects_endpoint.js
+node src/views/PbSample/sampleComparison.test.js
+node src/views/PbSample/projectComparison.test.js
+node src/views/PbSample/sampleVariants.test.js
 node src/views/PbSample/variantEvidence.test.js
 node src/views/PbSample/tableSort.test.js
-node src/views/PbFront/searchModel.test.js
-git diff --check
-npm run build
+node src/views/PbSample/sampleInfoPosition.test.js
+python3 -m unittest scripts.test_sample_overlap_index scripts.test_pb_sample_analysis scripts.test_pb_profile_metadata scripts.test_setup_pb_genotypes
 ```
 
-The existing `tabix-reader` default-export warning is unrelated to PB Sample.
-
-## 12. Definition of done
-
-PB Sample is production-connected only when all of the following are true:
-
-1. A sample ID loads authorized metadata, family, HPO, and phenotype-summary
-   data without fixture fallback.
-2. `All` loads the documented complete published variant scope through a
-   sample-keyed source.
-3. Tier/Type rows come from the separately precomputed, validated, versioned
-   classifier artifact.
-4. Disease-specific and carrier-mean PheRS values include their denominators
-   and versions.
-5. Every unavailable value remains distinguishable from zero and from an empty
-   biological result.
-6. Unit checks, build, browser interaction, responsive layout, and authenticated
-   deployment checks pass.
-
-Until items 2 and 3 are satisfied, do not describe Sample Genotype `All` or
-Tier/Type as production-connected.
-
-
-### Sample profile presentation update — 2026-11-09
-
-HPO categories are paginated five groups per page. Expanding a group renders
-the same frozen primary-parent ontology paths used by PB Variant, with
-collapsible intermediate parents. Recorded terms are orange-highlighted;
-added parent nodes are context only and do not increase the sample term count.
-The total remains the deduplicated recorded HPO count.
-
-The identity card removes the BCH SAMPLE eyebrow, caps sample ID at 32px,
-reduces padding, enlarges metadata, and breaks tied dominant HPO groups into
-separate lines. Project names follow the gene-page clean_name mapping.
-Similar-sample rows use primary cohort project names and project summaries
-now group by project (not raw investigator). The current project label is red.
-The checked sample has 49 project groups; their n still sums to 8,180.
+Related: [Gene2 specification](pb_gene2_engineering_handoff_20261112.md), [Variant handoff](pb_variant_engineering_integration_handoff.md), [shared source contract](pb_front_gene_variant_merge_handoff.md). Detailed local/server paths and catalog build timestamps are in the existing Obsidian `PB_BioIndex_Processed_Data_Handoff_2026-09-07` and `PB_Sample_Prototype_Handoff_2026-08-20` notes. Their historical sections are not deployment instructions.

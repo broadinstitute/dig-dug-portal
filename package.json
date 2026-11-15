@@ -3,6 +3,7 @@
   "version": "3.0.0",
   "private": true,
   "scripts": {
+    "setup:pb-genotypes": "python3 scripts/setup_pb_genotypes.py",
     "serve:pb-gene": "bash scripts/serve_pb_gene_context.sh",
     "serve:pb-phenotype": "bash scripts/serve_pb_phenotype_local.sh",
     "watch": "vue-cli-service build --mode development --watch",

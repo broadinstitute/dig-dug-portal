@@ -1,0 +1,20 @@
+module.exports = {
+    variantScope: 'Nonsynonymous variants with DP ≥ 20 and cohort AF < 0.01. This processed dataset does not include every genome-wide variant call.',
+    gene: 'Gene symbol. Variant coordinates use GRCh38 (hg38). Select a gene to open its Gene page.',
+    hierarchy: 'Recorded terms are highlighted; parents show the hierarchy without increasing the count. Names expand branches; HPO IDs open the phenotype page.',
+    similar: 'All cohort candidates except this sample and its family are included. Default rank uses residual PheRS; candidates without phenotype scores follow scored candidates. Project summaries use all candidates with phenotype scores. Project and Investigator come from BioIndex samples-info.',
+    recordedHpo: 'Distinct originally recorded HPO terms for the candidate, excluding inferred parents and negated observations. BioIndex samples-info is used when available. This is not the expanded term count used in rPheRS adjustment.',
+    sharedGenes: 'Distinct genes with recorded variant evidence in both samples in the processed release (nonsynonymous, DP ≥ 20, cohort AF < 0.01). Different variants in the same gene count. This is an overlap count, not a genetic similarity or disease score. Unavailable does not mean zero.',
+    sharedVariants: 'Distinct identical chromosome, position, REF and ALT records present in both samples in the processed release. Multi-gene annotations count once. GT can differ; expand the comparison to inspect each call. This is not genome-wide genotype similarity.',
+    matchDetails: 'Each reference HPO is checked in the candidate’s scoring matrix. Recorded term means directly observed in samples-info; parent-expanded term means present through the expanded hierarchy. Not matched does not establish clinical absence.',
+    projectComparison: 'The project summary row uses candidates with phenotype scores (Scored n). Expansion includes every candidate assigned to the project by BioIndex samples-info. Medians and IQR use available values only; Available n gives each denominator. HPO percentages use all project candidates and include an Unavailable category. Shared counts describe processed variant evidence, not genetic similarity.',
+    scoreSource: [
+        'AM: AlphaMissense, 0–1.\nLoFTEE: loss-of-function confidence; HC (high) scores 1, LC (low) does not.\nREVEL: Rare Exome Variant Ensemble Learner; reference only.\nNone: no qualifying score.',
+        'VEP 115.1 / cache 115 · GRCh38.p14 · GENCODE 49.\nProvenance checked 2026-11-12; download dates and predictor releases unrecorded.',
+    ].join('\n\n'),
+    inSilicoScore: 'Raw variant score: LoFTEE HC = 1; otherwise AlphaMissense. REVEL is excluded. Rounded to 2 decimals, without GT multiplication: 1/1 does not double this value. Gene aggregation is separate.',
+    genotype: 'GT = genotype. 0 = reference; 1 = alternate allele. 0/1 has one alternate copy; 1/1 has two. / = unphased; | = phased; . = missing. GT does not multiply the displayed score.',
+    matched: 'Reference HPO terms found in this candidate / total reference terms. Candidate parent terms count as matches. This counts HPO IDs, not weighted similarity.',
+    rphersZ: 'Rarity-weighted HPO matches, adjusted for total HPO count. Z = (residual PheRS − cohort mean) / cohort SD, using the full scoring cohort before family exclusion. Higher values indicate stronger phenotype similarity; this is not a p-value or disease probability.',
+    referenceScore: 'The searched sample’s own score using the same query HPO profile and full-cohort rPheRS standardization as the comparison samples. Self/family are excluded from the candidate list, not from that scoring cohort. This is not a disease probability.',
+};

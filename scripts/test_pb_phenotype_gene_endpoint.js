@@ -51,6 +51,26 @@ async function main() {
     assert.equal(response.payload.associations.filter(row => !row.positiveDirection).length, 15, 'Negative directions remain in the delivery');
     await handlers['/__gene_hpo_associations__']({query: {gene: 'NEGATIVE'}}, response);
     assert.equal(response.payload.associations[0].qValue, null, 'A missing gene-wise q is not replaced by HPO-wise q');
+    const indexedSource = path.join(root, 'complete.jsonl.gz');
+    const index = path.join(root, 'hpo-gene.sqlite');
+    const complete = Array.from({length: 31}, (_, i) => ({gene: 'GENE' + i, selection_rule: 'p_value_lt_0.05', associations: [{hpo_id:'HP:0001250', gene:'GENE'+i, fit_status:'PASS', beta_gene_score_sum_approx:i % 2 ? -1 : 2, se_gene_score_sum_approx:.5, n_samples:100, n_cases:20, n_controls:80, n_positive_samples:10, p_value:.001+i/10000, q_by_hpo:i<3?.01:.4, q_by_gene:.8, positive_direction:i%2===0, odds_ratio_approx:Math.exp(i%2?-1:2), ci_lower_approx:Math.exp(i%2?-2:1), ci_upper_approx:Math.exp(i%2?0:3)}]}));
+    fs.writeFileSync(indexedSource, zlib.gzipSync(complete.map(row=>JSON.stringify(row)).join('\n')+'\n'));
+    require('node:child_process').execFileSync('python3',['scripts/pb_hpo_gene_index.py','--source',indexedSource,'--database',index]);
+    const previousIndex = process.env.PB_HPO_GENE_INDEX; process.env.PB_HPO_GENE_INDEX=index;
+    try {
+        await handlers['/__hpo_gene_associations__']({query:{hpo:'HP:0001250',view:'all-genes'}},response);
+        assert.equal(response.payload.total,31,'All P<0.05 gene rows must remain, without the old 20-row cap');
+        assert.equal(response.payload.associations.length,31);
+        assert.equal(response.payload.associations.filter(row=>row.beta<0).length,15,'Both effect directions retained');
+        assert.equal(response.payload.associations.filter(row=>row.qValue>=.05).length,28,'P delivery is not silently filtered by q');
+        assert.equal(response.payload.associations[0].qValue,.01,'HPO view uses stored q_by_hpo');
+        assert.equal(response.payload.associations[0].qByGene,.8,'Original gene q is preserved independently');
+        assert.equal(response.payload.associations[0].nCases,20);
+        assert.equal(response.payload.associations[0].nPositive,10);
+        assert.equal(response.payload.associations[1].betaPer0_1Grs,-.1,'Stored coefficient is scaled, never refitted');
+        assert.equal(response.payload.completeDelivery,true);
+    } finally { if(previousIndex == null) delete process.env.PB_HPO_GENE_INDEX; else process.env.PB_HPO_GENE_INDEX=previousIndex; }
+    fs.unlinkSync(indexedSource); fs.unlinkSync(index);
     fs.unlinkSync(file);
     fs.rmdirSync(root);
     console.log("PB_PHENOTYPE_GENE_ENDPOINT_PASS");

@@ -69,7 +69,8 @@ export default {
             const bounds = anchor.getBoundingClientRect();
             if (bounds.bottom < 0 || bounds.top > window.innerHeight) {this.close(); return;}
             this.placement = infoRailPosition({shell: shell.getBoundingClientRect(), shellWidth: shell.offsetWidth,
-                anchor: bounds, card: card && card.getBoundingClientRect(), viewportWidth: window.innerWidth, reserved: this.reserved});
+                anchor: bounds, card: card && card.getBoundingClientRect(), viewportWidth: window.innerWidth,
+                reserved: this.reserved, allowReserve: this.pinned});
             if (this.placement.layout === 'reserve') {
                 this.reserved = true; this.$emit('reserve', true); this.$nextTick(this.reposition); return;
             }

@@ -1,12 +1,53 @@
 """Read the approved CRDC metadata table and reject accidental worksheet exports."""
 import csv
+import gzip
+import json
 import logging
+import re
 from pathlib import Path
 from zipfile import ZipFile
 import xml.etree.ElementTree as ET
 
 REQUIRED = {'sample_id', 'age', 'sex', 'affected'}
 NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+
+
+def load_project_metadata(project_path):
+    """Join a samples-info project snapshot, or the legacy cohort mapping.
+
+    The snapshot retains the same clean_name and investigator fields used by
+    Gene/Variant. Do not substitute the old cohort CSV for missing snapshot IDs.
+    """
+    path = Path(project_path)
+    records = {}
+    if path.name.endswith(('.jsonl', '.jsonl.gz')):
+        opener = gzip.open if path.suffix == '.gz' else open
+        with opener(path, 'rt', encoding='utf-8-sig') as handle:
+            for line in handle:
+                if not line.strip():
+                    continue
+                row = json.loads(line)
+                vcf_id = str(row.get('SampleInVCF') or '').strip()
+                canonical_id = re.sub(r'_[EG]38$', '', vcf_id, flags=re.I)
+                sample_id = str(row.get('sample_id') or canonical_id).strip()
+                if not sample_id or canonical_id and canonical_id != sample_id:
+                    raise ValueError('Project metadata contains a missing or mismatched sample ID.')
+                info = {key: str(row.get(key) or '').strip() for key in ('clean_name', 'investigator')}
+                if sample_id in records and records[sample_id] != info:
+                    raise ValueError('Project metadata contains conflicting labels for a sample ID.')
+                records[sample_id] = info
+        source = 'samples-info'
+    else:
+        with path.open(newline='', encoding='utf-8-sig') as handle:
+            for row in csv.DictReader(handle):
+                sample_id = str(row.get('de_identified_subject') or '').strip()
+                name = str(row.get('clean_name') or '').strip()
+                if sample_id and name and (sample_id not in records or row.get('cohort_type') == 'Primary'):
+                    records[sample_id] = {'clean_name': name, 'investigator': str(row.get('investigator') or '').strip()}
+        source = 'cohort-mapping'
+    if not records:
+        raise ValueError('Project metadata contains no sample records.')
+    return records, source
 
 
 def _xlsx_tables(path):

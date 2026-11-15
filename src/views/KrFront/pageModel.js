@@ -10,7 +10,7 @@ const searchModes = [
 
 const fixtures = {
     gene: {
-        destination: "/pb_Gene.html",
+        destination: "/pb_gene2.html",
         placeholder: "SLC6A7",
         fallback: "SLC6A7",
         examples: [

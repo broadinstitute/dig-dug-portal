@@ -1,0 +1,36 @@
+{
+  "source_rows": 196941,
+  "source_columns": 78,
+  "source_gzip_bytes": 19049147,
+  "source_tsv_bytes": 263548538,
+  "list_projection_all_rows_jsonl_bytes": 36064964,
+  "example_sample_record_count": 29,
+  "list_fields": [
+    "id",
+    "type",
+    "gene",
+    "variant_id",
+    "gt",
+    "disease",
+    "evidence_source"
+  ],
+  "measurements": {
+    "sample_all_source_columns": {
+      "json_bytes": 97491,
+      "gzip_bytes": 5125
+    },
+    "sample_first_page": {
+      "json_bytes": 3725,
+      "gzip_bytes": 869
+    },
+    "first_selected_detail": {
+      "json_bytes": 985,
+      "gzip_bytes": 612
+    },
+    "first_page_with_first_detail": {
+      "json_bytes": 4729,
+      "gzip_bytes": 1350
+    }
+  },
+  "note": "One sample; serialization/compression measurements, not network latency or complete storage estimates. All-row list projection excludes detail/QC/provenance storage."
+}

@@ -5,7 +5,7 @@ const babel = require('@babel/core');
 const compiler = require('vue-template-compiler');
 const Vue = require('vue');
 const {decodeSampleGeneScores, summarizeSampleGenes} = require('../src/views/PbPhenotype/sampleSelection');
-const location = {search:'?query=HP%3A0000001%2CHP%3A0000002%2CHP%3A0000003',href:'http://localhost/pb_phenotype.html?query=HP%3A0000001%2CHP%3A0000002%2CHP%3A0000003'};
+const location = {search:'?query=HP%3A0000001%2CHP%3A0000002%2CHP%3A0000003&match=atLeastTwo',href:'http://localhost/pb_phenotype.html?query=HP%3A0000001%2CHP%3A0000002%2CHP%3A0000003&match=atLeastTwo'};
 const window = {location,history:{replaceState(_,__,url){location.href=new URL(url,location.href).href;location.search=new URL(location.href).search;}}};
 function load(file, imports={}) {
  let source=fs.readFileSync(file,'utf8');
@@ -15,7 +15,7 @@ function load(file, imports={}) {
   source=parsed.script.content;
  }
  const code=babel.transformSync(source,{filename:file,babelrc:false,configFile:false,plugins:['@babel/plugin-transform-modules-commonjs']}).code;
- const exports={};vm.runInNewContext(code,{exports,module:{exports},require(name){if(Object.hasOwn(imports,name))return imports[name];throw new Error(name);},window,URL,URLSearchParams,console});return exports;
+ const exports={};vm.runInNewContext(code,{exports,module:{exports},require(name){if(Object.hasOwn(imports,name))return imports[name];throw new Error(name);},window,URL,URLSearchParams,console,setTimeout,clearTimeout,AbortController});return exports;
 }
 const model=load('src/views/PbPhenotype/phenotypeModel.js');
 const terms=Object.fromEntries([1,2,3,4,5].map(i=>[`HP:000000${i}`,[`Term ${i}`,'',[],[]]]));
@@ -33,9 +33,12 @@ const options=load('src/views/PbPhenotype/Template.vue',{
   ['omim-only','omim','OMIM:3','Excluded disease',['HP:0000001','HP:0000004'],['ONLY_A'],[]],
   ['decipher-no-map','decipher','DECIPHER:1','Unmapped disease',['HP:0000001'],[],[]],
  ]},
+ './SinglePhenotypeResults.vue': {}, './singlePhenotypeModel': load('src/views/PbPhenotype/singlePhenotypeModel.js', {'./phenotypeModel': model}),
+ '../../utils/crdcHpoAvailability': require('../src/utils/crdcHpoAvailability'),
  './phenotypeModel':model,
  './PhenotypeQueryInput.vue':{},
  './PhenotypeHelp.vue': {},
+        './PhenotypeProfileEditor.vue': {}, './profileFilters': require('../src/views/PbPhenotype/profileFilters'),
  './hpoSearch':require('../src/views/PbPhenotype/hpoSearch'),
  './geneReferenceEvidence':require('../src/views/PbPhenotype/geneReferenceEvidence'),
  '@/utils/bioIndexUtils':{request:async()=>{throw new Error('No metadata I/O expected');}},
@@ -155,6 +158,44 @@ async function main(){
  assert.equal(page.filteredGenes.length,0);
  page.geneFilter='selected';page.genePage=3;page.geneSearch=' y ';await Vue.nextTick();
  assert.deepEqual(Array.from(page.filteredGenes,row=>row.gene),['Y']);assert.equal(page.genePage,1);
+ page.sampleInfo={A:{clean_name:'Project P',investigator:'inv_a'},B:{Project:'Project P',investigator:'inv_b'},C:{clean_name:'Project Q',investigator:'inv_b'},D:{clean_name:'Project Q',investigator:'inv_c'}};
+ page.applyProfile({ids:[...page.ids],excluded:[],rules:[{field:'age',operator:'gte',value:'10'},{field:'sex',operator:'contains',value:'male'},{field:'investigator',operator:'contains',value:'inv_b'}]});
+ await Vue.nextTick();
+ assert.deepEqual(Array.from(page.qualifyingSamples,row=>row.sample_id),['B'],'Advanced conditions update actual matching samples together');
+ assert.equal(page.cohortDiseaseSummary.length,1);assert.equal(page.cohortDiseaseSummary[0].total,1);
+ assert.equal(page.ageSummary.remaining,1);assert.equal(page.sexSummary.remaining,1);assert.equal(page.selectedGeneSummary.total,1);
+ assert.equal(analysisCalls,0,'Demographic filters must not refit the phenotype or regression');
+ assert.equal(JSON.parse(new URL(location.href).searchParams.get('filters')).length,3);
+ page.applyProfile({ids:[...page.ids],excluded:['HP:0000004'],rules:[{field:'phenotype',operator:'exclude',value:'HP:0000004'}]});
+ await Vue.nextTick();
+ assert.equal(page.ageSummary.before,2);assert.equal(page.ageSummary.remaining,1,'Advanced Exclude retains correct before/after demographics');
+ assert.equal(page.qualifyingSamples[0].sample_id,'B');assert.equal(page.genes,originalGenes);
+ page.applyProfile({ids:[...page.ids],excluded:[],rules:[],matchMode:'any',minimum:2});
+ await Vue.nextTick();
+ assert.equal(page.qualifyingSamples.length,5,'Any includes one-HPO matches too');
+ assert.equal(page.matchingSampleGroups.atLeastTwo.length,4,'The independent two-HPO comparison retains its own population');
+ assert.equal(page.allGeneSummary.total,2);assert.equal(page.selectedGeneSummary.total,5);
+ page.applyProfile({ids:[...page.ids],excluded:[],rules:[],matchMode:'atLeastTwo',minimum:3});
+ await Vue.nextTick();
+ assert.equal(page.qualifyingSamples.length,2,'At least k of n applies the chosen k');
+ assert.equal(page.selectedGeneSummary.total,2);assert.equal(page.ageSummary.remaining,2);
+ assert.equal(new URL(location.href).searchParams.get('min_match'),'3');
+ page.applyProfile({ids:[...page.ids],excluded:[],rules:[],matchMode:'atLeastTwo',minimum:2});
+ await Vue.nextTick();
+ assert.equal(page.qualifyingSamples.length,4);assert.equal(new URL(location.href).searchParams.has('min_match'),false);
+ assert.equal(analysisCalls,0,'Match controls and demographic changes never refit the full-cohort regression');
+ const savedLocation={...location};
+ for(const [search,expectedMode,minimum] of [
+  ['?query=HP:0000001,HP:0000002,HP:0000003','all',2],
+  ['?query=HP:0000001,HP:0000002,HP:0000003&match=any&gene_scope=any','any',2],
+  ['?query=HP:0000001,HP:0000002,HP:0000003&match=all','all',2],
+  ['?query=HP:0000001,HP:0000002,HP:0000003&match=atLeastTwo&min_match=3','atLeastTwo',3],
+  ['?query=HP:0000001,HP:0000002&match=atLeastTwo&min_match=bad','atLeastTwo',2],
+ ]) {
+  location.search=search;const state=options.data();assert.equal(state.sampleMatchMode,expectedMode);assert.equal(state.sampleMatchMinimum,minimum);
+ }
+ location.search='?query=';assert.equal(options.data().ids.length,0,'Clear all survives URL reload without restoring a default phenotype');
+ Object.assign(location,savedLocation);
  page.$destroy();
  // Explicit covered zero scores must remain in the denominator.
  const zero=decodeSampleGeneScores({...payload,available_sample_ids:['A'],unavailable_sample_ids:['B','C','D'],sample_gene_indices:{A:[]}},['A','B','C','D']);

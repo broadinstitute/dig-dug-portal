@@ -1,9 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<% const pbPrototypePage = /^(?:pb_|public_gene|krfront|krgene|krvariant|krphenotype|krsample)/i.test((htmlWebpackPlugin.options.filename || '').split('/').pop()); %>
+<html lang="en"<%= pbPrototypePage ? ' class="pb-prototype-scale"' : '' %>>
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <% if (pbPrototypePage) { %>
+        <!-- Apply the prototype scale before styles/scripts or Vue can paint. -->
+        <style id="pb-prototype-default-scale">
+            html.pb-prototype-scale {
+                zoom: 0.8;
+                scrollbar-gutter: stable;
+                -webkit-text-size-adjust: 100%;
+                text-size-adjust: 100%;
+            }
+            @supports not (zoom: 0.8) {
+                html.pb-prototype-scale body {
+                    width: 125%;
+                    transform: scale(0.8);
+                    transform-origin: top left;
+                }
+            }
+        </style>
+        <% } %>
         <link rel="shortcut icon" type="image/png" href="/favicon.png" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link

@@ -1,0 +1,15 @@
+const assert = require('node:assert/strict');
+const {projectComparison}=require('./projectComparisonStats');
+const rows=[{sampleId:'A',matchedHpo:2,recordedHpoCount:4,rphersZ:1,sharedGenes:0,sharedVariants:0},{sampleId:'B',matchedHpo:2,recordedHpoCount:6,rphersZ:3,sharedGenes:2,sharedVariants:1},{sampleId:'C',matchedHpo:null,recordedHpoCount:null,rphersZ:null,sharedGenes:null,sharedVariants:null}];
+const before=rows.map(row=>({...row}));const stats=projectComparison(rows);
+assert.equal(stats.total,3);assert.equal(stats.phenotypeAvailable,2);assert.equal(stats.genotypeAvailable,2);assert.equal(stats.withSharedVariants,1);
+const m=Object.fromEntries(stats.metrics.map(row=>[row.key,row]));
+assert.deepEqual([m.rphersZ.median,m.rphersZ.q1,m.rphersZ.q3,m.rphersZ.n],[2,1.5,2.5,2]);
+assert.deepEqual([m.sharedGenes.median,m.sharedGenes.q1,m.sharedGenes.q3,m.sharedGenes.n],[1,.5,1.5,2]);
+assert.equal(m.sharedVariants.median,.5,'Zero is included, missing evidence is not zero');
+assert.deepEqual(stats.matchedDistribution.map(row=>[row.matched,row.n]),[[2,2],[null,1]]);
+assert(Math.abs(stats.matchedDistribution.reduce((s,row)=>s+row.percentage,0)-100)<1e-10);
+assert.deepEqual(rows,before,'Project statistics do not reorder or modify candidates');
+const empty=projectComparison([]);assert.equal(empty.total,0);assert(empty.metrics.every(row=>row.n===0&&row.median===null));
+const invalid=projectComparison([{rphersZ:NaN,sharedGenes:Infinity},{rphersZ:0,sharedGenes:0}]);assert.equal(invalid.phenotypeAvailable,1);assert.equal(invalid.genotypeAvailable,1);
+console.log('Project comparison: full group denominators, missingness, true zero, median/IQR and HPO distribution PASS');

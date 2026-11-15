@@ -406,7 +406,7 @@
                                     <button class="pbg-summary-sort" type="button" title="Carriers whose samples-info genes include this co-carrier gene, divided by all carriers of the current gene or selected variant. Missing metadata can lower this percentage." @click="sortSummaryColumn('genotype', 'overlap')">% overlap <i>{{ summarySortIndicator('genotype', 'overlap') }}</i></button>
                                 </div>
                                 <div v-for="gene in summaryCoCarrierGenesVisible" :key="'summary-gene-' + gene.gene" class="pbg-summary-mini-row">
-                                    <a class="pbg-table-link" :href="`/pb_Gene.html?query=${gene.gene}`" @click.stop>{{ gene.gene }}</a>
+                                    <a class="pbg-table-link" :href="`/pb_gene2.html?query=${encodeURIComponent(gene.gene)}`" @click.stop>{{ gene.gene }}</a>
                                     <span>{{ gene.count }}</span>
                                     <span>{{ activeCarrierSummary && activeCarrierSummary.status === 'ready' ? `${Math.round(gene.count / Math.max(gene.denominator || summaryCarrierTotal, 1) * 100)}%` : '—' }}</span>
                                 </div>

@@ -10,7 +10,7 @@
                 </span>
                 <span class="headline-line">
                     <span class="keep-together">
-                        <a class="page-link" href="/pb_Gene.html">Gene</a>,
+                        <a class="page-link" href="/pb_gene2.html">Gene</a>,
                         <a class="page-link" href="/pb_variant.html">Variant</a>,
                     </span>
                     and

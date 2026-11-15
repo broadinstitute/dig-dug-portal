@@ -63,7 +63,7 @@ export default {
         appliedSettings() { return this.appliedRun ? this.settings(this.appliedRun) : ''; },
     },
     methods: {
-        applyProfile() { this.$refs.profile.finish(); this.$emit('run'); },
+        applyProfile() { if (this.$refs.profile.finish() === false) return; this.$emit('run'); },
         rerunProfile(run) { if (this.contextLoading || !this.canRerun(run)) return; this.$refs.profile.resetDraft(); this.$emit('rerun', run); },
         canRerun(run) {
             const meta = this.runMeta[run.id];

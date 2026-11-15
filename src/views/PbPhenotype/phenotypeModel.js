@@ -98,15 +98,17 @@ function quantile(sorted, probability) {
     return sorted[lower] + (sorted[Math.ceil(position)] - sorted[lower]) * (position - lower);
 }
 
-export function cohortSampleSummary(samples, {cohortOf, ageOf, sexOf, affectedOf, scoreOf}) {
+export function cohortSampleSummary(samples, {cohortOf, ageOf, sexOf, affectedOf, scoreOf, investigatorOf = () => null}) {
     const cohorts = new Map();
     for (const sample of samples) {
         const name = cohortOf(sample) || "Unknown";
         if (!cohorts.has(name)) cohorts.set(name, {
-            name, total: 0, affected: 0, ages: [],
+            name, total: 0, affected: 0, ages: [], investigators: new Set(),
             sex: {female: 0, male: 0, unknown: 0}, phersSum: 0, phersKnown: 0,
         });
         const cohort = cohorts.get(name);
+        const investigator = String(investigatorOf(sample) || '').trim();
+        if (investigator && !/^(?:Unavailable|Unknown|None|N\/?A|[-–—])$/i.test(investigator)) cohort.investigators.add(investigator);
         cohort.total++;
         if (affectedOf(sample) === "Y") cohort.affected++;
         const age = validAge(ageOf(sample));
@@ -123,6 +125,7 @@ export function cohortSampleSummary(samples, {cohortOf, ageOf, sexOf, affectedOf
         const ages = cohort.ages.sort((a, b) => a - b);
         return {
             name: cohort.name, total: cohort.total, affected: cohort.affected,
+            investigators: [...cohort.investigators].sort(),
             sex: cohort.sex, ageKnown: ages.length,
             medianAge: quantile(ages, 0.5), q1Age: quantile(ages, 0.25), q3Age: quantile(ages, 0.75),
             meanResidualPhers: cohort.phersKnown ? cohort.phersSum / cohort.phersKnown : null,

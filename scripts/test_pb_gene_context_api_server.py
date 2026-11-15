@@ -8,6 +8,9 @@ from scripts.pb_gene_context_api_server import create_server, parse_co_gene_requ
 
 
 class _FakeEngine:
+    def phenotype_term_counts(self):
+        return {'counts': {'HP:0001250': 2}, 'cohort_sample_count': 4, 'source': 'parent-expanded CRDC HPO matrix'}
+
     def for_sample_ids(self, sample_ids):
         selected = _FakeEngine()
         selected.analysis_sample_ids = list(sample_ids)
@@ -97,6 +100,29 @@ class PbGeneContextApiServerTest(unittest.TestCase):
                         {"hpo_ids": ["HP:0001250"], "page_size": 1000}):
             with self.assertRaises(ValueError):
                 parse_profile_request(payload)
+
+    def test_autocomplete_counts_are_profile_only_and_aggregate_only(self):
+        for profile_only in (True, False):
+            server = create_server(('127.0.0.1', 0), _FakeEngine(), profile_only=profile_only)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                url = f'http://127.0.0.1:{server.server_port}/phenotype-analyzer-api/hpo-counts'
+                if profile_only:
+                    with urlopen(url, timeout=2) as response:
+                        result = json.load(response)
+                    self.assertEqual(result['counts'], {'HP:0001250': 2})
+                    self.assertEqual(result['cohort_sample_count'], 4)
+                    self.assertNotIn('samples', result)
+                else:
+                    with self.assertRaises(HTTPError) as error:
+                        urlopen(url, timeout=2)
+                    self.assertEqual(error.exception.code, 404)
+                    error.exception.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2)
 
     def test_serves_profile_route(self):
         server = create_server(("127.0.0.1", 0), _FakeEngine())

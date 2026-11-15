@@ -167,6 +167,11 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
     let active = 0;
     let sampleCacheBytes = 0;
 
+    require('./sample_match_projects_endpoint')(app, {
+        accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
+        sampleInfo: (id, token) => sampleInfo(id, true, token),
+    }, { profileBase: options.sampleProfileBase });
+
     require('./gene_genotype_endpoint')(app, {
         accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
         carriersForGene,

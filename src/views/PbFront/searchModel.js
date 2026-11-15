@@ -46,7 +46,7 @@ function resolveSearchTarget(value, selectedKind, geneSymbols) {
 
     const normalized = normalizeSearchValue(query);
     if (selectedKind === "Gene" || geneSymbols.has(normalized)) {
-        return { path: "/pb_Gene.html", param: "query", value: query.toUpperCase() };
+        return { path: "/pb_gene2.html", param: "query", value: query.toUpperCase() };
     }
 
     return { path: "/pb_phenotype.html", param: "query", value: query };

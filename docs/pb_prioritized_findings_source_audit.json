@@ -1,0 +1,231 @@
+{
+  "counts": {
+    "classified_rows": 196941,
+    "missing_sample_id": 0,
+    "missing_GeneSymbol": 0,
+    "missing_Variant_ID": 0,
+    "missing_GT": 0,
+    "unresolved_rows": 952433
+  },
+  "hashes": {
+    "type56_phenotype_gene_associations.tsv.gz": {
+      "sha256": "37b83aa7fa87437dfa954986ebf8a1fecc56998395cb66845336eb4b3d97454b",
+      "matches_manifest": true
+    },
+    "six_type_classification.tsv.gz": {
+      "sha256": "0add6aa00b0aaba4fe2abe81558500a45854ccb5e57e4513976093692185f0d2",
+      "matches_manifest": true
+    },
+    "six_type_unresolved.tsv.gz": {
+      "sha256": "4f37f740ec202ed58cda64f316e28cffd96ce177b2f2502faba484038d3a650c",
+      "matches_manifest": true
+    }
+  },
+  "categories": {
+    "type": {
+      "Type_4": 161593,
+      "Type_3": 32394,
+      "Type_5": 663,
+      "Type_2": 1734,
+      "Type_1": 542,
+      "Type_6": 15
+    },
+    "tier_type": {
+      "Type_4|Tier_2": 161593,
+      "Type_3|Tier_2": 32394,
+      "Type_5|": 663,
+      "Type_2|Tier_1": 1734,
+      "Type_1|Tier_1": 542,
+      "Type_6|": 15
+    },
+    "scope_type": {
+      "Type_4|known_gene_db": 161593,
+      "Type_3|known_gene_db": 32394,
+      "Type_5|": 663,
+      "Type_2|variant_rcv": 1734,
+      "Type_1|variant_rcv": 542,
+      "Type_6|": 15
+    },
+    "cohort_type": {
+      "Type_4|OUTSIDE": 161593,
+      "Type_3|MATCH": 32394,
+      "Type_5|": 663,
+      "Type_2|OUTSIDE": 1734,
+      "Type_1|MATCH": 542,
+      "Type_6|": 15
+    },
+    "sample_analysis_role": {
+      "PRIMARY_INDEX_CASE": 176922,
+      "AFFECTED_OTHER": 20019
+    },
+    "inheritance_status": {
+      "NOT_ASSESSED_NO_MOI": 196263,
+      "<empty>": 678
+    },
+    "inheritance_status_review": {
+      "<empty>": 196941
+    },
+    "phenotype_evaluation_status": {
+      "EVALUATED_UNWEIGHTED": 179026,
+      "REVIEWED_HPO_TERMS_PRESENT": 678,
+      "PATIENT_HPO_UNAVAILABLE": 17189,
+      "DISEASE_HPO_UNAVAILABLE": 48
+    },
+    "phenotype_weighted_score": {
+      "NOT_CALCULATED": 196941
+    },
+    "rcv_review_status_type12": {
+      "reviewed by expert panel": 553,
+      "criteria provided, multiple submitters, no conflicts": 676,
+      "criteria provided, single submitter": 877,
+      "no assertion criteria provided": 108,
+      "practice guideline": 62
+    },
+    "evidence_source": {
+      "Orphanet": 158404,
+      "ClinGen": 35535,
+      "<empty>": 678,
+      "ClinVar_2025_09_RCV": 2276,
+      "DDG2P": 48
+    },
+    "source_version": {
+      "1.3.42 / 4.1.8 [2025-03-03]": 158404,
+      "2026-02-23": 35583,
+      "<empty>": 678,
+      "67": 30,
+      "34": 18,
+      "19": 16,
+      "35": 15,
+      "17": 18,
+      "13": 133,
+      "9": 173,
+      "63": 22,
+      "2": 202,
+      "15": 58,
+      "46": 17,
+      "40": 14,
+      "20": 83,
+      "12": 79,
+      "8": 44,
+      "4": 95,
+      "1": 310,
+      "25": 68,
+      "26": 81,
+      "11": 47,
+      "38": 19,
+      "5": 62,
+      "16": 87,
+      "28": 27,
+      "69": 6,
+      "3": 42,
+      "57": 23,
+      "14": 26,
+      "37": 7,
+      "36": 10,
+      "97": 4,
+      "44": 7,
+      "106": 6,
+      "87": 2,
+      "114": 21,
+      "41": 7,
+      "22": 9,
+      "21": 7,
+      "23": 10,
+      "85": 49,
+      "77": 2,
+      "10": 48,
+      "54": 12,
+      "48": 3,
+      "18": 15,
+      "58": 6,
+      "60": 32,
+      "50": 5,
+      "59": 22,
+      "83": 44,
+      "66": 3,
+      "42": 9,
+      "24": 17,
+      "30": 5,
+      "27": 3,
+      "53": 4,
+      "29": 8,
+      "51": 10,
+      "7": 22,
+      "94": 1,
+      "33": 9,
+      "6": 3,
+      "111": 10,
+      "31": 2,
+      "103": 5,
+      "49": 2,
+      "101": 1,
+      "32": 3,
+      "73": 3,
+      "61": 2,
+      "113": 5,
+      "56": 1,
+      "96": 2,
+      "98": 1,
+      "95": 1,
+      "108": 1
+    }
+  },
+  "classified_samples": 5871,
+  "unique_variants": 41700,
+  "keys": {
+    "sample_gene_variant": {
+      "distinct": 97400,
+      "duplicate_excess": 99541,
+      "keys_with_multiple_rows": 46769
+    },
+    "sample_variant_disease": {
+      "distinct": 195508,
+      "duplicate_excess": 1433,
+      "keys_with_multiple_rows": 1390
+    },
+    "evidence_identity": {
+      "distinct": 196941,
+      "duplicate_excess": 0,
+      "keys_with_multiple_rows": 0
+    }
+  },
+  "exact_duplicate_excess": 0,
+  "conflicting_gt_keys": 0,
+  "multi_type_sample_gene_variant_keys": 9421,
+  "missing_disease_by_type": {
+    "Type_5": 663,
+    "Type_6": 15
+  },
+  "nonfinite_numeric_values": {
+    "primary_fisher_odds_ratio": 30
+  },
+  "unresolved_reasons": {
+    "sample_not_in_metadata": 1881,
+    "missing_objective_cohort_category_match": 204321,
+    "no_eligible_disease_evidence": 51708,
+    "affected_not_Y": 636159,
+    "type56_family_representative_excluded": 43108,
+    "sample_not_in_phenotype_matrix": 15256
+  },
+  "type56_associations": {
+    "rows": 568958,
+    "rank_1_rows": 213
+  },
+  "example_sample_audit": {
+    "rows": 29,
+    "types": {
+      "Type_4": 17,
+      "Type_3": 12
+    },
+    "unique_gene_variants": 10,
+    "distinct_diseases": 26,
+    "all_source_rows": 418,
+    "joined_evidence_rows": 29,
+    "unmatched_evidence_rows": 0,
+    "joined_gt_conflicts": 0
+  },
+  "audit_date": "2026-11-09",
+  "classifier_script_sha256": "4564b47d07491a12e2e55f708d80739171de397928b051e8108ed0140c0afb27",
+  "classifier_hash_matches_successful_job": true,
+  "published_line_counts_include_header": true
+}

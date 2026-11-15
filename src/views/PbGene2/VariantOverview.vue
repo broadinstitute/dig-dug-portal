@@ -4,8 +4,8 @@
         <div class="pg2-overview-columns">
             <section v-for="group in groups" :key="group.key" class="pg2-overview-column" :class="'pg2-summary-' + group.key" :aria-label="group.title">
                 <h3>{{ group.title }} <span :class="{ 'pg2-annotated-total': group.key === 'predictors' }">{{ group.key === 'predictors' ? annotatedCount.toLocaleString() : total.toLocaleString() }}</span><span v-if="group.key === 'predictors'" class="pg2-overview-denominator"> / {{ total.toLocaleString() }}</span> <help-tooltip info :label="group.title + ' source'" :text="group.source.text" :links="group.source.links" /></h3>
-                <div class="pg2-stacked-bar" role="group" :aria-label="group.title + ' variant counts and filters'">
-                    <button v-for="item in barSegments(group)" v-if="item.count" :key="item.label" type="button" class="pg2-bar-segment" :class="[item.color, { 'pg2-bar-selected': selected(item), 'pg2-others-segment': item.members }]" :style="{ flexGrow: item.count, fontSize: segmentFontSize(item) + 'px' }" :title="item.label + ': ' + item.count.toLocaleString()" :aria-label="'Filter ' + item.label + ': ' + item.count.toLocaleString() + ' variants'" :aria-pressed="String(selected(item))" :aria-expanded="item.label === 'Annotated' ? String(showPredictors) : null" @click="activate(item)">
+                <div class="pg2-stacked-bar" role="group" title="Counts are exact; segment widths are adjusted for readability." :aria-label="group.title + ' variant counts and filters; widths adjusted for readability'">
+                    <button v-for="item in barSegments(group)" v-if="item.count" :key="item.label" type="button" class="pg2-bar-segment" :class="[item.color, { 'pg2-bar-selected': selected(item), 'pg2-others-segment': item.members }]" :style="{ flexGrow: segmentWeight(item), fontSize: segmentFontSize(item) + 'px' }" :title="item.label + ': ' + item.count.toLocaleString()" :aria-label="'Filter ' + item.label + ': ' + item.count.toLocaleString() + ' variants'" :aria-pressed="String(selected(item))" :aria-expanded="item.label === 'Annotated' ? String(showPredictors) : null" @click="activate(item)">
                         <span v-if="item.members" class="pg2-others-dividers" aria-hidden="true"><i v-for="(position, index) in otherDividers(item)" :key="index" :style="{ left: position + '%' }"></i></span>
                         <span class="pg2-segment-label">{{ item.members ? 'Others ' : '' }}{{ item.count.toLocaleString() }}</span>
                     </button>
@@ -99,11 +99,10 @@ export default {
             if (item.filter === 'predictionCoverage' && item.label === 'Annotated') this.showPredictors = !this.showPredictors;
             this.$emit('filter', item.filter, item.filterLabel || item.label);
         },
-        segmentFontSize(item) {
-            if (item.members) return 18;
-            if (item.label === 'Not annotated') return 18;
-            const fraction = item.count / Math.max(this.total, 1);
-            return fraction < 0.05 ? 16 : fraction < 0.08 ? 18 : 22;
+        segmentFontSize() { return 22; },
+        segmentWeight(item) {
+            // Counts remain exact; cap visual dominance so rare annotations stay readable.
+            return Math.max(item.members ? 2 : 1, Math.min(3, Math.log10(item.count + 1)));
         },
         consequenceColor(label) {
             if (label === 'Unavailable') return 'pg2-bar-missing';
@@ -118,8 +117,7 @@ export default {
         },
         barSegments(group) { return group.key === 'consequence' ? this.consequenceBarSegments : group.segments; },
         otherDividers(item) {
-            let count = 0;
-            return item.members.slice(0, -1).map(member => { count += member.count; return 100 * count / Math.max(item.count, 1); });
+            return item.members.slice(0, -1).map((member, index) => 100 * (index + 1) / item.members.length);
         },
         goToConsequencePage(page) { this.consequencePage = Math.max(1, Math.min(Number(page) || 1, this.consequencePageCount)); },
         toggleConsequenceSort() { this.consequenceSortDirection = this.consequenceSortDirection === 'desc' ? 'asc' : 'desc'; this.consequencePage = 1; },

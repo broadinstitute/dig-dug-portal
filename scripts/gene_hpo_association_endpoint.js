@@ -3,6 +3,10 @@
 const fs = require("node:fs");
 const zlib = require("node:zlib");
 const readline = require("node:readline");
+const path = require('node:path');
+const { execFile } = require('node:child_process');
+const { promisify } = require('node:util');
+const runFile = promisify(execFile);
 const hpoLabels = require("../src/views/PbPhenotype/geneHpoLabels.generated.json");
 const { withSingleHpoDisplayUnits } = require("../src/utils/singleHpoUnits");
 
@@ -27,6 +31,11 @@ function projectAssociation(row, scope = 'gene') {
         beta: finiteNumber(row.beta_gene_score_sum_approx),
         standardError: finiteNumber(row.se_gene_score_sum_approx),
         nSamples: finiteNumber(row.n_samples),
+        nCases: finiteNumber(row.n_cases),
+        nControls: finiteNumber(row.n_controls),
+        nPositive: finiteNumber(row.n_positive_samples),
+        nCarriersWithPhenotype: finiteNumber(row.n_carriers_with_phenotype),
+        nCrdcCarriers: finiteNumber(row.n_crdc_carriers),
         betaCiLow: coefficientBoundary(row.ci_lower_approx),
         betaCiHigh: coefficientBoundary(row.ci_upper_approx),
         sourceRelease: process.env.PB_GENE_HPO_RELEASE_ID || "configured_gene_hpo_release",
@@ -102,6 +111,33 @@ async function readHpo(filePath, hpoId) {
 }
 
 module.exports = function registerGeneHpoAssociationEndpoint(app, filePath) {
+    if (typeof app.post === 'function') {
+        const comparisons = new Map();
+        app.post('/__hpo_gene_carrier_comparison__', require('express').json({ limit: '1mb' }), async (request, response) => {
+            response.set('Cache-Control', 'private, no-store');
+            const body = request.body || {};
+            if (!Array.isArray(body.hpo_ids) || body.hpo_ids.length < 2 || body.hpo_ids.length > 20 ||
+                !Array.isArray(body.sample_ids) || body.sample_ids.length > 20000 ||
+                body.hpo_ids.some(id => typeof id !== 'string' || !/^HP:\d{7}$/.test(id)) ||
+                body.sample_ids.some(id => typeof id !== 'string' || !/^[A-Za-z0-9_.-]{1,120}$/.test(id)) ||
+                !Number.isInteger(body.minimum) || body.minimum < 1 || body.minimum > body.hpo_ids.length) {
+                response.status(400).json({ error: 'Invalid phenotype profile or sample selection.' }); return;
+            }
+            const snapshot = path.join(__dirname, '../.pb-private-data/precomputed/grs-membership');
+            try {
+                const metadata = fs.statSync(path.join(snapshot, 'metadata.json'));
+                const normalized = { hpo_ids: body.hpo_ids, minimum: body.minimum, sample_ids: [...new Set(body.sample_ids)].sort() };
+                const key = require('crypto').createHash('sha256').update(JSON.stringify(normalized) + metadata.mtimeMs).digest('hex');
+                if (!comparisons.has(key)) {
+                    if (comparisons.size >= 12) comparisons.delete(comparisons.keys().next().value);
+                    const work = runFile(process.env.PB_INDEX_PYTHON || 'python3', ['-m', 'scripts.pb_phenotype_carrier_counts', '--destination', snapshot, '--compare'], { cwd: path.join(__dirname, '..'), maxBuffer: 32 * 1024 * 1024 });
+                    work.child.stdin.end(JSON.stringify(normalized));
+                    comparisons.set(key, work.then(({stdout}) => JSON.parse(stdout)).catch(error => { comparisons.delete(key); throw error; }));
+                }
+                response.json(await comparisons.get(key));
+            } catch (_) { response.status(503).json({ error: 'Profile carrier comparison is unavailable.' }); }
+        });
+    }
     function sourceKey() {
         const stat = fs.statSync(filePath);
         return `${filePath}:${stat.size}:${stat.mtimeMs}:${process.env.PB_GENE_HPO_RELEASE_ID || ''}:page-q-v2`;
@@ -118,6 +154,34 @@ module.exports = function registerGeneHpoAssociationEndpoint(app, filePath) {
             return;
         }
         try {
+            if (request.query.view === 'all-genes') {
+                const index = process.env.PB_HPO_GENE_INDEX || path.join(__dirname, '../.pb-private-data/precomputed/gene_hpo_release_20261112/hpo-gene.sqlite');
+                if (!fs.existsSync(index)) {
+                    response.status(503).json({ error: 'The complete precomputed HPO-gene index is not configured.' });
+                    return;
+                }
+                const indexStat = fs.statSync(index);
+                const key = `${index}:${indexStat.size}:${indexStat.mtimeMs}:all-genes:${hpoId}`;
+                if (!cache.has(key)) {
+                    if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value);
+                    cache.set(key, runFile(process.env.PB_INDEX_PYTHON || 'python3', ['-m', 'scripts.pb_hpo_gene_index', '--database', index, '--hpo', hpoId], { cwd: path.join(__dirname, '..'), maxBuffer: 32 * 1024 * 1024 }).then(({ stdout }) => {
+                        const result = JSON.parse(stdout);
+                        const coverage = result.carrierCounts;
+                        const associations = result.associations.map(row => {
+                            const counts = coverage && coverage.genes[row.gene];
+                            return { gene: row.gene, ...projectAssociation({ ...row,
+                                n_carriers_with_phenotype: counts ? counts.withPhenotype : null,
+                                n_crdc_carriers: counts ? counts.all : null }, 'hpo') };
+                        });
+                        return { hpoId, total: associations.length, associations,
+                            releaseId: result.metadata.release_id, sourceSha256: result.metadata.source_sha256,
+                            selectionRule: 'p_value_lt_0.05', qScope: 'within_hpo',
+                            effectDirections: 'both', completeDelivery: true, carrierCoverage: coverage ? { ...coverage, genes: undefined } : null };
+                    }).catch(error => { cache.delete(key); throw error; }));
+                }
+                response.json(await cache.get(key));
+                return;
+            }
             const key = `${sourceKey()}:hpo:${hpoId}`;
             if (!cache.has(key)) {
                 if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value);
