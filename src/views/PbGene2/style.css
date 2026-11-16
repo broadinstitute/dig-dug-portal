@@ -550,6 +550,7 @@ html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: 1; }
 .pg2-page .pg2-carrier-sample-table th { padding: 11px 10px; font-size: 18px; font-weight: 600; line-height: 1.5; background: #f0f4fb; color: #17233d; }
 .pg2-page .pg2-carrier-sample-table td { padding: 12px 10px; vertical-align: top; font-size: 19px; line-height: 1.5; font-variant-numeric: tabular-nums; }
 .pg2-carrier-sample-table .pg2-numeric { text-align: right; }
+.pg2-carrier-sample-table td.pg2-carrier-hpo-total { white-space: normal; }
 .pg2-carrier-sample-table th .pg2-help { margin-left: 3px; }
 .pg2-carrier-sample-table .pg2-carrier-gt-heading { white-space: nowrap; }
 .pg2-carrier-sample-table .pg2-sort-button { font-size: inherit; }

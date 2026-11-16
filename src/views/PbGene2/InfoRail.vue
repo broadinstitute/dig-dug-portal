@@ -3,6 +3,7 @@
            role="note" aria-labelledby="pg2-info-heading" @mouseenter="cancelClose" @mouseleave="scheduleClose">
         <div class="pg2-info-rail-heading"><strong id="pg2-info-heading">{{ current.label }}</strong><button type="button" aria-label="Close information" @click="close"><b-icon-x aria-hidden="true" /></button></div>
         <p id="pg2-info-content">{{ current.text }}</p>
+        <div v-if="current.table" class="pg2-info-table-wrap"><table class="pg2-info-table"><caption>{{ current.table.caption }}</caption><thead><tr><th v-for="(heading, index) in current.table.headings" :key="index" scope="col">{{ heading }}</th></tr></thead><tbody><tr v-for="(row, index) in current.table.rows" :key="index"><th scope="row">{{ row[0] }}</th><td v-for="(cell, column) in row.slice(1)" :key="column">{{ cell }}</td></tr></tbody></table></div>
         <ul v-if="current.links && current.links.length" class="pg2-info-sources" aria-label="Reference sources"><li v-for="link in current.links" :key="link.url"><a :href="link.url" target="_blank" rel="noopener noreferrer">{{ link.label }} <b-icon-box-arrow-up-right aria-hidden="true" /></a></li></ul>
     </aside>
 </template>
@@ -86,3 +87,10 @@ export default {
     },
 };
 </script>
+<style scoped>
+.pg2-info-table-wrap { overflow-x: auto; margin-top: 14px; }
+.pg2-info-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.pg2-info-table caption { caption-side: top; color: inherit; font-size: 15px; }
+.pg2-info-table th, .pg2-info-table td { border: 1px solid #c8d3df; padding: 7px; text-align: left; }
+.pg2-info-table th { background: #f3f6fa; font-weight: 500; }
+</style>

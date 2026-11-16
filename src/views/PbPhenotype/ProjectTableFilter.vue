@@ -1,17 +1,17 @@
 <template>
     <div class="pbs-project-filter">
         <div class="pbs-project-header">
-            <button type="button" class="pbp-sort" @click="$emit('sort', sortDirection === 'asc' ? 'desc' : 'asc')">Project / Investigator {{ sortDirection === 'asc' ? '↑' : sortDirection === 'desc' ? '↓' : '' }}</button>
-            <button ref="trigger" type="button" class="pbs-filter-trigger" :class="{ 'pbs-filter-active': value !== null }" aria-label="Filter sample projects" :aria-expanded="String(open)" aria-controls="pbs-project-filter-panel" @click="toggle"><b-icon-funnel-fill v-if="value !== null"/><b-icon-funnel v-else/></button>
+            <button v-if="sortable" type="button" class="pbp-sort" @click="$emit('sort', sortDirection === 'asc' ? 'desc' : 'asc')">{{ heading }} {{ sortDirection === 'asc' ? '↑' : sortDirection === 'desc' ? '↓' : '' }}</button><button v-else type="button" class="pbp-sort" :aria-expanded="String(open)" :aria-controls="panelId" @click="toggle">{{ heading }}</button>
+            <button ref="trigger" type="button" class="pbs-filter-trigger" :class="{ 'pbs-filter-active': value !== null }" :aria-label="`Filter sample ${filterKey}`" :aria-expanded="String(open)" :aria-controls="panelId" @click="toggle"><b-icon-funnel-fill v-if="value !== null"/><b-icon-funnel v-else/></button>
         </div>
-        <div v-if="open" id="pbs-project-filter-panel" ref="panel" class="pbs-project-filter-panel" :style="position" role="dialog" aria-label="Filter sample projects" @keydown.esc.stop.prevent="close">
-            <div class="pbs-filter-sorts"><button type="button" class="pbp-btn" @click="sort('asc')">Sort A → Z</button><button type="button" class="pbp-btn" @click="sort('desc')">Sort Z → A</button></div>
-            <label for="pbs-project-filter-search">Find a project or investigator</label>
-            <input id="pbs-project-filter-search" ref="search" v-model="search" type="search" autocomplete="off"/>
+        <div v-if="open" :id="panelId" ref="panel" class="pbs-project-filter-panel" :style="position" role="dialog" :aria-label="`Filter sample ${filterKey}`" @keydown.esc.stop.prevent="close">
+            <div v-if="sortable" class="pbs-filter-sorts"><button type="button" class="pbp-btn" @click="sort('asc')">Sort A → Z</button><button type="button" class="pbp-btn" @click="sort('desc')">Sort Z → A</button></div>
+            <p v-if="description" class="pbs-filter-description">{{ description }}</p><label :for="`${panelId}-search`">{{ searchLabel }}</label>
+            <input :id="`${panelId}-search`" ref="search" v-model="search" type="search" autocomplete="off"/>
             <div class="pbs-filter-selection"><button type="button" class="pbs-link" @click="selectVisible(true)">Select all{{ search ? ' results' : '' }}</button><button type="button" class="pbs-link" @click="selectVisible(false)">Clear{{ search ? ' results' : '' }}</button></div>
             <div class="pbs-project-options">
-                <label v-for="option in visibleOptions" :key="option.name"><input v-model="draft" type="checkbox" :value="option.name"/><span>{{ option.name }}<small v-if="option.investigators">{{ option.investigators }}</small></span><span class="pbs-option-count">{{ option.count.toLocaleString() }}</span></label>
-                <p v-if="!visibleOptions.length">No matching projects.</p>
+                <label v-for="option in visibleOptions" :key="option.name"><input v-model="draft" type="checkbox" :value="option.name"/><span>{{ option.label || option.name }}<small v-if="option.investigators">{{ option.investigators }}</small></span><span class="pbs-option-count">{{ option.count.toLocaleString() }}</span></label>
+                <p v-if="!visibleOptions.length">No matching {{ filterKey }}.</p>
             </div>
             <div class="pbs-filter-footer"><span>{{ draft.length }} of {{ options.length }} selected</span><button type="button" class="pbp-btn" @click="close">Cancel</button><button type="button" class="pbp-btn pbs-filter-apply" @click="apply">Apply</button></div>
         </div>
@@ -19,10 +19,16 @@
 </template>
 <script>
 export default {
-    props: { options: Array, value: { type: Array, default: null }, sortDirection: String },
+    props: { options: Array, value: { type: Array, default: null }, sortDirection: String,
+        heading: { type: String, default: 'Project / Investigator' },
+        filterKey: { type: String, default: 'projects' },
+        searchLabel: { type: String, default: 'Find a project or investigator' },
+        description: String, sortable: { type: Boolean, default: true },
+    },
     data: () => ({ open: false, search: '', draft: [], position: {} }),
     computed: {
-        visibleOptions() { const query = this.search.trim().toLowerCase(); return this.options.filter(row => `${row.name} ${row.investigators}`.toLowerCase().includes(query)); },
+        panelId() { return `pbs-${this.filterKey}-filter-panel`; },
+        visibleOptions() { const query = this.search.trim().toLowerCase(); return this.options.filter(row => `${row.name} ${row.label || ''} ${row.investigators || ''}`.toLowerCase().includes(query)); },
     },
     mounted() { document.addEventListener('pointerdown', this.outside); window.addEventListener('resize', this.place); window.addEventListener('scroll', this.place, true); },
     beforeDestroy() { document.removeEventListener('pointerdown', this.outside); window.removeEventListener('resize', this.place); window.removeEventListener('scroll', this.place, true); },

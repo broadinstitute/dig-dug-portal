@@ -16,7 +16,7 @@
                 </tr><tr v-if="!matchedTerms.length"><td colspan="2">{{ matchingAvailable ? 'No matched HPO terms.' : 'Phenotype matching information is unavailable.' }}</td></tr></tbody>
             </table>
             <nav v-if="hpoPageCount > 1" class="pbs-detail-pager" aria-label="Matched HPO pages"><span>{{ (hpoPage - 1) * 5 + 1 }}–{{ Math.min(hpoPage * 5, matchedTerms.length) }} of {{ matchedTerms.length }} matched terms</span><button type="button" :disabled="hpoPage === 1" aria-label="Previous matched HPO page" @click="hpoPage--">‹</button><span>{{ hpoPage }} / {{ hpoPageCount }}</span><button type="button" :disabled="hpoPage === hpoPageCount" aria-label="Next matched HPO page" @click="hpoPage++">›</button></nav>
-            <h5>Shared genes<span v-if="detail.genes.total != null"> · {{ detail.genes.total }}</span> <SampleInfo label="Shared genes" :text="help.sharedGenes" /></h5>
+            <h5 class="pbs-evidence-divider">Shared genes<span v-if="detail.genes.total != null"> · {{ detail.genes.total }}</span> <SampleInfo label="Shared genes" :text="help.sharedGenes" /></h5>
             <p v-if="detail.genes.status !== 'ready'">Processed variant evidence is unavailable for one or both samples.</p>
             <SharedGeneComparison v-else :reference-id="referenceId" :candidate-id="candidateId" :expected-genes="detail.genes.total" />
         </template>

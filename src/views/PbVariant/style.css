@@ -484,11 +484,12 @@
 .pbv-page .pg2-info-rail { max-height: calc(100vh - 40px); overflow-y: auto; }
 
 /* Review refinements: compact summaries, result actions and consistent tree columns. */
-.pbv-crdc-carriers .pbv-section-heading { gap: 12px; margin-bottom: 6px; }
+.pbv-crdc-carriers .pbv-section-heading { align-items: center; gap: 12px; margin-bottom: 6px; }
 .pbv-genotype-population { margin: 0 0 20px; color: #526071; font-size: 16px; }
-.pbv-page .pbv-genotype-toggle, .pbv-page .pbv-genotype-toggle:hover, .pbv-page .pbv-genotype-toggle:focus { padding: 0; border: 0; border-radius: 0; background: transparent; color: #14213d; box-shadow: none; text-decoration: none; font-size: 18px; font-weight: 600; }
-.pbv-genotype-toggle svg { width: 16px; height: 16px; margin-left: 5px; vertical-align: middle; }
-.pbv-genotype-label { padding: 0 0.15rem; background: linear-gradient(transparent 38%, #ffe484 38%, #ffe484 92%, transparent 92%); box-decoration-break: clone; }
+.pbv-page .pbv-genotype-toggle { display: inline-flex; align-items: center; gap: 10px; min-height: 46px; padding: 8px 14px; border: 1.5px solid #9fb9ec; border-radius: 7px; background: #f3f7ff; color: #14213d; box-shadow: none; text-decoration: none; font-size: 22px; font-weight: 700; line-height: 1.25; white-space: nowrap; }
+.pbv-page .pbv-genotype-toggle:hover, .pbv-page .pbv-genotype-toggle:focus, .pbv-page .pbv-genotype-toggle[aria-expanded="true"] { border-color: #0b66d8; background: #e7efff; color: #14213d; box-shadow: 0 0 0 2px #0b66d81a; text-decoration: none; }
+.pbv-genotype-toggle svg { width: 20px; height: 20px; margin: 0; color: #0b66d8; flex-shrink: 0; }
+.pbv-genotype-label { padding: 0; }
 .pbv-page .pbv-genotype-menu { top: 100%; left: 0; min-width: 300px; padding: 16px; border: 1px solid #c6d5e9; border-radius: 7px; box-shadow: 0 8px 24px #14213d26; color: #14213d; font-size: 16px; }
 .pbv-genotype-menu .b-dropdown-form { padding: 0; }
 .pbv-genotype-menu legend { margin-bottom: 10px; font-size: 18px; font-weight: 600; }

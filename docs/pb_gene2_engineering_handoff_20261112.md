@@ -1,8 +1,25 @@
 # Gene2 — test-server implementation contract
 
-Source delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). Use the Git commit containing this document together with its baseline dependencies; the checklist is not a standalone application or deployment record.
+November 15 delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). The November 16 local delta below is additional to that delivered snapshot; include its new files. Neither the manifest nor local checks establish deployment.
 
-Updated: 2026-11-15. Entry/default Gene destination: `/pb_gene2.html?query=<encoded gene>`; bare navigation defaults to GJB2. Baseline HEAD `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; the follow-up source is included in the commit containing this document. This is an implementation contract, not deployment evidence. Legacy `/pb_Gene.html` is separately addressable; do not send new Gene links there.
+Updated: 2026-11-16. Entry/default Gene destination: `/pb_gene2.html?query=<encoded gene>`; bare navigation defaults to GJB2. Baseline HEAD `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; the November 15 delivery reached `306ded0b8`, and the November 16 follow-up below is included in this Git delivery. This is an implementation contract, not deployment evidence. Legacy `/pb_Gene.html` is separately addressable; do not send new Gene links there.
+
+## 2026-11-16 Gene2 follow-up — current local contract
+
+Compared with the last delivered HEAD `306ded0b8`, the following changes are included in this Git delivery. Test-server deployment remains pending. The November 15 source manifest does not cover them. Implement this section with the existing contract below; preserve the separately updated Phenotype contract.
+
+| Change | Implement / carry |
+|---|---|
+| HPO totals survive restart | New `scripts/prepare_pb_gene_scoring.sh`, sourced by both `serve_pb_phenotype_local.sh` and `serve_pb_gene_context.sh`. Configure the three `PB_GENE_SCORING_*` values from section 6; validate the matrix hash and mapping header before starting. Missing/bad input stops startup. No automatic scoring-data download. |
+| Distinguish exclusion from failure | `PbGene2/carrierHpoTotals.js`: validated successful count → number, including `0`; validated `null` → **Excluded**; request/source/validation failure → **Unavailable**; pending → Loading. Apply to every carrier, with no sample-specific condition. |
+| Explain exclusion | Data-owner clarification: uncertain phenotype information was removed from the approved scoring input. Help: **Excluded from scoring due to uncertain phenotype information.** Update `evidenceHelp.js`; retain wrapping in `Template.vue` / `style.css`. Excluded does not mean absent from the VCF or no phenotype record. |
+| Shared GT request/cache fix | Carry `PbGene/pbGeneBioIndexAdapter.js` and new `scripts/test_pb_variant_genotype_request.js`; see the [current Variant follow-up](pb_variant_engineering_integration_handoff.md#2026-11-16-variant-follow-up--current-local-contract). |
+
+Cross-page review: the current `306ded0b8` source delta still matches the changes above; retain the detailed acceptance record below. Also carry the [shared local lifecycle update](pb_front_gene_variant_merge_handoff.md#local-development-lifecycle--2026-11-16): project-scoped stop/status, Ctrl+C group cleanup and fixed-port guard. It does not change scoring eligibility or replace the persistent scoring preparation. The newer shared help table is backward compatible; do not restore an older InfoRail when porting Gene2 alone.
+
+Scope: the Excluded label is Gene2's scoring-matrix contract. Keep Variant's existing `empty_phenotype_record` handling separate. Analysis inputs, model, q scopes and observed-carrier membership are unchanged.
+
+Validation in this session: HPO endpoint/display tests and Gene2 template/CSS compilation passed; startup defaults/overrides/missing-file/hash checks passed. Live GJB2 `chr13:20189313:A:G` totals returned HTTP 200 with `0, 84, 0, 5, 163` for the five checked carriers. For `chr13:20189005:CTG:C`, checked totals were `98` and `null` → Excluded; do not replace the latter with a whole-cohort matrix zero. `test_pb_gene2.js` remains blocked by its missing `PortalGuide.vue` mock. Final browser/target-server acceptance remains required.
 
 ## 2026-11-15 UI follow-up — included in this delivery
 
@@ -57,7 +74,7 @@ Order: Gene identity → CRDC variant overview → carrier demographics → sing
 | GT | Exact variant + canonical sample join; only strip terminal `_E38`/`_G38` when allowed. Preserve allele indices/phase and unavailable/conflict; never infer GT from carrier presence. |
 | Predictor score | LoFTEE HC=1, otherwise available AlphaMissense; REVEL reference-only. Valid zero is not missing. Do not substitute REVEL into the burden predictor. |
 | HPO reference count | Exact recorded applied IDs combined with **OR**, person counted once. Different from n_terms and rPheRS coverage. |
-| Total HPO terms | Full approved scoring-matrix row sum `n_terms`; not metadata list length or HPO match count. Missing row is unavailable; a measured zero remains zero. |
+| Total HPO terms | Full approved scoring-matrix row sum `n_terms`; not metadata list length or HPO match count. A validated null count displays `Excluded` for every missing sample row. Per the data owner's 2026-11-16 clarification, these samples were excluded from scoring because their phenotype information was uncertain; help text states this reason. Source/request/validation failures display `Unavailable`. A measured zero remains `0`. Exclusion does not establish absence from the VCF or absence of recorded HPO terms. |
 | Help / scale | 100% before first paint through `public/index.html`; do not apply a second mounted zoom. Hover/focus should not move its icon by resizing the page; pin may reserve a rail. Preserve zoom-aware InfoRail behavior. |
 
 ## 4. Shared HPO availability — new dependency
@@ -107,6 +124,8 @@ Server handlers: `scripts/{gene_carrier_summary_endpoint.js,gene_carrier_disk_ca
 
 Approved source provenance, not a new browser data source: Gene matrix server file `.../share/dig-dug-portal/pb_context_demo/20261007-5a9ab06cc/source/2025_crdc_15764sample_hpo_parent_expanded_binary.tsv.gz`, 15,764×6,440, SHA-256 `eaa0ea2e218d300d4b9546ec238128e146237cee92a43350bc2846d5bd834ba6`; full paths in the Obsidian registry. The local `/private/tmp` mirror is not a portable installation path.
 
+Local startup: install the approved matrix and same-release `inputs/covariates.tsv` at `.pb-private-data/rphers/gene-scoring-20261007-5a9ab06cc/{hpo.tsv.gz,covariates.tsv}`, or set all three `PB_GENE_SCORING_*` overrides. Both launchers source new `scripts/prepare_pb_gene_scoring.sh`; it verifies the compressed-matrix hash and mapping columns before starting. Keep these files private/outside Git and public assets. This helper does not download scoring inputs. If copying the current launcher files, also include their existing `scripts/pb_local_server.py` lifecycle dependency; see [Sample runtime](pb_sample_engineering_integration_handoff.md#6-private-inputs-and-startup).
+
 Current approved processed GT release is `2025_crdc_16366_dp20_af001_20260907`, nonsynonymous/DP≥20/cohort AF<0.01/GRCh38. The approved share source and hash are in [Sample runtime](pb_sample_engineering_integration_handoff.md#6-private-inputs-and-startup). `setup_pb_genotypes.py`/`prepare_pb_genotypes.sh` verify and reuse a private persistent cache; no personal `/ref/` fallback. Existing valid caches can work offline; this does not change the BioIndex carrier universe. Original-VCF supplementation/scoped analysis belongs to the separate [Variant contract](pb_variant_engineering_integration_handoff.md).
 
 ## 7. Acceptance
@@ -124,6 +143,8 @@ node scripts/test_pb_gene2_carrier_table.js
 node scripts/test_pb_gene2_numeric_sorting.js
 node scripts/test_pb_gene2_hpo_counts.js
 node scripts/test_pb_gene2_carrier_hpo_totals.js
+node scripts/test_gene_carrier_hpo_totals.js
+node scripts/test_pb_variant_genotype_request.js
 node scripts/test_pb_gene2_info_rail.js
 node scripts/test_gene_variant_hpo_counts.js
 node scripts/test_processed_genotypes.js

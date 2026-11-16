@@ -25,6 +25,10 @@ export function sourceAlleleFrequency(row) {
 export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
     const gene = normalizeGene(geneSymbol);
     if (!gene) throw new Error("Provide a valid HGNC gene symbol.");
+    // Variant's internal annotation key omits chr; the private GT endpoint and
+    // authorized carrier IDs use chr-prefixed exact variants.
+    if (options.genotypeVariantId) options = {...options,
+        genotypeVariantId: 'chr' + String(options.genotypeVariantId).trim().replace(/^chr/i, '').toUpperCase()};
     const cacheKey = options.genotypeVariantId ? `${gene}|${options.genotypeVariantId}` : gene;
 
     if (GENE_STATE_CACHE.has(cacheKey)) {
@@ -36,6 +40,10 @@ export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
     if (!GENE_STATE_PENDING.has(cacheKey)) {
         GENE_STATE_PENDING.set(cacheKey, loadPbGeneBioIndexState(gene, options)
             .then(state => {
+                // A temporary service failure must be retried on the next
+                // search rather than retained as an all-Unknown gene result.
+                if (state.variantRows.some(variant => variant.carrierSamples.some(sample => sample.gtStatus === 'lookup_unavailable')))
+                    return state;
                 // ponytail: tab-local five-gene cache; move caching server-side if cross-session reuse is needed.
                 if (GENE_STATE_CACHE.size >= MAX_CACHED_GENES) {
                     GENE_STATE_CACHE.delete(GENE_STATE_CACHE.keys().next().value);

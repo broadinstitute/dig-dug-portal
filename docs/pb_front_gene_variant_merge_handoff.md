@@ -1,8 +1,32 @@
 # PB Gene2, Phenotype, Variant and Sample — integration starting point
 
+## November 16 review of all four pages
+
+Reviewed the latest page contracts and current source against delivered HEAD `306ded0b8a1c585e067bc56cd8bec71a1c93e713`. **November 16 changes are included in this Git delivery; test-server deployment remains pending.** The November 15 source manifest is an earlier snapshot; it does not contain these additions. Use the current page-specific sections below and the complete commit, including all listed new imports. No new API/data release or statistical model is introduced by this documentation review.
+
+| Page | Current delta to implement | Authoritative detail |
+|---|---|---|
+| Phenotype | Final full-width Hierarchy / separate Table layout; category/query filters; disease Rank evidence; carrier ratio/Fisher 2×2 help. Keep the latest accepted layout. | [November 16 Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md#2026-11-16-results-ui--current-local-follow-up) |
+| Gene2 | Persistent verified scoring inputs; Excluded / Unavailable / measured 0; shared GT boundary/cache fix. | [November 16 Gene2](pb_gene2_engineering_handoff_20261112.md#2026-11-16-gene2-follow-up--current-local-contract) |
+| Variant | Larger blue Genotype control; chr-prefixed exact GT request/cache key; retry after failed lookup. Preserve selected-carrier analysis scope. | [November 16 Variant](pb_variant_engineering_integration_handoff.md#2026-11-16-variant-follow-up--current-local-contract) |
+| Sample | Above Shared genes, Identical variants and Same gene/different variants: final **short blue dashed** dividers, `1px dashed #527abd`. No orange or long-dash gradient. | [November 16 Sample](pb_sample_engineering_integration_handoff.md#2026-11-16-sample-follow-up--current-local-contract) |
+| Shared local runtime | Managed Ctrl+C cleanup, fixed frontend port, project-scoped stop/status; retain scoring and GT preparation. | [Local lifecycle](#local-development-lifecycle--2026-11-16) |
+
+Required new runtime sources include `scripts/pb_local_server.py`, `scripts/prepare_pb_gene_scoring.sh`, `PbPhenotype/ProjectPhenotypeTree.vue`, `DiseaseRankDetails.vue` and `diseaseRankEvidence.js`, plus their existing imports. Ship the new lifecycle/GT-request tests too. `CohortPhenotypeTree.vue` is an unused intermediate layout, not an import of the final page; do not wire it into the accepted Hierarchy. Preserve shared HelpTooltip/InfoRail optional-table defaults for other pages.
+
+Verification is page-specific: keep the recorded passed checks and unresolved final visual/target-server acceptance in each contract. Local lifecycle tests passed 8 cases; Sample template/CSS parsing passed. Before this Git delivery, the complete frontend build and 9 targeted JavaScript test commands passed, as did all 8 local lifecycle tests. No new catalog acceptance or deployment is claimed. Existing LocusZoom/tabix-reader and proxy `util._extend` warnings were diagnosed, not fixed by the lifecycle work.
+
 ## Current integration map — 2026-11-15
 
 The four-page implementation, required adapters, tests and handoffs are committed and pushed as `cea55b953fd21068301168ff666b61db8f44ae98` on `kyuryung/bch-prototype`. Use the later delivery commit containing this document for the shared Guide, scale, Phenotype help and Sample comparison updates; Git delivery does not establish test-server deployment. Use the current per-page contracts first: [Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md), [Sample](pb_sample_engineering_integration_handoff.md), [Gene2](pb_gene2_engineering_handoff_20261112.md), [Variant](pb_variant_engineering_integration_handoff.md). The collapsed material below is historical provenance, not current implementation instructions. Do not merge its old field/model/layout rules into the current contracts.
+
+## 2026-11-16 Phenotype results follow-up — local working tree
+
+The [current Phenotype contract](pb_phenotype_live_profile_and_spec_2026-10-16.md#2026-11-16-results-ui--current-local-follow-up) records the final overview hierarchy/Table layouts, query/category filters, disease Rank evidence and carrier ratio/Fisher help. These edits follow baseline `306ded0b8` and are included in this Git delivery; no test-server deployment is claimed; the November 15 source-delivery manifest covers the earlier delivery only. Do not apply older result-layout bullets over the November 16 contract. Shared Gene2 help now accepts an optional 2×2 table; existing text-only consumers retain their behavior.
+
+## 2026-11-16 Gene2 / Variant follow-up — local working tree
+
+Follow the new [Gene2 delta](pb_gene2_engineering_handoff_20261112.md#2026-11-16-gene2-follow-up--current-local-contract) and [Variant delta](pb_variant_engineering_integration_handoff.md#2026-11-16-variant-follow-up--current-local-contract): persistent verified Gene scoring inputs, **Excluded / Unavailable / 0**, the larger Genotype control, and exact-ID/failed-cache GT fixes. These follow `306ded0b8` and are included in this Git delivery; test-server deployment remains pending; the November 15 manifest does not include them. Include new `scripts/prepare_pb_gene_scoring.sh` and `scripts/test_pb_variant_genotype_request.js` with the modified source. Current launchers also require the separately documented `pb_local_server.py`. Preserve the Phenotype update above and existing model/q/source contracts. Final browser and target-server acceptance remain required.
 
 | Role | Current source / boundary |
 |---|---|
@@ -46,6 +70,34 @@ The component uses a native modal dialog with an embedded PDF, an Open PDF fallb
 Required shared files are `PortalGuide.vue`, both `public/guides/` assets, `public/index.html`, the six Front/Front2/Gene2/Phenotype/Variant/Sample `Template.vue` imports, and the associated page styles. Phenotype additionally requires `ResultInfo.vue`, the shared Gene2 `HelpTooltip.vue` / `InfoRail.vue` / `infoRailPosition.js`, and its result styles. Keep the InfoRail prop defaults for existing Gene2 consumers; Phenotype selects its own shell/card and reserves 92px for the outer Guide strip.
 
 Validation: the local desktop Guide was checked on all six entries for PDF URL, modal opening/closing, Escape/backdrop, focus restoration and gutter separation. Phenotype superscript/margin alignment passed at 1440px and 1980px. The margin-layout checks held API requests pending to isolate UI geometry; they are not a fresh data or backend acceptance test. Scale, Gene2 information-rail, Sample information-position and single-HPO tests passed. Production build passed with the existing locuszoom/tabix-reader warning. Repeat deployed static-asset/CSP/modal checks on the target server after integration.
+
+## Local development lifecycle — 2026-11-16
+
+This is a **macOS/Linux development launcher**, not the production service supervisor. Carry `scripts/pb_local_server.py`, `scripts/test_pb_local_server.py`, both `serve_pb_*` launchers, `package.json` scripts and the scoped `PB_LOCAL_SERVER_PORT`/portfinder guard in `vue.config.js`. Retain `prepare_pb_gene_scoring.sh` and `prepare_pb_genotypes.sh` in the launch sequence. The launcher validates inputs first; it does not install private scoring data.
+
+- One managed launcher per checkout. Vue and its spawned local APIs run in a process group owned by the launcher. Ctrl+C/TERM/HUP cleans the group; a stuck child is terminated after a three-second grace period. Normal frontend exit also cleans its API descendants.
+- An occupied frontend/local API port stops startup; do not silently advance 8098→8099→8100. `PB_LOCAL_SERVER_PORT` is internal to the managed launch, not a user data/API setting.
+- `npm run stop:pb` discovers recognized Vue/Profile/Context processes by **exact checkout working directory**, including servers started before this helper; `npm run status:pb` lists remaining local processes. Do not replace this with broad `pkill node/python` or hard-coded PIDs. Runtime lock: `<repo>/.pb-private-data/runtime/local-server.lock` (private, ignored).
+- SSH tunnels and remote Slurm jobs are independent. `stop:pb` leaves them available; closing a tunnel does not cancel a remote job. Keep the tunnel terminal open while using the UI. Production operators must manage deployed services with their own supervisor.
+
+Terminal 1 (unchanged):
+
+```sh
+cd /Users/kyuryung/Documents/github_dir/dig-dug-portal-bch-prototype
+bash scripts/start_pb_context_demo.sh
+```
+
+Terminal 2 (clear legacy local servers once or before restarting):
+
+```sh
+cd /Users/kyuryung/Documents/github_dir/dig-dug-portal-bch-prototype
+npm run stop:pb
+PHENOTYPE_ANALYZER_HOST_PRIVATE=http://127.0.0.1:8092 \
+NODE_OPTIONS=--openssl-legacy-provider \
+npm run serve:pb-phenotype
+```
+
+No manual `/private/tmp` GT setting is required: verified persistent GT cache discovery/preparation remains in the launcher. After Ctrl+C, `npm run status:pb` should report no local frontend/API for this checkout. Validate with `python3 -B -m unittest scripts.test_pb_local_server`: stuck API cleanup on SIGINT/TERM, orphan cleanup, port collision, command/PID ownership and another-checkout protection. The developer-local port/path examples are not fixed production URLs or release versions.
 
 ## Implementation order for an AI-assisted migration
 

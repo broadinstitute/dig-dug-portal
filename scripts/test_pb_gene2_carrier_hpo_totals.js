@@ -29,11 +29,12 @@ const reply = counts => ({ok: true, json: async () => ({gene: 'TEST', variant, c
     assert.equal(pending[1].options.signal.aborted, true);
     pending[2].resolve(reply({D: null})); await third;
     pending[1].resolve(reply({C: 99})); await second;
-    assert.equal(page.carrierHpoTotalDisplay({id: 'D'}), 'Unavailable');
+    assert.equal(page.carrierHpoTotalDisplay({id: 'D'}), 'Excluded', 'A successful null lookup means the sample is excluded from the scoring matrix');
     assert.equal(page.carrierHpoTotalResult.counts.C, undefined, 'A stale page cannot replace current totals');
     const invalid = page.loadCarrierHpoTotals(page.carrierTableRequestKey);
     pending[3].resolve(reply({D: -1})); await invalid;
     assert.equal(page.carrierHpoTotalResult.status, 'unavailable');
+    assert.equal(page.carrierHpoTotalDisplay({id: 'D'}), 'Unavailable', 'An invalid response must not imply a sample is outside the matrix');
     page.carrierTableRequestKey = ''; await page.loadCarrierHpoTotals('');
     assert.equal(page.carrierHpoTotalResult.status, 'idle');
     page.carrierTableRequestKey = key(['A']);

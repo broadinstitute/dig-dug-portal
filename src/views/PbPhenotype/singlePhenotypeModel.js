@@ -60,6 +60,85 @@ export function filterSampleProjects(samples, projects) {
     return samples.filter(row => selected.has(row.project || 'Unknown'));
 }
 
+// Checkboxes select query phenotypes, including samples matching several of them.
+export function filterSamplePhenotypes(samples, ids) {
+    if (ids === null) return samples;
+    return samples.filter(row => ids.some(id => row.terms.includes(id)));
+}
+
+// Open the displayed paths to query terms, including paths deeper than two levels.
+export function selectedHierarchyBranches(nodes, selected) {
+    const queries = new Set(selected), branches = new Set();
+    const visit = node => {
+        const childMatches = node.children.map(visit).some(Boolean);
+        if (childMatches) branches.add(node.id);
+        return queries.has(node.id) || childMatches;
+    };
+    nodes.forEach(visit);
+    return branches;
+}
+
+export function filterHierarchyCategories(nodes, categories) {
+    if (categories === null) return nodes;
+    const selected = new Set(categories);
+    return nodes.filter(node => node.id === 'HP:0000118').map(node => ({ ...node,
+        children: node.children.filter(child => selected.has(child.id)),
+    })).filter(node => node.children.length);
+}
+
+// Sort siblings, keeping query paths first and every child under its parent.
+export function orderPhenotypeHierarchy(nodes, sort, counts, total, queryIds) {
+    const branches = selectedHierarchyBranches(nodes, queryIds), queries = new Set(queryIds);
+    const selectors = { phenotype: row => row.label, count: row => row.count,
+        all: row => counts?.[row.id] ?? null, exclude: row => total - row.count };
+    const order = rows => {
+        const sorted = sortTableRows(rows, sort, selectors);
+        return [...sorted.filter(row => queries.has(row.id) || branches.has(row.id)),
+            ...sorted.filter(row => !queries.has(row.id) && !branches.has(row.id))]
+            .map(row => ({ ...row, children: order(row.children) }));
+    };
+    return order(nodes);
+}
+
+export function hierarchyRows(nodes) {
+    return nodes.flatMap(node => [node, ...hierarchyRows(node.children)]);
+}
+
+// Count each sample once at every ancestor, even in HPO's multiple-parent graph.
+// A deterministic single parent presents that graph as a browsable tree.
+export function projectPhenotypeTree(samples, terms) {
+    const counts = new Map(), ancestorCache = new Map();
+    for (const sample of samples) {
+        const present = new Set();
+        for (const id of sample.terms) {
+            if (!terms[id]) continue;
+            if (!ancestorCache.has(id)) ancestorCache.set(id, ancestorsOf(id, terms));
+            present.add(id);
+            ancestorCache.get(id).forEach(parent => { if (terms[parent]) present.add(parent); });
+        }
+        present.forEach(id => counts.set(id, (counts.get(id) || 0) + 1));
+    }
+    const nodes = new Map([...counts].filter(([id]) => id !== 'HP:0000001').map(([id, count]) => [id, { id, label: terms[id][0], count, children: [] }]));
+    const parents = new Map();
+    for (const id of nodes.keys()) {
+        const parent = [...(terms[id][2] || [])].filter(candidate => nodes.has(candidate) && candidate !== id).sort()[0];
+        parents.set(id, parent);
+    }
+    const roots = [];
+    for (const node of nodes.values()) {
+        const seen = new Set([node.id]);
+        let parent = parents.get(node.id), current = parent;
+        while (current) {
+            if (seen.has(current)) { parent = null; break; }
+            seen.add(current); current = parents.get(current);
+        }
+        (parent ? nodes.get(parent).children : roots).push(node);
+    }
+    const order = rows => { rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)); rows.forEach(row => order(row.children)); };
+    order(roots);
+    return roots;
+}
+
 export function distribution(samples, key, labels) {
     const counts = new Map(labels.map(label => [label, 0]));
     for (const sample of samples) {

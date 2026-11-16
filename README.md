@@ -81,6 +81,22 @@ server connection. An interrupted or unauthorized download installs no GT data;
 the launcher explains the failure and continues with GT unavailable. Existing
 BioIndex, phenotype and cohort-input prerequisites still apply independently.
 
+Stop the launcher with **Control+C**. The local process-group owner now shuts
+down Vue and its spawned APIs together, allowing up to three seconds before
+terminating a stuck child. One managed launcher is allowed per checkout; an
+occupied port stops startup instead of silently moving to the next port.
+
+To clear older servers left by previous launchers, or inspect the current state:
+
+```sh
+npm run stop:pb
+npm run status:pb
+```
+
+These commands identify known frontend/API processes by this checkout's working
+directory; they do not broadly kill Node/Python processes. SSH tunnels and remote
+compute jobs are independent and remain available. No PID needs to be entered.
+
 The cache is in `.pb-private-data/genotypes/shared/2025_crdc_16366_dp20_af001_20260907/`
 under this checkout. It contains the original processed source and `index/`;
 the entire `.pb-private-data/` directory is ignored by Git and is outside the

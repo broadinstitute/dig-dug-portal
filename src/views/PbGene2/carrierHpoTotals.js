@@ -31,7 +31,9 @@ export const carrierHpoTotalsMixin = {
         carrierHpoTotalDisplay(sample) {
             const state = this.carrierHpoTotalResult;
             if (state.key !== this.carrierTableRequestKey || state.status === 'loading') return 'Loading…';
-            const count = state.status === 'ready' ? state.counts[sample.id] : null;
+            if (state.status !== 'ready') return 'Unavailable';
+            const count = state.counts[sample.id];
+            if (count === null) return 'Excluded';
             return count == null ? 'Unavailable' : count.toLocaleString();
         },
     },

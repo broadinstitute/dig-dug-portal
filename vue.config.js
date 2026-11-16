@@ -353,6 +353,11 @@ const phenotypeAnalyzerHostPrivate = process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE
 const phenotypeTestServerHost = process.env.PB_PHENOTYPE_TEST_SERVER
     || "http://100.80.30.199";
 const phenotypeProfilePort = Number(process.env.PB_PHENOTYPE_PROFILE_PORT || 8093);
+// The managed local launcher uses one fixed frontend port. Do not silently
+// create another server on the next port when an earlier process remains.
+if (process.env.PB_LOCAL_SERVER_PORT) {
+    require("portfinder").highestPort = Number(process.env.PB_LOCAL_SERVER_PORT);
+}
 if (process.env.PB_GENE_CONTEXT_DATA_ROOT) {
     process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE = "false";
 }

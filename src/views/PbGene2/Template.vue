@@ -201,7 +201,7 @@
                                                 <td :title="String(carrierSampleField(s, 'age') || '')">{{ carrierDisplayField(s, 'age') }}</td>
                                                 <td :title="String(carrierSampleField(s, 'sex') || '')">{{ carrierDisplayField(s, 'sex') }}</td>
                                                 <td>{{ s.gt == null || isMissingMetadataValue(s.gt) ? '—' : s.gt }}</td>
-                                                <td class="pg2-numeric">{{ carrierHpoTotalDisplay(s) }}</td>
+                                                <td class="pg2-numeric pg2-carrier-hpo-total">{{ carrierHpoTotalDisplay(s) }}</td>
                                                 <td class="pg2-numeric" :class="{ 'pg2-muted': currentCarrierScores.status !== 'ready' }">{{ individualCarrierScore(s) }}</td>
                                                 <td><div class="pg2-carrier-project-cell"><span :title="carrierDisplayField(s, 'project')">{{ carrierDisplayField(s, 'project') }}</span><help-tooltip v-if="!isMissingMetadataValue(carrierSampleField(s, 'project'))" :label="'Project for ' + s.id" :text="String(carrierSampleField(s, 'project'))" /></div></td>
                                                 <td>{{ carrierDisplayField(s, 'affected') }}</td>

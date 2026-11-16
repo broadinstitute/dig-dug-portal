@@ -1,8 +1,23 @@
 # PB Variant engineering handoff
 
-Source delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). Use the Git commit containing this document together with its baseline dependencies; the checklist is not a standalone application or deployment record.
+November 15 delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). The November 16 local delta below is additional to that delivered snapshot; include its new files. Neither the manifest nor local checks establish deployment.
 
-Updated: 2026-11-15 · Branch: `kyuryung/bch-prototype` · Entry: `/pb_variant.html`
+Updated: 2026-11-16 · Branch: `kyuryung/bch-prototype` · Entry: `/pb_variant.html`
+
+## 2026-11-16 Variant follow-up — current local contract
+
+Compared with the last delivered HEAD `306ded0b8`, these changes are included in this Git delivery; test-server deployment remains pending and the November 15 source manifest does not cover them.
+
+| Change | Implement / carry |
+|---|---|
+| Larger Genotype control | `PbVariant/style.css`: 22px/700 label, 20px icon, minimum 46px height, 8px × 14px padding, 1.5px blue border, 7px corners and pale blue background. Darker border/background on hover, focus and open. Center it beside the carrier heading. This supersedes the yellow marker styling. Keep existing checkboxes/Cancel/Apply and genotype-scope calculations. |
+| Correct actual GT request | `PbGene/pbGeneBioIndexAdapter.js`: normalize `genotypeVariantId` to `chr`-prefixed exact ID at the request/cache boundary. Variant annotation keys may omit `chr`; do not change their format or loosen endpoint authorization. Unprefixed GT requests returned 400 and made the actual browser show all 41 carriers as Unknown. |
+| Recover after lookup failure | Do not retain a state containing `gtStatus: lookup_unavailable` in the successful gene-state cache. The next search retries; valid missing/low-depth calls remain Unknown. |
+| Prevent regression | Include new `scripts/test_pb_variant_genotype_request.js`: actual Variant page method → shared adapter → actual route, using fixture processed/VCF calls; also check equivalent-ID cache reuse and recovery after failure. It failed before the fix and passed after it. |
+
+Cross-page review: the current source delta still matches this request/cache/control contract. Include the [shared local lifecycle update](pb_front_gene_variant_merge_handoff.md#local-development-lifecycle--2026-11-16) and existing helpers when using the prototype launcher. Stop/status manage local frontend/API processes, not the original-VCF tunnel or remote compute job. Keep exact authorization, GT provenance and selected-carrier analysis scope.
+
+Verification: processed-GT, VCF restart-cache, live metadata adapter and Variant layout tests passed. The live API for GJB2 `chr13:20189313:A:G` returned **Homozygous 0 / Hetero 39 / Unknown 2**; both Unknown calls had `low_or_missing_depth` (DP ≥20 required). These are source results, not constants. The corrected shared bundle was served by 8098; post-fix native browser verification timed out. Reload existing tabs and verify final appearance, dropdown interaction and counts on the target implementation.
 
 ## 2026-11-15 UI follow-up — included in this delivery
 
@@ -25,13 +40,14 @@ Baseline: `859cd905d49e61f3a1e6765bb88ff0a2555c3128`. The genotype-scope impleme
 - These are **16,366-sample parent-expanded availability counts**, not selected-carrier counts or Variant scoring statistics. Keep scoped backend validation and the approved scoring input. Do not replace the Variant matrix with the availability matrix.
 - Default prototype display is 100% before first paint, including WebKit; keep shared help positioning. This does not change the browser's own zoom preference.
 - `serve:pb-gene` / `serve:pb-phenotype` now prepare/reuse the persistent verified GT cache using `prepare_pb_genotypes.sh` and `setup_pb_genotypes.py`. Only the approved `/share/dig-dug-portal/sample_variant_gene.jsonl.gz` may be downloaded; existing valid caches work offline. The reader alone still does not download. No private `/ref/` fallback.
+
 - The new dependencies are included in this delivery commit. The baseline commit alone is incomplete; static build output alone does not install private gateway handlers or Python services. This audit does not establish test-server deployment. Do not point the existing Gene Context base at Helen's differently contracted analysis endpoint.
 
 Additional checks: `node scripts/test_crdc_hpo_availability.js`, `node scripts/test_pb_prototype_scale.js`, plus the existing Variant checks below. Source/index names, keys, built timestamps and exact hashes are recorded in the existing Obsidian shared source note; no semantic BioIndex API version has been established.
 
 ## Behavior
 
-- Place the yellow `Genotype` dropdown immediately beside **N carriers observed in CRDC**. Use the existing ClinVar checkbox interaction: Homozygous / Hetero / Unknown, all checked initially, multiple selections combined with OR, Cancel / Apply. Disable Apply for an empty selection.
+- Place the enlarged blue-bordered `Genotype` dropdown immediately beside **N carriers observed in CRDC**. Use the existing ClinVar checkbox interaction: Homozygous / Hetero / Unknown, all checked initially, multiple selections combined with OR, Cancel / Apply. Disable Apply for an empty selection.
 - Show selected / total carriers beneath the heading. Do not add “All results below…”.
 - From this heading downward, use only the selected carriers: demographics, sample list/totals, HPO counts/denominators, scores, reference mean/SD and analysis. Lower display filters work inside this population. Identity annotations and cohort AF retain their source values.
 - On genotype Apply, discard old analysis and recompute saved profiles for the new selection. Reject stale responses and responses without the exact requested sample-scope echo.
@@ -93,6 +109,7 @@ node scripts/test_pb_variant_profile_history.js
 node scripts/test_pb_variant_carrier_statistics.js
 node scripts/test_gene_variant_hpo_counts.js
 node scripts/test_processed_genotypes.js
+node scripts/test_pb_variant_genotype_request.js
 node scripts/test_variant_vcf_genotype_cache.js
 node scripts/test_pb_live_metadata.js
 python3 -m unittest scripts.test_pb_gene_context_api_server scripts.test_pb_gene_context_validation scripts.test_vcf_carrier_genotypes

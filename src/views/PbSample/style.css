@@ -540,7 +540,9 @@
 .pbs-shared-summary strong { font-weight:600; color:#24334a; }
 .pbs-shared-bar { width:27%; min-width:170px; height:11px; background:#cad3e1; border-radius:6px; overflow:hidden; }
 .pbs-shared-bar > span { display:block; height:100%; background:#2858da; }
-.pbs-shared-section-heading { display:flex; align-items:baseline; flex-wrap:wrap; gap:10px; margin:26px 0 12px; }
+.pbs-comparison h5.pbs-evidence-divider { margin-top:24px; padding-top:16px; }
+.pbs-shared-section-heading { display:flex; align-items:baseline; flex-wrap:wrap; gap:10px; margin:26px 0 12px; padding-top:16px; }
+.pbs-comparison h5.pbs-evidence-divider,.pbs-shared-section-heading { border-top:1px dashed #527abd; }
 .pbs-shared-section-heading h5 { margin:0; }
 .pbs-shared-section-heading > span { color:#596b86; font-size:18px; }
 .pbs-shared-scroll { width:100%; overflow-x:auto; }

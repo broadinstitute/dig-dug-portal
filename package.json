@@ -6,6 +6,8 @@
     "setup:pb-genotypes": "python3 scripts/setup_pb_genotypes.py",
     "serve:pb-gene": "bash scripts/serve_pb_gene_context.sh",
     "serve:pb-phenotype": "bash scripts/serve_pb_phenotype_local.sh",
+    "stop:pb": "python3 scripts/pb_local_server.py stop",
+    "status:pb": "python3 scripts/pb_local_server.py status",
     "watch": "vue-cli-service build --mode development --watch",
     "build": "vue-cli-service build --mode development",
     "deploy": "vue-cli-service build --mode production"

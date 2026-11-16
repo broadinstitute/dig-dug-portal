@@ -1,9 +1,19 @@
 # PB Sample engineering integration handoff
 
-Source delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). Use the Git commit containing this document together with its baseline dependencies; the checklist is not a standalone application or deployment record.
+## 2026-11-16 Sample follow-up — current local contract
 
-Updated: 2026-11-15 · Entry: `/pb_sample.html?query=<sample-ID>` · Vue 2.
-Reference: the source commit containing this document, compared with baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128` on `kyuryung/bch-prototype`.
+Compared with the latest delivered HEAD `306ded0b8` and the existing two-table contract, the only Sample UI delta is the final section separation. It is included in this Git delivery; the November 15 source manifest does not include it, and test-server deployment remains pending.
+
+- `src/views/PbSample/SampleComparison.vue`: add `pbs-evidence-divider` to the **Shared genes** heading, separating phenotype matching from genetic evidence.
+- `src/views/PbSample/style.css`: that heading and both `.pbs-shared-section-heading` headings (**Identical variants**, **Same gene, different variants**) use **`border-top:1px dashed #527abd`**. Keep Shared genes top margin24px / padding16px and subsection margin26px / padding16px. This is a thin short blue dash; the orange and long-dash gradient trials were rejected.
+- Keep the existing sample role highlights, matched-HPO pages, two shared-evidence tables, counts, sorting, pagination and API/model/source rules. No new data fetch or genetic score is required by the divider change.
+- Both local launchers now use the [common lifecycle contract](pb_front_gene_variant_merge_handoff.md#local-development-lifecycle--2026-11-16): include `pb_local_server.py`, stop/status scripts, port guard and verified scoring preparation. The shared helper applies while reviewing all four pages.
+- Verification: Sample Vue template and CSS parsing passed; `git diff --check` passed at the edit. Local lifecycle tests passed 8 cases. The user reviewed successive divider styles; after migration verify the final color/dash/spacing in both Samples and Project-member comparisons. This is not target-server acceptance.
+
+November 15 delivery snapshot: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). It describes the earlier delivered source and its dependencies, not the November 16 additions in this Git delivery. Use the current follow-up sections together with the delivered baseline; the checklist is not deployment evidence.
+
+Updated: 2026-11-16 · Entry: `/pb_sample.html?query=<sample-ID>` · Vue 2.
+Reference: delivered HEAD `306ded0b8`; The November 16 section records the additional changes included in this Git delivery. The earlier delivery used baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128` on `kyuryung/bch-prototype`.
 This is the implementation contract for test-server migration, not a deployment record. It supersedes the older Sample mockup/unconnected-source instructions.
 
 ## 2026-11-15 UI follow-up — included in this delivery
@@ -142,7 +152,9 @@ NODE_OPTIONS=--openssl-legacy-provider \
 npm run serve:pb-phenotype
 ```
 
-`serve_pb_phenotype_local.sh` sets local input defaults, sources `prepare_pb_genotypes.sh`, then serves frontend 8098 (a busy port can increment). First GT preparation uses the caller's existing SSH access (`PB_GT_SSH_HOST`, default `e3`) to the approved share; valid caches work offline. `PB_GT_AUTO_DOWNLOAD=0` disables new downloads. No private `/ref/` fallback; users without company access cannot download a fresh private source. This startup does not download/install the HPO matrix, metadata or precomputed association files.
+`serve_pb_phenotype_local.sh` sets local input defaults, sources `prepare_pb_genotypes.sh`, then serves frontend 8098. The November 16 local lifecycle update (`scripts/pb_local_server.py`) owns Vue and its spawned APIs as one process group: Control+C/TERM/HUP cleans the group, with a three-second grace period. One managed launcher is allowed per checkout; occupied ports fail instead of advancing. `npm run stop:pb` also discovers older frontend/API processes by exact checkout working directory; `npm run status:pb` lists them. SSH tunnels/remote jobs remain independent. Port this helper with the launchers and the scoped `PB_LOCAL_SERVER_PORT`/portfinder guard in `vue.config.js`.
+
+First GT preparation uses the caller's existing SSH access (`PB_GT_SSH_HOST`, default `e3`) to the approved share; valid caches work offline. `PB_GT_AUTO_DOWNLOAD=0` disables new downloads. No private `/ref/` fallback; users without company access cannot download a fresh private source. This startup does not download/install the HPO matrix, metadata or precomputed association files.
 
 For migration, override machine-specific paths with durable private paths. Port the existing route registration to the actual application server, start `python3 -m scripts.pb_phenotype_profile_api --hpo-matrix … --metadata … --cohort-mapping … --sample-variant-source … --port 8093` (same approved data), and reverse-proxy only the documented routes. Keep the existing Gene Context 8092 and scoped Variant 8095 services distinct. Keep data, GT packs, snapshots and captures outside Git/public assets.
 

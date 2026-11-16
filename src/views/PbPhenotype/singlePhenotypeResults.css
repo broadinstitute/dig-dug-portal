@@ -52,7 +52,20 @@
 .pbs-track { height: 9px; border-radius: 5px; background: #e1e7ef; overflow: hidden; flex: 1; min-width: 0; }
 .pbs-track span { display: block; height: 100%; border-radius: inherit; background: #2e60d7; }
 .pbs-project-details { background: #f8fafc; }
-.pbs-project-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 40px; padding: 18px; }
+.pbs-project-grid { display: grid; grid-template-columns: minmax(240px, .75fr) minmax(0, 1.7fr); gap: 32px; padding: 18px; }
+.pbs-project-grid > div { min-width: 0; }
+.pbs-hierarchy-note { font-size: 18px; color: #596d87; margin: -6px 0 16px; }
+.pbs-project-tree-scroll { max-height: 620px; overflow: auto; padding: 6px; }
+.pbs-project-hpo-tree { list-style: none; margin: 0; padding: 0; font-size: 19px; }
+.pbs-project-hpo-tree .pbs-project-hpo-tree { margin-left: 8px; padding-left: 18px; border-left: 1px solid #bdcce0; }
+.pbs-project-hpo-tree li { margin: 9px 0; }
+.pbs-project-hpo-tree summary { cursor: pointer; }
+.pbs-project-hpo-tree summary::marker { color: #0969da; }
+.pbs-project-hpo-tree a { font-size: 16px; margin-left: 6px; white-space: nowrap; }
+.pbs-project-hpo-leaf { padding-left: 17px; }
+.pbs-hpo-query { background: color-mix(in srgb, var(--hpo-query-color) 15%, white); border-radius: 3px; padding: 1px 3px; }
+.pbs-hpo-query-marker { color: var(--hpo-query-color); width: 13px; height: 13px; margin-right: 5px; vertical-align: baseline; }
+.pbs-hpo-count { display: inline-block; color: #43536a; font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; margin-left: 8px; }
 .pbs-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; color: #596d87; font-size: 19px; margin-top: 16px; }
 .pbs-pagination > div { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .pbs-results .pbs-pagination .pbp-btn { font-size: 20px; min-width: 42px; min-height: 42px; padding: 5px 11px; border-color: #b9c9ef; font-weight: 400; }
@@ -64,9 +77,51 @@
 .pbs-pinned-row, .pbs-pinned-heading { background: #f2f6ff; }
 .pbs-results .pbs-pinned-heading td { color: #0b66d8; font-size: 19px; }
 .pbs-results .pbs-page-heading td { color: var(--muted); font-size: 19px; }
-.pbs-people-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, .65fr) minmax(0, 1.7fr); gap: 26px; }
+.pbs-people-grid { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); gap: 26px; align-items: start; }
 .pbs-people-grid > div { min-width: 0; }
 .pbs-people-grid > div + div { border-left: 1px solid #c8d3df; padding-left: 26px; }
+.pbs-demographics > div + div { border-top: 1px solid #e1e7ef; padding-top: 24px; margin-top: 24px; }
+.pbs-people-tree-view { grid-template-columns: minmax(0, 1fr); }
+.pbs-people-tree-view .pbs-demographics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.pbs-people-tree-view .pbs-demographics > div + div { border-top: 0; border-left: 1px solid #c8d3df; padding: 0 0 0 28px; margin: 0; }
+.pbs-people-grid.pbs-people-tree-view > .pbs-cohort-phenotypes { border-left: 0; border-top: 1px solid #c8d3df; padding: 24px 0 0; }
+.pbs-hierarchy-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.pbs-hierarchy-order { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; color: #596d87; font-size: 18px; }
+.pbs-hierarchy-order .pbp-sort { font: inherit; padding: 0; }
+.pbs-cohort-flow { max-height: 720px; padding: 8px; background: #f8fafc; border-radius: 5px; }
+.pbs-cohort-flow h4 { font-size: 18px; color: #596d87; margin: 12px 0; font-weight: 500; }
+.pbs-cohort-flow h4:not(:first-child) { margin-top: 22px; }
+.pbs-cohort-view-controls { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.pbs-results .pbs-cohort-view-controls h3 { margin: 0; }
+.pbs-view-switch { display: inline-flex; gap: 5px; }
+.pbs-results .pbs-view-switch .pbp-btn { font-size: 19px; padding: 5px 12px; }
+.pbs-view-switch [aria-pressed=true] { background: #0b66d8; border-color: #0b66d8; color: white; }
+.pbs-cohort-tree-scroll { max-height: 720px; overflow: auto; border: 1px solid #c8d3df; border-radius: 5px; }
+.pbs-cohort-tree-content { min-width: 760px; }
+.pbs-cohort-tree { list-style: none; padding: 0; margin: 0; }
+.pbs-cohort-tree > li { position: relative; }
+.pbs-cohort-tree-branch::before { content: ''; position: absolute; pointer-events: none; z-index: 0; left: calc(2px + var(--hpo-depth) * 18px); top: 0; bottom: 0; border-left: 1px solid #b8cce6; }
+.pbs-cohort-tree-branch:last-child::before { bottom: auto; height: 25px; }
+.pbs-cohort-tree-branch::after { content: ''; position: absolute; pointer-events: none; z-index: 0; left: calc(2px + var(--hpo-depth) * 18px); top: 25px; width: 8px; border-top: 1px solid #b8cce6; }
+.pbs-cohort-tree-head, .pbs-cohort-tree-row { display: grid; grid-template-columns: minmax(0, 1fr) 150px 108px 92px 92px; gap: 8px; align-items: center; padding: 10px; }
+.pbs-cohort-tree-head { position: sticky; top: 0; z-index: 1; color: #43536a; background: #f3f6fa; border-bottom: 1px solid #c8d3df; font-size: 17px; }
+.pbs-cohort-tree-head .pbp-sort { font: inherit; color: inherit; padding: 0; text-align: left; white-space: normal; }
+.pbs-cohort-tree-head > .pbp-sort:nth-child(2), .pbs-cohort-tree-head > .pbp-sort:nth-child(3) { text-align: right; }
+.pbs-cohort-tree-head .pbs-project-header { justify-content: flex-start; }
+.pbs-query-section-label { background: #f3f6fa; color: #43536a; padding: 7px 14px; border-bottom: 1px solid #c8d3df; font-size: 18px; }
+.pbs-results .pbs-query-row, .pbs-results .pbs-query-row:hover, .pbs-results .pbs-query-row td { background: color-mix(in srgb, var(--hpo-query-color) 12%, white); }
+.pbs-project-hpo-tree summary.pbs-query-row, .pbs-project-hpo-leaf.pbs-query-row { border-radius: 4px; }
+.pbs-cohort-tree-row { border-bottom: 1px solid #e1e7ef; font-size: 19px; }
+.pbs-cohort-tree-row:hover { background: #f8fafc; }
+.pbs-cohort-tree-name { display: flex; gap: 6px; align-items: baseline; padding-left: calc(var(--hpo-depth) * 18px); min-width: 0; overflow-wrap: break-word; }
+.pbs-tree-toggle, .pbs-tree-spacer { display: inline-flex; width: 22px; flex: 0 0 22px; }
+.pbs-tree-toggle { border: 0; background: transparent; color: #0969da; padding: 0; cursor: pointer; align-items: center; justify-content: center; }
+.pbs-tree-toggle svg { width: 17px; height: 17px; }
+.pbs-cohort-tree-name a { display: inline-block; font-size: 16px; margin-left: 5px; white-space: nowrap; }
+.pbs-cohort-tree-count, .pbs-cohort-tree-all { text-align: right; font-variant-numeric: tabular-nums; }
+.pbs-results .pbs-cohort-tree-count small { display: block; font-size: 17px; }
+.pbs-cohort-tree-head > :nth-child(2), .pbs-cohort-tree-head > :nth-child(3) { text-align: right; }
+.pbs-cohort-tree-all { color: #596d87; }
 .pbs-distribution { display: grid; grid-template-columns: 82px 48px minmax(0, 1fr); gap: 12px; align-items: center; margin: 14px 0; font-size: 21px; }
 .pbs-results .pbs-distribution b { font-weight: 400; text-align: right; }
 .pbs-affected-heading { margin-top: 34px !important; }
@@ -120,15 +175,19 @@
 .pbs-source-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
 .pbs-results .pbs-source-tabs .pbp-btn { border-radius: 24px; font-size: 20px; padding: 5px 12px; font-weight: 400; }
 .pbs-source-tabs .active { background: var(--blue); border-color: var(--blue); color: white; }
-.pbs-disease-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 28px; }
+.pbs-disease-grid { display: grid; grid-template-columns: minmax(0, 4.5fr) minmax(0, 5.5fr); gap: 24px; }
 .pbs-disease-grid > div { min-width: 0; }
-.pbs-disease-grid > div + div { border-left: 1px solid #c8d3df; padding-left: 28px; }
+.pbs-disease-grid > div + div { border-left: 1px solid #c8d3df; padding-left: 24px; }
+.pbs-results .pbs-disease-grid .pbs-table th { font-size: 18px; padding: 12px 8px; white-space: nowrap; overflow-wrap: normal; }
+.pbs-results .pbs-disease-grid .pbp-sort { white-space: nowrap; overflow-wrap: normal; }
+.pbs-results .pbs-diseases { min-width: 550px; }
+.pbs-results .pbs-separators { min-width: 620px; }
 .pbs-diseases th:first-child { width: 44%; }
 .pbs-diseases th:nth-child(2) { width: 31%; }
-.pbs-separators th:first-child { width: 28%; }
-.pbs-separators th:nth-child(2) { width: 19%; }
-.pbs-separators th:nth-child(3) { width: 19%; }
-.pbs-separators th:nth-child(4), .pbs-separators th:nth-child(5) { width: 17%; }
+.pbs-separators th:first-child { width: auto; }
+.pbs-separators th:nth-child(2) { width: 160px; }
+.pbs-separators th:nth-child(3) { width: 100px; }
+.pbs-separators th:nth-child(4), .pbs-separators th:nth-child(5) { width: 105px; }
 .pbs-carrier-coverage { display: block; margin-top: 14px; }
 .pbs-multi .pbs-have { background: #107c70; }
 .pbs-counted { background: #e0f3ef; color: #087c70; }
@@ -148,15 +207,30 @@
 .pbs-profile-samples th:nth-child(8) { width: 7%; }
 .pbs-profile-genes th:first-child { width: 10%; }
 .pbs-profile-genes th:nth-child(2), .pbs-profile-genes th:nth-child(3) { width: 13%; }
-.pbs-profile-genes th:nth-child(4) { width: 10%; }
-.pbs-profile-genes th:nth-child(5) { width: 8%; }
-.pbs-profile-genes th:nth-child(6) { width: 29%; }
-.pbs-profile-genes th:nth-child(7) { width: 17%; }
+.pbs-profile-genes th:nth-child(4) { width: 11%; }
+.pbs-profile-genes th:nth-child(5) { width: 12%; }
+.pbs-profile-genes th:nth-child(6) { width: 26%; }
+.pbs-profile-genes th:nth-child(7) { width: 15%; }
 .pbs-results .pbs-profile-genes td:nth-child(n+2):nth-child(-n+5) { text-align: right; }
-.pbs-multi .pbs-diseases th:first-child { width: 7%; }
-.pbs-multi .pbs-diseases th:nth-child(2) { width: 41%; }
-.pbs-multi .pbs-diseases th:nth-child(3) { width: 27%; }
-.pbs-multi .pbs-diseases th:nth-child(4) { width: 25%; }
+.pbs-multi .pbs-diseases th:first-child { width: 96px; }
+.pbs-multi .pbs-diseases th:nth-child(2) { width: auto; }
+.pbs-multi .pbs-diseases th:nth-child(3) { width: 110px; }
+.pbs-multi .pbs-diseases th:nth-child(4) { width: 160px; }
+.pbs-results .pbs-rank-button { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; min-height: 42px; border: 1px solid #c9dcfa; border-radius: 50%; background: #eaf2ff; color: #095fc8; text-decoration: none; cursor: pointer; padding: 0; font: 600 19px/1 Arial, Helvetica, sans-serif; transition: background .15s, box-shadow .15s; }
+.pbs-results .pbs-rank-button:hover { background: #d9e9ff; box-shadow: 0 2px 7px #095fc826; }
+.pbs-results .pbs-rank-button[aria-expanded=true] { background: #0969da; border-color: #0969da; color: white; }
+.pbs-disease-evidence-row { background: #f8fafc; }
+.pbs-rank-evidence { padding: 8px; font-size: 18px; }
+.pbs-results .pbs-rank-evidence h3 { font-size: 21px; margin-bottom: 10px; }
+.pbs-results .pbs-rank-evidence .pbs-table { min-width: 520px; font-size: 18px; margin-bottom: 14px; }
+.pbs-results .pbs-rank-evidence .pbs-table th { white-space: normal; overflow-wrap: normal; font-size: 17px; width: auto; padding: 8px; }
+.pbs-results .pbs-rank-evidence .pbs-table th:nth-child(1) { width: 24%; }
+.pbs-results .pbs-rank-evidence .pbs-table th:nth-child(2) { width: 32%; }
+.pbs-results .pbs-rank-evidence .pbs-table th:nth-child(3) { width: 30%; }
+.pbs-results .pbs-rank-evidence .pbs-table th:nth-child(4) { width: 14%; }
+.pbs-results .pbs-rank-evidence .pbs-table td { padding: 8px; }
+.pbs-rank-formula { padding: 12px; background: #edf3fa; border-radius: 5px; overflow-wrap: anywhere; }
+.pbs-rank-evidence summary { cursor: pointer; color: var(--blue); }
 
 /* Header filter stays outside the table's overflow clipping area. */
 .pbs-project-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -177,6 +251,7 @@
 .pbs-results .pbs-project-filter-panel .pbs-filter-apply { background: #0b66d8; color: white; border-color: #0b66d8; }
 .pbs-filter-caption { font-size: 20px; color: #43536a; }
 .pbs-filter-caption button { margin-left: 12px; text-decoration: underline; }
+.pbs-filter-description { margin: 0; font-size: 18px; color: #596d87; }
 .pbs-results button:focus-visible, .pbs-results summary:focus-visible, .pbs-results a:focus-visible, .pbs-project-filter-panel input:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
 .pbs-hover-tooltip { position: fixed; z-index: 1080; width: max-content; max-width: 480px; box-sizing: border-box; padding: 14px 16px; border: 1px solid #aebed5; border-radius: 7px; background: #fff; color: #24334a; box-shadow: 0 5px 18px #24334a26; font: 400 19px/1.5 Arial, Helvetica, sans-serif; text-align: left; overflow-wrap: break-word; }
 .pbs-hover-tooltip > span { display: block; overflow-y: auto; }
@@ -184,10 +259,14 @@
 .pbs-hover-tooltip[data-placement=top] .pbs-tooltip-arrow { bottom: -6px; border-right: 1px solid #aebed5; border-bottom: 1px solid #aebed5; }
 .pbs-hover-tooltip[data-placement=bottom] .pbs-tooltip-arrow { top: -6px; border-left: 1px solid #aebed5; border-top: 1px solid #aebed5; }
 @media (max-width: 1600px) {
-    .pbs-people-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-    .pbs-people-grid > div:last-child { grid-column: 1 / -1; padding: 22px 0 0; border-left: 0; border-top: 1px solid #c8d3df; }
     .pbs-disease-grid { grid-template-columns: minmax(0, 1fr); }
     .pbs-disease-grid > div + div { border-left: 0; border-top: 1px solid #c8d3df; padding: 22px 0 0; }
+}
+@media (max-width: 900px) {
+    .pbs-people-tree-view .pbs-demographics { grid-template-columns: minmax(0, 1fr); }
+    .pbs-people-tree-view .pbs-demographics > div + div { border-left: 0; border-top: 1px solid #e1e7ef; padding: 20px 0 0; }
+    .pbs-people-grid { grid-template-columns: minmax(0, 1fr); }
+    .pbs-people-grid > .pbs-cohort-phenotypes { border-left: 0; border-top: 1px solid #c8d3df; padding: 22px 0 0; }
 }
 @media (max-width: 1100px) {
     .pbs-project-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
