@@ -172,6 +172,7 @@
                         </form>
                         <p v-if="contextError" class="pbg-context-error" role="alert">{{ contextError }}</p>
                         <p v-if="contextWarning" class="pbv-context-warning" role="status">{{ contextWarning }}</p>
+                        <p v-if="variantAssociationReason(contextAssociation)" class="pbv-context-warning" role="status">{{ variantAssociationReason(contextAssociation) }}</p>
                         <div class="pbv-profile-table-scroll">
                             <table class="pbv-profile-table">
                                 <thead><tr>
@@ -185,9 +186,9 @@
                                 <tbody>
                                     <tr v-for="run in profileRuns" :key="run.id" :class="{ 'pbv-profile-applied': run.id === currentProfileRunId }">
                                         <td><strong>{{ run.label }}</strong><span v-if="run.id === currentProfileRunId" class="pbv-applied-tag">Applied</span><small><span v-for="(id, index) in run.terms" :key="id"><template v-if="index">, </template><a class="pbv-hpo-link" :href="phenotypeHref(id)" @click.stop>{{ id }}</a></span> <help-tooltip v-if="run.warning" :label="'Analysis warning for ' + run.label" :text="run.warning" /></small></td>
-                                        <td>{{ run.association ? displayMean(run.association.beta) : 'Unavailable' }}</td>
-                                        <td>{{ run.association ? displayPValue(run.association.pValue) : 'Unavailable' }}</td>
-                                        <td>{{ run.match ? displayMean(run.match.matchScore) : 'Unavailable' }}</td>
+                                        <td>{{ variantAssociationDisplay(run.association, 'beta') }} <help-tooltip v-if="variantAssociationReason(run.association)" label="Why beta and P are not estimable" :text="variantAssociationReason(run.association)" /></td>
+                                        <td>{{ variantAssociationDisplay(run.association, 'pValue') }}</td>
+                                        <td>{{ run.match ? displayMeanZ(run.match.matchScore) : 'Unavailable' }}</td>
                                         <td>{{ run.scoreType === 'sum' ? 'Sum' : 'Max' }} · {{ run.analysisSet === 'affected' ? 'Affected only' : 'All' }} · GT {{ run.genotypeLabel || 'All' }} <help-tooltip :label="'Analysis details for ' + run.label" :text="run.analysisDetails" /></td>
                                         <td class="pbv-profile-actions-cell"><div class="pbv-profile-actions">
                                             <button type="button" class="pbv-profile-action" :class="{ 'pbv-profile-rerunning': contextLoading && rerunningProfileRunId === run.id }" :disabled="contextLoading || searchLoading" :aria-label="'Re-run ' + run.label" :aria-busy="String(contextLoading && rerunningProfileRunId === run.id)" title="Re-run" @click="rerunVariantProfile(run)"><b-icon-arrow-clockwise aria-hidden="true" /></button>
@@ -229,9 +230,9 @@
                                     <td>{{ genotypeCarrierCount.toLocaleString() }}</td>
                                     <td><strong v-if="variantScore != null" class="pbv-evidence-score">{{ variantScore.toFixed(2) }}</strong><span v-else>—</span></td>
                                     <td :title="variantHpoCountTitle">{{ variantHpoCountDisplay }}</td>
-                                    <td>{{ !appliedProfileTerms.length ? '—' : contextMatch ? displayMean(contextMatch.matchScore) : 'Unavailable' }}</td>
-                                    <td>{{ !appliedProfileTerms.length ? '—' : contextAssociation ? displayMean(contextAssociation.beta) : 'Unavailable' }}</td>
-                                    <td>{{ !appliedProfileTerms.length ? '—' : contextAssociation ? displayPValue(contextAssociation.pValue) : 'Unavailable' }}</td>
+                                    <td>{{ !appliedProfileTerms.length ? '—' : contextMatch ? displayMeanZ(contextMatch.matchScore) : 'Unavailable' }}</td>
+                                    <td>{{ !appliedProfileTerms.length ? '—' : variantAssociationDisplay(contextAssociation, 'beta') }}</td>
+                                    <td>{{ !appliedProfileTerms.length ? '—' : variantAssociationDisplay(contextAssociation, 'pValue') }}</td>
                                 </tr></tbody>
                             </table>
                         </div>

@@ -91,6 +91,23 @@ model.pbVariantMethods.applyVariantProfile.call({$refs:{profile:{finish(){finish
 assert.equal(finished,1);assert.equal(applied,1);
 assert.equal(errors.length, 0);
 
+// Successful profile scoring with no noncarrier comparison is distinct from a failed lookup.
+const allCarrierAssociation = {status:'all_carriers', beta:null, pValue:null, sampleCount:39, carrierCount:39};
+instance.contextAssociation = allCarrierAssociation;
+instance.contextMatch = {status:'ok', matchScore:-3.883364853714204e-17, carrierCount:39, scoredCarrierCount:39};
+instance.profileRuns = [{...instance.profileRuns[0], association:allCarrierAssociation, match:instance.contextMatch}];
+const nonEstimable = text(instance._render());
+assert(nonEstimable.includes('Not estimable'));
+assert(nonEstimable.includes('All 39 analysis-eligible samples carry this variant'));
+assert(nonEstimable.includes('Phenotype scores are calculated separately'));
+assert(nonEstimable.includes('0.000') && !nonEstimable.includes('e-17'), 'Floating-point mean-Z noise displays as zero');
+assert.equal(instance.variantAssociationDisplay(null, 'beta'), 'Unavailable', 'A missing response is not a known non-estimable result');
+assert.equal(instance.displayMeanZ(null), 'Unavailable');
+assert.equal(instance.displayMeanZ(0.002), '0.002');
+assert.equal(instance.displayMean(1e-8), '1.00e-8', 'Tiny nonzero effects retain scientific notation');
+instance.contextAssociation = {beta:-0.608,pValue:0.540,modelVersion:'ols',sampleCount:15761,carrierCount:1};
+instance.contextMatch = {matchScore:-0.549,scoredCarrierCount:1,carrierCount:1,status:'ok'};
+
 // Re-run restores applied settings even when the user has edited the draft.
 let reran = 0, reset = 0;
 const rerunState = {contextLoading:false, searchLoading:false, contextMatch:{}, activeContextTerms:['HP:0000364'], coGeneScoreType:'sum',coGeneAnalysisSet:'affected',contextInput:'HP:0001250', contextScoreTypeInput:'max',contextAnalysisSetInput:'all', $refs:{profile:{resetDraft(){reset++;}}},runVariantContext(){reran++;}};

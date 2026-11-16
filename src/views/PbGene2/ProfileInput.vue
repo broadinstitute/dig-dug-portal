@@ -55,6 +55,8 @@ export default {
 };
 </script>
 <style scoped>
+.pg2-profile-input { position: relative; min-width: 0; }
+.pbg-hpo-suggestions { max-height: min(320px, 50vh); overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 8px 24px rgba(16, 35, 63, .18); }
 .pbg-hpo-suggestions button > span { min-width: 0; }
 .pbg-hpo-suggestions button > span small { display: block; }
 .pbg-hpo-suggestions button:disabled { color: #64748b; background: #f5f7fa; cursor: not-allowed; }

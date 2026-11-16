@@ -46,7 +46,7 @@ function response(terms, beta, mean, ids = ['sample-a', 'sample-b']) {
     };
     const standardized = { standardization_status: 'ok', standardization_reference_id: reference.reference_id };
     return { ok: true, json: async () => ({
-        sample_scope: {sample_ids: ids},
+        sample_scope: {sample_ids: ids, kind:'selected_carriers_vs_noncarriers', reference_scope:'full_scoring_cohort', noncarrier_count:99},
         rphers_standardization: reference,
         variant_match_scores: { [variantId]: { ...standardized, status: 'ok', carrier_count: 1, scored_carrier_count: 1, mean_rphers_z: mean } },
         variant_associations: { [variantId]: { ...standardized, status: 'ok', beta_sd: beta, beta: beta * 4, p_value: 0.54, n_carriers: 1, n_samples: 100, model_version: 'ols' } },
@@ -184,6 +184,12 @@ async function main() {
     await app.runVariantContext();
     assert(app.contextError.includes('did not apply the genotype sample selection'));
     assert.equal(app.profileRuns.length,1,'A legacy/unscoped response must never populate a filtered result');
+    const legacy = await response(['HP:0000364'],9,9,['sample-a']).json();
+    delete legacy.sample_scope.kind;
+    replies.push({ok:true,json:async()=>legacy});
+    await app.runVariantContext();
+    assert(app.contextError.includes('noncarrier controls'), 'Reject an old carrier-only service even when its selected IDs match');
+    assert.equal(app.profileRuns.length,1);
     console.log('PB_VARIANT_PROFILE_HISTORY_AND_ASYNC_LIFECYCLE_PASS');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

@@ -8,6 +8,13 @@ from scripts.pb_gene_context_api_server import create_server, parse_co_gene_requ
 
 
 class _FakeEngine:
+    def for_variant_comparison(self, gene, variant_id, sample_ids):
+        selected = _FakeEngine()
+        selected.analysis_sample_ids = [*sample_ids, 'control-1', 'control-2']
+        selected.hpo = {'sample_ids': ['full-scoring-cohort'] * 10}
+        selected.variant_comparison = {'kind':'selected_carriers_vs_noncarriers', 'reference_scope':'full_scoring_cohort', 'excluded_carrier_count':1}
+        selected.selected_carriers = list(sample_ids)
+        return selected
     def phenotype_term_counts(self):
         return {'counts': {'HP:0001250': 2}, 'cohort_sample_count': 4, 'source': 'parent-expanded CRDC HPO matrix'}
 
@@ -35,6 +42,8 @@ class _FakeEngine:
         }
 
     def variant_carrier_residuals(self, gene, variant_id, query_hpo, affected_only=False):
+        if hasattr(self,'selected_carriers'):
+            return {'variant_id':variant_id,'carrier_count':len(self.selected_carriers),'sample_scores':{sid:0.1 for sid in self.selected_carriers}}
         return {"variant_id": variant_id, "carrier_count": 1, "sample_scores": {"private-carrier": -0.125}}
 
     def co_gene_associations(self, gene, query_hpo, co_genes, score_type="max", affected_only=False):
@@ -49,6 +58,27 @@ class _FakeEngine:
 
 
 class PbGeneContextApiServerTest(unittest.TestCase):
+    def test_variant_selection_keeps_noncarrier_controls(self):
+        server = create_server(('127.0.0.1',0),_FakeEngine())
+        thread = threading.Thread(target=server.serve_forever,daemon=True)
+        thread.start()
+        try:
+            body = {'gene':'HBB','terms':['HP:0001250'],'variant_id':'chr11:5227002:T:A','sample_ids':['A','B']}
+            request = Request(f'http://127.0.0.1:{server.server_port}/phenotype-analyzer-api/analyze', data=json.dumps(body).encode(),headers={'Content-Type':'application/json'})
+            with urlopen(request,timeout=2) as response:
+                result = json.load(response)
+            self.assertEqual(result['analysis_sample_count'],4)
+            scope=result['sample_scope']
+            self.assertEqual(scope['sample_ids'],['A','B'])
+            self.assertEqual(scope['selected_carrier_count'],2)
+            self.assertEqual(scope['noncarrier_count'],2)
+            self.assertEqual(scope['scoring_sample_count'],10)
+            self.assertEqual(scope['kind'],'selected_carriers_vs_noncarriers')
+            self.assertEqual(scope['reference_scope'],'full_scoring_cohort')
+            self.assertEqual(set(result['variant_carrier_residuals']['sample_scores']),{'A','B'})
+        finally:
+            server.shutdown();server.server_close();thread.join(timeout=2)
+
     def test_original_vcf_route_receives_only_the_requested_calls(self):
         class Source:
             def lookup(self,variant,ids):

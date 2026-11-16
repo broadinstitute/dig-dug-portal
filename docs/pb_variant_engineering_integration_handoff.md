@@ -2,13 +2,42 @@
 
 **Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, card/table widths and order, icons, responsive layout and every interactive state, including the blue Genotype selector. Compare prototype and target at the same viewport/zoom before marking the UI complete.
 
+## Current correction — shared Gene/Variant regression, 2026-11-16
+
+**Variant must use the same adjusted carrier-versus-noncarrier linear regression and full-cohort phenotype scoring reference as the Gene2 variant-evidence table.** Compare the same exact variant, HPO profile and All/Affected setting. With `GT All`, Variant beta, P, carrier mean Z and reference must agree with Gene2. The separate **Gene beta** models gene GRS and is not the variant effect.
+
+The November 14 genotype change (`859cd905d`) incorrectly restricted the regression roster to carriers, removed noncarrier controls and recomputed the scoring reference inside that group. This caused `all_carriers`, a near-zero carrier mean or a constant-score reference. **Do not port that carrier-only regression/reference behavior or describe it as normal.** Preserve genotype selection for the carrier group while retaining eligible noncarrier controls.
+
+- **Genotype subset:** compare selected eligible carriers with eligible noncarriers of the exact variant. Exclude unselected carriers entirely; never relabel them as controls. All/Affected applies to both groups. Unknown/out-of-roster samples do not become controls.
+- **Scores:** reuse the full scoring-cohort IC weights, residual PheRS and mean/sample-SD reference used by Gene2. Summarize/return individual scores only for selected eligible carriers. Keep observed carrier/HPO metadata denominators separate from regression eligibility.
+- **API:** `sample_ids` selects the carrier group, not the entire regression roster. Preserve the exact requested-ID echo. Require `sample_scope.kind=selected_carriers_vs_noncarriers` and `reference_scope=full_scoring_cohort`, with `selected_carrier_count`, `noncarrier_count`, `analysis_sample_count`, `scoring_sample_count` and `excluded_carrier_count`. `analysis_sample_count` includes both fitted groups after All/Affected. Reject legacy carrier-only responses even if their ID echo matches.
+- **Input layout:** shared `PbGene2/ProfileInput.vue` owns `position:relative; min-width:0`; its absolute suggestion list anchors below the input at the same width and scrolls within `max-height:min(320px,50vh)`. Vue `extends` does not supply the parent component's scoped CSS. Carry this shared fix to both Gene2 and Variant.
+- **Result states:** show numeric values when estimable. Retain `Not estimable` with a specific reason only for genuine model degeneracy; request/missing-source failures remain `Unavailable`. Mean-Z floating-point noise below `1e-12` displays as zero; raw stored values and beta/P formatting are unchanged.
+
+**Delivery/runtime:** the commit containing this document includes these corrections, source and tests after `47d7159c6`; that earlier commit and the November 15 manifest alone do not include them. The isolated prototype Variant API (local 8095 → compute 18096) was backed up, updated and restarted. Gene/Sample services, source releases and the production portal were not deployed or changed. Existing result-history rows require rerun/reload.
+
+### Implement and verify together
+
+Carry `scripts/pb_gene_context_api_server.py` and `pb_gene_context_validation.py` (`for_variant_comparison`, not `for_sample_ids`, for an exact-variant selected-carrier comparison); `PbVariant/{pageModel.js,Template.vue,layoutHelp.js}`; shared `PbGene2/ProfileInput.vue`; and updated API/engine/layout/history tests. Preserve their existing imports, auth, source/GT checks and private proxy. Installing only frontend files leaves the old analysis bug active; updating only the API leaves incompatible scope checks/help.
+
+Passed: 29 Python tests across API/engine/variant OLS and four JavaScript commands (Variant layout/history/statistics and Gene2). Shared autocomplete placement was browser-verified; the user confirmed the repaired screen. Live parity with the Gene calculation was checked within `1e-12` numerical tolerance for the examples below; a real genotype subset retained 15,699 noncarriers, selected 3 eligible carriers, excluded 59 other carriers and retained the 15,764-score reference. These are source-specific checks, not constants or new model thresholds.
+
+| GJB2 variant; HPO `HP:0000364`, All, GT All | Variant beta (SD) | P | Carrier mean Z |
+|---|---:|---:|---:|
+| `chr13:20189005:CTG:C` | -0.607573534 | 0.539821359 | -0.549421009 |
+| `chr13:20189174:G:T` | -0.022635357 | 0.981765408 | -0.106479431 |
+| `chr13:20189234:CT:C` | 1.576013284 | 0.024422165 | 1.624770650 |
+| `chr13:20189313:A:G` | 0.223208888 | 0.159892607 | 0.266049307 |
+
+The last example fits 15,761 samples: 39 carriers + 15,722 noncarriers; scoring reference N=15,764. The first example has two observed carriers but only one eligible regression carrier. Low carrier count remains exploratory; it is not automatically suppressed. No new full frontend build or production-server acceptance is claimed for this correction.
+
 November 15 delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). The November 16 local delta below is additional to that delivered snapshot; include its new files. Neither the manifest nor local checks establish deployment.
 
 Updated: 2026-11-16 · Branch: `kyuryung/bch-prototype` · Entry: `/pb_variant.html`
 
 ## 2026-11-16 Variant follow-up — current local contract
 
-Compared with the last delivered HEAD `306ded0b8`, these changes are included in this Git delivery; test-server deployment remains pending and the November 15 source manifest does not cover them.
+The earlier GT/control changes below were delivered after baseline `306ded0b8` and are retained in `47d7159c6`. The regression correction delivered with this document takes precedence over the earlier genotype-population implementation. The November 15 manifest covers neither follow-up.
 
 | Change | Implement / carry |
 |---|---|
@@ -17,9 +46,9 @@ Compared with the last delivered HEAD `306ded0b8`, these changes are included in
 | Recover after lookup failure | Do not retain a state containing `gtStatus: lookup_unavailable` in the successful gene-state cache. The next search retries; valid missing/low-depth calls remain Unknown. |
 | Prevent regression | Include new `scripts/test_pb_variant_genotype_request.js`: actual Variant page method → shared adapter → actual route, using fixture processed/VCF calls; also check equivalent-ID cache reuse and recovery after failure. It failed before the fix and passed after it. |
 
-Cross-page review: the current source delta still matches this request/cache/control contract. Include the [shared local lifecycle update](pb_front_gene_variant_merge_handoff.md#local-development-lifecycle--2026-11-16) and existing helpers when using the prototype launcher. Stop/status manage local frontend/API processes, not the original-VCF tunnel or remote compute job. Keep exact authorization, GT provenance and selected-carrier analysis scope.
+Cross-page review: retain the request/cache/control fixes and the [shared local lifecycle update](pb_front_gene_variant_merge_handoff.md#local-development-lifecycle--2026-11-16). Stop/status manage local frontend/API processes, not the original-VCF tunnel or remote compute job. Keep exact authorization, GT provenance, selected-carrier display and noncarrier regression controls.
 
-Verification: processed-GT, VCF restart-cache, live metadata adapter and Variant layout tests passed. The live API for GJB2 `chr13:20189313:A:G` returned **Homozygous 0 / Hetero 39 / Unknown 2**; both Unknown calls had `low_or_missing_depth` (DP ≥20 required). These are source results, not constants. The corrected shared bundle was served by 8098; post-fix native browser verification timed out. Reload existing tabs and verify final appearance, dropdown interaction and counts on the target implementation.
+Earlier GT verification: processed-GT, VCF restart-cache, live metadata adapter and Variant layout tests passed. The live API for GJB2 `chr13:20189313:A:G` returned **Homozygous 0 / Hetero 39 / Unknown 2**; both Unknown calls had `low_or_missing_depth` (DP ≥20 required). These are source results, not constants. Native verification timed out in that earlier session; the latest correction's checks/user confirmation are recorded above. Verify final appearance, dropdown interaction and counts on the target implementation.
 
 ## 2026-11-15 UI follow-up — included in this delivery
 
@@ -31,7 +60,7 @@ Use the existing test-server private BioIndex `http://100.80.30.199:5000/api/bio
 
 Same single-gene burden test: **Gene2 uses q_by_gene (all valid HPO tests for one gene); Phenotype uses q_by_hpo (all valid gene tests for one HPO)**, both before P<0.05 delivery filtering. Same pair beta/p/N remain identical; q can differ. Variant Custom context uses its own stated model/p, not either burden q. The live legacy gene-hpo15 response contains HPO-wise q and only a top-15 preview; do not invent Gene-wise q or full-HPO coverage from it. See [Gene2](pb_gene2_engineering_handoff_20261112.md#2-same-burden-test-different-q-scopes).
 
-Current shared input fixes also retain Retry while typing after a count-service error and preserve Enter submission for valid profiles. Unavailable pasted HPOs never commit as chips; failed finish() stops Apply. A positive global count is availability only, not a guarantee of adequate power in the selected-carrier model. Keep its existing scope validation and explicit unavailable statistics.
+Current shared input fixes also retain Retry while typing after a count-service error and preserve Enter submission for valid profiles. Unavailable pasted HPOs never commit as chips; failed finish() stops Apply. A positive global count is availability only, not a guarantee of adequate power in the carrier/noncarrier comparison. Keep its existing scope validation and explicit unavailable statistics.
 
 ## Changes relative to the baseline
 
@@ -51,7 +80,7 @@ Additional checks: `node scripts/test_crdc_hpo_availability.js`, `node scripts/t
 
 - Place the enlarged blue-bordered `Genotype` dropdown immediately beside **N carriers observed in CRDC**. Use the existing ClinVar checkbox interaction: Homozygous / Hetero / Unknown, all checked initially, multiple selections combined with OR, Cancel / Apply. Disable Apply for an empty selection.
 - Show selected / total carriers beneath the heading. Do not add “All results below…”.
-- From this heading downward, use only the selected carriers: demographics, sample list/totals, HPO counts/denominators, scores, reference mean/SD and analysis. Lower display filters work inside this population. Identity annotations and cohort AF retain their source values.
+- Demographics, sample list/totals and HPO counts/denominators use selected carriers. Profile regression compares selected eligible carriers with eligible noncarriers; scoring/reference remains full-cohort. Lower display filters work within the displayed carrier population without refitting the model. Identity annotations and cohort AF retain their source values.
 - On genotype Apply, discard old analysis and recompute saved profiles for the new selection. Reject stale responses and responses without the exact requested sample-scope echo.
 - Keep profile history, linked HPO IDs and phenotype-search highlighting. Remove the co-carried-gene and “Other [gene] variants observed in these carriers” sections.
 
@@ -64,10 +93,10 @@ Additional checks: `node scripts/test_crdc_hpo_availability.js`, `node scripts/t
 | Carriers with HPO | Selected carriers with at least one exact recorded profile HPO ID; OR across terms, counted once per person. |
 | Carrier phenotypes | Selected carriers with HPO records; count observed-positive terms and ancestors. Empty/unavailable records do not enter this denominator. |
 | Total HPO terms | `n_terms` from the approved scoring matrix row sum. An explicitly empty metadata record outside the matrix may display `0 / empty_phenotype_record`; this does not establish scoring eligibility. |
-| rPheRS / individual Z / mean Z | Recompute HPO prevalence, residualization and reference mean/sample SD within the selected eligible roster. The server provides the reference; the browser does not invent SD. |
-| Variant β / P | A carrier/noncarrier binary predictor is constant within selected carriers. Return unavailable (`all_carriers` or insufficient degrees of freedom); do not reuse full-cohort β/P. |
+| rPheRS / individual Z / mean Z | Full scoring-cohort weights, residualization and mean/sample SD, shared with Gene2. Mean/individual outputs cover selected eligible carriers only. The server provides the reference. |
+| Variant β / P | Same adjusted OLS as the Gene2 variant table: selected carriers = 1, eligible exact-variant noncarriers = 0. Unselected target carriers are excluded. With GT All, values agree with Gene2; a subset is refitted with controls retained. |
 
-`ContextAnalysisEngine.for_sample_ids()` isolates HPO rows, roster, covariates and caches. Requests without `sample_ids` retain the existing Gene API behavior. An empty/ineligible selection never falls back to the full cohort.
+`ContextAnalysisEngine.for_variant_comparison()` preserves the full scoring reference and selects the regression roster as described above. Generic carrier-only `for_sample_ids()` remains available for separate legacy/co-gene requests; do not use it for the exact-variant comparison. Requests without `sample_ids` retain the existing Gene API behavior. An empty/ineligible carrier selection never falls back to all carriers.
 
 ## Implementation and APIs
 
@@ -80,7 +109,7 @@ Additional checks: `node scripts/test_crdc_hpo_availability.js`, `node scripts/t
 | Scoped HPO counts | `scripts/gene_variant_hpo_counts_endpoint.js` |
 
 - `GET /__pb_gene_genotypes__?gene=GJB2&variant=<exact-ID>`: existing processed calls plus original-VCF supplementation for missing target calls. Check authorized exact-variant/sample membership. Preserve per-row source and distinguish lookup failure from a genuine missing call.
-- `POST /__pb_variant_context__/analyze`: existing profile fields plus `sample_ids`; response must echo `sample_scope.sample_ids` exactly. Return only scoped individual results.
+- `POST /__pb_variant_context__/analyze`: existing profile fields plus selected-carrier `sample_ids`; preserve the exact echo and the comparison/reference metadata defined above. Include controls in the model, return individual results only for selected carriers.
 - `POST /__gene_variant_hpo_counts__`: existing fields plus `sample_ids`; count/cache within that selection and echo its scope.
 - Existing `POST /__pb_variant_carrier_metadata__`: retain membership checks, metadata and persistent `n_terms` source/status.
 - Private service `POST /phenotype-analyzer-api/carrier-genotypes`: exact `variant_id` and `sample_ids`, with original-VCF provenance. Keep all sample routes private.
@@ -101,7 +130,7 @@ The existing committed GT connection (`c98902622`) uses **filtered processed dat
 
 For the current compute demo, `run_pb_context_demo.sbatch` starts Variant on 18096 from `PB_VARIANT_API_ROOT`, the staged `variant-genotype-20261114` directory, or the demo root; stage the current API modules there. `PB_GENOTYPE_VCF_SOURCE` overrides the VCF path. `start_pb_context_demo.sh` / `connect_pb_context_demo.sh` reuse/start the job and forward 8095 →18096 alongside existing 8092/8094 forwards. Keep the tunnel terminal open.
 
-A Git push does not deploy the service or install private inputs. Keep VCFs, matrices, indexes, caches and captures outside Git/public assets. This document specifies Variant; the other three pages have their own current contracts linked from the shared integration guide.
+A Git push does not deploy the service or install private inputs. Keep VCFs, matrices, indexes, caches and captures outside Git/public assets. This document specifies Variant; the other four pages have their own current contracts linked from the shared integration guide.
 
 ## Verification
 
@@ -114,7 +143,7 @@ node scripts/test_processed_genotypes.js
 node scripts/test_pb_variant_genotype_request.js
 node scripts/test_variant_vcf_genotype_cache.js
 node scripts/test_pb_live_metadata.js
-python3 -m unittest scripts.test_pb_gene_context_api_server scripts.test_pb_gene_context_validation scripts.test_vcf_carrier_genotypes
+python3 -m unittest scripts.test_pb_gene_context_api_server scripts.test_pb_gene_context_validation scripts.test_variant_association scripts.test_vcf_carrier_genotypes
 ```
 
-Live evidence (not UI constants): `GJB2 chr13:20189546:AC:A` has 294 carriers: **Homozygous 16 / Hetero 278 / Unknown 0**; analysis-eligible counts are All 286 / Homozygous 15 / Hetero 271. These calls are absent from the processed release but present in the original VCF. A fresh Node process with `PB_GENOTYPE_INDEX` unset and networking disabled returned the same 294 cached calls. `chr13:20189241:T:C` also verified All / Homozygous / Hetero / combined scopes, HPO denominators and no returned IDs outside selection. Mockup counts are not substituted for source data.
+Earlier GT evidence (not UI constants): `GJB2 chr13:20189546:AC:A` has 294 carriers: **Homozygous 16 / Hetero 278 / Unknown 0**; eligible **carrier** counts are All 286 / Homozygous 15 / Hetero 271, not the total regression N. These calls are absent from the processed release but present in the original VCF. A fresh Node process with `PB_GENOTYPE_INDEX` unset and networking disabled returned the same 294 cached calls. Earlier carrier-only regression/reference-size assertions are superseded by the current comparison contract; retain the GT/cache provenance evidence. Mockup counts are not substituted for source data.

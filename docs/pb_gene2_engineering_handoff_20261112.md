@@ -2,6 +2,13 @@
 
 **Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, card/table widths and order, icons, responsive layout, filters, expansion and all selected/hover/focus/loading/empty/error states. Compare prototype and target at the same viewport/zoom before marking the UI complete.
 
+## Current cross-page correction — 2026-11-16
+
+- **Gene2 variant evidence and Variant must agree** for the same exact variant/HPO/All-Affected settings with GT All: beta, P, carrier mean Z and full scoring-cohort reference. Keep the existing Gene2 regression; correct Variant's former carrier-only roster instead. A genotype subset retains eligible noncarrier controls and excludes unselected carriers. This comparison uses **Variant beta**, not the separate Gene-GRS beta. Follow the [current Variant contract](pb_variant_engineering_integration_handoff.md#current-correction--shared-genevariant-regression-2026-11-16).
+- Shared `ProfileInput.vue` owns `position:relative; min-width:0` so autocomplete appears directly below its input at the same width; cap the list at `min(320px,50vh)` with internal scrolling. Parent scoped CSS is not inherited through Vue `extends`. Apply this shared component fix to Gene2 and Variant; retain existing selection/availability behavior and page styling.
+
+The commit containing this document includes these source changes after `47d7159c6`. Gene2 regression/data sources are unchanged. The input placement was browser-verified; Gene2 and Variant tests passed. Live Gene/Variant parity examples are recorded in the linked Variant contract.
+
 November 15 delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). The November 16 local delta below is additional to that delivered snapshot; include its new files. Neither the manifest nor local checks establish deployment.
 
 Updated: 2026-11-16. Entry/default Gene destination: `/pb_gene2.html?query=<encoded gene>`; bare navigation defaults to GJB2. Baseline HEAD `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; the November 15 delivery reached `306ded0b8`, and the November 16 follow-up below is included in this Git delivery. This is an implementation contract, not deployment evidence. Legacy `/pb_Gene.html` is separately addressable; do not send new Gene links there.

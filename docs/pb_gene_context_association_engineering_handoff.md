@@ -1,5 +1,9 @@
 # PB Gene Context Association Engineering Handoff
 
+## Current Variant comparison correction — November 16, 2026
+
+For exact-variant live Context results, use the [current Variant contract](pb_variant_engineering_integration_handoff.md#current-correction--shared-genevariant-regression-2026-11-16). Gene2 variant evidence and Variant share the adjusted carrier/noncarrier OLS and full scoring-cohort rPheRS reference. A genotype subset selects the exposed carriers; retain eligible noncarriers and exclude unselected carriers. The former carrier-only Variant regression/reference was an implementation error. The commit containing this document delivers the correction after `47d7159c6`; the precomputed binary-HPO burden release, q scopes and unit conversions below are unchanged.
+
 ## Precomputed association DB import — November 12, 2026
 
 This is the current engineering contract for the precomputed single-HPO

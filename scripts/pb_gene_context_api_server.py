@@ -241,7 +241,12 @@ def create_server(address, engine, profile_only=False, genotype_source=None):
                 request = parse_co_gene_request(payload) if self.path == CO_GENE_PATH else parse_context_request(payload)
                 if request['sample_ids'] is not None and self.path == PUBLIC_CONTEXT_PATH:
                     raise ValueError('sample selection is private-only')
-                selected_engine = engine if request['sample_ids'] is None else engine.for_sample_ids(tuple(request['sample_ids']))
+                if request['sample_ids'] is None:
+                    selected_engine = engine
+                elif request['variant_id'] and self.path == CONTEXT_PATH:
+                    selected_engine = engine.for_variant_comparison(request['gene'], request['variant_id'], tuple(request['sample_ids']))
+                else:
+                    selected_engine = engine.for_sample_ids(tuple(request['sample_ids']))
                 scope = None if request['sample_ids'] is None else {
                     'sample_ids': request['sample_ids'],
                     'analysis_sample_count': len(selected_engine.analysis_sample_ids),
@@ -286,6 +291,14 @@ def create_server(address, engine, profile_only=False, genotype_source=None):
                         )
                     result["request_ms"] = round((perf_counter() - started) * 1000, 3)
                     if scope is not None:
+                        if getattr(selected_engine, 'variant_comparison', None):
+                            selected_count = result['variant_carrier_residuals']['carrier_count']
+                            scope.update(selected_engine.variant_comparison)
+                            scope.update({
+                                'analysis_sample_count': result['analysis_sample_count'],
+                                'selected_carrier_count': selected_count,
+                                'noncarrier_count': result['analysis_sample_count'] - selected_count,
+                            })
                         result['sample_scope'] = scope
                     self._send_json(200, result)
             except (ValueError, json.JSONDecodeError) as error:

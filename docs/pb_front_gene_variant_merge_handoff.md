@@ -1,5 +1,13 @@
 # PB Front, Gene2, Phenotype, Variant and Sample — integration starting point
 
+## Current correction after `47d7159c6` — Variant regression and profile input
+
+**Use the [current Variant correction](pb_variant_engineering_integration_handoff.md#current-correction--shared-genevariant-regression-2026-11-16) before older genotype-scope instructions.** Variant and the Gene2 variant-evidence table share the same adjusted carrier-versus-noncarrier OLS and full scoring-cohort reference. GT All must agree across pages. A genotype subset changes the carrier group; retain eligible noncarriers and exclude unselected carriers entirely. Carrier-only regression/reference was an implementation error, not intended behavior.
+
+Carry the changed Python API/engine **and** Variant model/template/help, shared `PbGene2/ProfileInput.vue`, and tests. The response must distinguish selected-carrier IDs from the larger fitted cohort through comparison/reference metadata; reject the old carrier-only response. The shared autocomplete now anchors under its input and scrolls internally. Preserve all five pages' design rules below.
+
+Status: the commit containing this document delivers this correction **after `47d7159c6`**, with its source and tests; the earlier manifest does not cover it. The isolated prototype Variant API was backed up, updated and restarted; there was no production portal deployment, new data release or change to Gene/Sample services. API/engine/OLS tests passed (29 Python); Variant layout/history/statistics and Gene2 checks passed (four JavaScript commands). Live examples and a genotype subset passed Gene/Variant parity/control checks; the user confirmed the screen. Full target migration acceptance remains separate.
+
 ## Required design fidelity — all five pages
 
 **All engineer-facing documentation and AI implementation instructions must be written in English.**
@@ -13,14 +21,14 @@
 
 ### Latest delivery after `54cfec6e2` — 2026-11-16
 
-Compared the latest contracts and current source with baseline `54cfec6e2`. The commit containing this document includes the Front search, Phenotype refinements/export-only changes, their tests and all five English page contracts. Use that complete commit on `kyuryung/bch-prototype`, including new files; `54cfec6e2` and the November 15 manifest alone do not contain this follow-up. Git delivery does not establish target-server deployment. Older delivery statements below refer to their earlier snapshots.
+Committed delivery `47d7159c6` follows baseline `54cfec6e2` and includes Front search, Phenotype refinements/export-only changes, their tests and all five English page contracts. Use its complete history plus the later correction delivered with this document on `kyuryung/bch-prototype`. `54cfec6e2` and the November 15 manifest alone are incomplete. Git delivery does not establish target-server deployment. Older delivery statements below refer to their earlier snapshots.
 
 | Page | Current contract |
 |---|---|
 | Front / Front2 | [Front contract](pb_front_engineering_handoff_20261116.md): only CRDC-available HPO suggestions, validated paste/submission, multi-HPO default All (AND). |
 | Gene2 | [Gene2 contract](pb_gene2_engineering_handoff_20261112.md): preserve current layout, scoring availability labels and GT integration. |
 | Phenotype | [Latest search/refinement delta](pb_phenotype_live_profile_and_spec_2026-10-16.md#2026-11-16-search-refinements--latest-local-delta): Includes/Without + IDs under Limited to, stronger colors, return to search conditions after +/−, Export only. Preserve the accepted result layout. |
-| Variant | [Variant contract](pb_variant_engineering_integration_handoff.md): retain the larger blue Genotype selector, its states and exact-ID GT fix. |
+| Variant | [Variant contract](pb_variant_engineering_integration_handoff.md): retain the blue Genotype selector and exact-ID GT fix; apply the latest shared Gene/Variant regression correction. |
 | Sample | [Sample contract](pb_sample_engineering_integration_handoff.md): retain the two comparison tables and final short blue dashed separators. |
 
 Delivery audit: all five current page contracts, this common guide and the legacy engineering entry contain no Korean text; their local file links were checked. Thirteen targeted JavaScript test commands passed across Front/Front2, shared HPO availability, Phenotype, Gene2, Variant and Sample comparisons. The complete frontend build passed with the existing LocusZoom/tabix-reader export warning. The Gene2 test now includes its missing Guide component stub. Target-server adapters, private inputs/authentication and five-page visual acceptance still require verification after migration.
@@ -33,7 +41,7 @@ Reviewed the latest page contracts and current source against delivered HEAD `30
 |---|---|---|
 | Phenotype | Final full-width Hierarchy / separate Table layout; category/query filters; disease Rank evidence; carrier ratio/Fisher 2×2 help. Keep the latest accepted layout. | [November 16 Phenotype](pb_phenotype_live_profile_and_spec_2026-10-16.md#2026-11-16-results-ui--current-local-follow-up) |
 | Gene2 | Persistent verified scoring inputs; Excluded / Unavailable / measured 0; shared GT boundary/cache fix. | [November 16 Gene2](pb_gene2_engineering_handoff_20261112.md#2026-11-16-gene2-follow-up--current-local-contract) |
-| Variant | Larger blue Genotype control; chr-prefixed exact GT request/cache key; retry after failed lookup. Preserve selected-carrier analysis scope. | [November 16 Variant](pb_variant_engineering_integration_handoff.md#2026-11-16-variant-follow-up--current-local-contract) |
+| Variant | Blue Genotype control; exact GT request/cache fix; selected-carrier display with noncarrier regression controls and a full-cohort scoring reference. | [Current Variant correction](pb_variant_engineering_integration_handoff.md#current-correction--shared-genevariant-regression-2026-11-16) |
 | Sample | Above Shared genes, Identical variants and Same gene/different variants: final **short blue dashed** dividers, `1px dashed #527abd`. No orange or long-dash gradient. | [November 16 Sample](pb_sample_engineering_integration_handoff.md#2026-11-16-sample-follow-up--current-local-contract) |
 | Shared local runtime | Managed Ctrl+C cleanup, fixed frontend port, project-scoped stop/status; retain scoring and GT preparation. | [Local lifecycle](#local-development-lifecycle--2026-11-16) |
 
@@ -63,7 +71,7 @@ Follow the new [Gene2 delta](pb_gene2_engineering_handoff_20261112.md#2026-11-16
 | Original-VCF supplementation | Variant exact-target missing GT only; separate provenance/service in Variant handoff |
 | Sample profile and common HPO availability | Private profile service 8093, 16,366 × 6,440 matrix; `/__pb_phenotype_profile__/hpo-counts` now also required by Gene2/Variant |
 | Gene2 scoring/n_terms | Approved 15,764 × 6,440 matrix and matching covariates; do not substitute Sample matrix |
-| Variant analysis | Dedicated selected-carrier Context service 8095; echo exact scope |
+| Variant analysis | Dedicated Context service 8095; selected carriers versus eligible noncarriers, full scoring reference; echo carrier selection and fitted-group counts |
 | Single-gene burden q | Same tests: Gene2=`q_by_gene` over HPOs for a fixed gene; Phenotype=`q_by_hpo` over genes for a fixed HPO. Both precede P<0.05 delivery filtering; beta/p/N unchanged. |
 | Current association API gap | Live `gene-hpo15` is top-15 with HPO-wise q. Complete P<0.05/Gene-wise-q and efficient HPO-key lookup need the server API/index connection; do not claim already deployed. |
 | Prioritized findings | Not connected live; do not infer Type/Tier in the browser |
@@ -80,8 +88,8 @@ Carry both Front templates, `PbFront/searchModel.js`, new shared `PbFront/phenot
 
 ## Delivery boundary and outstanding server work
 
-- **Code:** use implementation commit `cea55b953fd21068301168ff666b61db8f44ae98` plus the subsequent documentation and UI changes in the delivery commit containing this document. The source manifest compares this snapshot with baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; its file entries are checksums, not a deployment record.
-- **Four current contracts:** follow the linked Gene2, Phenotype, Variant and Sample documents. The legacy Gene document and collapsed history are reference material, not additional current page specifications. The file checklist is an inventory, not 112 implementation instructions.
+- **Code:** use the commit containing the current correction at the top, with its full history/dependencies including `47d7159c6`. The November 15 manifest covers an earlier snapshot; it does not certify the current correction or a deployment.
+- **Five current contracts:** follow the linked Front, Gene2, Phenotype, Variant and Sample documents. The legacy Gene document and collapsed history are reference material, not additional current page specifications. The old file checklist is an inventory, not current implementation instructions.
 - **Primary source:** retain the existing test-server BioIndex/authentication. Private paths and local ports describe reference preparation; configure equivalent private server services, never browser access to developer files.
 - **Required server integration:** connect the complete approved burden release with both q fields and efficient HPO lookup; implement the HPO-count and full Sample comparison adapters; configure the documented private scoring/GT inputs and service routes. These are explicit migration tasks, not features already proven deployed.
 - **Completion evidence:** the delivered source passed the frontend build, 23 JavaScript test commands and 38 Python tests. The build has the existing locuszoom/tabix-reader export warning. Test-server acceptance in each page contract is still required after integration; a Git push or successful static build alone is insufficient.

@@ -26,6 +26,51 @@ QUERY_HPO = ["HP:0001336", "HP:0002353", "HP:0001270", "HP:0012373"]
 
 
 class PbGeneContextValidationTest(unittest.TestCase):
+    def test_variant_comparison_retains_controls_and_gene_page_scoring(self):
+        from scripts.variant_association import OLSContext
+        ids = list('ABCDEFGH')
+        variant = 'chr11:5227002:T:A'
+        matrix = [[1,0,0,0], [0,1,1,0], [1,1,1,1], [0,0,0,0],
+                  [1,1,0,0], [0,0,1,0], [1,0,1,0], [0,1,0,1]]
+        hpo = self.write_tsv('comparison-hpo.tsv', ['sample_id', *QUERY_HPO], [[sid, *row] for sid,row in zip(ids,matrix)])
+        roster = self.write_tsv('comparison-roster.tsv', ['sample_id','overlap_status'], [[sid,'both'] for sid in ids])
+        evidence = self.write_tsv('comparison-evidence.tsv', ['sample_id','gene_symbol','Variant_ID','GT','pathogenicity_score','Alphamissense'],
+                                  [[sid,'HBB',variant,'0/1',0.8,0.8] for sid in 'ABC'])
+        engine = ContextAnalysisEngine(hpo, roster, evidence)
+        engine.browser_sample_id_by_analysis = {sid:sid+'_E38' for sid in ids}
+        engine.covariates = {'values':np.empty((8,0)), 'names':[], 'sample_metadata':{},
+                             'age_median':0, 'age_missing_count':0, 'sex_reference':'Female', 'sex_counts':{},
+                             'affected_mask':np.asarray([True,False,True,True,False,True,True,False])}
+        terms = (QUERY_HPO[0],)
+        full = engine.analyze('HBB',terms)
+        all_carriers = engine.for_variant_comparison('HBB',variant,('A_E38','B_E38','C_E38'))
+        all_result = all_carriers.analyze('HBB',terms)
+        self.assertEqual(all_result['analysis_sample_count'],8)
+        self.assertEqual(all_result['variant_associations'][variant]['status'],'ok')
+        self.assertEqual(all_result['variant_associations'][variant],full['variant_associations'][variant], 'GT All must equal the Gene page variant regression')
+        self.assertEqual(all_result['variant_match_scores'][variant],full['variant_match_scores'][variant])
+        self.assertEqual(all_result['rphers_standardization'],full['rphers_standardization'])
+        subset = engine.for_variant_comparison('HBB',variant,('A_E38','B_E38'))
+        self.assertEqual(subset.analysis_sample_ids,list('ABDEFGH'), 'Unselected carrier C is excluded, not relabeled as a control')
+        y,_ = engine._phenotype(terms)
+        scoped_y,_ = subset._phenotype(terms)
+        np.testing.assert_allclose(scoped_y,y[[0,1,3,4,5,6,7]])
+        result = subset.analyze('HBB',terms)
+        expected = OLSContext(subset.analysis_sample_ids,np.empty((7,0)),[]).outcome(scoped_y).variant(['A','B'])
+        self.assertAlmostEqual(result['variant_associations'][variant]['beta'],expected.beta)
+        self.assertAlmostEqual(result['variant_associations'][variant]['p_value'],expected.p_value)
+        self.assertEqual(result['rphers_standardization']['reference_n'],8)
+        residuals = subset.variant_carrier_residuals('HBB',variant,terms)
+        self.assertEqual(set(residuals['sample_scores']),{'A_E38','B_E38'})
+        affected = all_carriers.analyze('HBB',terms,affected_only=True)
+        self.assertEqual(affected['analysis_sample_count'],5, 'Affected-only must filter controls as well as carriers')
+        self.assertEqual(affected['variant_associations'][variant]['n_carriers'],2)
+        self.assertEqual(engine.analysis_sample_ids,ids, 'The shared Gene engine is unchanged')
+        with self.assertRaisesRegex(ValueError,'exact requested variant'):
+            engine.for_variant_comparison('HBB',variant,('D_E38',))
+        with self.assertRaisesRegex(ValueError,'None of the selected carriers'):
+            engine.for_variant_comparison('HBB',variant,('missing',))
+
     def test_selected_carriers_define_scoring_regression_and_residual_populations(self):
         from scripts.rphers_fast import score_samples
         hpo = self.write_tsv('selected-hpo.tsv', ['sample_id', *QUERY_HPO], [

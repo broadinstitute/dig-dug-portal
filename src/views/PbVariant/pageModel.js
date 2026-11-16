@@ -26,7 +26,11 @@ const { hpoVersion } = require("./hpoHierarchy");
 const { hpoPath } = require('./hpoHierarchy');
 const { profileTermCounts, profileTermClass, phenotypeDepthColor, phenotypeDataSelection } = require('./phenotypePresentation');
 const { crdcSummaryFrequency, carrierDemographicSummary } = require("./layoutSummary");
-const help = require('../PbGene2/evidenceHelp');
+const help = {
+    ...require('../PbGene2/evidenceHelp'),
+    variantBeta: 'Carrier-versus-noncarrier effect in rPheRS SD units, using the same adjusted linear regression as the Gene page variant table. Selected genotype carriers are compared with eligible noncarriers. Unselected carriers are excluded, never relabeled as noncarriers. Both heterozygous and homozygous ALT genotypes are coded carrier = 1.',
+    variantP: 'Unadjusted two-sided regression p-value for the carrier-versus-noncarrier effect. It cannot be estimated without a noncarrier comparison group. No multiple-testing correction is applied.',
+};
 const layoutHelp = require('./layoutHelp');
 const { GENOTYPES, allGenotypes, genotypeGroup, selectGenotypeCarriers, matchesSampleScope } = require('./genotypeSelection');
 const {
@@ -177,6 +181,7 @@ export function createPbVariantState() {
         contextAssociation: null,
         contextGeneAssociation: null,
         contextStandardization: null,
+        contextComparisonScope: null,
         coGeneStandardization: null,
         contextResidualById: {},
         contextRunId: 0,
@@ -367,6 +372,7 @@ export const pbVariantComputed = {
         return [this.variantAssociationModelLabel,
             association && association.sampleCount != null ? `${Number(association.sampleCount).toLocaleString()} analysis samples` : '',
             association && association.carrierCount != null ? `${Number(association.carrierCount).toLocaleString()} modeled carriers` : '',
+            this.contextComparisonScope ? `${Number(this.contextComparisonScope.noncarrier_count).toLocaleString()} noncarrier controls` : '',
             this.contextMatch && this.contextMatch.status,
             `GRS: ${this.coGeneScoreType === 'sum' ? 'Sum' : 'Max'} (gene/co-gene models)`,
             this.rphersReferenceLabel(this.contextStandardization),
@@ -576,6 +582,7 @@ export const pbVariantMethods = {
         this.contextAssociation = null;
         this.contextGeneAssociation = null;
         this.contextStandardization = null;
+        this.contextComparisonScope = null;
         this.contextResidualById = {};
         this.coGeneAssociationByGene = {};
         this.coGeneStandardization = null;
@@ -687,6 +694,7 @@ export const pbVariantMethods = {
         this.contextAssociation = null;
         this.contextGeneAssociation = null;
         this.contextStandardization = null;
+        this.contextComparisonScope = null;
         this.coGeneStandardization = null;
         this.contextResidualById = {};
         this.activeContextTerms = [];
@@ -911,6 +919,26 @@ export const pbVariantMethods = {
         if (value == null || !Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > 1) return "Unavailable";
         return Number(value) === 0 ? "<1e-300" : this.displayMean(value);
     },
+    displayMeanZ(value) {
+        return this.displayMean(value != null && value !== '' && Math.abs(Number(value)) < 1e-12 ? 0 : value);
+    },
+    variantAssociationReason(association) {
+        if (!association || association.status === 'ok') return '';
+        const count = association.sampleCount;
+        const population = Number.isInteger(count) && count > 0 ? `All ${count} analysis-eligible samples` : 'All analysis-eligible samples';
+        return {
+            all_carriers: `${population} carry this variant. There is no noncarrier comparison group, so beta and P cannot be estimated. Phenotype scores are calculated separately.`,
+            no_carriers: 'No analysis-eligible sample carries this variant, so beta and P cannot be estimated.',
+            constant_outcome: 'The phenotype score is constant in the selected analysis group, so beta and P cannot be estimated.',
+            constant_or_collinear_predictor: 'The variant predictor has no independent variation after covariate adjustment, so beta and P cannot be estimated.',
+            insufficient_degrees_of_freedom: 'Too few analysis samples remain for the adjusted regression, so beta and P cannot be estimated.',
+            zero_residual_variance: 'The adjusted model has no residual variance, so regression uncertainty and P cannot be estimated.',
+        }[association.status] || '';
+    },
+    variantAssociationDisplay(association, field) {
+        if (this.variantAssociationReason(association)) return 'Not estimable';
+        return field === 'beta' ? this.displayMean(association && association.beta) : this.displayPValue(association && association.pValue);
+    },
     carrierResidualScore(carrier) {
         if (this.contextLoading) return "Calculating…";
         if (!this.contextMatch && !this.contextAssociation) return "no context";
@@ -919,7 +947,7 @@ export const pbVariantMethods = {
     },
     rphersReferenceLabel(reference) {
         if (referenceAvailable(reference))
-            return `SD reference: ${reference.reference_n.toLocaleString()} valid scores in the selected genotype carriers. Scoring and analysis are recomputed for this selection.`;
+            return `SD reference: ${reference.reference_n.toLocaleString()} valid scores in the full scoring cohort, shared with the Gene page. Genotype selection changes the carrier group; noncarrier controls remain in the regression.`;
         return referenceDescription(reference);
     },
     geneAssociationCell(gene, field) {
@@ -1044,7 +1072,8 @@ export const pbVariantMethods = {
             const result = payload.genes && payload.genes[gene]
                 ? payload.genes[gene]
                 : payload;
-            if (!matchesSampleScope(result, sampleIds)) throw new Error('The analysis service did not apply the genotype sample selection.');
+            if (!matchesSampleScope(result, sampleIds) || result.sample_scope.kind !== 'selected_carriers_vs_noncarriers' || result.sample_scope.reference_scope !== 'full_scoring_cohort')
+                throw new Error('The analysis service did not apply the genotype sample selection with noncarrier controls and the full-cohort scoring reference.');
             if (!contextMatches(result.rphers_standardization, analysisTerms)) result.rphers_standardization = null;
             const match = exactVariantContext(result, variantId);
             const association = exactVariantAssociation(result, variantId);
@@ -1059,6 +1088,7 @@ export const pbVariantMethods = {
             this.coGeneAssociationError = "";
             if (excludedTerms.length) this.contextWarning = `Excluded from calculation because they are not in the CRDC cohort data: ${excludedTerms.map(id => `${hpoLabel(id)} (${id})`).join(", ")}.`;
             this.contextStandardization = result.rphers_standardization || null;
+            this.contextComparisonScope = Object.freeze({...result.sample_scope});
             if (!referenceAvailable(this.contextStandardization))
                 this.contextWarning = [this.contextWarning, referenceDescription(this.contextStandardization)].filter(Boolean).join(" ");
             this.contextMatch = match;
@@ -1168,6 +1198,7 @@ export const pbVariantMethods = {
             this.contextAssociation = null;
             this.contextGeneAssociation = null;
             this.contextStandardization = null;
+            this.contextComparisonScope = null;
             this.coGeneStandardization = null;
             this.contextResidualById = {};
             this.coGeneAssociationByGene = {};

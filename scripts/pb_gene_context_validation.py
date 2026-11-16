@@ -479,6 +479,52 @@ class ContextAnalysisEngine:
         self.gene_association_runner = gene_association_runner
 
     @lru_cache(maxsize=8)
+    def for_variant_comparison(self, gene, variant_id, sample_ids):
+        """Select target carriers without removing their noncarrier controls.
+
+        Use the same full-cohort phenotype scoring/reference as Gene2. Exclude
+        unselected target carriers entirely; never relabel them as controls.
+        """
+        canonical_sample = lambda value: re.sub(r'_[EG]38$', '', str(value).strip(), flags=re.I).upper()
+        canonical_variant = lambda value: str(value).strip().lower().removeprefix('chr')
+        requested = {canonical_sample(value) for value in sample_ids}
+        selected = {
+            sid for sid in self.analysis_sample_ids
+            if canonical_sample(sid) in requested
+            or canonical_sample(self.browser_sample_id_by_analysis.get(sid, sid)) in requested
+        }
+        target = canonical_variant(variant_id)
+        carriers = {
+            sid for key, ids in self._gene_data(gene)['carriers_by_variant'].items()
+            if canonical_variant(key) == target for sid in ids
+        }
+        if selected - carriers:
+            raise ValueError('Selected analysis samples must carry the exact requested variant.')
+        if not selected:
+            raise ValueError('None of the selected carriers are eligible for the analysis roster.')
+        keep = self.analysis_sample_set - (carriers - selected)
+        scoped = copy(self)
+        scoped.selected_sample_scope = False
+        scoped.analysis_sample_ids = [sid for sid in self.analysis_sample_ids if sid in keep]
+        scoped.analysis_sample_set = set(scoped.analysis_sample_ids)
+        mask = np.asarray([sid in keep for sid in self.analysis_sample_ids], dtype=bool)
+        scoped.analysis_hpo_indices = self.analysis_hpo_indices[mask]
+        # Preserve IC weights, residualization and SD reference from Gene2.
+        scoped._scoring = self._scoring
+        if self.covariates is not None:
+            scoped.covariates = {**self.covariates, 'values': self.covariates['values'][mask].copy()}
+            affected = self.covariates['affected_mask']
+            scoped.covariates['affected_mask'] = None if affected is None else affected[mask]
+            metadata = self.covariates.get('sample_metadata', {})
+            scoped.covariates['sample_metadata'] = {sid: metadata[sid] for sid in scoped.analysis_sample_ids if sid in metadata}
+        scoped.variant_comparison = {
+            'kind': 'selected_carriers_vs_noncarriers',
+            'reference_scope': 'full_scoring_cohort',
+            'excluded_carrier_count': len(carriers - selected),
+        }
+        return scoped
+
+    @lru_cache(maxsize=8)
     def for_sample_ids(self, sample_ids):
         """Isolated scoring/analysis inputs for an explicit private carrier selection.
 
