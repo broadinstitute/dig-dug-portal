@@ -373,6 +373,7 @@ export default {
                             shape: "box",
                             margin: { top: 7, right: 9, bottom: 7, left: 9 },
                             font: { color: "#39424c", face: "Arial", size: 10, multi: "html" },
+                            scaling: { label: { drawThreshold: 0 } },
                         },
                         groups: {
                             stage: {

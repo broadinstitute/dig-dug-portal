@@ -28,14 +28,12 @@
                 </a>
             </template>
             <template #cell(biosample)="r"
-                ><b-button
-                    size="sm"
-                    variant="outline-primary"
-                    class=""
-                    @click="showDetails(r)"
                 >
+                <button class="btn btn-secondary btn-sm"
+                    @click="showDetails(r)">
                     {{ r.detailsShowing ? "Hide" : "Show" }}
-                </b-button></template
+                </button>
+            </template
             >
             <template #row-details="r">
                 <div class="row">

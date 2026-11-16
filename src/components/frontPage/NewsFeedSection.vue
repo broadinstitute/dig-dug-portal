@@ -72,6 +72,6 @@ export default Vue.component("news-feed-section", {
 }
 .no-image {
     height: 100px;
-	background-image: url("https://kp4cd.org/sites/default/files/images/news.svg");
+	background-image: url("https://hugeampkpncms.org/sites/default/files/images/news.svg");
 }
 </style>

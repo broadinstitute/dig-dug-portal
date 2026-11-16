@@ -388,6 +388,12 @@ let pages = {
         template: "public/index.html",
         title: "Bird Methods",
         chunks: ["chunk-vendors", "chunk-common", "birds"]
+    },
+    t2d_assays: {
+        entry: "src/views/T2DAssays/main.js",
+        template: "public/index.html",
+        title: "Physiological Assays for T2D Research",
+        chunks: ["chunk-vendors", "chunk-common", "t2d_assays"]
     }
 };
 

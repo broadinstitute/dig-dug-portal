@@ -4,7 +4,7 @@
                 Part of
                 <span>
                     <img
-                        src="https://kp4cd.org/sites/default/files/kpn_small.svg"
+                        src="https://hugeampkpncms.org/sites/default/files/kpn_small.svg"
                         style="width: 50px; margin-left: 3px; margin-right: 5px"
                     />
                 </span>

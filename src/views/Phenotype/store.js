@@ -102,7 +102,8 @@ export default new Vuex.Store({
             keyParams.set({ phenotype: phenotype.name });
         },
 
-        onAncestryChange(context) {
+        onAncestryChange(context, ancestry) {
+            context.state.selectedAncestry = ancestry;
             context.dispatch("queryPhenotype");
         },
         async getAnnotations(context) {

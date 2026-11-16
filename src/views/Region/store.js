@@ -197,7 +197,8 @@ export default new Vuex.Store({
             });
         },
 
-        onAncestryChange(context){
+        onAncestryChange(context, ancestry){
+            context.state.selectedAncestry = ancestry;
             context.dispatch("queryRegion");
         },
 
