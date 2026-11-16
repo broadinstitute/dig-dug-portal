@@ -1,4 +1,29 @@
-# PB Gene2, Phenotype, Variant and Sample — integration starting point
+# PB Front, Gene2, Phenotype, Variant and Sample — integration starting point
+
+## Required design fidelity — all five pages
+
+**All engineer-facing documentation and AI implementation instructions must be written in English.**
+
+**Implement the user's existing prototype as designed. The current Vue templates, CSS, shared components and assets are the visual and interaction specification for Front (including Front2), Gene2, Phenotype, Variant and Sample. Port them together; do not redesign or substitute generic framework styling.**
+
+- Preserve typography, font weights, colors, borders, radii, spacing, widths, card/table order, alignment, icons, pagination and responsive behavior. Preserve selected, hover, focus, expanded, loading, empty and error states and the existing Guide/help placement.
+- Load the prototype's fonts, icons, assets and page/shared CSS; prevent the destination site's global CSS or component defaults from overriding them. Match the rendered styles, not just the text and data.
+- Use the current source and the latest page contract together. Adapt server/data integration behind the UI while preserving the designed markup, classes and behavior. If a framework migration requires different markup, reproduce the same rendered result and interactions.
+- Compare prototype and target screenshots at the same viewport, zoom, query and UI state for **each of the five pages**. Check search/filters, selection and expansion as well as the initial screen. Fix visual differences before declaring UI implementation complete; a build or API response alone is insufficient.
+
+### Latest delivery after `54cfec6e2` — 2026-11-16
+
+Compared the latest contracts and current source with baseline `54cfec6e2`. The commit containing this document includes the Front search, Phenotype refinements/export-only changes, their tests and all five English page contracts. Use that complete commit on `kyuryung/bch-prototype`, including new files; `54cfec6e2` and the November 15 manifest alone do not contain this follow-up. Git delivery does not establish target-server deployment. Older delivery statements below refer to their earlier snapshots.
+
+| Page | Current contract |
+|---|---|
+| Front / Front2 | [Front contract](pb_front_engineering_handoff_20261116.md): only CRDC-available HPO suggestions, validated paste/submission, multi-HPO default All (AND). |
+| Gene2 | [Gene2 contract](pb_gene2_engineering_handoff_20261112.md): preserve current layout, scoring availability labels and GT integration. |
+| Phenotype | [Latest search/refinement delta](pb_phenotype_live_profile_and_spec_2026-10-16.md#2026-11-16-search-refinements--latest-local-delta): Includes/Without + IDs under Limited to, stronger colors, return to search conditions after +/−, Export only. Preserve the accepted result layout. |
+| Variant | [Variant contract](pb_variant_engineering_integration_handoff.md): retain the larger blue Genotype selector, its states and exact-ID GT fix. |
+| Sample | [Sample contract](pb_sample_engineering_integration_handoff.md): retain the two comparison tables and final short blue dashed separators. |
+
+Delivery audit: all five current page contracts, this common guide and the legacy engineering entry contain no Korean text; their local file links were checked. Thirteen targeted JavaScript test commands passed across Front/Front2, shared HPO availability, Phenotype, Gene2, Variant and Sample comparisons. The complete frontend build passed with the existing LocusZoom/tabix-reader export warning. The Gene2 test now includes its missing Guide component stub. Target-server adapters, private inputs/authentication and five-page visual acceptance still require verification after migration.
 
 ## November 16 review of all four pages
 
@@ -44,6 +69,14 @@ Follow the new [Gene2 delta](pb_gene2_engineering_handoff_20261112.md#2026-11-16
 | Prioritized findings | Not connected live; do not infer Type/Tier in the browser |
 
 BioIndex GET `:5000/api/bio/query/gene-variants-crdc?q=…` and Helen POST `/phenotype-analyzer-api/gene-variants-crdc` are different contracts despite sharing a name. Do not redirect the whole prototype analysis base to the latter. Private sources are not bundled in static assets or Git. Exact paths/build timestamps/checksums are maintained in the existing Obsidian source handoff.
+
+## 2026-11-16 Front multi-phenotype search — local follow-up
+
+Front (`pb_front.html` / `pb_Front.html`) and Front2 now validate phenotype selection and submission using the existing shared `/__pb_phenotype_profile__/hpo-counts` service. Show an HPO suggestion only when its count is at least one; omit zero/absent/unchecked HPOs before ranking and limiting the results. Keep selection guards and reject unsupported pasted IDs before navigation. Show counts for available HPOs and provide retry after service failure. Keep the complete input for correction; do not silently drop a term.
+
+Resolve accepted names/aliases/selected labels to deduplicated HPO IDs and navigate to `/pb_phenotype.html?query=<IDs>&match=all`. Multi-HPO searches require every included term (AND). Gene/Variant navigation and Front2's Sample exclusion retain their existing behavior. The screenshot's `HP:0010010` was absent from the live analysis HPO set; switching matching mode alone cannot make it searchable.
+
+Carry both Front templates, `PbFront/searchModel.js`, new shared `PbFront/phenotypeSearch.js`, and new `scripts/test_pb_front_phenotype_availability.js`. The new test and existing Front/Front2 routing and shared availability tests pass; both templates/CSS compile. Chrome confirmed unsupported input stays on Front and an available Seizure + Hypotonia search opens All (AND), with 553 matching samples in the checked source. These changes follow baseline `54cfec6e2` and are included in the commit containing this document; the earlier delivery manifest does not cover them. Verify the final input/dropdown behavior and an available multi-HPO AND search in the target browser. See the [Front contract](pb_front_engineering_handoff_20261116.md).
 
 ## Delivery boundary and outstanding server work
 

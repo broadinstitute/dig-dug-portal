@@ -59,6 +59,8 @@
                                 type="button"
                                 role="option"
                                 :aria-selected="String(index === activeOption)"
+                                :disabled="!frontOptionAvailability(option).enabled"
+                                :title="frontOptionAvailability(option).reason"
                                 :aria-label="[option.kind, option.label, option.id].filter(Boolean).join(' ')"
                                 @mousedown.prevent
                                 @click="selectOption(option)"
@@ -68,6 +70,7 @@
                                     {{ option.label }}
                                     <span v-if="option.id" class="suggestion-id">{{ option.id }}</span>
                                 </span>
+                                <span v-if="option.kind === 'Phenotype'" class="suggestion-availability">{{ frontOptionAvailability(option).reason }}</span>
                             </button>
                         </li>
                     </ul>
@@ -75,6 +78,7 @@
 
                 <div class="hint-row">
                     <p id="front-search-hint" class="hint" aria-live="polite">{{ hint }}</p>
+                    <button v-if="frontHpoCountsStatus === 'error'" class="availability-retry" type="button" @click="retryFrontHpoCounts">Retry phenotype check</button>
                     <div class="help-wrap" :data-open="String(helpOpen)">
                         <button
                             class="help-button"
@@ -92,7 +96,7 @@
                             <span>Gene · SLC6A7</span>
                             <span>Variant · chr12:102912793:CA:C</span>
                             <span>Phenotype · Progressive muscle weakness [HP:0003323]</span>
-                            <span>Separate multiple phenotypes with commas.</span>
+                            <span>Separate multiple phenotypes with commas; all must match (AND). Only HPOs recorded in CRDC can be selected.</span>
                             <span>Gene and phenotype matching ignores capitalization.</span>
                         </div>
                     </div>
@@ -108,11 +112,12 @@ import { hpoTerms } from "../KrClinicalFocus/clinicalContextReference.generated"
 import { PB_GENE_ID_REFERENCE } from "../PbGene/geneIdReference.generated";
 
 const {
-    buildSearchHref,
     findSearchOptions,
     normalizeSearchValue,
     resolveSearchTarget,
 } = require("./searchModel");
+
+const { frontPhenotypeSearchMixin } = require("../PbFront/phenotypeSearch");
 
 const HPO_ALIASES = {
     "HP:0000750": ["speech delay", "delayed speech"],
@@ -146,6 +151,7 @@ const GENE_SYMBOLS = new Set(GENE_OPTIONS.map((option) => option.normalizedLabel
 
 export default {
     components: { PortalGuide },
+    mixins: [frontPhenotypeSearchMixin],
     name: "PbFrontTemplate",
     data() {
         return {
@@ -160,6 +166,9 @@ export default {
         };
     },
     computed: {
+        searchableOptions() {
+            return SEARCH_OPTIONS.filter(option => this.frontOptionAvailability(option).enabled);
+        },
         showSuggestions() {
             return this.suggestionsOpen && this.visibleOptions.length > 0;
         },
@@ -175,7 +184,7 @@ export default {
     },
     methods: {
         updateSuggestions() {
-            this.visibleOptions = findSearchOptions(SEARCH_OPTIONS, this.query);
+            this.visibleOptions = findSearchOptions(this.searchableOptions, this.query);
             this.suggestionsOpen = this.visibleOptions.length > 0;
             this.activeOption = -1;
         },
@@ -196,6 +205,8 @@ export default {
             this.closeTimer = window.setTimeout(() => this.closeSuggestions(), 120);
         },
         selectOption(option) {
+            const availability = this.frontOptionAvailability(option);
+            if (!availability.enabled) {this.hint = availability.reason; return;}
             if (this.closeTimer) window.clearTimeout(this.closeTimer);
             const selectedValue = option.id ? `${option.label} [${option.id}]` : option.label;
             const comma = this.query.lastIndexOf(",");
@@ -217,12 +228,14 @@ export default {
             if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                 event.preventDefault();
                 const step = event.key === "ArrowDown" ? 1 : -1;
-                const start = step > 0 ? 0 : this.visibleOptions.length - 1;
-                const next = this.activeOption < 0 ? start : this.activeOption + step;
-                this.activeOption = (next + this.visibleOptions.length) % this.visibleOptions.length;
+                const enabled = this.visibleOptions.map((option, index) => this.frontOptionAvailability(option).enabled ? index : -1).filter(index => index >= 0);
+                const current = enabled.indexOf(this.activeOption);
+                this.activeOption = enabled.length ? enabled[(current < 0 ? (step > 0 ? 0 : enabled.length - 1) : current + step + enabled.length) % enabled.length] : -1;
             } else if (event.key === "Enter") {
                 event.preventDefault();
-                this.selectOption(this.visibleOptions[this.activeOption < 0 ? 0 : this.activeOption]);
+                const option = this.activeOption < 0 ? this.visibleOptions.find(option => this.frontOptionAvailability(option).enabled) : this.visibleOptions[this.activeOption];
+                if (option) this.selectOption(option);
+                else this.hint = this.frontHpoCountsStatus === 'ready' ? 'No searchable CRDC phenotype in these suggestions.' : 'Phenotype availability must be checked before selection.';
             }
         },
         toggleHelp() {
@@ -241,7 +254,7 @@ export default {
                 return;
             }
 
-            window.location.assign(buildSearchHref(target));
+            return this.navigateFrontSearch(target, HPO_OPTIONS);
         },
     },
 };
@@ -375,7 +388,7 @@ input {
 
 .suggestion-button {
     display: grid;
-    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-columns: 92px minmax(0, 1fr) auto;
     align-items: center;
     width: 100%;
     min-height: 42px;
@@ -392,6 +405,11 @@ input {
 .suggestion-button[aria-selected="true"] {
     background: rgba(54, 94, 90, 0.11);
 }
+
+.suggestion-button:disabled { opacity: .6; cursor: not-allowed; }
+.suggestion-button:disabled:hover { background: transparent; }
+.suggestion-availability { max-width: 230px; margin-left: 12px; color: var(--muted-ink); font-size: 11px; text-align: right; }
+.availability-retry { flex-shrink: 0; padding: 4px 8px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: inherit; font-size: 12px; cursor: pointer; }
 
 .suggestion-kind {
     color: var(--accent);

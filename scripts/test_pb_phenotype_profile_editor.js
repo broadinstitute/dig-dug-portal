@@ -68,7 +68,10 @@ async function main() {
     assert.equal(find(rendered, hasClass('pbp-builder-apply')).length, 0, 'No Apply button outside Advanced');
     assert.equal(find(rendered, hasClass('pbp-match-control')).length, 0, 'Collapsed summary must not offer another Match control');
     assert.equal(Boolean(find(rendered, hasClass('pbp-unified-submit'))[0].data.attrs.disabled), false);
-    assert.equal(find(rendered, hasClass('pbp-summary-excludes')).length, 1, 'Without is its own summary row');
+    assert.equal(find(rendered, hasClass('pbp-summary-excludes')).length, 0, 'Without is grouped with the other limits');
+    const limits = find(rendered, hasClass('pbp-summary-limits'))[0];
+    assert.equal(find(limits, hasClass('pbp-search-chip-excluded')).length, 1, 'Without appears inside Limited to');
+    assert.equal(editor.limitCount, 1, 'The Advanced badge includes exclusions');
     editor.toggleAdvanced();
     rendered = editor._render();
     assert.equal(find(rendered, hasClass('pbp-unified-submit'))[0].data.attrs.disabled, true, 'Search is disabled while Advanced is expanded');
@@ -87,6 +90,7 @@ async function main() {
     editor.addRule(); const invRow = editor.draftRows.at(-1); invRow.field = 'investigator'; editor.changeField(invRow); invRow.value = 'investigator_a';
     assert.equal(ageRow.operator, 'between'); assert.equal(invRow.operator, 'is');
     assert.equal(editor.limitedRules.length, 2, 'Summary chips and Advanced edit the same working conditions');
+    assert.equal(editor.limitCount, 3, 'Required limits and Without share one applied-condition count');
     assert.equal(applied.length, 2, 'Editing advanced values waits for its Apply button');
     editor.setMatch('any');
     rendered = editor._render();
@@ -178,6 +182,9 @@ async function main() {
     assert.equal(required[0].required,true);
     assert.deepEqual(filters.readRules(JSON.stringify(required),resolve),required);
     const refined = new Vue({...loadEditor(),propsData:{ids:['HP:0000001','HP:0000002'],excluded:[],rules:required,terms,searchIndex:index,matchMode:'any',sampleCounts:{'HP:0000001':1,'HP:0000002':1,'HP:0000003':1},countsStatus:'ready'}});
+    const requiredChip = find(refined._render(), hasClass('pbp-limit-chip'))[0];
+    assert.equal(find(requiredChip, node => node.tag === 'b')[0].children[0].text, 'Includes · Seizure');
+    assert.equal(find(requiredChip, node => node.tag === 'small')[0].children[0].text, 'HP:0000003', 'Includes shows the same HPO ID line as Without');
     refined.toggleAdvanced();
     assert.equal(refined.includedPhenotypeCount,2,'AND required HPO does not enter the Any/k/All group');
     assert.equal(refined.summary.rules[0].required,true);

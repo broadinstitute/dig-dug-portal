@@ -1,8 +1,20 @@
 # Phenotype — test-server implementation contract
 
+**Reproduce the user's current prototype design and interactions exactly.** The [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages) applies to this entire page, including its typography, colors, spacing, borders, card/table layout, responsive behavior and every interactive state. Carry the Vue templates and CSS together.
+
+## 2026-11-16 search refinements — latest local delta
+
+These changes follow baseline `54cfec6e2` and are included in the commit containing this document, together with their source and tests. The earlier delivery manifest does not include them. This section takes precedence over older search-summary/copy-action instructions below. Target-server deployment remains pending.
+
+- Put required and excluded HPO refinements together under **Limited to**. Use **Includes · term name** and **Without · term name**, with the **HPO ID on a second line** in both. Omit the redundant `Phenotype` prefix. Both contribute to the Advanced condition count.
+- Preserve the implemented chip styling: 2px border, 6px radius; green border `#268153`, background `#daf0e3`, text `#125e38`; red border `#c43b30`, background `#fde1dc`, text `#9f251b`. Names are 20px/600; IDs are 16px monospace. Use the source CSS for all surrounding sizes/spacing.
+- After lower-table `+ / −`, apply the condition, scroll/focus the top search card and show **Search updated · Includes/Without · name · ID** with the matching color. Respect reduced motion. Preserve All/Any/Custom grouping; Require stays a separate AND condition.
+- Matching samples retains **Export table** only in both single- and multi-HPO views. Remove Copy sample IDs and its clipboard/status code. Export still includes the current filtered/sorted full list.
+- Carry `PbPhenotype/{PhenotypeProfileEditor.vue,profileEditor.css,Template.vue,style.css,SinglePhenotypeResults.vue}` and the updated editor/selection tests with their existing dependencies. Editor, selection and single-result tests and `git diff --check` passed. Chrome verified Includes + ID, green styling, Without feedback and return/focus to the search card. Target-server visual acceptance remains required.
+
 November 15 delivery snapshot: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). It describes the earlier delivered source and its dependencies, not the November 16 additions in this Git delivery. Use the current follow-up sections together with the delivered baseline; the checklist is not deployment evidence.
 
-Updated: 2026-11-16. Entry: `/pb_phenotype.html`. Latest delivered HEAD: `306ded0b8`; the November 16 section records additional changes included in this Git delivery. The November 15 delivery used baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128`. This document replaces the older layout/spec instructions in this file. It does not establish deployment.
+Updated: 2026-11-16. Entry: `/pb_phenotype.html`. Previous delivered HEAD: `54cfec6e2`; the latest search/refinement section above is included in the commit containing this document. The November 15 delivery used baseline `859cd905d49e61f3a1e6765bb88ff0a2555c3128`. This document replaces the older layout/spec instructions in this file. It does not establish deployment.
 
 ## 2026-11-16 results UI — current local follow-up
 
@@ -23,7 +35,9 @@ Four-page review: the latest accepted Phenotype behavior below was retained afte
 
 ### Sample table and external disease behavior
 
-- Multi-HPO sample **Phenotype match** now opens phenotype checkboxes rather than sorting the match count. A row passes if it matches any checked input term (including parent-expanded observations), then intersects with the selected projects. Empty selection gives no rows. This local filter applies to pins, pagination, copied IDs and CSV; it does not change summary, project or gene-comparison groups. Changing input HPO IDs clears obsolete phenotype selections.
+- Matching samples keeps **Export table** only; remove **Copy sample IDs**, its clipboard action and copy-status message in both single- and multi-HPO views. Export retains the current filtered/sorted full sample list.
+
+- Multi-HPO sample **Phenotype match** now opens phenotype checkboxes rather than sorting the match count. A row passes if it matches any checked input term (including parent-expanded observations), then intersects with the selected projects. Empty selection gives no rows. This local filter applies to pins, pagination and CSV; it does not change summary, project or gene-comparison groups. Changing input HPO IDs clears obsolete phenotype selections.
 - Disease layout uses 4.5:5.5 left disease / right separating-phenotype columns on wide screens. Compact single-line headers and horizontal overflow protect narrow panels. Disease Rank/name/matched count/curated genes and separator phenotype/disease count/sample count/Require/Exclude headers sort their complete lists before pagination. Separator candidates still use the original top-ten reference ranking, not whichever disease sort/page happens to be displayed.
 - Multi-HPO Rank is a small blue circular number; click to expand `DiseaseRankDetails.vue`. It shows selected terms matched / input count, the disease annotation count, the actual matching annotation, reported frequency and weight for each query, coverage arithmetic and final score. Unmatched query terms remain explicit. The Rank superscript information icon describes source-specific ordering; sorting the table does not renumber the original reference Rank.
 - Orphanet: each query uses its highest-frequency exact/descendant annotation. Weights are Obligate 0.9950, Very frequent 0.8911, Frequent 0.5446, Occasional 0.1733, Very rare 0.0297; Excluded (0%) is ignored. Let S be the summed query-match weights, K the input-term count and W the existing ancestor/descendant-reduced disease denominator. Q=S/K; D=min(1,S/W); score=2QD/(Q+D), with zero when both coverages are zero. Rank is score descending, then Q descending, then name. The same annotation can explain more than one query. This is a reference score, not a diagnostic probability.
@@ -117,7 +131,7 @@ Current single-HPO UI expects `carrierCoverage.sampleMembership` with schema `or
 - Each entered HPO needs **≥1 recorded CRDC sample in the availability matrix**. Disable unavailable suggestions; validate paste, Advanced, URL and direct execution. Loading/error is not zero; provide Retry. Apply the same helper to Gene2/Variant Custom HPO, without changing their model matrices/carrier thresholds.
 - Six positive-result cards: common summary → Who → Projects → Matching samples → Genes → External diseases. Summary includes four metrics **and** mutually exclusive colored combination cards for multi-HPO queries.
 - Project mean Z and individual Z remain. `Phenotype match` labels the multi matched-count column. Five unpinned rows/page; pins stay fixed; numeric pagination shows at most five numbers; expanded project phenotypes use the connected hierarchy rather than term pagination.
-- Sample Project/Investigator header offers a searchable multi-select filter and A→Z/Z→A sort; multi-HPO Phenotype match offers query-term checkboxes. It affects sample-table pins/copy/CSV only, with X of N caption; Advanced Project remains the global search condition.
+- Sample Project/Investigator header offers a searchable multi-select filter and A→Z/Z→A sort; multi-HPO Phenotype match offers query-term checkboxes. It affects sample-table pins/CSV only, with X of N caption; Advanced Project remains the global search condition.
 - Who defaults to the full-width overview hierarchy below one Age/Sex/Affected row. Table retains +/− actions, puts query terms first, sorts other rows before pagination and omits query ancestors from those other rows. Percentages use the complete matching group. `Subtype of` is an ontology relationship, not a different denominator. Require adds an external AND rule; Exclude removes matching observations.
 - Zero intersection is valid even when each HPO individually exists: show a full-width gray bar, explicit no-match/rule explanation, no 0/0 age/affected figures; hide empty CRDC detail cards, retain external references. Unavailable HPO is a separate validation state before calculation.
 - Keep readable desktop fonts/grid lines at the existing 100% scale. Compact row-label tooltips retain zoom-aware above/below placement and Escape/navigation cleanup. Superscript information icons use the separate same-height margin rail described below. Sample/Gene/Variant links retain exact encoded query IDs.
@@ -134,7 +148,7 @@ Visible info icons accompany the six result-card headings and the Z, beta, CI, p
 | Profile reference | `scripts/pb_phenotype_profile_api.py`, `pb_profile_metadata.py`, `pb_gene_context_api_server.py`, `pb_gene_context_validation.py`, `rphers_fast.py`, `rphers_standardization.py`; retain their imports. Sample routes share this service: follow the Sample handoff. |
 | Registration / startup | Merge `vue.config.js` handlers/proxies; retain `public/index.html` first-paint scale. `serve_pb_phenotype_local.sh` is a **local runner**, not the test server's configuration. |
 
-Local implementation only: profile service 8093; Gene Context 8092; sample-GRS membership 8094; scoped Variant Context 8095. Frontend launcher starts at 8098 and may use the next free port; 8099 was the November 15 reviewed screen; this session used 8098. These are not test-server BioIndex ports. Do not redirect the whole `/phenotype-analyzer-api` base to a differently contracted API.
+Local implementation only: profile service 8093; Gene Context 8092; sample-GRS membership 8094; scoped Variant Context 8095. The managed frontend launcher uses fixed port 8098 by default and fails if it is occupied; it does not silently advance. 8099 was the November 15 reviewed screen; this session used 8098. These are not test-server BioIndex ports. Do not redirect the whole `/phenotype-analyzer-api` base to a differently contracted API.
 
 For a matching private reference installation, the existing readers use:
 
@@ -157,7 +171,7 @@ Local-only configuration: `PB_PHENOTYPE_HPO_MATRIX`, `PB_PHENOTYPE_METADATA`, `P
 2. Gene2 uses Gene-wise q and Phenotype HPO-wise q; same pair beta/p/N match. Full HPO lookup is not top-15. Membership source/cohort/N match the declared table.
 3. Example query HP:0025354+HP:0000365+HP:0001250: All=8, Any=3,447, Custom minimum2=332, combinations 8+192+78+54 on the reviewed source. Examples are checks, never constants.
 4. Hearing abnormality+Fever+Juvenile cataract: All=0, Any=2,920, minimum2=261 on the reviewed source; zero bar stays horizontal. Verify labels, common metrics and phenotype denominators update together.
-5. Missing HPO blocks calculation; a live HPO with exactly one sample is allowed. Count-service failure/retry, null/zero distinction, URL reload, +/− predictions, filters/pins/copy/CSV, exact links and zoom-aware hover work.
+5. Missing HPO blocks calculation; a live HPO with exactly one sample is allowed. Count-service failure/retry, null/zero distinction, URL reload, +/− predictions, filters/pins/CSV, exact links and zoom-aware hover work.
 
 ```sh
 node scripts/test_crdc_hpo_availability.js

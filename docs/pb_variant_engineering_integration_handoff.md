@@ -1,5 +1,7 @@
 # PB Variant engineering handoff
 
+**Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, card/table widths and order, icons, responsive layout and every interactive state, including the blue Genotype selector. Compare prototype and target at the same viewport/zoom before marking the UI complete.
+
 November 15 delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). The November 16 local delta below is additional to that delivered snapshot; include its new files. Neither the manifest nor local checks establish deployment.
 
 Updated: 2026-11-16 · Branch: `kyuryung/bch-prototype` · Entry: `/pb_variant.html`

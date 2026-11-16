@@ -23,9 +23,10 @@
                 </div>
                 <button type="submit" class="pbp-unified-submit" :disabled="advancedOpen" @mousedown.prevent>Search</button>
             </form>
-            <button type="button" class="pbp-advanced-toggle" :class="{ active: advancedOpen }" :aria-expanded="String(advancedOpen)" :aria-controls="panelId" @click="toggleAdvanced">Advanced search <span v-if="limitedRules.length" class="pbp-filter-count">{{ limitedRules.length }}</span><b-icon-chevron-up v-if="advancedOpen" aria-hidden="true" /></button>
+            <button type="button" class="pbp-advanced-toggle" :class="{ active: advancedOpen }" :aria-expanded="String(advancedOpen)" :aria-controls="panelId" @click="toggleAdvanced">Advanced search <span v-if="limitCount" class="pbp-filter-count">{{ limitCount }}</span><b-icon-chevron-up v-if="advancedOpen" aria-hidden="true" /></button>
         </div>
         <p v-if="error" class="pbp-editor-error" role="alert">{{ error }}</p><p v-if="countsStatus === 'error'" class="pbp-editor-error" role="status">CRDC sample availability is unavailable. <button type="button" class="pbp-search-text-button" @click="$emit('retry-counts')">Retry availability check</button></p>
+        <p v-if="refinementChange && !advancedOpen" class="pbp-refinement-feedback" :class="{ 'is-excluded': refinementChange.exclude }" role="status"><strong>Search updated</strong> · {{ refinementChange.exclude ? 'Without' : 'Includes' }} · {{ name(refinementChange.id) }} · {{ refinementChange.id }}</p>
 
 
         <div v-if="advancedOpen" :id="panelId" class="pbp-advanced-builder">
@@ -51,13 +52,12 @@
             <div v-if="summary.ids.length" class="pbp-summary-row pbp-summary-includes">
                 <strong class="pbp-summary-label">Samples with</strong>
                 <div class="pbp-condition-chips">
-                    <span v-for="(id, index) in summary.ids" :key="id" class="pbp-search-chip" :style="chipStyle(id, index)"><span><b>{{ name(id) }}</b><small>{{ id }}</small></span><button type="button" :aria-label="`Remove included ${name(id)}`" @click="removePhenotype(id, false)"><b-icon-x aria-hidden="true" /></button></span>
+                    <span v-for="(id, index) in summary.ids" :key="id" class="pbp-search-chip" :class="{ 'pbp-search-chip-added': refinementChange && !refinementChange.exclude && refinementChange.id === id }" :style="chipStyle(id, index)"><span><b>{{ name(id) }}</b><small>{{ id }}</small></span><button type="button" :aria-label="`Remove included ${name(id)}`" @click="removePhenotype(id, false)"><b-icon-x aria-hidden="true" /></button></span>
                 </div>
 
             </div>
             <div v-if="summary.ids.length > 1" class="pbp-match-summary" aria-label="Phenotype matching rule"><span>{{ advancedOpen ? 'Draft matching rule' : 'Matching rule' }}</span><strong>{{ summaryMatchingRule.label }}</strong><span>{{ summaryMatchingRule.description }}</span></div>
-            <div v-if="summary.excluded.length" class="pbp-summary-row pbp-summary-excludes"><strong class="pbp-summary-label">Without</strong><div class="pbp-condition-chips"><span v-for="id in summary.excluded" :key="id" class="pbp-search-chip pbp-search-chip-excluded"><span><b>{{ name(id) }}</b><small>{{ id }}</small></span><button type="button" :aria-label="`Remove excluded ${name(id)}`" @click="removePhenotype(id, true)"><b-icon-x aria-hidden="true" /></button></span></div></div>
-            <div v-if="limitedRules.length" class="pbp-summary-row pbp-summary-limits"><strong class="pbp-summary-label">Limited to</strong><div class="pbp-condition-chips"><span v-for="(row, index) in limitedRules" :key="index" class="pbp-limit-chip"><span>{{ describe(row) }}</span><button type="button" :aria-label="`Remove ${describe(row)}`" @click="removeLimit(index)"><b-icon-x aria-hidden="true" /></button></span></div><button type="button" class="pbp-search-text-button" @click="clearAll">Clear all</button></div>
+            <div v-if="limitCount" class="pbp-summary-row pbp-summary-limits"><strong class="pbp-summary-label">Limited to</strong><div class="pbp-condition-chips"><span v-for="(row, index) in limitedRules" :key="`rule-${index}`" class="pbp-limit-chip" :class="{ 'pbp-limit-chip-excluded': row.operator === 'exclude' }"><span><template v-if="row.field === 'phenotype'"><b>{{ describe(row) }}</b><small>{{ row.value }}</small></template><template v-else>{{ describe(row) }}</template></span><button type="button" :aria-label="`Remove ${describe(row)}`" @click="removeLimit(index)"><b-icon-x aria-hidden="true" /></button></span><span v-for="id in summary.excluded" :key="`excluded-${id}`" class="pbp-search-chip pbp-search-chip-excluded"><span><b>Without · {{ name(id) }}</b><small>{{ id }}</small></span><button type="button" :aria-label="`Remove excluded ${name(id)}`" @click="removePhenotype(id, true)"><b-icon-x aria-hidden="true" /></button></span></div><button type="button" class="pbp-search-text-button" @click="clearAll">Clear all</button></div>
         </div>
 
     </section>
@@ -79,6 +79,7 @@ export default {
     components: { PhenotypeTermPicker },
     props: {
         ids: { type: Array, required: true }, excluded: { type: Array, default: () => [] }, rules: { type: Array, default: () => [] },
+        refinementChange: { type: Object, default: null },
         matchMode: { type: String, default: 'all' }, minimum: { type: Number, default: 2 },
         searchIndex: { type: Object, required: true }, terms: { type: Object, required: true },
         sampleCounts: { type: Object, default: null }, countsStatus: { type: String, default: 'loading' },
@@ -100,14 +101,15 @@ export default {
             }
             return { ids: this.ids, excluded: this.excluded, rules: this.rules.filter(row => (row.field !== 'phenotype' || row.required === true)), matchMode: this.matchMode, minimum: this.clampMinimum(this.minimum, this.ids.length) };
         },
-        limitedRules() { return this.summary.rules; },
+        limitedRules() { return this.summary.rules.filter(row => !(row.field === 'phenotype' && row.operator === 'exclude')); },
+        limitCount() { return this.limitedRules.length + this.summary.excluded.length; },
         summaryMatchingRule() { return describeMatchingRule(this.summary.matchMode, this.summary.minimum, this.summary.ids.length); },
     },
     methods: {
         name(id) { return this.terms[id]?.[0] || id; },
         resolve(value) { const id = resolveIndexedHpo(this.searchIndex, value); return this.terms[id] ? id : ''; },
         chipStyle(id, index) { return this.termStyle ? this.termStyle(id) : CHIP_COLORS[index % CHIP_COLORS.length]; },
-        describe(row) { return ruleLabel(row, this.name); },
+        describe(row) { return row.field === 'phenotype' ? `${row.operator === 'exclude' ? 'Without' : 'Includes'} · ${this.name(row.value)}` : ruleLabel(row, this.name); },
         isIncluded(row) { return row.field === 'phenotype' && row.operator === 'contains' && row.required !== true; },
         clampMinimum(value, count) { return Math.max(1, Math.min(count || 1, Number.isInteger(Number(value)) ? Number(value) : 2)); },
         fieldOperators(row) {

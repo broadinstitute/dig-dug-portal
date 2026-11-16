@@ -1,5 +1,7 @@
 # Gene2 — test-server implementation contract
 
+**Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, card/table widths and order, icons, responsive layout, filters, expansion and all selected/hover/focus/loading/empty/error states. Compare prototype and target at the same viewport/zoom before marking the UI complete.
+
 November 15 delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). The November 16 local delta below is additional to that delivered snapshot; include its new files. Neither the manifest nor local checks establish deployment.
 
 Updated: 2026-11-16. Entry/default Gene destination: `/pb_gene2.html?query=<encoded gene>`; bare navigation defaults to GJB2. Baseline HEAD `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; the November 15 delivery reached `306ded0b8`, and the November 16 follow-up below is included in this Git delivery. This is an implementation contract, not deployment evidence. Legacy `/pb_Gene.html` is separately addressable; do not send new Gene links there.
@@ -19,7 +21,7 @@ Cross-page review: the current `306ded0b8` source delta still matches the change
 
 Scope: the Excluded label is Gene2's scoring-matrix contract. Keep Variant's existing `empty_phenotype_record` handling separate. Analysis inputs, model, q scopes and observed-carrier membership are unchanged.
 
-Validation in this session: HPO endpoint/display tests and Gene2 template/CSS compilation passed; startup defaults/overrides/missing-file/hash checks passed. Live GJB2 `chr13:20189313:A:G` totals returned HTTP 200 with `0, 84, 0, 5, 163` for the five checked carriers. For `chr13:20189005:CTG:C`, checked totals were `98` and `null` → Excluded; do not replace the latter with a whole-cohort matrix zero. `test_pb_gene2.js` remains blocked by its missing `PortalGuide.vue` mock. Final browser/target-server acceptance remains required.
+Validation in this session: HPO endpoint/display tests and Gene2 template/CSS compilation passed; startup defaults/overrides/missing-file/hash checks passed. Live GJB2 `chr13:20189313:A:G` totals returned HTTP 200 with `0, 84, 0, 5, 163` for the five checked carriers. For `chr13:20189005:CTG:C`, checked totals were `98` and `null` → Excluded; do not replace the latter with a whole-cohort matrix zero. The delivery audit added the missing `PortalGuide.vue` test stub; `node scripts/test_pb_gene2.js` now passes. Final browser/target-server acceptance remains required.
 
 ## 2026-11-15 UI follow-up — included in this delivery
 

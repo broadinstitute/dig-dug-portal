@@ -37,7 +37,7 @@ assert.deepEqual(resolveSearchTarget("adcy10", "", genes), {
 });
 assert.equal(
     buildSearchHref(resolveSearchTarget("Progressive muscle weakness [HP:0003323]", "Phenotype", genes)),
-    "/pb_phenotype.html?query=Progressive%20muscle%20weakness%20%5BHP%3A0003323%5D"
+    "/pb_phenotype.html?query=Progressive%20muscle%20weakness%20%5BHP%3A0003323%5D&match=all"
 );
 assert.equal(resolveSearchTarget("BCH-22-44945-01", "", genes).path, "/pb_sample.html");
 assert.equal(resolveSearchTarget("chr12:102912793:CA:C", "", genes).path, "/pb_variant.html");

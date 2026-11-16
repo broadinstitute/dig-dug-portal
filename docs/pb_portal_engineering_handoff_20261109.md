@@ -1,5 +1,7 @@
 # PB portal engineering handoff — 2026-11-09
 
+Current implementation entry: [five-page contracts and required prototype design fidelity](pb_front_gene_variant_merge_handoff.md). Use those latest Front/Gene2/Phenotype/Variant/Sample contracts before this older snapshot; carry the user's current Vue/CSS design faithfully, including the November 16 local follow-ups.
+
 This handoff covers the Gene, Phenotype, Sample and Variant page changes on
 `kyuryung/bch-prototype`. It describes the implemented local behavior and the
 remaining production integration work. Pushing this branch does not deploy

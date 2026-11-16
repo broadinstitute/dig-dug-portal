@@ -26,6 +26,8 @@ const reference={terms,associations:{
 },diseases:[[10,'Disease A',[]],[11,'Disease B',[]],[12,'Disease C',[]]],meta:{}};
 let requestedMemberships=0;
 const options=load('src/views/PbPhenotype/Template.vue',{
+ '../PbGene2/InfoRail.vue':{},
+ '@/components/pb/PortalGuide.vue':{},
  './orphanetReference.generated':{ORPHANET_REFERENCE:reference},
  './additionalDiseaseReferences.generated.json':{terms:{},profiles:[
   ['omim-x','omim','OMIM:1','OMIM disease X',['HP:0000001'],['X'],[]],
@@ -196,6 +198,32 @@ async function main(){
  }
  location.search='?query=';assert.equal(options.data().ids.length,0,'Clear all survives URL reload without restoring a default phenotype');
  Object.assign(location,savedLocation);
+ // Refinements keep the original matching group, announce the change, and
+ // return focus to the updated search conditions after Vue publishes them.
+ page.applyProfile({ids:['HP:0000001','HP:0000002'],excluded:[],rules:[],matchMode:'any',minimum:2});
+ await Vue.nextTick();
+ const scrolls=[],focuses=[];
+ page.$refs.searchConditions={scrollIntoView:options=>scrolls.push(options),focus:options=>focuses.push(options)};
+ window.matchMedia=()=>({matches:false});
+ page.requireSingleFeature('HP:0000004');
+ assert.equal(scrolls.length,0,'Scroll waits for the updated search conditions');
+ await Vue.nextTick();
+ assert.deepEqual(Array.from(page.ids),['HP:0000001','HP:0000002']);
+ assert.equal(page.sampleMatchMode,'any','Require adds an AND refinement without changing Any/All');
+ assert.equal(page.advancedRules[0].required,true);
+ assert.equal(page.refinementChange.id,'HP:0000004');assert.equal(page.refinementChange.exclude,false);
+ assert.equal(scrolls[0].block,'start');assert.equal(scrolls[0].behavior,'smooth');
+ assert.equal(focuses[0].preventScroll,true);
+ page.excludeSingleFeature('HP:0000004');await Vue.nextTick();
+ assert.equal(page.advancedRules.length,0,'Exclude replaces the same required refinement');
+ assert.ok(page.excluded.includes('HP:0000004'));
+ assert.equal(page.refinementChange.exclude,true);assert.equal(scrolls.length,2);
+ window.matchMedia=()=>({matches:true});
+ page.excludeSingleFeature('HP:0000005');await Vue.nextTick();
+ assert.equal(scrolls[2].behavior,'auto','Reduced-motion preference is respected');
+ page.applyProfile({ids:[...page.ids],excluded:[],rules:[],matchMode:'any',minimum:2});
+ assert.equal(page.refinementChange,null,'Other edits clear the previous action announcement');
+ delete window.matchMedia;
  page.$destroy();
  // Explicit covered zero scores must remain in the denominator.
  const zero=decodeSampleGeneScores({...payload,available_sample_ids:['A'],unavailable_sample_ids:['B','C','D'],sample_gene_indices:{A:[]}},['A','B','C','D']);

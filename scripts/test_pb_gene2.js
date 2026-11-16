@@ -45,6 +45,7 @@ const base = load('src/views/PbGene/pageModel.js', {
     '../KrClinicalFocus/focusStore': { readClinicalFocus: () => null },
 });
 const options = load('src/views/PbGene2/Template.vue', {
+    '@/components/pb/PortalGuide.vue': {},
     '../PbGene/pageModel': base,
     '../PbGene/hpoContextSearch': { hpoLabel: id => id },
     './associationRows': { filterAssociations, togglePinnedAssociation, sortAssociationRows },

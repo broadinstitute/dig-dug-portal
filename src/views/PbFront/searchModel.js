@@ -53,7 +53,8 @@ function resolveSearchTarget(value, selectedKind, geneSymbols) {
 }
 
 function buildSearchHref(target) {
-    return `${target.path}?${target.param}=${encodeURIComponent(target.value)}`;
+    const href = `${target.path}?${target.param}=${encodeURIComponent(target.value)}`;
+    return target.path === '/pb_phenotype.html' ? `${href}&match=all` : href;
 }
 
 module.exports = {

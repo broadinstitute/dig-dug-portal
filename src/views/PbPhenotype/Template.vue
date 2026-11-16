@@ -15,8 +15,8 @@
                     </div>
                     <div class="pbp-toolbar-right"><a href="/pb_gene2.html" class="pbp-nav-link">Gene search</a><a href="/pb_variant.html" class="pbp-nav-link">Variant search</a></div>
                 </div>
-                <section class="pbp-card pbp-search-results">
-                    <phenotype-profile-editor ref="profileEditor" :ids="ids" :excluded="excluded" :rules="advancedRules" :match-mode="sampleMatchMode" :minimum="sampleMatchMinimum" :search-index="hpoSearchIndex" :terms="reference.terms"
+                <section ref="searchConditions" class="pbp-card pbp-search-results" tabindex="-1" aria-label="Phenotype search conditions">
+                    <phenotype-profile-editor ref="profileEditor" :ids="ids" :excluded="excluded" :rules="advancedRules" :refinement-change="refinementChange" :match-mode="sampleMatchMode" :minimum="sampleMatchMinimum" :search-index="hpoSearchIndex" :terms="reference.terms"
                         :investigators="investigatorOptions" :projects="projectOptions" :sample-counts="hpoSampleCounts" :counts-status="hpoCountsStatus" :term-style="termStyle" @apply="applyProfile" @retry-counts="retryHpoAvailability" />
                 </section>
                 <single-phenotype-results v-if="singlePhenotypeView || multi" :key="ids.join(',')" :hpo="ids[0]" :profile-ids="ids" :match-mode="sampleMatchMode" :minimum="effectiveMatchMinimum" :term-style="termStyle" :multi-gene-result="multiGeneResult" :multi-gene-loading="multiGeneLoading" :multi-gene-error="multiGeneError" :terms="reference.terms" :samples="singlePhenotypeSamples"
@@ -1068,6 +1068,7 @@ export default {
         const matchingMode = geneScope !== 'whole' ? geneScope : ['any', 'all', 'atLeastTwo'].includes(params.get('match')) ? params.get('match') : Number.isInteger(requestedMinimum) && requestedMinimum > 0 ? 'atLeastTwo' : 'all';
         return {
             infoRailReserved: false,
+            refinementChange: null,
             reference: REF,
             ids,
             advancedRules: initialRules,
@@ -1633,12 +1634,22 @@ export default {
             if (this.multi) {
                 if (!this.advancedRules.some(row => row.field === 'phenotype' && row.operator === 'contains' && row.value === id))
                     this.applyProfile({ ids: [...this.ids], excluded: this.excluded.filter(value => value !== id), rules: [...this.advancedRules, { field: 'phenotype', operator: 'contains', value: id, required: true }], matchMode: this.sampleMatchMode, minimum: this.sampleMatchMinimum });
-                return;
-            }
-            this.applyProfile({ ids: [...new Set([...this.ids, id])], excluded: [...this.excluded], rules: [...this.advancedRules], matchMode: 'all', minimum: 2 });
+            } else this.applyProfile({ ids: [...new Set([...this.ids, id])], excluded: [...this.excluded], rules: [...this.advancedRules], matchMode: 'all', minimum: 2 });
+            this.revealSearchConditions(id);
         },
         excludeSingleFeature(id) {
             this.applyProfile({ ids: [...this.ids], excluded: [...new Set([...this.excluded, id])], rules: this.advancedRules.filter(row => !(row.field === 'phenotype' && row.value === id)), matchMode: this.sampleMatchMode, minimum: this.sampleMatchMinimum });
+            this.revealSearchConditions(id, true);
+        },
+        revealSearchConditions(id, exclude = false) {
+            this.refinementChange = id ? {id, exclude} : null;
+            this.$nextTick(() => {
+                const target = this.$refs.searchConditions;
+                if (!target) return;
+                const reducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                target.scrollIntoView({behavior: reducedMotion ? 'auto' : 'smooth', block: 'start'});
+                target.focus({preventScroll: true});
+            });
         },
         referenceSourceLabel(source) { return DISEASE_SOURCES.find(item => item.key === source)?.label || source; },
         geneDiseaseLinks(row) { return this.geneReferenceSource === 'all' ? row.diseases : row.diseases.filter(disease => disease.source === this.geneReferenceSource); },
@@ -1821,9 +1832,10 @@ export default {
             else url.searchParams.delete("source");
             window.history.replaceState({}, "", url.pathname + url.search);
         },
-        queueFeature(id) { const editor = this.$refs.profileEditor; editor.setMode('include'); editor.choose(id); },
-        queueExcluded(id) { const editor = this.$refs.profileEditor; editor.setMode('exclude'); editor.choose(id); },
+        queueFeature(id) { const editor = this.$refs.profileEditor; editor.setMode('include'); editor.choose(id); this.revealSearchConditions(editor.error ? null : id); },
+        queueExcluded(id) { const editor = this.$refs.profileEditor; editor.setMode('exclude'); editor.choose(id); this.revealSearchConditions(editor.error ? null : id, true); },
         applyProfile(profile) {
+            this.refinementChange = null;
             const changed = this.ids.join(',') !== profile.ids.join(',');
             if (profile.matchMode && this.sampleMatchMode !== profile.matchMode) this.sampleMatchMode = profile.matchMode;
             if (profile.minimum != null) this.sampleMatchMinimum = profile.minimum;
