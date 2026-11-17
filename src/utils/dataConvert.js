@@ -1,4 +1,4 @@
-let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
+let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
 
     let convertedData = [];
     let joinValues = function (FIELDS, jBy, fData) {
@@ -28,7 +28,13 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
             } else {
                 fieldValue += fData[FIELDS[i]];
             }
+        }
 
+        if (jBy.length >= FIELDS.length) {
+            let startIndex = jBy.length - ((jBy.length - FIELDS.length) + 1);
+            for (let i = startIndex; i < jBy.length; i++) {
+                fieldValue += jBy[i];
+            }
         }
         return fieldValue;
     }
@@ -66,14 +72,77 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
         return string.slice(0, -1)
     }
 
-    let applyConvert = function (d, CONVERT, PHENOTYPE_MAP) {
+    let getParameterByName = function (name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    let applyConvert = function (d, CONVERT, PHENOTYPE_MAP, SHARED_RESOURCE) {
         let tempObj = {};
 
         CONVERT.map(c => {
 
             let cType = c.type;
 
+            let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
+
+            if (d[c["raw field"]] === 0) {
+                rawValue = "0";
+            }
+
             switch (cType) {
+                case "from parameter":
+                    let param = c["parameter"];
+
+                    tempObj[c["field name"]] = getParameterByName(param);
+
+                    d[c["field name"]] = tempObj[c["field name"]];
+
+                    break;
+
+                case "sub to top":
+
+                    let subList = d;
+
+                    if (!!c["sub path"]) {
+                        c["sub path"].map(path => {
+                            subList = subList[path];
+                        })
+                    }
+
+                    if (!!subList) {
+                        let subRow;
+
+                        if (!!c["copy by"]) {
+
+                            switch (c["copy by"]) {
+
+                                case "condition":
+
+                                    if (c["condition"]["type"] == "equal to") {
+
+                                        subList.map(row => {
+
+                                            if (row[c["condition"]["field"]] == c["condition"]["value"]) {
+                                                subRow = row
+                                            }
+                                        })
+                                    }
+
+                                    break;
+                            }
+                        }
+
+                        tempObj[c["field name"]] = subRow[c["raw field"]];
+                    }
+
+                    break;
+
                 case "join":
                     tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
                     d[c["field name"]] = tempObj[c["field name"]];
@@ -88,28 +157,35 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                     let newFields = c["field name"];
                     let newFieldValues = [];
-                    let string2Split = d[c["field to split"]];
-                    let loopIndex = 1;
-                    c["split by"].map(s => {
+                    let string2Split = (!!tempObj[c["field to split"]]) ? tempObj[c["field to split"]] : d[c["field to split"]];
 
-                        let [key, ...rest] = string2Split.split(s);
-                        string2Split = rest.join(s)
+                    if (!!string2Split) {
+                        let loopIndex = 1;
+                        c["split by"].map(s => {
 
-                        if (loopIndex < c["split by"].length) {
-                            newFieldValues.push(key)
-                        } else if (loopIndex = c["split by"].length) {
-                            newFieldValues.push(key)
-                            newFieldValues.push(rest.join(s))
-                        }
-                        loopIndex++;
-                    })
+                            let [key, ...rest] = string2Split.split(s);
+                            string2Split = rest.join(s)
 
-                    loopIndex = 0;
-                    newFields.map(f => {
-                        tempObj[f] = newFieldValues[loopIndex];
-                        d[f] = tempObj[f];
-                        loopIndex++;
-                    })
+                            if (loopIndex < c["split by"].length) {
+                                newFieldValues.push(key)
+                            } else if (loopIndex = c["split by"].length) {
+                                newFieldValues.push(key)
+                                newFieldValues.push(rest.join(s))
+                            }
+                            loopIndex++;
+                        })
+
+                        loopIndex = 0;
+                        newFields.map(f => {
+                            tempObj[f] = newFieldValues[loopIndex];
+                            d[f] = tempObj[f];
+
+                            loopIndex++;
+                        })
+
+                    }
+
+
 
                     break;
 
@@ -129,14 +205,27 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                             break;
 
                         case "math":
+
                             let calcString = "";
 
                             c["expression"].map(e => {
-                                let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : (typeof e === 'number') ? e : d[e];
+                                let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e : (typeof e === 'number') ? e :
+                                    (!!tempObj[e] || tempObj[e] === 0) ? (tempObj[e] === 0) ? 0 : tempObj[e] : (d[e] === 0) ? 0 : d[e];
                                 calcString += eValue;
                             });
 
                             tempObj[c["field name"]] = eval(calcString);
+
+
+                            if ((!!c['min number'] || c['min number'] === 0) && tempObj[c["field name"]] < c['min number']) {
+
+                                tempObj[c["field name"]] = c['min number']
+                            }
+
+                            if ((!!c['max number'] || c['max number'] === 0) && tempObj[c["field name"]] > c['max number']) {
+                                tempObj[c["field name"]] = c['max number']
+                            }
+
                             d[c["field name"]] = tempObj[c["field name"]];
 
                     }
@@ -148,9 +237,20 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     break;
 
                 case "raw":
-                    let rawValue = (!!d[c["raw field"]]) ? d[c["raw field"]] : (!!c["if no value"]) ? c["if no value"] : null;
-                    tempObj[c["field name"]] = rawValue; //d[c["raw field"]];
-                    d[c["field name"]] = tempObj[c["field name"]];
+
+                    if (!!rawValue) {
+                        tempObj[c["field name"]] = rawValue;
+                        d[c["field name"]] = tempObj[c["field name"]];
+                    }
+
+                    break;
+
+                case "map name":
+
+                    let map = (c["map"] == "shared resource") ? SHARED_RESOURCE[c["map name"]] : c["map"];
+
+                    tempObj[c["field name"]] = map[rawValue];
+
                     break;
 
                 case "string to number":
@@ -165,6 +265,19 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
 
                 case "array to string":
                     tempObj[c["field name"]] = array2String(d[c["raw field"]], c["separate by"]);
+                    d[c["field name"]] = tempObj[c["field name"]];
+                    break;
+
+                case "string to array":
+                    let sArray = d[c["raw field"]].split(c["separate by"]);
+
+                    let takeIndex = (c["take index"] === 0 || !!c["take index"]) ? sArray[c["take index"]] : null;
+
+                    if (takeIndex) {
+                        tempObj[c["field name"]] = sArray[c["take index"]]
+                    } else {
+                        tempObj[c["field name"]] = sArray
+                    }
                     d[c["field name"]] = tempObj[c["field name"]];
                     break;
 
@@ -196,34 +309,119 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP) {
                     d[c["field name"]] = tempObj[c["field name"]];
                     break;
 
+                case "boolean to string":
+                    let value = d[c["raw field"]] === true || d[c["raw field"]] == 1 ? "true" :
+                        d[c["raw field"]] === false || d[c["raw field"]] === 0 ? "false" : ""
+
+                    tempObj[c["field name"]] = value;
+
+                    break;
+
+                case "phenotype probability": /// this is only for CFDE mouse 2 human phenotype mapping feature
+
+                    let background = (!!c["rare"].includes(d[c["group"]])) ? 0.005 : (!!c["common"].includes(d[c["group"]])) ? 0.05 : 0;
+                    let beta = d[c["beta"]];
+
+                    let probability = Math.exp(beta + Math.log(background / (1 - background))) / (1 + Math.exp(beta + Math.log(background / (1 - background))));
+
+                    tempObj[c["field name"]] = probability;
+
+
+                    break;
+
             }
         })
         return tempObj;
     }
 
+    let flatten = (obj, path = '') => {
+        if (!(obj instanceof Object)) return { [path.replace(/\.$/g, '')]: obj };
+
+        return Object.keys(obj).reduce((output, key) => {
+            return obj instanceof Array ?
+                { ...output, ...flatten(obj[key], path + '[' + key + '].') } :
+                { ...output, ...flatten(obj[key], path + key + '.') };
+        }, {});
+    }
+
     if (CONVERT != "no convert") {
+        let data2Rows = CONVERT.filter(c => c.type == "data to rows");
+
+        if (data2Rows.length > 0) {
+
+            let rowsData = [];
+            data2Rows.map(f => {
+                DATA.map(d => {
+                    let row = d[f["raw field"]];
+                    let orgList = f["group by"];
+
+                    if (!!row) {
+                        let rowData = {};
+                        orgList.map((field, fIndex) => {
+                            rowData[field] = [];
+                            rowData["_key" + fIndex] = []
+                        })
+                        // first, flatten data, then get the list of flatten keys
+                        let flattenRow = flatten(row);
+                        let flattenKeys = Object.keys(flattenRow);
+
+                        flattenKeys.map(key => {
+                            orgList.map((field, fIndex) => {
+                                if (!!key.includes(field)) {
+                                    rowData[field].push(flattenRow[key]);
+                                    rowData["_key" + fIndex].push(key)
+                                }
+                            })
+                        })
+
+
+
+                        let rowsLength = rowData[orgList[0]].length;
+
+                        for (let i = 0; i < rowsLength; i++) {
+                            let tempObj = {};
+                            orgList.map((field, fIndex) => {
+                                tempObj[field] = rowData[field][i];
+                                tempObj["_key" + fIndex] = rowData["_key" + fIndex][i];
+                            })
+
+                            rowsData.push(tempObj);
+                        }
+                    }
+                })
+            })
+
+            DATA = rowsData;
+        }
+
+
+
         DATA.map(d => {
 
-            let tempObj = applyConvert(d, CONVERT, PHENOTYPE_MAP);
+            let tempObj = applyConvert(d, CONVERT, PHENOTYPE_MAP, SHARED_RESOURCE);
 
             // Apply data convert to feature data level
             let dKeys = Object.keys(tempObj);
 
             let newTempObj = {};
 
+            // here is the problem
             dKeys.map((dKey) => {
                 if (
                     typeof tempObj[dKey] == "object" &&
                     (Array.isArray(tempObj[dKey]) == true && tempObj[dKey].length > 0)
                 ) {
+
                     let tempArr = [];
 
                     tempObj[dKey].map((fd) => {
                         if (typeof fd == "object" && Array.isArray(fd) == false) {
+
                             let tempFDObj = applyConvert(
                                 fd,
                                 CONVERT,
-                                PHENOTYPE_MAP
+                                PHENOTYPE_MAP,
+                                SHARED_RESOURCE
                             );
                             tempArr.push(tempFDObj);
                         }
@@ -269,6 +467,80 @@ let csv2Json = function (DATA) {
 
     return jsonData;
 };
+
+let tsv2Json = function (DATA) {
+    const lines = DATA.split('\n');
+    const headers = lines.shift().split('\t');
+    const jsonArray = [];
+    const ifNumber = (str) => {
+        return !isNaN(str) && str.trim() !== '' ? Number(str) : str;
+    }
+    lines.forEach(line => {
+        const values = line.split('\t');
+        const obj = {};
+        headers.forEach((header, index) => {
+            obj[header] = ifNumber(values[index]);
+        });
+        jsonArray.push(obj);
+    });
+    return jsonArray;
+}
+
+let flatJson = function (DATA) {
+
+    /// first wrap values with comma
+
+    let wrappedData = []
+
+    DATA.map(row => {
+
+        let wrappedObj = {}
+
+        for (const [dKey, dValue] of Object.entries(row)) {
+
+            if (typeof dValue == 'string' && dValue.includes(',')) {
+                wrappedObj[dKey] = '"' + dValue + '"';
+            } else if (typeof dValue == 'object') {
+
+                let obj2Sting = JSON.stringify(dValue)
+
+                obj2Sting = obj2Sting.replaceAll('"', '');
+
+                if (obj2Sting.includes(',')) {
+
+                    obj2Sting = '"' + obj2Sting + '"';
+                }
+
+                wrappedObj[dKey] = obj2Sting;
+            }
+            else {
+                wrappedObj[dKey] = dValue;
+            }
+
+        }
+        wrappedData.push(wrappedObj);
+    })
+
+    let flatJson = [];
+
+    wrappedData.map(row => {
+        let flatObj = flatten(row);
+        flatJson.push(flatObj);
+    })
+
+    return flatJson;
+
+}
+
+let flatten = function (obj, path = '') {
+    if (!(obj instanceof Object)) return { [path.replace(/\.$/g, '')]: obj };
+
+    return Object.keys(obj).reduce((output, key) => {
+        return obj instanceof Array ?
+            { ...output, ...flatten(obj[key], path + '[' + key + '].') } :
+            { ...output, ...flatten(obj[key], path + key + '.') };
+    }, {});
+}
 
 let testNumber = function (STR) {
     let reg = /^-?[\d.]+(?:e-?\d+)?$/;
@@ -390,5 +662,7 @@ const object2Array = function (DATASET, COMPARECONFIG, KEY) {
 export default {
     convertData,
     csv2Json,
-    object2Array
+    tsv2Json,
+    object2Array,
+    flatJson
 };

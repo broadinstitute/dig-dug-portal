@@ -10,51 +10,19 @@
         <!-- body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
-
                 <div>
                     <div class="region-search col filter-col-md">
-                        <div class="label">Search gene</div>
-                        <gene-selectpicker
-                            @onGeneChange="
-                                $store.dispatch('onGeneChange', $event)
-                            "
-                        ></gene-selectpicker>
-                    </div>
-                    <div class="col divider" style="background: none">
-                        <span class="or-text">or</span>
-                    </div>
-                    <div class="region-search col filter-col-sm">
-                        <div class="label">Chromosome</div>
-                        <input
-                            v-model="$store.state.newChr"
-                            type="text"
-                            class="form-control input-default"
-                            placeholder="Chromosome"
-                        />
+                        <div class="label">Begin new search</div>
+                        <research-single-search
+                            :single-search-config="null"
+                            :phenotypes="$parent.phenotypesInSession"
+                            :utils="$parent.utilsBox"
+                        ></research-single-search>
                     </div>
                     <div class="region-search col filter-col-md">
-                        <div class="label">Start</div>
-                        <input
-                            v-model="$store.state.newStart"
-                            type="text"
-                            class="form-control input-default"
-                            placeholder="Start position"
-                        />
-                    </div>
-
-                    <div class="region-search col filter-col-md">
-                        <div class="label">End</div>
-                        <input
-                            v-model="$store.state.newEnd"
-                            type="text"
-                            class="form-control input-default"
-                            placeholder="End position"
-                        />
-                    </div>
-                    <div class="region-search col filter-col-md">
-                        <div class="label">Ancestry</div>
+                        <div class="label">Set Ancestry</div>
                         <ancestry-selectpicker
+                            :pageLevel="true"
                             :ancestries="
                                 $store.state.bioPortal.datasets.map(
                                     (dataset) => dataset.ancestry
@@ -62,26 +30,6 @@
                             "
                         ></ancestry-selectpicker>
                     </div>
-                    <div class="region-search col filter-col-md">
-                        <div class="label">Search</div>
-                        <button
-                            id="regionSearchGo"
-                            class="btn btn-light btn-sm go"
-                            type="button"
-                            @click="$store.dispatch('queryRegion')"
-                        >
-                            GO
-                        </button>
-                    </div>
-                    <div class="col divider"></div>
-                    <!-- <div class="region-search col filter-col-md">
-                        <div class="label">Search phenotype</div>
-                        <phenotype-selectpicker
-                            v-if="$store.state.phenotype"
-                            :phenotypes="$store.state.bioPortal.phenotypes"
-                            :clearOnSelected="true"
-                        ></phenotype-selectpicker>
-                    </div>-->
                 </div>
             </search-header-wrapper>
 
@@ -95,13 +43,6 @@
                         <div class="viewing-region">
                             {{ $parent.regionString }}
                         </div>
-                        <!--<button
-                            class="btn btn-primary text-nowrap text-right explore-region-btn"
-                            style="margin-left: 20px"
-                            @click="$parent.exploreExpanded()"
-                        >
-                            Expand &plusmn; 50 kb
-                        </button>-->
                         <expand-region> </expand-region>
                     </div>
                     <div class="col-md-2 text-right">
@@ -110,22 +51,19 @@
                             <b-img
                                 src="/images/bioindex_logo.svg"
                                 alt="BioIndex logo"
-                                style="height: 34px"
+                                style="height: 24px"
                             ></b-img
                         ></b-link>
                     </div>
-                    <!-- <div class="col-md-4 gene-page-header-body">
-                        <span v-if="$store.state.phenotype">
-                            {{
-                            $store.state.phenotype.description
-                            }}
-                        </span>
-                    </div>-->
                 </div>
             </div>
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
-                    <documentation name="region.trait.info"></documentation>
+                    <documentation
+                        name="region.trait.info"
+                        :contentMap="$store.state.bioPortal.documentations"
+                    >
+                    </documentation>
                 </div>
             </div>
             <div class="card mdkp-card">
@@ -136,6 +74,7 @@
                             name="region.genesoverlapping.header.tooltip"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </h4>
 
@@ -144,9 +83,12 @@
                         :key="row.name"
                         :class="'gene-with-signal ' + row.type"
                     >
-                        <a :href="`/gene.html?gene=${row.name}`">
-                            {{ row.name }}
-                        </a>
+                        <template v-if="row.type == 'protein_coding'">
+                            <a :href="`/gene.html?gene=${row.name}`">
+                                {{ row.name }}
+                            </a></template
+                        >
+                        <template v-else> {{ row.name }}</template>
                     </div>
                 </div>
             </div>
@@ -167,10 +109,12 @@
                             name="region.mostsignificantassoc.header.tooltip"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </h4>
                     <documentation
                         name="region.phenos_w_signal.subheader"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
 
                     <template v-if="$parent.topAssociations.length > 0">
@@ -202,7 +146,7 @@
                                 </div>
                             </div>
 
-                            <div class="pws-merged-view svg-wrapper">
+                            <div class="pws-merged-view svg-wrapper" style="margin-top: 25px;">
                                 <phenotype-signal-bar-chart
                                     v-if="
                                         $parent.topAssociations.length > 0 &&
@@ -236,17 +180,17 @@
                                         'phenotype map': 'kp phenotype map',
                                         'render by': 'phenotype',
                                         'y axis label': '-Log10(p-value)',
-                                        'x axis label': 'beta',
+                                        'x axis label': 'Phenotype',
                                         'beta field': 'beta',
                                         'hover content': ['pValue', 'beta'],
                                         thresholds: ['5e-8'],
                                         height: '600',
                                         'plot margin': {
-                                            'left': 150,
-                                            'right': 150,
-                                            'top': 250,
-                                            'bottom': 300
-                                        }
+                                            left: 150,
+                                            right: 150,
+                                            top: 250,
+                                            bottom: 300,
+                                        },
                                     }"
                                     :pkg-data="null"
                                     :pkg-data-selected="null"
@@ -295,10 +239,12 @@
                             name="region.ancestrytopassoc.tooltip"
                             :is-hover="true"
                             :no-icon="false"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></tooltip-documentation>
                     </h4>
                     <documentation
                         name="region.ancestrytopassoc.subheader"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                     <a
                         v-if="
@@ -322,12 +268,14 @@
                 <div class="card-body test-original">
                     <documentation
                         name="region.lz.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
 
                     <documentation
                         name="region.igv.subheader"
-                        :content-fill="$parent.documentationMap"
+                        :contentFill="$parent.docDetails"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
 
                     <div class="filtering-ui-wrapper container-fluid">
@@ -341,6 +289,10 @@
                                         name="region.add.phenotypes.tooltip"
                                         :is-hover="true"
                                         :no-icon="false"
+                                        :contentMap="
+                                            $store.state.bioPortal
+                                                .documentations
+                                        "
                                     ></tooltip-documentation>
                                 </div>
                                 <template
@@ -372,19 +324,6 @@
                         </div>
                     </div>
                     <pre />
-                    <!--<h5 v-if="$parent.selectedPhenotypes.length > 0">
-						Add tracks &nbsp;<tooltip-documentation
-							name="region.add.phenotypes.tooltip"
-							:is-hover="true"
-							:no-icon="false"
-						></tooltip-documentation>
-						| Filter tracks and table &nbsp;
-						<tooltip-documentation
-							name="region.filter.topassoc.tooltip"
-							:is-hover="true"
-							:no-icon="false"
-						></tooltip-documentation>
-					</h5>-->
 
                     <b-alert
                         class="text-center my-3"
@@ -551,10 +490,14 @@
                                 name="region.topassoc.tooltip"
                                 :is-hover="true"
                                 :no-icon="false"
+                                :contentMap="
+                                    $store.state.bioPortal.documentations
+                                "
                             ></tooltip-documentation>
                         </h4>
                         <documentation
                             name="region.variantassociation.subheader"
+                            :contentMap="$store.state.bioPortal.documentations"
                         ></documentation>
                         <associations-table
                             id="associations-table"

@@ -5,6 +5,7 @@ import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -14,10 +15,16 @@ export default new Vuex.Store({
         kp4cd,
         associations: bioIndex("global-associations"),
         annotations: bioIndex("global-enrichment"),
-        genes: bioIndex("gene-finder"),
+        genes: bioIndex("gene-finder"), // Commented out - gene-level associations section is muted
+        genes52k: bioIndex("gene-finder-52k"), // Commented out - gene-level associations section is muted
+        hugePhenotype: bioIndex("huge-phenotype"), // Commented out - gene-level associations section is muted
         ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
         geneticCorrelation: bioIndex("genetic-correlation"),
-        pathwayAssoc: bioIndex("pathway-associations")
+        pathwayAssoc: bioIndex("pathway-associations"),
+        c2ct: bioIndex("c2ct"),
+        c2ctAnnotation: bioIndex("c2ct-annotation"),
+        pigeanGenePhenotype: bioIndex("pigean-gene-phenotype"),
+        pigeanFactor: bioIndex("pigean-factor"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -29,7 +36,9 @@ export default new Vuex.Store({
         selectedPhenotype: null,
         ancestry: !!keyParams.ancestry ? keyParams.ancestry : "",
         selectedAncestry: !!keyParams.ancestry ? keyParams.ancestry : "",
-        manhattanPlotAvailable: true
+        manhattanPlotAvailable: true,
+        annotationOptions: [],
+        selectedAnnotation: "",
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -47,42 +56,117 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
+        },
+        setSelectedAnnotation(state, annotation) {
+            state.selectedAnnotation = annotation;
         }
     },
     getters: {
-        documentationMap(state) {
+        docDetails(state) {
             return {
                 phenotype: state.phenotype.description,
-                ancestry: state.ancestry
-            }
-        }
+                ancestry: state.ancestry,
+            };
+        },
     },
     actions: {
+        async getPigeanGenePhenotypeData(context) {
+            if (!context.state.phenotype || !context.state.phenotype.name) {
+                return; // Exit early if phenotype not ready
+            }
+            let phenotype = context.state.phenotype.name;
+            await context.dispatch("pigeanGenePhenotype/query", { q: phenotype + ',2,small', limit: 1000 });
+        },
+        async getPigeanFactorData(context) {
+            if (!context.state.phenotype || !context.state.phenotype.name) {
+                return; // Exit early if phenotype not ready
+            }
+            let phenotype = context.state.phenotype.name;
+            await context.dispatch("pigeanFactor/query", { q: phenotype + ',2,small', limit: 1000 });
+        },
         onPhenotypeChange(context, phenotype) {
             context.state.selectedPhenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },
 
+        onAncestryChange(context) {
+            context.dispatch("queryPhenotype");
+        },
+        async getAnnotations(context) {
+            let annotations = await fetch(`${BIO_INDEX_HOST}/api/bio/keys/c2ct-annotation/2?columns=annotation`)
+                .then(resp => resp.json())
+                .then(json => {
+                    if (json.count == 0) {
+                        return null;
+                    }
+                    return json.keys.map(key => key[0])
+                });
+            context.state.annotationOptions = annotations;
+            context.state.selectedAnnotation = annotations[0];
+        },
         queryPhenotype(context) {
             context.state.ancestry = context.state.selectedAncestry;
             context.state.phenotype = context.state.selectedPhenotype;
+
+            // Check if phenotype is available before proceeding
+            if (!context.state.phenotype || !context.state.phenotype.name) {
+                return;
+            }
+
             let query = { q: context.state.phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
-            let ancestryQuery = { q: `${context.state.phenotype.name},${context.state.ancestry}` };
+            let ancestryQuery = {
+                q: `${context.state.phenotype.name},${context.state.ancestry}`,
+            };
             let ancestryAssocQuery = { ...ancestryQuery, limit: 1000 };
-            let ancestryOptionalQuery = !context.state.ancestry ? query : ancestryQuery;
-            let geneQuery = { ...ancestryOptionalQuery, limitWhile: r => r.pValue <= 0.05, limit: 1000 };
+            let ancestryOptionalQuery = !context.state.ancestry
+                ? query
+                : ancestryQuery;
+            // Commented out - gene-level associations section is muted
+            let geneQuery = {
+                ...ancestryOptionalQuery,
+                limitWhile: (r) => r.pValue <= 0.05,
+                limit: 1000,
+            };
+            let gene52kQuery = {
+                ...query,
+                limitWhile: (r) => r.pValue <= 0.05,
+                limit: 1000,
+            };
+            let hugePhenotypeQuery = { ...query, limit: 1000 };
+            let pathwayAssocQuery = { ...ancestryOptionalQuery, limit: 100 };
 
-            if (context.state.ancestry == "" || context.state.ancestry == null) {
+            if (
+                context.state.ancestry == "" ||
+                context.state.ancestry == null
+            ) {
                 context.dispatch("associations/query", assocQuery);
             } else {
-                context.dispatch("ancestryGlobalAssoc/query", ancestryAssocQuery);
+                context.dispatch(
+                    "ancestryGlobalAssoc/query",
+                    ancestryAssocQuery
+                );
             }
             context.dispatch("annotations/query", query);
+            // Commented out - gene-level associations section is muted
             context.dispatch("genes/query", geneQuery);
+            context.dispatch("genes52k/query", gene52kQuery);
+            context.dispatch("hugePhenotype/query", hugePhenotypeQuery);
             context.dispatch("geneticCorrelation/query", ancestryOptionalQuery);
-            context.dispatch("pathwayAssoc/query", ancestryOptionalQuery);
+            context.dispatch("pathwayAssoc/query", pathwayAssocQuery);
+            context.dispatch("getCs2ct");
+            context.dispatch("getPigeanGenePhenotypeData");
+            context.dispatch("getPigeanFactorData");
             context.state.manhattanPlotAvailable = true;
+        },
+        getCs2ct(context) {
+            let queryString = context.state.phenotype.name;
+            if (!!context.state.selectedAncestry) {
+                queryString = `${context.state.selectedAncestry},${queryString}`;
+            }
+            queryString = `${queryString},${context.state.selectedAnnotation}`;
+            context.dispatch("c2ctAnnotation/query", { q: queryString });
+
         },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
@@ -98,7 +182,5 @@ export default new Vuex.Store({
             console.log("onState", PHENOTYPE);
             context.commit("setSelectedPhenotype", PHENOTYPE);
         },
-
-
-    }
+    },
 });

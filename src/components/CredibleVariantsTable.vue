@@ -3,7 +3,7 @@
         <b-table
             hover
             small
-            responsive="sm"
+            responsive
             :items="tableData"
             :fields="fields"
             :per-page="perPage"
@@ -65,7 +65,7 @@ export default Vue.component("credible-variants-table", {
         tableData() {
             let dataRows = this.crediblevariants;
             if (!!this.filter) {
-                dataRows = dataRows.filter(variant => {
+                dataRows = dataRows.filter((variant) => {
                     return this.filter(variant);
                 });
             }

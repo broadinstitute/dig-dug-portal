@@ -147,7 +147,7 @@ export default Vue.component("patient-diagnosis-card", {
         },
         async searchDiagnosis() {
             //console.log("variant id:" + this.variantId);
-            this.pdiagnosis = await query("patient_diagnosis",this.patientId,{},true);
+            this.pdiagnosis = await query("patient_diagnosis", this.patientId, { query_private: true });
             
         },
         rowPickClass(item, type) {

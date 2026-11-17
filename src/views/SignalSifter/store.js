@@ -20,26 +20,19 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         globalAssociations: bioIndex("global-associations"),
-        ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
-        clumpedMatrix: bioIndex("clumped-matrix"),
-        ancestryClumpedMatrix: bioIndex("ancestry-clumped-matrix")
+        clumpedMatrix: bioIndex("clumped-matrix")
     },
     state: {
         associations: [],
         leadPositions: {},
-        phenotypes: [],
-        ancestry: "",
-        selectedAncestry: "",
-        phenotypesInSession: null,
-        diseaseInSession: null,
-        phenotypeCorrelation: null,
+        phenotypes: []
     },
     mutations: {
         setLeadPhenotype(state, phenotype) {
             state.phenotypes = [
                 {
                     phenotype: phenotype,
-                    associations: state.ancestry == "" ? state.globalAssociations.data : state.ancestryGlobalAssoc.data,
+                    associations: state.globalAssociations.data,
                     filter: x => true,
                     filterVisible: true
                 }
@@ -49,21 +42,14 @@ export default new Vuex.Store({
             state.leadPositions = {};
 
             // get the lead SNP position for each clump
-            if (state.ancestry == "") {
-                state.globalAssociations.data.forEach(r => {
-                    state.leadPositions[r.clump] = r.position;
-                });
-            } else {
-                state.ancestryGlobalAssoc.data.forEach(r => {
-                    state.leadPositions[r.clump] = r.position;
-                });
-            }
+            state.globalAssociations.data.forEach(r => {
+                state.leadPositions[r.clump] = r.position;
+            });
         },
         addPhenotype(state, phenotype) {
-            let dataToAdd = state.ancestry == "" ? state.clumpedMatrix.data : state.ancestryClumpedMatrix.data;
             state.phenotypes.push({
                 phenotype: phenotype,
-                associations: dataToAdd.map(r => {
+                associations: state.clumpedMatrix.data.map(r => {
                     let alignment = r.alignment || 1;
                     let alignedBeta = r.beta * alignment;
 
@@ -91,16 +77,7 @@ export default new Vuex.Store({
                     (p, i) => i != index
                 );
             }
-        },
-        setPhenotypesInSession(state, PHENOTYPES) {
-            state.phenotypesInSession = PHENOTYPES;
-        },
-        setDiseaseInSession(state, DISEASE) {
-            state.diseaseInSession = DISEASE;
-        },
-        setPhenotypeCorrelation(state, Correlation) {
-            state.phenotypeCorrelation = Correlation;
-        },
+        }
     },
     getters: {
         leadPhenotype(state) {
@@ -117,9 +94,6 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        querySignalSifter(context) {
-            context.state.ancestry = context.state.selectedAncestry;
-        },
         async onPhenotypeChange(context, phenotype) {
             let i = context.state.phenotypes.indexOf(
                 p => p.name == phenotype.name
@@ -140,15 +114,9 @@ export default new Vuex.Store({
 
         // fetch the lead (first) phenotype clumped associations
         async fetchLeadPhenotypeAssociations(context, phenotype) {
-            if (context.state.ancestry == "") {
-                await context.dispatch("globalAssociations/query", {
-                    q: phenotype.name
-                });
-            } else {
-                await context.dispatch("ancestryGlobalAssoc/query", {
-                    q: `${phenotype.name},${context.state.ancestry}`
-                });
-            }
+            await context.dispatch("globalAssociations/query", {
+                q: phenotype.name
+            });
 
             // calculate lead positions
             context.commit("setLeadPhenotype", phenotype);
@@ -159,28 +127,13 @@ export default new Vuex.Store({
         async fetchAssociationsMatrix(context, phenotype) {
             let lead = context.state.phenotypes[0].phenotype.name;
 
-            if (context.state.ancestry == "") {
-                // use the module to download
-                await context.dispatch("clumpedMatrix/query", {
-                    q: `${lead},${phenotype.name}`
-                });
-            } else {
-                await context.dispatch("ancestryClumpedMatrix/query", {
-                    q: `${lead},${phenotype.name},${context.state.ancestry}`
-                });
-            }
+            // use the module to download
+            await context.dispatch("clumpedMatrix/query", {
+                q: `${lead},${phenotype.name}`
+            });
 
             // commit a copy of the data
             context.commit("addPhenotype", phenotype);
-        },
-        phenotypesInSession(context, PHENOTYPES) {
-            context.commit("setPhenotypesInSession", PHENOTYPES);
-        },
-        diseaseInSession(context, DISEASE) {
-            context.commit("setDiseaseInSession", DISEASE);
-        },
-        phenotypeCorrelation(context, DATA) {
-            context.commit("setPhenotypeCorrelation", DATA);
-        },
+        }
     }
 });

@@ -7,7 +7,7 @@ import trapi from "./trapi"
 import Formatters from "@/utils/formatters";
 
 export default Vue.component('curie-label', {
-    props: ["curie"],
+    props: ["curie", "keepTitlePrefix"],
     data() {
         return {
             label: null,
@@ -19,7 +19,7 @@ export default Vue.component('curie-label', {
     methods: {
         biolinkTypeFormatter(label) {
             const probablyHasPrefix = el => el.includes(':')
-            if (label != null && probablyHasPrefix(label)) {
+            if (label != null && probablyHasPrefix(label) && !this.keepTitlePrefix) {
                 return Formatters.capitalizedFormatter(trapi.identifiers._stripPrefix(label))
             } else {
                 return label;

@@ -28,7 +28,7 @@
             </div>
         </div>
         <div class="y-axis-label">{{ yAxisLabel }}</div>
-        <div id="egl_m_plot_y"></div>
+        <div class="egl_m_plot_y" id="egl_m_plot_y"></div>
         <div class="egl-m-plot" id="egl_m_plot"></div>
         <div class="x-axis-label">Chromosome</div>
     </div>

@@ -55,9 +55,10 @@ a:hover {
 }
 
 .front-top-banner-mdkp {
-    background-image: url(//kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
-        linear-gradient(#0097d6, #8ed8f8);
-    background-position: 120% 100px, top left;
+    /*background-image: url(//kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
+        linear-gradient(#0097d6, #8ed8f8);*/
+    background-image: linear-gradient(#0077b6, #5ec8e8);
+    background-position: 120% 0px, top left;
 }
 
 .front-top-banner-cvdkp {
@@ -76,6 +77,11 @@ a:hover {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/t2dkp_front_bg.png),
         linear-gradient(#55aaee, #3c80bd);
     background-position: 120% 100px, top left;
+}
+
+.front-top-banner-skinkp {
+    background-image: linear-gradient(#286FB7, #61C2EE);
+    background-position: 120% 0px, top left;
 }
 
 .front-top-banner-cdkp {
@@ -135,7 +141,7 @@ a:hover {
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
-    padding: 30px 0 50px 0;
+    padding: 30px 0 20px 0;
 }
 
 .front-logo-wrapper {
@@ -153,6 +159,13 @@ a:hover {
     float: left;
 }
 
+.front-top-banner-mdkp .front-logo-img {
+    width: 490px;
+    margin-left: -20px;
+    border-right: solid 1px #5ec8e8;
+    padding: 0 20px 20px 0;
+}
+
 .front-top-banner-cvdkp .front-logo-img {
     width: 430px;
 }
@@ -166,6 +179,10 @@ a:hover {
 }
 
 .front-top-banner-t2dkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-skinkp .front-logo-img {
     width: 430px;
 }
 
@@ -214,6 +231,21 @@ a:hover {
     float: left;
 }
 
+/* Aggregator: vertically center the tagline against the logo. */
+.front-top-banner-aggregatorkp .front-logo-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.front-top-banner-aggregatorkp .front-logo-img,
+.front-top-banner-aggregatorkp .front-logo-tagline {
+    float: none;
+}
+
+.front-logo-tagline-aggregatorkp {
+    transform: none;
+}
+
 .front-logo-tagline-agingkp {
     transform: translate(0%, 70%);
 }
@@ -235,11 +267,15 @@ a:hover {
 }
 
 .front-logo-tagline-mdkp {
-    transform: translate(0%, 23%);
+    transform: translate(0%, 65%);
 }
 
 .front-logo-tagline-t2dkp {
     transform: translate(0%, 20%);
+}
+
+.front-logo-tagline-skinkp {
+    transform: translate(0%, 80%);
 }
 
 .front-logo-tagline-cvdkp {
@@ -365,7 +401,31 @@ a:hover {
     height: 50px;
 }
 
+.aggregatorkp-logo {
+    height: 50px;
+    width: auto;
+    max-height: 50px;
+    object-fit: contain;
+}
+
+.aggregatorkp-header .aggregatorkp-logo-wrapper {
+    display: flex;
+    align-items: center;
+    height: 50px;
+    overflow: hidden;
+}
+
+.front-top-banner-aggregatorkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/bchkp_bg.png),
+    linear-gradient(#002f87, #002f8798);
+    background-position: 110% 100px, top left;
+}
+
 .t2dkp-logo {
+    height: 50px;
+}
+
+.skinkp-logo {
     height: 50px;
 }
 
@@ -434,6 +494,12 @@ a:hover {
     height: 50px;
 }
 
+.aggregatorkp-header,
+.aggregatorkp-footer {
+    background-color: #002f87;
+    height: 50px;
+}
+
 .autoimmunekp-header,
 .autoimmunekp-footer {
     background-color: #71cddd;
@@ -454,7 +520,7 @@ a:hover {
 
 .mdkp-header,
 .mdkp-footer {
-    background-color: #0097d6;
+    background-color: #0077b6;
     height: 50px;
 }
 
@@ -479,6 +545,12 @@ a:hover {
 .t2dkp-header,
 .t2dkp-footer {
     background-color: #55aaee;
+    height: 50px;
+}
+
+.skinkp-header,
+.skinkp-footer {
+    background-color: #286fb7;
     height: 50px;
 }
 
@@ -632,6 +704,7 @@ a:hover {
 .cvdkp-footer,
 .sleepkp-footer,
 .t2dkp-footer,
+.skinkp-footer,
 .cdkp-footer,
 .v2fkp-footer,
 .a2fkp-footer,
@@ -658,6 +731,7 @@ a:hover {
 .cvdkp-body,
 .sleekp-body,
 .t2dkp-body,
+.skinkp-body,
 .cdkp-body,
 .v2fkp-body,
 .a2fkp-body,
@@ -683,6 +757,7 @@ a:hover {
 .cvdkp-card,
 .sleepkp-card,
 .t2dkp-card,
+.skinkp-card,
 .cdkp-card,
 .v2fkp-card,
 .a2fkp-card,
@@ -1123,7 +1198,6 @@ div.search-example {
 }
 
 .gene-with-signal {
-    cursor: pointer;
     display: inline-block;
     margin: 0px 10px 10px 0;
     padding: 2px 20px;
@@ -1131,14 +1205,21 @@ div.search-example {
     -moz-border-radius: 3px;
     border-radius: 3px;
     font-size: 13px;
+    color: #007bff;
+}
+
+.gene-with-signal>a {
+    text-decoration: none;
 }
 
 .gene-with-signal.protein_coding {
+    cursor: pointer;
     background-color: #a0d7ff;
     border: solid 1px #30b7f6;
 }
 
 .gene-with-signal.antisense {
+    cursor: pointer;
     background-color: #b7eab7;
     border: solid 1px #72ce49;
 }
@@ -2187,6 +2268,11 @@ span.volcano-score-2 {
     height: 25px;
 }
 
+.hidden-svg .plot-tab-content-wrapper {
+    visibility: hidden;
+    height: 1;
+}
+
 .kp-tabs-wrapper {
     margin-bottom: -1px;
     padding-left: 20px;
@@ -2225,6 +2311,12 @@ span.volcano-score-2 {
     padding: 1.25em;
     border-radius: 5px;
     border: solid 1px #ddd;
+}
+
+.kp-tabs-contents.not-active {
+    background: none;
+    padding: 1.25em;
+    border: none;
 }
 
 .kp-tab-content {
@@ -2319,4 +2411,125 @@ span.spacer-5 {
 
 .warning {
     color: #ff0000;
+}
+
+.all_biosamples {
+    font-weight: bold;
+}
+
+.download-images-setting {
+    position: absolute;
+    top: -10px;
+    right: 5px;
+}
+
+.download-images-setting .options-gear {
+    color: #333333;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    margin-right: 10px;
+    border: solid 1px #dddddd;
+}
+
+.download-images-setting .options-gear>svg {
+    font-size: 12px !important;
+}
+
+.download-images-setting:hover .options-gear {
+    color: #000000;
+}
+
+.download-images-setting ul.options {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    padding: 15px;
+    border: solid 1px #dddddd;
+    border-radius: 5px;
+    z-index: 10;
+    list-style: none;
+    right: 0;
+    box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%)
+}
+
+.download-images-setting ul.options li {
+    white-space: nowrap;
+}
+
+.download-images-setting ul.options li label {
+    padding-left: 5px;
+}
+
+.download-images-setting:hover ul.options {
+    display: block;
+}
+
+.greater-less-filter select {
+    /* This can't be done at component level due to scope concerns.*/
+    display: inline;
+    width: inherit;
+    margin-right: -5px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    height: 30px;
+}
+
+.greater-less-filter input {
+    height: 30px;
+    margin-left: -5px;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.greater-less-filter .label {
+    margin-left: -30px !important;
+}
+
+/* single search on gene, region, phenotype, variant pages */
+
+.search-header-content .byor-single-search {
+    width: 400px !important;
+}
+
+.search-header-content .byor-single-search-wrapper .reset-search {
+    top: 24px !important;
+}
+
+/* BYOR stuff */
+
+/* Associations table color coding - can't do scoped because it is within table template*/
+.assoc-table-bottom-line td.meta {
+    width: 10px;
+}
+
+.assoc-table-bottom-line td.bottom-line-only {
+    background-color: #6dcff6;
+}
+
+.assoc-table-bottom-line td.bottom-line-min-p {
+    background-color: #8781bd;
+}
+
+.assoc-table-bottom-line td.all-meta-types {
+    background-color: #b6aaa7;
+}
+
+.alert-pop-up {
+    position: fixed;
+    z-index: 200;
+    width: 400px;
+    top: 50%;
+    left: calc(50% - 200px);
+    background-color: #ffefef;
+    padding: 15px 30px;
+    border: solid 1px #ff8888;
+    border-radius: 5px;
+    font-size: 1.15em;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+/* Overriding standard width for autofill menu on the CVDI geneset page*/
+.geneset-cvdi-search-box .vbt-autcomplete-list{
+    width: 440px !important;
 }

@@ -91,7 +91,7 @@ new Vue({
             let promises = updatedPhenotypes.map(phenotype => {
                 if (!!!this.geneFinderAssociationsMap[phenotype] || flush) {
                     let alertId = postAlertNotice(`Loading ${phenotypeMap[phenotype].description} gene associations...`);
-                    return query(`gene-finder`, phenotype, {limitWhile: record => record.pValue < pValue }, true)
+                    return query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue, query_private: true })
                         .then(bioIndexData => {
                             closeAlert(alertId);
                             Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);

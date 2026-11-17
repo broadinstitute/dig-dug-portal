@@ -1,52 +1,53 @@
 <template>
-	<div class="container-fluid mdkp-body flex-body front-page">
+	<div class="container-fluid mdkp-body flex-body front-page" :class="(!!sectionConfigs['content']['search enabled'])? 'with-single-search':''">
         <div class="fp-top" 
-            :style="{ background: `linear-gradient( ${this.sectionConfigs['content']['color_secondary']} 0%, ${this.sectionConfigs['content']['color_primary']} 100% )`}">
+            :style="{ background: `linear-gradient( ${this.sectionConfigs['content']['color secondary']} 0%, ${this.sectionConfigs['content']['color primary']} 100% )`}">
             <div class="fp-intro-section">
                 <div class="fp-intro-logo">
                     <img style="width:400px;" 
-                        :src="this.sectionConfigs['content']['logo_large']"/>
+                        :src="getLogo(sectionConfigs['content']['logo large'])"/>
                 </div>
                 <div class="fp-intro-divider"></div>
                 <div class="fp-intro-blurb">
-                    <div class="fp-intro-blurb-text">{{ this.sectionConfigs["content"]["tagline"] }}</div>
+                    <div class="fp-intro-blurb-text">{{ sectionConfigs["content"]["tagline"] }}</div>
                 </div>
             </div>
-            <div v-if="this.sectionConfigs['content']['search_enabled']"
+            <div v-if="sectionConfigs['content']['search enabled']"
                 class="row fp-search-section">
                 <div class="fp-search">
-                    <input
-                        class="form-control byor-single-search"
-                        type="text"
-                        id="byor_research_search"
-                        v-model="this.researchSearchParam"
-                        placeholder="Search gene, variant, region or phenotype"
-                        @keyup.enter="this.onSearch"
-                    />
-                    <!--
                     <research-single-search
-                        :single-search-config="null"
-                        :phenotypes="phenotypesInSession"
+                    v-if="!sectionConfigs['content']['single search version']"
+                        :single-search-config="sectionConfigs['content']"
+                        :phenotypes="phenotypesInUse"
                         :utils="utilsBox"
                     ></research-single-search>
-                    -->
+                    <!-- single search version 2.0-->
+                    <research-single-search-v2
+                        v-if="!!sectionConfigs['content']['single search version'] && sectionConfigs['content']['single search version'] == '2.0'"
+                        :single-search-config="sectionConfigs['content']"
+                        :phenotypes="phenotypesInUse"
+                        :utils="utilsBox"
+                    ></research-single-search-v2>
+                    <research-single-search-cfde
+                        v-if="!!sectionConfigs['content']['single search version'] && sectionConfigs['content']['single search version'] == 'cfde'"
+                        :single-search-config="sectionConfigs['content']['single search']"
+                        :phenotypes="phenotypesInUse"
+                        :utils="utilsBox"
+                    ></research-single-search-cfde>                      
                 </div>
-                <div class="fp-search-examples">
-                    <!--
-                    <documentation
-                        name="home.example"
-                        v-if="diseaseGroup"
-                        :group="diseaseGroup.name"
-                    ></documentation>
-                    -->
-                </div>
+                <div v-if="!!sectionConfigs['content']['search examples']" class="fp-search-examples">
+                    <span v-html="'examples: '"></span>
+                    <span v-for="example in sectionConfigs['content']['search examples']" :key="example.value"
+                    v-html="getExampleLink(example)">
+                    </span>
+                </div> 
             </div>
         </div>
         <div class="fp-bottom">
             <div class="fp-bottom-container">
-                <research-page-description
-                    :content="this.pageDescription"
-                    :utils="this.utilsBox"
+                <research-page-description v-if="pageDescription"
+                    :content="pageDescription"
+                    :utils="utilsBox"
                 ></research-page-description>
             </div>
         </div>
@@ -55,18 +56,28 @@
 
 <script>
 import Vue from "vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
+import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 
 export default Vue.component("research-front-page", {
-	props: ["sectionConfigs","pageDescription", "utilsBox"],
+	props: ["sectionConfigs","pageDescription", "utilsBox","phenotypeMap","phenotypesInUse"],
     
-	components: {},
+	components: {
+        ResearchSingleSearch,
+        ResearchSingleSearchV2,
+        ResearchSingleSearchCFDE
+    },
 
 	data() {
 		return {
 			researchSearchParam: null,
 		};
-	},
-	created() {},
+	}, 
+	created() {
+    },
+    mounted() {
+    },
 	computed: {},
 	watch: {
         researchSearchParam(PARAM) {
@@ -74,9 +85,28 @@ export default Vue.component("research-front-page", {
         }
     },
     methods: {
-        onSearch(){
-            let searchKey = this.researchSearchParam.replace(/,/g, "").trim();
-            console.log("searching", searchKey)
+        getLogo(SRC) {
+
+            let updatedLink = SRC;
+            let replaceItems = this.sectionConfigs['content']["replace links"];
+
+            if (!!replaceItems) {
+                replaceItems.map(r => {
+                    updatedLink = updatedLink.replace("$" + r, this.utilsBox.keyParams[r]);
+                })
+            }
+
+            return updatedLink
+        },
+        getExampleLink(EXAMPLE) {
+            let exampleLink;
+            this.sectionConfigs['content']['search parameters'].map(param =>{
+                if(param.parameter == EXAMPLE.parameter) {
+                    exampleLink = "<a href='/research.html?pageid="+param["target page"]["page id"]
+                        +"&"+ param.parameter+"="+EXAMPLE.value+"'>"+ EXAMPLE.value +"</a>";
+                }
+            })
+            return exampleLink;
         }
     },
 });
@@ -106,9 +136,13 @@ export default Vue.component("research-front-page", {
     padding-left: 0;
     padding-right: 0;
 }
+
+.mdkp-body.front-page.with-single-search {
+    min-height: 800px;
+}
 .fp-top{
     flex: 0 1 auto;
-    padding:0 0 50px;
+    padding:0 0 20px;
 }
 .fp-nav-section {
     padding: 5px; 
@@ -129,15 +163,19 @@ export default Vue.component("research-front-page", {
     display: flex; 
     width: 100%; 
     min-height:100px; 
-    height:150px; 
+    height: fit-content; 
     align-items: center; 
     justify-content: center; 
     margin: 50px 0;
 }
 .fp-intro-logo{
     min-width: calc(50% - 20.5px); 
+    max-height: 200px;
     display:flex; 
     justify-content: flex-end;
+}
+.fp-intro-logo img{
+    width:inherit;
 }
 .fp-intro-divider{
     width: 1px;
@@ -167,6 +205,12 @@ export default Vue.component("research-front-page", {
 .fp-search-examples,
 .fp-search-examples a {
     color: white !important;
+    font-size: 1.15em;
+}
+
+.fp-search-examples span {
+    margin-left: 3px;
+    margin-right: 3px;
 }
 
 
@@ -181,6 +225,10 @@ export default Vue.component("research-front-page", {
 .fp-bottom-container{
     max-width: 980px;
     margin: 0 auto;
+}
+.fp-bottom:has(.fp-bottom-container:empty) {
+    padding: 0;
+    display:none;
 }
 .fp-col{
     max-width:50%; 

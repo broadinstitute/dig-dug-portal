@@ -5,10 +5,34 @@
 			<h4 class="card-title">Build search criteria</h4>
 			<div class="filtering-ui-content row">
 				<div class="col" :class="!!parameter.display && parameter.display == 'false' ? 'hidden-search' : ''"
+					:type="!!parameter['in-section search']? 'in-section search':''"
 					v-for="parameter, paramIndex in searchParameters" :key="parameter.parameter">
 					<div class="label">
 						<span v-html="parameter.label"></span>
 					</div>
+
+					<!-- single search -->
+				<research-context-search
+					v-if="parameter.type == 'context search'"
+					:sectionsConfig="{'search parameters':parameter, 'sections':sections, 'phenotypes':phenotypesInUse}"
+					:paramIndex="paramIndex"
+					:parent="parentMethods"
+					:utils="utils">
+
+				</research-context-search>
+
+					<!-- end -->
+
+					
+					<select v-if="parameter.type == 'api list'"
+						:id="'search_param_' + parameter.parameter"  class="custom-select custom-select-search"
+						@change="updateSearchInputByEvent($event, paramIndex, parameter.parameter)">
+
+						<option value="">{{ 'Set ' + parameter.parameter }}</option>
+						
+						<option v-for="param in parameterOptions[paramIndex]" :key="param.value" :value="param.value"
+								v-html="param.label.trim()"></option>
+					</select>
 
 					<select v-if="parameter.type == 'list' &&
 						parameter.values.length <= 10
@@ -40,6 +64,14 @@
 						</div>
 					</template>
 					<div>
+						<div class="col" v-if="parameter.type == 'string to array'">
+							<textarea
+								rows="4" cols="50"
+								class="form-control research-textarea"
+								:id="'search_param_' + parameter.parameter">
+
+							</textarea>
+						</div>
 						<div v-if="parameter.type == 'input' && parameter.values == 'kp genes'"
 							:id="'kp_gene_search_wrapper' + paramIndex"
 							:style="!!parameter['expand region'] ? 'display: inline-block;' : ''">
@@ -47,7 +79,7 @@
 							<input v-model="paramSearch[paramIndex]" class="form-control" @keyup="getGenes($event)"
 								:id="'search_param_' + parameter.parameter" />
 
-							<div class="custom-select custom-select-search" :size="kpGenes.length >= 5 ? 5 : 'auto'" :style="kpGenes.length == 0
+							<div class="custom-select custom-select-search" :size="kpGenes.length >= 5 ? 5 : 'auto'" :style="kpGenes.length == 0 || checkFocus('search_param_' + parameter.parameter) == false
 								? 'display:none !important;'
 								: ''
 								">
@@ -61,7 +93,8 @@
 												parameter.parameter,
 												paramIndex,
 												true,
-												parameter['expand region by']
+												parameter['expand region by'],
+												parameter['search point']
 											)
 											: setGene(
 												gene,
@@ -88,15 +121,18 @@
 						parameter.values != 'kp genes'
 						" type="text" class="form-control" :id="'search_param_' + parameter.parameter" />
 				</div>
-				<div class="col">
+				<div class="col search-btn-wrapper" :class="containsContextSearch()">
 					<div @click="updateSearch()" class="btn btn-sm btn-primary">
 						Search
 					</div>
 				</div>
-				<div class="col">
+				<div class="col reset-btn-wrapper" :class="containsContextSearch()">
 					<div @click="resetSearch()" class="btn btn-sm btn-warning ">
 						Reset
 					</div>
+				</div>
+				<div class="col narrative-opener" :class="(containsContextSearch() == 'hidden')? '':'hidden'">
+					<span><b-icon icon="view-list" @click="utils.uiUtils.showHideElement('research-narrative-options')"></b-icon></span>
 				</div>
 			</div>
 		</div>
@@ -105,6 +141,7 @@
 
 <script>
 import Vue from "vue";
+import ResearchContextSearch from "@/components/researchPortal/ResearchContextSearch.vue";
 
 export default Vue.component("research-multi-sections-search", {
 	props: [
@@ -114,12 +151,17 @@ export default Vue.component("research-multi-sections-search", {
 		"utils",
 		"searchVisible"
 	],
-
+	components: {
+		ResearchContextSearch
+	},
 	data() {
 		return {
 			paramSearch: {
-				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
+				0:"", 1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
+			},
+			parameterOptions: {
+0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: []
 			},
 			searchingValues: {},
 			kpGenes: [],
@@ -128,6 +170,12 @@ export default Vue.component("research-multi-sections-search", {
 	},
 	created() {
 		this.$root.$refs.multiSectionSearch = this;
+		
+		this.searchParameters.map((param, pIndex) =>{
+			if(param.type == 'api list') {
+				this.getList(param["data point"], pIndex);
+			}
+		})
 	},
 	beforeUpdate() {
 
@@ -138,7 +186,7 @@ export default Vue.component("research-multi-sections-search", {
 	mounted() {
 		window.addEventListener("scroll", this.onScroll);
 		this.searchParameters.map(s => {
-			if (!!this.utils.keyParams[s.parameter]) {
+			if (!!this.utils.keyParams[s.parameter] && s.type != 'multi search') {
 				document.getElementById("search_param_" + s.parameter).value = this.utils.keyParams[s.parameter];
 			}
 		})
@@ -148,38 +196,113 @@ export default Vue.component("research-multi-sections-search", {
 		window.removeEventListener("scroll", this.onScroll);
 	},
 	computed: {
-		tableTop() {
-			let eglTable = document.getElementsByClassName("multi-page-search")[0];
-			let rect = eglTable.getBoundingClientRect();
-			let scrollTop = document.documentElement.scrollTop
-				? document.documentElement.scrollTop
-				: document.body.scrollTop;
-
-			let tableTop = rect.top + scrollTop;
-
-			return tableTop;
-		},
 		displyingSearchNum() {
 			let totalSearchNum = this.searchParameters.length;
 
 			this.searchParameters.map(s=>{
-				//console.log("s",s)
+				
 				if(s.display && s.display == "false") {
 					totalSearchNum --;
 				}
 			})
 
 			return totalSearchNum;
-		}
+		},
+		parentMethods() {
+			return {
+				kpGenes: this.kpGenes,
+				kpPhenotypes: this.phenotypesInUse,
+				getGenes: this.getGenes,
+				setListValue: this.setListValue,
+				paramSearch: this.paramSearch,
+				updateSearch: this.updateSearch,
+				resetSearch: this.resetSearch
+			}
+		},
+		
 	},
 	watch: {
+		
 	},
 	methods: {
+
+		containsContextSearch() {
+
+			let contextSearch = this.searchParameters.filter(S => S.type == "context search");
+
+			if(contextSearch.length >= 1) {
+				return 'hidden';
+			} else {
+				return '';
+			}
+		},
+		
+		checkFocus(ID) {
+			if (!document.getElementById(ID).matches(':focus')) {
+				return false;
+			} else {
+				return true;
+			}
+		},
+		async getList(apiPoint, INDEX) {
+			
+			let searchPoint = apiPoint.url;
+			let values = []; 
+
+			if (!!apiPoint["parameters type"] && apiPoint["parameters type"] == "replace") {
+
+				let PARAMS = apiPoint.parameters
+
+				PARAMS.map((param, pIndex) => {
+					searchPoint = searchPoint.replace("$" + param, this.utils.keyParams[param]);
+				})
+			}
+
+			let valuesJson = await fetch(searchPoint).then((resp) => resp.json());
+
+			if (valuesJson.error == null) {
+
+				let data = valuesJson;
+
+				if (!!apiPoint["data wrapper"]) {
+					apiPoint["data wrapper"].map(mapper => {
+						data = data[mapper];
+					})
+				}
+
+				if (data.length > 0) {
+					if(typeof data == 'string') {
+						data = JSON.parse(data);
+					}
+
+					data.map(item => {
+						
+						if(typeof item == 'string' || typeof item == 'number') {
+							values.push({"label":item, "value":item}) 
+						} else if(typeof item == 'object' && !!Array.isArray(item)) {
+							values.push({ "label": item[0], "value": item[0] })
+						} else if(typeof item == 'object' && !Array.isArray(item)) {
+							values.push(item);
+						}
+					})
+				}
+				this.parameterOptions[INDEX] = values;
+
+			}
+		},
 		onScroll(e) {
 			let windowTop = window.top.scrollY;
 
 			let element = document.getElementsByClassName("multi-page-search")[0];
-			if (windowTop > this.tableTop) {
+			let contentsTop = document.getElementsByClassName("kp-tabs-contents")[0];
+			let rect = contentsTop.getBoundingClientRect();
+			let scrollTop = document.documentElement.scrollTop
+				? document.documentElement.scrollTop
+				: document.body.scrollTop;
+
+			let tableTop = rect.top + scrollTop;
+
+			if (windowTop > tableTop) {
 				if (!element.classList.contains("fixed-header")) {
 					element.classList.add("fixed-header");
 				}
@@ -197,15 +320,12 @@ export default Vue.component("research-multi-sections-search", {
 				PARAM.values.map(option => {
 					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
 						options.push(option);
-
-						//optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
 				})
 
-				//if (options.length > 1) {
-					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
-				//}
-				this.listOptions[PARAM.parameter] = options;
+				let shorterFirst = options.sort((a, b) => a.label.length - b.label.length);
+
+				this.listOptions[PARAM.parameter] = shorterFirst;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
 			}
@@ -245,22 +365,68 @@ export default Vue.component("research-multi-sections-search", {
 		},
 		updateSearch(KEY,TARGET_SECTIONS) {
 
+			this.$root.hoverPos = [];
 
-			//console.log("updateSearch called", KEY, TARGET_SECTIONS);
 			let paramsObj = {}
 
-			if(!KEY) {
+			//if(!KEY) {
 				this.searchParameters.map(s => {
-					let paramValue = document.getElementById("search_param_" + s.parameter).value;					
-					paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-				})
-			} else {
-				
+					/*let paramValue = document.getElementById("search_param_" + s.parameter).value;
+					
+					paramValue = (s.type == "string to array")?	paramValue.replaceAll("\n",";"):paramValue;*/
 
+					let paramValue;
+
+					switch(s.type) {
+						case "string to array":
+							paramValue = document.getElementById("search_param_" + s.parameter).value.replaceAll("\n",";");
+
+							break;
+
+						case "context search":
+							//hide context search options
+							this.utils.uiUtils.hideElement("research-narrative-options");
+
+							s.parameters.map( p => {
+								if(!!document.getElementById("search_param_" + p.parameter)) {
+									paramValue = (p.type == "string to array")? 
+										document.getElementById("search_param_" + p.parameter).value.replaceAll("\n",";") :
+										document.getElementById("search_param_" + p.parameter).value;
+								}
+							})
+
+							break;
+
+						default:
+							paramValue = document.getElementById("search_param_" + s.parameter).value;
+
+							break;
+
+					}
+
+					switch(s.type) {
+						case "context search":
+
+							s.parameters.map( p => {
+								if(!!document.getElementById("search_param_" + p.parameter)) {
+									paramsObj[p.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+								}
+							})
+
+							break;
+
+						default:
+							paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
+							break;
+					}
+					
+				})
+			/*} else {
+				
 				let paramValue = document.getElementById("search_param_" + KEY).value;
 				
 				paramsObj[KEY] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
-			}
+			}*/
 			
 			this.utils.keyParams.set(paramsObj);
 
@@ -271,17 +437,31 @@ export default Vue.component("research-multi-sections-search", {
 			} else if (!!KEY) {
 
 				if(!!TARGET_SECTIONS) {
+					const elements = document.querySelectorAll('.multi-section-card');
+
+					elements.forEach(element => {
+						element.classList.contains("hidden")? "" : element.classList.add("hidden");
+					});
+
 					TARGET_SECTIONS.map(s=>{
+						document.getElementById('section_wrapper_' + s).classList.remove('hidden');
+						
+						this.utils.uiUtils.moveElement('section_wrapper_' + s, "custom_sections_list_wrapper");
 						this.$root.$refs[s].getData();
 					})
 				} else {
 					this.sections.map(s => {
 						if (!!s["data point"] && !!s["data point"]["parameters"] && !!s["data point"]["parameters"].includes(KEY)) {
+							
+							if (!!document.getElementById("section_" + s['section id'])) {
 							this.$root.$refs[s['section id']].getData();
+							}
 						}
 					})
 				}
 			}
+
+			this.$root.updateParams();
 		},
 		resetSearch() {
 			let paramsObj = {}
@@ -289,23 +469,61 @@ export default Vue.component("research-multi-sections-search", {
 				1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "",
 				11: "", 12: "", 13: "", 14: "", 15: "", 16: "", 17: "", 18: "", 19: "", 20: ""
 			};
+
+			this.$root.hoverPos = [];
+
 			this.searchParameters.map(s => {
-				paramsObj[s.parameter] = "";
-				document.getElementById("search_param_" + s.parameter).value = "";
+
+				switch (s.type) {
+					case "context search":
+
+						s.parameters.map( p => {
+							paramsObj[p.parameter] = "";
+							 
+							if(!!document.getElementById("search_param_" + p.parameter)) {
+								document.getElementById("search_param_" + p.parameter).value = "";
+							}
+						})
+
+						let currentSections = document.querySelectorAll('.multi-section-card');
+
+						currentSections.forEach(section => {
+							section.classList.add('hidden');
+						});
+						break;
+
+					default:
+
+						paramsObj[s.parameter] = "";
+						document.getElementById("search_param_" + s.parameter).value = "";
+
+					break;
+				}
+				
 			})
 			this.utils.keyParams.set(paramsObj);
 
 			this.sections.map(s => {
 				if (!!s["data point"] && !!s["data point"]["parameters"]) {
-					this.$root.$refs[s['section id']].resetAll();
+					if(!!document.getElementById("section_"+ s['section id'])) {
+
+						this.$root.$refs[s['section id']].resetAll();
+
+					}
+					
 				}
 			})
-			
 		},
-		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION, DEFALT_EXPAND) {
+		async setGene(KEY, PARAMETER, INDEX, CONVERT_REGION, DEFALT_EXPAND,SEARCH_POINT) {
+			
 			if (!!CONVERT_REGION) {
-				let searchPoint =
-					this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+				let searchPoint;
+				if(!!SEARCH_POINT) {
+					searchPoint = SEARCH_POINT + "/api/bio/query/gene?q=" + KEY;
+				} else {
+					searchPoint = this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
+				}
+				
 
 				let regionExpand = !!DEFALT_EXPAND? DEFALT_EXPAND/2 : 0;
 
@@ -350,6 +568,42 @@ export default Vue.component("research-multi-sections-search", {
 </script>
 
 <style>
+
+
+.narrative-opener{
+	position: relative;
+}
+
+.narrative-opener span {
+	font-size: 25px;
+	position: absolute;
+	top: -3px;
+    left: -15px;
+}
+
+.narrative-opener span svg{
+	background-color: #668899;
+	padding: 3px;
+	border-radius: 3px;
+	color: #ffffff;
+}
+
+.narrative-opener span:hover svg{
+	background-color: #0069d9;
+}
+
+.narrative-opener span:hover{
+	cursor: pointer;
+}
+
+.col.search-btn-wrapper.hidden, .col.reset-btn-wrapper.hidden, .col.narrative-opener.hidden {
+	display: none !important;
+}
+.form-control.research-textarea {
+	width: auto !important;
+	height: auto !important;
+}
+
 .hidden-search {
 	display: none !important;
 }
@@ -516,7 +770,9 @@ div.custom-select-search {
 	left: 5px;
 }
 
-.filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {}
+.filtering-ui-wrapper.search-criteria div.filtering-ui-content div.col {
+	vertical-align: middle !important;
+}
 
 .autocomplete-options {
 	position: absolute;

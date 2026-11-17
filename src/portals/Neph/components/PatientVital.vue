@@ -156,7 +156,7 @@ export default Vue.component("patient-vital-card", {
         },
         async searchVital() {
             //console.log("variant id:" + this.variantId);
-            this.pvital = await query("patient_vital",this.patientId,{},true);
+            this.pvital = await query("patient_vital", this.patientId, { query_private: true });
             
         },
         rowPickClass(item, type) {

@@ -10,6 +10,7 @@
 				<div class="card-body temporary-card">
 					<documentation
 						name="genefinder.header.info"
+						:contentMap="$store.state.bioPortal.documentations"
 					></documentation>
 				</div>
 			</div>
@@ -19,6 +20,7 @@
 					<documentation
 						style="margin-bottom: 30px"
 						name="tools.genefinder.subheader"
+						:contentMap="$store.state.bioPortal.documentations"
 					></documentation>
 					<span id="top"></span>
 					<h4 class="card-title">Build search criteria</h4>

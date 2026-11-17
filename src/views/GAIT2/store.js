@@ -3,7 +3,6 @@ import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
-import hugeampkpncms from "@/modules/hugeampkpncms";
 import bioIndex from "@/modules/bioIndex";
 import ldServer from "@/modules/ldServer";
 import keyParams from "@/utils/keyParams";
@@ -16,17 +15,13 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        hugeampkpncms,
         ldServer,
-        gene: bioIndex("gene"),
-        associations: bioIndex("associations"),
+        gene: bioIndex("gene")
     },
     state: {
         variants: [],
         pkgData: {},
-        pkgDataSelected: [],
-        genesInRegion: null,
-        codingGenesData: null,
+        pkgDataSelected: []
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -55,15 +50,7 @@ export default new Vuex.Store({
                 });
                 state.pkgDataSelected = tempArray;
             }
-        },
-        setGenesInRegion(state, data) {
-
-            state.genesInRegion = data;
-        },
-        setCodingGenesData(state, data) {
-            console.log("dk", data);
-            state.codingGenesData = data;
-        },
+        }
     },
     getters: {
         region(state) {
@@ -109,12 +96,6 @@ export default new Vuex.Store({
         },
         pkgDataSelected(context, data) {
             context.commit("setPkgDataSelected", data);
-        },
-        genesInRegion(context, genes) {
-            context.commit("setGenesInRegion", genes);
-        },
-        codingGenesData(context, setCodingGenesData) {
-            context.commit("setCodingGenesData", setCodingGenesData);
-        },
+        }
     }
 });

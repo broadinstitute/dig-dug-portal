@@ -1,0 +1,62 @@
+.kr-page {
+    color: #243447;
+}
+
+.kr-band {
+    padding: 28px;
+    margin-bottom: 22px;
+    background: #f6f9fc;
+    border: 1px solid #dde7f0;
+}
+
+.kr-front-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 24px;
+    align-items: start;
+}
+
+.kr-kicker {
+    margin-bottom: 8px;
+    color: #5c6f82;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.kr-lede {
+    max-width: 760px;
+    color: #52667a;
+    font-size: 17px;
+}
+
+.kr-context-panel {
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #d9e2ec;
+    border-radius: 4px;
+}
+
+.kr-panel-title,
+.kr-section-title {
+    margin-bottom: 14px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.kr-inline-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.kr-muted {
+    color: #607587;
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .kr-front-grid {
+        grid-template-columns: 1fr;
+    }
+}

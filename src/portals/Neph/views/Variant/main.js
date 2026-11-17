@@ -14,6 +14,7 @@ import VariantPhenotypeTable from "@/portals/Neph/components/VariantPhenotypeTab
 import GenotypeQualityMetricsTabs from "@/portals/Neph/components/GenotypeQualityMetricsTabs.vue";
 import AllGenoQualityMetricsTabs from "@/portals/Neph/components/AllGenoQualityMetricsTabs.vue";
 import SiteQualityMetricsTabs from "@/portals/Neph/components/SiteQualityMetricsTabs.vue";
+import IGVComponent from "@/portals/Neph/components/IGVComponent.vue";
 import GnomInfoCard from "@/portals/Neph/components/GnomInfoCard.vue";
 import VariantSampleTable from "@/portals/Neph/components/VariantSampleTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
@@ -78,6 +79,7 @@ new Vue({
         GenotypeQualityMetricsTabs,
         SiteQualityMetricsTabs,
         AllGenoQualityMetricsTabs,
+        IGVComponent,
     },
 
     created() {

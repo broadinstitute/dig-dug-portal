@@ -71,7 +71,7 @@
 										:src="$parent.manhattanPlot"
 										alt="Card image cap"
 										:documentation="'dinspector.associationplots.manhattan'"
-										:content-fill="$parent.documentationMap"
+										:contentFill="$parent.docDetails"
 									/>
 								</div>
 							</div>
@@ -85,7 +85,7 @@
 										:src="$parent.qqPlot"
 										alt="Card image cap"
 										:documentation="'dinspector.associationplots.qq'"
-										:content-fill="$parent.documentationMap"
+										:contentFill="$parent.docDetails"
 									/>
 								</div>
 							</div>
@@ -98,7 +98,8 @@
 							{{ $store.state.selectedDataset.description }}
 							<tooltip-documentation
 								name="dinspector.topAssociations.tooltip.hover"
-								:content-fill="$parent.documentationMap"
+								:contentFill="$parent.docDetails"
+								:contentMap="$store.state.bioPortal.documentations"
 								:isHover="true"
 								:noIcon="false"
 							></tooltip-documentation>

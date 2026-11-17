@@ -156,7 +156,7 @@ export default Vue.component("patient-laboratory-card", {
         },
         async searchLaboratory() {
             //console.log("variant id:" + this.variantId);
-            this.plaboratory = await query("patient_laboratory",this.patientId,{},true);
+            this.plaboratory = await query("patient_laboratory", this.patientId, { query_private: true });
             
         },
         rowPickClass(item, type) {

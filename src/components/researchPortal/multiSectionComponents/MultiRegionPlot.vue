@@ -9,18 +9,18 @@
 						';'
 						" @click="
 						utils.uiUtils.showHideElement(
-							'plotsWrapper' + item.replaceAll(' ', '_')
+							'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId
 						)
 						"></span>
 					<span type="button" v-if="item == 'Combined'" class="group-bubble reference"
 						style="background-color: #ffffff; border: solid 1px #666666"
-						@click="utils.uiUtils.showHideElement('plotsWrapperCombined')">
+						@click="utils.uiUtils.showHideElement('assoPlotsWrapperCombined' + sectionId)">
 						Combined
 					</span>
 				</template>
 			</div>
-			<div id="fixedInfoBox" class="fixed-info-box hidden">
-				<div class="fixed-info-box-close" @click="showHidePanel('#fixedInfoBox')">
+			<div :id="'fixedInfoBox'+sectionId" class="fixed-info-box hidden">
+				<div class="fixed-info-box-close" @click="showHidePanel('#fixedInfoBox' + sectionId)">
 					<b-icon icon="x-circle-fill"></b-icon>
 				</div>
 				<div class="fixed-info-box-content">
@@ -28,14 +28,14 @@
 						<div>
 							<strong v-html="d"></strong>
 							<b-icon v-if="!!renderConfig['star key'] &&
-								checkStared(d) == true
+								checkStared(d,'fixed panel') == true
 								" icon="star-fill" style="
 								color: #ffcc00;
 								cursor: pointer;
 								margin-left: 4px;
 							" @click="removeStarItem(d)"></b-icon>
 							<b-icon v-if="!!renderConfig['star key'] &&
-								checkStared(d) == false
+								checkStared(d,'fixed panel') == false
 								" icon="star" style="
 								color: #ffcc00;
 								cursor: pointer;
@@ -62,8 +62,9 @@
 					</div>
 				</div>
 			</div>
+
 			<div v-if="!!renderConfig.legend" class="mbm-plot-legend" v-html="renderConfig.legend"></div>
-			<div class="region-plot-default-legend">
+			<div v-if="!!renderConfig['ld server']" class="region-plot-default-legend">
 				<span class="plot-legend-dot" style="background-color: #824099cc"></span>
 				<span>Reference variant</span>
 				<span class="plot-legend-dot" style="background-color: #d0363360"></span><span>1 > r2 >= 0.8</span>
@@ -75,7 +76,7 @@
 				<span class="plot-legend-dot" style="background-color: #33333320"></span>
 				<span>No data</span>
 			</div>
-			<div class="ld-plots-opener" @click="utils.uiUtils.showHideElement('ldPlotsWrapper' + sectionId)">View P-Value / LD plot(s)</div>
+			<div  v-if="!!renderConfig['ld server']" class="ld-plots-opener" @click="utils.uiUtils.showHideElement('ldPlotsWrapper' + sectionId)">View P-Value / LD plot(s)</div>
 			<div :id="'ldPlotsWrapper' + sectionId" class="ld-plots-wrapper hidden">
 				<template v-for="(item, itemIndex) in plotsList">
 					<h6 v-html="item != 'default'
@@ -92,13 +93,44 @@
 			<template v-for="(item, itemIndex) in plotsList">
 				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId" class="asso-plots-wrapper">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
+					<div class="download-images-setting">
+						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+						<ul class="options" >
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_assoPlot', 'svg', 'vector_asso_plot_' + sectionId, item.replaceAll(' ', '_'), sectionId + '_assoPlot')">Download SVG</a>
+							</li>
+							<li>
+								<a href="javascript:;"
+								@click="downloadImage('asso_plot_' + item.replaceAll(' ', '_') + sectionId, sectionId + '_assoPlot', 'png')">Download PNG</a>
+							</li>
+						</ul>
+					</div>
 					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
 						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
 						@mousemove="checkPosition($event, item, 'asso', 'move')"
+						@mouseleave="resetPosMarker()"
 						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
+					
+					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">&nbsp;</span>
+	        
 					<div :id="'assoInfoBox' + item.replaceAll(' ', '_') + sectionId" class="asso-info-box hidden"></div>
 				</div>
 			</template>
+			<research-region-plot-vector
+		        v-if="!!assoData"
+		            :assoData="assoData"
+					:ldData="globalLDData"
+					:recombData="recombData"
+		            :renderConfig="renderConfig"
+		            :colors="ldDotColor"
+		            :margin="adjPlotMargin"
+		            :region="searchingRegion"
+		            :sectionId="sectionId"
+		            :utils="utils"
+		            :ref="sectionId + '_assoPlot'"
+		        >
+		    </research-region-plot-vector>
 			
 		</div>
 	</div>
@@ -108,6 +140,8 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import { isEqual } from "lodash";
+import regionPlotVector from "@/components/researchPortal/vectorPlots/ResearchRegionPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -126,7 +160,8 @@ export default Vue.component("multi-region-plot", {
 		"isSectionPage",
 		"sectionId",
 		"utils",
-		"starItems"
+		"starItems",
+		"colors",
 	],
 	data() {
 		return {
@@ -156,21 +191,31 @@ export default Vue.component("multi-region-plot", {
 			dotsClicked: [],
 			refProperties: { region: null, refVariants: {}, groups: [] },
 			fixedRefVariants: {},
+			starGroups:[],
 		};
 	},
 	modules: {
 	},
-	components: {},
+	components: {
+		regionPlotVector,
+	},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
+	},
+	created(){
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
+		hoverPos() {
+			return this.$root.hoverPos;
+		},
 		adjPlotMargin() {
 
 			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			
 
 			let plotMargin = !!customPlotMargin ? {
 				left: customPlotMargin.left,
@@ -187,7 +232,6 @@ export default Vue.component("multi-region-plot", {
 					bump: this.plotMargin.bump,
 				};
 
-			//console.log("region plot", plotMargin);
 			return plotMargin;
 		},
 		staredVariants() {
@@ -207,6 +251,9 @@ export default Vue.component("multi-region-plot", {
 		plotsList() {
 			//used rebuild
 			let newRegion = false;
+			let variantField = (!!this.renderConfig['ld server'])? this.renderConfig['ld server']['ref variant field']:null,
+				renderByField = this.renderConfig["render by"],
+				yAxField = this.renderConfig["y axis field"];
 
 			if (
 				!this.refProperties.region ||
@@ -222,9 +269,11 @@ export default Vue.component("multi-region-plot", {
 
 			if (this.plotData != null) {
 
+
 				let plotDataLocal = this.plotData;
 
 				let plotsKeys = [];
+
 				if (this.dataComparisonConfig != null) {
 					let field =
 						this.dataComparisonConfig["fields to compare"][0];
@@ -247,29 +296,28 @@ export default Vue.component("multi-region-plot", {
 					plotsKeys.push("default");
 				}
 
-				if (!!newRegion) {
-				}
-
 				this.assoData = {}; // reset assoData
 				this.ldData = {}; // reset ldData
 				this.recombData = ""; // reset recombData
 				this.assoPos = {};
 				this.ldPos = {};
 
-				//feed assoData + set initial reference variant
-				let yAxField = this.renderConfig["y axis field"];
-				let populationsType =
-					this.renderConfig["ld server"]["populations type"];
+				let populationsType = (!!this.renderConfig["ld server"])?
+					this.renderConfig["ld server"]["populations type"]:null;
 
 				plotsKeys.map((group) => {
+
 					this.assoData[group] = {
 						yAxHigh: null,
 						yAxLow: null,
 						data: {},
+						variantData: {},
 					};
 
 					if (!!this.ldData[group]) {
+						
 						let refVariant = this.refProperties.refVariants[group];
+
 						if (!plotDataLocal[refVariant]) {
 							this.ldData[group] = {
 								refVariant: null,
@@ -318,6 +366,8 @@ export default Vue.component("multi-region-plot", {
 										this.ldData[group].population.push(
 											population
 										);
+									} else {
+										this.ldData[group].population = null;
 									}
 
 									// set initial refVarint
@@ -327,10 +377,10 @@ export default Vue.component("multi-region-plot", {
 									) {
 										this.ldData[group].refVariant =
 											this.assoData[group].yAxHigh == null
-												? dKey
+												? dValue[variantField]
 												: yAxValue >
 													this.assoData[group].yAxHigh
-													? dKey
+													? dValue[variantField]
 													: this.ldData[group].refVariant;
 									} else {
 										this.ldData[group].refVariant =
@@ -338,6 +388,8 @@ export default Vue.component("multi-region-plot", {
 											group
 											];
 									}
+
+									console.log("this.ldData[group].refVariant",this.ldData[group].refVariant);
 
 									// set high / low values of the group
 									this.assoData[group].yAxHigh =
@@ -378,6 +430,10 @@ export default Vue.component("multi-region-plot", {
 											] = fValue;
 										}
 									}
+
+									let variantKey = this.assoData[group].data[dKey][variantField];
+
+									this.assoData[group].variantData[variantKey] = this.assoData[group].data[dKey];
 								}
 							}
 						}
@@ -386,9 +442,11 @@ export default Vue.component("multi-region-plot", {
 						let refVariant = null;
 
 						plotDataLocal.map((dValue) => {
+
 							let yAxValue = dValue[yAxField];
 
 							if (!!yAxValue) {
+
 								// set population for calling LD API
 
 								if (populationsType == "fixed") {
@@ -407,21 +465,24 @@ export default Vue.component("multi-region-plot", {
 									this.ldData[group].population.push(
 										population
 									);
+								} else {
+									this.ldData[group].population = null;
 								}
 
-								let dKey =
-									dValue[this.renderConfig["render by"]];
+								//let dKey = dValue[this.renderConfig["render by"]];
+
+								let dVariantKey = dValue[variantField],
+									dRenderKey = dValue[renderByField];
 
 								// set initial refVarint
-								//if (!this.fixedRefVariants[group]) {
+								
 								refVariant =
 									this.assoData[group].yAxHigh == null
-										? dKey
+										? dVariantKey
 										: yAxValue >
 											this.assoData[group].yAxHigh
-											? dKey
+											? dVariantKey
 											: refVariant;
-								//}
 
 								// set high / low values of the group
 								this.assoData[group].yAxHigh =
@@ -443,13 +504,13 @@ export default Vue.component("multi-region-plot", {
 												this.assoData[group].yAxLow
 											);
 								// add data to asso data
-								this.assoData[group].data[dKey] = {};
+								this.assoData[group].data[dRenderKey] = {};
 
 								for (const [fKey, fValue] of Object.entries(
 									dValue
 								)) {
 									if (this.dataComparisonConfig != null) {
-										this.assoData[group].data[dKey][fKey] =
+										this.assoData[group].data[dRenderKey][fKey] =
 											this.dataComparisonConfig[
 												"fields to compare"
 											].includes(fKey) == true
@@ -458,10 +519,14 @@ export default Vue.component("multi-region-plot", {
 									} else if (
 										this.dataComparisonConfig == null
 									) {
-										this.assoData[group].data[dKey][fKey] =
+										this.assoData[group].data[dRenderKey][fKey] =
 											fValue;
 									}
 								}
+
+								let variantKey = this.assoData[group].data[dRenderKey][variantField];
+
+								this.assoData[group].variantData[variantKey] = this.assoData[group].data[dRenderKey];
 							}
 						});
 
@@ -479,9 +544,9 @@ export default Vue.component("multi-region-plot", {
 					this.ldData[group].population =
 						uniqPopulations.length > 1
 							? "ALL"
-							: this.renderConfig["ld server"].populations[
+							: (this.renderConfig["ld server"])? this.renderConfig["ld server"].populations[
 							uniqPopulations[0]
-							];
+							]:null;
 				});
 
 				if (plotsKeys.includes("Combined") == true) {
@@ -517,8 +582,6 @@ export default Vue.component("multi-region-plot", {
 			} else {
 				let returnObj = {};
 
-				//console.log("this.region",this.region);
-
 				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 
 				let regionArr = this.region.split(":")[1].split("-");
@@ -543,16 +606,50 @@ export default Vue.component("multi-region-plot", {
 				return returnObj;
 			}
 		},
+		globalLDData(){
+			return this.$store.state.topLevelLDData !== null
+				? this.$store.state.topLevelLDData
+				: this.ldData;
+		}
 	},
 	watch: {
+		hoverPos(POS){
+			this.renderPlots();
+		},
 		staredVariants(CONTENT) {
 			this.renderPlots();
 		},
-		starItems(CONTENT) {
+		starItems(STARS) {
+			this.starGroups = [...new Set(STARS.map(s => s.section))].sort();
 			this.renderPlots();
-		}
+		},
+		ldData: {
+			handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+					if (this.renderConfig.propagateLD === "send"){
+						// Propagate LD if necessary
+						let ldInfo = {
+							data: newData,
+							server: this.renderConfig["ld server"]
+						};
+						this.$emit("ld-data-loaded", ldInfo);
+					}
+                }
+            },
+            deep: true,
+		},
 	},
 	methods: {
+		downloadImage(ID, NAME, TYPE, SVG, DATA, ref) {
+
+			if (TYPE == 'svg') {
+				let refName = ref;
+				this.$refs[refName].renderPlot(DATA);
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, SVG);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
 
 		onResize(e) {
 			this.renderPlots();
@@ -572,7 +669,16 @@ export default Vue.component("multi-region-plot", {
 			}
 			return item;
 		},
-		checkStared(ITEM) {
+		checkStared(item, from) {
+			let ITEM = item;
+
+			if(!!from) {
+				for (const [group, groupValue] of Object.entries(this.assoData)) {
+					if(!!groupValue.data[item]) {
+						ITEM = groupValue.data[item][this.renderConfig["star key"]];
+					}
+				}
+			}
 
 			let selectedItems;
 			if (!!this.isSectionPage) {
@@ -591,13 +697,23 @@ export default Vue.component("multi-region-plot", {
 				return false;
 			}
 		},
-		addStarItem(ITEM) {
+		addStarItem(item) {
+			let ITEM;
+
+			for (const [group, groupValue] of Object.entries(this.assoData)) {
+				if (!!groupValue.data[item]) {
+					ITEM = groupValue.data[item][this.renderConfig["star key"]];
+				}
+			}
+
 			if (!!this.isSectionPage) {
 				let stard = [...new Set(this.starItems)]
+
 				let tempObj = {
 					type: this.renderConfig["star key"],
 					id: ITEM,
-					columns: this.getColumns(ITEM)
+					columns: this.getColumns(ITEM),
+					section: this.sectionId
 				}
 				stard.push(tempObj);
 				this.$emit('on-star', stard);
@@ -609,7 +725,15 @@ export default Vue.component("multi-region-plot", {
 				});
 			}
 		},
-		removeStarItem(ITEM) {
+		removeStarItem(item) {
+			let ITEM;
+
+			for (const [group, groupValue] of Object.entries(this.assoData)) {
+				if (!!groupValue.data[item]) {
+					ITEM = groupValue.data[item][this.renderConfig["star key"]];
+				}
+			}
+
 			if (!!this.isSectionPage) {
 				let stard = [...new Set(this.starItems)].filter(s => s.id != ITEM);
 				this.$emit('on-star', stard);
@@ -621,8 +745,12 @@ export default Vue.component("multi-region-plot", {
 				});
 			}
 		},
-		resetLdReference(GROUP, VARIANT) {
-			this.showHidePanel("#fixedInfoBox");
+		resetLdReference(GROUP, ITEM) {
+			let variantField = this.renderConfig['ld server']['ref variant field'];
+
+			let VARIANT = this.assoData[GROUP].data[ITEM][variantField];
+
+			this.showHidePanel("#fixedInfoBox" + this.sectionId);
 			if (GROUP != "All") {
 				this.ldData[GROUP].refVariant = VARIANT;
 				this.fixedRefVariants[GROUP] = VARIANT;
@@ -680,12 +808,87 @@ export default Vue.component("multi-region-plot", {
 
 			return dotsList;
 		},
-		checkPosition(event, GROUP, TYPE, EVENT_TYPE) {
-			let e = event;
+		resetPosMarker() {
+				let xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = "0px";
+                xPosMarker.style.top = "0px";
+                xPosMarker.style.height = "1px";
+		},
+
+		checkPosition(e,GROUP, TYPE, action) {
+            const rect = e.target.getBoundingClientRect();
+                let X = Math.floor(e.clientX - rect.left);
+                let Y = Math.floor(e.clientY - rect.top);
+
+            const wrapperRect = document.getElementById("assoPlotsWrapper"+GROUP+this.sectionId).getBoundingClientRect()
+
+            this.getPosInfo(X,Y,GROUP, TYPE, action);
+
+            if(action == "move" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2)) {
+
+                const xPosMarker = document.getElementById(this.sectionId + "_xPosMarker");
+                xPosMarker.style.left = (X)+"px";
+                xPosMarker.style.top = (wrapperRect.height - rect.height)+"px";
+                xPosMarker.style.height = (rect.height - this.adjPlotMargin.bottom/2)+"px";
+
+            } else {
+				this.resetPosMarker();
+			}
+
+            if(action == "click" && (X >= this.adjPlotMargin.left/2 && X <= (rect.width - this.adjPlotMargin.right/2)) && Y >= (rect.height - this.adjPlotMargin.bottom/2) ) {
+
+                const tempWidth = rect.width - (this.adjPlotMargin.left/2 + this.adjPlotMargin.right/2)
+                const tempXPos = X - (this.adjPlotMargin.left/2);
+
+                let xPos = this.convertXPos(tempXPos, tempWidth);
+
+                let itThere = false;
+                let tempArr = [];
+
+                if(this.hoverPos.length > 0) {
+
+                    this.hoverPos.map(h =>{
+
+						let xMargin = Math.floor((this.searchingRegion.end - this.searchingRegion.start)/tempWidth)*2;
+
+                        if( h >= xPos - xMargin && h <= xPos + xMargin) {
+                            itThere = true;
+                        } else {
+                            tempArr.push(h);
+                        }
+                    })
+
+                    this.$root.hoverPos = tempArr;
+                }
+                
+                if(!itThere) {
+                    this.$root.hoverPos.push(xPos);
+                }
+                
+            }
+            
+        },
+
+		convertXPos(X,WIDTH) {
+
+            let perPixel = ((this.searchingRegion.end - this.searchingRegion.start)/WIDTH);
+            let xPos = (X * perPixel) + this.searchingRegion.start;
+
+            return Math.floor(xPos);
+        },
+
+		getPosInfo(x,y, GROUP, TYPE, EVENT_TYPE) {
+
+			if(EVENT_TYPE == 'click') {
+				//console.log(event, GROUP, TYPE, EVENT_TYPE);
+			}
+			
+
+			/*let e = event;
 			let rect = e.target.getBoundingClientRect();
 			let x = Math.floor(e.clientX - rect.left);
 			let y = Math.floor(e.clientY - rect.top);
-			let rawX = e.clientX;
+			let rawX = e.clientX;*/
 
 			let dotsOnPosition = this.getDotsOnPosition(TYPE, GROUP, x, y);
 			dotsOnPosition = [...new Set(dotsOnPosition)];
@@ -725,8 +928,10 @@ export default Vue.component("multi-region-plot", {
 							infoContent += "<strong>" + d + "</strong>";
 
 							if (!!this.renderConfig["star key"]) {
+
+								let starKey = this.assoData[GROUP].data[d][this.renderConfig["star key"]]
 								infoContent +=
-									this.checkStared(d) == true
+									this.checkStared(starKey) == true
 										? "&nbsp;<span style='color:#ffcc00'>&#9733;</span>"
 										: "&nbsp;<span style='color:#ffcc00'>&#9734;</span>";
 							}
@@ -770,7 +975,7 @@ export default Vue.component("multi-region-plot", {
 
 				} else if (EVENT_TYPE == "click") {
 					this.dotsClicked = dotsOnPosition;
-					this.showHidePanel("#fixedInfoBox");
+					this.showHidePanel("#fixedInfoBox"+this.sectionId);
 				}
 			} else {
 				wrapper.classList.add("hidden");
@@ -785,17 +990,25 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		async callForRecombData() {
-			//console.log("this.searchingRegion", this.searchingRegion);
 
-			let signalURL =
-				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
-				this.searchingRegion.chr +
-				"' and position gt " +
-				this.searchingRegion.start +
-				" and position lt " +
-				this.searchingRegion.end;
+			let signalURL;
 
-				//console.log("signalURL", signalURL)
+			if(!!this.renderConfig["genome reference"] && this.renderConfig["genome reference"] == "GRCh38") {
+				signalURL = "https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?build=GRCh38&filter=chromosome eq '" +
+					this.searchingRegion.chr +
+					"' and position gt " +
+					this.searchingRegion.start +
+					" and position lt " +
+					this.searchingRegion.end;
+			} else if(!this.renderConfig["genome reference"] || 
+				(!!this.renderConfig["genome reference"] && this.renderConfig["genome reference"] == "GRCh37")){
+				signalURL = "https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
+					this.searchingRegion.chr +
+					"' and position gt " +
+					this.searchingRegion.start +
+					" and position lt " +
+					this.searchingRegion.end;
+			}
 
 			let signalJson = await fetch(signalURL).then((resp) => resp.json());
 			this.recombData = {};
@@ -806,6 +1019,8 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		async callForLDData() {
+			// Can we just cut in right here?
+
 			const plotWrappers = document.querySelectorAll(
 				".region-plots-wrapper"
 			);
@@ -826,20 +1041,40 @@ export default Vue.component("multi-region-plot", {
 				}
 			}
 
-			if (plotID != null) {
+			if (plotID != null && !!this.ldData[plotID].population && !!this.ldData[plotID].refVariant) {
 
-				let ldURL =
-					"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
-					this.ldData[plotID].population +
-					"/variants?correlation=rsquare&variant=" +
-					this.ldData[plotID].refVariant +
-					"&chrom=" +
-					this.searchingRegion.chr +
-					"&start=" +
-					this.searchingRegion.start +
-					"&stop=" +
-					this.searchingRegion.end +
-					"&limit=100000";
+				let ldURL;
+
+				if (!!this.renderConfig["genome reference"] && this.renderConfig["genome reference"] == "GRCh38") {
+					ldURL =
+						"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh38/references/1000G/populations/" +
+						this.ldData[plotID].population +
+						"/variants?correlation=rsquare&variant=" +
+						this.ldData[plotID].refVariant +
+						"&chrom=" +
+						this.searchingRegion.chr +
+						"&start=" +
+						this.searchingRegion.start +
+						"&stop=" +
+						this.searchingRegion.end +
+						"&limit=100000";
+
+				} else if (!this.renderConfig["genome reference"] ||
+					(!!this.renderConfig["genome reference"] && this.renderConfig["genome reference"] == "GRCh37")) {
+					ldURL =
+						"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
+						this.ldData[plotID].population +
+						"/variants?correlation=rsquare&variant=" +
+						this.ldData[plotID].refVariant +
+						"&chrom=" +
+						this.searchingRegion.chr +
+						"&start=" +
+						this.searchingRegion.start +
+						"&stop=" +
+						this.searchingRegion.end +
+						"&limit=100000";
+				}
+
 
 				let ldJson = await fetch(ldURL).then((resp) => resp.json());
 
@@ -863,8 +1098,8 @@ export default Vue.component("multi-region-plot", {
 								? this.plotData[k]["LDS"]
 								: {};
 
-							this.plotData[k]["LDS"][plotID] =
-								this.ldData[plotID].data[k];
+							this.plotData[k]["LDS"][plotID] = (!!this.renderConfig["ld server"])?
+								this.ldData[plotID].data[k]:null;
 						});
 
 						break;
@@ -880,6 +1115,7 @@ export default Vue.component("multi-region-plot", {
 
 				this.renderPlots();
 			}
+			
 			this.$forceUpdate();
 		},
 		renderPlots(event) {
@@ -900,7 +1136,7 @@ export default Vue.component("multi-region-plot", {
 				this.adjPlotMargin.bottom;
 
 			let assoPlotWidth =
-				assoCanvasWidth - this.adjPlotMargin.left * 2;
+				assoCanvasWidth - (this.adjPlotMargin.left + this.adjPlotMargin.right);
 			let ldPlotWidth =
 				ldCanvasWidth -
 				this.adjPlotMargin.left -
@@ -940,7 +1176,7 @@ export default Vue.component("multi-region-plot", {
 				let y = Math.floor(e.clientY - rect.top);
 				let rawX = e.clientX;
 
-				console.log("x",x);
+				//console.log("x",x);
 				*/
 
 				this.renderAxis(
@@ -955,6 +1191,35 @@ export default Vue.component("multi-region-plot", {
 					"asso",
 					p
 				);
+
+				///render marker band
+
+				
+				ctx.fillStyle = "#ff880025";
+
+				ctx.fillRect(
+					this.adjPlotMargin.left,
+					plotHeight + this.adjPlotMargin.top + (this.adjPlotMargin.bump * 2)+12,
+					assoPlotWidth,
+					12
+				);
+					
+				//
+				/// if there are markers
+
+				let xPerPixel = assoPlotWidth / (regionEnd - regionStart);
+
+				if(this.hoverPos.length > 0) {
+
+					
+					this.hoverPos.map(h => {
+						let yPos1 = this.adjPlotMargin.top - this.adjPlotMargin.bump;
+						let yPos2 = this.adjPlotMargin.top + plotHeight + (this.adjPlotMargin.bump*3);
+
+						let xPos = this.adjPlotMargin.left + (h - regionStart) * xPerPixel;
+						this.utils.plotUtils.renderDashedLine(ctx, xPos, yPos1, xPos, yPos2, 1, "#ff0000", [6, 2]);
+					})
+				}
 
 				this.renderRecombLine(
 					ctx,
@@ -976,6 +1241,8 @@ export default Vue.component("multi-region-plot", {
 					"asso",
 					p
 				);
+
+				//this.utils.uiUtils.moveCanvas("rp_region_plot_"+this.sectionId, this.sectionId+"_wrapper");
 
 				// second LD plot
 				c = document.getElementById(
@@ -1034,15 +1301,30 @@ export default Vue.component("multi-region-plot", {
 			TYPE,
 			GROUP
 		) {
-			let xStart = this.adjPlotMargin.left;
-			let yStart = this.adjPlotMargin.top + HEIGHT;
-			let xPosByPixel = WIDTH / (xMax - xMin);
-			let yPosByPixel = HEIGHT / (yMax - yMin);
+			let xStart = this.adjPlotMargin.left,
+				yStart = this.adjPlotMargin.top + HEIGHT,
+				xPosByPixel = WIDTH / (xMax - xMin),
+				yPosByPixel = HEIGHT / (yMax - yMin),
+				variantField = (!!this.renderConfig["ld server"])
+					? this.renderConfig['ld server']['ref variant field']
+					: this.renderConfig.propagateLD === 'receive'
+						? "LD Variant ID"
+						: null,
+				renderByField = this.renderConfig["render by"],
+				starField = this.renderConfig["star key"],
+				xField = this.renderConfig["x axis field"],
+				yField = this.renderConfig["y axis field"];
+
+			let canvas = document.createElement('canvas'),
+				context = canvas.getContext('2d');
+
+			let getWidth = function (text, fontSize, fontFace) {
+				context.font = fontSize + 'px ' + fontFace;
+				return context.measureText(text).width;
+			}
 
 			if (TYPE == "asso") {
 				this.assoPos[GROUP] = {};
-				let xField = this.renderConfig["x axis field"];
-				let yField = this.renderConfig["y axis field"];
 
 				/// first render position lines of the star variants
 				
@@ -1051,10 +1333,35 @@ export default Vue.component("multi-region-plot", {
 					let yPos2 = this.adjPlotMargin.top + HEIGHT + (this.adjPlotMargin.bump * 2);
 
 					this.starItems.map(star => {
-						let xPos = xStart + (star.columns[this.renderConfig["x axis field"]] - xMin) * xPosByPixel;
+						let xPos = xStart + (star.columns[xField] - xMin) * xPosByPixel;
+						let lineColor = this.colors.moderate[this.starGroups.indexOf(star.section) % 16];
 
-						this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, "#FFAA0055", [6, 2]);
-						this.renderDot(CTX, xPos, yPos2, "#FFAA0055", 5);
+						this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos1, xPos, yPos2, 3, lineColor, [6, 2]); // "#FFAA0055"
+						this.renderDot(CTX, xPos, yPos2, lineColor, 5);// "#FFAA0055"
+					})
+
+
+					let xPos = this.adjPlotMargin.bump;
+
+					this.starGroups.map((group, gIndex) => {
+
+						let lineColor = this.colors.bold[gIndex]
+						let yPos = this.adjPlotMargin.top + HEIGHT + this.adjPlotMargin.bottom - this.adjPlotMargin.bump;
+						this.utils.plotUtils.renderDashedLine(CTX, xPos, yPos, xPos + 50, yPos, 3, lineColor, [12, 4]);
+
+						xPos += 60;
+
+						CTX.font = "24px Arial";
+						CTX.textAlign = "start";
+						CTX.fillStyle = lineColor;
+
+						CTX.fillText(
+							group,
+							xPos,
+							yPos
+						);
+
+						xPos += getWidth(group, 24, "Arial") + this.adjPlotMargin.bump;
 					})
 				}
 
@@ -1078,13 +1385,22 @@ export default Vue.component("multi-region-plot", {
 								key
 							);
 
-							
 
-							let dotColor = this.getDotColor(
-								this.ldData[GROUP].data[key]
-							);
-							if (key == this.ldData[GROUP].refVariant) {
-								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+							let ldKey = value[variantField]; // TODO FIX THIS RIGHT HERE
+							
+							let starKey = value[starField];
+							let dot = this.renderConfig.propagateLD === 'receive'
+								? this.globalLDData.default.data[this.getGlobalDot(value)]
+								: this.ldData[GROUP].data[ldKey];
+
+							let dotColor = 
+								//this.renderConfig.propagateLD === 'receive'  ? this.getGlobalDot(value):
+								(!!ldKey || this.renderConfig.propagateLD === 'receive')
+									? this.getDotColor(dot)
+									: '#00000030';
+
+							if (ldKey == this.ldData[GROUP].refVariant) {
+								if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
 
 									this.utils.plotUtils.renderStar(
 										CTX,
@@ -1096,16 +1412,18 @@ export default Vue.component("multi-region-plot", {
 										dotColor,
 										dotColor
 									);
-								} else {
+								} else if(!!ldKey) {
 									this.renderDiamond(
 										CTX,
 										xPos,
 										yPos,
 										dotColor
 									);
+								} else {
+									this.renderDot(CTX, xPos, yPos, dotColor);
 								}
 							} else {
-								if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
+								if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
 									this.utils.plotUtils.renderStar(
 										CTX,
 										xPos,
@@ -1167,8 +1485,10 @@ export default Vue.component("multi-region-plot", {
 										key
 									);
 
-									let dotColor =
-										this.compareGroupColors[pIndex];
+									let dotColor = this.compareGroupColors[pIndex];
+									//let ldKey = value[variantField];
+									//let starKey = value[starField];
+
 									if (key == this.ldData[pGroup].refVariant) {
 										if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 											this.utils.plotUtils.renderStar(
@@ -1181,8 +1501,15 @@ export default Vue.component("multi-region-plot", {
 												dotColor,
 												dotColor
 											);
-										} else {
+										} else if(!!this.ldData[pGroup].refVariant){
 											this.renderDiamond(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										} else {
+											this.renderDot(
 												CTX,
 												xPos,
 												yPos,
@@ -1226,9 +1553,10 @@ export default Vue.component("multi-region-plot", {
 						linesObj
 					);
 				}
+
 			}
 
-			if (TYPE == "LD") {
+			if (TYPE == "LD" && !!this.renderConfig["ld server"]) {
 				this.ldPos[GROUP] = {};
 				if (GROUP != "Combined") {
 					if (Object.keys(this.ldData[GROUP].data).length == 0) {
@@ -1241,16 +1569,18 @@ export default Vue.component("multi-region-plot", {
 							this.adjPlotMargin.top + HEIGHT / 2
 						);
 					} else {
-						let yField = this.renderConfig["y axis field"];
+						//let yField = this.renderConfig["y axis field"];
 
 						for (const [key, value] of Object.entries(
 							this.ldData[GROUP].data
 						)) {
-							if (!!this.assoData[GROUP].data[key]) {
+
+							if (!!this.assoData[GROUP].variantData[key]) {
+
 								let xPos = xStart + value * xPosByPixel;
 								let yPos =
 									yStart -
-									(this.assoData[GROUP].data[key][yField] -
+									(this.assoData[GROUP].variantData[key][yField] -
 										yMin) *
 									yPosByPixel;
 
@@ -1262,6 +1592,7 @@ export default Vue.component("multi-region-plot", {
 								);
 
 								let dotColor = this.getDotColor(value);
+
 								if (key == this.ldData[GROUP].refVariant) {
 									if (!!this.renderConfig["star key"] && this.checkStared(key) == true) {
 										this.utils.plotUtils.renderStar(
@@ -1322,7 +1653,7 @@ export default Vue.component("multi-region-plot", {
 								for (const [key, value] of Object.entries(
 									this.ldData[pGroup].data
 								)) {
-									if (!!this.assoData[pGroup].data[key]) {
+									if (!!this.assoData[pGroup].variantData[key]) {
 										if (!linesObj[key]) {
 											let tempObj = {
 												xValue: [],
@@ -1330,7 +1661,7 @@ export default Vue.component("multi-region-plot", {
 											};
 											tempObj.xValue.push(value);
 											tempObj.yValue.push(
-												this.assoData[pGroup].data[key][
+												this.assoData[pGroup].variantData[key][
 												yField
 												]
 											);
@@ -1338,7 +1669,7 @@ export default Vue.component("multi-region-plot", {
 										} else if (!!linesObj[key]) {
 											linesObj[key].xValue.push(value);
 											linesObj[key].yValue.push(
-												this.assoData[pGroup].data[key][
+												this.assoData[pGroup].variantData[key][
 												yField
 												]
 											);
@@ -1346,7 +1677,7 @@ export default Vue.component("multi-region-plot", {
 										let xPos = xStart + value * xPosByPixel;
 										let yPos =
 											yStart -
-											(this.assoData[pGroup].data[key][
+											(this.assoData[pGroup].variantData[key][
 												yField
 											] -
 												yMin) *
@@ -1446,6 +1777,16 @@ export default Vue.component("multi-region-plot", {
 				let index = Math.floor(SCORE * 5);
 				return this.ldDotColor[index];
 			}
+		},
+		getGlobalDot(DOT){
+			let field = "Variant ID";
+			let fieldValues = DOT[field].split("_");
+			let chr = fieldValues[0].replace("chr", "");
+			let pos = fieldValues[1];
+			let ref = fieldValues[2];
+			let alt = fieldValues[3];
+			let formattedDot = `${chr}:${pos}_${ref}/${alt}`;
+			return formattedDot;
 		},
 		renderConntingLine(
 			CTX,
@@ -1691,10 +2032,11 @@ export default Vue.component("multi-region-plot", {
 						? Math.round(positionLabel * 0.001) + "k"
 						: positionLabel;
 
+				// Placing position labels on the X axis. TODO replicate on splice plot.
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
-					this.adjPlotMargin.top + HEIGHT + bump * 4
+					this.adjPlotMargin.top + HEIGHT + (bump * 4.5)
 				);
 			}
 
@@ -1750,7 +2092,7 @@ export default Vue.component("multi-region-plot", {
 $(function () { });
 </script>
 
-<style>
+<style scoped>
 .show-hide-plots {
 	text-align: left;
 	padding-bottom: 25px;
@@ -1785,6 +2127,12 @@ $(function () { });
 	height: auto !important;
 	padding-bottom: 0 !important;
 	width: 100%;
+	position: relative;
+}
+
+.asso-plots-wrapper.hidden,
+.ld-plots-wrapper.hidden {
+	display: none !important;
 }
 
 .ld-plots-wrapper {
@@ -1888,6 +2236,24 @@ $(function () { });
 
 .content-on-clicked-dot-values {
 	padding-left: 10px;
+}
+
+canvas {
+	position:relative
+}
+
+.x-pos-marker {
+    position:absolute;
+    top:0;
+    left:0;
+    color: #ff0000;
+    border-left:solid 1px #ff0000;
+	height: 0;
+}
+.download-images-setting {
+	position: relative !important;
+	float: right;
+	margin-bottom: 5px;
 }
 </style>
 

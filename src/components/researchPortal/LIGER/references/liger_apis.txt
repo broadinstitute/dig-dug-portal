@@ -1,0 +1,86 @@
+LIGER APIs
+
+Old to new api index mappings:
+
+cell-state-expression -> gene-program-expression-cell-state
+pankbase-scb-expression -> gene-program-expression-program
+cell-state-heat-map -> gene-program-heatmap
+pankbase-scb-factor-cs -> gene-program-factor
+pankbase-scb-gene-set-factor-cs -> gene-program-trait-factor
+cell-state-pigean -> gene-program-cell-state-trait-factor
+cell-state-metadata -> gene-program-cell-state-metadata
+cell-state-metadata-extended -> gene-program-cell-state-metadata-extended
+qc-metadata -> gene-program-qc-metadata
+qc-metadata-extended -> gene-program-qc-metadata-extended
+
+*(new) gene-program-expression-cell-type
+*(new) gene-program-gene-factor
+
+- - - - - - - - - - 
+
+BASE DOMAIN: https://bioindex-dev.hugeamp.org
+
+- - - - - - - - - -
+
+API ENDPOINT EXAMPLES:
+
+Get list of genes that match substring
+used for search autocomplete
+input: string
+/api/bio/match/gene?q=SAM
+
+Get gene expression by cell state for all available tissues and cell types
+input: gene
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-expression-cell-state?q=A1BG
+
+Get gene expression by cell state for a specific tissue cell type 
+inputs: tissue, cell type, gene
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-expression-cell-state?q=artery,adipocyte,AACS
+
+Get gene expression by gene program for all available tissues and cell types
+input: gene
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-expression-program?q=A1BG
+
+Get gene expression by gene program for a specific tissue cell types
+inputs: tissue datasetID, cell type, model, gene
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-expression-program?q=FNIH_Artery_scRNA_v2.2,endothelial,mouse_msigdb,A1BG
+
+Get gene expression by cell type for a tissue
+inputs: tissue, gene
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-expression-cell-type?q=artery,A1BG
+
+Get all factors (gene programs) for a tissue cell type
+Inputs: tissue datasetID, cell type, model
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-factor?q=FNIH_Artery_scRNA_v2.2,endothelial,mouse_msigdb
+
+Get all gene associations for a factor of a tissue cell type
+inputs: tissue datasetID, cell type, model, factorID
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-gene-factor?q=FNIH_Artery_scRNA_v2.2,endothelial,mouse_msigdb,Factor1
+
+Get correlation heatmap data between cell states and gene programs of a tissue cell type
+Inputs: tissue, cell type
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-heatmap?q=liver,b_cell
+
+Get traits associated with a factor (gene program) for a tissue cell type
+inputs: tissue datasetID, cell type, model, factorID
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-trait-factor?q=FNIH_Artery_scRNA_v2.2,endothelial,mouse_msigdb,Factor1
+
+Get traits associated with a cell state for a tissue cell type
+Inputs: tissue, cell type, cell state id
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-cell-state-trait-factor?q=artery,adipocyte,artery_adipocyte_inflammatory_dysfunctional_pvat_adipocyte
+
+Get full metadata for all cell states in a tissue cell type
+Inputs: tissue, cell type
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-cell-state-metadata-extended?q=artery,adipocyte
+
+Get partial metadata for all cell states in a tissue cell type
+Inputs: tissue, cell type
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-cell-state-metadata?q=artery,adipocyte
+
+Get full metadata about all QC states
+Inputs: 1
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-qc-metadata-extended?q=1
+
+Get partial metadata about all QC states
+Inputs: 1
+https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-qc-metadata?q=1

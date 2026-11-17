@@ -5,6 +5,9 @@
 
 import Vue from "vue";
 import VueCookies from "vue-cookies";
+
+import keyParams from "@/utils/keyParams";
+
 Vue.use(VueCookies);
 
 export default {
@@ -21,6 +24,7 @@ export default {
             genesInRegion: [],
             genesData: null,
             researchDataEmpty: null,
+            wildCard: null,
         };
     },
 
@@ -58,6 +62,9 @@ export default {
         setGenesData(state, data) {
             state.genesData = data;
         },
+        setWildCard(state, data) {
+            state.wildCard = data;
+        },
     },
 
     // dispatch methods
@@ -67,10 +74,10 @@ export default {
                 "https://hugeampkpncms.org/view/rest/get_research_page_access?pageid=" + param.pageID
             ).then(resp => resp.json());
             //check for cookie if dev mode
-            if(json[0].field_page_mode==='dev'){
+            if (!!json[0].field_page_mode && json[0].field_page_mode === 'dev') {
                 const cookieCheck = Vue.$cookies.get(`KPN_${param.pageID}`);
                 //login if cookie exists
-                if(cookieCheck) context.dispatch("getResearchDevPage", {pageID: param.pageID, devID: cookieCheck.u, devPW: cookieCheck.p});
+                if (cookieCheck) context.dispatch("getResearchDevPage", { pageID: param.pageID, devID: cookieCheck.u, devPW: cookieCheck.p });
             }
             // set the data
             context.commit("setResearchMode", json);
@@ -96,9 +103,9 @@ export default {
                     "https://hugeampkpncms.org/view/rest/get_research_page_dev?pageid=" + param.pageID + "&&devid=" + param.devID + "&&devpw=" + param.devPW
                 ).then(resp => resp.json());
                 //if login successful, and user wants to be remembered
-                if(json.length>0 && param.devCK){
+                if (json.length > 0 && param.devCK) {
                     //set cookie for 14 days
-                    const cookieValues = {u: param.devID, p: param.devPW};
+                    const cookieValues = { u: param.devID, p: param.devPW };
                     Vue.$cookies.set(`KPN_${param.pageID}`, cookieValues, "14d");//14 days //30MIN
                 }
                 // set the data
@@ -112,13 +119,32 @@ export default {
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchPage", json);
+
+            if (
+                !!json && !!json[0]["field_api_parameters"]
+            ) {
+                let apiConfig = JSON.parse(json[0]["field_api_parameters"]);
+
+                console.log("apiConfig", apiConfig);
+                if (apiConfig["wild card"]) {
+                    context.commit("setWildCard", apiConfig["wild card"]);
+                }
+            }
         },
         cancelResearchData(context) {
             context.commit("setResearchData", []);
         },
         async getResearchData(context, param) {
 
+            console.log("wildCard here", param.wildCard);
+
             let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
+
+            if (param.wildCard) {
+                fetchUrl = fetchUrl.replaceAll(param.wildCard + ",", "");
+                fetchUrl = fetchUrl.replaceAll("," + param.wildCard, "");
+            }
+
             let csv = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
             context.commit("setResearchData", csv);

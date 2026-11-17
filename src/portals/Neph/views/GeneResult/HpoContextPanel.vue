@@ -1,0 +1,115 @@
+<template>
+    <section class="pbg-context-card" aria-labelledby="pbg-context-title">
+        <div class="pbg-context-head">
+            <div>
+                <h2 id="pbg-context-title">HPO context</h2>
+                <p>Recalculate gene-level burden and variant-level carrier matching for an entered HPO list.</p>
+            </div>
+            <span class="pbg-context-status" :class="{ 'pbg-context-status--active': activeContextTerms.length }">
+                {{ activeContextTerms.length ? 'Context active' : 'No context' }}
+            </span>
+        </div>
+        <form class="pbg-context-form pbg-context-form--with-options" @submit.prevent="$emit('run')">
+            <hpo-term-input v-model="contextInputModel"></hpo-term-input>
+            <label class="pbg-context-option">GRS <select v-model="scoreTypeModel" aria-label="Gene score aggregation"><option value="max">Max</option><option value="sum">Sum</option></select></label>
+            <label class="pbg-context-option">Samples <select v-model="analysisSetModel" aria-label="Analysis samples"><option value="all">All</option><option value="affected">Affected only</option></select></label>
+            <button type="submit" :disabled="contextLoading">
+                {{ contextLoading ? 'Calculating' : 'Go' }}
+            </button>
+            <details class="pbg-context-advanced">
+                <summary>Advanced</summary>
+                <div class="pbg-context-advanced-panel">
+                    <label>
+                        <span>Threshold</span>
+                        <input v-model.number="thresholdModel" type="number" min="0.000001" max="1" step="any">
+                    </label>
+                    <label>
+                        <span>Minimum carriers</span>
+                        <input v-model.number="minCarriersModel" type="number" min="10" step="1">
+                    </label>
+                    <button class="pbg-context-advanced-apply" type="submit" :disabled="contextLoading">
+                        Apply &amp; run
+                    </button>
+                </div>
+            </details>
+        </form>
+        <div v-if="contextTermDetails.length" class="pbg-context-imported-terms" aria-label="Selected HPO context">
+            <span v-for="term in contextTermDetails" :key="term.id">
+                <strong>{{ term.label }}</strong>
+                <code>{{ term.id }}</code>
+            </span>
+        </div>
+        <p v-if="externalPhenotypeResultUrl" class="pbg-context-external">
+            Related phenotype results:
+            <a :href="externalPhenotypeResultUrl" target="_blank" rel="noopener noreferrer">Open phenotype result ↗</a>
+        </p>
+        <p v-if="contextError" class="pbg-context-error">{{ contextError }}</p>
+        <div class="pbg-context-results">
+            <div class="pbg-context-result-head">
+                <span>HPOs (Entered terms)</span>
+                <span title="Covariate-adjusted change in residual PheRS, in reference-cohort SD units, per 0.1 increase in gene burden score. GRS Max/Sum is unchanged.">Effect per 0.1 GRS (SD)</span>
+                <span>P-value</span>
+                <span>Status / score coverage</span>
+                <span>Note</span>
+            </div>
+            <div v-for="run in contextRuns" :key="run.id" class="pbg-context-result-row">
+                <span>{{ run.hpos }}<small>{{ run.sourceLabel }}</small></span>
+                <strong>{{ run.beta }}</strong>
+                <strong>{{ run.pValue }}</strong>
+                <span class="pbg-context-result-diagnostic">
+                    <strong>{{ run.statusLabel }}</strong>
+                    <small>{{ run.coverageLabel }}</small>
+                    <small>{{ run.modelLabel }}</small>
+                    <small>{{ run.referenceLabel }}</small>
+                </span>
+                <span class="pbg-context-result-note" :class="{ 'pbg-context-result-note--warning': run.noteIsWarning }">
+                    {{ run.note || '—' }}
+                </span>
+            </div>
+            <p v-if="!contextRuns.length" class="pbg-context-empty">Enter an HPO context and select Go to add a result.</p>
+        </div>
+    </section>
+</template>
+
+<script>
+import HpoTermInput from "./HpoTermInput";
+export default {
+    name: "HpoContextPanel",
+    components: { HpoTermInput },
+    props: {
+        activeContextTerms: { type: Array, required: true },
+        contextTermDetails: { type: Array, default: () => [] },
+        contextInput: { type: String, required: true },
+        contextLoading: { type: Boolean, required: true },
+        contextScoreType: { type: String, required: true },
+        contextAnalysisSet: { type: String, required: true },
+        contextSignificanceThreshold: { type: Number, required: true },
+        contextMinCarriers: { type: Number, required: true },
+        externalPhenotypeResultUrl: { type: String, default: "" },
+        contextError: { type: String, default: "" },
+        contextRuns: { type: Array, required: true },
+    },
+    computed: {
+        contextInputModel: {
+            get() { return this.contextInput; },
+            set(value) { this.$emit("update:contextInput", value); },
+        },
+        scoreTypeModel: {
+            get() { return this.contextScoreType; },
+            set(value) { this.$emit("update:contextScoreType", value); },
+        },
+        analysisSetModel: {
+            get() { return this.contextAnalysisSet; },
+            set(value) { this.$emit("update:contextAnalysisSet", value); },
+        },
+        thresholdModel: {
+            get() { return this.contextSignificanceThreshold; },
+            set(value) { this.$emit("update:contextSignificanceThreshold", value); },
+        },
+        minCarriersModel: {
+            get() { return this.contextMinCarriers; },
+            set(value) { this.$emit("update:contextMinCarriers", value); },
+        },
+    },
+};
+</script>

@@ -1,7 +1,7 @@
 <template>
 	<div id="variant-search">
 		<b-row>
-			<b-col cols="8">
+			<b-col cols="7">
                 <div class="legends" v-show="tableData.length">
                     <strong class="mr-2">Impact:</strong>
                     <b-btn
@@ -34,6 +34,9 @@
                     >
                 </div>
             </b-col>
+			<b-col class="text-right mb-2" cols="2">
+				<b-form-select v-model="selectedFeature" :options="geneFeatures"></b-form-select>
+			</b-col>
 			<b-col class="text-right mb-2">
 				<b-form-select v-model="perPage" :options="perPageOptions"></b-form-select>
 			</b-col>
@@ -171,7 +174,7 @@
 				:current-page="currentPage"
 				><template #thead-top="data">
 					<b-tr>
-						<b-th colspan="4"
+						<b-th colspan="5"
 							><span class="sr-only"
 								>Variant, Consequence, Protein Position, Amino
 								Acids</span
@@ -246,6 +249,38 @@
 						Phenotypes</b-btn
 					>
 					<b-btn
+                        v-if="data.item.allelecount == 0"
+                        disabled
+                        size="sm"
+                        class="btn-mini mr-2"
+                        variant="outline-secondary"
+                        >No Sample</b-btn
+                    > 
+                    <b-btn
+                        v-else
+                        size="sm"
+                        variant="outline-primary"
+                        class="btn-mini mr-2"
+                        @click="
+                            showSampleData(data.item.varId);
+                            toToggle(data.detailsShowing, 3)
+								? data.toggleDetails()
+								: ''
+                        "
+                        ><span v-if="!!loadingData[data.item.varId]"
+                            ><b-spinner small></b-spinner>
+                            <span class="sr-only">Loading...</span></span
+                        ><span v-else>
+                            {{
+								data.detailsShowing && showButton === 3
+									? "Hide"
+									: "Show"
+							}}
+							Samples</span
+                        >
+                    </b-btn>
+					
+					<b-btn
                         v-if="!data.item.consequence"
                         disabled
                         size="sm"
@@ -276,29 +311,10 @@
 							Annotations</span
                         >
                     </b-btn>
-					<!-- <b-btn
-						size="sm"
-						variant="outline-primary"
-						class="btn-mini showData"
-						@click="
-							//showVariantData(data.item.varID);
-							toToggle(data.detailsShowing, 2)
-								? data.toggleDetails()
-								: ''
-						"
-						><span v-if="!!loadingData[data.item.varID]"
-							><b-spinner small></b-spinner>
-							<span class="sr-only">Loading...</span></span
-						><span v-else>
-							{{
-								data.detailsShowing && showButton === 2
-									? "Hide"
-									: "Show"
-							}}
-							Annotations</span
-						>
-					</b-btn> -->
+					
 				</template>
+
+				
 
 				<template #row-details="row">
 					<div class="details">
@@ -309,8 +325,39 @@
 							:per-page="perPagephenotype"
 							:tbody-tr-class="rowPickClass"
 						>
-							
 						</b-table>
+
+						<b-table
+							v-if="
+                                sampleData[escapedVarID(row.item.varId)] &&
+                                sampleData[escapedVarID(row.item.varId)].length &&
+								showButton === 3
+                            "
+							:items="
+								sampleData[escapedVarID(row.item.varId)]
+							"
+							:fields="sampleFields"
+							:per-page="perPage"
+							:tbody-tr-class="rowPickClass"
+							><template #cell(varId)="data">
+								<a
+									:href="`/variant.html?variant=${data.item.varId}`"
+									target="_blank"
+									rel="noopener noreferrer nofollow"
+									>{{ data.item.varId }}</a
+								>
+							</template>
+							<template #cell(sample_ID)="data">
+								{{ data.item.sample_ID }}
+							</template>
+							<template #cell(investigator)="data">
+								{{ data.item.investigator }}
+							</template>
+							<template #cell(inCRDC)="data">
+								{{ data.item.inCRDC }}
+							</template>
+						</b-table>
+
 						<b-table
 							v-if="
                                 vepData[escapedVarID(row.item.varId)] &&
@@ -390,69 +437,6 @@
 								<span>{{ hgvscFormmater(data.item.hgvsp) }}</span>
 							</template>
 						</b-table>
-
-						<!--<b-table
-							v-if="
-								row.item.veprecords.length > 0 &&
-								showButton === 2
-							"
-							:items="row.item.veprecords"
-							:fields="subFields"
-							:per-page="perPagesub"
-							:tbody-tr-class="rowPickClass"
-							><template #cell(varID)="data">
-								<a
-									:href="`/variant.html?variant=${data.item.varID}`"
-									>{{ data.item.varID }}</a
-								>
-							</template>
-							<template #head(Feature)="data">
-								<span class="external_source"
-									>Feature
-									<b-badge
-										pill
-										disabled
-										class="ml-1"
-										variant="secondary"
-										title="Link to external source."
-										>E</b-badge
-									></span
-								>
-							</template>
-							<template #cell(Feature)="data">
-								<a
-									v-if="data.item.Feature"
-									:href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.Feature}`"
-									target="_blank"
-									rel="noopener noreferrer nofollow"
-									>{{ data.item.Feature }}</a
-								>
-							</template>
-							<template #cell(position)="data">
-								{{
-									data.item.proteinStart !==
-									data.item.proteinEnd
-										? `${data.item.proteinStart}-${data.item.proteinEnd}`
-										: data.item.proteinStart
-								}}
-							</template>
-							<template #cell(max_consequence)="data">
-								<div
-									class="border-color"
-									:class="data.item.Max_Impact"
-								>
-									<span>{{
-										consequenceFormatter(
-											data.item.max_consequence
-										)
-									}}</span>
-								</div></template
-							>
-							<template #cell(siftPrediction)="data">
-								{{ siftFormatter(data.item.siftPrediction) }}
-							</template>
-						</b-table> -->
-
 					</div>
 				</template>
 			</b-table>
@@ -760,6 +744,28 @@ export default Vue.component("variant-search", {
 				
 				
 			],
+			sampleFields: [
+				{
+					key: "variant_ID",
+					//key: "transcriptId",
+					label: "Variant ID",
+				},
+				{
+					//key: "HGVSc",
+					key: "investigator",
+					label: "Investigator",
+				},
+				{
+					//key: "HGVSp",
+					key: "sample_ID",
+					label: "Sample ID",
+				},
+				{
+					//key: "HGVSp",
+					key: "inCRDC",
+					label: "In CRDC",
+				},
+			],
 			hprecordFields: [
 				{
 					key: "hpoterms",
@@ -791,6 +797,9 @@ export default Vue.component("variant-search", {
 			loadingData: {},
 			printData: [],
 			vepData: [],
+			sampleData: [],
+			geneFeatures:["Default"],
+			selectedFeature: "Default",
 		};
 	},
 	created() {
@@ -858,18 +867,62 @@ export default Vue.component("variant-search", {
 				
 			}
 		},
+		async updateFeatures() {
+			console.log("update features: " + this.selectedFeature);
+			if (this.selectedFeature != "Default"){
+				let searchquery = this.gene+"+"+this.selectedFeature;
+				let selectedVep = await query("transcript-consequences-gene", searchquery, { query_private: true });
+				//console.log(JSON.stringify(selectedVep));
+				//console.log(this.variantData2.length);
+				//console.log(this.variantData.length);
+
+				let dataRows = structuredClone(this.variants);
+				/*for (let i = 0 ; i < this.variantData.length; i++){
+					dataRows[i]=this.variantData[i];
+				}*/
+
+				for (let i=0; i< dataRows.length; i++){
+					let varId = dataRows[i]['varId'];
+					for (let j=0;j<selectedVep.length; j++){
+						let varId2 = selectedVep[j]['varId'];
+						//console.log(varId+"|"+varId2);
+						if (varId == varId2){
+							//console.log(varId);
+							dataRows[i]['consequence'] = selectedVep[j]['consequenceTerms'];
+							dataRows[i]['impact'] = selectedVep[j]['impact'];
+							dataRows[i]['hgvsc'] = selectedVep[j]['hgvsc'];
+							dataRows[i]['hgvsp'] = selectedVep[j]['hgvsp'];
+							//dataRows[i]['hgvsp'] = 'testteststestsetse:testteststestsetse';
+						}
+					}
+				}
+				this.variantData2 = dataRows;
+			} else {
+				this.variantData2 = structuredClone(this.variants);
+			}
+			this.addfilter();
+		},
 		async searchVariants() {
 			console.log("varient search");
 			this.currentPage = 1; //reset on new search
 			//Helen 2022-01-09
 			//this.variants = await query("variants", this.gene, {}, true);
-			this.variants = await query("gene-variants2",this.gene,{},true);
-			//console.log(JSON.stringify(this.variants));
+			this.variants = await query("gene-variants2", this.gene, { query_private: true });
+			let features = await query("gene-features", this.gene, { query_private: true });
+			
+			let featurelist = features[0]["featurelist"];
+			featurelist.unshift("Default");
+			this.geneFeatures = featurelist;
+			this.selectedFeature = "Default";
+			//this.geneFeatures = this.geneFeatures.unshift("Default");
+			//console.log(JSON.stringify(this.geneFeatures));
+
 			if (this.variants && this.variants.length) {
 				for (let i = 0; i < this.variants.length; i++) {
-					//if (this.variants[i].gnomAD_info){
-					//	console.log(JSON.stringify(this.variants[i]));
-					//}
+					/* if (this.variants[i].varId == "16:2071534:C:T"){
+						console.log("variant-search:"+this.variants[i].varId);
+						console.log(JSON.stringify(this.variants[i]));
+					} */
 					for (let x in Object.keys(this.variants[i])){
 						let idx = Object.keys(this.variants[i])[x];
 						if (this.variants[i][idx] =='NA'){
@@ -898,24 +951,6 @@ export default Vue.component("variant-search", {
 						//alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
 					}
 					
-					/* no need for Ryan's new processed data
-					for (let m = 0;m < this.variants[i].hprecords.length;m++) {
-						let hp = this.variants[i].hprecords[m];
-						if (hp.HP.substring(hp.HP.length - 7 ) == "Control") {
-							//"HOM_REF_CT":"51","HET_REF_ALT_CTS":"0","TWO_ALT_GENO_CTS":"0","TMISSING_CT":"4868"
-							this.variants[i].c_allelecount =(2 * parseInt(hp.TWO_ALT_GENO_CTS)+parseInt(hp.HET_REF_ALT_CTS));
-							this.variants[i].allelecount += this.variants[i].c_allelecount;
-							this.variants[i].c_allelnumber =2 *(parseInt(hp.HOM_REF_CT) +parseInt(hp.HET_REF_ALT_CTS) +parseInt(hp.TWO_ALT_GENO_CTS));
-							this.variants[i].allelnumber += this.variants[i].c_allelnumber;
-							this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
-							this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
-							//this.variants[i].c_allelefrequency =this.variants[i].c_allelecount / this.variants[i].c_allelnumber;
-							//this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
-							//this.variants[i].c_TWO_ALT_GENO_CTS =hp.TWO_ALT_GENO_CTS;
-							this.variants[i].homozygouscount = parseInt(this.variants[i].TWO_ALT_GENO_CTS) + parseInt(hp.TWO_ALT_GENO_CTS);
-						}
-					} */
-
 					//disablebtn
 					if (this.variants[i].impact == 'LOWEST'){
 						this.variants[i].impact = 'MODIFIER';
@@ -1001,16 +1036,21 @@ export default Vue.component("variant-search", {
 							item.allelecount > 0
 						);*/
 					}
+					/*if (this.variants[i].varId == '2:151696713:T:C'){
+						console.log('2:151696713:T:C -- ');
+						console.log(this.variants[i]);
+					}*/
 				}
 				
 				//alert(this.variants.length);
 				//filter out allele count = 0 
+				//20241205 temper block
 				this.variants = this.variants.filter((item) =>
 					item.allelecount > 0
-				);
+				); 
 				//alert(this.variants.length);
-				this.variantData2 = this.variants;
-				this.variantData = this.variants;
+				this.variantData2 = structuredClone(this.variants);
+				this.variantData = structuredClone(this.variants);
 				
 			}
 			this.addfilter();
@@ -1031,7 +1071,14 @@ export default Vue.component("variant-search", {
 		async getTranscriptConsequences(varId) {
 			//alert(varID);
 			if (!!varId) {
-				let data = await query("transcript-consequences", varId,{}, true);
+				let data = await query("transcript-consequences", varId,{query_private:true}, true);
+				return data;
+			}
+		},
+		async getVariantSamples(varId) {
+			//alert(varID);
+			if (!!varId) {
+				let data = await query("variant-sample", varId,{query_private:true}, true);
 				return data;
 			}
 		},
@@ -1071,6 +1118,38 @@ export default Vue.component("variant-search", {
                 this.loadingData[escapedVarID] = false;
             }
         },
+		async showSampleData(varId){
+			let escapedVarID = this.escapedVarID(varId);
+			if (this.vepData[escapedVarID] === undefined) {
+                this.loadingData[escapedVarID] = true;
+                let vsQuery = await this.getVariantSamples(varId);
+				
+				let user = Vue.prototype.$useremail.toLowerCase();
+				let accessgroup = Vue.prototype.$sampleIDaccess;
+				
+				let oldsampleid = [];
+				let m=0;
+				for(var i=vsQuery.length-1; i>=0; i--){
+					if (oldsampleid.indexOf(vsQuery[i]['sample_ID']) >= 0) {
+						vsQuery.splice(i, 1);
+					} else {
+						oldsampleid[m] = vsQuery[i]['sample_ID'];
+						m++;
+						
+						if (! accessgroup.includes(user)){
+							//if (!this.variantsample[n]['sample_ID'].startsWith('BCH') || this.variantsample[n]['investigator']=='clinical_sequencing'){
+							//if (vsQuery[i]['inCRDC']=="no"){
+								//console.log(vsQuery[i]['sample_ID']);
+							//	vsQuery[i]['sample_ID'] = '******';
+							//}
+						}
+					}
+					
+				}
+				Vue.set(this.sampleData, escapedVarID, vsQuery);
+                this.loadingData[escapedVarID] = false;
+            }
+		},                  
         escapedVarID(varId) {
 			if (!!varId) return varId.replace(/:\s*/g, "_");
 			else {
@@ -1103,11 +1182,14 @@ export default Vue.component("variant-search", {
 			//let dataRows = this.variants;
 			//this.variantData = this.variantData2;
 			//alert(this.filters["trioinfos"]);
-			let dataRows = [];
-			for (let i = 0 ; i < this.variantData2.length; i++){
+			
+			//console.log(this.variantData2.length);
+			let dataRows = structuredClone(this.variantData2);
+			//let dataRows = [];
+			/*for (let i = 0 ; i < this.variantData2.length; i++){
 				dataRows[i]=this.variantData2[i];
-			}
-			//alert(dataRows.length);
+			}*/
+			console.log(dataRows.length);
 			if (this.filters["impacts"].length > 0) {
 				dataRows = dataRows.filter((item) =>
 					this.filters["impacts"].includes(item.impact)
@@ -1158,8 +1240,8 @@ export default Vue.component("variant-search", {
 				}
 			}
 			this.variantData = dataRows;
-			//alert(dataRows.length);
-			//alert(this.variantData.length+'|'+this.variantData2.length);
+			console.log(dataRows.length);
+			console.log(this.variantData.length+'|'+this.variantData2.length);
 			return this.tableData;
 		},
 		sort: function (s) {
@@ -1181,6 +1263,12 @@ export default Vue.component("variant-search", {
 			},
 			//immediate: true,
 		},
+		selectedFeature: {
+			handler(val) {
+				//alert("selected feature watch:"+val);		
+				if (!!val) this.updateFeatures();			
+			},
+		}
 	},
 });
 </script>

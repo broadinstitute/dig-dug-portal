@@ -2,7 +2,7 @@
     <filter-control-template
         class="filter-col-sm"
         :field="field"
-        :type="Number"
+        :type="'number'"
         :predicate="predicate"
         :pillFormatter="pillFormatter"
         :color="color"
@@ -21,19 +21,19 @@ export default Vue.component("filter-less-control", {
         computedField: Function,
         predicate: {
             type: Function,
-            default: (number, upperBound) => number <= upperBound
+            default: (number, upperBound) => number <= upperBound,
         },
         pillFormatter: {
             type: Function,
-            default: filterDefinition =>
-                `${filterDefinition.field} <= ${filterDefinition.threshold}`
+            default: (filterDefinition) =>
+                `${filterDefinition.field} <= ${filterDefinition.threshold}`,
         },
         color: {
-            type: String
-        }
+            type: String,
+        },
     },
     components: {
-        FilterControlTemplate
-    }
+        FilterControlTemplate,
+    },
 });
 </script>

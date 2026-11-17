@@ -169,6 +169,24 @@
 							</option>
 						</select>
 					</template>
+					<template v-else-if="filter.type == 'sort'">
+						<select
+							:id="'filter_' + sectionId + getColumnId(filter.id)"
+							@change="
+								callSort($event, filter.direction)
+								"
+							class="custom-select"
+						>
+							<option></option>
+							<option
+								v-for="value in filter.fields"
+								:key="value"
+								:value="value"
+							>
+								{{ value }}
+							</option>
+						</select>
+					</template>
 					<template v-else-if="filter.type == 'checkbox'">
 						<div class="chkbox-combo">
 							<div class="title btn btn-sm btn-light form-control chk-box-btn">View options &#9660;</div>
@@ -189,7 +207,9 @@
 								</span>
 								<span v-for="value, vIndex in buildOptions(filter.field,'chkbox')"
 									:key="value">
-									<input type="checkbox" class="chkbox" :class="'filter-' + sectionId + getColumnId(filter.field)"
+									<input 
+									v-if="!!filter.uncheck && !!filter.uncheck.includes(value)"
+									type="checkbox" class="chkbox" :class="'filter-' + sectionId + getColumnId(filter.field)"
 										:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
 										:value="value"
 										@change="
@@ -200,8 +220,23 @@
 												vIndex
 											)
 											"
-										checked
-									/><label :for="value">{{ value }}</label>
+									/>
+									<input 
+										v-else
+										type="checkbox" class="chkbox" :class="'filter-' + sectionId + getColumnId(filter.field)"
+											:id="'filter_' + sectionId + getColumnId(filter.field) + vIndex"
+											:value="value"
+											@change="
+												filterDataChkbox(
+													$event,
+													filter.field,
+													filter.type,
+													vIndex
+												)
+												"
+											checked
+										/>
+									<label :for="value">{{ value }}</label>
 								</span>
 									
 								</div>
@@ -354,12 +389,12 @@ export default Vue.component("research-section-filters", {
 					} else if (pType == "list" && !!ifValuesFromKP) {
 						let label;
 
-						console.log("0", this.filesListLabels);
+						/*console.log("0", this.filesListLabels);
 						console.log(
 							"1",
 							this.filesListLabels[this.utils.keyParams[param].trim()]
 						);
-						console.log("2", this.filesListLabels[param]);
+						console.log("2", this.filesListLabels[param]);*/
 
 						if (!!this.filesListLabels[this.utils.keyParams[param].trim()]) {
 							label =
@@ -403,10 +438,15 @@ export default Vue.component("research-section-filters", {
 			}
 		}
 	},
-	computed: {},
-	watch: {},
+	computed: {
+	},
+	watch: {
+	},
 	methods: {
 		//...uiUtils,
+		callSort(e, sortDirection) {
+			this.$emit('clicked-sort', { "key": e.target.value, "direction": sortDirection });
+		},
 		buildSuggestions(EVENT, FIELD) {
 			let searchVal = EVENT.target.value;
 			let suggestions = [];
@@ -640,10 +680,22 @@ export default Vue.component("research-section-filters", {
 		buildOptions(field,TYPE) {
 			if (this.dataComparisonConfig == null || (!!TYPE && TYPE == "chkbox")) {
 				let data = (!!TYPE && TYPE == "chkbox") ? this.unfilteredDataset : this.dataset;
-				let options = (!!data)? data
-					.map((v) => v[field])
-					.filter((v, i, arr) => arr.indexOf(v) == i) //unique
-					.filter((v, i, arr) => v != ""):[]; //remove blank
+
+				let options = [];
+
+				if (!!data) {
+					data.map((v) => {
+						let values = (typeof v[field] === "object" && v[field] !== null && !!Array.isArray(v[field])) ? v[field] : [v[field]];
+
+						values.map(i => {
+							options.push(i)
+						})
+					});
+
+					options = options.filter((v, i, arr) => arr.indexOf(v) == i) //unique
+						.filter((v, i, arr) => v != ""); //remove blank*/
+				}
+
 				return options.sort();
 			} else {
 				let options = [];
@@ -674,7 +726,7 @@ export default Vue.component("research-section-filters", {
 
 		getRange(FIELD) {
 
-			console.log(FIELD);
+			//console.log(FIELD);
 			let data = this.unfilteredDataset;
 				
 			if(!this.sliderRange) { this.sliderRange = {} };
@@ -1405,10 +1457,32 @@ export default Vue.component("research-section-filters", {
 
 			if (!!filteredLength && filteredLength > 0) {
 				if (comparingFields == null) {
-					
+
 					for (const [fKey, filter] of Object.entries(this.filtersIndex)) {
-						if(filter.type == 'checkbox') {
-							filtered = filtered.filter(row => !!row[filter.field] && !filter.search.includes(row[filter.field].toString()));
+						if (filter.type == 'checkbox') {
+							//console.log("filter", filter)
+							//console.log("filter.search", filter.search)
+							//filtered = filtered.filter(row => !!row[filter.field] && !filter.search.includes(row[filter.field].toString()));
+							let chkboxFiltered = [];
+
+							filtered.map(row => {
+								if (!!row[filter.field] && typeof row[filter.field] != "object" && !filter.search.includes(row[filter.field].toString())) {
+									chkboxFiltered.push(row);
+								} else if (!!row[filter.field] && typeof row[filter.field] == "object" && !!Array.isArray(row[filter.field])) {
+									let isRowTrue = null;
+									row[filter.field].map(fV => {
+										if (!filter.search.includes(fV.toString())) {
+											isRowTrue = true;
+										}
+									})
+
+									if (!!isRowTrue) {
+										chkboxFiltered.push(row);
+									}
+								}
+							})
+
+							filtered = chkboxFiltered;
 						}
 					}
 				} else {
@@ -1429,8 +1503,9 @@ export default Vue.component("research-section-filters", {
 
 				this.applyFilters();
 			} else {
-				this.$emit('on-filtering', filtered);
+				this.$emit('on-filtering', filtered,this.filtersIndex);
 			}
+
 		},
 		removeAllFilters() {
 			for (const FIELD in this.filtersIndex) {

@@ -327,6 +327,7 @@ export default Vue.component("variant-phenotype-table", {
 				},*/
 			],
             hprecords: [],
+            showButton: null,
             perPage: 10,
             perPagephenotype:5,
             currentPage: 1,
@@ -370,8 +371,8 @@ export default Vue.component("variant-phenotype-table", {
             //console.log(user);
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0]+":"+varinfo[1];
-            this.variant = await query("gene-variants",searchquery,{},true);
-            this.samples = await query("variant-sample", this.variantId, {}, true)
+            this.variant = await query("gene-variants", searchquery, { query_private: true });
+            this.samples = await query("variant-sample", this.variantId, { query_private: true });
             //console.log("samples:"+JSON.stringify(this.samples));
 
             //console.log(JSON.stringify(this.variant))

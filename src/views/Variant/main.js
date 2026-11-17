@@ -1,15 +1,11 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
@@ -30,15 +26,8 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
-
+import regionUtils from "@/utils/regionUtils";
 import sessionUtils from "@/utils/sessionUtils";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert,
-} from "@/components/Alert";
 
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -47,14 +36,12 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
     store,
-
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
         PhenotypeSelectPicker,
         AncestrySelectPicker,
         TranscriptConsequenceTable,
@@ -76,7 +63,9 @@ new Vue({
         FilterGreaterThan,
 
         SearchHeaderWrapper,
+        ResearchSingleSearch,
     },
+    mixins: [pageMixin],
 
     computed: {
         utilsBox() {
@@ -88,6 +77,7 @@ new Vue({
                 dataConvert: dataConvert,
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
+                regionUtils: regionUtils,
             };
             return utils;
         },
@@ -127,7 +117,9 @@ new Vue({
             return data;
         },
         variantData() {
-            return this.$store.state.variantData.data;
+            return this.$store.state.variantData?.data?.length
+                ? this.$store.state.variantData.data[0]
+                : {};
         },
         varId() {
             return this.$store.state.pageVariant &&
@@ -166,7 +158,7 @@ new Vue({
             }
         },
 
-        documentationMap() {
+        docDetails() {
             let varId = this.varId;
             let dbSNP = this.dbSNP;
 
@@ -175,19 +167,6 @@ new Vue({
             }
 
             return { variant: varId || "" };
-        },
-
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
-
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
         lzAssociations() {
@@ -246,10 +225,6 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
         ancestryFormatter: Formatters.ancestryFormatter,
         consequenceFormatter: Formatters.consequenceFormatter,
         consequenceMeaning: Formatters.consequenceMeaning,

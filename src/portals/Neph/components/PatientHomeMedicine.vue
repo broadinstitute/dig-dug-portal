@@ -143,7 +143,7 @@ export default Vue.component("patient-home_medicine-card", {
         },
         async searchHomeMedicine() {
             //console.log("variant id:" + this.variantId);
-            this.phome_medicine = await query("patient_home_medicine",this.patientId,{},true);
+            this.phome_medicine = await query("patient_home_medicine", this.patientId, { query_private: true });
             
         },
         rowPickClass(item, type) {

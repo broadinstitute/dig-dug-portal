@@ -19,17 +19,6 @@
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
-					<!--<template v-for="(phenotype, i) in phenotypes">
-						<span
-							:key="phenotype"
-							class="badge badge-secondary badge-pill btn filter-pill-x reference"
-							:class="'color-' + (i + 1)"
-							v-if="phenotypeMap[phenotype]"
-							style="color: white"
-						>
-							{{ phenotypeMap[phenotype].description }}
-						</span>
-					</template>-->
 					<span style="font-size: 13px"
 						>Common variant p-value:
 						<template v-for="tValue in pThreshold">
@@ -67,11 +56,6 @@
 					>
 						Download
 					</button>
-					<!--<data-download
-						:data="data4Download"
-						filename="gene_table"
-						style="margin-bottom: 5px"
-					></data-download>-->
 				</div>
 			</div>
 
@@ -87,6 +71,7 @@
 									name="gf.gene.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>
@@ -97,6 +82,7 @@
 									name="gf.peg.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>
@@ -107,6 +93,7 @@
 									name="gf.geneExpression.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>
@@ -117,6 +104,7 @@
 									name="gf.combinedCommon.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>
@@ -128,6 +116,7 @@
 									name="gf.trait.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>
@@ -138,6 +127,7 @@
 									name="gf.huge.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>
@@ -149,6 +139,7 @@
 									name="gf.commonVariant.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>
@@ -165,6 +156,7 @@
 									name="gf.rareVariant.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>
@@ -175,6 +167,7 @@
 									name="gf.samples.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>
@@ -186,6 +179,7 @@
 									name="gf.vs.header.tooltip"
 									:is-hover="true"
 									:no-icon="false"
+									:contentMap="$store.state.bioPortal.documentations"
 								></tooltip-documentation
 							></small>
 						</th>

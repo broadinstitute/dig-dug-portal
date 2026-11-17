@@ -1,7 +1,5 @@
 <template>
 	<div class="research-data-table-features-wrapper">
-		<!--{{ featuresFormat['features'] }}<br />
-		{{ featuresData }}-->
 		<div
 			v-for="(value, index) in featuresFormat['features']"
 			:key="index"
@@ -43,7 +41,7 @@
 				>
 					<template v-for="headerValue in featuresFormat[value]">
 						<td
-							v-if="!!featuresFormat[value].includes(headerValue)"
+							v-if="!!summarySection && featureIndex < featureRowsNumber && !!featuresFormat[value].includes(headerValue)"
 							:key="headerValue"
 							v-html="
 								formatValue(
@@ -52,7 +50,21 @@
 								)
 							"
 						></td>
+
+						<td
+							v-if="!summarySection && !!featuresFormat[value].includes(headerValue)"
+							:key="headerValue"
+							v-html="formatValue(
+								featureValue[headerValue],
+								headerValue
+							)
+								"
+						></td>
+						
 					</template>
+					<td colspan="100" v-if="!!summarySection && featureIndex == featureRowsNumber" style="color: red; text-align: center;">
+						There are {{ featureValue.featureRows - featureRowsNumber }} more rows of evidence data. 
+						Click to 'Set summary table' button to set the number of visible evidence data rows.</td>
 				</tr>
 			</table>
 		</div>
@@ -63,7 +75,7 @@
 import Vue from "vue";
 
 export default Vue.component("research-data-table-features", {
-	props: ["featuresData", "featuresFormat", "phenotypeMap","utils"],
+	props: ["featureRowsNumber","featuresData", "featuresFormat", "phenotypeMap","utils", "summarySection"],
 	data() {
 		return {};
 	},
@@ -130,6 +142,9 @@ export default Vue.component("research-data-table-features", {
 	watch: {},
 	methods: {
 		//...Formatters,
+		getAllEvidence(){
+
+		},
 		formatValue(tdValue, tdKey) {
 			let content;
 

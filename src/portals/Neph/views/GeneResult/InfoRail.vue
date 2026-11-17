@@ -1,0 +1,96 @@
+<template>
+    <aside v-if="current" id="pg2-info-panel" ref="panel" class="pg2-info-rail" :style="panelStyle"
+           role="note" aria-labelledby="pg2-info-heading" @mouseenter="cancelClose" @mouseleave="scheduleClose">
+        <div class="pg2-info-rail-heading"><strong id="pg2-info-heading">{{ current.label }}</strong><button type="button" aria-label="Close information" @click="close"><b-icon-x aria-hidden="true" /></button></div>
+        <p id="pg2-info-content">{{ current.text }}</p>
+        <div v-if="current.table" class="pg2-info-table-wrap"><table class="pg2-info-table"><caption>{{ current.table.caption }}</caption><thead><tr><th v-for="(heading, index) in current.table.headings" :key="index" scope="col">{{ heading }}</th></tr></thead><tbody><tr v-for="(row, index) in current.table.rows" :key="index"><th scope="row">{{ row[0] }}</th><td v-for="(cell, column) in row.slice(1)" :key="column">{{ cell }}</td></tr></tbody></table></div>
+        <ul v-if="current.links && current.links.length" class="pg2-info-sources" aria-label="Reference sources"><li v-for="link in current.links" :key="link.url"><a :href="link.url" target="_blank" rel="noopener noreferrer">{{ link.label }} <b-icon-box-arrow-up-right aria-hidden="true" /></a></li></ul>
+    </aside>
+</template>
+<script>
+import {infoRailPosition} from './infoRailPosition';
+export default {
+    name: 'Gene2InfoRail',
+    props: { shellSelector: { type: String, default: '.pbg-shell' }, cardSelector: { type: String, default: '.pg2-card' }, rightInset: { type: Number, default: 0 }, reserveOnHover: { type: Boolean, default: false } },
+    data: () => ({current: null, pinned: false, reserved: false, placement: null}),
+    computed: {
+        panelStyle() {
+            const p = this.placement;
+            return p && p.layout !== 'reserve' ? {left: `${p.left}px`, top: `${p.top}px`, width: `${p.width}px`} : {visibility: 'hidden'};
+        },
+    },
+    mounted() {
+        this.$root.$on('pg2:info-open', this.open);
+        this.$root.$on('pg2:info-leave', this.leave);
+        this.$root.$on('pg2:info-close', this.close);
+        window.addEventListener('resize', this.reposition);
+        window.addEventListener('scroll', this.reposition, true);
+        document.addEventListener('pointerdown', this.outside, true);
+        document.addEventListener('keydown', this.keydown);
+    },
+    beforeDestroy() {
+        this.close();
+        this.$root.$off('pg2:info-open', this.open);
+        this.$root.$off('pg2:info-leave', this.leave);
+        this.$root.$off('pg2:info-close', this.close);
+        window.removeEventListener('resize', this.reposition);
+        window.removeEventListener('scroll', this.reposition, true);
+        document.removeEventListener('pointerdown', this.outside, true);
+        document.removeEventListener('keydown', this.keydown);
+    },
+    methods: {
+        cancelClose() { clearTimeout(this._closeTimer); },
+        leave(id) { if (this.current && this.current.id === id) this.scheduleClose(); },
+        scheduleClose() { this.cancelClose(); if (!this.pinned) this._closeTimer = setTimeout(this.close, 200); },
+        open(value) {
+            this.cancelClose();
+            const same = this.current && this.current.id === value.id;
+            if (same && value.pin && this.pinned) { this.close(); return; }
+            this.restoreGap();
+            this.pinned = value.pin || Boolean(same && this.pinned);
+            this.current = value;
+            this.$root.$emit('pg2:info-active', value.id);
+            this.$nextTick(this.reposition);
+        },
+        close() {
+            this.cancelClose(); this.restoreGap();
+            this.current = null; this.pinned = false; this.placement = null; this.reserved = false;
+            this.$emit('reserve', false); this.$root.$emit('pg2:info-active', '');
+        },
+        restoreGap() { if (this._gapCard) {this._gapCard.style.marginBottom = this._gapValue; this._gapCard = null;} },
+        outside(event) { if (this.current && !this.current.anchor.contains(event.target) && !(this.$refs.panel && this.$refs.panel.contains(event.target))) this.close(); },
+        keydown(event) { if (event.key === 'Escape' && this.current) this.close(); },
+        reposition() {
+            if (!this.current) return;
+            const current = this.current;
+            const anchor = current.anchor;
+            if (!anchor.isConnected) {this.close(); return;}
+            const shell = anchor.closest(this.shellSelector || '.pbg-shell');
+            const card = anchor.closest(this.cardSelector || '.pg2-card');
+            if (!shell) return;
+            const bounds = anchor.getBoundingClientRect();
+            if (bounds.bottom < 0 || bounds.top > window.innerHeight) {this.close(); return;}
+            this.placement = infoRailPosition({shell: shell.getBoundingClientRect(), shellWidth: shell.offsetWidth,
+                anchor: bounds, card: card && card.getBoundingClientRect(), viewportWidth: window.innerWidth - (this.rightInset || 0),
+                reserved: this.reserved, allowReserve: Boolean(this.pinned || this.reserveOnHover)});
+            if (this.placement.layout === 'reserve') {
+                this.reserved = true; if (this.reserveOnHover) this.pinned = true; this.$emit('reserve', true); this.$nextTick(this.reposition); return;
+            }
+            this.$nextTick(() => {
+                if (this.current !== current || !this.$refs.panel) return;
+                if (this.placement.layout === 'inline' && card) {
+                    if (this._gapCard !== card) {this.restoreGap();this._gapCard = card;this._gapValue = card.style.marginBottom;}
+                    card.style.marginBottom = `${this.$refs.panel.offsetHeight + 32}px`;
+                } else this.restoreGap();
+            });
+        },
+    },
+};
+</script>
+<style scoped>
+.pg2-info-table-wrap { overflow-x: auto; margin-top: 14px; }
+.pg2-info-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.pg2-info-table caption { caption-side: top; color: inherit; font-size: 15px; }
+.pg2-info-table th, .pg2-info-table td { border: 1px solid #c8d3df; padding: 7px; text-align: left; }
+.pg2-info-table th { background: #f3f6fa; font-weight: 500; }
+</style>

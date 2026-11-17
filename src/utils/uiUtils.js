@@ -100,12 +100,6 @@ let getToolTipPosition = function (ELEMENT) {
             : "1.0em";
 
     viewer.style.setProperty("left", elementLeft);
-    /*
-        console.log(ELEMENT);
-        console.log(" intViewportWidth: " + intViewportWidth);
-        console.log(" elementWidth: " + elementWidth);
-        console.log(" locatin.left: " + location.left);
-        */
 };
 
 let getOffset = function (ELEMENT) {
@@ -199,10 +193,9 @@ let saveByorCsv = function (DATA, FILENAME) {
     let features = {};
     const downloadFilename = FILENAME || "download";
 
-    DATA.map(d => {
+    DATA.map((d) => {
         for (let [key, value] of Object.entries(d)) {
             if (key != "features") {
-
                 if (typeof value == "object" && !value.length) {
                     for (let [vKey, vValue] of Object.entries(value)) {
                         let headerKey = key + "__" + vKey;
@@ -217,87 +210,102 @@ let saveByorCsv = function (DATA, FILENAME) {
                 }
             } else {
                 for (let [fKey, fValue] of Object.entries(value)) {
-
                     if (!features[fKey]) {
                         features[fKey] = [];
                     }
 
                     for (let [fVKey, fVValue] of Object.entries(fValue[0])) {
-
                         if (!features[fKey].includes(fVKey)) {
-                            features[fKey].push(fVKey)
+                            features[fKey].push(fVKey);
                         }
                     }
                 }
             }
         }
-    })
+    });
 
     let csvData = [];
 
     if (Object.keys(features).length > 0) {
-        DATA.map(d => {
-
+        DATA.map((d) => {
             for (let [fKey, fValue] of Object.entries(features)) {
                 for (let i = 0; i < d.features[fKey].length; i++) {
                     let dArr = [];
 
-                    topRows.map(t => {
+                    topRows.map((t) => {
                         let path = t.split("__");
                         if (path.length == 2) {
-                            let cValue = d[path[0]][path[1]] !== null ? d[path[0]][path[1]] === 0 ? 0 : d[path[0]][path[1]] : "";
+                            let cValue =
+                                d[path[0]][path[1]] !== null
+                                    ? d[path[0]][path[1]] === 0
+                                        ? 0
+                                        : d[path[0]][path[1]]
+                                    : "";
                             dArr.push(cValue);
                         } else {
-                            let cValue = d[path[0]] !== null ? d[path[0]] === 0 ? 0 : d[path[0]] : "";
+                            let cValue =
+                                d[path[0]] !== null
+                                    ? d[path[0]] === 0
+                                        ? 0
+                                        : d[path[0]]
+                                    : "";
                             dArr.push(cValue);
                         }
-                    })
+                    });
 
                     for (let [fRKey, fRValue] of Object.entries(features)) {
                         if (fRKey == fKey) {
-                            features[fRKey].map(cKey => {
+                            features[fRKey].map((cKey) => {
                                 dArr.push(d.features[fRKey][i][cKey]);
-                            })
+                            });
                         } else {
-                            features[fRKey].map(cKey => {
-                                dArr.push("")
-                            })
+                            features[fRKey].map((cKey) => {
+                                dArr.push("");
+                            });
                         }
                     }
                     csvData.push(dArr);
                 }
             }
-        })
+        });
     } else if (Object.keys(features).length == 0) {
-        DATA.map(d => {
+        DATA.map((d) => {
             let dArr = [];
-            topRows.map(t => {
+            topRows.map((t) => {
                 let path = t.split("__");
                 if (path.length == 2) {
-                    let cValue = d[path[0]][path[1]] !== null ? d[path[0]][path[1]] === 0 ? 0 : d[path[0]][path[1]] : "";
+                    let cValue =
+                        d[path[0]][path[1]] !== null
+                            ? d[path[0]][path[1]] === 0
+                                ? 0
+                                : d[path[0]][path[1]]
+                            : "";
                     dArr.push(cValue);
                 } else {
-                    let cValue = d[path[0]] !== null ? d[path[0]] === 0 ? 0 : d[path[0]] : "";
+                    let cValue =
+                        d[path[0]] !== null
+                            ? d[path[0]] === 0
+                                ? 0
+                                : d[path[0]]
+                            : "";
                     dArr.push(cValue);
                 }
-            })
+            });
             csvData.push(dArr);
-        })
+        });
     }
 
     let header = topRows;
 
     for (let [fKey, fValue] of Object.entries(features)) {
-        fValue.map(fCKey => {
-            header.push('feature__' + fKey + '__' + fCKey);
-        })
+        fValue.map((fCKey) => {
+            header.push("feature__" + fKey + "__" + fCKey);
+        });
     }
 
     let csv = [
         header.join(","), // header row first
-        ...csvData.map((row) =>
-            row.join(",")
-        ),
+        ...csvData.map((row) => row.join(",")),
     ].join("\r\n");
 
     let downloadLink = document.createElement("a");
@@ -305,6 +313,136 @@ let saveByorCsv = function (DATA, FILENAME) {
     let url = URL.createObjectURL(blob);
     downloadLink.href = url;
     downloadLink.download = downloadFilename + ".csv"; //Name the file here
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+};
+
+let saveByorTsv = function (DATA, FILENAME) {
+    let topRows = [];
+    let features = {};
+    const downloadFilename = FILENAME || "download";
+
+    DATA.map((d) => {
+        for (let [key, value] of Object.entries(d)) {
+            if (key != "features") {
+                if (typeof value == "object" && !value.length) {
+                    for (let [vKey, vValue] of Object.entries(value)) {
+                        let headerKey = key + "__" + vKey;
+                        if (!topRows.includes(headerKey)) {
+                            topRows.push(headerKey);
+                        }
+                    }
+                } else {
+                    if (!topRows.includes(key)) {
+                        topRows.push(key);
+                    }
+                }
+            } else {
+                for (let [fKey, fValue] of Object.entries(value)) {
+                    if (!features[fKey]) {
+                        features[fKey] = [];
+                    }
+
+                    for (let [fVKey, fVValue] of Object.entries(fValue[0])) {
+                        if (!features[fKey].includes(fVKey)) {
+                            features[fKey].push(fVKey);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    let csvData = [];
+
+    if (Object.keys(features).length > 0) {
+        DATA.map((d) => {
+            for (let [fKey, fValue] of Object.entries(features)) {
+                for (let i = 0; i < d.features[fKey].length; i++) {
+                    let dArr = [];
+
+                    topRows.map((t) => {
+                        let path = t.split("__");
+                        if (path.length == 2) {
+                            let cValue =
+                                d[path[0]][path[1]] !== null
+                                    ? d[path[0]][path[1]] === 0
+                                        ? 0
+                                        : d[path[0]][path[1]]
+                                    : "";
+                            dArr.push(cValue);
+                        } else {
+                            let cValue =
+                                d[path[0]] !== null
+                                    ? d[path[0]] === 0
+                                        ? 0
+                                        : d[path[0]]
+                                    : "";
+                            dArr.push(cValue);
+                        }
+                    });
+
+                    for (let [fRKey, fRValue] of Object.entries(features)) {
+                        if (fRKey == fKey) {
+                            features[fRKey].map((cKey) => {
+                                dArr.push(d.features[fRKey][i][cKey]);
+                            });
+                        } else {
+                            features[fRKey].map((cKey) => {
+                                dArr.push("");
+                            });
+                        }
+                    }
+                    csvData.push(dArr);
+                }
+            }
+        });
+    } else if (Object.keys(features).length == 0) {
+        DATA.map((d) => {
+            let dArr = [];
+            topRows.map((t) => {
+                let path = t.split("__");
+                if (path.length == 2) {
+                    let cValue =
+                        d[path[0]][path[1]] !== null
+                            ? d[path[0]][path[1]] === 0
+                                ? 0
+                                : d[path[0]][path[1]]
+                            : "";
+                    dArr.push(cValue);
+                } else {
+                    let cValue =
+                        d[path[0]] !== null
+                            ? d[path[0]] === 0
+                                ? 0
+                                : d[path[0]]
+                            : "";
+                    dArr.push(cValue);
+                }
+            });
+            csvData.push(dArr);
+        });
+    }
+
+    let header = topRows;
+
+    for (let [fKey, fValue] of Object.entries(features)) {
+        fValue.map((fCKey) => {
+            header.push("feature__" + fKey + "__" + fCKey);
+        });
+    }
+
+    let csv = [
+        header.join("\t"), // header row first
+        ...csvData.map((row) => row.join("\t")),
+    ].join("\r\n");
+
+    let downloadLink = document.createElement("a");
+    let blob = new Blob(["\ufeff", csv]);
+    let url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = downloadFilename + ".tsv"; //Name the file here
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
@@ -329,6 +467,30 @@ let convertJson2Csv = function (DATA, FILENAME) {
     let url = URL.createObjectURL(blob);
     downloadLink.href = url;
     downloadLink.download = downloadFilename + ".csv"; //Name the file here
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+};
+
+const convertJson2Tsv = function (DATA, FILENAME) {
+    const items = DATA;
+    const downloadFilename = FILENAME || "download";
+    const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
+    const header = Object.keys(items[0]);
+    const tsv = [
+        header.join("\t"), // header row first
+        ...items.map((row) =>
+            header
+                .map((fieldName) => JSON.stringify(row[fieldName], replacer))
+                .join("\t")
+        ),
+    ].join("\r\n");
+
+    let downloadLink = document.createElement("a");
+    let blob = new Blob(["\ufeff", tsv]);
+    let url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = downloadFilename + ".tsv"; //Name the file here
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
@@ -463,34 +625,65 @@ function checkIfNumeric(VALUE) {
     return ifNumber;
 }
 
-let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPPERID, IF_PLOT) {
-    // Set IF_PLOT parameter true if function calling tab is in Plots group 
+let setTabActive = function (
+    TARGETTAB,
+    UIWRAPPERID,
+    TARGETCONTENT,
+    CONTENTWRAPPERID,
+    IF_PLOT
+) {
+    // Set IF_PLOT parameter true if function calling tab is in Plots group
     let tabsWrapper = document.getElementById(UIWRAPPERID),
         tabsChildren = tabsWrapper.getElementsByClassName("tab-ui-tab");
     for (let i = 0; i < tabsChildren.length; i++) {
         let tab = tabsChildren[i];
         let classes = tab.getAttribute("class");
 
-        (classes.includes("loading")) ? tab.setAttribute("class", "tab-ui-tab loading") : tab.setAttribute("class", "tab-ui-tab");
+        classes.includes("loading")
+            ? tab.setAttribute("class", "tab-ui-tab loading")
+            : tab.setAttribute("class", "tab-ui-tab");
     }
 
-    document.getElementById(TARGETTAB).setAttribute("class", "tab-ui-tab active");
+    document
+        .getElementById(TARGETTAB)
+        .setAttribute("class", "tab-ui-tab active");
 
     let contentsWrapper = document.getElementById(CONTENTWRAPPERID),
-        contentsChildren = (!!IF_PLOT) ? contentsWrapper.getElementsByClassName("plot-tab-content-wrapper")
+        contentsChildren = !!IF_PLOT
+            ? contentsWrapper.getElementsByClassName("plot-tab-content-wrapper")
             : contentsWrapper.getElementsByClassName("tab-content-wrapper");
     for (let i = 0; i < contentsChildren.length; i++) {
         let tab = contentsChildren[i];
-        (!!IF_PLOT) ? tab.setAttribute("class", "plot-tab-content-wrapper hidden-content")
+        !!IF_PLOT
+            ? tab.setAttribute(
+                "class",
+                "plot-tab-content-wrapper hidden-content"
+            )
             : tab.setAttribute("class", "tab-content-wrapper hidden-content");
     }
 
-    (!!IF_PLOT) ? document.getElementById(TARGETCONTENT).setAttribute("class", "plot-tab-content-wrapper") :
-        document.getElementById(TARGETCONTENT).setAttribute("class", "tab-content-wrapper");
+    !!IF_PLOT
+        ? document
+            .getElementById(TARGETCONTENT)
+            .setAttribute("class", "plot-tab-content-wrapper")
+        : document
+            .getElementById(TARGETCONTENT)
+            .setAttribute("class", "tab-content-wrapper");
+};
 
-
-
-}
+let toggleFixedSummarySection = function (UIWRAPPERID) {
+    const tabsGroup = document
+        .getElementById(UIWRAPPERID)
+        .closest(".tabgroup-fixed-bottom");
+    if (tabsGroup.classList.contains("open")) {
+        tabsGroup.classList.remove("open");
+    } else {
+        tabsGroup.classList.add("open");
+        tabsGroup
+            .querySelector(".fixed-group-toggle")
+            .classList.remove("has-updates");
+    }
+};
 
 let showHidePanel = function (PANEL) {
     console.log(PANEL);
@@ -500,6 +693,150 @@ let showHidePanel = function (PANEL) {
     } else {
         wrapper.classList.add("hidden");
     }
+};
+
+let downloadImg = function (ID, name, type, svgImage) {
+
+    let imgElement = document.getElementById(ID)
+    let link = document.createElement('a');
+    let dataURL;
+
+    if (type == 'svg') {
+        //ref.renderBoxPlot(); // firstly, render the svg image
+
+        let newSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        let attributesToCopy = ["width", "height", "viewBox"];
+        for (const attr of attributesToCopy) {
+            if (imgElement.hasAttribute(attr)) {
+                newSVG.setAttribute(attr, imgElement.getAttribute(attr));
+            }
+        }
+
+        for (const child of imgElement.children) {
+            if (child.nodeName.toLowerCase() !== "script") {
+                newSVG.appendChild(child.cloneNode(true));
+            }
+        }
+
+        let svgData = new XMLSerializer().serializeToString(newSVG);
+
+        dataURL = new Blob([svgData], { type: "image/svg+xml" });
+
+    } else if (type == 'png') {
+
+        dataURL = imgElement.toDataURL("image/png");
+    }
+    link.href = (type == 'svg') ? URL.createObjectURL(dataURL) : dataURL;
+    link.download = (type == 'svg') ? name + '.svg' : name + ".png";
+    link.click();
+    URL.revokeObjectURL(link.href);
+
+    if (type == 'svg') {
+        let svgImg = document.getElementById(svgImage);
+        svgImg.remove();
+    }
+}
+
+let downloadChart = function (URL, FILENAME) {
+    // Create a link element and programmatically click it to start the download
+    const link = document.createElement("a");
+    link.href = URL;
+    link.download = FILENAME;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+let copy2Clipboard = function (CONTENT) {
+    window.navigator.clipboard.writeText(CONTENT);
+}
+
+let copyCanvasToDiv = function (CANVAS, divId, title) {
+
+    // Get the canvas element
+    const canvasId = CANVAS.id;
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error("Canvas element with ID '" + canvasId + "' not found.");
+        return;
+    }
+
+    // Get the div element
+    const div = document.getElementById(divId + '_wrapper');
+    if (!div) {
+        console.error("Div element with ID '" + divId + "' not found.");
+        return;
+    } else {
+        //Create a wrapper div to hold the image
+        const wrapperId = canvasId + "_wrapper"
+        let imgWrapper = document.getElementById(wrapperId);
+        if (!imgWrapper) {
+            imgWrapper = document.createElement('div');
+            imgWrapper.setAttribute("id", wrapperId);
+        }
+        imgWrapper.innerHTML = "";
+
+        /*
+        const titleWrapper = document.createElement('div');
+        titleWrapper.innerHTML = "<h6>" + title + "</h6>"
+
+        imgWrapper.appendChild(titleWrapper)
+
+        */
+
+        // Create a temporary canvas to hold the image data. This is important to avoid issues with modifying the original canvas.
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(canvas, 0, 0);
+
+        // Convert the canvas content to a data URL (PNG by default)
+        const dataURL = tempCanvas.toDataURL(); // Or toDataURL('image/jpeg', 0.9); for JPEG with quality 0.9
+
+        // Create an image element
+        const img = document.createElement('img');
+        img.setAttribute("width", CANVAS.width);
+        img.setAttribute("height", CANVAS.height);
+        img.src = dataURL;
+        img.alt = "Canvas Image"; // Set an alt attribute for accessibility
+
+        // Clear the wrapper's content and append the image.  This removes any existing content in the div.
+
+        imgWrapper.appendChild(img);
+
+        div.innerHTML = "";
+
+        div.appendChild(imgWrapper);
+    }
+
+}
+
+let moveElement = function (element, destinationDivId) {
+    // Get the element
+    const ELEMENT = document.getElementById(element);
+    if (!ELEMENT) {
+        console.error("Element with ID '" + element + "' not found.");
+        return;
+    }
+    // Get the source and destination divs
+    //const sourceDiv = document.getElementById(sourceDivId);
+    const destinationDiv = document.getElementById(destinationDivId);
+
+    // Check if the element is already a child of the destination div
+    if (ELEMENT.parentNode === destinationDiv) {
+        console.warn("Element is already in the destination div.");
+        //return; // Or you could optionally move it back to the source
+    }
+
+    // Remove the element from its current parent (if it has one)
+    if (ELEMENT.parentNode) {
+        ELEMENT.parentNode.removeChild(ELEMENT);
+    }
+
+    // Append the element to the destination div
+    destinationDiv.appendChild(ELEMENT);
+
 }
 
 export default {
@@ -517,7 +854,9 @@ export default {
     getToolTipPosition,
     onScroll,
     convertJson2Csv,
+    convertJson2Tsv,
     saveByorCsv,
+    saveByorTsv,
     saveJson,
     getAxisTicks,
     showTabContent,
@@ -527,5 +866,11 @@ export default {
     getUrl,
     checkIfNumeric,
     setTabActive,
-    showHidePanel
+    toggleFixedSummarySection,
+    showHidePanel,
+    downloadImg,
+    downloadChart,
+    copy2Clipboard,
+    copyCanvasToDiv,
+    moveElement
 };

@@ -79,6 +79,7 @@
 					</div> -->
                 </div>
             </div> 
+            
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div
@@ -89,7 +90,7 @@
                         <h4 class="card-title">
                             Phenotypes observed for variant carriers in the BCH Aggregator
                         </h4>
-                        <h6>To view information about cohorts in the BCH Aggregator, visit the <href a="research.html?pageid=bch_datasets_n127">dataset page</href></h6>
+                        <h6>To view information about cohorts in the BCH Aggregator, visit the <a :href="`research.html?pageid=bch_datasets_n127`"> dataset page </a></h6>
                         <variant-phenotype-table
                             v-bind:variantId="
                                 $store.state.variant.varId
@@ -137,7 +138,27 @@
                 </div>
             </div>
 
+            <!-- Helen added IGV display -->
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div
+                        v-if="$store.state.variant.varId"
+                    >
+                        <h4 class="card-title">
+                            IGV viewer
+                        </h4>
+                        <igv-card v-bind:variantId="
+                                $store.state.variant.varId
+                            ">
+                        </igv-card>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
             <!-- Helen added Quality Matrics -->
+            <!--
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div
@@ -185,6 +206,7 @@
                     </div>
                 </div>
             </div>
+            -->
 
             <div v-if="$store.state.variant && $store.state.variant.nearest">
                 <!-- <div class="card mdkp-card">

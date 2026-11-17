@@ -9,6 +9,7 @@
                 <div class="card-body temporary-card">
                     <documentation
                         name="variantsearch.header.info"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
                 </div>
             </div>
@@ -17,6 +18,7 @@
                     <h1 class="card-title">Variant Search</h1>
                     <documentation
                         name="variantsearch.subheader"
+                        :contentMap="$store.state.bioPortal.documentations"
                     ></documentation>
 
                     <transition name="fade"

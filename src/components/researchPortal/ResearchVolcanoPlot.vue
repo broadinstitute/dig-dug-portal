@@ -20,6 +20,29 @@
 			"
 		>
 		</canvas>
+		<div class="download-images-setting">
+			<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
+			<ul class="options" >
+				<li>
+					<a href="javascript:;"
+					@click="downloadImage('vector_wrapper_' + sectionId, sectionId + '_volcanoPlot', 'svg')">Download SVG</a>
+				</li>
+				<li>
+					<a href="javascript:;"
+					@click="downloadImage('volcanoPlot' + sectionId, sectionId + '_volcanoPlot', 'png')">Download PNG</a>
+				</li>
+			</ul>
+		</div>
+		<research-volcano-plot-vector
+		v-if="!!renderData"
+			:renderData="renderData"
+			:renderConfig="renderConfig"
+			:margin="adjPlotMargin"
+			:sectionId="sectionId"
+			:utils="utils"
+			:ref="sectionId + '_volcanoPlot'"
+		>
+		</research-volcano-plot-vector>
 		<div
 			v-if="!!renderConfig.label"
 			class="volcano-plot-label"
@@ -32,20 +55,45 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import volcanoPlotVector from "@/components/researchPortal/vectorPlots/ResearchVolcanoPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-volcano-plot", {
-	props: ["plotData", "renderConfig", "geneOfInterest","utils","sectionId"],
+	props: ["plotData", "renderConfig", "geneOfInterest","utils","sectionId","colors"],
 	data() {
 		return { posData: {} };
 	},
 	modules: {
 	},
+	components: {
+		volcanoPlotVector,
+	},
 	mounted: function () {
 		this.renderPlot();
 	},
 	computed: {
+		adjPlotMargin() {
+
+			let customPlotMargin = !!this.renderConfig["plot margin"] ? this.renderConfig["plot margin"] : null;
+
+			let plotMargin = !!customPlotMargin ? {
+				left: customPlotMargin.left,
+				right: customPlotMargin.right,
+				top: customPlotMargin.top,
+				bottom: customPlotMargin.bottom,
+				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 5,
+			} :
+				{
+					left: 80,
+					right: 20,
+					top: 20,
+					bottom: 60,
+					bump: 5
+				};
+
+			return plotMargin;
+		},
 		renderingGene() {
 			return this.geneOfInterest;
 		},
@@ -55,12 +103,12 @@ export default Vue.component("research-volcano-plot", {
 
 			rawData.map((r) => {
 				let tempObj = {};
-				tempObj[this.renderConfig["render by"]] =
-					r[this.renderConfig["render by"]];
-				tempObj[this.renderConfig["x axis field"]] =
-					r[this.renderConfig["x axis field"]];
-				tempObj[this.renderConfig["y axis field"]] =
-					r[this.renderConfig["y axis field"]];
+				tempObj[this.renderConfig["render by"]] = r[this.renderConfig["render by"]];
+				tempObj[this.renderConfig["x axis field"]] = r[this.renderConfig["x axis field"]];
+				tempObj[this.renderConfig["y axis field"]] = r[this.renderConfig["y axis field"]];
+					this.renderConfig["on hover"]?.forEach(item => {
+						tempObj[item] = r[item];
+					})
 
 				massagedData.push(tempObj);
 			});
@@ -79,6 +127,14 @@ export default Vue.component("research-volcano-plot", {
 		},
 	},
 	methods: {
+		downloadImage(ID, NAME, TYPE) {
+			if (TYPE == 'svg') {
+				this.$refs[this.sectionId + '_volcanoPlot'].renderPlot();
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE, "vector_volcano_plot_" + this.sectionId);
+			} else if (TYPE == 'png') {
+				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+			}
+		},
 		hidePanel() {
 			this.utils.uiUtils.hideElement("clicked_dot_value"+this.sectionId);
 			//this.renderPlot();
@@ -88,9 +144,10 @@ export default Vue.component("research-volcano-plot", {
 
 			if (wrapper.innerText != "") {
 				let items = wrapper.innerText.split("\n");
-				document.getElementById(
+				const filterEl = document.getElementById(
 					"filter_" + this.renderConfig["render by"].replace(/ /g, "")
-				).value = items.join(", ");
+				)
+				if(filterEl) filterEl.value = items.join(", ");
 			}
 		},
 		checkPosition(event) {
@@ -123,12 +180,20 @@ export default Vue.component("research-volcano-plot", {
 
 							redDotsArr.push(tempObj);
 
-							this.posData[x + h][y + v].map((g) => {
+							this.posData[x + h][y + v].map((g, i) => {
+								const hoverLabel = this.renderConfig["on hover"][i];
+								const labelHtml = hoverLabel
+									? `<b>${hoverLabel}:</b> `
+									: "";
 								clickedDotValue +=
-									'<span class="gene-on-clicked-dot-volcano">' +
-									g +
-									"</span>";
+									`<span class="gene-on-clicked-dot-volcano">
+									${labelHtml}
+									${g}
+									</span><br>`;
 							});
+
+							//add horizontal lines between data groups if "on hover" param exists
+							clickedDotValue += this.renderConfig["on hover"] ? '<hr>' : '';
 						}
 					}
 				}
@@ -157,8 +222,38 @@ export default Vue.component("research-volcano-plot", {
 			);
 		},
 		renderPlot(REDDOTS) {
+			
+// Dynamically add thresholds
+			let calculateCondition = function(EXP,LENGTH) {
+				let calcString = "";
+
+				EXP.map(e => {
+					let eValue = !!["+", "-", "*", "/", "(", ")"].includes(e) ? e :
+						(typeof e === 'number') ? e :
+							(typeof e === 'string') ? (e == "data length") ? LENGTH : e : null;
+
+					calcString += eValue;
+				});
+
+				console.log("calcString",calcString);
+
+				let threshold = eval(calcString);
+				return threshold;
+			}
+
+			let conditions = [["x condition","lower than"], ["x condition", "greater than"],
+								["y condition", "lower than"], ["y condition", "greater than"]]
+
+			conditions.map(condition =>{
+				if(this.renderConfig[condition[0]][condition[1]] && this.renderConfig[condition[0]][condition[1]] == "calculate") {
+					let expression = this.renderConfig[condition[0]]["condition calculate"][condition[1]];
+					this.renderConfig[condition[0]][condition[1]] = calculateCondition(expression, this.renderData.length)
+				}
+			})			
+
 			let xAxisData = [];
 			let yAxisData = [];
+			let expData = [];
 
 			let canvasWidth = this.renderConfig.width * 2;
 			let canvasHeight = this.renderConfig.height * 2;
@@ -180,7 +275,20 @@ export default Vue.component("research-volcano-plot", {
 			this.renderData.map((d) => {
 				xAxisData.push(d[this.renderConfig["x axis field"]]);
 				yAxisData.push(d[this.renderConfig["y axis field"]]);
+				if(this.renderConfig["dot scale"]){
+					expData.push(d[this.renderConfig["dot scale"]]);
+				}
 			});
+
+			let dotSizeMin = 8;
+			let dotSizeMax = 16;
+			let dotScaleMin = 8;
+			let dotScaleMax = 16;
+
+			if(this.renderConfig["dot scale"]){
+				dotScaleMin = Math.min.apply(Math, expData);
+				dotScaleMax = Math.max.apply(Math, expData);
+			}
 
 			let xMin = Math.min.apply(Math, xAxisData);
 			let xMax = Math.max.apply(Math, xAxisData);
@@ -188,8 +296,19 @@ export default Vue.component("research-volcano-plot", {
 			let yMin = Math.min.apply(Math, yAxisData);
 			let yMax = Math.max.apply(Math, yAxisData);
 
+			const xAbsMax = Math.abs(xMin) > Math.abs(xMax) ? Math.abs(xMin) : Math.abs(xMax);
+
+			//original
 			let xAxisTicks = this.utils.uiUtils.getAxisTicks(xMin, xMax);
 			let yAxisTicks = this.utils.uiUtils.getAxisTicks(yMin, yMax);
+
+			//todo: add config param for making x-axis values symmetrical
+			//check getAxisTicks to make the ticks nice
+			//new
+			//let xAxisTicks = this.utils.uiUtils.getAxisTicks(-xAbsMax, xAbsMax);
+			//let yAxisTicks = this.utils.uiUtils.getAxisTicks(yMin, yMax);
+
+
 
 			ctx.moveTo(leftMargin, canvasHeight + topMargin + yBump);
 			ctx.lineTo(
@@ -290,7 +409,7 @@ export default Vue.component("research-volcano-plot", {
 
 			let xCondition = this.renderConfig["x condition"];
 
-			this.renderData.map((d) => {
+			this.renderData.map((d, dIndex) => {
 				//rendering position
 				let xPos =
 					leftMargin +
@@ -312,14 +431,21 @@ export default Vue.component("research-volcano-plot", {
 				if (!this.posData[Math.round(xPos / 2)]) {
 					this.posData[Math.round(xPos / 2)] = {};
 				}
-				if (!this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)]) {
-					this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)] =
-						[];
-				}
 
-				this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)].push(
-					d[this.renderConfig["render by"]]
-				);
+				//clear previous data so no duplicates
+				this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)] = [];
+				
+				if(this.renderConfig["on hover"]){
+					this.renderConfig["on hover"].forEach(item => {
+						this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)].push(
+							d[item]
+						);
+					});
+				}else{
+					this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)].push(
+						d[this.renderConfig["render by"]]
+					);
+				}
 
 				let fillScore = 0;
 
@@ -417,14 +543,28 @@ export default Vue.component("research-volcano-plot", {
 						break;
 				}
 
+				//if renderConfig has "dot scale" param set
+				//adjust size of dots relative to eachother	
+				function normalize(value, minInput, maxInput, minOutput, maxOutput) {
+					return ((value - minInput) / (maxInput - minInput)) * (maxOutput - minOutput) + minOutput;
+				}
+				const dotSize = this.renderConfig["dot scale"] ?
+					normalize(d[this.renderConfig["dot scale"]], dotScaleMin, dotScaleMax, dotSizeMin, dotSizeMax) : 
+					dotScaleMin;
+
 				ctx.lineWidth = 0;
 				ctx.beginPath();
-				ctx.arc(xPos, yPos, 6, 0, 2 * Math.PI);
+				ctx.arc(xPos, yPos, dotSize, 0, 2 * Math.PI); //radius
 				ctx.fill();
 
+				//TODO: "dot label score" labels all dots
+				//that meet pVal and FC values
+				//but sometimes this is still too many labels to show at once
+				//need a better method to labels only most extreme outliers
 				if (
-					!!this.renderConfig["dot label score"] &&
-					fillScore >= this.renderConfig["dot label score"]
+					(!!this.renderConfig["dot label score"] &&
+					fillScore >= this.renderConfig["dot label score"]) 
+					//&& dIndex < 10
 				) {
 					ctx.font = "24px Arial";
 					ctx.textAlign = "center";
@@ -432,7 +572,7 @@ export default Vue.component("research-volcano-plot", {
 					ctx.fillText(
 						d[this.renderConfig["render by"]],
 						xPos,
-						yPos - 8
+						yPos - 16
 					);
 				}
 			});
@@ -640,7 +780,7 @@ $(function () {});
     background-color: #fff;
     border: solid 1px #aaa;
     box-shadow: 0 0 5px #00000075;
-    font-size: 12px;
+    font-size: 14px;
     padding: 0px 10px 5px 10px;
     max-width: 300px;
     border-radius: 5px;
@@ -653,6 +793,7 @@ $(function () {});
 	display: block;
 	float: left;
 	padding: 0 5px;
+	text-align: left;
 }
 </style>
 

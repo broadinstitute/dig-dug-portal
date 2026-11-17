@@ -92,7 +92,7 @@ export const CheckSignInStatus = async function(){
         alert("error: "+error);
       });
   }*/
-  Vue.prototype.$useremail = '';
+  Vue.prototype.$useremail = 'test@childrens.harvard.edu';
   //Vue.prototype.$sampleIDaccess = [];
   Vue.prototype.$sampleIDaccess = ['han.zhang@childrens.harvard.edu', 'courtney.french@childrens.harvard.edu']; 
   

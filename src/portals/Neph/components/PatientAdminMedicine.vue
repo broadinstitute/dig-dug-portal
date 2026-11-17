@@ -147,7 +147,7 @@ export default Vue.component("patient-admin_medicine-card", {
         },
         async searchAdminMedicine() {
             //console.log("variant id:" + this.variantId);
-            this.padmin_medicine = await query("patient_admin_medicine",this.patientId,{},true);
+            this.padmin_medicine = await query("patient_admin_medicine", this.patientId, { query_private: true });
             
         },
         rowPickClass(item, type) {

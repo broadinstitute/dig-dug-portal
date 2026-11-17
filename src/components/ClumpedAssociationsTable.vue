@@ -12,7 +12,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="clumpedAssociations"
                 :fields="fields"
                 :per-page="perPage"
@@ -116,6 +116,7 @@
                 <documentation
                     id="aligned-beta"
                     name="table.clumped-associations.alignment"
+                    :contentMap="$store.state.bioPortal.documentations"
                 ></documentation>
             </div>
         </div>

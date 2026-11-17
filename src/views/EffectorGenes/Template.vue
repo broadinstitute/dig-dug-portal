@@ -23,6 +23,7 @@
 						<div class="col-md-12" style="font-size: 20px">
 							<documentation
 								name="egl.summaries.info"
+								:contentMap="$store.state.bioPortal.documentations"
 							></documentation>
 						</div>
 					</div>

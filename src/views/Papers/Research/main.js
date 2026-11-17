@@ -1,21 +1,11 @@
 import Vue from "vue";
-//import BootstrapVue from "bootstrap-vue";
-//import { BootstrapVueIcons } from "bootstrap-vue";
+import Template from "./Template.vue";
+import store from "./store.js";
+
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-Vue.use(BootstrapVueIcons);
-
-import Template from "./Template.vue";
-import store from "./store.js";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
-
-import Documentation from "@/components/Documentation.vue";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
 import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
@@ -34,9 +24,14 @@ import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
+import GiantGemPkg from "@/components/researchPortal/customComponents/GiantGemPkg.vue";
 import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
 import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
+import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingSpinner.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
+import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -46,20 +41,17 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
 import filterUtils from "@/utils/filterUtils";
+import regionUtils from "@/utils/regionUtils";
+import userUtils from "@/utils/userUtils.js";
 import $ from "jquery";
+import { pageMixin } from "@/mixins/pageMixin.js";
 
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert,
-} from "@/components/Alert";
+Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
     components: {
-        PageHeader,
-        PageFooter,
         ResearchPageHeader,
         ResearchPageFooter,
         ResearchPageDescription,
@@ -78,16 +70,22 @@ new Vue({
         ResearchHeatmap,
         ResearchPheWAS,
         kpGEMPkg,
-        Documentation,
+        GiantGemPkg,
         ResearchSection,
         ResearchSectionsSummary,
-        ResearchMultiSectionsSearch
+        ResearchMultiSectionsSearch,
+        ResearchSingleSearch,
+        ResearchSingleSearchV2,
+        ResearchSingleSearchCFDE,
+        ResearchLoadingSpinner,
     },
+    mixins: [pageMixin],
     data() {
         return {
             starItems: [],
             sectionsData: [],
-            pageID: null,
+            hoverPos: [],
+            sectionDescriptions: null,
             regionZoom: 0,
             regionViewArea: 0,
             devID: null,
@@ -95,6 +93,7 @@ new Vue({
             devCK: null,
             dataFiles: [],
             dataTableFormat: null,
+            context: null,
             colors: {
                 mild: [
                     "#007bff25",
@@ -169,27 +168,9 @@ new Vue({
                     "#d4d4d4",
                 ],
             },
-
-        }
+        };
     },
 
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    mounted() {
-
-    },
-    beforeDestroy() {
-
-    },
     computed: {
         //sections setting start
         utilsBox() {
@@ -202,87 +183,176 @@ new Vue({
                 sortUtils: sortUtils,
                 plotUtils: plotUtils,
                 filterUtils: filterUtils,
-            }
+                regionUtils: regionUtils,
+                userUtils: userUtils,
+            };
             return utils;
         },
         sectionConfigs() {
             let contents = this.researchPage;
-            if (
-                contents === null
-            ) {
+            if (contents === null) {
                 return null;
             } else {
                 return JSON.parse(contents[0]["field_data_table_format"]);
             }
         },
-        sectionDescriptions() {
+        pageID() {
+            if (keyParams.pageid) return keyParams.pageid;
+            if (window.location.pathname.includes("/r/")) {
+                return window.location.pathname.split("/")[2].split("&")[0];
+            }
+            return new URLSearchParams(window.location.search).get("pageid");
+        },
+        pageParams() {
+            let params = {};
+            if (this.multiSectionsSearchParameters) {
+                this.multiSectionsSearchParameters.map((mp) => {
+                    if (mp.type != "multi search") {
+                        let values =
+                            !!mp.values && !!Array.isArray(mp.values) ? {} : null;
+                        if (values != null) {
+                            mp.values.map((v) => {
+                                values[v.value] = v.label;
+                            });
+                        }
+
+                        params[mp.parameter] = {
+                            label: mp.label,
+                            values: values,
+                        };
+                    } else if (mp.type == "multi search") {
+                        mp.parameters.map(P => {
+                            let values =
+                                !!P.values && !!Array.isArray(P.values) ? {} : null;
+                            if (values != null) {
+                                P.values.map((v) => {
+                                    values[v.value] = v.label;
+                                });
+                            }
+
+                            params[P.parameter] = {
+                                label: P.label,
+                                values: values,
+                            };
+                        })
+                    }
+                });
+            }
+
+            return params;
+        },
+        initialDescriptions() {
             let contents = this.researchPage;
 
             if (contents === null || contents[0]["body"] == false) {
-                return null;
+                return {};
             } else {
-
-                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
-                    && !!this.sectionConfigs["is multi section"] == true) {
-                    let description = document.createElement('div');
-                    description.setAttribute("style", "visibility: hidden;height: 1px")
+                if (
+                    !!this.sectionConfigs &&
+                    !!this.sectionConfigs["is multi section"] &&
+                    !!this.sectionConfigs["is multi section"] == true
+                ) {
+                    let description = document.createElement("div");
+                    description.setAttribute(
+                        "style",
+                        "visibility: hidden;height: 1px"
+                    );
                     description.innerHTML = contents[0]["body"];
                     document.body.appendChild(description);
 
                     let sectionDescriptions = {};
 
-                    this.sectionConfigs.sections.map(section => {
-                        let sDescription = (!!document.getElementById(section["section id"] + "_description")) ?
-                            document.getElementById(section["section id"] + "_description").innerHTML : '';
-                        if (!!sDescription) {
-                            sectionDescriptions[section["section id"]] = sDescription;
+                    this.sectionConfigs.sections.map((section) => {
+                        let context = !!keyParams["context"]
+                            ? "_" + keyParams["context"]
+                            : "";
+
+                        let defaultDescription = document.getElementById(
+                            section["section id"] + "_description"
+                        );
+                        let contextDescription = document.getElementById(
+                            section["section id"] + "_description" + context
+                        );
+
+                        let sDescription = "";
+
+                        if (!!contextDescription) {
+                            sDescription = contextDescription.innerHTML;
+                        } else if (!!defaultDescription) {
+                            sDescription = defaultDescription.innerHTML;
                         }
-                    })
+
+                        sectionDescriptions[section["section id"]] =
+                            sDescription;
+                    });
                     description.parentNode.removeChild(description);
 
                     return sectionDescriptions;
                 } else {
-                    return null
+                    return {};
                 }
             }
         },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
+        rawSearchParameters() {
+            let parameters;
+            if (!!this.sectionConfigs["search parameters"]) {
+                parameters = this.sectionConfigs["search parameters"];
+            } else {
+                parameters = [];
+            }
+
+            return parameters;
+        },
+        sharedResource() {
+            let sharedResource;
+            if (!!this.sectionConfigs["shared resource"]) {
+                sharedResource = this.sectionConfigs["shared resource"];
+            } else {
+                sharedResource = null;
+            }
+
+            return sharedResource;
+        },
         multiSectionsSearchParameters() {
             if (this.phenotypesInSession.length > 0) {
                 let parameters = [];
                 let newParameters = [];
 
-                if (!!this.sectionConfigs['search parameters']) {
-                    parameters = this.sectionConfigs['search parameters'];
+                if (!!this.sectionConfigs["search parameters"]) {
+                    parameters = this.sectionConfigs["search parameters"];
                 }
 
-                this.sectionConfigs.sections.map(section => {
+                this.sectionConfigs.sections.map((section) => {
                     if (!!section["search parameters"]) {
-                        section["search parameters"].map(s => {
+                        section["search parameters"].map((s) => {
+                            s["in-section search"] = true;
                             parameters.push(s);
-                        })
+                        });
                     }
-                })
+                });
 
                 if (parameters.length > 0) {
-                    parameters.map(p => {
-                        if (p.values == 'kp phenotypes') {
+                    parameters.map((p) => {
+                        if (p.values == "kp phenotypes") {
                             let values = [];
 
-
-                            this.phenotypesInSession.map(pis => {
-                                let tempObj = { "label": pis.description, "value": pis.name };
+                            this.phenotypesInSession.map((pis) => {
+                                let tempObj = {
+                                    label: pis.description,
+                                    value: pis.name,
+                                };
                                 values.push(tempObj);
-                            })
+                            });
                             p.values = values;
 
                             newParameters.push(p);
                         } else {
                             newParameters.push(p);
                         }
-                    })
+                    });
                 } else {
                     newParameters = null;
                 }
@@ -292,8 +362,6 @@ new Vue({
                 return null;
             }
         },
-
-        /////sections setting end
 
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -336,9 +404,14 @@ new Vue({
                         pr.parameter == "phenotype" &&
                         pr.values == "kp phenotypes"
                     ) {
-                        let values = this.phenotypesInSession
-                            .map((p) => p.name)
-                            .sort();
+
+                        let shorterFirst = this.phenotypesInSession.sort(
+                            (a, b) =>
+                                a.description.length - b.description.length
+                        );
+
+                        let values = shorterFirst.map((p) => p.name);
+                        //.sort();
                         pr.values = values;
                     }
                 });
@@ -377,7 +450,6 @@ new Vue({
             } else {
                 return JSON.parse(contents[0]["field_filters"]);
             }
-
         },
         dataType() {
             let contents = this.researchPage;
@@ -390,9 +462,6 @@ new Vue({
                 return null;
             }
             return contents[0]["field_data_type"];
-        },
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
         },
         displayOnKP() {
             let contents = this.$store.state.hugeampkpncms.researchMode;
@@ -425,19 +494,8 @@ new Vue({
 
             return contents[0]["field_filter_width"];
         },
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-
-            console.log('frontContents', contents);
-
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
         isAPI() {
             let contents = this.researchPage;
-
             if (contents === null) {
                 return null;
             } else if (contents[0]["field_is_api"] == "1") {
@@ -445,6 +503,7 @@ new Vue({
             } else if (contents[0]["field_is_api"] == "0") {
                 return false;
             }
+            return null;
         },
         isLandingPage() {
             let contents = this.researchPage;
@@ -469,16 +528,23 @@ new Vue({
             if (contents === null || contents[0]["body"] == false) {
                 return null;
             } else {
-
-                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
-                    && !!this.sectionConfigs["is multi section"] == true) {
-                    let description = document.createElement('div');
-                    description.style.display = 'none';
+                if (!!this.sectionConfigs["is front page"]) {
+                    return contents[0]["body"];
+                } else if (
+                    !!this.sectionConfigs &&
+                    !!this.sectionConfigs["is multi section"] &&
+                    !!this.sectionConfigs["is multi section"] == true
+                ) {
+                    let description = document.createElement("div");
+                    description.style.display = "none";
                     description.innerHTML = contents[0]["body"];
                     document.body.appendChild(description);
 
-                    let pageDescription = !!document.getElementById("page_description") ?
-                        document.getElementById("page_description") : '';
+                    let pageDescription = !!document.getElementById(
+                        "page_description"
+                    )
+                        ? document.getElementById("page_description")
+                        : "";
                     description.parentNode.removeChild(description);
 
                     return pageDescription.innerHTML;
@@ -487,9 +553,6 @@ new Vue({
                 }
             }
         },
-        // pageID() {
-        //     return keyParams.pageid.trim();
-        // },
         pageTitle() {
             let contents = this.researchPage;
 
@@ -551,16 +614,12 @@ new Vue({
             switch (plotType) {
                 case "m_plot":
                     return "egl-m-plot-wrapper";
-                    break;
                 case "mbm_plot":
                     return "mbm-plot-wrapper";
-                    break;
                 case "volcano_plot":
                     return "volcano-plot-wrapper";
-                    break;
                 case "h_map":
                     return "heat-map-wrapper";
-                    break;
                 default:
                     return "";
             }
@@ -650,15 +709,15 @@ new Vue({
                                 "cont?token=" + convertedData.continuation;
                         }
 
+                        let wildCard = this.$store.state.hugeampkpncms.wildCard;
+
                         let fetchParam = {
                             dataPoint: APIPoint,
                             domain: "external",
+                            wildCard: wildCard
                         };
 
-                        this.$store.dispatch(
-                            "hugeampkpncms/getResearchData",
-                            fetchParam
-                        );
+                        this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
                     } else if (
                         convertedData.continuation == null &&
                         convertedData.page != 1
@@ -685,9 +744,16 @@ new Vue({
                                 )
                                 : this.convertData("no convert", mergedData);
 
-                        if (this.dataTableFormat != null && !!this.dataTableFormat["pre filters"]) {
+                        if (
+                            this.dataTableFormat != null &&
+                            !!this.dataTableFormat["pre filters"]
+                        ) {
                             let filters = this.dataTableFormat["pre filters"];
-                            processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                            processedData =
+                                this.utilsBox.filterUtils.applyFilters(
+                                    filters,
+                                    processedData
+                                );
                         }
 
                         return processedData;
@@ -706,9 +772,16 @@ new Vue({
                                 )
                                 : this.convertData("no convert", returnData);
 
-                        if (this.dataTableFormat != null && !!this.dataTableFormat["pre filters"]) {
+                        if (
+                            this.dataTableFormat != null &&
+                            !!this.dataTableFormat["pre filters"]
+                        ) {
                             let filters = this.dataTableFormat["pre filters"];
-                            processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                            processedData =
+                                this.utilsBox.filterUtils.applyFilters(
+                                    filters,
+                                    processedData
+                                );
                         }
 
                         return processedData;
@@ -723,12 +796,11 @@ new Vue({
                     } else {
                         returnData =
                             this.dataType == "json"
-                                ? (!!convertedData.data) ? convertedData.data : convertedData
+                                ? !!convertedData.data
+                                    ? convertedData.data
+                                    : convertedData
                                 : convertedData;
                     }
-
-                    //console.log("typeof convertedData", typeof convertedData);
-                    //console.log("returnData", returnData);
 
                     let processedData =
                         this.dataTableFormat != null &&
@@ -739,9 +811,15 @@ new Vue({
                             )
                             : this.convertData("no convert", returnData);
 
-                    if (this.dataTableFormat != null && !!this.dataTableFormat["pre filters"]) {
+                    if (
+                        this.dataTableFormat != null &&
+                        !!this.dataTableFormat["pre filters"]
+                    ) {
                         let filters = this.dataTableFormat["pre filters"];
-                        processedData = this.utilsBox.filterUtils.applyFilters(filters, processedData);
+                        processedData = this.utilsBox.filterUtils.applyFilters(
+                            filters,
+                            processedData
+                        );
                     }
 
                     return processedData;
@@ -798,64 +876,97 @@ new Vue({
         multiTableLegends() {
             let contents = this.researchPage;
 
-            if (contents === null || contents[0]["field_data_table_legend"] == false) {
+            if (
+                contents === null ||
+                contents[0]["field_data_table_legend"] == false
+            ) {
                 return null;
             } else {
-
-                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
-                    && !!this.sectionConfigs["is multi section"] == true) {
-                    let legends = document.createElement('div');
+                if (
+                    !!this.sectionConfigs &&
+                    !!this.sectionConfigs["is multi section"] &&
+                    !!this.sectionConfigs["is multi section"] == true
+                ) {
+                    let legends = document.createElement("div");
                     //legends.style.display = 'none';
-                    legends.setAttribute("style", "visibility: hidden;height: 1px")
+                    legends.setAttribute(
+                        "style",
+                        "visibility: hidden;height: 1px"
+                    );
                     legends.innerHTML = contents[0]["field_data_table_legend"];
                     document.body.appendChild(legends);
 
                     let sTableLegends = [];
 
-                    this.sectionConfigs.sections.map(section => {
-                        let sTableLegend = (!!document.getElementById(section["section id"] + "_tableLegend")) ?
-                            document.getElementById(section["section id"] + "_tableLegend").innerHTML : '';
+                    this.sectionConfigs.sections.map((section) => {
+                        let sTableLegend = !!document.getElementById(
+                            section["section id"] + "_tableLegend"
+                        )
+                            ? document.getElementById(
+                                section["section id"] + "_tableLegend"
+                            ).innerHTML
+                            : "";
                         if (!!sTableLegend) {
                             //sTableLegends[section["section id"]] = sTableLegend;
-                            sTableLegends.push({ "id": section["section id"], "content": sTableLegend });
+                            sTableLegends.push({
+                                id: section["section id"],
+                                content: sTableLegend,
+                            });
                         }
-                    })
+                    });
                     //legends.parentNode.removeChild(legends);
                     return sTableLegends;
                 } else {
-                    return null
+                    return null;
                 }
             }
         },
         multiPlotLegends() {
             let contents = this.researchPage;
 
-            if (contents === null || contents[0]["field_data_visualizer_legend"] == false) {
+            if (
+                contents === null ||
+                contents[0]["field_data_visualizer_legend"] == false
+            ) {
                 return null;
             } else {
-
-                if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
-                    && !!this.sectionConfigs["is multi section"] == true) {
-                    let legends = document.createElement('div');
+                if (
+                    !!this.sectionConfigs &&
+                    !!this.sectionConfigs["is multi section"] &&
+                    !!this.sectionConfigs["is multi section"] == true
+                ) {
+                    let legends = document.createElement("div");
                     //legends.style.display = 'none';
-                    legends.setAttribute("style", "visibility: hidden;height: 1px")
-                    legends.innerHTML = contents[0]["field_data_visualizer_legend"];
+                    legends.setAttribute(
+                        "style",
+                        "visibility: hidden;height: 1px"
+                    );
+                    legends.innerHTML =
+                        contents[0]["field_data_visualizer_legend"];
                     document.body.appendChild(legends);
 
                     let sPlotLegends = [];
 
-                    this.sectionConfigs.sections.map(section => {
-                        let sPlotLegend = (!!document.getElementById(section["section id"] + "_plotLegend")) ?
-                            document.getElementById(section["section id"] + "_plotLegend").innerHTML : '';
+                    this.sectionConfigs.sections.map((section) => {
+                        let sPlotLegend = !!document.getElementById(
+                            section["section id"] + "_plotLegend"
+                        )
+                            ? document.getElementById(
+                                section["section id"] + "_plotLegend"
+                            ).innerHTML
+                            : "";
                         if (!!sPlotLegend) {
                             //sPlotLegends[section["section id"]] = sPlotLegend;
-                            sPlotLegends.push({ "id": section["section id"], "content": sPlotLegend })
+                            sPlotLegends.push({
+                                id: section["section id"],
+                                content: sPlotLegend,
+                            });
                         }
-                    })
+                    });
                     //legends.parentNode.removeChild(legends);
                     return sPlotLegends;
                 } else {
-                    return null
+                    return null;
                 }
             }
         },
@@ -874,35 +985,36 @@ new Vue({
             }
         },
         dataFilesLabels() {
-
-
             let content = null;
 
-            if (!!this.researchPage && !!this.$store.state.bioPortal.phenotypes && this.$store.state.bioPortal.phenotypes.length > 0) {
-
-
-
-                if (this.researchPage[0]["field_data_points_list_labels"] != false) {
-                    content = JSON.parse(this.researchPage[0]["field_data_points_list_labels"]);
+            if (
+                !!this.researchPage &&
+                !!this.$store.state.bioPortal.phenotypes &&
+                this.$store.state.bioPortal.phenotypes.length > 0
+            ) {
+                if (
+                    this.researchPage[0]["field_data_points_list_labels"] !=
+                    false
+                ) {
+                    content = JSON.parse(
+                        this.researchPage[0]["field_data_points_list_labels"]
+                    );
                 } else {
                     content = {};
-                    this.dataFiles.map(d => {
+                    this.dataFiles.map((d) => {
                         content[d] = d;
-                    })
+                    });
                 }
 
                 if (!content["phenotype"]) {
+                    let kpPhenotypes = this.$store.state.bioPortal.phenotypes;
+                    content["phenotype"] = {};
 
-                    let kpPhenotypes = this.$store.state.bioPortal.phenotypes
-                    content["phenotype"] = {}
-
-                    kpPhenotypes.map(p => {
+                    kpPhenotypes.map((p) => {
                         content["phenotype"][p.name] = p.description;
                     });
-
                 }
             }
-
 
             return content;
         },
@@ -910,11 +1022,26 @@ new Vue({
             let content = this.$store.state.hugeampkpncms.researchDataEmpty;
 
             return content;
-
-        }
+        },
     },
 
     watch: {
+        sectionConfigs(CONFIGS) {
+            let context;
+
+            if (!!CONFIGS["context"]) {
+                let group = "_context_" + CONFIGS["context"]["group"];
+                context = this.utilsBox.userUtils.getContext(group);
+            }
+
+            if (!!context) {
+                let keyId = context.toLowerCase().replace(" ", "_");
+                keyParams.set({ context: keyId });
+                this.context = keyId;
+            } else {
+                this.context = null;
+            }
+        },
         filteredData(DATA) {
             this.getSubHeader();
         },
@@ -963,6 +1090,7 @@ new Vue({
             }
         },
         researchPage(content) {
+
             if (content.length != 0 && content != null) {
                 if (content[0]["field_page_style"] != false) {
                     let css = content[0]["field_page_style"];
@@ -1029,7 +1157,6 @@ new Vue({
 
                         console.log("this.dataFilesLabels", this.dataFilesLabels);*/
 
-
                         let initialData = dataFiles[0];
 
                         let dataPoint =
@@ -1047,9 +1174,12 @@ new Vue({
                                 ? "external"
                                 : "hugeampkpn";
 
+                        let wildCard = this.$store.state.hugeampkpncms.wildCard;
+
                         let fetchParam = {
                             dataPoint: dataPoint,
                             domain: domain,
+                            wildCard: wildCard
                         };
 
                         if (this.isAPI != null && this.isAPI == false) {
@@ -1083,13 +1213,36 @@ new Vue({
                         menuParam
                     );
                 }
+
+                //set page title
+                if (content[0]["title"] != false) {
+                    document.title = content[0]["title"];
+                }
+
+                //set page description
+                if (content[0]["description"] != false) {
+                    let metaDesc = document.querySelector(
+                        'meta[name="description"]'
+                    );
+                    if (metaDesc) {
+                        metaDesc.setAttribute(
+                            "content",
+                            content[0]["description"]
+                        );
+                    } else {
+                        let meta = document.createElement("meta");
+                        meta.name = "description";
+                        meta.content = content[0]["description"];
+                        document
+                            .getElementsByTagName("head")[0]
+                            .appendChild(meta);
+                    }
+                }
             }
         },
 
         researchData(content) {
             // reset searching region if applicable
-
-
 
             if (content != null && content.length > 0) {
                 let region, targetPlotConfig;
@@ -1178,7 +1331,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
-        this.pageID = keyParams.pageid || window.location.pathname.substring(3);
+
         if (this.pageID) {
             this.$store.dispatch("hugeampkpncms/getResearchMode", {
                 pageID: this.pageID,
@@ -1189,11 +1342,116 @@ new Vue({
     methods: {
         ...uiUtils,
         ...sessionUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
+
+        copyOverPlots(DIRECTION) {
+
+            if (DIRECTION == 'from') {
+                document.getElementById("canvas_collect").setAttribute("style", "height: auto;")
+                document.getElementById("viz_collect_btn").setAttribute("class", "hidden-btn")
+                document.getElementById("viz_return_btn").setAttribute("class", "btn btn-success btn-sm")
+
+            } else if (DIRECTION == 'to') {
+                document.getElementById("canvas_collect").setAttribute("style", "height: 1px; overflow: hidden;")
+                document.getElementById("viz_return_btn").setAttribute("class", "hidden-btn")
+                document.getElementById("viz_collect_btn").setAttribute("class", "btn btn-primary btn-sm")
+            }
+
+            this.sectionConfigs["visualizer collection"].map(s => {
+                s['sections'].map(sItem => {
+                    (DIRECTION == 'from') ? uiUtils.moveElement(sItem + "_viz_wrapper", sItem + "_wrapper") :
+                        uiUtils.moveElement(sItem + "_viz_wrapper", sItem + "_plots_holder");
+                })
+            })
+        },
+        updateParams() {
+            //console.log("updateParams() called");
+        },
+        getReplaced(CONTENT) {
+            return this.utilsBox.Formatters.replaceWithParams(
+                CONTENT,
+                this.pageParams
+            );
+        },
+        getExampleLink(EXAMPLE) {
+            let exampleLink;
+            this.sectionConfigs["single search"]["search parameters"].map(
+                (param) => {
+                    if (param.parameter == EXAMPLE.parameter) {
+                        exampleLink =
+                            "<a href='/research.html?pageid=" +
+                            param["target page"]["page id"];
+                        exampleLink += !!param["target page"]["entity"]
+                            ? "&" +
+                            param["target page"]["entity parameter"] +
+                            "=" +
+                            param["target page"]["entity"]
+                            : "";
+                        exampleLink +=
+                            "&" +
+                            param.parameter +
+                            "=" +
+                            EXAMPLE.value +
+                            "'>" +
+                            EXAMPLE.value +
+                            "</a>";
+                    }
+                }
+            );
+            return exampleLink;
+        },
         /// multi-sections use
+        updateSectionDescriptions() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["body"] == false) {
+                return null;
+            } else {
+                if (
+                    !!this.sectionConfigs &&
+                    !!this.sectionConfigs["is multi section"] &&
+                    !!this.sectionConfigs["is multi section"] == true
+                ) {
+                    let description = document.createElement("div");
+                    description.setAttribute(
+                        "style",
+                        "visibility: hidden;height: 1px"
+                    );
+                    description.innerHTML = contents[0]["body"];
+                    document.body.appendChild(description);
+
+                    let sectionDescriptions = {};
+
+                    this.sectionConfigs.sections.map((section) => {
+                        let context = !!keyParams["context"]
+                            ? "_" + keyParams["context"]
+                            : "";
+
+                        let defaultDescription = document.getElementById(
+                            section["section id"] + "_description"
+                        );
+                        let contextDescription = document.getElementById(
+                            section["section id"] + "_description" + context
+                        );
+
+                        let sDescription = "";
+
+                        if (!!contextDescription) {
+                            sDescription = contextDescription.innerHTML;
+                        } else if (!!defaultDescription) {
+                            sDescription = defaultDescription.innerHTML;
+                        }
+
+                        sectionDescriptions[section["section id"]] =
+                            sDescription;
+                    });
+                    description.parentNode.removeChild(description);
+
+                    this.sectionDescriptions = sectionDescriptions;
+                } else {
+                    this.sectionDescriptions = null;
+                }
+            }
+        },
         setZoom(SETTING) {
             this[SETTING.property] = SETTING.value;
         },
@@ -1201,42 +1459,249 @@ new Vue({
             this.starItems = ARRAY;
         },
         onSectionsData(SECTION) {
-
             let sectionExist = null;
-            this.sectionsData.map(section => {
+            this.sectionsData.map((section) => {
                 if (section.id == SECTION.id) {
                     section.data = SECTION.data;
                     sectionExist = true;
                 }
-            })
+            });
 
             if (!sectionExist) {
                 this.sectionsData.push(SECTION);
             }
         },
+
+        setHoverPos(posInfo) {
+            this.hoverPos = posInfo;
+        },
         isInTabGroups(SECTION) {
             let sectionInGroup = false;
-            if (!!this.sectionConfigs['tab groups']) {
-                this.sectionConfigs['tab groups'].map(group => {
-                    group.sections.map(tab => {
+            if (!!this.sectionConfigs["tab groups"]) {
+                this.sectionConfigs["tab groups"].map((group) => {
+                    group.sections.map((tab) => {
                         if (tab.section == SECTION) {
                             sectionInGroup = true;
                         }
-                    })
-                })
+                    });
+                });
             }
 
             return sectionInGroup;
         },
+        isInEntity(SECTION) {
+            let entity = keyParams["entity"];
+            let pageEntities = this.sectionConfigs["entity"];
+            let sectionInEntity =
+                !pageEntities ||
+                    (!!pageEntities &&
+                        !!entity &&
+                        !!pageEntities[entity].includes(SECTION))
+                    ? true
+                    : null;
+
+            return sectionInEntity;
+        },
+        setContext(KEY, SECTIONS) {
+            let group = "_context_" + this.sectionConfigs["context"]["group"];
+
+            if (KEY == "remove") {
+                keyParams.set({ context: "" });
+
+                this.context = null;
+
+                this.utilsBox.userUtils.clearContext(group);
+            } else {
+                let keyId = KEY.toLowerCase().replace(" ", "_");
+                keyParams.set({ context: keyId });
+
+                this.context = keyId;
+
+                this.utilsBox.userUtils.saveContext(group, keyId);
+            }
+
+            location.reload();
+
+            //this.updateSectionDescriptions();
+        },
+        getTabGroups(TAB_GROUPS) {
+            if (TAB_GROUPS) {
+                let groups = [];
+
+                TAB_GROUPS.map((G) => {
+                    if (!!G["required parameters to display"]) {
+                        let required = G["required parameters to display"];
+
+                        let testRequired = true;
+
+                        required.map((R) => {
+                            for (const [rKey, rValue] of Object.entries(R)) {
+                                let rKeyParam = keyParams[rKey];
+                                let rValues = rValue.split(",");
+
+                                if (
+                                    !rKeyParam ||
+                                    (!!rKeyParam &&
+                                        !rValues.includes(rKeyParam))
+                                ) {
+                                    testRequired = false;
+                                }
+                            }
+                        });
+
+                        if (!!testRequired) {
+                            groups.push(G);
+                        }
+                    } else {
+                        groups.push(G);
+                    }
+                });
+
+                let context = keyParams["context"];
+                let pageContext;
+
+                if (
+                    !!this.sectionConfigs["context"] &&
+                    this.sectionConfigs["context"]["contexts"]
+                ) {
+                    let contextItmes = Object.keys(
+                        this.sectionConfigs["context"]["contexts"]
+                    );
+
+                    contextItmes.map((c) => {
+                        if (c.toLowerCase().replace(" ", "_") == context) {
+                            pageContext =
+                                this.sectionConfigs["context"]["contexts"][c];
+                        }
+                    });
+                }
+
+                if (!!context) {
+                    let gInOrder = [];
+
+                    if (!!context && !!pageContext) {
+                        pageContext.map((c) => {
+                            groups.map((g) => {
+                                if (g["group id"] == c) {
+                                    gInOrder.push(g);
+                                }
+                            });
+                        });
+                    }
+                    groups = gInOrder;
+                }
+
+                return groups;
+            } else {
+                return null;
+            }
+        },
+        getSections(SECTIONS) {
+            let sections = [];
+
+            SECTIONS.map((S) => {
+                if (!!S["required parameters to display"]) {
+                    let required = S["required parameters to display"];
+
+                    let testRequired = true;
+
+                    required.map((R) => {
+                        for (const [rKey, rValue] of Object.entries(R)) {
+                            let rKeyParam = keyParams[rKey];
+                            let rValues = rValue.split(",");
+
+                            if (
+                                !rKeyParam ||
+                                (!!rKeyParam && !rValues.includes(rKeyParam))
+                            ) {
+                                testRequired = false;
+                            }
+                        }
+                    });
+
+                    if (!!testRequired) {
+                        sections.push(S);
+                    }
+                } else {
+                    sections.push(S);
+                }
+            });
+
+            /// check entities setting
+
+            let entity = keyParams["entity"];
+            let pageEntity = this.sectionConfigs["entity"]
+                ? this.sectionConfigs["entity"][entity]
+                : null;
+
+            if (!!entity && !!pageEntity) {
+                let sInOrder = [];
+
+                pageEntity.map((e) => {
+                    sections.map((s) => {
+                        if (s["section id"] == e) {
+                            sInOrder.push(s);
+                        }
+                    });
+                });
+
+                sections = sInOrder;
+            }
+
+            /// check context setting
+
+            let context = keyParams["context"];
+            let pageContext;
+
+            if (
+                !!this.sectionConfigs["context"] &&
+                this.sectionConfigs["context"]["contexts"]
+            ) {
+                let contextItmes = Object.keys(
+                    this.sectionConfigs["context"]["contexts"]
+                );
+
+                contextItmes.map((c) => {
+                    if (c.toLowerCase().replace(" ", "_") == context) {
+                        pageContext =
+                            this.sectionConfigs["context"]["contexts"][c];
+                    }
+                });
+            }
+
+            if (!!context && !!pageContext) {
+                let sInOrder = [];
+
+                pageContext.map((c) => {
+                    sections.map((s) => {
+                        if (s["section id"] == c) {
+                            sInOrder.push(s);
+                        }
+                    });
+                });
+
+                sections = sInOrder;
+            }
+
+            return sections;
+        },
         saveCapturedData(TYPE, TITLE) {
-            let data = this.$store.state.capturedData.filter(d => d.title == TITLE);
+            let data = this.$store.state.capturedData.filter(
+                (d) => d.title == TITLE
+            );
 
             switch (TYPE) {
-                case 'json':
-                    uiUtils.saveJson(data[0].data, TITLE)
+                case "json":
+                    uiUtils.saveJson(data[0].data, TITLE);
                     break;
-                case 'csv':
-                    uiUtils.saveByorCsv(data[0].data, TITLE)
+                case "csv":
+                    // First wrap strings with comma or typeof object, and flatten the data
+                    let jsonData = dataConvert.flatJson(data[0].data);
+
+                    //next convert json to csv
+                    uiUtils.saveByorCsv(jsonData, TITLE);
+
+                    //uiUtils.saveByorCsv(data[0].data, TITLE)
                     break;
             }
         },
@@ -1287,7 +1752,7 @@ new Vue({
                 pageID: this.pageID,
                 devID: devID,
                 devPW: devPW,
-                devCK: this.devCK
+                devCK: this.devCK,
             });
         },
         CSVToArray(strData, strDelimiter) {
@@ -1455,7 +1920,6 @@ new Vue({
             };
 
             let applyConvert = function (DATA, CONVERT, PHENOTYPE_MAP) {
-
                 let tempObj = {};
                 CONVERT.map((c) => {
                     let cType = c.type;
@@ -1478,31 +1942,29 @@ new Vue({
                             break;
 
                         case "split":
-
                             let newFields = c["field name"];
                             let newFieldValues = [];
                             let string2Split = DATA[c["field to split"]];
                             let loopIndex = 1;
-                            c["split by"].map(s => {
-
+                            c["split by"].map((s) => {
                                 let [key, ...rest] = string2Split.split(s);
-                                string2Split = rest.join(s)
+                                string2Split = rest.join(s);
 
                                 if (loopIndex < c["split by"].length) {
-                                    newFieldValues.push(key)
-                                } else if (loopIndex = c["split by"].length) {
-                                    newFieldValues.push(key)
-                                    newFieldValues.push(rest.join(s))
+                                    newFieldValues.push(key);
+                                } else if ((loopIndex = c["split by"].length)) {
+                                    newFieldValues.push(key);
+                                    newFieldValues.push(rest.join(s));
                                 }
                                 loopIndex++;
-                            })
+                            });
 
                             loopIndex = 0;
 
-                            newFields.map(f => {
+                            newFields.map((f) => {
                                 tempObj[f] = newFieldValues[loopIndex];
                                 loopIndex++;
-                            })
+                            });
 
                             break;
 
@@ -1562,7 +2024,7 @@ new Vue({
 
                             replaceArr.map((r) => {
                                 newString = sIndex == 0 ? rawString : newString;
-                                //console.log("newString", newString);
+
                                 if (newString) {
                                     newString = newString.replaceAll(
                                         r.from,
@@ -1589,7 +2051,6 @@ new Vue({
             };
 
             if (CONVERT != "no convert") {
-                //console.log(this.$store.state.bioPortal.phenotypeMap);
                 let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
                 DATA.map((d) => {
@@ -1643,6 +2104,7 @@ new Vue({
             }
         },
         queryAPI() {
+
             if (this.apiParameters.query.type == "array") {
                 let parametersArr = this.apiParameters.query.format;
                 let parametersArrLength = parametersArr.length;
@@ -1689,10 +2151,14 @@ new Vue({
                         APIPoint += queryParams;
                     }
 
+                    let wildCard = this.$store.state.hugeampkpncms.wildCard;
+
                     let fetchParam = {
                         dataPoint: APIPoint,
                         domain: "external",
+                        wildCard: wildCard
                     };
+
 
                     this.$store.dispatch(
                         "hugeampkpncms/getResearchData",
@@ -1836,6 +2302,26 @@ new Vue({
         showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
             uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
         },
+        getLowestPValue(sectionData) {
+            let p = "P-value";
+            let sortedData = sectionData.data.sort((a, b) => a[p] - b[p]);
+            return sortedData[0][p] !== undefined
+                ? sortedData[0]
+                : null;
+        },
+        receiveLDData(LD_DATA) {
+            console.log("LD Data", JSON.stringify(LD_DATA));
+            this.$store.dispatch("sendLDData", LD_DATA);
+        },
+        getSplice(splice) {
+            this.selectedSplice = splice;
+            this.$store.dispatch("selectSplice", splice);
+        }
+
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
     },
 
     render(createElement, context) {

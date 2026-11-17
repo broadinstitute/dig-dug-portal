@@ -28,9 +28,10 @@ export default {
             phenotypeMap: {},
             complicationsMap: {},
             datasetMap: {},
-            documentation: {},
+            documentations: {},
             user: "",
-            links: []
+            links: [],
+            defaultPortal: "",
         };
     },
 
@@ -51,13 +52,20 @@ export default {
                     state.phenotypes[i];
             }
         },
+        setDocumentations(state, data) {
+            state.documentations = {};
+            for (let i in data) {
+                state.documentations[data[i].name] = data[i];
+            }
+        },
         setAncestries(state, data) {
             state.ancestries = data;
             state.ancestryMap = {};
-            for (let i in state.ancestries){
-                state.ancestryMap[state.ancestries[i].name] = state.ancestries[i];
+            for (let i in state.ancestries) {
+                state.ancestryMap[state.ancestries[i].name] =
+                    state.ancestries[i];
             }
-         },
+        },
         setComplications(state, data) {
             state.complications = data;
             state.complicationsMap = {};
@@ -84,13 +92,27 @@ export default {
         },
         setLinks(state, data) {
             state.links = data;
-        }
+        },
+        setDefaultPortal(state, portal) {
+            state.defaultPortal = portal;
+        },
     },
 
     getters: {
         defaultGroup(state) {
             if (state.diseaseGroups.length > 0) {
-                return state.diseaseGroups.filter(g => g.default)[0];
+                //if defaultPortal is set, use that
+                if (state.defaultPortal || process.env.VUE_APP_DEFAULT_PORTAL) {
+                    const portalToUse =
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL;
+                    for (let i in state.diseaseGroups) {
+                        let group = state.diseaseGroups[i];
+                        if (group.name == portalToUse) {
+                            return group;
+                        }
+                    }
+                } else return state.diseaseGroups.filter((g) => g.default)[0];
             }
         },
 
@@ -98,7 +120,7 @@ export default {
             for (let i in state.diseaseGroups) {
                 let group = state.diseaseGroups[i];
 
-                if (group.name == state.host.subDomain) {
+                if (group.name == state.host.subDomain?.replace(/\.?dev/, "")) {
                     return group;
                 }
             }
@@ -109,7 +131,7 @@ export default {
 
         //this is the root portal, display all data for group
         isRootPortal(state, getters) {
-            if (!state.host.subDomain)
+            if (!state.host.subDomain?.replace(/\.?dev/, ""))
                 //no subdomain found, assume main portal
                 return true;
             else {
@@ -117,24 +139,24 @@ export default {
                     state.host.subDomain === getters.diseaseGroup.portalGroup
                 );
             }
-        }
+        },
     },
 
     actions: {
         // fetch all disease systems with phenotypes
         async getDiseaseSystems({ commit }) {
-            let json = await fetch(
-                `${BIO_INDEX_HOST}/api/portal/systems`
-            ).then(resp => resp.json());
+            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/systems`).then(
+                (resp) => resp.json()
+            );
 
             // set the portal list
             commit("setDiseaseSystems", json.data);
         },
         // fetch all disease groups from the bio index
         async getDiseaseGroups({ commit }) {
-            let json = await fetch(
-                `${BIO_INDEX_HOST}/api/portal/groups`
-            ).then(resp => resp.json());
+            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/groups`).then(
+                (resp) => resp.json()
+            );
 
             // set the portal list
             commit("setDiseaseGroups", json.data);
@@ -143,36 +165,72 @@ export default {
         // fetch all the phenotypes for this portal
         async getPhenotypes({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain || "md" },
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
                 { skipNull: true }
             );
             let json = await fetch(
                 `${BIO_INDEX_HOST}/api/portal/phenotypes?${qs}`
-            ).then(resp => resp.json());
+            ).then((resp) => resp.json());
 
             // set the list of phenotypes
             commit("setPhenotypes", json.data);
         },
-        async getAncestries({ state, commit }){
+        async getDocumentations({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain || "md"},
-                { skipNull : true}
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
+                { skipNull: true }
+            );
+            let json = await fetch(
+                `${BIO_INDEX_HOST}/api/portal/documentations?${qs}`
+            ).then((resp) => resp.json());
+
+            // set the list of documentations
+            commit("setDocumentations", json.data);
+        },
+        async getAncestries({ state, commit }) {
+            let qs = queryString.stringify(
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
+                { skipNull: true }
             );
             let json = await fetch(
                 `${BIO_INDEX_HOST}/api/portal/ancestries?${qs}`
-            ).then(resp => resp.json());
+            ).then((resp) => resp.json());
             commit("setAncestries", json.data);
         },
 
         // fetch all the complicaitons for given disease group
         async getComplications({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain || "md" },
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
                 { skipNull: true }
             );
             let json = await fetch(
                 `${BIO_INDEX_HOST}/api/portal/complications`
-            ).then(resp => resp.json());
+            ).then((resp) => resp.json());
 
             // set the list of phenotypes
             commit("setComplications", json.data);
@@ -181,12 +239,18 @@ export default {
         // fetch all datasets for this portal
         async getDatasets({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain || "md" },
+                {
+                    q:
+                        state.defaultPortal ||
+                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        state.host.subDomain?.replace(/\.?dev/, "") ||
+                        "md",
+                },
                 { skipNull: true }
             );
             let json = await fetch(
                 `${BIO_INDEX_HOST}/api/portal/datasets?${qs}`
-            ).then(resp => resp.json());
+            ).then((resp) => resp.json());
 
             // set the list of datasets
             commit("setDatasets", json.data);
@@ -195,18 +259,18 @@ export default {
         async getUser(context, access_token) {
             let data = await fetch(
                 "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                access_token
-            ).then(response => response.json());
+                    access_token
+            ).then((response) => response.json());
 
             context.commit("setUser", data.email);
         },
 
         // fetch all old links that need to be redirected
         async getLinks({ state, commit }) {
-            let json = await fetch(
-                `${BIO_INDEX_HOST}/api/portal/links`
-            ).then(resp => resp.json());
+            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/links`).then(
+                (resp) => resp.json()
+            );
             commit("setLinks", json.data);
-        }
-    }
+        },
+    },
 };

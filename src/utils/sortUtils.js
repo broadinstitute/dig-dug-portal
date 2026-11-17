@@ -22,7 +22,7 @@ let sort = function (data, key, isNumeric, isAscending) {
 }
 
 
-let sortEGLTableData = function (data, key, isNumeric, isAscending) {
+let sortEGLTableData = function (data, key, isNumeric, isAscending) { 
 
     let direction = (isAscending) ? "asc" : "desc";
 
@@ -113,11 +113,11 @@ const uniqBy = (arr, predicate) => {
 
 /// Sort array of objects by a property (data, property, sorting value type, direction)
 const sortArrOfObjects = (DATA, PRPT, TYPE, DIRECTION) => {
-
+    
     let sorted;
     if (TYPE == 'number') {
-        sorted = (DIRECTION == "asc") ? DATA.sort((a, b) => a[PRPT] - b[PRPT]) :
-            DATA.sort((a, b) => b[PRPT] - a[PRPT]);
+        sorted = (DIRECTION == "asc") ? DATA.sort((a, b) => { return a[PRPT] - b[PRPT] }) :
+            DATA.sort((a, b) => { return b[PRPT] - a[PRPT] });
     }
 
     if (TYPE == 'alphabetical') {

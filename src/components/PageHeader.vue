@@ -8,9 +8,11 @@
 
         <!-- Menu header-->
         <div v-if="diseaseGroup" class="container-fluid">
-            <div class="row amp-banner-2021" v-if="diseaseGroup.default">
+            <div v-if="diseaseGroup.default" class="row amp-banner-2021">
                 <a
-                    href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/common-metabolic-diseases"
+                    href="https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-common-metabolic-disorders/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     ><img
                         :src="'//kp4cd.org/sites/default/files/vueportal/amp_text.svg'"
                         style="
@@ -105,6 +107,7 @@
                         v-if="!!diseaseGroup.name"
                         :group="diseaseGroup.name"
                         name="header.menu"
+                        :content-map="$store.state.bioPortal.documentations"
                     ></menu-item>
                     <div class="login-menu-wrapper">
                         <ul>
@@ -119,8 +122,8 @@
                             <li v-else>
                                 <a
                                     href="/login"
-                                    @click.prevent="loginUser"
                                     :class="diseaseGroup.name + 'kp-login'"
+                                    @click.prevent="loginUser"
                                     >Login</a
                                 >
                             </li>
@@ -145,14 +148,31 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { userMixin } from "@/mixins/userMixin";
 Vue.use(VueCookies);
 
-export default Vue.component("page-header", {
-    props: ["diseaseGroup", "frontContents", "rawPhenotypes", "page"],
+export default Vue.component("PageHeader", {
     components: {
         GoogleAnalytics,
         MenuItem,
         DiseaseSystems,
     },
     mixins: [userMixin],
+    props: {
+        diseaseGroup: {
+            type: Object,
+            default: null,
+        },
+        frontContents: {
+            type: Object,
+            default: () => ({}),
+        },
+        rawPhenotypes: {
+            type: Array,
+            default: () => [],
+        },
+        page: {
+            type: String,
+            default: "",
+        },
+    },
     data() {
         return {
             bioindex_dev: false,
@@ -206,6 +226,8 @@ export default Vue.component("page-header", {
             );
         }
         if (BIO_INDEX_HOST.indexOf("dev") != -1) this.bioindex_dev = true;
+
+        this.$store.dispatch("bioPortal/getDocumentations");
     },
 });
 </script>

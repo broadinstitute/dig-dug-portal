@@ -19,7 +19,9 @@ export default {
     domain: host,
 
     // the sub domain from the host
-    subDomain: (parts.length > 0) ? parts.join('.') : null,
+    // Every page of this portal (header, footer, front-page contents, news,
+    // datasets) runs as the "aggregator" group, whatever host serves it.
+    subDomain: 'aggregator',
 
     // return a new Url object replacing the sub domain of the current
     urlWithSubdomain(s) {

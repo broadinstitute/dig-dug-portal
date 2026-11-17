@@ -1,0 +1,82 @@
+/* SearchFront style to align with gene.html (light portal theme) */
+
+.search-front-body {
+    /* Inherit font and background from mdkp.css */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Page Header customization (aligns with gene-page-header) */
+.gene-page-header-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333333;
+}
+
+.gene-page-header-body {
+    font-size: 16px;
+    color: #666666;
+    margin-top: 5px;
+}
+
+/* Search Tab Customizations */
+.search-mode-tabs-container {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.mode-tab-btn {
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+/* Custom interactive adjustments */
+.cursor-pointer {
+    cursor: pointer !important;
+}
+
+.example-link {
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.15s ease;
+}
+
+.example-link:hover {
+    color: #0056b3 !important;
+    text-decoration: underline !important;
+}
+
+/* Clinical HPO Context Section */
+.clinical-context-section {
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.context-term-tag {
+    font-size: 13px !important;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.context-term-tag:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-color: #dc3545;
+}
+
+/* Info card custom adjustments to blend with mdkp-card */
+.text-purple {
+    color: #6f42c1 !important;
+}
+
+.text-warning {
+    color: #fd7e14 !important;
+}
+
+/* Footer Spacer */
+.footer-spacer {
+    margin-top: auto;
+}

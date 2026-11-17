@@ -7,7 +7,7 @@ import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
 import regionUtils from "@/utils/regionUtils";
-import { contourDensity } from "d3-contour";
+import bioIndexUtils from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -15,17 +15,37 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        gene: bioIndex("gene",{query_private:true}),
-        genes: bioIndex("genes",{query_private:true}),
+        gene: bioIndex("gene"),
+        genes: bioIndex("genes"),
         geneassociations: bioIndex("gene-associations"),
         varassociations: bioIndex("associations"),
-        associations52k: bioIndex("gene-associations-52k",{query_private:true}),
-        uniprot        
+        ancestryAssoc: bioIndex("ancestry-associations"),
+        associations52k_private: bioIndex("gene-associations-52k",{query_private:true}),
+        associations52k: bioIndex("gene-associations-52k"),
+        geneToTranscript: bioIndex("gene-to-transcript"),
+        transcriptAssoc: bioIndex("transcript-associations"),
+        hugeScores: bioIndex("huge"),
+        geneExpression: bioIndex("gene-expression"),
+        pigeanGene: bioIndex("pigean-gene"),
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
+        uniprot,
     },
     state: {
         geneName: keyParams.gene,
+        geneToQuery: "",
         aliasName: null,
         prior: 0.3696,
+        phenotypesInSession: null,
+        diseaseInSession: null,
+        phenotypeCorrelation: null,
+        selectedAncestry: "",
+        selectedTranscript: "",
+        commonVariantsLength: 0,
+        genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
+        genesetSizeToQuery: null,
+        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroupToQuery: null,
+        traitsData: [],
         HPOTerms: {
             "HP-0000009":"Functional abnormality of the bladder",
                 "HP-0000020":"Urinary incontinence",
@@ -102,7 +122,7 @@ export default new Vuex.Store({
                 "HP-0200134":"Epileptic encephalopathy",
 				"isControl": "Controls",
                 "isUnknown": "Unknown phenotype",
-        }
+        },
     },
 
     mutations: {
@@ -116,7 +136,28 @@ export default new Vuex.Store({
         },
         setAliasName(state, aliasName) {
             state.aliasName = aliasName || state.aliasName;
-        }
+        },
+        setPhenotypesInSession(state, PHENOTYPES) {
+            state.phenotypesInSession = PHENOTYPES;
+        },
+        setDiseaseInSession(state, DISEASE) {
+            state.diseaseInSession = DISEASE;
+        },
+        setPhenotypeCorrelation(state, Correlation) {
+            state.phenotypeCorrelation = Correlation;
+        },
+        setCommonVariantsLength(state, NUM) {
+            state.commonVariantsLength = NUM;
+        },
+        setTraitsData(state, traitsData){
+            state.traitsData = traitsData;
+        },
+        setGenesetSize(state, genesetSize) {
+            state.genesetSize = genesetSize;
+        },
+        setTraitGroup(state, traitGroup) {
+            state.traitGroup = traitGroup;
+        },
     },
 
     getters: {
@@ -129,96 +170,121 @@ export default new Vuex.Store({
                 return {
                     chromosome: gene.chromosome,
                     start: gene.start,
-                    end: gene.end
+                    end: gene.end,
                 };
             }
         },
 
+        // canonicalSymbol(state) {
+        //     let data = state.genes.data;
+        //     let geneData = state.gene.data;
+
+        //     for (let i in data) {
+        //         if (data[i].source === "symbol") {
+        //             return data[i].name;
+        //         }
+        //     }
+        // },
         canonicalSymbol(state) {
-            //console.log("canonical Symbol:"+JSON.stringify(state.genes)+"|"+JSON.stringify(state.gene));
-            let data = state.genes.data;
-            let geneData = state.gene.data[0];
-            //console.log("canonical geneData:", geneData);
-            if (data.length > 0){
-                for (let i in data) {
-                    if (data[i].source === "symbols") {
-                        return data[i].name;
-                    }
-                }
-            } else {
-                //temper change
-                if(geneData != null){
-                    return geneData.name;
-                }else{
-                    return null;
-                }
-                //return null;
+            let data = state.gene.data;
+            if (data.length > 0) {
+                return data[0].symbol;
             }
-            
+            return null;
         },
 
         geneSymbol(state) {
             let data = state.genes.data;
-            let geneData = state.gene.data[0];
-            //console.log("data:", data);
-            //console.log("geneData:", geneData);
+            let geneData = state.gene.data;
+
             for (let i in data) {
-                if (data[i].chromosome == geneData.chromosome && data[i].start == geneData.start && data[i].end == geneData.end) {
+                if (
+                    data[i].chromosome == geneData[0].chromosome &&
+                    data[i].start == geneData[0].start &&
+                    data[i].end == geneData[0].end
+                ) {
                     if (data[i].source === "symbol") {
                         return data[i].name;
                     }
                 }
             }
-        }
+        },
     },
 
     actions: {
-        async queryGeneName(context, symbol) {
-            let name = symbol || context.state.geneName;
-            this.state.geneName = name;
-            //alert(symbol+"|"+context.state.geneName+"|"+this.state.geneName)
-            
-            context.commit("setGeneName", name);
-            if (!!name) {
-                context.dispatch("gene/query", { q: name });
-            }
+        // For custom phenotypes
+        phenotypesInSession(context, PHENOTYPES) {
+            context.commit("setPhenotypesInSession", PHENOTYPES);
+        },
+        diseaseInSession(context, DISEASE) {
+            context.commit("setDiseaseInSession", DISEASE);
+        },
+        commonVariantsLength(context, NUM) {
+            context.commit("setCommonVariantsLength", NUM);
         },
 
-        async queryGeneRegion(context, region) {
-            //alert("query gene:"+JSON.stringify(region) +"|"+JSON.stringify(context.getters.region));
-            //alert("gene name:"+this.state.geneName);
-            if(region != null || context.getters.region != null) {
-                //alert("query gene:"+JSON.stringify(region) +"|"+JSON.stringify(context.getters.region));
-                let { chromosome, start, end } = region || context.getters.region;
-                let q = `${chromosome}:${start}-${end}`;
-    
-                context.dispatch("genes/query", { q });
-                //console.log("query gene region:"+JSON.stringify(region)+"|"+this.state.geneName);
+        async queryGeneName(context, symbol) {
+            let name = context.state.geneToQuery || context.state.geneName;
+            context.commit("setGeneName", name);
+            
+            let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
+            let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
+            context.commit("setGenesetSize", genesetSize);
+            context.commit("setTraitGroup", traitGroup);
+
+            //console.log("genesetSize");
+
+            if (!!name) {
+                context.dispatch("gene/query", { q: name });
+                context.dispatch("geneToTranscript/query", { q: name });
+                
+                //add pigean gene
+                console.log("query gene name");
+                let traitsData = [];
+                for (let i = 0; i < bioIndexUtils.TRAIT_GROUPS.length; i++){
+                    let group = bioIndexUtils.TRAIT_GROUPS[i];
+                    let traitQuery = `${group},${context.state.geneName},${
+                        bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
+                    let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
+                    traitsData = traitsData.concat(groupData);
+                }
+                traitsData = traitsData.sort((a,b) => b.combined - a.combined);
+                //console.log(traitsData.length);
+                context.commit("setTraitsData", traitsData);
+                //console.log(context.state.traitsData.length);
+                
             }
+        },
+        ///
+
+        async queryGeneRegion(context, region) {
+            //To match with HuGE cal +- 300000 to the region
+            let { chromosome, start, end } = region || context.getters.region;
+            let q = `${chromosome}:${start - 300000}-${end + 300000}`;
+
+            context.dispatch("genes/query", { q });
         },
 
         async queryUniprot(context, symbol) {
-            
             let name = symbol || context.getters.canonicalSymbol;
-            //console.log("query uniprot:"+name);
+
             if (!!symbol) {
                 context.dispatch("uniprot/getUniprotGeneInfo", name);
-                
             }
-            //console.log("query call:"+JSON.stringify(this.state.uniprot));
         },
 
         async queryAssociations(context) {
-            //alert("here");
-            //let query = { q: context.state.geneName,query_private:true };
-            let query = { q: context.state.geneName,query_private:true };
+            let query2 = { q: context.state.geneName,query_private:true };
+            context.dispatch("associations52k_private/query", query2);
+            
+
+            let query = { q: context.state.geneName };
             context.dispatch("associations52k/query", query);
-            let query2 = { q: context.state.geneName};
-            context.dispatch("geneassociations/query", query2);
+            context.dispatch("geneassociations/query", query);
+            context.dispatch("geneExpression/query", query);
         },
         async getVarAssociationsData(context, phenotype) {
             let gene = context.state.geneName;
-            // let phenotype = phenoGeneInput["phenotype"];
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {
@@ -227,17 +293,26 @@ export default new Vuex.Store({
                 context.state.newEnd = locus.end;
             }
 
-            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
+            const phenoRegionQuery = `${phenotype},${locus.chr}:${
+                locus.start - 50000
+            }-${locus.end + 50000}`;
+
             context.dispatch("varassociations/query", { q: phenoRegionQuery });
-        },
-        async getEGLData(context) {
-            let dataset = "mccarthy";
-            let trait = "t2d";
-            context.dispatch("kp4cd/getEglData", { dataset, trait });
         },
         async get52KAssociationData(context) {
             let name = context.state.geneName;
-            context.dispatch("associations52k/query", { q: name, query_private:true });
-        }
-    }
+            context.dispatch("associations52k/query", { q: name });
+        },
+        async getHugeScoresData(context) {
+            //console.log("getHugeScoresData");
+            let name = context.state.geneName;
+            context.dispatch("hugeScores/query", { q: name });
+        },
+        phenotypeCorrelation(context, DATA) {
+            context.commit("setPhenotypeCorrelation", DATA);
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
+        },
+    },
 });

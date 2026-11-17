@@ -24,11 +24,6 @@
                         target="_blank"
                         >Open Lunaris for more options &nbsp;</a
                     >
-                    <!--<tooltip-documentation
-                        name="test.tooltip.index.regionexample"
-                        :group="diseaseGroup.name"
-                        :isHover="false"
-                    ></tooltip-documentation>-->
                 </div>
             </div>
         </a>

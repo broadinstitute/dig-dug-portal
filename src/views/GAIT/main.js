@@ -1,5 +1,4 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -15,13 +14,9 @@ import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { query, match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
-import { isEqual, startCase } from "lodash";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
+import { isEqual } from "lodash";
 
 new Vue({
-    el: "#app",
     store,
     components: {
         Documentation,
@@ -228,15 +223,11 @@ new Vue({
         };
     },
     computed: {
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
+        },
+        contentMap() {
+            return this.$store.state.bioPortal.documentations;
         },
         visibleFields() {
             return this.fields.filter((field) => !!field.visible);

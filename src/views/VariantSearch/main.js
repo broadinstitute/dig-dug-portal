@@ -16,7 +16,7 @@ new Vue({
         return {
             searchCriteria: [],
             matchingGenes: [],
-            datasets: ["Farhan2019_ALS_eu"]
+            datasets: ["Farhan2019_ALS_eu"],
         };
     },
     created() {
@@ -31,18 +31,18 @@ new Vue({
     computed: {
         selectedGene() {
             return this.searchCriteria
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "gene";
                 })
-                .map(v => v.threshold);
+                .map((v) => v.threshold);
         },
         selectedDataset() {
             return this.searchCriteria
-                .filter(v => {
+                .filter((v) => {
                     return v.field === "dataset";
                 })
-                .map(v => v.threshold);
-        }
+                .map((v) => v.threshold);
+        },
     },
     methods: {
         async lookupGenes(input) {
@@ -50,6 +50,6 @@ new Vue({
                 let matches = await match("gene", input, { limit: 10 });
                 this.matchingGenes = matches;
             }
-        }
-    }
+        },
+    },
 }).$mount("#app");

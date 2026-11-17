@@ -17,6 +17,13 @@ let colors = ["#007bff75",
     "#D5A76875",
     "#d4d4d475"]
 
+const plotColors = function (TRANSLUCENT = false) {
+    let plotColors = colors;
+    if (!TRANSLUCENT) {
+        plotColors = plotColors.map(c => c.slice(0, -2));
+    }
+    return plotColors;
+}
 
 let renderDot = function (CTX, XPOS, YPOS, DOT_COLOR, WIDTH) {
     CTX.fillStyle = DOT_COLOR;
@@ -223,6 +230,10 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
     let dataKeys = Object.keys(DATA);
     let dataLength = dataKeys.length;
     let barWidth = (WIDTH - MARGIN.left - MARGIN.right - (SPACER * (dataLength + 1))) / dataLength;
+    let minBarWidth = ((WIDTH - MARGIN.left - MARGIN.right) / dataLength) - 2;
+
+    barWidth = (barWidth <= 4) ? minBarWidth : barWidth;
+
     //let valueBump = (MAX - MIN) / TICK_NUM;
     let max = Math.ceil(MAX);
     let min = Math.floor(MIN);
@@ -629,19 +640,26 @@ const renderStar = function (CTX, CX, CY, SPIKES, OR, IR, SCOLOR, FCOLOR) {
 }
 
 
-const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA) {
+const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA, STARS, STAR_FIELD) {
 
     let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
     let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
     let xStep = plotWidth / (XMAX - XMIN);
     let yStep = plotHeight / (YMAX - YMIN);
 
+    let stared = (STARS) ? [...new Set(STARS.filter(s => s.type == STAR_FIELD).map(s => s.id))] : [];
+
     DATA.map(d => {
         let xVal = d.xValue ? d.xValue : d.x;
         let yVal = d.yValue ? d.yValue : d.y;
         let xPos = MARGIN.left + (xStep * (xVal - XMIN));
         let yPos = MARGIN.top + (plotHeight - (yVal - YMIN) * yStep)
-        renderDot(CTX, xPos, yPos, COLOR);
+
+        if (stared.includes(d.key)) {
+            renderStar(CTX, xPos, yPos, 5, 10, 6, COLOR, COLOR);
+        } else {
+            renderDot(CTX, xPos, yPos, COLOR);
+        }
     })
 }
 
@@ -779,5 +797,6 @@ export default {
     renderDots,
     renderBestFitLine,
     getDotsPosData,
-    getDotsInPos
+    getDotsInPos,
+    plotColors
 };

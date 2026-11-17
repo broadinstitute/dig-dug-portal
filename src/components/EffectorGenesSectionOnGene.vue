@@ -11,8 +11,8 @@
 				<div class="col-md-1">PMID</div>
 				<div class="col-md-1">View full list</div>
 			</div>
-			<div class="row egls-list" v-for="egl in eglsOnGene">
-				<template v-if="!!eglsList[egl.field_page_id]">
+			<div class="row egls-list" v-for="egl in eglsOnGene" v-if="!!eglsList[egl.field_page_id]" >
+				<template>
 					<div
 						class="col-md-4"
 						v-html="
@@ -100,7 +100,7 @@ export default Vue.component("egls-section-on-gene", {
 	methods: {
 		async loadEglsList() {
 			let dataPoint =
-				"https://hugeampkpncms.org/rest/data?pageid=egl_241";
+				"https://hugeampkpncms.org/rest/data?pageid=Gene_page_PEGLs_475";
 
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 

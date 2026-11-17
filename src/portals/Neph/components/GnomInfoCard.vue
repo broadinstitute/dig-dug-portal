@@ -152,7 +152,7 @@ export default Vue.component("gnominfo-card", {
             //console.log("variant id:" + this.variantId);
             let varinfo = this.variantId.split(":");
             let searchquery = varinfo[0] + ":" + varinfo[1];
-            this.variant = await query("variant-phenotype", searchquery, {}, true);
+            this.variant = await query("variant-phenotype", searchquery, { query_private: true });
 
             if (this.variant){
                 let gnomdisplay = [];

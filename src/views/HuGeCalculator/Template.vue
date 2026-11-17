@@ -8,7 +8,9 @@
 		<div class="container-fluid mdkp-body">
 			<div class="card mdkp-card">
 				<div class="card-body temporary-card">
-					<documentation name="hugecal.header.info"></documentation>
+					<documentation name="hugecal.header.info"
+						:contentMap="$store.state.bioPortal.documentations">
+					</documentation>
 				</div>
 			</div>
 			<div class="card mdkp-card">
@@ -18,6 +20,7 @@
 					<documentation
 						style="margin-bottom: 30px"
 						name="tools.hugecal.subheader"
+						:contentMap="$store.state.bioPortal.documentations"
 					></documentation>
 
 					<h4 class="card-title">Build search criteria</h4>
@@ -90,7 +93,7 @@
 							<div class="card-body">
 								<hugecal-score-section
 									currentPage="huge calculator"
-									:documentationMap="$parent.documentationMap"
+									:docDetails="$parent.docDetails"
 									:commonAssociations="
 										$store.state.associations.data
 									"
@@ -135,9 +138,8 @@
 										<span>
 											<documentation
 												name="hugecal.ppa.subheader"
-												:content-fill="
-													$parent.documentationMap
-												"
+												:contentFill="$parent.docDetails"
+												:contentMap="$store.state.bioPortal.documentations"
 											></documentation>
 										</span>
 										<hugecal-table
@@ -203,9 +205,8 @@
 											Common Variation
 											<tooltip-documentation
 												name="hugecal.commonvariation.tooltip.hover"
-												:content-fill="
-													$parent.documentationMap
-												"
+												:contentFill="$parent.docDetails"
+												:contentMap="$store.state.bioPortal.documentations"
 												:isHover="true"
 												:noIcon="false"
 											></tooltip-documentation>
@@ -259,9 +260,8 @@
 										<span>
 											<documentation
 												name="hugecal.commonvar.subheader"
-												:content-fill="
-													$parent.documentationMap
-												"
+												:contentFill="$parent.docDetails"
+												:contentMap="$store.state.bioPortal.documentations"
 											></documentation>
 										</span>
 										<div class="container">
@@ -313,9 +313,8 @@
 										<span>
 											<documentation
 												name="hugecal.commonvar.subheader"
-												:content-fill="
-													$parent.documentationMap
-												"
+												:contentFill="$parent.docDetails"
+												:contentMap="$store.state.bioPortal.documentations"
 											></documentation>
 										</span>
 										<div class="container">
@@ -427,9 +426,8 @@
 												Rare Variation
 												<tooltip-documentation
 													name="hugecal.rarevariation.tooltip.hover"
-													:content-fill="
-														$parent.documentationMap
-													"
+													:contentFill="$parent.docDetails"
+													:contentMap="$store.state.bioPortal.documentations"
 													:isHover="true"
 													:noIcon="false"
 												></tooltip-documentation>
@@ -468,9 +466,8 @@
 											<span>
 												<documentation
 													name="hugecal.rarevar.subheader"
-													:content-fill="
-														$parent.documentationMap
-													"
+													:contentFill="$parent.docDetails"
+													:contentMap="$store.state.bioPortal.documentations"
 												></documentation>
 											</span>
 
@@ -588,9 +585,8 @@
 											<span>
 												<documentation
 													name="hugecal.rarevar.subheader"
-													:content-fill="
-														$parent.documentationMap
-													"
+													:contentFill="$parent.docDetails"
+													:contentMap="$store.state.bioPortal.documentations"
 												></documentation>
 											</span>
 											<div class="container">

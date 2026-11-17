@@ -6,7 +6,8 @@
 					HuGE Score (Combined Evidence)
 					<tooltip-documentation
 						name="hugecal.combined.tooltip.hover"
-						:content-fill="documentationMap"
+						:contentFill="docDetails"
+						:contentMap="$store.state.bioPortal.documentations"
 						:isHover="true"
 						:noIcon="false"
 					></tooltip-documentation>
@@ -123,7 +124,7 @@ import Hugescoretable from "@/components/Hugescoretable.vue";
 export default Vue.component("hugecal-score-section", {
 	props: [
 		"currentPage",
-		"documentationMap",
+		"docDetails",
 		"commonAssociations",
 		"geneData",
 		"genesInARegion",

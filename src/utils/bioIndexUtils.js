@@ -21,36 +21,40 @@ export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 
 /* Returns the path for any BioIndex API end-point.
  */
-export function apiUrl(path, query_private = false) {
+export function apiUrl(path, query_private = false, host) {
     if (path.startsWith("/")) {
         path = path.substr(1);
     }
 
-    if (query_private) {
-        //console.log("query_private:", query_private, path);
-        return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
-    } else {
-        //console.log("query_private is false:", query_private, path);
-        return `${BIO_INDEX_HOST}/${path}`;
-    }
+    // an explicit host (e.g. a portal-specific BioIndex server) wins;
+    // otherwise fall back to the compile-time default/private host.
+    let baseHost = host || (query_private ? BIO_INDEX_HOST_PRIVATE : BIO_INDEX_HOST);
+    
+    return `${baseHost}/${path}`;
+}
+
+/* Resolve effective host from an explicit host override or query_private flag.
+ * Explicit host wins; otherwise query_private routes to the private server.
+ */
+function resolveHost(host, query_private) {
+    if (host) return host;
+    if (query_private) return BIO_INDEX_HOST_PRIVATE;
+    return undefined; // let callers fall back to BIO_INDEX_HOST via apiUrl
 }
 
 /* Useful for /api/raw end-points with query parameters.
  */
-export function rawUrl(path, query_params, query_private=false) {
+export function rawUrl(path, query_params, host, query_private = false) {
     let qs = querystring.stringify(query_params, { skipNull: true });
-    let rawURL = `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}`
-    if(path.includes("/log/")){
-        rawURL = `${apiUrl(path, query_private)}${qs ? "?" + qs : ""}${"|"+Vue.prototype.$useremail}`
-    }
-    //console.log("rawUrl function:"+rawURL+"|"+query_private+"|"+Date.now()+"|"+Vue.prototype.$useremail);
-    return rawURL;
+    let effectiveHost = resolveHost(host, query_private);
+    console.log(`${apiUrl(path, false, effectiveHost)}${qs ? "?" + qs : ""}`);
+    return `${apiUrl(path, false, effectiveHost)}${qs ? "?" + qs : ""}`;
 }
 
 /* Build a generic request to a BioIndex end-point.
  */
-export async function request(path, query_params, query_private=false) {
-    return fetch(rawUrl(path, query_params, query_private), {
+export async function request(path, query_params, host, query_private = false) {
+    return fetch(rawUrl(path, query_params, host, query_private), {
         headers: {
             "x-bioindex-access-token": session_cookie,
         },
@@ -58,26 +62,25 @@ export async function request(path, query_params, query_private=false) {
 }
 
 /* Perform a BioIndex query.
+ * opts may include: limit, onResolve, onError, onLoad, limitWhile, host, query_private
  */
-export async function query(index, q, opts = {}, query_private=false) {
-    //console.log("query function:"+index+"|"+query_private);
-    let { limit, onResolve, onError, onLoad, limitWhile} = opts;
-    let req = request(`/api/bio/query/${index}`, { q, limit }, query_private);
-    //add log to bioindex
-    if (query_private == true){
-        request(`/api/bio/log/${index}`, { q, limit }, query_private);
-    }
-    return await processRequest(req, onResolve, onError, onLoad, limitWhile, query_private);
+export async function query(index, q, opts = {}) {
+    let { limit, onResolve, onError, onLoad, limitWhile, host, query_private } = opts;
+    let effectiveHost = resolveHost(host, query_private);
+    let req = request(`/api/bio/query/${index}`, { q, limit }, effectiveHost);
+    return await processRequest(req, onResolve, onError, onLoad, limitWhile, effectiveHost);
 }
 
 /* Perform a BioIndex match.
+ * opts may include: limit, onLoad, onResolve, onError, host, query_private
  */
-export async function match(index, q, opts = {},query_private=false) {
-    let { limit, onLoad, onResolve, onError } = opts;
-    let req = request(`/api/bio/match/${index}`, { q, limit }, query_private);
+export async function match(index, q, opts = {}) {
+    let { limit, onLoad, onResolve, onError, host, query_private } = opts;
+    let effectiveHost = resolveHost(host, query_private);
+    let req = request(`/api/bio/match/${index}`, { q, limit }, effectiveHost);
 
     // perform the fetch, make sure it succeeds
-    return await processRequest(req, onResolve, onError, onLoad, query_private);
+    return await processRequest(req, onResolve, onError, onLoad, undefined, effectiveHost);
 }
 
 /* Alters the json to filter results and stop continuing.
@@ -99,7 +102,7 @@ function limitRecordsWhile(json, limitWhile) {
 
 /* Follow continuations and continue reading all data.
  */
-async function processRequest(req, onResolve, onError, onLoad, limitWhile, query_private=false) {
+async function processRequest(req, onResolve, onError, onLoad, limitWhile, host) {
     let resp = await req;
     let json = await resp.json();
     let data = [];
@@ -119,7 +122,7 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile, query
 
         // this will also fail if resp.status !== 200
         while (!!json.continuation) {
-            let req = request(`/api/bio/cont`, { token: json.continuation }, query_private);
+            let req = request(`/api/bio/cont`, { token: json.continuation }, host);
 
             // follow the continuation
             resp = await req;
@@ -147,6 +150,15 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile, query
     }
     return data;
 }
+export const DEFAULT_SIGMA = 2;
+export const DEFAULT_GENESET_SIZE = "small";
+export const DEFAULT_TRAIT_GROUP = "all_but_hpo";
+export const TRAIT_GROUPS = {
+    "portal": "A2F", 
+    "gcat_trait": "GWAS Catalog",
+    "rare_v2": "Orphanet",
+    "hpo": "HPO",
+    "portal_exomes": "Exomes"};
 
 export default {
     query,
@@ -156,4 +168,8 @@ export default {
     rawUrl,
     BIO_INDEX_HOST,
     BIO_INDEX_HOST_PRIVATE,
+    DEFAULT_SIGMA,
+    DEFAULT_GENESET_SIZE,
+    DEFAULT_TRAIT_GROUP,
+    TRAIT_GROUPS
 };

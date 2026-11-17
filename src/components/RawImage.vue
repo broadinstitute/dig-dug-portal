@@ -10,6 +10,7 @@
                 <documentation
                     :name="documentation"
                     :content-fill="contentFill"
+                    :contentMap="$store.state.bioPortal.documentations"
                 ></documentation>
             </p>
             <b-alert
