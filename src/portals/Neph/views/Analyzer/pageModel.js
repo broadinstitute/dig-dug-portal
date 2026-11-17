@@ -85,6 +85,7 @@ export function buildSearchRoute(mode, query) {
 async function analyzePhenotypeTerms(query) {
     let terms = normalizeTerms(query);
 
+    console.log(PHENOTYPE_ANALYSIS_URL);
     let response = await fetch(PHENOTYPE_ANALYSIS_URL, {
         method: "POST",
         headers: {
@@ -109,6 +110,7 @@ async function analyzePhenotypeTerms(query) {
 }
 
 async function fetchSamplePhenotypes(sample_id) {
+    console.log(SAMPLE_PHENOTYPE_URL);
     let response = await fetch(SAMPLE_PHENOTYPE_URL, {
         method: "POST",
         headers: {

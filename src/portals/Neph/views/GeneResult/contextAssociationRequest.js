@@ -4,6 +4,7 @@ async function fetchContextAssociations(payload, fetcher = fetch, timeoutMs = 12
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
+        console.log('/phenotype-analyzer-api/co-gene-associations');
         const response = await fetcher('/phenotype-analyzer-api/co-gene-associations', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

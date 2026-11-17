@@ -36,6 +36,7 @@ function observedHpoIds(row) {
 
 async function phenotypesFromAnalyzer(sampleId) {
     try {
+        console.log("/phenotype-analyzer-api/sample_phenotypes");
         const response = await fetch("/phenotype-analyzer-api/sample_phenotypes", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -75,6 +76,7 @@ async function similarSamples(sampleId, hpoIds) {
     const terms = (hpoIds || []).slice(0, MATCH_TERM_LIMIT).join(",");
     if (!terms) return [];
     try {
+        console.log("/phenotype-analyzer-api/analyze");
         const response = await fetch("/phenotype-analyzer-api/analyze", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

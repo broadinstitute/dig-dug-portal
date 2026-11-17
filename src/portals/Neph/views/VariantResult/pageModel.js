@@ -965,6 +965,7 @@ export const pbVariantMethods = {
             const coGenes = summarizeCooccurrence(this.genotypeCarriers, "coGenes", "gene")
                 .map(row => row.gene)
                 .filter(gene => gene !== this.variantIdentity.gene);
+            console.log("/phenotype-analyzer-api/co-gene-associations");
             const response = await fetch("/phenotype-analyzer-api/co-gene-associations", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1027,7 +1028,7 @@ export const pbVariantMethods = {
         try {
             await requireCrdcHpos(terms, hpoLabel);
             if (!isCurrentRequest()) return;
-            const analyze = (analysisTerms) => fetch("/phenotype-analyzer-api/analyze", {
+            const analyze = (analysisTerms) => fetch((console.log("/phenotype-analyzer-api/analyze"), "/phenotype-analyzer-api/analyze"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

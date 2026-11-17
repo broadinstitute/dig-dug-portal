@@ -52,6 +52,7 @@ export default new Vuex.Store({
             context.commit("setError", null);
 
             try {
+                console.log(ANALYZE_URL);
                 let response = await fetch(ANALYZE_URL, {
                     method: "POST",
                     headers: {

@@ -47,7 +47,7 @@ async function fetchPbGeneBioIndexState(geneSymbol, hpoTerms = [], onStage = nul
     }
 
     const [variantRows, sampleRows, hpoRows] = await restPromise;
-    console.log("fetchPbGeneBioIndexState", gene, geneRows.length, variantRows.length, sampleRows.length, hpoRows.length);
+    //console.log("fetchPbGeneBioIndexState", gene, geneRows.length, variantRows.length, sampleRows.length, hpoRows.length);
     if (!variantRows.length && !sampleRows.length) {
         throw new Error(`No live BioIndex carrier or variant rows returned for ${gene}.`);
     }
@@ -75,7 +75,7 @@ async function safeBioIndexQuery(index, q, limit = null) {
 async function fetchGeneVariantsCrdc(gene, hpoTerms = []) {
     try {
         const url = "/phenotype-analyzer-api/gene-variants-crdc";
-        console.log("[100.80.30.199:4999]", url);
+        console.log("http://100.80.30.199:4999/gene-variants-crdc");
         const response = await fetch(url, {
             method: "POST",
             headers: {
@@ -90,7 +90,7 @@ async function fetchGeneVariantsCrdc(gene, hpoTerms = []) {
         });
         if (!response.ok) return [];
         const result = await response.json();
-        console.log(result.data.length);
+        
         return Array.isArray(result && result.data) ? result.data : [];
     } catch (error) {
         return [];

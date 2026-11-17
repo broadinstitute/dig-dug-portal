@@ -10,6 +10,7 @@ export const TOP_PHENOTYPES_URL = "/phenotype-analyzer-api/top_phenotypes";
 export const SAMPLE_PHENOTYPES_URL = "/phenotype-analyzer-api/sample_phenotypes";
 
 async function postJson(url, body, signal) {
+    console.log(url);
     const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

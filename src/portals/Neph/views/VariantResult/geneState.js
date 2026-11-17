@@ -69,6 +69,7 @@ async function safeBioIndexQuery(index, q, limit = null) {
 async function fetchGeneVariantsCrdc(gene, hpoTerms = []) {
     try {
         const url = "/phenotype-analyzer-api/gene-variants-crdc";
+        console.log(url);
         const response = await fetch(url, {
             method: "POST",
             headers: {
