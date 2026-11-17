@@ -1,3 +1,12 @@
+# BCH portal prototype
+
+1. **Trying the prototype:** follow the [local installation guide](docs/pb_local_browser_setup.md): clone, install dependencies, run `npm run setup:pb-runtime`, and launch the browser application in two terminals. The installer downloads approved inputs over company SSH, verifies checksums, and creates local settings. Trial users do not edit scripts.
+2. **Source:** branch `kyuryung/bch-prototype`. Use a shallow, single-branch clone to avoid downloading the full Git history.
+3. **Maintainers only:** use the [five-page integration guide](docs/pb_front_gene_variant_merge_handoff.md). It is not an installation checklist for trial users.
+
+<details>
+<summary>Original DIG Portal developer documentation</summary>
+
 # Welcome to DIG Portal - Frontend
 
 This is the shared code base of the front-end-only resources for the new knowledge portals. It is served using the [DIG-DUG server](https://github.com/broadinstitute/dig-dug-server) project.
@@ -7,10 +16,6 @@ This is the shared code base of the front-end-only resources for the new knowled
 > **Note:** This code base make no assumption on how you choose to work with
 > different portals. You can choose to work on them as separate
 > branches, forked repos, etc ...
-
-## PB five-page engineering handoff
-
-Start with the [Front, Gene2, Phenotype, Variant and Sample integration guide](docs/pb_front_gene_variant_merge_handoff.md). It links the five current contracts, requires faithful reproduction of the user's prototype design and separates delivered code from local follow-ups and required test-server integration.
 
 ## Getting Started
 
@@ -248,3 +253,5 @@ And we have our first Vue app! The data and the DOM are now linked, and everythi
 
 </div>
 ```
+
+</details>

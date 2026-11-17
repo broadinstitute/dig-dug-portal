@@ -1,0 +1,127 @@
+{
+  "schema": "pb-prototype-runtime-data-v1",
+  "source_commit": "461a2dd50ad6811acffd86b5cce2abc7d7cb0ae3",
+  "access_group": "rc_rc-data-science_gnomad-e2",
+  "files": [
+    {
+      "key": "search_hpo_matrix",
+      "path": "inputs/hpo-16366.tsv.gz",
+      "size_bytes": 1700014,
+      "sha256": "bf3b5e45bb7b2f08cc33b96947fd11025671ec87d62f075d8eb5aee730db08d1",
+      "purpose": "Phenotype/Sample HPO matrix",
+      "role": "runtime input"
+    },
+    {
+      "key": "profile_metadata",
+      "path": "inputs/metadata.xlsx",
+      "size_bytes": 2506770,
+      "sha256": "7be46cc9fdd33af51ef13e9654b106975f7fa7c0f876a23f9a4fcd75b07c01b3",
+      "purpose": "Approved metadata workbook (actual reader source)",
+      "role": "runtime input"
+    },
+    {
+      "key": "project_snapshot",
+      "path": "samples-info-projects.jsonl",
+      "size_bytes": 2666575,
+      "sha256": "d81be516c707200f55faf01385c7b26b698b3137a1040a3796368be5ab892745",
+      "purpose": "Project metadata snapshot",
+      "role": "runtime input"
+    },
+    {
+      "key": "gene_hpo_release",
+      "path": "precomputed/gene_hpo_release_20261112/browser_gene_hpo.jsonl.gz",
+      "size_bytes": 360812435,
+      "sha256": "e2e032fe388e2d9b2d99e1fb539bb576a046f20df723e1cd91336e8b1a3f5bff",
+      "purpose": "Precomputed gene-HPO results",
+      "role": "runtime input"
+    },
+    {
+      "key": "hpo_gene_index",
+      "path": "precomputed/gene_hpo_release_20261112/hpo-gene.sqlite",
+      "size_bytes": 342106112,
+      "sha256": "ed734270a5db252da392de555a636319b80c98976dfdfcd052e0b52e0476ebf4",
+      "purpose": "HPO to gene reverse index",
+      "role": "runtime input"
+    },
+    {
+      "key": "original_memberships",
+      "path": "precomputed/burden-original-memberships/membership.sqlite",
+      "size_bytes": 19095552,
+      "sha256": "424d9adc4ef9acac447dc955404ce0fd6829be72477e9d4ea99e175ff24c7b47",
+      "purpose": "Original burden membership runtime index",
+      "role": "runtime input"
+    },
+    {
+      "key": "original_membership_provenance",
+      "path": "precomputed/burden-original-memberships/provenance.json",
+      "size_bytes": 809,
+      "sha256": "4b2a17517675ed9921e4edc741a984cc47e36f4bf41fa8026962ac063ad43bde",
+      "purpose": "Membership provenance (ship with index)",
+      "role": "recommended provenance"
+    },
+    {
+      "key": "grs_metadata",
+      "path": "precomputed/grs-membership/metadata.json",
+      "size_bytes": 581169,
+      "sha256": "2187a9f11acb35298eae664a0942d630dfcdecdbe813692dd34fb02d8b48ff69",
+      "purpose": "Multi-HPO membership metadata",
+      "role": "runtime input"
+    },
+    {
+      "key": "grs_membership",
+      "path": "precomputed/grs-membership/membership.npz",
+      "size_bytes": 12252066,
+      "sha256": "baff0c441989fa6d1a8bd8dc8e09f9b6f8a86697498b07cdf859bf63bd951930",
+      "purpose": "Multi-HPO gene membership",
+      "role": "runtime input"
+    },
+    {
+      "key": "grs_hpo",
+      "path": "precomputed/grs-membership/hpo.npz",
+      "size_bytes": 1150143,
+      "sha256": "6121dddfbccdcf3f6cda56f4d3aa8a4cf973dabe0868fdc93c53734229b46844",
+      "purpose": "Multi-HPO HPO observations",
+      "role": "runtime input"
+    },
+    {
+      "key": "grs_coverage",
+      "path": "precomputed/grs-membership/coverage.npy",
+      "size_bytes": 16494,
+      "sha256": "9a646bf054e13620b72ea579f92d9435ef622fddf069871cd982616a3f964971",
+      "purpose": "Multi-HPO coverage mask",
+      "role": "runtime input"
+    },
+    {
+      "key": "gene_scoring_matrix",
+      "path": "rphers/gene-scoring-20261007-5a9ab06cc/hpo.tsv.gz",
+      "size_bytes": 1684693,
+      "sha256": "eaa0ea2e218d300d4b9546ec238128e146237cee92a43350bc2846d5bd834ba6",
+      "purpose": "Gene scoring HPO matrix",
+      "role": "runtime input"
+    },
+    {
+      "key": "gene_scoring_map",
+      "path": "rphers/gene-scoring-20261007-5a9ab06cc/covariates.tsv",
+      "size_bytes": 2622884,
+      "sha256": "5030cea9f44bdf9bed4d37496471a2782c86c3d7dbb792ff490c3693abbe6c67",
+      "purpose": "Gene analysis to VCF sample map",
+      "role": "runtime input"
+    },
+    {
+      "key": "variant_hpo_counts",
+      "path": "rphers/hpo_term_counts.json",
+      "size_bytes": 326337,
+      "sha256": "ae9b105ff8937cdd7dd09aa042736822f6796ff8fc92dbdfd05a20965993fe7c",
+      "purpose": "Variant HPO term totals (can regenerate)",
+      "role": "runtime input"
+    },
+    {
+      "key": "processed_variants",
+      "path": "genotypes/shared/2025_crdc_16366_dp20_af001_20260907/sample_variant_gene.jsonl.gz",
+      "size_bytes": 138299457,
+      "sha256": "e602b847ccdba8961f788701b43004514346490f55164dd3023be23aa7c6bbc7",
+      "purpose": "Processed variant source; GT index built automatically",
+      "role": "runtime input"
+    }
+  ]
+}

@@ -41,4 +41,8 @@ public/data/
 # Private handoff archives and cohort inputs stay outside GitHub.
 /deliverables/
 /.pb-private-data/
+# Local authoring, screenshots and QA scratch files are not trial downloads.
+/output/
+/tmp/
+/work/
 **/CRDC2025_step4_sample_gene_burden_nonsyn_dosage_LOFTEE_AM.tsv

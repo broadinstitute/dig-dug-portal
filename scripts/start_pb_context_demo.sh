@@ -1,5 +1,11 @@
 #!/bin/bash
 # Reuse the running compute job, or submit a new one, then open its SSH tunnel.
+ssh_host=${PB_CONTEXT_SSH_HOST:-e3}
+allow_submit=${PB_CONTEXT_ALLOW_SUBMIT:-1}
+if [[ ! "$ssh_host" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.@:-]*$ || ! "$allow_submit" =~ ^[01]$ ]]; then
+  echo 'Invalid PB_CONTEXT_SSH_HOST or PB_CONTEXT_ALLOW_SUBMIT (use 0 or 1).' >&2
+  exit 2
+fi
 demo_root=${PB_CONTEXT_DEMO_ROOT:-/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/pb_context_demo/20261007-5a9ab06cc}
 case "$demo_root" in
   /lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/pb_context_demo/*) ;;
@@ -10,19 +16,23 @@ if [[ "$demo_root" == *[!a-zA-Z0-9_./-]* ]]; then
 fi
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd) || exit $?
 submit_or_reuse_job() {
-ssh -o BatchMode=yes -o ConnectTimeout=10 e3 bash -s -- "$demo_root" <<'REMOTE'
+ssh -o BatchMode=yes -o ConnectTimeout=10 "$ssh_host" bash -s -- "$demo_root" "$allow_submit" <<'REMOTE'
 demo_root=$1
+allow_submit=$2
 cd "$demo_root" || exit $?
 job_id=
 for file in runtime/submitted_job_id runtime/job_id; do
   if [[ -f "$file" ]]; then job_id=$(cat "$file"); break; fi
 done
 if [[ "$job_id" =~ ^[0-9]+$ ]]; then
-  jobs=$(squeue -h -u ch239693 -o '%A %T') || exit $?
-  state=$(printf '%s\n' "$jobs" | awk -v target="$job_id" '$1 == target {print $2}')
+  state=$(squeue -h -j "$job_id" -o '%T') || exit $?
   case "$state" in
     RUNNING|PENDING|CONFIGURING) printf '%s\n' "$job_id"; exit 0 ;;
   esac
+fi
+if [[ "$allow_submit" == 0 ]]; then
+  echo 'The shared analysis job is not running. Ask the maintainer to start it, then reconnect.' >&2
+  exit 2
 fi
 job_id=$(sbatch --parsable --chdir="$demo_root" \
   --output="$demo_root/logs/slurm-%j.out" --error="$demo_root/logs/slurm-%j.err" \
@@ -38,12 +48,13 @@ if [[ ! "$job_id" =~ ^[0-9]+$ ]]; then
 fi
 echo "Compute job $job_id; waiting for its API node. Inputs persist after the job ends."
 for ((attempt=0; attempt<120; attempt++)); do
-  state=$(ssh -o BatchMode=yes -o ConnectTimeout=10 e3 "squeue -h -j '$job_id' -o '%T'") || exit $?
+  state=$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ssh_host" "squeue -h -j '$job_id' -o '%T'") || exit $?
   case "$state" in
     RUNNING)
-      ready_job=$(ssh -o BatchMode=yes -o ConnectTimeout=10 e3 "cat '$demo_root/runtime/job_id' 2>/dev/null")
+      ready_job=$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ssh_host" "cat '$demo_root/runtime/job_id' 2>/dev/null")
       if [[ "$ready_job" == "$job_id" ]]; then
         export PB_CONTEXT_DEMO_ROOT="$demo_root"
+        export PB_CONTEXT_SSH_HOST="$ssh_host"
         exec bash "$script_dir/connect_pb_context_demo.sh"
       fi
       ;;
