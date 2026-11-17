@@ -71,7 +71,6 @@ export default Vue.component("research-multi-plot", {
             let configObject = this.$props.summaryPlot;
             let rawData = this.$props.rawData;
 
-            // Trimming extra headers which are included for display but not part of data.
             if(!!configObject["extra header rows"]){
                 let numExtraHeaders = configObject["extra header rows"];
                 if (numExtraHeaders > 0){
@@ -125,7 +124,6 @@ export default Vue.component("research-multi-plot", {
                         return(bins);
                     }).entries(rawData);
 
-            //Maximum number of entries in a bin.
             let maxNum = 0;
             for(let i in sumstat){
                 let allBins = sumstat[i].value;
@@ -168,7 +166,6 @@ export default Vue.component("research-multi-plot", {
             let configObject = this.$props.summaryPlot;
             let rawData = this.$props.rawData;
 
-            // Trimming extra headers which are included for display but not part of data.
             if(!!configObject["extra header rows"]){
                 let numExtraHeaders = configObject["extra header rows"];
                 if (numExtraHeaders > 0){
@@ -222,7 +219,6 @@ export default Vue.component("research-multi-plot", {
 
             let sumstat;
             let histogram;
-            // Use hardcoded fields summarizing statistics, if provided.
             let numberViolins = 0;
             if (statFields != null){
                 sumstat = d3.nest()
@@ -308,7 +304,6 @@ export default Vue.component("research-multi-plot", {
                     .style("width", 80);
         },
         collateVertical(inputData, keyAttribute, outputAttribute="expression"){
-            // Aggregates gene expression data by target ID.
             let outputEntryLabels = Object.keys(inputData[0]).filter(name => name != keyAttribute);
             let outputArray = [];
             outputEntryLabels.forEach(label => {

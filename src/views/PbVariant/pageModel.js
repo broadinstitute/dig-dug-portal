@@ -688,7 +688,6 @@ export const pbVariantMethods = {
         this.profileRuns = this.profileRuns.filter(item => item.id !== run.id);
         if (this.currentProfileRunId !== run.id) return;
         this.currentProfileRunId = null;
-        // Invalidate any co-gene request still completing for the deleted result.
         this.contextRunId += 1;
         this.contextMatch = null;
         this.contextAssociation = null;
@@ -876,7 +875,6 @@ export const pbVariantMethods = {
                 if (payload.gene !== this.variantIdentity.gene || payload.variant !== variantId) throw new Error('Carrier metadata selection mismatch');
                 results = batch.map(id => ({id, metadata: sampleMetadataFromCachedInfo(payload.metadata[id], id, this.variantIdentity.gene), failed: (payload.failed || []).includes(id)}));
             } catch (error) {
-                // Compatible fallback for integrations that have not installed the shared private batch endpoint.
                 results = new Array(batch.length);
                 let next = 0;
                 await Promise.all(Array.from({length: Math.min(12, batch.length)}, async () => {

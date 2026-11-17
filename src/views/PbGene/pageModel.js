@@ -26,7 +26,6 @@ export function createPbGeneState() {
     const mockSymbol = normalizeGeneQuery(geneInfo.symbol);
     const useMockBase = fixtureLoaded || query === mockSymbol;
 
-    // Base state from mockData
     const base = useMockBase
         ? {
             geneInfo: { ...geneInfo, symbol: query },
@@ -40,7 +39,6 @@ export function createPbGeneState() {
         }
         : createUnavailableGeneState(query);
 
-    // Apply RDS fixture if available (overrides mockData)
     const resolved = fixtureLoaded ? applyPbGeneFixturePipeline(base, query) : base;
     return createPbGeneRuntimeState(resolved, query, params);
 }
@@ -67,7 +65,6 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
     return {
         ...resolved,
 
-        // Block 3 summary mode
         geneTab: initialSelectedVariantId ? "variant" : "gene",
         pendingVariantId: requestedVariantId,
         summaryPages: { phenotype: 1, genotype: 1, investigator: 1 },
@@ -86,7 +83,6 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         sampleDetailsCache: {},
         sampleDetailsLoading: {},
 
-        // User-entered HPO context and accumulated gene-level runs
         contextInput: initialContextTerms.map((term) => term.id).join(", "),
         contextLoading: false,
         contextError: "",
@@ -98,11 +94,9 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         contextScoreType: "max",
         contextAnalysisSet: "all",
 
-        // Variants sub-accordion
         expandedVariantId: initialSelectedVariantId,
         activeTabMap: {},
 
-        // Density + sample filters
         activeDensity: "all",
         carrierScopeFilter: "All",
         ageFilter: "All ages",
@@ -113,15 +107,12 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         locusFilterError: "",
         locusFilterSequence: 0,
 
-        // Zoom level (1=whole gene … 6=queried variant ±25 bp)
         zoomLevel: initialZoomLevel,
-        // Pan: genomic bp at window center (null = centered on queried variant)
         panCenterBp: initialZoomLevel > 1 && initialVariantBp ? initialVariantBp : null,
         dragState: null,
         locusVariantId: initialVariantId,
 
-        // Carrier table "show more" (+5 increments)
-        showCountCarrierMap:  {},   // variantId → count shown
+        showCountCarrierMap:  {},
         showCountGeneCarriers: 5,
         variantPage: 1,
         variantSearchStart: null,
@@ -131,14 +122,11 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         variantPageJump: "",
         variantPageJumpError: "",
 
-        // Expandable phenotype categories
         expandedPhenoCategories: {},
-        showAllTermsMap: {},         // category → bool (show all terms)
-        // Phenotype category list "show 5, hide rest" toggles
-        showAllPhenoCategories: false,   // gene-level profile
-        showAllVariantPhenoMap: {},      // variantId → bool (accordion profile)
+        showAllTermsMap: {},
+        showAllPhenoCategories: false,
+        showAllVariantPhenoMap: {},
 
-        // Carrier samples sort
         sortKey: null,
         sortDir: "asc",
         variantSortKey: "variantScore",
@@ -146,7 +134,6 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
     };
 }
 
-// ── constants ─────────────────────────────────────────────────────────────────
 function normalizeGeneQuery(value) {
     return String(value || "").trim().toUpperCase();
 }
@@ -207,9 +194,7 @@ function createUnavailableGeneState(query) {
     };
 }
 
-const ZOOM_HALF_WINDOWS = [25, 13, 7, 4, 2]; // (legacy) bins on each side
-// Single coordinate system, zoom-driven window WIDTH in bp.
-// L1 = whole gene · L2 = 5 kb · L3 = 500 bp · L4 = 100 bp · L5 = ±25 bp.
+const ZOOM_HALF_WINDOWS = [25, 13, 7, 4, 2];
 const ZOOM_BP_WIDTHS = [null, 5000, 500, 100, 50];
 const MAX_ZOOM = 5;
 const LOCUS_DENSITY_PLOT_PX = 108;
@@ -224,7 +209,6 @@ export const pbGeneComputed = {
         const bins = this.isBaseLevel ? Math.min(120, Math.floor(range.end - range.start) + 1) : this.isWholeGeneView ? 120 : 80;
         return locusFilterKey(this, Math.floor(range.start), Math.ceil(range.end), bins, this.liveDataLoaded);
     },
-    // ── sample filter helper ─────────────────────────────────────────────────
     sampleMatches() {
         return (s) => {
             const matchAge = this.ageFilter === "All ages" || s.age === this.ageFilter;
@@ -259,8 +243,6 @@ export const pbGeneComputed = {
         return base.map(v => Math.round(v * scale));
     },
 
-    // ── zoom ──────────────────────────────────────────────────────────────────
-    // zoom 1× = the WHOLE gene (default); higher levels narrow around the queried variant.
     visibleZoomRange() {
         const idx   = this.genomeWindow.queryDensityIndex;
         const total = this.genomeWindow.densityAll.length;
@@ -284,7 +266,6 @@ export const pbGeneComputed = {
         return this.genomeWindow.queryDensityIndex - this.visibleZoomRange.start;
     },
 
-    // variants mapped onto the currently-visible density bins (aligned to the bars)
     variantVisibleBins() {
         const len = this.visibleDensityBins.length || 1;
         const map = {};
@@ -326,7 +307,6 @@ export const pbGeneComputed = {
         });
     },
 
-    // ── zoom: exon + marker tracks ────────────────────────────────────────────
     visibleExons() {
         const binCount   = this.genomeWindow.densityAll.length;
         const { start, end } = this.visibleZoomRange;
@@ -379,11 +359,9 @@ export const pbGeneComputed = {
             };
         }).filter(Boolean);
 
-        // Re-assign yIndex based on position in visible list (for staggered vertical layout)
         return visible.map((m, i) => ({ ...m, yIndex: i }));
     },
 
-    // ── gene-level carrier samples (deduplicated by sample ID) ───────────────
     geneCarrierSamples() {
         const seen = new Set();
         const out  = [];
@@ -443,7 +421,6 @@ export const pbGeneComputed = {
     },
 
     defaultQueriedVariantId() {
-        // Legacy fixture flag: translate once into the current "queried variant" concept.
         const queriedMarker = (this.genomeWindow.markers || []).find(m => m.focal);
         return queriedMarker ? queriedMarker.variantId : (this.variantRows[0] && this.variantRows[0].id);
     },
@@ -651,7 +628,6 @@ export const pbGeneComputed = {
         return this.totalGeneCarriers;
     },
 
-    // ── Carrier counts rows (+ F/M split derived from gene-level sex ratio) ──
     carrierCountRows() {
         const e = this.crdcEvidence || {};
         const total = this.totalGeneCarriers;
@@ -676,7 +652,6 @@ export const pbGeneComputed = {
         ];
     },
 
-    // ── Full-gene locus view (no zoom): axis, density, variant→bin mapping ──
     fullAxisTicks() {
         const n = 6;
         const out = [];
@@ -702,7 +677,6 @@ export const pbGeneComputed = {
         return this.genomeWindow.queryDensityIndex;
     },
 
-    // binIndex → array of variant markers sitting in that bin (focal pinned to focal bar)
     variantBins() {
         const len = (this.genomeWindow.densityAll || []).length || 1;
         const map = {};
@@ -735,8 +709,6 @@ export const pbGeneComputed = {
         );
     },
 
-    // ── Per-position (per-bp) carrier count aligned 1:1 with coding-context bases.
-    // One bar = 1 bp = one base cell. Count = carriers with a variant at that exact bp.
     codingBaseBars() {
         const cc = this.queriedVariantCodingContext;
         if (!cc || !cc.bases) return null;
@@ -754,10 +726,6 @@ export const pbGeneComputed = {
         return { bars, max };
     },
 
-    // ════════════════════════════════════════════════════════════════════════
-    // Single coordinate system (bp) shared by axis / exons / variants / bases.
-    // Zoom changes the window WIDTH; everything maps bp → % of the window.
-    // ════════════════════════════════════════════════════════════════════════
     geneLocationRangeBp() {
         const loc = String(this.geneInfo.location || "");
         const range = loc.includes(":") ? loc.slice(loc.indexOf(":") + 1) : loc;
@@ -1457,18 +1425,16 @@ export const pbGeneComputed = {
         }).sort((a, b) => a.codonNum - b.codonNum);
     },
 
-    // ── gnomAD-style gene model: exons drawn readable, introns compressed ────
     geneModelExons() {
         const exons = this.genomeWindow.exons || [];
         const n = exons.length;
         if (!n) return [];
-        const MIN_W = 2.4;   // min display width % so every exon is a readable box
-        const GAP = 1.4;     // compressed intron connector width %
+        const MIN_W = 2.4;
+        const GAP = 1.4;
         const raws = exons.map((e) => Math.max(parseFloat(e.width) || 0, MIN_W));
         const sumRaw = raws.reduce((a, b) => a + b, 0);
         const totalGap = GAP * (n - 1);
         const scale = (100 - totalGap) / sumRaw;
-        // Queried variant genomic fraction (to highlight the exon that contains it).
         const focal = (this.genomeWindow.markers || []).find((m) => m.focal);
         const focalFrac = focal ? parseFloat(focal.left) / 100 : null;
         let x = 0;
@@ -1488,7 +1454,6 @@ export const pbGeneComputed = {
         });
     },
 
-    // ── gene-level phenotype profile: show first 5 categories, hide rest ──────
     phenoCatLimit() {
         return PHENO_CAT_LIMIT;
     },
@@ -1568,7 +1533,6 @@ export const pbGeneComputed = {
         return this.sortedVariantRows.slice((page - 1) * VARIANT_PAGE_SIZE, page * VARIANT_PAGE_SIZE);
     },
 
-    // ── Most severe observed variant by annotation-only score ────────────────
     topVariant() {
         if (!this.variantRows || !this.variantRows.length) return null;
         let best = null;
@@ -2124,7 +2088,6 @@ export const pbGeneMethods = {
         }
     },
 
-    // ── gene-level tab ────────────────────────────────────────────────────────
     setGeneTab(tab) {
         this.resetSummaryPages();
         if (tab === "variant") {
@@ -2138,7 +2101,6 @@ export const pbGeneMethods = {
         }
     },
 
-    // ── variant accordion ─────────────────────────────────────────────────────
     toggleVariant(variantId) {
         if (this.expandedVariantId === variantId) {
             this.setGeneTab("gene");
@@ -2185,7 +2147,6 @@ export const pbGeneMethods = {
         });
     },
 
-    // ── locus view / navigation ───────────────────────────────────────────────
     variantPosition(variantId) {
         const p = parseInt(String(variantId || "").split(":")[1], 10);
         return isNaN(p) ? null : p;
@@ -2278,7 +2239,6 @@ export const pbGeneMethods = {
         this.panCenterBp = Math.max(geneStart + width / 2, Math.min(geneEnd - width / 2, center));
     },
 
-    // ── zoom ──────────────────────────────────────────────────────────────────
     zoomIn() {
         if (this.zoomLevel < MAX_ZOOM) {
             if (this.zoomLevel === 1 && this.panCenterBp == null) this.panCenterBp = this.queriedBp;
@@ -2300,7 +2260,6 @@ export const pbGeneMethods = {
     panLeft() { this.panBy(-1); },
     panRight() { this.panBy(1); },
 
-    // ── carrier table show-more (+5 increments) ───────────────────────────────
     visibleCarrierRows(row) {
         const n = this.showCountCarrierMap[row.id] || CARRIER_LIMIT;
         return row.carrierSamples.slice(0, n);
@@ -2363,7 +2322,6 @@ export const pbGeneMethods = {
         this.variantPageJump = "";
     },
 
-    // ── expandable phenotype categories ───────────────────────────────────────
     togglePhenoCategory(cat) {
         this.$set(this.expandedPhenoCategories, cat, !this.expandedPhenoCategories[cat]);
     },
@@ -2385,7 +2343,6 @@ export const pbGeneMethods = {
         return TERMS_LIMIT;
     },
 
-    // ── phenotype category list "show 5, hide rest" ───────────────────────────
     toggleAllPhenoCategories() {
         this.showAllPhenoCategories = !this.showAllPhenoCategories;
     },
@@ -2400,7 +2357,6 @@ export const pbGeneMethods = {
         this.$set(this.showAllVariantPhenoMap, rowId, !this.showAllVariantPhenoMap[rowId]);
     },
 
-    // ── carrier samples sort ──────────────────────────────────────────────────
     sortBy(key) {
         if (this.sortKey === key) {
             this.sortDir = this.sortDir === "asc" ? "desc" : "asc";
@@ -2448,7 +2404,6 @@ export const pbGeneMethods = {
         return null;
     },
 
-    // ── Block 3 evidence helpers ──────────────────────────────────────────────
     variantEvidenceValue(row, label, fallback = "—") {
         const target = String(label || "").toLowerCase();
         const item = (row.variantEvidence || []).find(ev => String(ev.label || "").toLowerCase() === target);
@@ -2582,7 +2537,6 @@ export const pbGeneMethods = {
         return `${Math.min(100, Math.round((count / denom) * 100))}%`;
     },
 
-    // ── styling helpers ───────────────────────────────────────────────────────
     densityBarHeight(count) {
         return count === 0 ? "2px" : `${Math.round((count / this.visibleDensityMax) * 60)}px`;
     },

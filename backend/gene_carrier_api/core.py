@@ -1,4 +1,3 @@
-"""Standard-library implementation; no BioIndex calls run during page requests."""
 import collections
 import gzip
 import hashlib
@@ -21,7 +20,6 @@ def encoded(value):
 
 
 def records(filename):
-    """Stream a raw BioIndex JSONL export, optionally gzip-compressed."""
     opener = gzip.open if str(filename).endswith(".gz") else open
     with opener(filename, "rt", encoding="utf-8") as source:
         for number, line in enumerate(source, 1):
@@ -153,7 +151,6 @@ def summary(connection, gene, variant_ids=None, demographics_only=False):
 
 
 def build_database(metadata_file, variants_file, output, provenance, allow_missing=False):
-    """Build a complete new snapshot, then publish it with an atomic replacement."""
     for name in ["samples-info", "gene-variants-crdc"]:
         if not isinstance(provenance.get(name), dict) or not provenance[name].get("built") or not provenance[name].get("source"):
             raise ValueError(f"Provenance must specify {name}.source and {name}.built")

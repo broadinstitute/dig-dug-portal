@@ -24,23 +24,16 @@ const makeGraph = (query_graph, knowledge_graph_results) => {
         id, group, label, index
     });
 
-    // const edge_labels = Object.keys(query_graph.edges);
-    // const node_labels = Object.keys(query_graph.nodes);
     let graph = { nodes: [], links: [] };
 
     knowledge_graph_results.forEach(el => {
-        // Target Schema:
-            // Node: {"name":"Myriel","group":1,"index":0}, {"name":"Napoleon","group":1,"index":1}
-            // Link: {"source":1,"target":0,"value":1}
 
         const edgeResultKeys = Object.keys(el.edge_bindings);
 
         edgeResultKeys.forEach(edgeId => {
              if (Object.keys(query_graph.edges).includes(edgeId)) {
-                // since map keys are unordered we have to find out what node is the subject or the object from the query
                 const { subject, object } = query_graph.edges[edgeId];
 
-                // create nodes then create link
                 const subjectNode = makeNode(el.node_bindings[subject][0].id, query_graph.nodes[subject].category,
                      el.node_bindings[subject][0].id, el.node_bindings[subject][0].id);
 

@@ -1,4 +1,3 @@
-// Run: node scripts/test_pb_gene_variant_association_ui.js
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');

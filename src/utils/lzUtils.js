@@ -10,12 +10,9 @@ import { ColorRuler } from "color-ruler"
 export const BASE_PANEL_OPTIONS = {
     height: 240,
     // `min_height` is authoratative to locuszoom on what the "natural" height of the track ought to be; i.e. `height` can change, but `min_height` cannot, and so `min_height` can be the layout's default height without any other information.
-    // this means when we delete a panel in between two other panels, locuszoom knows what height each other panel ought to be, the `min_height`, rather than resizing both panels to fill the space left in the middle.
-    // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
     min_height: 240,
 }
 
-// just letting you know what everything is for
 export const makeSource = function(that) {
     return {
         isDataSourceType: that.datasource_type,
@@ -47,7 +44,7 @@ export class LZBioIndexSource extends BaseAdapter {
         this.onResolve = onResolve;
         this.onError = onError;
     };
-    getCacheKey(state /*, chain, fields*/) {
+    getCacheKey(state  ) {
         return [state.chr, state.start, state.end].join('_');
     }
     fetchRequest(state, chain, fields) {
@@ -57,9 +54,7 @@ export class LZBioIndexSource extends BaseAdapter {
                 resolve(self.translator(self.initialData));
                 self.initialData = null;
             } else {
-                // const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
                 query(self.index, self.queryStringMaker(state.chr, state.start, state.end), {
-                    // onResolve: self.onResolve,
                 })
                 .then(async bioIndexResults => {
                     if(!!self.onLoad) {
@@ -67,11 +62,6 @@ export class LZBioIndexSource extends BaseAdapter {
                     }
                     resolve(self.translator(bioIndexResults));
                 })
-                // .catch(async error => {
-                //     postAlertError(error.message);
-                //     reject(new Error(error));
-                // })
-                // .finally(() => closeAlert(alertID))
             }
         });
     };

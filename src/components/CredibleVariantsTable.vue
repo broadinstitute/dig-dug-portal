@@ -58,9 +58,7 @@ export default Vue.component("credible-variants-table", {
             return this.tableData.length;
         },
         sortedCredibleVariants() {
-            // TODO
             return this.crediblevariants;
-            // .sort((a, b) => b.subjects - a.subjects);
         },
         tableData() {
             let dataRows = this.crediblevariants;

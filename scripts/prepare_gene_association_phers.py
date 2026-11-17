@@ -17,7 +17,6 @@ from scripts.rphers_fast import score_samples
 
 
 def calculate_residual_phers(hpo_matrix_path: str, overlap_roster_path: str, query_hpo: list[str]):
-    """Return aligned (sample IDs, residual scores, raw scores) for the Context roster."""
     terms = list(dict.fromkeys(term.strip().upper() for term in query_hpo if term.strip()))
     if not terms:
         raise ValueError("At least one HPO term is required")

@@ -1,7 +1,6 @@
 const assert = require("assert");
 const registerEndpoint = require("./gene_carrier_summary_endpoint");
 function register(app, ...args) {
-    // Feed parsed request bodies directly to the endpoint under test.
     app.post = (path, ...callbacks) => app.get(path, callbacks[callbacks.length - 1]);
     return registerEndpoint(app, ...args, {diskCache:false});
 }
@@ -150,7 +149,6 @@ async function waitForReady(query) {
     assert.strictEqual((await selectedReady([])).carrierTotal,0);
     assert.ok(!JSON.stringify(union).includes(sampleA) && !JSON.stringify(union).includes(sampleB),'Only aggregate demographics leave the server');
 
-    // A failed BioIndex lookup must not become a cached "ready, 0 metadata" result.
     const retryHandlers = {};
     const retryVariant = "chr1:300:G:A";
     let sampleAvailable = false;
@@ -198,8 +196,6 @@ async function waitForReady(query) {
     assert.deepStrictEqual(recovered.coCarrierGenes,
         [{ gene: "OTHER", count: 1, denominator: 1 }]);
 
-    // An initially empty metadata index can be rebuilt while the server stays up.
-    // Reopening an incomplete variant summary must query the sample again.
     const refreshHandlers = {};
     const refreshVariant = "chr1:400:C:T";
     let metadataIndexed = false;
@@ -243,7 +239,6 @@ async function waitForReady(query) {
     assert.strictEqual(refreshed.matchedMetadataCount, 1);
     assert.strictEqual(refreshSampleRequests, 4);
 
-    // A transient no-row response should retry before producing an incomplete summary.
     const transientHandlers = {};
     const transientVariant = "chr1:450:G:C";
     let transientSampleRequests = 0;
@@ -280,9 +275,6 @@ async function waitForReady(query) {
     assert.deepStrictEqual(transient.geneCarrierDemographics.bySex,
         [{ label: "female", count: 1 }]);
 
-    // Forward the browser's BioIndex session token so private Project fields
-    // are available to this server-side aggregate, without sharing caches
-    // between authenticated sessions.
     const authHandlers = {};
     const authVariant = "chr1:500:A:G";
     const authCalls = [];
@@ -338,7 +330,6 @@ async function waitForReady(query) {
     };
     assert.deepStrictEqual((await authenticatedSelection('session-one')).geneCarrierDemographics.byProject,[{project:'Project Alpha',count:1}]);
     assert.deepStrictEqual((await authenticatedSelection('session-two')).geneCarrierDemographics.byProject,[{project:'Project Beta',count:1}],'Filtered summary caches remain session-scoped');
-    // One slow sample must not hold all later 120-sample batches hostage.
     const streamingHandlers = {};
     const streamingIds = Array.from({length: 150}, (_, index) => `STREAM-${index}_G38`);
     let releaseSlowSample;

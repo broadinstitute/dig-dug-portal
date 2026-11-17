@@ -4,7 +4,6 @@
         <analytics></analytics>
         <alert></alert>
 
-        <!-- Menu header-->
 
         <div
             class="paper-header-menu-wrapper container-fluid"
@@ -58,12 +57,9 @@ export default Vue.component("paper-page-header", {
             if (!!group && !!group.title) {
                 let s = document.title.split(" - ");
 
-                // NB: If the <title> changes in index.html to use a different
-                //     separator other than ' - ', please update this code.
                 s[0] = group.title;
                 document.title = s.join(" - ");
 
-                // find the shortcut icon
                 let links = document.getElementsByTagName("link");
 
                 for (let i = 0; i < links.length; i++) {

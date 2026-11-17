@@ -1,5 +1,3 @@
-// Keep slow calculation/response downloads bounded instead of leaving an
-// indefinite loading state. The deadline also covers reading the JSON body.
 async function fetchContextAssociations(payload, fetcher = fetch, timeoutMs = 120000) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);

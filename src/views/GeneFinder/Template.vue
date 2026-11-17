@@ -34,7 +34,6 @@
 								<strong class="GF-filter-ui-label"
 									>Add data</strong
 								>
-								<!-- Phenotype Selector -->
 								<filter-enumeration-control
 									class="filter-col-md"
 									:field="'phenotype'"
@@ -65,7 +64,6 @@
 									</div>
 								</filter-enumeration-control>
 
-								<!-- tissues -->
 								<filter-enumeration-control
 									class="filter-col-md"
 									:field="'tissue'"
@@ -88,7 +86,6 @@
 										>
 									</div>
 								</filter-enumeration-control>
-								<!-- PEGL -->
 								<filter-enumeration-control
 									class="filter-col-md"
 									:field="'egl'"
@@ -129,7 +126,6 @@
 						v-model="$parent.geneFinderFilterCriterion"
 						:header="'Search Criterion'"
 					>
-						<!-- pValue filter -->
 						<div
 							class="text-center col-md-12 gf-filter-section-wrapper"
 						>

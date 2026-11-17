@@ -43,7 +43,6 @@ export default Vue.component('lz-intervals-panel', {
             event => this.$emit('resolve', event),
             event => this.$emit('error', event)
         )
-        // hack - needs to be replaced
         this.addPanels = this.$parent.addPanels;
         this.plot = this.$parent.plot;
     },
@@ -72,7 +71,6 @@ export function makeIntervalsPanel(
 
     const dataLayerQ = '$..data_layers[?(@.id === "intervals")]';
 
-    // get a base layout, give it a title and add some fields under the 'intervals' namespace
     const layout = new LzLayout('intervals', {
             y_index: 2,
             title: {
@@ -82,12 +80,9 @@ export function makeIntervalsPanel(
         .addFields(dataLayerQ, 'intervals', 
             ['pValue', 'fold']
         );
-    // This modifies the internal value of the portal-specific "lzLayout" abstraction.
-    // FIXME: This is a temporary, and partial, workaround to an issue where the Portal-specific LzPanelClass abstraction breaks the "split tracks" button.
-    //   Once the button is fixed it will be feasible to render annotations in collapsed mode again.
+    // Force split tracks because the portal panel abstraction breaks the toggle.
     LocusZoom.Layouts.mutate_attrs(layout.layout, '$..data_layers[?(@.tag === "intervals")].split_tracks', true);
 
-    // TODO: eliminate the translator function with field renaming!
     const translator = function (intervals) {
             const tissueIntervals = !!intervals
                 ? intervals
@@ -100,8 +95,6 @@ export function makeIntervalsPanel(
 
                             if (!interval[secondaryKey]) return null;
 
-                            // workaround for when no global enrichment exists for a defined
-                            // possibly an issue with bioindex ingest?
                             const score = scoring[`${interval.annotation}___${interval.tissue}`] || { minP: undefined, maxFold: undefined }; 
 
                             return {
@@ -110,15 +103,11 @@ export function makeIntervalsPanel(
                                 pValue: score.minP,
                                 fold: score.maxFold,
 
-                                // some data (not displayed by default)
-                                // region information
                                 chr: interval.chromosome,
                                 start: interval.start,
                                 end: interval.end,
                                 state_id: `${interval[secondaryKey]}`,
-                                // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
                                 state_name: `${interval[secondaryKey]}`,
-                                // a string-encoded list of RGB coords, e.g. '255,0,128'
                                 itemRgb: [r, g, b].join(),
                             };
                       })
@@ -142,7 +131,7 @@ export function makeIntervalsPanel(
             )
         );
 
-    const panel = new LzPanelClass(layout, datasource).initialize('intervals'); // 'assoc' binds both the datasource presented and the layout given uniquely
+    const panel = new LzPanelClass(layout, datasource).initialize('intervals');
     return panel.unwrap;
 }
 

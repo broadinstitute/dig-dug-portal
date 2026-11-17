@@ -55,8 +55,6 @@ new Vue({
         CriterionListGroup,
         CriterionPills,
         FilterAlleleCount,
-        //FilterPValue,
-        //FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan
     },
@@ -71,7 +69,6 @@ new Vue({
     created() {
         this.CheckSignInStatus();
         this.$store.dispatch("bioPortal/getDiseaseGroups");
-        //this.$store.dispatch("phenotypes/query", query,{query_private:true});
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
     },
@@ -95,11 +92,6 @@ new Vue({
             return Colors[index];
         },
         setPhenotypeParams(phenotypes) {
-            // keyParams.set({
-            //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
-            // });
-            //console.log(Object.entries(this.displayedFilterList));
-            //console.log("set", phenotypes);
         },
         unsetFilter(filterList, filter) {
             if (!filterList) return {};
@@ -132,12 +124,10 @@ new Vue({
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
-        // don't allow selection of the lead phenotype in dropdowns
         phenotypes() {
             return this.$store.state.phenotypes.map(p => p.phenotype.name);
         },
 
-        //return only the phenotypes that haven't been selected yet, guard against duplicate selections
         phenotypeList() {
             const all = this.$store.state.bioPortal.phenotypes;
             const selected = this.$store.state.phenotypes;
@@ -157,11 +147,9 @@ new Vue({
             let n = this.$store.state.phenotypes.length;
             let varIds = {};
             
-            //let count = 0;
             let consequences = {};
             let inheritances = {}
             this.$store.state.phenotypes.forEach(p => {
-                //console.log(p);
                 p.associations.forEach(r => {
                     if (p.filter(r)) {
                         if (r.varId in varIds) {
@@ -182,16 +170,9 @@ new Vue({
             });
             this.$store.state.consequences = Object.keys(consequences);
             this.$store.state.inheritances = Object.keys(inheritances);
-            //need filter
             
-            // drop all clumps that do not contain all phenotypes
-            //let varIDed = Object.values(varIDs).filter(rs => rs.length == n);
-            //let flattened = [].concat.apply([], varIDed);
-            //console.log(flattened);
-            //return flattened;
             let varIded = Object.values(varIds).filter(rs => rs.length == n);
             let flattened = [].concat.apply([], varIded);
-            //console.log("clumpedAssociations done.");
             return flattened;
         }
     },
@@ -202,7 +183,6 @@ new Vue({
         },
         phenotypes: {
             handler(newData, oldData) {
-                //console.log("watch pehnotypes.");
             
                 if (!isEqual(newData, oldData)) {
                     this.setPhenotypeParams(newData);

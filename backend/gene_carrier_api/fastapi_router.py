@@ -1,4 +1,3 @@
-"""Optional adapter: mount these routes in the existing BioIndex FastAPI app."""
 import inspect
 
 from fastapi import APIRouter, Request

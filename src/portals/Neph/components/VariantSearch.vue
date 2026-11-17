@@ -276,28 +276,6 @@
 							Annotations</span
                         >
                     </b-btn>
-					<!-- <b-btn
-						size="sm"
-						variant="outline-primary"
-						class="btn-mini showData"
-						@click="
-							//showVariantData(data.item.varID);
-							toToggle(data.detailsShowing, 2)
-								? data.toggleDetails()
-								: ''
-						"
-						><span v-if="!!loadingData[data.item.varID]"
-							><b-spinner small></b-spinner>
-							<span class="sr-only">Loading...</span></span
-						><span v-else>
-							{{
-								data.detailsShowing && showButton === 2
-									? "Hide"
-									: "Show"
-							}}
-							Annotations</span
-						>
-					</b-btn> -->
 				</template>
 
 				<template #row-details="row">
@@ -361,15 +339,6 @@
 										: data.item.proteinStart
 								}}
 							</template>
-							<!-- Helen test -->
-							<!--<template #cell(consequence)="data">
-								<div
-									class="border-color"
-									:class="data.item.impact"
-								>
-								<span>{{ data.item.consequence }}</span>
-								</div>
-							</template>-->
 							<template #cell(consequenceTerms)="data">
 								<div
 									class="border-color"
@@ -391,67 +360,6 @@
 							</template>
 						</b-table>
 
-						<!--<b-table
-							v-if="
-								row.item.veprecords.length > 0 &&
-								showButton === 2
-							"
-							:items="row.item.veprecords"
-							:fields="subFields"
-							:per-page="perPagesub"
-							:tbody-tr-class="rowPickClass"
-							><template #cell(varID)="data">
-								<a
-									:href="`/variant.html?variant=${data.item.varID}`"
-									>{{ data.item.varID }}</a
-								>
-							</template>
-							<template #head(Feature)="data">
-								<span class="external_source"
-									>Feature
-									<b-badge
-										pill
-										disabled
-										class="ml-1"
-										variant="secondary"
-										title="Link to external source."
-										>E</b-badge
-									></span
-								>
-							</template>
-							<template #cell(Feature)="data">
-								<a
-									v-if="data.item.Feature"
-									:href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.Feature}`"
-									target="_blank"
-									rel="noopener noreferrer nofollow"
-									>{{ data.item.Feature }}</a
-								>
-							</template>
-							<template #cell(position)="data">
-								{{
-									data.item.proteinStart !==
-									data.item.proteinEnd
-										? `${data.item.proteinStart}-${data.item.proteinEnd}`
-										: data.item.proteinStart
-								}}
-							</template>
-							<template #cell(max_consequence)="data">
-								<div
-									class="border-color"
-									:class="data.item.Max_Impact"
-								>
-									<span>{{
-										consequenceFormatter(
-											data.item.max_consequence
-										)
-									}}</span>
-								</div></template
-							>
-							<template #cell(siftPrediction)="data">
-								{{ siftFormatter(data.item.siftPrediction) }}
-							</template>
-						</b-table> -->
 
 					</div>
 				</template>
@@ -475,14 +383,9 @@ import Formatters from "@/utils/formatters";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 import CsvDownload from "@/components/CsvDownload";
-//import PhenotypePicker from "@/components/PhenotypePicker.vue";
-//import FilterWrapper from "@/portals/Neph/components/FilterWrapper.vue";
-//import Multiselect from 'vue-multiselect';
 
 import uiUtils from "@/utils/uiUtils";
 
-// register globally
-//Vue.component('multiselect', Multiselect)
 
 export default Vue.component("variant-search", {
 	components: {
@@ -492,8 +395,6 @@ export default Vue.component("variant-search", {
 		TooltipDocumentation,
 		Formatters,
 		CsvDownload,
-		//PhenotypePicker,
-		//FilterWrapper,
 	},
 	props: {
 		gene: [String, Array],
@@ -501,7 +402,7 @@ export default Vue.component("variant-search", {
 	data() {
 		return {
 			filters: {
-				impacts: ['HIGH','MODERATE'], //['HIGH','MODERATE','LOW'],
+				impacts: ['HIGH','MODERATE'],
 				trioinfos: [],
 				phenotypes: [],
 				masks:[],
@@ -532,13 +433,6 @@ export default Vue.component("variant-search", {
 				"0of5": { description: "0/5", sort: 7 },
                 "1of5_noLoF": { description: "1/5 - LoFTee", sort: 8 },
                 "5of5_noLoF": { description: "5/5 - LofTee", sort: 10 },
-				//"5of5": { description: "5/5", sort: 3 },
-				//"5of5_LoF_LC": { description: "5/5 + LofTee LC", sort: 4 },
-                //"1of5_1pct": { description: "5/5 + 1/5 1%", sort: 5 },
-                //"0of5_1pct": { description: "5/5 + 0/5 1% ", sort: 6 },
-                //"0of5": { description: "5/5 + 0/5 ", sort: 7 },
-                //"1of5_noLoF": { description: "5/5 + 1/5 noLoF", sort: 8 },
-                //"5of5_noLoF": { description: "5/5 + 1/5 noLoF", sort: 10 }
 				
             },
 			HPOTerms: {
@@ -634,29 +528,12 @@ export default Vue.component("variant-search", {
 					key: "varId",
 					label: "Variant (HG38)",
 				},
-				/*{
-					key: "Gene",
-					label: "Gene",
-				},*/
 				
 				{
 					key: "consequence",
 					label: "Consequence",
 					tdClass: "border-color",
 				},
-				/*{
-					key: "masks",
-					label: "Masks",
-					sortable: true,
-				},
-				{
-					key: "Protein_Position",
-					label: "Protein Position",
-				},
-				{
-					key: "Amino_Acids",
-					label: "Amino Acids",
-				},*/
 				{
 					key: "trioinfo2",
 					label: "Inheritance",
@@ -698,7 +575,6 @@ export default Vue.component("variant-search", {
     				tdClass: 'text-right',
 				},
 				{
-					//key: "gnomAD_exomes_AC",
 					key: "gnomADg_AC",
 					label: "Count",
 					sortable: true,
@@ -706,7 +582,6 @@ export default Vue.component("variant-search", {
     				tdClass: 'text-right',
 				},
 				{
-					//key: "gnomAD_exomes_AN",
 					key: "gnomADg_AN",
 					label: "Number",
 					sortable: true,
@@ -714,7 +589,6 @@ export default Vue.component("variant-search", {
     				tdClass: 'text-right',
 				},
 				{
-					//key: "gnomAD_exomes_AF",
 					key: "gnomADg_AF",
 					label: "Frequency",
 					sortable: true,
@@ -730,29 +604,17 @@ export default Vue.component("variant-search", {
 			subFields: [
 				{
 					key: "Feature",
-					//key: "transcriptId",
 					label: "Feature",
 				},
-				/*{
-					key: "Protein_Position",
-					label: "Position",
-				},
 				{
-					key: "Amino_Acids",
-					label: "Amino Acids",
-				},*/
-				{
-					//key: "HGVSc",
 					key: "hgvsc",
 					label: "HGVSc",
 				},
 				{
-					//key: "HGVSp",
 					key: "hgvsp",
 					label: "HGVSp",
 				},
 				{
-					//key: "max_consequence",
 					key: "consequenceTerms",
 					label: "Consequence",
 					tdClass: "border-color",
@@ -799,7 +661,6 @@ export default Vue.component("variant-search", {
 		}
 	},
 	computed: {
-		//This works to display all data fro BI
 		tableData() {
 			if (this.variantData && this.variantData.length) {
 				this.printData = this.downloadData();
@@ -810,15 +671,8 @@ export default Vue.component("variant-search", {
 		},
 		
 		rows() {
-			//alert("call rows");
 			if (this.tableData) return this.tableData.length;
 		},
-		// sortedData(hprecords) {
-		//     console.log(hprecords);
-		//     return hprecords.sort(function (a, b) {
-		//         return a.allelecount > b.allelecount;
-		//     });
-		// },
 	},
 	methods: {
 		...uiUtils,
@@ -844,9 +698,7 @@ export default Vue.component("variant-search", {
 			} 
 		},
 		selectAllElements(name, flag) {
-			//alert(name);
 			const allcheckbox = document.getElementsByName(name);
-			//alert(allcheckbox.length);
 			for(let c in allcheckbox) {
 				if(parseInt(c) >= 0){
 					if(flag){
@@ -860,16 +712,10 @@ export default Vue.component("variant-search", {
 		},
 		async searchVariants() {
 			console.log("varient search");
-			this.currentPage = 1; //reset on new search
-			//Helen 2022-01-09
-			//this.variants = await query("variants", this.gene, {}, true);
+			this.currentPage = 1;
 			this.variants = await query("gene-variants2",this.gene,{},true);
-			//console.log(JSON.stringify(this.variants));
 			if (this.variants && this.variants.length) {
 				for (let i = 0; i < this.variants.length; i++) {
-					//if (this.variants[i].gnomAD_info){
-					//	console.log(JSON.stringify(this.variants[i]));
-					//}
 					for (let x in Object.keys(this.variants[i])){
 						let idx = Object.keys(this.variants[i])[x];
 						if (this.variants[i][idx] =='NA'){
@@ -878,7 +724,6 @@ export default Vue.component("variant-search", {
 					}
 					this.variants[i].varId = this.variants[i].varId.replaceAll("_", ":")
 					this.variants[i].varId = this.variants[i].varId.replaceAll("/", ":")
-					//"HOM_REF_CT":"1419","GHET_REF_ALT_CTS":"0","TWO_ALT_GENO_CTS":"0","MISSING_CT":"4868"
 					this.variants[i].allelecount =2 * parseInt(this.variants[i].twoAlterGenoCount) +parseInt(this.variants[i].herterozygousAltCount);
 					this.variants[i].allelnumber =2 *(parseInt(this.variants[i].homozygousCount) +parseInt(this.variants[i].herterozygousAltCount) +parseInt(this.variants[i].twoAlterGenoCount));
 					this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
@@ -895,77 +740,43 @@ export default Vue.component("variant-search", {
 						this.variants[i].gnomADg_AC = this.variants[i].gnomADInfo.gnomADg_AC;
 						this.variants[i].gnomADg_AN = this.variants[i].gnomADInfo.gnomADg_AN;
 						this.variants[i].gnomADg_AF = this.variants[i].gnomADInfo.gnomADg_AF;
-						//alert("gnomAD_exomes_AC"+this.variants[i].gnomAD_exomes_AC);
 					}
 					
-					/* no need for Ryan's new processed data
-					for (let m = 0;m < this.variants[i].hprecords.length;m++) {
-						let hp = this.variants[i].hprecords[m];
-						if (hp.HP.substring(hp.HP.length - 7 ) == "Control") {
-							//"HOM_REF_CT":"51","HET_REF_ALT_CTS":"0","TWO_ALT_GENO_CTS":"0","TMISSING_CT":"4868"
-							this.variants[i].c_allelecount =(2 * parseInt(hp.TWO_ALT_GENO_CTS)+parseInt(hp.HET_REF_ALT_CTS));
-							this.variants[i].allelecount += this.variants[i].c_allelecount;
-							this.variants[i].c_allelnumber =2 *(parseInt(hp.HOM_REF_CT) +parseInt(hp.HET_REF_ALT_CTS) +parseInt(hp.TWO_ALT_GENO_CTS));
-							this.variants[i].allelnumber += this.variants[i].c_allelnumber;
-							this.variants[i].allelefrequency =this.variants[i].allelecount / this.variants[i].allelnumber;
-							this.variants[i].allelefrequency = this.variants[i].allelefrequency.toExponential(2);
-							//this.variants[i].c_allelefrequency =this.variants[i].c_allelecount / this.variants[i].c_allelnumber;
-							//this.variants[i].c_allelefrequency =this.variants[i].c_allelefrequency.toExponential(2);
-							//this.variants[i].c_TWO_ALT_GENO_CTS =hp.TWO_ALT_GENO_CTS;
-							this.variants[i].homozygouscount = parseInt(this.variants[i].TWO_ALT_GENO_CTS) + parseInt(hp.TWO_ALT_GENO_CTS);
-						}
-					} */
 
-					//disablebtn
 					if (this.variants[i].impact == 'LOWEST'){
 						this.variants[i].impact = 'MODIFIER';
 					}
 					this.disablebtn[this.variants[i].impact] = false;
 
-					//masksbtn
 					if (this.variants[i].masks != ""){
 						let masks = this.variants[i].masks.split(";");
 						this.variants[i].masks = masks;
 						for(let n = 0; n < masks.length;n++){
-							//if (!masks[n].includes("noLoF") && (!masks[n].includes("LoF_LC"))){
 								this.masksbtn[masks[n]]=false;
-							//}
 							
 						}
 					} else {
 						this.variants[i].masks = [];
 					}
-					//trioinfo
-					//console.log(this.variants[i]);
 					if ("trioinfo" in this.variants[i] && this.variants[i].trioinfo != ""){
-						//console.log(this.variants[i].trioinfo[0]);
 						let ts= this.variants[i].trioinfo.split(",");
-						//console.log(ts);
 						this.variants[i].trioinfo2 = this.variants[i].trioinfo;
 						this.variants[i].trioinfo = ts;
 						for(let n = 0; n < ts.length;n++){
-							//if (!masks[n].includes("noLoF") && (!masks[n].includes("LoF_LC"))){
 								this.trioinfobtn[ts[n]]=false;
-							//}
 							
 						}
 					} else {
 						this.variants[i].trioinfo = [];
 					}
 					
-					//alert(this.variants[i].hprecords.length);
 					if (this.variants[i].hprecords.length > 0) {
 						let hpdisplay = [];
 						let j = 0;
 						for (let k = 0;k < this.variants[i].hprecords.length;k++) {
 							let hp = this.variants[i].hprecords[k];
-							//let allelecount = 2 * parseInt(hp.TWO_ALT_GENO_CTS) +parseInt(hp.HET_REF_ALT_CTS);
-							//if (allelecount > 0) {
 								hpdisplay[j] = {};
-								//hpdisplay[j].hpoterms = this.HPOTerms[hp.HP];
 								hpdisplay[j].hp = hp.phenotype;
-								//console.log(hpdisplay[j].hp);
-								//hp.HP = hp.HP.replace("-","");
 								hpdisplay[j].hpoterms =
 									Formatters.snakeFormatter(
 										this.HPOTerms[hp.phenotype]
@@ -981,10 +792,8 @@ export default Vue.component("variant-search", {
 								hpdisplay[j].twoAlterGenoCount =
 									hp.twoAlterGenoCount;
 								j++;
-							//}
 						}
 						hpdisplay = hpdisplay.sort(function (a, b) {
-							//console.log(a.allelecount+"|"+b.allelecount+"|"+(a.allelecount>b.allelecount));
 							if (a.allelecount > b.allelecount) {
 								return -1;
 							} else if (a.allelecount < b.allelecount) {
@@ -997,31 +806,20 @@ export default Vue.component("variant-search", {
 						);
 						this.variants[i].hpdisplay2 = hpdisplay;
 						this.variants[i].hpdisplay = hpdisplay;
-						/*this.variants[i].hpdisplay = this.variants[i].hpdisplay.filter((item) =>
-							item.allelecount > 0
-						);*/
 					}
 				}
 				
-				//alert(this.variants.length);
-				//filter out allele count = 0 
 				this.variants = this.variants.filter((item) =>
 					item.allelecount > 0
 				);
-				//alert(this.variants.length);
 				this.variantData2 = this.variants;
 				this.variantData = this.variants;
 				
 			}
 			this.addfilter();
-			//this.disablebtn[this.variants[i].Max_Impact] = false;
 			if (this.filters["impacts"].length > 0) {
 				for(let i=this.filters["impacts"].length-1 ; i>=0;i--){
-					//console.log("here:"+this.filters["impacts"][i]);
-					//imp = this.filters["impacts"][i];
-					//console.log(imp);
 					if (this.disablebtn[this.filters["impacts"][i]] == true) {
-						//console.log("delete");
 						this.filters["impacts"].splice(i, 1);
 					}
 				}
@@ -1029,7 +827,6 @@ export default Vue.component("variant-search", {
 			
 		},
 		async getTranscriptConsequences(varId) {
-			//alert(varID);
 			if (!!varId) {
 				let data = await query("transcript-consequences", varId,{}, true);
 				return data;
@@ -1047,13 +844,9 @@ export default Vue.component("variant-search", {
 		hgvscFormmater(hgvsc){
 			if (hgvsc.length > 18) {
 				let strs = hgvsc.split(":");
-				//return strs[1];
 				hgvsc = decodeURIComponent(strs[1]);
-				//console.log(hgvsc);
 				return hgvsc;
-				//return hgvsc.substring(18);
 			} else {
-				//return hgvsc;
 				return "";
 			}
 		},
@@ -1061,7 +854,6 @@ export default Vue.component("variant-search", {
 			return Formatters.snakeFormatter(name);
 		},
 		async showVariantData(varId) {
-			//alert("showVariantData");
             let escapedVarID = this.escapedVarID(varId);
 
             if (this.vepData[escapedVarID] === undefined) {
@@ -1100,14 +892,10 @@ export default Vue.component("variant-search", {
 
 		addfilter: function () {
 			console.log("addfilter");
-			//let dataRows = this.variants;
-			//this.variantData = this.variantData2;
-			//alert(this.filters["trioinfos"]);
 			let dataRows = [];
 			for (let i = 0 ; i < this.variantData2.length; i++){
 				dataRows[i]=this.variantData2[i];
 			}
-			//alert(dataRows.length);
 			if (this.filters["impacts"].length > 0) {
 				dataRows = dataRows.filter((item) =>
 					this.filters["impacts"].includes(item.impact)
@@ -1117,7 +905,6 @@ export default Vue.component("variant-search", {
 				for(let m = 0; m < this.filters["masks"].length;m++){
 					let mask = this.filters["masks"][m];
 					dataRows = dataRows.filter((item) =>
-						//this.filters["masks"].includes(item.masks)
 						item.masks.includes(mask)
 					);
 				}
@@ -1127,7 +914,6 @@ export default Vue.component("variant-search", {
 				for(let m = 0; m < this.filters["trioinfos"].length;m++){
 					let t = this.filters["trioinfos"][m];
 					dataRows = dataRows.filter((item) =>
-						//this.filters["masks"].includes(item.masks)
 						item.trioinfo.includes(t)
 					);
 				}
@@ -1136,9 +922,6 @@ export default Vue.component("variant-search", {
 			if (this.filters["phenotypes"].length > 0) {
 				for (let i = dataRows.length - 1; i >=0; i--) {
 					dataRows[i].hpdisplay = dataRows[i].hpdisplay2;
-					/*dataRows[i].hpdisplay = dataRows[i].hpdisplay.filter((v) =>
-						this.filters["allelecount"] > 0
-					);*/
 					dataRows[i].hpdisplay = dataRows[i].hpdisplay.filter((v) =>
 						this.filters["phenotypes"].includes(v.hp)
 					);
@@ -1158,13 +941,9 @@ export default Vue.component("variant-search", {
 				}
 			}
 			this.variantData = dataRows;
-			//alert(dataRows.length);
-			//alert(this.variantData.length+'|'+this.variantData2.length);
 			return this.tableData;
 		},
 		sort: function (s) {
-			//if s == current sort, reverse
-			//console.log("sort", this.currentSort);
 			if (s === this.currentSort) {
 				this.currentSortDir =
 					this.currentSortDir === "asc" ? "desc" : "asc";
@@ -1176,10 +955,8 @@ export default Vue.component("variant-search", {
 	watch: {
 		gene: {
 			handler(val) {
-				//alert("variant search watch:"+this.gene);	
 				if (!!val) this.searchVariants();
 			},
-			//immediate: true,
 		},
 	},
 });

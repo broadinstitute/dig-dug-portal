@@ -1,7 +1,5 @@
 import Vue from "vue";
 
-//import BootstrapVue from "bootstrap-vue";
-//import { BootstrapVueIcons } from "bootstrap-vue";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
@@ -19,7 +17,6 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import uiUtils from "@/utils/uiUtils";
 
-//import kpDataViewerPkg from "@/components/kpDataViewer/kpDataViewerPkg.vue";
 import Alert, {
     postAlert,
     postAlertNotice,

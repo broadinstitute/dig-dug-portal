@@ -2,9 +2,6 @@
 <template>
     <div :id="elementid">
         <div class="color-bar-plot-wrapper">
-            <!-- <span>
-                 {{this.score}} HuGe score
-            </span>-->
             <div class="container">
                 <span
                     class="center"

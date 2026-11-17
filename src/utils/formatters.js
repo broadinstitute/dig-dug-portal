@@ -157,7 +157,7 @@ function pValueFormatter(value) {
     if (x < 1e-5) {
         return x.toExponential(2);
     } else {
-        let num = (x.toFixed(7) * 1).toString(); // remove trailing zeroes using string hacks
+        let num = (x.toFixed(7) * 1).toString();
         return num;
     }
 }
@@ -407,23 +407,6 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
 
                         linkString = linksArr.join();
 
-                        /*linkString =
-                            "<a href='" + columnKeyObj["link to"] + cellValue;
-
-                        linkString +=
-                            !!columnKeyObj["link type"] &&
-                                columnKeyObj["link type"] == "button"
-                                ? "' class='btn btn-sm btn-outline-secondary link-button"
-                                : "";
-
-                        linkLabel = columnKeyObj["link label"]
-                            ? columnKeyObj["link label"]
-                            : cellValue;
-
-                        linkString +=
-                            linkToNewTab == "true"
-                                ? "' target='_blank'>" + linkLabel + "</a>"
-                                : "'>" + linkLabel + "</a>";*/
                     }
 
                     cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;

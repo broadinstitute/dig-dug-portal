@@ -90,10 +90,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
-//import sortUtils from "@/utils/sortUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -155,8 +152,6 @@ export default Vue.component("research-m-qq-plot", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
 	},
 	components: {},
 	mounted: function () {
@@ -199,7 +194,6 @@ export default Vue.component("research-m-qq-plot", {
 				? this.plotData[0].lambda
 				: null;
 
-			//console.log("lambdaValue", lambdaValue);
 
 			plotsList.map((c) => {
 				let tempObj = { lambda: lambdaValue, sorted: {}, unsorted: [] };
@@ -307,21 +301,18 @@ export default Vue.component("research-m-qq-plot", {
 				});
 			}
 
-			//console.log("massagedData", massagedData);
 
 			return massagedData;
 		},
 	},
 	watch: {
 		renderData(CONTENT) {
-			//when data gets updated, hold it for little until vue.js renders <canvas> for the each datasets
 			setTimeout(function () {
 				window.dispatchEvent(new Event("resize"));
 			}, 100);
 		},
 	},
 	methods: {
-		//...uiUtils,
 		hidePanel(element) {
 			this.utils.uiUtils.hideElement(element);
 		},
@@ -338,8 +329,6 @@ export default Vue.component("research-m-qq-plot", {
 			var rect = e.target.getBoundingClientRect();
 			var x = Math.floor(e.clientX - rect.left);
 			var y = Math.floor(e.clientY - rect.top);
-			/*wrapper.style.top = y + canvas.offsetTop + "px";
-            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";*/
 
 			let clickedDotValue = "";
 
@@ -478,7 +467,6 @@ export default Vue.component("research-m-qq-plot", {
 			let wrapper = document.getElementById("qq_clicked_dot_value" + this.sectionId);
 			wrapper.classList.add("hidden");
 
-			//mPlotWrapper
 
 			let canvasWrapper = document.getElementById("qqPlotWrapper" + this.sectionId);
 
@@ -506,7 +494,6 @@ export default Vue.component("research-m-qq-plot", {
 				(this.topMargin + yBump + this.bottomMargin);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
-				//console.log("renderData", dKey, dValue);
 
 				let c = document.getElementById("qqPlot" + this.sectionId + dKey);
 
@@ -528,16 +515,14 @@ export default Vue.component("research-m-qq-plot", {
 					ctx.beginPath();
 					ctx.lineWidth = 1;
 					ctx.strokeStyle = "#000000";
-					ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+					ctx.setLineDash([]);
 
-					// render y axis
 					ctx.moveTo(this.leftMargin - bump, this.topMargin);
 					ctx.lineTo(
 						this.leftMargin - bump,
 						plotHeight + this.topMargin + yBump + bump
 					);
 
-					//render x axis
 					ctx.moveTo(
 						this.leftMargin - bump,
 						plotHeight + this.topMargin + yBump + bump
@@ -547,7 +532,6 @@ export default Vue.component("research-m-qq-plot", {
 						plotHeight + this.topMargin + yBump + bump
 					);
 
-					// render y ticker
 
 					let yMin = null;
 					let yMax = null;
@@ -561,7 +545,6 @@ export default Vue.component("research-m-qq-plot", {
 						"desc"
 					);
 
-					//console.log("DATA.lambda", dValue.lambda);
 
 					if (!!dValue.lambda) {
 						ctx.font = "26px Arial";
@@ -623,7 +606,6 @@ export default Vue.component("research-m-qq-plot", {
 
 					ctx.stroke();
 
-					//Render y axis label
 					ctx.font = "24px Arial";
 					ctx.textAlign = "center";
 					ctx.fillStyle = "#000000";
@@ -634,7 +616,6 @@ export default Vue.component("research-m-qq-plot", {
 						this.leftMargin - this.leftMargin / 2 - 28
 					);
 
-					//render xAxis
 
 					let segByPixel = plotWidth / 8;
 
@@ -658,9 +639,7 @@ export default Vue.component("research-m-qq-plot", {
 						this.topMargin + plotHeight + yBump + 88
 					);
 
-					//Render Dots
 
-					//let plotData = dValue.unsorted;
 					let expected = [];
 					for (let i = 1; i <= qqData.length; i++) {
 						expected.push(Math.log10(i + 1 / qqData.length));
@@ -675,7 +654,6 @@ export default Vue.component("research-m-qq-plot", {
 						maxExpPxLoc /
 						(expected[expected.length - 1] - expected[0]);
 
-					/// render expected p-value line to 8;
 					ctx.beginPath();
 					ctx.strokeStyle = "#ff0000";
 					ctx.moveTo(this.leftMargin, this.topMargin + plotHeight);
@@ -746,7 +724,6 @@ export default Vue.component("research-m-qq-plot", {
 			let wrapper = document.getElementById("m_clicked_dot_value" + this.sectionId);
 			wrapper.classList.add("hidden");
 
-			//mPlotWrapper
 
 			let canvasWrapper = document.getElementById("mPlotWrapper" + this.sectionId);
 
@@ -774,7 +751,6 @@ export default Vue.component("research-m-qq-plot", {
 				(this.topMargin + yBump + this.bottomMargin);
 
 			for (const [dKey, dValue] of Object.entries(DATA)) {
-				//console.log("renderData", dKey, dValue);
 				let c = document.getElementById("mPlot" + this.sectionId + dKey);
 				if (!!c) {
 					c.setAttribute("width", canvasRenderWidth);
@@ -794,16 +770,14 @@ export default Vue.component("research-m-qq-plot", {
 					ctx.beginPath();
 					ctx.lineWidth = 1;
 					ctx.strokeStyle = "#000000";
-					ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+					ctx.setLineDash([]);
 
-					// render y axis
 					ctx.moveTo(this.leftMargin - bump, this.topMargin);
 					ctx.lineTo(
 						this.leftMargin - bump,
 						plotHeight + this.topMargin + yBump + bump
 					);
 
-					//render x axis
 					ctx.moveTo(
 						this.leftMargin - bump,
 						plotHeight + this.topMargin + yBump + bump
@@ -813,13 +787,11 @@ export default Vue.component("research-m-qq-plot", {
 						plotHeight + this.topMargin + yBump + bump
 					);
 
-					// render y ticker
 
 					let yMin = null;
 					let yMax = null;
 
 					dValue.unsorted.map((d) => {
-						//yAxisData.push(d[this.renderConfig["y axis field"]]);
 
 						let yValue = d[this.renderConfig["y axis field"]];
 
@@ -840,7 +812,6 @@ export default Vue.component("research-m-qq-plot", {
 
 					let yStep = (yMax - yMin) / 4;
 
-					//let yAxisTicks = this.utils.uiUtils.getAxisTicks(yMin, yMax);
 
 					let yTickDistance = plotHeight / 4;
 
@@ -870,7 +841,6 @@ export default Vue.component("research-m-qq-plot", {
 
 					ctx.stroke();
 
-					//Render y axis label
 					ctx.font = "24px Arial";
 					ctx.textAlign = "center";
 					ctx.fillStyle = "#000000";
@@ -883,12 +853,10 @@ export default Vue.component("research-m-qq-plot", {
 
 					let dnaLength = 0;
 
-					//get list of chrs with variants
 					let chrs = Object.keys(dValue.sorted).filter(
 						(key) => dValue.sorted[key].length > 0
 					);
 
-					// compare length of chromosomes in the data to the defalt
 
 					chrs.map((chr) => {
 						let chrLength = 0;
@@ -925,7 +893,6 @@ export default Vue.component("research-m-qq-plot", {
 						);
 					});
 
-					//Render x axis label
 
 					ctx.fillText(
 						this.renderConfig["m-plot x axis label"],
@@ -933,7 +900,6 @@ export default Vue.component("research-m-qq-plot", {
 						this.topMargin + plotHeight + yBump + 88
 					);
 
-					//Render Dots
 
 					xStart = 0;
 					let exChr = "";
@@ -1003,12 +969,10 @@ export default Vue.component("research-m-qq-plot", {
 						chrNum++;
 					});
 
-					/// render guide line
 					if (!!this.renderConfig["m-plot thresholds"]) {
 						this.renderConfig["m-plot thresholds"].map((t) => {
 							let tValue = -Math.log10(Number(t));
 
-							//console.log("thresholds", t, tValue);
 
 							let yPosByPixel = plotHeight / (yMax - yMin);
 

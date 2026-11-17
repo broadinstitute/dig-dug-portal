@@ -156,9 +156,7 @@ export default Vue.component("multiple-phenotype-associations-table", {
         fields() {
             let fields = this.baseFields;
 
-            // add the chi squared column
 
-            // add phenotype-specific columns
             for (let i in this.phenotypes) {
                 let p = this.phenotypes[i];
 
@@ -187,7 +185,6 @@ export default Vue.component("multiple-phenotype-associations-table", {
             let groups = {};
             let associations = this.tableData;
 
-            //console.log("this.tableData.length", this.tableData);
 
             for (let i in associations) {
                 let r = associations[i];
@@ -211,39 +208,18 @@ export default Vue.component("multiple-phenotype-associations-table", {
                     });
                 }
 
-                // add the phenotype columns
                 data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
                 data[dataIndex][`${r.phenotype}:beta`] = r.beta;
                 data[dataIndex][`${r.phenotype}:stdErr`] = r.stdErr;
                 data[dataIndex][`${r.phenotype}:zScore`] = r.zScore;
                 data[dataIndex][`${r.phenotype}:n`] = r.n;
 
-                // lowest p-value across all phenotypes
                 if (!!r.pValue && r.pValue < data[dataIndex].minP) {
                     data[dataIndex].minP = r.pValue;
                 }
             }
 
-            // // remove non-overlapping associations
-            // data = data.filter(row => {
-            //     for (let i in this.phenotypes) {
-            //         let phenotype = this.phenotypes[i];
-            //         // ensure a p-value exists for each phenotype
-            //         if (!row[`${phenotype}:pValue`]) {
-            //             return false;
-            //         }
-            //     }
-            //     return true;
-            // });
 
-            // remove entries with missing p-values
-            // if (this.exclusive) {
-            //     let phenotypes = this.phenotypes;
-            //     data = data.filter(row => {
-            //         return phenotypes.every(p => !!row[`${p}:pValue`]);
-            //     });
-            // }
-            // sort all the records by phenotype p-value
             data.sort((a, b) => a.minP - b.minP);
 
             return data;

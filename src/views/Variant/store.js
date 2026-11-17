@@ -19,7 +19,6 @@ export default new Vuex.Store({
         transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
         ancestryPhewas: bioIndex("ancestry-phewas-associations"),
-        //regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
         varIDLookup: bioIndex("varIdLookup"),
     },
@@ -64,7 +63,6 @@ export default new Vuex.Store({
             );
             console.log("out newVarId is ", newVarId);
             if (newVarId) {
-                //if newVarId is a dbSNP, then we need to get the varId
                 if (newVarId.startsWith("rs")) {
                     await fetch(
                         BIO_INDEX_HOST + "/api/bio/varIdLookup/" + newVarId
@@ -92,11 +90,7 @@ export default new Vuex.Store({
             let ancestry = context.state.ancestry;
             let varId = context.state.pageVariant.varId;
 
-            //not currently using chromosome and position to search for regions
-            //let chromosome = varId.split(":")[0];
-            //let position = parseInt(varId.split(":")[1]);
 
-            // phewas can be with or without ancestry
             if (ancestry) {
                 context.dispatch("ancestryPhewas/query", {
                     q: `${ancestry},${varId}`,
@@ -106,10 +100,8 @@ export default new Vuex.Store({
             }
             context.dispatch("transcriptConsequences/query", { q: varId });
             context.dispatch("transcriptionFactors/query", { q: varId });
-            //context.dispatch("regions/query", { q: `${chromosome}:${position}` });
             context.dispatch("datasetAssociations/query", { q: varId });
         },
-        // For custom phenotypes
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
         },

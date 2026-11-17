@@ -1,6 +1,5 @@
 <template>
     <div>
-        <!-- Header -->
         <paper-page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
@@ -8,7 +7,6 @@
             v-if="!!$parent.paperMenu"
         ></paper-page-header>
 
-        <!-- Body -->
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
@@ -30,7 +28,6 @@
             </div>
         </div>
 
-        <!-- Footer-->
         <paper-page-footer
             :disease-group="$parent.diseaseGroup"
         ></paper-page-footer>

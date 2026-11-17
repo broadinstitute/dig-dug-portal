@@ -1,3 +1,2 @@
-# Python packages used by the local prototype APIs. The e3 service is maintained separately.
 numpy>=1.26,<3
 scipy>=1.11,<2

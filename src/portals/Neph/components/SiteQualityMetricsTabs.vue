@@ -99,9 +99,9 @@ export default Vue.component("sitequalitymetrics-tab", {
                             "data": ["AS_VQSLOD", 10696, 255, 255, 261, 304, 275, 283, 334, 315, 304, 414, 356, 469, 446, 478, 496, 534, 505, 537, 513, 690, 626, 704, 720, 753, 819, 904, 912, 1057, 1096, 1251, 1221, 1385, 1527, 1701, 1873, 2076, 2213, 2549, 2788, 3235, 3887, 4593, 5794, 7335, 10081, 21403, 59001, 67415, 45149, 57557, 127154, 593797, 1320760, 2021802, 2486405, 3138942, 1297995, 133110, 3]}
             },
             notes: {
-                "SiteQuality": "", //"Site quality approximation for all variants with 0.05 <= AF < 0.1.", 
+                "SiteQuality": "",
                 "AS_FS": "Allele-specific phred-scaled p-value of Fisher's exact test for strand bias.",
-                "InbreedingCoeff": "", //"inbreeding_coeff for all variants with AF >= 0.0005.", 
+                "InbreedingCoeff": "",
                 "AS_MQ": "Allele-specific root mean square of the mapping quality of reads across all samples.", 
                 "AS_MQRankSum": "Allele-specific z-score from Wilcoxon rank sum test of alternate vs. reference read mapping qualities.", 
                 "AS_QD": "Allele-specific variant call confidence normalized by depth of sample reads supporting a variant.", 
@@ -123,7 +123,6 @@ export default Vue.component("sitequalitymetrics-tab", {
         }
     },
     components: {
-        //QualityMatricsPlot,
     },
     mounted() {
         this.build_chart('SiteQuality');
@@ -134,7 +133,6 @@ export default Vue.component("sitequalitymetrics-tab", {
             return this.tableData.length;
         },
         tableData() {
-            //alert(this.gnomAD_info.length);
             if (this.metrics_info && this.metrics_info.length) {
                 return this.metrics_info;
             } else {
@@ -144,8 +142,6 @@ export default Vue.component("sitequalitymetrics-tab", {
     },
     methods: {
         build_table() {
-            //console.log("Site Quality Table");
-            //console.log(this.vardata);
             let i = 0;
             let vardisplay = []
             for (const idx in this.vardata) {
@@ -157,25 +153,20 @@ export default Vue.component("sitequalitymetrics-tab", {
             this.metrics_info = vardisplay;
         },
         build_chart(cname) {
-            //let component = this;
 
-            //console.log(this.vardata);
 
             this.selectedValue = this.vardata[cname];
             let data = this.chart_data[cname]['data'];
             let xaxis = this.chart_data[cname]['x']
 
             let vdata = this.vardata[cname];
-            //console.log(vdata);
             let highlightindex = -1;
             
             if (vdata != "NaN"){
                 for (let i = 1; i < xaxis.length; i++){
-                    //console.log("check data:"+i+"|"+vdata +"|"+xaxis[i]+"|"+data[i]);
                     if (cname == "SiteQuality" || cname=="AS_FS"){
                         let v = Number(xaxis[i].substring(2));
                         v = Math.pow(10, v);
-                        //console.log(v+"|"+xaxis[i]);
                         if (vdata <= v){
                             highlightindex = i - 1;
                             break;
@@ -183,7 +174,6 @@ export default Vue.component("sitequalitymetrics-tab", {
                     } else {
                         if (vdata <= xaxis[i]){
                             highlightindex = i - 1;
-                            //console.log("check data:"+i+"|"+vdata +"|"+xaxis[i]+"|"+data[i]);
                             break;
                         }
                     }
@@ -192,8 +182,6 @@ export default Vue.component("sitequalitymetrics-tab", {
             }
             
 
-            // attach to the dom
-            // bindto: "#qualitymatrics",
             this.chart = c3.generate({
                 bindto: "#metricsdistribution",
                 data: {
@@ -204,13 +192,10 @@ export default Vue.component("sitequalitymetrics-tab", {
                     ],
                     type: 'bar',
                     color: function (color, d) {
-                        // d will be 'id' when called for legends
-                        //console.log(d.id+"|"+highlightindex+"|"+d.index);
                         return d.id && highlightindex >= 0 && d.index === highlightindex ? "#ff0000" : color;
                     },
                     labels: {
                         format: function(v, id, i, j) {
-                            //console.log(v+"|"+id+"|"+i+"|"+j);
                             if (i === highlightindex){
                                 return vdata;
                             }
@@ -219,10 +204,8 @@ export default Vue.component("sitequalitymetrics-tab", {
                 },
                 bar: {
                     width: {
-                        ratio: 0.5 // this makes bar width 50% of length between ticks
+                        ratio: 0.5
                     }
-                    // or
-                    //width: 100 // this makes bar width 100px
                 },
                 axis: {
                     x: {

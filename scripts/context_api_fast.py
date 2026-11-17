@@ -1,8 +1,3 @@
-"""Fast backend calculations for the CRDC Gene Page context APIs.
-
-This module intentionally contains only the two portal calculations:
-variant-level mean residual scores and a provisional Huber RLM gene burden test.
-"""
 
 from time import perf_counter
 
@@ -35,7 +30,6 @@ def _annotation_value(row, keys):
 
 
 def variant_pathogenic_scores(row):
-    """Return separate display and burden scores from raw variant evidence."""
     lof = str(_annotation_value(row, ("LoF", "lof", "lof_class", "LOFTEE")) or "").strip().upper()
     alpha = _finite_score(
         _annotation_value(row, ("Alphamissense", "AlphaMissense", "alphamissense", "alphamissense_score", "am_pathogenicity")),
@@ -62,7 +56,6 @@ def variant_pathogenic_scores(row):
 
 
 def benjamini_hochberg(p_values):
-    """Return BH-adjusted P-values while preserving input order and missing values."""
     p_values = np.asarray(p_values, dtype=float)
     adjusted = np.full(p_values.shape, np.nan, dtype=float)
     valid = np.isfinite(p_values) & (p_values >= 0) & (p_values <= 1)
@@ -82,7 +75,6 @@ def benjamini_hochberg(p_values):
 
 
 def variant_match_scores(sample_ids, phenotype_match_score_resid, carriers_by_variant):
-    """Return the mean residual score across every unique carrier per variant."""
     sample_ids = [str(sample_id) for sample_id in sample_ids]
     scores = np.asarray(phenotype_match_score_resid, dtype=float)
     if len(sample_ids) != scores.size:

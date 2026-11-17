@@ -21,7 +21,6 @@
                         <b-td style="width:20px;" class="text-left"><-- HuGE Score</b-td>
                     </b-tr>
                 </b-tbody>
-                <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
             </b-table-simple>
         </div>
     </div>

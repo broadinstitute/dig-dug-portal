@@ -58,7 +58,6 @@ export default new Vuex.Store({
             context.commit('setMatchingGenes', matches);
         },
 
-        //select gene on autocomplete.
         async onGeneChange(context, gene) {
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
@@ -67,7 +66,6 @@ export default new Vuex.Store({
             }
         },
 
-        //select gene on autocomplete.
         async onDatasetChange(context, dataset) {
             window.location.href = "./dinspector.html?dataset=" + dataset.name;
         },

@@ -15,7 +15,6 @@
                         </div>
                         <div v-else>
                             <div v-for="subTag in taggedEntry[1]" :key="subTag[0]">
-                                <!-- {{subTag[0]}} {{subTag[1]}} {{knowledgeItem[taggedEntry[0]][subTag[0]]}} -->
                                 <b-table :items="knowledgeItem[taggedEntry[0]][subTag[0]]"
                                 ></b-table>
                             </div>

@@ -1,4 +1,3 @@
-"""Check profile carrier comparison counts, coverage and exact-test semantics."""
 import json
 from pathlib import Path
 import tempfile

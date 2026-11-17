@@ -7,49 +7,25 @@ import {
 } from './parser_utils';
 
 
-/**
- * Specify how to parse a GWAS file, given certain column information.
- * Outputs an object with fields in portal API format.
- * @param [marker_col]
- * @param [chrom_col]
- * @param [pos_col]
- * @param [ref_col]
- * @param [alt_col]
- * @param [rsid_col]
- * @param pvalue_col
- * @param [beta_col]
- * @param [stderr_beta_col]
- * @param [allele_freq_col]
- * @param [allele_count_col]
- * @param [n_samples_col]
- * @param [is_alt_effect=true]
- * @param [is_neg_log_pvalue=false]
- * @param [delimiter='\t']
- * @return {function(*): {chromosome: *, position: number, ref_allele: *,
- *          log_pvalue: number, variant: string}}
- */
 function makeParser(
     {
-        // Required fields
-        marker_col, // position
+        marker_col,
         chrom_col,
         pos_col,
         ref_col,
         alt_col,
         rsid_col,
-        pvalue_col, // pvalue
-        // Optional fields
+        pvalue_col,
         beta_col,
         stderr_beta_col,
-        allele_freq_col, // Frequency: given directly, OR in terms of counts
+        allele_freq_col,
         allele_count_col,
         n_samples_col,
-        is_alt_effect = true, // whether effect allele is oriented towards alt
+        is_alt_effect = true,
         is_neg_log_pvalue = false,
         delimiter = '\t',
     } = {},
 ) {
-    // Column IDs should be 1-indexed (human friendly)
     if (has(marker_col) && has(chrom_col) && has(pos_col)) {
         throw new Error('Must specify either marker OR chr + pos');
     }
@@ -168,7 +144,6 @@ function makeParser(
     };
 }
 
-// Preconfigured parser with defaults for a standard file format
 const standard_gwas_parser = makeParser({
     chrom_col: 1,
     pos_col: 2,

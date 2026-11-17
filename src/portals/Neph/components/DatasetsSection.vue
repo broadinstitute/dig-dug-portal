@@ -161,14 +161,6 @@ export default Vue.component("datasets-section", {
                         return d.data.label;
                     });
             };
-            /*
-            $("#datasets-chart").append(
-                "<svg id='datasets-svg' style='width:300px; height:250px;'></svg>"
-            );
-            $("#datasets-chart").append(
-                "<svg id='phenotypes-svg' style='width:300px; height:250px;'></svg>"
-            );
-*/
             let portals = [];
 
             this.diseaseGroups.map((x) => {
@@ -217,14 +209,6 @@ export default Vue.component("datasets-section", {
             renderTable(datasetsData, "datasets");
             renderTable(phenotypesData, "phenotypes");
 
-            //renderPie(datasetsData, "datasets-svg", datasetsColors, 300, 250);
-            /*renderPie(
-                phenotypesData,
-                "phenotypes-svg",
-                phenotypesColors,
-                300,
-                250
-            );*/
         },
     },
     mounted: function () {},

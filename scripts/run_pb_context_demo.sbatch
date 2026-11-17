@@ -5,7 +5,6 @@
 #SBATCH --mem=16G
 #SBATCH --time=1-00:00:00
 
-# Run only through sbatch. All durable inputs and logs stay on lab-share.
 demo_root=${1:?Pass the persistent deployment directory}
 case "$demo_root" in
   /lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/pb_context_demo/*) ;;
@@ -57,8 +56,6 @@ if [[ -f scripts/pb_sample_gene_scores.py ]]; then
     --covariates "$demo_root/inputs/covariates.tsv" --roster "$demo_root/inputs/roster.tsv" \
     --host 127.0.0.1 --port 18094 > "$demo_root/logs/sample-gene-scores-$SLURM_JOB_ID.log" 2>&1 &
 fi
-# The variant service accepts an explicit selected-carrier roster. Keep its
-# process independent of the existing Gene/Sample APIs.
 variant_api_root=${PB_VARIANT_API_ROOT:-$demo_root/variant-genotype-20261114}
 if [[ ! -f "$variant_api_root/scripts/pb_gene_context_api_server.py" ]]; then
   variant_api_root=$demo_root

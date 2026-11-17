@@ -167,10 +167,6 @@ export default Vue.component("AssociationsTable", {
                     key: "genes",
                     label: "Closest Genes",
                 },
-                // {
-                //     key: "maf",
-                //     label: "MAF"
-                // }
             ],
         };
     },
@@ -181,7 +177,6 @@ export default Vue.component("AssociationsTable", {
         fields() {
             let fields = this.baseFields;
 
-            // show chi^2 if > 1 phenotype
             if (this.phenotypes.length > 1) {
                 fields.push({
                     key: "chiSquared",
@@ -198,7 +193,6 @@ export default Vue.component("AssociationsTable", {
                     }
                 }
 
-                // => objects for ['fred']
             }
 
             for (let i in this.phenotypes) {
@@ -252,7 +246,6 @@ export default Vue.component("AssociationsTable", {
                     });
                 }
 
-                // add the phenotype columns
                 data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
                 data[dataIndex][`${r.phenotype}:beta`] = r.beta;
 
@@ -261,7 +254,6 @@ export default Vue.component("AssociationsTable", {
                 data[dataIndex][`${r.phenotype}:n`] = r.n;
             }
 
-            // remove entries with missing p-values
             if (this.exclusive) {
                 let phenotypes = this.phenotypes;
 
@@ -270,7 +262,6 @@ export default Vue.component("AssociationsTable", {
                 });
             }
 
-            // calculate the chiSquared for each row
             data.forEach((r) => (r.chiSquared = this.chiSquared(r)));
 
             return data;
@@ -344,7 +335,6 @@ export default Vue.component("AssociationsTable", {
                 }
             }
 
-            // calculate the combined p-value
             let pdf = Chi.pdf(X, 2 * n);
 
             return 2 * pdf;

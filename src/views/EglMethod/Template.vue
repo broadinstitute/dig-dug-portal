@@ -1,12 +1,10 @@
 <template>
     <div>
-        <!-- Header -->
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
         ></page-header>
 
-        <!-- Body -->
 
         <div class="container-fluid mdkp-body">
             <a
@@ -90,7 +88,6 @@
             <div class="data-rendering-indicator">Rendering data...</div>
         </div>
 
-        <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>

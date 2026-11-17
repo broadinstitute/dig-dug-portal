@@ -37,7 +37,6 @@ let sortEGLTableData = function (data, key, isNumeric, isAscending) {
             if (!d[key]) {
                 withNoValue.push(d)
             } else {
-                // console.log("d[key]: ", d[key], typeof d[key])
                 if (typeof d[key] == "number" || d[key] === 0) {
                     withNumbers.push(d);
                 } else if (typeof d[key] == "string") {
@@ -111,7 +110,6 @@ const uniqBy = (arr, predicate) => {
     }, new Map()).values()];
 };
 
-/// Sort array of objects by a property (data, property, sorting value type, direction)
 const sortArrOfObjects = (DATA, PRPT, TYPE, DIRECTION) => {
 
     let sorted;

@@ -366,13 +366,7 @@ export default Vue.component("VariantSearch", {
             loadingData: {},
         };
     },
-    // created() {
-    //     if (this.gene) {
-    //         this.searchVariants();
-    //     }
-    // },
     computed: {
-        //This works to display all data fro BI
         tableData() {
             if (this.variants && this.variants.length) {
                 return this.variants;
@@ -394,7 +388,7 @@ export default Vue.component("VariantSearch", {
     },
     methods: {
         async searchVariants() {
-            this.currentPage = 1; //reset on new search
+            this.currentPage = 1;
             this.variants = await query("gene-variants", this.gene);
         },
         async getTranscriptConsequences(varID) {

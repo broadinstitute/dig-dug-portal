@@ -21,7 +21,7 @@ module.exports = function variantVcfGenotypes(host = process.env.PB_VARIANT_CONT
                 try {
                     const cached = JSON.parse(await fs.readFile(filename,'utf8'));
                     if (cached.format === 1 && valid(cached.result) && checksum(cached.result) === cached.sha256) return cached.result;
-                } catch (_) { /* Missing/corrupt cache is retried against the original source. */ }
+                } catch (_) {   }
                 const result = await new Promise((resolve, reject) => {
                 const url = new URL('/phenotype-analyzer-api/carrier-genotypes', host);
                 const body = JSON.stringify({variant_id: variant, sample_ids: ids});

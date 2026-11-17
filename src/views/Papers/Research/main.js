@@ -1,6 +1,4 @@
 import Vue from "vue";
-//import BootstrapVue from "bootstrap-vue";
-//import { BootstrapVueIcons } from "bootstrap-vue";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
@@ -191,7 +189,6 @@ new Vue({
 
     },
     computed: {
-        //sections setting start
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
@@ -293,7 +290,6 @@ new Vue({
             }
         },
 
-        /////sections setting end
 
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
@@ -487,9 +483,6 @@ new Vue({
                 }
             }
         },
-        // pageID() {
-        //     return keyParams.pageid.trim();
-        // },
         pageTitle() {
             let contents = this.researchPage;
 
@@ -663,12 +656,10 @@ new Vue({
                         convertedData.continuation == null &&
                         convertedData.page != 1
                     ) {
-                        // merge the last arrived data to the collection of research data
                         this.$store.dispatch(
                             "bioIndexContinue",
                             convertedData.data
                         );
-                        //merge all data from continue
                         let continuedData = this.$store.state.bioIndexContinue;
                         let mergedData = [];
 
@@ -727,8 +718,6 @@ new Vue({
                                 : convertedData;
                     }
 
-                    //console.log("typeof convertedData", typeof convertedData);
-                    //console.log("returnData", returnData);
 
                     let processedData =
                         this.dataTableFormat != null &&
@@ -805,7 +794,6 @@ new Vue({
                 if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
                     && !!this.sectionConfigs["is multi section"] == true) {
                     let legends = document.createElement('div');
-                    //legends.style.display = 'none';
                     legends.setAttribute("style", "visibility: hidden;height: 1px")
                     legends.innerHTML = contents[0]["field_data_table_legend"];
                     document.body.appendChild(legends);
@@ -816,11 +804,9 @@ new Vue({
                         let sTableLegend = (!!document.getElementById(section["section id"] + "_tableLegend")) ?
                             document.getElementById(section["section id"] + "_tableLegend").innerHTML : '';
                         if (!!sTableLegend) {
-                            //sTableLegends[section["section id"]] = sTableLegend;
                             sTableLegends.push({ "id": section["section id"], "content": sTableLegend });
                         }
                     })
-                    //legends.parentNode.removeChild(legends);
                     return sTableLegends;
                 } else {
                     return null
@@ -837,7 +823,6 @@ new Vue({
                 if (!!this.sectionConfigs && !!this.sectionConfigs["is multi section"]
                     && !!this.sectionConfigs["is multi section"] == true) {
                     let legends = document.createElement('div');
-                    //legends.style.display = 'none';
                     legends.setAttribute("style", "visibility: hidden;height: 1px")
                     legends.innerHTML = contents[0]["field_data_visualizer_legend"];
                     document.body.appendChild(legends);
@@ -848,11 +833,9 @@ new Vue({
                         let sPlotLegend = (!!document.getElementById(section["section id"] + "_plotLegend")) ?
                             document.getElementById(section["section id"] + "_plotLegend").innerHTML : '';
                         if (!!sPlotLegend) {
-                            //sPlotLegends[section["section id"]] = sPlotLegend;
                             sPlotLegends.push({ "id": section["section id"], "content": sPlotLegend })
                         }
                     })
-                    //legends.parentNode.removeChild(legends);
                     return sPlotLegends;
                 } else {
                     return null
@@ -969,13 +952,11 @@ new Vue({
                     this.addcss(css);
                 }
 
-                //set Table format
                 if (content[0]["field_data_table_format"] != false) {
                     this.dataTableFormat = JSON.parse(
                         content[0]["field_data_table_format"]
                     );
                 }
-                //Load data
 
                 if (this.dataType == "direct_csv") {
                     this.$store.dispatch(
@@ -989,7 +970,6 @@ new Vue({
 
                         this.dataFiles = dataFiles;
 
-                        /// in case of phenotypes == kp phenotypes
 
                         let apis = JSON.parse(
                             content[0]["field_api_parameters"]
@@ -1008,26 +988,6 @@ new Vue({
                             });
                         }
 
-                        /*this.dataFilesLabels = JSON.parse(content[0]["field_data_points_list_labels"]);
-
-                        if (isKPPhenotype == true) {
-                            let kpPhenotypes =
-                                this.$store.state.bioPortal.phenotypes;
-                            let tempObj = {};
-
-                            kpPhenotypes.map((p) => {
-                                tempObj[p.name] = p.description;
-                            });
-
-                            // if there is data files lables filed is empty (null)
-                            this.dataFilesLabels = !this.dataFilesLabels
-                                ? {}
-                                : this.dataFilesLabels;
-
-                            this.dataFilesLabels["phenotype"] = tempObj;
-                        }
-
-                        console.log("this.dataFilesLabels", this.dataFilesLabels);*/
 
 
                         let initialData = dataFiles[0];
@@ -1063,7 +1023,6 @@ new Vue({
                     }
                 }
 
-                //Load research method
                 if (content[0]["field_research_method"] != false) {
                     let methodID = content[0]["field_research_method"];
                     let methodParam = { methodID: methodID };
@@ -1074,7 +1033,6 @@ new Vue({
                     );
                 }
 
-                //Load research menu
                 if (content[0]["field_page_header_menu_node_id"] != false) {
                     let menuID = content[0]["field_page_header_menu_node_id"];
                     let menuParam = { menuID: menuID };
@@ -1087,7 +1045,6 @@ new Vue({
         },
 
         researchData(content) {
-            // reset searching region if applicable
 
 
 
@@ -1098,7 +1055,6 @@ new Vue({
                     targetPlotConfig = this.plotConfig["genes track"]
                         ? this.plotConfig["genes track"]
                         : this.plotConfig;
-                    //["input type"] is required only for the plots that need 'region' value
                     if (targetPlotConfig["input type"]) {
                         switch (targetPlotConfig["input type"]) {
                             case "static":
@@ -1193,7 +1149,6 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        /// multi-sections use
         setZoom(SETTING) {
             this[SETTING.property] = SETTING.value;
         },
@@ -1240,7 +1195,6 @@ new Vue({
                     break;
             }
         },
-        ///
         getSubHeader() {
             if (
                 !!this.apiParameters &&
@@ -1271,10 +1225,8 @@ new Vue({
             var s = document.createElement("style");
             s.setAttribute("type", "text/css");
             if (s.styleSheet) {
-                // IE
                 s.styleSheet.cssText = css;
             } else {
-                // the world
                 s.appendChild(document.createTextNode(css));
             }
             head.appendChild(s);
@@ -1291,75 +1243,47 @@ new Vue({
             });
         },
         CSVToArray(strData, strDelimiter) {
-            // Check to see if the delimiter is defined. If not,
-            // then default to comma.
             strDelimiter = strDelimiter || ",";
 
-            // Create a regular expression to parse the CSV values.
             var objPattern = new RegExp(
-                // Delimiters.
                 "(\\" +
                 strDelimiter +
                 "|\\r?\\n|\\r|^)" +
-                // Quoted fields.
                 '(?:"([^"]*(?:""[^"]*)*)"|' +
-                // Standard fields.
                 '([^"\\' +
                 strDelimiter +
                 "\\r\\n]*))",
                 "gi"
             );
 
-            // Create an array to hold our data. Give the array
-            // a default empty first row.
             var arrData = [[]];
 
-            // Create an array to hold our individual pattern
-            // matching groups.
             var arrMatches = null;
 
-            // Keep looping over the regular expression matches
-            // until we can no longer find a match.
             while ((arrMatches = objPattern.exec(strData))) {
-                // Get the delimiter that was found.
                 var strMatchedDelimiter = arrMatches[1];
 
-                // Check to see if the given delimiter has a length
-                // (is not the start of string) and if it matches
-                // field delimiter. If id does not, then we know
-                // that this delimiter is a row delimiter.
                 if (
                     strMatchedDelimiter.length &&
                     strMatchedDelimiter !== strDelimiter
                 ) {
-                    // Since we have reached a new row of data,
-                    // add an empty row to our data array.
                     arrData.push([]);
                 }
 
                 var strMatchedValue;
 
-                // Now that we have our delimiter out of the way,
-                // let's check to see which kind of value we
-                // captured (quoted or unquoted).
                 if (arrMatches[2]) {
-                    // We found a quoted value. When we capture
-                    // this value, unescape any double quotes.
                     strMatchedValue = arrMatches[2].replace(
                         new RegExp('""', "g"),
                         '"'
                     );
                 } else {
-                    // We found a non-quoted value.
                     strMatchedValue = arrMatches[3];
                 }
 
-                // Now that we have our value string, let's add
-                // it to the data array.
                 arrData[arrData.length - 1].push(strMatchedValue);
             }
 
-            // Return the parsed data.
             return arrData;
         },
 
@@ -1562,7 +1486,6 @@ new Vue({
 
                             replaceArr.map((r) => {
                                 newString = sIndex == 0 ? rawString : newString;
-                                //console.log("newString", newString);
                                 if (newString) {
                                     newString = newString.replaceAll(
                                         r.from,
@@ -1589,13 +1512,11 @@ new Vue({
             };
 
             if (CONVERT != "no convert") {
-                //console.log(this.$store.state.bioPortal.phenotypeMap);
                 let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
                 DATA.map((d) => {
                     let tempObj = applyConvert(d, CONVERT, phenotypeMap);
 
-                    // Apply data convert to feature data level
                     let dKeys = Object.keys(tempObj);
 
                     let newTempObj = {};
@@ -1679,7 +1600,6 @@ new Vue({
 
                     let APIPoint = this.dataFiles[0];
                     if (this.dataType == "bioindex" && !!this.isAPI) {
-                        /// set BioIndex API point
                         APIPoint +=
                             "query/" +
                             this.apiParameters.query.index +
@@ -1763,7 +1683,6 @@ new Vue({
                         break;
 
                     case "overlapping":
-                        //let overlappingData = {};
 
                         newResearchData.map((d) => {
                             let keyFieldID =
@@ -1779,11 +1698,9 @@ new Vue({
                             }
                         });
 
-                        //return overlappingData;
 
                         break;
                     case "all":
-                        //let allData = {};
 
                         newResearchData.map((d) => {
                             let keyFieldID =

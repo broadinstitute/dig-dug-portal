@@ -61,8 +61,6 @@ export default Vue.component("filter-object-control", {
         FilterControlTemplate,
     },
     computed: {
-        // Make options unique and sorted by default, and always
-        // NOTE: Assumes that they are just strings! change?
         selectionOptions() {
             let options = this.options
                 .filter((v, i, arr) => arr.indexOf(v) == i)

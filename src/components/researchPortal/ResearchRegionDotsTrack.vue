@@ -244,14 +244,12 @@ export default Vue.component("research-region-dots-track", {
             CTX.beginPath();
             CTX.lineWidth = 1;
             CTX.strokeStyle = "#000000";
-            CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+            CTX.setLineDash([]);
 
-            // render y axis
             CTX.moveTo(plotMargin.left - plotMargin.bump, plotMargin.top);
             CTX.lineTo(plotMargin.left - plotMargin.bump, plotMargin.top + HEIGHT + plotMargin.bump);
             CTX.stroke();
 
-            // y ticks
 
             let yStep = (yMax - yMin) / 2;
             let yTickDistance = HEIGHT / 2;
@@ -287,7 +285,6 @@ export default Vue.component("research-region-dots-track", {
                 );
             }
 
-            // render recombination Rate y axis
             let recomXpos = Math.round(
                 plotMargin.left + WIDTH + plotMargin.bump
             );
@@ -296,12 +293,10 @@ export default Vue.component("research-region-dots-track", {
             CTX.lineTo(recomXpos, plotMargin.top + HEIGHT + plotMargin.bump);
             CTX.stroke();
 
-            //render x axis
             CTX.moveTo(plotMargin.left - plotMargin.bump, plotMargin.top + HEIGHT + plotMargin.bump);
             CTX.lineTo(recomXpos, plotMargin.top + HEIGHT + plotMargin.bump);
             CTX.stroke();
 
-            // X ticks
 
             let xStep = Math.ceil((xMax - xMin) / 5);
             let xTickDistance = WIDTH / 5;

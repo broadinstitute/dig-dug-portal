@@ -1,22 +1,7 @@
 import LocusZoom from "locuszoom"
 import idCounter from "@/utils/idCounter"
 import { applyNamespaces, mutate_attrs, query_attrs }  from "locuszoom/esm/helpers/layouts"
-// Layout wrapper
-// new LzLayout(locuszoom_layout_object)
-// new LzLayout(locuszoom_layout_object, optionals)
-// new LzLayout(locuszoom_layout_string)
-// new LzLayout(locuszoom_layout_string, optionals)
-// methods
-// - withNamespace(original, target)
-// - addFields(fieldnames)
-// - configuredWith(property, value)
-// - addRule
-// getters
-// - full
 
-// FIXME: Recommend this class for total removal.
-//  This effectively wraps the LocusZoom.Layouts registry, with several custom functions that introduce major bugs while re-implementing existing functionality.
-//  It will likely need to be removed before LZjs 0.14, which will change how namespaces work
 export class LzLayout {
     layout = null;
     constructor(firstParam, secondParam, shared_name=undefined) {
@@ -33,16 +18,10 @@ export class LzLayout {
     }
     
     withNamespace(original_namespace, target_namespace) {
-        // TODO: ACHTUNG: The original solution that just used `renameFields`, was a leaky abstraction: https://github.com/statgen/locuszoom/issues/249
-        // as a dumb workaround I'm introducing a way of correcting errors from broad-based field edits
-        // something better would let me edit all of the namespaces in a layout at once, without having to use `LocusZoom.Layout.get`, so namespaces could be given later/at any time.
         
-        // TODO: does `applyNamespaces` helper work here? ask Andy.
 
-        // known interfering fields:
         const fragile_fields = ['type', 'tag', 'id'];
 
-        // test for the false positive edits before they're made
         const false_positive = (field, namespace) => `$..data_layers[?(@.${field} === "${namespace}")]`
         const false_positive2 = (field, namespace) => `$..toolbar.*[?(@.${'data_layer_id'} === "${namespace}")]`
 
@@ -53,20 +32,18 @@ export class LzLayout {
             ), []
         ).length > 0;
 
-        // this function rewrites all of the namespace-relevant fields
         this.layout = LocusZoom.Layouts.renameField(
             this.layout, 
             original_namespace, 
             target_namespace, 
         )
         
-        // correct the false positive edits
         if (has_false_positives) {
             const correction_target = (field, namespace) => `${false_positive(field, namespace)}.${field}`
             const correction_target2 = (field, namespace) => `${false_positive2(field, namespace)}.${field}`
             fragile_fields.forEach(field => {
-                LocusZoom.Layouts.mutate_attrs(this.layout, correction_target(field, target_namespace), original_namespace); // since `original_namespace` was the correct value, no need to redeclare
-                LocusZoom.Layouts.mutate_attrs(this.layout, correction_target2(field, target_namespace), original_namespace); // since `original_namespace` was the correct value, no need to redeclare
+                LocusZoom.Layouts.mutate_attrs(this.layout, correction_target(field, target_namespace), original_namespace);
+                LocusZoom.Layouts.mutate_attrs(this.layout, correction_target2(field, target_namespace), original_namespace);
             })
         }
 
@@ -102,7 +79,6 @@ export class LzLayout {
                 return this;
             }
         }
-        // side effect
         LocusZoom.Layouts.mutate_attrs(this.layout, property, value);
         return this;
     }
@@ -136,7 +112,6 @@ export class LzLayout {
         return this;
     }
 
-    // use to rename fields like posteriorProbability => posterior_prob, p_value => pValue, etc;
     renameField(field_before, field_after) {
         LocusZoom.Layouts.renameFields(this.layout, field_before, field_after);
         return this;
@@ -156,18 +131,6 @@ export class LzLayout {
     }
 }
 
-// Datasource wrapper
-// -> BioIndexDatsource Wrapper
-// new LzDataSource(name, BaseAdapter, params)
-// -> registers BaseAdapter if it doesn't exist in Lz?
-// new LzDataSource(BaseAdapter, params)
-// -> registers BaseAdapter if it doesn't exist in Lz?
-// methods
-// - withNamespace(target)
-// - withParams(parameters)
-// - withParam(name, value)
-// getters
-// - full
 
 export class LzDataSource {
     name = null;
@@ -180,14 +143,12 @@ export class LzDataSource {
             this.name = firstParam;
         }
         if (secondParam === Object(secondParam)) {
-            //
         }
         this.params = thirdParam;
     }
 
     withName(target) {
         this.name = target;
-        // TODO
         return this;
     }
 
@@ -199,7 +160,6 @@ export class LzDataSource {
     withParam(name, value) {
         this.params = {
             ...this.params,
-            // overrides previous params
             [name]: value
         }
         return this;
@@ -218,17 +178,6 @@ export class LzDataSource {
     }
 }
 
-// DataClass Component
-// new LzPanelClass(new LzLayout, new LzDataSource)
-// constructor:
-// - create namespaces
-// methods:
-// - initialize(plot)
-// => registers everything to plot
-// getters:
-// - namespaced datasource
-// - namespaced layout
-// - destructable layout, datasource
 
 export class LzPanelClass {
     #identifier
@@ -259,7 +208,6 @@ export class LzPanelClass {
                 this.#layout.layout
             ],
             sources: [
-                // TODO: this should have been obscured by this.#datasource with a getter but i haven't been able to get it to work
                 [this.#datasource.name, new this.#datasource.datasource(this.#datasource.params)]
             ]
         }
@@ -281,28 +229,3 @@ export function bioIndexParams(index, firstKey, translator, secondKey, onLoad=id
 }
 
 export const queryForDataLayerById = data_layer_id => `$..data_layers[?(@.id === "${data_layer_id}")]`;
-
-// Testing
-// In the end, these interfaces are meant to replace what are essentially the same data structures
-// So I can test for equivalence of the different ways to use the data structures with the final result.
-
-// new LzPanelClass(
-//     new LzLayout('association_catalog'),
-//     new LzDataSource(LZBioIndexSource, {
-//         index: 'associations',
-//         firstParam: `${phenotype}`
-//     }),
-//     'assoc'
-// )
-
-// new LzPanelClass(
-//     new LzLayout('association_catalog'),
-//     new LzDataSource('BioindexDatasource', {
-//         index: 'associations',
-//         // indexes the query string
-//         firstParam: `${phenotype}`,
-//         // overrides region information for query
-//         // secondParam: ``
-//     }),
-//     'assoc'
-// )

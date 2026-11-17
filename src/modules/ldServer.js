@@ -1,6 +1,3 @@
-/*
-! LD Server specific data
-*/
 
 import { postAlertError } from "@/components/Alert";
 import * as raremetal from "raremetal.js";
@@ -14,7 +11,7 @@ export default {
             variants: [],
             masks: [],
             covariances: [],
-            runTestsError: "", //error to display if test failed
+            runTestsError: "",
         };
     },
     mutations: {
@@ -29,13 +26,11 @@ export default {
         },
     },
     actions: {
-        // fetch all the phenotypes available
         async getPhenotypes({ state, commit }) {
             let json = await fetch(
                 "https://ld.hugeamp.org/aggregation/metadata"
             ).then((resp) => resp.json());
 
-            // phenotypes for dataset
             commit(
                 "setPhenotypes",
                 json.data[0].phenotypeDatasets[0].phenotypes
@@ -56,15 +51,15 @@ export default {
                     stop: region.end,
                     genotypeDataset: 1,
                     phenotypeDataset: 1,
-                    variantFormat: "COLONS", //optinal, input and output format for requests
-                    phenotype: phenotype, //string only, no array
+                    variantFormat: "COLONS",
+                    phenotype: phenotype,
                     samples: "ALL",
                     genomeBuild: build,
                     maskDefinitions: [
                         {
-                            id: 1, //integer, required
-                            name: "Fetch Data", //required
-                            description: "Default", //required
+                            id: 1,
+                            name: "Fetch Data",
+                            description: "Default",
                             genome_build: build,
                             group_type: "GENE",
                             identifier_type: "ENSEMBL",
@@ -75,7 +70,6 @@ export default {
                     ],
                 };
             } else {
-                //TopMed dataset
                 const datasets = [
                     { phenotype: "FG", id: 6 },
                     { phenotype: "T2D", id: 7 },
@@ -87,15 +81,15 @@ export default {
                     stop: region.end,
                     summaryStatisticDataset: datasets.find(
                         (p) => p.phenotype === phenotype
-                    ).id, //for different versions and phenotypes
+                    ).id,
                     variantFormat: "COLONS",
                     samples: "ALL",
                     genomeBuild: build,
                     maskDefinitions: [
                         {
-                            id: 1, //integer, required
-                            name: "Fetch Data", //required
-                            description: "Default", //required
+                            id: 1,
+                            name: "Fetch Data",
+                            description: "Default",
                             genome_build: build,
                             group_type: "GENE",
                             identifier_type: "ENSEMBL",
@@ -107,10 +101,8 @@ export default {
                 };
             }
 
-            //console.log("query", query);
             let json = await fetch(
                 "https://ld.hugeamp.org/aggregation/covariance",
-                //"http://ec2-18-233-76-234.compute-1.amazonaws.com:5000/aggregation/covariance",
                 {
                     method: "POST",
                     headers: {
@@ -129,19 +121,15 @@ export default {
                 })
                 .then((json) => {
                     samples = json.data.nSamples;
-                    // Use the returned covariance data to run aggregation tests and return results (note that runner.run() returns a Promise)
                     const [groups, variants] =
                         raremetal.helpers.parsePortalJSON(json);
                     const runner = new raremetal.helpers.PortalTestRunner(
                         groups,
                         variants,
                         tests
-                        // One or more test names can be specified!
-                        //["burden", "skat", "skat-o", "vt"]
                     );
                     return runner.run();
                 });
-            //.then(resp => resp);
 
             return { phenotype, samples, data: json };
         },
@@ -157,12 +145,7 @@ export default {
 
             try {
                 let data = await Promise.all(queries);
-                // .then(results => {
-                //     return [].concat.apply([], results);
-                // })
-                // .then(data => {
 
-                // });
                 context.commit("setError", "");
                 context.commit("setCovariances", data);
             } catch (e) {

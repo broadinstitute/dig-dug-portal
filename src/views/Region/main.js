@@ -98,7 +98,6 @@ new Vue({
     },
 
     async created() {
-        // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -181,17 +180,6 @@ new Vue({
                 )}-${Number.parseInt(end)}`;
             }
         },
-        /*
-                exploreExpanded() {
-                    this.$store.commit("setLocus", {
-                        chr: this.$store.state.chr,
-                        //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
-                        start: parseInt(this.$store.state.start) - 50000,
-                        end: parseInt(this.$store.state.end) + 50000
-                    });
-                    this.$store.dispatch("queryRegion");
-                },
-                */
 
         updatePageAssociations({ phenotype, data }) {
             this.pageAssociationsMap[phenotype] = data;
@@ -200,7 +188,6 @@ new Vue({
             ).flatMap(pam => pam[1]);
         },
 
-        // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
             let onLoad = this.updateAssociationsTable;
@@ -218,14 +205,11 @@ new Vue({
                     credibleSetId
                 );
             } else if (credibleSetId === "computed") {
-                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
                 if (keyParams.phenotype) {
-                    //get phenotype list from url
                     this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
                         keyParams.phenotype.split(",")[0]
                     );
                 } else if (this.$store.state.phenotypeParam) {
-                    //get phenotype list from state if url is empty
                     this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
                         this.$store.state.phenotypeParam.split(",")[0]
                     );
@@ -292,7 +276,6 @@ new Vue({
             }
             return utils;
         },
-        /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";
@@ -310,7 +293,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        ///
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {
@@ -375,10 +357,7 @@ new Vue({
             return Formatters.locusFormatter(chr, start, end);
         },
 
-        // Give the top associations, find the best one across all unique
-        // phenotypes available.
         topAssociations() {
-            // Filter by ancestry if one is provided
             let data = this.$store.state.ancestry == ""
                 ? this.$store.state.topAssociations.data
                 : this.$store.state.ancestryTopAssoc.data;
@@ -387,7 +366,6 @@ new Vue({
             for (let i in data) {
                 const assoc = data[i];
 
-                // skip associations not part of the disease group
                 if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
@@ -396,12 +374,9 @@ new Vue({
                     assocMap[assoc.phenotype] = assoc;
                 }
             }
-            // region loaded, hide search
             uiUtils.hideElement("regionSearchHolder");
-            // convert to an array, sorted by p-value 
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             if (x[0]) {
-                //This is our top phenotype. 
                 keyParams.set({ phenotype: x[0].phenotype });
                 if (this.$store.state.ancestry) {
                     let ancestryAssocQuery = `${x[0].phenotype},${this.$store.state.ancestry},${this.$store.getters.region}`;
@@ -412,7 +387,6 @@ new Vue({
             return x;
         },
         globalEnrichmentAnnotations() {
-            // an array of annotations
             let annotations = sortUtils.uniqBy(
                 this.$store.state.globalEnrichment.data,
                 el => el.annotation
@@ -424,7 +398,6 @@ new Vue({
                 this.$store.state.globalEnrichment.data,
                 el => el.tissue
             );
-            //sort the tissues
             return tissues;
         },
         associationConsequences() {
@@ -446,11 +419,6 @@ new Vue({
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap"(phenotypeMap) {
-            /*let phenotypes = keyParams.phenotype;
-
-            if (!!phenotypes) {
-                this.setCriterionPhenotypes(phenotypes.split(","));
-            }*/
         },
         "$store.state.globalEnrichment.data"(enrichment) {
             let groups = {};
@@ -487,7 +455,6 @@ new Vue({
             }
             keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
 
-            // reload the global enrichment for these phenotypes
             this.$store.dispatch("globalEnrichment/clear");
             phenotypes.forEach(p => {
                 this.$store.dispatch("globalEnrichment/query", {
@@ -498,7 +465,6 @@ new Vue({
         },
         "$store.state.clearPhenotypeFlag"(shouldClear) {
             if (shouldClear) {
-                //keyParams.set({ phenotype: undefined });
                 this.setCriterionPhenotypes([]);
                 this.$store.commit("phenotypesCleared");
             }
@@ -507,28 +473,19 @@ new Vue({
             keyParams.set({ ancestry: ancestry });
         },
         topAssociations(top) {
-            // stop if no phenotype map
             if (!this.$store.state.bioPortal.phenotypeMap) {
                 return;
             }
 
-            // stop already phenotypes selected or no top associations
             if (top.length == 0) {
                 return;
             }
 
-            // prefer url over the top associations
-            //let keyPhenotypes = keyParams.phenotype;
-            /*if (!!keyPhenotypes) {
-                this.setCriterionPhenotypes(keyPhenotypes.split(","));
-            } else {*/
             let topAssoc = top[0];
             let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
                 topAssoc.phenotype
             ];
-            // update the master list
             this.setCriterionPhenotypes([topPhenotype.name]);
-            //}
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);

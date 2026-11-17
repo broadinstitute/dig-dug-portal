@@ -68,7 +68,6 @@ class VariantAssociationTests(unittest.TestCase):
         self.assertTrue(passed["release_p_values"])
 
     def test_dense_lmm_uses_aligned_grm_and_is_ols_at_identity(self):
-        # With an identity GRM, covariance is scalar and GLS equals OLS.
         ids = self.ids[:35]
         c = self.c[:35]
         y = self.y[:35]

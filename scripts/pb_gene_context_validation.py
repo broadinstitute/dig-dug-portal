@@ -49,7 +49,6 @@ def _finite_float(value):
 
 
 def load_hpo_matrix(path, query_hpo):
-    """Load a binary sample-by-HPO TSV into CSR form without a dense copy."""
     sample_ids = []
     row_indices = []
     column_indices = []
@@ -88,7 +87,6 @@ def load_hpo_matrix(path, query_hpo):
 
 
 def load_overlap_roster(path):
-    """Return the validated both-roster plus aggregate overlap-status counts."""
     sample_ids = []
     counts = Counter()
     with _open_text(path) as handle:
@@ -125,7 +123,6 @@ def _required_float(value, label):
 
 
 def load_covariates(path, analysis_sample_ids):
-    """Load and align age, three-level sex, and PC1-PC10 to the analysis roster."""
     analysis_sample_ids = [str(value) for value in analysis_sample_ids]
     rows = {}
     with _open_text(path) as handle:
@@ -197,7 +194,6 @@ def load_covariates(path, analysis_sample_ids):
 
 
 def reconstruct_pathogenic_score(row):
-    """Reconstruct the Extended Pathogenic Score used for display."""
     score, source = variant_pathogenic_scores(row)["extended"]
     stored = _finite_float(row.get("pathogenicity_score"))
     expected = 0.0 if score is None else score
@@ -208,7 +204,6 @@ def reconstruct_pathogenic_score(row):
 
 
 def reconstruct_burden_pathogenic_score(row):
-    """Reconstruct the LoFTEE HC/AlphaMissense-only score used in X."""
     return variant_pathogenic_scores(row)["burden"]
 
 
@@ -232,7 +227,6 @@ def _normalized_evidence_row(raw, gene):
 
 
 def load_gene_evidence(path, genes, analysis_sample_ids):
-    """Stream the evidence TSV and retain requested-gene carriers in the analysis roster."""
     genes = [str(gene).strip().upper() for gene in genes]
     requested = set(genes)
     analysis_sample_ids = set(str(value) for value in analysis_sample_ids)
@@ -261,7 +255,6 @@ def load_gene_evidence(path, genes, analysis_sample_ids):
 
 def load_gene_evidence_bioindex(host, gene, analysis_sample_ids, access_token=None,
                                 index="gene-variants-crdc", sample_id_map=None):
-    """Fetch all private Gene pages and align carrier IDs to the PheRS roster."""
     host = str(host).rstrip("/")
     sample_set = set(str(value) for value in analysis_sample_ids)
     if index not in {"gene-variants-crdc", "gene-samples"}:
@@ -437,7 +430,6 @@ def _gene_result(
 
 
 class ContextAnalysisEngine:
-    """Preload cohort inputs and cache HPO vectors and per-gene burden inputs."""
 
     def __init__(self, hpo_path, roster_path, evidence_path, covariate_path=None, gene_association_runner=None,
                  bioindex_host=None, bioindex_access_token=None, bioindex_evidence_index="gene-variants-crdc"):
@@ -618,7 +610,6 @@ class ContextAnalysisEngine:
         }
 
     def phenotype_profile(self, query_hpo, filters=None, page=1, page_size=25):
-        """Page real HPO observations and the existing residual PheRS calculation."""
         terms = tuple(sorted(set(str(term).strip().upper() for term in query_hpo)))
         if not terms:
             raise ValueError("at least one HPO term is required")
@@ -675,7 +666,6 @@ class ContextAnalysisEngine:
         }
 
     def variant_carrier_residuals(self, gene, variant_id, query_hpo, affected_only=False):
-        """Private, exact-variant carrier residuals; never enumerate the full cohort."""
         gene = str(gene or "").strip().upper()
         canonical = str(variant_id or "").lower().removeprefix("chr")
         terms = tuple(sorted(set(str(term).strip().upper() for term in query_hpo if str(term).strip())))
@@ -845,7 +835,6 @@ def run_validation(
     audit_dir=None,
     covariate_path=None,
 ):
-    """Calculate Y once and return aggregate endpoint-shaped results for each gene."""
     genes = list(dict.fromkeys(str(gene).strip().upper() for gene in genes))
     engine = ContextAnalysisEngine(
         hpo_path,

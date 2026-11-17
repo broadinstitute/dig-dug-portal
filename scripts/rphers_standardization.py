@@ -1,4 +1,3 @@
-"""Display units for existing residual PheRS; never fit or change a model."""
 
 import hashlib
 import json
@@ -11,7 +10,6 @@ VERSION = "rphers_scoring_cohort_sample_sd_v1"
 
 
 def scoring_identity(matrix, columns, sample_ids):
-    """Content identifiers, without exposing reference-cohort sample IDs."""
     cohort = hashlib.sha256(json.dumps(list(map(str, sample_ids)), separators=(",", ":")).encode()).hexdigest()
     content = hashlib.sha256(json.dumps(list(columns), separators=(",", ":")).encode())
     values = sparse.csr_matrix(matrix, dtype=np.float64, copy=True)
@@ -75,7 +73,6 @@ def standardized_value(value, reference, *, center=False, step=1.0):
 
 
 def association_with_sd(association, reference, *, gene=False):
-    """Derive only from raw named fields; cached raw dictionaries stay intact."""
     row = dict(association)
     available = row.get("status") == "ok"
     row.update(

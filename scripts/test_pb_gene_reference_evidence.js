@@ -5,11 +5,11 @@ const row = (source, code, genes, extra = {}) => ({ source, code, referenceId: `
     matchedIds: ['HP:0000001'], score: .3, ...extra });
 const orphanet = [row('orphanet', 1, ['X'], { rank: 1 }), row('orphanet', 2, ['LOW'], { score: .05, rank: 2 })];
 const additional = [
-    row('omim', 1, ['x', 'X', 'Y']), // A record ID can exist in another DB.
+    row('omim', 1, ['x', 'X', 'Y']),
     row('ddg2p', 1, ['X', 'Z']),
     row('omim', 2, ['EXCLUDED'], { excludedBy: ['HP:0000002'] }),
     row('omim', 3, ['Y']),
-    row('decipher', 1, []), // An unmapped disease must not imply gene evidence.
+    row('decipher', 1, []),
 ];
 const result = buildGeneReferenceEvidence(orphanet, additional, { multi: true });
 assert.deepEqual(result.X.map(link => link.source), ['orphanet', 'omim', 'ddg2p']);

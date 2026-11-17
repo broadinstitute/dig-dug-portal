@@ -112,14 +112,12 @@ export default Vue.component("kp-region-viewer", {
 		associationData() {
 			if (this.plotsList != null) {
 				let assoData = {};
-				/// add each plotting groups data wrappers to assoData
 				this.plotsList.map((p) => {
 					assoData[p] = {};
 					assoData[p]["association"] = {};
 					assoData[p]["associationHi"] = null;
 					assoData[p]["associationLow"] = null;
 
-					//set this.gateredData object for LD & recombination rate, or any other features in the future
 					if (this.renderConfig.features.length > 0) {
 						this.renderConfig.features.map((f) => {
 							assoData[p][f] = {};
@@ -135,7 +133,6 @@ export default Vue.component("kp-region-viewer", {
 						});
 					}
 				});
-				// gather data for association plot
 				var populationsObj = {};
 				this.plotData.map((p) => {
 					let group = p[this.renderConfig.plotsBy];
@@ -153,8 +150,6 @@ export default Vue.component("kp-region-viewer", {
 					assoData[group].association[p[this.renderConfig.renderBy]] =
 						tempObj;
 
-					// set high and low values of association data
-					// set association high
 					let assoHi = assoData[group].associationHi;
 					assoData[group].associationHi =
 						assoHi == null
@@ -162,7 +157,6 @@ export default Vue.component("kp-region-viewer", {
 							: yFieldValue > assoHi
 							? yFieldValue
 							: assoHi;
-					// set association low
 					let assoLow = assoData[group].associationLow;
 
 					assoData[group].associationLow =
@@ -172,7 +166,6 @@ export default Vue.component("kp-region-viewer", {
 							? yFieldValue
 							: assoLow;
 
-					// set ld reference variant
 					if (this.renderConfig.features.includes("LD")) {
 						assoData[group].ldReference.variant =
 							assoHi == null
@@ -181,7 +174,6 @@ export default Vue.component("kp-region-viewer", {
 								? p[this.renderConfig.renderBy]
 								: assoData[group].ldReference.variant;
 
-						//gather population IDs for the next step, setting LD population
 						populationsObj[group] = !!populationsObj[group]
 							? populationsObj[group]
 							: [];
@@ -212,7 +204,6 @@ export default Vue.component("kp-region-viewer", {
 	},
 	watch: {
 		plotsList(DATA) {
-			// this one can be removed later
 			if (DATA != null) {
 			}
 		},
@@ -347,7 +338,7 @@ export default Vue.component("kp-region-viewer", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#007BFF";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
 			DATA.position.map((xPos, xPosIndex) => {
 				let x1PosPixel = (xPos - START) * xPixel;
@@ -382,9 +373,8 @@ export default Vue.component("kp-region-viewer", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
-			// render y axis
 			CTX.moveTo(this.plotLayout.leftMargin, this.plotLayout.topMargin);
 			CTX.lineTo(
 				this.plotLayout.leftMargin,
@@ -393,7 +383,6 @@ export default Vue.component("kp-region-viewer", {
 
 			CTX.stroke();
 
-			// render recombination Rate y axis
 			if (plotType == "association") {
 				CTX.moveTo(
 					this.plotLayout.leftMargin + plotWidth,
@@ -407,7 +396,6 @@ export default Vue.component("kp-region-viewer", {
 				CTX.stroke();
 			}
 
-			//render x axis
 			CTX.moveTo(
 				this.plotLayout.leftMargin,
 				plotHeight + this.plotLayout.topMargin + 5
@@ -418,12 +406,11 @@ export default Vue.component("kp-region-viewer", {
 			);
 			CTX.stroke();
 
-			// Y ticks
 			let yStep = (yMax - yMin) / 4;
 			let yTickDistance = plotHeight / 4;
 			for (let i = 0; i < 5; i++) {
 				let tickYPos = this.plotLayout.topMargin + i * yTickDistance;
-				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickYPos = Math.floor(tickYPos) + 0.5;
 				CTX.moveTo(this.plotLayout.leftMargin - 5, adjTickYPos);
 				CTX.lineTo(this.plotLayout.leftMargin, adjTickYPos);
 				CTX.stroke();
@@ -442,14 +429,13 @@ export default Vue.component("kp-region-viewer", {
 				);
 			}
 
-			// render recombination Rate y ticks
 			if (plotType == "association") {
 				let yStep = 20;
 				let yTickDistance = plotHeight / 5;
 				for (let i = 0; i < 6; i++) {
 					let tickYPos =
 						this.plotLayout.topMargin + i * yTickDistance;
-					let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+					let adjTickYPos = Math.floor(tickYPos) + 0.5;
 					CTX.moveTo(
 						this.plotLayout.leftMargin + plotWidth,
 						adjTickYPos
@@ -475,7 +461,6 @@ export default Vue.component("kp-region-viewer", {
 				}
 			}
 
-			// X ticks
 			let xStep = plotType == "LD" ? 0.2 : Math.ceil((xMax - xMin) / 5);
 			let xTickDistance =
 				plotType == "association"
@@ -485,7 +470,7 @@ export default Vue.component("kp-region-viewer", {
 			for (let i = 0; i < 6; i++) {
 				let tickXPos =
 					this.plotLayout.leftMargin + i * xTickDistance + 5;
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos) + 0.5;
 				CTX.moveTo(
 					adjTickXPos,
 					this.plotLayout.topMargin + plotHeight + 5
@@ -524,11 +509,9 @@ export default Vue.component("kp-region-viewer", {
 						xTickDistance - 1,
 						plotHeight
 					);
-					//CTX.fillRect(position, this.topMargin, xStep, plotHeight);
 				}
 			}
 
-			//Render y axis label
 			CTX.font = "14px Arial";
 			CTX.textAlign = "center";
 			CTX.fillStyle = "#000000";
@@ -539,12 +522,10 @@ export default Vue.component("kp-region-viewer", {
 				this.plotLayout.leftMargin - this.plotLayout.leftMargin / 2 - 14
 			);
 
-			//Render recombination rate label
 			if (plotType == "association") {
 				CTX.font = "14px Arial";
 				CTX.textAlign = "center";
 				CTX.fillStyle = "#000000";
-				//CTX.rotate(-(Math.PI * 2) / 4);
 				CTX.fillText(
 					"Recombination Rate (cM/Mb)",
 					-(this.plotLayout.topMargin + plotHeight / 2),
@@ -552,7 +533,6 @@ export default Vue.component("kp-region-viewer", {
 				);
 			}
 
-			//Render x axis label
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 			CTX.fillText(
 				xLabel,
@@ -566,7 +546,6 @@ export default Vue.component("kp-region-viewer", {
 		callLD() {
 			this.state.ldData = [];
 			this.plotsList.map((group) => {
-				//this.state.ldData[group] = {};
 			});
 
 			let index = 0;
@@ -582,7 +561,6 @@ export default Vue.component("kp-region-viewer", {
 			this.getSignalData();
 		},
 		async getLDData(REF_VARIANT, ANCESTRY, GROUP) {
-			//check if ld data exist
 			let ldURL =
 				"https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations/" +
 				ANCESTRY +

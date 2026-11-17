@@ -86,8 +86,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("queryVariant", keyParams.variant);
-        //alert(store.state.variant.nearest);
-        //alert("5");
     },
 
     render(createElement, context) {
@@ -121,9 +119,6 @@ new Vue({
         },
 
         varId() {
-            /*if (this.$store.state.variant){
-                console.log(JSON.stringify(this.$store.state.variant));
-            }*/
             if (this.$store.state.variant && this.$store.state.variant.varId){
                 return this.$store.state.variant && this.$store.state.variant.varId;
             } else {
@@ -184,12 +179,10 @@ new Vue({
             let phenotypes = this.$store.state.bioPortal.phenotypeMap;
             let associations = this.$store.state.phewas.data;
 
-            // filter associations w/ no phenotype data (not in portal!)
             let portalAssociations = associations.filter(a => {
                 return !!phenotypes[a.phenotype];
             });
 
-            // transform from bio index to locuszoom
             let phewas = portalAssociations.map(a => {
                 let phenotype = phenotypes[a.phenotype];
 
@@ -215,15 +208,13 @@ new Vue({
         },
 
         variantData(data) {
-            //! data is an array
             if (data.length > 0) {
-                this.$store.commit("setVariant", data[0]); // only ever 1 result
+                this.$store.commit("setVariant", data[0]);
             }
         },
 
         "$store.state.variant"(variant) {
             if (variant) {
-                //console.log(variant);
                 let p = this.chromPos;
 
                 this.$store.dispatch("phewas/query", { q: variant.varId });

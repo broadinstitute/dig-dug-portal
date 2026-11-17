@@ -46,7 +46,6 @@ let renderDashedLine = function (CTX, X1, Y1, X2, Y2, WIDTH, COLOR, DASH) {
     CTX.moveTo(X1, Y1);
     CTX.lineTo(X2, Y2);
     CTX.stroke();
-    // reset
     CTX.setLineDash([]);
 }
 
@@ -65,10 +64,8 @@ const renderLine = function (
 
     CTX.beginPath();
     CTX.lineWidth = 1;
-    //CTX.strokeStyle = "#000000";
     CTX.font = "24px Arial";
-    //CTX.fillStyle = "#000000";
-    CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+    CTX.setLineDash([]);
 
 
     let dataGroupKeys = {};
@@ -88,7 +85,6 @@ const renderLine = function (
     }
 
 
-    //let valueBump = (MAX - MIN) / TICK_NUM;
     let max = Math.ceil(MAX);
     let min = Math.floor(MIN);
 
@@ -162,7 +158,7 @@ const renderLine = function (
 
 const renderPie = function (CTX, DATA, WIDTH, HEIGHT, COLOR) {
     let lastend = - Math.PI / 2;
-    let valueTotal = 0; // Automatically calculated so don't touch
+    let valueTotal = 0;
     let dataKeys = Object.keys(DATA);
     let w = WIDTH / 2
     let h = HEIGHT / 2
@@ -178,7 +174,6 @@ const renderPie = function (CTX, DATA, WIDTH, HEIGHT, COLOR) {
         CTX.lineWidth = 1;
         CTX.beginPath();
         CTX.moveTo(w, h);
-        // Arc Parameters: x, y, radius, startingAngle (radians), endingAngle (radians), antiClockwise (boolean)
         CTX.arc(
             w,
             h,
@@ -217,13 +212,12 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
     CTX.strokeStyle = "#000000";
     CTX.font = "24px Arial";
     CTX.fillStyle = "#000000";
-    CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+    CTX.setLineDash([]);
 
 
     let dataKeys = Object.keys(DATA);
     let dataLength = dataKeys.length;
     let barWidth = (WIDTH - MARGIN.left - MARGIN.right - (SPACER * (dataLength + 1))) / dataLength;
-    //let valueBump = (MAX - MIN) / TICK_NUM;
     let max = Math.ceil(MAX);
     let min = Math.floor(MIN);
 
@@ -235,7 +229,7 @@ const renderBars = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, TICK_NUM, DA
                 let tickXPos1 = (MARGIN.left + SPACER) + i * xTickDistance;
                 let tickXPos2 = (MARGIN.left + SPACER) + (i + 1) * xTickDistance;
                 let tickXPos = tickXPos1 + ((tickXPos2 - tickXPos1) / 2);
-                let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+                let adjTickXPos = Math.floor(tickXPos) + 0.5;
 
                 CTX.fillStyle = (COLORS == "single") ? colors[0] : colors[i % colors.length];
 
@@ -265,7 +259,7 @@ const renderTicksByKeys = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, KEYS,
     CTX.strokeStyle = "#000000";
     CTX.font = "24px Arial";
     CTX.fillStyle = "#000000";
-    CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+    CTX.setLineDash([]);
 
     switch (DIRECTION) {
         case "x":
@@ -354,17 +348,15 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
     CTX.strokeStyle = "#000000";
     CTX.font = "24px Arial";
     CTX.fillStyle = "#000000";
-    CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+    CTX.setLineDash([]);
 
     switch (DIRECTION) {
         case "x":
-            // render x axis
             CTX.moveTo(MARGIN.left, HEIGHT - MARGIN.bottom);
             CTX.lineTo(WIDTH - MARGIN.right, HEIGHT - MARGIN.bottom);
             CTX.stroke();
 
             if (WITH_TICKS != null) {
-                // X ticks
                 let xStep = (max - min) / WITH_TICKS;
                 let xTickDistance = (WIDTH - MARGIN.left - MARGIN.right) / WITH_TICKS;
 
@@ -396,7 +388,6 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
             }
             break;
         case "y":
-            // render y axis
             CTX.moveTo(MARGIN.left, MARGIN.top);
             CTX.lineTo(MARGIN.left, HEIGHT - MARGIN.bottom);
             CTX.stroke();
@@ -405,10 +396,7 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 
                 let valueBump = (max - min) / WITH_TICKS;
 
-                //max = Math.ceil(max + valueBump);
-                //min = Math.floor(min - valueBump);
 
-                // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;
                 let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom) / WITH_TICKS;
                 for (let i = 0; i <= WITH_TICKS; i++) {
@@ -439,8 +427,6 @@ const renderAxis = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, 
 };
 
 const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TICKS, MIN, MAX, LABEL) {
-    //CTX, WIDTH, HEIGHT, MARGIN(left,right,top,bottom,bump in number), DIRECTION(x or y), 
-    // WITH_TICKS(number of thicks. null for none), MIN, MAX
 
     let max = MAX;
     let min = MIN;
@@ -452,23 +438,21 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
     CTX.strokeStyle = "#000000";
     CTX.font = "24px Arial";
     CTX.fillStyle = "#000000";
-    CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+    CTX.setLineDash([]);
 
     switch (DIRECTION) {
         case "x":
-            // render x axis
             CTX.moveTo(MARGIN.left - MARGIN.bump, HEIGHT + MARGIN.bump - MARGIN.bottom);
             CTX.lineTo(WIDTH + MARGIN.bump - MARGIN.right, HEIGHT + MARGIN.bump - MARGIN.bottom);
             CTX.stroke();
 
             if (WITH_TICKS != null) {
-                // X ticks
                 let xStep = (max - min) / WITH_TICKS;
                 let xTickDistance = (WIDTH - MARGIN.left - MARGIN.right) / WITH_TICKS;
 
                 for (let i = 0; i <= WITH_TICKS; i++) {
                     let tickXPos = MARGIN.left + i * xTickDistance;
-                    let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
+                    let adjTickXPos = Math.floor(tickXPos);
                     CTX.moveTo(
                         adjTickXPos,
                         HEIGHT - MARGIN.bottom + MARGIN.bump
@@ -506,19 +490,17 @@ const renderAxisWBump = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
             }
             break;
         case "y":
-            // render y axis
             CTX.moveTo(MARGIN.left - MARGIN.bump, MARGIN.top - MARGIN.bump);
             CTX.lineTo(MARGIN.left - MARGIN.bump, HEIGHT + MARGIN.bump - MARGIN.bottom);
             CTX.stroke();
 
             if (WITH_TICKS != null) {
 
-                // render Y ticks
                 let yStep = (max - min) / WITH_TICKS;
                 let yTickDistance = (HEIGHT - MARGIN.top - MARGIN.bottom) / WITH_TICKS;
                 for (let i = 0; i <= WITH_TICKS; i++) {
                     let tickYPos = MARGIN.top + i * yTickDistance;
-                    let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
+                    let adjTickYPos = Math.floor(tickYPos);
                     CTX.moveTo(MARGIN.left - MARGIN.bump, adjTickYPos);
                     CTX.lineTo(MARGIN.left - MARGIN.bump * 2, adjTickYPos);
                     CTX.stroke();
@@ -564,7 +546,7 @@ const renderGuideLine = function (CTX, WIDTH, HEIGHT, MARGIN, DIRECTION, WITH_TI
 
     CTX.beginPath();
     CTX.lineWidth = 1;
-    CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+    CTX.setLineDash([]);
 
     switch (DIRECTION) {
         case "x":
@@ -646,18 +628,15 @@ const renderDots = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX,
 }
 
 const renderBestFitLine = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN, YMAX, COLOR, DATA) {
-    //x,y must have same amount of data points
-    //x,y cannot contain missing values
 
-    //calculate best fit line
     const sum = [0, 0, 0, 0];
     let len = DATA.length;
 
     for (let n = 0; n < len; n++) {
-        sum[0] += DATA[n].xValue;                   //x
-        sum[1] += DATA[n].yValue;                   //y
-        sum[2] += DATA[n].xValue * DATA[n].xValue;  //x^2
-        sum[3] += DATA[n].xValue * DATA[n].yValue;  //x*y
+        sum[0] += DATA[n].xValue;
+        sum[1] += DATA[n].yValue;
+        sum[2] += DATA[n].xValue * DATA[n].xValue;
+        sum[3] += DATA[n].xValue * DATA[n].yValue;
     }
 
     const meanX = sum[0] / len;
@@ -669,7 +648,6 @@ const renderBestFitLine = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN
     const eX = XMAX;
     const eY = slope * eX + intcp
 
-    //calculate line start/end coordinates based on plot dimentions
     let plotWidth = WIDTH - MARGIN.left - MARGIN.right;
     let plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
     let xStep = plotWidth / (XMAX - XMIN);
@@ -680,26 +658,17 @@ const renderBestFitLine = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN
     const endX = MARGIN.left + (xStep * (eX - XMIN));
     const endY = MARGIN.top + (plotHeight - (eY - YMIN) * yStep);
 
-    //check if color is dimmed
     const dimmed = COLOR.length > 7 ? Number(COLOR.slice(-2)) < 20 ? true : false : false;
 
-    //we're going to draw a black line, with colored dots at the ends
-    //but since dot colors have transparency, the line overlaps the dots
-    //we need to calculate the direction of the line
-    //so we can shorten it without affecting its position
-    // Calculate vector from start to end
     const dx = endX - startX;
     const dy = endY - startY;
-    // Calculate unit vector
     const length = Math.sqrt(dx * dx + dy * dy);
     const udx = dx / length;
     const udy = dy / length;
-    // Calculate new start position
     const amountToSubtract = 8;
     const newStartX = startX + udx * amountToSubtract;
     const newStartY = startY + udy * amountToSubtract;
 
-    //draw the line
     CTX.strokeStyle = dimmed ? '#00000005' : '#000000';
     CTX.lineWidth = 2;
     CTX.beginPath();
@@ -707,10 +676,9 @@ const renderBestFitLine = function (CTX, WIDTH, HEIGHT, MARGIN, XMIN, XMAX, YMIN
     CTX.lineTo(endX, endY);
     CTX.stroke();
 
-    //draw dot at the start
     CTX.beginPath();
     CTX.arc(startX, startY, 10, 0, 2 * Math.PI);
-    CTX.fillStyle = COLOR; //COLOR.substring(0, COLOR.length-2);
+    CTX.fillStyle = COLOR;
     CTX.fill();
     CTX.stroke();
 }

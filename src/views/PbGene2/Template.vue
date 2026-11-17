@@ -333,7 +333,6 @@ export default {
             if (this.$refs.clinvarFilter) this.$refs.clinvarFilter.hide(true);
         },
         visibleCarrierRows: carrierTableMixin.methods.visibleCarrierRows,
-        // Gene2 intentionally has no locus surface or locus-filter requests.
         refreshLocusFilter() {},
         variantRowFacets(row) { return variantFacets(row, this.variantEvidenceValue(row, 'LOFTEE'), this.parseEvidenceNumber(row, 'AlphaMissense'), this.parseEvidenceNumber(row, 'REVEL'), ['LOFTEE', 'AlphaMissense', 'REVEL'].some(label => !this.isMissingMetadataValue(this.variantEvidenceValue(row, label)))); },
         matchesVariantFilters(row) { return matchesVariantFacets(this.variantRowFacets(row), this.variantFilters); },

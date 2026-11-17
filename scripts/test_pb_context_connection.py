@@ -1,4 +1,3 @@
-"""Check portable SSH configuration without contacting HPC or submitting jobs."""
 import json
 import os
 from pathlib import Path

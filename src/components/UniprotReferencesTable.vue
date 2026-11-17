@@ -15,19 +15,6 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
-            <!-- <template #cell(id)="data">
-                <div v-if="!!context[remap(data.item.source)]">
-                    <resolved-curie-link
-                        :id="data.item.id"
-                        :prefix="remap(data.item.source)"
-                    ></resolved-curie-link>
-                </div>
-                <div v-else>
-                    <resolved-curie-link
-                        :curie="data.item.id">
-                    </resolved-curie-link>
-                </div>
-            </template> -->
 
             <template #cell(gene)="v">
                 <a :href="'/gene.html?gene=' + v.item.gene_id">{{
@@ -107,16 +94,6 @@ export default Vue.component("UniprotReferencesTable", {
             .then((json) => json["@context"]);
     },
     methods: {
-        // remap(prefix) {
-        //     const remapping = {
-        //         'reactome': 'REACT',
-        //         'wikipathways': 'WIKIPATHWAYS'
-        //     }
-        //     if (!!remapping[prefix]) {
-        //         return remapping[prefix];
-        //     }
-        //     return prefix;
-        // },
         clearFilter(obj) {
             this[obj] = "";
         },

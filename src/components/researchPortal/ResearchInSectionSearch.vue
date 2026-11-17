@@ -144,8 +144,6 @@
 
 <script>
 import Vue from "vue";
-//import uiUtils from "@/utils/uiUtils";
-//import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-in-section-search", {
 	props: [
@@ -225,18 +223,13 @@ export default Vue.component("research-in-section-search", {
 
 			let options = [];
 			if (event.target.value.length >= 2) {
-				//let optionChrLength = 0;
 				PARAM.values.map(option => {
 					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
 						options.push(option);
 
-						//optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
 				})
 
-				//if (options.length > 1) {
-					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
-				//}
 				this.listOptions[PARAM.parameter] = options;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
@@ -283,7 +276,6 @@ export default Vue.component("research-in-section-search", {
 				console.log(s.parameter, paramValue)
 
 				if (!!this.utils.keyParams[s.parameter]) {
-					//paramValue = (!!this.utils.keyParams[s.parameter]) ? this.utils.keyParams[s.parameter] + "," + paramValue : this.utils.keyParams[s.parameter];
 				}
 				paramsObj[s.parameter] = (paramValue.charAt(0) == "{") ? JSON.parse(paramValue).value : paramValue;
 			})
@@ -390,13 +382,6 @@ export default Vue.component("research-in-section-search", {
 }
 
 #kp_gene_search_wrapper {
-	/*position: absolute;
-	background-color: #efefef;
-	border: solid 1px #ddd;
-	border-radius: 5px;
-	padding: 10px 10px;
-	z-index: 10;
-	left: 50px;*/
 }
 .custom-select-search {
 	width: 175px !important;
@@ -460,21 +445,12 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria {
-	/*position: absolute;
-	z-index: 200;
-	width: 210px;
-	left: -25px;
-	top: 10px;
-	text-align: left;
-	padding: 15px;
-	padding-left: 25px;*/
 	transition: all 0.5s;
 	background-color: #ddefff;
 	border: solid 1px #bbdfff;
 }
 
 .filtering-ui-wrapper.search-criteria.closed {
-	/*left: -225px;*/
 	transition: all 0.5s;
 }
 

@@ -193,9 +193,6 @@ export default Vue.component("research-multi-annotations-plot", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
-		//keyParams,
 	},
 	components: {},
 	mounted: function () {
@@ -278,7 +275,6 @@ export default Vue.component("research-multi-annotations-plot", {
 		searchingPhenotype() {
 			if (this.phenotype != null) {
 				this.utils.uiUtils.showElement("annotationsPlotWrapper");
-				//this.getAnnotations(this.searchingRegion);
 
 				let returnPhenotype = !!this.renderConfig["phenotype match"]
 					? this.renderConfig["phenotype match"][this.phenotype]
@@ -288,7 +284,6 @@ export default Vue.component("research-multi-annotations-plot", {
 			} else if (this.phenotype == null) {
 				if (!!this.utils.keyParams[this.renderConfig["phenotype parameter"]]) {
 					this.utils.uiUtils.showElement("annotationsPlotWrapper");
-					//this.getAnnotations(this.searchingRegion);
 
 					let phenotype =
 						this.utils.keyParams[this.renderConfig["phenotype parameter"]];
@@ -305,7 +300,6 @@ export default Vue.component("research-multi-annotations-plot", {
 		},
 	},
 	watch: {
-		///use searchParametersArr to rerender plots on search.
 		searchParametersArr(PARAM) {
 			this.renderGE();
 			this.renderByAnnotations();
@@ -341,7 +335,6 @@ export default Vue.component("research-multi-annotations-plot", {
 		},
 	},
 	methods: {
-		//...uiUtils,
 		resetAll(TYPE) {
 			if (!!TYPE && TYPE == "all") {
 				this.GEData = {};
@@ -356,7 +349,6 @@ export default Vue.component("research-multi-annotations-plot", {
 			this.annoPosData = {};
 			this.annotationOnFocus = "null";
 			this.tissueOnFocus = "null";
-			//this.renderGE();
 
 			this.pkgDataSelected.map((i) => {
 				if (i.type == "Tissue") {
@@ -372,7 +364,6 @@ export default Vue.component("research-multi-annotations-plot", {
 			this.renderByAnnotations();
 		},
 		getOverlappingRegion() {
-			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
 				!!this.renderConfig["overlapping regions"] &&
 				this.renderConfig["overlapping regions"] != "false"
@@ -427,21 +418,19 @@ export default Vue.component("research-multi-annotations-plot", {
 												  )
 												: enrichedPosition[key].concat(
 														tempArr
-												  ); // getting only intersecting positions
+												  );
 									}
 								}
 							}
 						});
 					});
 
-					//sort enriched position so I can remove position between start and end positions
 					for (const [key, arr] of Object.entries(enrichedPosition)) {
 						enrichedPosition[key].sort(function (a, b) {
 							return a - b;
 						});
 					}
 
-					//leave only start and end of overlapping regions
 					let enrichedRegion = { and: [], or: [] };
 					for (const [key, arr] of Object.entries(enrichedRegion)) {
 						for (let i = 0; i < enrichedPosition[key].length; i++) {
@@ -468,7 +457,6 @@ export default Vue.component("research-multi-annotations-plot", {
 						}
 					}
 
-					///build object of overlapping regions
 					let overlappingRegions = { and: [], or: [] };
 					for (const [key, arr] of Object.entries(enrichedRegion)) {
 						for (
@@ -509,9 +497,7 @@ export default Vue.component("research-multi-annotations-plot", {
 
 		addAnnoTrack(event) {
 			if (event.target.value != "null") {
-				//this.annotationOnFocus = event.target.value;
 
-				/// this part may not be needed
 				let selectedAnnotations = this.pkgDataSelected
 					.filter((s) => s.type == "Annotation")
 					.map((s) => s.id);
@@ -684,7 +670,6 @@ export default Vue.component("research-multi-annotations-plot", {
 			if (TYPE == "hover") {
 				if (x >= this.plotMargin.leftMargin / 2 && x <= rect.width) {
 					if (!!this.annoPosData[y]) {
-						//this.$store.dispatch("sharedPlotXpos", rawX);
 						infoContent += this.annoPosData[y].tissue;
 						for (const [region, regionValue] of Object.entries(
 							this.annoPosData[y].regions
@@ -851,7 +836,6 @@ export default Vue.component("research-multi-annotations-plot", {
 		},
 
 		getGEByTissue() {
-			/// put lowest pValue and fold across ancestries
 
 			let annotations = {};
 
@@ -872,7 +856,6 @@ export default Vue.component("research-multi-annotations-plot", {
 						if (!GEByTissue[phenotype][g.tissue]) {
 							GEByTissue[phenotype][g.tissue] = {};
 						}
-						///Adding "gregor" slot for later use.
 						if (!GEByTissue[phenotype][g.tissue][g.annotation]) {
 							GEByTissue[phenotype][g.tissue][g.annotation] = {
 								pValue: null,
@@ -884,7 +867,6 @@ export default Vue.component("research-multi-annotations-plot", {
 						}
 						let perTissueObj =
 							GEByTissue[phenotype][g.tissue][g.annotation];
-						/// p and fold per ancestries
 						if (!perTissueObj.ancestries[g.ancestry]) {
 							perTissueObj.ancestries[g.ancestry] = {
 								fold: null,
@@ -898,7 +880,6 @@ export default Vue.component("research-multi-annotations-plot", {
 						perTissueObj.ancestries[g.ancestry].fold =
 							this.utils.Formatters.pValueFormatter(g.SNPs / g.expectedSNPs);
 
-						///
 
 						let pPerTissue =
 							GEByTissue[phenotype][g.tissue][g.annotation].pValue;
@@ -930,7 +911,6 @@ export default Vue.component("research-multi-annotations-plot", {
 				
 			}
 
-			/// get the ranks of tissues by fold
 			Object.keys(annotations).map((pKey) => {
 				Object.keys(annotations[pKey]).map((aKey) => {
 					Object.keys(annotations[pKey][aKey]).map((anceKey) => {
@@ -973,7 +953,6 @@ export default Vue.component("research-multi-annotations-plot", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
-				/// replace to uiUtils.biDomain()+"/api/bio"
 				let annoServer =
 					this.renderConfig["annotations server"] == "KP BioIndex"
 						? this.utils.uiUtils.biDomain() + "/api/bio"
@@ -1036,7 +1015,6 @@ export default Vue.component("research-multi-annotations-plot", {
 			this.tissuesData = {};
 
 			annotationsJson.data.map((a) => {
-				// annoData
 				if (!this.annoData[a.annotation]) {
 					this.annoData[a.annotation] = {};
 				}
@@ -1049,7 +1027,6 @@ export default Vue.component("research-multi-annotations-plot", {
 
 				this.annoData[a.annotation][a.tissue].region.push(a);
 
-				//tissuesData
 				if (!this.tissuesData[a.tissue]) {
 					this.tissuesData[a.tissue] = {};
 				}
@@ -1071,13 +1048,7 @@ export default Vue.component("research-multi-annotations-plot", {
 			this.getGlobalEnrichment();
 		},
 		renderGE() {
-			//working part
 
-			/*let ancestries = [
-				...new Set(this.GEData["T2D"].map((d) => d.ancestry)),
-			];
-
-			console.log("ancestries", ancestries);*/
 
 			this.GEPosData = {};
 			let sortedGEData = {};
@@ -1311,7 +1282,6 @@ export default Vue.component("research-multi-annotations-plot", {
 						for (const [tissue, tissueValue] of Object.entries(
 							GE[annotation]
 						)) {
-							//tissuesCount++;
 							pValArr.push(tissueValue.pValue);
 							foldArr.push(tissueValue.fold);
 						}
@@ -1332,7 +1302,6 @@ export default Vue.component("research-multi-annotations-plot", {
 							? this.compareGroupColors[annoIndex]
 							: "#00000030";
 
-					//let firstTissueInAnno = 0;
 					if (!!GE[annotation]) {
 						for (const [tissue, tValue] of Object.entries(
 							GE[annotation]
@@ -1428,9 +1397,8 @@ export default Vue.component("research-multi-annotations-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
-			// render y axis
 			let yAxisXPos = Math.round(
 				XPOS + this.plotMargin.leftMargin - BUMP
 			);
@@ -1440,7 +1408,6 @@ export default Vue.component("research-multi-annotations-plot", {
 				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
 			);
 
-			// Y ticks
 			let yStep = (YMAX - YMIN) / 5;
 			let yTickDistance = HEIGHT / 5;
 
@@ -1487,7 +1454,6 @@ export default Vue.component("research-multi-annotations-plot", {
 				);
 			}
 
-			//Render y axis label
 			let yLabel = !!this.renderConfig["global enrichment y axis label"]
 				? this.renderConfig["global enrichment y axis label"]
 				: "Fold(SNPs/expectedSNPs)";
@@ -1499,7 +1465,6 @@ export default Vue.component("research-multi-annotations-plot", {
 				XPOS + BUMP + 24
 			);
 
-			// render x axis
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 			CTX.moveTo(
 				XPOS + this.plotMargin.leftMargin - BUMP,
@@ -1511,7 +1476,6 @@ export default Vue.component("research-multi-annotations-plot", {
 			);
 			CTX.stroke();
 
-			// x ticks
 			let xStep = (XMAX - XMIN) / 5;
 			let xTickDistance = WIDTH / 5;
 
@@ -1554,7 +1518,6 @@ export default Vue.component("research-multi-annotations-plot", {
 				);
 			}
 
-			//Render x axis label
 			let xLabel = !!this.renderConfig["global enrichment x axis label"]
 				? this.renderConfig["global enrichment x axis label"]
 				: "-Log10(p-value)";
@@ -1803,7 +1766,6 @@ export default Vue.component("research-multi-annotations-plot", {
 												  plotWidth
 												: xPosEnd;
 
-										//let xPosWidth = xPosEnd - xPosStart;
 										let xPosWidth =
 											xPosEnd - xPosStart < 2
 												? 2
@@ -1932,23 +1894,20 @@ export default Vue.component("research-multi-annotations-plot", {
 					}
 				}
 
-				// get ovelapping region
 				this.getOverlappingRegion();
 			}
 		},
 		renderAnnoAxis(CTX, WIDTH, HEIGHT, xMax, xMin, yPos, bump) {
 			CTX.lineWidth = 1;
 
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
-			// render y axis
 			CTX.beginPath();
 			CTX.strokeStyle = "#999999";
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos);
 			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			// render recombination Rate y axis
 			let recomXpos = Math.round(
 				this.plotMargin.leftMargin + WIDTH + bump
 			);
@@ -1959,14 +1918,12 @@ export default Vue.component("research-multi-annotations-plot", {
 
 			CTX.closePath();
 
-			//render x axis
 			CTX.beginPath();
 			CTX.strokeStyle = "#000000";
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			// X ticks
 
 			let xStep = Math.ceil((xMax - xMin) / 5);
 			let xTickDistance = WIDTH / 5;
@@ -1979,7 +1936,6 @@ export default Vue.component("research-multi-annotations-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
 				CTX.font = "24px Arial";
 				CTX.fillStyle = "#000000";
 
@@ -2018,9 +1974,8 @@ export default Vue.component("research-multi-annotations-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 2;
 			CTX.strokeStyle = "#FFAA00";
-			CTX.setLineDash([6, 6]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([6, 6]);
 
-			// render dased lines
 			STARED.map((s) => {
 				let xPos = (s - xMin) * XPERPIXEL + this.plotMargin.leftMargin;
 				CTX.moveTo(xPos, yPos - bump);

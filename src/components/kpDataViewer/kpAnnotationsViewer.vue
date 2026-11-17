@@ -43,37 +43,6 @@
 				style="background-color: #82409970"
 			></span>
 			<span>Reference variant</span>
-			<!--<span
-                class="plot-legend-dot"
-                style="background-color: #d0363360"
-            ></span
-            ><span>1 > r2 >= 0.8</span>
-            <span
-                class="plot-legend-dot"
-                style="background-color: #ee982d50"
-            ></span
-            ><span>0.8 > r2 >= 0.6</span>
-            <span
-                class="plot-legend-dot"
-                style="background-color: #4db05240"
-            ></span
-            ><span>0.6 > r2 >= 0.4</span>
-            <span
-                class="plot-legend-dot"
-                style="background-color: #32afd530"
-            ></span
-            ><span>0.4 > r2 >= 0.2</span>
-            <span
-                class="plot-legend-dot"
-                style="background-color: #2074b620"
-            ></span
-            ><span>0.2 > r2 > 0</span>
-
-            <span
-                class="plot-legend-dot"
-                style="background-color: #33333320"
-            ></span>
-            <span>No data</span>-->
 		</div>
 		<div id="regionPlotWrapper" class="col-md-9">
 			<div id="clicked_dot_value" class="clicked-dot-value hidden">
@@ -180,17 +149,6 @@
 							></span>
 						</span>
 
-						<!--<span class="set-it-ld-reference"
-							><a
-								href="javascript:;"
-								@click="
-									setLDReference(
-										variant[renderConfig.renderBy]
-									)
-								"
-								>Set this LD reference</a
-							>
-						</span>-->
 					</template>
 				</div>
 			</div>
@@ -341,17 +299,6 @@
 								"
 							></span>
 						</span>
-						<!--<span class="set-it-ld-reference"
-							><a
-								href="javascript:;"
-								@click="
-									setLDReference(
-										ldVariant[renderConfig.renderBy]
-									)
-								"
-								>Set this LD Reference</a
-							>
-						</span>-->
 					</template>
 				</div>
 			</div>
@@ -411,9 +358,9 @@ export default Vue.component("research-region-plot", {
 		return {
 			plotRenderBy: "all",
 			plotRendered: 0,
-			leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
+			leftMargin: 74.5,
 			rightMargin: 0.5,
-			topMargin: 10.5, // -0.5 to draw crisp line
+			topMargin: 10.5,
 			bottomMargin: 50.5,
 			dotPosData: {},
 			ldDotPosData: {},
@@ -635,7 +582,6 @@ export default Vue.component("research-region-plot", {
 						!!this.dataComparisonConfig &&
 						!!this.renderConfig.ldServer.populations_field
 					) {
-						// case of ancestry value of dynamic
 						if (
 							this.renderConfig.ldServer.populations_type ==
 							"dynamic"
@@ -665,11 +611,9 @@ export default Vue.component("research-region-plot", {
 							}
 						}
 					} else if (
-						// fixed data but multiple values in ancesry column
 						!this.dataComparisonConfig &&
 						!!this.renderConfig.ldServer.populations_field
 					) {
-						// case of ancestry value of dynamic
 						if (
 							this.renderConfig.ldServer.populations_type ==
 							"dynamic"
@@ -781,7 +725,6 @@ export default Vue.component("research-region-plot", {
 			console.log("test 1", DATA_COMPARE, VARIANT, ANCESTRY_ID);
 
 			if (DATA_COMPARE == true) {
-				//make the first LD score call
 
 				this.getLDData(VARIANT, ANCESTRY_ID);
 			}
@@ -851,7 +794,6 @@ export default Vue.component("research-region-plot", {
 		getLDFullList(event) {
 			this.clickedLdDotPosFullList = [];
 			let wrapper = document.getElementById("ld_dot_value_full_list");
-			//let canvas = document.getElementById("ldPlot");
 			wrapper.classList.remove("hidden");
 			let e = event;
 			var rect = e.target.getBoundingClientRect();
@@ -972,7 +914,6 @@ export default Vue.component("research-region-plot", {
 				: 300;
 
 			this.yAxisFieldItems.map((item, itemIndex) => {
-				//console.log("canvasRenderWidth", canvasRenderWidth);
 				let c = document.getElementById("splitPlot" + itemIndex);
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
@@ -986,7 +927,6 @@ export default Vue.component("research-region-plot", {
 					xMax = Number(this.searchingRegion.end);
 
 				this.renderData.map((d) => {
-					//let yValue;
 
 					let highNum = null;
 					let lowNum = null;
@@ -1077,14 +1017,12 @@ export default Vue.component("research-region-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
-			// render y axis
 			CTX.moveTo(this.leftMargin, this.topMargin);
 			CTX.lineTo(this.leftMargin, plotHeight + this.topMargin + 5);
 			CTX.stroke();
 
-			//render x axis
 			CTX.moveTo(this.leftMargin, plotHeight + this.topMargin + 5);
 			CTX.lineTo(
 				plotWidth + this.leftMargin,
@@ -1092,12 +1030,11 @@ export default Vue.component("research-region-plot", {
 			);
 			CTX.stroke();
 
-			// Y ticks
 			let yStep = (yMax - yMin) / 4;
 			let yTickDistance = plotHeight / 4;
 			for (let i = 0; i < 5; i++) {
 				let tickYPos = this.topMargin + i * yTickDistance;
-				let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickYPos = Math.floor(tickYPos) + 0.5;
 				CTX.moveTo(this.leftMargin - 5, adjTickYPos);
 				CTX.lineTo(this.leftMargin, adjTickYPos);
 				CTX.stroke();
@@ -1113,13 +1050,12 @@ export default Vue.component("research-region-plot", {
 				);
 			}
 
-			// X ticks
 			let xStep = Math.ceil((xMax - xMin) / 4);
 			let xTickDistance = (plotWidth - 5) / 4;
 
 			for (let i = 0; i < 5; i++) {
 				let tickXPos = this.leftMargin + i * xTickDistance + 5;
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos) + 0.5;
 				CTX.moveTo(adjTickXPos, this.topMargin + plotHeight + yBump);
 				CTX.lineTo(
 					adjTickXPos,
@@ -1138,7 +1074,6 @@ export default Vue.component("research-region-plot", {
 				);
 			}
 
-			//Render y axis label
 			CTX.font = "14px Arial";
 			CTX.textAlign = "center";
 			CTX.fillStyle = "#000000";
@@ -1149,7 +1084,6 @@ export default Vue.component("research-region-plot", {
 				this.leftMargin - this.leftMargin / 2 - 14
 			);
 
-			//Render x axis label
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 		},
 		renderPlot() {
@@ -1158,10 +1092,9 @@ export default Vue.component("research-region-plot", {
 			let wrapper = document.getElementById("clicked_dot_value");
 			wrapper.classList.add("hidden");
 
-			// canvasRenderWidth, canvasRenderHeight, plotWidth, plotHeight, xBump, yBump
 			let canvasRenderWidth = !!this.renderConfig.width
 				? this.renderConfig.width + this.leftMargin + this.rightMargin
-				: document.getElementById("regionPlotWrapper").clientWidth - 30; // -30 for - padding
+				: document.getElementById("regionPlotWrapper").clientWidth - 30;
 
 			let canvasRenderHeight = !!this.renderConfig.height
 				? this.renderConfig.height + this.topMargin + this.bottomMargin
@@ -1177,7 +1110,6 @@ export default Vue.component("research-region-plot", {
 			let plotHeight = !!this.renderConfig.height
 				? this.renderConfig.height
 				: 300;
-			/////
 
 			let c = document.getElementById("regionPlot");
 			c.setAttribute("width", canvasRenderWidth);
@@ -1186,7 +1118,6 @@ export default Vue.component("research-region-plot", {
 
 			ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
 
-			// render x & y ticker values
 
 			let yMin = null,
 				yMax = null,
@@ -1229,7 +1160,6 @@ export default Vue.component("research-region-plot", {
 					if (highNum > yMax) {
 						yMax = highNum;
 					}
-					//}
 				} else {
 					yValue = d[this.renderConfig.yAxisField];
 
@@ -1267,7 +1197,6 @@ export default Vue.component("research-region-plot", {
 
 			let yPosByPixel = plotHeight / (yMax - yMin);
 
-			//Render dots
 			let ldConfig = this.renderConfig.ldServer;
 			let dotColor;
 
@@ -1432,7 +1361,7 @@ export default Vue.component("research-region-plot", {
 			this.ldDotPosData = {};
 
 			let canvasRenderWidth =
-				document.getElementById("ldPlotWrapper").clientWidth - 30; // -30 for - padding
+				document.getElementById("ldPlotWrapper").clientWidth - 30;
 
 			let canvasRenderHeight = canvasH;
 
@@ -1452,14 +1381,12 @@ export default Vue.component("research-region-plot", {
 
 			ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
 
-			// render x & y ticker values
 
 			let yMin = null,
 				yMax = null,
 				xMin = 0,
 				xMax = 1;
 
-			//let chr = this.searchingRegion.chr;
 
 			this.renderData.map((d) => {
 				let yValue;
@@ -1497,7 +1424,6 @@ export default Vue.component("research-region-plot", {
 					if (highNum > yMax) {
 						yMax = highNum;
 					}
-					//}
 				} else {
 					yValue = d[this.renderConfig.yAxisField];
 					if (yMin == null) {
@@ -1518,7 +1444,6 @@ export default Vue.component("research-region-plot", {
 
 			let yStep = (yMax - yMin) / 4;
 
-			// X BG
 			let xBGDistance = (plotWidth - 5) / 5;
 
 			for (let i = 0; i < 5; i++) {
@@ -1551,18 +1476,15 @@ export default Vue.component("research-region-plot", {
 
 			let yPosByPixel = plotHeight / (yMax - yMin);
 
-			//Render x axis label
 			ctx.fillText(
 				"LD(r2)",
 				plotWidth / 2 + this.leftMargin,
 				this.topMargin + plotHeight + yBump + 35
 			);
 
-			//Render dots
 			let ldConfig = this.renderConfig.ldServer;
 			let dotColor = "#33333340";
 
-			//console.log("LDData", LDData);
 
 			let ldGroups = Object.keys(this.ldPopulations);
 			let posItems = {};
@@ -1632,7 +1554,6 @@ export default Vue.component("research-region-plot", {
 					}
 
 					posItemArr.map((s, sIndex) => {
-						//console.log("sIndex", sIndex);
 						if (sIndex < posItemArr.length - 1) {
 							ctx.beginPath();
 							ctx.lineWidth = 1;
@@ -1672,7 +1593,6 @@ export default Vue.component("research-region-plot", {
 				: 300;
 
 			this.yAxisFieldItems.map((item, itemIndex) => {
-				//console.log("canvasRenderWidth", canvasRenderWidth);
 				let c = document.getElementById("splitLDPlot" + itemIndex);
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
@@ -1685,7 +1605,6 @@ export default Vue.component("research-region-plot", {
 					xMin = 0,
 					xMax = 1;
 
-				//let chr = this.searchingRegion.chr;
 
 				this.renderData.map((d) => {
 					let yValue;
@@ -1728,7 +1647,6 @@ export default Vue.component("research-region-plot", {
 						if (highNum > yMax) {
 							yMax = highNum;
 						}
-						//}
 					} else {
 						yValue = d[this.renderConfig.yAxisField];
 						if (yMin == null) {
@@ -1749,7 +1667,6 @@ export default Vue.component("research-region-plot", {
 
 				let yStep = (yMax - yMin) / 4;
 
-				// X BG
 				let xBGDistance = (plotWidth - 5) / 5;
 
 				for (let i = 0; i < 5; i++) {
@@ -1776,14 +1693,12 @@ export default Vue.component("research-region-plot", {
 					yBump
 				);
 
-				//Render x axis label
 				ctx.fillText(
 					"LD(r2)",
 					plotWidth / 2 + this.leftMargin,
 					this.topMargin + plotHeight + yBump + 35
 				);
 
-				//console.log("this.ldPosItems", this.ldPosItems);
 				for (const [posItemKey, posItem] of Object.entries(
 					this.ldPosItems
 				)) {
@@ -1841,7 +1756,6 @@ export default Vue.component("research-region-plot", {
 			if (!!this.renderConfig.hoverContent) {
 				hoverContent = this.renderConfig.hoverContent;
 			}
-			//this.ldDotPosData
 			if (!POS_DATA[xLoc]) {
 				POS_DATA[xLoc] = {};
 			}

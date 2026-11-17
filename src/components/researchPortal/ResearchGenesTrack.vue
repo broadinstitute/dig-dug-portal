@@ -27,9 +27,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -53,8 +51,6 @@ export default Vue.component("research-genes-track", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
 	},
 	components: {},
 	mounted: function () {
@@ -66,7 +62,6 @@ export default Vue.component("research-genes-track", {
 		}
 	},
 	created() {
-		//this.$root.$refs.genesTrack = this;
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -143,7 +138,6 @@ export default Vue.component("research-genes-track", {
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				//consolee.log("n",n);
 				if(!!this.genesData){
 					this.renderTrack(this.genesData);
 				} else {
@@ -162,7 +156,6 @@ export default Vue.component("research-genes-track", {
 		}
 	},
 	methods: {
-		//...uiUtils,
 		onResize(e) {
 			if(!this.genesData){
 				this.renderTrack(this.localGenesData);
@@ -176,7 +169,7 @@ export default Vue.component("research-genes-track", {
 			if (!!document.getElementById("genesTrackWrapper"+this.sectionId)) {
 				let genesArray = GENES;
 				let canvasRenderWidth, canvasRenderHeight;
-				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
+				let eachGeneTrackHeight = 60;
 
 				canvasRenderWidth = !!this.plotConfig.width
 					? this.plotConfig.width * 2 +
@@ -184,7 +177,7 @@ export default Vue.component("research-genes-track", {
 					  this.adjPlotMargin.right
 					: document.getElementById("genesTrackWrapper" + this.sectionId).clientWidth *
 							2 -
-					  60; // -30 for padding
+					  60;
 
 				let plotWidth =
 					this.plotType == "region plot"
@@ -193,7 +186,6 @@ export default Vue.component("research-genes-track", {
 						(this.adjPlotMargin.left +
 							this.adjPlotMargin.right);
 
-				//let plotHeight = eachGeneTrackHeight * genesArray.length;
 
 				let xMin = Number(this.viewingRegion.start),
 					xMax = Number(this.viewingRegion.end);
@@ -239,7 +231,7 @@ export default Vue.component("research-genes-track", {
 
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
-					eachGeneTrackHeight * (geneIndex+1)//genesArray.length; // no this.adjPlotMargin.bottom is needed here since there is no plot label needed
+					eachGeneTrackHeight * (geneIndex+1)
 
 				let bump = this.adjPlotMargin.bump;
 
@@ -263,7 +255,7 @@ export default Vue.component("research-genes-track", {
 				ctx.beginPath();
 				ctx.lineWidth = 1;
 				ctx.strokeStyle = "#000000";
-				ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+				ctx.setLineDash([]);
 
 				ctx.font = "italic bold 24px Arial";
 				ctx.textAlign = "center";
@@ -319,14 +311,13 @@ export default Vue.component("research-genes-track", {
 						ctx.beginPath();
 						ctx.lineWidth = 1;
 						ctx.strokeStyle = "#000000";
-						ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+						ctx.setLineDash([]);
 
 						ctx.moveTo(xStartPos, yPos + 20);
 						ctx.lineTo(xEndPos, yPos + 20);
 						ctx.stroke();
 
 						gene.exons.map((exon) => {
-							//console.log(gene.gene_name, ": ", exon.start, exon.end);
 
 							if (exon.start < xMax && exon.end > xMin) {
 								let xonStartPos =

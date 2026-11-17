@@ -4,13 +4,10 @@
             @change="filterControlChange"
             @filter-mounted="onInitialFilterDefinition"
         >
-            <!-- Controls and their labels -->
             <slot name="header"></slot>
             <b-container v-show="!hide" fluid class="filtering-ui-wrapper">
                 <b-row class="filtering-ui-content">
                     
-                    <!-- Filter Widget Control Slot -->
-                    <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
                     <slot v-if="inlinePills && !noPills" name="pills">
                         <criterion-pills
@@ -36,7 +33,6 @@
             </slot>
 
         </EventListener>
-        <!-- Spacer to prevent flicker when new pills are added to the UI -->
         <slot name="filtered" 
             :filter="criterion">
         </slot>
@@ -58,26 +54,8 @@ import { filterFromPredicates, predicateFromSpec, unsetFilter } from "@/utils/fi
 import CriterionPills from "@/components/criterion/template/CriterionPills";
 
 const EventListener = {
-    /*
-     *
-     * Dummy component that we use to help pass out and dispatch events for children inside its slot.
-     * This way we don't have to bind a listener to all of its children, and keep all the bindings inside this component.
-     * (This will be useful in other contexts like the Results Page later)
-     *
-     * It's used by child components to dispatch an event of whatever type,  using the function `this.$parent.$emit(<event>)`
-     *
-     * If you want someone to blame for this, it's the Vue devs, for not allowing v-on with slots: https://github.com/vuejs/vue/issues/4781
-     * And we're doing this as our response: https://github.com/vuejs/vue/issues/4781#issuecomment-501217642
-     *
-     * In CriterionGroupTemplate we'll use 'change' as the event share between EventListener and the child components.
-     *
-     */
     render(createElement) {
-        // Using Vue's createElement API with render functions to eliminate the need to define const EventListener in a separate component file.
-        // Without using Vue's runtime compiler (bloat), we can't define scoped slots directly in it, so instead we use an undocumented internal
-        // feature – of course – to give the element a default slot.
-        // So don't touch this, it works great
-        // https://stackoverflow.com/a/58859267
+        // The scoped-slot render API avoids including Vue's runtime template compiler.
 
         return createElement("div", this.$scopedSlots.default());
     },
@@ -91,7 +69,6 @@ export default Vue.component("criterion-group-template", {
         value: [Function, Array],
         filterType: {
             type: String,
-            // required: true,
         },
 
         filterList: Array,
@@ -133,21 +110,14 @@ export default Vue.component("criterion-group-template", {
     },
     data() {
         return {
-            // the filter on the end prevents malformed initial values from being used in the component
             filterListInternal: null,
             filterFunctionInternal: null,
 
-            // Vue doesn't identify anonymous functions of the same form with one another,
-            // so we are turning these two props into data to prevent infinite loops that result
-            // from passing in anonymous functions which become reidentified under each tick.
 
-            // So if we use these functions in a computed property, it will keep on refreshing even when the output looks the same.
-            // This will work as long as we don't want to update the filterMaker and predicateMaker at runtime,
-            // which quite frankly seems unlikely.
             makeFilter: this.filterMaker,
             makePredicate: this.predicateMaker,
 
-            initialFilterDefinitions: [], // THESE CAN CHANGE, THEY ARE NOT REAL-TIME FILTER DEFINITIONS
+            initialFilterDefinitions: [],
             initialFilterDefinitionMap: {},
         };
     },
@@ -211,9 +181,7 @@ export default Vue.component("criterion-group-template", {
             this.initialFilterDefinitions.push(filterDefinition);
         },
         filterControlChange(threshold, filterDefinition) {
-            // this is a workaround for a limitation Vue has when mutating arrays and objects that prevents watchers from detecting value changes
-            // (they can detect that an update has occured, yet do not return old values unless we reinitialize the object/array entirely, against a new reference)
-            // https://github.com/vuejs/vue/issues/2164
+            // Vue 2 watchers need a new reference to retain distinct old and new filter values.
             let copiedArray = cloneDeep(this.filterListInternal);
 
             if (
@@ -222,15 +190,12 @@ export default Vue.component("criterion-group-template", {
                     .map((filter) => filter.field)
                     .includes(filterDefinition.field)
             ) {
-                // pass in the whole filter definition along with is propert threshold
                 this.filterListInternal = copiedArray.concat({
                     threshold,
                     ...filterDefinition,
                 });
             } else {
-                // if the definition already exists, and it's a multiple, then just push, since we can allow for multiple instances of the same filter
                 if (filterDefinition.multiple) {
-                    // check if value is unique
                     if (
                         threshold !== null &&
                         !this.filterListInternal
@@ -242,8 +207,6 @@ export default Vue.component("criterion-group-template", {
                             ...filterDefinition,
                         });
                     }
-                    // if the definition already exists, and it's a not a multiple, then modify the existing definition in filterListInternal that matches the field
-                    // TODO: would be faster if we maintain a normalized version of filterListInternal against the filter ID, refactor towards this for performance
                 } else if (!filterDefinition.multiple) {
                     this.filterListInternal = copiedArray.map((filter) => {
                         if (filter.field === filterDefinition.field) {
@@ -251,13 +214,11 @@ export default Vue.component("criterion-group-template", {
                             tempFilter.threshold = threshold;
                             return tempFilter;
                         } else {
-                            // no need to modify because no signaling of a new threshold for this field
                             return filter;
                         }
                     });
                 }
             }
-            // NOTE: As a result of this.filterListInternal being modified, the computed property for the filterFunctionInternal should reactively producing a new version of itself.
         },
         unsetFilter(filter) {
             this.filterListInternal = unsetFilter(this.filterListInternal, filter);
@@ -302,34 +263,6 @@ export default Vue.component("criterion-group-template", {
             },
             deep: true,
         },
-        /*
-        Support events for catching new filter lists and functions 
-        seprately, regardless of the kind of criterion group.
-
-        The events are `@update:filter-list` and `@update:filter-function`. 
-        
-        They act like `@input` does with `v-model`, except it's with a filter list or 
-        filter function only. You can use both at the same time.
-
-        ```vue
-        <template>
-            <!-- v-model works as per usual -->
-            <criterion-function-group
-                v-model="$parent.filterFunctionInternal"
-                @update:filter-list="$parent.displayedfilterListInternal = $event">
-            ...
-            </criterion-function-group
-
-            <!-- some sibling component -->
-            <!--  "clearable" prop removes `X` -->
-            <criterion-pills 
-                :clearable="false"
-                :filterList="$parent.displayedfilterListInternal">
-            </criterion-pills>
-
-        </template>
-        ```
-        */
         filterListInternal: {
             handler: function (newfilterListInternal, oldfilterListInternal) {
                 this.$emit('update:filter-list', newfilterListInternal)

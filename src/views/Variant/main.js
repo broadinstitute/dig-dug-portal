@@ -13,13 +13,11 @@ import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
-//import RegionsTable from "@/components/RegionsTable.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ForestPlotHtml from "@/components/ForestPlotHtml.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
-//import DatasetAssociations from "@/components/DatasetAssociations";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import PheWASDatasets from "@/components/PheWASDatasets";
 
@@ -61,13 +59,11 @@ new Vue({
         TranscriptionFactorsTable,
         PheWASTable,
         PheWASDatasets,
-        //RegionsTable,
         LocusZoom,
         LocusZoomAssociationsPanel,
         LocusZoomPhewasPanel,
         ForestPlotHtml,
         ResearchPheWAS,
-        //DatasetAssociations,
         UnauthorizedMessage,
         CriterionFunctionGroup,
         FilterPValue,
@@ -91,7 +87,6 @@ new Vue({
             };
             return utils;
         },
-        /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";
@@ -194,12 +189,10 @@ new Vue({
             let phenotypes = this.$store.state.bioPortal.phenotypeMap;
             let associations = this.$store.state.phewas.data;
 
-            // filter associations w/ no phenotype data (not in portal!)
             let portalAssociations = associations.filter((a) => {
                 return !!phenotypes[a.phenotype];
             });
 
-            // transform from bio index to locuszoom
             let phewas = portalAssociations.map((a) => {
                 let phenotype = phenotypes[a.phenotype];
 
@@ -214,9 +207,6 @@ new Vue({
             return phewas;
         },
 
-        /*regions() {
-            return this.$store.state.regions.data;
-        }*/
     },
 
     watch: {
@@ -224,17 +214,10 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 
-        // variantData(data) {
-        //     //! data is an array
-        //     if (data.length > 0) {
-        //         this.$store.commit("setVariant", data[0]); // only ever 1 result
-        //     }
-        // },
     },
 
     created() {
         if (keyParams.variant) {
-            /// disease systems
             this.$store.dispatch("bioPortal/getDiseaseSystems");
             this.$store.dispatch("bioPortal/getDiseaseGroups");
             this.$store.dispatch("bioPortal/getPhenotypes");

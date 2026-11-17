@@ -459,7 +459,6 @@ export default Vue.component("PhewasDatasets", {
                         let tableCell = document.getElementById(tableCellId);
                         tableCell.innerText = item[dataField];
                     });
-                    // Other fields: varId, dbSNP, nearest, beta, reference
                     let varIdCell = document.getElementById(
                         `${index}_${phenotype}_var${i}_varId`
                     );
@@ -495,7 +494,6 @@ export default Vue.component("PhewasDatasets", {
             }
         },
         async getClumpedVariants(index, phenotype, clump) {
-            // if already loaded, just toggle it open
             let clumpQuery = `${phenotype},${clump}`;
             let ancestryClumpQuery = `${phenotype},${this.ancestry},${clump}`;
             let query = !this.ancestry ? clumpQuery : ancestryClumpQuery;

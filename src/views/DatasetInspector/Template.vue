@@ -1,15 +1,12 @@
 <template>
 	<div>
-		<!-- Header -->
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
 		></page-header>
 
-		<!-- Body -->
 		<div class="container-fluid mdkp-body" id="dataset_inspector">
 			<search-header-wrapper>
-				<!-- Wrap page level searchs with "pageSearchParameters" div -->
 				<div class="col filter-col-md">
 					<div class="label">Dataset</div>
 					<dataset-selectpicker
@@ -58,7 +55,6 @@
 							Genome-wide single-variant associations for
 							{{ $store.state.selectedPhenotype.description }}
 						</h4>
-						<!-- TODO: phenotype select -->
 
 						<div class="row">
 							<div class="col-md-6">
@@ -134,7 +130,6 @@
 			</div>
 		</div>
 
-		<!-- Footer-->
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>

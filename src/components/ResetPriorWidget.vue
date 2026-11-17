@@ -1,5 +1,4 @@
 <template>
-    <!-- Modal -->
     <b-modal
         header-class="my-header-class"
         v-model="show"
@@ -43,7 +42,6 @@
                     ><--Prior Allelic Variance</b-td>
                 </b-tr>
             </b-tbody>
-            <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
             <b-tfoot>
                 <b-tr>
                     <b-th style="width:100px" rowspan="1" class="text-right">Bayes Factor:</b-th>
@@ -132,14 +130,11 @@ export default Vue.component("reset-prior-widget", {
             console.log("reset prior clicked");
         },
         handleSubmit() {
-            // Exit when the form isn't valid
             if (!this.checkFormValidity()) {
                 return;
             }
-            // Push the name to submitted names
             this.submittedNames.push(this.name);
             console.log(this.submittedNames);
-            // Hide the modal manually
             this.$nextTick(() => {
                 this.$bvModal.hide("modal-prevent-closing");
             });

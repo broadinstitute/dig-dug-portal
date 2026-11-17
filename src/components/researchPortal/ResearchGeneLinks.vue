@@ -41,10 +41,6 @@
 									</template>
 								</select>
 							</div>
-							<!-- this part is for SNP to Gene options -->
-							<!--<div class="col divider" style="background: none">
-								<span class="or-text">or</span>
-							</div>-->
 							<div
 								class="col"
 								style="padding: 2px; margin-left: 15px"
@@ -72,7 +68,6 @@
 									></option>
 								</select>
 							</div>
-							<!-- -->
 						</div>
 						<div
 							class=""
@@ -210,11 +205,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
-//import alertUtils from "@/utils/alertUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
-//import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -243,9 +234,6 @@ export default Vue.component("research-gene-links-plot", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
-		//keyParams,
 	},
 	components: {},
 	mounted: function () {
@@ -459,11 +447,7 @@ export default Vue.component("research-gene-links-plot", {
 		},
 	},
 	methods: {
-		//...utils,
-		//isIdFixed: this.utils.uiUtils.isIdFixed,
-		//removeOnMouseOut: this.utils.uiUtils.removeOnMouseOut,
 		resetAll() {
-			//this.GEData = {};
 			this.trigger = 0;
 			this.GLPosData = {};
 			this.GLData = null;
@@ -693,9 +677,8 @@ export default Vue.component("research-gene-links-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 2;
 			CTX.strokeStyle = "#FFAA00";
-			CTX.setLineDash([6, 6]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([6, 6]);
 
-			// render dased lines
 			STARED.map((s) => {
 				let xPos = (s - xMin) * XPERPIXEL + this.plotMargin.leftMargin;
 				CTX.moveTo(xPos, yPos - bump);
@@ -772,7 +755,6 @@ export default Vue.component("research-gene-links-plot", {
 					let plotWidth =
 						canvasWidth - this.plotMargin.leftMargin * 2;
 
-					//let plotHeight = tempHeight;
 					let bump = 11;
 
 					let xPerPixel = plotWidth / (regionEnd - regionStart);
@@ -797,9 +779,6 @@ export default Vue.component("research-gene-links-plot", {
 
 					let tissues = Object.keys(this.renderData).sort();
 
-					/*for (const [tKey, tValue] of Object.entries(
-						this.renderData
-					)) {*/
 					tissues.map((tKey) => {
 						let tValue = this.renderData[tKey];
 
@@ -813,7 +792,6 @@ export default Vue.component("research-gene-links-plot", {
 						renderHeight = yAxisTop;
 						let geneIndex = 0;
 
-						//for (const [gKey, gValue] of Object.entries(tValue)) {
 						this.genesArr.map((gKey) => {
 							if (!!tValue[gKey]) {
 								let gValue = tValue[gKey];
@@ -845,7 +823,6 @@ export default Vue.component("research-gene-links-plot", {
 											this.methodsColors[colorIndex];
 
 										mValue.map((m) => {
-											/// add vertical locations of each method tracks to GLPosdata to check back on hover
 											let yPosBtn =
 												Math.ceil(renderHeight / 2) +
 												"-" +
@@ -866,7 +843,6 @@ export default Vue.component("research-gene-links-plot", {
 											this.GLPosData[yPosBtn]["method"] =
 												m.method;
 
-											///
 
 											if (
 												m.start <= regionEnd &&
@@ -911,7 +887,6 @@ export default Vue.component("research-gene-links-plot", {
 													perMethod - 2
 												);
 
-												/// add vertical locations of each method tracks to GLPosdata to check back on hover
 
 												let xPosBtn =
 													Math.ceil(xPosStart / 2) +
@@ -1002,14 +977,12 @@ export default Vue.component("research-gene-links-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
-			// render y axis
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos);
 			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			// render recombination Rate y axis
 			let recomXpos =
 				Math.round(this.plotMargin.leftMargin + WIDTH + bump) + 0.5;
 
@@ -1017,25 +990,22 @@ export default Vue.component("research-gene-links-plot", {
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			//render x axis
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			// X ticks
 
 			let xStep = Math.ceil((xMax - xMin) / 5);
 			let xTickDistance = WIDTH / 5;
 
 			for (let i = 0; i < 6; i++) {
 				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
-				let adjTickXPos = Math.floor(tickXPos) + 0.5; // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos) + 0.5;
 				CTX.moveTo(adjTickXPos, yPos + HEIGHT + bump);
 				CTX.lineTo(adjTickXPos, yPos + HEIGHT + bump * 2);
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
 				CTX.font = "24px Arial";
 				CTX.fillStyle = "#000000";
 
@@ -1191,7 +1161,6 @@ export default Vue.component("research-gene-links-plot", {
 							"No SNP to gene data found in the region."
 						);
 					} else {
-						///adding this part since data model for variant-links is different from gene-links
 						S2GLJson.data.map((g) => {
 							g["targetGene"] = g.gene;
 						});

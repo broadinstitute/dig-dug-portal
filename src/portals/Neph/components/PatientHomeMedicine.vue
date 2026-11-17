@@ -122,18 +122,10 @@ export default Vue.component("patient-home_medicine-card", {
         },
         tableData() {
             if (this.phome_medicine && this.phome_medicine.length) {
-                //console.log("here:"+this.hprecords);
 				return this.phome_medicine;
 			} else {
 				return [];
 			}
-            /*let dataRows = this.variant.hprecords;
-            if (!!this.filter) {
-                dataRows = dataRows.filter((association) => {
-                    return this.filter(association);
-                });
-            }
-            return dataRows;*/
         },
     },
     methods: {
@@ -142,7 +134,6 @@ export default Vue.component("patient-home_medicine-card", {
             return Formatters.snakeFormatter(name);
         },
         async searchHomeMedicine() {
-            //console.log("variant id:" + this.variantId);
             this.phome_medicine = await query("patient_home_medicine",this.patientId,{},true);
             
         },

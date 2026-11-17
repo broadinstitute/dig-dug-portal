@@ -132,7 +132,6 @@ def parse_profile_request(payload):
 
 
 def public_context_projection(result, min_support=10):
-    """Return supported aggregate effects and carrier mean scores without sample evidence."""
     gene_result = result.get("gene_association") or {}
     if gene_result.get("status") == "ok" and int(gene_result.get("n_positive") or 0) >= min_support:
         public_gene = {

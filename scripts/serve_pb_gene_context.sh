@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Start the PB Gene prototype only when a Context API source is configured.
 
 if [[ -z "${PB_GENE_CONTEXT_DATA_ROOT:-}" && -z "${PHENOTYPE_ANALYZER_HOST_PRIVATE:-}" ]]; then
   echo 'PB Gene Context API is not configured.' >&2

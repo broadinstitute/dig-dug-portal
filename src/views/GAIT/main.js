@@ -80,24 +80,6 @@ new Vue({
                     visible: true,
                     sortable: true,
                 },
-                // {
-                //     key: "geneId",
-                //     label: "Gene ID",
-                //     visible: true,
-                //     sortable: true,
-                // },
-                // {
-                //     key: "transcriptId",
-                //     label: "Transcript ID",
-                //     visible: true,
-                //     sortable: true,
-                // },
-                // {
-                //     key: "impact",
-                //     label: "Impact",
-                //     visible: true,
-                //     sortable: true,
-                // },
                 {
                     key: "consequenceTerms",
                     label: "Consequence",
@@ -119,18 +101,11 @@ new Vue({
                 },
             ],
             defaultFields: [
-                //custom predefined and hidden fields
                 "selected",
                 "varId",
                 "burdenBinId",
-                // "caddRawRankscore",
                 "impact",
                 "maf",
-                // "siftPred",
-                // "polyphen2HdivPred",
-                // "polyphen2HvarPred",
-                // "lrtPred",
-                // "mutationtasterPred",
                 "gene",
                 "pick",
                 "transcript_id",
@@ -247,7 +222,7 @@ new Vue({
                 this.$store.state.variants.length
             ) {
                 return this.$store.state.variants.map((v) => ({
-                    selected: true, //add selected column for manual selection
+                    selected: true,
                     ...v,
                 }));
             } else {
@@ -350,7 +325,6 @@ new Vue({
         selectedGene(newGene, oldGene) {
             if (!isEqual(newGene, oldGene)) {
                 keyParams.set({ gene: newGene });
-                //remove transcripts
                 this.searchCriteria = this.searchCriteria.filter(
                     (v) => v.field !== "transcript"
                 );
@@ -367,7 +341,6 @@ new Vue({
             }
         },
         selectedMask(newMask, oldMask) {
-            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newMask, oldMask)) {
                 keyParams.set({ mask: newMask });
             }
@@ -399,9 +372,6 @@ new Vue({
                 });
             }
         },
-        // "$store.state.variants": function () {
-        //     this.loadingVariants = false;
-        // },
         "$store.state.variants": function () {
             this.loadingVariants = false;
             if (
@@ -420,9 +390,7 @@ new Vue({
         tableData: {
             handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
-                    this.updateSelectedVariants(); //update selected variants when tableData is ready
-                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
-                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
+                    this.updateSelectedVariants();
                 }
             },
             deep: true,
@@ -551,7 +519,6 @@ new Vue({
             }
         },
         updateSelectedVariants() {
-            //get only the varIDs for selected rows
             this.selectedVariants = this.tableData
                 .filter((v) => {
                     return v.selected === true;

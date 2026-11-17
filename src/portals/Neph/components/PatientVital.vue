@@ -135,18 +135,10 @@ export default Vue.component("patient-vital-card", {
         },
         tableData() {
             if (this.pvital && this.pvital.length) {
-                //console.log("here:"+this.hprecords);
 				return this.pvital;
 			} else {
 				return [];
 			}
-            /*let dataRows = this.variant.hprecords;
-            if (!!this.filter) {
-                dataRows = dataRows.filter((association) => {
-                    return this.filter(association);
-                });
-            }
-            return dataRows;*/
         },
     },
     methods: {
@@ -155,7 +147,6 @@ export default Vue.component("patient-vital-card", {
             return Formatters.snakeFormatter(name);
         },
         async searchVital() {
-            //console.log("variant id:" + this.variantId);
             this.pvital = await query("patient_vital",this.patientId,{},true);
             
         },

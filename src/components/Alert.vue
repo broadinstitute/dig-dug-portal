@@ -42,12 +42,7 @@ export default Vue.component("alert", {
             });
         },
         closeAlert(id) {
-            /* This is using a setTimeout because it's possible to post
-             * the alert and close faster than the toast can be added
-             * to the DOM. If that happens, the toast will stay up and
-             * never close. By waiting 100 ms, the DOM has enough time
-             * to add it, and then we can close it.
-             */
+            // Wait for the toast to enter the DOM before hiding it, avoiding a stuck toast.
             let that = this;
             setTimeout(() => that.$bvToast.hide(id), 200);
         },
@@ -65,13 +60,10 @@ export default Vue.component("alert", {
 });
 
 let alertQueue = [];
-// https://stackoverflow.com/a/5927432
-// http://www.javascriptkit.com/javatutors/requestanimationframe.shtml (cf "Slowing down or cancelling requestAnimationFrame")
 const fps = 60;
 function animateAlert() {
     updateAlert();
     setTimeout(function () {
-        //throttle requestAnimationFrame to 45fps
         requestAnimationFrame(animateAlert);
     }, 1000 / fps);
 }
@@ -81,32 +73,21 @@ const postAlert = function (type, message, params) {
     EventBus.$emit("ALERT", { type, message, params });
 };
 
-/**
- * Post an application "Error" alert.
- * Note: 'context' could be more explicit than simply "danger"?
- *
- * @param {string} [message]
- * @param {string} [context]
- * @return {string} unique numeric identifier of the alert
- * @public
- */
 const postAlertError = function (message, context) {
     const id = Counter.getUniqueId("alert");
     context = context ? context : "danger";
     EventBus.$emit("ALERT", {
-        type: context, //"danger",
+        type: context,
         message: message,
         params: { noHide: true, id: id },
     });
 
-    // Logging this alert to Google Analytics
     logErrorEvent(context, message);
 
     return id;
 };
 const postAlertNotice = function (message) {
     const id = Counter.getUniqueId("alert");
-    //console.log(`Requesting creation of toast #${id}`);
     EventBus.$emit("ALERT", {
         type: "secondary",
         message: message,
@@ -115,7 +96,6 @@ const postAlertNotice = function (message) {
     return id;
 };
 const closeAlert = function (id) {
-    //console.log(`Requesting close of toast #${id}`);
     EventBus.$emit("CLOSE_ALERT", id);
 };
 

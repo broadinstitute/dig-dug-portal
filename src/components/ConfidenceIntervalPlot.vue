@@ -26,14 +26,6 @@ export default Vue.component("confidence-interval-plot", {
     methods: {},
 
     computed: {
-        // getLofTeeMask() {
-        //     // for (let i = 0; i < this.geneAssociations.masks.length; i++) {
-        //     //     if (this.geneAssociations.masks[i].mask == "LofTee") {
-        //     //         return [this.geneAssociations.masks[i]];
-        //     //     }
-        //     // }
-        //     return this.geneAssociations.masks;
-        // }
     },
 
     watch: {}

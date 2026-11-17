@@ -14,7 +14,6 @@ class MetadataTest(unittest.TestCase):
         self.path = Path(self.temp.name) / 'metadata.tsv'
 
     def workbook(self, sheets=1):
-        # A missing B2 must not shift sex or affected into the age column.
         sheet = '''<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
         <row r="1"><c r="A1" t="inlineStr"><is><t>sample_id</t></is></c><c r="B1" t="inlineStr"><is><t>age</t></is></c><c r="C1" t="inlineStr"><is><t>sex</t></is></c><c r="D1" t="inlineStr"><is><t>affected</t></is></c></row>
         <row r="2"><c r="A2" t="s"><v>0</v></c><c r="C2" t="inlineStr"><is><t>female</t></is></c><c r="D2" t="inlineStr"><is><t>Y</t></is></c></row>

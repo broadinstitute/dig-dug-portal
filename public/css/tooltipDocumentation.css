@@ -1,8 +1,5 @@
-/* from https://www.w3schools.com/css/css_tooltip.asp */
 .byor-tooltip {
     position: relative;
-    /*display: inline-block;
-    border-bottom: 1px dotted black;*/
   }
   
   .byor-tooltip .tooltiptext {
@@ -26,7 +23,6 @@
     visibility: visible;
   }
 
-  /* */
 
 .help-content {
     display: inline-block;

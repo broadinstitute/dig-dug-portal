@@ -66,7 +66,6 @@ export default Vue.component("effector-genes-plots-line", {
                     });
                 });
 
-                //console.log(features);
 
                 let frequencyData = {};
 
@@ -147,7 +146,7 @@ export default Vue.component("effector-genes-plots-line", {
                       ][decimalPath[1]]
                     : this.$store.state.config[this.dataset]["formatting"];
 
-            $(".feature-scores").empty(); //remove previous chart, if any
+            $(".feature-scores").empty();
 
             $.each(DATA.DATA, function (KEY, FEATURE) {
                 let NAME = FEATURE[0].group;
@@ -165,13 +164,12 @@ export default Vue.component("effector-genes-plots-line", {
                         "</h5></div>"
                 );
 
-                //rendering chart begins
                 var chartWrapper = ".top-20-chart-" + NAME;
 
                 var margin = { top: 25, right: 10, bottom: 20, left: 29 },
                     width =
-                        $(chartWrapper).width() - margin.left - margin.right, // Use the window's width
-                    height = 150 - margin.top - margin.bottom; // Use the window's height
+                        $(chartWrapper).width() - margin.left - margin.right,
+                    height = 150 - margin.top - margin.bottom;
 
                 var n = FEATURE.length;
                 var maxNumberArray = [];
@@ -183,23 +181,23 @@ export default Vue.component("effector-genes-plots-line", {
 
                 var xScale = d3
                     .scaleLinear()
-                    .domain([FEATURE[0].min, FEATURE[0].max]) // input
-                    .range([0, width]); // output
+                    .domain([FEATURE[0].min, FEATURE[0].max])
+                    .range([0, width]);
 
                 var yScale = d3
                     .scaleLinear()
-                    .domain([0, maxNumber]) // input
-                    .range([height, 0]); // output
+                    .domain([0, maxNumber])
+                    .range([height, 0]);
 
                 var line = d3
                     .line()
                     .x(function (d) {
                         return xScale(d.count_by);
-                    }) // set the x values for the line generator
+                    })
                     .y(function (d) {
                         return yScale(d.frequency);
-                    }) // set the y values for the line generator
-                    .curve(d3.curveMonotoneX); // apply smoothing to the line
+                    })
+                    .curve(d3.curveMonotoneX);
 
                 let dataset = FEATURE;
 
@@ -230,7 +228,6 @@ export default Vue.component("effector-genes-plots-line", {
                     .attr("class", "chart-line")
                     .attr("d", line);
 
-                /* selected gene info */
 
                 if (
                     tempGeneName != undefined &&
@@ -310,7 +307,6 @@ export default Vue.component("effector-genes-plots-line", {
                     );
                 }
 
-                // rendering chart end
             });
         },
     },

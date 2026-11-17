@@ -1,5 +1,4 @@
 <template>
-    <!-- Header -->
     <div>
         <h1>Debug</h1>
         <b-input v-model="$parent.test.id" placeholder="id"></b-input>

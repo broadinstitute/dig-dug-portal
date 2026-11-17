@@ -10,10 +10,8 @@ new Vue({
     store,
     mixins: [pageMixin],
     created() {
-        //get links for redirects
         this.$store.dispatch("bioPortal/getLinks");
 
-        // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
     },
     render(createElement) {

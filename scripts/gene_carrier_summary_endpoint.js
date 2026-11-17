@@ -1,6 +1,3 @@
-// Aggregate private samples-info records for the Gene summary cards.
-// Responses contain aggregate counts and project-level investigator labels;
-// no sample identifiers or individual metadata.
 const crypto = require("crypto");
 const cookie = require("cookie");
 const express = require("express");

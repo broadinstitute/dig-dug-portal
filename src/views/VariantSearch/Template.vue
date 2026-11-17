@@ -23,12 +23,6 @@
                         ><b-alert show v-if="$parent.selectedGene.length === 0"
                             >Please select a gene.</b-alert
                         >
-                        <!--
-                        <b-alert
-                            show
-                            v-else-if="$parent.selectedDataset.length === 0"
-                            >Please select a dataset.</b-alert
-                        > -->
                     </transition>
                     <criterion-list-group
                         v-model="$parent.searchCriteria"
@@ -43,18 +37,6 @@
                         >
                             <div class="label">Gene</div>
                         </filter-enumeration-control>
-                        <!-- <b-col class="divider"></b-col>
-                        <filter-enumeration-control
-                            ref="dataset"
-                            :field="'dataset'"
-                            placeholder="Select a dataset ..."
-                            :options="$parent.datasets"
-                            :multiple="true"
-                        >
-                            <div class="label">
-                                Dataset
-                            </div></filter-enumeration-control
-                        > -->
                     </criterion-list-group>
 
                     <variant-search

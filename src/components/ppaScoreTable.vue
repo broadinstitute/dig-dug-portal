@@ -9,7 +9,6 @@
                         <b-th style="width:150px">Posterior probability</b-th>
                     </b-tr>
                 </b-tbody>
-                <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
                 <b-tfoot>
                     <b-tr>
                         <b-th
@@ -65,7 +64,6 @@ export default Vue.component("ppascore-table", {
     data() {
         return {
             suggestedPriorinput: "Prior",
-            // resetflag: { default: false },
             fields: [
                 { key: "prefix", label: "" },
                 { key: "suggestedPrior", label: "Suggested prior" },
@@ -133,7 +131,7 @@ export default Vue.component("ppascore-table", {
             return Formatters.pValueFormatter(pValue);
         },
         posteriorProbability(p) {
-            let bayes_factor = this.hugeScore; //combined bayes factor
+            let bayes_factor = this.hugeScore;
             let f5 = p / (1 - p);
             let p0 = bayes_factor * f5;
             let ppa = p0 / (1 + p0);

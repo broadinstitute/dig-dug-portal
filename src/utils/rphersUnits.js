@@ -1,4 +1,3 @@
-// Consume server-derived units only. Never estimate a reference from visible rows.
 const VERSION = "rphers_scoring_cohort_sample_sd_v1";
 const finite = value => typeof value === "number" && Number.isFinite(value);
 

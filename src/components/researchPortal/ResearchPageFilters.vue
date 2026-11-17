@@ -5,13 +5,6 @@
 			id="searchCriteria"
 			v-if="this.apiParameters != null"
 		>
-			<!--<div
-				class="open-close-search-criteria"
-				id="openCloseSearch"
-				@click="showHideSearch()"
-			>
-				Close search
-			</div>-->
 			<h4 class="card-title">Build search criteria</h4>
 			<div class="filtering-ui-content row">
 				<div
@@ -53,11 +46,6 @@
 							parameter.values.length > 10
 						"
 					>
-						<!--<input
-							v-model="paramSearch"
-							:placeholder="getPlaceHolder(parameter.parameter)"
-							class="form-control"
-						/>-->
 						<input v-model="paramSearch" class="form-control" />
 
 						<select
@@ -129,13 +117,6 @@
 									: ''
 							"
 						>
-							<!--<input
-							v-model="geneSearch"
-							:placeholder="getPlaceHolder(parameter.parameter)"
-							class="form-control"
-							@keyup="getGenes($event)"
-							:id="'search_param_' + parameter.parameter"
-						/>-->
 
 							<input
 								v-model="geneSearch"
@@ -174,7 +155,6 @@
 								</template>
 							</div>
 						</div>
-						<!-- -->
 						<div
 							v-if="!!parameter['expand region']"
 							class="expand-region"
@@ -205,18 +185,7 @@
 								</div>
 							</span>
 						</div>
-						<!-- -->
 					</div>
-					<!--<input
-						v-if="
-							parameter.type == 'input' &&
-							parameter.values != 'kp genes'
-						"
-						type="text"
-						:placeholder="getPlaceHolder(parameter.parameter)"
-						class="form-control"
-						:id="'search_param_' + parameter.parameter"
-					/>-->
 					<input
 						v-if="
 							parameter.type == 'input' &&
@@ -244,32 +213,6 @@
 						Search
 					</div>
 				</div>
-				<!--<div class="col">
-					<div
-						v-for="(value, name, index) in this.searchParamsIndex"
-						:class="'search-field f-' + index"
-						:key="name"
-					>
-						<b-badge
-							pill
-							v-if="value.search.length > 0"
-							v-for="(v, i) in value.search.filter(
-								(v, i, arr) => arr.indexOf(v) == i
-							)"
-							:key="v"
-							:class="'btn search-bubble ' + i"
-							@click="removeSearch(value.field, i)"
-							v-html="v"
-						></b-badge>
-					</div>
-					<b-badge
-						v-if="this.numberOfSearchParams() > 1"
-						class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
-						@click="removeAllSearchParams()"
-					>
-						Clear all filters
-					</b-badge>
-				</div>-->
 			</div>
 		</div>
 
@@ -278,13 +221,6 @@
 			id="searchCriteria"
 			v-if="!!this.dataFiles && this.dataFiles.length > 1"
 		>
-			<!--<div
-				class="open-close-search-criteria"
-				id="openCloseSearch"
-				@click="showHideSearch()"
-			>
-				Close search
-			</div>-->
 			<h4 class="card-title">Select data</h4>
 			<div class="filtering-ui-content row">
 				<div class="col">
@@ -480,7 +416,6 @@
 <script>
 import Vue from "vue";
 
-//import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-page-filters", {
 	props: [
@@ -632,7 +567,6 @@ export default Vue.component("research-page-filters", {
 	computed: {},
 	watch: {},
 	methods: {
-		//...uiUtils,
 		buildSuggestions(EVENT, FIELD) {
 			let searchVal = EVENT.target.value;
 			let suggestions = [];
@@ -727,14 +661,8 @@ export default Vue.component("research-page-filters", {
 
 				let newRegion = chr + ":" + regionStart + "-" + regionEnd;
 
-				///!!! Leave commented alone. This part has to be revisited to fully support region expand.
-				/*document.getElementById(
-					"search_param_" + PARAM.parameter
-				).value = newRegion;
-				this.geneSearch = newRegion;*/
 
 				let url = new URL(window.location);
-				//for (const [key, value] of Object.entries(key2Update)) {
 				url.searchParams.set(PARAM.parameter, newRegion);
 
 				window.history.pushState(null, "", url.toString());
@@ -743,10 +671,6 @@ export default Vue.component("research-page-filters", {
 
 				window.location.href = newUrl;
 
-				/*if (!!this.dataComparisonConfig) {
-					document.getElementById("ifMergeData").value = "newSearch";
-				}*/
-				//this.queryAPI();
 			}
 		},
 
@@ -794,19 +718,6 @@ export default Vue.component("research-page-filters", {
 				this.geneSearch = region;
 				this.kpGenes = [];
 			}
-			/*
-			if (geneJson.error == null) {
-					let region =
-						geneJson.data[0].chromosome +
-						":" +
-						(Number(geneJson.data[0].start) - regionExpand) +
-						"-" +
-						(Number(geneJson.data[0].end) + regionExpand);
-
-					this.paramSearch[INDEX] = region;
-					this.searchingValues[PARAMETER] = region;
-				}
-			*/
 		},
 		async getGenes(EVENT) {
 			if (EVENT.target.value.length > 2) {
@@ -866,7 +777,6 @@ export default Vue.component("research-page-filters", {
 			this.$store.dispatch("dataComparison", ifCompareData);
 		},
 		queryAPI() {
-			//this.showHideSearch();
 			this.utils.uiUtils.showElement("data-loading-indicator");
 
 			for (const FIELD in this.filtersIndex) {
@@ -881,7 +791,6 @@ export default Vue.component("research-page-filters", {
 			let regionFromVariant = null;
 
 			if (this.dataType == "bioindex") {
-				/// set store.searchingPhenotype if searching BioIndex
 				if (
 					this.apiParameters.query.format.includes("phenotype") ==
 					true
@@ -893,7 +802,6 @@ export default Vue.component("research-page-filters", {
 					this.$store.dispatch("searchingPhenotype", phenotype);
 				}
 
-				///This part is for a case of the region being a variant
 				if (
 					this.apiParameters.query.format.includes("region") ==
 						true &&
@@ -924,7 +832,6 @@ export default Vue.component("research-page-filters", {
 			let queryParams = "";
 			if (this.apiParameters.query.type == "array") {
 				let parametersArr = this.apiParameters.query.format;
-				// key2Update to update the url in case of new search
 				let key2Update = {};
 
 				parametersArr.map((param, index) => {
@@ -945,9 +852,7 @@ export default Vue.component("research-page-filters", {
 						}
 					}
 
-					// add to search parameters index
 					if (this.$store.state.dataComparison == "newSearch") {
-						//reset pkgData and selected filters
 						this.resetAll();
 						this.searchParamsIndex[param].search = [];
 						let sValue = document.getElementById(
@@ -987,10 +892,8 @@ export default Vue.component("research-page-filters", {
 			} else if (this.apiParameters.query.type == "parameters") {
 				queryParams += "?";
 				let parametersArr = this.apiParameters.parameters;
-				//let qParameters = {}
 
 				parametersArr.map((p) => {
-					//
 					let queryParamValue = document.getElementById(
 						"search_param_" + p.parameter
 					).value;
@@ -1021,7 +924,6 @@ export default Vue.component("research-page-filters", {
 			let APIPoint = this.dataFiles[0];
 
 			if (this.dataType == "bioindex" && !!this.isAPI) {
-				/// set BioIndex API point
 				APIPoint +=
 					"query/" +
 					this.apiParameters.query.index +
@@ -1035,7 +937,6 @@ export default Vue.component("research-page-filters", {
 
 			this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
 		},
-		/// test if string contains letters
 		testLetters(STR) {
 			return /[a-zA-Z]/.test(STR);
 		},
@@ -1090,8 +991,8 @@ export default Vue.component("research-page-filters", {
 			if (this.dataComparisonConfig == null) {
 				let options = this.dataset
 					.map((v) => v[field])
-					.filter((v, i, arr) => arr.indexOf(v) == i) //unique
-					.filter((v, i, arr) => v != ""); //remove blank
+					.filter((v, i, arr) => arr.indexOf(v) == i)
+					.filter((v, i, arr) => v != "");
 				return options.sort();
 			} else {
 				let options = [];
@@ -1113,8 +1014,8 @@ export default Vue.component("research-page-filters", {
 				}
 
 				let unqOptions = options
-					.filter((v, i, arr) => arr.indexOf(v) == i) //unique
-					.filter((v, i, arr) => v != ""); //remove blank
+					.filter((v, i, arr) => arr.indexOf(v) == i)
+					.filter((v, i, arr) => v != "");
 
 				return unqOptions.sort();
 			}
@@ -1124,7 +1025,7 @@ export default Vue.component("research-page-filters", {
 			let searchValue = !!SUGGESTED
 				? SUGGESTED
 				: document.getElementById("filter_" + this.getColumnId(FIELD))
-						.value; //EVENT.target.value;
+						.value;
 
 			let id = "#filter_" + this.getColumnId(FIELD);
 			let inputField = document.querySelector(id);
@@ -1132,7 +1033,6 @@ export default Vue.component("research-page-filters", {
 			inputField.value = "";
 
 			if (!!searchValue && searchValue != "") {
-				///Record the last filtering item
 
 				this.lastFilter = { field: FIELD, value: searchValue };
 
@@ -1150,7 +1050,7 @@ export default Vue.component("research-page-filters", {
 					});
 
 					if (!!SUGGESTED) {
-						this.suggestions = { field: null, suggestions: [] }; // reset suggestions.
+						this.suggestions = { field: null, suggestions: [] };
 					}
 				} else if (
 					TYPE == "search greater than" ||
@@ -1416,13 +1316,10 @@ export default Vue.component("research-page-filters", {
 													] = row;
 												}
 											}
-											//}
 										} else if (
 											searchIndex.type ==
 											"search greater than"
 										) {
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1465,13 +1362,10 @@ export default Vue.component("research-page-filters", {
 													] = row;
 												}
 											}
-											//}
 										} else if (
 											searchIndex.type ==
 											"search lower than"
 										) {
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1514,13 +1408,10 @@ export default Vue.component("research-page-filters", {
 													] = row;
 												}
 											}
-											//}
 										} else if (
 											searchIndex.type == "search or"
 										) {
 											let searchVals = search.split(",");
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1570,7 +1461,6 @@ export default Vue.component("research-page-filters", {
 													] = row;
 												}
 											}
-											//}
 										} else if (
 											searchIndex.type ==
 											"search change direction"
@@ -1585,8 +1475,6 @@ export default Vue.component("research-page-filters", {
 												).value;
 
 											if (searchDirection == "lt") {
-												//for (var rowNum in targetData) {
-												//let row = targetData[rowNum];
 												if (
 													comparingFields.includes(
 														searchIndex.field
@@ -1629,12 +1517,9 @@ export default Vue.component("research-page-filters", {
 														] = row;
 													}
 												}
-												//}
 											} else if (
 												searchDirection == "gt"
 											) {
-												//for (var rowNum in targetData) {
-												//let row = targetData[rowNum];
 												if (
 													comparingFields.includes(
 														searchIndex.field
@@ -1677,14 +1562,11 @@ export default Vue.component("research-page-filters", {
 														] = row;
 													}
 												}
-												//}
 											}
 										} else if (
 											searchIndex.type == "search and"
 										) {
 											let searchVals = search.split(",");
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1734,7 +1616,6 @@ export default Vue.component("research-page-filters", {
 													] = row;
 												}
 											}
-											//}
 										}
 									}
 								}
@@ -1781,8 +1662,6 @@ export default Vue.component("research-page-filters", {
 			this.applyFilters();
 		},
 		removeSearch(FIELD, ITEM) {
-			//this.filtersIndex[FIELD].search.splice(ITEM, 1);
-			//this.applyFilters();
 		},
 	},
 });
@@ -1806,13 +1685,6 @@ export default Vue.component("research-page-filters", {
 }
 
 #kp_gene_search_wrapper {
-	/*position: absolute;
-	background-color: #efefef;
-	border: solid 1px #ddd;
-	border-radius: 5px;
-	padding: 10px 10px;
-	z-index: 10;
-	left: 50px;*/
 }
 .custom-select-search {
 	width: 175px !important;
@@ -1875,21 +1747,12 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria {
-	/*position: absolute;
-	z-index: 200;
-	width: 210px;
-	left: -25px;
-	top: 10px;
-	text-align: left;
-	padding: 15px;
-	padding-left: 25px;*/
 	transition: all 0.5s;
 	background-color: #ddefff;
 	border: solid 1px #bbdfff;
 }
 
 .filtering-ui-wrapper.search-criteria.closed {
-	/*left: -225px;*/
 	transition: all 0.5s;
 }
 

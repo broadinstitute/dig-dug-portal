@@ -32,7 +32,6 @@ export default {
     },
     mounted() {
         this.resize();
-        // Keep the native modal outside page-specific positioning and scrolling containers.
         document.body.appendChild(this.$refs.dialog);
         window.addEventListener('resize', this.resize);
     },
@@ -72,7 +71,6 @@ export default {
 };
 </script>
 <style>
-/* Reserve a slim gutter only when the page does not already reserve a wider help rail. */
 .pb-guide-page > .pbg-page:not(.pg2-info-reserved):not(.pbv-info-reserved),
 .pb-guide-page > .pbp-page:not(.pbp-info-reserved) { padding-right: 104px; }
 .pb-guide-trigger { position:fixed; z-index:1060; top:120px; right:12px; width:58px; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 5px; color:#225788; background:#fff; border:1px solid #becddd; border-radius:7px; font:400 14px/1.3 Arial,Helvetica,sans-serif; cursor:pointer; box-shadow:0 2px 6px #24334a0a; }

@@ -8,7 +8,6 @@
         <div class="container-fluid mdkp-body pbg-page">
             <div class="pbg-shell">
 
-                <!-- ── Toolbar ──────────────────────────────────────────── -->
                 <div class="pbg-toolbar">
                     <div class="pbg-toolbar-left">
                         <a href="/pb_Front.html" class="pbg-home-link" aria-label="PB portal home">
@@ -74,15 +73,10 @@
                     ></hpo-context-panel>
                 </details>
 
-                <!-- ══════════════════════════════════════════════════════
-                     BLOCK 1 — Gene identity + Primary CRDC evidence
-                ═══════════════════════════════════════════════════════════ -->
                 <section class="pbg-hero-card">
 
-                    <!-- Left: gene identity + reference annotation (no sample-derived data) -->
                     <gene-identity-panel :gene-info="geneInfo"></gene-identity-panel>
 
-                    <!-- Right: gene-level CRDC summary + representative evidence -->
                     <div class="pbg-hero-summary">
                         <div class="pbg-cohort-strip" aria-label="CRDC cohort denominator">
                             <span>
@@ -170,9 +164,6 @@
                     </div>
                 </section>
 
-                <!-- ══════════════════════════════════════════════════════
-                     BLOCK 2 — Gene locus view
-                ═══════════════════════════════════════════════════════════ -->
                 <section class="pbg-locus-card pbg-window-card" :class="{ 'pbg-window-card--base': isBaseLevel, 'pbg-window-card--whole': isWholeGeneView }">
                     <div class="pbg-window-head">
                         <div class="pbg-locus-title">
@@ -319,9 +310,6 @@
                     </div>
                 </section>
 
-                <!-- ══════════════════════════════════════════════════════
-                     BLOCK 3 — Gene / variant carrier evidence
-                ═══════════════════════════════════════════════════════════ -->
                 <section class="pbg-variants-card pbg-evidence-card">
                     <div class="pbg-evidence-summary-head">
                         <div>

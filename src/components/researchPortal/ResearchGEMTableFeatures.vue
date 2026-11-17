@@ -72,7 +72,6 @@
 
 <script>
 import Vue from "vue";
-//import Formatters from "@/utils/formatters";
 
 export default Vue.component("research-gem-table-features", {
 	props: ["featuresData", "featuresFormat","utils"],
@@ -161,96 +160,6 @@ export default Vue.component("research-gem-table-features", {
 			}
 
 			return content;
-			/*if (
-				this.featuresFormat["column formatting"] != undefined &&
-				this.featuresFormat["column formatting"][tdKey] != undefined
-			) {
-				let formatTypes =
-					this.featuresFormat["column formatting"][tdKey]["type"];
-
-				let linkToNewTab = !!this.featuresFormat["column formatting"][
-					tdKey
-				]["new tab"]
-					? this.featuresFormat["column formatting"][tdKey]["new tab"]
-					: null;
-
-				let cellValue = tdValue;
-
-				formatTypes.map((type) => {
-					if (type == "scientific notation") {
-						cellValue = this.utils.Formatters.pValueFormatter(tdValue);
-
-						cellValue = cellValue == "-" ? 0 : cellValue;
-					}
-
-					
-					if (type == "link") {
-						let linkString =
-							"<a href='" +
-							this.featuresFormat["column formatting"][tdKey][
-								"link to"
-							] +
-							cellValue;
-
-						linkString +=
-							!!this.featuresFormat["column formatting"][tdKey][
-								"link type"
-							] &&
-							this.featuresFormat["column formatting"][tdKey][
-								"link type"
-							] == "button"
-								? "' class='btn btn-sm btn-outline-secondary link-button"
-								: "";
-
-						let linkLabel = !!this.featuresFormat[
-							"column formatting"
-						][tdKey]["link label"]
-							? this.featuresFormat["column formatting"][tdKey][
-									"link label"
-							  ]
-							: cellValue;
-
-						linkString +=
-							linkToNewTab == "true"
-								? "' target='_blank'>" + linkLabel + "</a>"
-								: "'>" + linkLabel + "</a>";
-
-						cellValue = linkString;
-					}
-
-					if (type == "render background percent") {
-						let fieldValue =
-							typeof tdValue != "number"
-								? this.featuresFormat["column formatting"][
-										tdKey
-								  ]["percent if empty"]
-								: tdValue;
-
-						let weight = Math.floor(
-							((Number(fieldValue) - this.dataScores[tdKey].low) /
-								(this.dataScores[tdKey].high -
-									this.dataScores[tdKey].low)) *
-								100
-						);
-
-						let weightClasses = "cell-weight-" + weight + " ";
-
-						weightClasses +=
-							tdValue < 0 ? "weight-negative" : "weight-positive";
-
-						cellValue =
-							"<span class='" +
-							weightClasses +
-							"'>" +
-							cellValue +
-							"</span>";
-					}
-				});
-
-				return cellValue;
-			} else {
-				return tdValue;
-			}*/
 		},
 	},
 	computed: {
@@ -270,20 +179,6 @@ export default Vue.component("research-gem-table-features", {
 .research-data-table-features {
 	position: relative;
 }
-/*
-.feature-title {
-    position: absolute;
-    -webkit-transform: rotate(-90deg);
-    transform: rotate(-90deg);
-    background-color: #000;
-    color: #fff;
-    transform-origin: left top;
-    width: 54px;
-    font-size: 12px;
-    top: 54px;
-    left: 0px;
-}
-*/
 
 .feature-content-table {
 	width: 100%;
@@ -300,8 +195,6 @@ export default Vue.component("research-gem-table-features", {
 .feature-table > tr > th.feature-title-th {
 	background-color: #000 !important;
 	color: #000;
-	/*width: 20px !important;
-    position: relative;*/
 	text-align: center;
 	white-space: nowrap;
 	vertical-align: middle;
@@ -312,25 +205,12 @@ export default Vue.component("research-gem-table-features", {
 
 .feature-table > tr > th.feature-title-th span.feature-title {
 	display: block;
-	/*
-    -webkit-transform: rotate(-90deg);
-    transform: rotate(-90deg);
-    position: absolute;
-    -webkit-transform-origin: left top;
-    transform-origin: left top;
-    top: 54px;
-    left: 0;
-    max-width: 50px;
-    min-width: 50px;
-    text-align: right;
-    height: 20px;
-    overflow: hidden;*/
 	transform: rotate(-90deg);
-	-moz-transform: rotate(-90deg); /* FF3.5+ */
-	-o-transform: rotate(-90deg); /* Opera 10.5 */
-	-webkit-transform: rotate(-90deg); /* Saf3.1+, Chrome */
-	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083); /* IE6,IE7 */
-	-ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)"; /* IE8 */
+	-moz-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	-webkit-transform: rotate(-90deg);
+	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083);
+	-ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)";
 	margin-left: -100em;
 	margin-right: -100em;
 	overflow: hidden;

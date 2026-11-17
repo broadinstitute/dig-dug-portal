@@ -26,7 +26,6 @@ def _binary_matrix(matrix):
 
 
 def score_samples(crdc_bin, hpo_columns, query_hpo, sample_ids=None, alpha=1.0):
-    """Return the R-equivalent sample scores and ranking as NumPy arrays."""
     matrix = _binary_matrix(crdc_bin)
     hpo_columns = list(hpo_columns)
     if matrix.shape[1] != len(hpo_columns):
@@ -86,7 +85,6 @@ def score_samples(crdc_bin, hpo_columns, query_hpo, sample_ids=None, alpha=1.0):
 
 
 def benchmark(n_samples=30_000, n_hpo=10_000, annotations_per_sample=30):
-    """Build a CRDC-sized sparse fixture and return scoring time in seconds."""
     rng = np.random.default_rng(7)
     rows = np.repeat(np.arange(n_samples), annotations_per_sample)
     cols = rng.integers(0, n_hpo, size=rows.size)

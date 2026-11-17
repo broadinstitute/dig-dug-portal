@@ -187,53 +187,6 @@
 						types within the tissue categories selected above.
 					</strong>
 				</span>
-				<!--<div
-					class="filtering-ui-wrapper add-content"
-					style="width: 100%; padding: 0 10px; text-align: left"
-					v-if="
-						pkgDataSelected.filter((s) => s.type == 'Annotation')
-							.length > 0 &&
-						pkgDataSelected.filter((s) => s.type == 'Tissue')
-							.length > 0
-					"
-				>
-					<div
-						class="filtering-ui-content"
-						style="padding: 5px; text-align: left"
-					>
-						<strong>Select biosamples by clicking tracks</strong>
-						<div
-							class=""
-							v-if="
-								pkgDataSelected.filter(
-									(s) => s.type == 'Biosample'
-								).length > 0 &&
-								!renderConfig['no search key bubbles']
-							"
-							style="float: right"
-						>
-							<template
-								v-for="a in pkgDataSelected.filter(
-									(s) => s.type == 'Biosample'
-								)"
-							>
-								<span
-									:key="a.id"
-									:class="'btn search-bubble '"
-									:style="
-										'background-color:' +
-										getColorIndex(a.id.split(' / ')[0])
-									"
-									v-html="
-										a.id.split(' / ')[2] +
-										'&nbsp;<span class=\'remove\'>X</span>'
-									"
-									@click="addRemoveBiosampleTrack(a.id)"
-								></span>
-							</template>
-						</div>
-					</div>
-				</div>-->
 			</div>
 			<div class="col-md-9 bio-plot-wrapper">
 				<div
@@ -247,24 +200,8 @@
 							: 'height-auto'
 					"
 				>
-					<!--working part-->
 
 					<div id="biosampleInfoBox" class="hidden"></div>
-					<!--<div
-						id="bioInitialMessage"
-						:class="
-							getSelectedParameters('Annotation').length > 0 &&
-							getSelectedParameters('Tissue').length > 0
-								? 'hidden'
-								: ''
-						"
-						v-html="
-							!!renderConfig['with annotations viewer'] &&
-							renderConfig['with annotations viewer'] == 'true'
-								? 'Please select annotation and tissue under annotations filter.'
-								: 'Please select annotation and tissue.'
-						"
-					></div>-->
 
 					<canvas
 						id="biosamplesPlot"
@@ -352,10 +289,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
-//import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -389,9 +323,6 @@ export default Vue.component("research-biosamples-plot", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
-		//keyParams,
 	},
 	components: {},
 	mounted: function () {
@@ -479,7 +410,6 @@ export default Vue.component("research-biosamples-plot", {
 		searchingPhenotype() {
 			if (this.phenotype != null) {
 				this.utils.uiUtils.showElement("annotationsPlotWrapper");
-				//this.getAnnotations(this.searchingRegion);
 
 				let returnPhenotype = !!this.renderConfig["phenotype match"]
 					? this.renderConfig["phenotype match"][this.phenotype]
@@ -489,7 +419,6 @@ export default Vue.component("research-biosamples-plot", {
 			} else if (this.phenotype == null) {
 				if (!!this.utils.keyParams[this.renderConfig["phenotype parameter"]]) {
 					this.utils.uiUtils.showElement("annotationsPlotWrapper");
-					//this.getAnnotations(this.searchingRegion);
 
 					let phenotype =
 						this.utils.keyParams[this.renderConfig["phenotype parameter"]];
@@ -542,7 +471,6 @@ export default Vue.component("research-biosamples-plot", {
 		},
 	},
 	methods: {
-		//...uiUtils,
 		getSelectedParameters(PARAM) {
 			let arr = [
 				...new Set(
@@ -615,7 +543,6 @@ export default Vue.component("research-biosamples-plot", {
 						},
 					].map((o) => {
 						o.items.map((g) => {
-							//this.removeParameter(g, o.type);
 							if (
 								this.pkgDataSelected.filter(
 									(p) => p.id == g && p.type == o.type
@@ -643,7 +570,6 @@ export default Vue.component("research-biosamples-plot", {
 						},
 					].map((o) => {
 						o.items.map((g) => {
-							//this.addParameter(g, o.type);
 							if (
 								this.pkgDataSelected.filter(
 									(p) => p.id == g && p.type == o.type
@@ -725,7 +651,6 @@ export default Vue.component("research-biosamples-plot", {
 			}
 		},
 		getOverlappingBSRegion() {
-			//"overlapping regions" can be 'and', 'or' or 'false'
 			if (
 				!!this.renderConfig["overlapping regions"] &&
 				this.renderConfig["overlapping regions"] != "false"
@@ -796,19 +721,17 @@ export default Vue.component("research-biosamples-plot", {
 												enrichedPosition[key],
 												tempArr
 										  )
-										: enrichedPosition[key].concat(tempArr); // getting only intersecting positions
+										: enrichedPosition[key].concat(tempArr);
 							}
 						}
 					});
 
-					//sort enriched position so I can remove position between start and end positions
 					for (const [key, arr] of Object.entries(enrichedPosition)) {
 						enrichedPosition[key].sort(function (a, b) {
 							return a - b;
 						});
 					}
 
-					//leave only start and end of overlapping regions
 					let enrichedRegion = { and: [], or: [] };
 					for (const [key, arr] of Object.entries(enrichedRegion)) {
 						for (let i = 0; i < enrichedPosition[key].length; i++) {
@@ -835,7 +758,6 @@ export default Vue.component("research-biosamples-plot", {
 						}
 					}
 
-					///build object of overlapping regions
 					let overlappingRegions = { and: [], or: [] };
 					for (const [key, arr] of Object.entries(enrichedRegion)) {
 						for (
@@ -991,7 +913,6 @@ export default Vue.component("research-biosamples-plot", {
 					x <= rect.width - this.plotMargin.leftMargin / 2
 				) {
 					if (!!this.biosamplesPosData[y]) {
-						//this.$store.dispatch("sharedPlotXpos", rawX);
 						infoContent += this.biosamplesPosData[y].biosample;
 						for (const [region, regionValue] of Object.entries(
 							this.biosamplesPosData[y].regions
@@ -1171,7 +1092,6 @@ export default Vue.component("research-biosamples-plot", {
 					Vue.set(this.pkgData, "tissuesData", this.tissuesData);
 				}
 
-				//this.renderBiosamplesTrack();
 				this.renderGE();
 				this.renderBiosamplesTrack();
 			}
@@ -1179,7 +1099,6 @@ export default Vue.component("research-biosamples-plot", {
 		},
 
 		getGEByTissue() {
-			/// put lowest pValue and fold across ancestries
 
 			let annotations = {};
 
@@ -1199,7 +1118,6 @@ export default Vue.component("research-biosamples-plot", {
 					if (!GEByTissue[phenotype][g.tissue]) {
 						GEByTissue[phenotype][g.tissue] = {};
 					}
-					///Adding "gregor" slot for later use.
 					if (!GEByTissue[phenotype][g.tissue][g.annotation]) {
 						GEByTissue[phenotype][g.tissue][g.annotation] = {
 							pValue: null,
@@ -1234,7 +1152,6 @@ export default Vue.component("research-biosamples-plot", {
 				});
 			}
 
-			/// get the ranks of tissues by fold
 			Object.keys(annotations).map((pKey) => {
 				Object.keys(annotations[pKey]).map((aKey) => {
 					annotations[pKey][aKey] = [
@@ -1318,7 +1235,6 @@ export default Vue.component("research-biosamples-plot", {
 					resp.json()
 				);
 
-				///working part
 				if (biosamplesJson.error == null) {
 					if (biosamplesJson.continuation == null) {
 						this.runAfterBSDataLoad(
@@ -1431,7 +1347,6 @@ export default Vue.component("research-biosamples-plot", {
 			let bottomMargin = this.spaceBy * 2;
 			let regionStart = this.viewingRegion.start;
 			let regionEnd = this.viewingRegion.end;
-			//let pvalueFoldWidth = 240;
 
 			let selectedBiosamples = this.pkgDataSelected
 				.filter((s) => s.type == "Biosample")
@@ -1460,7 +1375,6 @@ export default Vue.component("research-biosamples-plot", {
 				let canvasWidth = wrapper.clientWidth * 2;
 				let canvasHeight = tempHeight + topMargin + bottomMargin;
 				let plotWidth = canvasWidth - this.plotMargin.leftMargin * 2;
-				//let plotHeight = tempHeight;
 				let bump = 11;
 
 				let xPerPixel = plotWidth / (regionEnd - regionStart);
@@ -1572,7 +1486,6 @@ export default Vue.component("research-biosamples-plot", {
 										? this.plotMargin.leftMargin + plotWidth
 										: xPosEnd;
 
-								//let xPosWidth = xPosEnd - xPosStart;
 								let xPosWidth =
 									xPosEnd - xPosStart < 1
 										? 1
@@ -1600,8 +1513,6 @@ export default Vue.component("research-biosamples-plot", {
 									xPosWidth,
 									perBiosample - 1
 								);
-								/*let xPosBtn =
-									xPosStart + "_" + (xPosStart + xPosWidth);*/
 
 								let xPosBtn =
 									Math.round(xPosStart / 2) +
@@ -1633,7 +1544,6 @@ export default Vue.component("research-biosamples-plot", {
 					renderHeight += btwnAnnotations;
 				});
 			}
-			// get ovelapping region
 			this.getOverlappingBSRegion();
 		},
 
@@ -1644,7 +1554,6 @@ export default Vue.component("research-biosamples-plot", {
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
 			) {
-				///Update to 'uiUtils.biDomain() + "/api/bio"' before release
 				let biosamplesServer =
 					this.renderConfig["biosamples server"] == "KP BioIndex"
 						? this.utils.uiUtils.biDomain() + "/api/bio"
@@ -1674,7 +1583,6 @@ export default Vue.component("research-biosamples-plot", {
 					this.tissuesData = {};
 
 					biosamplesJson.data.map((a) => {
-						// annoData
 						if (!this.annoData[a.annotation]) {
 							this.annoData[a.annotation] = {};
 						}
@@ -1687,7 +1595,6 @@ export default Vue.component("research-biosamples-plot", {
 
 						this.annoData[a.annotation][a.tissue].region.push(a);
 
-						//tissuesData
 						if (!this.tissuesData[a.tissue]) {
 							this.tissuesData[a.tissue] = {};
 						}
@@ -1857,7 +1764,6 @@ export default Vue.component("research-biosamples-plot", {
 				);
 
 				let annotationsArr = Object.keys(this.annoData);
-				//let tissuesCount = 0;
 
 				let foldArr = [];
 				let pValArr = [];
@@ -1866,7 +1772,6 @@ export default Vue.component("research-biosamples-plot", {
 					for (const [tissue, tissueValue] of Object.entries(
 						GE[annotation]
 					)) {
-						//tissuesCount++;
 						pValArr.push(tissueValue.pValue);
 						foldArr.push(tissueValue.fold);
 					}
@@ -1885,7 +1790,6 @@ export default Vue.component("research-biosamples-plot", {
 							? this.compareGroupColors[annoIndex]
 							: "#00000030";
 
-					//let firstTissueInAnno = 0;
 					for (const [tissue, tValue] of Object.entries(
 						GE[annotation]
 					)) {
@@ -1974,9 +1878,8 @@ export default Vue.component("research-biosamples-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
-			// render y axis
 			let yAxisXPos = Math.round(
 				XPOS + this.plotMargin.leftMargin - BUMP
 			);
@@ -1986,7 +1889,6 @@ export default Vue.component("research-biosamples-plot", {
 				YPOS + this.plotMargin.topMargin + HEIGHT + BUMP
 			);
 
-			// Y ticks
 			let yStep = (YMAX - YMIN) / 5;
 			let yTickDistance = HEIGHT / 5;
 
@@ -2033,7 +1935,6 @@ export default Vue.component("research-biosamples-plot", {
 				);
 			}
 
-			//Render y axis label
 			let yLabel = !!this.renderConfig["global enrichment y axis label"]
 				? this.renderConfig["global enrichment y axis label"]
 				: "Fold(SNPs/expectedSNPs)";
@@ -2045,7 +1946,6 @@ export default Vue.component("research-biosamples-plot", {
 				XPOS + BUMP + 12
 			);
 
-			// render x axis
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 			CTX.moveTo(
 				XPOS + this.plotMargin.leftMargin - BUMP,
@@ -2057,7 +1957,6 @@ export default Vue.component("research-biosamples-plot", {
 			);
 			CTX.stroke();
 
-			// x ticks
 			let xStep = (XMAX - XMIN) / 5;
 			let xTickDistance = WIDTH / 5;
 
@@ -2100,7 +1999,6 @@ export default Vue.component("research-biosamples-plot", {
 				);
 			}
 
-			//Render x axis label
 			let xLabel = !!this.renderConfig["global enrichment x axis label"]
 				? this.renderConfig["global enrichment x axis label"]
 				: "-Log10(p-value)";
@@ -2124,14 +2022,12 @@ export default Vue.component("research-biosamples-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
-			// render y axis
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos);
 			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			// render recombination Rate y axis
 			let recomXpos = Math.round(
 				this.plotMargin.leftMargin + WIDTH + bump
 			);
@@ -2140,12 +2036,10 @@ export default Vue.component("research-biosamples-plot", {
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			//render x axis
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			// X ticks
 
 			let xStep = Math.ceil((xMax - xMin) / 5);
 			let xTickDistance = WIDTH / 5;
@@ -2158,7 +2052,6 @@ export default Vue.component("research-biosamples-plot", {
 				CTX.stroke();
 
 				CTX.textAlign = "center";
-				//let positionLabel = i < 5 ? xMin + i * xStep : xMax;
 				CTX.font = "24px Arial";
 				CTX.fillStyle = "#000000";
 
@@ -2196,9 +2089,8 @@ export default Vue.component("research-biosamples-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 2;
 			CTX.strokeStyle = "#FFAA00";
-			CTX.setLineDash([6, 6]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([6, 6]);
 
-			// render dased lines
 			STARED.map((s) => {
 				let xPos = (s - xMin) * XPERPIXEL + this.plotMargin.leftMargin;
 				CTX.moveTo(xPos, yPos - bump);
@@ -2281,8 +2173,6 @@ $(function () {});
 }
 
 #biosamplesPlotWrapper {
-	/*display: inline-block;
-	vertical-align: top;*/
 }
 
 #biosampleInfoBox,

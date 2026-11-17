@@ -1,5 +1,4 @@
 #!/usr/bin/env Rscript
-# Independent checks of gene-score runner outputs on the 100-ID sandbox input.
 argv <- commandArgs(trailingOnly=TRUE)
 if (length(argv)<2L || length(argv)>3L ||
     (length(argv)==3L && argv[3]!='lm-only'))

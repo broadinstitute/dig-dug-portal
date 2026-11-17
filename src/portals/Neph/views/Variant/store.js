@@ -19,7 +19,6 @@ export default new Vuex.Store({
         phewas: bioIndex("phewas-associations"),
         regions: bioIndex("regions"),
         datasetAssociations: bioIndex("variant-dataset-associations"),
-        //variantPhenotypeData: bioIndex("variant-phenotype",this.gene,{},true),
         samples: bioIndex("variant-sample",{query_private:true}),
         gqualitymetrics: bioIndex("genotype-quality-metrics", {query_private:true}),
         squalitymetrics: bioIndex("site-quality-metrics", {query_private:true})
@@ -49,7 +48,6 @@ export default new Vuex.Store({
                 newVarId || context.state.newVariantId
             );
             
-            //console.log("query variant:"+newVarId);
             if (!!newVarId) {
                 context.dispatch("variantData/query", { q: newVarId, query_private:true  });
             }

@@ -406,7 +406,6 @@
     font-size: 200px;
     display: inline-block;
     color: #ff6f59;
-    /* font-family: "Sirin Stencil", cursive; */
     font-family: "Cairo", sans-serif;
 }
 
@@ -422,17 +421,6 @@
 .notice .btn {
     margin: 20px 10px 0px;
 }
-/* .page {
-    display: -webkit-box;
-    display: flex;
-    -webkit-box-align: center;
-    align-items: center;
-    -webkit-box-pack: center;
-    justify-content: center;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-    flex-direction: column;
-} */
 .page {
     display: flex;
     justify-content: center;

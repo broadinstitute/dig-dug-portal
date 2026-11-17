@@ -17,7 +17,6 @@ const {openCarrierDiskCache} = require('./gene_carrier_disk_cache');
         ])});
         cache.putSummary('TEST', {carrierTotal: 2, matchedMetadataCount: 2});
         await cache.flush();
-        // An interrupted final record must not discard earlier successful lookups.
         await fs.appendFile(path.join(root, 'source-a', 'metadata.jsonl'), '{"id":');
         cache = await openCarrierDiskCache(root, 'source-a', () => now);
         assert.deepStrictEqual(cache.getSample('sample-1'), {age: 12, project: 'Project A'});

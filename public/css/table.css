@@ -43,10 +43,7 @@ div.details .sub-details {
 }
 
 .b-popover .popover-body a.list-group-item:hover {
-    /*background-color: #fcfcfc;
-    color: blue !important;*/
     color: #aaccff !important;
-    /*background-color: #fff;*/
     border-top: solid 1px #ddd;
     border-bottom: solid 1px #ddd;
 }
@@ -80,10 +77,7 @@ div.details .sub-details {
 
 .table-sm td.border-color {
     padding: 0;
-    /* height: auto;
-    min-height: 1px; */
     height: 1px;
-    /* for child to take full height */
     vertical-align: middle;
 }
 

@@ -80,16 +80,7 @@ export default new Vuex.Store({
             }
         },
 
-        // canonicalSymbol(state) {
-        //     let data = state.genes.data;
-        //     let geneData = state.gene.data;
 
-        //     for (let i in data) {
-        //         if (data[i].source === "symbol") {
-        //             return data[i].name;
-        //         }
-        //     }
-        // },
         canonicalSymbol(state) {
             let data = state.gene.data;
             if (data.length > 0) {
@@ -117,7 +108,6 @@ export default new Vuex.Store({
     },
 
     actions: {
-        // For custom phenotypes
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);
         },
@@ -137,10 +127,8 @@ export default new Vuex.Store({
                 context.dispatch("geneToTranscript/query", { q: name });
             }
         },
-        ///
 
         async queryGeneRegion(context, region) {
-            //To match with HuGE cal +- 300000 to the region
             let { chromosome, start, end } = region || context.getters.region;
             let q = `${chromosome}:${start - 300000}-${end + 300000}`;
 

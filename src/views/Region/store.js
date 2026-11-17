@@ -28,17 +28,14 @@ export default new Vuex.Store({
         variant: bioIndex("variant")
     },
     state: {
-        // only used at the start
         phenotypeParam: keyParams.phenotype,
 
-        // user-entered locus
         chr: keyParams.chr,
         start: keyParams.start,
         end: keyParams.end,
         focusedVariant: keyParams.variant,
         clearPhenotypeFlag: false,
 
-        // user-entered search fields
         newChr: keyParams.chr,
         newStart: keyParams.start,
         newEnd: keyParams.end,
@@ -62,7 +59,6 @@ export default new Vuex.Store({
             let oldStart = state.start;
             let oldEnd = state.end;
 
-            // update the state
             state.chr = region.chr || state.newChr || state.chr;
             state.start = region.start || state.newStart || state.start;
             state.end = region.end || state.newEnd || state.end;
@@ -71,7 +67,6 @@ export default new Vuex.Store({
             state.newEnd = state.end;
             state.searchGene = null;
 
-            // did the region change completely?
             if (oldChr !== state.chr || oldEnd < state.start || oldStart > state.end) {
                 state.clearPhenotypeFlag = true;
             }
@@ -117,7 +112,6 @@ export default new Vuex.Store({
                     context.state.newStart = locus.start;
                     context.state.newEnd = locus.end;
 
-                    // update the locus
                     context.commit("setLocus");
                     context.dispatch("queryRegion");
                 }
@@ -157,11 +151,9 @@ export default new Vuex.Store({
                     context.commit("setLocus");
                 }
 
-                // find all the top associations and genes in the region
                 context.dispatch("genes/query", { q: newRegion });
                 context.dispatch("topAssociations/query", { q: newRegion });
 
-                // Search by ancestry if applicable
                 if (context.state.ancestry != "") {
                     context.dispatch("ancestryTopAssoc/query", { q: `${context.state.ancestry},${newRegion}` });
                 }

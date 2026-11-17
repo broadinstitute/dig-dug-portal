@@ -198,8 +198,6 @@ async function main(){
  }
  location.search='?query=';assert.equal(options.data().ids.length,0,'Clear all survives URL reload without restoring a default phenotype');
  Object.assign(location,savedLocation);
- // Refinements keep the original matching group, announce the change, and
- // return focus to the updated search conditions after Vue publishes them.
  page.applyProfile({ids:['HP:0000001','HP:0000002'],excluded:[],rules:[],matchMode:'any',minimum:2});
  await Vue.nextTick();
  const scrolls=[],focuses=[];
@@ -225,7 +223,6 @@ async function main(){
  assert.equal(page.refinementChange,null,'Other edits clear the previous action announcement');
  delete window.matchMedia;
  page.$destroy();
- // Explicit covered zero scores must remain in the denominator.
  const zero=decodeSampleGeneScores({...payload,available_sample_ids:['A'],unavailable_sample_ids:['B','C','D'],sample_gene_indices:{A:[]}},['A','B','C','D']);
  const summary=summarizeSampleGenes([{id:'A'},{id:'B'}],zero,row=>row.id,()=> 'P');
  assert.equal(summary.covered,1);assert.equal(Object.keys(summary.genes).length,0);

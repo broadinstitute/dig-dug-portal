@@ -43,10 +43,6 @@ import Alert, {
 
 import {SignIn,CheckSignInStatus} from "@/portals/Neph/components/LoginComponent.js";
 
-//Vue.http.headers.common['Access-Control-Allow-Origin'] = '*';
-//Vue.http.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
-//Vue.http.headers.common['Accept'] = 'application/json, text/plain, */*';
-//Vue.http.headers.common['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, Authorization, Access-Control-Allow-Origin';
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -123,12 +119,10 @@ new Vue({
         
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        //alert("created");
         this.pushCriterionPhenotype("T2D");
     },
 
     render(createElement, context) {
-        //alert("render");
         return createElement(Template);
     },
 
@@ -172,7 +166,6 @@ new Vue({
             };
         },
 
-        // go to region page
         exploreRegion(expanded = 0) {
             let r = this.region;
 
@@ -207,7 +200,6 @@ new Vue({
             for (let i in data) {
                 const assoc = data[i];
 
-                // skip associations not part of the disease group
                 if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
@@ -218,16 +210,11 @@ new Vue({
                 }
             }
 
-            // convert to an array, sorted by p-value
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
         },
 
         smallestpValuePhenotype() {
-            // let data = this.$store.state.varassociations.data;
-            // let x = data.sort(
-            //     (a, b) => a.pValue - b.pValue
-            // );
 
             return "T2D";
         },
@@ -265,7 +252,6 @@ new Vue({
                             }
                             break;
                         }
-                        //if the gene is in GWAS but not in mccarthy data
                     }
                     return effectorGeneData;
                 }
@@ -300,7 +286,6 @@ new Vue({
         },
 
         symbolName() {
-            //console.log("symbol Name:"+this.$store.getters.canonicalSymbol);
             return this.$store.getters.canonicalSymbol;
         },
         geneSymbol() {
@@ -327,12 +312,10 @@ new Vue({
         },
 
         dbReference() {
-            //console.log("dbReference:"+this.$store.getters["uniprot/dbReference"]);
             return this.$store.getters["uniprot/dbReference"];
         },
 
         accession() {
-            //console.log("accession:"+JSON.stringify(this.$store.getters["uniprot/accession"]));
             return this.$store.getters["uniprot/accession"];
         },
 
@@ -343,7 +326,6 @@ new Vue({
         geneNames() {
             
             let x = this.$store.getters["uniprot/geneNames"];
-            //alert("geneNames:"+x);
             return x;
         },
 
@@ -409,7 +391,6 @@ new Vue({
             let topPhenotype = "LDL";
             if (newData.length > 0) {
                 topPhenotype = newData[0].phenotype;
-                //console.log("top-phenotype", topPhenotype);
                 if (this.genePageSearchCriterion[0] != topPhenotype) {
                     this.genePageSearchCriterion = [];
                 }
@@ -420,41 +401,19 @@ new Vue({
                 this.$store.dispatch("getEGLData");
             }
 
-            //this.pushCriterionPhenotype(newTopPhenotype)
-            // if (removedPhenotypes.length > 0) {
-            //     this.$store.dispatch("getVarAssociationsData", newTopPhenotype);
-            // }
-            // this.$store.dispatch("getEGLData");
         }, 
 
-        // selectedPhenotypes(phenotypes, oldPhenotypes) {
-        //     const removedPhenotypes = _.difference(
-        //         oldPhenotypes.map(p => p.name),
-        //         phenotypes.map(p => p.name)
-        //     );
-        //     this.$store.dispatch("get52KAssociationData");
-        //     if (removedPhenotypes.length > 0) {
-        //         this.$store.dispatch(
-        //             "getVarAssociationsData",
-        //             phenotypes[0].name
-        //         );
-        //     }
-        //     this.$store.dispatch("getEGLData");
-        // },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 
-        // the region for the gene was found
         region(region) {
             this.hideElement("variangeneSearchHolder");
             this.$store.dispatch("queryGeneRegion", region);
         },
 
-        // the canonical symbol was found
         symbolName(symbol) {
-            //alert("symbol name:"+symbol);
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
         }

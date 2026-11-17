@@ -7,8 +7,6 @@
 					@click="showHideElement('filter_pop_up')"
 					>Filter Results</b-btn
 				>
-			<!--</b-col>
-            <b-col class="text-right"> -->
                 <csv-download
                     :data="associations"
                     filename="clumped-associations"
@@ -149,12 +147,6 @@
                 :total-rows="clumpedAssociations.length"
                 :per-page="perPage"
             ></b-pagination>
-            <!-- <div class="p-2 text-center">
-                <documentation
-                    id="aligned-beta"
-                    name="table.clumped-associations.alignment"
-                ></documentation>
-            </div> -->
         </div>
         <div v-else>
             <h4 v-if="associations.length > 0">
@@ -243,12 +235,10 @@ export default Vue.component("clumped-associations-table", {
     computed: {
         fields() {
             let fields = this.baseFields;
-            //alert(this.phenotypes.length);
                 
             for (let i in this.phenotypes) {
                 let p = this.phenotypes[i];
                 if (i==0){
-                    //alert("here");
                     this.sortKey = `${p}:allelecount`;
                     this.reverse = true;
                 }
@@ -274,18 +264,13 @@ export default Vue.component("clumped-associations-table", {
     				    tdClass: 'text-right',
                     },
                 ]);
-                //let dichotomous = this.phenotypeMap[p].dichotomous;
-                //alert(i);
             }
-            //console.log(fields);
             return fields;
         },
         clumpedAssociations() {
             let data = [];
             let varIds = {};
             let associations = this.tableData;
-            //console.log("clumpedAssociations:"+this.tableData.length);
-            //let inheritances = {};
 
             for (let i in associations) {
                 let r = associations[i];
@@ -299,47 +284,28 @@ export default Vue.component("clumped-associations-table", {
                         inheritanceText = r.inheritance.toString();
                     }
                     data.push({
-                        //chromosome: r.chromosome,
                         varId: r.varId,
                         consequence: r.consequence,
                         gene: r.gene,
                         hgvs: r.hgvsc,
                         hgvsp: r.hgvsp,
                         inheritance: inheritanceText,
-                        //clumpStart: r.clumpStart,
-                        //clumpEnd: r.clumpEnd,
-                        //minP: 1.0,
                     });
                     
-                    /*if (r.inheritance){
-                        for (let x in r.inheritance){
-                            let ind = r.inheritance[x];
-                            inheritances[ind]=1;
-                        }
-                    }*/
                 }
-                // add the phenotype columns
                 
                 data[dataIndex][`${r.phenotype}:allelecount`] = r.allelecount;
                 data[dataIndex][`${r.phenotype}:allelefrequency`] = r.allelefrequency;
                 data[dataIndex][`${r.phenotype}:allelenumber`] = r.allelenumber;
                 
-                // lowest p-value across all phenotypes
-                /*if (!!r.pValue && r.pValue < data[dataIndex].minP) {
-                    data[dataIndex].minP = r.pValue;
-                }*/
             }
-            //console.log(inheritances);
-            //this.inheritances = Object.keys(inheritances);
             return data;
         },
         tableData() {
             let dataRows = this.associations;
-            //console.log('clumped association table:'+this.filter);
             if (!!this.filter) {
                 dataRows = this.associations.filter(this.filter);
             }
-            //console.log(dataRows);
             return dataRows;
         },
     },
@@ -349,9 +315,7 @@ export default Vue.component("clumped-associations-table", {
 			uiUtils.showHideElement(ELEMENT);
 		},
 		selectAllElements(name, flag) {
-			//alert(name);
 			const allcheckbox = document.getElementsByName(name);
-			//alert(allcheckbox.length);
 			for(let c in allcheckbox) {
 				if(parseInt(c) >= 0){
 					if(flag){
@@ -413,14 +377,12 @@ export default Vue.component("clumped-associations-table", {
 			for (let i = 0 ; i < this.associations2.length; i++){
 				dataRows[i]=this.associations2[i];
 			}
-			//console.log(dataRows.length);
             if (this.filters["consequence"].length > 0) {
 				dataRows = dataRows.filter((item) =>
 					this.filters["consequence"].includes(item.consequence)
 				);
 			}
             if (this.filters["inheritance"].length > 0) {
-                //console.log("apply inheritance"+this.filters['inheritance']);
 				dataRows = dataRows.filter((item) => {
                     {   
                         if ('inheritance' in item){

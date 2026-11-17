@@ -1,7 +1,5 @@
 <template>
-	<!--body onload="init()" class="kp-default"-->
 	<body class="kp-default">
-		<!-- Header -->
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
@@ -14,7 +12,6 @@
 				alt="EGG Server logo"
 			/>
 			<h1>
-				<!--Bolded initials to emphasize "EGG."-->
 				<strong>E</strong>xome <strong>G</strong>ene-level
 				<strong>G</strong>roup-file Server
 			</h1>
@@ -31,7 +28,6 @@
 		</header>
 
 		<div id="gait">
-			<!-- This is for eggserver, but uses same styling as GAIT-->
 			<div class="container-fluid mdkp-body">
 				<div class="card mdkp-card">
 					<div class="row card-body">
@@ -80,7 +76,6 @@
 								for EPACTS format.
 							</p>
 						</div>
-						<!--div class="divider col"></div-->
 						<div class="col-md-3" id="statuschecker">
 							<h4>Check status</h4>
 							<label for="sessioninput">Session ID</label>

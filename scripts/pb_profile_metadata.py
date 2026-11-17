@@ -1,4 +1,3 @@
-"""Read the approved CRDC metadata table and reject accidental worksheet exports."""
 import csv
 import gzip
 import json

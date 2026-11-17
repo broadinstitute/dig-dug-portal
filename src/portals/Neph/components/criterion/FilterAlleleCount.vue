@@ -28,12 +28,6 @@ export default Vue.component("filter-allelecount-control", {
         },
         pillFormatter: {
             type: Function,
-            /*default: (filterDefinition) =>
-                `${filterDefinition.field} <= ${
-                    !!filterDefinition.labelFormatter
-                        ? Formatter.pValueFormatter(filterDefinition.threshold)
-                        : filterDefinition.threshold
-                }`,*/
         },
 
         predicate: {

@@ -8,7 +8,6 @@ import variantUtils from "@/utils/variantUtils";
 import { postAlertError } from "@/components/Alert.vue";
 import { match } from "@/utils/bioIndexUtils";
 
-//import {msalInstance, msalConfig} from "@/portals/Neph/components/LoginComponent.vue";
 
 Vue.use(Vuex);
 
@@ -22,7 +21,6 @@ export default new Vuex.Store({
         invalidGeneOrRegionOrVariant: false,
         userInput: null,
         matchingGenes: null,
-        //msalInstance,
     },
     mutations: {
         setInvalidGeneOrRegionOrVariant(state, flag) {
@@ -60,13 +58,10 @@ export default new Vuex.Store({
             context.commit("setMatchingGenes", matches);
         },
 
-        //select gene on autocomplete.
         async onGeneChange(context, gene) {
-            //go to gene page instead of region page, unlike main portals
             window.location.href = `/gene.html?gene=${gene}`;
         },
 
-        //select gene on autocomplete.
         async onDatasetChange(context, dataset) {
             window.location.href = "./dinspector.html?dataset=" + dataset.name;
         }

@@ -188,8 +188,6 @@ export default Vue.component("research-region-track", {
             let plotWidth = canvasWidth - (this.adjPlotMargin.left + this.adjPlotMargin.right);
             let region = this.viewingRegion;
             let xPerPixel = plotWidth / (region.end - region.start);
-            //let regionArr = this.region.split(":");
-            //let region = regionArr[1].split("-");
             
 
             this.renderAxis(ctx,
@@ -249,7 +247,6 @@ export default Vue.component("research-region-track", {
                                     ? this.adjPlotMargin.left + plotWidth
                                     : xPosEnd;
 
-                            //let xPosWidth = xPosEnd - xPosStart;
                             let xPosWidth =
                                 xPosEnd - xPosStart < 2
                                     ? 2
@@ -305,14 +302,12 @@ export default Vue.component("research-region-track", {
             CTX.beginPath();
             CTX.lineWidth = 1;
             CTX.strokeStyle = "#000000";
-            CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+            CTX.setLineDash([]);
 
-            // render y axis
             CTX.moveTo(this.adjPlotMargin.left - this.adjPlotMargin.bump, yPos);
             CTX.lineTo(this.adjPlotMargin.left - this.adjPlotMargin.bump, yPos + HEIGHT + this.adjPlotMargin.bump);
             CTX.stroke();
 
-            // render recombination Rate y axis
             let recomXpos = Math.round(
                 this.adjPlotMargin.left + WIDTH + this.adjPlotMargin.bump
             );
@@ -321,12 +316,10 @@ export default Vue.component("research-region-track", {
             CTX.lineTo(recomXpos, yPos + HEIGHT + this.adjPlotMargin.bump);
             CTX.stroke();
 
-            //render x axis
             CTX.moveTo(this.adjPlotMargin.left - this.adjPlotMargin.bump, yPos + HEIGHT + this.adjPlotMargin.bump);
             CTX.lineTo(recomXpos, yPos + HEIGHT + this.adjPlotMargin.bump);
             CTX.stroke();
 
-            // X ticks
 
             let xStep = Math.ceil((xMax - xMin) / 5);
             let xTickDistance = WIDTH / 5;
@@ -339,7 +332,6 @@ export default Vue.component("research-region-track", {
                 CTX.stroke();
 
                 CTX.textAlign = "center";
-                //let positionLabel = i < 5 ? xMin + i * xStep : xMax;
                 CTX.font = "24px Arial";
                 CTX.fillStyle = "#000000";
 

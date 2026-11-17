@@ -47,7 +47,6 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
     try {
         const cold = await ready(instance());
         assert.strictEqual(cold.matchedMetadataCount, 1);
-        // Wait for the asynchronous atomic summary save before simulating a restart.
         for (let n = 0; n < 100; n++) {
             const directories = await fs.readdir(root);
             const files = (await Promise.all(directories.map(dir => fs.readdir(path.join(root, dir))))).flat();

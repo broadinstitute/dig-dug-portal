@@ -18,7 +18,6 @@
                 <b-col class="feature-header-item" v-else>Odds Ratio</b-col>
             </b-row>
             <template v-for="(mask, j) in formattedMasks">
-            <!-- <template v-for="(mask, j) in maskData"> -->
                 <b-row
                     class="features"
                     :class="`features_${index}_${j}`"
@@ -112,7 +111,6 @@ export default Vue.component("mask-table", {
                 "Standard Error",
                 "Sample Size",
             ],
-            //{5of5_noLoF': -1,}
             masks: {
                 "LoF_HC": { description: "LofTee", sort: 0 },
                 "15of15": { description: "15/15", sort: 1 },
@@ -125,17 +123,6 @@ export default Vue.component("mask-table", {
                 "1of5_noLoF": { description: "1/5 - LoFTee", sort: 8 },
                 "5of5_noLoF": { description: "5/5 - LofTee", sort: 10 },
 				
-                //"LoF_HC": { description: "LofTee", sort: 0 },
-                //"15of15": { description: "15/15", sort: 1 },
-                //"11of11": { description: "11/11 ", sort: 2 },
-                //"5of5": { description: "5/5", sort: 3 },
-                //"5of5_LoF_LC": { description: "5/5 + LofTee LC", sort: 4 },
-                //"5of5_LoF_LC_1pct": { description: "5/5 + 1/5 noLoF %1", sort: 4 },
-                //"1of5_1pct": { description: "5/5 + 1/5 1%", sort: 5 },
-                //"0of5_1pct": { description: "5/5 + 0/5 1% ", sort: 6 },
-                //"0of5": { description: "5/5 + 0/5 ", sort: 7 },
-                //"1of5_noLoF": { description: "5/5 + 1/5 noLoF", sort: 8 },
-                //"5of5_noLoF": { description: "5/5 + 1/5 noLoF", sort: 10 }
             },
         };
     },
@@ -144,7 +131,6 @@ export default Vue.component("mask-table", {
     },
     computed: {
         formattedMasks() {
-            //console.log(this.maskData);
             let sorted = this.maskData.slice().sort((a, b) => {
                 if (this.masks[a.mask].sort < this.masks[b.mask].sort)
                     return -1;
@@ -158,7 +144,6 @@ export default Vue.component("mask-table", {
                 ...m,
                 mask: this.masks[m.mask].description,
             }));
-            //console.log('here:'+returndata.length);
             return returndata;
         },
     },

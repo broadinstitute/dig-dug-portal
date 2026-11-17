@@ -1,6 +1,5 @@
 <template>
 	<div>
-		<!--<div class="pws-merged-view">-->
 		<template v-if="topAssociationsHighest <= 5e-8">
 			<div v-if="legends" class="pws-group-legend-wrapper">
 				<div
@@ -111,21 +110,6 @@
 							>
 								&nbsp;
 							</div>
-							<!--
-								<div
-								class="
-									bubble
-									phenotype-group
-									pws-top-each-phenotype-bar
-								"
-								:class="row.group"
-								:style="{
-									height: +pValueCss(row.pValue) + '%',
-								}"
-							>
-								&nbsp;
-							</div>
-								-->
 							<div class="pws-top-each-phenotype-pvalue">
 								{{ pValueFormatter(row.pValue) }}
 							</div>
@@ -170,148 +154,7 @@
 				in this region with p-Value &le; 5e-8
 			</b-alert>
 		</template>
-		<!--</div>-->
 
-		<!--<div class="pws-bar-view new-phenotypes-with-signal-wrapper hidden">
-			<a
-				href="javascript:;"
-				v-on:click="popOutElement('pws-bar-view')"
-				class="pop-out-icon"
-				>&nbsp;</a
-			>
-			<div class="p-bellow-section-header">
-				<sup>*</sup> Colored bars summarize bottom-line meta-analyzed
-				associations for phenotypes in a group. Hover over bar or expand
-				the group to see associations for individual phenotypes.
-			</div>
-
-			<div class="pws-phenotype-group-container">
-				<div class="pws-phenotype-group-row">
-					<div class="pws-phenotype-group-header">
-						Phenotype group
-					</div>
-					<div class="pws-phenotype-group-wrapper">
-						<div class="legend-scale">
-							<span class="legend-left">0</span>
-							<span class="legend-center">-log10(p)</span>
-							<span class="legend-right" v-if="phenotypes[0]">
-								{{ getEvalue(phenotypes[0]["pValue"]) }}
-							</span>
-						</div>
-						<div class="legend"></div>
-					</div>
-				</div>
-			</div>
-			<div
-				v-for="key in Object.keys(topAssociationsGrouped)"
-				class="pws-phenotype-group-container pws-phenotype-group"
-				:class="key"
-				:key="key"
-			>
-				<div class="pws-phenotype-group-row">
-					<div
-						class="pws-phenotype-group-header"
-						v-on:click="
-							showHideByClass('pws-phenotype-row ' + key2id(key))
-						"
-					>
-						{{ key }}
-						<b-icon-arrows-expand></b-icon-arrows-expand>
-					</div>
-					<div class="pws-phenotype-group-wrapper">
-						<template
-							v-for="(item, i) in topAssociationsGrouped[key]"
-						>
-							<template v-if="i != 0">
-								<div
-									v-if="item.pValue <= 5e-3"
-									class="pws-phenotype-summary-row"
-									:style="{
-										width: +pValueCss(item.pValue) + '%',
-									}"
-									@click="
-										showHideByClass(
-											'pws-phenotype-row ' + key2id(key)
-										)
-									"
-									:key="item.phenotype"
-								>
-									<div
-										class="pws-progress-bar"
-										style="width: 100%"
-									></div>
-
-									<span class="tool-tip">
-										{{
-											item.description +
-											" (" +
-											pValueFormatter(item.pValue) +
-											")"
-										}}
-									</span>
-								</div>
-							</template>
-							<div
-								class="pws-phenotype-row"
-								:class="i != 0 ? key2id(key) + ' hidden' : ''"
-								:key="i"
-							>
-								<div
-									class="pws-progress-bar"
-									:key="item.phenotype"
-									:value="pValueCss(item.pValue)"
-									:style="{
-										width: +pValueCss(item.pValue) + '%',
-									}"
-									@click="
-										i === 0
-											? showHideByClass(
-													'pws-phenotype-row ' +
-														key2id(key)
-											  )
-											: i
-									"
-								>
-									<span
-										class="bar-desc"
-										:style="{
-											'margin-left':
-												'calc(' +
-												pValueCss(item.pValue) +
-												'% + 10px)',
-										}"
-									>
-										{{ item.description }} ({{
-											pValueFormatter(item.pValue)
-										}})
-										<div class="options-4-actions">
-											<div
-												@click="
-													addPhenotype(item.phenotype)
-												"
-											>
-												Add this phenotype below
-											</div>
-
-											<div
-												v-on:click="
-													openPage('phenotype.html', {
-														phenotype:
-															item.phenotype,
-													})
-												"
-											>
-												Go to phenotype page
-											</div>
-										</div>
-									</span>
-								</div>
-							</div>
-						</template>
-					</div>
-				</div>
-			</div>
-		</div>-->
 	</div>
 </template>
 

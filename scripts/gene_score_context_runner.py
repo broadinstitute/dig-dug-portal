@@ -1,4 +1,3 @@
-"""Run the existing gene-score LM/LMM script for one private HPO context."""
 
 from __future__ import annotations
 
@@ -44,7 +43,6 @@ class GeneScoreContextRunner:
         self._score_slice_lock = Lock()
 
     def _score_file_for_gene(self, gene):
-        """Scan the large score table once per gene, then reuse its small slice."""
         key = gene.upper()
         with self._score_slice_lock:
             if key in self._score_slices:
@@ -125,5 +123,4 @@ class GeneScoreContextRunner:
         return results[gene.upper()]
 
     def run_all(self, sample_ids, residual_phers, *, score_type=None, affected_only=None):
-        """Fit one null model and test every gene in the approved score source."""
         return self._run(sample_ids, residual_phers, score_type=score_type, affected_only=affected_only)

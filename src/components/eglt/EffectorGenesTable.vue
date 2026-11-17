@@ -88,18 +88,6 @@
                         </select>
                     </template>
                     <template v-else-if="filter.type == 'dropdown_search'">
-                        <!--<select
-                            :id="'filter_' + filter.field"
-                            @change="
-                                filterData(
-                                    $event,
-                                    filter.field,
-                                    filter.type,
-                                    filter.dataType
-                                )
-                            "
-                            class="custom-select"
-                        >-->
                         <input
                             type="text"
                             class="form-control"
@@ -164,7 +152,6 @@
             ></effector-genes-m-plot>
         </b-container>
 
-        <!-- if the page view is not single_gene_view -->
         <b-container
             fluid
             v-if="
@@ -288,7 +275,6 @@
                     </div>
                 </b-row>
             </b-container>
-            <!-- convertJson2Csv works only for tables with no feature tables -->
             <b-container fluid class="per-page-ui-wrapper">
                 <label
                     class="items-per-page-label"
@@ -449,7 +435,6 @@
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
 import SingleGeneView from "@/components/eglt/SingleGeneView.vue";
 import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
@@ -476,7 +461,6 @@ export default Vue.component("effector-genes-table", {
             hideAllFeatureHeadersChk: null,
             sortTableSelect: null,
             sortDirection: "asc",
-            /*igvBrowser: false,*/
             perPage: null,
             currentPage: 1,
             selectedGene: "",
@@ -605,8 +589,8 @@ export default Vue.component("effector-genes-table", {
         buildOptions(field) {
             let options = this.tableData
                 .map((v) => v[field])
-                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
-                .filter((v, i, arr) => v != ""); //remove blank
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != "");
             return options.sort();
         },
         buildWordOptions(field) {
@@ -616,8 +600,8 @@ export default Vue.component("effector-genes-table", {
                 words.map((w) => wordsArr.push(w.toLowerCase()));
             });
             let options = wordsArr
-                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
-                .filter((v, i, arr) => v != "" && v.length > 3); //remove blank and word is longer than 3 charactors
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != "" && v.length > 3);
             options.sort();
             let singularOptions = [];
 
@@ -695,7 +679,7 @@ export default Vue.component("effector-genes-table", {
         filterData(EVENT, FIELD, TYPE, DATATYPE) {
             let searchValue = document.getElementById(
                 "filter_" + FIELD.replace(/ /g, "")
-            ).value; //EVENT.target.value;
+            ).value;
             let id = "#filter_" + FIELD.replace(/ /g, "");
             let inputField = document.querySelector(id);
 
@@ -955,21 +939,6 @@ export default Vue.component("effector-genes-table", {
             this.$store.dispatch("selectGene", ITEM);
             uiUtils.showElement("feature-scores-wrapper");
         },
-        /*showIGV(LOCATION, GENE) {
-            this.igvBrowser = true;
-
-            let locus = "chr" + LOCATION.replace(/\s/g, "");
-            let igvDiv = document.getElementById("igv-content");
-            let options = {
-                genome: "hg19",
-                name: "IGV",
-                locus: locus,
-            };
-            [].slice
-                .call(igvDiv.children)
-                .forEach((child) => igvDiv.removeChild(child));
-            igv.createBrowser(igvDiv, options, GENE);
-        },*/
         formatContent(COLUMN, VALUE, LEVEL) {
             let formatting =
                 LEVEL == "top"

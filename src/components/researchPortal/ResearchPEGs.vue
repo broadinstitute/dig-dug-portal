@@ -114,9 +114,7 @@ export default Vue.component("research-predicted-effector-genes", {
 		},
 		viewingRegion: {
 			handler: function (n, o) {
-				//if (n.length > 0) {
 				this.renderTrack(this.genesData);
-				//}
 			},
 			deep: true,
 			immediate: true,
@@ -133,7 +131,7 @@ export default Vue.component("research-predicted-effector-genes", {
 			if (!!document.getElementById("genesTrackWrapper")) {
 				let genesArray = GENES;
 				let canvasRenderWidth, canvasRenderHeight;
-				let eachGeneTrackHeight = 60; //15: gene name, 10: gene track, 5: space between tracks
+				let eachGeneTrackHeight = 60;
 
 				canvasRenderWidth = !!this.plotConfig.width
 					? this.plotConfig.width * 2 +
@@ -141,11 +139,11 @@ export default Vue.component("research-predicted-effector-genes", {
 					  this.plotMargin.rightMargin
 					: document.getElementById("genesTrackWrapper").clientWidth *
 							2 -
-					  60; // -30 for padding
+					  60;
 
 				canvasRenderHeight =
 					this.plotMargin.topMargin +
-					eachGeneTrackHeight * genesArray.length; // no this.plotMargin.bottomMargin is needed here since there is no plot label needed
+					eachGeneTrackHeight * genesArray.length;
 
 				let bump = this.plotMargin.bump;
 
@@ -176,7 +174,7 @@ export default Vue.component("research-predicted-effector-genes", {
 				ctx.beginPath();
 				ctx.lineWidth = 1;
 				ctx.strokeStyle = "#000000";
-				ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+				ctx.setLineDash([]);
 
 				let xMin = Number(this.viewingRegion.start),
 					xMax = Number(this.viewingRegion.end);
@@ -203,7 +201,6 @@ export default Vue.component("research-predicted-effector-genes", {
 							this.plotMargin.topMargin +
 							geneIndex * eachGeneTrackHeight;
 
-						//yPos += yPos % 1 == 0 ? 0.5 : 0;
 
 						var left = "\u{2190}";
 						var right = "\u{2192}";
@@ -222,14 +219,13 @@ export default Vue.component("research-predicted-effector-genes", {
 						ctx.beginPath();
 						ctx.lineWidth = 1;
 						ctx.strokeStyle = "#000000";
-						ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+						ctx.setLineDash([]);
 
 						ctx.moveTo(xStartPos, yPos + 20);
 						ctx.lineTo(xEndPos, yPos + 20);
 						ctx.stroke();
 
 						gene.exons.map((exon) => {
-							//console.log(gene.gene_name, ": ", exon.start, exon.end);
 
 							if (exon.start < xMax && exon.end > xMin) {
 								let xonStartPos =

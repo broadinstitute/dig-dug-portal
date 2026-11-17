@@ -236,7 +236,6 @@ export default Vue.component("ResearchExpressionPlot", {
 		},
 		processData() {
 			let processedCollection = [];
-			// Need a deep copy - the rawData is getting mutated.
 			let processedData = JSON.parse(JSON.stringify(this.$props.rawData));
 			processedData = processedData.filter(
 				(entry) => parseInt(entry["nSamples"]) >= this.minSamples
@@ -373,7 +372,6 @@ export default Vue.component("ResearchExpressionPlot", {
 				})
 				.entries(flatData);
 
-			//Maximum number of entries in a bin.
 			let maxNum = 0;
 			for (let i in sumstat) {
 				let allBins = sumstat[i].value;
@@ -467,7 +465,6 @@ export default Vue.component("ResearchExpressionPlot", {
 				svg.selectAll("circle").remove();
 				redrawNonHoverDots(g);
 				redrawHoverDots(g);
-				// Tooltip content
 				let tooltipContent = `Biosample: ${g.biosample}`;
 				tooltipContent = tooltipContent.concat(
 					`<span>Dataset: ${g.dataset}</span>`
@@ -495,8 +492,6 @@ export default Vue.component("ResearchExpressionPlot", {
 				})
 				.style("stroke", "none")
 				.style("fill", (d) => {
-					// I don't like reinventing the wheel, but I cannot
-					// figure out how to access the key attribute as text
 					let color = colors[colorIndex];
 					colorIndex++;
 					if (colorIndex >= colors.length) {
@@ -542,7 +537,6 @@ export default Vue.component("ResearchExpressionPlot", {
 				})
 				.entries(flatData);
 			let offset = width / (2 * numberViolins);
-			// Boxplots top quartile
 			svg.selectAll("vertLines")
 				.data(sumstatBox)
 				.enter()
@@ -556,7 +550,6 @@ export default Vue.component("ResearchExpressionPlot", {
 				.style("width", 30)
 				.attr("transform", (d) => `translate(${x(d.key) + offset},0)`)
 				.on("mouseover", mouseover);
-			// Boxplots bottom quartile
 			svg.selectAll("vertLines")
 				.data(sumstatBox)
 				.enter()
@@ -587,7 +580,6 @@ export default Vue.component("ResearchExpressionPlot", {
 				.style("opacity", 0.5)
 				.on("mouseover", mouseover);
 
-			// Packaging data for export at the same time.
 			svg.selectAll("zoneBoxes")
 				.data(sumstatBox)
 				.enter()
@@ -644,7 +636,6 @@ div {
 	display: block;
 }
 .chart-wrapper > label {
-	/*font-size: smaller;*/
 	padding: 10px;
 }
 .chart {

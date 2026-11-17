@@ -1,4 +1,3 @@
-/* ── Page shell ─────────────────────────────────────────────────────────── */
 .pbg-page {
     --pbg-surface: #fff;
     --pbg-surface-subtle: #f8fafc;
@@ -31,7 +30,6 @@
     margin: 0 auto;
 }
 
-/* ── Toolbar ─────────────────────────────────────────────────────────────── */
 .pbg-toolbar {
     display: flex;
     align-items: baseline;
@@ -285,7 +283,6 @@
     }
 }
 
-/* ── Context analysis ───────────────────────────────────────────────────── */
 .pbg-context-disclosure {
     margin-bottom: 1.25rem;
     border-top: 1px solid var(--pbg-border);
@@ -640,7 +637,6 @@
     font-style: italic;
 }
 
-/* ── Shared card base ────────────────────────────────────────────────────── */
 .pbg-hero-card,
 .pbg-locus-card,
 .pbg-variants-card {
@@ -650,7 +646,6 @@
     margin-bottom: 1rem;
 }
 
-/* ── Section label ───────────────────────────────────────────────────────── */
 .pbg-section-label {
     display: block;
     margin: 0 0 0.3rem;
@@ -673,9 +668,6 @@
     margin-left: 0.3rem;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   BLOCK 1 — Gene hero
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-hero-card {
     display: grid;
     grid-template-columns: minmax(21rem, 0.85fr) minmax(0, 1.35fr);
@@ -688,7 +680,6 @@
     min-width: 0;
 }
 
-/* Gene identity */
 .pbg-gene-title-row {
     display: flex;
     align-items: center;
@@ -795,7 +786,6 @@
     outline-offset: 2px;
 }
 
-/* ── Variant stats row (CRDC cohort source) ─────────────────────────────── */
 .pbg-variant-stats-row {
     display: flex;
     flex-wrap: wrap;
@@ -829,7 +819,6 @@
     color: #991b1b;
 }
 
-/* ── Reference annotation TABLE ─────────────────────────────────────────── */
 .pbg-ref-table {
     width: 100%;
     table-layout: fixed;
@@ -1570,7 +1559,6 @@
     background: #3b82f6;
 }
 
-/* ── CRDC kv table (Burden match + Top variant signal) ──────────────────── */
 .pbg-crdc-kv-table {
     width: 100%;
     border-collapse: collapse;
@@ -1617,7 +1605,6 @@
     font-family: "SFMono-Regular", Consolas, monospace;
 }
 
-/* ── CRDC evidence — compact kv panel ───────────────────────────────────── */
 .pbg-hero-evidence {
     padding-left: 1rem;
     border-left: 2px solid var(--pbg-border);
@@ -1724,7 +1711,6 @@
     text-align: right;
 }
 
-/* ── Top carrier HPO terms mini bar table ────────────────────────────────── */
 .pbg-carrier-terms {
     display: flex;
     flex-direction: column;
@@ -1773,9 +1759,6 @@
     text-align: right;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   BLOCK 2 — Locus / genomic window
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-locus-card {
     padding: 1.1rem 1.4rem 1.2rem;
 }
@@ -1804,7 +1787,6 @@
     margin-bottom: 0.3rem;
 }
 
-/* Shared track row layout */
 .pbg-exon-track-wrap,
 .pbg-marker-track-wrap,
 .pbg-density-wrap {
@@ -1824,7 +1806,6 @@
     line-height: 1.3;
 }
 
-/* Exon track */
 .pbg-exon-track {
     position: relative;
     flex: 1;
@@ -1867,7 +1848,6 @@
     display: none;
 }
 
-/* Marker track — taller to accommodate staggered vertical offsets */
 .pbg-marker-track {
     position: relative;
     flex: 1;
@@ -1927,7 +1907,6 @@
     color: #991b1b;
 }
 
-/* Density track */
 .pbg-density-wrap { align-items: flex-start; }
 
 .pbg-density-body { flex: 1; }
@@ -1972,7 +1951,6 @@
 
 .pbg-density-bar--query { background: #1d4ed8; }
 
-/* Visible count badge above each bar */
 .pbg-density-bar-count {
     position: absolute;
     bottom: 100%;
@@ -1987,7 +1965,6 @@
     margin-bottom: 1px;
 }
 
-/* Density filter controls */
 .pbg-density-filters {
     display: flex;
     align-items: center;
@@ -2022,7 +1999,6 @@
     border-color: var(--pbg-primary-dark);
 }
 
-/* Dropdown filters */
 .pbg-filter-select-wrap {
     display: inline-flex;
     align-items: center;
@@ -2064,7 +2040,6 @@
     color: var(--pbg-ink-strong);
 }
 
-/* ── Rebuilt Gene locus view: whole-gene ⇄ queried variant ±25bp ───────── */
 .pbg-window-card {
     padding: 1.35rem 1.55rem 1.45rem;
     overflow: hidden;
@@ -2697,7 +2672,6 @@
     font-weight: 800;
 }
 
-/* ── Compact gene-locus middle block ───────────────────────────────────── */
 .pbg-window-card {
     padding: 1rem 1.35rem 0.95rem;
 }
@@ -3032,14 +3006,10 @@
     display: none;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   BLOCK 3 — Gene carrier evidence (gene-level tabs + variant accordion)
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-variants-card {
     padding: 0 0 1.4rem;
 }
 
-/* ── Gene-level tab header ──────────────────────────────────────────────── */
 .pbg-gene-tab-header {
     display: flex;
     align-items: flex-end;
@@ -3087,12 +3057,10 @@
     color: var(--pbg-text);
 }
 
-/* ── Tab content container ───────────────────────────────────────────────── */
 .pbg-tab-content {
     padding: 1.1rem 1.4rem 0.5rem;
 }
 
-/* ── Demographics grid (Carrier summary tab) ─────────────────────────────── */
 .pbg-demo-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3145,7 +3113,6 @@
     text-align: right;
 }
 
-/* ── Summary section (phenotype / genotype profiles) ────────────────────── */
 .pbg-summary-section {
     margin-bottom: 1.4rem;
     padding-bottom: 1.2rem;
@@ -3158,7 +3125,6 @@
     padding-bottom: 0;
 }
 
-/* ── Phenotype bars (shared by summary tab + accordion) ──────────────────── */
 .pbg-pheno-bars { display: flex; flex-direction: column; gap: 0.6rem; }
 
 .pbg-pheno-bar-group {}
@@ -3182,7 +3148,6 @@
 
 .pbg-pheno-bar { height: 100%; background: #3b82f6; border-radius: 100px; }
 
-/* ── Co-carrier table (shared by summary + accordion) ────────────────────── */
 .pbg-co-carrier-table {
     border: 1px solid var(--pbg-border);
     border-radius: 0.35rem;
@@ -3228,7 +3193,6 @@
     line-height: 1.45;
 }
 
-/* ── Variant accordion table (Variants tab) ─────────────────────────────── */
 .pbg-vtable-head {
     display: grid;
     grid-template-columns: minmax(15rem, 1.8fr) minmax(7rem, 0.95fr) minmax(7rem, 0.8fr) 5.2rem 5.2rem minmax(7rem, 0.8fr) minmax(6.5rem, 0.75fr) minmax(6rem, 0.75fr) minmax(10rem, 1.1fr) 1.4rem;
@@ -3323,7 +3287,6 @@
 .pbg-top-terms-cell { color: var(--pbg-text-muted); font-size: 1.02rem; }
 .pbg-expand-icon    { color: var(--pbg-text-faint); font-size: 1.08rem; text-align: center; }
 
-/* ── Accordion ─────────────────────────────────────────────────────────── */
 .pbg-accordion {
     background: #f8fbff;
     border: 1px solid #c7d7e8;
@@ -3359,7 +3322,6 @@
     padding: 1.1rem 1.2rem 1.2rem;
 }
 
-/* Left col: evidence + sample table */
 .pbg-kv-grid { display: grid; gap: 0; }
 
 .pbg-kv-row {
@@ -3384,7 +3346,6 @@
 }
 .pbg-ext-link:hover { text-decoration: underline; }
 
-/* Carrier sample table */
 .pbg-carrier-table {
     border: 1px solid var(--pbg-border);
     border-radius: 0.35rem;
@@ -3437,14 +3398,12 @@
     word-break: break-all;
 }
 
-/* Right col: phenotype / genotype tab panels */
 .pbg-acc-sub {
     margin: 0 0 0.8rem;
     color: var(--pbg-text-muted);
     font-size: 1.05rem;
 }
 
-/* ── Block 3: gene/variant summary + variant evidence table ─────────────── */
 .pbg-evidence-card {
     padding: 0;
     overflow: hidden;
@@ -4454,9 +4413,6 @@
     font-weight: 900;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   NEW: Zoom controls (Block 2)
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-zoom-controls {
     display: inline-flex;
     align-items: center;
@@ -4523,19 +4479,14 @@
     color: var(--pbg-primary-dark);
 }
 
-/* Proband-mode density bars */
 .pbg-density-bar--proband       { background: #a78bfa; }
 .pbg-density-bar--proband-query { background: #7c3aed; }
 
-/* Proband checkbox accent */
 .pbg-check-box--proband.pbg-check-box--on {
     background: #7c3aed;
     border-color: #7c3aed;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   NEW: Gene-level carrier samples table (Carrier summary tab)
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-gene-sample-table {
     border: 1px solid var(--pbg-border);
     border-radius: 0.35rem;
@@ -4571,7 +4522,6 @@
 .pbg-gene-sample-row:hover { background: #f0f5fb; }
 .pbg-sample-match { color:#087775; font-variant-numeric:tabular-nums; }
 
-/* Variant chip in the samples table */
 .pbg-variant-chip {
     display: inline-block;
     padding: 0;
@@ -4600,9 +4550,6 @@
 .pbg-variant-chip.pbg-csq--lof { color: #991b1b; }
 .pbg-variant-chip.pbg-csq--missense { color: #92400e; }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   NEW: Expandable phenotype terms
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-pheno-bar-group--clickable {
     cursor: pointer;
     padding: 0.4rem 0.5rem;
@@ -4670,16 +4617,12 @@
     text-align: right;
 }
 
-/* ── Demographics section wrapper (moved to bottom) ─────────────────────── */
 .pbg-demo-section {
     margin-top: 0.5rem;
     padding-top: 1rem;
     border-top: 1px solid var(--pbg-border);
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   NEW: Sortable column headers
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-sort-col {
     cursor: pointer;
     user-select: none;
@@ -4702,9 +4645,6 @@
     color: #7a92a8;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   NEW: Variant chip — full genomic ID display
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-variant-chip {
     display: flex;
     flex-direction: column;
@@ -4722,9 +4662,6 @@
     color: inherit;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   NEW: Show more terms button
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-show-more-btn {
     display: block;
     width: 100%;
@@ -4818,9 +4755,6 @@
     white-space: nowrap;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   IMPROVED: Gene sample table scrollbar visibility
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-gene-sample-table {
     overflow: auto;
     scrollbar-width: thin;
@@ -4846,9 +4780,6 @@
     background: #52657f;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   IMPROVED: Accordion left/right panel visual separation
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-acc-left {
     padding-right: 1.2rem;
     border-right: 2px solid #c7d7e8;
@@ -4860,23 +4791,18 @@
     max-height: 520px;
 }
 
-/* Divider between carrier samples and phenotype inside right panel */
 .pbg-acc-divider {
     border: none;
     border-top: 1.5px solid #dde6f0;
     margin: 1rem 0;
 }
 
-/* gnomAD AF cell in variant table */
 .pbg-af-cell {
     font-family: "SFMono-Regular", Consolas, monospace;
     font-size: 1rem;
     color: #475569;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   gnomAD-style CRDC evidence table (Block 1 right panel)
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-ev-header {
     margin-bottom: 0.55rem;
 }
@@ -4953,7 +4879,6 @@
     color: var(--pbg-text-faint);
 }
 
-/* Carrier count bars */
 .pbg-ev-bar-cell {
     padding-left: 0.75rem !important;
 }
@@ -4977,14 +4902,12 @@
 .pbg-ev-bar--affected { background: #059669; }
 .pbg-ev-bar--gendx   { background: #0891b2; }
 
-/* Section divider */
 .pbg-ev-section-divider {
     border: none;
     border-top: 1px solid var(--pbg-border);
     margin: 0.6rem 0;
 }
 
-/* Score value badge */
 .pbg-ev-score-val {
     display: inline-block;
     padding: 0.18rem 0.55rem;
@@ -5011,7 +4934,6 @@
     color: #52657f;
 }
 
-/* Score constraint bar (gnomAD slider style) */
 .pbg-ev-score-track {
     position: relative;
     height: 7px;
@@ -5055,7 +4977,6 @@
     min-width: 70px;
 }
 
-/* LOFTEE badge inline */
 .pbg-ev-lof-badge {
     display: inline-block;
     padding: 0.1rem 0.5rem;
@@ -5072,7 +4993,6 @@
     color: var(--pbg-text-faint);
 }
 
-/* Variant ref (monospace ID below Top signal bar) */
 .pbg-ev-variant-ref {
     font-family: "SFMono-Regular", Consolas, monospace;
     font-size: 0.9rem;
@@ -5082,9 +5002,6 @@
     vertical-align: middle;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   NEW: Density bar queried variant label
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-density-bar-var-label {
     position: absolute;
     bottom: calc(100% + 1rem);
@@ -5102,9 +5019,6 @@
     padding: 0.05rem 0.3rem;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   NEW: Show more / less row
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-show-more-row {
     display: flex;
     gap: 0.5rem;
@@ -5126,9 +5040,6 @@
     background: #eef3f8;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   NEW: Coding context panel (zoom 4-5)
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-cc-wrap {
     display: flex;
     align-items: flex-start;
@@ -5168,14 +5079,13 @@
     font-weight: 600;
 }
 
-/* 5-codon row */
 .pbg-cc-codon-row {
     display: flex;
     gap: 2px;
 }
 
 .pbg-cc-codon-box {
-    flex: 3;  /* 3 bases per codon = same width as base row cells */
+    flex: 3;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -5226,7 +5136,6 @@
     margin-top: 0.1rem;
 }
 
-/* 15-base row */
 .pbg-cc-base-row {
     display: flex;
     gap: 2px;
@@ -5254,7 +5163,6 @@
     border-radius: 0.3rem;
 }
 
-/* Left border on first base of each codon */
 .pbg-cc-base--pos1 {
     border-left-width: 2px;
 }
@@ -5276,7 +5184,6 @@
     margin-top: 1px;
 }
 
-/* Genomic position row */
 .pbg-cc-pos-row {
     display: flex;
     gap: 2px;
@@ -5300,7 +5207,6 @@
 }
 
 
-/* ── Variants tab: header sub-labels + Cohort AF (inner AF) cell ─────────── */
 .pbg-vh-sub {
     display: block;
     font-style: normal;
@@ -5316,7 +5222,6 @@
     font-weight: 700;
 }
 
-/* ── Top variant header (Block 1 score panel) ───────────────────────────── */
 .pbg-ev-topvar-head {
     margin: 0 0 0.5rem;
     color: var(--pbg-ink-strong);
@@ -5333,9 +5238,6 @@
 }
 
 
-/* ══════════════════════════════════════════════════════════════════════════
-   Evidence panel: headline scores (no-context) + emphasized Top variant box
-══════════════════════════════════════════════════════════════════════════ */
 .pbg-ev-headline {
     display: flex;
     flex-wrap: wrap;
@@ -5390,7 +5292,6 @@
     width: fit-content;
 }
 
-/* Emphasized Top variant box — thick outline so it reads as the headline item */
 .pbg-topvar-box {
     margin-top: 0.9rem;
     padding: 0.7rem 0.9rem 0.4rem;
@@ -5425,7 +5326,6 @@
 }
 
 
-/* Carrier counts: compact (do not stretch full width) */
 .pbg-ev-table--simple {
     width: auto;
     min-width: 14rem;
@@ -5436,7 +5336,6 @@
     padding-right: 0.9rem;
 }
 
-/* Neutral note for computed (non-context) headline values */
 .pbg-ev-headline-note {
     display: block;
     margin-top: 0.25rem;
@@ -5446,10 +5345,8 @@
 }
 
 
-/* Single remaining headline card (Overall burden match) — keep compact */
 .pbg-ev-headline-item { max-width: 24rem; }
 
-/* Top variant score badge in the box header (the merged "signal" number) */
 .pbg-ev-topvar-score {
     font-size: 1.35rem;
     font-weight: 800;
@@ -5463,7 +5360,6 @@
 .pbg-ev-topvar-score.pbg-ev-score--low  { background: var(--pbg-surface-muted); color: #52657f; }
 
 
-/* ── gnomAD-style emphasis: filled highlight on the KEY number only ──────── */
 .pbg-ev-kpi {
     background: #fde68a;
     border: 1px solid #f59e0b;
@@ -5472,7 +5368,6 @@
 }
 .pbg-ev-fill--kpi { background: linear-gradient(90deg, #fcd34d, #d97706); }
 
-/* small inline note under a metric label (e.g., "no phenotype context") */
 .pbg-ev-rownote {
     display: block;
     margin-top: 0.1rem;
@@ -5485,7 +5380,6 @@
 }
 
 
-/* ── Locus legend + on-bar variant markers + simple variant list ─────────── */
 .pbg-locus-legend {
     font-size: 0.88rem;
     color: var(--pbg-text-soft);
@@ -5493,10 +5387,8 @@
 .pbg-locus-legend-mark  { color: #1d4ed8; font-weight: 700; }
 .pbg-locus-legend-focal { color: var(--pbg-danger); font-weight: 700; }
 
-/* non-queried variant bar tint */
 .pbg-density-bar--variant { background: #818cf8; }
 
-/* variant marker sitting directly above its aligned bar (replaces lollipops) */
 .pbg-density-bar-var-label {
     position: absolute;
     bottom: calc(100% + 1.25rem);
@@ -5515,7 +5407,6 @@
 }
 .pbg-density-bar-var-label--focal { color: var(--pbg-danger); }
 
-/* Simple variant list at the locus */
 .pbg-locus-varlist {
     display: flex;
     flex-wrap: wrap;
@@ -5557,7 +5448,6 @@
 .pbg-locus-var-dot { color: var(--pbg-danger); }
 
 
-/* ── Gene model track: compressed introns w/ strand arrows + focal exon ──── */
 .pbg-track-sub {
     display: block;
     font-size: 0.82rem;
@@ -5594,7 +5484,6 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='9'%3E%3Cpath d='M12 2 L8 4.5 L12 7' fill='none' stroke='%2394afc5' stroke-width='1.3'/%3E%3C/svg%3E");
 }
 
-/* exon containing the queried variant — tie to the red marker */
 .pbg-exon-block--focal {
     background: var(--pbg-danger);
     box-shadow: 0 0 0 2px #fecaca;
@@ -5602,7 +5491,6 @@
 }
 
 
-/* ── Gene model track: stacked variant markers above exon boxes ──────────── */
 .pbg-gm-track { position: relative; flex: 1; }
 .pbg-exon-track-wrap--can-pan:not(.pbg-exon-track-wrap--dragging) .pbg-gm-track {
     cursor: grab;
@@ -5775,7 +5663,6 @@
     font-size: 0.72rem;
 }
 
-/* ── Per-bp carrier bars (base level): 1 column = 1 bp, aligned to bases ──── */
 .pbg-cc-count-row {
     display: flex;
     gap: 2px;
@@ -5814,7 +5701,6 @@
     padding-left: 4.6rem;
 }
 
-/* ── Gene-wide carrier density track ────────────────────────────────────── */
 .pbg-gene-density-wrap {
     display: flex;
     align-items: flex-start;
@@ -5950,7 +5836,6 @@
     transform: translateX(-50%) scale(1.2);
 }
 
-/* ── Boss-review pass: keep base-level detail compact ───────────────────── */
 .pbg-cc-panel {
     flex: 0 1 74rem;
     gap: 0.22rem;

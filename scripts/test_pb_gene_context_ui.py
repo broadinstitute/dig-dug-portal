@@ -129,7 +129,7 @@ class PbGeneContextUiTest(unittest.TestCase):
 
     def test_local_context_fixture_does_not_call_live_bioindex(self):
         start = MODEL.index("async loadLiveGeneData")
-        block = MODEL[start:MODEL.index("// ── gene-level tab", start)]
+        block = MODEL[start:MODEL.index("setGeneTab(tab)", start)]
         self.assertIn("if (LOCAL_CONTEXT_FIXTURE_ENABLED)", block)
         self.assertIn("window.location.assign", block)
 

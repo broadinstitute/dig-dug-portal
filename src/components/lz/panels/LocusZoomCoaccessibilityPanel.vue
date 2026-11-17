@@ -25,7 +25,6 @@ export default Vue.component('lz-coaccessibility-panel', {
             event => this.$emit('error', event)
         );
         
-        // hack - needs to be replaced
         this.addPanels = this.$parent.addPanels;
         this.plot = this.$parent.plot;
     }

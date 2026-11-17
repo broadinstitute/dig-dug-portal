@@ -62,7 +62,6 @@ new Vue({
     },
 
     computed: {
-        /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";
@@ -80,7 +79,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        ///
 
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
@@ -184,7 +182,6 @@ new Vue({
 
         datasetsPhenotypeOptions() {
 
-            //let uniqueOptions = [...new Set(this.$store.state.bioPortal.phenotypes.map(p => p.name).sort())]
 
             let uniqueOptions = [...new Set(this.phenotypesInSession.map(p => p.name).sort())]
 

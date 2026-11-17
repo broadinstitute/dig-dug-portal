@@ -24,11 +24,6 @@
                         target="_blank"
                         >Open Lunaris for more options &nbsp;</a
                     >
-                    <!--<tooltip-documentation
-                        name="test.tooltip.index.regionexample"
-                        :group="diseaseGroup.name"
-                        :isHover="false"
-                    ></tooltip-documentation>-->
                 </div>
             </div>
         </a>
@@ -94,7 +89,6 @@ export default Vue.component("lunaris-link", {
             uiUtils.showElement("loading_lunaris_data");
             uiUtils.hideElement("copy-data-btn");
             uiUtils.hideElement("lunaris-modal-textarea");
-            //this.lunarisCaller();
             let arg = {
                 id: "requestFilterTsv",
                 regions: {},

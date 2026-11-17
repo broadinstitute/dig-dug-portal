@@ -1,4 +1,3 @@
-// Run: node scripts/test_pb_gene_selection.js
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -67,7 +66,6 @@ async function main() {
     assert.equal(invalid.expandedVariantId, null);
     assert.equal(invalid.geneTab, 'gene');
 
-    // The requested row can be absent from partial data and arrive in the final response.
     fetchState = async (_, { onPartial }) => {
         onPartial({ variantRows: [] });
         assert.equal(p.expandedVariantId, null);
@@ -76,14 +74,12 @@ async function main() {
     await p.loadLiveGeneData();
     assert.equal(p.expandedVariantId, id);
 
-    // URL selection is also restored for a gene with no initial fixture rows.
     const delayed = page(id, 'LATE');
     assert.equal(delayed.expandedVariantId, null);
     fetchState = async (_, { onPartial }) => { onPartial({ variantRows: [] }); return resolved('LATE'); };
     await delayed.loadLiveGeneData();
     assert.equal(delayed.expandedVariantId, id);
 
-    // An explicit deselection during loading must not be undone by the response.
     fetchState = async (_, { onPartial }) => {
         onPartial(resolved('LATE'));
         delayed.setGeneTab('gene');

@@ -105,7 +105,6 @@ export default Vue.component("egls-section-on-gene", {
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
 			if (contJson.error == null) {
-				//console.log(contJson[0]["field_data_points"]);
 				let data = dataConvert.csv2Json(
 					contJson[0]["field_data_points"]
 				);
@@ -116,7 +115,6 @@ export default Vue.component("egls-section-on-gene", {
 					eglsList[d["Page ID"]] = d;
 				});
 
-				//console.log("full list", eglsList);
 				this.eglsList = eglsList;
 			}
 		},
@@ -127,8 +125,6 @@ export default Vue.component("egls-section-on-gene", {
 			let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
 			if (contJson.error == null) {
-				//console.log("with gene", contJson);
-				//{"field_page_id":"richards_t2d_266"}
 				this.eglsOnGene = contJson;
 			}
 		},

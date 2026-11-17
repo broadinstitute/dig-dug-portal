@@ -147,7 +147,6 @@ export default Vue.component("multi-region-plot", {
 				"#824099cc",
 			],
 
-			//rebuilding start
 			assoData: {},
 			ldData: {},
 			recombData: "",
@@ -187,7 +186,6 @@ export default Vue.component("multi-region-plot", {
 					bump: this.plotMargin.bump,
 				};
 
-			//console.log("region plot", plotMargin);
 			return plotMargin;
 		},
 		staredVariants() {
@@ -205,7 +203,6 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		plotsList() {
-			//used rebuild
 			let newRegion = false;
 
 			if (
@@ -228,7 +225,6 @@ export default Vue.component("multi-region-plot", {
 				if (this.dataComparisonConfig != null) {
 					let field =
 						this.dataComparisonConfig["fields to compare"][0];
-					// get list of data groups
 					for (const [pKey, pValue] of Object.entries(
 						plotDataLocal
 					)) {
@@ -250,13 +246,12 @@ export default Vue.component("multi-region-plot", {
 				if (!!newRegion) {
 				}
 
-				this.assoData = {}; // reset assoData
-				this.ldData = {}; // reset ldData
-				this.recombData = ""; // reset recombData
+				this.assoData = {};
+				this.ldData = {};
+				this.recombData = "";
 				this.assoPos = {};
 				this.ldPos = {};
 
-				//feed assoData + set initial reference variant
 				let yAxField = this.renderConfig["y axis field"];
 				let populationsType =
 					this.renderConfig["ld server"]["populations type"];
@@ -300,7 +295,6 @@ export default Vue.component("multi-region-plot", {
 								let yAxValue = dValue[yAxField][group];
 
 								if (!!yAxValue) {
-									// set population for calling LD API
 
 									if (populationsType == "fixed") {
 										this.ldData[group].population =
@@ -320,7 +314,6 @@ export default Vue.component("multi-region-plot", {
 										);
 									}
 
-									// set initial refVarint
 
 									if (
 										!this.refProperties.refVariants[group]
@@ -339,7 +332,6 @@ export default Vue.component("multi-region-plot", {
 											];
 									}
 
-									// set high / low values of the group
 									this.assoData[group].yAxHigh =
 										this.assoData[group].yAxHigh == null
 											? Math.ceil(yAxValue)
@@ -355,7 +347,6 @@ export default Vue.component("multi-region-plot", {
 												this.assoData[group].yAxLow
 												? Math.floor(yAxValue)
 												: this.assoData[group].yAxLow;
-									// add data to asso data
 									this.assoData[group].data[dKey] = {};
 
 									for (const [fKey, fValue] of Object.entries(
@@ -389,7 +380,6 @@ export default Vue.component("multi-region-plot", {
 							let yAxValue = dValue[yAxField];
 
 							if (!!yAxValue) {
-								// set population for calling LD API
 
 								if (populationsType == "fixed") {
 									this.ldData[group].population =
@@ -412,8 +402,6 @@ export default Vue.component("multi-region-plot", {
 								let dKey =
 									dValue[this.renderConfig["render by"]];
 
-								// set initial refVarint
-								//if (!this.fixedRefVariants[group]) {
 								refVariant =
 									this.assoData[group].yAxHigh == null
 										? dKey
@@ -421,9 +409,7 @@ export default Vue.component("multi-region-plot", {
 											this.assoData[group].yAxHigh
 											? dKey
 											: refVariant;
-								//}
 
-								// set high / low values of the group
 								this.assoData[group].yAxHigh =
 									this.assoData[group].yAxHigh == null
 										? Math.ceil(yAxValue)
@@ -442,7 +428,6 @@ export default Vue.component("multi-region-plot", {
 											: Math.floor(
 												this.assoData[group].yAxLow
 											);
-								// add data to asso data
 								this.assoData[group].data[dKey] = {};
 
 								for (const [fKey, fValue] of Object.entries(
@@ -472,7 +457,6 @@ export default Vue.component("multi-region-plot", {
 						}
 					}
 
-					// set LD population
 					let uniqPopulations = [
 						...new Set(this.ldData[group].population),
 					];
@@ -517,7 +501,6 @@ export default Vue.component("multi-region-plot", {
 			} else {
 				let returnObj = {};
 
-				//console.log("this.region",this.region);
 
 				returnObj["chr"] = parseInt(this.region.split(":")[0], 10);
 
@@ -703,13 +686,6 @@ export default Vue.component("multi-region-plot", {
 			let wrapper = document.querySelector(infoBoxId);
 			let canvas = document.querySelector(canvasId);
 
-			/*wrapper.style.top = y + canvas.offsetTop + "px";
-			wrapper.style.left =
-				x + canvas.offsetLeft + 150 > canvas.width
-					? x + canvas.offsetLeft + -215 + "px"
-					: x + canvas.offsetLeft + 15 + "px";
-			wrapper.style.width =
-				x + canvas.offsetLeft + 150 > canvas.width ? "200px" : "auto";*/
 
 			if (dotsOnPosition.length > 0) {
 				if (EVENT_TYPE == "move") {
@@ -785,7 +761,6 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		async callForRecombData() {
-			//console.log("this.searchingRegion", this.searchingRegion);
 
 			let signalURL =
 				"https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/?filter=id in 15 and chromosome eq '" +
@@ -795,7 +770,6 @@ export default Vue.component("multi-region-plot", {
 				" and position lt " +
 				this.searchingRegion.end;
 
-				//console.log("signalURL", signalURL)
 
 			let signalJson = await fetch(signalURL).then((resp) => resp.json());
 			this.recombData = {};
@@ -885,7 +859,6 @@ export default Vue.component("multi-region-plot", {
 		renderPlots(event) {
 			let regionStart = this.searchingRegion.start;
 			let regionEnd = this.searchingRegion.end;
-			// findout width and height of canvas and actual plots. use #rp_region_plot to measure
 			let assoCanvasWidth =
 				document.querySelector(".asso-plots-wrapper").clientWidth * 2;
 				
@@ -913,7 +886,6 @@ export default Vue.component("multi-region-plot", {
 			let bump = this.adjPlotMargin.bump;
 
 			this.plotsList.map((p) => {
-				// first asso plot
 				let c, ctx;
 
 				c = document.getElementById(
@@ -933,15 +905,6 @@ export default Vue.component("multi-region-plot", {
 
 				ctx.clearRect(0, 0, assoCanvasWidth, canvasHeight);
 
-				/* look into this part to render x position line across plots
-				let e = event;
-				let rect = e.target.getBoundingClientRect();
-				let x = Math.floor(e.clientX - rect.left);
-				let y = Math.floor(e.clientY - rect.top);
-				let rawX = e.clientX;
-
-				console.log("x",x);
-				*/
 
 				this.renderAxis(
 					ctx,
@@ -977,7 +940,6 @@ export default Vue.component("multi-region-plot", {
 					p
 				);
 
-				// second LD plot
 				c = document.getElementById(
 					"ld_plot_" + p.replaceAll(" ", "_") + this.sectionId
 				);
@@ -1044,7 +1006,6 @@ export default Vue.component("multi-region-plot", {
 				let xField = this.renderConfig["x axis field"];
 				let yField = this.renderConfig["y axis field"];
 
-				/// first render position lines of the star variants
 				
 				if (!!this.renderConfig["star key"] && !!!!this.isSectionPage) {
 					let yPos1 = this.adjPlotMargin.top - (this.adjPlotMargin.bump * 3);
@@ -1060,7 +1021,6 @@ export default Vue.component("multi-region-plot", {
 
 				if (GROUP != "Combined") {
 
-					// render dots
 
 					for (const [key, value] of Object.entries(
 						this.assoData[GROUP].data
@@ -1499,13 +1459,10 @@ export default Vue.component("multi-region-plot", {
 			CTX.beginPath();
 			CTX.moveTo(xpos, ypos - HEIGHT / 2);
 
-			// top left edge
 			CTX.lineTo(xpos - WIDTH / 2, ypos);
 
-			// bottom left edge
 			CTX.lineTo(xpos, ypos + HEIGHT / 2);
 
-			// bottom right edge
 			CTX.lineTo(xpos + WIDTH / 2, ypos);
 
 			CTX.closePath();
@@ -1567,9 +1524,8 @@ export default Vue.component("multi-region-plot", {
 			CTX.strokeStyle = "#000000";
 			CTX.font = "24px Arial";
 			CTX.fillStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
-			// render y axis
 			CTX.moveTo(
 				this.adjPlotMargin.left - bump,
 				this.adjPlotMargin.top
@@ -1580,7 +1536,6 @@ export default Vue.component("multi-region-plot", {
 			);
 			CTX.stroke();
 
-			// render recombination Rate y axis
 			let recomXpos = Math.round(
 				this.adjPlotMargin.left + WIDTH + bump
 			);
@@ -1594,7 +1549,6 @@ export default Vue.component("multi-region-plot", {
 				CTX.stroke();
 			}
 
-			//render x axis
 			CTX.moveTo(
 				this.adjPlotMargin.left - bump,
 				HEIGHT + this.adjPlotMargin.top + bump
@@ -1607,12 +1561,11 @@ export default Vue.component("multi-region-plot", {
 			);
 			CTX.stroke();
 
-			// Y ticks
 			let yStep = (yMax - yMin) / 5;
 			let yTickDistance = HEIGHT / 5;
 			for (let i = 0; i < 6; i++) {
 				let tickYPos = this.adjPlotMargin.top + i * yTickDistance;
-				let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
+				let adjTickYPos = Math.floor(tickYPos);
 				CTX.moveTo(this.adjPlotMargin.left - bump * 2, adjTickYPos);
 				CTX.lineTo(this.adjPlotMargin.left - bump, adjTickYPos);
 				CTX.stroke();
@@ -1636,7 +1589,6 @@ export default Vue.component("multi-region-plot", {
 				);
 			}
 
-			// render recombination Rate y ticks
 			if (TYPE == "asso") {
 				let yStep = 20;
 				let yTickDistance = HEIGHT / 5;
@@ -1644,7 +1596,7 @@ export default Vue.component("multi-region-plot", {
 				for (let i = 0; i < 6; i++) {
 					let tickYPos =
 						this.adjPlotMargin.top + i * yTickDistance;
-					let adjTickYPos = Math.floor(tickYPos); // .5 is needed to render crisp line
+					let adjTickYPos = Math.floor(tickYPos);
 					CTX.moveTo(recomXpos, adjTickYPos);
 					CTX.lineTo(recomXpos + bump, adjTickYPos);
 					CTX.stroke();
@@ -1662,13 +1614,12 @@ export default Vue.component("multi-region-plot", {
 				}
 			}
 
-			// X ticks
 			let xStep = TYPE == "asso" ? Math.ceil((xMax - xMin) / 5) : 0.2;
 			let xTickDistance = WIDTH / 5;
 
 			for (let i = 0; i < 6; i++) {
 				let tickXPos = this.adjPlotMargin.left + i * xTickDistance;
-				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos);
 				CTX.moveTo(
 					adjTickXPos,
 					this.adjPlotMargin.top + HEIGHT + bump
@@ -1698,7 +1649,6 @@ export default Vue.component("multi-region-plot", {
 				);
 			}
 
-			//Render y axis label
 			CTX.textAlign = "center";
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
@@ -1707,7 +1657,6 @@ export default Vue.component("multi-region-plot", {
 				bump + 24
 			);
 
-			//Render recombination rate y axis label
 			if (TYPE == "asso") {
 				CTX.fillText(
 					"Recombination Rate (cM/Mb)",
@@ -1716,7 +1665,6 @@ export default Vue.component("multi-region-plot", {
 				);
 			}
 
-			//Render x axis label
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 			CTX.fillText(
 				TYPE == "LD" ? "LD(r2)" : this.renderConfig["x axis label"],
@@ -1727,7 +1675,6 @@ export default Vue.component("multi-region-plot", {
 				24
 			);
 
-			//render LD plots background
 			if (TYPE == "LD" && GROUP == "Combined") {
 				let xBGDistance = WIDTH / 5;
 
@@ -1853,7 +1800,6 @@ $(function () { });
 	border-radius: 8px;
 }
 
-/* remove later if unused */
 .region-plot-default-legend {
 	display: block;
 	text-align: center;

@@ -98,11 +98,6 @@ new Vue({
             return Colors[index];
         },
         setPhenotypeParams(phenotypes) {
-            // keyParams.set({
-            //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
-            // });
-            //console.log(Object.entries(this.displayedFilterList));
-            //console.log("set", phenotypes);
         },
         unsetFilter(filterList, filter) {
             if (!filterList) return {};
@@ -135,12 +130,10 @@ new Vue({
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
-        // don't allow selection of the lead phenotype in dropdowns
         phenotypes() {
             return this.$store.state.phenotypes.map(p => p.phenotype.name);
         },
 
-        //return only the phenotypes that haven't been selected yet, guard against duplicate selections
         phenotypeList() {
             let all = this.$store.state.bioPortal.phenotypes;
 
@@ -176,7 +169,6 @@ new Vue({
                 });
             });
 
-            // drop all clumps that do not contain all phenotypes
             let clumped = Object.values(clumps).filter(rs => rs.length == n);
             let flattened = [].concat.apply([], clumped);
 

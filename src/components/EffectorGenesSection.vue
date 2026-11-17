@@ -85,7 +85,6 @@ export default Vue.component("EglsSection", {
             let contJson = await fetch(dataPoint).then((resp) => resp.json());
 
             if (contJson.error == null) {
-                //console.log(contJson[0]["field_data_points"]);
                 let data = dataConvert.csv2Json(
                     contJson[0]["field_data_points"]
                 );
@@ -93,7 +92,6 @@ export default Vue.component("EglsSection", {
                 let eglList = [];
 
                 data.map((e) => {
-                    //console.log(e);
                     if (
                         !!e["Trait ID"] &&
                         !!e["Trait ID"].includes(this.phenotype.name)
@@ -101,7 +99,6 @@ export default Vue.component("EglsSection", {
                         eglList.push(e);
                     }
                 });
-                //console.log("json data", eglList);
                 this.eglsList = eglList;
             }
         },

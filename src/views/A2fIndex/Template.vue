@@ -1,12 +1,10 @@
 <template>
 	<div class="front-page-body">
-		<!-- Header -->
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
 			page="front"
 		></page-header>
-		<!-- Body -->
 		<div v-if="$parent.diseaseGroup">
 			<div class="fluid">
 				<div
@@ -45,7 +43,6 @@
 								</div>
 							</div>
 						</div>
-						<!-- A2F only feature -->
 						<div
 							v-if="$parent.diseaseGroup.name == 'a2f'"
 							class="row"
@@ -119,8 +116,6 @@
 								</div>
 							</div>
 						</div>
-						<!-- end -->
-						<!-- search for CMD -->
 						<div
 							v-if="$store.getters['bioPortal/isRootPortal']"
 							class="row"
@@ -172,9 +167,7 @@
 								</b-tabs>
 							</div>
 						</div>
-						<!-- end -->
 
-						<!-- search for all portals except CMD -->
 						<template
 							v-if="!$store.getters['bioPortal/isRootPortal']"
 						>
@@ -212,15 +205,11 @@
 								</div>
 							</div>
 						</template>
-						<!-- end -->
 					</div>
 				</div>
 			</div>
 
-			<!---->
 
-			<!---->
-			<!-- A2FKP only static content -->
 			<template v-if="$parent.diseaseGroup.name == 'a2f'">
 				<div class="container static-content-section">
 					<div class="row">
@@ -277,8 +266,6 @@
 					</div>
 				</div>
 			</template>
-			<!-- end-->
-			<!-- Static contents for other portals -->
 			<template v-else>
 				<div class="container static-content-section">
 					<div class="row">
@@ -286,13 +273,6 @@
 							<about-portal-section
 								:front-contents="$parent.frontContents"
 							></about-portal-section>
-							<!--<datasets-section
-								:disease-group="$parent.diseaseGroup"
-								:disease-groups="
-									$store.state.bioPortal.diseaseGroups
-								"
-								:datasets-info="$store.state.kp4cd.datasetsInfo"
-							></datasets-section>-->
 							<under-datasets-section
 								:front-contents="$parent.frontContents"
 							></under-datasets-section>
@@ -321,9 +301,7 @@
 						</div>
 					</div></div
 			></template>
-			<!-- end -->
 		</div>
-		<!-- Footer-->
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>

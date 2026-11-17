@@ -79,13 +79,12 @@ export default Vue.component("tooltip-documentation", {
             let docGroup = this.group || "md";
             let qs = queryString.stringify({
                 q: this.name,
-                group: docGroup, //get this from state
+                group: docGroup,
             });
             let json = fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
                 .then((resp) => {
                     if (resp.status === 422) {
                         throw Error("missing parameters");
-                        // throw Error("In Documentation"+' '+resp.json().detail[0].type+' '+resp.json().detail[0].msg+' '+resp.json().detail[0].loc);
                     }
                     if (resp.status === 200) {
                         return resp;
@@ -137,7 +136,6 @@ export default Vue.component("tooltip-documentation", {
     },
     watch: {
         contentFill: function (newContentFill) {
-            //create a new convertor that overides the one we are storing in data
             this.converter = documentationParser.makeConverter(
                 this.content,
                 newContentFill,

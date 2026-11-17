@@ -1,4 +1,3 @@
-/* Pulls data from U of M LD server */
 
 export default {
     namespaced: true,
@@ -18,7 +17,6 @@ export default {
         }
     },
     actions: {
-        // fetch variant correlations data
 
         async getVariantCorrelations(context, param) {
 

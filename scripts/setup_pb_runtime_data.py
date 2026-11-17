@@ -100,7 +100,6 @@ def prepare(repo, manifest, host='e3', verify_only=False, transfer=download):
     repo = Path(repo).resolve()
     root = safe_path(repo, '.pb-private-data')
     entries = load_entries(manifest)
-    # Inspect all destinations before making any transfer or configuration change.
     for entry in entries:
         safe_path(root, entry['path'])
         safe_path(root, '.runtime-downloads/' + entry['path'])
@@ -154,7 +153,6 @@ def main():
         root = prepare(REPO, MANIFEST, args.ssh_host, args.verify_only)
         if not args.verify_only:
             env = dict(os.environ, PB_GT_AUTO_DOWNLOAD='0', PB_GT_SSH_HOST=args.ssh_host)
-            # Use the already verified local source; no second download is needed.
             env['PB_GENOTYPE_INDEX'] = str(root / 'genotypes/shared/2025_crdc_16366_dp20_af001_20260907/index')
             subprocess.run([sys.executable, str(REPO / 'scripts/setup_pb_genotypes.py')], env=env, check=True)
             print('Setup complete. Follow docs/pb_local_browser_setup.md to connect and open the browser.')

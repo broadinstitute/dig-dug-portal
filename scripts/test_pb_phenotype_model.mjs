@@ -5,7 +5,6 @@ const source = readFileSync("src/views/PbPhenotype/phenotypeModel.js");
 const model = await import(`data:text/javascript;base64,${source.toString("base64")}`);
 const { diseaseRows, unweightedDiseaseRows, narrowingTerms, ageBand, validAge, ageExclusionSummary, sexExclusionSummary, sexCategory, cohortSampleSummary, sortTableRows, formatStatistic } = model;
 
-// Front's selected-term URL and direct Phenotype search must resolve identically.
 const releaseSource = readFileSync('src/views/PbPhenotype/orphanetReference.generated.js', 'utf8');
 const release = JSON.parse(releaseSource.slice(releaseSource.indexOf(' = ') + 3).trim().replace(/;$/, ''));
 const frontUrl = new URL('http://localhost/pb_phenotype.html?query=Chest%20tightness%20%5BHP%3A0031352%5D');
@@ -36,7 +35,7 @@ assert.ok(Math.abs(result.numerator - 2.8811) < 1e-10);
 assert.equal(result.score.toFixed(2), "0.50");
 const excludedResult = diseaseRows(mockup, query, ["v1", "v2"])[0];
 assert.deepEqual(excludedResult.excludedBy, ["v1", "v2"]);
-assert.equal(excludedResult.score, result.score); // exclusion removes a row, never lowers its score
+assert.equal(excludedResult.score, result.score);
 assert.equal(diseaseRows(mockup, query, ["v1"]).filter((row) => !row.excludedBy.length).length, 0);
 
 const hierarchy = {
@@ -55,8 +54,8 @@ const hierarchy = {
     diseases: [["1", "Hierarchy", []]],
 };
 const broad = diseaseRows(hierarchy, ["parent"])[0];
-assert.equal(broad.denominator, 0.8911); // equal-weight ancestor is removed
-assert.equal(broad.numerator, 0.8911); // full annotations match upward
+assert.equal(broad.denominator, 0.8911);
+assert.equal(broad.numerator, 0.8911);
 assert.equal(diseaseRows(hierarchy, ["child"])[0].numerator, 0.8911);
 assert.equal(diseaseRows(hierarchy, ["grandchild"])[0].numerator, 0.5446);
 assert.equal(diseaseRows(hierarchy, ["absent"]).length, 0);
@@ -64,13 +63,13 @@ assert.equal(diseaseRows({
     terms: hierarchy.terms,
     associations: { child: [[0, "Very frequent (99-80%)", 0]] },
     diseases: hierarchy.diseases,
-}, ["parent"]).length, 0); // the one-term table remains exact
+}, ["parent"]).length, 0);
 assert.deepEqual(diseaseRows(hierarchy, ["parent"], ["absent"])[0].excludedBy, []);
 assert.equal(diseaseRows({
     terms: hierarchy.terms,
     associations: { parent: [[0, "Very frequent (99-80%)", 0]] },
     diseases: hierarchy.diseases,
-}, ["child"]).length, 0); // a broader annotation does not match down
+}, ["child"]).length, 0);
 
 for (const [age, expected] of [
     [0, "0"], [0.9, "0"], [1, "1–2"], [2.9, "1–2"],
@@ -93,7 +92,7 @@ const accessors = {ageOf: (row) => row.age, termsOf: (row) => row.hpo};
 const beforeAge = ageExclusionSummary(ageSamples, [], accessors);
 const afterAge = ageExclusionSummary(ageSamples, ["X", "Y"], accessors);
 assert.equal(afterAge.before, 8);
-assert.equal(afterAge.excluded, 4); // one sample with both excluded HPOs counts once
+assert.equal(afterAge.excluded, 4);
 assert.equal(afterAge.remaining, 4);
 assert.equal(afterAge.knownBefore, 6);
 assert.equal(afterAge.knownRemaining, 3);
@@ -101,7 +100,7 @@ for (const bin of afterAge.bins) {
     const original = beforeAge.bins.find((item) => item.label === bin.label);
     assert.equal(bin.remaining + bin.excluded, bin.before);
     assert.equal(bin.before, original.before);
-    assert.equal(bin.remainingWidth + bin.excludedWidth, original.remainingWidth); // original bar extent remains fixed
+    assert.equal(bin.remainingWidth + bin.excludedWidth, original.remainingWidth);
 }
 assert.deepEqual(afterAge.bins.find((bin) => bin.label === "0"), {
     label: "0", before: 2, remaining: 1, excluded: 1, remainingWidth: 50, excludedWidth: 50,
@@ -148,13 +147,13 @@ assert.equal(cohortA.medianAge, 15);
 assert.equal(cohortA.q1Age, 7.5);
 assert.equal(cohortA.q3Age, 40);
 assert.deepEqual(cohortA.sex, {female: 1, male: 2, unknown: 1});
-assert.equal(cohortA.meanResidualPhers, 0); // zero is a measured score, missing scores are not zero
+assert.equal(cohortA.meanResidualPhers, 0);
 assert.equal(cohortA.phersKnown, 3);
 const cohortB = cohortStats.find(row => row.name === "B");
 assert.equal(cohortB.ageKnown, 0);
 assert.equal(cohortB.medianAge, null);
 assert.equal(cohortB.meanResidualPhers, null);
-assert.equal(cohortStats.find(row => row.name === "D").meanResidualPhers, -3); // retain negative residuals
+assert.equal(cohortStats.find(row => row.name === "D").meanResidualPhers, -3);
 assert.equal(cohortSampleSummary(cohortSamples.filter(row => !row.excluded), cohortAccessors).find(row => row.name === "A").meanResidualPhers, 0.5);
 assert.ok(cohortStats.every(row => row.sex.female + row.sex.male + row.sex.unknown === row.total));
 const investigatorStats = cohortSampleSummary([
@@ -178,10 +177,10 @@ const additional = {profiles: [
 ]};
 const additionalRows = unweightedDiseaseRows(hierarchy, additional, ["parent", "child"]);
 const complete = additionalRows.find((row) => row.code === "OMIM:1");
-assert.equal(complete.overlapCount, 2); // overlapping parent/child queries count each annotation once
-assert.equal(complete.profile.length, 8); // all unique annotations, with no eight-term preview limit
+assert.equal(complete.overlapCount, 2);
+assert.equal(complete.profile.length, 8);
 assert.equal(complete.matchedIds.length, 2);
-assert.equal(complete.score, null); // no borrowed frequency weights
+assert.equal(complete.score, null);
 assert.deepEqual(complete.genes, [["GENE1"]]);
 assert.deepEqual(complete.mondoIds, ["MONDO:0000001"]);
 assert.ok(unweightedDiseaseRows(hierarchy, additional, ["parent"], ["grandchild"])
@@ -195,6 +194,6 @@ assert.equal(completeReference.profiles.filter((row) => row[1] === "omim").lengt
 assert.equal(completeReference.profiles.filter((row) => row[1] === "decipher").length, 47);
 assert.equal(completeReference.profiles.filter((row) => row[1] === "ddg2p").length, 1718);
 assert.ok(completeReference.profiles.some((row) => row[4].length > 8));
-assert.ok(completeReference.profiles.every((row) => !row[4].includes("HP:0000007"))); // inheritance is not a phenotype
+assert.ok(completeReference.profiles.every((row) => !row[4].includes("HP:0000007")));
 
 console.log("Phenotype scoring, reference sources, demographic exclusion bars and cohort statistics: passed");

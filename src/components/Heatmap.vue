@@ -1,20 +1,3 @@
-<!--
-heatmap configuration
-        {
-            "label": "", // label that goes above the heatmap
-            "legend": "", // legend that goes above the heatmap.Also color scale legend will be added automatically
-            "renderBy": {"main":"obs_cppa","sub":"p"}, //main => box color, sub => circle size
-            "main":{"type":"scale","direction": "positive","low":0, "middle": 0,"high":0.30},
-            // type: scale or steps, direction: positive or negative,
-            "sub":{"type":"scale","direction": "negative","steps":[0,0.001,0.05],"low":0, "high":0.05},
-            "rowField": "full_annotation",
-            "rowLabel": "full_annotation",
-            "columnField": "cluster_name",
-            "columnLabel": "cluster_name",
-            "hoverContent": [],
-            "fontSize": 12
-        },
--->
 <template>
     <div class="heatmap-wrapper">
         <div id="clicked_cell_value" class="clicked-cell-value hidden">
@@ -90,13 +73,13 @@ export default Vue.component("heatmap", {
 
             let rowList = this.heatmapData
                 .map((v) => v[this.renderConfig.rowField])
-                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
-                .filter((v, i, arr) => v != ""); //remove blank
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != "");
 
             let columnList = this.heatmapData
                 .map((v) => v[this.renderConfig.columnField])
-                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
-                .filter((v, i, arr) => v != ""); //remove blank
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != "");
 
             massagedData["rows"] = rowList.sort((a, b) =>
                 a.localeCompare(b, undefined, { sensitivity: "base" })
@@ -113,7 +96,6 @@ export default Vue.component("heatmap", {
             });
 
             this.heatmapData.map((d) => {
-                //console.log("d", d);
                 let row = this.renderConfig.rowField;
                 let column = this.renderConfig.columnField;
 
@@ -175,7 +157,6 @@ export default Vue.component("heatmap", {
                     rAndG *= 255;
                     rAndG = rAndG == 0 ? 0 : Formatters.intFormatter(rAndG);
 
-                    //console.log("rAndG", rAndG);
                     scaleLegendContent +=
                         "<div class='scale-color' style='background-color: rgb(255," +
                         rAndG +
@@ -284,7 +265,7 @@ export default Vue.component("heatmap", {
                 contentWrapper.innerHTML = clickedCellValue;
                 wrapper.classList.remove("hidden");
                 wrapper.style.top = wrapperYPos + yPos + "px";
-                wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
+                wrapper.style.left = wrapperXPos - 30 + xPos + "px";
             } else {
                 wrapper.classList.add("hidden");
             }
@@ -335,8 +316,6 @@ export default Vue.component("heatmap", {
 
             let rIndex = 0;
 
-            /*document.getElementById("heatmapColumnsWrapper").style.top =
-                -columnTopSpace + "px";*/
             document.getElementById("heatmapColumnsWrapper").style.left =
                 document.getElementById("heatmapRowsWrapper").offsetWidth +
                 (this.boxSize - this.renderConfig.fontSize) / 2 +
@@ -368,7 +347,6 @@ export default Vue.component("heatmap", {
                             value: this.renderData[r][c].sub,
                         };
                     }
-                    //mainValue *= -1;
                     let rColor, gColor, bColor;
                     let direction = this.renderConfig.main.direction;
                     let valHi = this.renderConfig.main.high;
@@ -489,7 +467,6 @@ export default Vue.component("heatmap", {
                 rIndex++;
             });
 
-            //console.log(this.squareData);
         },
     },
 });
@@ -519,11 +496,8 @@ $(function () {});
     transform-origin: left top;
     transform: rotate(-90deg);
     position: absolute;
-    /*left: 0;*/
 }
 #heatmapColumnsWrapper div {
-    /*transform-origin: left center;
-    transform: rotate(45deg);*/
     white-space: nowrap;
     padding-left: 10px;
 }

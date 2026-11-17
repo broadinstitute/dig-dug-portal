@@ -48,7 +48,6 @@ export default new Vuex.Store({
         setLeadPositions(state) {
             state.leadPositions = {};
 
-            // get the lead SNP position for each clump
             if (state.ancestry == "") {
                 state.globalAssociations.data.forEach(r => {
                     state.leadPositions[r.clump] = r.position;
@@ -67,15 +66,12 @@ export default new Vuex.Store({
                     let alignment = r.alignment || 1;
                     let alignedBeta = r.beta * alignment;
 
-                    // align the position so variants in the same clump line up
                     return {
                         ...r,
 
-                        // calculate aligned effect direction
                         alignment,
                         alignedBeta,
 
-                        // overwrite position w/ that of lead SNP
                         position: state.leadPositions[r.clump]
                     };
                 }),
@@ -85,7 +81,7 @@ export default new Vuex.Store({
         },
         removePhenotype(state, index) {
             if (index == 0) {
-                state.phenotypes = []; // remove all
+                state.phenotypes = [];
             } else {
                 state.phenotypes = state.phenotypes.filter(
                     (p, i) => i != index
@@ -125,7 +121,6 @@ export default new Vuex.Store({
                 p => p.name == phenotype.name
             );
 
-            // doesn't exist, so add it
             if (i < 0) {
                 if (context.state.phenotypes.length == 0) {
                     context.dispatch(
@@ -138,7 +133,6 @@ export default new Vuex.Store({
             }
         },
 
-        // fetch the lead (first) phenotype clumped associations
         async fetchLeadPhenotypeAssociations(context, phenotype) {
             if (context.state.ancestry == "") {
                 await context.dispatch("globalAssociations/query", {
@@ -150,17 +144,14 @@ export default new Vuex.Store({
                 });
             }
 
-            // calculate lead positions
             context.commit("setLeadPhenotype", phenotype);
             context.commit("setLeadPositions");
         },
 
-        // load secondary phenotype associations
         async fetchAssociationsMatrix(context, phenotype) {
             let lead = context.state.phenotypes[0].phenotype.name;
 
             if (context.state.ancestry == "") {
-                // use the module to download
                 await context.dispatch("clumpedMatrix/query", {
                     q: `${lead},${phenotype.name}`
                 });
@@ -170,7 +161,6 @@ export default new Vuex.Store({
                 });
             }
 
-            // commit a copy of the data
             context.commit("addPhenotype", phenotype);
         },
         phenotypesInSession(context, PHENOTYPES) {

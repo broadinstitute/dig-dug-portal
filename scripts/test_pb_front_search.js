@@ -43,7 +43,6 @@ assert.equal(resolveSearchTarget("BCH-22-44945-01", "", genes).path, "/pb_sample
 assert.equal(resolveSearchTarget("chr12:102912793:CA:C", "", genes).path, "/pb_variant.html");
 assert.equal(resolveSearchTarget("", "", genes), null);
 
-// PB hyperlinks must use the default Gene2 page, including legacy entry screens.
 const fs = require('node:fs');
 for (const file of [
     'src/views/PbFront/Template.vue',

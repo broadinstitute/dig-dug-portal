@@ -25,7 +25,6 @@
 .data-loading-indicator {
     z-index: 10001;
 }
-/* for table */
 
 .cell-weight-0 {
     background-size: 0% 100% !important;
@@ -763,17 +762,6 @@ span.weight-blue {
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
 }
-/*
-.egl-table-ui-options select {
-    height: 25px;
-    width: 175px;
-    font-size: 13px;
-    border: 1px solid #ced4da;
-    border-radius: .25rem;
-    vertical-align: 2px;
-    padding: 0 15px;
-}
-*/
 .show-all-features-wrapper,
 .hide-all-feature-headers-wrapper,
 .hide-top-level-wrapper,
@@ -797,7 +785,6 @@ span.weight-blue {
     color: #6bcdfa !important;
 }
 
-/* for plots */
 .feature-scores-wrapper {
     position: fixed;
     top: 15%;
@@ -883,7 +870,6 @@ span.weight-blue {
     text-anchor: end;
 }
 
-/* IGV */
 
 #igv-div {
     position: fixed;
@@ -900,7 +886,6 @@ span.weight-blue {
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
 }
 
-/* 52K table */
 .fiftytwo {
     border: unset;
 }
@@ -937,7 +922,6 @@ span.weight-blue {
     font-weight: 600;
 }
 
-/* EGL M-Plot */
 .egl-m-plot-wrapper {
     height: 300px;
     margin-top: 10px !important;
@@ -1043,7 +1027,6 @@ span.weight-blue {
 
 .egl-m-plot .chr_wrapper.collapsed-chr.expanded-chr {
     width: 65% !important;
-    /*background-color: #fffeb9;*/
     transition: width 0.05s;
 }
 
@@ -1054,7 +1037,6 @@ span.weight-blue {
 
 .egl-m-plot .chr_wrapper .chr_dots_wrapper {
     height: calc(100% - 35px);
-    /*border-right: solid 1px #eee;*/
     margin-bottom: 5px;
     position: relative;
     width: calc(100% - 10px);
@@ -1175,7 +1157,7 @@ html {
     padding: 15px;
     border: solid 1px #ddd;
     border-radius: 5px;
-    margin: 5% auto; /* Will not center vertically and won't work in IE6/7. */
+    margin: 5% auto;
     left: 100%;
     top: -200px;
     box-shadow: 5px 5px 5px #00000050;

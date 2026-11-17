@@ -86,7 +86,6 @@ def prepare(index, cache=DEFAULT_CACHE, host='e3', remote=REMOTE_SOURCE, downloa
             if directory == public_root or public_root in directory.parents:
                 raise ValueError('Private GT files cannot be stored under public/ or dist/.')
     cache.mkdir(parents=True, exist_ok=True, mode=0o700)
-    # Serialize simultaneous launchers; a failed transfer cannot replace a valid cache.
     with (cache / '.setup.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         if valid_index(index):

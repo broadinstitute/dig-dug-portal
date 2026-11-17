@@ -132,7 +132,6 @@ export default Vue.component("research-page-description", {
 			X_LBL_ANGLE,
 			Y_LBL_ANGLE
 		) {
-			//console.log("color", COLOR);
 			let margin = this.plotMargin;
 			let spacer = 20;
 			let valueHiLow = { high: null, low: null };
@@ -199,7 +198,6 @@ export default Vue.component("research-page-description", {
 				X_LBL_ANGLE
 			);
 
-			///render bars
 			this.utils.plotUtils.renderBars(
 				CTX,
 				WIDTH,
@@ -226,7 +224,6 @@ export default Vue.component("research-page-description", {
 			Y_LBL_ANGLE,
 			DATA_LABELS_ON_TOP
 		) {
-			//console.log(CTX, DATA, WIDTH, HEIGHT);
 			let margin = this.plotMargin;
 			let valueHiLow = { high: null, low: null };
 
@@ -249,7 +246,6 @@ export default Vue.component("research-page-description", {
 
 			let minMaxGap = valueHiLow.high * 0.2;
 			valueHiLow.high = Math.ceil(valueHiLow.high + minMaxGap);
-			//valueHiLow.low = Math.floor(valueHiLow.low - minMaxGap);
 
 			if (
 				Math.floor(valueHiLow.low) >= 0 &&

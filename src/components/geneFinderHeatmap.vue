@@ -296,18 +296,6 @@ export default Vue.component("gene-finder-heatmap", {
 								s +
 								"</div>";
 
-							/*scaleLegendContent +=
-								"<div class='sub-legend-steps'> <= ";
-
-							scaleLegendContent +=
-								s +
-								": <span style = 'display: inline-block; border:solid 1px #FF0000; width:" +
-								spanScale +
-								"px; height:" +
-								spanScale +
-								"px; border-radius:" +
-								spanScale / 2 +
-								"px;'></span></div>";*/
 						});
 
 						scaleLegendContent += "</div>";
@@ -346,8 +334,6 @@ export default Vue.component("gene-finder-heatmap", {
 				}
 
 				if (renderData.rows.egls && renderData.rows.egls.length > 0) {
-					/*scaleLegendContent +=
-						"<div>Predicted effector genes:</div>";*/
 				}
 			}
 
@@ -390,7 +376,7 @@ export default Vue.component("gene-finder-heatmap", {
 				contentWrapper.innerHTML = clickedCellValue;
 				wrapper.classList.remove("hidden");
 				wrapper.style.top = wrapperYPos + yPos + "px";
-				wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
+				wrapper.style.left = wrapperXPos - 30 + xPos + "px";
 			} else {
 				wrapper.classList.add("hidden");
 			}
@@ -405,9 +391,6 @@ export default Vue.component("gene-finder-heatmap", {
 			renderData.rows.phenotypes.map((p) => {
 				rowsArr.push({ type: "phenotype", value: p });
 			});
-			/*this.rareVariantList.map((r) => {
-				rowsArr.push({ type: "rareVariant", value: r });
-			});*/
 
 			if (!!renderData.rows.tissues) {
 				renderData.rows.tissues.map((t) => {
@@ -421,7 +404,6 @@ export default Vue.component("gene-finder-heatmap", {
 				});
 			}
 
-			//document.getElementById("heatmapColumnsWrapper").innerHTML = "";
 			document.getElementById("heatmapRowsWrapper").innerHTML = "";
 
 			rowsArr.map((r) => {
@@ -605,7 +587,6 @@ export default Vue.component("gene-finder-heatmap", {
 							for (let i = steps.length - 1; i >= 0; i--) {
 								stepVal += subValue <= steps[i] ? 1 : 0;
 							}
-							//}
 							dotR = dotRUnit * stepVal;
 
 							ctx.fillStyle = "#00000075";
@@ -639,20 +620,8 @@ export default Vue.component("gene-finder-heatmap", {
 								for (let i = steps.length - 1; i >= 0; i--) {
 									stepVal += subValue <= steps[i] ? 1 : 0;
 								}
-								//}
 								dotR = dotRUnit * stepVal;
 
-								/*ctx.fillStyle = "#ff000055";
-								ctx.lineWidth = 0;
-								ctx.beginPath();
-								ctx.arc(
-									left + centerPos,
-									top + centerPos,
-									dotR,
-									0,
-									2 * Math.PI
-								);
-								ctx.fill();*/
 
 								ctx.lineWidth = 2;
 								ctx.strokeStyle = "#FF0000";
@@ -668,43 +637,6 @@ export default Vue.component("gene-finder-heatmap", {
 							}
 						}
 
-						/*if (rType == "rareVariant") {
-							boxContent +=
-								"<div>P-Value: " +
-								geneData[rValue + ":rarePValue"] +
-								"</div>";
-
-							let steps = this.rarePThreshold;
-							let subDirection = "negative";
-							let dotMaxR = (renderBoxSize * 0.75) / 2;
-							let centerPos = renderBoxSize / 2;
-
-							let stepVal = 0;
-							let subValue = !!geneData[rValue + ":rarePValue"]
-								? geneData[rValue + ":rarePValue"]
-								: 1;
-							let dotR;
-
-							let dotRUnit = dotMaxR / steps.length;
-
-							for (let i = steps.length - 1; i >= 0; i--) {
-								stepVal += subValue <= steps[i] ? 1 : 0;
-							}
-							//}
-							dotR = dotRUnit * stepVal;
-
-							ctx.fillStyle = "#ff000075";
-							ctx.lineWidth = 0;
-							ctx.beginPath();
-							ctx.arc(
-								left + centerPos,
-								top + centerPos,
-								dotR,
-								0,
-								2 * Math.PI
-							);
-							ctx.fill();
-						}*/
 
 						if (rType == "tissue") {
 							boxContent +=
@@ -727,7 +659,6 @@ export default Vue.component("gene-finder-heatmap", {
 
 						if (rType == "egl") {
 							if (!!this.eglsMap[geneData[rValue]]) {
-								// this condition needed in case egl data gets loaded later than rendering
 								boxContent +=
 									"<div>" +
 									this.eglsMap[geneData[rValue]]["Title"] +
@@ -796,11 +727,8 @@ div.filtering-ui-wrapper .list-group {
 	transform-origin: left top;
 	transform: rotate(-90deg);
 	position: absolute;
-	/*left: 0;*/
 }
 #heatmapColumnsWrapper div {
-	/*transform-origin: left center;
-    transform: rotate(45deg);*/
 	white-space: nowrap;
 	padding-left: 10px;
 }

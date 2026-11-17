@@ -1,6 +1,4 @@
 <template>
-	<!--<div class="multi-section" :class="'wrapper-' + sectionIndex"
-		:style="!!sectionData || sectionConfig['section type'] == 'primary' ? '' : 'display:none;'">-->
 
 
 	<div class="multi-section" :class="'wrapper-' + sectionIndex" >
@@ -248,7 +246,6 @@ export default Vue.component("research-section", {
 			remoteFilters: null,
 			remoteVisualizer: null,
 			remoteSectionDecription: null,
-			//interSectionsFilters: [],
 			groups: null,
 			searched: [],
 			loadingDataFlag: "down",
@@ -484,7 +481,6 @@ export default Vue.component("research-section", {
 			this.sectionData = null,
 				this.mergedData = null,
 				this.originalData = null,
-				//this.interSectionsFilters = [],
 				this.groups = null,
 				this.searched = [],
 				this.loadingDataFlag = "down"
@@ -492,35 +488,6 @@ export default Vue.component("research-section", {
 					document.getElementById('tabUi' + this.sectionID).classList.remove('loading');
 				}
 		},
-		/*filterAcrossSections(FROM, FILTER_DATA, FILTER, RESET) {
-			let interSectionsFilters = [...new Set(this.interSectionsFilters)];
-			this.interSectionsFilters = [];
-			if (RESET != "reset") {
-				FILTER["data"] = FILTER_DATA;
-				FILTER["from"] = FROM;
-
-				let isFilter = false;
-				if (interSectionsFilters.length > 0) {
-					interSectionsFilters.map(f => {
-						if (f.from == FROM) {
-							f = FILTER;
-							isFilter = true;
-						}
-					})
-				}
-
-				if (!isFilter) {
-					interSectionsFilters.push(FILTER);
-				}
-
-
-			} else if (RESET == 'reset') {
-				interSectionsFilters = interSectionsFilters.filter(f => f.from != FROM);
-				this.sectionData = this.originalData;
-			}
-
-			this.interSectionsFilters = interSectionsFilters;
-		},*/
 		filterSectionData(GROUP) {
 			let groupValues = GROUP.split(", ");
 			let groupKeys = this.sectionConfig["table format"]["group by"];
@@ -638,7 +605,6 @@ export default Vue.component("research-section", {
 			return ifNumber;
 		},
 		removeData(KEY) {
-			//console.log("key",KEY);
 			let groupKeys = this.sectionConfig["table format"]["group by"];
 
 			let newSectionData = [];
@@ -700,26 +666,22 @@ export default Vue.component("research-section", {
 		getParamString() {
 			
 
-			let queryParams = {}; // collect search parameters
-			let queryParamsString = []; // search parameters into one string
-			let queryParamsSet = true; // if search requirements don't meet set it null
+			let queryParams = {};
+			let queryParamsString = [];
+			let queryParamsSet = true;
 
-			/// check if all required search parameters are there. If not set queryParamsSet null.
-			//1. collect all parameters and put them in queryParams
 
 			if (!!this.dataPoint.parameters) {
 				this.dataPoint.parameters.map(p => {
 					if (!!this.utils.keyParams[p]) {
-						queryParams[p] = this.utils.keyParams[p].toString().split(","); ///  work on this line
+						queryParams[p] = this.utils.keyParams[p].toString().split(",");
 
-						//console.log("queryParams[p]", queryParams[p]);
 					} else {
 						queryParamsSet = null;
 					}
 				})
 			}
 
-			/// check if one of the pre filters require a value from search parameters. If no value, set queryParamsSet null.
 			if (!!this.sectionConfig["pre filters"]) {
 				this.sectionConfig["pre filters"].map(f => {
 					if (f.value == "search parameter" && !this.utils.keyParams[f.parameter]) {
@@ -728,7 +690,6 @@ export default Vue.component("research-section", {
 				})
 			}
 
-			//2. build parameters sets from queryParams and put them in queryParamsString
 
 			if (!!queryParamsSet && !!this.dataPoint.parameters) {
 				let paramsLength = queryParams[this.dataPoint.parameters[0]].length;
@@ -736,25 +697,21 @@ export default Vue.component("research-section", {
 				for (let i = 0; i < paramsLength; i++) {
 					let pramsString = ""
 					this.dataPoint.parameters.map(p => {
-						// Don't forget to resolve this.
 						if(!queryParams[p][i]) { queryParams[p][i]  = queryParams[p][i-1] }
 
 						if(queryParams[p][i] !="" && queryParams[p][i] != "*") {
 							pramsString += queryParams[p][i].trim() + ",";
 						} else if(queryParams[p][i] == "*"){
-							pramsString +=  ""; ///wild key
+							pramsString +=  "";
 						}
 					})
 					queryParamsString.push(pramsString.slice(0, -1));
 				}
 
-				//3. compare strigns in queryParamsString to this.searched and leave only the ones don't overlap
 
 				queryParamsString = queryParamsString.filter(q => !this.searched.includes(q));
 			}
 
-			//console.log("queryParamsString", queryParamsString)
-			//5. Check if return the first item in the queryParamsString
 
 			if (queryParamsString.length > 0) {
 				return queryParamsString[0];
@@ -775,7 +732,6 @@ export default Vue.component("research-section", {
 			let queryType = this.dataPoint["type"];
 			let paramsType = this.dataPoint["parameters type"]
 			let params = this.dataPoint["parameters"]
-			// if data isn't getting cumulated, remove older search params other than the last one
 			if(!this.dataPoint["cumulate data"] && this.searched.length > 1) { 
 				let lastSearched = this.searched[this.searched.length-1]
 				this.searched = [lastSearched];
@@ -788,7 +744,6 @@ export default Vue.component("research-section", {
 				}
 				switch (queryType) {
 					case "bioindex":
-						// Parameters type for BI is always 'array,' it doesn't need to pass paramsType and params
 						this.queryBioindex(paramsString);
 						break;
 					case "api":
@@ -818,7 +773,6 @@ export default Vue.component("research-section", {
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
 				this.processLoadedBI(contentJson, QUERY);
 			} else {
-				// fetch failed 
 				if(!!this.dataPoint["cumulate data"]) {
 					this.sectionData = this.sectionData
 				} else {
@@ -838,7 +792,6 @@ export default Vue.component("research-section", {
 			if (contentJson.error == null && !!Array.isArray(contentJson.data) && contentJson.data.length > 0) {
 				this.processLoadedBI(contentJson, QUERY);
 			} else {
-				// fetch failed
 				if (!!this.dataPoint["cumulate data"]) {
 					this.sectionData = this.sectionData
 				} else {
@@ -876,7 +829,6 @@ export default Vue.component("research-section", {
 			if (contentJson.error == null) {
 				this.processLoadedApi(contentJson,QUERY, TYPE, PARAMS);
 			} else {
-				// fetch failed
 				if (!!this.dataPoint["cumulate data"]) {
 					this.sectionData = this.sectionData
 				} else {
@@ -908,12 +860,11 @@ export default Vue.component("research-section", {
 			let data = CONTENT.data;
 			
 
-			// if loaded data is processed
 			let tableFormat = this.sectionConfig["table format"];
 
 			if (!!tableFormat && !!tableFormat["data convert"]) {
 				let convertConfig = tableFormat["data convert"];
-				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+				data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap);
 			}
 
 			let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
@@ -981,11 +932,9 @@ export default Vue.component("research-section", {
 
 		processLoadedApi(CONTENT, QUERY, TYPE, PARAMS) {
 
-			// remote table format
 			if (!!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["type"]
 				&& this.sectionConfig["table format"]["type"] == "remote") {
 
-				// often table format config is wrapped by multiple layers of wrappers
 				let tableFormatWrapper = this.sectionConfig["table format"]["config wrapper"];
 				let tableFormats = CONTENT;
 
@@ -996,11 +945,9 @@ export default Vue.component("research-section", {
 				this.tableFormat = this.remoteTableFormat;
 			}
 
-			// remote filters
 			if (!!this.sectionConfig["filters"] && !!this.sectionConfig["filters"]["type"]
 				&& this.sectionConfig["filters"]["type"] == "remote") {
 
-				// often filters config is wrapped by multiple layers of wrappers
 				let filtersWrapper = this.sectionConfig["filters"]["config wrapper"];
 				let filters = CONTENT;
 
@@ -1010,11 +957,9 @@ export default Vue.component("research-section", {
 				this.remoteFilters = JSON.parse(filters);
 			}
 
-			// remote visualizer
 			if (!!this.sectionConfig["visualizer"] && !!this.sectionConfig["visualizer"]["type"]
 				&& this.sectionConfig["visualizer"]["type"] == "remote") {
 
-				// often visualizer config is wrapped by multiple layers of wrappers
 				let visualizerWrapper = this.sectionConfig["visualizer"]["config wrapper"];
 				let visualizer = CONTENT;
 
@@ -1024,11 +969,9 @@ export default Vue.component("research-section", {
 				this.remoteVisualizer = JSON.parse(visualizer);
 			}
 
-			// remote sectionDescription
 			if (!!this.sectionConfig["section description"] && !!this.sectionConfig["section description"]["type"]
 				&& this.sectionConfig["section description"]["type"] == "remote") {
 
-				// often section description is wrapped by multiple layers of wrappers
 				let descriptionWrapper = this.sectionConfig["section description"]["config wrapper"];
 				let description = CONTENT;
 
@@ -1041,10 +984,8 @@ export default Vue.component("research-section", {
 			
 			let data = null;
 
-			// often data is wrapped by multiple layers of wrappers
 			let dataWrapper = this.dataPoint["data wrapper"];
 
-			// process data by data type
 			switch (this.dataPoint["data type"]) {
 				case "bioindex":
 					data = CONTENT.data;
@@ -1076,23 +1017,22 @@ export default Vue.component("research-section", {
 							dataEntity = dataEntity[w];
 						})
 
-						data = this.utils.dataConvert.csv2Json(dataEntity); // convert csv data to json format
+						data = this.utils.dataConvert.csv2Json(dataEntity);
 
 					} else {
-						data = this.utils.dataConvert.csv2Json(CONTENT); // convert csv data to json format
+						data = this.utils.dataConvert.csv2Json(CONTENT);
 					}
 
 					break;
 			}
 
-			// if loaded data is processed
 			if (data.length > 0) {
 
 				let tableFormat = (!!this.remoteTableFormat) ? this.remoteTableFormat : this.sectionConfig["table format"];
 
 				if (!!tableFormat && !!tableFormat["data convert"]) {
 					let convertConfig = tableFormat["data convert"];
-					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap); /// convert raw data
+					data = this.utils.dataConvert.convertData(convertConfig, data, this.phenotypeMap);
 				}
 
 				let cumulateData = (!!this.dataPoint["cumulate data"] && this.dataPoint["cumulate data"] == "true") ? true : null;
@@ -1149,13 +1089,11 @@ export default Vue.component("research-section", {
 
 		processLoadedFile(CONTENT) {
 
-			//console.log(CONTENT)
 
 			
 		},
 
 		checkPreFilters(DATA) {
-			//Apply pre filters as data gets loaded;
 			let returnData = DATA;
 			if (!!this.sectionConfig["pre filters"]) {
 				let filters = this.sectionConfig["pre filters"];
@@ -1176,7 +1114,6 @@ export default Vue.component("research-section", {
 			if (this.sectionData != null && !!this.sectionConfig["table format"] && !!this.sectionConfig["table format"]["initial sort by"]) {
 				let sortBy = this.sectionConfig["table format"]["initial sort by"]
 				let isNumeric = this.checkIfNumeric(this.sectionData, sortBy.field);
-				/* implement sort direction */
 				this.sectionData = this.utils.sortUtils.sortEGLTableData(this.sectionData, sortBy.field, isNumeric, true);
 			}
 

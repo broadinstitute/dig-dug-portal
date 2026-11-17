@@ -40,8 +40,6 @@ export default Vue.component("DataDownload", {
                 uiUtils.convertJson2Csv(this.data, this.filename);
             }
         },
-        //! Don't flatten unless necessary;
-        // This function will flatten the input column
         flattenCsv(data, field) {
             return data.map((line) => {
                 line[field] = flatten(line[field]);

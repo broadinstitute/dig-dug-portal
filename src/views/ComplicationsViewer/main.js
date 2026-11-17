@@ -133,9 +133,6 @@ new Vue({
             return x;
         },
 
-        //find the selected comlication based on selected criterion
-        //then get the phenotypes for the selected complication.
-        //display all the keys
         complicationSecondaryPhenotypeOptions() {
             let selectedComplication = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'condition').map(criterion => criterion.threshold)[0];
             if (!!selectedComplication) {

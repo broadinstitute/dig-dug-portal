@@ -60,14 +60,6 @@
                     v-slot:[phenotypePValueColumn(p)]="r"
                     v-for="p in phenotypes"
                 >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template>
-                <!-- <template
-                    v-slot:[phenotypeVariantsColumn(p)]="r"
-                    v-for="p in phenotypes"
-                >{{ intFormatter(r.item[`${p}:nParam`]) }}</template>
-                <template
-                    v-slot:[phenotypeSubjectsColumn(p)]="r"
-                    v-for="p in phenotypes"
-                >{{ intFormatter(r.item[`${p}:subjects`]) }}</template> -->
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
@@ -145,7 +137,6 @@ export default Vue.component("gene-finder-table", {
         fields() {
             let fields = this.baseFields;
 
-            // add the chi squared column
             if (!!this.showChiSquared) {
                 fields.push({
                     key: "chiSquared",
@@ -154,10 +145,8 @@ export default Vue.component("gene-finder-table", {
                 });
             }
 
-            // add phenotype-specific columns
             for (let i in this.phenotypes) {
                 let p = this.phenotypes[i];
-                //p = p.replace("HP-", "HP")
 
                 fields = fields.concat([
                     {
@@ -204,7 +193,6 @@ export default Vue.component("gene-finder-table", {
             let groups = {};
             let associations = this.tableData;
 
-            //console.log("this.tableData.length", this.tableData);
 
             for (let i in associations) {
                 let r = associations[i];
@@ -222,15 +210,12 @@ export default Vue.component("gene-finder-table", {
                     });
                 }
 
-                // push the phenotype
                 data[dataIndex].phenotypes.push(r.phenotype);
 
                 
 
-                // lowest p-value across all phenotypes
                 if (!!r.pValue && r.pValue < data[dataIndex].minP) {
                     data[dataIndex].minP = r.pValue;
-                    // add the phenotype columns
                     data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
                     data[dataIndex][`${r.phenotype}:mask`] = r.mask;
                     data[dataIndex][`${r.phenotype}:passingVariants`] = r.passingVariants;
@@ -240,7 +225,6 @@ export default Vue.component("gene-finder-table", {
                 }
             }
 
-            // remove entries with missing p-values
             if (this.exclusive) {
                 let phenotypes = this.phenotypes;
 
@@ -249,10 +233,8 @@ export default Vue.component("gene-finder-table", {
                 });
             }
 
-            // calculate the chiSquared for each row
             data.forEach(r => (r.chiSquared = this.chiSquared(r)));
 
-            // sort all the records by combined p-value
             data.sort((a, b) => a.chiSquared - b.chiSquared);
 
             return data;
@@ -319,7 +301,6 @@ export default Vue.component("gene-finder-table", {
                 }
             }
 
-            // calculate the combined p-value
             let pdf = Chi.pdf(X, 2 * this.phenotypes.length);
 
             return 2 * pdf;

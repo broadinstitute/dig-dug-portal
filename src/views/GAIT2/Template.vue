@@ -1,12 +1,10 @@
 <template>
     <div id="gait">
-        <!-- Header -->
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
         ></page-header>
 
-        <!-- Body -->
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
@@ -134,28 +132,6 @@
                                         v-model="$parent.searchCriteria"
                                         :header="'Search Criteria'"
                                     >
-                                        <!--<filter-enumeration-control
-											ref="gene"
-											:field="'gene'"
-											placeholder="Select a gene ..."
-											:options="$parent.matchingGenes"
-											@input-change="
-												$parent.lookupGenes($event)
-											"
-											@item-select="
-												$parent.EventBus.emit('select')
-											"
-											@change="
-												$parent.eventBus.emit('change')
-											"
-											@hit="$parent.EventBus.emit('hit')"
-											@keyup-enter="
-												$parent.EventBus.emit('enter')
-											"
-											@input="
-												$parent.EventBus.emit('input')
-											"
-										>-->
 
                                         <filter-enumeration-control
                                             ref="geneORregion"
@@ -173,36 +149,6 @@
                                                 Gene or Region (chr:start-end)
                                             </div>
                                         </filter-enumeration-control>
-                                        <!--
-										<div
-											class="col divider"
-											style="background: none"
-										>
-											<span class="or-text">or</span>
-										</div>
-										<filter-basic-control
-											ref="region"
-											color="primary"
-											:field="'region'"
-											placeholder="Enter a region (chr:start-stop)"
-										>
-											<div class="label">Region</div>
-										</filter-basic-control>-->
-                                        <!-- <autocomplete
-                                            :placeholder="'Search'"
-                                            :matches="$parent.matchingGenes"
-                                            :match-key="null"
-                                            @input-change="
-                                                $parent.lookupGenes($event)
-                                            "
-                                            @keyup-enter="
-                                                $parent.exploreRegionOrVariant(
-                                                    $event
-                                                )
-                                            "
-                                        ></autocomplete>
-
-										<b-col class="divider"></b-col>-->
 
                                         <filter-enumeration-control
                                             ref="dataset"
@@ -251,162 +197,6 @@
                                             <div class="label">Phenotypes</div>
                                         </filter-enumeration-control>
                                     </criterion-list-group>
-                                    <!-- <div class="accordion" role="tablist">
-                        <b-card no-body class="mb-1">
-                            <b-card-header
-                                header-tag="header"
-                                class="p-1"
-                                role="tab"
-                            >
-                                <b-button
-                                    v-b-toggle.accordion-1
-                                    block
-                                    variant="outline-primary"
-                                    >Criteria
-                                    <div class="criteria">
-                                        <b-badge
-                                            v-if="
-                                                $parent.selectedGene.length > 0
-                                            "
-                                            class="filter-pill-gene"
-                                        >
-                                            {{ $parent.selectedGene[0] }}
-                                        </b-badge>
-                                        <b-badge
-                                            v-if="
-                                                $parent.selectedDataset.length >
-                                                0
-                                            "
-                                            class="filter-pill-dataset"
-                                        >
-                                            {{ $parent.selectedDataset[0] }}
-                                        </b-badge>
-                                        <template
-                                            v-if="
-                                                $parent.selectedPhenotypes
-                                                    .length > 0
-                                            "
-                                        >
-                                            <b-badge
-                                                v-for="phenotype in $parent.selectedPhenotypes"
-                                                :key="phenotype"
-                                                class="filter-pill-phenotype"
-                                            >
-                                                {{
-                                                    !!$store.state.bioPortal
-                                                        .phenotypeMap[phenotype]
-                                                        ? $store.state.bioPortal
-                                                              .phenotypeMap[
-                                                              phenotype
-                                                          ].description
-                                                        : phenotype
-                                                }}
-                                            </b-badge>
-                                        </template>
-                                    </div>
-                                </b-button>
-                            </b-card-header>
-                            <b-collapse
-                                id="accordion-1"
-                                visible
-                                accordion="my-accordion"
-                                role="tabpanel"
-                            >
-                                <b-card-body>
-                                    <transition name="fade"
-                                        ><b-alert
-                                            v-if="
-                                                $parent.selectedGene.length ==
-                                                    0 ||
-                                                $parent.selectedGene[0] ===
-                                                    undefined
-                                            "
-                                            show
-                                            >Please select a gene.</b-alert
-                                        >
-                                        <b-alert
-                                            v-else-if="
-                                                $parent.selectedDataset
-                                                    .length == 0 ||
-                                                $parent.selectedDataset[0] ===
-                                                    undefined
-                                            "
-                                            show
-                                            >Please select a dataset.</b-alert
-                                        >
-                                        <b-alert
-                                            v-else-if="
-                                                $parent.selectedPhenotypes
-                                                    .length == 0
-                                            "
-                                            show
-                                            >Please select one or more
-                                            phenotypes.</b-alert
-                                        >
-                                    </transition>
-                                    <criterion-list-group
-                                        v-model="$parent.searchCriteria"
-                                        :header="'Search Criteria'"
-                                    >
-                                        <filter-enumeration-control
-                                            ref="gene"
-                                            :field="'gene'"
-                                            placeholder="Select a gene ..."
-                                            :options="$parent.matchingGenes"
-                                            @input-change="
-                                                $parent.lookupGenes($event)
-                                            "
-                                        >
-                                            <div class="label">Gene</div>
-                                        </filter-enumeration-control>
-                                        <b-col class="divider"></b-col>
-                                        <filter-enumeration-control
-                                            ref="dataset"
-                                            :field="'dataset'"
-                                            placeholder="Select a dataset ..."
-                                            :options="
-                                                $parent.datasets.map(
-                                                    (v) => v.value
-                                                )
-                                            "
-                                            :label-formatter="
-                                                (v) =>
-                                                    $parent.datasets.find(
-                                                        (o) => o.value === v
-                                                    ).text
-                                            "
-                                            ><div class="label">
-                                                Dataset
-                                            </div></filter-enumeration-control
-                                        >
-                                        <filter-enumeration-control
-                                            ref="phenotype"
-                                            :field="'phenotype'"
-                                            placeholder="Select one or more phenotypes ..."
-                                            :disable-sort="true"
-                                            :multiple="true"
-                                            :options="
-                                                $parent.selectedDataset == '52k'
-                                                    ? $store.state.ldServer.phenotypes.map(
-                                                          (phenotype) =>
-                                                              phenotype.name
-                                                      )
-                                                    : $parent.topmedDatasets
-                                            "
-                                            :label-formatter="
-                                                (phenotype) =>
-                                                    !!$store.state.bioPortal
-                                                        .phenotypeMap[phenotype]
-                                                        ? $store.state.bioPortal
-                                                              .phenotypeMap[
-                                                              phenotype
-                                                          ].description
-                                                        : phenotype
-                                            "
-                                        >
-                                            <div class="label">Phenotypes</div>
-                                        </filter-enumeration-control>
-                                    </criterion-list-group> -->
 
                                     <div class="function">
                                         <b-button
@@ -549,11 +339,6 @@
                                                 :region-view-area="0"
                                                 :utils="$parent.utilsBox"
                                             ></research-annotations-plot>
-                                            <!-- {{
-                                                $store.state.pkgData[
-                                                    "overlappingRegions"
-                                                ]
-                                            }} -->
                                             <div
                                                 v-if="
                                                     $store.state.pkgData[
@@ -1115,19 +900,6 @@
                                                 }"
                                             ></b-skeleton-table>
                                         </template>
-                                        <!-- <b-table
-                                            striped
-                                            hover
-                                            small
-                                            responsive="sm"
-                                            :items="
-                                                $parent.formatTestData(
-                                                    $parent.runResults
-                                                )
-                                            "
-                                        ></b-table>
-                                        {{ $parent.runResults }}
--->
                                         <div
                                             v-if="
                                                 $parent.runResults &&
@@ -1605,7 +1377,6 @@
             </div>
         </div>
 
-        <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>

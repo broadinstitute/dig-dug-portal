@@ -40,7 +40,6 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
@@ -60,7 +59,6 @@ export default Vue.component("research-m-plot", {
 		},
 	},
 	methods: {
-		//...uiUtils,
 		renderPlot() {
 			if (this.plotData != null && this.renderConfig != null) {
 				let grouped =
@@ -68,7 +66,6 @@ export default Vue.component("research-m-plot", {
 
 				document.getElementById("egl_m_plot").innerHTML = "";
 				let chromosomeLength = {
-					//chromosome name, length
 					1: 248956422,
 					2: 242193529,
 					3: 198295559,
@@ -150,7 +147,6 @@ export default Vue.component("research-m-plot", {
 
 				let popUpContentPaths = this.renderConfig["hover content"];
 
-				// render y axis
 				let yAxisContent = "";
 				let hScoreLabel = hScore % 1 != 0 ? hScore.toFixed(3) : hScore;
 				yAxisContent +=
@@ -208,7 +204,6 @@ export default Vue.component("research-m-plot", {
 									if (pc.includes("features") == true) {
 										let featurePath =
 											p.features[pc.split(":")[1]][0];
-										//
 										for (const featureProperty in featurePath) {
 											dotContent +=
 												"<div><strong class='property-key'>" +
@@ -387,7 +382,6 @@ export default Vue.component("research-m-plot", {
 													p.features[
 														pc.split(":")[1]
 													][0];
-												//
 												for (const featureProperty in featurePath) {
 													dotContent +=
 														"<div><strong class='property-key'>" +

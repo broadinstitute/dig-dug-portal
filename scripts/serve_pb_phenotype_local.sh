@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Run the local phenotype page with the existing CRDC scoring inputs.
 
 script_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd) || exit $?
 cd "$script_root" || exit $?

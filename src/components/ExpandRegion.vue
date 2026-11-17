@@ -25,7 +25,6 @@ export default Vue.component("expand-region", {
 
             this.$store.commit("setLocus", {
                 chr: this.$store.state.chr,
-                //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
                 start: parseInt(this.$store.state.start) - expandBy,
                 end: parseInt(this.$store.state.end) + expandBy,
             });

@@ -29,10 +29,8 @@ export default Vue.component("results-tooltip", {
         portalLinkFor(subjectOrObject, label) {
             const portalLinkMappings = {
                 'biolink:Gene': '/Gene.html?gene=',
-                // TODO: Phenotype
             }
 
-            // TODO: Assumes one-hop query
             const edgeSubjectOrObjectName = Object.entries(this.query_graph.edges)[0][1][subjectOrObject]
             const node = Object.entries(this.query_graph.nodes).filter(el => el[0] === edgeSubjectOrObjectName)[0][1]
             const category = node.category;

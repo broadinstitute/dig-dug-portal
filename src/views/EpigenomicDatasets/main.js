@@ -31,7 +31,6 @@ new Vue({
     },
 
     created() {
-        //this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");

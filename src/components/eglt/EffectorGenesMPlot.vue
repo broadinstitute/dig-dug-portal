@@ -83,7 +83,6 @@ export default Vue.component("effector-genes-m-plot", {
 
             document.getElementById("egl_m_plot").innerHTML = "";
             let chromosomeLength = {
-                //chromosome name, length
                 1: 248956422,
                 2: 242193529,
                 3: 198295559,
@@ -127,8 +126,8 @@ export default Vue.component("effector-genes-m-plot", {
 
             let uniqueChromosomes = this.plotData
                 .map((v) => v[LKey].split(":")[0].trim())
-                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
-                .filter((v, i, arr) => v != ""); //remove blank
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != "");
 
             uniqueChromosomes.sort(function (a, b) {
                 return a - b;
@@ -142,7 +141,6 @@ export default Vue.component("effector-genes-m-plot", {
 
             let plotWrapper = document.getElementById("egl_m_plot");
 
-            //for (const chr in chromosomeLength) {
             uniqueChromosomes.map((chr) => {
                 let chrLength = (chromosomeLength[chr] / dnaLength) * 100;
 
@@ -178,7 +176,6 @@ export default Vue.component("effector-genes-m-plot", {
 
             let popUpContentPaths = this.popUpContent;
 
-            // render y axis
             let yAxisContent = "";
             let hScoreLabel = hScore % 1 != 0 ? hScore.toFixed(3) : hScore;
             yAxisContent +=
@@ -250,7 +247,6 @@ export default Vue.component("effector-genes-m-plot", {
                                 if (pc.includes("features") == true) {
                                     let featurePath =
                                         p.features[pc.split(":")[1]][0];
-                                    //
                                     for (const featureProperty in featurePath) {
                                         dotContent +=
                                             "<div><strong class='property-key'>" +
@@ -401,7 +397,6 @@ export default Vue.component("effector-genes-m-plot", {
                                         if (pc.includes("features") == true) {
                                             let featurePath =
                                                 p.features[pc.split(":")[1]][0];
-                                            //
                                             for (const featureProperty in featurePath) {
                                                 dotContent +=
                                                     "<div><strong class='property-key'>" +

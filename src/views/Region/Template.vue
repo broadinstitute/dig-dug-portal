@@ -1,5 +1,4 @@
 <template>
-    <!-- Header -->
     <div>
         <page-header
             :disease-group="$parent.diseaseGroup"
@@ -7,10 +6,8 @@
             :rawPhenotypes="$parent.rawPhenotypes"
         ></page-header>
 
-        <!-- body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div>
                     <div class="region-search col filter-col-md">
@@ -74,14 +71,6 @@
                         </button>
                     </div>
                     <div class="col divider"></div>
-                    <!-- <div class="region-search col filter-col-md">
-                        <div class="label">Search phenotype</div>
-                        <phenotype-selectpicker
-                            v-if="$store.state.phenotype"
-                            :phenotypes="$store.state.bioPortal.phenotypes"
-                            :clearOnSelected="true"
-                        ></phenotype-selectpicker>
-                    </div>-->
                 </div>
             </search-header-wrapper>
 
@@ -90,18 +79,10 @@
                     <div class="col-md-12 gene-page-header-title">
                         Chromosome: Start position - End position
                     </div>
-                    <!-- <div class="col-md-4 gene-page-header-title">Phenotype</div> -->
                     <div class="col-md-10 gene-page-header-body regionInfo">
                         <div class="viewing-region">
                             {{ $parent.regionString }}
                         </div>
-                        <!--<button
-                            class="btn btn-primary text-nowrap text-right explore-region-btn"
-                            style="margin-left: 20px"
-                            @click="$parent.exploreExpanded()"
-                        >
-                            Expand &plusmn; 50 kb
-                        </button>-->
                         <expand-region> </expand-region>
                     </div>
                     <div class="col-md-2 text-right">
@@ -114,13 +95,6 @@
                             ></b-img
                         ></b-link>
                     </div>
-                    <!-- <div class="col-md-4 gene-page-header-body">
-                        <span v-if="$store.state.phenotype">
-                            {{
-                            $store.state.phenotype.description
-                            }}
-                        </span>
-                    </div>-->
                 </div>
             </div>
             <div class="card mdkp-card">
@@ -372,19 +346,6 @@
                         </div>
                     </div>
                     <pre />
-                    <!--<h5 v-if="$parent.selectedPhenotypes.length > 0">
-						Add tracks &nbsp;<tooltip-documentation
-							name="region.add.phenotypes.tooltip"
-							:is-hover="true"
-							:no-icon="false"
-						></tooltip-documentation>
-						| Filter tracks and table &nbsp;
-						<tooltip-documentation
-							name="region.filter.topassoc.tooltip"
-							:is-hover="true"
-							:no-icon="false"
-						></tooltip-documentation>
-					</h5>-->
 
                     <b-alert
                         class="text-center my-3"
@@ -464,23 +425,6 @@
                                 </filter-effect-direction-control>
                             </criterion-function-group>
                         </b-tab>
-                        <!--<b-tab
-							title="Annotations by global enrichment"
-							v-show="$parent.selectedPhenotypes.length"
-						>
-							<div v-if="$parent.selectedPhenotypes.length > 0">
-								<criterion-function-group
-									v-model="$parent.annotationsFilter"
-								>
-									<filter-pvalue-control :field="'pValue'">
-										<div class="label">P-Value (&le;)</div>
-									</filter-pvalue-control>
-									<filter-greater-control :field="'fold'">
-										<div class="label">Fold (&ge;)</div>
-									</filter-greater-control>
-								</criterion-function-group>
-							</div>
-						</b-tab>-->
                     </b-tabs>
 
                     <locuszoom
@@ -519,22 +463,6 @@
                             ></lz-catalog-annotations-panel>
                         </p>
                     </locuszoom>
-                    <!--<a
-						v-if="$parent.selectedPhenotypes.length > 0"
-						:href="
-							'/research.html?pageid=kp_variant_sifter&phenotype=' +
-							$parent.selectedPhenotypes[0].name +
-							'&region=' +
-							$store.state.chr +
-							':' +
-							$store.state.start +
-							'-' +
-							$store.state.end
-						"
-						class="btn btn-primary link-to-vs"
-						style=""
-						>Prioritize variants in this region&nbsp;&nbsp;</a
-					>-->
                     <template
                         v-if="
                             $parent.selectedPhenotypes.length > 0 &&
@@ -568,7 +496,6 @@
             </div>
         </div>
 
-        <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
@@ -600,7 +527,6 @@ ul.nav-tabs {
 }
 .tab-pane div.filtering-ui-wrapper {
     border-top: none;
-    /* border-radius: 0 0 5px 5px; */
 }
 .first div.filtering-ui-wrapper {
     background-color: #ddefff;

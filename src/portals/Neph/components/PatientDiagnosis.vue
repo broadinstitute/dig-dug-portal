@@ -126,18 +126,10 @@ export default Vue.component("patient-diagnosis-card", {
         },
         tableData() {
             if (this.pdiagnosis && this.pdiagnosis.length) {
-                //console.log("here:"+this.hprecords);
 				return this.pdiagnosis;
 			} else {
 				return [];
 			}
-            /*let dataRows = this.variant.hprecords;
-            if (!!this.filter) {
-                dataRows = dataRows.filter((association) => {
-                    return this.filter(association);
-                });
-            }
-            return dataRows;*/
         },
     },
     methods: {
@@ -146,7 +138,6 @@ export default Vue.component("patient-diagnosis-card", {
             return Formatters.snakeFormatter(name);
         },
         async searchDiagnosis() {
-            //console.log("variant id:" + this.variantId);
             this.pdiagnosis = await query("patient_diagnosis",this.patientId,{},true);
             
         },

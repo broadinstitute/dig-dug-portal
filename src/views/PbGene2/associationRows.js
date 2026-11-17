@@ -16,8 +16,6 @@ function togglePinnedAssociation(pinned, row) {
         : [...pinned, { ...row }];
 }
 
-// Missing values remain last in either direction; comparison never changes
-// the release records or the independently pinned/search-result groups.
 function sortAssociationRows(rows, key, direction, carrierCount) {
     if (!key) return rows;
     const fields = { beta: 'betaPer0_1Grs', ci: 'betaCiLowPer0_1Grs', p: 'pValue', q: 'qValue' };

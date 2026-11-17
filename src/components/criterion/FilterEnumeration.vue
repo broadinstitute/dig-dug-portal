@@ -72,8 +72,6 @@ export default Vue.component("filter-enumeration-control", {
         FilterControlTemplate,
     },
     computed: {
-        // Make options unique and sorted by default, and always
-        // NOTE: Assumes that they are just strings! change?
         selectionOptions() {
             if (this.options !== null) {
                 let options = this.options

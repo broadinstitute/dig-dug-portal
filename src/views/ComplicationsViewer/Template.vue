@@ -23,7 +23,6 @@
                         :looseMatch="true"
                         :header="'Search Criterion'"
                     >
-                        <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             class="filter-col-lg"
                             :field="'condition'"
@@ -59,7 +58,6 @@
                             </div>
                         </filter-enumeration-control>
 
-                        <!-- pValue filter -->
                         <filter-pvalue-control class="filter-col-sm" :field="'pValue'">
                             <div>
                                 <strong>P-Value (&le;)</strong>

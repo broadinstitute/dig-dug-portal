@@ -1,16 +1,13 @@
 <template>
 	<div>
-		<!-- Header -->
 		<page-header
 			:disease-group="$parent.diseaseGroup"
 			:front-contents="$parent.frontContents"
 			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
-		<!-- Body -->
 		<div class="container-fluid mdkp-body">
 			<search-header-wrapper>
-				<!-- Wrap page level searchs with "pageSearchParameters" div -->
 
 				<div class="col filter-col-md">
 					<div class="label">Variant</div>
@@ -396,67 +393,8 @@
 					</div>
 				</div>
 			</div>
-			<!--
-			<div class="card mdkp-card">
-				<div class="card-body">
-					<h4 class="card-title">
-						Annotated regions overlapping {{ $parent.variantName }}
-						<tooltip-documentation
-							name="variant.annotregions.tooltip"
-							:content-fill="$parent.documentationMap"
-							:isHover="true"
-							:noIcon="false"
-						></tooltip-documentation>
-					</h4>
-					<documentation
-						name="variant.annotated.subheader"
-						:content-fill="$parent.documentationMap"
-					></documentation>
-					<unauthorized-message
-						:restricted="$store.state.regions.restricted"
-					></unauthorized-message>
-
-					<criterion-function-group>
-						<filter-enumeration-control
-							:field="'annotation'"
-							:options="
-								$parent.regions.map(
-									(region) => region.annotation
-								)
-							"
-						>
-							<div class="label">Annotations</div>
-						</filter-enumeration-control>
-
-						<filter-enumeration-control
-							:field="'method'"
-							:options="
-								$parent.regions.map((region) => region.method)
-							"
-						>
-							<div class="label">Methods</div>
-						</filter-enumeration-control>
-
-						<filter-enumeration-control
-							:field="'tissue'"
-							:options="
-								$parent.regions.map((region) => region.tissue)
-							"
-						>
-							<div class="label">Tissues</div>
-						</filter-enumeration-control>
-						<template slot="filtered" slot-scope="{ filter }">
-							<regions-table
-								:regions="$parent.regions"
-								:filter="filter"
-							></regions-table>
-						</template>
-					</criterion-function-group>
-				</div>
-			</div>-->
 		</div>
 
-		<!-- Footer-->
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>

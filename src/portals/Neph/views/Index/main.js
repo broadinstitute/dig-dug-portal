@@ -28,12 +28,9 @@ import Alert, {
 
 import {SignIn,CheckSignInStatus} from "@/portals/Neph/components/LoginComponent.js";
 
-//import { PublicClientApplication } from '@azure/msal-browser';
-//import MsalService from '@azure/msal-browser';
 
 new Vue({
     store,
-    //MsalService,
     data: {
         selected: '',
         searches: [
@@ -60,10 +57,8 @@ new Vue({
     },
 
     created() {
-        //alert(this.$store.state.msalInstance);
         this.CheckSignInStatus();
         
-        //let isLoggedIn = this.authService.instance.getAllAccounts().length > 0;
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -79,7 +74,6 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        //SignIn,
         CheckSignInStatus,
     },
 

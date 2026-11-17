@@ -1,4 +1,3 @@
-# Export existing positive memberships; no scoring, regression or p/q calculation.
 suppressPackageStartupMessages(library(Matrix))
 args <- commandArgs(trailingOnly=TRUE)
 if (length(args) != 2L) stop('Usage: Rscript export_pb_burden_memberships.R prepared_inputs output.jsonl.gz')

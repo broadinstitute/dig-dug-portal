@@ -13,7 +13,6 @@
                 permission to view them.
             </span>
 
-            <!-- ask user to login -->
             <span v-if="!!user">
                 Please contact us if you believe you should've given access.
             </span>

@@ -5,9 +5,6 @@
                 Variant Quality Metrics
             </h4>
             <b-tabs content-class="mt-3">
-                <!-- <b-tab title="Genotype Quality" active>
-                    <div id="genotypequalitymetrics" style="width: 100%; height: 100%"></div>
-                </b-tab> -->
                 <b-tab title="Depth" active>
                     <div id="depthmatrics" style="width: 100%; height: 100%"></div>
                 </b-tab>
@@ -31,14 +28,12 @@ import Vue from "vue";
 import c3 from "c3";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
-//import QualityMatricsPlot from "@/portals/Neph/components/QualityMatricsPlot.vue";
 import { difference } from "lodash";
 
 
 export default Vue.component("genotypequalitymetrics-tab", {
     props: ["chartdata"],
     components: {
-        //QualityMatricsPlot,
     },
     mounted() {
         this.build_chart({}, []);
@@ -58,59 +53,6 @@ export default Vue.component("genotypequalitymetrics-tab", {
             let xaxis = ['x', '<0', '0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-45', '45-50', 
                             '50-55', '55-60','60-65', '65-70','70-75', '75-80','80-85', '85-90','90-95', '95-100','>100'];
 
-            // attach to the dom
-            // bindto: "#qualitymatrics",
-            /*this.chart1 = c3.generate({
-                bindto: "#genotypequalitymetrics",
-                data: {
-                    x: 'x',
-                    columns: [
-                        xaxis,
-                        data1,
-                        data2
-                    ],
-                    type: 'bar',
-                    axes: {
-                        'All Indivuals':'y',
-                        'Variant Carriers': 'y2'
-                    },
-                    
-                },
-                bar: {
-                    width: {
-                        ratio: 0.5 // this makes bar width 50% of length between ticks
-                    }
-                    // or
-                    //width: 100 // this makes bar width 100px
-                },
-                axis: {
-                    y: {
-                        label: {
-                            text: 'All Indivuals',
-                            position: 'outer-middle'
-                        }
-                    },
-                    y2: {
-                        show: true,
-                        label: {
-                            text: 'Variant Carriers',
-                            position: 'outer-middle'
-                        },
-                        tick: {
-                            format: function(x) { return x % 1 === 0 ? x : ''; }
-                        }
-                    },
-                    x: {
-                        type: 'category',
-                        tick: {
-                            rotate: 75,
-                            multiline: false
-                        },
-                        
-                    }
-                },
-                
-            });*/
 
             let data3 = this.chartdata.depth_bins;
             let data4 = this.chartdata.alt_depth_bins;
@@ -140,10 +82,8 @@ export default Vue.component("genotypequalitymetrics-tab", {
                 },
                 bar: {
                     width: {
-                        ratio: 0.5 // this makes bar width 50% of length between ticks
+                        ratio: 0.5
                     }
-                    // or
-                    //width: 100 // this makes bar width 100px
                 },
                 axis: {
                     y: {
@@ -191,10 +131,8 @@ export default Vue.component("genotypequalitymetrics-tab", {
                 },
                 bar: {
                     width: {
-                        ratio: 0.5 // this makes bar width 50% of length between ticks
+                        ratio: 0.5
                     }
-                    // or
-                    //width: 100 // this makes bar width 100px
                 },
                 axis: {
                     x: {

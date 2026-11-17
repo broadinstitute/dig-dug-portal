@@ -34,7 +34,6 @@ export default Vue.component("research-summary-plot", {
         ...uiUtils,
         displayResults(config){
             if (config.type == "multi"){
-                //multi plot is handled by its own component.
                 return;
             }
             let allCharts = document.getElementsByClassName("all-charts")[0];
@@ -59,10 +58,8 @@ export default Vue.component("research-summary-plot", {
             let maxVal = dataset.reduce((prev, next) => prev > next ? prev : next);
             let minVal = dataset.reduce((prev, next) => prev < next ? prev : next);
 
-            //TODO remove DOM stuff in favor of jquery? or just remove jquery
             let chartWrapper = `.${attribute}-chart`;
 
-            // Based on EffectorGenesPlotsLine
             var margin = { top: 25, right: 10, bottom: 35, left: 29 },
                     width = configObject.width - margin.left - margin.right,
                     height = configObject.height - margin.top - margin.bottom;
@@ -116,9 +113,8 @@ export default Vue.component("research-summary-plot", {
                     .curve(d3.curveCatmullRom));
             } else {
                 var xScale = d3.scaleLinear()
-                    .domain([minVal, maxVal]) // input
+                    .domain([minVal, maxVal])
                     .range([0, width]);
-                // Data prep for histogram
                 var histogram = d3.histogram()
                     .value(function (d) {return d })
                     .domain(xScale.domain())
@@ -126,7 +122,6 @@ export default Vue.component("research-summary-plot", {
                 var bins = histogram(dataset);
                 let histogramTopEnd = d3.max(bins, function(d){return d.length;});
 
-                // Data prep for line/scatterplot (yes, it does need to be done here)
                 let interval = (maxVal - minVal) / nBuckets;
 
                 let bucketsData = [];
@@ -134,7 +129,6 @@ export default Vue.component("research-summary-plot", {
                     let bucketCount = dataset.filter(entry => entry >= i && entry < i + interval).length;
                     bucketsData.push({"bucketStart": i, "bucketCount": bucketCount});
                 }
-                // Max vals get added to the top bucket
                 let maxCount = bucketsData.filter(entry => entry == maxVal).length;
                 bucketsData[bucketsData.length - 1].bucketCount += maxCount;
                 let linePlotTopEnd = bucketsData.map(item => item.bucketCount)
@@ -142,8 +136,8 @@ export default Vue.component("research-summary-plot", {
 
                 let yScaleTopEnd = configObject.type == "histogram" ? histogramTopEnd : linePlotTopEnd;
                 var yScale = d3.scaleLinear()
-                    .domain([0, yScaleTopEnd]) // input
-                    .range([height, 0]); // output
+                    .domain([0, yScaleTopEnd])
+                    .range([height, 0]);
             
                 svg.append("g")
                     .attr("class", "x axis")
@@ -177,9 +171,9 @@ export default Vue.component("research-summary-plot", {
                 } else if (configObject.type == "line"){
                         var line = d3
                         .line()
-                        .x(d => xScale(d.bucketStart)) // set the x values for the line generator
-                        .y(d => yScale(d.bucketCount)) // set the y values for the line generator
-                        .curve(d3.curveMonotoneX); // apply smoothing to the line
+                        .x(d => xScale(d.bucketStart))
+                        .y(d => yScale(d.bucketCount))
+                        .curve(d3.curveMonotoneX);
               
                         svg.append("path")
                             .datum(bucketsData)
@@ -200,11 +194,9 @@ export default Vue.component("research-summary-plot", {
                 }
             }
             if (this.$props.isPlotByRow){
-                // Select a random item
                 let randIndex = Math.floor(Math.random()* dataset.length);
                 let randItem = dataset[randIndex];
 
-                // Draw a line for this item
                 svg.append("line")
                     .attr("x1", xScale(randItem))
                     .attr("x2", xScale(randItem))
@@ -213,7 +205,6 @@ export default Vue.component("research-summary-plot", {
                     .attr("stroke", "grey")
                     .attr("stroke-dasharray", "4");
             
-                // Label the line
                 let textAnchor = randItem < (minVal + maxVal / 2) ? "start" : "end"
                 let randEntry = this.$props.rawData[randIndex];
                 svg.append("text")

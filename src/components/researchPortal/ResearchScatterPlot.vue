@@ -161,30 +161,6 @@
 						</div>
 					</div>
 				</div>
-				<!--
-				<template v-if="renderData.length > 0 && !!renderConfig && !!colorByList">
-				<div class="scatter-plot-groups" style="display: flex; flex-wrap: wrap;">
-					<div class="scatter-plot-group" v-for="color in colorByList[colorByField]">
-						<canvas
-							
-							:key="color"
-							:id="'scatterPlot' + sectionId + color"
-							class="scatter-plot"
-							:width="plotDimension.width/2"
-							:height="plotDimension.height/2"
-							:style="'width:' +
-								(plotDimension.width/4) +
-								'px;height:' +
-								(plotDimension.height/4) +
-								'px;'"
-							@click="checkPosition($event,color,'click')"
-							@mousemove="checkPosition($event, color, 'move')"
-						>
-						</canvas>
-					</div>
-				</div>
-				</template>
-				-->
 			</div>
 		</div>
 
@@ -213,13 +189,6 @@
 			>
 			</canvas>
 		</template>
-		<!--
-		<div
-			v-if="!!renderConfig.label"
-			class="scatter-plot-label"
-			v-html="renderConfig.label"
-		></div>
-		-->
 	</div>
 </template>
 
@@ -298,7 +267,6 @@ export default Vue.component("research-scatter-plot", {
 			return dimension
 		},
 		renderData() {
-			//what is dataComparisonConfig?
 			let rawData = (!!this.dataComparisonConfig) 
 					? 
 					this.utils.dataConvert.object2Array(this.plotData, this.dataComparisonConfig,this.dataComparisonConfig["key field"]) 
@@ -311,11 +279,9 @@ export default Vue.component("research-scatter-plot", {
 			let colorsBy = {};
 			let filterFields = [];
 
-			//check render type
 			if(this.renderConfig["render type"] === 'single plot'){
 
 				if(this.renderConfig["x axis fields"]){
-					//index of the values each field should display; default: 0
 					this.renderConfig["x axis field"] = this.renderConfig["x axis fields"][0];
 					this.renderConfig["y axis field"] = this.renderConfig["y axis fields"][0];
 				}else{
@@ -323,55 +289,26 @@ export default Vue.component("research-scatter-plot", {
 					this.renderConfig["y axis fields"] = [this.renderConfig["y axis field"]]
 				}
 				
-				//save field labels
 				this.renderConfig["x axis fields"].forEach(field => {
 					filterFields.push(field)
 				});
-				//save field labels
 				this.renderConfig["y axis fields"].forEach(field => {
 					filterFields.push(field)
 				});
 
 			}else if (this.renderConfig["render type"] === 'multi plot'){
 
-				//save array of x,y field pairs for each plot
 				this.renderConfig["axis fields"].forEach(fieldpair => {
-					//TODO: should be object
 					multi.push( [ fieldpair["x axis field"], fieldpair["y axis field"], fieldpair["color by"] ] );
 				});
 
 			}
 
-			//check if "color by" is array, if not make it one
-			//allows users to enter a string or an array in config without having to condition check later
 			if(this.renderConfig["color by"].constructor !== Array){
 				this.renderConfig["color by"] = [this.renderConfig["color by"]];
 			}
 
-			/*
-				//save field labels
-				//TODO: cleanup
-				this.renderConfig["color by"].forEach(field => {
-					filterFields.push(field)
-				});
-			*/
-			//console.log('alex filters', filterFields);
-			//use collected field names from "x axis fields", "y axis fields", "color by"
-			//filter and exclude if any of those fields has 'NA' value
-			/*
-			const filteredDATA = rawData.filter(d => {
-				for (const field of filterFields) {
-					if(d[field] === 'NA') return false;
-				}
-				return true;
-			})
-
-			console.log("alex filtered (remove rows with NA values)", rawData.length, filteredDATA.length);
-			*/
 			
-			//create an object of objects for each field requested in "color by"
-			//to be filled with arrays of all possible values for each field
-			//eg: colorsBy: { "Sex": ["male", "female"], "Field": [1, 2, 3], ... }
 			colorsBy = {};
 			this.renderConfig["color by"].forEach(colorBy => {
 				colorsBy = { ...colorsBy, [colorBy]:[] };
@@ -379,52 +316,41 @@ export default Vue.component("research-scatter-plot", {
 			this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"][0];
 			this.renderConfig["color highlight"] = null;
 
-			//console.log('alex render config', this.renderConfig);
 
-			//use filtereredDATA here
-			//map data for rendering
 			rawData.map((r) => {
 				let tempObj = {};
 				
 				if(this.renderConfig["render type"] === 'single plot'){
-					//single plot
 
 					tempObj["x"] = {};
 					this.renderConfig["x axis fields"].forEach((field) => {
 						let key = field;
-						let value = typeof(r[field]) == 'string' ? 0 : r[field]; //TODO: filter out? not here though
+						let value = typeof(r[field]) == 'string' ? 0 : r[field];
 						tempObj["x"] = { ...tempObj["x"], [key]:value }
 					})
 					
 					tempObj["y"] = {};
 					this.renderConfig["y axis fields"].forEach((field) => {
 						let key = field;
-						let value = typeof(r[field]) == 'string' ? 0 : r[field]; //TODO: filter out? not here though
+						let value = typeof(r[field]) == 'string' ? 0 : r[field];
 						tempObj["y"] = { ...tempObj["y"], [key]:value }
 					})
 
 				}else if(this.renderConfig["render type"] === 'multi plot'){
-					//multi plot
 
 					tempObj["x"] = {};
 					tempObj["y"] = {};
 					tempObj["color"] = {};
-					//loop through each axis fields pair
 					this.renderConfig["axis fields"].forEach(fieldpair => {
-						//get x,y values for each pair
-						let xvalue = typeof(r[fieldpair["x axis field"]]) == 'string' ? 0 : r[fieldpair["x axis field"]]; //TODO: filter out? not here though
-						let yvalue = typeof(r[fieldpair["y axis field"]]) == 'string' ? 0 : r[fieldpair["y axis field"]]; //TODO: filter out? not here though
+						let xvalue = typeof(r[fieldpair["x axis field"]]) == 'string' ? 0 : r[fieldpair["x axis field"]];
+						let yvalue = typeof(r[fieldpair["y axis field"]]) == 'string' ? 0 : r[fieldpair["y axis field"]];
 						tempObj["x"] = { ...tempObj["x"], [fieldpair["x axis field"]]:xvalue };
 						tempObj["y"] = { ...tempObj["y"], [fieldpair["y axis field"]]:yvalue };
 
-						//optional 'color by' param available for each color fields pair
-						//if there is one, add it to the color by options
-						//this will override the global 'color by' param if there is one
 						if( fieldpair["color by"] ){
 							const key = fieldpair["color by"];
 							const value = r[ key ];
 							tempObj["color"] = {...tempObj["color"], [key]: value };
-							//console.log(tempObj["color"])
 							if(!colorsBy[key]){
 								colorsBy = { ...colorsBy, [key]:[value] };
 							}else{
@@ -452,9 +378,6 @@ export default Vue.component("research-scatter-plot", {
 
 					tempObj["color"] = {};
 					if(this.renderConfig["color by"].length > 1){
-						//create object of objects containing the fields and their values as requested in "color by"
-						//renderConfig["color by"]: [ "Sex", "Time of Day" ]
-						//   >    tempObj["color"]: { "Sex": ["male", "female"], "Time of Day": ["night", "day", "all day"], ...}
 						
 						this.renderConfig["color by"].forEach((colorBy, index) => {
 							tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ this.renderConfig["color by"][index] ] };
@@ -482,20 +405,15 @@ export default Vue.component("research-scatter-plot", {
 				massagedData.push(tempObj);
 			});
 
-			//console.log('alex data mapped (used for visuals)', massagedData);
 
-			//TODO: create gratient style legends for 'color by' fields
-			//should be settable in JSON config
 			if(colorsBy){
 				let cb = Object.keys(colorsBy);
 				cb.forEach(colorBy => {
 					if(colorsBy[colorBy].length > 10){
-						//console.log(`color field '${colorBy}' has ${colorsBy[colorBy].length} unique options`)
 						if(typeof colorsBy[colorBy][0] === 'number'){
 							const numbersOnly = colorsBy[colorBy].filter(value => typeof value === 'number');
 							numbersOnly.sort( (a, b) => a - b );
 							colorsBy[colorBy] = numbersOnly;
-							//console.log(`	it is numerical; make gradient`);
 						}
 					}
 				})
@@ -506,12 +424,6 @@ export default Vue.component("research-scatter-plot", {
 			this.multiList = multi.length > 0 ? multi : null;
 			this.colorByList = Object.keys(colorsBy).length > 0 ? colorsBy : null;
 
-			/*console.log('alex groups list', this.groupsList);
-			console.log('alex colorsby list', this.colorByList );
-			console.log('alex colors list', this.colorsList);
-			console.log('alex multi', this.multiList);
-
-			console.log('\n- - - - - - - -\n\n')*/
 
 			return massagedData;
 		}
@@ -532,8 +444,6 @@ export default Vue.component("research-scatter-plot", {
 			let xAxisData = [];
 			let yAxisData = [];
 
-			//if MINMAX_VALUES is present, it means we are rendering smaller breakout plots
-			//make those half the size of the combined plot
 			let canvasWidth = MINMAX_VALUES ? this.plotDimension.width/2 : this.plotDimension.width;
 			let canvasHeight = MINMAX_VALUES ? this.plotDimension.height/2 : this.plotDimension.height;
 			let leftMargin = this.plotDimension.plotMargin.leftMargin;
@@ -546,7 +456,6 @@ export default Vue.component("research-scatter-plot", {
 			let ctx = c.getContext("2d");
 			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-			//console.log('alex has group '+ID+':', GROUP);
 
 			if(GROUP && GROUP.constructor === Array){
 				
@@ -560,14 +469,12 @@ export default Vue.component("research-scatter-plot", {
 			}else{
 
 				DATA.map((d) => {
-					//check if data has muiltple x field properties
 					if(d.x.constructor === Object){
 						d.xValue = d["x"][this.renderConfig["x axis field"]];
 						xAxisData.push(d.xValue)
 					}else{
 						xAxisData.push(d.x);
 					}
-					//check if data has muiltple y field properties
 					if(d.y.constructor === Object){
 						d.yValue = d["y"][this.renderConfig["y axis field"]];
 						yAxisData.push(d.yValue);
@@ -578,7 +485,6 @@ export default Vue.component("research-scatter-plot", {
 
 			}
 
-			//if MINMAX_VALUES have been passed to this function use those instead
 			let xMin = MINMAX_VALUES ? MINMAX_VALUES.xMin : Math.min.apply(Math, xAxisData);
 			let xMax = MINMAX_VALUES ? MINMAX_VALUES.xMax : Math.max.apply(Math, xAxisData);
 
@@ -591,32 +497,27 @@ export default Vue.component("research-scatter-plot", {
 				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "x", 5, xMin, xMax, GROUP[0]);
 				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "y", 5, yMin, yMax, GROUP[1]);
 			}else{
-				//single
 				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "x", 5, xMin, xMax, [this.renderConfig["x axis field"]]);
 				this.utils.plotUtils.renderAxisWBump(ctx, canvasWidth, canvasHeight, MARGIN, "y", 5, yMin, yMax, [this.renderConfig["y axis field"]]);
 			}
 			
 			if(!!this.colorsList && !this.multiList) {
-				//single + group by
 				let cIndex = 0
 				this.colorsList.map(color =>{
 					let coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] === color);
 					let dotColor = this.compareGroupColors[cIndex];
 					this.utils.plotUtils.renderDots(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
-					//this.utils.plotUtils.renderBestFitLine(ctx, canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, dotColor, coloredData);
 					cIndex++;
 				})
 			} else if(!!this.colorByList){
-				//TODO: combine with above, clean up
 				let cIndex = 0
 
 				if(GROUP){
 
 					if(GROUP.constructor === Array){
-						//multi
 						cIndex = 0
 						let colorField = this.renderConfig["color field"];
-						if(GROUP[2]) colorField = GROUP[2]; //GROUP var for 'multi plot' is multi
+						if(GROUP[2]) colorField = GROUP[2];
 						this.colorByList[ colorField ].map(color => {
 							let coloredData = DATA.filter(d => d.color[ colorField ] === color);
 							let dotColor = this.compareGroupColors[cIndex];
@@ -642,23 +543,12 @@ export default Vue.component("research-scatter-plot", {
 					}
 					
 				}else{
-					//single + options
 
-					//if the color selector is gradient type
-					//there will usually be many more value groups
 					if(this.renderConfig["color field gradient"]) {
-						//map each value of selected color field option
-						//eg: field_v = ['v1', 'v2', 'v3']
 						this.colorByList[ this.renderConfig["color field"] ].map(color => {
-							//group all items that match current value ['v1', 'v1', 'v1',...]
-							//so we can color them together
 							const coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
-							//base hidden gruop color
 							let dotColor = '#00000001';
-							//if dot value is inside gradient range
 							if(color >= this.gradientMinMax.currMin && color <= this.gradientMinMax.currMax){
-								//color it based on the values position in the range of all values available
-								//value, min_value, max_value
 								dotColor = this.colorFromGradientByValue(
 									color, 
 									this.colorByList[ this.renderConfig["color field"] ][0], 
@@ -676,20 +566,11 @@ export default Vue.component("research-scatter-plot", {
 
 						let highlight = this.renderConfig["color highlight"];
 						
-						//let arr = [...this.colorByList[ this.renderConfig["color field"] ]];
-						//arr.push(arr.splice(arr.indexOf(highlight), 1)[0]);
 
 						cIndex = 0
-						//map each value of selected color field option
-						//eg: field_v = ['v1', 'v2', 'v3']
 						this.colorByList[ this.renderConfig["color field"] ].map(color => {
-							//group all items that match current value ['v1', 'v1', 'v1',...]
-							//so we can color them together
 							const coloredData = DATA.filter(d=>d.color[ this.renderConfig["color field"] ] == color);
-							//default, get dot color for this group from preset color list
 							let dotColor = this.compareGroupColors[cIndex];
-							//if this value group was selected by user, change color opacities
-							//eg #ffffff50 > hi=#ffffff90, lo=#ffffff05
 							if(highlight){
 								dotColor = dotColor.substring(0, dotColor.length - 2);
 								dotColor += highlight === color ? '90' : '05';
@@ -723,26 +604,20 @@ export default Vue.component("research-scatter-plot", {
 					groupID = 'multi'+ID.substring(ID.length-1, ID.length)
 				}
 				ctx.fillText(
-					plotLabel, //adding "group by" to plot title (TODO: make optional?)
-					canvasWidth/2 + leftMargin/2,	//position title over plot
+					plotLabel,
+					canvasWidth/2 + leftMargin/2,
 					bump + 26
 				);
 				
 
-				//this.posData[GROUP] = this.utils.plotUtils.getDotsPosData(canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, DATA);
 				this.posData[groupID] = this.utils.plotUtils.getDotsPosData(canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, DATA);
-				//console.log('alex posData GROUP '+ID+':', GROUP.constructor === Array, this.renderConfig["group by"], GROUP, this.posData);
 			} else {
 				this.posData = this.utils.plotUtils.getDotsPosData(canvasWidth, canvasHeight, MARGIN, xMin, xMax, yMin, yMax, DATA);
-				//console.log('alex posData '+ID+':', this.posData);
-				//console.log('alex posData', xMin, xMax, yMin, yMax);
 			}
 
-			//return min/max values (used by combined + breakout plots)
 			return {xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax};
 		},
 		renderPlot() {
-			//console.log('alex render data', this.renderData);
 
 			if(this.renderData.length > 0) {
 
@@ -766,21 +641,8 @@ export default Vue.component("research-scatter-plot", {
 
 					} else if(!!this.colorByList){
 
-						//draw combined plot and save the min/max axis values
 						let maxAxisValues = this.renderIndividualPlot(this.renderData, 'scatterPlot' + this.sectionId);
 
-						//draw individual plots by color group
-						//TODO: unused
-						/*
-						this.colorByList[ this.renderConfig["color field"] ].map(color => {
-								let data = this.renderData.filter(d => d.color[ this.renderConfig["color field"] ] === color);
-								let id = 'scatterPlot' + this.sectionId + color;
-								
-								//pass min/max axis values from combined plot
-								//so that the indivudual plots render using the same relative scale on each axis
-								(!!document.getElementById(id))?this.renderIndividualPlot(data, id, color, maxAxisValues):'';
-						})
-						*/
 					} else {
 
 						this.renderIndividualPlot(this.renderData, 'scatterPlot' + this.sectionId);
@@ -802,8 +664,6 @@ export default Vue.component("research-scatter-plot", {
 			this.colorByGradient = this.renderConfig["color field gradient"] = null;
 
 			this.colorByField = this.renderConfig["color field"] = e.target.value;
-			//TEMP
-			//TODO
 			if(this.renderConfig["color field"] === "Ambient Temp. (C)") {
 				this.colorByGradient = this.renderConfig["color field gradient"] = this.renderConfig["color field"];
 				this.gradientMinMax.max = this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1];
@@ -833,9 +693,6 @@ export default Vue.component("research-scatter-plot", {
 			this.renderPlot();
 		},
 		colorGradient(){
-			//TODO
-			//TMP
-			//viridis gradient colors
 			const viridisColors = ['#450c54', '#481668', '#482677', '#453681', '#3e4788', '#39558c', '#31648d', '#2e708e', '#277d8e', '#218a8d', '#21968b', '#20a286', '#28af7f', '#3dbc75', '#56c667', '#75d056', '#94d841', '#b9de28', '#dce318', '#fde724'];
 			const gradientColors = viridisColors;
 			let gradientCSS = 'linear-gradient(0deg, ';
@@ -855,27 +712,16 @@ export default Vue.component("research-scatter-plot", {
 			const position = value - min;
 			const percentile = position / range * 100;
 			const index = Math.floor(percentile / 100 * (viridisColors.length - 1));
-			//console.log([value, min, max], [range, position, percentile], [index, viridisColors[index]])
 			return viridisColors[index];
 		},
 		gradientHandleDown(e){
-			//this event handler is set on the parent element containing the color gradient handles
-			//first, check if we clicked a handle and not the wrapper
 			if(e.target.classList.contains('color-gradient-handle')){
-				//set it as the current element
 				this.gradientMinMax.activeEl = e.target;
-				//calculate difference between where mouse is on handle, and where handle element y is
-				//so that theres no awkward snapping as we drag
 				this.gradientMinMax.yOffset = e.target.getBoundingClientRect().y - e.clientY; 
-				//set mouseup listener on the window
-				//so we can let go anywhere on the page
 				window.addEventListener('mouseup', this.gradientHandleUp);
 			}
 		},
 		gradientHandleMove(e){
-			//this event handler is set on the parent element containing the color gradient handles
-			//so that we can listen for mousemove the whole time
-			//gate check if weve clicked on a handle element
 			if(!this.gradientMinMax.activeEl){
 				return;
 			}
@@ -883,37 +729,25 @@ export default Vue.component("research-scatter-plot", {
 			const el = this.gradientMinMax.activeEl;
 			const isMax = el.classList.contains('color-gradient-max') ? true : false;
 			
-			//get bounds of wrapper element
 			var rect = el.closest('.color-gradient-wrapper').getBoundingClientRect();
-			//calculate mouse y position within the parent element + adjust for yoffset
 			var y = (e.clientY - rect.top) + this.gradientMinMax.yOffset;
-			//clamp y to between 0 and 100
-			//TODO
-			//update clamp values based on position of handles
 			y = Math.min(Math.max(y, 0), 100); 
 
-			// calc gradient values range
 			const range = this.gradientMinMax.max - this.gradientMinMax.min;
-			// map percentage to value in range 
 			el.dataset.val = (this.gradientMinMax.min + range * ((100-y)/100)).toFixed(2);
 			if(isMax){
 				this.gradientMinMax.currMax = Number(el.dataset.val);
 			}else{
 				this.gradientMinMax.currMin = Number(el.dataset.val);
 			}
-			//set text
 			el.innerHTML = el.dataset.val;
 			  
-			//update position of handle to move with the mouse
 			if(isMax) 	el.style.top = `${y + 2}px`;
 			if(!isMax) 	el.style.bottom = `${(100-y) + 2}px`;
 		},
 		gradientHandleUp(){
-			//were we grabbing a handle?
 			if(this.gradientMinMax.activeEl){
-				//unset active handle
 				this.gradientMinMax.activeEl = null;
-				//stop listening for mousemove
 				window.removeEventListener('mouseup', this.gradientHandleUp);
 				this.renderPlot();
 			}
@@ -926,7 +760,6 @@ export default Vue.component("research-scatter-plot", {
 			let data = (!!GROUP) ? this.posData[GROUP] : this.posData;
 			let wrapper = document.querySelector('#scatter_dot_value' + this.sectionId);
 			let wrapperContent = document.querySelector('#scatter_dot_value_content' + this.sectionId);
-			//let canvas = document.querySelector('#scatterPlot' + this.sectionId + GROUP);
 			let canvas = e.target;
 
 			let rect = e.target.getBoundingClientRect();
@@ -936,7 +769,6 @@ export default Vue.component("research-scatter-plot", {
 			let posData = this.utils.plotUtils.getDotsInPos(x, y, data)
 
 			if (posData.length > 0) {
-				//console.log("dot", posData.length);
 				let posContent = posData.length > 5 && EVENT_TYPE == 'move' && !this.isDotPanelClick ? 
 					'<strong>There are more items to disply. <br />Click to view the full list.</strong><br /><br />' : "";
 
@@ -955,7 +787,6 @@ export default Vue.component("research-scatter-plot", {
 						}
 					} else if(EVENT_TYPE == 'click'){
 						posContent += "<strong>" + d.key + "</strong><br />";
-						//console.log('alex dot', d.key, d.hover);
 						for (const [hKey, hValue] of Object.entries(d.hover)) {
 							posContent += "<span>" + hKey + ": ";
 							if(typeof hValue === Number){
@@ -1036,7 +867,6 @@ $(function () { });
     vertical-align: -3px;
 }
 
-/* */
 
 .color-key-options .anno-bubble-wrapper {
 	width: auto;
@@ -1177,7 +1007,6 @@ select:hover {
 }
 
 
-/* custom styles, move to CMS */
 span.v-light {
 	width: 100%;
     height: 100%;

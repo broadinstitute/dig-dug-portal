@@ -49,7 +49,7 @@ export function resolveHpoTerms(value) {
 }
 export async function contextApiFailure(response) {
     let payload = {};
-    try { payload = await response.json(); } catch (_) { /* Non-JSON proxy error. */ }
+    try { payload = await response.json(); } catch (_) {   }
     const detail = String(payload.detail || "");
     if (response.status === 400 && detail.startsWith("missing query HPO columns:")) {
         const missingTerms = [...new Set(detail.match(/HP:\d{7}/g) || [])];

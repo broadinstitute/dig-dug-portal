@@ -63,7 +63,6 @@ export default Vue.component("hugecal-table", {
 	data() {
 		return {
 			suggestedPriorinput: "Prior",
-			// resetflag: { default: false },
 			fields: [
 				{ key: "prefix", label: "" },
 				{ key: "suggestedPrior", label: "Suggested prior" },
@@ -97,10 +96,6 @@ export default Vue.component("hugecal-table", {
 	methods: {
 		addToItems(event) {
 			this.universalSuggestedPriorList.push(this.suggestedPriorinput);
-			/*console.log(
-                "updated suggested list after adding",
-                this.universalSuggestedPriorList
-            );*/
 			var my_object = {
 				suggestedPrior: this.suggestedPriorinput,
 
@@ -117,10 +112,6 @@ export default Vue.component("hugecal-table", {
 		removeItems(item) {
 			this.items.pop(item);
 			this.universalSuggestedPriorList.pop(item);
-			/*console.log(
-                "updated suggestedPrior after removing",
-                this.universalSuggestedPriorList
-            );*/
 			this.$store.dispatch(
 				"updatedUniversalSuggestedPriorList",
 				this.universalSuggestedPriorList
@@ -131,7 +122,7 @@ export default Vue.component("hugecal-table", {
 			return Formatters.pValueFormatter(pValue);
 		},
 		posteriorProbability(p) {
-			let bayes_factor = this.hugeScore; //combined bayes factor
+			let bayes_factor = this.hugeScore;
 			let f5 = p / (1 - p);
 			let p0 = bayes_factor * f5;
 			let ppa = p0 / (1 + p0);

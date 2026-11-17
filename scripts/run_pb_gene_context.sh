@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Run one HPO context against one gene. Output directory must be new.
 
 usage() {
   cat <<'USAGE'

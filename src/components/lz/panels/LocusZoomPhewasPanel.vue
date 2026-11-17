@@ -32,20 +32,17 @@ export default Vue.component('lz-phewas-panel', {
             event => this.$emit('resolve', event),
             event => this.$emit('error', event)
         )
-        // hack - needs to be replaced
         this.addPanels = this.$parent.addPanels;
         this.plot = this.$parent.plot;
     },
     watch: {
         id(newVarOrGeneId) {
-            // this is good enough
             if (!!this.panelId) {
                 this.$parent.plot.removePanel(this.panelId);
             }
             this.$refs.panel.updatePanel();
         },
         type() {
-            // this is good enough
             if (!!this.panelId) {
                 this.$parent.plot.removePanel(this.panelId);
             }
@@ -59,7 +56,6 @@ export function makePhewasPanel(varOrGeneId, idType, phenotypeMap, onLoad, onRes
     const index = ({ gene: 'gene-associations', variant: 'phewas-associations' })[idType];
     const dataLayerQ = '$..data_layers[?(@.id === "phewaspvalues")]';
 
-    // get a base layout, give it a title and add some fields under the 'assoc' namespace
     const layout = new LzLayout('phewas', {
         axes: {
             y1: {
@@ -71,8 +67,6 @@ export function makePhewasPanel(varOrGeneId, idType, phenotypeMap, onLoad, onRes
         ['pValue', 'phenotype'].concat(index=== 'phewas-associations' ? `beta` : [])
     );
 
-    // modify one of the data layers
-    // https://statgen.github.io/locuszoom/docs/guides/interactivity.html#helper-functions-for-modifying-nested-layouts
     layout.setProperty(`${dataLayerQ}.tooltip`, {
         widgets: [
             {
@@ -83,12 +77,10 @@ export function makePhewasPanel(varOrGeneId, idType, phenotypeMap, onLoad, onRes
         ],
     })
 
-    // TODO: eliminate the translator function with field renaming!
     const translator = associations => {
         const portalAssociations = associations.filter(a => {
             return !!phenotypeMap[a.phenotype];
         });
-        // transform from bio index to locuszoom
         const phewas = portalAssociations.map(a => {
             const phenotypeInfo = phenotypeMap[a.phenotype];
             return {
@@ -118,7 +110,7 @@ export function makePhewasPanel(varOrGeneId, idType, phenotypeMap, onLoad, onRes
             )
         );
 
-    const panel = new LzPanelClass(layout, datasource).initialize('phewas'); // 'assoc' binds both the datasource presented and the layout given uniquely
+    const panel = new LzPanelClass(layout, datasource).initialize('phewas');
     return panel.unwrap;
 }
 </script>

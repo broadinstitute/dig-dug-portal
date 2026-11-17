@@ -34,8 +34,6 @@ def default_sample_variant_source():
         candidate = Path(index).parent / 'sample_variant_gene.jsonl.gz'
         if candidate.is_file():
             return str(candidate)
-    # An older /private/tmp gene-only index need not have the original gzip
-    # beside it. Reuse the persistent shared release installed by setup.
     cache = Path(__file__).resolve().parents[1] / '.pb-private-data/genotypes/shared/2025_crdc_16366_dp20_af001_20260907'
     return str(cache / 'sample_variant_gene.jsonl.gz')
 
@@ -69,7 +67,6 @@ class ProfileEngine:
         return tuple(sorted(set(re.findall(r'HP:\d{7}', (info or {}).get('hpo_terms_raw') or ''))))
 
     def _overlap_index(self):
-        # Lazy, once per service process; reuse the verified release already installed.
         if not hasattr(self, '_overlap_lock'):
             self._overlap_lock = RLock()
         with self._overlap_lock:
@@ -123,7 +120,6 @@ class ProfileEngine:
                    and not (family_id and self._family(sid) == family_id)}
         ranked = [int(i) for i in scored['order'] if i in allowed and totals[i] > 0] if scored else []
         ranked_set = set(ranked)
-        # Include candidates without phenotype information, after scored candidates.
         eligible = ranked + sorted(allowed - ranked_set, key=lambda i: ids[i])
         try:
             index = self._overlap_index()
@@ -245,7 +241,6 @@ class ProfileEngine:
 
     @lru_cache(maxsize=1)
     def phenotype_term_counts(self):
-        """Cohort-wide recorded-term counts for autocomplete, not filtered estimates."""
         counts = np.asarray(self.hpo['matrix'].getnnz(axis=0)).ravel()
         return {
             'counts': {term: int(count) for term, count in zip(self.hpo['hpo_columns'], counts)},

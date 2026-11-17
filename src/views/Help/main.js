@@ -50,7 +50,6 @@ new Vue({
         postAlertError,
         closeAlert,
         getPageContent(NID, CHAPTER) {
-            //console.log(NID, CHAPTER);
             this.$store.dispatch("kp4cd/getContentByID", NID);
             this.$store.dispatch("page", NID);
             if (!!CHAPTER) {

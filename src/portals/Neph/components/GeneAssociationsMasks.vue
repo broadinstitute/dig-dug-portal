@@ -117,20 +117,6 @@ export default Vue.component("gene-associations-masks", {
         };
     },
     
-    /*mounted: function() {
-            if (this.associations) {
-                alert("start sort");
-                this.associations = this.associations.sort(function (a, b) {
-                    if (a.pValue > b.pValue) {
-                        return 1;
-                    } else if (a.pValue < b.pValue) {
-                        return -1;
-                    }
-                    return 0;
-                });
-                //alert("here:"+this.associations.length);
-            }
-        },*/
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
@@ -142,7 +128,6 @@ export default Vue.component("gene-associations-masks", {
 
     },
     computed: {
-		//This works to display all data fro BI
 		tableData() {
             console.log("mask tableData");
 			if (this.associations && this.associations.length) {

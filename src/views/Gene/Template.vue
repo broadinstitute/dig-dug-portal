@@ -1,13 +1,11 @@
 <template>
     <div>
-        <!-- Header -->
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
             :raw-phenotypes="$parent.rawPhenotypes"
         >
         </page-header>
-        <!-- warning in case gene name isn't valid -->
         <div id="invalidGeneWarning" class="invalid-gene-warning hidden">
             <a
                 class="invalid-gene-hide-warning"
@@ -22,10 +20,8 @@
                 >
             </div>
         </div>
-        <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
                 <span class="gene-search-tip">
                     <sup>*</sup>
                     Alias names are converted to gene symbols
@@ -685,7 +681,6 @@
                 </div>
             </div>
         </div>
-        <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
@@ -717,10 +712,8 @@
 .center {
     padding: 10px;
 }
-/* color bar plot */
 .arrow-up {
     width: 0;
-    /*height: 40px;*/
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-bottom: 10px solid #de202c;
@@ -730,7 +723,6 @@
 }
 .arrow-side {
     width: 0;
-    /*height: 40px;*/
     border-left: 10px solid transparent;
     border-bottom: 0px solid transparent;
     border-top: 10px solid black;
@@ -784,7 +776,6 @@
     background-color: #c4edc8;
     font-weight: bold;
 }
-/* basic positioning */
 .legend {
     list-style: none;
 }
@@ -799,7 +790,6 @@
     height: 12px;
     margin: 2px;
 }
-/* your colors */
 .legend .superawesome {
     background-color: #e7edf7;
 }

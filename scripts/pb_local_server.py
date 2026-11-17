@@ -114,7 +114,6 @@ def check_ports(command):
     if all(os.environ.get(key) for key in ['PB_PHENOTYPE_HPO_MATRIX', 'PB_PHENOTYPE_METADATA', 'PB_PHENOTYPE_COHORT_MAPPING']):
         ports.add(int(os.environ.get('PB_PHENOTYPE_PROFILE_PORT', '8093')))
     if os.environ.get('PB_GENE_CONTEXT_DATA_ROOT') and not os.environ.get('PHENOTYPE_ANALYZER_HOST_PRIVATE'):
-        # start_pb_gene_context_api.sh uses the context server's default port.
         ports.add(8092)
     for candidate in sorted(ports):
         with socket.socket() as probe:
@@ -136,7 +135,7 @@ def terminate_group(child, grace):
         return
     deadline = time.monotonic() + grace
     while time.monotonic() < deadline:
-        child.poll()  # Reap the leader even if an API/grandchild still holds the group.
+        child.poll()
         try:
             os.killpg(child.pid, 0)
         except ProcessLookupError:

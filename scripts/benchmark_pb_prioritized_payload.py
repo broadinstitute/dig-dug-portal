@@ -14,7 +14,6 @@ def wire_bytes(value):
 
 
 def list_record(row, ordinal):
-    # IDs are release-local. The release/hash belongs once in the response envelope.
     result = {'id': ordinal, 'type': int(row['type'].split('_')[1]),
               'gene': row['GeneSymbol'], 'variant_id': row['Variant_ID'], 'gt': row['GT']}
     if row['disease_id']:
@@ -35,7 +34,6 @@ def detail_record(row, ordinal):
         'matched_hpo_count', 'disease_hpo_count', 'phenotype_coverage', 'phenotype_evaluation_status']}
     result['matched_hpo_terms'] = [value for value in row['matched_hpo_terms'].split(';') if value]
     result['inheritance_assessment'] = row['inheritance_status'] or None
-    # Omit absent score values; one explicit status is sufficient.
     result['disease_score_status'] = 'not_calculated'
     if result['type'] >= 5:
         result['discovery'] = {key: value for key, value in row.items()

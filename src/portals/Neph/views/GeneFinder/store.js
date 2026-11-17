@@ -14,7 +14,6 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         geneFinder: bioIndex("gene-finder",{query_private:true}),
-        //phenotype: bioIndex("phenotypes",{query_private:true}),
     },
     state: {
         newPhenotype: null,
@@ -60,7 +59,6 @@ export default new Vuex.Store({
         },
 
         setSecondaryPhenotype(state, secondaryPhenotype) {
-            //let secondaryPhenotypeList = []
             state.secondaryPhenotype = secondaryPhenotype
         },
         setPhenotypelist(state, phenotypelist) {

@@ -1070,7 +1070,6 @@
     border-radius: 2px;
 }
 
-/* Search, applied profile and matching samples share one continuous surface. */
 .pbp-search-results { scroll-margin-top: 24px; }
 .pbp-search-results:focus { outline: 2px solid #0b66d8; outline-offset: 3px; }
 .pbp-search-results > .pbp-context { padding: 14px 0; margin-top: 14px; border-top: 1px solid var(--line); }

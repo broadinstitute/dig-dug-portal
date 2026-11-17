@@ -69,12 +69,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-        /*if(keyParams.patient){
-            this.$store.dispatch("queryPatient", keyParams.patient);
-        } */
         
-        //alert(store.state.variant.nearest);
-        //alert("5");
     },
 
     render(createElement, context) {
@@ -108,9 +103,6 @@ new Vue({
         },
 
         varId() {
-            /*if (this.$store.state.variant){
-                console.log(JSON.stringify(this.$store.state.variant));
-            }*/
             if (this.$store.state.patient){
                 return this.$store.state.patient;
             } else {
@@ -170,12 +162,10 @@ new Vue({
             let phenotypes = this.$store.state.bioPortal.phenotypeMap;
             let associations = this.$store.state.phewas.data;
 
-            // filter associations w/ no phenotype data (not in portal!)
             let portalAssociations = associations.filter(a => {
                 return !!phenotypes[a.phenotype];
             });
 
-            // transform from bio index to locuszoom
             let phewas = portalAssociations.map(a => {
                 let phenotype = phenotypes[a.phenotype];
 
@@ -201,21 +191,10 @@ new Vue({
         },
 
         patientData(data) {
-            //! data is an array
             if (data.length > 0) {
-                this.$store.commit("setPatient", data[0]); // only ever 1 result
+                this.$store.commit("setPatient", data[0]);
             }
         },
 
-        /*"$store.state.patient"(patient) {
-            //alert("watch:"+patient);
-            if (patient) {
-                //console.log(variant);
-                let p = this.chromPos;
-
-                this.$store.dispatch("patientDiagnosis/query", { q: patient });
-                
-            }
-        } */
     }
 }).$mount("#app");

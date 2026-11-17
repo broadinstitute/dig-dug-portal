@@ -1,5 +1,4 @@
 import Vue from "vue";
-//import VueCodeMirror from "vue-codemirror";
 import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";

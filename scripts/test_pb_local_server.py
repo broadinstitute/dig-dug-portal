@@ -51,8 +51,6 @@ class LocalServerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='pb-lifecycle-test-') as directory:
             root = Path(directory)
             ready = root / 'ready.json'
-            # A deliberately stuck API descendant owns a listening socket. In
-            # "exit" mode its parent exits normally first (orphan cleanup).
             api = ("import socket,time,signal,json,os;"
                    "signal.signal(signal.SIGTERM,signal.SIG_IGN);"
                    "s=socket.socket();s.bind(('127.0.0.1',0));s.listen();"
@@ -80,8 +78,6 @@ class LocalServerTests(unittest.TestCase):
                 stdout, stderr = owner.communicate(timeout=5)
                 self.assertEqual(owner.returncode, 128 + sig if sig else 0, (stdout, stderr))
                 with socket.socket() as probe:
-                    # Listening socket must be released even when the API
-                    # ignores TERM or the leader exited before cleanup.
                     probe.bind(('127.0.0.1', info['port']))
             finally:
                 if owner.poll() is None:

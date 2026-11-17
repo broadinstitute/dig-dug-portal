@@ -21,7 +21,6 @@ export default new Vuex.Store({
         kp4cd,
         globalAssociations: bioIndex("global-associations",{query_private:true}),
         variantMatrix: bioIndex("clumped-matrix",{query_private:true}),
-        //phenotype: bioIndex("phenotypes",{query_private:true}),
     },
     state: {
         associations: [],
@@ -49,7 +48,6 @@ export default new Vuex.Store({
                     r['hgvsp']=r['hgvsp'].replace("%3D","=");
                 }
             });
-            //console.log("store, setLeadPhenotype:"+ state.globalAssociations.data.length);
             state.phenotypes = [
                 {
                     phenotype: phenotype,
@@ -58,13 +56,10 @@ export default new Vuex.Store({
                     filterVisible: true
                 }
             ];
-            //console.log("setLeadPhenotype done.");
-            //state.associations = state.globalAssociations.data;
         },
         setLeadPositions(state) {
             state.leadPositions = {};
 
-            // get the lead SNP position for each clump
             state.globalAssociations.data.forEach(r => {
                 state.leadPositions[r.clump] = r.position;
             });
@@ -76,7 +71,6 @@ export default new Vuex.Store({
                     r['hgvsp']=r['hgvsp'].substring(18);
                     r['hgvsp']=r['hgvsp'].replace("%3D","=");
                 }
-                //r['phenotype'] = r['phenotype2'];
                 r['allelecount'] = r['allelecount2'];
                 r['allelenumber'] = r['allelenumber2'];
                 r['allelefrequency'] = r['allelefrequency2'];
@@ -87,17 +81,14 @@ export default new Vuex.Store({
                 filter: x => true,
                 filterVisible: false
             });
-            //state.associations=state.variantMatrix.data;
         },
         removePhenotype(state, index) {
             if (index == 0) {
-                state.phenotypes = []; // remove all
-                //state.associations = [];
+                state.phenotypes = [];
             } else {
                 state.phenotypes = state.phenotypes.filter(
                     (p, i) => i != index
                 );
-                //state.associations = state.globalAssociations.data;
             }
         }
     },
@@ -109,7 +100,6 @@ export default new Vuex.Store({
         },
         leadAssociations(state) {
             if (state.phenotypes.length > 0) {
-                //console.log("store: "+ state.phenotypes[0].filter);
                 return state.phenotypes[0].associations.filter(
                     state.phenotypes[0].filter
                 );
@@ -122,7 +112,6 @@ export default new Vuex.Store({
                 p => p.name == phenotype.name
             );
 
-            // doesn't exist, so add it
             if (i < 0) {
                 if (context.state.phenotypes.length == 0) {
                     context.dispatch(
@@ -139,28 +128,22 @@ export default new Vuex.Store({
             console.log(context.state.selectedconsequence);
         },
 
-        // fetch the lead (first) phenotype clumped associations
         async fetchLeadPhenotypeAssociations(context, phenotype) {
             await context.dispatch("globalAssociations/query", {
                 q: phenotype.name
             });
 
-            // calculate lead positions
-            //console.log("fetchLeadPhenotypeAssocications:"+phenotype.name);
             context.commit("setLeadPhenotype", phenotype);
             context.commit("setLeadPositions");
         },
 
-        // load secondary phenotype associations
         async fetchAssociationsMatrix(context, phenotype) {
             let lead = context.state.phenotypes[0].phenotype.name;
 
-            // use the module to download
             await context.dispatch("variantMatrix/query", {
                 q: `${lead},${phenotype.name}`
             });
 
-            // commit a copy of the data
             context.commit("addPhenotype", phenotype);
         }
     }

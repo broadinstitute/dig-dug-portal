@@ -134,7 +134,6 @@ export default Vue.component("research-single-search", {
 				!!this.singleSearchParam.includes("_") &&
 				!!this.singleSearchParam.includes("-")
 			) {
-				//on search for a variant in chr3_12489012-C-T format
 				location.href = "/variant.html?variant=" + searchKey;
 			}
 		},

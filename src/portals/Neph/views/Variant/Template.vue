@@ -1,15 +1,12 @@
 <template>
     <div>
-        <!-- Header -->
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
         ></page-header>
 
-        <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div class="col filter-col-md">
                     <div class="label">Variant</div>
@@ -69,14 +66,6 @@
                             </span>
                         </span>
                     </div>
-                    <!--<div class="col-md-3 gene-page-header-body">
-						<button
-							class="btn btn-primary explore-region-btn"
-							@click="$parent.exploreRegion()"
-						>
-							Explore region
-						</button>
-					</div> -->
                 </div>
             </div> 
             <div class="card mdkp-card">
@@ -137,7 +126,6 @@
                 </div>
             </div>
 
-            <!-- Helen added Quality Matrics -->
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div
@@ -187,14 +175,6 @@
             </div>
 
             <div v-if="$store.state.variant && $store.state.variant.nearest">
-                <!-- <div class="card mdkp-card">
-                    <div class="card-body temporary-card">
-                        <documentation
-                            name="variant.explore.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-                    </div>
-                </div> -->
 
                 <div class="card mdkp-card">
                     <div class="card-body">
@@ -208,12 +188,6 @@
                                 $store.state.variant && $store.state.variant.nearest
                             "
                         >
-                            <!--<div
-                                v-for="gene in $store.state.variant.nearest"
-                                class="gene-with-signal protein_coding"
-                            >
-                                <a :href="`/gene.html?gene=${gene}`">{{ gene }}</a>
-                            </div> -->
                             <div
                                 class="gene-with-signal protein_coding"
                             >
@@ -273,7 +247,6 @@
             </div> 
         </div> 
 
-        <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>

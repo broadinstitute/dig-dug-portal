@@ -1,7 +1,6 @@
 
 <template>
 	<div id="app">
-		<!-- KP Header -->
 		<page-header
 			v-if="$parent.displayOnKP == true"
 			:disease-group="$parent.diseaseGroup"
@@ -9,7 +8,6 @@
 			:rawPhenotypes="$parent.rawPhenotypes"
 		></page-header>
 
-		<!--  Research page Header -->
 		<research-page-header
 			:class="
 				$parent.displayOnKP == true
@@ -24,7 +22,6 @@
 			"
 		></research-page-header>
 
-		<!-- Body -->
 		<div
 			class="container-fluid mdkp-body"
 			v-if="$parent.researchMode == 'no_set'"
@@ -180,7 +177,6 @@
 				</div>
 			</div>
 
-			<!-- tabs nav -->
 			<div
 				class="kp-tabs-wrapper"
 				v-if="$parent.researchMethodID != null"
@@ -216,7 +212,6 @@
 					</li>
 				</ul>
 			</div>
-			<!-- tabs content -->
 
 			<div class="kp-tabs-contents" id="rp_tabs_contents">
 				<div class="kp-tab-content active" id="view_data_content">
@@ -257,7 +252,6 @@
 								></research-page-filters>
 							</div>
 						</template>
-						<!-- plots -->
 						<div
 							class="col-md-12 zoom-ui-wrapper"
 							v-if="
@@ -360,7 +354,6 @@
 								class="plot-legend"
 								v-html="$parent.plotLegend"
 							></div>
-							<!--v-if="$parent.plotType == 'm_plot'"-->
 							<research-m-plot
 								v-if="
 									$parent.plotConfig != null &&
@@ -372,7 +365,6 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-m-plot>
-							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-bitmap-plot
 								v-if="
 									$parent.plotConfig != null &&
@@ -388,7 +380,6 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-m-bitmap-plot>
-							<!--v-if="$parent.plotType == 'mbm_plot'"-->
 							<research-m-qq-plot
 								v-if="
 									$parent.plotConfig != null &&
@@ -404,7 +395,6 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-m-qq-plot>
-							<!--v-if="$parent.plotType == 'region_plot'"-->
 							<research-region-plot
 								v-if="
 									!!$parent.plotConfig &&
@@ -428,7 +418,6 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-region-plot>
-							<!--v-if="$parent.plotType == 'score_plot'"-->
 							<research-score-plot
 								v-if="
 									$parent.plotConfig != null &&
@@ -465,7 +454,6 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-genes-track>
-							<!--v-if="$parent.plotType == 'volcano_plot'"-->
 							<research-volcano-plot
 								v-if="
 									$parent.plotConfig != null &&
@@ -476,7 +464,6 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-volcano-plot>
-							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-heatmap
 								v-if="
 									$parent.plotConfig != null &&
@@ -487,7 +474,6 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-heatmap>
-							<!--v-if="$parent.plotType == 'h_map'"-->
 							<research-phewas-plot
 								v-if="
 									$parent.plotConfig != null &&
@@ -505,10 +491,6 @@
 								:utils="$parent.utilsBox"
 								canvasId=""
 							></research-phewas-plot>
-							<!--v-if="
-									$parent.plotType == 'custom_pkg' &&
-									$parent.customPlotType == 'gem package'
-								"-->
 							<kp-gem-pkg
 								v-if="
 									$parent.plotConfig != null &&
@@ -586,7 +568,6 @@
 							>
 							</research-gem-data-table>
 						</div>
-						<!-- multi section test-->
 						<div class="col-md-12" v-if="!!$parent.sectionConfigs && !!$parent.sectionConfigs['is multi section']">
 
 							<research-multi-sections-search 
@@ -756,12 +737,10 @@
 		<div id="plotLegend" v-html="$parent.plotLegend" style="display:none;"></div>
 		<div id="tableLegend" v-html="$parent.tableLegend" style="display:none;"></div>
 
-		<!-- Research portal Footer-->
 		<research-page-footer
 			v-if="$parent.displayOnKP == null"
 		></research-page-footer>
 
-		<!-- KP Footer-->
 		<page-footer
 			v-if="$parent.displayOnKP == true"
 			:disease-group="$parent.diseaseGroup"

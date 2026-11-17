@@ -1,7 +1,3 @@
-/**
- * This is the module that is used to pull the news feed for KPN website
-
- */
 
 import Vue from "vue";
 import VueCookies from "vue-cookies";
@@ -10,7 +6,6 @@ Vue.use(VueCookies);
 export default {
     namespaced: true,
 
-    // initial module state
     state() {
         return {
             researchMode: [],
@@ -24,7 +19,6 @@ export default {
         };
     },
 
-    // commit methods
     mutations: {
         setResearchMode(state, data) {
             state.researchMode = data;
@@ -60,19 +54,15 @@ export default {
         },
     },
 
-    // dispatch methods
     actions: {
         async getResearchMode(context, param) {
             let json = await fetch(
                 "https://hugeampkpncms.org/view/rest/get_research_page_access?pageid=" + param.pageID
             ).then(resp => resp.json());
-            //check for cookie if dev mode
             if(json[0].field_page_mode==='dev'){
                 const cookieCheck = Vue.$cookies.get(`KPN_${param.pageID}`);
-                //login if cookie exists
                 if(cookieCheck) context.dispatch("getResearchDevPage", {pageID: param.pageID, devID: cookieCheck.u, devPW: cookieCheck.p});
             }
-            // set the data
             context.commit("setResearchMode", json);
         },
         async getResearchMethod(context, param) {
@@ -80,7 +70,6 @@ export default {
             let json = await fetch(
                 "https://hugeampkpncms.org/view/rest/get_research_method?method=" + param.methodID
             ).then(resp => resp.json());
-            // set the data
             context.commit("setResearchMethod", json);
         },
         async getResearchMenu(context, param) {
@@ -95,13 +84,10 @@ export default {
                 let json = await fetch(
                     "https://hugeampkpncms.org/view/rest/get_research_page_dev?pageid=" + param.pageID + "&&devid=" + param.devID + "&&devpw=" + param.devPW
                 ).then(resp => resp.json());
-                //if login successful, and user wants to be remembered
                 if(json.length>0 && param.devCK){
-                    //set cookie for 14 days
                     const cookieValues = {u: param.devID, p: param.devPW};
-                    Vue.$cookies.set(`KPN_${param.pageID}`, cookieValues, "14d");//14 days //30MIN
+                    Vue.$cookies.set(`KPN_${param.pageID}`, cookieValues, "14d");
                 }
-                // set the data
                 context.commit("setResearchPage", json);
             }
 
@@ -110,7 +96,6 @@ export default {
             let json = await fetch(
                 "https://hugeampkpncms.org/view/rest/get_research_page?pageid=" + param.pageID
             ).then(resp => resp.json());
-            // set the data
             context.commit("setResearchPage", json);
         },
         cancelResearchData(context) {

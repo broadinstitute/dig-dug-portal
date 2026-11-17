@@ -91,7 +91,6 @@ model.pbVariantMethods.applyVariantProfile.call({$refs:{profile:{finish(){finish
 assert.equal(finished,1);assert.equal(applied,1);
 assert.equal(errors.length, 0);
 
-// Successful profile scoring with no noncarrier comparison is distinct from a failed lookup.
 const allCarrierAssociation = {status:'all_carriers', beta:null, pValue:null, sampleCount:39, carrierCount:39};
 instance.contextAssociation = allCarrierAssociation;
 instance.contextMatch = {status:'ok', matchScore:-3.883364853714204e-17, carrierCount:39, scoredCarrierCount:39};
@@ -108,7 +107,6 @@ assert.equal(instance.displayMean(1e-8), '1.00e-8', 'Tiny nonzero effects retain
 instance.contextAssociation = {beta:-0.608,pValue:0.540,modelVersion:'ols',sampleCount:15761,carrierCount:1};
 instance.contextMatch = {matchScore:-0.549,scoredCarrierCount:1,carrierCount:1,status:'ok'};
 
-// Re-run restores applied settings even when the user has edited the draft.
 let reran = 0, reset = 0;
 const rerunState = {contextLoading:false, searchLoading:false, contextMatch:{}, activeContextTerms:['HP:0000364'], coGeneScoreType:'sum',coGeneAnalysisSet:'affected',contextInput:'HP:0001250', contextScoreTypeInput:'max',contextAnalysisSetInput:'all', $refs:{profile:{resetDraft(){reset++;}}},runVariantContext(){reran++;}};
 const savedRun={id:5,terms:['HP:0000364'],scoreType:'sum',analysisSet:'affected'};
@@ -120,7 +118,6 @@ deleted.profileRuns=[{id:5},{id:4}];deleted.currentProfileRunId=5;
 model.pbVariantMethods.deleteVariantProfile.call(deleted,deleted.profileRuns[0]);
 assert.equal(deleted.profileRuns.length,1);assert.equal(deleted.profileRuns[0].id,4);
 assert.equal(deleted.contextMatch,null);assert.equal(deleted.contextAssociation,null);assert.equal(deleted.contextStandardization,null);assert.equal(Object.keys(deleted.contextResidualById).length,0);assert.equal(Object.keys(deleted.coGeneAssociationByGene).length,0);assert.equal(deleted.activeContextTerms.length,0);assert.equal(deleted.contextRunId,6);
-// Exercise the actual shared Gene2 demographics component with >1,000 people.
 const demoPath = 'src/views/PbGene2/Demographics.vue';
 const demoSfc=compiler.parseComponent(fs.readFileSync(path.join(root,demoPath),'utf8'));
 const demoCode=babel.transformSync(demoSfc.script.content,{babelrc:false,configFile:false,plugins:[req.resolve('@babel/plugin-transform-modules-commonjs')]}).code;

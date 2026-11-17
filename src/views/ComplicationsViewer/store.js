@@ -61,7 +61,6 @@ export default new Vuex.Store({
 
             context.commit('clearAssociations');
 
-            // update each set of genes
             context.dispatch('primaryGeneFinder', { q: primaryPhenotype, limit, limitWhile });
             context.dispatch('secondaryGeneFinder', { q: secondaryPhenotype, limit, limitWhile });
         }

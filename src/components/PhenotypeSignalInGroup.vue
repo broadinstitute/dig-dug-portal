@@ -104,24 +104,6 @@
 											: i
 									"
 								>
-									<!--<div
-									class="pws-progress-bar"
-									:key="item.phenotype"
-									:value="pValueCss(item.pValue)"
-									:style="{
-										width: +pValueCss(item.pValue) + '%',
-										'background-color':
-											+getColor(key) + ' !important',
-									}"
-									@click="
-										i === 0
-											? showHideByClass(
-													'pws-phenotype-row ' +
-														key2id(key)
-											  )
-											: i
-									"
-								>-->
 									<span
 										class="bar-desc"
 										:style="{

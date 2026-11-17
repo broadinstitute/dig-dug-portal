@@ -54,7 +54,6 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
     return returnData;
 }
 
-/// complete for the multi-section BYOR
 let filterMulti2Multi = function (FilterKey, TargetKey, TYPE, FilterData, TargetData) {
 
     let returnData = TargetData;

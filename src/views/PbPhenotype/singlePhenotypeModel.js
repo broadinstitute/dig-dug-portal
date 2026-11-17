@@ -53,20 +53,17 @@ export function summarizeProjects(samples) {
     }).map(row => ({ ...row, ...statuses.get(row.name) }));
 }
 
-// This filter affects the sample table only, leaving the search cohort unchanged.
 export function filterSampleProjects(samples, projects) {
     if (projects === null) return samples;
     const selected = new Set(projects);
     return samples.filter(row => selected.has(row.project || 'Unknown'));
 }
 
-// Checkboxes select query phenotypes, including samples matching several of them.
 export function filterSamplePhenotypes(samples, ids) {
     if (ids === null) return samples;
     return samples.filter(row => ids.some(id => row.terms.includes(id)));
 }
 
-// Open the displayed paths to query terms, including paths deeper than two levels.
 export function selectedHierarchyBranches(nodes, selected) {
     const queries = new Set(selected), branches = new Set();
     const visit = node => {
@@ -86,7 +83,6 @@ export function filterHierarchyCategories(nodes, categories) {
     })).filter(node => node.children.length);
 }
 
-// Sort siblings, keeping query paths first and every child under its parent.
 export function orderPhenotypeHierarchy(nodes, sort, counts, total, queryIds) {
     const branches = selectedHierarchyBranches(nodes, queryIds), queries = new Set(queryIds);
     const selectors = { phenotype: row => row.label, count: row => row.count,
@@ -164,7 +160,6 @@ export function sortSamples(samples, sort) {
     });
 }
 
-// Pinned rows stay above five unpinned page results and never duplicate a page row.
 export function splitPinnedRows(rows, ids, keyOf, page, size = 5) {
     const keys = new Set(ids);
     const pinned = rows.filter(row => keys.has(keyOf(row)));

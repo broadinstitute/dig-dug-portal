@@ -77,7 +77,6 @@ def query(database, hpo):
             from scripts.pb_burden_memberships import memberships
             carrier_counts = memberships(hpo, associations)
         except (OSError, ValueError, KeyError):
-            # Missing input memberships must not hide stored burden statistics.
             carrier_counts = None
         return dict(metadata=metadata, associations=associations, carrierCounts=carrier_counts)
     finally:

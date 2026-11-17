@@ -1,4 +1,3 @@
-// Private, source-versioned cache. No cached records are published to the browser.
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
@@ -24,13 +23,12 @@ async function openCarrierDiskCache(root, namespace, now = Date.now) {
                     if (typeof row.id === 'string' && row.info && now() - row.savedAt < MAX_AGE_MS) {
                         samples.set(row.id, row);
                     }
-                } catch (_) { /* Ignore an interrupted final append. */ }
+                } catch (_) {   }
             }
         }
     } catch (error) {
         if (error.code !== 'ENOENT') throw error;
     }
-    // Compact expired/duplicate entries once at startup, retaining private permissions.
     const compactedPath = metadataPath + '.tmp';
     await fsp.writeFile(compactedPath, [...samples.values()].map(row => JSON.stringify(row) + '\n').join(''), { mode: 0o600 });
     await fsp.chmod(compactedPath, 0o600);

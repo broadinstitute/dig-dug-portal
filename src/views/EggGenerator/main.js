@@ -1,5 +1,4 @@
 import Vue from "vue";
-//import VueCodeMirror from "vue-codemirror";
 import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
@@ -102,7 +101,6 @@ new Vue({
             }
         },
 
-        // TODO figure out why actual session job list length is less than submitted
 
         loadSession(idToLoad) {
             fetch("//eggserver.org/lunaris/predictor/session/" + idToLoad)
@@ -143,7 +141,6 @@ new Vue({
         },
 
         getIdAndLoadSession() {
-            //TODO switch all DOM manipulation to real vue stuff
             const sessionId = this.sessionInput;
             if (sessionId) {
                 if (this.isWellFormedSessionId(sessionId)) {
@@ -170,7 +167,7 @@ new Vue({
             this.setEmptySubmissionArea();
             this.clearInputs();
             this.filters = [];
-            this.filterNames = []; // TODO evaluate in case this is custom
+            this.filterNames = [];
             this.inputFiles = [];
             this.outputFormats = [];
             this.refGenomes = [];
@@ -195,7 +192,6 @@ new Vue({
         },
 
         showOnBadge(e) {
-            // is this a good way to do this or not?
             const inputValue = e.target.value;
             const badgeId = e.target.getAttribute("id") + "-badge";
             const badge = document.getElementById(badgeId);
@@ -235,7 +231,6 @@ new Vue({
 
         setSaveJobMessage(message, isError = true) {
             const saveJobMessage = document.getElementById("save-job-message");
-            //saveJobMessage.innerText = errorMessage;
             if (isError) {
                 saveJobMessage.innerHTML = `<span class="save-job-message">${message}</span>`;
             } else {
@@ -272,7 +267,7 @@ new Vue({
                 maskName = "Custom";
             }
             this.filters.push(filter);
-            this.filterNames.push(maskName); // TODO evaluate in case this is custom
+            this.filterNames.push(maskName);
             this.inputFiles.push(inputFile);
             this.outputFormats.push(format);
             this.refGenomes.push(hg);
@@ -306,14 +301,12 @@ new Vue({
 
         saveJobAndCreateNew() {
             if (this.saveJob()) {
-                // We don't want to clear the mask someone may have entered if they missed a field and it didn't save.
                 this.clearInputs();
             }
         },
 
         clearInputs() {
             this.resetFilters();
-            // Can't be done with a v-model.
             document.getElementById("inputfile").value = "";
             
             this.hgSelect = this.hgSelectDefault;
@@ -368,11 +361,6 @@ new Vue({
             return inputFile;
         },
 
-        // When submitted through the old site (eggserver.org) all jobs are included in a session.
-        // This is reflected when the session is loaded even on the new site.
-        // When submitted through the new site, only 2 jobs show up in a session.
-        // This is reflected when the session is loaded even on the old site.
-        //
         submitAll() {
             const emailInput = document.getElementById("email").value;
             const descriptionInput = document.getElementById("session-desc").value;
@@ -385,7 +373,6 @@ new Vue({
                 setEmailMsg("Enter a description for this session in order to continue.");
                 return;
             }
-            // As of now, must have email in order to submit.
             if (emailInput == "") {
                 setEmailMsg("Enter your email to continue.");
                 return;
@@ -398,8 +385,6 @@ new Vue({
                 return;
             }
 
-            // New session - we don't append to any old one.
-            //this.generateSession();
             this.clearStatusArea();
             this.setSessionId(this.lunarisVariantPredictor.sessionId, false);
 
@@ -547,7 +532,6 @@ new Vue({
             filterName = "filter",
             outputFormat = "format"
         ) {
-            // Include the file name, reference genome, mask filter, output format, and restore link
             this.setUpRow(statusRow, true);
             this.displayInputFile(statusRow, inputFileName);
             this.displayRefGenome(statusRow, refGenome);

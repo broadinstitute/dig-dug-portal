@@ -2,11 +2,6 @@ import { BaseWidget, _Button } from "locuszoom/esm/components/toolbar/widgets";
 import jsonQuery from "json-query";
 
 class ToggleLogLog extends BaseWidget {
-    /**
-     * @param {string} [layout.button_html="Download SVG"]
-     * @param {string} [layout.button_title="Download image of the current plot as locuszoom.svg"]
-     * @param {string} [layout.filename="locuszoom.svg"] The default filename to use when saving the image
-    */
     constructor(layout, parent) {
         super(layout, parent);
         this._button_html = this.layout.button_html || 'Toggle Log-Log Scale';
@@ -22,9 +17,6 @@ class ToggleLogLog extends BaseWidget {
             .setHtml(this._button_html)
             .setTitle(this._button_title)
             .setOnclick(function () {
-                // Auxiliary method within our json query for data layers in the LocusZoom plot
-                // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
-                // using flatmap because we need to work across many Object.keys
                 const forceKeys = (el) =>
                 el.flatMap((data_layer_set) =>
                     Object.entries(data_layer_set).map(
@@ -32,7 +24,6 @@ class ToggleLogLog extends BaseWidget {
                     )
                 );
 
-                // Do we need to calculate this forceKeys every time?
                 let data_layers = jsonQuery("panels[*].data_layers[*]:forceKeys", {
                     data: self.parent_plot,
                     locals: { forceKeys },
@@ -77,7 +68,6 @@ class ToggleLogLog extends BaseWidget {
 
 
 const ldlz2_pop_selector_menu = {
-    // **Note**: this widget is aimed at the LDServer datasource, and the UM 1000G LDServer
     type: 'set_state',
     position: 'right',
     color: 'blue',
@@ -85,9 +75,6 @@ const ldlz2_pop_selector_menu = {
     show_selected: true,
     button_title: 'Select LD Population: ',
     state_field: 'ld_pop',
-    // This list below is hardcoded to work with the UMich LDServer, default 1000G populations
-    //  It can be customized to work with other LD servers that specify population differently
-    // https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations
     options: [
         { display_name: 'ALL (default)', value: 'ALL' },
         { display_name: 'AFR', value: 'AFR' },

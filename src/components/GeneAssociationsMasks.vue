@@ -130,7 +130,6 @@ export default Vue.component("GeneAssociationsMasks", {
                 ) || []
             );
         },
-        //filter associations that only exist in the phenotypeMap
         filteredAssociations() {
             let assocs = !this.filter
                 ? this.associations
@@ -146,7 +145,6 @@ export default Vue.component("GeneAssociationsMasks", {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         showFeatures(index) {
-            //console.log("index: ", index);
             uiUtils.showHideElement("feature-headers-" + index);
             uiUtils.showHideElement("feature-plot-" + index);
         },

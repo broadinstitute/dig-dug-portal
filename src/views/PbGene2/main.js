@@ -6,7 +6,6 @@ import { pageMixin } from "@/mixins/pageMixin";
 Vue.config.productionTip = false;
 document.documentElement.classList.add('pb-gene2-default-scale');
 
-// Gene2's default is independent of the original Gene page.
 const initialUrl = new URL(window.location.href);
 if (!String(initialUrl.searchParams.get("query") || "").trim()) {
     initialUrl.searchParams.set("query", "GJB2");

@@ -1,7 +1,5 @@
 <template>
 	<div class="research-data-table-features-wrapper">
-		<!--{{ featuresFormat['features'] }}<br />
-		{{ featuresData }}-->
 		<div
 			v-for="(value, index) in featuresFormat['features']"
 			:key="index"
@@ -129,7 +127,6 @@ export default Vue.component("research-data-table-features", {
 	},
 	watch: {},
 	methods: {
-		//...Formatters,
 		formatValue(tdValue, tdKey) {
 			let content;
 
@@ -183,20 +180,6 @@ export default Vue.component("research-data-table-features", {
 .research-data-table-features {
 	position: relative;
 }
-/*
-.feature-title {
-    position: absolute;
-    -webkit-transform: rotate(-90deg);
-    transform: rotate(-90deg);
-    background-color: #000;
-    color: #fff;
-    transform-origin: left top;
-    width: 54px;
-    font-size: 12px;
-    top: 54px;
-    left: 0px;
-}
-*/
 
 .feature-table > tr > th {
 	background-color: #eeeeee;
@@ -209,8 +192,6 @@ export default Vue.component("research-data-table-features", {
 .feature-table > tr > th.feature-title-th {
 	background-color: #000 !important;
 	color: #000;
-	/*width: 20px !important;
-    position: relative;*/
 	text-align: center;
 	white-space: nowrap;
 	vertical-align: middle;
@@ -221,25 +202,12 @@ export default Vue.component("research-data-table-features", {
 
 .feature-table > tr > th.feature-title-th span.feature-title {
 	display: block;
-	/*
-    -webkit-transform: rotate(-90deg);
-    transform: rotate(-90deg);
-    position: absolute;
-    -webkit-transform-origin: left top;
-    transform-origin: left top;
-    top: 54px;
-    left: 0;
-    max-width: 50px;
-    min-width: 50px;
-    text-align: right;
-    height: 20px;
-    overflow: hidden;*/
 	transform: rotate(-90deg);
-	-moz-transform: rotate(-90deg); /* FF3.5+ */
-	-o-transform: rotate(-90deg); /* Opera 10.5 */
-	-webkit-transform: rotate(-90deg); /* Saf3.1+, Chrome */
-	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083); /* IE6,IE7 */
-	-ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)"; /* IE8 */
+	-moz-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	-webkit-transform: rotate(-90deg);
+	filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083);
+	-ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)";
 	margin-left: -100em;
 	margin-right: -100em;
 	overflow: hidden;

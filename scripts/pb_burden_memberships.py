@@ -89,7 +89,6 @@ def memberships(hpo, associations, root=DEFAULT_ROOT):
             if found is None or found[0]!=row.get('n_positive_samples'): return None
             genes[row['gene']]=unpack(found[1])
         bundle=dict(schema=SCHEMA,hpoId=hpo,cohortId=meta['cohortId'],analysisN=meta['analysisN'],nCases=observation[0],hpoSampleIds=unpack(observation[1]),geneCarrierSampleIds=genes)
-        # No HPO×gene intersection is computed here; the UI intersects these sets.
         return dict(cohortSampleCount=meta['analysisN'],coveredSampleCount=meta['analysisN'],matchingSampleCount=observation[0],matchingCoveredCount=observation[0],definition='gene_score_sum > 0',source='original single-HPO burden-analysis prepared inputs',sampleMembership=bundle,genes={row['gene']:dict(all=row['n_positive_samples'],withPhenotype=None)for row in associations})
     finally:
         con.close()

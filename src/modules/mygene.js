@@ -1,27 +1,20 @@
 import queryString from "query-string";
-/**
- * This is the module to pull data from mygene.info service
-
- */
 const myGeneAPI = 'https://mygene.info/v3';
 export default {
     namespaced: true,
 
-    // initial module state
     state() {
         return {
             geneInfo: []
         };
     },
 
-    // commit methods
     mutations: {
         setGeneInfo(state, geneInfo) {
             state.geneInfo = geneInfo;
         }
     },
 
-    // dispatch methods
     actions: {
         async infoForGeneSymbol(context, { geneSymbol, fields=[] }) {
             let qs = queryString.stringify({

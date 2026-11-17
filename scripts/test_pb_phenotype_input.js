@@ -99,8 +99,6 @@ async function main() {
     profile.submit(); assert.deepEqual(submissions, ['HP:0000001,HP:0000002']);
     profile.value = 'HP:0031352'; await Vue.nextTick(); assert.equal(profile.draft, 'HP:0031352');
 
-    // Full profile responses already contain the joined cohort mapping and
-    // demographics. Summarizing thousands of them must not fan out to BioIndex.
     const completeSamples = Array.from({ length: 16366 }, (_, i) => ({
         sample_id: `Complete${i}`, profileMetadataComplete: true,
         cohort_category: i % 2 ? 'Project A' : 'Project B', investigator: i % 2 ? 'inv_a' : 'inv_b', age_at_enrollment: 10,

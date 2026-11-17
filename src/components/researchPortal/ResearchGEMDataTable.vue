@@ -114,21 +114,6 @@
 		>
 			<thead class="">
 				<tr>
-					<!--<th
-						v-for="(value, index) in topRows"
-						:key="index"
-						v-html="value"
-						@click="
-							!!tableFormat['top rows'].includes(value)
-								? applySorting(value)
-								: ''
-						"
-						:class="
-							!!tableFormat['top rows'].includes(value)
-								? 'sortable-th ' + value
-								: value
-						"
-					></th>-->
 					<th v-if="!!newTableFormat['star column']">
 						<b-icon
 							:icon="!!stared ? 'star-fill' : 'star'"
@@ -280,10 +265,7 @@
 import Vue from "vue";
 import ResearchGEMTableFeatures from "@/components/researchPortal/ResearchGEMTableFeatures.vue";
 
-//import Formatters from "@/utils/formatters";
 
-//import uiUtils from "@/utils/uiUtils";
-//import sortUtils from "@/utils/sortUtils";
 
 export default Vue.component("research-gem-data-table", {
 	props: [
@@ -417,7 +399,6 @@ export default Vue.component("research-gem-data-table", {
 			let updatedData = {};
 			let rawData = {};
 
-			//If the data queried is not compared, convert it from array to object
 			if (this.dataComparisonConfig == null) {
 				let keyField =
 					newTableFormat["custom table"]["Credible Set"]["key field"];
@@ -444,7 +425,6 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			// Add original index to each items in the rawData, so it can be sorted back to original order after processing;
 			let vIndex = 0;
 			for (const [vKey, vValue] of Object.entries(rawData)) {
 				vValue["indexNum"] = vIndex;
@@ -454,13 +434,10 @@ export default Vue.component("research-gem-data-table", {
 			var newRows = [];
 			var selectedBy = {};
 
-			// Add "Credible sets" and selected tissues to the top rows
 
 			if (this.pkgDataSelected.length > 0) {
-				// get the list of the types of filtering credible sets, and tissues X annotations
 				var selectedTypes = this.pkgDataSelected.map((p) => p.type);
 
-				//newRows = [...new Set(this.pkgDataSelected.map((p) => p.type))];
 				if (selectedTypes.indexOf("Credible Set") > -1) {
 					newRows.push("Credible Set");
 				}
@@ -471,19 +448,16 @@ export default Vue.component("research-gem-data-table", {
 					newRows.push("Biosample");
 				}
 
-				//Remove "Annotation" from newRows since we are going to have annotations in tissues column
 				const annoIndex = newRows.indexOf("Annotation");
 				if (annoIndex > -1) {
 					newRows.splice(annoIndex, 1);
 				}
 
-				//Replace "Tissue" with "Annotation Overlap"
 				const tissueIndex = newRows.indexOf("Tissue");
 				if (tissueIndex > -1) {
 					newRows[tissueIndex] = "Annotation Overlap";
 				}
 
-				//Replace "Tissue" with "Annotation Overlap"
 				const biosampleIndex = newRows.indexOf("Biosample");
 				if (biosampleIndex > -1) {
 					newRows[biosampleIndex] = "Biosample Overlap";
@@ -501,12 +475,10 @@ export default Vue.component("research-gem-data-table", {
 					}
 				});
 
-				//Merge new top rows original top rows
 				var oldRows = newTableFormat["top rows"];
 				var newTopRows = oldRows.concat(newRows);
 				newTableFormat["top rows"] = newTopRows;
 
-				// add "features" to table format if there isn't one. Then add "Credible Set" or "Biosample"
 
 				if (
 					!!newTopRows.includes("Credible Set") ||
@@ -548,7 +520,6 @@ export default Vue.component("research-gem-data-table", {
 					}
 					selectedBy[p.type].push(p.id);
 
-					// add filtering CS and tissues to Evidence list
 					if (p.type == "Credible Set") {
 						newTableFormat["Credible Set"].push(p.id);
 					}
@@ -563,12 +534,10 @@ export default Vue.component("research-gem-data-table", {
 					: "";
 			}
 
-			//Let's filter rawData by credible sets
 			if (
 				!!selectedBy["Credible Set"] &&
 				selectedBy["Credible Set"].length > 0
 			) {
-				// get variant id field name and ppa field name
 				let keyField =
 					newTableFormat["custom table"]["Credible Set"]["key field"];
 				let PPAField =
@@ -583,19 +552,14 @@ export default Vue.component("research-gem-data-table", {
 								let variant = CSItem[keyField];
 								let PPA = Number(CSItem[PPAField]);
 
-								// first check if a variant from CS exist in the rawData
 								if (!!rawData[variant]) {
-									///Add the variant information to updatedData
 									if (!updatedData[variant]) {
 										updatedData[variant] = {
 											...rawData[variant],
 										};
 									}
-									//Add PPA to each CS property
 									updatedData[variant][CS] = PPA;
 
-									//Add highest PPA from each of the CS to "Credible Set" property which will be placed under "PPA" column
-									//Case of no data comparison
 									if (this.dataComparisonConfig == null) {
 										if (
 											!updatedData[variant][
@@ -622,7 +586,6 @@ export default Vue.component("research-gem-data-table", {
 													: previousPPA;
 										}
 									} else {
-										// if multiple dataset are compared
 										if (
 											!updatedData[variant][
 												"Credible Set"
@@ -666,9 +629,8 @@ export default Vue.component("research-gem-data-table", {
 
 				updatedData = Object.entries(updatedData)
 					.sort()
-					.reduce((o, [k, v]) => ((o[k] = v), o), {}); // reduce
+					.reduce((o, [k, v]) => ((o[k] = v), o), {});
 
-				/// feed null to value for phenotype in Credible sets column. It runs only data comparion is configured
 				if (!!this.dataComparisonConfig) {
 					for (const [vKey, vValue] of Object.entries(updatedData)) {
 						let compareField =
@@ -678,8 +640,6 @@ export default Vue.component("research-gem-data-table", {
 						);
 						let tempObj = {};
 						activePhenotypes.map((p) => {
-							///custom table
-							/// custom data other than KP data is loaded
 							let phenotype =
 								!!newTableFormat["custom table"][
 									"phenotype match"
@@ -691,7 +651,6 @@ export default Vue.component("research-gem-data-table", {
 											"phenotype match"
 									  ][p]
 									: p;
-							///
 
 							if (!!vValue["Credible Set"][phenotype]) {
 								tempObj[p] = vValue["Credible Set"][phenotype];
@@ -713,7 +672,6 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			///Filter data if tissues and annotations selected
 
 			if (
 				!!selectedBy["Tissue"] &&
@@ -721,7 +679,6 @@ export default Vue.component("research-gem-data-table", {
 				!!selectedBy["Annotation"] &&
 				selectedBy["Annotation"].length > 0
 			) {
-				//first get all enriched positions
 				var enrichedPosition = null;
 
 				selectedBy["Annotation"].map((a) => {
@@ -746,18 +703,16 @@ export default Vue.component("research-gem-data-table", {
 										: this.getArraysIntersection(
 												enrichedPosition,
 												tempArr
-										  ); // getting only intersecting positions
+										  );
 							}
 						}
 					});
 				});
 
-				//sort enriched position so I can remove position between start and end positions
 				enrichedPosition.sort(function (a, b) {
 					return a - b;
 				});
 
-				//leave only start and end of overlapping regions
 				var enrichedRegion = [];
 
 				for (let i = 0; i < enrichedPosition.length; i++) {
@@ -774,7 +729,6 @@ export default Vue.component("research-gem-data-table", {
 					}
 				}
 
-				///build object of overlapping regions
 				var overlappingRegions = [];
 
 				for (let i = 0; i < enrichedRegion.length - 1; i += 2) {
@@ -784,7 +738,6 @@ export default Vue.component("research-gem-data-table", {
 					overlappingRegions.push(tempObj);
 				}
 
-				//filter out unoverlapping variants and add overlapping region info to each variants
 				var overlappingVariants = {};
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let position = vValue.Position;
@@ -800,7 +753,6 @@ export default Vue.component("research-gem-data-table", {
 
 				updatedData = overlappingVariants;
 
-				//Add tissue content
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let annotationContent = {};
 					selectedBy["Tissue"].map((t) => {
@@ -844,7 +796,6 @@ export default Vue.component("research-gem-data-table", {
 					});
 
 					if (!!updatedData[vKey]) {
-						/// feed "Tissue" column content
 						let tissueColmContent = "";
 
 						for (const [tissue, annotations] of Object.entries(
@@ -879,9 +830,7 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			///Filter data if biosamples
 
-			// get list of BS methods and sources to filter them out
 
 			let removedBSMethods = this.$store.state.pkgDataSelected
 				.filter((s) => s.type == "BS-Method")
@@ -895,7 +844,6 @@ export default Vue.component("research-gem-data-table", {
 				!!selectedBy["Biosample"] &&
 				selectedBy["Biosample"].length > 0
 			) {
-				//first get all enriched positions
 				let enrichedPosition = null;
 
 				selectedBy["Biosample"].map((b) => {
@@ -936,19 +884,17 @@ export default Vue.component("research-gem-data-table", {
 									: this.getArraysIntersection(
 											enrichedPosition,
 											tempArr
-									  ); // getting only intersecting positions
+									  );
 						}
 					}
 				});
 
-				//sort enriched position so I can remove position between start and end positions
 				if (enrichedPosition != null) {
 					enrichedPosition.sort(function (a, b) {
 						return a - b;
 					});
 				}
 
-				//leave only start and end of overlapping regions
 				let enrichedRegion = [];
 
 				if (enrichedPosition != null) {
@@ -967,7 +913,6 @@ export default Vue.component("research-gem-data-table", {
 					}
 				}
 
-				///build object of overlapping regions
 				var overlappingRegions = [];
 
 				for (let i = 0; i < enrichedRegion.length - 1; i += 2) {
@@ -977,7 +922,6 @@ export default Vue.component("research-gem-data-table", {
 					overlappingRegions.push(tempObj);
 				}
 
-				//filter out unoverlapping variants and add overlapping region info to each variants
 				var overlappingVariants = {};
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let position = vValue.Position;
@@ -993,11 +937,10 @@ export default Vue.component("research-gem-data-table", {
 
 				updatedData = overlappingVariants;
 
-				//Add tissue content
 				for (const [vKey, vValue] of Object.entries(updatedData)) {
 					let biosampleContent = {};
 					selectedBy["Biosample"].map((bi) => {
-						let bsArr = bi.split(" / "); //0= annotation, 1= tissue, 2=biosample
+						let bsArr = bi.split(" / ");
 						let a = bsArr[0];
 						let b = bsArr[2];
 						if (!biosampleContent[b]) {
@@ -1011,13 +954,12 @@ export default Vue.component("research-gem-data-table", {
 					selectedBy["Biosample"].map((bi) => {
 						let inBiosample = 0;
 
-						let bsArr = bi.split(" / "); //0= annotation, 1= tissue, 2=biosample
+						let bsArr = bi.split(" / ");
 						let a = bsArr[0];
 						let t = bsArr[1];
 						let b = bsArr[2];
 
 						let inAnnotation = 0;
-						//if (!!this.pkgData.biosamplesData[a][t]) {
 						this.pkgData.biosamplesData[a][t][b].map((r) => {
 							if (
 								vValue.Position >= r.start &&
@@ -1055,8 +997,6 @@ export default Vue.component("research-gem-data-table", {
 					});
 
 					if (!!updatedData[vKey]) {
-						/// feed "Biosample" column content
-						//let tissueColmContent = "";
 
 						for (const [biosample, annotations] of Object.entries(
 							biosampleContent
@@ -1087,14 +1027,13 @@ export default Vue.component("research-gem-data-table", {
 							"-" +
 							updatedData[vKey].bioEnd;
 
-						///feed feature contents for biosamples
 
 						let bSamplesArr = [];
 
 						selectedBy["Biosample"].map((bi) => {
 							let inBiosample = 0;
 
-							let bsArr = bi.split(" / "); //0= annotation, 1= tissue, 2=biosample
+							let bsArr = bi.split(" / ");
 							let a = bsArr[0];
 							let t = bsArr[1];
 							let b = bsArr[2];
@@ -1140,9 +1079,6 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			//usually data sorting happens with applySorting() function.
-			//but for credible sets case it happens here to avoide destroying original data
-			//if data is not sorted by PPA, sort gets done by original index
 
 			var sortedData = [];
 
@@ -1201,7 +1137,6 @@ export default Vue.component("research-gem-data-table", {
 				updatedData[s["Variant ID"]] = s;
 			});
 
-			//convert data back to array if data is not compared
 			if (this.dataComparisonConfig == null) {
 				let uDataNoCompare = [];
 				for (const [dKey, dValue] of Object.entries(updatedData)) {
@@ -1211,7 +1146,6 @@ export default Vue.component("research-gem-data-table", {
 				updatedData = uDataNoCompare;
 			}
 
-			///check if table shows only stared
 
 			if (this.stared == true) {
 				let tempData = this.dataComparisonConfig == null ? [] : {};
@@ -1229,7 +1163,6 @@ export default Vue.component("research-gem-data-table", {
 				updatedData = updatedData;
 			}
 
-			/** somehow newTableFormat doesn't reset  */
 			if (!!newTableFormat["features"]) {
 				const index = newTableFormat["features"].indexOf("GENES");
 
@@ -1238,22 +1171,17 @@ export default Vue.component("research-gem-data-table", {
 				}
 			}
 
-			// replace global tableFormat with newTableFormat
 
 			this.newTableFormat = newTableFormat;
 
-			/// format data before adding linked genes
 
 			let formattedData = this.formattedData(updatedData);
 
-			///Let's filter data by linked genes
-			///This is a messy solution but easier to understand
 
 			if (
 				!!this.pkgData["GLData"] &&
 				Object.keys(this.pkgData["GLData"]).length > 0
 			) {
-				// add "features" to table format if there isn't one. Then add "GENES"
 				newTopRows.push("Linked Genes");
 
 				if (!this.tableFormat["features"]) {
@@ -1469,7 +1397,6 @@ export default Vue.component("research-gem-data-table", {
 		},
 	},
 	methods: {
-		//...Formatters,
 		showHidePanel(PANEL) {
 			let wrapper = document.querySelector(PANEL);
 			if (wrapper.classList.contains("hidden")) {
@@ -1664,96 +1591,6 @@ export default Vue.component("research-gem-data-table", {
 			}
 
 			return content;
-			/*
-			if (
-				this.newTableFormat["column formatting"] != undefined &&
-				this.newTableFormat["column formatting"][tdKey] != undefined
-			) {
-				let formatTypes =
-					this.newTableFormat["column formatting"][tdKey]["type"];
-
-				let linkToNewTab = !!this.newTableFormat["column formatting"][
-					tdKey
-				]["new tab"]
-					? this.newTableFormat["column formatting"][tdKey]["new tab"]
-					: null;
-
-				let cellValue = tdValue;
-
-				formatTypes.map((type) => {
-					if (type == "scientific notation") {
-						cellValue = this.utils.Formatters.pValueFormatter(tdValue);
-
-						cellValue = cellValue == "-" ? 0 : cellValue;
-					}
-
-					if (type == "link") {
-						let linkString =
-							"<a href='" +
-							this.tableFormat["column formatting"][tdKey][
-								"link to"
-							] +
-							cellValue;
-
-						linkString +=
-							!!this.tableFormat["column formatting"][tdKey][
-								"link type"
-							] &&
-							this.tableFormat["column formatting"][tdKey][
-								"link type"
-							] == "button"
-								? "' class='btn btn-sm btn-outline-secondary link-button"
-								: "";
-
-						let linkLabel = !!this.tableFormat["column formatting"][
-							tdKey
-						]["link label"]
-							? this.tableFormat["column formatting"][tdKey][
-									"link label"
-							  ]
-							: cellValue;
-
-						linkString +=
-							linkToNewTab == "true"
-								? "' target='_blank'>" + linkLabel + "</a>"
-								: "'>" + linkLabel + "</a>";
-
-						cellValue = linkString;
-					}
-
-					if (type == "render background percent") {
-						let fieldValue =
-							typeof tdValue != "number"
-								? this.newTableFormat["column formatting"][
-										tdKey
-								  ]["percent if empty"]
-								: tdValue;
-
-						let weight = Math.floor(
-							((Number(fieldValue) - this.dataScores[tdKey].low) /
-								(this.dataScores[tdKey].high -
-									this.dataScores[tdKey].low)) *
-								100
-						);
-
-						let weightClasses = "cell-weight-" + weight + " ";
-
-						weightClasses +=
-							tdValue < 0 ? "weight-negative" : "weight-positive";
-
-						cellValue =
-							"<span class='" +
-							weightClasses +
-							"'>" +
-							cellValue +
-							"</span>";
-					}
-				});
-
-				return cellValue;
-			} else {
-				return tdValue;
-			}*/
 		},
 		object2Array(DATASET, KEY, SORT_DIRECTION) {
 			let arrayedObject = [];
@@ -1821,7 +1658,6 @@ export default Vue.component("research-gem-data-table", {
 						? this.dataset
 						: this.object2Array(this.dataset, key, sortDirection);
 
-				// In case of the data with null values mixed, we separate it to withValues and WO values.
 				let filteredWValues = [];
 				let filteredWNull = [];
 
@@ -1836,7 +1672,6 @@ export default Vue.component("research-gem-data-table", {
 				let keyData = filteredWValues[0][key];
 				let isNumeric = typeof keyData != "number" ? false : true;
 
-				//sort the data with values, then merge the data WO values to the sorted.
 				let sortedValues = this.utils.sortUtils
 					.sortEGLTableData(
 						filteredWValues,
@@ -1954,7 +1789,6 @@ export default Vue.component("research-gem-data-table", {
 	padding-top: 10px;
 }
 .data-table-legend {
-	/*margin-bottom: -15px;*/
 }
 .research-data-table-wrapper {
 	margin-top: 25px;

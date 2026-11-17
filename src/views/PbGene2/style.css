@@ -1,4 +1,3 @@
-/* Compatibility for a Gene2 tab opened before the shared pre-paint HTML scale. */
 html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: 1; }
 .pg2-page { --pg2-detail-font: 20px; --pg2-secondary-font: 18px; background: #f6f8fb; padding: 24px 24px 48px; color: #24334a; font-family: Arial, Helvetica, sans-serif; font-size: var(--pg2-detail-font, 20px); line-height: 1.5; }
 .pg2-page .pbg-shell { max-width: 1440px; position: relative; }
@@ -333,7 +332,6 @@ html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: 1; }
 .pg2-page .pbg-selected-sample-head,.pg2-page .pbg-selected-sample-row { grid-template-columns:minmax(15rem,1.5fr) 4rem 4rem 6rem 5rem 10rem 8rem minmax(14rem,1fr) 7rem; min-width:1240px; }
 .pg2-page .pbg-selected-sample-head > span { min-width:0; white-space:normal; line-height:1.35; }
 
-/* Association/profile tables: generous cells and explicit statistical units. */
 .pg2-associations, .pg2-context, .pg2-variant-evidence { border-color: #bfd0f6; border-radius: 12px; }
 .pg2-association-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px 24px; }
 .pg2-page .pg2-association-title h2, .pg2-page .pg2-context h2 { font-size: 30px; color: #090f36; }
@@ -462,7 +460,6 @@ html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: 1; }
     .pg2-evidence-pagination { flex-wrap: wrap; }
 }
 
-/* Preserve whole header words and align each count with its heading. */
 .pg2-page .pbg-variant-evidence-block { --pbg-ve-columns: 22px minmax(250px, 1.85fr) minmax(140px, 1fr) minmax(110px, .72fr) minmax(148px, 1fr) minmax(112px, .85fr) minmax(145px, 1fr) minmax(140px, 1fr) minmax(85px, .65fr); --pbg-ve-min-width: 1260px; }
 .pg2-variant-information-band, .pg2-page .pbg-ve-table-head, .pg2-page .pbg-ve-row { min-width: 1260px; }
 .pg2-page .pbg-ve-table-head > .pg2-score-heading { display: block; font-size: 18px; line-height: 1.45; overflow-wrap: normal; padding: 13px 10px; }
@@ -480,7 +477,6 @@ html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: 1; }
 .pg2-page .pbg-ve-row > * { padding-top: 10px; padding-bottom: 10px; }
 .pg2-page .pbg-ve-row > strong.pbg-score-badge { padding-top: 10px; padding-bottom: 10px; }
 
-/* Contextual information lives in the page margin, aligned with its icon. */
 .pg2-page.pg2-info-reserved { padding-right: 340px; }
 .pg2-page h2 > .pg2-help { margin-left: 4px; }
 .pg2-info-rail { position: absolute; z-index: 50; box-sizing: border-box; padding: 16px; border: 1px solid #d8e1ec; border-radius: 8px; background: #fff; color: #334155; box-shadow: 0 5px 18px rgba(24, 39, 64, .08); font-family: Arial, Helvetica, sans-serif; font-size: 18px; line-height: 1.6; text-align: left; }
@@ -495,7 +491,6 @@ html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: 1; }
 
 .pg2-page button.pg2-help { cursor: pointer; }
 
-/* Expanded variants keep the annotation → summary → samples reading order. */
 .pg2-page .pbg-ve-row--expanded { box-shadow: inset 2px 0 0 #0b66d8, inset -2px 0 0 #0b66d8, inset 0 2px 0 #0b66d8; }
 .pg2-page .pbg-variant-expanded.pg2-variant-detail { box-sizing: border-box; border: 2px solid #0b66d8; border-top: 0; border-radius: 0 0 6px 6px; background: #fff; padding: 24px 18px 26px; min-width: 1260px; margin-bottom: 16px; }
 .pg2-expanded-section + .pg2-expanded-section { border-top: 1px solid #dce5f0; margin-top: 24px; padding-top: 22px; }

@@ -28,9 +28,9 @@ export default Vue.component("research-genes-track", {
     data() {
         return {
             plotRendered: 0,
-            leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
+            leftMargin: 74.5,
             rightMargin: 0.5,
-            topMargin: 10.5, // -0.5 to draw crisp line
+            topMargin: 10.5,
             bottomMargin: 10.5,
         };
     },
@@ -73,11 +73,11 @@ export default Vue.component("research-genes-track", {
         renderTrack(GENES) {
             let genesArray = GENES;
             let canvasRenderWidth, canvasRenderHeight;
-            let eachGeneTrackHeight = 30; //15: gene name, 10: gene track, 5: space between tracks
+            let eachGeneTrackHeight = 30;
 
             canvasRenderWidth = !!this.plotConfig.width
                 ? this.plotConfig.width + this.leftMargin + this.rightMargin
-                : document.getElementById("genesTrackWrapper").clientWidth - 30; // -30 for - padding
+                : document.getElementById("genesTrackWrapper").clientWidth - 30;
 
             canvasRenderHeight =
                 this.topMargin +
@@ -103,21 +103,9 @@ export default Vue.component("research-genes-track", {
             ctx.beginPath();
             ctx.lineWidth = 1;
             ctx.strokeStyle = "#000000";
-            ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+            ctx.setLineDash([]);
 
-            // render y axis
-            /*ctx.moveTo(this.leftMargin, this.topMargin);
-            ctx.lineTo(this.leftMargin, plotHeight + this.topMargin + 5);
-            ctx.stroke();*/
 
-            //render x axis
-            /*ctx.moveTo(this.leftMargin, plotHeight + this.topMargin + 5);
-            ctx.lineTo(
-                plotWidth + this.leftMargin,
-                plotHeight + this.topMargin + 5
-            );
-
-            ctx.stroke();*/
 
             let xMin = Number(this.searchingRegion.start),
                 xMax = Number(this.searchingRegion.end);
@@ -157,7 +145,7 @@ export default Vue.component("research-genes-track", {
                 ctx.beginPath();
                 ctx.lineWidth = 1;
                 ctx.strokeStyle = "#000000";
-                ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+                ctx.setLineDash([]);
 
                 ctx.moveTo(xStartPos, yPos + 10);
                 ctx.lineTo(xEndPos, yPos + 10);

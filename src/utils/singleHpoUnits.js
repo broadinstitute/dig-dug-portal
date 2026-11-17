@@ -1,4 +1,3 @@
-// Existing binary-HPO coefficient units. No residual-PheRS SD conversion.
 const DISPLAY_GRS_STEP = 0.1;
 const finite = value => value != null && value !== "" && Number.isFinite(Number(value)) ? Number(value) : null;
 

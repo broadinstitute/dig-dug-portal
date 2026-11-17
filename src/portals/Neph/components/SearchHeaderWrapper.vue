@@ -11,7 +11,6 @@
             class="reset-page-parameters"
             href="javascript:;"
         >
-            <!-- Set page level parameters -->
             Search
         </a>
     </div>

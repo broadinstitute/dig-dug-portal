@@ -4,15 +4,6 @@
 			class="plot-legend"
 			v-html="plotLegend"
 		></div>
-		<!--m_plot-->
-		<!--<research-m-plot
-			v-if="plotConfig != null && plotConfig['type'] == 'manhattan plot'"
-			:plotData="plotData"
-			:renderConfig="plotConfig"
-			:utils="utils"
-			:sectionId="sectionId"
-		></research-m-plot>-->
-		<!--'mbm_plot-->
 		<research-m-bitmap-plot
 			v-if="plotConfig != null && plotConfig['type'] == 'manhattan bitmap plot'"
 			:plotData="plotData"
@@ -22,7 +13,6 @@
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-m-bitmap-plot>
-		<!-- PheWAS plot-->
 		<research-phewas-plot
 			v-if="plotConfig != null && plotConfig['type'] == 'phewas plot'"
 			:phenotypesData="plotData"
@@ -35,7 +25,6 @@
 			:canvasId="sectionId"
 			:utils="utils"
 		></research-phewas-plot>
-		<!-- Heatmap -->
 		<research-heatmap
 			v-if="plotConfig != null && plotConfig['type'] == 'heat map'"
 			:heatmapData="plotData"
@@ -43,7 +32,6 @@
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-heatmap>
-		<!-- volcano_plot -->
 		<research-volcano-plot
 			v-if="plotConfig != null && plotConfig['type'] == 'volcano plot'"
 			:plotData="plotData"
@@ -61,7 +49,6 @@
 			:utils="utils"
 			:sectionId="sectionId"
 		></research-m-qq-plot>
-		<!-- region_plot -->
 		<multi-region-plot
 			v-if="!!plotConfig && plotConfig['type'] == 'region plot' && !!region"
 			:plotData="plotData"
@@ -82,7 +69,6 @@
 			@on-star="starColumn"
 		></multi-region-plot>
 		
-		<!-- general track -->
 		<research-region-track
 			v-if="!!plotConfig && plotConfig['type'] == 'region track' && !!region"
 			:sectionId="sectionId"
@@ -97,7 +83,6 @@
 			:plotMargin="plotMargin"
 			:starItems="starItems"
 		></research-region-track>
-		<!-- general dots track -->
 		<research-region-dots-track
 			v-if="!!plotConfig && plotConfig['type'] == 'region dots track' && !!region"
 			:sectionId="sectionId"
@@ -112,7 +97,6 @@
 			:plotMargin="plotMargin"
 			:starItems="starItems"
 		></research-region-dots-track>
-		<!-- genes track -->
 		<multi-genes-track
 			v-if="!!plotConfig && (plotConfig['type'] == 'region plot' || plotConfig['type'] == 'region track' || plotConfig['type'] == 'region dots track') && !!plotConfig['genes track'] && !!region"
 			:region="region"
@@ -126,7 +110,6 @@
 			:sectionId="sectionId"
 			:starItems="starItems"
 		></multi-genes-track>
-		<!-- scatter plot -->
 		<research-scatter-plot
 			v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
 			:plotData="plotData"
@@ -152,7 +135,6 @@ import ResearchMQQPlot from "@/components/researchPortal/ResearchMQQPlot.vue";
 import ResearchRegionPlot from "@/components/researchPortal/multiSectionComponents/MultiRegionPlot.vue";
 import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/multiSectionComponents/MultiGenesTrack.vue";
-//import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAnnotationsPlot.vue";
@@ -172,7 +154,6 @@ export default Vue.component("research-section-visualizers", {
 		ResearchRegionPlot,
 		ResearchScorePlot,
 		ResearchGenesTrack,
-		//ResearchMPlot,
 		ResearchVolcanoPlot,
 		ResearchHeatmap,
 		ResearchPheWAS,

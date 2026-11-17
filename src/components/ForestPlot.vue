@@ -40,7 +40,6 @@ export default Vue.component("ForestPlot", {
     },
     methods: {
         createChart(data, element, dichotomous) {
-            // Create chart instance
             chart = am4core.create(element, am4charts.XYChart);
             let labelName = dichotomous ? "Odds Ratio" : "Beta";
 
@@ -61,32 +60,16 @@ export default Vue.component("ForestPlot", {
                 };
             });
 
-            //support logo
             chart.logo.disabled = true;
 
-            // Create axes
             let yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
             yAxis.dataFields.category = "category";
             yAxis.renderer.grid.template.location = 0;
-            //yAxis.renderer.minGridDistance = 30;
             yAxis.renderer.inversed = true;
 
-            // let yAxis2 = chart.yAxes.push(new am4charts.CategoryAxis());
-            // yAxis2.dataFields.category = "category";
-            // yAxis2.renderer.grid.template.location = 0;
-            // //yAxis.renderer.minGridDistance = 30;
-            // yAxis2.renderer.inversed = true;
-            // yAxis2.renderer.labels.template.adapter.add("text", function (
-            //     text,
-            //     target
-            // ) {
-            //     return "[bold]{measure}[/] ({low} - {high})";
-            // });
-            // yAxis2.renderer.opposite = true;
 
             let xAxis = chart.xAxes.push(new am4charts.ValueAxis());
 
-            // Create series for lines
             let series = chart.series.push(new am4charts.ColumnSeries());
             series.dataFields.openValueX = "low";
             series.dataFields.valueX = "high";
@@ -95,7 +78,6 @@ export default Vue.component("ForestPlot", {
             series.columns.template.strokeWidth = 0;
             series.columns.template.fill = chart.colors.getIndex(0);
 
-            // Create series for markers
             let series2 = chart.series.push(new am4charts.LineSeries());
             series2.dataFields.customValue = "bulletSize";
             series2.dataFields.valueX = "measure";
@@ -113,7 +95,6 @@ export default Vue.component("ForestPlot", {
             marker.nonScalingStroke = true;
             marker.verticalCenter = "middle";
             marker.horizontalCenter = "middle";
-            // marker.tooltipText = "[bold]" + labelName + "[/] {valueX}";
 
             let label = series2.bullets.push(new am4core.Label());
             label.propertyFields.text = "label";
@@ -130,13 +111,9 @@ export default Vue.component("ForestPlot", {
                 dataField: "customValue",
             });
 
-            //Overwrites for 52k table
-            //yAxis2.renderer.grid.template.stroke = "#eee";
             yAxis.renderer.grid.template.disabled = true;
-            //yAxis2.renderer.grid.template.disabled = true;
             xAxis.renderer.grid.template.disabled = true;
 
-            // Add summary line
             let range = xAxis.axisRanges.create();
             range.value = dichotomous ? 1 : 0;
             range.grid.strokeWidth = 2;

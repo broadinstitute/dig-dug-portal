@@ -33,23 +33,7 @@
                     </div>
                 </filter-enumeration-control>
 
-                <!-- <filter-enumeration-control
-                    :field="'publications'"
-                    :labelFormatter="biolinkTypeFormatter"
-                    :options="mungedOptions(tableItems, 'publications')">
-                    <div class="label">
-                        {{'Publications'}}
-                    </div>
-                </filter-enumeration-control> -->
 
-<!-- 
-                <filter-enumeration-control
-                    :field="'provenance'"
-                    :options="mungedOptions(tableItems, 'provenance')">
-                    <div class="label">
-                        {{'Provenance'}}
-                    </div>
-                </filter-enumeration-control> -->
 
                 <template #filtered="{filter}">
 
@@ -82,11 +66,9 @@
                                                     :key="`${curie}_item`"
                                                     :curie="curie">
                                                 </resolved-curie-link>
-                                                <!-- {{index == (data.value.length - 1) ? '' : ', '}} -->
                                             </span>
                                         </li>
                                     </ul>  
-                                    <!-- <button v-if="data.value.length > 10" @click="showElement(`${curie}-link-wrapper`)">See more</button> -->
                                 </template>
 
                                 <span v-else :key="data.value">
@@ -137,7 +119,6 @@
             </criterion-function-group>
         </span>
         <span v-else>
-            <!-- <b-progress :value="100" variant="info" striped :animated="true" class="mt-2"></b-progress> -->
             <b-skeleton-table></b-skeleton-table>
         </span>
     </span>
@@ -246,7 +227,6 @@ export default Vue.component('translator-results-table', {
         hashCodeArray: array => array.reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
         showElement: uiUtils.showElement,
         hideElement: uiUtils.hideElement,
-        // TODO: this sucks
         mungedOptions(items, attribute) {
             return items.map(row => row[attribute])
                         .filter(el => el !== undefined)
@@ -280,14 +260,11 @@ export default Vue.component('translator-results-table', {
                     };
 
                     let row = {
-                        // [knowledge_graph.nodes[subject].category]: subject, 
                         subject,
                         predicate, 
                         object,
-                        // [knowledge_graph.nodes[object].category]: object
                     }
                     
-                    // flag if we want to ignore attributes
                     if (!!!this.relationsOnly) {
                         if (!!attributeMap) {
                             row = {
@@ -297,7 +274,6 @@ export default Vue.component('translator-results-table', {
                         };
                     }
 
-                    // NOTE: since publications and provenance are generally useful, we add those fields regardless of whether we just want relations
                     if (!!attributeMap) {
                         if (!!attributeMap['publications']) { 
                             row['publications'] = attributeMap['publications'] 
@@ -308,7 +284,6 @@ export default Vue.component('translator-results-table', {
                     }
 
 
-                    // side effect for keeping track of row fields
                     this.tableFields.push(...Object.keys(row));
 
                     return row;

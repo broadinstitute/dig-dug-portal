@@ -27,7 +27,6 @@ LMM_MODEL_VERSION = "portal_variant_gaussian_lmm_null_reml_gls_reference_v1"
 
 
 class DenseLMMReference:
-    """Fit one null REML variance ratio, then approximate per-variant GLS Wald tests."""
 
     def __init__(
         self,
@@ -134,7 +133,6 @@ class DenseLMMOutcome:
 
 
 def read_grm_subset(prefix: str, wanted: Sequence[str]) -> np.ndarray:
-    """Read only the requested GCTA GRM rows in the supplied sample order."""
     with open(prefix + ".grm.id") as handle:
         grm_ids = [line.split()[1] for line in handle]
     index = {sample_id: i for i, sample_id in enumerate(grm_ids)}
@@ -156,7 +154,6 @@ def read_grm_subset(prefix: str, wanted: Sequence[str]) -> np.ndarray:
 
 
 def analyze_gene_variants_lmm(engine, gene: str, terms: Sequence[str], grm_prefix: str, covariate_path: str) -> dict:
-    """Small-roster GRM comparison using the same HPO/variant inputs as OLS."""
     if engine.covariates is None:
         raise ValueError("LMM requires covariates")
     ids = engine.analysis_sample_ids

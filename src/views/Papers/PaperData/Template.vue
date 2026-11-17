@@ -1,6 +1,5 @@
 <template>
     <div>
-        <!-- Header -->
         <paper-page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
@@ -8,12 +7,7 @@
             v-if="!!$parent.paperMenu"
         ></paper-page-header>
 
-        <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <!-- <a href="/effectorgenes.html" class="btn to-previous-page"
-                >&#60;&#60; Predicted effector genes methods</a
-            >
-            -->
             <div class="card mdkp-card gene-page-header">
                 <div class="row card-body">
                     <div
@@ -71,7 +65,6 @@
             <div class="data-rendering-indicator">Rendering data...</div>
         </div>
 
-        <!-- Footer-->
         <paper-page-footer
             :disease-group="$parent.diseaseGroup"
         ></paper-page-footer>

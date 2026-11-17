@@ -127,7 +127,6 @@ export default Vue.component("HugeScoresTable", {
                     formatter: Formatters.floatFormatter,
 
                     tdClass(x) {
-                        //return !!x && x < 1e-5 ? "variant-table-cell high" : "";
                         return x
                             ? x >= 350
                                 ? "compelling"
@@ -163,7 +162,6 @@ export default Vue.component("HugeScoresTable", {
         },
 
         tableData() {
-            //console.log("this.hugeScores", this.hugeScores);
             let assocs = this.hugeScores;
             let phenotypeMap = this.phenotypeMap;
 
@@ -171,7 +169,6 @@ export default Vue.component("HugeScoresTable", {
                 return [];
             }
 
-            // remove unknown phenotypes
             assocs = assocs.filter((a) => phenotypeMap[a.phenotype]);
             if (this.filter) {
                 return assocs.filter(this.filter);

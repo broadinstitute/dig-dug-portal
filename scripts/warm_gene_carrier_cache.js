@@ -1,5 +1,3 @@
-// Read the same private BioIndex source as the portal, without opening a listener.
-// Only aggregate progress is printed; records stay in the private disk cache.
 const register = require('./gene_carrier_summary_endpoint');
 const gene = String(process.argv[2] || '').trim().toUpperCase();
 const base = process.env.BIOINDEX_HOST_PRIVATE;

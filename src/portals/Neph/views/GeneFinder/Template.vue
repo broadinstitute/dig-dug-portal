@@ -6,7 +6,6 @@
                 <div class="card-body">
                     <h1 class="card-title">Gene Finder</h1>
 
-                    <!-- <documentation style="margin-bottom: 30px" name="tools.genefinder.subheader"></documentation> -->
 
                     <h4 class="card-title">Build search criteria</h4>
 
@@ -14,7 +13,6 @@
                         v-model="$parent.geneFinderSearchCriterion"
                         :header="'Search Criterion'"
                     >
-                        <!-- Phenotype Selector -->
                         
                         <filter-enumeration-control
                             class="filter-col-lg"
@@ -34,7 +32,6 @@
                             </div>
                         </filter-enumeration-control>
 
-                        <!-- pValue filter -->
                         <filter-pvalue-control class="filter-col-sm" :field="'pValue'">
                             <div>
                                 <strong>P-Value (&le;)</strong>

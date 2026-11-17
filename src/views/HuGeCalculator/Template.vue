@@ -27,7 +27,6 @@
 						:header="'Search Criterion'"
 						class="searchwrap"
 					>
-						<!-- select gene -->
 						<filter-enumeration-control
 							:field="'gene'"
 							placeholder="Select a gene ..."
@@ -37,7 +36,6 @@
 						>
 							<div class="label">Gene</div>
 						</filter-enumeration-control>
-						<!-- select phenotype -->
 						<filter-enumeration-control
 							ref="phenotype"
 							:field="'phenotype'"
@@ -71,11 +69,6 @@
 						>
 							<div class="label">Phenotype</div>
 						</filter-enumeration-control>
-						<!-- <b-badge
-                            v-if="$parent.numberOfSearches > 1"
-                            class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
-                            @click="removeAllFilters()"
-                        >Clear all search</b-badge>-->
 					</criterion-list-group>
 
 					<div
@@ -167,10 +160,8 @@
 										></posterior-probability-plot>
 									</div>
 								</div>
-								<!-- End of Posterior probability Collapsible section -->
 							</div>
 
-							<!-- NEW COMMON VARIATION -->
 
 							<div
 								class="card-body"
@@ -398,7 +389,6 @@
 									</locuszoom>
 								</div>
 								<br />
-								<!-- NEW RARE VARIATION -->
 								<div v-if="!!this.$store.state.rareVarBF">
 									<span
 										style="cursor: pointer"
@@ -721,33 +711,28 @@
 	box-sizing: border-box;
 }
 
-/* Container for flexboxes */
 .row {
 	display: flex;
 	flex-wrap: wrap;
 }
 
-/* Create four equal columns */
 .column {
 	flex: 25%;
 	padding: 20px;
 }
 
-/* On screens that are 992px wide or less, go from four columns to two columns */
 @media screen and (max-width: 992px) {
 	.column {
 		flex: 50%;
 	}
 }
 
-/* On screens that are 600px wide or less, make the columns stack on top of each other instead of next to each other */
 @media screen and (max-width: 600px) {
 	.row {
 		flex-direction: column;
 	}
 }
 
-/* coding and regulatory evidence */
 .codingEvidence1C {
 	background-color: #ffd62e;
 	padding: 5px;
@@ -773,10 +758,8 @@
 	font-weight: 700;
 }
 
-/* color bar plot */
 .arrow-up {
 	width: 0;
-	/*height: 40px;*/
 	border-left: 10px solid transparent;
 	border-right: 10px solid transparent;
 	border-bottom: 10px solid #de202c;

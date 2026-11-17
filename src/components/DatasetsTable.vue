@@ -97,14 +97,12 @@ export default Vue.component("datasets-table", {
         sortedDatasets() {
             let rawDatasets = this.datasets;
 
-            // filter by phenotype if set
             if (this.phenotype) {
                 rawDatasets = rawDatasets.filter((d) =>
                     d.phenotypes.includes(this.phenotype.name)
                 );
             }
 
-            // sort datasets by subjects
             return rawDatasets.sort((a, b) => b.subjects - a.subjects);
         },
         tableData() {

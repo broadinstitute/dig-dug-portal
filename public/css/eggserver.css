@@ -1,4 +1,3 @@
-/*Eggserver-specific styles. Should be refactored away as much as possible.*/
 
 body, textarea {
     background-color: #EFEFEC;
@@ -49,7 +48,6 @@ header {
     text-align: right;
 }
 
-/*Instead of a divider column, doing this at the top.*/
 #statuschecker{
     border-left: #aaa 1px solid;
     text-align: center;
@@ -169,7 +167,6 @@ li.nav-item {
 
 #email-badge, #hg-badge {
     background-color: crimson;
-    /*margin-top: 4px;*/
 }
 
 #code_mirror_parent, #clear-mask-div {

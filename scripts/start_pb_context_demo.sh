@@ -1,5 +1,4 @@
 #!/bin/bash
-# Reuse the running compute job, or submit a new one, then open its SSH tunnel.
 ssh_host=${PB_CONTEXT_SSH_HOST:-e3}
 allow_submit=${PB_CONTEXT_ALLOW_SUBMIT:-1}
 if [[ ! "$ssh_host" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.@:-]*$ || ! "$allow_submit" =~ ^[01]$ ]]; then

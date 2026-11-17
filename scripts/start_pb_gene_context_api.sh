@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Start the aggregate Context API used by pb_gene.html and public_gene.html.
-# Pass the input flags accepted by scripts.pb_gene_context_api_server.
 
 if [[ -f /programs/biogrids.shrc ]]; then
   source /programs/biogrids.shrc || exit $?

@@ -172,9 +172,7 @@ export default Vue.component("variant-sample-table", {
         };
     },
     created() {
-		//if (this.patientId) {
 			this.searchSample();
-		//}
 	},
 	computed: {
         rows() {
@@ -182,18 +180,10 @@ export default Vue.component("variant-sample-table", {
         },
         tableData() {
             if (this.variantsample && this.variantsample.length) {
-                //console.log("here:"+this.hprecords);
 				return this.variantsample;
 			} else {
 				return [];
 			}
-            /*let dataRows = this.variant.hprecords;
-            if (!!this.filter) {
-                dataRows = dataRows.filter((association) => {
-                    return this.filter(association);
-                });
-            }
-            return dataRows;*/
         },
     },
     methods: {
@@ -203,16 +193,10 @@ export default Vue.component("variant-sample-table", {
             return Formatters.snakeFormatter(name);
         },
         async searchSample() {
-            //console.log("samples:" + JSON.stringify(this.samples));
-            //variantsample = await query("patient_laboratory",this.patientId,{},true);
             let n = 0;
-            //this.variantsample = [];
             for (let k = 0;k < this.samples.length;k++) {
-                //console.log("samples:" + JSON.stringify(this.samples[k]));
                 this.variantsample[n]=this.samples[k];
                 let hp = this.variantsample[n]['HPO_terms'];
-                //console.log(hp);
-                //hp = hp.replace("HP","HP-");
                 if (hp.substring(hp.length - 7) == "Control"){
                     hp = "isControl";
                 } else {
@@ -222,9 +206,7 @@ export default Vue.component("variant-sample-table", {
                 let accessgroup = Vue.prototype.$sampleIDaccess;
                 console.log(accessgroup);
                 if (! accessgroup.includes(user)){
-                    //if (!this.variantsample[n]['sample_ID'].startsWith('BCH') || this.variantsample[n]['investigator']=='clinical_sequencing'){
                     if (this.variantsample[n]['inCRDC']=="no"){
-                        //console.log(this.variantsample[n]['sample_ID']);
                         this.variantsample[n]['sample_ID'] = '******';
                     }
                 }
@@ -232,7 +214,6 @@ export default Vue.component("variant-sample-table", {
                             this.HPOTerms[hp]
                         );
                 n++;
-                //console.log(hp);
             }
             
         },

@@ -19,17 +19,6 @@
 		<div v-if="tableData.length > 0">
 			<div class="row">
 				<div class="col-md-10">
-					<!--<template v-for="(phenotype, i) in phenotypes">
-						<span
-							:key="phenotype"
-							class="badge badge-secondary badge-pill btn filter-pill-x reference"
-							:class="'color-' + (i + 1)"
-							v-if="phenotypeMap[phenotype]"
-							style="color: white"
-						>
-							{{ phenotypeMap[phenotype].description }}
-						</span>
-					</template>-->
 					<span style="font-size: 13px"
 						>Common variant p-value:
 						<template v-for="tValue in pThreshold">
@@ -67,11 +56,6 @@
 					>
 						Download
 					</button>
-					<!--<data-download
-						:data="data4Download"
-						filename="gene_table"
-						style="margin-bottom: 5px"
-					></data-download>-->
 				</div>
 			</div>
 
@@ -120,7 +104,6 @@
 								></tooltip-documentation
 							></small>
 						</th>
-						<!--<th class="thin-cell no-padding"></th>-->
 						<th>
 							Trait
 							<small>
@@ -322,13 +305,6 @@
 								<template
 									v-for="phenotype in itemValue.phenotypes"
 								>
-									<!--:class="
-											itemValue[phenotype + ':pValue'] <
-											1e-5
-												? 'variant-table-cell high'
-												: ''
-										"
-										-->
 									<div
 										:key="phenotype"
 										class="multi-values-div"
@@ -360,13 +336,6 @@
 								<template
 									v-for="phenotype in itemValue.phenotypes"
 								>
-									<!--:class="
-											itemValue[phenotype + ':pValue'] <
-											1e-5
-												? 'variant-table-cell high'
-												: ''
-										"
-										-->
 									<div
 										:key="phenotype"
 										class="multi-values-div"
@@ -520,17 +489,14 @@ export default Vue.component("GeneFinderWEglTable", {
 		},
 
 		groupedAssociations() {
-			//console.log(this.associations);
 			let groups = {};
 			let associations = this.tableData;
 
-			let data = associations; //Object.values(groups);
+			let data = associations;
 
-			// calculate the chiSquared for each row
 
 			data.forEach((r) => (r.chiSquared = this.chiSquared(r)));
 
-			// sort all the records by combined p-value
 			data.sort((a, b) => a.chiSquared - b.chiSquared);
 
 			return data;
@@ -630,22 +596,6 @@ export default Vue.component("GeneFinderWEglTable", {
 			return downloadData;
 		},
 
-		/*combinedAssociations() {
-			let groups = [];
-
-			this.groupedAssociations.forEach((a) => {
-				a.phenotypes.forEach((phenotype) => {
-					groups.push({
-						phenotype,
-						pValue: a[`${phenotype}:pValue`],
-						chromosome: a.chromosome,
-						position: Math.floor((a.start + a.end) / 2),
-					});
-				});
-			});
-
-			return groups;
-		},*/
 	},
 	watch: {
 		currentPage(newPage, oldPage) {
@@ -711,7 +661,6 @@ export default Vue.component("GeneFinderWEglTable", {
 				}
 			}
 
-			// calculate the combined p-value
 			let pdf = Chi.pdf(X, 2 * this.phenotypes.length);
 
 			return 2 * pdf;
@@ -840,7 +789,6 @@ span.text-bold {
 }
 
 .multi-values-div {
-	/*border-top: solid 1px #dddddd !important;*/
 	padding-left: 15px;
 	padding-right: 15px;
 }
@@ -856,7 +804,6 @@ span.text-bold {
 
 .gf-table td,
 .gf-table th {
-	/*width: calc((100% - 45px) / 7);*/
 }
 
 .gf-table th {

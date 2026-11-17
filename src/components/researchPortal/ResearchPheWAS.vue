@@ -187,57 +187,8 @@ export default Vue.component("research-phewas-plot", {
 			this.renderPheWas();
 		},
 
-		/*phenotypesData(DATA) {
-
-			console.log("DATA",DATA);
-
-			this.showCanvas = true;
-			let content = {};
-			content["data"] = [];
-
-			
-			let phenotypesData = cloneDeep(this.phenotypesData);
-
-			phenotypesData.map((d) => {
-				let pValue =
-					typeof d[this.renderConfig["y axis field"]] == "string"
-						? Number(d[this.renderConfig["y axis field"]])
-						: d[this.renderConfig["y axis field"]];
-				d["rawPValue"] = pValue;
-
-				if (this.renderConfig["convert y -log10"] == "true") {
-					d[this.renderConfig["y axis field"] + "-log10"] =
-						-Math.log10(pValue);
-				}
-
-				if (
-					this.phenotypeMapConfig == "kpPhenotypeMap" &&
-					!!this.phenotypeMap[d[this.renderConfig["render by"]]]
-				) {
-					content["data"].push(d);
-				} else if (this.phenotypeMapConfig == null) {
-					content["data"].push(d);
-				}
-			});
-		
-			if (!!this.filter) {
-				content.data = content.data.filter(this.filter);
-			}
-
-			if (!!content.data && content.data.length > 0) {
-				this.renderData = content;
-			} else {
-				this.showCanvas = false;
-				this.renderData = null;
-			}
-
-			if(!!this.renderData) {this.renderPheWas()};
-		}*/
 	},
 	methods: {
-		//...uiUtils,
-		//isIdFixed: uiUtils.isIdFixed,
-		//removeOnMouseOut: uiUtils.removeOnMouseOut,
 		openPage(PAGE, PARAMETER) {
 			this.utils.uiUtils.openPage(PAGE, PARAMETER);
 		},
@@ -280,15 +231,6 @@ export default Vue.component("research-phewas-plot", {
 
 				phenotypeGroupsObj[group].push(p);
 			});
-			/*
-			for (const [key, value] of Object.entries(phenotypeGroupsObj)) {
-				value.sort((a, b) =>
-					a[this.renderConfig["y axis field"]] >
-					b[this.renderConfig["y axis field"]]
-						? 1
-						: -1
-				);
-			}*/
 
 			return phenotypeGroupsObj;
 		},
@@ -374,7 +316,6 @@ export default Vue.component("research-phewas-plot", {
 							infoBox.getAttribute("class").includes("fixed") ==
 							false
 						) {
-							//infoBoxContent.innerHTML = "";
 							infoBox.setAttribute("class", "hidden");
 							infoBoxClose.setAttribute("class", "hidden");
 						}
@@ -383,7 +324,6 @@ export default Vue.component("research-phewas-plot", {
 							infoBox.getAttribute("class").includes("fixed") ==
 							false
 						) {
-							//infoBoxContent.innerHTML = infoContent;
 							infoBox.setAttribute("class", "phe-was-info-box");
 							infoBoxClose.setAttribute("class", "hidden");
 							if (x < rect.width - 300) {
@@ -401,10 +341,8 @@ export default Vue.component("research-phewas-plot", {
 				if (TYPE == "click") {
 					infoBoxClose.setAttribute("class", "fixed-info-box-close");
 					if (infoContent == "") {
-						//infoBoxContent.innerHTML = "";
 						infoBox.setAttribute("class", "hidden");
 					} else {
-						//infoBoxContent.innerHTML = infoContent;
 						infoBox.setAttribute("class", "phe-was-info-box fixed");
 						if (x < rect.width - 300) {
 							infoBox.style.left = rawX + 25 + "px";
@@ -542,13 +480,10 @@ export default Vue.component("research-phewas-plot", {
 				let yMax = maxY;
 				let yMin = minY;
 
-				// render Y ticks
 				let yStep =
 					(canvasHeight - (plotMargin.top + plotMargin.bottom)) /
 					(yMax - yMin);
 
-				/// render guide line
-				//
 
 				this.renderConfig["thresholds"].map((t) => {
 					ctx.beginPath();
@@ -579,7 +514,7 @@ export default Vue.component("research-phewas-plot", {
 					ctx.closePath();
 				});
 
-				ctx.setLineDash([]); // Set annoying line dash back to normal
+				ctx.setLineDash([]);
 
 				let groupsArr = Object.keys(groups).sort();
 
@@ -590,7 +525,7 @@ export default Vue.component("research-phewas-plot", {
 						let keyIndex =
 							groupsArr.indexOf(key) % this.colors.length;
 						let fillColor = this.colors[keyIndex];
-						let strokeColor = "#00000075"; //this.colors[keyIndex];
+						let strokeColor = "#00000075";
 
 						let labelIndex = 0;
 						let labelOrigin = 0;
@@ -660,7 +595,6 @@ export default Vue.component("research-phewas-plot", {
 									);
 								}
 
-								///organize data by position
 								let yRangeStart = Math.round(yPos / 2) - 5;
 								let yRangeEnd = Math.round(yPos / 2) + 5;
 								let yRange = yRangeStart + "-" + yRangeEnd;
@@ -681,12 +615,10 @@ export default Vue.component("research-phewas-plot", {
 								}
 								this.pheWasPosData[yRange].push(xRange);
 
-								///add labels if p-value above 2.5e-6
 								if (labelIndex == 0) {
 									labelOrigin = xPos;
 								}
 
-								//if (labelIndex == 0 || p.pValue <= 2.5e-6) {
 								let labelXpos = labelOrigin + 24 * labelIndex;
 
 								labelXpos = xPos > labelXpos ? xPos : labelXpos;
@@ -737,7 +669,6 @@ export default Vue.component("research-phewas-plot", {
 								}
 
 								labelIndex++;
-								//}
 								dotIndex++;
 							}
 						});
@@ -748,7 +679,7 @@ export default Vue.component("research-phewas-plot", {
 						let keyIndex =
 							groupsArr.indexOf(key) % this.colors.length;
 						let fillColor = this.colors[keyIndex];
-						let strokeColor = "#00000075"; //this.colors[keyIndex];
+						let strokeColor = "#00000075";
 						value.map((p) => {
 							let xPos = canvasWidth / 2;
 
@@ -793,7 +724,6 @@ export default Vue.component("research-phewas-plot", {
 												]
 										  ]["description"];
 
-								///organize data by position
 								let yRangeStart = Math.round(yPos) - 5;
 								let yRangeEnd = Math.round(yPos) + 5;
 								let yRange = yRangeStart + "-" + yRangeEnd;
@@ -842,7 +772,6 @@ export default Vue.component("research-phewas-plot", {
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = STROKE_COLOR;
 			CTX.stroke();
-			//
 		},
 
 		renderTriangle(CTX, XPOS, YPOS, DOT_COLOR, STROKE_COLOR, EFFECT) {
@@ -878,7 +807,7 @@ export default Vue.component("research-phewas-plot", {
 			CTX.strokeStyle = "#000000";
 			CTX.font = "22px Arial";
 			CTX.fillStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
 			switch (DIRECTION) {
 				case "x":
@@ -912,7 +841,6 @@ export default Vue.component("research-phewas-plot", {
 							CTX.rotate((45 * Math.PI) / 180);
 							CTX.textAlign = "start";
 							CTX.fillText(key, 0, 15);
-							//CTX.rotate((45 * Math.PI) / 180);
 							CTX.restore();
 
 							previousGroup += value;
@@ -921,7 +849,6 @@ export default Vue.component("research-phewas-plot", {
 
 					break;
 				case "y":
-					/// leave it empty in case we need it later
 					break;
 			}
 		},
@@ -981,7 +908,6 @@ $(function () {});
 	border: solid 1px #aaaaaa;
 	border-radius: 10px;
 	display: block;
-	/* padding: 1px 5px; */
 	margin-bottom: 3px;
 }
 </style>

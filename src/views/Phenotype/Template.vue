@@ -1,26 +1,19 @@
 <template>
     <div>
-        <!-- Header -->
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
             :raw-phenotypes="$parent.rawPhenotypes"
         ></page-header>
 
-        <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div
                     class="col filter-col-md hidden"
                     style="vertical-align: -8px !important"
                 >
                     <div class="label">Phenotype</div>
-                    <!--<phenotype-selectpicker
-						v-if="$store.state.phenotype"
-						:phenotypes="$parent.phenotypesInSession"
-					></phenotype-selectpicker>-->
                     <div class="form-control new-phenotype-search-key">
                         {{
                             !$parent.newPhenotypeSearchKey
@@ -38,16 +31,6 @@
                         v-if="!!$parent.phenotypeSearchKey"
                         class="page-phenotypes-list"
                     >
-                        <!--<li
-							v-for="item in $parent.phenotypesInSession"
-							v-if="
-								!!item.description
-									.toLowerCase()
-									.includes(
-										$parent.phenotypeSearchKey.toLowerCase()
-									)
-							"
-						>-->
                         <template v-for="item in $parent.phenotypesInSession">
                             <li
                                 v-if="
@@ -497,7 +480,6 @@
             </div>
         </div>
 
-        <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>

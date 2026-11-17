@@ -36,9 +36,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -51,8 +49,6 @@ export default Vue.component("research-heatmap", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
 	},
 	mounted: function () {
 		this.renderHeatmap();
@@ -65,13 +61,13 @@ export default Vue.component("research-heatmap", {
 
 			let rowList = this.heatmapData
 				.map((v) => v[this.renderConfig["row field"]])
-				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
-				.filter((v, i, arr) => v != ""); //remove blank
+				.filter((v, i, arr) => arr.indexOf(v) == i)
+				.filter((v, i, arr) => v != "");
 
 			let columnList = this.heatmapData
 				.map((v) => v[this.renderConfig["column field"]])
-				.filter((v, i, arr) => arr.indexOf(v) == i) //unique
-				.filter((v, i, arr) => v != ""); //remove blank
+				.filter((v, i, arr) => arr.indexOf(v) == i)
+				.filter((v, i, arr) => v != "");
 
 			massagedData["rows"] = rowList.sort((a, b) =>
 				a.localeCompare(b, undefined, { sensitivity: "base" })
@@ -88,7 +84,6 @@ export default Vue.component("research-heatmap", {
 			});
 
 			this.heatmapData.map((d) => {
-				//console.log("d", d);
 				let row = this.renderConfig["row field"];
 				let column = this.renderConfig["column field"];
 
@@ -113,7 +108,6 @@ export default Vue.component("research-heatmap", {
 		},
 	},
 	methods: {
-		//...uiUtils,
 		hidePanel() {
 			this.utils.uiUtils.hideElement("clicked_cell_value" + this.sectionId);
 			this.renderHeatmap();
@@ -150,7 +144,6 @@ export default Vue.component("research-heatmap", {
 					rAndG *= 255;
 					rAndG = rAndG == 0 ? 0 : this.utils.Formatters.intFormatter(rAndG);
 
-					//console.log("rAndG", rAndG);
 					scaleLegendContent +=
 						"<div class='scale-color' style='background-color: rgb(255," +
 						rAndG +
@@ -259,7 +252,7 @@ export default Vue.component("research-heatmap", {
 				contentWrapper.innerHTML = clickedCellValue;
 				wrapper.classList.remove("hidden");
 				wrapper.style.top = wrapperYPos + yPos + "px";
-				wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
+				wrapper.style.left = wrapperXPos - 30 + xPos + "px";
 			} else {
 				wrapper.classList.add("hidden");
 			}
@@ -353,7 +346,6 @@ export default Vue.component("research-heatmap", {
 							value: this.renderData[r][c].sub,
 						};
 					}
-					//mainValue *= -1;
 					let rColor, gColor, bColor;
 					let direction = this.renderConfig.main.direction;
 					let valHi = this.renderConfig.main.high;
@@ -474,7 +466,6 @@ export default Vue.component("research-heatmap", {
 				rIndex++;
 			});
 
-			//console.log(this.squareData);
 		},
 	},
 });
@@ -504,11 +495,8 @@ $(function () {});
 	transform-origin: left top;
 	transform: rotate(-90deg);
 	position: absolute;
-	/*left: 0;*/
 }
 #heatmapColumnsWrapper div, .heatmap-columns-wrapper div{
-	/*transform-origin: left center;
-    transform: rotate(45deg);*/
 	white-space: nowrap;
 	padding-left: 10px;
 }

@@ -1,4 +1,3 @@
-// Reuse the existing unified search, with Gene2's entry point and no Sample flow.
 const base = require('../PbFront/searchModel');
 
 function resolveSearchTarget(value, selectedKind, geneSymbols) {

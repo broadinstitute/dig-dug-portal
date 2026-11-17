@@ -120,7 +120,6 @@ export default Vue.component("GeneAssociationsTable", {
                 return [];
             }
 
-            // remove unknown phenotypes
             assocs = assocs.filter((a) => phenotypeMap[a.phenotype]);
 
             if (this.filter) {

@@ -15,10 +15,6 @@
                             ' !important;'
                         "
                     >
-                        <!--<div
-						class="pws-group-legend-box phenotype-group"
-						:class="group"
-					>-->
                         &nbsp;
                     </div>
                     {{ group }}
@@ -86,9 +82,6 @@
                     >
                         {{ data.item.group }}
                     </div>
-                    <!--<div class="border-color" :class="data.item.group">
-						{{ data.item.group }}
-					</div>-->
                 </template>
                 <template #cell(pValue)="data">
                     <div
@@ -373,7 +366,6 @@ export default Vue.component("clumped-variants-table", {
             return this.colors[colorIndex];
         },
         async showClumpData(phenotype, clump, ancestry = "") {
-            // Log phenotype-only data and phenotype-ancestry data in the same place.
             let queryIndex = `${phenotype},${ancestry}`;
             console.log(`Query index: ${queryIndex}`);
             if (this.clumpData[queryIndex] === undefined) {

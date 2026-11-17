@@ -1,5 +1,3 @@
-// Matches the .reference.color-N and .text.color-N values in colors.css
-// so they can be used in code by index as well.
 
 export default [
     '#048845',

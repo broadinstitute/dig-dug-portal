@@ -1,6 +1,5 @@
 <template>
 	<div class="research-header-menu-wrapper container-fluid">
-		<!-- Menu header-->
 		<div
 			v-html="headerLogo"
 			class="rp-header-logo"
@@ -49,7 +48,6 @@ export default Vue.component("research-page-header", {
 	},
 	methods: {
 		checkSubmenus(){
-			//adjust submenu positions on hover so they dont extend off the page
 			const menus = document.querySelectorAll('.menu');
 			menus.forEach(menu => {
 				const subMenu = menu.querySelector('.sub-menu-wrapper');
@@ -139,7 +137,6 @@ export default Vue.component("research-page-header", {
 	font-weight: 400;
 }
 
-/* hide header container if no content*/
 .research-header-menu-wrapper:empty{
     display: none;
 }

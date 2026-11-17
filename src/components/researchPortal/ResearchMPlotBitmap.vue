@@ -44,9 +44,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -98,9 +96,9 @@ export default Vue.component("research-m-bitmap-plot", {
 				"#3f007d",
 				"#cb181d",
 			],
-			leftMargin: 150, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
+			leftMargin: 150,
 			rightMargin: 1,
-			topMargin: 20, // -0.5 to draw crisp line
+			topMargin: 20,
 			bottomMargin: 100,
 			dotPosData: {},
 			compareGroups: null,
@@ -108,8 +106,6 @@ export default Vue.component("research-m-bitmap-plot", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//Formatters,
 	},
 	components: {},
 	mounted: function () {
@@ -123,7 +119,6 @@ export default Vue.component("research-m-bitmap-plot", {
 		plotsList() {
 			let rawData = this.plotData;
 			let compareGroups = [];
-			//console.log("this.dataComparisonConfig",this.dataComparisonConfig);
 
 			if (!!rawData) {
 				if (this.dataComparisonConfig != null) {
@@ -262,14 +257,12 @@ export default Vue.component("research-m-bitmap-plot", {
 	},
 	watch: {
 		renderData(CONTENT) {
-			//when data gets updated, hold it for little until vue.js renders <canvas> for the each datasets
 			setTimeout(function () {
 				window.dispatchEvent(new Event("resize"));
 			}, 100);
 		},
 	},
 	methods: {
-		//...uiUtils,
 		hidePanel(element) {
 			this.utils.uiUtils.hideElement(element);
 		},
@@ -455,16 +448,14 @@ export default Vue.component("research-m-bitmap-plot", {
 					ctx.beginPath();
 					ctx.lineWidth = 1;
 					ctx.strokeStyle = "#000000";
-					ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+					ctx.setLineDash([]);
 
-					// render y axis
 					ctx.moveTo(this.leftMargin - bump, this.topMargin);
 					ctx.lineTo(
 						this.leftMargin - bump,
 						plotHeight + this.topMargin + yBump + bump
 					);
 
-					//render x axis
 					ctx.moveTo(
 						this.leftMargin - bump,
 						plotHeight + this.topMargin + yBump + bump
@@ -474,13 +465,11 @@ export default Vue.component("research-m-bitmap-plot", {
 						plotHeight + this.topMargin + yBump + bump
 					);
 
-					// render y ticker
 
 					let yMin = null;
 					let yMax = null;
 
 					dValue.unsorted.map((d) => {
-						//yAxisData.push(d[this.renderConfig["y axis field"]]);
 
 						let yValue = d[this.renderConfig["y axis field"]];
 
@@ -501,7 +490,6 @@ export default Vue.component("research-m-bitmap-plot", {
 
 					let yStep = (yMax - yMin) / 4;
 
-					//let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
 
 					let yTickDistance = plotHeight / 4;
 
@@ -531,7 +519,6 @@ export default Vue.component("research-m-bitmap-plot", {
 
 					ctx.stroke();
 
-					//Render y axis label
 					ctx.font = "28px Arial";
 					ctx.textAlign = "center";
 					ctx.fillStyle = "#000000";
@@ -544,12 +531,10 @@ export default Vue.component("research-m-bitmap-plot", {
 
 					let dnaLength = 0;
 
-					//get list of chrs with variants
 					let chrs = Object.keys(dValue.sorted).filter(
 						(key) => dValue.sorted[key].length > 0
 					);
 
-					// compare length of chromosomes in the data to the defalt
 
 					chrs.map((chr) => {
 						let chrLength = 0;
@@ -586,7 +571,6 @@ export default Vue.component("research-m-bitmap-plot", {
 						);
 					});
 
-					//Render x axis label
 
 					ctx.fillText(
 						this.renderConfig["x axis label"],
@@ -594,7 +578,6 @@ export default Vue.component("research-m-bitmap-plot", {
 						this.topMargin + plotHeight + yBump + 88
 					);
 
-					//Render Dots
 
 					xStart = 0;
 					let exChr = "";

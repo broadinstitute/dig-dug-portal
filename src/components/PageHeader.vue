@@ -1,12 +1,9 @@
 <template>
     <div>
-        <!-- uncomment in the final version-->
         <img v-if="bioindex_dev" src="/images/dev_flag.svg" class="dev-flag" />
-        <!-- <img src="/images/dev_flag.svg" class="dev-flag" /> -->
         <google-analytics></google-analytics>
         <alert></alert>
 
-        <!-- Menu header-->
         <div v-if="diseaseGroup" class="container-fluid">
             <div class="row amp-banner-2021" v-if="diseaseGroup.default">
                 <a
@@ -76,28 +73,6 @@
                                 $store.state.phenotypeCorrelation
                             "
                         ></disease-systems>
-                        <!--
-
-						<disease-systems
-													page="front"
-													:diseases="
-														$store.state.bioPortal
-															.diseaseSystems
-													"
-													:diseaseGroups="
-														$store.state.bioPortal
-															.diseaseGroups
-													"
-													:phenotypes="
-														$parent.phenotypes
-													"
-													:phenotypeCorrelation="
-														$store.state
-															.phenotypeCorrelation
-													"
-												></disease-systems>
-
-						-->
                     </template>
                 </div>
                 <div :class="'kp-menu-wrapper col-md-8'">
@@ -136,7 +111,6 @@
 import Vue from "vue";
 import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
-//import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics4";
 import MenuItem from "@/components/MenuItem.vue";
 import DiseaseSystems from "@/components/DiseaseSystems.vue";
@@ -176,11 +150,8 @@ export default Vue.component("page-header", {
             if (!!group && !!group.title) {
                 let s = document.title.split(" | ");
 
-                // NB: If the <title> changes in index.html to use a different
-                //     separator other than ' - ', please update this code.
                 s[s.length - 1] = group.title;
                 document.title = s.join(" | ");
-                // find the shortcut icon
                 let links = document.getElementsByTagName("link");
 
                 for (let i = 0; i < links.length; i++) {

@@ -75,9 +75,9 @@ export default Vue.component("m-bitmap-plot", {
                 "#3f007d",
                 "#cb181d",
             ],
-            leftMargin: 74.5, // -0.5 to draw crisp line. adding space to the right incase dots go over the border
+            leftMargin: 74.5,
             rightMargin: 0.5,
-            topMargin: 10.5, // -0.5 to draw crisp line
+            topMargin: 10.5,
             bottomMargin: 50.5,
             dotPosData: {},
         };
@@ -167,7 +167,6 @@ export default Vue.component("m-bitmap-plot", {
     methods: {
         ...uiUtils,
         hidePanel() {
-            //uiUtils.hideElement("clicked-dot-value");
         },
         onResize(e) {
             this.renderPlot();
@@ -221,7 +220,6 @@ export default Vue.component("m-bitmap-plot", {
                 for (let v = -5; v <= 5; v++) {
                     if (this.dotPosData[x + h] != undefined) {
                         if (this.dotPosData[x + h][y + v] != undefined) {
-                            //console.log(this.dotPosData[x + h]);
                             let dotObject = this.dotPosData[x + h][y + v];
                             clickedDotValue +=
                                 '<span class="gene-on-clicked-dot-mplot"><b>' +
@@ -246,7 +244,6 @@ export default Vue.component("m-bitmap-plot", {
                 }
             }
 
-            //let wrapper = document.getElementById("clicked_dot_value");
             let contentWrapper = document.getElementById(
                 "clicked_dot_value_content"
             );
@@ -296,20 +293,17 @@ export default Vue.component("m-bitmap-plot", {
             ctx.beginPath();
             ctx.lineWidth = 1;
             ctx.strokeStyle = "#000000";
-            ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+            ctx.setLineDash([]);
 
-            // render y axis
             ctx.moveTo(this.leftMargin, this.topMargin);
             ctx.lineTo(this.leftMargin, plotHeight + this.topMargin + yBump);
 
-            //render x axis
             ctx.moveTo(this.leftMargin, plotHeight + this.topMargin + yBump);
             ctx.lineTo(
                 plotWidth + this.leftMargin,
                 plotHeight + this.topMargin + yBump
             );
 
-            // render y ticker
 
             let yAxisData = [];
             this.renderData.unsorted.map((d) => {
@@ -325,7 +319,7 @@ export default Vue.component("m-bitmap-plot", {
             let yTickDistance = plotHeight / 4;
             for (let i = 0; i < 5; i++) {
                 let tickYPos = this.topMargin + i * yTickDistance;
-                let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+                let adjTickYPos = Math.floor(tickYPos) + 0.5;
                 ctx.moveTo(this.leftMargin - 5, adjTickYPos);
                 ctx.lineTo(this.leftMargin, adjTickYPos);
                 ctx.stroke();
@@ -350,7 +344,6 @@ export default Vue.component("m-bitmap-plot", {
 
             ctx.stroke();
 
-            //Render y axis label
             ctx.font = "14px Arial";
             ctx.textAlign = "center";
             ctx.fillStyle = "#000000";
@@ -373,7 +366,6 @@ export default Vue.component("m-bitmap-plot", {
             ctx.textAlign = "center";
             ctx.rotate((Math.PI * 2) / 4);
 
-            //for (const chr in this.chromosomeLength) {
             this.uniqueChrs.map((chr) => {
                 let chrLength = this.chromosomeLength[chr] * chrByPixel;
                 xStart += chrLength;
@@ -386,7 +378,6 @@ export default Vue.component("m-bitmap-plot", {
                 );
             });
 
-            //Render x axis label
             ctx.fillText(
                 this.renderConfig.xAxisLabel,
                 this.canvasRenderWidth / 2 + this.leftMargin,
@@ -399,12 +390,10 @@ export default Vue.component("m-bitmap-plot", {
                 this.topMargin + plotHeight + yBump + 44
             );
 
-            //Render Dots
             xStart = 0;
             let exChr = "";
             let chrNum = this.uniqueChrs.length != 1 ? 1 : this.uniqueChrs[0];
 
-            //for (const chr in this.chromosomeLength) {
             this.uniqueChrs.map((chr) => {
                 if (this.uniqueChrs.length != 1) {
                     if (chr != 1) {

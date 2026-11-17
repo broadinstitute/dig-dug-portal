@@ -163,12 +163,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-//import uiUtils from "@/utils/uiUtils";
-//import plotUtils from "@/utils/plotUtils";
-//import dataConvert from "@/utils/dataConvert";
 import { BootstrapVueIcons } from "bootstrap-vue";
-//import Formatters from "@/utils/formatters.js";
-//import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -196,12 +191,7 @@ export default Vue.component("research-credible-sets-plot", {
 		};
 	},
 	modules: {
-		//uiUtils,
-		//plotUtils,
 
-		//Formatters,
-		//keyParams,
-		//dataConvert,
 	},
 	components: {},
 	mounted: function () {
@@ -221,7 +211,6 @@ export default Vue.component("research-credible-sets-plot", {
 
 			let phenotype = null;
 			if (this.phenotype != null) {
-				//phenotype = this.phenotype;
 				phenotype = !!this.renderConfig["phenotype match"]
 					? this.renderConfig["phenotype match"][this.phenotype]
 					: this.phenotype;
@@ -275,7 +264,6 @@ export default Vue.component("research-credible-sets-plot", {
 		searchingPhenotype() {
 			let phenotype = null;
 			if (this.phenotype != null) {
-				//phenotype = this.phenotype;
 				phenotype = !!this.renderConfig["phenotype match"]
 					? this.renderConfig["phenotype match"][this.phenotype]
 					: this.phenotype;
@@ -292,14 +280,6 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 	},
 	watch: {
-		/*"this.phenotype"(phenotype) {
-			console.log("this.phenotype", this.phenotype);
-			this.renderCSPlot();
-		},
-		"this.region"(region) {
-			console.log("this.region", this.region);
-			this.renderCSPlot();
-		},*/
 		pkgDataSelected: {
 			handler: function (DATA) {
 				if (DATA.length == 0) {
@@ -320,9 +300,7 @@ export default Vue.component("research-credible-sets-plot", {
 		},
 	},
 	methods: {
-		//...uiUtils,
 		resetAll() {
-			//this.credibleSets = [];
 			this.CSData = {};
 			this.CSPosData = {};
 			this.test = null;
@@ -469,7 +447,6 @@ export default Vue.component("research-credible-sets-plot", {
 										}
 									);
 
-									/// add annotations per selected tissues
 									if (
 										this.pkgData != null &&
 										!!this.pkgData.selectedTissues &&
@@ -623,7 +600,7 @@ export default Vue.component("research-credible-sets-plot", {
 				let canvasHeight = this.plotMargin.topMargin;
 
 				let plotWidth =
-					canvasWidth - 30 - this.plotMargin.leftMargin * 2; //-30 for side paddings
+					canvasWidth - 30 - this.plotMargin.leftMargin * 2;
 				let plotHeight = perPhenotype;
 				let xPerPixel = plotWidth / (regionEnd - regionStart);
 
@@ -688,10 +665,6 @@ export default Vue.component("research-credible-sets-plot", {
 										v.position >= regionStart &&
 										v.position <= regionEnd
 									) {
-										/*let ifInRegion = this.checkIfInRegion(
-										v.position
-									);
-									if (ifInRegion == true) {*/
 										let xPos =
 											(v[
 												this.renderConfig[
@@ -784,7 +757,6 @@ export default Vue.component("research-credible-sets-plot", {
 											tempObj;
 
 										inRegion++;
-										//}
 									}
 								});
 
@@ -856,14 +828,12 @@ export default Vue.component("research-credible-sets-plot", {
 			CTX.beginPath();
 			CTX.lineWidth = 1;
 			CTX.strokeStyle = "#000000";
-			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			CTX.setLineDash([]);
 
-			// render y axis
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos);
 			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			// render recombination Rate y axis
 			let recomXpos = Math.round(
 				this.plotMargin.leftMargin + WIDTH + bump
 			);
@@ -872,7 +842,6 @@ export default Vue.component("research-credible-sets-plot", {
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			// Y ticks
 			CTX.moveTo(this.plotMargin.leftMargin - bump * 2, yPos);
 			CTX.lineTo(this.plotMargin.leftMargin - bump, yPos);
 			CTX.stroke();
@@ -895,19 +864,17 @@ export default Vue.component("research-credible-sets-plot", {
 				yPos + HEIGHT + bump
 			);
 
-			//render x axis
 			CTX.moveTo(this.plotMargin.leftMargin - bump, yPos + HEIGHT + bump);
 			CTX.lineTo(recomXpos, yPos + HEIGHT + bump);
 			CTX.stroke();
 
-			// X ticks
 
 			let xStep = Math.ceil((xMax - xMin) / 5);
 			let xTickDistance = WIDTH / 5;
 
 			for (let i = 0; i < 6; i++) {
 				let tickXPos = this.plotMargin.leftMargin + i * xTickDistance;
-				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
+				let adjTickXPos = Math.floor(tickXPos);
 				CTX.moveTo(adjTickXPos, yPos + HEIGHT + bump);
 				CTX.lineTo(adjTickXPos, yPos + HEIGHT + bump * 2);
 				CTX.stroke();
@@ -930,7 +897,6 @@ export default Vue.component("research-credible-sets-plot", {
 				);
 			}
 
-			//Render y axis label
 			CTX.textAlign = "center";
 			CTX.rotate(-(Math.PI * 2) / 4);
 			CTX.fillText(
@@ -939,7 +905,6 @@ export default Vue.component("research-credible-sets-plot", {
 				this.plotMargin.leftMargin - bump * 5
 			);
 
-			//Rotate ctx back normal
 			CTX.rotate((-(Math.PI * 2) / 4) * 3);
 		},
 		async getCS(event) {

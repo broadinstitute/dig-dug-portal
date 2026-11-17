@@ -126,18 +126,10 @@ export default Vue.component("patient-admin_medicine-card", {
         },
         tableData() {
             if (this.padmin_medicine && this.padmin_medicine.length) {
-                //console.log("here:"+this.hprecords);
 				return this.padmin_medicine;
 			} else {
 				return [];
 			}
-            /*let dataRows = this.variant.hprecords;
-            if (!!this.filter) {
-                dataRows = dataRows.filter((association) => {
-                    return this.filter(association);
-                });
-            }
-            return dataRows;*/
         },
     },
     methods: {
@@ -146,7 +138,6 @@ export default Vue.component("patient-admin_medicine-card", {
             return Formatters.snakeFormatter(name);
         },
         async searchAdminMedicine() {
-            //console.log("variant id:" + this.variantId);
             this.padmin_medicine = await query("patient_admin_medicine",this.patientId,{},true);
             
         },

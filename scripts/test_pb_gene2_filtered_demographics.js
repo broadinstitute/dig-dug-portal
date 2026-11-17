@@ -32,7 +32,6 @@ const ready = (count, label) => ({ok:true,json:async()=>({status:'ready',carrier
     await first;
     assert.equal(page.displayedCarrierSummary.geneCarrierDemographics.byProject[0].project,'Project A');
 
-    // Resolve a previous request after a newer selection: it must not replace the current scope.
     page.matchingVariantRows = [b];
     await Vue.nextTick(); clearTimeout(page._selectedCarrierTimer);
     const stale = page.loadSelectedCarrierDemographics(page.selectedCarrierKey,page.selectedCarrierRevision);

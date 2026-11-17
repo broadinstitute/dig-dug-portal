@@ -101,7 +101,6 @@ export default {
         },
         segmentFontSize() { return 22; },
         segmentWeight(item) {
-            // Counts remain exact; cap visual dominance so rare annotations stay readable.
             return Math.max(item.members ? 2 : 1, Math.min(3, Math.log10(item.count + 1)));
         },
         consequenceColor(label) {

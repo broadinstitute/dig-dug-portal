@@ -48,7 +48,6 @@
 				Hide filter
 			</div>
 
-			<!--removing ' hidden-svg' from class -->
 			<research-credible-sets-plot
 				id="credibleSetSection"
 				class="svg-wrapper"
@@ -65,21 +64,6 @@
 				:regionViewArea="regionViewArea"
 				:utils="utils"
 			></research-credible-sets-plot>
-			<!--<button
-				id="external-button"
-				@click="$refs.annotationsRef.removeAnnoTrack('binding_sites')"
-			>
-				remove binding_sites
-			</button>
-
-			<button
-				id="external-button"
-				@click="
-					$refs.annotationsRef.addRemoveTissueTrack(null, 'pancreas')
-				"
-			>
-				remove pancreas
-			</button>-->
 			<div
 				v-if="
 					pkgConfig.viewers.includes('annotations plot') == true ||
@@ -99,7 +83,6 @@
 			>
 				Hide filter
 			</div>
-			<!--removing ' hidden-svg' from class -->
 			<research-annotations-plot
 				id="annotationSection"
 				class="svg-wrapper"
@@ -166,7 +149,6 @@
 			>
 				Hide filter
 			</div>
-			<!--removing ' hidden-svg' from class -->
 			<research-biosamples-plot
 				id="biosamplesSection"
 				class="svg-wrapper"
@@ -203,7 +185,6 @@
 			>
 				Hide filter
 			</div>
-			<!--removing ' hidden-svg' from class -->
 			<research-gene-links-plot
 				id="geneLinksSection"
 				class="svg-wrapper"
@@ -227,7 +208,6 @@
 
 <script>
 import Vue from "vue";
-//import uiUtils from "@/utils/uiUtils";
 
 import { BootstrapVueIcons } from "bootstrap-vue";
 
@@ -258,7 +238,6 @@ export default Vue.component("kp-gem-pkg", {
 		return {};
 	},
 	modules: {
-		//uiUtils,
 	},
 	components: {
 		ResearchRegionPlot,
@@ -276,7 +255,6 @@ export default Vue.component("kp-gem-pkg", {
 				let viewer = document.getElementById(
 					this.pkgConfig.pkgID + "_" + v
 				);
-				//viewersWrapper.appendChild(viewer);
 			});
 		}
 	},
@@ -292,7 +270,6 @@ export default Vue.component("kp-gem-pkg", {
 	},
 	watch: {},
 	methods: {
-		//...uiUtils,
 		showHideSection(event, SECTION_ID, OPEN_LABEL, OPENER, LABEL) {
 			let element = document.getElementById(OPENER);
 
@@ -312,21 +289,6 @@ export default Vue.component("kp-gem-pkg", {
 
 <style>
 .section-opener {
-	/*position: relative;
-	display: inline-block;
-	font-size: 12px;
-	font-weight: bold;
-	padding: 0px 5px;
-	border: solid 1px #cccccc;
-	border-left: none;
-	background-color: #eeeeee;
-	color: #333;
-	margin-bottom: 10px;
-	width: auto;
-	transition: all 0.75s;
-	z-index: 10;
-	transform-origin: top left;
-	margin-left: -20px;*/
 	position: absolute;
 	right: 15px;
 	margin-top: -5px;
@@ -348,9 +310,6 @@ export default Vue.component("kp-gem-pkg", {
 .section-opener.open {
 	background-color: #666;
 	color: #ffffff;
-	/*transform: rotate(90deg);
-	transform-origin: top left;
-	margin-left: -10px;*/
 }
 </style>
 

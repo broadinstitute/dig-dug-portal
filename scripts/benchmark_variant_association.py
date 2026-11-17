@@ -74,7 +74,6 @@ def main():
     args = parser.parse_args()
     if not 20 <= args.samples <= 1500 or args.variants < 1 or args.full_size_ols_samples < 20:
         parser.error("samples must be 20..1500, variants >= 1, full-size OLS samples >= 20")
-    # Avoid allocating a dense full-cohort GRM for the OLS-only run.
     comparison = benchmark(args.samples, args.variants, include_lmm=True)
     if args.full_size_ols_samples != args.samples:
         ids, covariates, _, y, carriers = fixture(args.full_size_ols_samples, args.variants, include_grm=False)

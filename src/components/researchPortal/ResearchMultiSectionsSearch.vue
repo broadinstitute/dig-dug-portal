@@ -163,7 +163,6 @@ export default Vue.component("research-multi-sections-search", {
 			let totalSearchNum = this.searchParameters.length;
 
 			this.searchParameters.map(s=>{
-				//console.log("s",s)
 				if(s.display && s.display == "false") {
 					totalSearchNum --;
 				}
@@ -193,18 +192,13 @@ export default Vue.component("research-multi-sections-search", {
 
 			let options = [];
 			if (event.target.value.length >= 2) {
-				//let optionChrLength = 0;
 				PARAM.values.map(option => {
 					if (!!option.label.toLowerCase().includes(event.target.value.toLowerCase())) {
 						options.push(option);
 
-						//optionChrLength = optionChrLength >= option.label.length ? optionChrLength : option.label.length;
 					}
 				})
 
-				//if (options.length > 1) {
-					//document.getElementById("listOptions" + PARAM.parameter).setAttribute("style", "width: " + (optionChrLength * 5) + "px !important");
-				//}
 				this.listOptions[PARAM.parameter] = options;
 			} else {
 				this.listOptions[PARAM.parameter] = [];
@@ -246,7 +240,6 @@ export default Vue.component("research-multi-sections-search", {
 		updateSearch(KEY,TARGET_SECTIONS) {
 
 
-			//console.log("updateSearch called", KEY, TARGET_SECTIONS);
 			let paramsObj = {}
 
 			if(!KEY) {
@@ -386,13 +379,6 @@ export default Vue.component("research-multi-sections-search", {
 }
 
 #kp_gene_search_wrapper {
-	/*position: absolute;
-	background-color: #efefef;
-	border: solid 1px #ddd;
-	border-radius: 5px;
-	padding: 10px 10px;
-	z-index: 10;
-	left: 50px;*/
 }
 
 .custom-select-search {
@@ -458,21 +444,12 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria {
-	/*position: absolute;
-	z-index: 200;
-	width: 210px;
-	left: -25px;
-	top: 10px;
-	text-align: left;
-	padding: 15px;
-	padding-left: 25px;*/
 	transition: all 0.5s;
 	background-color: #ddefff;
 	border: solid 1px #bbdfff;
 }
 
 .filtering-ui-wrapper.search-criteria.closed {
-	/*left: -225px;*/
 	transition: all 0.5s;
 }
 

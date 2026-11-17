@@ -1980,7 +1980,7 @@ export default {
                             const data = await response.json();
                             const exact = (data.data || []).find(row => row.SampleInVCF === id && row.sample_id === key);
                             if (request === this.infoRequest && exact) { received[key] = exact; break; }
-                        } catch (_) { /* Keep the profile's cohort label when metadata is unavailable. */ }
+                        } catch (_) {   }
                         finally { clearTimeout(timeout); }
                     }
                     if (request === this.infoRequest) {

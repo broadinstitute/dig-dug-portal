@@ -58,9 +58,6 @@ export default new Vuex.Store({
             context.commit("setGene", gene);
         },
         async fetchConfig(context, config) {
-            /*let json = await fetch(
-                `https://kp4cd.org/egldata/config?dataset=${config.dataset}`
-            ).then(resp => resp.json());*/
 
             let json = await fetch(
                 `https://hugeampkpncms.org/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${config.dataset}/${config.dataset}_config.json`
@@ -79,11 +76,6 @@ export default new Vuex.Store({
             });
         },
         async fetchData(context, dataset) {
-            /*let json = await fetch(
-                `https://kp4cd.org/egldata/dataset?dataset=${dataset.dataset}&trait=${dataset.trait}`
-            ).then(resp => resp.json());*/
-            /*context.commit("setTableData", json.data);
-            context.commit("setFilteredData", json.data);*/
             let json = await fetch(
                 `https://hugeampkpncms.org/servedata/dataset?dataset=https://hugeampkpncms.org/sites/default/files/users/user1/egl_data/${dataset.dataset}/${dataset.dataset}_${dataset.trait}.json`
             ).then(resp => resp.json());

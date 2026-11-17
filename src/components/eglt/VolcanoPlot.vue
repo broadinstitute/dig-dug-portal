@@ -18,7 +18,6 @@
             :height="renderConfig.height + 120"
         >
         </canvas>
-        <!--<div id="clicked_dot_indicator" class=""></div>-->
         <div
             v-if="!!renderConfig.label"
             class="volcano-plot-label"
@@ -75,8 +74,8 @@ export default Vue.component("volcano-plot", {
             let yAxisData = [];
             let canvasWidth = this.renderConfig.width;
             let canvasHeight = this.renderConfig.height;
-            let leftMargin = 74.5; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-            let topMargin = 44.5; // -0.5 to draw crisp line
+            let leftMargin = 74.5;
+            let topMargin = 44.5;
 
             let xBump = this.renderConfig.width * 0.02;
             let yBump = this.renderConfig.height * 0.02;
@@ -98,7 +97,6 @@ export default Vue.component("volcano-plot", {
             let dotPos = {};
 
             this.renderData.map((d) => {
-                //Actual rendering position
                 let xPos =
                     leftMargin +
                     xBump +
@@ -130,7 +128,6 @@ export default Vue.component("volcano-plot", {
                 }
             });
 
-            //console.log("dotPos", dotPos);
 
             return dotPos;
         },
@@ -149,7 +146,6 @@ export default Vue.component("volcano-plot", {
         ...uiUtils,
         hidePanel() {
             uiUtils.hideElement("clicked_dot_value");
-            //this.renderPlot();
         },
         filterTable() {
             let wrapper = document.getElementById("clicked_dot_value");
@@ -189,7 +185,6 @@ export default Vue.component("volcano-plot", {
                 for (let v = -3; v <= 3; v++) {
                     if (this.volcanoDotPos[x + h] != undefined) {
                         if (this.volcanoDotPos[x + h][y + v] != undefined) {
-                            //console.log(this.volcanoDotPos[x + h][y + v]);
                             let tempObj = {};
                             tempObj["x"] = x + h;
                             tempObj["y"] = y + v;
@@ -208,7 +203,6 @@ export default Vue.component("volcano-plot", {
             if (clickedDotValue != "") {
                 wrapper.innerHTML = clickedDotValue;
                 document.getElementById("volcanoPlot").classList.add("hover");
-                //this.renderPlot(redDotsArr);
             } else {
                 wrapper.innerHTML = clickedDotValue;
                 wrapper.classList.add("hidden");
@@ -233,8 +227,8 @@ export default Vue.component("volcano-plot", {
 
             let canvasWidth = this.renderConfig.width;
             let canvasHeight = this.renderConfig.height;
-            let leftMargin = 74.5; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-            let topMargin = 44.5; // -0.5 to draw crisp line
+            let leftMargin = 74.5;
+            let topMargin = 44.5;
 
             let xBump = this.renderConfig.width * 0.02;
             let yBump = this.renderConfig.height * 0.02;
@@ -306,7 +300,6 @@ export default Vue.component("volcano-plot", {
                     );
                 }
             }
-            //Render x axis label
             ctx.font = "14px Arial";
             ctx.textAlign = "center";
             ctx.fillStyle = "#000000";
@@ -316,7 +309,6 @@ export default Vue.component("volcano-plot", {
                 topMargin + canvasHeight + 45 + yBump
             );
 
-            // render y axis
             ctx.moveTo(leftMargin, topMargin);
             ctx.lineTo(leftMargin, canvasHeight + topMargin + yBump);
             ctx.stroke();
@@ -347,7 +339,6 @@ export default Vue.component("volcano-plot", {
                 }
             }
 
-            //Render y axis label
             ctx.font = "14px Arial";
             ctx.textAlign = "center";
             ctx.fillStyle = "#000000";
@@ -358,7 +349,6 @@ export default Vue.component("volcano-plot", {
                 leftMargin - 55
             );
 
-            //render dots
 
             ctx.rotate((Math.PI * 2) / 4);
             let xPosMax = xAxisTicks.lo + xAxisTicks.step * 5;
@@ -367,7 +357,6 @@ export default Vue.component("volcano-plot", {
             let xCondition = this.renderConfig.xCondition;
 
             this.renderData.map((d) => {
-                //rendering position
                 let xPos =
                     leftMargin +
                     xBump +
@@ -475,8 +464,6 @@ export default Vue.component("volcano-plot", {
                 }
             });
 
-            // reder hovering dots in red
-            //console.log(!!this.volcanoDotPos);
 
             if (REDDOTS != undefined) {
                 REDDOTS.map((dot) => {
@@ -490,7 +477,6 @@ export default Vue.component("volcano-plot", {
                 });
             }
 
-            //if selectedGene is not undefined
             if (this.geneOfInterest != undefined) {
                 let targetGene = this.$parent.convert2RenderBy(
                     this.geneOfInterest
@@ -535,7 +521,6 @@ export default Vue.component("volcano-plot", {
                 });
             }
 
-            //render dashed line
             if (!!this.renderConfig.xCondition) {
                 let xCondiCombi = this.renderConfig.xCondition.combination;
 

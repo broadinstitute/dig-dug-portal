@@ -136,7 +136,7 @@ new Vue({
 
                 options = [];
 
-                this.geneFinderPhenotypes.map(p => {//<-- this is to disable the EGLs option when there is no phenotype selected
+                this.geneFinderPhenotypes.map(p => {
                     tissues.map(t => {
                         options.push({ value: t, name: t.replace(/_/g, " ") })
                     })
@@ -217,7 +217,7 @@ new Vue({
                 let options = [];
 
 
-                this.geneFinderPhenotypes.map(p => { //<-- this is to disable the EGLs option when there is no phenotype selected
+                this.geneFinderPhenotypes.map(p => {
                     this.$store.state.eglsFullList.map(e => {
 
                         if (e["Trait ID"] != undefined && e["byor_gene"] == "TRUE") {
@@ -359,11 +359,8 @@ new Vue({
 
                     grouped[r.gene].phenotypes.push(r.phenotype);
                     grouped[r.gene][r.phenotype + ":pValue"] = r.pValue;
-                    //grouped[r.gene][r.phenotype + ":zStat"] = r.zStat;
-                    //grouped[r.gene][r.phenotype + ":nParam"] = r.nParam;
                     grouped[r.gene][r.phenotype + ":subjects"] = r.subjects;
 
-                    // lowest p-value across all phenotypes
                     if (!!r.pValue && r.pValue < grouped[r.gene].minP) {
                         grouped[r.gene].minP = r.pValue;
                     }
@@ -393,7 +390,6 @@ new Vue({
                     }
                 }
 
-                //add HuGE Scores
                 if (Object.keys(this.$store.state.hugeScores).length > 0) {
                     for (const [gKey, gValue] of Object.entries(
                         grouped
@@ -435,7 +431,6 @@ new Vue({
                     }
                 }
 
-                //check if rare variant data is there
                 if (combinedRareData.length > 0) {
                     combinedRareData.map(r => {
                         if (!!grouped[r.gene]) {
@@ -482,7 +477,6 @@ new Vue({
                     }
                 }
 
-                // check if EGLs data is there.
                 if (this.$store.state.eglGenes.length > 0) {
 
                     let eglGenes = {}
@@ -491,7 +485,7 @@ new Vue({
                         let gene = c["byor_gene"];
                         let egl = this.eglsMap[c["pageId"]];
 
-                        let tempObj = { "trait": c["traitId"], "eglId": c["pageId"], "title": egl["Title"], "pmid": egl["PMID"], "name": egl["Effector list name"], "shortName": egl["short_name"] }  //pageId, traitId
+                        let tempObj = { "trait": c["traitId"], "eglId": c["pageId"], "title": egl["Title"], "pmid": egl["PMID"], "name": egl["Effector list name"], "shortName": egl["short_name"] }
 
                         if (!eglGenes[gene]) {
                             eglGenes[gene] = { "egls": [] };
@@ -511,7 +505,7 @@ new Vue({
                         if (!!eglGenes[gKey]) {
                             let eglsContent = "";
 
-                            grouped[gKey]["eglsArr"] = [];// added to render plot
+                            grouped[gKey]["eglsArr"] = [];
 
                             eglGenes[gKey]['egls'].map(e => {
 
@@ -535,8 +529,6 @@ new Vue({
                     }
                 }
 
-                //check if tissues data is there
-                // Add Tissue Gene Expression info
                 let loadedTGE = this.$store.state.tissueGeneExpression;
                 if (loadedTGE.length > 0) {
 
@@ -633,8 +625,6 @@ new Vue({
         },
 
         criterion(newCriterion, oldCriterion) {
-            // if the phenotypes update, we only need to get new data based on latest phenotype
-            // NOTE: this will maintain some data in the the geneFinderAssociationsMap
             const updatingPhenotypes = difference(
                 newCriterion.phenotypes,
                 oldCriterion.phenotypes
@@ -656,10 +646,8 @@ new Vue({
         geneFinderPhenotypes(newPhenotypes, oldPhenotypes) {
 
             if (newPhenotypes.length > 0) {
-                //if not the same, update keyparams
                 if (!isEqual(newPhenotypes, oldPhenotypes)) {
 
-                    //update phenotype parameters
                     keyParams.set({
                         phenotypes: newPhenotypes.join(","),
                     });
@@ -731,7 +719,6 @@ new Vue({
         },
         geneFinderTissues(newTissues, oldTissues) {
             if (!isEqual(newTissues, oldTissues)) {
-                //update egls parameters
                 keyParams.set({
                     tissue: newTissues.join(","),
                 });
@@ -748,7 +735,6 @@ new Vue({
                 } else {
                     let removedTissue = oldTissues.filter(x => !newTissues.includes(x));
 
-                    // let tissue = this.tissuesMap[removedTissue[0]];
                     let tissue = removedTissue[0];
                     this.$store.dispatch("removeTissueGeneExpression", tissue);
                 }
@@ -757,7 +743,6 @@ new Vue({
         geneFinderEgls(newEgls, oldEgls) {
 
             if (!isEqual(newEgls, oldEgls)) {
-                //update egls parameters
                 keyParams.set({
                     egl: newEgls.join(","),
                 });
@@ -789,7 +774,6 @@ new Vue({
         },
         tissuesMapKeys(KEYS) {
             if (this.geneFinderTissues.length > 0) {
-                //this.loadInitialTissues(this.geneFinderTissues);
             }
         }
     },
@@ -800,8 +784,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("getEglsFullList");
-        this.$store.dispatch("getGeneExpression", 'PCSK9');// don't remove this. It is added to get list of available tissues
-        //check if parameter is passed, set criterion
+        this.$store.dispatch("getGeneExpression", 'PCSK9');
         if (keyParams.phenotypes) {
 
             keyParams.phenotypes.split(",").forEach((phenotype) => {
@@ -818,26 +801,6 @@ new Vue({
                 true
             );
 
-            /*
-            this.updateAssociations(
-                this.geneFinderPhenotypes,
-                this.geneFinderPValue,
-                true
-            );
-            if (keyParams.rareVariant) {
-                keyParams.rareVariant.split(",").forEach((e) => {
-                    this.geneFinderSearchCriterion.push({
-                        field: "rareVariant",
-                        threshold: e,
-                    });
-                });
-
-                this.updateRareAssociations(
-                    this.geneFinderRareVariant,
-                    this.geneFinderRarePValue,
-                    true
-                );
-            }*/
 
             if (keyParams.egl) {
                 keyParams.egl.split(",").forEach((e) => {
@@ -904,7 +867,6 @@ new Vue({
                 }
             });
 
-            // may await on this in the future if needed...
             Promise.all(promises);
         },
 
@@ -932,7 +894,6 @@ new Vue({
                 }
             });
 
-            // may await on this in the future if needed...
             Promise.all(promises);
         },
 

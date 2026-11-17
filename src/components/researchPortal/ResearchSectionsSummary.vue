@@ -121,7 +121,6 @@ export default Vue.component("research-sections-summary", {
 	},
 	watch: {
 		wholeDataCounts(NUM) {
-			//this.buildSummary();
 		}
 	},
 	methods: {
@@ -132,7 +131,6 @@ export default Vue.component("research-sections-summary", {
 			if (!!filterData && filterData.length > 0) { return true } else { return false };
 		},
 		buildSummary() {
-			//document.getElementById('wrapper_' + this.sectionIndex).classList.add('wait');
 			this.summarizing = true;
 			
 			let primarySection = [...new Set(this.sectionsData.filter(data => data.id == this.sectionsConfig.sections["primary section"]))];
@@ -140,7 +138,7 @@ export default Vue.component("research-sections-summary", {
 			let primaryData = !!primarySection[0] ? primarySection[0].data : null;
 			let subSections = this.sectionsConfig.sections["sub sections"];
 
-			let targetData = JSON.parse(JSON.stringify(primaryData));//Deep cloning is required.
+			let targetData = JSON.parse(JSON.stringify(primaryData));
 			let filteredData = [];
 
 			if (!!primaryData) {
@@ -157,7 +155,6 @@ export default Vue.component("research-sections-summary", {
 						section.actions.map(action => {
 							switch (action.action) {
 								case "filter":
-									// filters data by each sub section data but, doesn't remove filtered out rows.
 									if(!!ifSectionChecked) {
 										filteredData[sIndex] = this.applyFilter(targetData, filterData, action["target field"], action["filter field"], action.type);
 
@@ -197,7 +194,6 @@ export default Vue.component("research-sections-summary", {
 				})
 
 				let collapsedData = [];
-				//let filterLogic = this.sectionsConfig.sections["inter sections filter logic"];
 				
 				targetData.map(row => {
 					let meetFilter = true;
@@ -223,7 +219,6 @@ export default Vue.component("research-sections-summary", {
 				});
 
 				this.sectionData = collapsedData;
-				//document.getElementById('wrapper_' + this.sectionIndex).classList.remove('wait');
 				this.summarizing = null;
 			}
 		},
@@ -248,7 +243,7 @@ export default Vue.component("research-sections-summary", {
 							tempObj[column] = filterData[fdIndex][column];
 						});
 
-						switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
+						switch (IF_MULTIPLE)
 						{
 							case "add":
 								TD[FEATURE].push(tempObj);
@@ -270,7 +265,6 @@ export default Vue.component("research-sections-summary", {
 		},
 		addField(targetData, filterData, KEY_FIELD, COLUMN, IF_MULTIPLE){
 
-			//this.addField(filteredData[sIndex], filterData, column["key field"], column.column, column["if multiple values"]);
 
 
 			let filterDataObj = {};
@@ -290,7 +284,7 @@ export default Vue.component("research-sections-summary", {
 						let colValue = !!filterData[fdIndex][COLUMN] ? filterData[fdIndex][COLUMN] : null;
 						
 						if (!!colValue) {
-							switch (IF_MULTIPLE) //add, replace, pick greater, pick lower
+							switch (IF_MULTIPLE)
 							{
 								case "add":
 									if (!TD[COLUMN]) { TD[COLUMN] = [] };
@@ -344,7 +338,6 @@ console.log(targetField, filterField, TYPE);
 								d[filterField] = [];
 							}
 							d[filterField].push(d[targetField]);
-							//returnData.push(d);
 						}
 					})
 
@@ -367,7 +360,6 @@ console.log(targetField, filterField, TYPE);
 									d[filterField] = [];
 								}
 								d[filterField].push(ff);
-								//returnData.push(d);
 							}
 						})
 					})
@@ -383,18 +375,13 @@ console.log(targetField, filterField, TYPE);
 
 			return returnData;
 		},
-		//work on this
 		jsonToTsv(jsonObject) {
-			// Extract keys and values
 			const keys = Object.keys(jsonObject[0]);
 			const values = Object.values(jsonObject);
 
-			// Create header row
 			let tsvString = `${keys.join("\t")}\n`;
 
-			// Convert each value to string and join with tabs
 			values.forEach((value) => {
-				// Check for nested objects and arrays
 				if (typeof value === "object") {
 					tsvString += `${JSON.stringify(value)}\n`;
 				} else if (Array.isArray(value)) {
@@ -408,7 +395,6 @@ console.log(targetField, filterField, TYPE);
 		},
 		captureData() {
 			let title = [this.sectionsConfig.header];
-			//let tsvData = this.jsonToTsv(this.sectionData);
 
 			this.$store.dispatch("capturedData", { action: 'add', title: title, data: this.sectionData });
 		},
@@ -416,7 +402,6 @@ console.log(targetField, filterField, TYPE);
 			this.$emit('on-star', ARRAY);
 		},
 		getData() {
-			//console.log("data getting updated");
 		},
 		sortData(KEY) {
 			if (!!this.tableFormat['locus field'] && KEY.key == this.tableFormat['locus field']) {
@@ -485,7 +470,6 @@ $(function () { });
 }
 
 .multi-section {
-	/*border-bottom: solid 1px #ddd;*/
 	position: relative;
 }
 

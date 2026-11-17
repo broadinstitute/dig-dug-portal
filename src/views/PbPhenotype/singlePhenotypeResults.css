@@ -1,4 +1,3 @@
-/* Use readable result text at the default 100% scale with the Guide gutter. */
 .pbp-page .pbp-shell { max-width: 1440px; position: relative; }
 .pbs-results { min-width: 0; font-size: 21px; line-height: 1.5; }
 .pbs-results .pbp-card { margin-top: 22px; padding: 28px; }
@@ -30,7 +29,6 @@
 .pbs-metrics small { margin-top: 4px; }
 .pbs-results .pbs-scale-note { display: block; margin-top: 12px; font-size: 18px; }
 
-/* Consistent, visible cell boundaries; numeric columns keep their own alignment. */
 .pbs-table-wrap { width: 100%; min-width: 0; overflow-x: auto; }
 .pbs-results .pbs-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 21px; margin: 0; border: 1px solid #bfcbd9; }
 .pbs-results .pbs-table th, .pbs-results .pbs-table td { padding: 14px 12px; vertical-align: middle; border: 1px solid #c8d3df; text-align: left; white-space: normal; overflow-wrap: break-word; line-height: 1.5; }
@@ -232,7 +230,6 @@
 .pbs-rank-formula { padding: 12px; background: #edf3fa; border-radius: 5px; overflow-wrap: anywhere; }
 .pbs-rank-evidence summary { cursor: pointer; color: var(--blue); }
 
-/* Header filter stays outside the table's overflow clipping area. */
 .pbs-project-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .pbs-filter-trigger { flex: 0 0 auto; border: 1px solid #aebed5; border-radius: 4px; width: 34px; height: 34px; background: #fff; color: #42536d; cursor: pointer; }
 .pbs-filter-active { background: #e8f2ff; color: #075ec5; border-color: #075ec5; }
@@ -276,7 +273,6 @@
     .pbs-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Use the same superscript icon and same-height margin rail as Gene2 / Variant. */
 .pbp-page button.pg2-help { display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; position:relative; top:-.4em; width:14px; height:14px; min-height:14px; padding:0; margin:0 0 0 3px; border:0; border-radius:50%; color:#14213d; background:transparent; font:400 14px/1 Arial,Helvetica,sans-serif; vertical-align:baseline; cursor:pointer; }
 .pbp-page .pbs-heading-help { display:inline-flex; align-items:baseline; max-width:100%; }
 .pbp-page .pbs-heading-help > .pbp-sort { min-width:0; }

@@ -180,7 +180,6 @@ new Vue({
             let diseases = this.$store.state.bioPortal
                 .diseaseSystems
 
-            //first get datasets by phenotype groups
             if (datasets.length > 0 && !!this.phenotypesByName && diseases.length > 0) {
 
                 let pGroups = {}
@@ -221,7 +220,6 @@ new Vue({
 
 
 
-                //then get dataset numbers by disease systems X phenotype groups
 
                 Object.keys(dGroups).map(dg => {
                     dGroups[dg].phenotypes.map(p => {
@@ -243,7 +241,6 @@ new Vue({
                     }
                 })
 
-                //then create diagram content by disease groups
 
                 let dataContent = "";
 
@@ -273,7 +270,6 @@ new Vue({
 
             if (phenotypes.length > 0) {
 
-                ///create phenotypes plot content
 
                 let groupLabel = [...new Set(phenotypes.map(p => p.group))].sort();
                 let group = phenotypes.map(g => g.group);

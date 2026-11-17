@@ -34,7 +34,6 @@ Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-//currently autocompletes only genes
 export default Vue.component("autocomplete", {
     props: {
         matches: Array,

@@ -163,7 +163,7 @@ export default Vue.component("research-score-plot", {
 				"#D5A76850",
 				"#d4d4d450",
 			],
-			leftMargin: 150, // adding space to the right incase dots go over the border
+			leftMargin: 150,
 			rightMargin: 1,
 			topMargin: 20,
 			bottomMargin: 100,
@@ -194,7 +194,6 @@ export default Vue.component("research-score-plot", {
 			}
 		},
 		renderData() {
-			//console.log(this.plotData);
 			let rawData = this.plotData;
 			let massagedData = { sorted: {}, unsorted: [] };
 
@@ -476,17 +475,14 @@ export default Vue.component("research-score-plot", {
 			}
 		},
 		getColorIndex(SKEY) {
-			//console.log(this.searchParameters);
 			let keyField = this.dataComparisonConfig.fieldsGroupDataKey;
 			let keyParameterSeach = this.searchParameters[keyField].search;
 			let colorIndex = "";
-			//if (keyParameterSeach.length > 1) {
 			keyParameterSeach.map((sValue, sIndex) => {
 				if (SKEY == sValue) {
 					colorIndex = sIndex;
 				}
 			});
-			//}
 
 			return colorIndex;
 		},
@@ -501,7 +497,7 @@ export default Vue.component("research-score-plot", {
 				  this.leftMargin +
 				  this.rightMargin
 				: document.getElementById("scorePlotWrapper").clientWidth * 2 -
-				  60; //
+				  60;
 
 			let canvasRenderHeight = !!this.renderConfig.height
 				? this.renderConfig.height * 2 +
@@ -538,20 +534,17 @@ export default Vue.component("research-score-plot", {
 			ctx.beginPath();
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = "#000000";
-			ctx.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+			ctx.setLineDash([]);
 
-			// render y axis
 			ctx.moveTo(this.leftMargin, this.topMargin);
 			ctx.lineTo(this.leftMargin, plotHeight + this.topMargin + yBump);
 
-			//render x axis
 			ctx.moveTo(this.leftMargin, plotHeight + this.topMargin + yBump);
 			ctx.lineTo(
 				plotWidth + this.leftMargin,
 				plotHeight + this.topMargin + yBump
 			);
 
-			// render y ticker
 			let yMin = null;
 			let yMax = null;
 
@@ -627,7 +620,6 @@ export default Vue.component("research-score-plot", {
 
 			ctx.stroke();
 
-			//Render y axis label
 			ctx.font = "28px Arial";
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#000000";
@@ -641,12 +633,10 @@ export default Vue.component("research-score-plot", {
 			ctx.rotate((Math.PI * 2) / 4);
 			let dnaLength = 0;
 
-			//get list of chrs with variants
 			let chrs = Object.keys(this.renderData.sorted).filter(
 				(key) => this.renderData.sorted[key].length > 0
 			);
 
-			// compare length of chromosomes in the data to the defalt
 			let chrLengthMax = 0;
 			let chrLengthMin = 0;
 
@@ -679,10 +669,8 @@ export default Vue.component("research-score-plot", {
 
 				let xStep = Math.ceil((chrLengthMax - chrLengthMin) / 4);
 
-				// X ticks
 				let xTickDistance = (plotWidth - 10) / 4;
 
-				//console.log("xTickDistance", xTickDistance);
 
 				for (let i = 0; i < 5; i++) {
 					let tickXPos = this.leftMargin + i * xTickDistance + 10;
@@ -732,18 +720,6 @@ export default Vue.component("research-score-plot", {
 			let xStart = this.leftMargin + 10;
 			ctx.textAlign = "center";
 			if (chrs.length > 1) {
-				/*ctx.fillText(
-                    chrLengthMin,
-                    this.leftMargin + 5,
-                    this.topMargin + plotHeight + yBump + 20
-                );
-
-                ctx.fillText(
-                    chrLengthMax,
-                    plotWidth + this.leftMargin,
-                    this.topMargin + plotHeight + yBump + 20
-                );
-            } else {*/
 				chrs.map((chr) => {
 					let chrLength = this.chromosomeLength[chr] * chrByPixel;
 					xStart += chrLength;
@@ -757,7 +733,6 @@ export default Vue.component("research-score-plot", {
 				});
 			}
 
-			//Render x axis label
 
 			ctx.fillText(
 				this.renderConfig["x axis label"],
@@ -765,7 +740,6 @@ export default Vue.component("research-score-plot", {
 				this.topMargin + plotHeight + yBump + 88
 			);
 
-			//Render Dots
 			if (chrs.length == 1) {
 				xStart = chrLengthMin;
 				let chr = chrs[0];

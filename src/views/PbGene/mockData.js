@@ -1,4 +1,3 @@
-// ─── Gene info ───────────────────────────────────────────────────────────────
 export const geneInfo = {
     symbol: "SLC6A7",
     fullName: "solute carrier family 6 member 7",
@@ -13,7 +12,6 @@ export const geneInfo = {
     build: "GRCh38",
     omim: "604962",
 
-    // ── Reference annotation (source: reference_db / gene_annotation_summary.tsv) ──
     referenceAnnotation: {
         ddg2p: {
             support: false,
@@ -61,17 +59,14 @@ export const geneInfo = {
         },
     },
 
-    // ── Variant annotation (source: CRDC cohort / sample_variant) ──
-    // Highest per-gene scores across qualifying variants
     variantStats: {
-        highestRevel: 0.912,        // chr5:150203773:T:A (p.Arg469Trp)
-        highestAM: 0.87,            // chr5:150203773:T:A
-        lofteeHC: true,             // chr5:150198450:C:T (stop_gained, LOFTEE HC)
+        highestRevel: 0.912,
+        highestAM: 0.87,
+        lofteeHC: true,
         source: "CRDC cohort",
     },
 };
 
-// ─── Primary CRDC evidence (gene level) ──────────────────────────────────────
 export const crdcEvidence = {
     crdcCohortCount: null,
     currentGeneCarrierTotal: 13,
@@ -85,7 +80,6 @@ export const crdcEvidence = {
         score: 0.88,
         variant: "chr5:150203773:T:A",
     },
-    // Top HPO terms across all carrier samples (CRDC carrier HPO — placeholder)
     topCarrierTerms: [
         { id: "HP:0001250", label: "Seizure",        carrierCount: 9, pct: 69 },
         { id: "HP:0001252", label: "Hypotonia",      carrierCount: 8, pct: 62 },
@@ -93,10 +87,6 @@ export const crdcEvidence = {
     ],
 };
 
-// ─── Precomputed gene-burden phenotype associations (UI preview only) ───────
-// Contract: upstream analysis supplies positive, threshold-passing rows ordered
-// by q-value. The portal only displays these results; it does not run or filter
-// the association analysis.
 export const genePhenotypeAssociations = [
     { hpoId: "HP:0001250", label: "Seizure", oddsRatio: 3.42, ciLow: 1.81, ciHigh: 6.47, pValue: 0.00021, qValue: 0.012 },
     { hpoId: "HP:0001252", label: "Hypotonia", oddsRatio: 2.76, ciLow: 1.58, ciHigh: 4.81, pValue: 0.00043, qValue: 0.018 },
@@ -105,8 +95,6 @@ export const genePhenotypeAssociations = [
     { hpoId: "HP:0001270", label: "Motor delay", oddsRatio: 1.78, ciLow: 1.17, ciHigh: 2.71, pValue: 0.0068, qValue: 0.049 },
 ];
 
-// ─── Gene carrier demographics (source: CRDC cohort) ─────────────────────────
-// Aggregated across all 13 carriers (6 + 4 + 3 across 3 variants)
 export const geneCarrierDemographics = {
     byAge: [
         { band: "0-1",   count: 1 },
@@ -135,8 +123,6 @@ export const geneCarrierDemographics = {
     ],
 };
 
-// ─── Gene-level carrier phenotype (source: CRDC cohort — placeholder) ────────
-// Weighted aggregate of HPO category distribution across all 13 carriers
 export const geneLevelPhenotypeCategories = [
     {
         category: "Nervous system [HP:0000707]", allPct: 85, termCount: 8,
@@ -177,8 +163,6 @@ export const geneLevelPhenotypeCategories = [
     },
 ];
 
-// ─── Gene-level co-carrier genes (source: reference_db + CRDC cohort) ────────
-// Combined across all variant carrier sets; denominator = total gene carriers (13)
 export const geneLevelCoCarrierGenes = [
     {
         gene: "SCN1A", count: 3, denominator: 13,
@@ -212,7 +196,6 @@ export const geneLevelCoCarrierGenes = [
     },
 ];
 
-// ─── Genomic window (exon track + density) ───────────────────────────────────
 export const genomeWindow = {
     axisTicks: [
         "150,195k", "150,198k", "150,201k", "150,204k", "150,207k",
@@ -243,7 +226,6 @@ export const genomeWindow = {
     queryDensityIndex: 25,
 };
 
-// ─── Variant rows (accordion, used in Variants tab) ──────────────────────────
 export const variantRows = [
     {
         id: "chr5:150203773:T:A",

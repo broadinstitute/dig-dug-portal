@@ -1,4 +1,3 @@
-// Real view-model consumers and CSV export against distinct raw/display values.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');

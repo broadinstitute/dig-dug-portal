@@ -40,7 +40,6 @@ export default Vue.component("manhattan-plot", {
                 names[p] = this.phenotypeMap[p].description;
             }
 
-            // attach to the dom
             this.chart = c3.generate({
                 bindto: "#manhattan",
                 size: {
@@ -63,10 +62,8 @@ export default Vue.component("manhattan-plot", {
                             return positionColors.find((c) => d.x < c[0])[1];
                         }
 
-                        // phenotype index will determine the color
                         let i = component.phenotypes.indexOf(d.id);
 
-                        // if not found, default to black
                         return i >= 0 ? Colors[i] : "#000";
                     },
                 },
@@ -92,11 +89,9 @@ export default Vue.component("manhattan-plot", {
                     contents: function (d, titleFormat, valueFormat, color) {
                         let contents = '<div class="manhattan-tooltip">';
 
-                        // do any of the entries have a gene name?
                         let dGene = d.find((d) => !!d.gene);
                         let title = !!dGene ? dGene.gene : "P-value";
 
-                        // make a table
                         contents += `<table cellspacing="4">
                         <thead><tr>
                             <th colspan="2" class="p-value">${title}</th>
@@ -148,7 +143,6 @@ export default Vue.component("manhattan-plot", {
         columns() {
             let n = (this.associations || []).length;
 
-            // if no phenotypes, then just 2 columns for generic pValue
             if (!this.phenotypes) {
                 let x = new Array(n + 1);
                 let y = new Array(n + 1);
@@ -166,7 +160,6 @@ export default Vue.component("manhattan-plot", {
 
             let columns = [];
 
-            // each phenotype gets two columns of data (x and y)
             this.phenotypes.forEach((p, i) => {
                 let x = [`${p}_x`];
                 let y = [p];
@@ -188,7 +181,6 @@ export default Vue.component("manhattan-plot", {
             let xs = {};
             let phenotypeMap = this.phenotypeMap;
 
-            // if there's a list of phenotypes, each phenotype gets a color
             if (!this.phenotypes) {
                 return { pValue: "pValue_x" };
             }
@@ -212,7 +204,6 @@ export default Vue.component("manhattan-plot", {
 });
 
 let chromosomeLength = {
-    //chromosome name, length
     1: 247249719,
     2: 242951149,
     3: 199501827,
@@ -286,14 +277,11 @@ for (let i in chromosomes) {
     let len = chromosomeLength[chrom];
     chromosomeStart[chrom] = start;
 
-    // assign the start and middle of the chromosome
     chromosomePos[start] = chrom;
     chromosomePos[start + Math.floor(len / 2)] = chrom;
 
-    // advance to next chromosome start
     start += len;
 
-    // round-robin the colors for each chromosome
     positionColors.push([start, chromosomeColors[i % chromosomeColors.length]]);
 }
 </script>

@@ -1,12 +1,8 @@
-/**
- * This is the module to get data fro effector genes list page
- */
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 export default {
     namespaced: true,
 
-    // initial module state
     state() {
         return {
             datasets: [],
@@ -14,7 +10,6 @@ export default {
         };
     },
 
-    // commit methods
     mutations: {
         setDatasets(state, data) {
             state.datasets = data;
@@ -24,7 +19,6 @@ export default {
         }
     },
 
-    // dispatch methods
     actions: {
         async getDatasets(context, trait) {
             let json = await fetch(
@@ -33,7 +27,6 @@ export default {
                 trait +
                 ",_"
             ).then(resp => resp.json());
-            // set the data
             context.commit("setDatasets", json);
         },
 
@@ -52,7 +45,6 @@ export default {
                 "," +
                 dataFrom
             ).then(resp => resp.json());
-            // set the data
             context.commit("setEffectorGenes", json);
         }
     }

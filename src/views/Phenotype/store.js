@@ -20,7 +20,6 @@ export default new Vuex.Store({
         pathwayAssoc: bioIndex("pathway-associations")
     },
     state: {
-        // phenotypes needs to be an array so colors don't change!
         phenotype: null,
         newPhenotype: null,
         phenotypesInSession: null,

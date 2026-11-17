@@ -1,4 +1,3 @@
-/* Defaults */
 .pws-box {
     border-top: solid 5px #6c757d;
 }
@@ -161,11 +160,9 @@
     border-top: solid 5px  #770000 !important;
 }
 
-/* merged plot */
 .pws-group-legend-wrapper {
     width: 90%;
     text-align: right;
-    /*margin-bottom: -30px;*/
 }
 
 .pws-group-legend {
@@ -181,15 +178,12 @@
 }
 
 .pws-top-phenotypes-wrapper {
-    /*overflow-x: auto;
-    overflow-y: hidden;*/
     overflow-x: unset;
     overflow-y:unset;
     height: 160px;
 }
 
 .pws-top-phenotypes-wrapper.showing-all {
-    /*height: 170px;*/
     height: 200px;
     overflow-x: auto;
     padding-top: 30px;
@@ -314,16 +308,12 @@
 .pws-top-each-phenotype-name:hover > .options-4-actions > div:hover,
 .phenotype-with-signal:hover > .options-4-actions > div:hover {
     color: #aaccff;
-    /*background-color: #fff;*/
     border-top: solid 1px #ddd;
     border-bottom: solid 1px #ddd;
 }
 
-/* /////// */
 
 .phenotypes-with-signal-wrapper {
-    /*height: 310px;
-    overflow-y: auto;*/
 }
 
 .new-phenotypes-with-signal-wrapper {
@@ -454,7 +444,6 @@
         transparent
     );
     background-size: 1rem 1rem;
-    /*cursor: help;*/
 }
 
 .pws-phenotype-summary-row {

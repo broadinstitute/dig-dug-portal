@@ -156,7 +156,6 @@ export default new Vuex.Store({
                 context.state.newChr = locus.chr
                 context.state.newStart = locus.start;
                 context.state.newEnd = locus.end;
-                //update the locus
                 context.commit("setLocus", locus);
                 context.commit("setPhenotype", phenotype);
                 context.commit("setSearchGene", gene);

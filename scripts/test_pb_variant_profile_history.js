@@ -122,8 +122,6 @@ async function main() {
     assert.equal(app.contextAssociation, null);
     assert.equal(coGeneRuns.length, 3, 'Only successful analyses launch co-gene requests');
 
-    // Summary HPO counts use the same exact recorded-ID OR endpoint as Gene2,
-    // independently of scoring settings, display filters and score availability.
     app.variantAvailable = true;
     app.contextAssociation = {beta:-0.608};
     app.activeContextTerms = ['HP:0000364', 'HP:0030766'];
@@ -166,7 +164,6 @@ async function main() {
     await staleRun;
     assert.equal(app.profileRuns.length, 0, 'Late response cannot appear in another variant history');
     assert.equal(app.contextAssociation, null);
-    // Genotype application replaces every result with a new scoped calculation.
     app.variantIdentity = {...app.variantIdentity,canonicalId:variantId};
     app.$refs.genotypeFilter = {hide() {}};
     app.profileRuns = [first];

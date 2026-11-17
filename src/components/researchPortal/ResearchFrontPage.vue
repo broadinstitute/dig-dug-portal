@@ -23,22 +23,8 @@
                         placeholder="Search gene, variant, region or phenotype"
                         @keyup.enter="this.onSearch"
                     />
-                    <!--
-                    <research-single-search
-                        :single-search-config="null"
-                        :phenotypes="phenotypesInSession"
-                        :utils="utilsBox"
-                    ></research-single-search>
-                    -->
                 </div>
                 <div class="fp-search-examples">
-                    <!--
-                    <documentation
-                        name="home.example"
-                        v-if="diseaseGroup"
-                        :group="diseaseGroup.name"
-                    ></documentation>
-                    -->
                 </div>
             </div>
         </div>
@@ -83,24 +69,6 @@ export default Vue.component("research-front-page", {
 </script>
 
 <style>
-/*
-.research-header-menu-wrapper {
-    background: none;
-}
-.research-header-menu-wrapper ul {
-    text-align: right;
-}
-*/
-/*
-.paper-footer-wrapper {
-    background-color: #2e3e6e;
-}*/
-/*
-.fp-container{
-    flex: 1 1 auto;
-    display:flex;
-    flex-direction: column;
-}*/
 .mdkp-body.front-page {
     padding-top: 0;
     padding-left: 0;

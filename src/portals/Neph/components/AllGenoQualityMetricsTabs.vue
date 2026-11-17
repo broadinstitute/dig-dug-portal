@@ -11,22 +11,6 @@
                 <b-tab title="Homozygous Variants">
                     <div id="homgenotypequalitymetrics" style="width: 100%; height: 100%"></div>
                 </b-tab>
-                <!-- <b-tab title="All metrics values">
-                    <div id="metricsvalues" style="width: 100%; height: 100%">
-                        <div v-show="tableData.length">
-                            <b-table
-                                hover
-                                small
-                                sort-icon-left
-                                responsive="sm"
-                                :items="tableData"
-                                :fields="fields"
-                                id="metricsdata"
-                            >
-                            </b-table>
-                        </div>
-                    </div>
-                </b-tab> -->
                 
             </b-tabs>
         </div>
@@ -63,7 +47,6 @@ export default Vue.component("allgenoqualitymetrics-tab", {
         }
     },
     components: {
-        //QualityMatricsPlot,
     },
     mounted() {
         this.build_chart();
@@ -73,7 +56,6 @@ export default Vue.component("allgenoqualitymetrics-tab", {
             return this.tableData.length;
         },
         tableData() {
-            //alert(this.gnomAD_info.length);
             if (this.metrics_info && this.metrics_info.length) {
                 return this.metrics_info;
             } else {
@@ -83,9 +65,7 @@ export default Vue.component("allgenoqualitymetrics-tab", {
     },
     methods: {
         build_chart() {
-            //let component = this;
 
-            //console.log(this.vardata);
 
             let data1 = this.chart_data["AllGenoQuality"]['het_data'];
             
@@ -95,13 +75,10 @@ export default Vue.component("allgenoqualitymetrics-tab", {
 
             let vdata1 = this.chartdata.het_alt_geno_qual_bins;
             let vdata2 = this.chartdata.hom_alt_geno_qual_bins;
-            //console.log(vdata);
             vdata1 = ["Heterozygous carriers of this variant"].concat(vdata1);
             vdata2 = ["Homozygous carriers of this variant"].concat(vdata2);
             
             
-            // attach to the dom
-            // bindto: "#qualitymatrics",
             this.chart1 = c3.generate({
                 bindto: "#hetgenotypequalitymetrics",
                 data: {
@@ -120,10 +97,8 @@ export default Vue.component("allgenoqualitymetrics-tab", {
                 },
                 bar: {
                     width: {
-                        ratio: 0.5 // this makes bar width 50% of length between ticks
+                        ratio: 0.5
                     }
-                    // or
-                    //width: 100 // this makes bar width 100px
                 },
                 axis: {
                     y: {
@@ -132,7 +107,7 @@ export default Vue.component("allgenoqualitymetrics-tab", {
                             position: 'outer-middle'
                         },
                         tick: {
-                            format: function (x) { // x comes in as a time string.
+                            format: function (x) {
                                 return x.toExponential()
                             }
                         }
@@ -179,10 +154,8 @@ export default Vue.component("allgenoqualitymetrics-tab", {
                 },
                 bar: {
                     width: {
-                        ratio: 0.5 // this makes bar width 50% of length between ticks
+                        ratio: 0.5
                     }
-                    // or
-                    //width: 100 // this makes bar width 100px
                 },
                 axis: {
                     y: {
@@ -191,7 +164,7 @@ export default Vue.component("allgenoqualitymetrics-tab", {
                             position: 'outer-middle'
                         },
                         tick: {
-                            format: function (x) { // x comes in as a time string.
+                            format: function (x) {
                                 return x.toExponential()
                             }
                         }

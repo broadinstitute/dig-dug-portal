@@ -17,7 +17,6 @@ export default new Vuex.Store({
         genes: bioIndex("gene-finder",{query_private:true}),
     },
     state: {
-        // phenotypes needs to be an array so colors don't change!
         phenotype: null,
         newPhenotype: null
     },

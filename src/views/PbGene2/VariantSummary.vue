@@ -76,8 +76,6 @@ export default {
         requestKey() { return JSON.stringify([this.gene, this.variant.id, this.context, this.summary && this.summary.status, this.summary && this.summary.geneListMetadataCount, this.coGenes.map(row => row.gene)]); },
         variantUrl() {
             const query = new URLSearchParams({ query: this.variant.id, gene: this.gene });
-            // PB Variant already reads the shared clinical focus. Do not invent URL
-            // parameters that its existing input handler does not consume.
             return '/pb_variant.html?' + query.toString();
         },
     },

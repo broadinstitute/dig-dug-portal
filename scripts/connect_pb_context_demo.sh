@@ -1,5 +1,4 @@
 #!/bin/bash
-# Keep this terminal open while using the local Vue prototype.
 ssh_host=${PB_CONTEXT_SSH_HOST:-e3}
 if [[ ! "$ssh_host" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.@:-]*$ ]]; then
   echo 'Invalid PB_CONTEXT_SSH_HOST.' >&2
@@ -49,8 +48,6 @@ for port_pair in 8092:18092 8094:18094 8095:18096; do
     forward_args+=(-L "$forwarding")
     continue
   fi
-  # A second launcher must not tear down a healthy, separately started tunnel.
-  # Check its exact forwarding and compute destination before reusing it.
   for pid in $listeners; do
     command=$(ps -p "$pid" -o comm=) || exit $?
     arguments=$(ps -p "$pid" -o args=) || exit $?

@@ -115,7 +115,6 @@ export default Vue.component("posterior-probability-plot", {
             var xAxis = d3.axisBottom().scale(xScale);
             var yAxis = d3.axisLeft().scale(yScale);
             var legend_keys = ["Posterior Probability"];
-            //placing of the legend box relative to the plot
             var lineLegend = svg
                 .selectAll(".lineLegend")
                 .data(legend_keys)
@@ -125,7 +124,6 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("transform", function(d, i) {
                     return "translate(" + 150 + "," + i * 30 + ")";
                 });
-            //placing of the legened text inside the legend box
             lineLegend
                 .append("text")
                 .text(function(d) {
@@ -133,9 +131,7 @@ export default Vue.component("posterior-probability-plot", {
                 })
                 .attr("transform", "translate(20,15)");
 
-            //var color_scale =
 
-            //size of the legend box
             lineLegend
                 .append("rect")
                 .attr("fill", function(d, i) {
@@ -163,7 +159,6 @@ export default Vue.component("posterior-probability-plot", {
                     return yScale(d.ppa);
                 })
                 .curve(d3.curveLinear);
-            //append the ppa line- calculated
             var path = svg
                 .append("path")
                 .attr("d", lineGen(data))
@@ -172,7 +167,6 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("fill", "none")
                 .style("opacity", 1);
 
-            //append the reference line
             var path2 = svg
                 .append("path")
                 .attr("d", lineGen(data2))
@@ -187,22 +181,11 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("y", "-10em")
                 .text("I am label");
 
-            // var suggestedPrior = [
-            //     { prior: 0.05, color: "#abd171" },
-            //     { prior: 0.2, color: "#b6d980" },
-            //     { prior: 0.3696, color: "#b3de71" }
-            // ];
-            // var newMap = {prior:this.suggestedPriorNew,color:"#d959b2"}
 
-            // var suggestedPrior = [0.05, 0.2];
 
-            // if(!!this.suggestedPriorNew){
-            //     suggestedPrior.push(newMap)
-            // }
             this.universalPriorList.forEach((x, i) => {
                
                 var data3 = this.referenceLineNew(x);
-                // var data4 = this.referenceLineNew(0.2);
                 var path3 = svg
                     .append("path")
                     .attr("d", lineGen(data3))
@@ -212,15 +195,7 @@ export default Vue.component("posterior-probability-plot", {
                     .attr("fill", "none");
             });
 
-            //  svg.append('line')
-            // .style("stroke", "lightgreen")
-            // .style("stroke-width", 10)
-            // .attr("x1", 20)
-            // .attr("y1", 300)
-            // .attr("x2", 100)
-            // .attr("y2", 100);
 
-            //axis labeling
             svg.append("text")
                 .attr("class", "x label")
                 .attr("text-anchor", "end")
@@ -237,7 +212,6 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("transform", "rotate(-90)")
                 .text("Posterior probability");
 
-            //hover over
             var bisect = d3.bisector(function(d) {
                 return d.prior;
             }).left;
@@ -273,7 +247,6 @@ export default Vue.component("posterior-probability-plot", {
             }
 
             function mousemove() {
-                // recover coordinate we need
                 var x0 = xScale.invert(d3.mouse(this)[0]);
                 var i = bisect(data, x0, 1);
                 var selectedData = data[i - 1];
@@ -301,7 +274,7 @@ export default Vue.component("posterior-probability-plot", {
         },
 
         posteriorProbability(p) {
-            let bayes_factor = this.bayes_factor; //combined bayes factor
+            let bayes_factor = this.bayes_factor;
             let f5 = p / (1 - p);
             let p0 = bayes_factor * f5;
             let ppa = p0 / (1 + p0);
@@ -326,7 +299,6 @@ export default Vue.component("posterior-probability-plot", {
                 m["ppa"] = y[i];
                 l.push(m);
             });
-            //this returns list of maps where [{"prior":0.01,"ppa":0.99},{..}]
             return l;
         }
     },

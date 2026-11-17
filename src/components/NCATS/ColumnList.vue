@@ -17,7 +17,6 @@
                     :key="`${curie}_item`"
                     :curie="curie">
                 </resolved-curie-link>
-                <!-- {{index == (data.value.length - 1) ? '' : ', '}} -->
             </span>
         </li>
     </ul>
@@ -28,10 +27,6 @@ import Vue from "vue";
 export default Vue.component('column-list', {
     props: {
         list: Array,
-        // columns: {
-        //     type: Number,
-        //     default: 3
-        // }
     }
 })
 </script>

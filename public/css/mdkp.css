@@ -6,15 +6,12 @@ body.kp-default {
 }
 
 a {
-    /*color: #0097d6 !important;*/
     color: #007bff !important;
 }
 
 a:hover {
-    /*text-decoration: none !important;*/
 }
 
-/*huge calculator*/
 #posteriorpriorplot .center-posterior-prior-plot {
     display: flex;
     justify-content: center;
@@ -23,7 +20,6 @@ a:hover {
     border: 3px solid green;
 }
 
-/* front page */
 .front-top-banner-agingkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/agingkp_front_bg.png),
         linear-gradient(#75bee9, #20c4f4);
@@ -764,7 +760,6 @@ a:hover {
     border-color: #fff;
 }
 
-/* front page datasets info graphs */
 
 .front-datasets-graph,
 .front-phenotypes-graph {
@@ -856,7 +851,6 @@ a.edit-btn:hover {
     position: absolute;
     top: 0;
     left: 0;
-    /*height: 65px;*/
     width: 100%;
     background-color: #fff;
     font-size: 16px;
@@ -870,7 +864,6 @@ a.edit-btn:hover {
 }
 
 .gene-page-header-body {
-    /*height: 65px;*/
     font-size: 25px;
     padding: 12px 0 12px 5px;
     border-left: solid 1px #eee;
@@ -1154,8 +1147,6 @@ div.search-example {
 }
 
 .phenotype-with-signal.moderate {
-    /*background-color: #d0efff;
-    border: solid 1px #30b7f6;*/
     background-color: #ffffb3;
     border: solid 1px #ffcc44;
 }
@@ -1361,14 +1352,10 @@ polyline {
     border-radius: 25px;
     padding: 3px 10px;
     font-size: 15px;
-    /* width: fit-content;*/
     margin: auto;
     width: intrinsic;
-    /* Safari/WebKit uses a non-standard name */
     width: -moz-max-content;
-    /* Firefox/Gecko */
     width: -webkit-max-content;
-    /* Chrome */
 }
 
 .pagination.b-pagination .page-item {
@@ -1399,7 +1386,6 @@ polyline {
     margin: 0 !important;
 }
 
-/* Filtering UI */
 div.filtering-ui-wrapper {
     border: solid 1px #ddd;
     border-radius: 5px;
@@ -1577,7 +1563,6 @@ div.filtering-ui-content div.col.filter-col-sm input {
     color: #fff !important;
 }
 
-/* IGV */
 .igv-zooms-wrapper {
     position: relative;
     z-index: 1000000;
@@ -1596,7 +1581,6 @@ div.filtering-ui-content div.col.filter-col-sm input {
     color: #fff;
 }
 
-/* style for new features page */
 .news-content-wrapper,
 .resource-content-wrapper {
     background-color: #eee;
@@ -1742,7 +1726,6 @@ a.to-previous-page:hover {
     border-color: darkred;
 }
 
-/* pheWAS dataset association table */
 #phewas-datasets {
     border-right: none;
     margin-top: 1rem;
@@ -1814,7 +1797,6 @@ a.to-previous-page:hover {
     color: #aaaaff !important;
 }
 
-/* for vue-bootstrap-typeahead */
 [type="search"] {
     background: #fff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.75rem center/8px 10px;
 }
@@ -1824,7 +1806,6 @@ a.to-previous-page:hover {
     margin-left: 2px;
 }
 
-/* !important is required to override the default pill styling from Bootstrap */
 .filter-pill-pValue {
     background-color: #dc3545 !important;
 }
@@ -1919,7 +1900,6 @@ a.to-previous-page:hover {
     align-items: center;
 }
 
-/* HuGe Calculator specific */
 #huge .filter-pill-gene {
     background-color: #ff8c00 !important;
 }
@@ -1928,7 +1908,6 @@ a.to-previous-page:hover {
     background-color: #9de21c !important;
 }
 
-/* GAIT specific */
 #gait .accordion .card.mb-1 {
     overflow: unset;
 }
@@ -2063,7 +2042,6 @@ button.btn.btn-mini {
     opacity: 0;
 }
 
-/* for volcano plot. Move it to it's own CSS when there's too much */
 #volcanoPlot {
     display: block;
     margin-left: auto;
@@ -2117,12 +2095,6 @@ span.volcano-score-2 {
 }
 
 .gene-on-clicked-dot {
-    /*
-    background-color: #ddd;
-    border: solid 1px #aaa;
-    padding: 2px 6px;
-    border-radius: 3px;
-    */
 
     display: inline-block;
     margin-right: 10px;
@@ -2220,7 +2192,6 @@ span.volcano-score-2 {
 }
 
 .kp-tabs-contents {
-    /*margin: auto;*/
     background-color: #fff;
     padding: 1.25em;
     border-radius: 5px;
@@ -2286,7 +2257,6 @@ span.spacer-5 {
     padding-bottom: 15px;
 }
 
-/* for tool tip UI. */
 
 .tip-wrapper {
     vertical-align: -13px;

@@ -1,4 +1,3 @@
-/* CodeMirror theme - used for styling the eggserver text editor.*/
 
 .cm-s-liquibyte.CodeMirror {
 	background-color: #000;
@@ -55,12 +54,9 @@
 
 .cm-s-liquibyte .CodeMirror-activeline-background { background-color: rgba(0, 255, 0, 0.15); }
 
-/* Default styles for common addons */
 .cm-s-liquibyte .CodeMirror span.CodeMirror-matchingbracket { color: #0f0; font-weight: bold; }
 .cm-s-liquibyte .CodeMirror span.CodeMirror-nonmatchingbracket { color: #f00; font-weight: bold; }
 .CodeMirror-matchingtag { background-color: rgba(150, 255, 0, .3); }
-/* Scrollbars */
-/* Simple */
 .cm-s-liquibyte div.CodeMirror-simplescroll-horizontal div:hover, .cm-s-liquibyte div.CodeMirror-simplescroll-vertical div:hover {
 	background-color: rgba(80, 80, 80, .7);
 }
@@ -84,7 +80,6 @@
 	background-color: #262626;
 	border-top: 1px solid #404040;
 }
-/* Overlay */
 .cm-s-liquibyte div.CodeMirror-overlayscroll-horizontal div, div.CodeMirror-overlayscroll-vertical div {
 	background-color: #404040;
 	border-radius: 5px;

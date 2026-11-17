@@ -40,7 +40,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
-        //this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait); //for now, data from kp4cd
     },
 
     render(createElement, context) {

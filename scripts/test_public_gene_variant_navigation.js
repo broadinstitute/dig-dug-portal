@@ -1,4 +1,3 @@
-// Run: node scripts/test_public_gene_variant_navigation.js
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");

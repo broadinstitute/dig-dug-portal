@@ -47,7 +47,6 @@ assert.deepEqual(matchingCombinations([{terms:['A','B']},{terms:['A']},{terms:['
 assert.deepEqual(recordedTerms(samples,['child','other'],terms),[{id:'extra',count:1}]);
 console.log('Single-HPO gate, ancestor exclusion, complete disease-set separators, score missingness and 449-sample pagination PASS');
 
-// OR selections intersect with projects without duplicating overlapping matches.
 assert.equal(filterSamplePhenotypes(samples, null), samples);
 assert.deepEqual(filterSamplePhenotypes(samples, []), []);
 assert.deepEqual(filterSamplePhenotypes(samples, ['other', 'extra']).map(row => row.id), ['B', 'A']);
@@ -66,7 +65,6 @@ assert.deepEqual(projectPhenotypeTree([], hierarchyTerms), []);
 assert.equal(flatten(projectPhenotypeTree([{ terms: ['a'] }], {a: ['A', '', ['b']], b: ['B', '', ['a']]})).length, 2, 'Malformed cycles cannot recurse forever');
 console.log('Phenotype checkbox intersection and distinct-sample hierarchy counts PASS');
 
-// Exercise the result component's computed pipeline and pagination resets.
 const { createRequire } = await import('node:module');
 const require = createRequire(import.meta.url);
 const Vue = require('vue');

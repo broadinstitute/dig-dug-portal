@@ -73,7 +73,6 @@
 								>
 							</b-tr>
 						</b-tbody>
-						<!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
 					</b-table-simple>
 				</div>
 			</div>
@@ -165,12 +164,10 @@ export default Vue.component("hugecal-score-section", {
 			);
 
 			let closestGene = null;
-			//calculate the distance of topVariant to each gene and find the smallest distance
 			filteredGenesInARegion.map((gene) => {
 				let distanceFromStart = topVariant.position - gene.start;
 				let distanceFromEnd = topVariant.position - gene.end;
 
-				//get distance to the genes other than the one topVarint belongs to.
 				gene["distance"] =
 					distanceFromStart * distanceFromEnd > 0
 						? Math.min(
@@ -193,11 +190,10 @@ export default Vue.component("hugecal-score-section", {
 					eachSNP.pValue < 5e-8
 				) {
 					commonBF = 20;
-					return commonBF; //BF of common variation:
+					return commonBF;
 				}
 			});
 
-			//if NOT GWAS significant
 			let isGWASSignificantAssociation = false;
 
 			assoData.map((variant) => {
@@ -222,7 +218,6 @@ export default Vue.component("hugecal-score-section", {
 					? true
 					: false;
 
-			//if top variant is coding and the impact of that coding variant is high or moderate (in the same Gene)
 			commonBF = !isGWASSignificantAssociation
 				? 1
 				: !!isCodingVariant && !!isHighImpcat
@@ -258,7 +253,6 @@ export default Vue.component("hugecal-score-section", {
 							!!v.phenotype &&
 							v.phenotype == this.selectedPhenotype
 						) {
-							//filter with selected phenotype
 							masks = v.masks;
 
 							let stdErr, beta, wn, vn, f1, sqrtF1, f2, f3, f4;
@@ -268,7 +262,6 @@ export default Vue.component("hugecal-score-section", {
 									(a, b) => a.pValue - b.pValue
 								);
 
-								//d[0] is the most significant mask
 								stdErr = d[0].stdErr;
 								beta = d[0].beta;
 								wn = this.prior;
@@ -364,7 +357,6 @@ export default Vue.component("hugecal-score-section", {
 .block-end {
 	margin-block-end: 60px;
 }
-/* basic positioning */
 .legend {
 	list-style: none;
 }
@@ -379,7 +371,6 @@ export default Vue.component("hugecal-score-section", {
 	height: 12px;
 	margin: 2px;
 }
-/* your colors */
 .legend .superawesome {
 	background-color: #e7edf7;
 }

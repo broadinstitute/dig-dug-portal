@@ -74,11 +74,6 @@ export default new Vuex.Store({
         },
 
         async queryBurden(context, { dataset, gene, binID, transcriptID }) {
-            //let queries = binID.map(bin => query("burden", `${gene},${bin}`));
-            // let data = await Promise.all(queries)
-            //     .then(results => results.flatMap(data => data))
-            //     .then(data => uniqBy(data, "varId"));
-            // context.commit("setVariants", data);
             let data = {};
             if (transcriptID?.length > 0) {
                 data = await query(

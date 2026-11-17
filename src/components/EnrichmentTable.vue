@@ -111,7 +111,6 @@ export default Vue.component("EnrichmentTable", {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
                         formatter: Formatters.pValueFormatter,
-                        //, tdClass(x) { return !!x && x < 1e-5 ? "variant-table-cell high" : "";},
                         sortable: true,
                     },
                     {
@@ -141,7 +140,6 @@ export default Vue.component("EnrichmentTable", {
             let data = [];
             let groups = {};
             let annotations = this.annotations;
-            // get all the data from all phenotypes
             for (let i in annotations) {
                 let r = annotations[i];
                 if (r.pValue) {
@@ -164,11 +162,9 @@ export default Vue.component("EnrichmentTable", {
                         });
                     }
 
-                    // add the columns for each phenotype
                     data[dataIndex][`${r.phenotype}_pValue`] = r.pValue;
                     data[dataIndex][`${r.phenotype}_fold`] = fold;
 
-                    // lowest p-value across all phenotypes
                     if (r.pValue) {
                         let minP = data[dataIndex].minP;
 
@@ -177,20 +173,18 @@ export default Vue.component("EnrichmentTable", {
                         }
                     }
 
-                    // maximum fold across all phenotypes
                     if (fold > data[dataIndex].maxFold) {
                         data[dataIndex].maxFold = fold;
                     }
                 }
             }
 
-            // sort all the records by phenotype fold
             data.sort((a, b) => b.maxFold - a.maxFold);
 
             return data;
         },
         tableData() {
-            let filter = this.filter; // TODO: can we detect if not id=>true
+            let filter = this.filter;
             let dataRows = this.groupedAnnotations;
 
             if (filter) {

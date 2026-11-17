@@ -92,16 +92,7 @@
                     <template #cell(consequenceTerms)="data">
                         <div class="border-color" :class="data.item.impact">
                             {{ consequenceFormatter(data.item.consequenceTerms) }}
-                            <!--<span
-                                v-for="(c, i) in data.item.consequenceTerms"
-                                :key="c"
-                                >{{ consequenceFormatter(c)
-                                }}{{
-                                    i < data.item.consequenceTerms.length - 1
-                                        ? ", "
-                                        : ""
-                                }}</span
-                            > -->
+
                         </div></template
                     >
                     <template #cell(siftPrediction)="data">
@@ -145,23 +136,11 @@ export default Vue.component("transcript-consequence-table", {
                     key: "transcriptId",
                     label: "Feature",
                 },
-                /*{
-                    key: "position",
-                    label: "Position",
-                },
-                {
-                    key: "aminoAcids",
-                    label: "Amino Acids",
-                },*/
                 {
                     key: "consequenceTerms",
                     label: "Consequence",
                     tdClass: "border-color",
                 },
-                /*{
-                    key: "hgncId",
-                    label: "HGNC",
-                },*/
                 {
                     key: "hgvsc",
                     label: "HGVSc",
@@ -194,10 +173,6 @@ export default Vue.component("transcript-consequence-table", {
                     key: "caddRawRankscore",
                     label: "CADD-Phred Score",
                 },
-                /*{
-                    key: "gnomadGenomesPopmaxAf",
-                    label: "gnomAD AF",
-                },*/
             ],
             perPage: 10,
             currentPage: 1,
@@ -208,7 +183,6 @@ export default Vue.component("transcript-consequence-table", {
             return this.tableData.length;
         },
         sortedTranscriptConsequences() {
-            //alert("sort function:"+this.transcriptConsequences.length);
             let picked = this.transcriptConsequences.filter(
                 (a) => a.pick === "1"
             );
@@ -225,7 +199,6 @@ export default Vue.component("transcript-consequence-table", {
                 });
         },
         tableData() {
-            //let dataRows = this.sortedTranscriptConsequences;
             let dataRows = this.transcriptConsequences;
             if (!!this.filter) {
                 dataRows = dataRows.filter((association) => {

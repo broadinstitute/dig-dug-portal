@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Prepare private cohort inputs and serve both Gene pages with the Context API.
 
 usage() {
   cat <<'USAGE'

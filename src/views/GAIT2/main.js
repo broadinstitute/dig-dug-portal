@@ -210,24 +210,16 @@ new Vue({
                 { key: "score", label: "Score", visible: true, sortable: true },
             ],
             defaultFields: [
-                //custom predefined and hidden fields
                 "selected",
                 "varId",
                 "burdenBinId",
-                // "caddRawRankscore",
                 "impact",
                 "maf",
-                // "siftPred",
-                // "polyphen2HdivPred",
-                // "polyphen2HvarPred",
-                // "lrtPred",
-                // "mutationtasterPred",
                 "gene",
                 "pick",
                 "transcript_id",
             ],
             fields: [],
-            //optionalFields: [],
             optionalFields: [
                 {
                     key: "siftPred",
@@ -426,24 +418,11 @@ new Vue({
         visibleFields() {
             return this.fields.filter((field) => !!field.visible);
         },
-        // tableData() {
-        //     if (
-        //         this.$store.state.variants &&
-        //         this.$store.state.variants.length
-        //     ) {
-        //         return this.$store.state.variants.map(v => ({
-        //             selected: true, //add selected column for manual selection
-        //             ...v
-        //         }));
-        //     } else {
-        //         return [];
-        //     }
-        // },
 
         tableData() {
             if (this.pageCovariances && this.pageCovariances.variants) {
                 return this.pageCovariances.variants.map((v) => ({
-                    selected: true, //add selected column for manual selection
+                    selected: true,
                     ...v,
                 }));
             } else {
@@ -624,7 +603,6 @@ new Vue({
             }
         },
         selectedMasks(newMasks, oldMasks) {
-            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newMasks, oldMasks)) {
                 keyParams.set({
                     masks: newMasks.length ? newMasks.join(",") : [],
@@ -673,13 +651,10 @@ new Vue({
         "$store.state.ldServer.runTestsError": function () {
             this.loadingCovariances = false;
         },
-        //check for table data update
         tableData: {
             handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
-                    this.updateSelectedVariants(); //update selected variants when tableData is ready
-                    //when rows are selected or unselected, tableData won't change, only the selected rows changed
-                    //updateSelectedVariants() function should be call when check/uncheck to update selected rows
+                    this.updateSelectedVariants();
                 }
             },
             deep: true,
@@ -747,13 +722,10 @@ new Vue({
             this.$store.commit("ldServer/setCovariances", []);
         },
 
-        //for NC GAIT
         async searchAnnotations() {
             this.showAnnotations = true;
             this.loadingAnnotations = true;
-            this.criteriaChanged = false; //reset criteria
-            // let search =
-            //     this.selectedGene[0] || this.selectedRegion[0]?.toString();
+            this.criteriaChanged = false;
             let search = this.selectedGeneOrRegion[0].toString();
             let locus = await regionUtils.parseRegion(search);
             if (locus) {
@@ -769,8 +741,6 @@ new Vue({
         },
 
         async searchVariants() {
-            //if (this.searchRegionString) {
-            //parse the region string
             this.loadingVariants = true;
             this.showVariants = true;
             this.noVariants = false;
@@ -796,75 +766,14 @@ new Vue({
                 return;
             }
 
-            //using hardcoded test samples
             let input = {
                 regions: regions,
-                //regions: this.samples
             };
 
-            // if (regions) {
-            //     console.log("regions found");
-            //     console.log("input: ", input);
-            // } else {
-            //     console.log("no regions found");
-            // }
             let liftedRegions = await this.liftOver(input);
             if (liftedRegions) {
                 console.log("liftedRegion: ", liftedRegions);
-                //hardcoded example
-                // let input = {
-                //     chrom: "22",
-                //     start: 44269672,
-                //     stop: 44270672,
-                //     summaryStatisticDataset: 1,
-                //     genomeBuild: "GRCh38",
-                //     maskDefinitions: [
-                //         {
-                //             id: 1,
-                //             name: "My locus of interest",
-                //             description:
-                //                 "Example of specifying groups as regions",
-                //             genome_build: "GRCh38",
-                //             group_type: "REGION",
-                //             identifier_type: "COORDINATES",
-                //             groups: {
-                //                 "enhancer-1": {
-                //                     start: 44269672,
-                //                     stop: 44270172
-                //                 },
-                //                 "enhancer-2": {
-                //                     start: 44270172,
-                //                     stop: 44270672
-                //                 }
-                //             }
-                //         }
-                //     ]
-                // };
 
-                // let input = {
-                //     chrom: liftedRegions.regions[0].chrom,
-                //     start: liftedRegions.regions[0].start,
-                //     stop: liftedRegions.regions[0].stop,
-                //     summaryStatisticDataset: 1,
-                //     genomeBuild: "GRCh38",
-                //     maskDefinitions: [
-                //         {
-                //             id: 1,
-                //             name: "My locus of interest",
-                //             description:
-                //                 "Example of specifying groups as regions",
-                //             genome_build: "GRCh38",
-                //             group_type: "REGION",
-                //             identifier_type: "COORDINATES",
-                //             groups: {
-                //                 region: {
-                //                     start: liftedRegions.regions[0].start,
-                //                     stop: liftedRegions.regions[0].stop
-                //                 }
-                //             }
-                //         }
-                //     ]
-                // };
                 let groups = {};
 
                 for (let i = 0; i < liftedRegions.regions.length; i++) {
@@ -877,7 +786,6 @@ new Vue({
                         stop: liftedRegions.regions[i].stop,
                     };
                 }
-                //console.log("groups", JSON.stringify(groups, null, 2));
 
                 let input2 = {
                     chrom: liftedRegions.regions[0].chrom,
@@ -896,12 +804,6 @@ new Vue({
                             genome_build: "GRCh38",
                             group_type: "REGION",
                             identifier_type: "COORDINATES",
-                            // groups: {
-                            //     region: {
-                            //         start: liftedRegions.regions[0].start,
-                            //         stop: liftedRegions.regions[0].stop
-                            //     }
-                            // }
                             groups: groups,
                         },
                     ],
@@ -909,7 +811,6 @@ new Vue({
 
                 console.log("input: ", input2);
                 let covariances = await this.getCovariances(input2);
-                //console.log("covariances: ", covariances.data);
                 console.log("covariances: ", covariances);
                 this.pageCovariances = covariances.data;
             } else {
@@ -925,7 +826,7 @@ new Vue({
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(regions), // body data type must match "Content-Type" header
+                body: JSON.stringify(regions),
             }).then((resp) => {
                 if (resp.ok) {
                     return resp.json();
@@ -956,7 +857,6 @@ new Vue({
             return response;
         },
 
-        //return a promise
         async runRaremetal() {
             this.showCovariances = true;
             this.loadingCovariances = true;
@@ -965,29 +865,22 @@ new Vue({
             console.log("waiting for raremetal");
             console.log("data: ", data);
             this.runSamples = data.nSamples || 0;
-            // Use the returned covariance data to run aggregation tests and return results (note that runner.run() returns a Promise)
             const [groups, variants] = raremetal.helpers.parsePortalJSON(data);
             const runner = new raremetal.helpers.PortalTestRunner(
                 groups,
                 variants,
                 this.selectedTests
-                //tests
-                //["burden", "skat"]
-                // One or more test names can be specified!
-                //["burden", "skat", "skat-o", "vt"]
             );
             console.log("runner: running ");
             let runResult = await runner.run();
             console.log("runner: done", runResult);
             this.runResults = [
                 {
-                    phenotype: this.selectedPhenotypes[0], //selecting only one phenotype for now
+                    phenotype: this.selectedPhenotypes[0],
                     samples: data.nSamples,
                     data: runResult,
                 },
             ];
-            //hardcoded phenotype for now
-            //return { phenotype: "T2D", samples, data: runResult };
             console.log("runResults: ", this.runResults);
             this.loadingCovariances = false;
         },
@@ -995,7 +888,6 @@ new Vue({
             console.log("regionSelectionType: ", value);
         },
 
-        //this for coding GAIT
         searchCovariances() {
             this.showCovariances = true;
             this.loadingCovariances = true;
@@ -1010,34 +902,8 @@ new Vue({
             });
             this.testChanged = false;
         },
-        //end NC GAIT
-        // searchCovariances() {
-        //     this.showCovariances = true;
-        //     this.loadingCovariances = true;
-        //     this.$store.dispatch("ldServer/runTests", {
-        //         variants: this.selectedVariants,
-        //         phenotypes: this.selectedPhenotypes,
-        //         dataset: this.selectedDataset,
-        //         tests:
-        //             this.selectedTests.length > 0
-        //                 ? this.selectedTests
-        //                 : ["burden"]
-        //     });
-        //     this.testChanged = false;
-        // },
         updateFields() {
-            // let addFields = [];
-            // Object.keys(this.tableData[0]).forEach(k => {
-            //     if (this.defaultFields.indexOf(k) < 0) {
-            //         addFields.push({
-            //             key: k,
-            //             label: startCase(k),
-            //             visible: false
-            //         });
-            //     }
-            // });
 
-            // this.optionalFields = addFields;
             this.fields = this.baseFields.concat(this.optionalFields);
         },
         formatTestData(samples, data) {
@@ -1054,29 +920,15 @@ new Vue({
                         data: [this.formatTableRow(row)],
                     };
 
-                    //formattedData[row.test].top.samples = samples; //keep samples in top row
                 } else {
                     if (formattedData[row.test].top.pvalue > row.pvalue) {
                         formattedData[row.test].top = this.formatTableRow(row);
                     }
 
-                    //if same test, add to the array
                     formattedData[row.test].data.push(this.formatTableRow(row));
                 }
             }
 
-            // data.map(test => {
-            //     formatted.push({
-            //         test: test.test,
-            //         region: test.group,
-            //         variants: test.variants.length,
-            //         zscore: test.stat,
-            //         pvalue: test.pvalue,
-            //         effect: test.effect,
-            //         se: test.se,
-            //         samples
-            //     });
-            // });
             let returnData = [];
             Object.values(formattedData).forEach((test) => {
                 returnData.push({
@@ -1085,7 +937,6 @@ new Vue({
                     data: test.data,
                 });
             });
-            //return [formattedData];
             return returnData;
         },
         formatTableRow(row) {
@@ -1100,11 +951,6 @@ new Vue({
                     effect: row.effect,
                     se: row.se,
                 };
-                // if (row.test.includes("skat")) {
-                //     data.qscore = row.stat;
-                // } else {
-                //     data.zscore = row.stat;
-                // }
 
                 return data;
             }
@@ -1172,7 +1018,6 @@ new Vue({
         },
 
         updateSelectedVariants() {
-            //get only the varIDs for selected rows
             this.selectedVariants = this.tableData
                 .filter((v) => {
                     return v.selected === true;
@@ -1189,14 +1034,12 @@ new Vue({
         },
         async removeGene() {
             let copiedArray = await this.searchCriteria.slice();
-            //remove object from arrray with field = gene
             let index = copiedArray.findIndex((o) => o.field === "gene");
             if (index !== -1) copiedArray.splice(index, 1);
             this.searchCriteria = copiedArray;
         },
         removeRegion() {
             let copiedArray = this.searchCriteria.slice();
-            //remove object from arrray with field = region
             let index = copiedArray.findIndex((o) => o.field === "region");
             if (index !== -1) copiedArray.splice(index, 1);
             this.searchCriteria = copiedArray;

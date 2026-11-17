@@ -31,7 +31,6 @@ export default new Vuex.Store({
         phenotypeCorrelation: null,
         eglsFullList: [],
         eglGenes: [],
-        //primaryPhCR: {},
         hugeScores: {},
         tissueGeneExpression: [],
         loadedTissues: [],
@@ -66,7 +65,6 @@ export default new Vuex.Store({
         },
 
         setSecondaryPhenotype(state, secondaryPhenotype) {
-            //let secondaryPhenotypeList = []
             state.secondaryPhenotype = secondaryPhenotype
         },
         setPhenotypelist(state, phenotypelist) {
@@ -220,30 +218,6 @@ export default new Vuex.Store({
             context.commit("setLoadedTissues", newTissues);
         },
 
-        /*
-        /// leave it in case we decide to integrate phenotype correlations
-        async getPrimaryPhCR(context, primaryPhenotype) {
-
-
-            let searchPoint =
-                "https://bioindex-dev.hugeamp.org/api/bio/query/genetic-correlation?q=" +
-                primaryPhenotype;
-
-            var correlationJson = await fetch(searchPoint).then((resp) =>
-                resp.json()
-            );
-
-            if (correlationJson.error == null) {
-                //console.log("correlationJson", correlationJson)
-                let CRs = {};
-
-                correlationJson.data.map(p => {
-                    CRs[p.other_phnotype] = p;
-
-                })
-                context.commit("setPrimaryPhCR", CRs);
-            }
-        }*/
 
     }
 });

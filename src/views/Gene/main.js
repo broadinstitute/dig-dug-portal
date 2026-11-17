@@ -237,7 +237,6 @@ new Vue({
             }
             return utils;
         },
-        /// for disease systems
         diseaseInSession() {
             if (this.$store.state.diseaseInSession == null) {
                 return "";
@@ -255,7 +254,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        ///
         phenotypeOptions() {
             return this.phenotypesInSession
                 .filter((x) => x.name != this.$store.state.phenotype)
@@ -281,7 +279,6 @@ new Vue({
             for (let i in endpoint.data) {
                 const assoc = endpoint.data[i];
 
-                // skip associations not part of the disease group
                 if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
@@ -317,7 +314,6 @@ new Vue({
             for (let i in data) {
                 const assoc = data[i];
 
-                // skip associations not part of the disease group
                 if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
@@ -328,11 +324,9 @@ new Vue({
                 }
             }
 
-            // convert to an array, sorted by p-value
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
         },
-        //filter associations that only exist in the phenotypeMap
         filteredAssociations() {
             return (
                 this.geneassociations.filter((row) => {
@@ -348,7 +342,6 @@ new Vue({
                 "desc"
             );
 
-            //console.log(data);
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
                 data = sessionUtils.getInSession(
@@ -360,8 +353,6 @@ new Vue({
 
             let hugeMap = {};
 
-            //console.log('3', Math.log(3))
-            //console.log('30', Math.log(30))
 
             for (let i in data) {
                 const score = data[i];
@@ -388,7 +379,6 @@ new Vue({
                 score["range"] = range;
                 score["renderScore"] = Math.log(data[i].huge);
 
-                // skip associations not part of the disease group
                 if (!this.phenotypeMap[score.phenotype]) {
                     continue;
                 }
@@ -396,7 +386,6 @@ new Vue({
                 hugeMap[score.phenotype] = score;
             }
 
-            // convert to an array, sorted by p-value
             let x = Object.values(hugeMap);
             return x;
         },
@@ -417,7 +406,6 @@ new Vue({
             for (let i in data) {
                 const assoc = data[i];
 
-                // skip associations not part of the disease group
                 if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
@@ -428,7 +416,6 @@ new Vue({
                 }
             }
 
-            // convert to an array, sorted by p-value
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
         },
@@ -437,14 +424,6 @@ new Vue({
             return data;
         },
 
-        /*smallestpValuePhenotype() {
-            // let data = this.$store.state.varassociations.data;
-            // let x = data.sort(
-            //     (a, b) => a.pValue - b.pValue
-            // );
-
-            return "T2D";
-        },*/
         selectedPhenotypes() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             if (Object.keys(phenotypeMap).length === 0) {
@@ -621,7 +600,6 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 
-        // the region for the gene was found
         region(region) {
             if (region) {
                 uiUtils.hideElement("pageSearchHeaderContent");
@@ -629,7 +607,6 @@ new Vue({
             }
         },
 
-        // the canonical symbol was found
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
             this.$store.dispatch("queryAssociations");
@@ -654,13 +631,8 @@ new Vue({
     },
 
     created() {
-        /// disease systems
         this.$store.dispatch("bioPortal/getDiseaseSystems");
-        ////
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        // this.$store.dispatch("queryAliasName", this.$store.state.aliasName)
-        //this.$store.dispatch("queryAssociations");
-        // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
@@ -739,7 +711,6 @@ new Vue({
             };
         },
 
-        // go to region page
         exploreRegion(expanded = 0) {
             let r = this.region;
 

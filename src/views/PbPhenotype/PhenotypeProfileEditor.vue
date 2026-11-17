@@ -113,7 +113,6 @@ export default {
         isIncluded(row) { return row.field === 'phenotype' && row.operator === 'contains' && row.required !== true; },
         clampMinimum(value, count) { return Math.max(1, Math.min(count || 1, Number.isInteger(Number(value)) ? Number(value) : 2)); },
         fieldOperators(row) {
-            // Existing URL operators remain editable; new lines use the mockup's defaults.
             if (row.field === 'age') return row.operator === 'between' ? [operators('age')[0]] : operators('age');
             if ((row.field !== 'phenotype' || row.required === true) && row.operator === 'is') return [{ value: 'is', label: 'is' }];
             return operators(row.field);

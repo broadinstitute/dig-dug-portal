@@ -74,7 +74,6 @@
                                   )
                         }})
                     </h4>
-                    <!-- phenotype criterion -->
                     <div class="row">
                         <div class="col-md-10 mx-auto">
                             <div
@@ -167,22 +166,6 @@
                                     "
                                 ></criterion-pills>
 
-                                <!--<button
-                                    type="button"
-                                    class="mr-2 close"
-                                    aria-label="Filter"
-                                    :title="`Filters for <strong>${p.phenotype.description}</strong>`"
-                                    v-b-tooltip.hover.html="{
-                                        variant: 'light',
-                                    }"
-                                >
-                                    <span
-                                        v-on:click="
-                                            p.filterVisible = !p.filterVisible
-                                        "
-                                        ><b-icon-filter></b-icon-filter
-                                    ></span>
-                                </button>-->
                                 <button
                                     v-b-tooltip.hover.html="{
                                         variant: 'light',
@@ -205,7 +188,6 @@
                         </div>
                     </div>
 
-                    <!-- plot of all overlapping clumps -->
 
                     <manhattan-plot
                         v-show="
@@ -219,7 +201,6 @@
                         class="mt-2 mb-2"
                     ></manhattan-plot>
 
-                    <!-- table of overlapping associations -->
 
                     <clumped-associations-table
                         v-show="
@@ -281,8 +262,6 @@
     margin-bottom: 0.5rem;
     border: 1px solid transparent;
     border-radius: 1.5rem;
-    /* min-height: 50px; */
-    /* min-width: -webkit-fit-content; */
     min-width: -moz-fit-content;
     min-width: fit-content;
     white-space: nowrap;
@@ -295,13 +274,12 @@
     display: inline-block;
 }
 .selected-phenotype div.filtering-ui-content input {
-    /*background: transparent;*/
     background-color: #ffffff60;
     border: 1px solid #aaa;
 }
 .selected-phenotype div.filtering-ui-content input::placeholder {
     color: #666;
-    opacity: 1; /* Firefox */
+    opacity: 1;
 }
 .selected-phenotype:not(:first-child) {
     margin-left: 2rem;
@@ -310,9 +288,6 @@
 .selected-phenotype:not(:first-child) div.lead {
     width: 310px !important;
 }
-/* .selected-phenotype > div {
-    display: table-cell;
-} */
 #variant-finder .selected-phenotype div.filtering-ui-wrapper {
     border: none;
     background-color: transparent;
@@ -320,13 +295,10 @@
     padding: 0;
     width: 240px;
     transition: all 2s;
-    /* overflow: hidden; */
-    /* white-space: nowrap; */
     display: inline-block;
 }
 .filter-pill-collection {
     margin-right: 15px;
-    /* width: 300px; */
     white-space: nowrap;
     float: right;
 }
@@ -347,7 +319,6 @@
     top: 0.6rem;
     font-size: 1.15rem;
     opacity: 1 !important;
-    /*float: unset;*/
 }
 div.lead {
     display: inline-block;
@@ -358,12 +329,8 @@ div.lead {
     text-overflow: ellipsis;
 }
 .selected-phenotype:first-child div.lead {
-    /*margin-left: 0.75rem;*/
 }
 div.lead .lead-icon {
-    /*position: absolute;
-    left: 0.6rem;
-    top: 0.3rem;*/
     font-size: 1.4rem;
     margin-right: 9px;
 }
@@ -399,19 +366,15 @@ div.lead .lead-icon {
 
 .slide-fade-enter {
     transform: translateX(-20%);
-    /* width: auto; */
 }
 .slide-fade-leave-to {
     transform: translateX(-10%);
-    /* transform: translateY(-100%); */
 }
 .slide-down-enter {
     transform: translateY(-20%);
-    /* width: auto; */
 }
 .slide-down-leave-to {
     transform: translateY(-10%);
-    /* transform: translateY(-100%); */
 }
 button:focus {
     outline: none !important;

@@ -1,12 +1,10 @@
 <template>
     <div class="front-page-body">
-        <!-- Header -->
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
         ></page-header>
 
-        <!-- Body -->
         <div v-if="$parent.diseaseGroup">
             <div class="fluid">
                 <div
@@ -124,7 +122,6 @@
             </div>
         </div> 
 
-        <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>

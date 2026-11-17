@@ -2,6 +2,10 @@
 
 For a colleague trying the prototype, use the [local installation guide](pb_local_browser_setup.md). `npm run setup:pb-runtime` downloads the approved release through the user's own company SSH access, verifies the repository's pinned checksums, builds the GT index and writes local settings. Private inputs remain outside Git. Trial users should not edit scripts or follow test-server migration instructions.
 
+## Local maintenance after `f44f9dada` — 2026-11-17
+
+Redundant and obsolete comments were removed; the five pages' design, behavior, API and calculation contracts below are unchanged. Carry the updated `scripts/test_pb_gene_context_ui.py` with the source: its fixture-isolation check now uses a function boundary instead of a removed comment heading. This maintenance is included in the commit containing this note; it does not establish target-server deployment.
+
 ## Local trial packaging review — 2026-11-17
 
 1. The source audit measured 54.45 MiB before cleanup. The unused `KrClinicalFocus/portalDiseaseReferenceData.generated.js` had no consumers and was removed after a private rollback backup; existing tracked content is now about 41.59 MiB. Full frontend build and Front reference/availability checks passed. Keep the actively imported ontology, annotation and disease references.

@@ -172,7 +172,6 @@ function profilesFor(reference) {
         const prepared = new Map();
         profiles.forEach((annotations, index) => {
             const profile = [...annotations.values()];
-            // Evaluate every annotation against the full set simultaneously.
             const denominator = profile.reduce((sum, term) => {
                 const relatedWinner = profile.some((other) =>
                     other !== term &&

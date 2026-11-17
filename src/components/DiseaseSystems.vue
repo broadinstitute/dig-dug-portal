@@ -156,8 +156,6 @@
 			class="custom-phenotypes-list-builder hidden"
 			id="pheno_list_builder"
 		>
-			<!-- UI for System list
-			-->
 			<div
 				class="ph-builder-filters-wrapper filtering-ui-wrapper"
 				v-if="focusBy == 'system'"
@@ -194,8 +192,6 @@
 				</div>
 			</div>
 
-			<!-- UI for disease list
-			-->
 			<div
 				class="ph-builder-filters-wrapper filtering-ui-wrapper"
 				v-if="focusBy == 'disease'"
@@ -246,8 +242,6 @@
 				</div>
 			</div>
 
-			<!-- UI for phenotype groups
-			-->
 			<div
 				class="ph-builder-filters-wrapper filtering-ui-wrapper"
 				v-if="focusBy == 'group'"
@@ -268,7 +262,6 @@
 					{{ group }}
 				</div>
 			</div>
-			<!-- table for "system", "disease", "group" -->
 			<template
 				v-if="
 					focusBy == 'system' ||
@@ -330,8 +323,6 @@
 				</div>
 			</template>
 
-			<!-- UI for phenotype correlations
-			-->
 			<div
 				class="ph-builder-filters-wrapper filtering-ui-wrapper"
 				v-if="focusBy == 'correlation'"
@@ -719,7 +710,6 @@ export default Vue.component("disease-systems", {
 			let currentUrl = uiUtils.getUrl();
 
 			if (!!currentUrl.pathname.includes("region.html")) {
-				//console.log(keyParams.chr, keyParams.start, keyParams.end);
 
 				let nextUrl =
 					currentUrl.pathname +
@@ -738,8 +728,6 @@ export default Vue.component("disease-systems", {
 		},
 		openPhenotypesBuilder(TYPE, PARAMS, EVENT) {
 			this.focusBy = TYPE;
-			//console.log("TYPE", TYPE);
-			//console.log("currentFocus", this.currentFocus());
 
 			let params = !!PARAMS ? PARAMS : this.currentFocus();
 
@@ -784,7 +772,6 @@ export default Vue.component("disease-systems", {
 					break;
 			}
 
-			//open phenotype Builder
 			uiUtils.showElement("pheno_list_builder");
 		},
 		getPhenotypes() {
@@ -865,7 +852,6 @@ export default Vue.component("disease-systems", {
 			return "https://" + ID + "." + host;
 		},
 		diseaseOptions(ID) {
-			//console.log("id", ID);
 			let diseaseSystems = [
 				...new Set(
 					this.diseases
@@ -874,7 +860,6 @@ export default Vue.component("disease-systems", {
 				),
 			];
 
-			//console.log("diseaseSystems", diseaseSystems);
 
 			return diseaseSystems;
 		},
@@ -1062,12 +1047,8 @@ export default Vue.component("disease-systems", {
 	padding: 0 10px;
 	border-radius: 15px;
 	margin-top: 20px;
-	/*position: absolute;
-	top: -40px;
-	right: 20px;*/
 }
 
-/* For front page */
 .disease-systems-front .disease-systems-tree {
 	text-align: center;
 	display: block;
@@ -1092,7 +1073,6 @@ export default Vue.component("disease-systems", {
 	height: 100px;
 }
 
-/* For sub page */
 
 .disease-systems-sub-pages .disease-systems-tree {
 	text-align: center;
@@ -1116,7 +1096,6 @@ export default Vue.component("disease-systems", {
 	height: 40px;
 }
 
-/* for options part */
 .disease-system-options {
 	visibility: hidden;
 	color: #000;

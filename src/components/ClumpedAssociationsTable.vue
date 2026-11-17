@@ -57,35 +57,6 @@
                         >{{ r.item[`${p}:dbSNP`] || r.item[`${p}:varId`] }}</a
                     >
                 </template>
-                <!--
-                <template
-                    v-slot:[phenotypeDbSNPColumn(p)]="r"
-                    v-for="p in phenotypes"
-                >
-                    <a
-                        :href="`/variant.html?variant=${r.item[`${p}:dbSNP`]}`"
-                        >{{ dbSNPFormatter(r.item[`${p}:dbSNP`]) }}</a
-                    >
-                </template>
-                <template
-                    v-slot:[phenotypeConsequenceColumn(p)]="r"
-                    v-for="p in phenotypes"
-                    >{{
-                        consequenceFormatter(r.item[`${p.name}:consequence`])
-                    }}</template
-                >
-                <template
-                    v-slot:[phenotypeGenesColumn(p)]="r"
-                    v-for="p in phenotypes"
-                >
-                    <a
-                        v-for="gene in r.item[`${p.name}:nearest`]"
-                        class="item"
-                        :href="`/gene.html?gene=${gene}`"
-                        >{{ gene }}</a
-                    >
-                </template>
-                -->
                 <template v-for="p in phenotypes" #[phenotypeBetaColumn(p)]="r">
                     <span
                         :class="`effect ${
@@ -222,7 +193,6 @@ export default Vue.component("ClumpedAssociationsTable", {
                     });
                 }
 
-                // add the phenotype columns
                 data[dataIndex][`${r.phenotype}:varId`] = r.varId;
                 data[dataIndex][`${r.phenotype}:dbSNP`] = r.dbSNP;
                 data[dataIndex][`${r.phenotype}:consequence`] = r.consequence;
@@ -234,18 +204,15 @@ export default Vue.component("ClumpedAssociationsTable", {
                 data[dataIndex][`${r.phenotype}:zScore`] = r.zScore;
                 data[dataIndex][`${r.phenotype}:n`] = r.n;
 
-                // lowest p-value across all phenotypes
                 if (!!r.pValue && r.pValue < data[dataIndex].minP) {
                     data[dataIndex].minP = r.pValue;
                 }
             }
 
-            // remove non-overlapping associations
             data = data.filter((row) => {
                 for (let i in this.phenotypes) {
                     let phenotype = this.phenotypes[i];
 
-                    // ensure a p-value exists for each phenotype
                     if (!row[`${phenotype}:pValue`]) {
                         return false;
                     }
@@ -254,7 +221,6 @@ export default Vue.component("ClumpedAssociationsTable", {
                 return true;
             });
 
-            // remove entries with missing p-values
             if (this.exclusive) {
                 let phenotypes = this.phenotypes;
 
@@ -263,7 +229,6 @@ export default Vue.component("ClumpedAssociationsTable", {
                 });
             }
 
-            // sort all the records by phenotype p-value
             data.sort((a, b) => a.minP - b.minP);
 
             return data;

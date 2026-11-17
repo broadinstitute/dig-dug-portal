@@ -100,12 +100,6 @@ let getToolTipPosition = function (ELEMENT) {
             : "1.0em";
 
     viewer.style.setProperty("left", elementLeft);
-    /*
-        console.log(ELEMENT);
-        console.log(" intViewportWidth: " + intViewportWidth);
-        console.log(" elementWidth: " + elementWidth);
-        console.log(" locatin.left: " + location.left);
-        */
 };
 
 let getOffset = function (ELEMENT) {
@@ -294,7 +288,7 @@ let saveByorCsv = function (DATA, FILENAME) {
     }
 
     let csv = [
-        header.join(","), // header row first
+        header.join(","),
         ...csvData.map((row) =>
             row.join(",")
         ),
@@ -304,7 +298,7 @@ let saveByorCsv = function (DATA, FILENAME) {
     let blob = new Blob(["\ufeff", csv]);
     let url = URL.createObjectURL(blob);
     downloadLink.href = url;
-    downloadLink.download = downloadFilename + ".csv"; //Name the file here
+    downloadLink.download = downloadFilename + ".csv";
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
@@ -313,10 +307,10 @@ let saveByorCsv = function (DATA, FILENAME) {
 let convertJson2Csv = function (DATA, FILENAME) {
     const items = DATA;
     const downloadFilename = FILENAME || "download";
-    const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
+    const replacer = (key, value) => (value === null ? "" : value);
     const header = Object.keys(items[0]);
     const csv = [
-        header.join(","), // header row first
+        header.join(","),
         ...items.map((row) =>
             header
                 .map((fieldName) => JSON.stringify(row[fieldName], replacer))
@@ -328,7 +322,7 @@ let convertJson2Csv = function (DATA, FILENAME) {
     let blob = new Blob(["\ufeff", csv]);
     let url = URL.createObjectURL(blob);
     downloadLink.href = url;
-    downloadLink.download = downloadFilename + ".csv"; //Name the file here
+    downloadLink.download = downloadFilename + ".csv";
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
@@ -341,7 +335,7 @@ let saveJson = function (DATA, FILENAME) {
     let blob = new Blob(["\ufeff", JSON.stringify(DATA), null, 4]);
     let url = URL.createObjectURL(blob);
     downloadLink.href = url;
-    downloadLink.download = downloadFilename + ".json"; //Name the file here
+    downloadLink.download = downloadFilename + ".json";
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
@@ -351,16 +345,12 @@ let getAxisTicks = function (lo, hi) {
     let step = 10 ** (Math.round(Math.log10(hi - lo)) - 1);
     let value = (Math.floor((lo + step) / step) - 1) * step;
     let halfStep = step / 2;
-    //console.log("step", step, "half", halfStep);
     let ticks = {};
-    // update the actual lo to be the initial value
     lo = value;
-    // adjust the step so there's only 5 ticks
     step =
         Math.floor(
             ((Math.floor((hi - value) / step) / 5) * step + halfStep) / halfStep
         ) * halfStep;
-    // adjust the hi value to extend to the next step if needed
     hi = Math.floor((hi + halfStep) / step) * step;
     do {
         ticks[value] = (value - lo) / (hi - lo);
@@ -464,7 +454,6 @@ function checkIfNumeric(VALUE) {
 }
 
 let setTabActive = function (TARGETTAB, UIWRAPPERID, TARGETCONTENT, CONTENTWRAPPERID, IF_PLOT) {
-    // Set IF_PLOT parameter true if function calling tab is in Plots group 
     let tabsWrapper = document.getElementById(UIWRAPPERID),
         tabsChildren = tabsWrapper.getElementsByClassName("tab-ui-tab");
     for (let i = 0; i < tabsChildren.length; i++) {

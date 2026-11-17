@@ -2,7 +2,6 @@ let generate = function () {
     let sessionId =
         fourHexDigits(new Date().getTime() % 65536) +
         fourHexDigits(window.crypto.getRandomValues(new Uint16Array(1))[0]);
-    //this.setSessionId(sessionId, false);
     return sessionId;
 };
 

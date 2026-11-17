@@ -36,7 +36,6 @@
                         </b-td>
                     </b-tr>
                 </b-tbody>
-                <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
                 <b-tfoot>
                     <b-tr>
                         <b-th
@@ -123,27 +122,18 @@ export default Vue.component("hugescore-table", {
     },
     methods: {
         handleOk(bvModalEvt) {
-            // Prevent modal from closing
             bvModalEvt.preventDefault();
-            // Trigger submit handler
             this.handleSubmit();
         },
         handleSubmit() {
-            // Exit when the form isn't valid
             if (!this.checkFormValidity()) {
                 return;
             }
-            // Push the name to submitted names
             this.submittedNames.push(this.name);
-            // Hide the modal manually
             this.$nextTick(() => {
                 this.$bvModal.hide("modal-prevent-closing");
             });
         }
-        // showModal() {
-        //     let element = this.$refs.modal.$el;
-        //     $(element).modal("show");
-        // }
     }
 });
 </script>

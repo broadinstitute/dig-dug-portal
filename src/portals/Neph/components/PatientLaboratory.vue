@@ -135,18 +135,10 @@ export default Vue.component("patient-laboratory-card", {
         },
         tableData() {
             if (this.plaboratory && this.plaboratory.length) {
-                //console.log("here:"+this.hprecords);
 				return this.plaboratory;
 			} else {
 				return [];
 			}
-            /*let dataRows = this.variant.hprecords;
-            if (!!this.filter) {
-                dataRows = dataRows.filter((association) => {
-                    return this.filter(association);
-                });
-            }
-            return dataRows;*/
         },
     },
     methods: {
@@ -155,7 +147,6 @@ export default Vue.component("patient-laboratory-card", {
             return Formatters.snakeFormatter(name);
         },
         async searchLaboratory() {
-            //console.log("variant id:" + this.variantId);
             this.plaboratory = await query("patient_laboratory",this.patientId,{},true);
             
         },

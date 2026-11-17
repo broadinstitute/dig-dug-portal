@@ -298,7 +298,6 @@ export default Vue.component("research-data-table", {
 
 	mounted() {
 		this.perPageNumber = this.initPerPageNumber;
-		//console.log(this.dataset);
 	},
 	updated() {},
 	computed: {
@@ -361,7 +360,6 @@ export default Vue.component("research-data-table", {
 							}
 						});
 
-						//return scores;
 					}
 				}
 
@@ -421,9 +419,7 @@ export default Vue.component("research-data-table", {
 			let startPos = !!this.viewingRegion? this.viewingRegion.start:null;
 			let endPos = !!this.viewingRegion ? this.viewingRegion.end:null;
 
-			//console.log("posField", posField, "startPos", startPos, "endPos", endPos );
 
-			//console.log("this.dataset", this.dataset);
 
 			let formattedData = [];
 
@@ -913,10 +909,6 @@ export default Vue.component("research-data-table", {
 			let sortDirection = this.sortDirection == "asc" ? false : true;
 			this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
 
-			/*let filtered =
-				this.dataComparisonConfig == null
-					? this.dataset
-					: this.object2Array(this.dataset, key, sortDirection);*/
 
 			if (key != this.tableFormat["locus field"]) {
 				let filtered =
@@ -924,7 +916,6 @@ export default Vue.component("research-data-table", {
 						? this.dataset
 						: this.object2Array(this.dataset, key, sortDirection);
 
-				// In case of the data with null values mixed, we separate it to with Values and W/O values.
 				let filteredWValues = [];
 				let filteredWNull = [];
 
@@ -937,9 +928,7 @@ export default Vue.component("research-data-table", {
 				});
 
 				let isNumeric = this.checkIfNumeric(filtered, key);
-				//console.log("isNumeric",isNumeric)
 
-				//sort the data with values, then merge the data WO values to the sorted.
 				let sortedValues = this.utils.sortUtils
 					.sortEGLTableData(
 						filteredWValues,
@@ -1020,32 +1009,6 @@ export default Vue.component("research-data-table", {
 .show-hide-columns-box-close:hover {
 	color: #36c;
 }
-/*#showHideColumnsBox {
-	position: fixed;
-	background-color: #fff;
-	border: solid 1px #ddd;
-	border-radius: 5px;
-	z-index: 11;
-	font-size: 14px;
-	width: 400px;
-	height: 50%;
-	text-align: left;
-	top: 25%;
-	left: calc(50% - 200px);
-	box-shadow: 0px 5px 5px 5px rgb(0 0 0 / 20%);
-	padding: 20px;
-}
-
-#showHideColumnsBox .table-wrapper {
-	overflow: auto !important;
-	padding: 0;
-	height: calc(100% - 35px);
-}
-
-#showHideColumnsBox th,
-#showHideColumnsBox td {
-	border: none;
-}*/
 [id*="showHideColumnsBox"] {
 	position: fixed;
 	background-color: #fff;
@@ -1084,7 +1047,6 @@ export default Vue.component("research-data-table", {
 	padding-top: 10px;
 }
 .data-table-legend {
-	/*margin-bottom: -15px;*/
 }
 .research-data-table-wrapper {
 	margin-top: 25px;

@@ -174,25 +174,20 @@ export default Vue.component("variant-finder", {
         appliedFilters() {
             let filters = {};
 
-            // apply global filters to all phenotypes
             if (this.applyAll) {
                 this.filters = {};
 
-                // update the filters
                 for (let i in this.phenotypes) {
                     let name = this.phenotypes[i].name;
 
-                    // apply to each phenotype
                     this.filters[name] = Object.assign({}, this.allFilters);
                 }
             } else {
                 filters = Object.assign(filters, this.filters);
             }
 
-            // tack the update key in there to force an update
             filters[0] = this.updateKey;
 
-            // update all the filters
             return filters;
         },
 
@@ -204,7 +199,6 @@ export default Vue.component("variant-finder", {
                 let phenotype = this.phenotypes[i];
                 let filters = this.filters[phenotype.name];
 
-                // filter for each parameter
                 let pFilter = !!filters.pValue
                     ? a => a.pValue < filters.pValue
                     : a => true;
@@ -214,7 +208,6 @@ export default Vue.component("variant-finder", {
                     : a => true;
                 let bFilter = a => true;
 
-                // set the beta filter if a choice is made
                 switch (filters.beta) {
                     case "negative":
                         bFilter = a => a.beta < 0;
@@ -224,7 +217,6 @@ export default Vue.component("variant-finder", {
                         break;
                 }
 
-                // combine the filters together
                 phenotypeFilters[phenotype.name] = a => {
                     return pFilter(a) && nFilter(a) && cFilter(a) && bFilter(a);
                 };
@@ -246,17 +238,14 @@ export default Vue.component("variant-finder", {
             for (let i in this.associations) {
                 let r = this.associations[i];
 
-                // skip variants that aren't filtered
                 if (!filters[r.phenotype](r)) {
                     continue;
                 }
 
-                // add empty entry
                 if (!variants[r.varId]) {
                     variants[r.varId] = [];
                 }
 
-                // add to the variant list
                 variants[r.varId].push(r);
             }
 
@@ -265,8 +254,6 @@ export default Vue.component("variant-finder", {
                 .flat();
         },
 
-        // For the manhattan plot, the associations need to be in a map like
-        // so: { [phenotype]: [associations] }.
         associationsByPhenotype() {
             let assocs = {};
 

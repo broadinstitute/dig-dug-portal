@@ -1,5 +1,3 @@
-// Private lookup from the same frozen matrix used by residual PheRS.
-// Read on every batch; cache parsed contents only while the file is unchanged.
 const fs = require('node:fs');
 const path = require('node:path');
 module.exports = function createSource(filename = process.env.PB_HPO_TERM_COUNTS_FILE || path.join(__dirname, '../.pb-private-data/rphers/hpo_term_counts.json')) {

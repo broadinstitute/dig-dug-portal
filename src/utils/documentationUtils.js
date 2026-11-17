@@ -3,8 +3,6 @@ import * as showdown from "showdown";
 function findTemplateTagsFromContent(content) {
     let regexp = /{{([A-Za-z]+)}}/g;
 
-    // we use a slice here because some browsers (firefox) don't support named capture groups in regexp
-    // we are able to use a slice here because the structure is always padded by both `{{` and `}}`
     return content ? [...content.matchAll(regexp)].map(m => m[0] ? m[0].slice(2, -2) : "?") : [];
 }
 
@@ -64,7 +62,6 @@ function makeConverter(content, contentFill, name) {
         ]
     });
 
-    //converter.setOption('openLinksInNewWindow', true);
 
     return converter
 }

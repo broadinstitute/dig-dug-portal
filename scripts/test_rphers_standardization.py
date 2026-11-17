@@ -1,4 +1,3 @@
-"""Small, independent checks of units and API lineage; no cohort reanalysis."""
 import csv
 import json
 from pathlib import Path
@@ -20,7 +19,6 @@ from scripts.pb_phenotype_profile_api import ProfileEngine
 
 class RphersStandardizationTest(unittest.TestCase):
     def test_documented_example_and_raw_result_preservation(self):
-        # These reference scores have mean=2 and sample SD=4.
         z, reference = standardize_scores([-2, 2, 6], ['HP:0001250'], 'data', 'cohort')
         np.testing.assert_allclose(z, [-1, 0, 1])
         self.assertEqual(standardized_value(10, reference, center=True), 2)

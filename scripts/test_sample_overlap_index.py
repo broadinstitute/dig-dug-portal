@@ -15,7 +15,6 @@ class SampleOverlapTest(unittest.TestCase):
         rows = []
         def add(gene, sample, variant, gt):
             rows.append({'gene_symbol':gene,'sample_id':sample,'variant_id':variant,'gt':gt})
-        # Same exact variant annotated to two genes: count it once per sample.
         add('A','REF','chr1:1:A:T','0/1')
         add('A','CAND','chr1:1:A:T','1|1')
         add('A','REF','chr1:2:A:T','1/1')

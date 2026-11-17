@@ -24,7 +24,6 @@ export default new Vuex.Store({
         setSelectedDataset(state, name) {
             state.selectedDataset = state.bioPortal.datasetMap[name];
 
-            // if the selected dataset doesn't have the currently selected phenotype, clear it
             if (!state.selectedDataset) {
                 state.selectedPhenotype = null;
             } else if (state.selectedPhenotype) {

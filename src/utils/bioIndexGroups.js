@@ -39,7 +39,6 @@ class BioIndexGroup {
     }
 
     reMap(groupKey) {
-        // a pullback + re-projection, not an override
         const _mapping = new Map(_.groupBy(this.list, groupKey));
         return _mapping;
     }
@@ -48,9 +47,6 @@ class BioIndexGroup {
 
 class BioPortalGroup {
     
-    // TODO: given that these classes should never be instanced, 
-    // should the build steps for BioPortalGroup and/or BioIndexGroup be turned into methods instead?
-    // "Static methods considered harmful"
 
     static async build (concept, groupKey, primaryKey='') {
         let qs = null;
@@ -64,8 +60,6 @@ class BioPortalGroup {
             `${bioIndexUtils.BIO_INDEX_HOST}/api/portal/${concept}${!!qs && qs !== null ? `?${qs}` : ''}`
         ).then(resp => resp.json());
         
-        // the interface for the bioportal group should be the same as the bioindex group, so might as well reuse a bioindex group
-        // this would be made more explicit if we were using typescript
         return new BioIndexGroup(bioIndexPortalResults, groupKey);
     }
 

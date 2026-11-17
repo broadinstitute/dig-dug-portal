@@ -1,5 +1,4 @@
 #!/usr/bin/env Rscript
-# Shared calculation for run_gene_score_lm.R and run_gene_score_lmm.R.
 # Input phenotype is the browser's residual PheRS for one HPO query.
 # Gene scores are sparse; an absent sample/gene row means score zero only when
 # upstream genotype callability has established that convention.
@@ -126,7 +125,7 @@ run_gene_score_test <- function(null, indices, scores) {
     if (!is.finite(variance) || variance<=1e-10) {
       result$status <- 'constant_or_collinear_score'; return(result)
     }
-    beta <- numerator/variance
+    beta <- numerator/variance  # null-score approximation
     rss <- max(0,null$yy-numerator*numerator/variance)
     if (rss<=1e-12) {result$status <- 'zero_residual_variance'; return(result)}
     se <- sqrt(rss/null$df/variance)
@@ -137,7 +136,7 @@ run_gene_score_test <- function(null, indices, scores) {
       result$status <- 'invalid_score_variance'; return(result)
     }
     numerator <- sum(scores*null$py[indices])
-    beta <- numerator/variance             # null-score approximation
+    beta <- numerator/variance
     se <- 1/sqrt(variance)
     p <- stats::pchisq(numerator*numerator/variance,df=1,lower.tail=FALSE)
   }
@@ -170,7 +169,7 @@ main <- function(model,args=commandArgs(trailingOnly=TRUE)) {
   scores$index <- match(scores$score_sample_id,d$score_sample_id)
   scores <- scores[!is.na(index)]
   if (!nrow(scores)) stop('No gene score sample IDs match phenotype IDs')
-  scores <- scores[score>0]  # zero rows do not contribute to U or V
+  scores <- scores[score>0]
   data.table::setkey(scores,gene_symbol)
   genes_arg <- option(args,'genes')
   genes <- if (is.null(genes_arg)) available_genes else trimws(strsplit(genes_arg,',',fixed=TRUE)[[1]])

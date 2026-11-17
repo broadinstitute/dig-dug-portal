@@ -135,10 +135,8 @@ export default new Vuex.Store({
         },
 
         canonicalSymbol(state) {
-            //console.log("canonical Symbol:"+JSON.stringify(state.genes)+"|"+JSON.stringify(state.gene));
             let data = state.genes.data;
             let geneData = state.gene.data[0];
-            //console.log("canonical geneData:", geneData);
             if (data.length > 0){
                 for (let i in data) {
                     if (data[i].source === "symbols") {
@@ -146,13 +144,11 @@ export default new Vuex.Store({
                     }
                 }
             } else {
-                //temper change
                 if(geneData != null){
                     return geneData.name;
                 }else{
                     return null;
                 }
-                //return null;
             }
             
         },
@@ -160,8 +156,6 @@ export default new Vuex.Store({
         geneSymbol(state) {
             let data = state.genes.data;
             let geneData = state.gene.data[0];
-            //console.log("data:", data);
-            //console.log("geneData:", geneData);
             for (let i in data) {
                 if (data[i].chromosome == geneData.chromosome && data[i].start == geneData.start && data[i].end == geneData.end) {
                     if (data[i].source === "symbol") {
@@ -176,7 +170,6 @@ export default new Vuex.Store({
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
             this.state.geneName = name;
-            //alert(symbol+"|"+context.state.geneName+"|"+this.state.geneName)
             
             context.commit("setGeneName", name);
             if (!!name) {
@@ -185,32 +178,24 @@ export default new Vuex.Store({
         },
 
         async queryGeneRegion(context, region) {
-            //alert("query gene:"+JSON.stringify(region) +"|"+JSON.stringify(context.getters.region));
-            //alert("gene name:"+this.state.geneName);
             if(region != null || context.getters.region != null) {
-                //alert("query gene:"+JSON.stringify(region) +"|"+JSON.stringify(context.getters.region));
                 let { chromosome, start, end } = region || context.getters.region;
                 let q = `${chromosome}:${start}-${end}`;
     
                 context.dispatch("genes/query", { q });
-                //console.log("query gene region:"+JSON.stringify(region)+"|"+this.state.geneName);
             }
         },
 
         async queryUniprot(context, symbol) {
             
             let name = symbol || context.getters.canonicalSymbol;
-            //console.log("query uniprot:"+name);
             if (!!symbol) {
                 context.dispatch("uniprot/getUniprotGeneInfo", name);
                 
             }
-            //console.log("query call:"+JSON.stringify(this.state.uniprot));
         },
 
         async queryAssociations(context) {
-            //alert("here");
-            //let query = { q: context.state.geneName,query_private:true };
             let query = { q: context.state.geneName,query_private:true };
             context.dispatch("associations52k/query", query);
             let query2 = { q: context.state.geneName};
@@ -218,7 +203,6 @@ export default new Vuex.Store({
         },
         async getVarAssociationsData(context, phenotype) {
             let gene = context.state.geneName;
-            // let phenotype = phenoGeneInput["phenotype"];
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {

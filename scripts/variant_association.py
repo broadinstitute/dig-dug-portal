@@ -34,7 +34,6 @@ MODEL_VERSION = "portal_variant_binary_ols_covariate_v1"
 
 
 def independent_covariate_design(covariates: NDArray[np.float64], names: Sequence[str]):
-    """Keep the intercept and non-aliased covariates in their original order."""
     n = covariates.shape[0]
     columns = [np.ones(n)]
     q = np.ones((n, 1)) / np.sqrt(n)
@@ -63,7 +62,6 @@ class AssociationResult:
 
 
 class OLSContext:
-    """Reuse a fixed sample roster and covariate QR factorization across HPOs."""
 
     def __init__(
         self,
@@ -94,7 +92,6 @@ class OLSContext:
         self.df = n - design.shape[1] - 1
 
     def outcome(self, residual_phers: ArrayLike) -> "OLSOutcome":
-        """Prepare one HPO query's Y; no samples may be silently dropped."""
         y = np.asarray(residual_phers, dtype=np.float64)
         if y.shape != (len(self.sample_ids),) or not np.all(np.isfinite(y)):
             raise ValueError("residual_phers must be a finite vector aligned to sample_ids")
@@ -219,11 +216,6 @@ def analyze_gene_variants(
     include_gene_ols: bool = False,
     affected_only: bool = False,
 ) -> dict:
-    """Use the existing cached PheRS/roster/evidence loader; return aggregates only.
-
-    ``engine`` is ``pb_gene_context_validation.ContextAnalysisEngine``.
-    Existing Match Score and Huber RLM endpoints are intentionally untouched.
-    """
     if engine.covariates is None:
         raise ValueError("the existing age/sex/PC1-PC10 covariate file is required")
     gene = str(gene or "").strip().upper()
@@ -289,7 +281,6 @@ def analyze_gene_variants(
 
 
 def main(argv: Sequence[str] | None = None) -> None:
-    """Offline aggregate calculation using the existing Context API input files."""
     import argparse
     import json
 

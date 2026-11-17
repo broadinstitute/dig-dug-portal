@@ -123,9 +123,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
-        // if (keyParams.gene) {
-        //     this.$store.dispatch("get52KAssociationData", keyParams.gene);
-        // }
         if (keyParams.gene && keyParams.phenotype) {
             let gene = keyParams.gene;
             let phenotype = keyParams.phenotype;
@@ -133,9 +130,7 @@ new Vue({
             let phenoRegionQuery = { gene: gene, phenotype: phenotype };
             this.$store.dispatch("getAssociationsData", phenoRegionQuery);
             this.$store.dispatch("get52KAssociationData", gene);
-            //this.$store.dispatch("getEGLData", phenotype);
         }
-        // this.$store.dispatch("getAssociationsData", { "phenotype": keyParams.phenotype, "gene": keyParams.searchGene });
     },
 
     computed: {
@@ -224,7 +219,6 @@ new Vue({
                         !!this.$store.state.geneAssociations52k.data[i].phenotype &&
                         this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]
                     ) {
-                        //filter with selected phenotype
                         maskdata = this.$store.state.geneAssociations52k.data[i].masks;
                     }
                 }
@@ -236,163 +230,9 @@ new Vue({
             return 3;
         },
 
-        /*bayesFactorRareVariation() {
-            let betararebfmap = {}
-            let masks = [];
-            let rarebayesfactor = 1;
-            let beta;
-            let stdErr;
-            if (
-                this.isExomeWideSignificant(
-                    this.$store.state.geneAssociations52k.data,
-                    this.selectedPhenotype[0]
-                )
-            ) {
-                rarebayesfactor = 348;
-                betararebfmap["rareBF"] = rarebayesfactor
-                betararebfmap["beta"] = 1
-
-            } else {
-                if (this.$store.state.geneAssociations52k.data.length > 0) {
-                    for (
-                        let i = 0;
-                        i < this.$store.state.geneAssociations52k.data.length;
-                        i++
-                    ) {
-                        if (
-                            !!this.$store.state.geneAssociations52k.data[i]
-                                .phenotype &&
-                            this.$store.state.geneAssociations52k.data[i]
-                                .phenotype == this.selectedPhenotype[0]
-                        ) {
-                            //filter with selected phenotype
-                            masks = this.$store.state.geneAssociations52k.data[
-                                i
-                            ].masks;
-                            if (!!masks && masks.length > 0) {
-                                let d = masks.sort(
-                                    (a, b) => a.pValue - b.pValue
-                                );
-                                let mostSignificantMask = d[0];
-                                stdErr = mostSignificantMask.stdErr;
-                                beta = mostSignificantMask.beta;
-                                rarebayesfactor = this.bayes_factor(
-                                    beta,
-                                    stdErr
-                                );
-                            }
-                            if (rarebayesfactor < 1) {
-                                rarebayesfactor = 1;
-                            }
-                            betararebfmap["rareBF"] = Number.parseFloat(rarebayesfactor).toFixed(2)
-                            betararebfmap["beta"] = Number.parseFloat(beta).toFixed(2)
-                            return betararebfmap
-                        }
-                        //if phenotype doesn't exist in 52K Associations data
-                        else {
-                            rarebayesfactor = 1;
-                            betararebfmap["rareBF"] = rarebayesfactor
-                            betararebfmap["beta"] = 1
-
-                        }
-                    }
-                }
-                else {
-                    rarebayesfactor = 1;
-                    betararebfmap["rareBF"] = rarebayesfactor
-                    betararebfmap["beta"] = 1
-                }
-            }
-            return betararebfmap;
-        },*/
-        /*bayesFactorCombinedEvidencecomputed() {
-            return Formatters.floatFormatter(this.bayesFactorCommonVariation * this.bayesFactorRareVariation.rareBF)
-        },*/
 
 
 
-        /*bayesFactorCommonVariation() {
-
-            let commonBF = 1;
-            let data = this.$store.state.associations.data;
-            let coding_variants = {
-                transcript_ablation: "HIGH", splice_acceptor_variant: "HIGH", splice_donor_variant: "HIGH", stop_gained: "HIGH", frameshift_variant: "HIGH",
-                stop_lost: "HIGH", start_lost: "HIGH", transcript_amplification: "HIGH", inframe_insertion: "MODERATE", inframe_deletion: "MODERATE", missense_variant: "MODERATE",
-                protein_altering_variant: "MODERATE"
-            }
-            data.sort(function (a, b) {
-                return a.pValue - b.pValue;
-            });
-            let topVariant = data[0];
-            console.log("main", topVariant.dbSNP);
-            let topVariant_consequence = topVariant.consequence
-            let genesInARegion = this.$store.state.genes.data;
-            var filteredGenesInARegion = genesInARegion.filter(a => a.source == "symbol");
-            let distance = 0
-            //calculate the distance of topVariant to each gene and find the smallest distance
-            filteredGenesInARegion.forEach(function (geneinregion) {
-                let distanceFromStart = topVariant.position - geneinregion.start
-                let distanceFromEnd = topVariant.position - geneinregion.end
-                if (distanceFromStart * distanceFromEnd > 0) {
-                    distance = Math.min(Math.abs(distanceFromStart), Math.abs(distanceFromEnd))
-                    geneinregion["distance"] = distance
-                }
-                else {
-                    distance = 0
-                    geneinregion["distance"] = distance
-                }
-
-            })
-
-            filteredGenesInARegion.sort(function (a, b) {
-                return a.distance - b.distance;
-            });
-            let lowestPvalueClosestGene = filteredGenesInARegion[0]
-
-            //find lowest p - value, is it closest gene - TO DO
-
-            //console.log("from main", lowestPvalueClosestGene)
-
-
-
-            data.forEach(function (eachSNP) {
-                if (coding_variants.hasOwnProperty(eachSNP.consequence)) {
-                    if (eachSNP.pValue < 5e-8) {
-                        commonBF = 20
-                        return commonBF
-
-                    }
-                }
-            });
-
-            console.log("from main", this.isGWASSignificantAssociation(data, this.selectedPhenotype[0]));
-
-            //if NOT GWAS significant
-            if (!this.isGWASSignificantAssociation(data, this.selectedPhenotype[0])) {
-                commonBF = 1
-            }
-            //if  GWAS significant
-            else {
-                //if top variant is coding and the impact of that coding variant is high or moderate (in the same Gene)
-                let start = this.$store.state.gene.data[0].start
-                let end = this.$store.state.gene.data[0].end
-                if (coding_variants.hasOwnProperty(topVariant_consequence) && topVariant.position >= start && topVariant.position <= end) {
-                    if (coding_variants[topVariant_consequence] == "HIGH" || "MODERATE") {
-                        commonBF = 360
-                    }
-                }
-
-                else if (lowestPvalueClosestGene.name == this.selectedGene[0]) {
-                    commonBF = 45
-                    //console.log(lowestPvalueClosestGene, "lowestPvalueClosestGene")
-                }
-                else {
-                    commonBF = 3
-                }
-            }
-
-            return commonBF;
-        },*/
 
 
 
@@ -536,17 +376,6 @@ new Vue({
                 return false;
             }
         },
-        /*bayesFactorCombinedEvidence(commonBF, rareBF) {
-            let combinedbf = commonBF * rareBF;
-            return Number.parseFloat(combinedbf).toFixed(2);
-        },*/
-        // < 1: No Evidence
-        // >= 1 and < 3: Anecdotal
-        // >= 3 and < 10: Moderate
-        // >= 10 and < 30: Strong
-        // >= 30 and < 100: Very Strong
-        // >= 100 and < 350: Extreme
-        // >= 350: Compelling
         getCategory(BF) {
             let category =
                 BF >= 350
@@ -564,17 +393,6 @@ new Vue({
                                         : "No";
             return category;
         },
-        /*bayes_factor(beta, stdErr) {
-            let w = this.$store.state.prior;
-            let v = Math.pow(stdErr, 2);
-            let f1 = v / (v + w);
-            let sqrt_f1 = Math.sqrt(f1);
-            let f2 = w * Math.pow(beta, 2);
-            let f3 = 2 * v * (v + w);
-            let f4 = f2 / f3;
-            let bayes_factor = sqrt_f1 * Math.exp(f4);
-            return bayes_factor;
-        },*/
 
         isExomeWideSignificant(data, trait) {
             if (!!data.length) {
@@ -610,7 +428,6 @@ new Vue({
         },
 
         updateAssociations(gene, phenotype) {
-            //this call goes to store to get associations data
             let phenoRegionQuery = {};
 
             if (gene.length > 0 && phenotype.length > 0) {
@@ -619,7 +436,6 @@ new Vue({
                 phenoRegionQuery = { gene: gene[0], phenotype: phenotype[0] };
                 this.$store.dispatch("getAssociationsData", phenoRegionQuery);
                 this.$store.dispatch("get52KAssociationData", gene);
-                //this.$store.dispatch("getEGLData", phenotype[0]);
             }
         }
 
@@ -630,7 +446,6 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         criterion(newCriterion, oldCriterion) {
-            //check if the old and new criterion are different only then update the Associations
             if (!isEqual(newCriterion, oldCriterion)) {
 
                 keyParams.set({

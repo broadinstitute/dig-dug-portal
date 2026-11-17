@@ -35,11 +35,6 @@ export default Vue.component("filter-effect-direction-control", {
         labelFormatter: {
             type: Function,
         },
-        /*pillFormatter: {
-            type: Function,
-            default: (filterDefinition) =>
-                `effect size ${filterDefinition.threshold}`,
-        },*/
         pillFormatter: {
             type: Function,
             default: (filterDefinition) =>
@@ -52,10 +47,8 @@ export default Vue.component("filter-effect-direction-control", {
         predicate: {
             type: Function,
             default: (beta, direction) => {
-                // must be positive
                 if (direction === "positive") {
                     return Math.sign(beta) === 1;
-                    // must be negative
                 } else if (direction === "negative") {
                     return Math.sign(beta) === -1;
                 }

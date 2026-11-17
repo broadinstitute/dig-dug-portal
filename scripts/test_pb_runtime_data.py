@@ -1,4 +1,3 @@
-"""Exercise installation failures and retries without transferring private data."""
 import hashlib
 import json
 from pathlib import Path

@@ -1,5 +1,3 @@
-// Serve a gene-scoped projection of Kyuryung's precomputed browser release.
-// Configure PB_GENE_HPO_FILE to the local/server-side browser_gene_hpo.jsonl.gz.
 const fs = require("node:fs");
 const zlib = require("node:zlib");
 const readline = require("node:readline");

@@ -1,4 +1,3 @@
-// Private server-side lookup. Only a selected gene's calls enter memory.
 const fs = require('fs/promises');
 const path = require('path');
 const crypto = require('crypto');
@@ -10,8 +9,6 @@ const canonicalSample = id => String(id).replace(/_[EG]38$/i, '');
 const canonicalVariant = id => String(id).replace(/^chr/i, '').toUpperCase();
 const key = (variant, sample) => `${canonicalVariant(variant)}|${canonicalSample(sample)}`;
 
-// A restart must not depend on an export from a previous terminal session.
-// The pinned private cache is the same location used by setup_pb_genotypes.py.
 const DEFAULT_INDEX = path.resolve(__dirname, '../.pb-private-data/genotypes/shared/2025_crdc_16366_dp20_af001_20260907/index');
 module.exports = function processedGenotypeSource(directory = process.env.PB_GENOTYPE_INDEX || DEFAULT_INDEX) {
     let pending;

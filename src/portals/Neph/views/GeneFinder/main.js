@@ -13,7 +13,6 @@ import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypePicker from "@/components/PhenotypePicker.vue";
-//import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import GeneFinderTable from "@/portals/Neph/components/GeneFinderTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
@@ -44,7 +43,6 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypePicker,
-        //PhenotypeSelectPicker,
         Documentation,
         GeneFinderTable,
         UnauthorizedMessage,
@@ -70,9 +68,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-        //this.$store.dispatch("phenotypes/query", query,{query_private:true});
-        //console.log(this.$store.phenotype);
-        //console.log(this.$store.phenotypes);
     },
 
     render(createElement, context) {
@@ -101,7 +96,6 @@ new Vue({
                 }
             });
 
-            // may await on this in the future if needed...
             Promise.all(promises);
         }
 
@@ -125,10 +119,7 @@ new Vue({
         },
 
         secondaryPhenotypeOptions() {
-            //console.log(this.$store.state.bioPortal.phenotypes);
-            //console.log(this.$store.state.phenotypes_hg38);
             return this.$store.state.bioPortal.phenotypes.filter(x => x.group == 'NEPHBCH' && this.$store.state.phenotypes_hg38.indexOf(x.name) > 0 && x.name != this.$store.state.phenotype);
-            //return this.$store.state.bioPortal.phenotypes.filter(x => x.group == 'NEPHBCH' && x.name != this.$store.state.phenotype);
         },
 
         geneFinderPhenotypes() {
@@ -176,12 +167,8 @@ new Vue({
         },
         criterion(newCriterion, oldCriterion) {
             if (newCriterion.pValue !== oldCriterion.pValue) {
-                // if the pValue updates, all phenotype associations must be updated to reflect the new bound
-                // this will override all data in the geneFinderAssociationsMap
                 this.updateAssociations(this.geneFinderPhenotypes, this.geneFinderPValue, true);
             } else {
-                // if the phenotypes update, we only need to get new data based on latest phenotype
-                // NOTE: this will maintain some data in the the geneFinderAssociationsMap
                 const updatingPhenotypes = difference(newCriterion.phenotypes, oldCriterion.phenotypes);
                 if (updatingPhenotypes.length > 0) {
                     this.updateAssociations(updatingPhenotypes, this.geneFinderPValue);

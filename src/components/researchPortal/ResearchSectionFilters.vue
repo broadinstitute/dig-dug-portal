@@ -406,7 +406,6 @@ export default Vue.component("research-section-filters", {
 	computed: {},
 	watch: {},
 	methods: {
-		//...uiUtils,
 		buildSuggestions(EVENT, FIELD) {
 			let searchVal = EVENT.target.value;
 			let suggestions = [];
@@ -501,14 +500,8 @@ export default Vue.component("research-section-filters", {
 
 				let newRegion = chr + ":" + regionStart + "-" + regionEnd;
 
-				///!!! Leave commented alone. This part has to be revisited to fully support region expand.
-				/*document.getElementById(
-					"search_param_" + PARAM.parameter
-				).value = newRegion;
-				this.geneSearch = newRegion;*/
 
 				let url = new URL(window.location);
-				//for (const [key, value] of Object.entries(key2Update)) {
 				url.searchParams.set(PARAM.parameter, newRegion);
 
 				window.history.pushState(null, "", url.toString());
@@ -517,10 +510,6 @@ export default Vue.component("research-section-filters", {
 
 				window.location.href = newUrl;
 
-				/*if (!!this.dataComparisonConfig) {
-					document.getElementById("ifMergeData").value = "newSearch";
-				}*/
-				//this.queryAPI();
 			}
 		},
 
@@ -549,40 +538,6 @@ export default Vue.component("research-section-filters", {
 			this.kpGenes = [];
 		},
 
-		/*async getRegion(KEY, PARAM) {
-			let searchPoint =
-				this.utils.uiUtils.biDomain() + "/api/bio/query/gene?q=" + KEY;
-
-			var geneJson = await fetch(searchPoint).then((resp) => resp.json());
-
-			if (geneJson.error == null) {
-				let region =
-					geneJson.data[0].chromosome +
-					":" +
-					geneJson.data[0].start +
-					"-" +
-					geneJson.data[0].end;
-
-				this.geneSearch = region;
-				this.kpGenes = [];
-			}
-		},
-		async getGenes(EVENT) {
-			if (EVENT.target.value.length > 2) {
-				let searchPoint =
-					this.utils.uiUtils.biDomain() +
-					"/api/bio/match/gene?q=" +
-					EVENT.target.value;
-
-				var geneJson = await fetch(searchPoint).then((resp) =>
-					resp.json()
-				);
-
-				if (geneJson.error == null) {
-					this.kpGenes = geneJson.data;
-				}
-			}
-		},*/
 		emptySearchInput(ID) {},
 		showHideSearch() {
 			let searchUIWrapper = document.getElementById("searchCriteria");
@@ -624,7 +579,6 @@ export default Vue.component("research-section-filters", {
 
 			this.$store.dispatch("dataComparison", ifCompareData);
 		},
-		/// test if string contains letters
 		testLetters(STR) {
 			return /[a-zA-Z]/.test(STR);
 		},
@@ -642,8 +596,8 @@ export default Vue.component("research-section-filters", {
 				let data = (!!TYPE && TYPE == "chkbox") ? this.unfilteredDataset : this.dataset;
 				let options = (!!data)? data
 					.map((v) => v[field])
-					.filter((v, i, arr) => arr.indexOf(v) == i) //unique
-					.filter((v, i, arr) => v != ""):[]; //remove blank
+					.filter((v, i, arr) => arr.indexOf(v) == i)
+					.filter((v, i, arr) => v != ""):[];
 				return options.sort();
 			} else {
 				let options = [];
@@ -665,8 +619,8 @@ export default Vue.component("research-section-filters", {
 				}
 
 				let unqOptions = options
-					.filter((v, i, arr) => arr.indexOf(v) == i) //unique
-					.filter((v, i, arr) => v != ""); //remove blank
+					.filter((v, i, arr) => arr.indexOf(v) == i)
+					.filter((v, i, arr) => v != "");
 
 				return unqOptions.sort();
 			}
@@ -769,7 +723,7 @@ export default Vue.component("research-section-filters", {
 			let searchValue = !!SUGGESTED
 				? SUGGESTED
 				: document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD))
-						.value; //EVENT.target.value;
+						.value;
 
 			let id = "#filter_" + this.sectionId + this.getColumnId(FIELD);
 			let inputField = document.querySelector(id);
@@ -777,7 +731,6 @@ export default Vue.component("research-section-filters", {
 			inputField.value = "";
 
 			if (!!searchValue && searchValue != "") {
-				///Record the last filtering item
 
 				this.lastFilter = { field: FIELD, value: searchValue };
 
@@ -795,7 +748,7 @@ export default Vue.component("research-section-filters", {
 					});
 
 					if (!!SUGGESTED) {
-						this.suggestions = { field: null, suggestions: [] }; // reset suggestions.
+						this.suggestions = { field: null, suggestions: [] };
 					}
 				} else if (
 					TYPE == "search greater than" ||
@@ -1013,8 +966,6 @@ export default Vue.component("research-section-filters", {
 											searchIndex.type == "search" ||
 											searchIndex.type == "dropdown word"
 										) {
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1066,13 +1017,10 @@ export default Vue.component("research-section-filters", {
 													] = row;
 												}
 											}
-											//}
 										} else if (
 											searchIndex.type ==
 											"search greater than"
 										) {
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1115,13 +1063,10 @@ export default Vue.component("research-section-filters", {
 													] = row;
 												}
 											}
-											//}
 										} else if (
 											searchIndex.type ==
 											"search lower than"
 										) {
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1164,13 +1109,10 @@ export default Vue.component("research-section-filters", {
 													] = row;
 												}
 											}
-											//}
 										} else if (
 											searchIndex.type == "search or"
 										) {
 											let searchVals = search.split(",");
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1220,7 +1162,6 @@ export default Vue.component("research-section-filters", {
 													] = row;
 												}
 											}
-											//}
 										} else if (
 											searchIndex.type ==
 											"search change direction"
@@ -1235,8 +1176,6 @@ export default Vue.component("research-section-filters", {
 												).value;
 
 											if (searchDirection == "lt") {
-												//for (var rowNum in targetData) {
-												//let row = targetData[rowNum];
 												if (
 													comparingFields.includes(
 														searchIndex.field
@@ -1279,12 +1218,9 @@ export default Vue.component("research-section-filters", {
 														] = row;
 													}
 												}
-												//}
 											} else if (
 												searchDirection == "gt"
 											) {
-												//for (var rowNum in targetData) {
-												//let row = targetData[rowNum];
 												if (
 													comparingFields.includes(
 														searchIndex.field
@@ -1327,14 +1263,11 @@ export default Vue.component("research-section-filters", {
 														] = row;
 													}
 												}
-												//}
 											}
 										} else if (
 											searchIndex.type == "search and" || searchIndex.type == "slider"
 										) {
 											let searchVals = search.split(",");
-											//for (var rowNum in targetData) {
-											//let row = targetData[rowNum];
 											if (
 												comparingFields.includes(
 													searchIndex.field
@@ -1401,7 +1334,6 @@ export default Vue.component("research-section-filters", {
 					? filtered.length
 					: Object.keys(filtered).length;
 
-			///Since checkBox filters work different from other filters run filter separately
 
 			if (!!filteredLength && filteredLength > 0) {
 				if (comparingFields == null) {
@@ -1455,7 +1387,6 @@ export default Vue.component("research-section-filters", {
 div.filtering-ui-content div.col {
     vertical-align: bottom !important;
 }
-/* slider UI */
 .slide-container {
   width: 175px;
     position: relative;
@@ -1523,7 +1454,6 @@ div.filtering-ui-content div.col {
 	right: 0;
 }
 
-/* */
 .expand-region {
 	display: inline-block;
 	vertical-align: bottom;
@@ -1541,13 +1471,6 @@ div.filtering-ui-content div.col {
 }
 
 #kp_gene_search_wrapper {
-	/*position: absolute;
-	background-color: #efefef;
-	border: solid 1px #ddd;
-	border-radius: 5px;
-	padding: 10px 10px;
-	z-index: 10;
-	left: 50px;*/
 }
 .custom-select-search {
 	width: 175px !important;
@@ -1610,21 +1533,12 @@ div.custom-select-search {
 }
 
 .filtering-ui-wrapper.search-criteria {
-	/*position: absolute;
-	z-index: 200;
-	width: 210px;
-	left: -25px;
-	top: 10px;
-	text-align: left;
-	padding: 15px;
-	padding-left: 25px;*/
 	transition: all 0.5s;
 	background-color: #ddefff;
 	border: solid 1px #bbdfff;
 }
 
 .filtering-ui-wrapper.search-criteria.closed {
-	/*left: -225px;*/
 	transition: all 0.5s;
 }
 
