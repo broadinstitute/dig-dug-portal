@@ -6,7 +6,7 @@ import {
     genePhenotypeAssociations,
 } from "./mockData";
 import { applyPbGeneFixturePipeline, fixtureGeneSymbol, fixtureLoaded } from "./fixturePipeline";
-import { fetchPbGeneBioIndexState } from "./pbGeneBioIndexAdapter";
+import { fetchPbGeneBioIndexState, supplementPbGeneVariantGenotypes } from "./pbGeneBioIndexAdapter";
 import { normalizeCarrierAge, normalizeCarrierAgeDemographics } from "./carrierAge";
 import { locusFilterActive, locusFilterKey, refreshLocusFilter } from "./locusFilters";
 import { ASSOCIATION_PAGE_SIZE, CO_CARRIER_PAGE_SIZE, INVESTIGATOR_PAGE_SIZE, paginate, sortAssociations, sortCoCarrierGenes, sortInvestigators } from "./summaryTable";
@@ -19,6 +19,7 @@ import { hgvsNotation } from "./hgvsNotation";
 
 const LOCAL_CONTEXT_FIXTURE_ENABLED = process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE === "true";
 const PHENOTYPE_RESULT_URL = "http://100.80.30.199/phenotypeResult.html";
+const CARRIER_GENOTYPE_PENDING = new WeakMap();
 
 export function createPbGeneState() {
     const params = new URLSearchParams(window.location.search);
@@ -1660,6 +1661,30 @@ export const pbGeneMethods = {
         this.visibleCarrierRows(row).forEach(sample => { this.fetchCarrierSampleDetail(sample.id); });
     },
 
+    async loadVariantCarrierGenotypes(variantId) {
+        const row = (this.variantRows || []).find(item => item.id === variantId);
+        if (!this.liveDataLoaded || !row || row.genotypeLookupStatus === 'ready') return;
+        const missing = (row.carrierSamples || []).some(sample => sample.gtStatus !== 'conflict'
+            && !/^(?:\d+)(?:[/|]\d+)*$/.test(String(sample.gt || '')));
+        if (!missing) return;
+        if (CARRIER_GENOTYPE_PENDING.has(row)) return CARRIER_GENOTYPE_PENDING.get(row);
+        const gene = this.geneInfo.symbol;
+        const current = () => this.geneInfo.symbol === gene && this.variantRows.includes(row);
+        const pending = (async () => {
+            this.$set(row, 'genotypeLookupStatus', 'loading');
+            try {
+                const result = await supplementPbGeneVariantGenotypes(gene, row);
+                if (!current()) return;
+                this.$set(row, 'carrierSamples', result.carrierSamples);
+                this.$set(row, 'genotypeLookupStatus', result.status);
+            } catch (_) {
+                if (current()) this.$set(row, 'genotypeLookupStatus', 'unavailable');
+            }
+        })();
+        CARRIER_GENOTYPE_PENDING.set(row, pending);
+        try { await pending; } finally { CARRIER_GENOTYPE_PENDING.delete(row); }
+    },
+
     carrierSampleField(sample, field) {
         const detail = this.sampleDetailsCache[sample.id];
         if (detail && detail[field] != null) return detail[field];
@@ -2067,6 +2092,7 @@ export const pbGeneMethods = {
             if (this.expandedVariantId) {
                 this.loadCarrierSummary(this.expandedVariantId);
                 this.fetchVisibleCarrierSampleDetails(this.expandedVariantId);
+                this.loadVariantCarrierGenotypes(this.expandedVariantId);
             }
             if (updateUrl) {
                 const url = new URL(window.location.href);
@@ -2127,6 +2153,7 @@ export const pbGeneMethods = {
         if (this.liveDataLoaded) {
             this.loadCarrierSummary(variantId);
             this.fetchVisibleCarrierSampleDetails(variantId);
+            this.loadVariantCarrierGenotypes(variantId);
         }
         return true;
     },

@@ -74,7 +74,7 @@ def environment(root, host):
     values = {key: str(root / path) for key, path in paths.items()}
     values.update({
         'PB_CONTEXT_SSH_HOST': host, 'PB_GT_SSH_HOST': host,
-        'PB_CONTEXT_ALLOW_SUBMIT': '0', 'PB_CONTEXT_DEMO_ROOT': DEMO,
+        'PB_CONTEXT_DEMO_ROOT': DEMO,
         'PB_GT_AUTO_DOWNLOAD': '0',
         'PB_GENE_SCORING_HPO_SHA256': 'eaa0ea2e218d300d4b9546ec238128e146237cee92a43350bc2846d5bd834ba6',
         'BIOINDEX_HOST_PRIVATE': 'http://100.80.30.199:5000',

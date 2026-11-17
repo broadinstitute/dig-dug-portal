@@ -228,22 +228,22 @@ assert.deepStrictEqual(stats.exactVariantCarrierResiduals({ variant_carrier_resi
 const variantTemplate = fs.readFileSync(path.join(__dirname, "../src/views/PbVariant/Template.vue"), "utf8");
 const equalRankHeadings = [
     'id="pbv-crdc-carriers-title"',
-    'id="pbv-context-title">Test a phenotype profile',
-    'class="pbv-recompute-results pbv-carrier-samples"',
     "<h2>Carrier phenotypes",
+    'class="pbv-card pg2-card pbv-profile pbv-carrier-samples"',
+    'id="pbv-context-title"',
 ].map(heading => variantTemplate.indexOf(heading));
 assert(equalRankHeadings.every(index => index >= 0), "variant sections must use the requested headings");
-assert(equalRankHeadings.every((index, position) => position === 0 || index > equalRankHeadings[position - 1]), "variant sections must retain identity, CRDC summary, profile, samples and phenotypes order");
-assert(variantTemplate.includes("variantIdentity.distinctCarriers.toLocaleString()") && !variantTemplate.includes('class="pbv-inline-frequency"'), "CRDC heading must show carriers without repeating AF");
+assert(equalRankHeadings.every((index, position) => position === 0 || index > equalRankHeadings[position - 1]), "variant sections must retain identity, CRDC summary, phenotypes and unified samples/profile order");
+assert(variantTemplate.includes("pbv-crdc-count") && !variantTemplate.includes('class="pbv-inline-frequency"'), "CRDC heading must show carriers without repeating AF");
 assert(variantTemplate.includes("<h2>Carrier phenotypes <help-tooltip") && variantTemplate.includes(':text="carrierPhenotypesHelp"'), "carrier workspace must show the unified heading and shared information control");
 assert(!variantTemplate.includes("Carrier statistics — filter to explore"), "carrier workspace must not retain the old oversized compound heading");
 assert(variantTemplate.includes("Carrier sample table") && !variantTemplate.includes("5 rows per page"), "carrier table must avoid redundant page-size copy");
 assert.strictEqual((variantTemplate.match(/<SummaryPager[^>]*class="pbv-result-pagination"/g) || []).length, 2, "phenotypes and carrier samples must use numbered pagination");
 assert(variantTemplate.includes("Carriers / with data") && variantTemplate.includes("visiblePhenotypeRows"), "phenotype count header and paginated rows must be present");
 assert(!variantTemplate.includes("sortTableColumn('carriers', 'coGenes')") && !variantTemplate.includes("carrierCoGeneCount(carrier)"), "carrier sample table must omit numeric co-gene column");
-const contextResultMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-profile-table"'), variantTemplate.indexOf('class="pbv-workspace pg2-card"'));
-const carrierTableMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-carrier-table"'), variantTemplate.indexOf('<section class="pbv-recompute-results pbv-phenotype-results">'));
-assert(contextResultMarkup.includes('<th>β <help-tooltip') && contextResultMarkup.includes('<th>P <help-tooltip'), "profile must show beta and P with the requested labels");
+const contextResultMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-profile-results"'), variantTemplate.indexOf('class="pbv-carrier-table"'));
+const carrierTableMarkup = variantTemplate.slice(variantTemplate.indexOf('class="pbv-carrier-table"'));
+assert(contextResultMarkup.includes('β (rPheRS SD)') && contextResultMarkup.includes('<th>P <help-tooltip'), "profile must show beta and P with the requested labels");
 assert(contextResultMarkup.includes('Mean carrier<br>rPheRS Z'), "carrier mean must remain a separate descriptive column");
 assert(!/<th[^>]*>\s*(?:q|FDR)\b/i.test(contextResultMarkup), "one variant by one profile must not acquire a q column");
 assert(!variantTemplate.includes('pbv-context-crossref') && !variantTemplate.includes('pbv-sample-score-note'), "method and scoring definitions must be available through information icons");
@@ -253,7 +253,7 @@ assert(!carrierTableMarkup.includes("Effect Score (β)") && !carrierTableMarkup.
 assert(variantTemplate.includes("variantScoreSource === 'loftee'") && variantTemplate.includes("variantScoreSource === 'alphaMissense'"), "identity must mark the selected variant-score source");
 assert(variantTemplate.includes("pbv-variant-score-highlight"), "identity must highlight the selected score value");
 assert(!variantTemplate.includes("displayVariantMatch(contextMatch.matchScore)"), "carrier rows must not repeat the aggregate Match Score as an individual residual");
-assert(variantTemplate.includes("carrierResidualScore(carrier)"), "carrier table must show each carrier's individual residual when returned by the private Context API");
+assert(variantTemplate.includes("expandedProfileResiduals[String(carrier.id).toLowerCase()]"), "carrier table must show each carrier's individual residual when returned by the private Context API");
 assert(!variantTemplate.includes("+3 more") && !variantTemplate.includes("+10 more"), "incremental show-more controls must be removed");
 assert(!variantTemplate.includes("pbv-carrier-inline-scores"), "sample card must not repeat aggregate scores already shown in profile results");
 assert(!variantTemplate.includes(">Proband<"), "Variant filters and carrier table must not expose Proband");
@@ -267,7 +267,7 @@ assert(variantPageModel.includes("const COOCCURRENCE_LIMIT = 4;"), "both co-occu
 assert(!variantTemplate.includes("Co-carried genes") && !variantTemplate.includes("visibleCooccurGeneRows") && !variantTemplate.includes("pbv-detail-results"), "the co-gene block and its empty wrapper must be removed");
 assert(!variantTemplate.includes("variants observed in these carriers") && !variantTemplate.includes("visibleCooccurVariantRows"), "the other same-gene variants section must be removed");
 assert(variantTemplate.includes('v-model="contextScoreTypeInput"') && variantTemplate.includes('v-model="contextAnalysisSetInput"'), "HPO Go form must offer max/sum and all/affected controls");
-assert(variantTemplate.includes('class="pbv-card pg2-card pbv-profile"') && variantTemplate.includes('class="pbv-advanced"'), "profile must be visible with advanced options initially closed");
+assert(variantTemplate.includes('class="pbv-card pg2-card pbv-profile pbv-carrier-samples"') && variantTemplate.includes('class="pbv-advanced"'), "profile must be visible with advanced options initially closed");
 assert(variantTemplate.includes('<hpo-term-input ref="profile" v-model="contextInput"') && variantPageModel.includes("resolveHpoTerms(this.contextInput)"), "Variant HPO context must reuse Gene phenotype search and name resolution");
 assert(variantPageModel.includes("contextApiError(response)"), "Variant HPO context must show the API's specific validation error");
 assert.deepStrictEqual(sortCoGeneRows([

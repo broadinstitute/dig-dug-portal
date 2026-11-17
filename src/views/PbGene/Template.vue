@@ -653,23 +653,8 @@
                                 </div>
                             </div>
                         </template>
-                        <nav v-if="variantPageCount > 1" class="pbg-ve-pagination" aria-label="Variant evidence pages">
-                            <span v-if="variantSearchStart != null" class="pbg-ve-search-state">Closest variant centered</span>
-                            <button type="button" :disabled="variantPage <= 1" @click.stop="goToVariantPage(variantPage - 1)">Previous</button>
-                            <button v-for="page in variantPageNumbers" :key="page" type="button"
-                                    :class="{ 'pbg-ve-page-active': variantSearchStart == null && variantPage === page }"
-                                    :aria-current="variantSearchStart == null && variantPage === page ? 'page' : null"
-                                    @click.stop="goToVariantPage(page)">{{ page }}</button>
-                            <button type="button" :disabled="variantPage >= variantPageCount" @click.stop="goToVariantPage(variantPage + 1)">Next</button>
-                            <form class="pbg-ve-page-jump" aria-label="Go to variant page" @submit.prevent="jumpToVariantPage">
-                                <label for="pbg-variant-page-jump">Page</label>
-                                <input id="pbg-variant-page-jump" v-model.trim="variantPageJump" type="text" inputmode="numeric"
-                                       :aria-invalid="variantPageJumpError ? 'true' : 'false'" :placeholder="String(variantPageCount)">
-                                <button type="submit">Go</button>
-                                <span v-if="variantPageJumpError" class="pbg-ve-page-jump-error" role="alert">{{ variantPageJumpError }}</span>
-                            </form>
-                            <span class="pbg-ve-page-total">{{ variantPage }} / {{ variantPageCount }}</span>
-                        </nav>
+                        <p v-if="variantSearchStart != null" class="pbg-ve-search-state">Closest variant centered</p>
+                        <SummaryPager :page="variantPage" :total-pages="variantPageCount" label="Variant evidence pages" input-id="pbg-variant-page-jump" @change="goToVariantPage" />
                     </div>
                 </section>
 

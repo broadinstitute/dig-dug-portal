@@ -2,6 +2,10 @@
 
 **Reproduce the user's current prototype design and interactions exactly.** The [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages) applies to this entire page, including its typography, colors, spacing, borders, card/table layout, responsive behavior and every interactive state. Carry the Vue templates and CSS together.
 
+## Shared UI update — 2026-11-17
+
+Apply the [shared pagination contract and file map](pb_front_gene_variant_merge_handoff.md#shared-pagination--2026-11-17). Carry `PbGene/SummaryPager.vue` with scoped CSS and this page's listed consumers/wrappers. Preserve page sizes, filter/sort/pin semantics and existing change handlers. Earlier arrow-only/compact pagination examples are superseded; calculation and source contracts are unchanged.
+
 ## 2026-11-16 search refinements — latest local delta
 
 These changes follow baseline `54cfec6e2` and are included in the commit containing this document, together with their source and tests. The earlier delivery manifest does not include them. This section takes precedence over older search-summary/copy-action instructions below. Target-server deployment remains pending.

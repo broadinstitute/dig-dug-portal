@@ -94,11 +94,7 @@
                                     </tr></tbody>
                                 </table>
                             </div>
-                            <div class="pbp-pagination">
-                                <button type="button" :disabled="cohortPage <= 1" @click="cohortPage--">Previous</button>
-                                <span>Page {{ cohortPage }} / {{ cohortPageCount }} · {{ cohortDiseaseSummary.length }} groups</span>
-                                <button type="button" :disabled="cohortPage >= cohortPageCount" @click="cohortPage++">Next</button>
-                            </div>
+                            <SummaryPager :page="cohortPage" :total-pages="cohortPageCount" label="Cohort group pages" input-id="pbp-cohort-page" @change="cohortPage = $event" />
                         </div>
                         <details class="pbp-query-details">
                             <summary>
@@ -330,11 +326,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="pbp-pagination">
-                            <button type="button" :disabled="samplePage <= 1" @click="samplePage--">Previous</button>
-                            <span>Page {{ samplePage }} / {{ samplePageCount }} · {{ qualifyingSamples.length }} samples</span>
-                            <button type="button" :disabled="samplePage >= samplePageCount" @click="samplePage++">Next</button>
-                        </div>
+                        <SummaryPager :page="samplePage" :total-pages="samplePageCount" label="Phenotype sample pages" input-id="pbp-sample-page" @change="samplePage = $event" />
                         <p v-if="matchesLoaded && !qualifyingSamples.length" class="pbp-status">No samples match the selected projects and filters.</p>
                         </div>
                     </section>
@@ -573,11 +565,7 @@
                                 No genes match this selected sample group and filter.
                             </p>
                         </div>
-                        <div v-if="multi ? (geneSampleScope === 'whole' ? genes : scoreMembership) : genes && !geneLoading && !geneError" class="pbp-pagination">
-                            <button type="button" :disabled="genePage <= 1" @click="genePage--">Previous</button>
-                            <span>Page {{ genePage }} / {{ genePageCount }} · {{ filteredGenes.length }} genes</span>
-                            <button type="button" :disabled="genePage >= genePageCount" @click="genePage++">Next</button>
-                        </div>
+                        <SummaryPager :page="genePage" :total-pages="genePageCount" label="Phenotype gene pages" input-id="pbp-gene-page" @change="genePage = $event" />
                     </section>
                     <div class="pbp-disease-layout" :class="{ profile: multi }">
                         <section class="pbp-card pbp-diseases">
@@ -906,11 +894,7 @@
                                     No reference diseases match this selection.
                                 </p>
                             </div>
-                            <div class="pbp-pagination">
-                                <button type="button" :disabled="diseasePage <= 1" @click="diseasePage--">Previous</button>
-                                <span>Page {{ diseasePage }} / {{ diseasePageCount }} · {{ filteredDiseases.length }} {{ diseaseSource === "ddg2p" ? "gene–condition records" : "diseases" }}</span>
-                                <button type="button" :disabled="diseasePage >= diseasePageCount" @click="diseasePage++">Next</button>
-                            </div>
+                            <SummaryPager :page="diseasePage" :total-pages="diseasePageCount" label="Disease pages" input-id="pbp-disease-page" @change="diseasePage = $event" />
                         </section>
                         <aside v-if="multi" class="pbp-card pbp-narrow">
                             <span class="pbp-tag orpha"
@@ -990,6 +974,7 @@
     </div>
 </template>
 <script>
+import SummaryPager from "../PbGene/SummaryPager";
 import InfoRail from "../PbGene2/InfoRail.vue";
 import PortalGuide from "@/components/pb/PortalGuide.vue";
 import { ORPHANET_REFERENCE } from "./orphanetReference.generated";
@@ -1057,7 +1042,7 @@ function leafTerms(ids) {
 }
 export default {
     name: "PbPhenotypeTemplate",
-    components: { InfoRail, PortalGuide, PhenotypeProfileEditor, PhenotypeHelp, SinglePhenotypeResults },
+    components: { SummaryPager, InfoRail, PortalGuide, PhenotypeProfileEditor, PhenotypeHelp, SinglePhenotypeResults },
     data() {
         const params = new URLSearchParams(window.location.search);
         const query = params.has("query") ? params.get("query") : params.get("hpo") || "HP:0001250";

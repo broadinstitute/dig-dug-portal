@@ -43,8 +43,9 @@ class RuntimeSetupTest(unittest.TestCase):
         config = self.root / 'local.env'
         self.assertEqual(config.stat().st_mode & 0o777, 0o600)
         self.assertEqual((self.root / self.relative).stat().st_mode & 0o777, 0o600)
-        result = subprocess.run(['bash', '-c', 'source "$1"; printf "%s\\n" "$PB_PHENOTYPE_METADATA" "$PB_CONTEXT_SSH_HOST" "$PB_CONTEXT_ALLOW_SUBMIT"', 'test', str(config)], capture_output=True, text=True, check=True)
-        self.assertEqual(result.stdout.splitlines(), [str(self.root / 'inputs/metadata.xlsx'), 'own-e3', '0'])
+        result = subprocess.run(['bash', '-c', 'source "$1"; printf "%s\\n" "$PB_PHENOTYPE_METADATA" "$PB_CONTEXT_SSH_HOST"', 'test', str(config)], capture_output=True, text=True, check=True)
+        self.assertEqual(result.stdout.splitlines(), [str(self.root / 'inputs/metadata.xlsx'), 'own-e3'])
+        self.assertNotIn('PB_CONTEXT_ALLOW_SUBMIT', config.read_text())
 
     def test_failed_transfer_retains_partial_and_retries(self):
         def fail(host, relative, destination):

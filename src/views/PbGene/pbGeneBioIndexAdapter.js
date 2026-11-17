@@ -77,6 +77,25 @@ async function loadGeneGenotypes(gene, variant) {
     } catch (_) { return {gene, rows:[], source:null, lookup_status:'unavailable'}; }
 }
 
+export async function supplementPbGeneVariantGenotypes(geneSymbol, variant) {
+    const gene = normalizeGene(geneSymbol);
+    const exactId = 'chr' + String(variant.id).trim().replace(/^chr/i, '').toUpperCase();
+    const result = await loadGeneGenotypes(gene, exactId);
+    if (result.lookup_status !== 'unavailable' && result.requested_variant !== exactId) {
+        throw new Error('Genotype response does not match the requested variant.');
+    }
+    const updated = applyCarrierGenotypes([variant], result)[0];
+    return {
+        carrierSamples: updated.carrierSamples.map((sample, index) => {
+            const original = variant.carrierSamples[index];
+            return original.gtStatus === 'conflict' || /^(?:\d+)(?:[/|]\d+)*$/.test(String(original.gt || ''))
+                ? original : sample;
+        }),
+        status: result.lookup_status === 'unavailable' || result.vcf_lookup_status === 'unavailable'
+            ? 'unavailable' : 'ready',
+    };
+}
+
 async function safeBioIndexQuery(index, q, limit = null, options = {}) {
     try {
         return await query(index, q, {

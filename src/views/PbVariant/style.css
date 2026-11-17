@@ -636,3 +636,78 @@
 .pbv-pheno-row.is-profile-term.is-filter-ancestor, .pbv-bar-row--nested.is-profile-term.is-filter-ancestor { background: #fff6d8; }
 .pbv-filter-node-tag { display: inline-block; margin-left: 8px; padding: 0 5px; border-radius: 3px; background: #dfcdf6; color: #59328b; font-size: 13px; font-weight: 600; }
 .pbv-phenotype-filter-chip .pbv-selected-chip-text { background: linear-gradient(transparent 48%, #e5d6fa 48%); color: #59328b; }
+
+/* One profile control and one evidence row for the selected variant. */
+.pbv-carrier-samples .pbv-carrier-samples-heading { justify-content: flex-start; }
+.pbv-carrier-samples-heading .pbv-methods { margin-left: auto; }
+.pbv-carrier-samples .pbv-profile-form { max-width: 1160px; margin-left: auto; }
+.pbv-applied-profile-summary, .pbv-profile-prompt { margin: 0 0 14px; font-size: 17px; color: #526071; }
+.pbv-applied-profile-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.pbv-evidence-variant-col { width: 20%; }
+.pbv-evidence-clinvar-col { width: 10%; }
+.pbv-evidence-total-col { width: 7%; }
+.pbv-evidence-predictor-col { width: 10%; }
+.pbv-evidence-hpo-col { width: 9%; }
+.pbv-evidence-mean-col { width: 12%; }
+.pbv-evidence-beta-col { width: 10%; }
+.pbv-evidence-p-col { width: 8%; }
+.pbv-evidence-settings-col { width: 14%; }
+.pbv-variant-evidence-table td.pbv-evidence-settings { font-size: 16px; }
+.pbv-evidence-settings .pbv-profile-actions { justify-content: center; gap: 4px; margin-top: 4px; }
+@media (max-width: 700px) {
+    .pbv-carrier-samples .pbv-profile-form { width: 100%; }
+    .pbv-carrier-samples-heading .pbv-methods { margin-left: 0; }
+}
+
+/* Carrier selection stays visible beside the demographics. */
+.pbv-crdc-overview { display: grid; grid-template-columns: 265px minmax(0, 1fr); gap: 24px; }
+.pbv-crdc-selection { display: flex; flex-direction: column; align-items: flex-start; color: #526071; }
+.pbv-crdc-count { color: #101a36; font-size: 48px; line-height: 1.1; }
+.pbv-genotype-caption { margin: 24px 0 8px; font-size: 17px; }
+.pbv-genotype-segments { display: flex; flex-wrap: wrap; border: 1px solid #b6c9e0; border-radius: 6px; overflow: hidden; }
+.pbv-page .pbv-genotype-segments button { border: 0; border-right: 1px solid #b6c9e0; background: #fff; color: #14213d; padding: 10px 12px; font-size: 17px; cursor: pointer; }
+.pbv-page .pbv-genotype-segments button:last-child { border-right: 0; }
+.pbv-page .pbv-genotype-segments button.is-selected { background: #204de3; color: #fff; }
+.pbv-page .pbv-genotype-segments button:focus-visible { outline: 2px solid #101a36; outline-offset: -3px; }
+.pbv-crdc-overview > * { min-width: 0; }
+.pbv-profile-results-scroll { overflow-x: auto; border: 1px solid #c7d8f0; border-radius: 8px; }
+.pbv-profile-results { width: 100%; min-width: 1120px; table-layout: fixed; border-collapse: collapse; color: #14213d; }
+.pbv-profile-expand-col { width: 48px; }
+.pbv-profile-name-col { width: 30%; }
+.pbv-profile-settings-col { width: 20%; }
+.pbv-profile-results th { background: #edf2fb; padding: 16px 10px; text-align: left; font-size: 18px; line-height: 1.4; border-bottom: 1px solid #d5dfec; }
+.pbv-profile-results td { padding: 16px 10px; font-size: 18px; border-bottom: 1px solid #d5dfec; vertical-align: middle; }
+.pbv-profile-result-row.is-expanded { background: #eef4ff; }
+.pbv-result-terms { display: flex; flex-wrap: wrap; gap: 7px; }
+.pbv-result-term { display: inline-flex; flex-wrap: wrap; gap: 4px 7px; padding: 4px 8px; border: 1px solid #c5d3e3; border-radius: 5px; background: #fff; }
+.pbv-result-term a { font-size: 15px; }
+.pbv-profile-result-settings { line-height: 1.5; }
+.pbv-page .pbv-profile-expand { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #b6c9e0; border-radius: 5px; width: 34px; height: 38px; background: #fff; color: #204de3; cursor: pointer; }
+.pbv-profile-expand svg { width: 18px; }
+.pbv-profile-results td.pbv-profile-detail-cell { padding: 0; }
+.pbv-profile-detail-cell .pbv-carrier-sample-details { width: 100%; padding: 14px 0 0; border-top: 0; }
+.pbv-profile-samples-caption, .pbv-profile-samples-note { padding: 0 10px; margin: 0 0 14px; color: #526071; font-size: 16px; }
+.pbv-profile-detail-cell .pbv-carrier-table { width: 100%; }
+.pbv-profile-detail-cell .pbg-selected-sample-table { width: 100%; border-left: 0; border-right: 0; border-radius: 0; }
+.pbv-profile-detail-cell .pbg-selected-sample-head,
+.pbv-profile-detail-cell .pbg-selected-sample-row { width: 100%; min-width: 0; grid-template-columns: minmax(215px,1.5fr) 55px 50px 60px minmax(130px,.9fr) 110px 110px 90px minmax(240px,2fr); }
+.pbv-profile-detail-cell .pbg-selected-sample-row > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pbv-profile-detail-cell .pbv-result-pagination { margin: 0; padding-bottom: 14px; }
+@media (max-width: 900px) {
+    .pbv-crdc-overview { grid-template-columns: 1fr; }
+    .pbv-crdc-selection { padding-bottom: 18px; border-bottom: 1px solid #e1e8f2; }
+    .pbv-genotype-caption { margin-top: 12px; }
+}
+
+/* One carrier information card, with genotype colours shared by its charts. */
+.pbv-carrier-information { --pbv-carrier-color: #204de3; }
+.pbv-carrier-information[data-genotype="heterozygous"] { --pbv-carrier-color: #16835d; }
+.pbv-carrier-information[data-genotype="homozygous"] { --pbv-carrier-color: #e3b72d; }
+.pbv-carrier-information > .pbv-workspace { margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.pbv-carrier-divider { margin: 24px 0; border: 0; border-top: 1px solid #d5dfec; }
+.pbv-carrier-information .pbv-genotype-segments button.is-selected { background: var(--pbv-carrier-color); }
+.pbv-carrier-information[data-genotype="homozygous"] .pbv-genotype-segments button.is-selected { color: #14213d; }
+.pbv-carrier-information progress::-webkit-progress-value { background: var(--pbv-carrier-color); }
+.pbv-carrier-information progress::-moz-progress-bar { background: var(--pbv-carrier-color); }
+.pbv-carrier-information[data-genotype="heterozygous"] .pbv-bar-fill,
+.pbv-carrier-information[data-genotype="homozygous"] .pbv-bar-fill { background-color: var(--pbv-carrier-color) !important; }

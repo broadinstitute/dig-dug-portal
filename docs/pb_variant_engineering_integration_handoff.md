@@ -1,6 +1,27 @@
 # PB Variant engineering handoff
 
-**Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, card/table widths and order, icons, responsive layout and every interactive state, including the blue Genotype selector. Compare prototype and target at the same viewport/zoom before marking the UI complete.
+**Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, card/table widths and order, icons, responsive layout and every interactive state, including genotype-specific colours. Compare prototype and target at the same viewport/zoom before marking the UI complete.
+
+## Current UI contract — 2026-11-17
+
+Use this section for layout/state; keep the regression/source contracts below.
+
+| Area | Implement |
+|---|---|
+| Order/grouping | Variant identity → **one carrier information card** containing CRDC demographics, a thin divider and Carrier phenotypes → profile-results/carrier-samples card. No separate border/background between demographics and observed phenotypes. |
+| Genotype | Left column: selected carrier count, `carriers`, Genotype, single-select **All / Het / Hom** buttons with source counts. Show Unknown only when count >0; All includes Unknown. Apply immediately, without dropdown/Cancel/Apply. Preserve raw GT and the existing genotype grouping rules. |
+| Colours | All `#204de3`, Het `#16835d`, Hom `#e3b72d`; selected button and demographics progress fills follow selection. Het/Hom phenotype-tree fills use the same colour. Hom button text `#14213d`. |
+| Observed phenotypes | Own demographic/HPO display filters within selected genotype carriers. Profile Apply must not highlight terms, expand branches, navigate pages, insert unlisted-profile labels or change these filters. Denominator remains carriers with phenotype data. |
+| Profile input | Right-aligned input/Apply/Advanced options in the carrier-samples card; retain Max/Sum and All/Affected. No repeated Variant/ClinVar/total-carrier/predictor columns. |
+| Result columns | Expand / Phenotype profile (linked HPO chips) / Carriers with profile HPO / Mean carrier rPheRS Z / β (rPheRS SD) / P / Settings / delete. One row per successful run; immutable terms, aggregates, settings and **individual `residualById` scores**. Failed/late requests do not replace valid results. |
+| Expansion | One run open at a time (`expandedProfileRunId`); latest successful run opens automatically. Detail cell spans all eight columns with zero outer cell padding; sample grid uses its full width. Expanding a historical run uses its saved scores without refitting/replacing the latest analysis. |
+| Individual rows | List only selected genotype carriers with a finite score in the expanded run; independent of phenotype-browser display filters. Default descending rPheRS Z; five rows/page. Missing HPO/scoring-reference/ineligible carriers are not listed; show their excluded count without equating all exclusions to absent HPO data. |
+| Individual columns | Sample / Age / Sex / GT / rPheRS Z / Profile terms matched / Total HPO terms / Affected / Project. Matched terms count profile IDs present in the metadata hierarchy; unavailable metadata is not zero. `Total HPO terms` remains scorer `n_terms`. |
+| HPO reference counts | Keep exact-recorded-ID OR counts distinct from scored-carrier counts and observed-positive hierarchy counts. Cache by run; validate gene/terms/variant/sample-scope before accepting; preserve partial/unavailable states. |
+| Lifecycle | GT selection clears scoped results and recomputes saved profiles; rerun adds a new row; deleting a row clears its expansion/cache and clears current analysis only when that row is current. Variant change resets runs, expanded ID and HPO cache. |
+| Shared control | [Pagination contract](pb_front_gene_variant_merge_handoff.md#shared-pagination--2026-11-17). |
+
+Carry `PbVariant/{Template.vue,pageModel.js,style.css,layoutHelp.js}`, `PbGene2/Demographics.vue`, `PbGene/SummaryPager.vue` and existing API/GT dependencies. Checks: `test_pb_variant_layout.js`, `test_pb_variant_carrier_statistics.js`, `test_pb_variant_profile_history.js`, `test_pb_variant_genotype_request.js`, `test_pb_pagination.js`. No new regression model, data release, q family or API endpoint.
 
 ## Current correction — shared Gene/Variant regression, 2026-11-16
 
@@ -33,7 +54,7 @@ The last example fits 15,761 samples: 39 carriers + 15,722 noncarriers; scoring 
 
 November 15 delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). The November 16 local delta below is additional to that delivered snapshot; include its new files. Neither the manifest nor local checks establish deployment.
 
-Updated: 2026-11-16 · Branch: `kyuryung/bch-prototype` · Entry: `/pb_variant.html`
+Updated: 2026-11-17 · Branch: `kyuryung/bch-prototype` · Entry: `/pb_variant.html`
 
 ## 2026-11-16 Variant follow-up — current local contract
 
@@ -41,14 +62,14 @@ The earlier GT/control changes below were delivered after baseline `306ded0b8` a
 
 | Change | Implement / carry |
 |---|---|
-| Larger Genotype control | `PbVariant/style.css`: 22px/700 label, 20px icon, minimum 46px height, 8px × 14px padding, 1.5px blue border, 7px corners and pale blue background. Darker border/background on hover, focus and open. Center it beside the carrier heading. This supersedes the yellow marker styling. Keep existing checkboxes/Cancel/Apply and genotype-scope calculations. |
+| Genotype control | Superseded by the November 17 segmented selector above; retain the GT request/cache fixes below. |
 | Correct actual GT request | `PbGene/pbGeneBioIndexAdapter.js`: normalize `genotypeVariantId` to `chr`-prefixed exact ID at the request/cache boundary. Variant annotation keys may omit `chr`; do not change their format or loosen endpoint authorization. Unprefixed GT requests returned 400 and made the actual browser show all 41 carriers as Unknown. |
 | Recover after lookup failure | Do not retain a state containing `gtStatus: lookup_unavailable` in the successful gene-state cache. The next search retries; valid missing/low-depth calls remain Unknown. |
 | Prevent regression | Include new `scripts/test_pb_variant_genotype_request.js`: actual Variant page method → shared adapter → actual route, using fixture processed/VCF calls; also check equivalent-ID cache reuse and recovery after failure. It failed before the fix and passed after it. |
 
 Cross-page review: retain the request/cache/control fixes and the [shared local lifecycle update](pb_front_gene_variant_merge_handoff.md#local-development-lifecycle--2026-11-16). Stop/status manage local frontend/API processes, not the original-VCF tunnel or remote compute job. Keep exact authorization, GT provenance, selected-carrier display and noncarrier regression controls.
 
-Earlier GT verification: processed-GT, VCF restart-cache, live metadata adapter and Variant layout tests passed. The live API for GJB2 `chr13:20189313:A:G` returned **Homozygous 0 / Hetero 39 / Unknown 2**; both Unknown calls had `low_or_missing_depth` (DP ≥20 required). These are source results, not constants. Native verification timed out in that earlier session; the latest correction's checks/user confirmation are recorded above. Verify final appearance, dropdown interaction and counts on the target implementation.
+Earlier GT verification: processed-GT, VCF restart-cache, live metadata adapter and Variant layout tests passed. The live API for GJB2 `chr13:20189313:A:G` returned **Homozygous 0 / Hetero 39 / Unknown 2**; both Unknown calls had `low_or_missing_depth` (DP ≥20 required). These are source results, not constants. Native verification timed out in that earlier session; the latest correction's checks/user confirmation are recorded above. Verify final appearance, segmented-selector interaction and counts on the target implementation.
 
 ## 2026-11-15 UI follow-up — included in this delivery
 
@@ -78,11 +99,7 @@ Additional checks: `node scripts/test_crdc_hpo_availability.js`, `node scripts/t
 
 ## Behavior
 
-- Place the enlarged blue-bordered `Genotype` dropdown immediately beside **N carriers observed in CRDC**. Use the existing ClinVar checkbox interaction: Homozygous / Hetero / Unknown, all checked initially, multiple selections combined with OR, Cancel / Apply. Disable Apply for an empty selection.
-- Show selected / total carriers beneath the heading. Do not add “All results below…”.
-- Demographics, sample list/totals and HPO counts/denominators use selected carriers. Profile regression compares selected eligible carriers with eligible noncarriers; scoring/reference remains full-cohort. Lower display filters work within the displayed carrier population without refitting the model. Identity annotations and cohort AF retain their source values.
-- On genotype Apply, discard old analysis and recompute saved profiles for the new selection. Reject stale responses and responses without the exact requested sample-scope echo.
-- Keep profile history, linked HPO IDs and phenotype-search highlighting. Remove the co-carried-gene and “Other [gene] variants observed in these carriers” sections.
+Use the [current UI contract](#current-ui-contract--2026-11-17); older dropdown, profile-tree highlighting and separate variant-evidence-row layouts are superseded. Genotype changes carrier selection and refits profiles with noncarrier controls retained. Identity/AF retain source values.
 
 ## Calculation rules
 

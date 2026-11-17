@@ -18,11 +18,7 @@
                             <td><button type="button" :class="{ 'pg2-legend-active': selected(item) }" :aria-label="'Filter ' + item.label + ': ' + item.count + ' variants'" :aria-pressed="String(selected(item))" @click="activate(item)">{{ item.count.toLocaleString() }}</button></td>
                         </tr></tbody>
                     </table>
-                    <nav v-if="consequencePageCount > 1" class="pg2-project-pagination" aria-label="Consequence pages">
-                        <button type="button" :disabled="currentConsequencePage === 1" aria-label="Previous consequence page" @click="goToConsequencePage(currentConsequencePage - 1)"><b-icon-chevron-left /></button>
-                        <button v-for="page in consequencePageCount" :key="page" type="button" :class="{ 'pg2-current-page': currentConsequencePage === page }" :aria-current="currentConsequencePage === page ? 'page' : null" :aria-label="'Consequence page ' + page" @click="goToConsequencePage(page)">{{ page }}</button>
-                        <button type="button" :disabled="currentConsequencePage === consequencePageCount" aria-label="Next consequence page" @click="goToConsequencePage(currentConsequencePage + 1)"><b-icon-chevron-right /></button>
-                    </nav>
+                    <SummaryPager :page="currentConsequencePage" :total-pages="consequencePageCount" label="Consequence pages" input-id="pg2-consequence-page" @change="goToConsequencePage" />
                 </div>
                 <div v-else class="pg2-bar-legend">
                     <template v-for="item in group.segments">
@@ -43,11 +39,12 @@
     </div>
 </template>
 <script>
+import SummaryPager from "../PbGene/SummaryPager";
 import HelpTooltip from './HelpTooltip';
 import { VARIANT_ANNOTATION_SOURCES } from './referenceProvenance';
 export default {
     name: 'Gene2VariantOverview',
-    components: { HelpTooltip },
+    components: { SummaryPager, HelpTooltip },
     props: {
         mix: { type: Object, required: true },
         total: { type: Number, required: true },

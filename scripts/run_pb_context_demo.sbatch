@@ -3,7 +3,7 @@
 #SBATCH --partition=bch-compute
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16G
-#SBATCH --time=1-00:00:00
+#SBATCH --time=7-00:00:00
 
 demo_root=${1:?Pass the persistent deployment directory}
 case "$demo_root" in
@@ -12,6 +12,33 @@ case "$demo_root" in
 esac
 umask 077
 cd "$demo_root" || exit $?
+api_pids=()
+cleanup() {
+  exit_status=$?
+  trap - EXIT
+  trap '' TERM INT
+  # The launcher uses the same lock. Remove only metadata owned by this job.
+  if [[ -d runtime ]]; then
+    (
+      exec 9> runtime/lifecycle.lock || exit $?
+      flock -x -w 30 9 || exit $?
+      if [[ -f runtime/job_id && "$(cat runtime/job_id)" == "$SLURM_JOB_ID" ]]; then
+        rm -f -- runtime/job_id runtime/node runtime/bioindex_host runtime/pid || exit $?
+      fi
+      if [[ -f runtime/submitted_job_id && "$(cat runtime/submitted_job_id)" == "$SLURM_JOB_ID" ]]; then
+        rm -f -- runtime/submitted_job_id || exit $?
+      fi
+    ) || echo 'Could not clear connection metadata; the next start will recover it.' >&2
+  fi
+  if [[ ${#api_pids[@]} -gt 0 ]]; then
+    kill -TERM "${api_pids[@]}" 2>/dev/null
+    for api_pid in "${api_pids[@]}"; do wait "$api_pid" 2>/dev/null; done
+  fi
+  exit "$exit_status"
+}
+trap cleanup EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
 source /programs/biogrids.shrc || exit $?
 export PYTHON_X=3.12.2 R_X=4.4.2 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
 export OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2
@@ -42,19 +69,22 @@ fi
 for required in "source/$matrix" source/gene_scores.tsv inputs/roster.tsv inputs/covariates.tsv; do
   [[ -s "$required" ]] || { echo "Missing input: $required" >&2; exit 2; }
 done
-hostname > runtime/node || exit $?
-printf '%s\n' "$SLURM_JOB_ID" > runtime/job_id || exit $?
 bioindex_host=http://100.80.30.199:5000
 if ! curl -sS --connect-timeout 3 --max-time 5 -o /dev/null "$bioindex_host/"; then
   bioindex_host=http://127.0.0.1:18095
 fi
 printf '%s\n' "$bioindex_host" > runtime/bioindex_host || exit $?
+hostname > runtime/node || exit $?
+printf '%s\n' "$$" > runtime/pid || exit $?
+# Publish job_id last so reconnects cannot read the previous node/host.
+printf '%s\n' "$SLURM_JOB_ID" > runtime/job_id || exit $?
 echo "Context API node=$(hostname) job=$SLURM_JOB_ID port=18092 BioIndex=$bioindex_host"
 if [[ -f scripts/pb_sample_gene_scores.py ]]; then
   "$python_bin" -m scripts.pb_sample_gene_scores \
     --gene-scores "$demo_root/source/gene_scores.tsv" \
     --covariates "$demo_root/inputs/covariates.tsv" --roster "$demo_root/inputs/roster.tsv" \
     --host 127.0.0.1 --port 18094 > "$demo_root/logs/sample-gene-scores-$SLURM_JOB_ID.log" 2>&1 &
+  api_pids+=("$!")
 fi
 variant_api_root=${PB_VARIANT_API_ROOT:-$demo_root/variant-genotype-20261114}
 if [[ ! -f "$variant_api_root/scripts/pb_gene_context_api_server.py" ]]; then
@@ -66,7 +96,22 @@ exec "$python_bin" -m scripts.pb_gene_context_api_server \
   --covariates "$demo_root/inputs/covariates.tsv" --gene-scores "$demo_root/source/gene_scores.tsv" \
   --genotype-vcf "${PB_GENOTYPE_VCF_SOURCE:-/lab-share/RC-Data-Science-NR-e2/Public/gnomad/helen/VEP_pipeline/cleanVCF/finalresult/Data_with_af_dp/combined_crdc.with_af_formatDP.vcf.gz}" \
   --bioindex-host "$bioindex_host" --host 127.0.0.1 --port 18096) > "$demo_root/logs/variant-genotype-$SLURM_JOB_ID.log" 2>&1 &
-exec "$python_bin" -m scripts.pb_gene_context_api_server \
+api_pids+=("$!")
+"$python_bin" -m scripts.pb_gene_context_api_server \
   --hpo-matrix "$demo_root/source/$matrix" --overlap-roster "$demo_root/inputs/roster.tsv" \
   --covariates "$demo_root/inputs/covariates.tsv" --gene-scores "$demo_root/source/gene_scores.tsv" \
-  --bioindex-host "$bioindex_host" --host 127.0.0.1 --port 18092
+  --bioindex-host "$bioindex_host" --host 127.0.0.1 --port 18092 &
+api_pids+=("$!")
+# Keep the batch shell alive so EXIT/TERM can stop every API and clear metadata.
+while :; do
+  for api_pid in "${api_pids[@]}"; do
+    if ! kill -0 "$api_pid" 2>/dev/null; then
+      wait "$api_pid"
+      api_status=$?
+      echo "Analysis API process $api_pid exited ($api_status); stopping job $SLURM_JOB_ID." >&2
+      if [[ "$api_status" -eq 0 ]]; then api_status=1; fi
+      exit "$api_status"
+    fi
+  done
+  sleep 5
+done

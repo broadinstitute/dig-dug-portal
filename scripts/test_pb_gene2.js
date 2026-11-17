@@ -23,7 +23,7 @@ function load(relative, imports = {}, sfc = false) {
     const exports = {};
     vm.runInNewContext(code, { exports, module: { exports }, require: name => {if(name === '../../utils/crdcHpoAvailability') return require('../src/utils/crdcHpoAvailability');if(name === '../../utils/clinvarLabels') return require('../src/utils/clinvarLabels');
         if (Object.hasOwn(imports, name)) return imports[name];
-        if (name.endsWith('.css')) return {};
+        if (name.endsWith('.css') || name === '../PbGene/SummaryPager') return {};
         throw new Error(`Unexpected dependency ${name}`);
     }, window, URL, URLSearchParams, AbortController, setTimeout, clearTimeout, fetch: async () => ({ok:true,json:async()=>({status:'ready',carrierTotal:0,matchedMetadataCount:0,geneCarrierDemographics:{}})}), process: { env: {} } });
     return exports;

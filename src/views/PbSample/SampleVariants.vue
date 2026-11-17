@@ -25,15 +25,14 @@
                 </tr><tr v-if="!filtered.length"><td colspan="8">No variants match these filters.</td></tr></tbody>
             </table>
         </div>
-        <nav class="pbs-variant-pagination" aria-label="Sample variant pages">
+        <div class="pbs-variant-pagination">
             <span>{{ filtered.length ? (page - 1) * pageSize + 1 : 0 }}–{{ Math.min(page * pageSize, filtered.length) }} of <strong>{{ filtered.length }} variants / {{ filteredGeneCount }} genes</strong></span>
-            <button type="button" :disabled="page === 1" @click="page--">Previous</button>
-            <label>Page <input type="number" min="1" :max="pageCount" :value="page" @change="goToPage($event.target.value)" /> / {{ pageCount }}</label>
-            <button type="button" :disabled="page >= pageCount" @click="page++">Next</button>
-        </nav>
+            <SummaryPager :page="page" :total-pages="pageCount" label="Sample variant pages" @change="goToPage" />
+        </div>
     </div>
 </template>
 <script>
+import SummaryPager from "../PbGene/SummaryPager";
 import ColumnHeaderFilter from './ColumnHeaderFilter';
 import SampleInfo from './SampleInfo';
 import { VARIANT_ANNOTATION_SOURCES } from '../PbGene2/referenceProvenance';
@@ -41,7 +40,7 @@ const help = require('./sampleHelp');
 const { burdenPathogenicScore, burdenScoreValue, burdenScoreSource, variantScoreExplanation } = require('./variantEvidence');
 const { clinvarDisplayLabel } = require('../../utils/clinvarLabels');
 export default {
-    components: { ColumnHeaderFilter, SampleInfo },
+    components: { SummaryPager, ColumnHeaderFilter, SampleInfo },
     props: { variants: { type: Array, default: () => [] } },
     data: () => ({ help, scoreReferences: VARIANT_ANNOTATION_SOURCES.predictors.links, search:'', selectedGenes:null, selectedConsequences:null, selectedAnnotations:null, selectedClinvar:null, selectedGenotypes:null, sortKey:'gene', sortDirection:1, page:1, pageSize:5 }),
     computed: {

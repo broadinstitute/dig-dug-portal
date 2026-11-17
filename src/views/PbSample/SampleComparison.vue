@@ -15,7 +15,7 @@
                     <td>{{ term.matched == null ? 'Unavailable' : !term.matched ? 'Not matched' : term.matchType === 'recorded' ? 'Recorded term' : 'Parent-expanded term' }}</td>
                 </tr><tr v-if="!matchedTerms.length"><td colspan="2">{{ matchingAvailable ? 'No matched HPO terms.' : 'Phenotype matching information is unavailable.' }}</td></tr></tbody>
             </table>
-            <nav v-if="hpoPageCount > 1" class="pbs-detail-pager" aria-label="Matched HPO pages"><span>{{ (hpoPage - 1) * 5 + 1 }}–{{ Math.min(hpoPage * 5, matchedTerms.length) }} of {{ matchedTerms.length }} matched terms</span><button type="button" :disabled="hpoPage === 1" aria-label="Previous matched HPO page" @click="hpoPage--">‹</button><span>{{ hpoPage }} / {{ hpoPageCount }}</span><button type="button" :disabled="hpoPage === hpoPageCount" aria-label="Next matched HPO page" @click="hpoPage++">›</button></nav>
+            <SummaryPager :page="hpoPage" :total-pages="hpoPageCount" label="Matched HPO pages" @change="hpoPage = $event" />
             <h5 class="pbs-evidence-divider">Shared genes<span v-if="detail.genes.total != null"> · {{ detail.genes.total }}</span> <SampleInfo label="Shared genes" :text="help.sharedGenes" /></h5>
             <p v-if="detail.genes.status !== 'ready'">Processed variant evidence is unavailable for one or both samples.</p>
             <SharedGeneComparison v-else :reference-id="referenceId" :candidate-id="candidateId" :expected-genes="detail.genes.total" />
@@ -23,13 +23,14 @@
     </section>
 </template>
 <script>
+import SummaryPager from "../PbGene/SummaryPager";
 import SampleInfo from './SampleInfo';
 import SharedGeneComparison from './SharedGeneComparison.vue';
 const { requestSampleEvidence } = require('./sampleEvidence');
 const ontology = require('../PbVariant/hpoTree.generated.json');
 const help = require('./sampleHelp');
 export default {
-    components: { SampleInfo, SharedGeneComparison },
+    components: { SummaryPager, SampleInfo, SharedGeneComparison },
     props: { referenceId: {type:String,required:true}, candidateId:{type:String,required:true} },
     data: () => ({ help, detail:null, loading:false, error:'', hpoPage:1, requestId:0, alive:true }),
     computed: {

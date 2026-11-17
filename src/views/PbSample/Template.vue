@@ -147,10 +147,8 @@
                                             </p>
                                         </div>
                                     </details>
-                                    <nav v-if="phenotypeGroupPageCount > 1" class="pbs-hpo-pagination" aria-label="HPO group pages">
-                                        <span>Groups {{ (phenotypeGroupPage - 1) * 5 + 1 }}–{{ Math.min(phenotypeGroupPage * 5, orderedPhenotypeGroups.length) }} of {{ orderedPhenotypeGroups.length }}</span>
-                                        <div><button type="button" :disabled="phenotypeGroupPage === 1" @click="phenotypeGroupPage--">Previous</button><span>{{ phenotypeGroupPage }} / {{ phenotypeGroupPageCount }}</span><button type="button" :disabled="phenotypeGroupPage >= phenotypeGroupPageCount" @click="phenotypeGroupPage++">Next</button></div>
-                                    </nav>
+                                    <p>Groups {{ (phenotypeGroupPage - 1) * 5 + 1 }}–{{ Math.min(phenotypeGroupPage * 5, orderedPhenotypeGroups.length) }} of {{ orderedPhenotypeGroups.length }}</p>
+                                    <SummaryPager :page="phenotypeGroupPage" :total-pages="phenotypeGroupPageCount" label="HPO group pages" input-id="pbs-hpo-group-page" @change="phenotypeGroupPage = $event" />
                                     </details>
                                 </div>
 
@@ -295,6 +293,7 @@
 </template>
 
 <script>
+import SummaryPager from "../PbGene/SummaryPager";
 import PortalGuide from "@/components/pb/PortalGuide.vue";
 import SampleHpoTree from "./SampleHpoTree";
 import SampleVariants from "./SampleVariants";
@@ -317,7 +316,7 @@ import "./style.css";
 
 export default {
     name: "PbSampleTemplate",
-    components: { PortalGuide, PrioritizedFindings, SampleVariants, SampleHpoTree, SamplePagination, SampleInfo, SampleComparison, ProjectComparison },
+    components: { SummaryPager, PortalGuide, PrioritizedFindings, SampleVariants, SampleHpoTree, SamplePagination, SampleInfo, SampleComparison, ProjectComparison },
     data() {
         const params = new URLSearchParams(window.location.search);
         const fixtureMode = params.get("fixture") === "1";

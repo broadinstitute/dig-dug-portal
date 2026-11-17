@@ -2,6 +2,10 @@
 
 **Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, tabs, card/table order and widths, icons, responsive layout, comparison expansion and every interactive state. Retain the final blue dashed separators. Compare prototype and target at the same viewport/zoom before marking the UI complete.
 
+## Shared UI update — 2026-11-17
+
+Apply the [shared pagination contract and file map](pb_front_gene_variant_merge_handoff.md#shared-pagination--2026-11-17). Carry `PbGene/SummaryPager.vue` with scoped CSS and this page's listed consumers/wrappers. Preserve page sizes, filter/sort/pin semantics and existing change handlers. Earlier arrow-only/compact pagination examples are superseded; calculation and source contracts are unchanged.
+
 ## 2026-11-16 Sample follow-up — current local contract
 
 Compared with the latest delivered HEAD `306ded0b8` and the existing two-table contract, the only Sample UI delta is the final section separation. It is included in this Git delivery; the November 15 source manifest does not include it, and test-server deployment remains pending.

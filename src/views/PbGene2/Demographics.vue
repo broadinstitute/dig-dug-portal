@@ -17,14 +17,7 @@
                                 <tr v-if="!visibleProjects.length"><td colspan="2" class="pg2-muted">{{ projectSearch.trim() && projects.length ? 'No projects match this search.' : 'Project metadata unavailable.' }}</td></tr>
                             </tbody>
                         </table>
-                        <nav v-if="projectPageCount > 1" class="pg2-project-pagination" :aria-label="scope + ' project pages'">
-                            <button type="button" :disabled="currentProjectPage === 1" aria-label="Previous project page" @click="goToProjectPage(currentProjectPage - 1)"><b-icon-chevron-left /></button>
-                            <template v-for="(page, index) in projectPageItems">
-                                <span v-if="page === null" :key="'gap-' + index" aria-hidden="true">…</span>
-                                <button v-else :key="page" type="button" :class="{ 'pg2-current-page': currentProjectPage === page }" :aria-current="currentProjectPage === page ? 'page' : null" :aria-label="'Project page ' + page" @click="goToProjectPage(page)">{{ page }}</button>
-                            </template>
-                            <button type="button" :disabled="currentProjectPage === projectPageCount" aria-label="Next project page" @click="goToProjectPage(currentProjectPage + 1)"><b-icon-chevron-right /></button>
-                        </nav>
+                        <SummaryPager :page="currentProjectPage" :total-pages="projectPageCount" label="Project pages" :input-id="scope + '-project-page'" @change="goToProjectPage" />
                     </template>
                     <template v-else>
                     <input v-if="group.key === 'byProject'" v-model="projectSearch" type="search" class="pg2-project-search" placeholder="Search project groups" :aria-label="'Search ' + scope + ' project groups'" />
@@ -45,10 +38,11 @@
 <script>
 import { normalizeCarrierAgeDemographics } from "../PbGene/carrierAge";
 import HelpTooltip from './HelpTooltip';
+import SummaryPager from '../PbGene/SummaryPager';
 const PROJECT_PAGE_SIZE = 4;
 export default {
     name: "Gene2Demographics",
-    components: {HelpTooltip},
+    components: {HelpTooltip, SummaryPager},
     props: {
         summary: { type: Object, default: null },
         fallback: { type: Object, default: () => ({}) },
@@ -57,6 +51,7 @@ export default {
         scope: { type: String, required: true },
         overview: { type: Boolean, default: false },
         compact: { type: Boolean, default: false },
+        numberedProjectPager: { type: Boolean, default: false },
         inlineProjectSearch: { type: Boolean, default: false },
     },
     data: () => ({ projectSearch: '', expandProjects: false, projectPage: 1, projectSortDirection: 'desc', overviewTitles: { byProject: 'Project', byAge: 'Age', bySex: 'Sex', byAffected: 'Affected' }, compactHelp: {

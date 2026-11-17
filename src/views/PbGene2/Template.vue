@@ -78,11 +78,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <nav v-if="associationPageCount > 1" class="pg2-evidence-pagination" aria-label="Single-phenotype association pages">
-                            <button type="button" :disabled="associationPage <= 1" aria-label="Previous association page" @click="associationPage--"><b-icon-chevron-left /></button>
-                            <template v-for="(page, index) in associationPageNumbers"><span v-if="page === '…'" :key="'gap-' + index">…</span><button v-else :key="page" type="button" :class="{ 'pg2-current-page': associationPage === page }" :aria-current="associationPage === page ? 'page' : null" @click="associationPage = page">{{ page }}</button></template>
-                            <button type="button" :disabled="associationPage >= associationPageCount" aria-label="Next association page" @click="associationPage++"><b-icon-chevron-right /></button>
-                        </nav>
+                        <SummaryPager :page="associationPage" :total-pages="associationPageCount" label="Single-phenotype association pages" input-id="pg2-association-page" @change="associationPage = $event" />
                     </section>
                     <context-panel :active-context-terms="activeContextTerms" :context-term-details="contextTermDetails" :context-input.sync="contextInput" :context-loading="contextLoading || searchGeneLoading" :context-score-type.sync="contextScoreType" :context-analysis-set.sync="contextAnalysisSet" :context-significance-threshold.sync="contextSignificanceThreshold" :context-min-carriers.sync="contextMinCarriers" :context-error="contextError" :context-runs="contextRuns" :run-meta="contextRunMeta" :current-run-id="currentContextRunId" :rerunning-run-id="rerunningContextRunId" @run="runContextAnalysis" @rerun="rerunContextAnalysis" @remove="deleteContextRun" />
                     <section id="pg2-variant-evidence" class="pg2-card pg2-variant-evidence">
@@ -210,18 +206,13 @@
                                         </tbody>
                                     </table></div>
                                     <div v-if="currentCarrierScores.status === 'error'" class="pg2-carrier-score-error" role="status"><span>Individual scores unavailable.</span><help-tooltip label="Individual score request error" :text="currentCarrierScores.error" /><button type="button" class="pg2-text-button" @click="loadIndividualCarrierScores">Retry</button></div>
-                                    <nav v-if="carrierTablePageCount > 1" class="pg2-evidence-pagination" aria-label="Carrier sample pages"><button type="button" :disabled="carrierTableCurrentPage <= 1" aria-label="Previous carrier page" @click="goToCarrierTablePage(carrierTableCurrentPage - 1)"><b-icon-chevron-left /></button><template v-for="(page,index) in carrierTablePageNumbers"><span v-if="page === '…'" :key="'carrier-gap-' + index">…</span><button v-else :key="page" type="button" :class="{ 'pg2-current-page': carrierTableCurrentPage === page }" :aria-current="carrierTableCurrentPage === page ? 'page' : null" @click="goToCarrierTablePage(page)">{{ page }}</button></template><button type="button" :disabled="carrierTableCurrentPage >= carrierTablePageCount" aria-label="Next carrier page" @click="goToCarrierTablePage(carrierTableCurrentPage + 1)"><b-icon-chevron-right /></button></nav>
+                                    <SummaryPager :page="carrierTableCurrentPage" :total-pages="carrierTablePageCount" label="Carrier sample pages" input-id="pg2-carrier-page" @change="goToCarrierTablePage($event)" />
                                 </section>
                             </div>
                         </template>
                         <p v-if="!comparisonVariantRows.length" class="pg2-empty">No variants match the current filters. <button v-if="variantFiltersActive" class="pg2-text-button" type="button" @click="clearVariantFilters">Clear filters</button></p>
-                        <nav v-if="variantPageCount > 1" class="pbg-ve-pagination" aria-label="Variant evidence pages">
-                            <span v-if="variantSearchStart != null" class="pbg-ve-search-state">Closest variant centered</span>
-                            <button type="button" :disabled="variantPage <= 1" aria-label="Previous variant page" @click.stop="goToVariantPage(variantPage - 1)"><b-icon-chevron-left /></button>
-                            <template v-for="(page, index) in variantEvidencePages"><span v-if="page === '…'" :key="'variant-gap-' + index">…</span><button v-else :key="page" type="button" :class="{ 'pbg-ve-page-active': variantSearchStart == null && variantPage === page }" :aria-current="variantSearchStart == null && variantPage === page ? 'page' : null" @click.stop="goToVariantPage(page)">{{ page }}</button></template>
-                            <button type="button" :disabled="variantPage >= variantPageCount" aria-label="Next variant page" @click.stop="goToVariantPage(variantPage + 1)"><b-icon-chevron-right /></button>
-                            <span class="pg2-sr-only">Page {{ variantPage }} of {{ variantPageCount }}</span>
-                        </nav>
+                        <p v-if="variantSearchStart != null" class="pbg-ve-search-state">Closest variant centered</p>
+                        <SummaryPager :page="variantPage" :total-pages="variantPageCount" label="Variant evidence pages" input-id="pg2-variant-page" @change="goToVariantPage($event)" />
                     </div>
                     </section>
                 </template>
@@ -231,6 +222,7 @@
     </div>
 </template>
 <script>
+import SummaryPager from "../PbGene/SummaryPager";
 import PortalGuide from "@/components/pb/PortalGuide.vue";
 import { createPbGeneState, pbGeneComputed, pbGeneMethods } from "../PbGene/pageModel";
 import { hpoLabel, resolveHpoTerms } from "../PbGene/hpoContextSearch";
@@ -260,7 +252,7 @@ import "./style.css";
 export default {
     name: "PbGene2Template",
     mixins: [carrierScoreMixin, filteredCarrierDemographicsMixin, variantHpoCountsMixin, carrierTableMixin, carrierHpoTotalsMixin],
-    components: { PortalGuide, GeneIdentity, Demographics, ContextPanel, VariantOverview, HelpTooltip, InfoRail, VariantAnnotation },
+    components: { SummaryPager, PortalGuide, GeneIdentity, Demographics, ContextPanel, VariantOverview, HelpTooltip, InfoRail, VariantAnnotation },
     data() {
         return { ...createPbGeneState(), help, annotationSources: VARIANT_ANNOTATION_SOURCES, infoRailReserved: false, clinvarFilterDraft: [], associationSearch: '', associationPage: 1, associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }, contextRunMeta: {}, currentContextRunId: '', rerunningContextRunId: '', appliedContext: null, receivedContextReference: null };
     },

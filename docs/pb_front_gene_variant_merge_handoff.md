@@ -2,19 +2,35 @@
 
 For a colleague trying the prototype, use the [local installation guide](pb_local_browser_setup.md). `npm run setup:pb-runtime` downloads the approved release through the user's own company SSH access, verifies the repository's pinned checksums, builds the GT index and writes local settings. Private inputs remain outside Git. Trial users should not edit scripts or follow test-server migration instructions.
 
-## Local maintenance after `f44f9dada` — 2026-11-17
+## Current UI integration scope — 2026-11-17
 
-Redundant and obsolete comments were removed; the five pages' design, behavior, API and calculation contracts below are unchanged. Carry the updated `scripts/test_pb_gene_context_ui.py` with the source: its fixture-isolation check now uses a function boundary instead of a removed comment heading. This maintenance is included in the commit containing this note; it does not establish target-server deployment.
+| Scope | Use |
+|---|---|
+| Variant UI/state | [Current Variant contract](pb_variant_engineering_integration_handoff.md#current-ui-contract--2026-11-17); supersedes dropdown, separate-card, repeated variant-row and applied-profile tree-highlighting instructions. |
+| Pagination | Shared component and consumer map below. |
 
-## Local trial packaging review — 2026-11-17
+### Shared pagination — 2026-11-17
 
-1. The source audit measured 54.45 MiB before cleanup. The unused `KrClinicalFocus/portalDiseaseReferenceData.generated.js` had no consumers and was removed after a private rollback backup; existing tracked content is now about 41.59 MiB. Full frontend build and Front reference/availability checks passed. Keep the actively imported ontology, annotation and disease references.
-2. Full local Git packs occupy about 1.15 GiB; a shallow single-branch checkout of `461a2dd50` measured about 69 MiB including Git metadata. Use the shallow-clone command in the trial guide. Do not rewrite shared history to reduce a trial download.
-3. `node_modules`, private inputs and scratch output are excluded from Git. The current installed dependencies are about 494 MiB excluding about 1.4 GiB of regenerable build cache. No existing `node_modules` or build cache needs to be bundled.
-4. SSH launchers accept `PB_CONTEXT_SSH_HOST` (default `e3`), detect the compute username from that login, and allow `PB_CONTEXT_COMPUTE_USER` as an override. Trial mode `PB_CONTEXT_ALLOW_SUBMIT=0` only reuses an existing job; stopped jobs produce a maintainer instruction. The existing maintainer default remains submit-enabled. Eight mocked connection tests passed without contacting HPC or submitting jobs.
-5. Runtime packaging is implemented in `scripts/setup_pb_runtime_data.py` and `configs/pb_runtime_data_manifest.json`: 15 approved files, 885,821,510 bytes, from `share/dig-dug-portal/prototype_runtime_data`. Server files are group-readable (0640), directories 2750, group `rc_rc-data-science_gnomad-e2`; parent-directory/e3 access is also required. The installer reuses verified local files, retains interrupted downloads, verifies every file before replacement, generates private `local.env`, and uses the downloaded GT source to build the index. Metadata points directly to the approved XLSX, not the incompatible same-named TSV. No raw records, installed dependencies, preparation files or developer backups are added to Git.
-6. The guide covers Python/npm installation and two terminals (shared-service connection, then local browser). Generated settings select trial mode without job submission and detect the user's own compute login. Maintainers still provide access and keep the shared service running; a second user's fresh-PC login/service access has not been tested. A clone alone does not include data or dependencies.
-7. Validation: the installer downloaded the two missing input files from e3, verified all 15 files, generated local settings, and reused the verified GT index. A subsequent `npm run setup:pb-runtime -- --verify-only` passed. Seventeen installer/SSH tests cover retries, checksum failures, private-path protection, shell quoting, existing configuration preservation, own-user tunnels, and no job submission in trial mode. The frontend build passed after source cleanup; a complete fresh-PC npm/Python installation and a second user's live service connection remain untested.
+| Contract | Implementation |
+|---|---|
+| Single control | `src/views/PbGene/SummaryPager.vue`, including scoped CSS; Previous → up to five page numbers → Next → Page input → Go → current / total. |
+| Inputs/events | `page`, `totalPages`, `label`, optional `inputId`; emits `change(number)`. Omitted input IDs are unique per mounted instance. Legacy `compact` has the same full control. |
+| Bounds/state | Hide for ≤1 page; disable Previous/Next at bounds; reject empty, noninteger and out-of-range jumps; Enter submits; page/count change clears draft/error. |
+| Gene2 | `Template.vue`: associations, variant evidence, carrier samples; `Demographics.vue`: every project list; `VariantOverview.vue`: consequence list. Legacy `PbGene/Template.vue` and `PbGene2/VariantSummary.vue` use the same control. |
+| Phenotype | `Template.vue` cohort/sample/gene/disease lists; `ResultPagination.vue` delegates to the shared control, including callers with legacy `arrowsOnly`. |
+| Sample | `Template.vue` HPO groups, `SampleVariants.vue`, `SampleComparison.vue`; `SamplePagination.vue` delegates for similar samples/projects and shared-gene/project comparisons. |
+| Variant | Existing phenotype/sample pagers and shared project demographics inherit the control. Preserve per-table filtering, sorting, page size, pinning and change handlers. |
+| Checks | `node scripts/test_pb_pagination.js`; existing Gene2, Variant layout, Phenotype single-result and Sample variants/comparison checks. |
+
+### Analysis service lifecycle — 2026-11-17
+
+| Files | Current contract |
+|---|---|
+| `scripts/start_pb_context_demo.sh` | Reuse an active saved job; otherwise submit with `--time=7-00:00:00`. Serialize start/cleanup using `runtime/lifecycle.lock`. Recover stale connection metadata. Legacy `PB_CONTEXT_ALLOW_SUBMIT=0` does not disable submission. |
+| `scripts/connect_pb_context_demo.sh` | Connect-only; no submission. Reuse healthy matching tunnels; replace stale owned tunnels; reject occupied ports owned by unrelated commands. Monitor the saved job/PID and close forwarding when it ends. |
+| `scripts/run_pb_context_demo.sbatch` | Seven-day limit; track all three API PIDs. EXIT/TERM/INT cleanup stops APIs and removes only this job's connection metadata. Detect API exit and stop the job. Preserve inputs/results/logs. Publish job ID after node/host/PID. |
+| `scripts/setup_pb_runtime_data.py` | Generated settings use `PB_CONTEXT_ALLOW_SUBMIT=1`; own SSH/compute access and job-submit permission required. See [installation guide](pb_local_browser_setup.md). |
+| Checks | `python3 -m unittest scripts.test_pb_context_connection scripts.test_pb_context_lifecycle scripts.test_pb_runtime_data`; include `scripts/test_pb_context_lifecycle.py`. These mock/local tests do not establish live multi-user access. |
 
 ## Current correction after `47d7159c6` — Variant regression and profile input
 

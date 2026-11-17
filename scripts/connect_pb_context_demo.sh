@@ -48,20 +48,43 @@ for port_pair in 8092:18092 8094:18094 8095:18096; do
     forward_args+=(-L "$forwarding")
     continue
   fi
+  replace_tunnel=0
   for pid in $listeners; do
     command=$(ps -p "$pid" -o comm=) || exit $?
     arguments=$(ps -p "$pid" -o args=) || exit $?
-    if [[ "${command##*/}" != ssh || " $arguments " != *" -L $forwarding "* || " $arguments " != *" $compute_user@$node "* ]]; then
+    owner=$(ps -p "$pid" -o uid=) || exit $?
+    owner=${owner//[[:space:]]/}
+    if [[ "${command##*/}" != ssh || "$owner" != "$UID" || " $arguments " != *" -L $forwarding "* || " $arguments " != *" -J $ssh_host "* || " $arguments " != *" $compute_user@compute-"* ]]; then
       echo "localhost:$local_port is occupied by PID $pid, not the requested SSH tunnel to $node:$remote_port." >&2
-      echo 'Stop that tunnel in its original terminal, then run this script again.' >&2
+      echo 'This listener belongs to another connection/application; close it before reconnecting.' >&2
       exit 2
     fi
+    if [[ " $arguments " == *" $compute_user@$node "* ]] &&
+      curl --noproxy '*' -fsS --connect-timeout 3 --max-time 10 "http://127.0.0.1:$local_port/health" > /dev/null 2>&1; then
+      continue
+    fi
+    echo "Closing expired analysis tunnel (PID $pid) on localhost:$local_port."
+    kill -TERM "$pid" || exit $?
+    replace_tunnel=1
   done
-  if ! curl --noproxy '*' -fsS --connect-timeout 3 --max-time 10 "http://127.0.0.1:$local_port/health" > /dev/null; then
-    echo "The existing localhost:$local_port tunnel is not healthy. Check the compute job/API and reconnect that tunnel." >&2
-    exit 1
+  if [[ "$replace_tunnel" == 1 ]]; then
+    for ((attempt=0; attempt<30; attempt++)); do
+      remaining=$(lsof -nP -iTCP:"$local_port" -sTCP:LISTEN -t)
+      listener_status=$?
+      if [[ $listener_status -gt 1 ]]; then
+        echo "Cannot inspect localhost:$local_port listeners." >&2; exit 1
+      fi
+      if [[ -z "$remaining" ]]; then break; fi
+      sleep 0.1
+    done
+    if [[ -n "$remaining" ]]; then
+      echo "localhost:$local_port has not been released yet; run this command again shortly." >&2
+      exit 1
+    fi
+    forward_args+=(-L "$forwarding")
+  else
+    echo "Reusing healthy localhost:$local_port tunnel to $node:$remote_port."
   fi
-  echo "Reusing healthy localhost:$local_port tunnel to $node:$remote_port."
 done
 if [[ ${#forward_args[@]} -eq 0 ]]; then
   echo "All API tunnels are already available (job $job_id). Keep their original terminals open."
@@ -72,7 +95,19 @@ reverse_args=()
 if [[ "$bioindex_host" == http://127.0.0.1:18095 ]]; then
   reverse_args=(-R 127.0.0.1:18095:100.80.30.199:5000)
 fi
-exec ssh -N -J "$ssh_host" -o BatchMode=yes -o ConnectTimeout=10 -o ExitOnForwardFailure=yes \
+exec ssh -T -J "$ssh_host" -o BatchMode=yes -o ConnectTimeout=10 -o ExitOnForwardFailure=yes \
   -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \
   "${forward_args[@]}" \
-  "${reverse_args[@]}" "$compute_user@$node"
+  "${reverse_args[@]}" "$compute_user@$node" bash -s -- "$demo_root" "$job_id" <<'MONITOR'
+demo_root=$1
+job_id=$2
+# Close the tunnel with the job instead of keeping dead local ports open.
+while [[ -f "$demo_root/runtime/job_id" ]] && [[ "$(cat "$demo_root/runtime/job_id")" == "$job_id" ]]; do
+  if [[ -f "$demo_root/runtime/pid" ]]; then
+    batch_pid=$(cat "$demo_root/runtime/pid") || exit $?
+    if [[ ! "$batch_pid" =~ ^[0-9]+$ ]] || ! kill -0 "$batch_pid" 2>/dev/null; then break; fi
+  fi
+  sleep 5
+done
+echo 'The analysis job ended. Reconnect with: bash scripts/start_pb_context_demo.sh'
+MONITOR

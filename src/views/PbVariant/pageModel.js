@@ -152,7 +152,7 @@ export function createPbVariantState() {
         resultPages: { phenotypes: 1, carriers: 1, coGenes: 1, coVariants: 1 },
         tableSort: {
             phenotypes: { key: null, dir: "asc" },
-            carriers: { key: null, dir: "asc" },
+            carriers: { key: "residual", dir: "desc" },
             coGenes: { key: "count", dir: "desc" },
             coVariants: { key: "count", dir: "desc" },
         },
@@ -166,6 +166,8 @@ export function createPbVariantState() {
         contextInput: initialContextTerms.map((term) => term.id).join(", "),
         contextLoading: false,
         profileRuns: [],
+        expandedProfileRunId: null,
+        profileHpoCounts: {},
         carrierSamplesExpanded: false,
         variantHpoCount: null,
         variantHpoCountStatus: 'idle',
@@ -286,6 +288,20 @@ export const pbVariantComputed = {
         const vcf = this.carrierRecords.find(record => record.gtSource && record.gtSource.kind === 'original_vcf');
         return vcf ? `GT is read from the original indexed GRCh38 VCF for this exact variant and the current carrier sample IDs, with DP ≥ 20. Original allele indices and phase are preserved. Source: ${vcf.gtSource.source_file}. The processed GT release is reused where it has coverage; original VCF calls supplement missing coverage.` : help.genotype;
     },
+    genotypeSegments() {
+        return [{value: 'all', label: 'All', count: this.carrierRecords.length},
+            ...['heterozygous', 'homozygous', 'unknown'].map(value => ({value, label: {heterozygous:'Het',homozygous:'Hom',unknown:'Unknown'}[value], count: this.genotypeOptions.find(option => option.value === value).count}))
+                .filter(option => option.value !== 'unknown' || option.count > 0)];
+    },
+    selectedGenotypeSegment() { return this.genotypeSelection.length === GENOTYPES.length ? 'all' : this.genotypeSelection[0]; },
+    expandedProfileRun() { return this.profileRuns.find(run => run.id === this.expandedProfileRunId) || null; },
+    expandedProfileResiduals() { return this.expandedProfileRun && this.expandedProfileRun.residualById || {}; },
+    profileScoredCarriers() {
+        return this.genotypeCarriers.filter(carrier => {
+            const value = this.expandedProfileResiduals[String(carrier.id).toLowerCase()];
+            return value != null && Number.isFinite(Number(value));
+        });
+    },
     genotypeOptions() {
         return GENOTYPES.map(option => ({...option, count: this.carrierRecords.filter(record => genotypeGroup(record) === option.value).length}));
     },
@@ -315,6 +331,9 @@ export const pbVariantComputed = {
     variantHpoCountTitle() {
         const result = this.variantHpoResponseKey === this.variantHpoCountKey && this.variantHpoCount;
         return help.hpoCarriers + ' Counts use the current genotype selection.' + (result ? ` HPO metadata available for ${result.metadataCount} of ${result.carrierTotal} selected variant carriers.` : '');
+    },
+    currentProfileRun() {
+        return this.profileRuns.find(run => run.id === this.currentProfileRunId) || null;
     },
     appliedProfileTerms() {
         return this.contextMatch || this.contextAssociation ? this.activeContextTerms : [];
@@ -459,13 +478,13 @@ export const pbVariantComputed = {
         return filterCarrierRecords(this.genotypeCarriers, this.filters);
     },
     sortedCarrierRows() {
-        return sortCarrierRows(this.filteredCarriers, this.tableSort.carriers, this.sampleMetadataById, this.contextResidualById);
+        return sortCarrierRows(this.profileScoredCarriers, this.tableSort.carriers, this.sampleMetadataById, this.expandedProfileResiduals);
     },
     visibleCarrierRows() {
         return pageRows(this.sortedCarrierRows, this.resultPages.carriers, CARRIER_TABLE_LIMIT);
     },
     carrierPageCount() {
-        return pageCount(this.filteredCarriers.length, CARRIER_TABLE_LIMIT);
+        return pageCount(this.profileScoredCarriers.length, CARRIER_TABLE_LIMIT);
     },
     carrierGrsSummary() {
         const scored = this.filteredCarriers.filter(carrier =>
@@ -562,12 +581,50 @@ export const pbVariantComputed = {
 };
 
 export const pbVariantMethods = {
+    profileTermLabel(id) { return hpoLabel(id); },
+    profileTermsMatched(carrier, run) {
+        const metadata = this.sampleMetadataById[carrier.id];
+        const categories = metadata && metadata.phenotypes || carrier.phenotypes;
+        if (!categories || !categories.length) return 'Unavailable';
+        const ids = new Set(categories.flatMap(category => [category.id, ...category.terms.map(term => term.id)]));
+        return `${run.terms.filter(id => ids.has(id)).length} of ${run.terms.length}`;
+    },
+    selectGenotypeSegment(value) {
+        this.genotypeDraft = value === 'all' ? allGenotypes() : [value];
+        return this.applyGenotypeFilter();
+    },
+    toggleProfileSamples(run) {
+        this.expandedProfileRunId = this.expandedProfileRunId === run.id ? null : run.id;
+        this.resultPages.carriers = 1;
+        this.tableSort.carriers = {key:'residual', dir:'desc'};
+        if (this.expandedProfileRunId != null) this.loadProfileHpoCount(run);
+    },
+    profileHpoCountDisplay(run) {
+        const count = this.profileHpoCounts[run.id];
+        if (!count) return run.id === this.currentProfileRunId ? this.variantHpoCountDisplay : 'Unavailable';
+        return count.count == null ? 'Unavailable' : `${count.count.toLocaleString()}${count.complete ? '' : ' (partial)'}`;
+    },
+    async loadProfileHpoCount(run) {
+        if (this.profileHpoCounts[run.id]) return;
+        const sampleIds = this.genotypeSampleIds;
+        const gene = this.variantIdentity.gene;
+        const variant = this.variantIdentity.canonicalId;
+        const terms = [...new Set(run.terms)].sort();
+        try {
+            const response = await fetch('/__gene_variant_hpo_counts__', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({gene,hpo_terms:terms,variant_ids:[variant],sample_ids:sampleIds})});
+            if (!response.ok) return;
+            const result = await response.json();
+            if (result.gene !== gene || result.match !== 'any' || JSON.stringify(result.hpo_terms) !== JSON.stringify(terms) || !matchesSampleScope(result,sampleIds)) return;
+            if (variant !== this.variantIdentity.canonicalId || !this.profileRuns.includes(run)) return;
+            this.$set(this.profileHpoCounts, run.id, result.variants && result.variants[variant] || {count:null});
+        } catch (_) { /* Keep an unavailable count distinct from zero. */ }
+    },
     openGenotypeFilter() { this.genotypeDraft = [...this.genotypeSelection]; },
     toggleAllGenotypes() { this.genotypeDraft = this.allGenotypesSelected ? [] : allGenotypes(); },
     async applyGenotypeFilter() {
         if (!this.genotypeDraft.length) return;
         const selection = allGenotypes().filter(value => this.genotypeDraft.includes(value));
-        this.$refs.genotypeFilter.hide(true);
+        if (this.$refs.genotypeFilter) this.$refs.genotypeFilter.hide(true);
         if (JSON.stringify(selection) === JSON.stringify(this.genotypeSelection)) return;
         const previousRuns = [...this.profileRuns];
         const input = this.contextInput;
@@ -589,6 +646,8 @@ export const pbVariantMethods = {
         this.coGeneAssociationStatus = 'idle';
         this.coGeneAssociationSummary = null;
         this.profileRuns = [];
+        this.expandedProfileRunId = null;
+        this.profileHpoCounts = {};
         this.contextError = '';
         this.contextWarning = '';
         this.clearFilters();
@@ -630,12 +689,13 @@ export const pbVariantMethods = {
             this.variantHpoCount = result.variants && result.variants[variant] || null;
             this.variantHpoResponseKey = key;
             this.variantHpoCountStatus = 'ready';
+            if (this.currentProfileRunId != null && this.variantHpoCount) this.$set(this.profileHpoCounts, this.currentProfileRunId, this.variantHpoCount);
         } catch (_) {
             if (revision === this.variantHpoRevision && key === this.variantHpoCountKey) this.variantHpoCountStatus = 'unavailable';
         }
     },
     phenotypeProfileClass(id) {
-        return profileTermClass(id, this.appliedProfileTerms);
+        return ''; // Profile scoring is independent of the observed phenotype browser.
     },
     phenotypeFilterClass(id) {
         return profileTermClass(id, this.carrierPhenotypeFilterTerms.map(term => term.id).filter(Boolean)).replace('is-profile-', 'is-filter-');
@@ -657,17 +717,6 @@ export const pbVariantMethods = {
     profileTermMetadataHelp(term) {
         return `This HPO term or its descendants are recorded for ${term.count} of the ${term.total} displayed variant carriers. HPO metadata is available for ${term.metadataCount} of ${term.total} carriers. Missing metadata is not evidence of absence. This recorded-phenotype count is independent of rPheRS scoring eligibility; applying a profile does not filter the carrier list.`;
     },
-    revealAppliedPhenotypes() {
-        const rows = this.sortedPhenotypeRows;
-        const paths = this.appliedProfileTerms.map(hpoPath);
-        const matches = rows.filter(row => this.appliedProfileTerms.includes(row.id)
-            || row.terms.some(term => this.appliedProfileTerms.includes(term.id)));
-        if (!matches.length) return;
-        this.phenotypeRootExpanded = true;
-        this.resultPages.phenotypes = Math.floor(rows.indexOf(matches[0]) / PHENOTYPE_PAGE_LIMIT) + 1;
-        this.expandedCategories = [...new Set([...this.expandedCategories, ...matches.map(row => row.key)])];
-        this.expandedPhenotypeNodes = [...new Set([...this.expandedPhenotypeNodes, ...paths.flat()])];
-    },
     applyVariantProfile() {
         if (this.contextLoading || this.searchLoading) return;
         if (this.$refs.profile.finish() === false) return;
@@ -686,6 +735,10 @@ export const pbVariantMethods = {
     deleteVariantProfile(run) {
         if (this.contextLoading || this.searchLoading || !run || !this.profileRuns.some(item => item.id === run.id)) return;
         this.profileRuns = this.profileRuns.filter(item => item.id !== run.id);
+        if (this.expandedProfileRunId === run.id) this.expandedProfileRunId = null;
+        const counts = {...this.profileHpoCounts};
+        delete counts[run.id];
+        this.profileHpoCounts = counts;
         if (this.currentProfileRunId !== run.id) return;
         this.currentProfileRunId = null;
         this.contextRunId += 1;
@@ -904,7 +957,6 @@ export const pbVariantMethods = {
         if (loadId !== this.sampleMetadataLoadId) return;
         this.carrierRecords = mergeCarrierMetadata(this.carrierRecords, this.sampleMetadataById);
         this.sampleMetadataStatus = this.sampleMetadataFailed ? "partial" : "ready";
-        this.revealAppliedPhenotypes();
     },
     displayMean(value) {
         if (value == null || value === "") return "Unavailable";
@@ -1094,7 +1146,6 @@ export const pbVariantMethods = {
             this.contextGeneAssociation = result.gene_association || null;
             this.contextResidualById = exactVariantCarrierResiduals(result, variantId);
             this.activeContextTerms = analysisTerms;
-            this.revealAppliedPhenotypes();
             this.contextTermDetails = analysisTerms.map((id) => {
                 const existing = this.contextTermDetails.find((term) => term.id === id);
                 return existing || { id, label: hpoLabel(id) };
@@ -1102,11 +1153,15 @@ export const pbVariantMethods = {
             this.profileRuns.unshift(Object.freeze({
                 id: runId, variantId, terms: Object.freeze([...analysisTerms]),
                 label: analysisTerms.map(hpoLabel).join(' + '), scoreType, analysisSet, genotypeLabel: this.genotypeLabel,
+                residualById: Object.freeze({...this.contextResidualById}),
                 match: match && Object.freeze({ ...match }),
                 association: association && Object.freeze({ ...association }),
                 analysisDetails: this.profileAnalysisDetails,
                 warning: this.contextWarning,
             }));
+            this.expandedProfileRunId = runId;
+            this.resultPages.carriers = 1;
+            this.tableSort.carriers = {key:"residual", dir:"desc"};
             this.runCoGeneAssociations(analysisTerms, runId);
         } catch (error) {
             if (isCurrentRequest()) this.contextError = String(error && error.message ? error.message : error);
@@ -1192,6 +1247,8 @@ export const pbVariantMethods = {
             this.expandedCategories = [];
             this.expandedPhenotypeNodes = [];
             this.profileRuns = [];
+            this.expandedProfileRunId = null;
+            this.profileHpoCounts = {};
             this.contextMatch = null;
             this.contextAssociation = null;
             this.contextGeneAssociation = null;

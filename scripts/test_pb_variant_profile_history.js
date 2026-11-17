@@ -48,6 +48,7 @@ function response(terms, beta, mean, ids = ['sample-a', 'sample-b']) {
     return { ok: true, json: async () => ({
         sample_scope: {sample_ids: ids, kind:'selected_carriers_vs_noncarriers', reference_scope:'full_scoring_cohort', noncarrier_count:99},
         rphers_standardization: reference,
+        variant_carrier_residuals: {variant_id:variantId,rphers_standardization:reference,sample_rphers_z:{'sample-a':mean,'sample-b':mean+1}},
         variant_match_scores: { [variantId]: { ...standardized, status: 'ok', carrier_count: 1, scored_carrier_count: 1, mean_rphers_z: mean } },
         variant_associations: { [variantId]: { ...standardized, status: 'ok', beta_sd: beta, beta: beta * 4, p_value: 0.54, n_carriers: 1, n_samples: 100, model_version: 'ols' } },
     }) };
@@ -85,6 +86,17 @@ async function main() {
     await pending;
     assert.equal(app.profileRuns.length, 2);
     const second = app.profileRuns[0];
+    assert.equal(app.expandedProfileRunId, second.id);
+    assert.equal(app.visibleCarrierRows[0].id, 'sample-b', 'Profile samples default to highest Z first');
+    app.profileHpoCounts[first.id] = {count:1,complete:true};
+    app.toggleProfileSamples(first);
+    assert.equal(app.expandedProfileResiduals['sample-a'], -0.549, 'Expanding an older profile restores its saved scores');
+    assert.equal(app.contextAssociation.beta, -0.587, 'Expansion does not replace the current analysis');
+    app.toggleProfileSamples(first);
+    assert.equal(app.expandedProfileRunId, null);
+    app.profileHpoCounts[second.id] = {count:1,complete:true};
+    app.toggleProfileSamples(second);
+
     assert.equal(app.profileRuns[1], first);
     assert.equal(second.scoreType, 'sum');
     assert.equal(second.analysisSet, 'affected');

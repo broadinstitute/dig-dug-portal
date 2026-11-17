@@ -131,151 +131,24 @@
 
                     </section>
 
-                    <section class="pbv-card pg2-card pbv-crdc-carriers" aria-labelledby="pbv-crdc-carriers-title">
-                        <div class="pbv-section-heading">
-                            <h2 id="pbv-crdc-carriers-title"><span class="pbv-inline-total">{{ genotypeCarrierCount.toLocaleString() }} {{ genotypeCarrierCount === 1 ? 'carrier' : 'carriers' }}</span> observed in CRDC <help-tooltip label="About observed CRDC carriers" :text="help.carrierSummary" /></h2>
-                            <b-dropdown id="pbv-genotype-filter" ref="genotypeFilter" no-caret no-flip variant="link" :popper-opts="{ modifiers: { applyStyle: { enabled: false } } }" toggle-class="pbv-genotype-toggle" menu-class="pbv-genotype-menu" :title="'Genotype: ' + genotypeLabel" @show="openGenotypeFilter">
-                                <template #button-content><span class="pbv-genotype-label">Genotype</span> <b-icon-funnel v-if="genotypeSelection.length === genotypeOptions.length" aria-hidden="true" /><b-icon-funnel-fill v-else aria-hidden="true" /></template>
-                                <b-dropdown-form @submit.prevent="applyGenotypeFilter">
-                                    <fieldset>
-                                        <legend>Filter Genotype</legend>
-                                        <div class="pbv-genotype-shortcuts"><button type="button" class="pbv-genotype-text-button" @click="toggleAllGenotypes">{{ allGenotypesSelected ? 'Deselect all' : 'Select all' }}</button></div>
-                                        <label v-for="option in genotypeOptions" :key="option.value" class="pbv-genotype-option"><input v-model="genotypeDraft" type="checkbox" :value="option.value"><span>{{ option.label }}</span><small>{{ option.count.toLocaleString() }}</small></label>
-                                    </fieldset>
-                                    <p v-if="!genotypeDraft.length" class="pbv-genotype-hint">Select at least one genotype.</p>
-                                    <p v-if="genotypeLookupFailed" class="pbv-genotype-hint" role="alert">GT lookup unavailable. Check the genotype service.</p>
-                                    <div class="pbv-genotype-actions"><button type="button" class="pbv-genotype-text-button" @click="$refs.genotypeFilter.hide(true)">Cancel</button><button type="submit" class="pbv-genotype-apply" :disabled="!genotypeDraft.length">Apply</button></div>
-                                </b-dropdown-form>
-                            </b-dropdown>
-                        </div>
-                        <p class="pbv-genotype-population">{{ genotypeCarrierCount.toLocaleString() }} / {{ variantIdentity.distinctCarriers.toLocaleString() }} total carriers · {{ genotypeLabel }}</p>
-                        <carrier-demographics :summary="carrierDemographicSummary" :carrier-count="genotypeCarrierCount" :scope="variantIdentity.canonicalId + ':' + genotypeSelection.join(',')" compact inline-project-search />
-                    </section>
-
-                    <section class="pbv-card pg2-card pbv-profile" aria-labelledby="pbv-context-title">
-                        <div class="pbv-section-heading">
-                            <h2 id="pbv-context-title">Test a phenotype profile</h2>
-                            <span class="pbv-methods"><help-tooltip label="Phenotype profile methods" :text="profileMethods" /> Methods</span>
-                        </div>
-                        <form class="pbv-profile-form" @submit.prevent="applyVariantProfile">
-                            <label id="pg2-profile-input-label" class="pbv-profile-label">Phenotype profile</label>
-                            <hpo-term-input ref="profile" v-model="contextInput" link-hpo-ids />
-                            <button class="pbv-primary" type="submit" :disabled="contextLoading">{{ contextLoading ? 'Calculating…' : 'Apply' }}</button>
-                            <details class="pbv-advanced">
-                                <summary><b-icon-gear aria-hidden="true" /> Advanced options <b-icon-chevron-down aria-hidden="true" /></summary>
-                                <div>
-                                    <label>GRS <help-tooltip label="About GRS settings" :text="profileSettingsHelp" /><select v-model="contextScoreTypeInput" aria-label="Gene score aggregation"><option value="max">Max</option><option value="sum">Sum</option></select></label>
-                                    <label>Samples<select v-model="contextAnalysisSetInput" aria-label="Analysis samples"><option value="all">All</option><option value="affected">Affected only</option></select></label>
-                                    <button class="pbv-primary" type="submit" :disabled="contextLoading">Apply</button>
+                    <section class="pbv-card pg2-card pbv-carrier-information" :data-genotype="selectedGenotypeSegment" aria-labelledby="pbv-crdc-carriers-title">
+                    <section class="pbv-crdc-carriers" aria-labelledby="pbv-crdc-carriers-title">
+                        <div class="pbv-section-heading"><h2 id="pbv-crdc-carriers-title">Carriers observed in CRDC <help-tooltip label="About observed CRDC carriers" :text="help.carrierSummary" /></h2></div>
+                        <div class="pbv-crdc-overview">
+                            <div class="pbv-crdc-selection">
+                                <strong class="pbv-crdc-count">{{ genotypeCarrierCount.toLocaleString() }}</strong><span>carriers</span>
+                                <span class="pbv-genotype-caption">Genotype</span>
+                                <div class="pbv-genotype-segments" role="group" aria-label="Carrier genotype">
+                                    <button v-for="option in genotypeSegments" :key="option.value" type="button" :aria-pressed="String(selectedGenotypeSegment === option.value)" :class="{ 'is-selected': selectedGenotypeSegment === option.value }" @click="selectGenotypeSegment(option.value)">{{ option.label }} {{ option.count.toLocaleString() }}</button>
                                 </div>
-                            </details>
-                        </form>
-                        <p v-if="contextError" class="pbg-context-error" role="alert">{{ contextError }}</p>
-                        <p v-if="contextWarning" class="pbv-context-warning" role="status">{{ contextWarning }}</p>
-                        <p v-if="variantAssociationReason(contextAssociation)" class="pbv-context-warning" role="status">{{ variantAssociationReason(contextAssociation) }}</p>
-                        <div class="pbv-profile-table-scroll">
-                            <table class="pbv-profile-table">
-                                <thead><tr>
-                                    <th>Phenotype profile</th>
-                                    <th>β <help-tooltip label="About Variant beta" :text="help.variantBeta" /></th>
-                                    <th>P <help-tooltip label="About Variant P" :text="help.variantP" /></th>
-                                    <th>Mean carrier<br>rPheRS Z <help-tooltip label="About mean carrier rPheRS Z" :text="help.meanZ" /></th>
-                                    <th>Settings <help-tooltip label="Applied analysis details" :text="profileSettingsHelp + '. Default: Max GRS and All samples.'" /></th>
-                                    <th class="pbv-profile-actions-heading"><span class="pbv-sr-only">Result actions</span></th>
-                                </tr></thead>
-                                <tbody>
-                                    <tr v-for="run in profileRuns" :key="run.id" :class="{ 'pbv-profile-applied': run.id === currentProfileRunId }">
-                                        <td><strong>{{ run.label }}</strong><span v-if="run.id === currentProfileRunId" class="pbv-applied-tag">Applied</span><small><span v-for="(id, index) in run.terms" :key="id"><template v-if="index">, </template><a class="pbv-hpo-link" :href="phenotypeHref(id)" @click.stop>{{ id }}</a></span> <help-tooltip v-if="run.warning" :label="'Analysis warning for ' + run.label" :text="run.warning" /></small></td>
-                                        <td>{{ variantAssociationDisplay(run.association, 'beta') }} <help-tooltip v-if="variantAssociationReason(run.association)" label="Why beta and P are not estimable" :text="variantAssociationReason(run.association)" /></td>
-                                        <td>{{ variantAssociationDisplay(run.association, 'pValue') }}</td>
-                                        <td>{{ run.match ? displayMeanZ(run.match.matchScore) : 'Unavailable' }}</td>
-                                        <td>{{ run.scoreType === 'sum' ? 'Sum' : 'Max' }} · {{ run.analysisSet === 'affected' ? 'Affected only' : 'All' }} · GT {{ run.genotypeLabel || 'All' }} <help-tooltip :label="'Analysis details for ' + run.label" :text="run.analysisDetails" /></td>
-                                        <td class="pbv-profile-actions-cell"><div class="pbv-profile-actions">
-                                            <button type="button" class="pbv-profile-action" :class="{ 'pbv-profile-rerunning': contextLoading && rerunningProfileRunId === run.id }" :disabled="contextLoading || searchLoading" :aria-label="'Re-run ' + run.label" :aria-busy="String(contextLoading && rerunningProfileRunId === run.id)" title="Re-run" @click="rerunVariantProfile(run)"><b-icon-arrow-clockwise aria-hidden="true" /></button>
-                                            <button type="button" class="pbv-profile-action pbv-remove-profile" :disabled="contextLoading || searchLoading" :aria-label="'Delete result for ' + run.label" title="Delete row" @click="deleteVariantProfile(run)"><b-icon-x aria-hidden="true" /></button>
-                                        </div></td>
-                                    </tr>
-                                    <tr v-if="contextLoading && profileRuns.length"><td colspan="6" class="pbv-profile-empty" role="status">Calculating another phenotype profile…</td></tr>
-                                    <tr v-if="!profileRuns.length"><td colspan="6" class="pbv-profile-empty">{{ contextLoading ? 'Calculating phenotype profile…' : 'Add a phenotype profile and select Apply.' }}</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-
-                    <div class="pbv-workspace pg2-card" :class="{ 'pbv-single-phenotype-carrier': phenotypeCarrierSelection.present.length <= 1 }">
-                    <section class="pbv-recompute-results pbv-carrier-samples">
-                        <div class="pbv-section-heading pbv-carrier-samples-heading">
-                            <h2>{{ genotypeCarrierCount.toLocaleString() }} {{ genotypeCarrierCount === 1 ? 'carrier sample' : 'carrier samples' }}</h2><span class="pbv-internal-tag">Internal only</span>
-                        </div>
-                        <div class="pbv-variant-evidence-group" :class="{ 'is-expanded': carrierSamplesExpanded }">
-                        <div class="pbv-variant-evidence-scroll">
-                            <table class="pbv-variant-evidence-table" aria-label="Selected variant information and phenotype-based evidence">
-                                <colgroup><col class="pbv-evidence-variant-col"><col class="pbv-evidence-clinvar-col"><col class="pbv-evidence-total-col"><col class="pbv-evidence-predictor-col"><col class="pbv-evidence-hpo-col"><col class="pbv-evidence-mean-col"><col class="pbv-evidence-beta-col"><col class="pbv-evidence-p-col"></colgroup>
-                                <thead>
-                                    <tr class="pbv-evidence-bands"><th colspan="4" scope="colgroup">Variant information</th><th colspan="4" scope="colgroup">Phenotype-based evidence</th></tr>
-                                    <tr>
-                                        <th scope="col">Variant</th>
-                                        <th scope="col">ClinVar <help-tooltip label="About ClinVar classification" :text="help.clinvarAnnotation" /></th>
-                                        <th scope="col">Total<br>carriers <help-tooltip label="About total variant carriers" text="Distinct variant carriers in the current genotype selection." /></th>
-                                        <th scope="col">In Silico<br>Predictors <help-tooltip label="About In Silico Predictors" :text="help.pathogenicity + '\n\n' + sources.predictors.text" :links="sources.predictors.links" /></th>
-                                        <th scope="col">Carriers<br>with HPO <help-tooltip label="About carriers with the applied HPO profile" :text="variantHpoCountTitle" /></th>
-                                        <th scope="col">Mean carrier<br>rPheRS Z <help-tooltip label="About variant mean carrier rPheRS Z" :text="meanZHelp" /></th>
-                                        <th scope="col">Variant β<br><small>(rPheRS SD)</small> <help-tooltip label="About variant beta" :text="help.variantBeta" /></th>
-                                        <th scope="col">P <help-tooltip label="About variant P-value" :text="help.variantP" /></th>
-                                    </tr>
-                                </thead>
-                                <tbody><tr class="pbv-variant-evidence-row" :class="{ 'is-expanded': carrierSamplesExpanded }" @click="carrierSamplesExpanded = !carrierSamplesExpanded">
-                                    <td><button type="button" class="pbv-evidence-expand" :aria-label="(carrierSamplesExpanded ? 'Hide' : 'Show') + ' carrier samples for ' + variantIdentity.canonicalId" :aria-expanded="String(carrierSamplesExpanded)" aria-controls="pbv-carrier-sample-details" @click.stop="carrierSamplesExpanded = !carrierSamplesExpanded"><b-icon-chevron-down v-if="carrierSamplesExpanded" aria-hidden="true" /><b-icon-chevron-right v-else aria-hidden="true" /><span>{{ variantIdentity.canonicalId }}<small>{{ variantConsequenceLabel }}</small></span></button></td>
-                                    <td><span class="pbv-evidence-clinvar" :class="{ 'is-pathogenic': /pathogenic/i.test(clinvarDisplayLabel(variantIdentity.clinvar || variantIdentity.classification)) }">{{ clinvarDisplayLabel(variantIdentity.clinvar || variantIdentity.classification) || 'Unavailable' }}</span></td>
-                                    <td>{{ genotypeCarrierCount.toLocaleString() }}</td>
-                                    <td><strong v-if="variantScore != null" class="pbv-evidence-score">{{ variantScore.toFixed(2) }}</strong><span v-else>—</span></td>
-                                    <td :title="variantHpoCountTitle">{{ variantHpoCountDisplay }}</td>
-                                    <td>{{ !appliedProfileTerms.length ? '—' : contextMatch ? displayMeanZ(contextMatch.matchScore) : 'Unavailable' }}</td>
-                                    <td>{{ !appliedProfileTerms.length ? '—' : variantAssociationDisplay(contextAssociation, 'beta') }}</td>
-                                    <td>{{ !appliedProfileTerms.length ? '—' : variantAssociationDisplay(contextAssociation, 'pValue') }}</td>
-                                </tr></tbody>
-                            </table>
-                        </div>
-                        <div v-show="carrierSamplesExpanded" id="pbv-carrier-sample-details" class="pbv-carrier-sample-details" role="region" aria-label="Individual carrier samples">
-                            <div class="pbv-carrier-table" role="region" aria-label="Carrier sample table">
-                                <div class="pbv-carrier-table-body">
-                                    <p v-if="!matchCount" class="pbv-empty-note">No carriers match the current filter combination.</p>
-                                    <template v-else>
-                                        <div class="pbg-selected-sample-table">
-                                            <div class="pbg-selected-sample-head">
-                                                <span><button type="button" @click="sortTableColumn('carriers', 'sample')">Sample <i>{{ tableSortIndicator('carriers', 'sample') }}</i></button></span>
-                                                <span><button type="button" @click="sortTableColumn('carriers', 'age')">Age <i>{{ tableSortIndicator('carriers', 'age') }}</i></button></span>
-                                                <span><button type="button" @click="sortTableColumn('carriers', 'sex')">Sex <i>{{ tableSortIndicator('carriers', 'sex') }}</i></button></span>
-                                                <span><button type="button" @click="sortTableColumn('carriers', 'gt')">GT <i>{{ tableSortIndicator('carriers', 'gt') }}</i></button> <help-tooltip label="Carrier genotype source" :text="genotypeSourceHelp" /></span>
-                                                <span class="pbv-rphers-head">
-                                                    <button type="button" @click="sortTableColumn('carriers', 'residual')">rPheRS Z-score <i>{{ tableSortIndicator('carriers', 'residual') }}</i></button>
-                                                    <help-tooltip label="What is an rPheRS Z-score?" :text="help.individualZ" />
-                                                </span>
-                                                <span><button type="button" @click="sortTableColumn('carriers', 'hpoCount')">Total HPO terms <i>{{ tableSortIndicator('carriers', 'hpoCount') }}</i></button> <help-tooltip label="About total HPO terms" text="The n_terms value used by residual PheRS: the row sum of the parent-expanded binary HPO input matrix, independent of the applied profile. A known empty phenotype record is shown as 0 even when the sample is outside the scoring matrix. Unknown counts remain unavailable; 0 does not establish scoring eligibility." /></span>
-                                                <span><button type="button" @click="sortTableColumn('carriers', 'affected')">Affected <i>{{ tableSortIndicator('carriers', 'affected') }}</i></button></span>
-                                                <span><button type="button" @click="sortTableColumn('carriers', 'project')">Project <i>{{ tableSortIndicator('carriers', 'project') }}</i></button></span>
-                                            </div>
-                                            <div v-for="carrier in visibleCarrierRows" :key="carrier.key" class="pbg-selected-sample-row">
-                                                <a class="pbg-sample-link" :href="`/pb_sample.html?query=${encodeURIComponent(carrier.id)}`">{{ carrier.id }}</a>
-                                                <span>{{ carrierAge(carrier) }}</span>
-                                                <span>{{ carrierMetadataField(carrier, 'sex') }}</span>
-                                                <span>{{ displayCarrierValue(carrier.genotype) }}</span>
-                                                <span :title="contextMatch ? 'Individual rPheRS Z-score for the selected HPO context; unavailable if this sample is outside the analysis roster or reference scores are unavailable.' : 'Test a phenotype profile to request matching.'">{{ carrierResidualScore(carrier) }}</span>
-                                                <span>{{ carrierHpoCount(carrier) }}</span>
-                                                <span>{{ carrierMetadataField(carrier, 'affected') }}</span>
-                                                <span :title="carrierMetadataField(carrier, 'project')">{{ carrierMetadataField(carrier, 'project') }}</span>
-                                            </div>
-                                        </div>
-                                        <SummaryPager class="pbv-result-pagination" :page="resultPages.carriers" :total-pages="carrierPageCount"
-                                                      label="Carrier sample pages" input-id="pb-variant-carrier-page"
-                                                      @change="setResultPage('carriers', $event)" />
-                                    </template>
-                                </div>
+                                <p v-if="genotypeLookupFailed" class="pbv-genotype-hint" role="alert">GT lookup unavailable. Check the genotype service.</p>
                             </div>
-                        </div>
+                            <carrier-demographics :summary="carrierDemographicSummary" :carrier-count="genotypeCarrierCount" :scope="variantIdentity.canonicalId + ':' + genotypeSelection.join(',')" compact inline-project-search numbered-project-pager />
                         </div>
                     </section>
 
+                    <hr class="pbv-carrier-divider">
+                    <section class="pbv-workspace" :class="{ 'pbv-single-phenotype-carrier': phenotypeCarrierSelection.present.length <= 1 }">
                     <div class="pbv-analysis-layout">
                     <section class="pbv-carrier-workspace-card">
                 <div class="pbv-carrier-heading">
@@ -385,17 +258,12 @@
 
                     <section class="pbv-recompute-results pbv-phenotype-results">
                         <div class="pbv-result-block">
-                            <div v-if="unlistedProfileTerms.length" class="pbv-unlisted-profile" aria-label="Applied profile terms outside the observed phenotype tree">
-                                <span class="pbv-unlisted-profile-label">Applied profile <help-tooltip label="About applied profile highlighting" text="Yellow highlights identify terms in the currently Applied phenotype profile. Terms recorded in the current carrier selection are highlighted in the tree below. Other applied terms remain here as a reference; missing or unrecorded terms do not establish clinical absence. Applying a profile does not filter carriers." /></span>
-                                <span v-for="term in unlistedProfileTerms" :key="term.id" class="pbv-unlisted-profile-term">{{ term.label }} <small><a class="pbv-hpo-link" :href="phenotypeHref(term.id)" @click.stop>{{ term.id }}</a></small></span>
-                                <span class="pbv-unlisted-profile-status" role="status">{{ unlistedProfileStatus }}</span>
-                            </div>
                             <p v-if="!hasPhenotypeData && sampleMetadataStatus === 'loading'" class="pbv-empty-note">Loading observed HPO terms from sample metadata…</p>
                             <p v-else-if="!hasPhenotypeData" class="pbv-empty-note">No observed HPO terms are available for these carriers.</p>
                             <p v-else-if="!phenotypeCarrierSelection.present.length" class="pbv-empty-note">No recorded phenotype data are available for the current carrier selection.</p>
                             <template v-else>
                                 <div class="pbv-pheno-header">
-                                    <span>Observed phenotypes among carriers with phenotype data <help-tooltip label="About observed phenotypes" :text="observedPhenotypesHelp + ' Bar colour indicates hierarchy depth. Yellow Profile highlights identify the applied HPO input; purple Filter highlights identify Carrier phenotypes selections. Parent counts include descendants and must not be added together.'" /></span>
+                                    <span>Observed phenotypes among carriers with phenotype data <help-tooltip label="About observed phenotypes" :text="observedPhenotypesHelp + ' Bar colour indicates hierarchy depth. Purple Filter highlights identify Carrier phenotypes selections. Parent counts include descendants and must not be added together.'" /></span>
                                     <button type="button" @click="sortTableColumn('phenotypes', 'count')">{{ phenotypeCarrierSelection.present.length > 1 ? 'Carriers / with data (%)' : 'Carriers / with data' }} <i>{{ tableSortIndicator('phenotypes', 'count') }}</i></button>
                                 </div>
                                 <div class="pbv-phenotype-root" :class="phenotypeTreeClass('HP:0000118')">
@@ -408,7 +276,7 @@
                                             {{ expandedCategories.includes(row.key) ? '▾' : '▸' }}
                                         </button>
                                         <div class="pbv-bar-row pbv-bar-row--pheno" style="flex:1;margin-bottom:0;">
-                                            <span><button class="pbv-phenotype-name" type="button" :aria-expanded="String(expandedCategories.includes(row.key))" @click="toggleCategory(row.key)">{{ row.label }}</button><span v-if="appliedProfileTerms.includes(row.id)" class="pbv-profile-node-tag">Profile</span><span v-if="phenotypeFilterClass(row.id) === 'is-filter-term'" class="pbv-filter-node-tag">Filter</span><a v-if="row.id" class="pbv-hp-code pbv-hpo-link" :href="phenotypeHref(row.id)" @click.stop>{{ row.id }}</a></span>
+                                            <span><button class="pbv-phenotype-name" type="button" :aria-expanded="String(expandedCategories.includes(row.key))" @click="toggleCategory(row.key)">{{ row.label }}</button><span v-if="phenotypeFilterClass(row.id) === 'is-filter-term'" class="pbv-filter-node-tag">Filter</span><a v-if="row.id" class="pbv-hp-code pbv-hpo-link" :href="phenotypeHref(row.id)" @click.stop>{{ row.id }}</a></span>
                                             <div class="pbv-bar-track"><div class="pbv-bar-fill" :style="{ width: `${row.pct}%`, backgroundColor: phenotypeDepthColor(0) }"></div></div>
                                             <strong>{{ row.count }} / {{ phenotypeCarrierSelection.present.length }}<template v-if="phenotypeCarrierSelection.present.length > 1"> ({{ row.pct }}%)</template></strong>
                                         </div>
@@ -423,7 +291,7 @@
                                                         :aria-expanded="expandedPhenotypeNodes.includes(term.id) ? 'true' : 'false'"
                                                         @click="togglePhenotypeNode(term.id)">{{ expandedPhenotypeNodes.includes(term.id) ? '▾' : '▸' }}</button>
                                                 <span v-else class="pbv-hpo-leaf-marker">·</span>
-                                                <span><button v-if="term.hasChildren" class="pbv-phenotype-name" type="button" :aria-expanded="String(expandedPhenotypeNodes.includes(term.id))" @click="togglePhenotypeNode(term.id)">{{ term.label }}</button><template v-else>{{ term.label }}</template><template v-if="term.id"> [<a class="pbv-hpo-link" :href="phenotypeHref(term.id)" @click.stop>{{ term.id }}</a>]</template><span v-if="appliedProfileTerms.includes(term.id)" class="pbv-profile-node-tag">Profile</span><span v-if="phenotypeFilterClass(term.id) === 'is-filter-term'" class="pbv-filter-node-tag">Filter</span></span>
+                                                <span><button v-if="term.hasChildren" class="pbv-phenotype-name" type="button" :aria-expanded="String(expandedPhenotypeNodes.includes(term.id))" @click="togglePhenotypeNode(term.id)">{{ term.label }}</button><template v-else>{{ term.label }}</template><template v-if="term.id"> [<a class="pbv-hpo-link" :href="phenotypeHref(term.id)" @click.stop>{{ term.id }}</a>]</template><span v-if="phenotypeFilterClass(term.id) === 'is-filter-term'" class="pbv-filter-node-tag">Filter</span></span>
                                             </span>
                                             <div class="pbv-bar-track"><div class="pbv-bar-fill" :style="{ width: `${term.pct}%`, backgroundColor: phenotypeDepthColor(term.depth) }"></div></div>
                                             <strong>{{ term.count }} / {{ phenotypeCarrierSelection.present.length }}<template v-if="phenotypeCarrierSelection.present.length > 1"> ({{ term.pct }}%)</template></strong>
@@ -439,7 +307,104 @@
                     </section>
                     </div>
 
-                    </div>
+                    </section>
+
+                    </section>
+
+                    <section class="pbv-card pg2-card pbv-profile pbv-carrier-samples" aria-labelledby="pbv-context-title">
+                        <div class="pbv-section-heading pbv-carrier-samples-heading">
+                            <h2 id="pbv-context-title">{{ genotypeCarrierCount.toLocaleString() }} {{ genotypeCarrierCount === 1 ? 'carrier sample' : 'carrier samples' }}</h2><span class="pbv-internal-tag">Internal only</span><span class="pbv-methods"><help-tooltip label="Phenotype profile methods" :text="profileMethods" /> Methods</span>
+                        </div>
+                        <form class="pbv-profile-form" @submit.prevent="applyVariantProfile">
+                            <label id="pg2-profile-input-label" class="pbv-profile-label">Phenotype profile</label>
+                            <hpo-term-input ref="profile" v-model="contextInput" link-hpo-ids />
+                            <button class="pbv-primary" type="submit" :disabled="contextLoading">{{ contextLoading ? 'Calculating…' : 'Apply' }}</button>
+                            <details class="pbv-advanced">
+                                <summary><b-icon-gear aria-hidden="true" /> Advanced options <b-icon-chevron-down aria-hidden="true" /></summary>
+                                <div>
+                                    <label>GRS <help-tooltip label="About GRS settings" :text="profileSettingsHelp" /><select v-model="contextScoreTypeInput" aria-label="Gene score aggregation"><option value="max">Max</option><option value="sum">Sum</option></select></label>
+                                    <label>Samples<select v-model="contextAnalysisSetInput" aria-label="Analysis samples"><option value="all">All</option><option value="affected">Affected only</option></select></label>
+                                    <button class="pbv-primary" type="submit" :disabled="contextLoading">Apply</button>
+                                </div>
+                            </details>
+                        </form>
+                        <p v-if="contextError" class="pbg-context-error" role="alert">{{ contextError }}</p>
+                        <p v-if="contextWarning" class="pbv-context-warning" role="status">{{ contextWarning }}</p>
+                        <p v-if="variantAssociationReason(contextAssociation)" class="pbv-context-warning" role="status">{{ variantAssociationReason(contextAssociation) }}</p>
+                        <div class="pbv-profile-results-scroll">
+                            <table class="pbv-profile-results" aria-label="Phenotype profile results">
+                                <colgroup><col class="pbv-profile-expand-col"><col class="pbv-profile-name-col"><col><col><col><col><col class="pbv-profile-settings-col"><col class="pbv-profile-expand-col"></colgroup>
+                                <thead><tr>
+                                    <th><span class="pbv-sr-only">Expand samples</span></th>
+                                    <th>Phenotype profile</th>
+                                    <th>Carriers with<br>profile HPO <help-tooltip label="About carriers with profile HPO" :text="variantHpoCountTitle" /></th>
+                                    <th>Mean carrier<br>rPheRS Z <help-tooltip label="About mean carrier rPheRS Z" :text="help.meanZ" /></th>
+                                    <th>β (rPheRS SD) <help-tooltip label="About variant beta" :text="help.variantBeta" /></th>
+                                    <th>P <help-tooltip label="About variant P-value" :text="help.variantP" /></th>
+                                    <th>Settings <help-tooltip label="Applied analysis details" :text="profileSettingsHelp" /></th>
+                                    <th><span class="pbv-sr-only">Delete result</span></th>
+                                </tr></thead>
+                                <tbody v-for="run in profileRuns" :key="run.id">
+                                    <tr class="pbv-profile-result-row" :class="{ 'is-expanded': expandedProfileRunId === run.id }">
+                                        <td><button type="button" class="pbv-profile-expand" :aria-label="'Carrier samples for ' + run.label" :aria-expanded="String(expandedProfileRunId === run.id)" :aria-controls="'pbv-carrier-sample-details-' + run.id" @click="toggleProfileSamples(run)"><b-icon-chevron-down v-if="expandedProfileRunId === run.id" aria-hidden="true" /><b-icon-chevron-right v-else aria-hidden="true" /></button></td>
+                                        <td><div class="pbv-result-terms"><span v-for="id in run.terms" :key="id" class="pbv-result-term">{{ profileTermLabel(id) }} <a :href="phenotypeHref(id)">{{ id }}</a></span></div><help-tooltip v-if="run.warning" label="Profile analysis warning" :text="run.warning" /></td>
+                                        <td>{{ profileHpoCountDisplay(run) }}</td>
+                                        <td>{{ run.match ? displayMeanZ(run.match.matchScore) : 'Unavailable' }}</td>
+                                        <td>{{ variantAssociationDisplay(run.association, 'beta') }} <help-tooltip v-if="variantAssociationReason(run.association)" label="Why beta and P are not estimable" :text="variantAssociationReason(run.association)" /></td>
+                                        <td>{{ variantAssociationDisplay(run.association, 'pValue') }}</td>
+                                        <td class="pbv-profile-result-settings">{{ run.genotypeLabel || 'All' }} genotypes · {{ run.analysisSet === 'affected' ? 'Affected only' : 'All samples' }} · {{ run.scoreType === 'sum' ? 'Sum' : 'Max' }} <help-tooltip label="Profile analysis details" :text="run.analysisDetails" /><button type="button" class="pbv-profile-action" :disabled="contextLoading || searchLoading" :aria-label="'Re-run ' + run.label" title="Re-run" @click="rerunVariantProfile(run)"><b-icon-arrow-clockwise aria-hidden="true" /></button></td>
+                                        <td><button type="button" class="pbv-profile-action" :disabled="contextLoading || searchLoading" :aria-label="'Delete result for ' + run.label" title="Delete result" @click="deleteVariantProfile(run)"><b-icon-x aria-hidden="true" /></button></td>
+                                    </tr>
+                                    <tr v-if="expandedProfileRunId === run.id" class="pbv-profile-detail-row"><td colspan="8" class="pbv-profile-detail-cell">
+                        <div v-if="expandedProfileRunId === run.id" :id="'pbv-carrier-sample-details-' + run.id" class="pbv-carrier-sample-details" role="region" aria-label="Individual carrier samples">
+                            <p class="pbv-profile-samples-caption"><strong>Carrier samples for this profile</strong> · {{ profileScoredCarriers.length }} scored carriers<template v-if="tableSort.carriers.key === 'residual' && tableSort.carriers.dir === 'desc'"> · rPheRS Z, highest first</template></p>
+                            <div class="pbv-carrier-table" role="region" aria-label="Carrier sample table">
+                                <div class="pbv-carrier-table-body">
+                                    <p v-if="!profileScoredCarriers.length" class="pbv-empty-note">No individual carrier scores are available for this profile.</p>
+                                    <template v-else>
+                                        <div class="pbg-selected-sample-table">
+                                            <div class="pbg-selected-sample-head">
+                                                <span><button type="button" @click="sortTableColumn('carriers', 'sample')">Sample <i>{{ tableSortIndicator('carriers', 'sample') }}</i></button></span>
+                                                <span><button type="button" @click="sortTableColumn('carriers', 'age')">Age <i>{{ tableSortIndicator('carriers', 'age') }}</i></button></span>
+                                                <span><button type="button" @click="sortTableColumn('carriers', 'sex')">Sex <i>{{ tableSortIndicator('carriers', 'sex') }}</i></button></span>
+                                                <span><button type="button" @click="sortTableColumn('carriers', 'gt')">GT <i>{{ tableSortIndicator('carriers', 'gt') }}</i></button> <help-tooltip label="Carrier genotype source" :text="genotypeSourceHelp" /></span>
+                                                <span class="pbv-rphers-head">
+                                                    <button type="button" @click="sortTableColumn('carriers', 'residual')">rPheRS Z-score <i>{{ tableSortIndicator('carriers', 'residual') }}</i></button>
+                                                    <help-tooltip label="What is an rPheRS Z-score?" :text="help.individualZ" />
+                                                </span>
+                                                <span>Profile terms matched <help-tooltip label="About matched profile terms" text="Number of input profile terms recorded in this carrier’s HPO hierarchy. This is distinct from scoring eligibility and total HPO terms." /></span>
+                                                <span><button type="button" @click="sortTableColumn('carriers', 'hpoCount')">Total HPO terms <i>{{ tableSortIndicator('carriers', 'hpoCount') }}</i></button> <help-tooltip label="About total HPO terms" text="The n_terms value used by residual PheRS: the row sum of the parent-expanded binary HPO input matrix, independent of the applied profile. A known empty phenotype record is shown as 0 even when the sample is outside the scoring matrix. Unknown counts remain unavailable; 0 does not establish scoring eligibility." /></span>
+                                                <span><button type="button" @click="sortTableColumn('carriers', 'affected')">Affected <i>{{ tableSortIndicator('carriers', 'affected') }}</i></button></span>
+                                                <span><button type="button" @click="sortTableColumn('carriers', 'project')">Project <i>{{ tableSortIndicator('carriers', 'project') }}</i></button></span>
+                                            </div>
+                                            <div v-for="carrier in visibleCarrierRows" :key="carrier.key" class="pbg-selected-sample-row">
+                                                <a class="pbg-sample-link" :href="`/pb_sample.html?query=${encodeURIComponent(carrier.id)}`">{{ carrier.id }}</a>
+                                                <span>{{ carrierAge(carrier) }}</span>
+                                                <span>{{ carrierMetadataField(carrier, 'sex') }}</span>
+                                                <span>{{ displayCarrierValue(carrier.genotype) }}</span>
+                                                <span :title="contextMatch ? 'Individual rPheRS Z-score for the selected HPO context; unavailable if this sample is outside the analysis roster or reference scores are unavailable.' : 'Test a phenotype profile to request matching.'">{{ displayMean(expandedProfileResiduals[String(carrier.id).toLowerCase()]) }}</span>
+                                                <span>{{ profileTermsMatched(carrier, run) }}</span>
+                                                <span>{{ carrierHpoCount(carrier) }}</span>
+                                                <span>{{ carrierMetadataField(carrier, 'affected') }}</span>
+                                                <span :title="carrierMetadataField(carrier, 'project')">{{ carrierMetadataField(carrier, 'project') }}</span>
+                                            </div>
+                                        </div>
+                                        <p class="pbv-profile-samples-note">{{ genotypeCarrierCount - profileScoredCarriers.length }} carriers without an available score are not listed. Scores depend on HPO data, analysis eligibility and the scoring reference.</p>
+                                        <SummaryPager class="pbv-result-pagination" :page="resultPages.carriers" :total-pages="carrierPageCount"
+                                                      label="Carrier sample pages" input-id="pb-variant-carrier-page"
+                                                      @change="setResultPage('carriers', $event)" />
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                                    </td></tr>
+                                </tbody>
+                                <tbody v-if="!profileRuns.length"><tr><td colspan="8" class="pbv-profile-prompt">{{ contextLoading ? 'Calculating phenotype profile…' : 'Add a phenotype profile and select Apply.' }}</td></tr></tbody>
+                            </table>
+                        </div>
+                    </section>
+
 
                 </template>
                 <info-rail @reserve="infoReserved = $event" />

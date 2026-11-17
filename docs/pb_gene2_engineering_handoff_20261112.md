@@ -2,12 +2,24 @@
 
 **Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, card/table widths and order, icons, responsive layout, filters, expansion and all selected/hover/focus/loading/empty/error states. Compare prototype and target at the same viewport/zoom before marking the UI complete.
 
+## Shared UI update — 2026-11-17
+
+Apply the [shared pagination contract and file map](pb_front_gene_variant_merge_handoff.md#shared-pagination--2026-11-17). Carry `PbGene/SummaryPager.vue` with scoped CSS and this page's listed consumers/wrappers. Preserve page sizes, filter/sort/pin semantics and existing change handlers. Earlier arrow-only/compact pagination examples are superseded; calculation and source contracts are unchanged.
+
 ## Current cross-page correction — 2026-11-16
 
 - **Gene2 variant evidence and Variant must agree** for the same exact variant/HPO/All-Affected settings with GT All: beta, P, carrier mean Z and full scoring-cohort reference. Keep the existing Gene2 regression; correct Variant's former carrier-only roster instead. A genotype subset retains eligible noncarrier controls and excludes unselected carriers. This comparison uses **Variant beta**, not the separate Gene-GRS beta. Follow the [current Variant contract](pb_variant_engineering_integration_handoff.md#current-correction--shared-genevariant-regression-2026-11-16).
 - Shared `ProfileInput.vue` owns `position:relative; min-width:0` so autocomplete appears directly below its input at the same width; cap the list at `min(320px,50vh)` with internal scrolling. Parent scoped CSS is not inherited through Vue `extends`. Apply this shared component fix to Gene2 and Variant; retain existing selection/availability behavior and page styling.
 
 The commit containing this document includes these source changes after `47d7159c6`. Gene2 regression/data sources are unchanged. The input placement was browser-verified; Gene2 and Variant tests passed. Live Gene/Variant parity examples are recorded in the linked Variant contract.
+
+## 2026-11-17 Gene carrier GT completion — local follow-up
+
+Expanding a live Gene/Gene2 variant now automatically supplements missing processed GT through the same private original-VCF lookup used by Variant: `GET /__pb_gene_genotypes__?gene=...&variant=<exact-ID>`. Carry `PbGene/{pageModel.js,pbGeneBioIndexAdapter.js}`, `PbGene2/evidenceHelp.js` and `scripts/test_pb_gene_gt_fallback.js` with the existing backend/tunnel dependencies. Existing valid/conflicting calls, carrier membership and all analysis inputs/results remain unchanged. Do not rebuild or widen the analysis release to fill display GT.
+
+Share pending requests, reuse completed results for the current row, retry an unavailable lookup on reopening, and ignore late responses after the gene/row is replaced. Genuine missing or low-depth calls remain unavailable; never infer GT. Target-server deployment remains unverified.
+
+Validation: Gene2 expansion, retry/stale-response checks, existing Gene2 tests and shared processed/Variant GT tests passed. Against the local API, the actual Gene2 expansion method filled `chr13:20189546:AC:A` from 0 to 294 matched calls, agreeing with Variant without changing carrier count. Direct browser visual verification remains pending because browser access was unavailable.
 
 November 15 delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). The November 16 local delta below is additional to that delivered snapshot; include its new files. Neither the manifest nor local checks establish deployment.
 
@@ -106,7 +118,7 @@ These are current prototype routes to port/adapt, not already verified test-serv
 | `GET /__public_gene_variants__` | `gene`, optional locus; public annotation/aggregate projection only |
 | `GET /__gene_carrier_summary__` | `gene`, optional `variant`/`refresh`; loading/ready/error + progress; poll to ready |
 | `POST /__gene_carrier_demographics__` | `{gene,variant_ids}`; distinct union summary with progress |
-| `GET /__pb_gene_genotypes__` | `gene`; authorized exact variant/sample GT rows with source/status |
+| `GET /__pb_gene_genotypes__` | `gene`; add exact `variant` on expansion to supplement missing GT from the original VCF. Retain authorized variant/sample membership and per-call source/status. |
 | `POST /__gene_variant_hpo_counts__` | `{gene,variant_ids,hpo_terms}`; `match:any`, exact terms/gene, per-variant `count,metadataCount,carrierTotal,complete`. Unknown metadata is not zero. |
 | `POST /__gene_carrier_hpo_totals__` | `{gene,variant,sample_ids}`; counts or null per requested ID, source method `binary_hpo_matrix_row_sum`, covariate `n_terms`, source hash/dimensions |
 | `POST /__gene_carrier_sort_values__` | Same scoped IDs plus `field:age|hpoTerms`; complete numeric values map before global ranking |
@@ -135,7 +147,7 @@ Approved source provenance, not a new browser data source: Gene matrix server fi
 
 Local startup: install the approved matrix and same-release `inputs/covariates.tsv` at `.pb-private-data/rphers/gene-scoring-20261007-5a9ab06cc/{hpo.tsv.gz,covariates.tsv}`, or set all three `PB_GENE_SCORING_*` overrides. Both launchers source new `scripts/prepare_pb_gene_scoring.sh`; it verifies the compressed-matrix hash and mapping columns before starting. Keep these files private/outside Git and public assets. This helper does not download scoring inputs. If copying the current launcher files, also include their existing `scripts/pb_local_server.py` lifecycle dependency; see [Sample runtime](pb_sample_engineering_integration_handoff.md#6-private-inputs-and-startup).
 
-Current approved processed GT release is `2025_crdc_16366_dp20_af001_20260907`, nonsynonymous/DP≥20/cohort AF<0.01/GRCh38. The approved share source and hash are in [Sample runtime](pb_sample_engineering_integration_handoff.md#6-private-inputs-and-startup). `setup_pb_genotypes.py`/`prepare_pb_genotypes.sh` verify and reuse a private persistent cache; no personal `/ref/` fallback. Existing valid caches can work offline; this does not change the BioIndex carrier universe. Original-VCF supplementation/scoped analysis belongs to the separate [Variant contract](pb_variant_engineering_integration_handoff.md).
+Current approved processed GT release is `2025_crdc_16366_dp20_af001_20260907`, nonsynonymous/DP≥20/cohort AF<0.01/GRCh38. The approved share source and hash are in [Sample runtime](pb_sample_engineering_integration_handoff.md#6-private-inputs-and-startup). `setup_pb_genotypes.py`/`prepare_pb_genotypes.sh` verify and reuse a private persistent cache; no personal `/ref/` fallback. Existing valid caches can work offline; this does not change the BioIndex carrier universe. Expanded Gene/Gene2 variants also use the original-VCF supplementation described in the [Variant contract](pb_variant_engineering_integration_handoff.md); selected-genotype analysis remains Variant-specific.
 
 ## 7. Acceptance
 
