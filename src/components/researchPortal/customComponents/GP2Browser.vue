@@ -256,7 +256,10 @@
 
         <GP2BrowserResearchModal
             :panel-id="activeResearchPanelId"
+            :utils-box="utilsBox"
+            :search-region="activeRegion"
             @close="activeResearchPanelId = null"
+            @navigate-region="onGenePrioritizationNavigateRegion"
         />
     </div>
 </template>
@@ -283,6 +286,7 @@ import {
     fetchGp2QtlAssociations,
     gp2QtlLoadKey,
 } from "./gp2Browser/gp2BrowserQtlApi.js";
+import { gp2GenePrioritizationRowRegion } from "./gp2Browser/gp2BrowserGenePrioritizationApi.js";
 import GP2BrowserSessionParamBubbles from "./gp2Browser/GP2BrowserSessionParamBubbles.vue";
 import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
 import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
@@ -519,6 +523,12 @@ import {
     VKS_REGION_LOAD_STATUS,
 } from "./kpVariantSifter/variantSifterRegionLoadProgress.js";
 import "./kpVariantSifter/vksSharedStyles.css";
+
+/**
+ * GP2 Browser-only override: disables the shared Variant Sifter active-region
+ * width cap (500 kb) without changing the default for Variant Sifter itself.
+ */
+const GP2_MAX_ACTIVE_REGION_WIDTH_BP = Infinity;
 
 const GP2_REGION_LOAD_STEP_CATALOG = [
     { id: "associations", label: "Association data" },
@@ -843,7 +853,8 @@ export default Vue.component("gp2-browser", {
                 this.searchSession.region,
                 this.regionShiftBp,
                 this.regionZoomOut,
-                this.zoomOutLimitRegion
+                this.zoomOutLimitRegion,
+                GP2_MAX_ACTIVE_REGION_WIDTH_BP
             );
         },
         zoomOutLimitRegion() {
@@ -1326,7 +1337,8 @@ export default Vue.component("gp2-browser", {
                     regionShiftBp: this.regionShiftBp,
                     regionZoomOut: nextZoomOut,
                 },
-                this.zoomOutLimitRegion
+                this.zoomOutLimitRegion,
+                GP2_MAX_ACTIVE_REGION_WIDTH_BP
             );
             this.regionZoomOut = viewport.regionZoomOut;
             this.regionShiftBp = viewport.regionShiftBp;
@@ -1415,7 +1427,8 @@ export default Vue.component("gp2-browser", {
                     regionShiftBp: nextShiftBp,
                     regionZoomOut: this.regionZoomOut,
                 },
-                this.zoomOutLimitRegion
+                this.zoomOutLimitRegion,
+                GP2_MAX_ACTIVE_REGION_WIDTH_BP
             );
             if (viewport.regionShiftBp !== this.regionShiftBp) {
                 this.pendingPanSliderReset = true;
@@ -2524,6 +2537,26 @@ export default Vue.component("gp2-browser", {
                 }
             }
         },
+        onGenePrioritizationNavigateRegion(row) {
+            const region = gp2GenePrioritizationRowRegion(row);
+            if (!region) {
+                return;
+            }
+            const phenotype =
+                this.searchSession?.phenotype ||
+                projectPhenotypes(this.projectId, GP2_BROWSER_PHENOTYPES)[0];
+            if (!phenotype) {
+                return;
+            }
+            const ancestry = this.searchSession?.ancestry ?? null;
+            this.activeResearchPanelId = null;
+            this.onStartSearch({
+                phenotype,
+                ancestry,
+                region,
+                regionLabel: formatRegion(region),
+            });
+        },
         onMenuAction(payload) {
             if (
                 payload.action === "resetSearch" ||
@@ -2973,7 +3006,8 @@ export default Vue.component("gp2-browser", {
         applyImportedSession(restored) {
             if (restored.searchSession?.region) {
                 const ensured = ensureRegionWithinActiveDataLimit(
-                    restored.searchSession.region
+                    restored.searchSession.region,
+                    GP2_MAX_ACTIVE_REGION_WIDTH_BP
                 );
                 if (ensured.trimmed) {
                     window.alert(
@@ -3008,7 +3042,8 @@ export default Vue.component("gp2-browser", {
                     regionShiftBp: restored.regionShiftBp ?? restored.viewOffsetBp ?? 0,
                     regionZoomOut: restored.regionZoomOut ?? 0,
                 },
-                limitRegion
+                limitRegion,
+                GP2_MAX_ACTIVE_REGION_WIDTH_BP
             );
 
             this.associationsRequestToken += 1;
@@ -3692,7 +3727,10 @@ export default Vue.component("gp2-browser", {
         onStartSearch(session, { subAncestries = [], additionalPhenotypes = [] } = {}) {
             let searchSession = session;
             if (session?.region) {
-                const ensured = ensureRegionWithinActiveDataLimit(session.region);
+                const ensured = ensureRegionWithinActiveDataLimit(
+                    session.region,
+                    GP2_MAX_ACTIVE_REGION_WIDTH_BP
+                );
                 if (ensured.trimmed) {
                     // Welcome already alerts when it trims; only notify here for
                     // other entry points (recent search, URL hydrate, etc.).
