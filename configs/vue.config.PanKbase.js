@@ -283,6 +283,13 @@ let pages = {
         title: "Cell State Documentation",
         chunks: ["chunk-vendors", "chunk-common", "cellstatedocs"],
     },
+    mcpserver: {
+        entry: "src/portals/PanKbase/views/MCPServer/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "mcp-server.html",
+        title: "MCP Server",
+        chunks: ["chunk-vendors", "chunk-common", "mcpserver"],
+    },
 };
 
 module.exports = {
