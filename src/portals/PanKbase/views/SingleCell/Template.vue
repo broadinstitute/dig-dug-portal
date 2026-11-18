@@ -5,6 +5,14 @@
       <!-- BODY -->
       <div class="pkb-body">
          <div v-html="$parent.info"></div>
+         <div class="analysis-set">
+              <a href="https://data.pankbase.org/analysis-sets/PKBDS1349YHGQ/">
+                  <button class="btn btn-secondary">View scRNA analysis set in Data Library</button>
+              </a>
+              <a href="https://data.pankbase.org/analysis-sets/PKBDS0470WCHR/">
+                  <button class="btn btn-secondary">View snATAC analysis set in Data Library</button>
+              </a>
+          </div>
          <b-table 
               v-if="$parent.allMetadata"
               style="margin-bottom:40px"
@@ -45,3 +53,13 @@
       <pkb-footer></pkb-footer> 
   </div>
 </template>
+<style scoped>
+.analysis-set {
+    text-align: right;
+    margin-bottom: 5px;
+}
+.analysis-set a {
+    color: inherit !important;
+    margin-left: 5px !important;
+}
+</style>
