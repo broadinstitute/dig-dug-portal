@@ -7,6 +7,11 @@
           <div class="pkb-body f-col">
             <h2 class="static-content-title">Differential Gene Expression Browser</h2>
             <div class="tool-documentation" v-if="$parent.documentation?.body" v-html="$parent.documentation.body"></div>
+            <div class="analysis-set">
+                <a href="https://data.pankbase.org/search/?type=AnalysisSet&file_set_type=principal+analysis&annotation_category=Differential+expression&status=released&de_comparison_class=clinical_trait&de_comparison_class=disease_status">
+                    <button class="btn btn-secondary">View analysis sets in Data Library</button>
+                </a>
+            </div>
               <div class="flex-column flex-small-gap">
                     <div id="center-width" class="flex-gap flex-column">
                         <div class="flex-gap flex-column" id="center-content">
@@ -295,4 +300,11 @@
   #bottom-group {
     margin-bottom: 25px;
   }
+  .analysis-set {
+    text-align: right;
+    margin-bottom: 5px;
+}
+.analysis-set a {
+    color: inherit !important;
+}
 </style>

@@ -16,6 +16,11 @@
                         >
                         <div v-html="$parent.about"></div>
                     </div>
+                    <div class="analysis-set">
+                        <a href="https://data.pankbase.org/analysis-sets/PKBDS9874MXRB/">
+                            <button class="btn btn-secondary">View analysis set in Data Library</button>
+                        </a>
+                    </div>
                     <div v-if="$parent.filteredMetadata.length > 0">
                         <div class="row">
                             <div class="col-md-3 side-panel-filters">
@@ -655,5 +660,12 @@
 }
 .color-legend {
     margin-bottom: 10px;
+}
+.analysis-set {
+    text-align: right;
+    margin-bottom: 5px;
+}
+.analysis-set a {
+    color: inherit !important;
 }
 </style>
