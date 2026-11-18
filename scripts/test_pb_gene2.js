@@ -48,7 +48,7 @@ const options = load('src/views/PbGene2/Template.vue', {
     '@/components/pb/PortalGuide.vue': {},
     '../PbGene/pageModel': base,
     '../PbGene/hpoContextSearch': { hpoLabel: id => id },
-    './associationRows': { filterAssociations, togglePinnedAssociation, sortAssociationRows },
+    './associationRows': require('../src/views/PbGene2/associationRows'),
     './variantFacets': require('../src/views/PbGene2/variantFacets'),
     './carrierScores': require('../src/views/PbGene2/carrierScores'),
     './filteredCarrierDemographics': load('src/views/PbGene2/filteredCarrierDemographics.js'),
@@ -189,6 +189,16 @@ async function main() {
     assert.equal(page.geneCarrierSummary, originalGeneSummary, 'Variant selection must not replace gene-wide demographics');
     assert.equal(page.phenotypeCarrierCount('HP:0001250'), '4 (partial)');
     assert.equal(page.phenotypeCarrierCount('HP:9999999'), '0 (partial)');
+    const qcRows = [0, 9, 10, 19, 20].map((count, index) => ({ hpoId: `HP:${index}`, count }));
+    page.genePhenotypeAssociations = qcRows.map(({ hpoId }) => ({ hpoId, pValue: .01 }));
+    page.geneCarrierSummary = { status: 'ready', carrierTotal: 20, phenotypeMetadataCount: 20, observedPhenotypes: qcRows };
+    assert.deepEqual(Array.from(page.associationDisplayRows, row => row.qc), ['Fail', 'Fail', 'Caution', 'Caution', 'Pass']);
+    page.geneCarrierSummary = { status: 'partial', carrierTotal: 21, phenotypeMetadataCount: 20, observedPhenotypes: qcRows };
+    assert.deepEqual(Array.from(page.associationDisplayRows, row => row.qc), ['Caution', 'Caution', 'Caution', 'Caution', 'Pass']);
+    page.geneCarrierSummary = null;
+    assert(page.associationDisplayRows.every(row => row.qc === 'Unavailable'));
+    page.genePhenotypeAssociations = [];
+    page.geneCarrierSummary = originalGeneSummary;
     assert.ok(page.phenotypeCountTitle.includes('10 / 13'), 'The common denominator stays available in the info definition');
     page.geneCarrierSummary = { status: 'ready', carrierTotal: 13, matchedMetadataCount: 13 };
     assert.equal(page.phenotypeCarrierCount('HP:0001250'), '—', 'Unavailable HPO coverage is not zero');

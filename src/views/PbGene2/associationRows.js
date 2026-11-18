@@ -35,4 +35,21 @@ function sortAssociationRows(rows, key, direction, carrierCount) {
     }).map(item => item.row);
 }
 
-module.exports = { associationKey, filterAssociations, togglePinnedAssociation, sortAssociationRows };
+const MIN_CAUTION_CARRIERS = 10;
+const MIN_PASS_CARRIERS = 20;
+
+const carrierSupportQcHelp = [
+    'Provisional QC based on the number of gene carriers with the HPO term recorded.',
+    `Fail: fewer than ${MIN_CAUTION_CARRIERS}. Caution: ${MIN_CAUTION_CARRIERS}–${MIN_PASS_CARRIERS - 1}. Pass: ${MIN_PASS_CARRIERS} or more.`,
+    'Partial counts below the pass threshold are marked Caution. Missing counts are marked Unavailable.',
+    'This is a carrier-support flag. The current association release does not supply lambda.',
+].join(' ');
+
+function carrierSupportQc(count, partial) {
+    if (!Number.isSafeInteger(count) || count < 0) return 'Unavailable';
+    if (count >= MIN_PASS_CARRIERS) return 'Pass';
+    if (partial || count >= MIN_CAUTION_CARRIERS) return 'Caution';
+    return 'Fail';
+}
+
+module.exports = { associationKey, filterAssociations, togglePinnedAssociation, sortAssociationRows, carrierSupportQc, carrierSupportQcHelp };

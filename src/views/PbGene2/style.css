@@ -346,6 +346,12 @@ html.pb-gene2-default-scale:not(.pb-prototype-scale) { zoom: 1; }
 .pg2-page .pg2-association-table th:first-child, .pg2-page .pg2-association-table td:first-child { width: 48px; max-width: 48px; padding-left: 8px; padding-right: 8px; }
 .pg2-association-table th:nth-child(2) { width: 36%; }
 .pg2-association-table .pg2-numeric { text-align: center; }
+.pg2-association-qc { display: inline-flex; align-items: center; gap: 6px; color: #526071; font-size: var(--pg2-secondary-font, 18px); font-weight: 600; white-space: nowrap; }
+.pg2-association-qc::before { content: ''; width: .55em; height: .55em; border-radius: 50%; background: currentColor; }
+.pg2-association-qc[data-status="Fail"] { color: #a5252c; }
+.pg2-association-qc[data-status="Caution"] { color: #785400; }
+.pg2-association-qc[data-status="Caution"]::before { background: #d5a100; }
+.pg2-association-qc[data-status="Pass"] { color: #16713d; }
 .pg2-page .pg2-association-name { color: #14213d; font-size: var(--pg2-detail-font, 20px); overflow-wrap: anywhere; }
 .pg2-page .pg2-association-hpo { display: inline-block; margin-left: 8px; color: #0b66d8; font-size: var(--pg2-secondary-font, 18px); white-space: nowrap; text-decoration: underline; text-underline-offset: 2px; }
 .pg2-column-heading { display: flex; justify-content: center; align-items: center; gap: 7px; }

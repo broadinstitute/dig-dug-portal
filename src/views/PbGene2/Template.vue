@@ -68,13 +68,16 @@
                                 <thead><tr><th class="pg2-association-pin"><b-icon-pin-angle aria-label="Pin result" /></th><th>Phenotype</th>
                                     <th v-for="column in associationColumns" :key="column.key" class="pg2-numeric" :aria-sort="associationAriaSort(column.key)">
                                         <div class="pg2-column-heading"><button class="pg2-sort-button" type="button" :aria-label="'Sort by ' + column.label" @click="sortAssociationColumn(column.key)">{{ column.label }}<b-icon-sort-down v-if="associationSortKey === column.key && associationSortDirection === 'desc'" /><b-icon-sort-up v-else-if="associationSortKey === column.key" /><b-icon-arrow-down-up v-else /></button><help-tooltip v-if="column.help" info :label="'About ' + column.label" :text="column.help" /></div>
-                                    </th></tr></thead>
+                                    </th>
+                                    <th scope="col" class="pg2-numeric"><div class="pg2-column-heading">QC <help-tooltip info label="About association QC" :text="associationQcHelp" /></div></th>
+                                </tr></thead>
                                 <tbody data-testid="association-search-results">
                                     <tr v-for="row in associationDisplayRows" :key="row.hpoId" :class="{ 'pg2-pinned-row': isAssociationPinned(row) }">
                                         <td class="pg2-association-pin"><button class="pg2-pin" type="button" :aria-label="(isAssociationPinned(row) ? 'Unpin ' : 'Pin ') + row.label" :aria-pressed="String(isAssociationPinned(row))" @click="toggleAssociationPin(row)"><b-icon-pin-angle-fill v-if="isAssociationPinned(row)" /><b-icon-pin-angle v-else /></button></td>
                                         <td><span class="pg2-association-name">{{ row.label }}</span><a class="pg2-association-hpo" :href="phenotypeUrl(row.hpoId)">{{ row.hpoId }}</a></td><td class="pg2-numeric">{{ contextStatistic(row.betaPer0_1Grs) }}</td><td class="pg2-numeric">{{ associationInterval(row) }}</td><td class="pg2-numeric">{{ contextStatistic(row.pValue) }}</td><td class="pg2-numeric">{{ contextStatistic(row.qValue) }}</td><td class="pg2-numeric">{{ phenotypeCarrierCount(row.hpoId) }}</td>
+                                        <td class="pg2-numeric"><span class="pg2-association-qc" :data-status="row.qc">{{ row.qc }}</span></td>
                                     </tr>
-                                    <tr v-if="!associationDisplayRows.length"><td colspan="7" class="pg2-empty">{{ genePhenotypeAssociations.length ? 'No results match this search and significance filter.' : 'Precomputed results are not available for this gene.' }}</td></tr>
+                                    <tr v-if="!associationDisplayRows.length"><td colspan="8" class="pg2-empty">{{ genePhenotypeAssociations.length ? 'No results match this search and significance filter.' : 'Precomputed results are not available for this gene.' }}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -227,7 +230,7 @@ import PortalGuide from "@/components/pb/PortalGuide.vue";
 import { createPbGeneState, pbGeneComputed, pbGeneMethods } from "../PbGene/pageModel";
 import { hpoLabel, resolveHpoTerms } from "../PbGene/hpoContextSearch";
 import { requireCrdcHpos } from '../../utils/crdcHpoAvailability';
-import { filterAssociations, togglePinnedAssociation, sortAssociationRows } from "./associationRows";
+import { filterAssociations, togglePinnedAssociation, sortAssociationRows, carrierSupportQc, carrierSupportQcHelp } from "./associationRows";
 import { variantFacets, matchesVariantFacets } from "./variantFacets";
 import { findPositionWindow, parsePositionQuery, VARIANT_PAGE_SIZE } from "../PbGene/variantTableNavigation";
 import { matchVariantIdentifiers } from "../PbGene/variantLookup";
@@ -292,7 +295,16 @@ export default {
         associationPageCount() { return Math.max(1, Math.ceil(this.filteredAssociations.length / 5)); },
         associationPageNumbers() { return pageNumbers(this.associationPage, this.associationPageCount); },
         visibleAssociations() { return this.sortedAssociations.slice((this.associationPage - 1) * 5, this.associationPage * 5); },
-        associationDisplayRows() { return [...this.sortedPinnedAssociations, ...this.visibleAssociations]; },
+        associationDisplayRows() {
+            return [...this.sortedPinnedAssociations, ...this.visibleAssociations].map(row => ({
+                ...row, qc: carrierSupportQc(this.associationCarrierCountValue(row.hpoId), this.associationCountsPartial),
+            }));
+        },
+        associationQcHelp() { return carrierSupportQcHelp; },
+        associationCountsPartial() {
+            const summary = this.geneCarrierSummary;
+            return !summary || summary.status !== 'ready' || summary.phenotypeMetadataCount < summary.carrierTotal;
+        },
         phenotypeCountTitle() { const summary = this.geneCarrierSummary; return summary && summary.phenotypeMetadataCount != null ? `${summary.phenotypeMetadataCount} / ${this.totalGeneCarriers} gene carriers have HPO metadata${summary.status === 'ready' ? '' : '; partial results'}.` : 'HPO carrier counts are not supplied by the current metadata service.'; },
         appliedContextLabel() { return this.appliedContext ? `Applied HPO: ${this.appliedContext.terms.map(hpoLabel).join(' + ')} · ${this.appliedContext.scoreType === 'sum' ? 'Sum' : 'Max'} · ${this.appliedContext.analysisSet === 'affected' ? 'Affected only' : 'All'}` : 'Custom HPO context not calculated'; },
         variantMix() {
@@ -418,10 +430,9 @@ export default {
         toggleAssociationPin(row) { this.pinnedAssociations = togglePinnedAssociation(this.pinnedAssociations, row); this.associationPage = 1; },
         associationInterval(row) { return row.betaCiLowPer0_1Grs == null || row.betaCiHighPer0_1Grs == null ? '—' : `${this.contextStatistic(row.betaCiLowPer0_1Grs)}–${this.contextStatistic(row.betaCiHighPer0_1Grs)}`; },
         phenotypeCarrierCount(hpoId) {
-            const summary = this.geneCarrierSummary;
-            if (!summary || !summary.phenotypeMetadataCount) return '—';
-            const term = (summary.observedPhenotypes || []).find(item => item.hpoId === hpoId);
-            return `${term ? Number(term.count).toLocaleString() : '0'}${summary.status !== 'ready' || summary.phenotypeMetadataCount < summary.carrierTotal ? ' (partial)' : ''}`;
+            const count = this.associationCarrierCountValue(hpoId);
+            if (count == null) return '—';
+            return `${count.toLocaleString()}${this.associationCountsPartial ? ' (partial)' : ''}`;
         },
         applyVariantContextScores(result) {
             pbGeneMethods.applyVariantContextScores.call(this, result);
