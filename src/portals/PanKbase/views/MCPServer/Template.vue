@@ -16,21 +16,32 @@
           <p class="mcp-lead" :style="{ fontSize: m ? '16px' : '20px' }">The PanKbase MCP server lets AI assistants search and summarize the Data Library for you.</p>
           <div class="mcp-url-wrap">
             <label for="mcp-srv" class="mcp-label">Server URL</label>
-            <div class="mcp-url-row" :style="{ flexDirection: m ? 'column' : 'row' }">
-              <input id="mcp-srv" ref="srv" class="mcp-url" readonly :value="url" :style="{ fontSize: m ? '13px' : '17px' }" @focus="$event.target.select()">
-              <button class="mcp-url-btn" :class="{ on: copied === 'url' }" aria-label="Copy server URL" @click="doCopy('url', url)">{{ copied === 'url' ? 'Copied ✓' : 'Copy URL' }}</button>
+            <div class="mcp-url-line">
+            <div class="mcp-url-row">
+              <input id="mcp-srv" ref="srv" class="mcp-url" readonly :value="url" :style="{ fontSize: m ? '13px' : '15px' }" @focus="$event.target.select()">
+              <button class="mcp-url-btn" :class="{ on: copied === 'url' }" :aria-label="copied === 'url' ? 'Copied' : 'Copy server URL'" :title="copied === 'url' ? 'Copied' : 'Copy'" @click="doCopy('url', url)">
+                <svg v-if="copied !== 'url'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path></svg>
+                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+              </button>
             </div>
-          </div>
-          <div class="mcp-badges"><span v-for="b in badges" :key="b" class="mcp-badge">{{ b }}</span></div>
-          <div class="mcp-jump">
-            <span class="mcp-label">Jump to your assistant</span>
-            <div class="mcp-chips">
-              <a v-for="c in chips" :key="c.name" :href="c.url" target="_blank" rel="noopener noreferrer" class="mcp-chip"><span class="mcp-chip-m" aria-hidden="true">{{ c.m }}</span>{{ c.name }}</a>
+            <div class="mcp-badges"><span v-for="b in badges" :key="b" class="mcp-badge">{{ b }}</span></div>
             </div>
           </div>
         </section>
 
-        <div class="mcp-inner" :style="{ padding: m ? '16px 20px 48px' : '16px 40px 64px' }">
+        <div class="mcp-inner" :style="{ padding: m ? '0 20px' : '0 40px' }">
+          <section id="setup" class="mcp-sec">
+            <div>
+              <h2 class="mcp-h2">How to connect</h2>
+              <div class="mcp-muted">Pick your assistant to open its official MCP setup guide in a new tab. Use the server URL above.</div>
+            </div>
+            <div class="mcp-tabs" aria-label="Assistant setup guides">
+              <a v-for="t in tabs" :key="t.id" :href="t.url" target="_blank" rel="noopener noreferrer" class="mcp-tab" :aria-label="t.name + ' MCP setup guide (opens in a new tab)'">{{ t.name }}<span aria-hidden="true" style="font-size:12px">↗</span></a>
+            </div>
+          </section>
+        </div>
+
+        <div class="mcp-inner" :style="{ padding: m ? '0 20px' : '0 40px' }">
           <section class="mcp-sec">
             <h2 class="mcp-h2">How it works</h2>
             <ol class="mcp-flow" :style="{ gridTemplateColumns: m ? '1fr' : '1fr 90px 1fr 90px 1fr', gridTemplateRows: m ? 'auto 56px auto 56px auto' : 'auto' }">
@@ -56,17 +67,7 @@
       </div>
 
       <div class="mcp-main">
-        <div class="mcp-inner mcp-stack" :style="{ padding: m ? '40px 20px 48px' : '56px 40px 72px', gap: m ? '40px' : '56px' }">
-          <section id="setup" class="mcp-sec">
-            <div>
-              <h2 class="mcp-h2">Set it up</h2>
-              <div class="mcp-muted">Pick your assistant to open its official MCP setup guide in a new tab. Use the server URL above.</div>
-            </div>
-            <div class="mcp-tabs" aria-label="Assistant setup guides">
-              <a v-for="t in tabs" :key="t.id" :href="t.url" target="_blank" rel="noopener noreferrer" class="mcp-tab" :aria-label="t.name + ' MCP setup guide (opens in a new tab)'">{{ t.name }}<span aria-hidden="true" style="font-size:12px">↗</span></a>
-            </div>
-          </section>
-
+        <div class="mcp-inner mcp-stack" :style="{ padding: m ? '0 20px 48px' : '0 40px 64px', gap: '50px' }">
           <section class="mcp-sec">
             <div>
               <h2 class="mcp-h2">What you can ask</h2>
@@ -176,7 +177,7 @@ export default {
   computed: {
     m() { return this.w < 700; },
     t() { return this.w < 1000; },
-    heroPad() { return this.m ? "36px 20px 24px" : "56px 40px 32px"; },
+    heroPad() { return this.m ? "0 20px" : "0 40px"; },
     caseCols() { return this.m ? "1fr" : this.t ? "repeat(2,minmax(0,1fr))" : "repeat(3,minmax(0,1fr))"; },
     goodCols() { return this.t ? "1fr" : "repeat(3,minmax(0,1fr))"; },
     chips() {
@@ -206,21 +207,24 @@ export default {
 .mcp * { box-sizing: border-box; }
 .mcp a { color: #219197; text-decoration: none; }
 .mcp a:hover { color: #1a7479; text-decoration: underline; }
-.mcp-top, .mcp-main { width: 100%; background: #fff; }
-.mcp-hero { position: relative; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.mcp { display: flex; flex-direction: column; gap: 50px; }
+.mcp-top, .mcp-main { display: contents; }
+.mcp-hero { position: relative; width: 100%; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 .mcp-crumbs { display: flex; align-items: center; gap: 10px; font-size: 14px; }
 .mcp-crumb-cur { color: #219197; font-weight: 600; }
 .mcp-h1 { margin: 0; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: #173d39; }
 .mcp-rule { width: 64px; height: 3px; background: #94c95e; }
 .mcp-lead { margin: 0; max-width: 720px; }
-.mcp-url-wrap { max-width: 780px; display: flex; flex-direction: column; gap: 8px; }
+.mcp-url-wrap { display: flex; flex-direction: column; gap: 8px; }
+.mcp-url-line { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.mcp-url-line .mcp-badges { margin-left: auto; justify-content: flex-end; }
+.mcp-url-line .mcp-url-row { flex: 0 1 480px; min-width: 260px; }
 .mcp-label { font: 600 12px 'Open Sans', sans-serif; text-transform: uppercase; letter-spacing: .08em; }
-.mcp-url-row { display: flex; gap: 10px; }
-.mcp-url { flex: 1; min-width: 0; height: 58px; padding: 0 18px; font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: #173d39; background: #fff; border: 1px solid #ced4da; border-radius: 3.5px; outline: none; transition: box-shadow .2s, border-color .2s; }
+.mcp-url-row { position: relative; display: flex; }
+.mcp-url { flex: 1; min-width: 0; height: 46px; padding: 0 46px 0 18px; font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: #173d39; background: #fff; border: 1px solid #ced4da; border-radius: 3.5px; outline: none; transition: box-shadow .2s, border-color .2s; }
 .mcp-url:focus { border-color: #219197; box-shadow: 0 0 0 3px rgba(33,145,151,.25); }
-.mcp-url-btn { flex: none; height: 58px; padding: 0 26px; border-radius: 3.5px; border: 1px solid #219197; background: #219197; color: #fff; font: 600 14px 'Open Sans', sans-serif; cursor: pointer; transition: all .25s; }
-.mcp-url-btn:hover, .mcp-url-btn.on { background: #1a7479; }
-.mcp-url-btn.on { box-shadow: 0 10px 24px rgba(33,145,151,.35); transform: scale(1.04); }
+.mcp-url-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 3.5px; background: transparent; color: #219197; cursor: pointer; transition: all .2s; }
+.mcp-url-btn:hover, .mcp-url-btn.on { background: #e8f4f4; color: #1a7479; }
 .mcp-url-btn:focus-visible, .mcp-chip:focus-visible, .mcp-tab:focus-visible, .mcp-copy:focus-visible { outline: 3px solid #219197; outline-offset: 2px; }
 .mcp-badges, .mcp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .mcp-badge { font: 600 13px 'Open Sans', sans-serif; color: #219197; background: #e8f4f4; border: 1px solid rgba(33,145,151,.35); border-radius: 3.5px; padding: 4px 12px; }
@@ -228,7 +232,7 @@ export default {
 .mcp-chip { display: flex; align-items: center; gap: 8px; color: #173d39 !important; font-size: 14px; font-weight: 600; padding: 5px 12px 5px 6px; border-radius: 3.5px; background: #fff; border: 1px solid #ced4da; transition: all .15s; }
 .mcp-chip:hover { background: #219197; border-color: #219197; color: #fff !important; text-decoration: none !important; }
 .mcp-chip-m { width: 26px; height: 26px; border-radius: 50%; background: #e8f4f4; border: 1px solid #219197; display: flex; align-items: center; justify-content: center; font: 600 10px 'Open Sans', sans-serif; color: #219197; }
-.mcp-inner { max-width: 1400px; margin: 0 auto; }
+.mcp-inner { width: 100%; max-width: 1400px; margin: 0 auto; }
 .mcp-stack { display: flex; flex-direction: column; overflow-x: hidden; }
 .mcp-sec { display: flex; flex-direction: column; gap: 16px; }
 .mcp-h2 { margin: 0; font-size: 24px; font-weight: 700; color: #173d39; }
@@ -250,9 +254,9 @@ export default {
 @keyframes mcpBeamX { from { background-position: 0 0; } to { background-position: 200% 0; } }
 @keyframes mcpBeamY { from { background-position: 0 0; } to { background-position: 0 200%; } }
 @media (prefers-reduced-motion: reduce) { .mcp * { animation: none !important; transition: none !important; } }
-.mcp-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; }
-.mcp-tab { flex: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 3.5px; border: 1px solid #d9e2e0; background: #fbfbfb; color: #6f8780 !important; font: 600 14px 'Open Sans', sans-serif; transition: all .15s; }
-.mcp-tab:hover { border-color: #219197; color: #173d39 !important; background: #e8f4f4; text-decoration: none !important; }
+.mcp-tabs { display: flex; gap: 16px; overflow-x: auto; padding: 4px 2px 12px; }
+.mcp-tab, .mcp-tab:visited { flex: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 3.5px; border: 1px solid #d9e2e0; background: #fbfbfb; color: #6f8780 !important; font: 600 14px 'Open Sans', sans-serif; transition: all .15s; }
+.mcp-tab:hover, .mcp-tab:visited:hover { border-color: #219197; color: #173d39 !important; background: #e8f4f4; text-decoration: none !important; }
 .mcp-grid { display: grid; }
 .mcp-case { background: #fbfbfb; border: 1px solid #d9e2e0; border-top: 3px solid #219197; box-shadow: 0 10px 24px rgba(19,48,44,.05); padding: 20px; display: flex; flex-direction: column; gap: 12px; transition: all .2s; }
 .mcp-case:hover { border-color: #219197; box-shadow: 0 10px 24px rgba(33,145,151,.22); transform: translateY(-2px); }
