@@ -21,6 +21,11 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div id="documentation"></div>
+                    <div class="analysis-set">
+                        <a href="https://data.pankbase.org/search/?type=AnalysisSet&query=Peak+counts&file_set_type=principal+analysis">
+                            <button class="btn btn-secondary">View analysis sets in Data Library</button>
+                        </a>
+                    </div>
                     <atac-seq v-if="$parent.geneReady" :gene="$parent.geneName"></atac-seq>
                 </div>
             </div>
@@ -67,5 +72,12 @@
     background-color: #efefef;
     border: 1px solid #dddddd;
     border-radius: 5px;
+}
+.analysis-set {
+    text-align: right;
+    margin-bottom: 5px;
+}
+.analysis-set a {
+    color: inherit !important;
 }
 </style>
