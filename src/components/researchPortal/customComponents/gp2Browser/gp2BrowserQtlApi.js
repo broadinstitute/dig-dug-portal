@@ -129,6 +129,21 @@ export function filterQtlRowsByGenes(rows, genes) {
     return (rows || []).filter((row) => geneSet.has(String(row?.gene || "").trim()));
 }
 
+/**
+ * Opt-out gene filter for the QTL plot's gene-color legend checkboxes
+ * (unlike `filterQtlRowsByGenes`, an empty list here means "nothing
+ * deselected" i.e. every row passes, not "no filter configured yet").
+ */
+export function filterQtlRowsByDeselectedGenes(rows, deselectedGenes) {
+    const excluded = new Set(
+        (deselectedGenes || []).map((gene) => String(gene || "").trim()).filter(Boolean)
+    );
+    if (!excluded.size) {
+        return rows || [];
+    }
+    return (rows || []).filter((row) => !excluded.has(String(row?.gene || "").trim()));
+}
+
 export function restrictQtlRowsToRegion(rows, region) {
     if (!region || region.start == null || region.end == null) {
         return rows || [];

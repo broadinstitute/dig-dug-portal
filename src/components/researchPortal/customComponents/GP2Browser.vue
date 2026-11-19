@@ -83,6 +83,7 @@
                     :active-search-region="activeRegion"
                     :viewing-center-bp="effectiveViewingCenterBp"
                     :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
+                    :viewing-region-width-bp="viewingRegionWidthBp"
                     :data-table-open="dataTableOpen"
                     :mapping-state="mappingState"
                     :workspace-mapping-filter="workspaceMappingFilter"
@@ -108,6 +109,7 @@
                     @toggle-qtl-star-variant="onToggleQtlStarVariant"
                     @set-reference-variant="onSetReferenceVariant"
                     @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
+                    @update:qtlDeselectedGenes="onQtlDeselectedGenesUpdate"
                     @update:geSelectedBiosamples="onGeSelectedBiosamplesUpdate"
                     @update:geActiveAnnotation="onGeActiveAnnotationUpdate"
                     @update:geSelectedTissues="onGeSelectedTissuesUpdate"
@@ -258,6 +260,7 @@
             :panel-id="activeResearchPanelId"
             :utils-box="utilsBox"
             :search-region="activeRegion"
+            :literature-evidence-state="literatureEvidenceState"
             @close="activeResearchPanelId = null"
             @navigate-region="onGenePrioritizationNavigateRegion"
         />
@@ -478,10 +481,24 @@ import {
     replacePendingAssistantEntry,
     clearAssistantResultEntries,
 } from "./kpVariantSifter/variantSifterAssistantConversation.js";
+import { matchVksAssistantRequest } from "./kpVariantSifter/variantSifterAssistantActionCatalog.js";
 import {
-    findAssistantAction,
-    matchVksAssistantRequest,
-} from "./kpVariantSifter/variantSifterAssistantActionCatalog.js";
+    GP2_AI_SUMMARY_ACTION_ID,
+    GP2_LITERATURE_EVIDENCE_ACTION_ID,
+    gp2FindAssistantAction,
+} from "./gp2Browser/gp2BrowserAssistantActionCatalog.js";
+import {
+    fetchGp2AiSummary,
+    formatGp2AiSummaryMessage,
+} from "./gp2Browser/gp2BrowserAiSummary.js";
+import {
+    buildGp2SessionExtras,
+    restoreGp2SessionExtras,
+} from "./gp2Browser/gp2BrowserSessionExtras.js";
+import {
+    fetchGp2LiteraturePapers,
+    synthesizeGp2LiteratureFindings,
+} from "./gp2Browser/gp2BrowserLiteratureEvidence.js";
 import {
     fetchCredibleSetsList,
     fetchCredibleSetsListForAncestries,
@@ -609,8 +626,27 @@ function emptyQtlState(previous = {}) {
         selectedGenes: Array.isArray(previous.selectedGenes)
             ? previous.selectedGenes.slice()
             : [],
+        deselectedGenes: Array.isArray(previous.deselectedGenes)
+            ? previous.deselectedGenes.slice()
+            : [],
         pValueMax: previous.pValueMax != null ? String(previous.pValueMax) : "",
         loadedRegionKey: null,
+    };
+}
+
+function emptyLiteratureEvidenceState() {
+    return {
+        loading: false,
+        loaded: false,
+        error: null,
+        query: null,
+        genesSearched: [],
+        usedLocusDigest: false,
+        papers: [],
+        synthesizing: false,
+        synthesisError: null,
+        knownFindings: "",
+        knowledgeGaps: "",
     };
 }
 
@@ -702,7 +738,9 @@ export default Vue.component("gp2-browser", {
             regionViewArea: 0,
             regionShiftBp: 0,
             viewingCenterBp: null,
-            viewingRegionWidthBp: GP2_VIEWING_REGION_WIDTH_BP,
+            // 0 = "None": focused viewing tracks start hidden until the user
+            // picks a zoom level.
+            viewingRegionWidthBp: 0,
             dataRegion: null,
             regionLoadProgress: emptyRegionLoadProgress(),
             regionLoadDismissTimer: null,
@@ -749,6 +787,7 @@ export default Vue.component("gp2-browser", {
             exportSessionBusy: false,
             workspaceGuideOpen: false,
             activeResearchPanelId: null,
+            literatureEvidenceState: emptyLiteratureEvidenceState(),
             chromePinned: false,
             headerHeightPx: 53,
             assistantPanelTopPx: 53,
@@ -954,6 +993,11 @@ export default Vue.component("gp2-browser", {
                 this.refreshChromePinListeners();
                 this.updateChromePin();
             });
+        },
+        activeResearchPanelId(panelId) {
+            if (panelId === "literatureEvidence") {
+                this.loadLiteratureEvidence();
+            }
         },
     },
     methods: {
@@ -1378,7 +1422,7 @@ export default Vue.component("gp2-browser", {
         },
         onViewingRegionWidthUpdate(nextWidthBp) {
             const width = Number(nextWidthBp);
-            if (!Number.isFinite(width) || width <= 0) {
+            if (!Number.isFinite(width) || width < 0) {
                 return;
             }
             this.viewingRegionWidthBp = width;
@@ -2591,6 +2635,10 @@ export default Vue.component("gp2-browser", {
                 payload.action === "literatureEvidence"
             ) {
                 this.activeResearchPanelId = payload.action;
+                return;
+            }
+            if (payload.action === "generateAiSummary") {
+                this.onExecuteCatalogAction(GP2_AI_SUMMARY_ACTION_ID);
             }
         },
         applyRecentSearch(entry) {
@@ -2948,6 +2996,14 @@ export default Vue.component("gp2-browser", {
                     mappingState: this.mappingState,
                     workspaceMappingFilter: this.workspaceMappingFilter,
                 });
+                payload.gp2 = buildGp2SessionExtras({
+                    qtlState: this.qtlState,
+                    assistantState: this.assistantState,
+                    literatureEvidenceState: this.literatureEvidenceState,
+                    visibleSectionIds: this.visibleSectionIds,
+                    viewingCenterBp: this.viewingCenterBp,
+                    viewingRegionWidthBp: this.viewingRegionWidthBp,
+                });
                 this.exportSessionBusy = true;
                 const result = await saveJsonBundle(filename, payload);
                 if (result.ok) {
@@ -2980,20 +3036,17 @@ export default Vue.component("gp2-browser", {
                     GP2_BROWSER_PHENOTYPES
                 );
                 const restored = importVariantSifterSession(payload, phenotypes);
-                restored.visibleSectionIds = Array.isArray(
-                    payload?.ui?.visibleSectionIds
-                )
-                    ? gp2NormalizeVisibleSectionIds(
-                          payload.ui.visibleSectionIds,
-                          this.sections
-                      )
+                const gp2SectionIds =
+                    payload?.gp2?.visibleSectionIds ?? payload?.ui?.visibleSectionIds;
+                restored.visibleSectionIds = Array.isArray(gp2SectionIds)
+                    ? gp2NormalizeVisibleSectionIds(gp2SectionIds, this.sections)
                     : gp2DefaultVisibleSectionIds(this.sections);
                 if (typeof payload?.ui?.openDrawerId === "string") {
                     restored.openDrawerId = payload.ui.openDrawerId;
                 }
                 this.projectId = projectId;
                 this.syncUrlProjectParam();
-                this.applyImportedSession(restored);
+                this.applyImportedSession(restored, restoreGp2SessionExtras(payload));
             } catch (error) {
                 const message = String(
                     error?.message || "Could not import session."
@@ -3003,7 +3056,7 @@ export default Vue.component("gp2-browser", {
                 event.target.value = "";
             }
         },
-        applyImportedSession(restored) {
+        applyImportedSession(restored, gp2Extras = null) {
             if (restored.searchSession?.region) {
                 const ensured = ensureRegionWithinActiveDataLimit(
                     restored.searchSession.region,
@@ -3085,8 +3138,23 @@ export default Vue.component("gp2-browser", {
                 ? cloneGenomicRegion(this.dataRegion)
                 : null;
             this.qtlRequestToken += 1;
-            this.qtlState = emptyQtlState(this.qtlState);
-            this.lastQtlRegion = null;
+            if (gp2Extras?.qtlRows?.length) {
+                this.qtlState = {
+                    ...emptyQtlState(this.qtlState),
+                    rawRows: gp2Extras.qtlRows,
+                    downsampledRows: downsampleAssociationRowsOnLoad(gp2Extras.qtlRows),
+                    selectedTypes: gp2Extras.qtlSelectedTypes,
+                    selectedTissues: gp2Extras.qtlSelectedTissues,
+                    selectedGenes: gp2Extras.qtlSelectedGenes,
+                    deselectedGenes: gp2Extras.qtlDeselectedGenes,
+                    pValueMax: gp2Extras.qtlPValueMax,
+                    loadedRegionKey: gp2QtlLoadKey(this.dataRegion),
+                };
+                this.lastQtlRegion = cloneGenomicRegion(this.dataRegion);
+            } else {
+                this.qtlState = emptyQtlState(this.qtlState);
+                this.lastQtlRegion = null;
+            }
             this.lastCredibleSetsListRegion = restored.credibleSetsState?.available
                 ?.length
                 ? restoredActiveRegion
@@ -3122,8 +3190,14 @@ export default Vue.component("gp2-browser", {
             this.workspaceMappingFilter = normalizeWorkspaceMappingFilter(
                 restored.workspaceMappingFilter
             );
-            this.assistantState = emptyAssistantState();
+            this.assistantState = gp2Extras?.assistantThreadEntries?.length
+                ? { ...emptyAssistantState(), threadEntries: gp2Extras.assistantThreadEntries }
+                : emptyAssistantState();
             this.aiAssistantOpen = false;
+            this.literatureEvidenceState =
+                gp2Extras?.literatureEvidenceState || emptyLiteratureEvidenceState();
+            this.viewingCenterBp = gp2Extras?.viewingCenterBp ?? null;
+            this.viewingRegionWidthBp = gp2Extras?.viewingRegionWidthBp ?? 0;
             this.syncUrlSearchParams(restored.searchSession);
             this.afterSessionRestored(restored);
         },
@@ -3212,8 +3286,8 @@ export default Vue.component("gp2-browser", {
             if (!session || !catalog?.tissues?.length) {
                 return;
             }
-            const geAction = findAssistantAction("filter_ge_relevance");
-            const understudiedAction = findAssistantAction(
+            const geAction = gp2FindAssistantAction("filter_ge_relevance");
+            const understudiedAction = gp2FindAssistantAction(
                 "find_understudied_bottom_line"
             );
             const credibleSetCount = (this.credibleSetsState?.available || []).length;
@@ -3262,7 +3336,7 @@ export default Vue.component("gp2-browser", {
             if (!this.searchSession || !ancestry) {
                 return;
             }
-            const understudiedAction = findAssistantAction(
+            const understudiedAction = gp2FindAssistantAction(
                 "find_understudied_bottom_line"
             );
             if (!understudiedAction) {
@@ -3337,7 +3411,9 @@ export default Vue.component("gp2-browser", {
                     ? "find_understudied_bottom_line"
                     : completedActionId === "find_understudied_bottom_line"
                       ? "filter_ge_relevance"
-                      : null;
+                      : completedActionId === GP2_AI_SUMMARY_ACTION_ID
+                        ? GP2_LITERATURE_EVIDENCE_ACTION_ID
+                        : null;
             if (!remainingId || this.isResearchActionStepDone(remainingId)) {
                 return;
             }
@@ -3349,7 +3425,7 @@ export default Vue.component("gp2-browser", {
                 return;
             }
 
-            const remainingAction = findAssistantAction(remainingId);
+            const remainingAction = gp2FindAssistantAction(remainingId);
             if (!remainingAction || !this.searchSession) {
                 return;
             }
@@ -3359,10 +3435,14 @@ export default Vue.component("gp2-browser", {
             const hasRemainingStep = existingSteps.some(
                 (step) => step.actionId === remainingId
             );
+            // Drop already-done steps from the carried-forward plan: the new
+            // suggestion gets its own plan card rather than accumulating
+            // onto the (now resolved) just-completed step.
+            const stepStatesBefore = this.assistantState.stepStates || {};
             const nextSteps = hasRemainingStep
                 ? existingSteps
                 : [
-                      ...existingSteps,
+                      ...existingSteps.filter((step) => stepStatesBefore[step.id] !== "done"),
                       {
                           id: remainingStepId,
                           actionId: remainingId,
@@ -3380,15 +3460,17 @@ export default Vue.component("gp2-browser", {
                 ? `Optional next: run “${remainingAction.label}” from the steps above.`
                 : remainingId === "find_understudied_bottom_line"
                   ? buildUnderstudiedOfferMessage(this.searchSession)
-                  : buildGeRelevanceOfferMessage(
-                        this.searchSession,
-                        this.globalEnrichmentState?.catalog,
-                        {
-                            credibleSetCount: (
-                                this.credibleSetsState?.available || []
-                            ).length,
-                        }
-                    );
+                  : remainingId === GP2_LITERATURE_EVIDENCE_ACTION_ID
+                    ? "Search PubMed for the genes and phenotype in this locus, and summarize what the literature establishes versus what it leaves as knowledge gaps."
+                    : buildGeRelevanceOfferMessage(
+                          this.searchSession,
+                          this.globalEnrichmentState?.catalog,
+                          {
+                              credibleSetCount: (
+                                  this.credibleSetsState?.available || []
+                              ).length,
+                          }
+                      );
 
             this.openAssistantSuggestions();
             this.assistantState = {
@@ -6249,7 +6331,7 @@ export default Vue.component("gp2-browser", {
             this.runAssistantAction(step.actionId, { auto: false, stepId: step.id });
         },
         onExecuteCatalogAction(actionId) {
-            const action = findAssistantAction(actionId);
+            const action = gp2FindAssistantAction(actionId);
             if (!action?.runnable || !this.searchSession) {
                 return;
             }
@@ -6461,6 +6543,14 @@ export default Vue.component("gp2-browser", {
                     silent,
                     stepId,
                 });
+                return;
+            }
+            if (actionId === GP2_AI_SUMMARY_ACTION_ID) {
+                await this.runGenerateAiSummaryAction({ silent, stepId });
+                return;
+            }
+            if (actionId === GP2_LITERATURE_EVIDENCE_ACTION_ID) {
+                this.runGenerateLiteratureEvidenceAction({ silent, stepId });
                 return;
             }
             if (actionId !== "filter_ge_relevance") {
@@ -7149,6 +7239,217 @@ export default Vue.component("gp2-browser", {
                 }
             }
         },
+        async runGenerateAiSummaryAction({ silent = false, stepId } = {}) {
+            const session = this.searchSession;
+            const resolvedStepId = stepId || this.researchActionStepId(GP2_AI_SUMMARY_ACTION_ID);
+            if (!session?.region || !this.associationsState?.rows?.length) {
+                this.markAssistantStepState(resolvedStepId, "error");
+                if (!silent) {
+                    this.aiAssistantOpen = true;
+                    this.assistantState = {
+                        ...this.assistantState,
+                        threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                            createAssistantStepMessage(
+                                "Not enough data to generate a summary for this locus (Associations data is not loaded).",
+                                { isClarify: true }
+                            ),
+                        ]),
+                    };
+                }
+                return;
+            }
+
+            const actionToken = ++this.assistantActionToken;
+            this.markAssistantStepState(resolvedStepId, "running");
+
+            if (!silent) {
+                this.aiAssistantOpen = true;
+                this.assistantState = {
+                    ...this.assistantState,
+                    activeTab: "request",
+                    executing: true,
+                    executionProgressLabel: "Generating AI summary…",
+                    threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                        createAssistantStatusMessage(
+                            `Generating an AI summary for ${session.regionLabel || formatRegion(session.region)}…`,
+                            { pending: true, isStepResult: true }
+                        ),
+                    ]),
+                };
+            }
+
+            try {
+                const result = await fetchGp2AiSummary({
+                    session,
+                    region: session.region,
+                    associationRows: this.associationsState.rows,
+                    qtlRows: this.qtlState?.rawRows || [],
+                    genes: this.genesState?.data || [],
+                });
+                if (actionToken !== this.assistantActionToken) {
+                    return;
+                }
+
+                if (!result.ok) {
+                    this.markAssistantStepState(resolvedStepId, "error");
+                    const message =
+                        result.reason === "llm-error"
+                            ? result.error?.message || "Could not generate an AI summary."
+                            : "Not enough data to generate a summary for this locus (LD scores are not available for the lead variant).";
+                    if (!silent) {
+                        this.assistantState = {
+                            ...this.assistantState,
+                            executing: false,
+                            executionProgressLabel: "",
+                            threadEntries: replacePendingAssistantEntry(
+                                this.assistantState.threadEntries,
+                                message,
+                                { isClarify: true }
+                            ),
+                        };
+                    } else if (this.assistantState.executing) {
+                        this.assistantState = {
+                            ...this.assistantState,
+                            executing: false,
+                            executionProgressLabel: "",
+                        };
+                    }
+                    return;
+                }
+
+                this.markAssistantStepState(resolvedStepId, "done");
+                if (!silent) {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                        threadEntries: replacePendingAssistantEntry(
+                            this.assistantState.threadEntries,
+                            formatGp2AiSummaryMessage(result)
+                        ),
+                    };
+                } else {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                    };
+                }
+                this.offerRemainingResearchAction(GP2_AI_SUMMARY_ACTION_ID);
+            } catch (error) {
+                if (actionToken !== this.assistantActionToken) {
+                    return;
+                }
+                console.warn("GP2 Browser AI summary failed", error);
+                this.markAssistantStepState(resolvedStepId, "error");
+                if (!silent) {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                        threadEntries: replacePendingAssistantEntry(
+                            this.assistantState.threadEntries,
+                            error?.message || "Could not generate an AI summary.",
+                            { isClarify: true }
+                        ),
+                    };
+                } else if (this.assistantState.executing) {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                    };
+                }
+            }
+        },
+        /**
+         * The Literature evidence panel already does its own fetch (PubMed
+         * search + LLM synthesis) when opened, so this action just opens it
+         * rather than duplicating that pipeline inline in the assistant
+         * thread.
+         */
+        runGenerateLiteratureEvidenceAction({ silent = false, stepId } = {}) {
+            const resolvedStepId =
+                stepId || this.researchActionStepId(GP2_LITERATURE_EVIDENCE_ACTION_ID);
+            if (!this.searchSession?.region) {
+                this.markAssistantStepState(resolvedStepId, "error");
+                return;
+            }
+
+            this.markAssistantStepState(resolvedStepId, "running");
+            this.activeResearchPanelId = "literatureEvidence";
+            this.markAssistantStepState(resolvedStepId, "done");
+
+            if (!silent) {
+                this.assistantState = {
+                    ...this.assistantState,
+                    threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                        createAssistantStepMessage(
+                            "Opened the Literature evidence panel — searching PubMed and generating a synthesis there."
+                        ),
+                    ]),
+                };
+            }
+        },
+        /**
+         * Owned here (not inside GP2BrowserResearchModal) so its result is
+         * part of this component's state and can be included in session
+         * export/import, same as QTL state and the Assistant thread.
+         */
+        async loadLiteratureEvidence() {
+            if (this.literatureEvidenceState.loaded || this.literatureEvidenceState.loading) {
+                return;
+            }
+            this.literatureEvidenceState.loading = true;
+            this.literatureEvidenceState.error = null;
+            try {
+                const result = await fetchGp2LiteraturePapers({
+                    session: this.searchSession,
+                    region: this.searchSession?.region,
+                    associationRows: this.associationsState?.rows || [],
+                    qtlRows: this.qtlState?.rawRows || [],
+                    genes: this.genesState?.data || [],
+                });
+                if (!result.ok) {
+                    this.literatureEvidenceState.error =
+                        result.reason === "no-genes"
+                            ? "Not enough data to search the literature for this locus (no genes could be resolved)."
+                            : result.error?.message || "Could not search PubMed for this locus.";
+                    return;
+                }
+
+                this.literatureEvidenceState.loaded = true;
+                this.literatureEvidenceState.query = result.query;
+                this.literatureEvidenceState.genesSearched = result.genesSearched;
+                this.literatureEvidenceState.usedLocusDigest = result.usedLocusDigest;
+                this.literatureEvidenceState.papers = result.papers;
+
+                if (!result.papers.length) {
+                    return;
+                }
+
+                this.literatureEvidenceState.synthesizing = true;
+                const synthesis = await synthesizeGp2LiteratureFindings({
+                    phenotype: result.phenotype,
+                    geneNames: result.genesSearched,
+                    papers: result.papers,
+                    locusDigest: result.locusDigest,
+                });
+                if (synthesis.ok) {
+                    this.literatureEvidenceState.knownFindings = synthesis.knownFindings;
+                    this.literatureEvidenceState.knowledgeGaps = synthesis.knowledgeGaps;
+                } else {
+                    this.literatureEvidenceState.synthesisError =
+                        synthesis.error?.message || "Could not generate a literature synthesis.";
+                }
+            } catch (error) {
+                this.literatureEvidenceState.error =
+                    error?.message || "Could not search PubMed for this locus.";
+            } finally {
+                this.literatureEvidenceState.loading = false;
+                this.literatureEvidenceState.synthesizing = false;
+            }
+        },
         onOpenCorrelatedPhenotype(phenotype) {
             if (!phenotype?.name || !this.searchSession?.regionLabel) {
                 return;
@@ -7432,6 +7733,12 @@ export default Vue.component("gp2-browser", {
         onV2gDeselectedGenesUpdate(deselectedGenes) {
             this.v2gState = {
                 ...this.v2gState,
+                deselectedGenes: Array.isArray(deselectedGenes) ? [...deselectedGenes] : [],
+            };
+        },
+        onQtlDeselectedGenesUpdate(deselectedGenes) {
+            this.qtlState = {
+                ...this.qtlState,
                 deselectedGenes: Array.isArray(deselectedGenes) ? [...deselectedGenes] : [],
             };
         },

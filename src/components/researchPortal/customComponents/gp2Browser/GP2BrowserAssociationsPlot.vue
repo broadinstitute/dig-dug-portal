@@ -106,12 +106,14 @@
                         <GP2BrowserAssociationRegionPlot
                             v-else
                             :plot-rows="series.plotData"
-                            :display-height="24"
+                            :display-height="searchingTrackDisplayHeight"
                             :pan-mode="'searching'"
                             :highlight-view-region="viewRegion"
-                            :show-view-region-handle="true"
-                            :show-view-region-bridge="searchIndex === searchingPlotSeries.length - 1"
-                            :bridge-genes="bridgeGenesForPlot"
+                            :show-view-region-handle="focusedViewTracksVisible"
+                            :show-view-region-bridge="
+                                focusedViewTracksVisible &&
+                                    searchIndex === searchingPlotSeries.length - 1
+                            "
                             :viewing-center-bp="viewingCenterBp"
                             :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
                             :show-legend="
@@ -230,20 +232,21 @@
                     </div>
                     <template v-else>
                         <div
-                            v-if="!qtlSearchingPlotRows"
+                            v-if="!qtlFilteredDownsampledRows.length"
                             class="vks-associations-plot-status vks-associations-plot-status--inline"
                         >
                             No QTL evidence for this locus.
                         </div>
                         <GP2BrowserQtlRegionPlot
                             v-else
-                            :plot-rows="qtlSearchingPlotRows"
-                            :display-height="24"
+                            :plot-rows="qtlSearchingPlotRows || []"
+                            :gene-color-map="qtlGeneColorMap"
+                            :deselected-genes="qtlDeselectedGenes"
+                            :display-height="searchingTrackDisplayHeight"
                             pan-mode="searching"
                             :highlight-view-region="viewRegion"
-                            :show-view-region-handle="true"
-                            :show-view-region-bridge="true"
-                            :bridge-genes="bridgeGenesForPlot"
+                            :show-view-region-handle="focusedViewTracksVisible"
+                            :show-view-region-bridge="focusedViewTracksVisible"
                             :viewing-center-bp="viewingCenterBp"
                             :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
                             :show-legend="true"
@@ -265,40 +268,45 @@
                             @toggle-position-marker="$emit('toggle-position-marker', $event)"
                             @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
                             @set-reference-variant="$emit('set-reference-variant', $event)"
+                            @update:deselectedGenes="$emit('update:qtlDeselectedGenes', $event)"
                         />
-                        <div
-                            v-if="!qtlViewingPlotRows"
-                            class="vks-associations-plot-status vks-associations-plot-status--inline"
-                        >
-                            No QTL evidence in this {{ viewingRegionWidthLabel }} viewing region.
-                        </div>
-                        <GP2BrowserQtlRegionPlot
-                            v-else
-                            :plot-rows="qtlViewingPlotRows"
-                            :display-height="120"
-                            pan-mode="viewing"
-                            :viewing-center-bp="viewingCenterBp"
-                            :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
-                            :show-legend="false"
-                            :recomb-peak-intervals="recombPeakIntervals"
-                            :region="searchingRegion"
-                            :region-zoom="regionZoom"
-                            :region-shift-bp="regionShiftBp"
-                            :region-view-area="regionViewArea"
-                            :view-region="viewRegion"
-                            :plot-margin="plotMargin"
-                            :shared-canvas-width="stackCanvasWidth"
-                            :plot-markers="plotMarkers"
-                            :utils="utils"
-                            @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
-                            @update:regionViewArea="$emit('update:regionViewArea', $event)"
-                            @update:viewingCenterBp="$emit('update:viewingCenterBp', $event)"
-                            @commit-viewing-region="$emit('commit-viewing-region')"
-                            @pan-end="$emit('pan-end')"
-                            @toggle-position-marker="$emit('toggle-position-marker', $event)"
-                            @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
-                            @set-reference-variant="$emit('set-reference-variant', $event)"
-                        />
+                        <template v-if="focusedViewTracksVisible">
+                            <div
+                                v-if="!qtlViewingRowsBeforeDeselection.length"
+                                class="vks-associations-plot-status vks-associations-plot-status--inline"
+                            >
+                                No QTL evidence in this {{ viewingRegionWidthLabel }} viewing region.
+                            </div>
+                            <GP2BrowserQtlRegionPlot
+                                v-else
+                                :plot-rows="qtlViewingPlotRows || []"
+                                :gene-color-map="qtlGeneColorMap"
+                                :deselected-genes="qtlDeselectedGenes"
+                                :display-height="120"
+                                pan-mode="viewing"
+                                :viewing-center-bp="viewingCenterBp"
+                                :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
+                                :show-legend="false"
+                                :recomb-peak-intervals="recombPeakIntervals"
+                                :region="searchingRegion"
+                                :region-zoom="regionZoom"
+                                :region-shift-bp="regionShiftBp"
+                                :region-view-area="regionViewArea"
+                                :view-region="viewRegion"
+                                :plot-margin="plotMargin"
+                                :shared-canvas-width="stackCanvasWidth"
+                                :plot-markers="plotMarkers"
+                                :utils="utils"
+                                @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                                @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                                @update:viewingCenterBp="$emit('update:viewingCenterBp', $event)"
+                                @commit-viewing-region="$emit('commit-viewing-region')"
+                                @pan-end="$emit('pan-end')"
+                                @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                                @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
+                                @set-reference-variant="$emit('set-reference-variant', $event)"
+                            />
+                        </template>
                     </template>
                 </div>
                 <div v-if="showCredibleSetsSection" class="vks-plot-section">
@@ -433,7 +441,7 @@
                         :genes="genesTrackData"
                         :recomb-peak-intervals="searchingRecombPeakIntervals"
                         :region="searchingRegion"
-                        :view-region="searchingRegion"
+                        :view-region="genesTrackViewRegion"
                         :plot-margin="plotMargin"
                         :region-zoom="0"
                         :shared-canvas-width="stackCanvasWidth"
@@ -481,10 +489,7 @@ import {
     buildGeneTypeOptions,
     filterGenesByTypes,
 } from "../kpVariantSifter/variantSifterGenesFilter.js";
-import {
-    buildGeneTypeColorMap,
-    geneColorForGene,
-} from "../kpVariantSifter/variantSifterGenesColors.js";
+import { buildGeneTypeColorMap } from "../kpVariantSifter/variantSifterGenesColors.js";
 import {
     attachPlotResizeObserver,
     computeRecombSignalIntervals,
@@ -508,11 +513,15 @@ import {
 } from "./gp2BrowserAssociationsDownsample.js";
 import {
     filterQtlRows,
+    filterQtlRowsByDeselectedGenes,
     filterQtlRowsByGenes,
     filterQtlRowsByPValueMax,
     restrictQtlRowsToRegion,
 } from "./gp2BrowserQtlApi.js";
-import { qtlRowsToPlotData } from "./gp2BrowserQtlPlotData.js";
+import {
+    buildGp2QtlGeneColorMap,
+    qtlRowsToPlotData,
+} from "./gp2BrowserQtlPlotData.js";
 import { GP2_VIEWING_REGION_HALF_BP } from "./gp2BrowserViewingRegion.js";
 
 const VIEW_MOVE_SETTLE_MS = 140;
@@ -604,6 +613,10 @@ export default {
         viewingRegionHalfWidthBp: {
             type: Number,
             default: null,
+        },
+        viewingRegionWidthBp: {
+            type: Number,
+            default: 0,
         },
         plotOverlaysState: {
             type: Object,
@@ -713,6 +726,14 @@ export default {
             const halfWidthBp = Number(this.viewingRegionHalfWidthBp) || GP2_VIEWING_REGION_HALF_BP;
             return `${Math.round((halfWidthBp * 2) / 1000)} kb`;
         },
+        /** Zoom level "None" (0) hides the focused Associations/QTL viewing tracks. */
+        focusedViewTracksVisible() {
+            return Number(this.viewingRegionWidthBp) > 0;
+        },
+        /** Search-region (overview) track grows to fill the space when the focused view is hidden. */
+        searchingTrackDisplayHeight() {
+            return this.focusedViewTracksVisible ? 24 : 150;
+        },
         primaryAncestry() {
             return primaryAssociationAncestry(this.searchSession);
         },
@@ -721,6 +742,18 @@ export default {
         },
         searchingRegion() {
             return this.activeSearchRegion || this.searchSession?.region || null;
+        },
+        /**
+         * Genes track window: the full locus normally, but narrowed to match
+         * the focused Associations/QTL viewing window whenever a Zoom level
+         * other than "None" is selected, so gene positions line up with what
+         * the zoomed dot plots are showing.
+         */
+        genesTrackViewRegion() {
+            if (this.focusedViewTracksVisible && this.viewRegion) {
+                return this.viewRegion;
+            }
+            return this.searchingRegion;
         },
         searchingRows() {
             return stripZoomRefetchedRows(this.rows);
@@ -739,6 +772,9 @@ export default {
             }));
         },
         viewingPlotSeries() {
+            if (!this.focusedViewTracksVisible) {
+                return [];
+            }
             const view = this.viewRegion;
             return buildAssociationPlotSeries({
                 rows: this.rows,
@@ -835,20 +871,6 @@ export default {
             const genes = Array.isArray(this.genesState?.data) ? this.genesState.data : [];
             return buildGeneTypeColorMap(buildGeneTypeOptions(genes));
         },
-        /** Genes (with exons + color) for the bridge hairline's collapsed exon marks. */
-        bridgeGenesForPlot() {
-            const genes = this.genesTrackData;
-            if (!Array.isArray(genes) || !genes.length) {
-                return [];
-            }
-            return genes
-                .filter((gene) => gene?.gene_name)
-                .map((gene) => ({
-                    name: gene.gene_name,
-                    color: geneColorForGene(gene, this.geneTypeColors),
-                    exons: Array.isArray(gene.exons) ? gene.exons : [],
-                }));
-        },
         hasSelectedCredibleSets() {
             return (this.credibleSetsState?.selectedIds || []).length > 0;
         },
@@ -911,14 +933,44 @@ export default {
             );
             return filterQtlRowsByPValueMax(geneFiltered, this.qtlState?.pValueMax);
         },
+        /**
+         * Stable gene->color map for the currently filtered QTL rows, shared
+         * by the searching and viewing plots so a gene's color matches
+         * between them (and stays stable across filter changes, since it's
+         * built from the full filtered set, not either plot's own subset).
+         */
+        qtlGeneColorMap() {
+            return buildGp2QtlGeneColorMap(this.qtlFilteredRawRows);
+        },
+        /** Genes unchecked in the gene-color legend (opt-out; empty = show all). */
+        qtlDeselectedGenes() {
+            return this.qtlState?.deselectedGenes || [];
+        },
         /** Compact searching-region overview: downsampled, like Associations. */
         qtlSearchingPlotRows() {
-            return qtlRowsToPlotData(this.qtlFilteredDownsampledRows);
+            return qtlRowsToPlotData(
+                filterQtlRowsByDeselectedGenes(
+                    this.qtlFilteredDownsampledRows,
+                    this.qtlDeselectedGenes
+                )
+            );
+        },
+        /**
+         * Rows for the viewing (zoomed) plot before gene-legend deselection
+         * is applied — used to tell "nothing in this viewing region" apart
+         * from "everything here is deselected", so the gene-legend checkboxes
+         * stay visible (and usable) even when every gene is unchecked.
+         */
+        qtlViewingRowsBeforeDeselection() {
+            return restrictQtlRowsToRegion(this.qtlFilteredRawRows, this.viewRegion);
         },
         /** 50 kb viewing-region detail plot: raw (undownsampled), like Associations. */
         qtlViewingPlotRows() {
             return qtlRowsToPlotData(
-                restrictQtlRowsToRegion(this.qtlFilteredRawRows, this.viewRegion)
+                filterQtlRowsByDeselectedGenes(
+                    this.qtlViewingRowsBeforeDeselection,
+                    this.qtlDeselectedGenes
+                )
             );
         },
         showCredibleSetsSection() {

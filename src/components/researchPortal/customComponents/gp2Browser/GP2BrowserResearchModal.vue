@@ -41,6 +41,27 @@
                         />
                     </template>
                 </template>
+                <template v-else-if="panelId === 'literatureEvidence'">
+                    <div v-if="literatureEvidenceState.loading" class="gp2-research-status">
+                        Searching PubMed…
+                    </div>
+                    <div
+                        v-else-if="literatureEvidenceState.error"
+                        class="gp2-research-status gp2-research-status-error"
+                    >
+                        {{ literatureEvidenceState.error }}
+                    </div>
+                    <GP2BrowserLiteratureEvidencePanel
+                        v-else
+                        :genes-searched="literatureEvidenceState.genesSearched"
+                        :used-locus-digest="literatureEvidenceState.usedLocusDigest"
+                        :papers="literatureEvidenceState.papers"
+                        :synthesizing="literatureEvidenceState.synthesizing"
+                        :synthesis-error="literatureEvidenceState.synthesisError"
+                        :known-findings="literatureEvidenceState.knownFindings"
+                        :knowledge-gaps="literatureEvidenceState.knowledgeGaps"
+                    />
+                </template>
             </div>
         </div>
     </div>
@@ -49,6 +70,7 @@
 <script>
 import GP2BrowserGenePrioritizationFilters from "./GP2BrowserGenePrioritizationFilters.vue";
 import GP2BrowserGenePrioritizationTable from "./GP2BrowserGenePrioritizationTable.vue";
+import GP2BrowserLiteratureEvidencePanel from "./GP2BrowserLiteratureEvidencePanel.vue";
 import {
     fetchGp2GenePrioritization,
     gp2GenePrioritizationDefaultFilters,
@@ -66,6 +88,7 @@ export default {
     components: {
         GP2BrowserGenePrioritizationFilters,
         GP2BrowserGenePrioritizationTable,
+        GP2BrowserLiteratureEvidencePanel,
     },
     props: {
         panelId: {
@@ -79,6 +102,10 @@ export default {
         searchRegion: {
             type: Object,
             default: null,
+        },
+        literatureEvidenceState: {
+            type: Object,
+            required: true,
         },
     },
     data() {

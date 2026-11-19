@@ -1,29 +1,50 @@
 /**
- * QTL plot-row mapping and effect-direction (beta sign) coloring for GP2 Browser.
+ * QTL plot-row mapping for GP2 Browser.
  *
  * QTL evidences render like Associations (searching-region overview + 50 kb
  * viewing-region plot, same load-time downsampling) except: no LD scores and
- * no recombination signal are loaded for QTL, and dots are colored by the
- * direction of the effect (beta) instead of LD r2.
+ * no recombination signal are loaded for QTL. Dots are colored by gene
+ * identity and shaped as an upward triangle (beta > 0) or downward triangle
+ * (beta < 0) instead of using color for effect direction.
  */
 import { qtlVariantLabel } from "./gp2BrowserQtlApi.js";
+import GP2_CATEGORICAL_COLORS from "@/utils/colors.js";
+
+/** Fallback fill for a gene not present in the color map (e.g. missing gene field). */
+export const GP2_QTL_GENE_FALLBACK_COLOR = "#8a8a8a";
+
+/** Same ~31% alpha (`50` hex suffix) as the Associations plot's LD dot colors. */
+export const GP2_QTL_DOT_ALPHA_SUFFIX = "50";
+
+/** Plain 6-digit hex (legend/checkbox swatches) -> same hex with plot-dot alpha. */
+export function gp2QtlDotFillColor(hexColor) {
+    return `${hexColor}${GP2_QTL_DOT_ALPHA_SUFFIX}`;
+}
 
 /**
- * Plot dot colors, matching the Beta/Var Beta "is-positive" / "is-negative"
- * hues in GP2BrowserQtlTable.vue, with the same ~31% alpha (`50` hex suffix)
- * used by the Associations plot's LD dot colors (`VKS_LD_DOT_COLORS`).
+ * Stable gene -> color assignment, independent of which other genes happen
+ * to be in a given subset (sorted alphabetically first, so the same gene
+ * always gets the same color whether the map is built from the whole locus
+ * or a filtered subset of it) and reused by both the searching and viewing
+ * plots so a gene's color matches across them.
  */
-export const GP2_QTL_POSITIVE_EFFECT_COLOR = "#04884550";
-export const GP2_QTL_NEGATIVE_EFFECT_COLOR = "#ee312450";
-export const GP2_QTL_NEUTRAL_EFFECT_COLOR = "#8a8a8a50";
+export function buildGp2QtlGeneColorMap(rows) {
+    const geneNames = Array.from(
+        new Set((rows || []).map((row) => row?.gene || row?.Gene).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b));
 
-/** Color a QTL dot by the sign of its beta (effect direction). */
-export function qtlDotColorForBeta(beta) {
-    const number = Number(beta);
-    if (!Number.isFinite(number) || number === 0) {
-        return GP2_QTL_NEUTRAL_EFFECT_COLOR;
+    const colorMap = {};
+    geneNames.forEach((gene, index) => {
+        colorMap[gene] = GP2_CATEGORICAL_COLORS[index % GP2_CATEGORICAL_COLORS.length];
+    });
+    return colorMap;
+}
+
+export function gp2QtlColorForGene(gene, colorMap) {
+    if (gene && colorMap && colorMap[gene]) {
+        return colorMap[gene];
     }
-    return number < 0 ? GP2_QTL_NEGATIVE_EFFECT_COLOR : GP2_QTL_POSITIVE_EFFECT_COLOR;
+    return GP2_QTL_GENE_FALLBACK_COLOR;
 }
 
 /**

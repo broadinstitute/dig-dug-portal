@@ -110,48 +110,6 @@
                     <p>{{ entry.text }}</p>
                 </div>
 
-                <div v-if="hasPlan" class="vks-assistant-plan">
-                    <p class="vks-assistant-plan-title">Plan</p>
-                    <button
-                        type="button"
-                        class="vks-assistant-execute-all"
-                        :disabled="!canExecutePlan"
-                        @click="onExecuteAll"
-                    >
-                        {{ plan.executeLabel || "Execute" }}
-                    </button>
-                    <ol class="vks-assistant-steps">
-                        <li
-                            v-for="(step, index) in plan.steps"
-                            :key="step.id"
-                            class="vks-assistant-step"
-                        >
-                            <div class="vks-assistant-step-main">
-                                <span
-                                    class="vks-assistant-step-status"
-                                    :class="`is-${stepStatus(step.id)}`"
-                                    :aria-label="stepStatusLabel(step.id)"
-                                />
-                                <span class="vks-assistant-step-label">
-                                    {{ index + 1 }}. {{ step.label }}
-                                </span>
-                            </div>
-                            <button
-                                type="button"
-                                class="vks-ui-btn vks-ui-btn--secondary vks-assistant-step-run"
-                                :disabled="
-                                    executing ||
-                                        !canRunActions ||
-                                        stepStatus(step.id) === 'done'
-                                "
-                                @click="$emit('execute-step', step.id)"
-                            >
-                                Run
-                            </button>
-                        </li>
-                    </ol>
-                </div>
-
                 <div
                     v-if="resultEntries.length"
                     class="vks-assistant-results"
@@ -218,6 +176,48 @@
                             </section>
                         </div>
                     </div>
+                </div>
+
+                <div v-if="hasPlan" class="vks-assistant-plan">
+                    <p class="vks-assistant-plan-title">Plan</p>
+                    <button
+                        type="button"
+                        class="vks-assistant-execute-all"
+                        :disabled="!canExecutePlan"
+                        @click="onExecuteAll"
+                    >
+                        {{ plan.executeLabel || "Execute" }}
+                    </button>
+                    <ol class="vks-assistant-steps">
+                        <li
+                            v-for="(step, index) in plan.steps"
+                            :key="step.id"
+                            class="vks-assistant-step"
+                        >
+                            <div class="vks-assistant-step-main">
+                                <span
+                                    class="vks-assistant-step-status"
+                                    :class="`is-${stepStatus(step.id)}`"
+                                    :aria-label="stepStatusLabel(step.id)"
+                                />
+                                <span class="vks-assistant-step-label">
+                                    {{ index + 1 }}. {{ step.label }}
+                                </span>
+                            </div>
+                            <button
+                                type="button"
+                                class="vks-ui-btn vks-ui-btn--secondary vks-assistant-step-run"
+                                :disabled="
+                                    executing ||
+                                        !canRunActions ||
+                                        stepStatus(step.id) === 'done'
+                                "
+                                @click="$emit('execute-step', step.id)"
+                            >
+                                Run
+                            </button>
+                        </li>
+                    </ol>
                 </div>
 
                 <div
@@ -510,10 +510,7 @@
 </template>
 
 <script>
-import {
-    buildVksAssistantWelcomeExamples,
-    VKS_ASSISTANT_ACTION_CATALOG_SECTIONS,
-} from "../kpVariantSifter/variantSifterAssistantActionCatalog.js";
+import { buildVksAssistantWelcomeExamples } from "../kpVariantSifter/variantSifterAssistantActionCatalog.js";
 import {
     assistantSuggestFullLabel,
     buildVksAssistantAutocompleteSuggestions,
@@ -529,23 +526,7 @@ import {
     formatGeneticCorrelationPValue,
     formatGeneticCorrelationRg,
 } from "../kpVariantSifter/variantSifterAssistantGeneticCorrelation.js";
-
-const GP2_ASSISTANT_ACTION_CATALOG_SECTIONS = VKS_ASSISTANT_ACTION_CATALOG_SECTIONS.map(
-    (section) => ({
-        ...section,
-        intro: String(section.intro || "").replace(/Variant Sifter/gi, "GP2 Browser"),
-        groups: (section.groups || []).map((group) => ({
-            ...group,
-            actions: (group.actions || []).map((action) => ({
-                ...action,
-                description: String(action.description || "").replace(
-                    /Variant Sifter/gi,
-                    "GP2 Browser"
-                ),
-            })),
-        })),
-    })
-);
+import { GP2_ASSISTANT_ACTION_CATALOG_SECTIONS } from "./gp2BrowserAssistantActionCatalog.js";
 
 export default {
     name: "GP2BrowserAiAssistantPanel",
@@ -1174,6 +1155,7 @@ export default {
     font-size: 13px;
     line-height: 1.5;
     color: var(--cfde-ink, #33363d);
+    white-space: pre-line;
 }
 
 .vks-assistant-plan {

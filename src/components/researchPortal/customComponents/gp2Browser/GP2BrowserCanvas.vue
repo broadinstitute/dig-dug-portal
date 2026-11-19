@@ -33,6 +33,7 @@
                         :active-search-region="activeSearchRegion"
                         :viewing-center-bp="viewingCenterBp"
                         :viewing-region-half-width-bp="viewingRegionHalfWidthBp"
+                        :viewing-region-width-bp="viewingRegionWidthBp"
                         :genes-state="genesState"
                         :qtl-state="qtlState"
                         :plot-overlays-state="plotOverlaysState"
@@ -71,6 +72,7 @@
                         @update:geBiosampleLoading="$emit('update:geBiosampleLoading', $event)"
                         @update:v2gSelectedLinks="$emit('update:v2gSelectedLinks', $event)"
                         @update:s2gSelectedLinks="$emit('update:s2gSelectedLinks', $event)"
+                        @update:qtlDeselectedGenes="$emit('update:qtlDeselectedGenes', $event)"
                     />
                     <VariantSifterTrackStrip
                         v-else
@@ -196,6 +198,10 @@ export default {
         viewingRegionHalfWidthBp: {
             type: Number,
             default: null,
+        },
+        viewingRegionWidthBp: {
+            type: Number,
+            default: 0,
         },
         dataTableOpen: {
             type: Boolean,

@@ -98,6 +98,8 @@ export default {
                         { id: "genePrioritization", label: "Gene prioritization" },
                         { id: "associatedPhenotypes", label: "Associated phenotypes" },
                         { id: "literatureEvidence", label: "Literature evidence" },
+                        { id: "toolsDivider", type: "divider" },
+                        { id: "generateAiSummary", label: "Generate AI summary" },
                     ],
                 },
                 {

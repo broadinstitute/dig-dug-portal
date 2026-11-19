@@ -33,6 +33,14 @@
                 <span class="plot-legend-dot" style="background-color: #33333320"></span>
                 <span>No data</span>
             </span>
+            <span class="vks-legend-item">
+                <span
+                    class="plot-legend-band"
+                    :style="{ backgroundColor: recombinationBandFill }"
+                    aria-hidden="true"
+                ></span>
+                <span>Recombination hotspot (&gt; {{ recombinationBandMinRate }} cM/Mb)</span>
+            </span>
         </div>
         <div ref="canvasWrap" class="vks-association-region-plot-canvas-wrap">
             <canvas
@@ -93,27 +101,7 @@
                 <span class="gp2-view-region-bridge-top"></span>
                 <span class="gp2-view-region-bridge-edge gp2-view-region-bridge-edge--left"></span>
                 <span class="gp2-view-region-bridge-edge gp2-view-region-bridge-edge--right"></span>
-                <span
-                    v-for="mark in bridgeExonMarks"
-                    :key="mark.key"
-                    class="gp2-view-region-bridge-exon"
-                    :style="{ left: `${mark.left}%`, width: `${mark.width}%`, backgroundColor: mark.color }"
-                ></span>
             </div>
-        </div>
-        <div
-            v-if="showViewRegionBridge && bridgeViewGenes.length"
-            class="gp2-view-region-bridge-genes"
-            aria-label="Genes overlapping the viewing region"
-        >
-            <span
-                v-for="gene in bridgeViewGenes"
-                :key="gene.name"
-                class="gp2-view-region-bridge-gene"
-                :style="{ color: gene.color }"
-            >
-                {{ gene.name }}
-            </span>
         </div>
         <VariantSifterVariantDotMenu
             :open="dotMenuOpen"
@@ -173,17 +161,15 @@ import {
     setupPlotCanvas,
     VKS_DEFAULT_DOT_RADIUS,
     VKS_LD_REFERENCE_COLOR,
+    VKS_RECOMB_SIGNAL_BAND_MIN_RATE,
+    VKS_TRACK_HIGHLIGHT_BAND_FILL,
 } from "../kpVariantSifter/variantSifterPlotShared.js";
 import { positionAnchoredPopupElement } from "../kpVariantSifter/variantSifterPopupPosition.js";
 import {
     GP2_VIEWING_REGION_HALF_BP,
     clampViewingCenterBp,
 } from "./gp2BrowserViewingRegion.js";
-import {
-    computeBridgeExonMarks,
-    filterGenesOverlappingRegion,
-    renderCompactSearchingPlotAxis,
-} from "./gp2BrowserRegionPlotAxis.js";
+import { renderCompactSearchingPlotAxis } from "./gp2BrowserRegionPlotAxis.js";
 
 export default {
     name: "GP2BrowserAssociationRegionPlot",
@@ -218,10 +204,6 @@ export default {
         showViewRegionBridge: {
             type: Boolean,
             default: false,
-        },
-        bridgeGenes: {
-            type: Array,
-            default: () => [],
         },
         viewingCenterBp: {
             type: Number,
@@ -323,6 +305,12 @@ export default {
         };
     },
     computed: {
+        recombinationBandFill() {
+            return VKS_TRACK_HIGHLIGHT_BAND_FILL;
+        },
+        recombinationBandMinRate() {
+            return VKS_RECOMB_SIGNAL_BAND_MIN_RATE;
+        },
         isCompactPlot() {
             return Number(this.displayHeight) > 0 && Number(this.displayHeight) <= 36;
         },
@@ -479,12 +467,6 @@ export default {
                 top: `${connectorTop}px`,
                 bottom: `${connectorBottomGap}px`,
             };
-        },
-        bridgeExonMarks() {
-            return computeBridgeExonMarks(this.bridgeGenes, this.highlightViewRegion);
-        },
-        bridgeViewGenes() {
-            return filterGenesOverlappingRegion(this.bridgeGenes, this.highlightViewRegion);
         },
     },
     watch: {
@@ -1201,7 +1183,7 @@ export default {
     display: inline-block;
     width: 12px;
     height: 12px;
-    border-radius: 0;
+    border-radius: 50%;
     flex-shrink: 0;
     vertical-align: middle;
 }
@@ -1214,6 +1196,16 @@ export default {
     vertical-align: middle;
     background-color: #824099;
     transform: rotate(45deg);
+}
+
+.plot-legend-band {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 0;
+    flex-shrink: 0;
+    vertical-align: middle;
+    border: 1px solid rgba(120, 120, 120, 0.6);
 }
 
 .vks-association-region-plot-canvas {
@@ -1347,33 +1339,6 @@ export default {
 .gp2-view-region-bridge.is-active .gp2-view-region-bridge-top,
 .gp2-view-region-bridge.is-active .gp2-view-region-bridge-edge {
     background: #3b73b9;
-}
-
-.gp2-view-region-bridge-exon {
-    position: absolute;
-    top: 0;
-    height: 4px;
-    border-radius: 1px;
-    opacity: 0.85;
-    pointer-events: none;
-}
-
-.gp2-view-region-bridge-genes {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 2px 8px;
-    margin: 2px 0 0;
-    text-align: center;
-}
-
-.gp2-view-region-bridge-gene {
-    font-size: 11px;
-    font-weight: 700;
-    font-style: italic;
-    line-height: 1.25;
-    white-space: nowrap;
 }
 
 .vks-association-region-plot-tooltip {

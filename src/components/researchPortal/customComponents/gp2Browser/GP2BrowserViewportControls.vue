@@ -57,12 +57,15 @@
 </template>
 
 <script>
-import { GP2_VIEWING_REGION_WIDTH_BP } from "./gp2BrowserViewingRegion.js";
-
 let zoomSelectCounter = 0;
 
-/** Viewing-region width options (bp), applied to the 50 kb-scale viewing plots. */
+/**
+ * Viewing-region width options (bp), applied to the 50 kb-scale viewing
+ * plots. `widthBp: 0` ("None") hides the focused viewing tracks entirely.
+ */
 export const GP2_ZOOM_LEVEL_OPTIONS = [
+    { widthBp: 0, label: "None" },
+    { widthBp: 100000, label: "100 kb" },
     { widthBp: 50000, label: "50 kb" },
     { widthBp: 25000, label: "25 kb" },
     { widthBp: 10000, label: "10 kb" },
@@ -73,7 +76,7 @@ export default {
     props: {
         viewingRegionWidthBp: {
             type: Number,
-            default: GP2_VIEWING_REGION_WIDTH_BP,
+            default: 0,
         },
         dataTableOpen: {
             type: Boolean,
@@ -98,7 +101,7 @@ export default {
     methods: {
         onZoomLevelChange(event) {
             const widthBp = Number(event?.target?.value);
-            if (!Number.isFinite(widthBp) || widthBp <= 0) {
+            if (!Number.isFinite(widthBp) || widthBp < 0) {
                 return;
             }
             this.$emit("update:viewingRegionWidthBp", widthBp);

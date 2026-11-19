@@ -2,17 +2,40 @@
     <div ref="container" class="gp2-qtl-region-plot">
         <div v-if="showLegend" class="gp2-qtl-region-plot-legend">
             <span class="vks-legend-item">
-                <span class="plot-legend-dot" :style="{ backgroundColor: positiveColor }"></span>
+                <span class="plot-legend-triangle plot-legend-triangle--up" aria-hidden="true"></span>
                 <span>Positive effect (&beta; &gt; 0)</span>
             </span>
             <span class="vks-legend-item">
-                <span class="plot-legend-dot" :style="{ backgroundColor: negativeColor }"></span>
+                <span class="plot-legend-triangle plot-legend-triangle--down" aria-hidden="true"></span>
                 <span>Negative effect (&beta; &lt; 0)</span>
             </span>
             <span class="vks-legend-item">
-                <span class="plot-legend-dot" :style="{ backgroundColor: neutralColor }"></span>
-                <span>No effect direction</span>
+                <span
+                    class="plot-legend-band"
+                    :style="{ backgroundColor: recombinationBandFill }"
+                    aria-hidden="true"
+                ></span>
+                <span>Recombination hotspot (&gt; {{ recombinationBandMinRate }} cM/Mb)</span>
             </span>
+        </div>
+        <div v-if="showLegend && legendGenes.length" class="gp2-qtl-region-plot-legend gp2-qtl-region-plot-gene-legend">
+            <label v-for="entry in legendGenes" :key="entry.gene" class="vks-legend-item gp2-qtl-gene-legend-item">
+                <input
+                    type="checkbox"
+                    :style="{ accentColor: entry.color }"
+                    :checked="!deselectedGenes.includes(entry.gene)"
+                    @change="onToggleGeneChecked(entry.gene, $event)"
+                />
+                <span>{{ entry.gene }}</span>
+            </label>
+            <label class="vks-legend-item gp2-qtl-gene-legend-item gp2-qtl-gene-legend-all">
+                <input
+                    type="checkbox"
+                    :checked="deselectedGenes.length === 0"
+                    @change="onToggleAllGenesChecked($event)"
+                />
+                <span>Select / unselect all</span>
+            </label>
         </div>
         <div ref="canvasWrap" class="gp2-qtl-region-plot-canvas-wrap">
             <canvas
@@ -73,27 +96,7 @@
                 <span class="gp2-view-region-bridge-top"></span>
                 <span class="gp2-view-region-bridge-edge gp2-view-region-bridge-edge--left"></span>
                 <span class="gp2-view-region-bridge-edge gp2-view-region-bridge-edge--right"></span>
-                <span
-                    v-for="mark in bridgeExonMarks"
-                    :key="mark.key"
-                    class="gp2-view-region-bridge-exon"
-                    :style="{ left: `${mark.left}%`, width: `${mark.width}%`, backgroundColor: mark.color }"
-                ></span>
             </div>
-        </div>
-        <div
-            v-if="showViewRegionBridge && bridgeViewGenes.length"
-            class="gp2-view-region-bridge-genes"
-            aria-label="Genes overlapping the viewing region"
-        >
-            <span
-                v-for="gene in bridgeViewGenes"
-                :key="gene.name"
-                class="gp2-view-region-bridge-gene"
-                :style="{ color: gene.color }"
-            >
-                {{ gene.name }}
-            </span>
         </div>
         <VariantSifterVariantDotMenu
             :open="dotMenuOpen"
@@ -135,10 +138,11 @@ import {
     getInternalPlotHeight,
     measureAssociationCanvasWidth,
     normalizePlotMargin,
-    renderPlotDot,
     renderTrackHighlightBands,
     setupPlotCanvas,
     VKS_DEFAULT_DOT_RADIUS,
+    VKS_RECOMB_SIGNAL_BAND_MIN_RATE,
+    VKS_TRACK_HIGHLIGHT_BAND_FILL,
 } from "../kpVariantSifter/variantSifterPlotShared.js";
 import { positionAnchoredPopupElement } from "../kpVariantSifter/variantSifterPopupPosition.js";
 import VariantSifterVariantDotMenu from "../kpVariantSifter/VariantSifterVariantDotMenu.vue";
@@ -147,17 +151,27 @@ import {
     clampViewingCenterBp,
 } from "./gp2BrowserViewingRegion.js";
 import {
-    computeBridgeExonMarks,
-    filterGenesOverlappingRegion,
     renderCompactSearchingPlotAxis,
     renderGp2FullPlotAxisNoSecondary,
 } from "./gp2BrowserRegionPlotAxis.js";
-import {
-    GP2_QTL_NEGATIVE_EFFECT_COLOR,
-    GP2_QTL_NEUTRAL_EFFECT_COLOR,
-    GP2_QTL_POSITIVE_EFFECT_COLOR,
-    qtlDotColorForBeta,
-} from "./gp2BrowserQtlPlotData.js";
+import { gp2QtlColorForGene, gp2QtlDotFillColor } from "./gp2BrowserQtlPlotData.js";
+
+/** Upward triangle (beta > 0) or downward triangle (beta < 0), filled solid. */
+function renderQtlTriangleDot(ctx, xPos, yPos, color, size, pointingUp) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    if (pointingUp) {
+        ctx.moveTo(xPos, yPos - size);
+        ctx.lineTo(xPos - size, yPos + size);
+        ctx.lineTo(xPos + size, yPos + size);
+    } else {
+        ctx.moveTo(xPos, yPos + size);
+        ctx.lineTo(xPos - size, yPos - size);
+        ctx.lineTo(xPos + size, yPos - size);
+    }
+    ctx.closePath();
+    ctx.fill();
+}
 
 export default {
     name: "GP2BrowserQtlRegionPlot",
@@ -193,10 +207,6 @@ export default {
             type: Boolean,
             default: false,
         },
-        bridgeGenes: {
-            type: Array,
-            default: () => [],
-        },
         viewingCenterBp: {
             type: Number,
             default: null,
@@ -208,6 +218,14 @@ export default {
         region: {
             type: Object,
             default: null,
+        },
+        geneColorMap: {
+            type: Object,
+            default: () => ({}),
+        },
+        deselectedGenes: {
+            type: Array,
+            default: () => [],
         },
         plotMargin: {
             type: Object,
@@ -277,14 +295,17 @@ export default {
         };
     },
     computed: {
-        positiveColor() {
-            return GP2_QTL_POSITIVE_EFFECT_COLOR;
+        /** `{gene, color}` pairs for the gene-color legend, sorted alphabetically. */
+        legendGenes() {
+            return Object.keys(this.geneColorMap || {})
+                .sort((a, b) => a.localeCompare(b))
+                .map((gene) => ({ gene, color: this.geneColorMap[gene] }));
         },
-        negativeColor() {
-            return GP2_QTL_NEGATIVE_EFFECT_COLOR;
+        recombinationBandFill() {
+            return VKS_TRACK_HIGHLIGHT_BAND_FILL;
         },
-        neutralColor() {
-            return GP2_QTL_NEUTRAL_EFFECT_COLOR;
+        recombinationBandMinRate() {
+            return VKS_RECOMB_SIGNAL_BAND_MIN_RATE;
         },
         isCompactPlot() {
             return Number(this.displayHeight) > 0 && Number(this.displayHeight) <= 36;
@@ -440,12 +461,6 @@ export default {
                 bottom: `${connectorBottomGap}px`,
             };
         },
-        bridgeExonMarks() {
-            return computeBridgeExonMarks(this.bridgeGenes, this.highlightViewRegion);
-        },
-        bridgeViewGenes() {
-            return filterGenesOverlappingRegion(this.bridgeGenes, this.highlightViewRegion);
-        },
     },
     watch: {
         plotRows: {
@@ -466,6 +481,12 @@ export default {
         region: {
             handler() {
                 this.$nextTick(() => this.renderPlot());
+            },
+            deep: true,
+        },
+        geneColorMap: {
+            handler() {
+                this.renderPlot();
             },
             deep: true,
         },
@@ -612,7 +633,10 @@ export default {
 
                 const xPos = xStart + (position - xMin) * xPosByPixel;
                 const yPos = yStart - (negLog10 - yMin) * yPosByPixel;
-                const dotColor = qtlDotColorForBeta(row.Beta);
+                const dotColor = gp2QtlDotFillColor(
+                    gp2QtlColorForGene(row.Gene, this.geneColorMap)
+                );
+                const pointingUp = !(Number(row.Beta) < 0);
                 const variantId = row["Variant ID"];
                 const isStarred = isVariantStarred(this.starredVariants, variantId);
 
@@ -625,7 +649,7 @@ export default {
                 if (isStarred) {
                     renderStarDot(ctx, xPos, yPos, dotColor);
                 } else {
-                    renderPlotDot(ctx, xPos, yPos, dotColor, dotRadius);
+                    renderQtlTriangleDot(ctx, xPos, yPos, dotColor, dotRadius, pointingUp);
                 }
             });
 
@@ -1077,6 +1101,26 @@ export default {
                 tooltip.classList.add("hidden");
             }
         },
+        onToggleGeneChecked(gene, event) {
+            const checked = Boolean(event?.target?.checked);
+            const next = new Set(this.deselectedGenes);
+            if (checked) {
+                next.delete(gene);
+            } else {
+                next.add(gene);
+            }
+            this.$emit(
+                "update:deselectedGenes",
+                this.legendGenes.map((entry) => entry.gene).filter((name) => next.has(name))
+            );
+        },
+        onToggleAllGenesChecked(event) {
+            const checked = Boolean(event?.target?.checked);
+            this.$emit(
+                "update:deselectedGenes",
+                checked ? [] : this.legendGenes.map((entry) => entry.gene)
+            );
+        },
     },
 };
 </script>
@@ -1097,6 +1141,28 @@ export default {
     color: #333333;
 }
 
+.gp2-qtl-region-plot-gene-legend {
+    padding-top: 0;
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 6px;
+}
+
+.gp2-qtl-gene-legend-item {
+    cursor: pointer;
+}
+
+.gp2-qtl-gene-legend-item input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.gp2-qtl-gene-legend-all {
+    padding-left: 10px;
+    border-left: 1px solid var(--cfde-border, #e6e1d6);
+    font-weight: 600;
+}
+
 .vks-legend-item {
     display: inline-flex;
     align-items: center;
@@ -1108,13 +1174,31 @@ export default {
     margin-right: 0;
 }
 
-.plot-legend-dot {
+.plot-legend-band {
     display: inline-block;
     width: 12px;
     height: 12px;
-    border-radius: 50%;
     flex-shrink: 0;
     vertical-align: middle;
+    border: 1px solid rgba(120, 120, 120, 0.6);
+}
+
+.plot-legend-triangle {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    flex-shrink: 0;
+    vertical-align: middle;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+}
+
+.plot-legend-triangle--up {
+    border-bottom: 10px solid #333333cc;
+}
+
+.plot-legend-triangle--down {
+    border-top: 10px solid #333333cc;
 }
 
 .gp2-qtl-region-plot-canvas {
@@ -1248,33 +1332,6 @@ export default {
 .gp2-view-region-bridge.is-active .gp2-view-region-bridge-top,
 .gp2-view-region-bridge.is-active .gp2-view-region-bridge-edge {
     background: #3b73b9;
-}
-
-.gp2-view-region-bridge-exon {
-    position: absolute;
-    top: 0;
-    height: 4px;
-    border-radius: 1px;
-    opacity: 0.85;
-    pointer-events: none;
-}
-
-.gp2-view-region-bridge-genes {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 2px 8px;
-    margin: 2px 0 0;
-    text-align: center;
-}
-
-.gp2-view-region-bridge-gene {
-    font-size: 11px;
-    font-weight: 700;
-    font-style: italic;
-    line-height: 1.25;
-    white-space: nowrap;
 }
 
 .gp2-qtl-region-plot-tooltip {
