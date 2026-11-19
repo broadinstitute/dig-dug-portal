@@ -1,6 +1,7 @@
 name: Nightly builds
 
-# `schedule` and `workflow_dispatch` only run from the default branch.
+# `schedule` only runs from the default branch. `workflow_dispatch` can target
+# another ref, but only once this file exists on the default branch.
 on:
   schedule:
     - cron: '17 7 * * *'
@@ -10,27 +11,43 @@ permissions:
   contents: read
 
 jobs:
-  # Each portal branch must still produce a production build. Four of them
-  # (matkp, mskkp, pankbase, sysbio) commit a package-lock.json; the other
-  # seven do not, so there is no npm cache and install falls back to
-  # `npm install`.
+  # Each portal branch must still produce a production build of its own site.
+  # On every portal branch the root vue.config.js is the generic master page
+  # set; the portal's real site is built by pointing VUE_CLI_SERVICE_CONFIG_PATH
+  # at its configs/vue.config.<Portal>.js. A plain `npm run deploy` would
+  # therefore prove nothing about the portal, so each branch is paired with its
+  # config. Four branches (matkp, mskkp, pankbase, sysbio) commit a
+  # package-lock.json; the other seven do not, so there is no npm cache and
+  # install falls back to `npm install`.
   portal-branches:
+    name: portal-branches (${{ matrix.branch }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        branch:
-          - adipose_gw-main
-          - cancerkp-main
-          - cfde-liver-main
-          - cfde-main
-          - matkp-main
-          - mouse-main
-          - mskkp-main
-          - nephkp-main
-          - pankbase-main
-          - radiant-main
-          - sysbio-main
+        include:
+          - branch: adipose_gw-main
+            config: configs/vue.config.AdiposeGW.js
+          - branch: cancerkp-main
+            config: configs/vue.config.CancerGenetics.js
+          - branch: cfde-liver-main
+            config: configs/vue.config.CFDELiver.js
+          - branch: cfde-main
+            config: configs/vue.config.CFDE.js
+          - branch: matkp-main
+            config: configs/vue.config.MATKP.js
+          - branch: mouse-main
+            config: configs/vue.config.mouseportal.js
+          - branch: mskkp-main
+            config: configs/vue.config.MSKKP.js
+          - branch: nephkp-main
+            config: configs/vue.config.Neph.js
+          - branch: pankbase-main
+            config: configs/vue.config.PanKbase.js
+          - branch: radiant-main
+            config: configs/vue.config.RADIANT.js
+          - branch: sysbio-main
+            config: configs/vue.config.SysBio.js
     steps:
       - uses: actions/checkout@v7
         with:
@@ -49,6 +66,9 @@ jobs:
           fi
 
       - name: Production build
+        env:
+          # Vue CLI needs an absolute path here.
+          VUE_CLI_SERVICE_CONFIG_PATH: ${{ github.workspace }}/${{ matrix.config }}
         run: npm run deploy
 
   # Master carries extra Vue CLI configs besides vue.config.js. They are not
