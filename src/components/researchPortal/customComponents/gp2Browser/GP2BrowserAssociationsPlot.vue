@@ -63,7 +63,7 @@
                     <header class="vks-plot-section-head">
                         <h3 class="vks-plot-section-title">
                             Associations
-                            <span class="vks-plot-section-subtitle">(search region: downsampled — all p&le;0.05 kept, p&gt;0.05 kept with probability (1&minus;p)&#8313;; viewing region: raw, un-downsampled)</span>
+                            <span class="vks-plot-section-subtitle">({{ associationsDownsampleLabel }})</span>
                         </h3>
                     </header>
                     <div
@@ -214,7 +214,7 @@
                     <header class="vks-plot-section-head">
                         <h3 class="vks-plot-section-title">
                             QTL evidences
-                            <span class="vks-plot-section-subtitle">(search region: downsampled — all p&le;0.05 kept, p&gt;0.05 kept with probability (1&minus;p)&#8313;; viewing region: raw, un-downsampled)</span>
+                            <span class="vks-plot-section-subtitle">({{ qtlDownsampleLabel }})</span>
                         </h3>
                     </header>
                     <div
@@ -570,6 +570,16 @@ export default {
             type: Array,
             default: () => [],
         },
+        /** Pre-downsample row count (KP + GWAS-CE) for the section legend. */
+        totalRawCount: {
+            type: Number,
+            default: 0,
+        },
+        /** Row count after load-time downsampling, before any UI filters. */
+        downsampledCount: {
+            type: Number,
+            default: 0,
+        },
         selectedAncestries: {
             type: Array,
             default: () => [],
@@ -774,6 +784,9 @@ export default {
         searchingRows() {
             return stripZoomRefetchedRows(this.rows);
         },
+        associationsDownsampleLabel() {
+            return `search region: downsampled from ${this.totalRawCount} to ${this.downsampledCount} — all p≤0.05 kept, p>0.05 kept with probability (1−p)⁹; Zoomed viewing region: raw, un-downsampled`;
+        },
         searchingPlotSeries() {
             return buildAssociationPlotSeries({
                 rows: this.searchingRows,
@@ -937,6 +950,9 @@ export default {
                 this.qtlState?.selectedGenes
             );
             return filterQtlRowsByPValueMax(geneFiltered, this.qtlState?.pValueMax);
+        },
+        qtlDownsampleLabel() {
+            return `search region: downsampled from ${this.qtlFilteredRawRows.length} to ${this.qtlFilteredDownsampledRows.length} — all p≤0.05 kept, p>0.05 kept with probability (1−p)⁹; Zoomed viewing region: raw, un-downsampled`;
         },
         qtlFilteredRawRows() {
             const typeTissueFiltered = filterQtlRows(this.qtlState?.rawRows || [], {

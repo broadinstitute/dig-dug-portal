@@ -43,12 +43,19 @@ export function buildGp2SessionExtras({
         },
         literatureEvidence: literatureEvidenceState?.loaded
             ? {
+                  phenotype: literatureEvidenceState.phenotype || null,
                   query: literatureEvidenceState.query || null,
                   genesSearched: literatureEvidenceState.genesSearched || [],
                   usedLocusDigest: Boolean(literatureEvidenceState.usedLocusDigest),
+                  locusDigest: literatureEvidenceState.locusDigest || null,
                   papers: literatureEvidenceState.papers || [],
                   knownFindings: literatureEvidenceState.knownFindings || "",
                   knowledgeGaps: literatureEvidenceState.knowledgeGaps || "",
+                  moreBatches: (literatureEvidenceState.moreBatches || []).map((batch) => ({
+                      papers: batch.papers || [],
+                      knownFindings: batch.knownFindings || "",
+                      knowledgeGaps: batch.knowledgeGaps || "",
+                  })),
               }
             : null,
         visibleSectionIds: Array.isArray(visibleSectionIds) ? visibleSectionIds : null,
@@ -76,11 +83,13 @@ export function restoreGp2SessionExtras(payload) {
                   loading: false,
                   loaded: true,
                   error: null,
+                  phenotype: literatureEvidence.phenotype || null,
                   query: literatureEvidence.query || null,
                   genesSearched: Array.isArray(literatureEvidence.genesSearched)
                       ? literatureEvidence.genesSearched
                       : [],
                   usedLocusDigest: Boolean(literatureEvidence.usedLocusDigest),
+                  locusDigest: literatureEvidence.locusDigest || null,
                   papers: Array.isArray(literatureEvidence.papers)
                       ? literatureEvidence.papers
                       : [],
@@ -88,6 +97,17 @@ export function restoreGp2SessionExtras(payload) {
                   synthesisError: null,
                   knownFindings: literatureEvidence.knownFindings || "",
                   knowledgeGaps: literatureEvidence.knowledgeGaps || "",
+                  moreBatches: Array.isArray(literatureEvidence.moreBatches)
+                      ? literatureEvidence.moreBatches.map((batch) => ({
+                            papers: Array.isArray(batch?.papers) ? batch.papers : [],
+                            synthesizing: false,
+                            synthesisError: null,
+                            knownFindings: batch?.knownFindings || "",
+                            knowledgeGaps: batch?.knowledgeGaps || "",
+                        }))
+                      : [],
+                  loadingMore: false,
+                  loadMoreError: null,
               }
             : null,
         visibleSectionIds: Array.isArray(gp2.visibleSectionIds) ? gp2.visibleSectionIds : null,

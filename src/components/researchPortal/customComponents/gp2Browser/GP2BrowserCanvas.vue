@@ -18,6 +18,8 @@
                         v-if="section.id === 'associations'"
                         :key="section.id"
                         :rows="associationPlotRows"
+                        :total-raw-count="associationsState.totalRawCount || 0"
+                        :downsampled-count="associationTableRows.length"
                         :selected-ancestries="associationsState.selectedAncestries || []"
                         :selected-phenotypes="associationsState.selectedPhenotypes || []"
                         :loading="associationsState.loading"

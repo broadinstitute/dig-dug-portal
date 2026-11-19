@@ -101,8 +101,8 @@ export function fallbackGeneNames({ associationRows = [], qtlRows = [], genes = 
     return Array.from(names);
 }
 
-async function fetchPubmedEsearch(term, limit = GP2_LITERATURE_RESULT_LIMIT) {
-    const url = `${PUBMED_BASE_URL}/esearch.fcgi?db=pubmed&retmode=json&retmax=${limit}&sort=relevance&term=${encodeURIComponent(
+async function fetchPubmedEsearch(term, limit = GP2_LITERATURE_RESULT_LIMIT, retstart = 0) {
+    const url = `${PUBMED_BASE_URL}/esearch.fcgi?db=pubmed&retmode=json&retmax=${limit}&retstart=${retstart}&sort=relevance&term=${encodeURIComponent(
         term
     )}`;
     const resp = await fetch(url);
@@ -203,12 +203,12 @@ export function buildGp2LiteratureDigest({ phenotype, geneNames, papers, locusDi
 export const GP2_LITERATURE_SYSTEM_PROMPT = `You read PubMed abstracts retrieved for a Parkinson's disease GWAS locus and summarize them for a researcher.
 Rules:
 - Use only the abstracts in "papers" and, if present, the facts in "locusDigest". Never invent a claim, citation, or PMID not present in the input.
-- Cite every claim with its PMID(s) in parentheses, e.g. (PMID 12345678).
+- Every factual claim must be followed immediately by the PMID(s) of the paper(s) that support it, in parentheses, e.g. "rs123 is associated with X (PMID 12345678)." No exceptions: a claim with no PMID attached must not appear in the output.
 - Distinguish a claim corroborated by more than one independent paper from a claim made by only one paper.
 - A paper can mention the searched gene and the phenotype without actually studying their relationship (for example a drug-mechanism paper that happens to involve the gene, in an unrelated disease context). Flag this explicitly rather than treating it as evidence connecting the gene to the phenotype.
 - If "locusDigest" is present, explicitly state whether any paper discusses the SPECIFIC finding it describes (the lead variant, the exon-resolved missense/coding gene, or the linked-vs-unlinked QTL contrast) versus only the gene's general relevance to the phenotype.
-- "knownFindings": what the retrieved papers establish or agree on, citing PMIDs.
-- "knowledgeGaps": what the retrieved papers do NOT address. Phrase this as a property of the retrieved papers ("the retrieved papers do not address X"), never as a claim about the literature as a whole — this is a narrow keyword search over a small set of abstracts, not an exhaustive review.
+- "knownFindings": one distinct claim/finding the retrieved papers establish or agree on per sentence, each sentence ending with the PMID(s) of the paper(s) backing it — written so the reader can look up exactly which card(s) support each sentence.
+- "knowledgeGaps": what the retrieved papers do NOT address. Phrase this as a property of the retrieved papers ("the retrieved papers do not address X"), never as a claim about the literature as a whole — this is a narrow keyword search over a small set of abstracts, not an exhaustive review. A gap does not need a PMID (it is an absence), but if a paper's silence on a specific point is itself notable, you may cite the PMID of the paper that was silent on it.
 Respond with JSON only: {"knownFindings": "...", "knowledgeGaps": "..."}`;
 
 export function buildGp2LiteratureUserPrompt(digest) {
@@ -254,6 +254,47 @@ export function parseGp2LiteratureResponse(raw) {
 }
 
 /**
+ * esearch (one page of PMIDs, offset by `retstart`) + esummary + efetch
+ * abstracts for an already-built query term. Used both for the first page
+ * (inside {@link fetchGp2LiteraturePapers}) and for "Show next 15" pages,
+ * which reuse the same term/gene set rather than re-resolving genes.
+ * Returns `{ ok: false, reason: "fetch-error", error }` or `{ ok: true, papers }`.
+ */
+export async function fetchGp2LiteraturePapersPage(
+    term,
+    { retstart = 0, limit = GP2_LITERATURE_RESULT_LIMIT } = {}
+) {
+    let pmids;
+    try {
+        pmids = await fetchPubmedEsearch(term, limit, retstart);
+    } catch (error) {
+        return { ok: false, reason: "fetch-error", error };
+    }
+
+    if (!pmids.length) {
+        return { ok: true, papers: [] };
+    }
+
+    let summaries;
+    let abstractsByPmid;
+    try {
+        [summaries, abstractsByPmid] = await Promise.all([
+            fetchPubmedEsummary(pmids),
+            fetchPubmedAbstracts(pmids),
+        ]);
+    } catch (error) {
+        return { ok: false, reason: "fetch-error", error };
+    }
+
+    const papers = summaries.map((paper) => ({
+        ...paper,
+        abstract: abstractsByPmid.get(paper.pmid) || "",
+    }));
+
+    return { ok: true, papers };
+}
+
+/**
  * Phase 1: resolve genes -> PubMed search -> abstracts. No LLM call, so the
  * caller can render the paper list immediately and run phase 2 separately.
  * Returns `{ ok: false, reason: "no-data" | "no-genes" | "fetch-error", error? }`.
@@ -290,47 +331,17 @@ export async function fetchGp2LiteraturePapers({
         return { ok: false, reason: "no-genes" };
     }
 
-    let pmids;
-    try {
-        pmids = await fetchPubmedEsearch(term);
-    } catch (error) {
-        return { ok: false, reason: "fetch-error", error };
+    const pageResult = await fetchGp2LiteraturePapersPage(term, { retstart: 0 });
+    if (!pageResult.ok) {
+        return pageResult;
     }
-
-    if (!pmids.length) {
-        return {
-            ok: true,
-            phenotype,
-            query: term,
-            genesSearched: geneNames,
-            papers: [],
-            locusDigest,
-            usedLocusDigest: Boolean(locusDigest),
-        };
-    }
-
-    let summaries;
-    let abstractsByPmid;
-    try {
-        [summaries, abstractsByPmid] = await Promise.all([
-            fetchPubmedEsummary(pmids),
-            fetchPubmedAbstracts(pmids),
-        ]);
-    } catch (error) {
-        return { ok: false, reason: "fetch-error", error };
-    }
-
-    const papers = summaries.map((paper) => ({
-        ...paper,
-        abstract: abstractsByPmid.get(paper.pmid) || "",
-    }));
 
     return {
         ok: true,
         phenotype,
         query: term,
         genesSearched: geneNames,
-        papers,
+        papers: pageResult.papers,
         locusDigest,
         usedLocusDigest: Boolean(locusDigest),
     };

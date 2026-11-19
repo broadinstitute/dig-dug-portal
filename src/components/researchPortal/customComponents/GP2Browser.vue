@@ -263,6 +263,7 @@
             :literature-evidence-state="literatureEvidenceState"
             @close="activeResearchPanelId = null"
             @navigate-region="onGenePrioritizationNavigateRegion"
+            @load-more-literature-evidence="loadMoreLiteratureEvidence"
         />
     </div>
 </template>
@@ -315,6 +316,10 @@ import {
     mergeZoomedAssociationRows,
     stripZoomRefetchedRows,
 } from "./gp2Browser/gp2BrowserAssociationsDownsample.js";
+import {
+    fetchGp2AssociationsWithCount,
+    fetchGp2GwasCeAssociationsWithCount,
+} from "./gp2Browser/gp2BrowserAssociationsApi.js";
 import { createFiltersIndex, applyAssociationsFilters } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
 import {
     GP2_GENOME_BUILD,
@@ -496,7 +501,9 @@ import {
     restoreGp2SessionExtras,
 } from "./gp2Browser/gp2BrowserSessionExtras.js";
 import {
+    GP2_LITERATURE_RESULT_LIMIT,
     fetchGp2LiteraturePapers,
+    fetchGp2LiteraturePapersPage,
     synthesizeGp2LiteratureFindings,
 } from "./gp2Browser/gp2BrowserLiteratureEvidence.js";
 import {
@@ -583,6 +590,8 @@ function emptyAssociationsState() {
         error: null,
         ldError: null,
         rows: [],
+        /** Pre-downsample row count (KP + GWAS-CE), for the "downsampled from X to Y" legend. */
+        totalRawCount: 0,
         index: null,
         query: null,
         filtersIndex: createFiltersIndex(),
@@ -639,14 +648,24 @@ function emptyLiteratureEvidenceState() {
         loading: false,
         loaded: false,
         error: null,
+        phenotype: null,
         query: null,
         genesSearched: [],
         usedLocusDigest: false,
+        locusDigest: null,
         papers: [],
         synthesizing: false,
         synthesisError: null,
         knownFindings: "",
         knowledgeGaps: "",
+        /**
+         * Each "Show next 15" page: { papers, synthesizing, synthesisError,
+         * knownFindings, knowledgeGaps }, rendered after the first page in
+         * the order fetched.
+         */
+        moreBatches: [],
+        loadingMore: false,
+        loadMoreError: null,
     };
 }
 
@@ -1021,22 +1040,23 @@ export default Vue.component("gp2-browser", {
         async fetchFormattedGwasCeAssociationRows(
             session,
             region = null,
-            { downsample = true } = {}
+            { downsample = true, withCount = false } = {}
         ) {
             if (!isGwasCeProject(this.projectId) || !resolveGwasCeToken(session)) {
-                return [];
+                return withCount ? { rows: [], rawCount: 0 } : [];
             }
             try {
-                const result = await fetchGwasCeAssociations(
-                    region ? { ...session, region } : session,
-                    { downsample }
-                );
-                return formatAssociationRows(result.rows, session, {
+                const targetSession = region ? { ...session, region } : session;
+                const result = withCount
+                    ? await fetchGp2GwasCeAssociationsWithCount(targetSession)
+                    : await fetchGwasCeAssociations(targetSession, { downsample });
+                const rows = formatAssociationRows(result.rows, session, {
                     project: VKS_ASSOCIATION_PROJECT_GWAS_CE,
                 });
+                return withCount ? { rows, rawCount: result.rawCount || 0 } : rows;
             } catch (error) {
                 console.warn("GP2 Browser GWAS-CE associations load failed", error);
-                return [];
+                return withCount ? { rows: [], rawCount: 0 } : [];
             }
         },
         /**
@@ -4626,14 +4646,21 @@ export default Vue.component("gp2-browser", {
 
             this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
             try {
-                const result = await fetchAssociations(session, host, this.projectId);
+                const result = await fetchGp2AssociationsWithCount(
+                    session,
+                    host,
+                    this.projectId
+                );
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
                 const kpRows = formatAssociationRows(result.rows, session, {
                     project: VKS_ASSOCIATION_PROJECT_KP,
                 });
-                const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                const { rows: ceRows, rawCount: ceRawCount } =
+                    await this.fetchFormattedGwasCeAssociationRows(session, null, {
+                        withCount: true,
+                    });
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
@@ -4651,6 +4678,7 @@ export default Vue.component("gp2-browser", {
                     error: null,
                     ldError: null,
                     rows: formattedRows,
+                    totalRawCount: result.rawCount + ceRawCount,
                     index: result.index,
                     query: result.q,
                 };
@@ -4659,7 +4687,10 @@ export default Vue.component("gp2-browser", {
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
-                const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                const { rows: ceRows, rawCount: ceRawCount } =
+                    await this.fetchFormattedGwasCeAssociationRows(session, null, {
+                        withCount: true,
+                    });
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
@@ -4675,6 +4706,7 @@ export default Vue.component("gp2-browser", {
                         error: null,
                         ldError: null,
                         rows: formattedRows,
+                        totalRawCount: ceRawCount,
                         index: null,
                         query: null,
                     };
@@ -4867,7 +4899,11 @@ export default Vue.component("gp2-browser", {
             if (loadAssoc) {
                 this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
                 try {
-                    const result = await fetchAssociations(session, host, this.projectId);
+                    const result = await fetchGp2AssociationsWithCount(
+                        session,
+                        host,
+                        this.projectId
+                    );
                     if (token !== this.associationsRequestToken) {
                         return;
                     }
@@ -4875,7 +4911,10 @@ export default Vue.component("gp2-browser", {
                     const kpRows = formatAssociationRows(result.rows, session, {
                         project: VKS_ASSOCIATION_PROJECT_KP,
                     });
-                    const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                    const { rows: ceRows, rawCount: ceRawCount } =
+                        await this.fetchFormattedGwasCeAssociationRows(session, null, {
+                            withCount: true,
+                        });
                     if (token !== this.associationsRequestToken) {
                         return;
                     }
@@ -4894,6 +4933,7 @@ export default Vue.component("gp2-browser", {
                         error: null,
                         ldError: null,
                         rows: formattedRows,
+                        totalRawCount: result.rawCount + ceRawCount,
                         index: result.index,
                         query: result.q,
                     };
@@ -4903,7 +4943,10 @@ export default Vue.component("gp2-browser", {
                         return;
                     }
                     // KP failed — still try CE overlay so the page is not empty.
-                    const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                    const { rows: ceRows, rawCount: ceRawCount } =
+                        await this.fetchFormattedGwasCeAssociationRows(session, null, {
+                            withCount: true,
+                        });
                     if (token !== this.associationsRequestToken) {
                         return;
                     }
@@ -4919,6 +4962,7 @@ export default Vue.component("gp2-browser", {
                             error: null,
                             ldError: null,
                             rows: formattedRows,
+                            totalRawCount: ceRawCount,
                             index: null,
                             query: null,
                         };
@@ -7250,7 +7294,7 @@ export default Vue.component("gp2-browser", {
                         ...this.assistantState,
                         threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
                             createAssistantStepMessage(
-                                "Not enough data to generate a summary for this locus (Associations data is not loaded).",
+                                "Not enough data to generate a summary for this locus (Associations data is not loaded). Please enable the Associations section in Settings and wait for it to finish loading, then try again.",
                                 { isClarify: true }
                             ),
                         ]),
@@ -7295,7 +7339,7 @@ export default Vue.component("gp2-browser", {
                     const message =
                         result.reason === "llm-error"
                             ? result.error?.message || "Could not generate an AI summary."
-                            : "Not enough data to generate a summary for this locus (LD scores are not available for the lead variant).";
+                            : "Not enough data to generate a summary for this locus (LD scores are not available for the lead variant). Please click a variant dot and choose \"Set as reference variant\", then try again.";
                     if (!silent) {
                         this.assistantState = {
                             ...this.assistantState,
@@ -7413,15 +7457,17 @@ export default Vue.component("gp2-browser", {
                 if (!result.ok) {
                     this.literatureEvidenceState.error =
                         result.reason === "no-genes"
-                            ? "Not enough data to search the literature for this locus (no genes could be resolved)."
+                            ? "Not enough data to search the literature for this locus (no genes could be resolved). Please select a Type and Tissue in the QTL evidences drawer to load QTL data for this locus, then try again."
                             : result.error?.message || "Could not search PubMed for this locus.";
                     return;
                 }
 
                 this.literatureEvidenceState.loaded = true;
+                this.literatureEvidenceState.phenotype = result.phenotype;
                 this.literatureEvidenceState.query = result.query;
                 this.literatureEvidenceState.genesSearched = result.genesSearched;
                 this.literatureEvidenceState.usedLocusDigest = result.usedLocusDigest;
+                this.literatureEvidenceState.locusDigest = result.locusDigest;
                 this.literatureEvidenceState.papers = result.papers;
 
                 if (!result.papers.length) {
@@ -7448,6 +7494,68 @@ export default Vue.component("gp2-browser", {
             } finally {
                 this.literatureEvidenceState.loading = false;
                 this.literatureEvidenceState.synthesizing = false;
+            }
+        },
+        /**
+         * "Show next 15": fetches the next page of PMIDs for the same query
+         * (reusing the gene set/term already resolved for the first page)
+         * and runs its own synthesis, appended as a new entry in
+         * `moreBatches` rather than merged into the first page's findings.
+         */
+        async loadMoreLiteratureEvidence() {
+            const state = this.literatureEvidenceState;
+            if (!state.loaded || !state.query || state.loadingMore) {
+                return;
+            }
+            const retstart =
+                state.papers.length +
+                state.moreBatches.reduce((sum, batch) => sum + batch.papers.length, 0);
+
+            state.loadingMore = true;
+            state.loadMoreError = null;
+            try {
+                const pageResult = await fetchGp2LiteraturePapersPage(state.query, {
+                    retstart,
+                    limit: GP2_LITERATURE_RESULT_LIMIT,
+                });
+                if (!pageResult.ok) {
+                    state.loadMoreError =
+                        pageResult.error?.message || "Could not load more PubMed results.";
+                    return;
+                }
+
+                const batch = {
+                    papers: pageResult.papers,
+                    synthesizing: false,
+                    synthesisError: null,
+                    knownFindings: "",
+                    knowledgeGaps: "",
+                };
+                state.moreBatches.push(batch);
+                if (!batch.papers.length) {
+                    return;
+                }
+
+                batch.synthesizing = true;
+                const synthesis = await synthesizeGp2LiteratureFindings({
+                    phenotype: state.phenotype,
+                    geneNames: state.genesSearched,
+                    papers: batch.papers,
+                    locusDigest: state.locusDigest,
+                });
+                if (synthesis.ok) {
+                    batch.knownFindings = synthesis.knownFindings;
+                    batch.knowledgeGaps = synthesis.knowledgeGaps;
+                } else {
+                    batch.synthesisError =
+                        synthesis.error?.message || "Could not generate a literature synthesis.";
+                }
+                batch.synthesizing = false;
+            } catch (error) {
+                state.loadMoreError =
+                    error?.message || "Could not load more PubMed results.";
+            } finally {
+                state.loadingMore = false;
             }
         },
         onOpenCorrelatedPhenotype(phenotype) {

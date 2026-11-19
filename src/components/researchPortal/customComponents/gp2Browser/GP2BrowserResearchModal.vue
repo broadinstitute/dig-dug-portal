@@ -60,6 +60,10 @@
                         :synthesis-error="literatureEvidenceState.synthesisError"
                         :known-findings="literatureEvidenceState.knownFindings"
                         :knowledge-gaps="literatureEvidenceState.knowledgeGaps"
+                        :more-batches="literatureEvidenceState.moreBatches"
+                        :loading-more="literatureEvidenceState.loadingMore"
+                        :load-more-error="literatureEvidenceState.loadMoreError"
+                        @load-more="$emit('load-more-literature-evidence')"
                     />
                 </template>
             </div>
