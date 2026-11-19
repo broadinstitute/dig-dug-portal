@@ -17,6 +17,10 @@ export function normalizeMessage(text) {
 const LANDMARK_TIMEOUT_MS = 20_000;
 const NETWORK_IDLE_TIMEOUT_MS = 15_000;
 
+// A timeout is an expected outcome of the waits below. Anything else (the page closed, the renderer
+// crashed) fails the probe, so a broken page can never pass as "landmark seen".
+const isTimeout = (error) => error?.name === 'TimeoutError';
+
 /**
  * @typedef {{ landmarkVisible: boolean, finalSearch: string, pageErrors: string[], consoleErrors: string[], failedRequests: string[] }} Probe
  *
@@ -38,9 +42,15 @@ export async function probePage(page, url, { landmark, mask = [], screenshotPath
     failedRequests.push(`${request.method()} ${withoutQuery} ${request.failure()?.errorText ?? ''}`);
   };
 
+  let crashed = false;
+  const onCrash = () => {
+    crashed = true;
+  };
+
   page.on('pageerror', onPageError);
   page.on('console', onConsole);
   page.on('requestfailed', onRequestFailed);
+  page.on('crash', onCrash);
   try {
     await page.goto(url, { waitUntil: 'load' });
     const finalSearch = new URL(page.url()).search;
@@ -49,15 +59,20 @@ export async function probePage(page, url, { landmark, mask = [], screenshotPath
     try {
       // Some templates render the landmark class more than once; any visible one counts.
       await page.locator(landmark).filter({ visible: true }).first().waitFor({ state: 'visible', timeout: LANDMARK_TIMEOUT_MS });
-    } catch {
+    } catch (error) {
+      if (!isTimeout(error)) throw error;
       landmarkVisible = false;
     }
 
     try {
       await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS });
-    } catch {
+    } catch (error) {
       // Best effort: some pages poll or stream and never go idle.
+      if (!isTimeout(error)) throw error;
     }
+
+    // A crashed renderer can still let the waits settle (a crashed page never goes idle).
+    if (crashed) throw new Error(`page crashed while probing ${url}`);
 
     if (screenshotPath) {
       await page.screenshot({
@@ -73,5 +88,6 @@ export async function probePage(page, url, { landmark, mask = [], screenshotPath
     page.off('pageerror', onPageError);
     page.off('console', onConsole);
     page.off('requestfailed', onRequestFailed);
+    page.off('crash', onCrash);
   }
 }
