@@ -77,7 +77,10 @@
         >
             <div>
                 <div class="cfde-ptm-panel">
-                    <h4>{{ group.source }}</h4>
+                    <h4>{{ group.title }}</h4>
+                    <div v-if="group.header" class="cfde-ptm-header">
+                        {{ group.header }}
+                    </div>
                     <!-- PTM type filter, independent for each card -->
                     <div v-if="group.types.length > 1" class="cfde-ptm-filter">
                         <strong class="mr-2">PTM type:</strong>
@@ -121,6 +124,30 @@
 
 <script>
 import "@/components/NCATS/old/PredicateTable.vue";
+
+// section_id -> title/header (merged from section_headers.json)
+const SECTION_INFO = {
+    general_info_function: { title: null, header: "Which functions, gene ontologies, and pathways are associated with $protein?" },
+    general_info_go: { title: null, header: "Gene Ontology (GO) Annotations" },
+    general_info_pathway: { title: null, header: "Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)" },
+    gtex: { title: "GTEx", header: "How specific is $protein expression and how does it compare across GTEx tissues and organ categories?" },
+    gtex_kp: { title: null, header: "GTEx: Gene expression levels and tissue specificity" },
+    fourdn: { title: "4D Nucleome", header: "What are predicted gene-variant disease links for $protein in various tissues?" },
+    lincs: { title: "LINCS L1000 Consensus Signatures", header: "What transcriptional signatures are correlated with the transcriptional signature of $protein?" },
+    idg: { title: "IDG", header: "What evidence supports $protein as a potential drug target?" },
+    exrna: { title: "exRNA", header: "What RNA binding proteins are predicted to interact with extracellular RNAs originating from $protein?" },
+    glygen: { title: "GlyGen", header: "Does the protein encoded by $protein contains glycosylation site(s) or have glycohydrolase or glycosyltransferase activities?" },
+    hubmap: { title: "HuBMAP Program", header: "Which cell types express $protein in human tissue-derived single cell RNA sequencing datasets?" },
+    kidsfirst: { title: "Kids First", header: "How do aggregated variant counts from $protein compare between Kids First rare pediatric disease cohorts relative to population controls?" },
+    motrpac: { title: "Endurance Trained Young Adult Rats Study", header: "How do $protein-derived proteomics or transcriptomics data change across 20 tissues after endurance exercise training in young adult male and female rats?" },
+    under_development: { title: null, header: "Programs under development" },
+};
+
+// normalize a card key (e.g. "GTEx_gene") to a SECTION_INFO id
+const sectionKey = (k) =>
+    String(k || "")
+        .toLowerCase()
+        .replace(/_gene(?=_|$)/g, "");
 
 export default {
     name: "cfdeProteinPage",
@@ -183,8 +210,14 @@ export default {
                 .map((source) => {
                     const rows = map[source];
                     const selected = this.ptmTypeFilters[source] || [];
+                    const info = SECTION_INFO[sectionKey(source)] || {};
                     return {
                         source,
+                        title: info.title || source,
+                        header: (info.header || "").replace(
+                            /\$protein/g,
+                            this.displayName
+                        ),
                         types: [
                             ...new Set(
                                 rows.map((r) => r.ptm_type).filter(Boolean)
@@ -377,6 +410,11 @@ export default {
 .cfde-protein-page .cfde-tabs .nav-tabs .nav-link.active {
     background: #fff;
     border-bottom: 1px solid #fff;
+}
+.cfde-protein-page .cfde-ptm-header {
+    font-size: 15px;
+    color: #5a5a5a;
+    padding: 0 0 10px;
 }
 .cfde-protein-page .cfde-ptm-filter {
     padding: 0 0 10px;
