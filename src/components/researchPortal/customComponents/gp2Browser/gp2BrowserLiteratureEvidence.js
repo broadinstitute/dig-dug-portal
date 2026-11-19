@@ -18,6 +18,8 @@ import { parseLlmJsonResponse } from "@/utils/llmUsageUtils";
 import { pickLeadVariantRow } from "./gp2BrowserLdServer.js";
 import {
     GP2_AI_SUMMARY_QTL_INCLUDE_PVALUE,
+    associationRowNearest,
+    associationRowPosition,
     findExonOverlapGenes,
     resolveGp2AiSummaryDigest,
 } from "./gp2BrowserAiSummary.js";
@@ -76,10 +78,10 @@ export function fallbackGeneNames({ associationRows = [], qtlRows = [], genes = 
     const names = new Set();
     const leadRow = pickLeadVariantRow(associationRows);
     if (leadRow) {
-        (Array.isArray(leadRow.nearest) ? leadRow.nearest : []).forEach((name) =>
+        associationRowNearest(leadRow).forEach((name) => names.add(name));
+        findExonOverlapGenes(associationRowPosition(leadRow), genes).forEach((name) =>
             names.add(name)
         );
-        findExonOverlapGenes(leadRow.position, genes).forEach((name) => names.add(name));
     }
 
     const bestPValueByGene = new Map();

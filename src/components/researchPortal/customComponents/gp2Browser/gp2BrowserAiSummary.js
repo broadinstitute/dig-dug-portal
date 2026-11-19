@@ -78,21 +78,41 @@ export function findExonOverlapGenes(position, genes) {
     return Array.from(names);
 }
 
+/** Accept both BioIndex camelCase and formatted table-column field names. */
+export function associationRowPosition(row) {
+    const value = row?.position ?? row?.Position;
+    return value != null && value !== "" ? Number(value) : null;
+}
+
+export function associationRowPValue(row) {
+    const value = row?.pValue ?? row?.["P-Value"];
+    return value != null && value !== "" ? Number(value) : null;
+}
+
+export function associationRowConsequence(row) {
+    return row?.consequence || row?.Consequence || null;
+}
+
+export function associationRowNearest(row) {
+    return Array.isArray(row?.nearest) ? row.nearest : [];
+}
+
 function variantSummary(row, r2, genes) {
     if (!row) {
         return null;
     }
+    const position = associationRowPosition(row);
     return {
         varId: row.varId || null,
-        dbSNP: row.dbSNP || null,
-        position: row.position != null ? Number(row.position) : null,
-        pValue: row.pValue != null ? Number(row.pValue) : null,
-        beta: round(row.beta, 4),
-        stdErr: round(row.stdErr, 4),
-        maf: round(row.maf, 4),
-        consequence: row.consequence || null,
-        nearestGenes: Array.isArray(row.nearest) ? row.nearest : [],
-        consequenceGenes: findExonOverlapGenes(row.position, genes),
+        dbSNP: row.dbSNP || row.rsID || null,
+        position,
+        pValue: associationRowPValue(row),
+        beta: round(row.beta ?? row.Beta, 4),
+        stdErr: round(row.stdErr ?? row["Standard Error"], 4),
+        maf: round(row.maf ?? row.MAF, 4),
+        consequence: associationRowConsequence(row),
+        nearestGenes: associationRowNearest(row),
+        consequenceGenes: findExonOverlapGenes(position, genes),
         r2: round(r2 != null ? r2 : row._ld, 3),
     };
 }
@@ -155,7 +175,11 @@ export function buildGp2AiSummaryDigest({
     };
 
     const moderateLdMissense = associationRows
-        .filter((row) => row._ldBucket === "moderate" && row.consequence === "missense_variant")
+        .filter(
+            (row) =>
+                row._ldBucket === "moderate" &&
+                associationRowConsequence(row) === "missense_variant"
+        )
         .map((row) => variantSummary(row, row._ld, genes));
 
     const byGeneTissue = new Map();

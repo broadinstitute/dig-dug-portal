@@ -310,7 +310,6 @@ import {
     probeAncestryAssociationAvailability,
     fetchGlobalAssociations,
 } from "./kpVariantSifter/variantSifterAssociationsApi.js";
-import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
 import {
     downsampleAssociationRowsOnLoad,
     mergeZoomedAssociationRows,
@@ -319,6 +318,7 @@ import {
 import {
     fetchGp2AssociationsWithCount,
     fetchGp2GwasCeAssociationsWithCount,
+    formatGp2AssociationRows,
 } from "./gp2Browser/gp2BrowserAssociationsApi.js";
 import { createFiltersIndex, applyAssociationsFilters } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
 import {
@@ -1056,7 +1056,7 @@ export default Vue.component("gp2-browser", {
                 const result = withCount
                     ? await fetchGp2GwasCeAssociationsWithCount(targetSession)
                     : await fetchGwasCeAssociations(targetSession, { downsample });
-                const rows = formatAssociationRows(result.rows, session, {
+                const rows = formatGp2AssociationRows(result.rows, session, {
                     project: VKS_ASSOCIATION_PROJECT_GWAS_CE,
                 });
                 return withCount ? { rows, rawCount: result.rawCount || 0 } : rows;
@@ -1604,7 +1604,7 @@ export default Vue.component("gp2-browser", {
                     if (token !== this.zoomAssociationsRequestToken) {
                         return;
                     }
-                    zoomedRows = formatAssociationRows(primaryResult.rows, zoomSession, {
+                    zoomedRows = formatGp2AssociationRows(primaryResult.rows, zoomSession, {
                         project: VKS_ASSOCIATION_PROJECT_KP,
                     });
                 }
@@ -1643,7 +1643,7 @@ export default Vue.component("gp2-browser", {
                             this.projectId,
                             { downsample: false }
                         );
-                        const ancestryRows = formatAssociationRows(
+                        const ancestryRows = formatGp2AssociationRows(
                             ancestryResult.rows,
                             ancestrySession,
                             { project: VKS_ASSOCIATION_PROJECT_KP }
@@ -1686,7 +1686,7 @@ export default Vue.component("gp2-browser", {
                             this.projectId,
                             { downsample: false }
                         );
-                        const phenotypeRows = formatAssociationRows(
+                        const phenotypeRows = formatGp2AssociationRows(
                             phenotypeResult.rows,
                             phenotypeSession,
                             { project: VKS_ASSOCIATION_PROJECT_KP }
@@ -1725,7 +1725,7 @@ export default Vue.component("gp2-browser", {
                                 this.projectId,
                                 { downsample: false }
                             );
-                            const ancestryRows = formatAssociationRows(
+                            const ancestryRows = formatGp2AssociationRows(
                                 ancestryResult.rows,
                                 ancestrySession,
                                 { project: VKS_ASSOCIATION_PROJECT_KP }
@@ -2161,7 +2161,7 @@ export default Vue.component("gp2-browser", {
 
                     try {
                         const result = await fetchAssociations(gapSession, associationsHost, this.projectId);
-                        const formattedRows = formatAssociationRows(result.rows, gapSession, {
+                        const formattedRows = formatGp2AssociationRows(result.rows, gapSession, {
                             project: VKS_ASSOCIATION_PROJECT_KP,
                         });
                         if (formattedRows.length) {
@@ -2204,7 +2204,7 @@ export default Vue.component("gp2-browser", {
                                     associationsHost,
                                     this.projectId
                                 );
-                                const ancestryRows = formatAssociationRows(
+                                const ancestryRows = formatGp2AssociationRows(
                                     ancestryResult.rows,
                                     ancestrySession,
                                     { project: VKS_ASSOCIATION_PROJECT_KP }
@@ -2258,7 +2258,7 @@ export default Vue.component("gp2-browser", {
                                     associationsHost,
                                     this.projectId
                                 );
-                                const phenotypeRows = formatAssociationRows(
+                                const phenotypeRows = formatGp2AssociationRows(
                                     phenotypeResult.rows,
                                     phenotypeSession,
                                     { project: VKS_ASSOCIATION_PROJECT_KP }
@@ -2308,7 +2308,7 @@ export default Vue.component("gp2-browser", {
                                         associationsHost,
                                         this.projectId
                                     );
-                                    const ancestryRows = formatAssociationRows(
+                                    const ancestryRows = formatGp2AssociationRows(
                                         ancestryResult.rows,
                                         ancestrySession,
                                         { project: VKS_ASSOCIATION_PROJECT_KP }
@@ -4660,7 +4660,7 @@ export default Vue.component("gp2-browser", {
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
-                const kpRows = formatAssociationRows(result.rows, session, {
+                const kpRows = formatGp2AssociationRows(result.rows, session, {
                     project: VKS_ASSOCIATION_PROJECT_KP,
                 });
                 const { rows: ceRows, rawCount: ceRawCount } =
@@ -4914,7 +4914,7 @@ export default Vue.component("gp2-browser", {
                         return;
                     }
 
-                    const kpRows = formatAssociationRows(result.rows, session, {
+                    const kpRows = formatGp2AssociationRows(result.rows, session, {
                         project: VKS_ASSOCIATION_PROJECT_KP,
                     });
                     const { rows: ceRows, rawCount: ceRawCount } =
@@ -5730,7 +5730,7 @@ export default Vue.component("gp2-browser", {
                     return false;
                 }
 
-                let formattedRows = formatAssociationRows(result.rows, ancestrySession, {
+                let formattedRows = formatGp2AssociationRows(result.rows, ancestrySession, {
                     project: VKS_ASSOCIATION_PROJECT_KP,
                 });
                 try {
@@ -5926,7 +5926,7 @@ export default Vue.component("gp2-browser", {
                     return false;
                 }
 
-                let formattedRows = formatAssociationRows(result.rows, phenotypeSession, {
+                let formattedRows = formatGp2AssociationRows(result.rows, phenotypeSession, {
                     project: VKS_ASSOCIATION_PROJECT_KP,
                 });
                 if (ownsProgress) {

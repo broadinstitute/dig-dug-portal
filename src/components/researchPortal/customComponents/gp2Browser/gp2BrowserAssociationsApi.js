@@ -13,7 +13,43 @@ import {
     resolveAssociationsRequest,
     resolveGwasCeAssociationsRequest,
 } from "../kpVariantSifter/variantSifterAssociationsApi.js";
+import { formatAssociationRows } from "../kpVariantSifter/variantSifterAssociationsTable.js";
 import { downsampleAssociationRowsOnLoad } from "./gp2BrowserAssociationsDownsample.js";
+
+/**
+ * Shared `formatAssociationRows` maps BioIndex fields into table columns
+ * (`P-Value`, `Position`, `Consequence`, …) and drops fields the AI summary /
+ * Literature evidence digest still need (`nearest`, plus the original
+ * camelCase keys). Preserve both shapes so table UI and digest builders work
+ * from the same `associationsState.rows`.
+ */
+export function formatGp2AssociationRows(rawRows, searchSession = null, options = {}) {
+    const formatted = formatAssociationRows(rawRows, searchSession, options);
+    if (!Array.isArray(formatted) || !formatted.length) {
+        return formatted;
+    }
+    return formatted.map((row, index) => {
+        const raw = rawRows?.[index] || {};
+        return {
+            ...row,
+            nearest: Array.isArray(raw.nearest)
+                ? raw.nearest
+                : Array.isArray(row.nearest)
+                  ? row.nearest
+                  : undefined,
+            position: raw.position ?? row.position ?? row.Position,
+            pValue: raw.pValue ?? row.pValue ?? row["P-Value"],
+            consequence: raw.consequence ?? row.consequence ?? row.Consequence,
+            beta: raw.beta ?? row.beta ?? row.Beta,
+            stdErr: raw.stdErr ?? row.stdErr ?? row["Standard Error"],
+            maf: raw.maf ?? row.maf ?? row.MAF,
+            eaf: raw.eaf ?? row.eaf ?? row.EAF,
+            reference: raw.reference ?? row.reference ?? row.ref,
+            dbSNP: raw.dbSNP ?? row.dbSNP ?? row.rsID,
+            chromosome: raw.chromosome ?? row.chromosome ?? row.chr,
+        };
+    });
+}
 
 export async function fetchGp2AssociationsWithCount(session, host, projectId) {
     const { index, q, logicalIndex, fmt } = resolveAssociationsRequest(
