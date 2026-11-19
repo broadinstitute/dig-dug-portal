@@ -1,5 +1,10 @@
 <template>
     <div class="cfde-protein-page">
+        <div v-if="uniprotId" class="cfde-protein-card">
+            <div class="cfde-ptm-panel">
+                <h3 class="cfde-protein-title">{{ displayName }}</h3>
+            </div>
+        </div>
         <div class="cfde-protein-card">
             <div>
                 <b-tabs class="cfde-tabs">
@@ -32,8 +37,34 @@
                                         width: 100%;
                                         height: 500px;
                                         position: relative;
+                                        box-sizing: border-box;
+                                        overflow: hidden;
+                                        border: 1px solid #dddddd;
+                                        border-radius: 5px;
                                     "
                                 ></div>
+                                <div class="mt-2 d-flex align-items-center">
+                                    <label class="mb-0 mr-2 small" for="zoomSlider"
+                                        >Zoom</label
+                                    >
+                                    <input
+                                        id="zoomSlider"
+                                        type="range"
+                                        min="0.5"
+                                        max="4"
+                                        step="0.1"
+                                        v-model.number="zoomLevel"
+                                        @input="onZoomChange"
+                                        style="max-width: 250px; width: 100%"
+                                    />
+                                    <span class="ml-2 small"
+                                        >{{ zoomLevel.toFixed(1) }}x</span
+                                    >
+                                </div>
+                                <div class="mt-1 small text-muted">
+                                    Drag with the mouse to rotate. Use the slider
+                                    to zoom.
+                                </div>
                                 <div v-if="afEntry" class="mt-2">
                                     <a :href="afEntry.url" target="_blank"
                                         >{{ afEntry.id }} on AlphaFold DB</a
@@ -189,6 +220,8 @@ export default {
             ],
             structureLoading: false,
             pdbText: "",
+            zoomLevel: 1,
+            appliedZoom: 1,
         };
     },
     computed: {
@@ -290,6 +323,12 @@ export default {
                 document.head.appendChild(s);
             });
         },
+        onZoomChange() {
+            if (!this._viewer) return;
+            // viewer.zoom() is relative, so apply the ratio to the last level
+            this._viewer.zoom(this.zoomLevel / this.appliedZoom);
+            this.appliedZoom = this.zoomLevel;
+        },
         async loadStructure() {
             if (!this.uniprotId || this.structureLoading) return;
             this.structureLoading = true;
@@ -317,7 +356,30 @@ export default {
                 const pdb = this.pdbText;
                 await this.$nextTick();
                 if (!this.$refs.structureViewer) return;
-                this.$refs.structureViewer.innerHTML = "";
+                const el = this.$refs.structureViewer;
+                el.innerHTML = "";
+                // disable mouse-wheel, pinch and right/middle-button zoom
+                // (capture phase, so 3Dmol never sees them); rotate stays
+                el.addEventListener("wheel", (e) => e.stopPropagation(), {
+                    capture: true,
+                    passive: true,
+                });
+                el.addEventListener(
+                    "mousedown",
+                    (e) => {
+                        if (e.button !== 0) e.stopPropagation();
+                    },
+                    true
+                );
+                el.addEventListener(
+                    "touchstart",
+                    (e) => {
+                        if (e.touches.length > 1) e.stopPropagation();
+                    },
+                    { capture: true, passive: true }
+                );
+                this.zoomLevel = 1;
+                this.appliedZoom = 1;
                 const viewer = window.$3Dmol.createViewer(
                     this.$refs.structureViewer,
                     { backgroundColor: "white" }
@@ -340,6 +402,7 @@ export default {
                 );
                 viewer.zoomTo();
                 viewer.render();
+                this._viewer = viewer;
             } catch (e) {
                 console.error(e);
                 this.structureError =
@@ -383,7 +446,7 @@ export default {
 .cfde-protein-page .cfde-protein-card {
     background: none;
     border-radius: 10px;
-    padding: 10px 20px 30px;
+    padding: 10px 20px 20px;
     font-family: Roboto, Arial, sans-serif;
 }
 .cfde-protein-page .cfde-protein-card h4 {
@@ -419,6 +482,16 @@ export default {
 .cfde-protein-page .cfde-ptm-filter {
     padding: 0 0 10px;
     font-size: 14px;
+}
+.cfde-protein-page .cfde-protein-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: #212529;
+}
+/* tab content already has the panel padding; drop Bootstrap's extra card-body padding */
+.cfde-protein-page .cfde-tabs .tab-content .card-body {
+    padding: 0;
 }
 .cfde-protein-page .cfde-ptm-panel,
 .cfde-protein-page .cfde-tabs .tab-content {
