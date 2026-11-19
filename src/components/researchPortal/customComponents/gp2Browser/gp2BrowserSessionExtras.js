@@ -7,7 +7,7 @@
  *   filter selections) — the shared schema has no QTL concept at all.
  * - The Actions assistant's conversation (requests run and the results they
  *   produced, e.g. AI summary / literature evidence confirmations).
- * - Literature evidence panel results (papers + knownFindings/knowledgeGaps).
+ * - Literature evidence panel results (papers + claims/excerpts/gaps).
  * - The focused-view Zoom level state (viewingCenterBp/viewingRegionWidthBp).
  * - `visibleSectionIds` as GP2 Browser actually has it. The shared exporter's
  *   `ui.visibleSectionIds` is normalized against the shared Variant Sifter
@@ -49,13 +49,10 @@ export function buildGp2SessionExtras({
                   usedLocusDigest: Boolean(literatureEvidenceState.usedLocusDigest),
                   locusDigest: literatureEvidenceState.locusDigest || null,
                   papers: literatureEvidenceState.papers || [],
-                  knownFindings: literatureEvidenceState.knownFindings || "",
-                  knowledgeGaps: literatureEvidenceState.knowledgeGaps || "",
-                  moreBatches: (literatureEvidenceState.moreBatches || []).map((batch) => ({
-                      papers: batch.papers || [],
-                      knownFindings: batch.knownFindings || "",
-                      knowledgeGaps: batch.knowledgeGaps || "",
-                  })),
+                  claims: literatureEvidenceState.claims || [],
+                  excerpts: literatureEvidenceState.excerpts || [],
+                  gaps: literatureEvidenceState.gaps || [],
+                  exhausted: Boolean(literatureEvidenceState.exhausted),
               }
             : null,
         visibleSectionIds: Array.isArray(visibleSectionIds) ? visibleSectionIds : null,
@@ -95,19 +92,16 @@ export function restoreGp2SessionExtras(payload) {
                       : [],
                   synthesizing: false,
                   synthesisError: null,
-                  knownFindings: literatureEvidence.knownFindings || "",
-                  knowledgeGaps: literatureEvidence.knowledgeGaps || "",
-                  moreBatches: Array.isArray(literatureEvidence.moreBatches)
-                      ? literatureEvidence.moreBatches.map((batch) => ({
-                            papers: Array.isArray(batch?.papers) ? batch.papers : [],
-                            synthesizing: false,
-                            synthesisError: null,
-                            knownFindings: batch?.knownFindings || "",
-                            knowledgeGaps: batch?.knowledgeGaps || "",
-                        }))
+                  claims: Array.isArray(literatureEvidence.claims)
+                      ? literatureEvidence.claims
                       : [],
+                  excerpts: Array.isArray(literatureEvidence.excerpts)
+                      ? literatureEvidence.excerpts
+                      : [],
+                  gaps: Array.isArray(literatureEvidence.gaps) ? literatureEvidence.gaps : [],
                   loadingMore: false,
                   loadMoreError: null,
+                  exhausted: Boolean(literatureEvidence.exhausted),
               }
             : null,
         visibleSectionIds: Array.isArray(gp2.visibleSectionIds) ? gp2.visibleSectionIds : null,

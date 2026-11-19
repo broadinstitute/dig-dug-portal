@@ -11,93 +11,134 @@
         </div>
 
         <template v-else>
-            <button
-                v-if="!loadMoreExhausted"
-                type="button"
-                class="gp2-lit-evidence-load-more"
-                :disabled="loadingMore"
-                @click="$emit('load-more')"
-            >
-                {{ loadingMore ? "Loading next 15…" : "Show next 15" }}
-            </button>
+            <div v-if="synthesizing" class="gp2-lit-evidence-status">
+                Generating literature synthesis…
+            </div>
             <div
-                v-if="loadMoreError"
+                v-if="synthesisError"
                 class="gp2-lit-evidence-status gp2-lit-evidence-status-error"
             >
-                {{ loadMoreError }}
+                {{ synthesisError }}
             </div>
 
-            <div
-                v-for="(batch, batchIndex) in allBatches"
-                :key="`batch-${batchIndex}`"
-                class="gp2-lit-evidence-batch"
-            >
-                <div v-if="batch.synthesizing" class="gp2-lit-evidence-status">
-                    Generating literature synthesis…
-                </div>
-                <div
-                    v-else-if="batch.synthesisError"
-                    class="gp2-lit-evidence-status gp2-lit-evidence-status-error"
+            <div class="gp2-lit-evidence-tabs" role="tablist">
+                <button
+                    type="button"
+                    role="tab"
+                    class="gp2-lit-evidence-tab"
+                    :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'evidences' }"
+                    @click="activeTab = 'evidences'"
                 >
-                    {{ batch.synthesisError }}
-                </div>
-                <div
-                    v-else-if="batch.knownFindings || batch.knowledgeGaps"
-                    class="gp2-lit-evidence-sections"
+                    Evidences
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    class="gp2-lit-evidence-tab"
+                    :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'excerpts' }"
+                    @click="activeTab = 'excerpts'"
                 >
-                    <section v-if="batch.knownFindings" class="gp2-lit-evidence-section">
-                        <h3>What the literature establishes</h3>
-                        <p>{{ batch.knownFindings }}</p>
-                    </section>
-                    <section v-if="batch.knowledgeGaps" class="gp2-lit-evidence-section">
-                        <h3>Knowledge gaps</h3>
-                        <p>{{ batch.knowledgeGaps }}</p>
-                    </section>
-                </div>
+                    Excerpts
+                </button>
+            </div>
 
-                <div v-if="!batch.papers.length" class="gp2-lit-evidence-empty">
-                    No more PubMed papers matched this search.
-                </div>
-                <ul v-else class="gp2-lit-evidence-papers">
-                    <li v-for="paper in batch.papers" :key="paper.pmid" class="gp2-lit-evidence-paper">
-                        <a
-                            class="gp2-lit-evidence-paper-title"
-                            :href="`https://pubmed.ncbi.nlm.nih.gov/${paper.pmid}/`"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            {{ paper.title || `PMID ${paper.pmid}` }}
-                        </a>
-                        <div class="gp2-lit-evidence-paper-body">
-                            <div class="gp2-lit-evidence-paper-meta">
-                                <span class="gp2-lit-evidence-paper-pmid">PMID: {{ paper.pmid }}</span
-                                ><span v-if="paper.journal || paper.pubdate"> · </span
-                                >{{ paper.journal }}<span v-if="paper.journal && paper.pubdate"> · </span
-                                >{{ paper.pubdate }}<span v-if="paper.authors && paper.authors.length"><br /></span
-                                >{{ (paper.authors || []).join(", ") }}
-                            </div>
-                            <div v-if="paper.abstract" class="gp2-lit-evidence-paper-abstract">
-                                {{ isExpanded(paper.pmid) ? paper.abstract : abstractExcerpt(paper.abstract) }}
-                                <button
-                                    v-if="paper.abstract.length > abstractExcerptLength"
-                                    type="button"
-                                    class="gp2-lit-evidence-abstract-toggle"
-                                    @click="toggleAbstract(paper.pmid)"
-                                >
-                                    {{ isExpanded(paper.pmid) ? "Show less" : "Read full abstract" }}
-                                </button>
+            <div v-show="activeTab === 'evidences'" class="gp2-lit-evidence-columns">
+                <section ref="claimsCol" class="gp2-lit-evidence-col">
+                    <h3>What the literature establishes</h3>
+                    <ol v-if="claims.length" class="gp2-lit-evidence-list">
+                        <li v-for="(claim, claimIndex) in claims" :key="`claim-${claimIndex}`">
+                            {{ claim.text }}
+                            <GP2BrowserLiteratureFootnote
+                                v-if="claim.excerptNumbers.length"
+                                :numbers="claim.excerptNumbers"
+                                :excerpts-by-number="excerptsByNumber"
+                                :popover-width="columnWidth"
+                            />
+                        </li>
+                    </ol>
+                    <p v-else class="gp2-lit-evidence-empty">
+                        No claims could be extracted with a verified supporting excerpt.
+                    </p>
+                </section>
+                <section class="gp2-lit-evidence-col">
+                    <h3>Knowledge gaps</h3>
+                    <ol v-if="gaps.length" class="gp2-lit-evidence-list">
+                        <li v-for="(gap, gapIndex) in gaps" :key="`gap-${gapIndex}`">
+                            {{ gap.text }}
+                            <GP2BrowserLiteratureFootnote
+                                v-if="gap.excerptNumbers.length"
+                                :numbers="gap.excerptNumbers"
+                                :excerpts-by-number="excerptsByNumber"
+                                :popover-width="columnWidth"
+                            />
+                        </li>
+                    </ol>
+                    <p v-else class="gp2-lit-evidence-empty">No knowledge gaps identified yet.</p>
+                </section>
+            </div>
+
+            <div v-show="activeTab === 'excerpts'" class="gp2-lit-evidence-excerpts-tab">
+                <ol v-if="excerpts.length" class="gp2-lit-evidence-excerpts-list">
+                    <li
+                        v-for="excerpt in excerpts"
+                        :id="excerptAnchorId(excerpt.number)"
+                        :key="`excerpt-${excerpt.number}`"
+                        class="gp2-lit-evidence-excerpt"
+                    >
+                        <span class="gp2-lit-evidence-excerpt-number">{{ excerpt.number }}.</span>
+                        <blockquote class="gp2-lit-evidence-excerpt-quote">
+                            &ldquo;{{ excerpt.quote }}&rdquo;
+                        </blockquote>
+                        <div class="gp2-lit-evidence-excerpt-meta">
+                            <a
+                                class="gp2-lit-evidence-excerpt-title"
+                                :href="`https://pubmed.ncbi.nlm.nih.gov/${excerpt.pmid}/`"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {{ excerptPaperTitle(excerpt) }}
+                            </a>
+                            <div class="gp2-lit-evidence-excerpt-sub">
+                                PMID: {{ excerpt.pmid
+                                }}<span v-if="excerptPaperMeta(excerpt)"> · {{ excerptPaperMeta(excerpt) }}</span
+                                ><span v-if="excerptPaperAuthors(excerpt).length"><br /></span
+                                >{{ excerptPaperAuthors(excerpt).join(", ") }}
                             </div>
                         </div>
+                        <div
+                            v-if="excerptPaperAbstract(excerpt)"
+                            class="gp2-lit-evidence-excerpt-abstract"
+                        >
+                            {{
+                                isExpanded(excerpt.pmid)
+                                    ? excerptPaperAbstract(excerpt)
+                                    : abstractExcerpt(excerptPaperAbstract(excerpt))
+                            }}
+                            <button
+                                v-if="excerptPaperAbstract(excerpt).length > abstractExcerptLength"
+                                type="button"
+                                class="gp2-lit-evidence-abstract-toggle"
+                                @click="toggleAbstract(excerpt.pmid)"
+                            >
+                                {{ isExpanded(excerpt.pmid) ? "Show less" : "Read full abstract" }}
+                            </button>
+                        </div>
                     </li>
-                </ul>
+                </ol>
+                <p v-else class="gp2-lit-evidence-empty">No supporting excerpts extracted yet.</p>
             </div>
         </template>
     </div>
 </template>
 
 <script>
+import GP2BrowserLiteratureFootnote from "./GP2BrowserLiteratureFootnote.vue";
+
 export default {
     name: "GP2BrowserLiteratureEvidencePanel",
+    components: {
+        GP2BrowserLiteratureFootnote,
+    },
     props: {
         genesSearched: {
             type: Array,
@@ -119,56 +160,94 @@ export default {
             type: String,
             default: null,
         },
-        knownFindings: {
-            type: String,
-            default: "",
-        },
-        knowledgeGaps: {
-            type: String,
-            default: "",
-        },
-        /** Each "Show next 15" page, appended after the first page in fetch order. */
-        moreBatches: {
+        /** Each: { text, excerptNumbers }. */
+        claims: {
             type: Array,
             default: () => [],
         },
-        loadingMore: {
-            type: Boolean,
-            default: false,
+        /** Each: { number, pmid, quote } — a verified verbatim quote from `papers`. */
+        excerpts: {
+            type: Array,
+            default: () => [],
         },
-        loadMoreError: {
-            type: String,
-            default: null,
+        /** Each: { text, excerptNumbers }. */
+        gaps: {
+            type: Array,
+            default: () => [],
         },
     },
     data() {
         return {
+            activeTab: "evidences",
+            columnWidth: null,
             abstractExcerptLength: 220,
             expandedPmids: {},
         };
     },
     computed: {
-        allBatches() {
-            return [
-                {
-                    papers: this.papers,
-                    synthesizing: this.synthesizing,
-                    synthesisError: this.synthesisError,
-                    knownFindings: this.knownFindings,
-                    knowledgeGaps: this.knowledgeGaps,
-                },
-                ...this.moreBatches,
-            ];
-        },
-        /** The most recently loaded "next 15" page came back empty — no more results. */
-        loadMoreExhausted() {
-            if (!this.moreBatches.length) {
-                return false;
-            }
-            return this.moreBatches[this.moreBatches.length - 1].papers.length === 0;
+        excerptsByNumber() {
+            const map = {};
+            this.excerpts.forEach((excerpt) => {
+                const paper = this.paperByPmid(excerpt.pmid);
+                map[excerpt.number] = {
+                    quote: excerpt.quote,
+                    pmid: excerpt.pmid,
+                    title: paper && paper.title,
+                    journal: (paper && paper.journal) || "",
+                    pubdate: (paper && paper.pubdate) || "",
+                    authors: (paper && paper.authors) || [],
+                    abstract: (paper && paper.abstract) || "",
+                };
+            });
+            return map;
         },
     },
+    mounted() {
+        this.updateColumnWidth();
+        window.addEventListener("resize", this.updateColumnWidth);
+        if (typeof ResizeObserver !== "undefined" && this.$refs.claimsCol) {
+            this.resizeObserver = new ResizeObserver(() => this.updateColumnWidth());
+            this.resizeObserver.observe(this.$refs.claimsCol);
+        }
+    },
+    beforeDestroy() {
+        window.removeEventListener("resize", this.updateColumnWidth);
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+    },
     methods: {
+        /** Matches the excerpt popover's width to the claims/gaps column it's triggered from. */
+        updateColumnWidth() {
+            if (this.$refs.claimsCol) {
+                this.columnWidth = this.$refs.claimsCol.clientWidth;
+            }
+        },
+        excerptAnchorId(number) {
+            return `gp2-lit-excerpt-${number}`;
+        },
+        paperByPmid(pmid) {
+            return this.papers.find((paper) => String(paper.pmid) === String(pmid)) || null;
+        },
+        excerptPaperTitle(excerpt) {
+            const paper = this.paperByPmid(excerpt.pmid);
+            return (paper && paper.title) || `PMID ${excerpt.pmid}`;
+        },
+        excerptPaperMeta(excerpt) {
+            const paper = this.paperByPmid(excerpt.pmid);
+            if (!paper) {
+                return "";
+            }
+            return [paper.journal, paper.pubdate].filter(Boolean).join(" · ");
+        },
+        excerptPaperAuthors(excerpt) {
+            const paper = this.paperByPmid(excerpt.pmid);
+            return (paper && paper.authors) || [];
+        },
+        excerptPaperAbstract(excerpt) {
+            const paper = this.paperByPmid(excerpt.pmid);
+            return (paper && paper.abstract) || "";
+        },
         isExpanded(pmid) {
             return Boolean(this.expandedPmids[pmid]);
         },
@@ -210,51 +289,124 @@ export default {
     color: var(--cfde-muted, #6b6b6b);
 }
 
-.gp2-lit-evidence-papers {
-    list-style: none;
+.gp2-lit-evidence-status {
+    font-size: 13px;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.gp2-lit-evidence-status-error {
+    color: #ee3124;
+}
+
+.gp2-lit-evidence-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.gp2-lit-evidence-tab {
+    padding: 6px 14px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cfde-muted, #6b6b6b);
+    cursor: pointer;
+}
+
+.gp2-lit-evidence-tab-active {
+    color: var(--cfde-blue, #2c5c97);
+    border-bottom-color: var(--cfde-blue, #2c5c97);
+}
+
+.gp2-lit-evidence-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px 24px;
+    align-items: start;
+}
+
+.gp2-lit-evidence-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.gp2-lit-evidence-col h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.gp2-lit-evidence-list {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cfde-ink, #33363d);
+}
+
+.gp2-lit-evidence-excerpts-list {
     margin: 0;
     padding: 0;
+    list-style: none;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.gp2-lit-evidence-paper {
+.gp2-lit-evidence-excerpt {
     padding: 8px 10px;
     border: 1px solid var(--cfde-border, #e6e1d6);
     border-radius: 6px;
     background: #fafafa;
+    scroll-margin-top: 12px;
 }
 
-.gp2-lit-evidence-paper-title {
+.gp2-lit-evidence-excerpt-number {
     font-size: 13px;
     font-weight: 700;
+    color: var(--cfde-blue, #2c5c97);
+}
+
+.gp2-lit-evidence-excerpt-quote {
+    margin: 4px 0 6px;
+    padding: 0;
+    border: none;
+    font-size: 13px;
+    line-height: 1.5;
+    font-style: italic;
+    color: var(--cfde-ink, #33363d);
+}
+
+.gp2-lit-evidence-excerpt-meta {
+    font-size: 13px;
+}
+
+.gp2-lit-evidence-excerpt-title {
+    font-weight: 600;
     color: var(--cfde-blue, #2c5c97);
     text-decoration: none;
 }
 
-.gp2-lit-evidence-paper-title:hover {
+.gp2-lit-evidence-excerpt-title:hover {
     text-decoration: underline;
 }
 
-.gp2-lit-evidence-paper-body {
-    margin-top: 6px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 16px;
-}
-
-.gp2-lit-evidence-paper-meta {
-    font-size: 13px;
+.gp2-lit-evidence-excerpt-sub {
     color: var(--cfde-muted, #6b6b6b);
 }
 
-.gp2-lit-evidence-paper-pmid {
-    font-weight: 600;
-    color: var(--cfde-ink, #33363d);
-}
-
-.gp2-lit-evidence-paper-abstract {
+.gp2-lit-evidence-excerpt-abstract {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--cfde-border, #e6e1d6);
     font-size: 13px;
     line-height: 1.5;
     color: var(--cfde-ink, #33363d);
@@ -274,75 +426,9 @@ export default {
     text-decoration: underline;
 }
 
-.gp2-lit-evidence-status {
-    font-size: 13px;
-    color: var(--cfde-muted, #6b6b6b);
-}
-
-.gp2-lit-evidence-status-error {
-    color: #ee3124;
-}
-
-.gp2-lit-evidence-load-more {
-    align-self: flex-start;
-    padding: 6px 12px;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 6px;
-    background: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--cfde-blue, #2c5c97);
-    cursor: pointer;
-}
-
-.gp2-lit-evidence-load-more:disabled {
-    cursor: default;
-    opacity: 0.6;
-}
-
-.gp2-lit-evidence-batch {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.gp2-lit-evidence-batch + .gp2-lit-evidence-batch {
-    padding-top: 14px;
-    border-top: 1px solid var(--cfde-border, #e6e1d6);
-}
-
-.gp2-lit-evidence-sections {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.gp2-lit-evidence-section {
-    container-type: inline-size;
-}
-
-.gp2-lit-evidence-section h3 {
-    margin: 0 0 4px;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--cfde-ink, #33363d);
-}
-
-.gp2-lit-evidence-section p {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--cfde-ink, #33363d);
-    white-space: pre-line;
-}
-
-/* Each section's own paragraph flows into 2 text columns once that
-   section itself (not the viewport) is wide enough to read comfortably
-   that way. */
-@container (min-width: 840px) {
-    .gp2-lit-evidence-section p {
-        column-count: 2;
-        column-gap: 24px;
+@media (max-width: 720px) {
+    .gp2-lit-evidence-columns {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 </style>

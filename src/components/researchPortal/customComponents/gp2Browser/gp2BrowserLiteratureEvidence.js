@@ -200,16 +200,16 @@ export function buildGp2LiteratureDigest({ phenotype, geneNames, papers, locusDi
     };
 }
 
-export const GP2_LITERATURE_SYSTEM_PROMPT = `You read PubMed abstracts retrieved for a Parkinson's disease GWAS locus and summarize them for a researcher.
+export const GP2_LITERATURE_SYSTEM_PROMPT = `You read PubMed abstracts retrieved for a Parkinson's disease GWAS locus and extract claims with supporting excerpts for a researcher.
 Rules:
-- Use only the abstracts in "papers" and, if present, the facts in "locusDigest". Never invent a claim, citation, or PMID not present in the input.
-- Every factual claim must be followed immediately by the PMID(s) of the paper(s) that support it, in parentheses, e.g. "rs123 is associated with X (PMID 12345678)." No exceptions: a claim with no PMID attached must not appear in the output.
-- Distinguish a claim corroborated by more than one independent paper from a claim made by only one paper.
-- A paper can mention the searched gene and the phenotype without actually studying their relationship (for example a drug-mechanism paper that happens to involve the gene, in an unrelated disease context). Flag this explicitly rather than treating it as evidence connecting the gene to the phenotype.
-- If "locusDigest" is present, explicitly state whether any paper discusses the SPECIFIC finding it describes (the lead variant, the exon-resolved missense/coding gene, or the linked-vs-unlinked QTL contrast) versus only the gene's general relevance to the phenotype.
-- "knownFindings": one distinct claim/finding the retrieved papers establish or agree on per sentence, each sentence ending with the PMID(s) of the paper(s) backing it — written so the reader can look up exactly which card(s) support each sentence.
-- "knowledgeGaps": what the retrieved papers do NOT address. Phrase this as a property of the retrieved papers ("the retrieved papers do not address X"), never as a claim about the literature as a whole — this is a narrow keyword search over a small set of abstracts, not an exhaustive review. A gap does not need a PMID (it is an absence), but if a paper's silence on a specific point is itself notable, you may cite the PMID of the paper that was silent on it.
-Respond with JSON only: {"knownFindings": "...", "knowledgeGaps": "..."}`;
+- Use only the abstracts in "papers" and, if present, the facts in "locusDigest". Never invent a claim, excerpt, PMID, or fact not present in the input.
+- "excerpts": short verbatim quotes (a sentence or short phrase, copied EXACTLY as written, word-for-word, no paraphrasing, no ellipses or edits) from the "abstract" field of a specific paper. Each excerpt has a sequential "number" starting at 1 (in the order first referenced by a claim), the source "pmid", and the "quote" text. A quote that is not an exact substring of that paper's abstract will be discarded, so copy it verbatim rather than summarizing.
+- "claims": each is one distinct finding the retrieved papers establish or agree on, as "text", plus "excerptNumbers" — the excerpt number(s) (referencing "excerpts") that support it. Every claim MUST cite at least one excerpt number; a claim with no supporting excerpt will be discarded.
+- Distinguish a claim corroborated by more than one independent paper (citing an excerpt from each) from a claim made by only one paper.
+- A paper can mention the searched gene and the phenotype without actually studying their relationship (for example a drug-mechanism paper that happens to involve the gene, in an unrelated disease context). Flag this explicitly as its own claim (with its own supporting excerpt) rather than treating it as evidence connecting the gene to the phenotype.
+- If "locusDigest" is present, add a claim explicitly stating whether any paper discusses the SPECIFIC finding it describes (the lead variant, the exon-resolved missense/coding gene, or the linked-vs-unlinked QTL contrast) versus only the gene's general relevance to the phenotype.
+- "gaps": each is one distinct thing the retrieved papers do NOT address, as "text", plus an optional "excerptNumbers" (usually an empty array, since a gap is an absence — only cite an excerpt number when a specific paper's silence on this exact point is itself notable). Phrase each gap as a property of the retrieved papers ("the retrieved papers do not address X"), never as a claim about the literature as a whole — this is a narrow keyword search over a small set of abstracts, not an exhaustive review.
+Respond with JSON only: {"claims": [{"text": "...", "excerptNumbers": [1]}], "excerpts": [{"number": 1, "pmid": "...", "quote": "..."}], "gaps": [{"text": "...", "excerptNumbers": []}]}`;
 
 export function buildGp2LiteratureUserPrompt(digest) {
     return [
@@ -218,7 +218,7 @@ export function buildGp2LiteratureUserPrompt(digest) {
             papers: digest.papers,
             locusDigest: digest.locusDigest,
         })}`,
-        'Respond with JSON only: {"knownFindings":"...","knowledgeGaps":"..."}',
+        'Respond with JSON only: {"claims":[{"text":"...","excerptNumbers":[1]}],"excerpts":[{"number":1,"pmid":"...","quote":"..."}],"gaps":[{"text":"...","excerptNumbers":[]}]}',
     ].join("\n");
 }
 
@@ -240,17 +240,93 @@ function callGp2LiteratureLlm({ systemPrompt, userPrompt }) {
     });
 }
 
-export function parseGp2LiteratureResponse(raw) {
+function normalizeForQuoteMatch(text) {
+    return String(text || "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+/**
+ * Parses the LLM's claims/excerpts/gaps response and verifies every
+ * excerpt is an actual verbatim substring of the paper it's attributed to
+ * (whitespace-insensitive, case-insensitive) — an LLM can paraphrase instead
+ * of quoting exactly despite instructions, and an unverifiable excerpt would
+ * mislead the reader into trusting a quote that isn't really there. A quote
+ * that doesn't verify is dropped, and any claim left with zero verified
+ * excerpts is dropped with it (every claim must have a supporting excerpt).
+ */
+export function parseGp2LiteratureResponse(raw, { papers = [] } = {}) {
     const { ok, json } = parseLlmJsonResponse(raw);
     if (!ok || !json || typeof json !== "object") {
         return null;
     }
-    const knownFindings = String(json.knownFindings || "").trim();
-    const knowledgeGaps = String(json.knowledgeGaps || "").trim();
-    if (!knownFindings && !knowledgeGaps) {
+
+    const abstractByPmid = new Map(
+        papers.map((paper) => [String(paper.pmid), normalizeForQuoteMatch(paper.abstract)])
+    );
+
+    const verifiedExcerptNumbers = new Set();
+    const excerpts = (Array.isArray(json.excerpts) ? json.excerpts : [])
+        .map((entry) => {
+            const number = Number(entry?.number);
+            const pmid = entry?.pmid != null ? String(entry.pmid) : "";
+            const quote = String(entry?.quote || "").trim();
+            if (!Number.isFinite(number) || !pmid || !quote) {
+                return null;
+            }
+            const abstract = abstractByPmid.get(pmid);
+            if (!abstract || !abstract.includes(normalizeForQuoteMatch(quote))) {
+                return null;
+            }
+            verifiedExcerptNumbers.add(number);
+            return { number, pmid, quote };
+        })
+        .filter(Boolean);
+
+    const claims = (Array.isArray(json.claims) ? json.claims : [])
+        .map((entry) => {
+            const text = String(entry?.text || "").trim();
+            const excerptNumbers = (
+                Array.isArray(entry?.excerptNumbers) ? entry.excerptNumbers : []
+            )
+                .map((number) => Number(number))
+                .filter((number) => verifiedExcerptNumbers.has(number));
+            if (!text || !excerptNumbers.length) {
+                return null;
+            }
+            return { text, excerptNumbers };
+        })
+        .filter(Boolean);
+
+    const gaps = (Array.isArray(json.gaps) ? json.gaps : [])
+        .map((entry) => {
+            const text = String(entry?.text || "").trim();
+            if (!text) {
+                return null;
+            }
+            const excerptNumbers = (
+                Array.isArray(entry?.excerptNumbers) ? entry.excerptNumbers : []
+            )
+                .map((number) => Number(number))
+                .filter((number) => verifiedExcerptNumbers.has(number));
+            return { text, excerptNumbers };
+        })
+        .filter(Boolean);
+
+    if (!claims.length && !gaps.length) {
         return null;
     }
-    return { knownFindings, knowledgeGaps };
+
+    const citedExcerptNumbers = new Set([
+        ...claims.flatMap((claim) => claim.excerptNumbers),
+        ...gaps.flatMap((gap) => gap.excerptNumbers),
+    ]);
+    return {
+        claims,
+        excerpts: excerpts.filter((excerpt) => citedExcerptNumbers.has(excerpt.number)),
+        gaps,
+    };
 }
 
 /**
@@ -366,7 +442,7 @@ export async function synthesizeGp2LiteratureFindings({ phenotype, geneNames, pa
         return { ok: false, reason: "llm-error", error };
     }
 
-    const parsed = parseGp2LiteratureResponse(raw);
+    const parsed = parseGp2LiteratureResponse(raw, { papers: digest.papers });
     if (!parsed) {
         return { ok: false, reason: "llm-error" };
     }

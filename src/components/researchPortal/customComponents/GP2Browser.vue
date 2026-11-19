@@ -643,6 +643,12 @@ function emptyQtlState(previous = {}) {
     };
 }
 
+/**
+ * All of claims/excerpts/gaps/papers accumulate into one continuous pool
+ * across "Show next 15" pages (not kept as separate per-page batches):
+ * excerpt numbers keep counting up so a claim's footnote always points at a
+ * globally unique excerpt, regardless of which page it was found on.
+ */
 function emptyLiteratureEvidenceState() {
     return {
         loading: false,
@@ -656,16 +662,16 @@ function emptyLiteratureEvidenceState() {
         papers: [],
         synthesizing: false,
         synthesisError: null,
-        knownFindings: "",
-        knowledgeGaps: "",
-        /**
-         * Each "Show next 15" page: { papers, synthesizing, synthesisError,
-         * knownFindings, knowledgeGaps }, rendered after the first page in
-         * the order fetched.
-         */
-        moreBatches: [],
+        /** Each claim: { text, excerptNumbers }. */
+        claims: [],
+        /** Each excerpt: { number, pmid, quote } — a verified verbatim quote from `papers`. */
+        excerpts: [],
+        /** Each gap: { text, excerptNumbers }. */
+        gaps: [],
         loadingMore: false,
         loadMoreError: null,
+        /** The last "Show next 15" page came back with zero new papers. */
+        exhausted: false,
     };
 }
 
@@ -7474,48 +7480,85 @@ export default Vue.component("gp2-browser", {
                     return;
                 }
 
-                this.literatureEvidenceState.synthesizing = true;
-                const synthesis = await synthesizeGp2LiteratureFindings({
-                    phenotype: result.phenotype,
-                    geneNames: result.genesSearched,
-                    papers: result.papers,
-                    locusDigest: result.locusDigest,
-                });
-                if (synthesis.ok) {
-                    this.literatureEvidenceState.knownFindings = synthesis.knownFindings;
-                    this.literatureEvidenceState.knowledgeGaps = synthesis.knowledgeGaps;
-                } else {
-                    this.literatureEvidenceState.synthesisError =
-                        synthesis.error?.message || "Could not generate a literature synthesis.";
-                }
+                await this.synthesizeAndAppendLiteratureEvidence(result.papers);
             } catch (error) {
                 this.literatureEvidenceState.error =
                     error?.message || "Could not search PubMed for this locus.";
             } finally {
                 this.literatureEvidenceState.loading = false;
-                this.literatureEvidenceState.synthesizing = false;
+            }
+        },
+        /**
+         * Runs the LLM synthesis for one page of papers (the first page, or a
+         * "Show next 15" page) and appends its claims/excerpts/gaps onto the
+         * continuous accumulated pool — renumbering the new excerpts so they
+         * keep counting up from whatever's already there, since a claim's
+         * footnote must point at a globally unique excerpt number regardless
+         * of which page it came from.
+         */
+        async synthesizeAndAppendLiteratureEvidence(pagePapers) {
+            const state = this.literatureEvidenceState;
+            state.synthesizing = true;
+            state.synthesisError = null;
+            try {
+                const synthesis = await synthesizeGp2LiteratureFindings({
+                    phenotype: state.phenotype,
+                    geneNames: state.genesSearched,
+                    papers: pagePapers,
+                    locusDigest: state.locusDigest,
+                });
+                if (!synthesis.ok) {
+                    state.synthesisError =
+                        synthesis.error?.message || "Could not generate a literature synthesis.";
+                    return;
+                }
+                const offset = state.excerpts.reduce(
+                    (max, excerpt) => Math.max(max, excerpt.number),
+                    0
+                );
+                const renumber = (excerptNumbers) =>
+                    excerptNumbers.map((number) => number + offset);
+                state.excerpts = [
+                    ...state.excerpts,
+                    ...synthesis.excerpts.map((excerpt) => ({
+                        ...excerpt,
+                        number: excerpt.number + offset,
+                    })),
+                ];
+                state.claims = [
+                    ...state.claims,
+                    ...synthesis.claims.map((claim) => ({
+                        ...claim,
+                        excerptNumbers: renumber(claim.excerptNumbers),
+                    })),
+                ];
+                state.gaps = [
+                    ...state.gaps,
+                    ...synthesis.gaps.map((gap) => ({
+                        ...gap,
+                        excerptNumbers: renumber(gap.excerptNumbers),
+                    })),
+                ];
+            } finally {
+                state.synthesizing = false;
             }
         },
         /**
          * "Show next 15": fetches the next page of PMIDs for the same query
-         * (reusing the gene set/term already resolved for the first page)
-         * and runs its own synthesis, appended as a new entry in
-         * `moreBatches` rather than merged into the first page's findings.
+         * (reusing the gene set/term already resolved for the first page),
+         * appends the new papers, and synthesizes just that page, merging
+         * its claims/excerpts/gaps into the running pool.
          */
         async loadMoreLiteratureEvidence() {
             const state = this.literatureEvidenceState;
-            if (!state.loaded || !state.query || state.loadingMore) {
+            if (!state.loaded || !state.query || state.loadingMore || state.exhausted) {
                 return;
             }
-            const retstart =
-                state.papers.length +
-                state.moreBatches.reduce((sum, batch) => sum + batch.papers.length, 0);
-
             state.loadingMore = true;
             state.loadMoreError = null;
             try {
                 const pageResult = await fetchGp2LiteraturePapersPage(state.query, {
-                    retstart,
+                    retstart: state.papers.length,
                     limit: GP2_LITERATURE_RESULT_LIMIT,
                 });
                 if (!pageResult.ok) {
@@ -7523,34 +7566,13 @@ export default Vue.component("gp2-browser", {
                         pageResult.error?.message || "Could not load more PubMed results.";
                     return;
                 }
-
-                const batch = {
-                    papers: pageResult.papers,
-                    synthesizing: false,
-                    synthesisError: null,
-                    knownFindings: "",
-                    knowledgeGaps: "",
-                };
-                state.moreBatches.push(batch);
-                if (!batch.papers.length) {
+                if (!pageResult.papers.length) {
+                    state.exhausted = true;
                     return;
                 }
 
-                batch.synthesizing = true;
-                const synthesis = await synthesizeGp2LiteratureFindings({
-                    phenotype: state.phenotype,
-                    geneNames: state.genesSearched,
-                    papers: batch.papers,
-                    locusDigest: state.locusDigest,
-                });
-                if (synthesis.ok) {
-                    batch.knownFindings = synthesis.knownFindings;
-                    batch.knowledgeGaps = synthesis.knowledgeGaps;
-                } else {
-                    batch.synthesisError =
-                        synthesis.error?.message || "Could not generate a literature synthesis.";
-                }
-                batch.synthesizing = false;
+                state.papers = [...state.papers, ...pageResult.papers];
+                await this.synthesizeAndAppendLiteratureEvidence(pageResult.papers);
             } catch (error) {
                 state.loadMoreError =
                     error?.message || "Could not load more PubMed results.";

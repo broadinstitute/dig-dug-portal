@@ -11,6 +11,16 @@
             <header class="gp2-research-head">
                 <h2 :id="titleId">{{ title }}</h2>
                 <button
+                    v-if="showLiteratureLoadMoreButton"
+                    type="button"
+                    class="gp2-research-head-action"
+                    :class="{ 'gp2-research-head-action-dim': literatureEvidenceState.exhausted }"
+                    :disabled="literatureEvidenceState.loadingMore || literatureEvidenceState.exhausted"
+                    @click="$emit('load-more-literature-evidence')"
+                >
+                    {{ literatureEvidenceState.loadingMore ? "Loading next 15…" : "Show next 15" }}
+                </button>
+                <button
                     type="button"
                     class="gp2-research-close"
                     :aria-label="`Close ${title}`"
@@ -51,20 +61,24 @@
                     >
                         {{ literatureEvidenceState.error }}
                     </div>
-                    <GP2BrowserLiteratureEvidencePanel
-                        v-else
-                        :genes-searched="literatureEvidenceState.genesSearched"
-                        :used-locus-digest="literatureEvidenceState.usedLocusDigest"
-                        :papers="literatureEvidenceState.papers"
-                        :synthesizing="literatureEvidenceState.synthesizing"
-                        :synthesis-error="literatureEvidenceState.synthesisError"
-                        :known-findings="literatureEvidenceState.knownFindings"
-                        :knowledge-gaps="literatureEvidenceState.knowledgeGaps"
-                        :more-batches="literatureEvidenceState.moreBatches"
-                        :loading-more="literatureEvidenceState.loadingMore"
-                        :load-more-error="literatureEvidenceState.loadMoreError"
-                        @load-more="$emit('load-more-literature-evidence')"
-                    />
+                    <template v-else>
+                        <div
+                            v-if="literatureEvidenceState.loadMoreError"
+                            class="gp2-research-status gp2-research-status-error gp2-research-status-spaced"
+                        >
+                            {{ literatureEvidenceState.loadMoreError }}
+                        </div>
+                        <GP2BrowserLiteratureEvidencePanel
+                            :genes-searched="literatureEvidenceState.genesSearched"
+                            :used-locus-digest="literatureEvidenceState.usedLocusDigest"
+                            :papers="literatureEvidenceState.papers"
+                            :synthesizing="literatureEvidenceState.synthesizing"
+                            :synthesis-error="literatureEvidenceState.synthesisError"
+                            :claims="literatureEvidenceState.claims"
+                            :excerpts="literatureEvidenceState.excerpts"
+                            :gaps="literatureEvidenceState.gaps"
+                        />
+                    </template>
                 </template>
             </div>
         </div>
@@ -139,6 +153,15 @@ export default {
         },
         titleId() {
             return `gp2-research-title-${this.panelId || "panel"}`;
+        },
+        showLiteratureLoadMoreButton() {
+            return (
+                this.panelId === "literatureEvidence" &&
+                this.literatureEvidenceState.loaded &&
+                !this.literatureEvidenceState.loading &&
+                !this.literatureEvidenceState.error &&
+                Boolean(this.literatureEvidenceState.papers?.length)
+            );
         },
     },
     watch: {
@@ -226,10 +249,32 @@ export default {
 }
 
 .gp2-research-head h2 {
+    flex: 1;
+    min-width: 0;
     margin: 0;
     font-size: 15px;
     font-weight: 700;
     color: var(--cfde-ink, #33363d);
+}
+
+.gp2-research-head-action {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cfde-blue, #2c5c97);
+    cursor: pointer;
+}
+
+.gp2-research-head-action:disabled {
+    cursor: default;
+}
+
+.gp2-research-head-action-dim {
+    opacity: 0.45;
 }
 
 .gp2-research-close {
@@ -256,5 +301,9 @@ export default {
 
 .gp2-research-status-error {
     color: #ee3124;
+}
+
+.gp2-research-status-spaced {
+    margin-bottom: 12px;
 }
 </style>
