@@ -32,3 +32,5 @@ pnpm-lock.yaml
 
 public/data/
 .vs/
+section_headers.json
+doctext.js
