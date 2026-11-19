@@ -451,3 +451,151 @@ export async function synthesizeGp2LiteratureFindings({ phenotype, geneNames, pa
 
     return { ok: true, ...parsed };
 }
+
+export const GP2_LITERATURE_KG_NODE_TYPES = ["variant", "gene", "mechanism", "phenotype"];
+
+export const GP2_LITERATURE_KG_SYSTEM_PROMPT = `You build a small knowledge graph from already-verified literature claims about a Parkinson's disease GWAS locus.
+Rules:
+- Use ONLY the numbered claims you are given. Never invent a variant, gene, mechanism, phenotype, or relationship that is not explicitly stated in at least one claim.
+- Node types must be exactly one of: "variant", "gene", "mechanism", "phenotype".
+- Create a "variant" node only when a claim names a specific variant (rsID or chr:pos allele). Do not invent variants from gene/phenotype risk statements.
+- Prefer compact reusable mechanism nodes (e.g. "lysosomal pH homeostasis", "autophagy", "α-synuclein aggregation") over restating whole sentences.
+- "edges": directed relationships. Each edge MUST include "claimNumbers" — 1-based indices into the provided claims list that support it. Drop any edge that cannot cite at least one claim.
+- "relation" should be a short snake_case predicate (e.g. genetic_risk_factor, regulates, risk_increasing_allele, impairs).
+- If two claims conflict (e.g. acidification vs alkalinization), keep both edges and set "conflict": true on each conflicting edge rather than choosing one.
+- Ignore vague "mentioned in context" claims that do not assert a concrete relationship.
+Respond with JSON only: {"nodes":[{"id":"...","type":"gene","label":"..."}],"edges":[{"from":"...","to":"...","relation":"...","claimNumbers":[1],"conflict":false}]}`;
+
+export function buildGp2LiteratureKgUserPrompt({ phenotype, claims }) {
+    const numbered = (claims || []).map((claim, index) => ({
+        number: index + 1,
+        text: String(claim?.text || "").trim(),
+    }));
+    return [
+        `Phenotype: ${phenotype || "Parkinsons"}.`,
+        `Claims (JSON): ${JSON.stringify(numbered)}`,
+        'Respond with JSON only: {"nodes":[{"id":"...","type":"gene","label":"..."}],"edges":[{"from":"...","to":"...","relation":"...","claimNumbers":[1]}]}',
+    ].join("\n");
+}
+
+function slugifyKgId(value, fallback = "node") {
+    const slug = String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    return slug || fallback;
+}
+
+/**
+ * Normalize + validate an LLM KG against the 1-based claim list the UI shows.
+ * Drops edges with invalid endpoints or no surviving claimNumbers; drops
+ * nodes that no remaining edge references (except keep phenotype/gene hubs
+ * only if cited).
+ */
+export function parseGp2LiteratureKnowledgeGraph(raw, { claims = [] } = {}) {
+    const { ok, json } = parseLlmJsonResponse(raw);
+    if (!ok || !json || typeof json !== "object") {
+        return null;
+    }
+
+    const maxClaim = (claims || []).length;
+    const validClaimNumbers = new Set(
+        Array.from({ length: maxClaim }, (_, index) => index + 1)
+    );
+
+    const nodesById = new Map();
+    (Array.isArray(json.nodes) ? json.nodes : []).forEach((entry) => {
+        const type = String(entry?.type || "").trim().toLowerCase();
+        if (!GP2_LITERATURE_KG_NODE_TYPES.includes(type)) {
+            return;
+        }
+        const label = String(entry?.label || entry?.id || "").trim();
+        if (!label) {
+            return;
+        }
+        const id = slugifyKgId(entry?.id || label, type);
+        if (!nodesById.has(id)) {
+            nodesById.set(id, { id, type, label });
+        }
+    });
+
+    const edges = [];
+    (Array.isArray(json.edges) ? json.edges : []).forEach((entry) => {
+        const from = slugifyKgId(entry?.from);
+        const to = slugifyKgId(entry?.to);
+        const relation = String(entry?.relation || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "_");
+        if (!from || !to || from === to || !relation) {
+            return;
+        }
+        if (!nodesById.has(from) || !nodesById.has(to)) {
+            return;
+        }
+        const claimNumbers = (
+            Array.isArray(entry?.claimNumbers) ? entry.claimNumbers : []
+        )
+            .map((number) => Number(number))
+            .filter((number) => validClaimNumbers.has(number));
+        if (!claimNumbers.length) {
+            return;
+        }
+        edges.push({
+            from,
+            to,
+            relation,
+            claimNumbers: [...new Set(claimNumbers)].sort((a, b) => a - b),
+            conflict: Boolean(entry?.conflict),
+        });
+    });
+
+    if (!edges.length) {
+        return null;
+    }
+
+    const usedIds = new Set();
+    edges.forEach((edge) => {
+        usedIds.add(edge.from);
+        usedIds.add(edge.to);
+    });
+    const nodes = Array.from(nodesById.values()).filter((node) => usedIds.has(node.id));
+    if (!nodes.length) {
+        return null;
+    }
+
+    return { nodes, edges };
+}
+
+/**
+ * Phase 3: second LLM pass over verified claims → variant/gene/mechanism/
+ * phenotype knowledge graph for network rendering.
+ * Returns `{ ok: false, reason: "no-claims" | "llm-error", error? }`.
+ */
+export async function extractGp2LiteratureKnowledgeGraph({ phenotype, claims }) {
+    const claimList = (claims || []).filter((claim) => String(claim?.text || "").trim());
+    if (!claimList.length) {
+        return { ok: false, reason: "no-claims" };
+    }
+
+    let raw;
+    try {
+        raw = await callGp2LiteratureLlm({
+            systemPrompt: GP2_LITERATURE_KG_SYSTEM_PROMPT,
+            userPrompt: buildGp2LiteratureKgUserPrompt({
+                phenotype,
+                claims: claimList,
+            }),
+        });
+    } catch (error) {
+        return { ok: false, reason: "llm-error", error };
+    }
+
+    const kg = parseGp2LiteratureKnowledgeGraph(raw, { claims: claimList });
+    if (!kg) {
+        return { ok: false, reason: "llm-error" };
+    }
+
+    return { ok: true, kg };
+}

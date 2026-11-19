@@ -77,6 +77,9 @@
                             :claims="literatureEvidenceState.claims"
                             :excerpts="literatureEvidenceState.excerpts"
                             :gaps="literatureEvidenceState.gaps"
+                            :kg="literatureEvidenceState.kg"
+                            :kg-loading="literatureEvidenceState.kgLoading"
+                            :kg-error="literatureEvidenceState.kgError"
                         />
                     </template>
                 </template>

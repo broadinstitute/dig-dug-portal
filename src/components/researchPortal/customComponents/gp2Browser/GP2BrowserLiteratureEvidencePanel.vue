@@ -35,6 +35,15 @@
                     type="button"
                     role="tab"
                     class="gp2-lit-evidence-tab"
+                    :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'network' }"
+                    @click="activeTab = 'network'"
+                >
+                    Network
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    class="gp2-lit-evidence-tab"
                     :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'excerpts' }"
                     @click="activeTab = 'excerpts'"
                 >
@@ -46,7 +55,12 @@
                 <section ref="claimsCol" class="gp2-lit-evidence-col">
                     <h3>What the literature establishes</h3>
                     <ol v-if="claims.length" class="gp2-lit-evidence-list">
-                        <li v-for="(claim, claimIndex) in claims" :key="`claim-${claimIndex}`">
+                        <li
+                            v-for="(claim, claimIndex) in claims"
+                            :id="claimAnchorId(claimIndex + 1)"
+                            :key="`claim-${claimIndex}`"
+                            :class="{ 'is-focused': focusedClaimNumbers.includes(claimIndex + 1) }"
+                        >
                             {{ claim.text }}
                             <GP2BrowserLiteratureFootnote
                                 v-if="claim.excerptNumbers.length"
@@ -75,6 +89,17 @@
                     </ol>
                     <p v-else class="gp2-lit-evidence-empty">No knowledge gaps identified yet.</p>
                 </section>
+            </div>
+
+            <div v-show="activeTab === 'network'" class="gp2-lit-evidence-network-tab">
+                <GP2BrowserLiteratureKgNetwork
+                    ref="kgNetwork"
+                    :kg="kg"
+                    :loading="kgLoading"
+                    :error="kgError"
+                    :visible="activeTab === 'network'"
+                    @focus-claims="onFocusClaims"
+                />
             </div>
 
             <div v-show="activeTab === 'excerpts'" class="gp2-lit-evidence-excerpts-tab">
@@ -133,11 +158,13 @@
 
 <script>
 import GP2BrowserLiteratureFootnote from "./GP2BrowserLiteratureFootnote.vue";
+import GP2BrowserLiteratureKgNetwork from "./GP2BrowserLiteratureKgNetwork.vue";
 
 export default {
     name: "GP2BrowserLiteratureEvidencePanel",
     components: {
         GP2BrowserLiteratureFootnote,
+        GP2BrowserLiteratureKgNetwork,
     },
     props: {
         genesSearched: {
@@ -175,6 +202,18 @@ export default {
             type: Array,
             default: () => [],
         },
+        kg: {
+            type: Object,
+            default: null,
+        },
+        kgLoading: {
+            type: Boolean,
+            default: false,
+        },
+        kgError: {
+            type: String,
+            default: null,
+        },
     },
     data() {
         return {
@@ -182,6 +221,8 @@ export default {
             columnWidth: null,
             abstractExcerptLength: 220,
             expandedPmids: {},
+            focusedClaimNumbers: [],
+            focusClearTimer: null,
         };
     },
     computed: {
@@ -215,6 +256,10 @@ export default {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
         }
+        if (this.focusClearTimer) {
+            clearTimeout(this.focusClearTimer);
+            this.focusClearTimer = null;
+        }
     },
     methods: {
         /** Matches the excerpt popover's width to the claims/gaps column it's triggered from. */
@@ -223,8 +268,34 @@ export default {
                 this.columnWidth = this.$refs.claimsCol.clientWidth;
             }
         },
+        claimAnchorId(number) {
+            return `gp2-lit-claim-${number}`;
+        },
         excerptAnchorId(number) {
             return `gp2-lit-excerpt-${number}`;
+        },
+        onFocusClaims(claimNumbers) {
+            this.activeTab = "evidences";
+            this.focusedClaimNumbers = Array.isArray(claimNumbers)
+                ? claimNumbers.map((number) => Number(number)).filter(Boolean)
+                : [];
+            this.$nextTick(() => {
+                const first = this.focusedClaimNumbers[0];
+                if (!first) {
+                    return;
+                }
+                const el = document.getElementById(this.claimAnchorId(first));
+                if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                }
+            });
+            if (this.focusClearTimer) {
+                clearTimeout(this.focusClearTimer);
+            }
+            this.focusClearTimer = setTimeout(() => {
+                this.focusedClaimNumbers = [];
+                this.focusClearTimer = null;
+            }, 4000);
         },
         paperByPmid(pmid) {
             return this.papers.find((paper) => String(paper.pmid) === String(pmid)) || null;
@@ -350,6 +421,16 @@ export default {
     font-size: 13px;
     line-height: 1.5;
     color: var(--cfde-ink, #33363d);
+}
+
+.gp2-lit-evidence-list > li {
+    scroll-margin-top: 12px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.gp2-lit-evidence-list > li.is-focused {
+    background: #fbeee3;
 }
 
 .gp2-lit-evidence-excerpts-list {

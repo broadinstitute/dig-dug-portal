@@ -7,7 +7,7 @@
  *   filter selections) — the shared schema has no QTL concept at all.
  * - The Actions assistant's conversation (requests run and the results they
  *   produced, e.g. AI summary / literature evidence confirmations).
- * - Literature evidence panel results (papers + claims/excerpts/gaps).
+ * - Literature evidence panel results (papers + claims/excerpts/gaps + KG).
  * - The focused-view Zoom level state (viewingCenterBp/viewingRegionWidthBp).
  * - `visibleSectionIds` as GP2 Browser actually has it. The shared exporter's
  *   `ui.visibleSectionIds` is normalized against the shared Variant Sifter
@@ -52,6 +52,7 @@ export function buildGp2SessionExtras({
                   claims: literatureEvidenceState.claims || [],
                   excerpts: literatureEvidenceState.excerpts || [],
                   gaps: literatureEvidenceState.gaps || [],
+                  kg: literatureEvidenceState.kg || null,
                   exhausted: Boolean(literatureEvidenceState.exhausted),
               }
             : null,
@@ -99,6 +100,14 @@ export function restoreGp2SessionExtras(payload) {
                       ? literatureEvidence.excerpts
                       : [],
                   gaps: Array.isArray(literatureEvidence.gaps) ? literatureEvidence.gaps : [],
+                  kg:
+                      literatureEvidence.kg &&
+                      Array.isArray(literatureEvidence.kg.nodes) &&
+                      Array.isArray(literatureEvidence.kg.edges)
+                          ? literatureEvidence.kg
+                          : null,
+                  kgLoading: false,
+                  kgError: null,
                   loadingMore: false,
                   loadMoreError: null,
                   exhausted: Boolean(literatureEvidence.exhausted),

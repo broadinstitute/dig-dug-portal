@@ -502,6 +502,7 @@ import {
 } from "./gp2Browser/gp2BrowserSessionExtras.js";
 import {
     GP2_LITERATURE_RESULT_LIMIT,
+    extractGp2LiteratureKnowledgeGraph,
     fetchGp2LiteraturePapers,
     fetchGp2LiteraturePapersPage,
     synthesizeGp2LiteratureFindings,
@@ -668,6 +669,10 @@ function emptyLiteratureEvidenceState() {
         excerpts: [],
         /** Each gap: { text, excerptNumbers }. */
         gaps: [],
+        /** Variant/gene/mechanism/phenotype graph from a second LLM pass over claims. */
+        kg: null,
+        kgLoading: false,
+        kgError: null,
         loadingMore: false,
         loadMoreError: null,
         /** The last "Show next 15" page came back with zero new papers. */
@@ -7539,8 +7544,45 @@ export default Vue.component("gp2-browser", {
                         excerptNumbers: renumber(gap.excerptNumbers),
                     })),
                 ];
+                await this.rebuildLiteratureKnowledgeGraph();
             } finally {
                 state.synthesizing = false;
+            }
+        },
+        /**
+         * Second LLM pass over the accumulated verified claims → network KG.
+         * Rebuilt after every successful synthesis page so "Show next 15"
+         * refreshes the graph from the full claim list.
+         */
+        async rebuildLiteratureKnowledgeGraph() {
+            const state = this.literatureEvidenceState;
+            if (!state.claims.length) {
+                state.kg = null;
+                state.kgError = null;
+                state.kgLoading = false;
+                return;
+            }
+            state.kgLoading = true;
+            state.kgError = null;
+            try {
+                const result = await extractGp2LiteratureKnowledgeGraph({
+                    phenotype: state.phenotype,
+                    claims: state.claims,
+                });
+                if (!result.ok) {
+                    state.kg = null;
+                    state.kgError =
+                        result.error?.message ||
+                        "Could not build a knowledge graph from these claims.";
+                    return;
+                }
+                state.kg = result.kg;
+            } catch (error) {
+                state.kg = null;
+                state.kgError =
+                    error?.message || "Could not build a knowledge graph from these claims.";
+            } finally {
+                state.kgLoading = false;
             }
         },
         /**
