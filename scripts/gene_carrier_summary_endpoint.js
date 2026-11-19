@@ -163,6 +163,23 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
     const lowQueue = [];
     let active = 0;
     let sampleCacheBytes = 0;
+    const qualifiedGene = require('./gene_variant_quality_endpoint')(app, {
+        accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
+        readRows: async (gene, token) => {
+            const disk = await diskCache(token);
+            const stored = disk && await disk.getQualityRows(gene);
+            if (Array.isArray(stored)) return stored;
+            const rows = [];
+            let page = await read('/api/bio/query/gene-variants-crdc', {q: gene}, 60000, token);
+            for (let count = 0; page; count++) {
+                if (count >= MAX_PAGES || !Array.isArray(page.data)) throw Error('Incomplete gene variants.');
+                rows.push(...page.data);
+                page = page.continuation ? await read('/api/bio/cont', {token:page.continuation}, 60000, token) : null;
+            }
+            if (disk && rows.length) disk.putQualityRows(gene, rows);
+            return rows;
+        },
+    }, options);
 
     require('./sample_match_projects_endpoint')(app, {
         accessToken: request => cookie.parse((request.headers && request.headers.cookie) || '').session || '',
@@ -281,7 +298,8 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
         }
     }
 
-    function carriersForGene(gene, accessToken) {
+    function carriersForGene(gene, accessToken, quality) {
+        if (quality === 'dp20_af001') return qualifiedGene(gene, accessToken);
         const cacheKey = `${accessScope(accessToken)}|${gene}`;
         if (geneCache.has(cacheKey)) return geneCache.get(cacheKey);
         const pending = (async () => {
@@ -370,7 +388,7 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
         return promise;
     }
 
-    function startJob(key, gene, requestedVariant, accessToken, refreshAttemptCount = 0) {
+    function startJob(key, gene, requestedVariant, accessToken, refreshAttemptCount = 0, quality = '') {
         const job = {
             status: "loading", completed: 0, total: 0, result: null, error: null,
             summary: null, snapshot: null, snapshotCompleted: -1,
@@ -378,14 +396,15 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
         };
         jobs.set(key, job);
         (async () => {
-            const carrierSets = await carriersForGene(gene, accessToken);
+            const carrierSets = await carriersForGene(gene, accessToken, quality);
             if (!requestedVariant) job.carrierSets = carrierSets;
             const ids = requestedVariant ? carrierSets.byVariant.get(requestedVariant) : carrierSets.all;
             if (!ids) throw new Error("Variant is unavailable for this gene");
             const sampleIds = [...ids];
             job.total = sampleIds.length;
             const disk=await diskCache(accessToken);
-            const stored=!requestedVariant && !refreshAttemptCount && disk && await disk.getSummary(gene);
+            const summaryCacheKey = quality ? gene + '-dp20-af001-v1' : gene;
+            const stored=!requestedVariant && !refreshAttemptCount && disk && await disk.getSummary(summaryCacheKey);
             if(stored && stored.carrierTotal===sampleIds.length && stored.matchedMetadataCount===sampleIds.length &&
                 sampleIds.every(id=>disk.getSample(id))) {
                 job.result=stored;job.completed=sampleIds.length;job.status='ready';
@@ -411,7 +430,7 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
             job.summary = null;
             job.snapshot = null;
             job.status = "ready";
-            if(!requestedVariant && disk && job.result.matchedMetadataCount===job.total)disk.putSummary(gene,job.result);
+            if(!requestedVariant && disk && job.result.matchedMetadataCount===job.total)disk.putSummary(summaryCacheKey,job.result);
         })().catch(error => {
             job.error = String(error && error.message ? error.message : error);
             job.status = "error";
@@ -424,6 +443,7 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
         response.set("X-Content-Type-Options", "nosniff");
         const gene = String((request.body || {}).gene || "").trim().toUpperCase();
         const requested = (request.body || {}).variant_ids;
+        const quality = (request.body || {}).quality === 'dp20_af001' ? 'dp20_af001' : '';
         if (!/^[A-Z0-9][A-Z0-9.-]{0,31}$/.test(gene) || !Array.isArray(requested) || requested.length > 20000 ||
             requested.some(id => typeof id !== 'string' || !/^chr(?:[0-9]{1,2}|X|Y|M|MT):[1-9][0-9]*:[ACGTN*.-]+:[ACGTN*.,-]+$/i.test(id))) {
             response.status(400).json({ error: "Enter a valid gene and variant selection." });
@@ -438,14 +458,14 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
         }
         const accessToken = cookie.parse((request.headers && request.headers.cookie) || "").session || "";
         const scope = accessScope(accessToken);
-        const key = `${scope}|${gene}|${crypto.createHash('sha256').update(JSON.stringify(variants)).digest('hex')}`;
+        const key = `${scope}|${gene}|${quality}|${crypto.createHash('sha256').update(JSON.stringify(variants)).digest('hex')}`;
         let job = selectedJobs.get(key);
         if (!job) {
             job = { status: 'loading', completed: 0, total: 0, summary: null, error: null };
             selectedJobs.set(key, job);
             if (selectedJobs.size > 20) selectedJobs.delete(selectedJobs.keys().next().value);
             (async () => {
-                const carrierSets = await carriersForGene(gene, accessToken);
+                const carrierSets = await carriersForGene(gene, accessToken, quality);
                 const selected = new Set();
                 for (const id of variants) {
                     const carriers = carrierSets.byVariant.get(id);
@@ -483,6 +503,7 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
         response.set("X-Content-Type-Options", "nosniff");
         const gene = String(request.query.gene || "").trim().toUpperCase();
         const variant = request.query.variant == null ? "" : String(request.query.variant).trim();
+        const quality = request.query.quality === 'dp20_af001' ? 'dp20_af001' : '';
         if (!/^[A-Z0-9][A-Z0-9.-]{0,31}$/.test(gene) ||
             (variant && !/^chr(?:[0-9]{1,2}|X|Y|M|MT):[1-9][0-9]*:[ACGTN*.-]+:[ACGTN*.,-]+$/i.test(variant))) {
             response.status(400).json({ error: "Enter a valid gene and variant." });
@@ -494,7 +515,7 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
         }
         const accessToken = cookie.parse((request.headers && request.headers.cookie) || "").session || "";
         const scope = accessScope(accessToken);
-        const key = `${scope}|${gene}|${variant.toLowerCase()}`;
+        const key = `${scope}|${gene}|${variant.toLowerCase()}${quality ? '|' + quality : ''}`;
         const previous = jobs.get(key);
         const requestedRefreshCount = Math.max(0, Math.min(2, Number(request.query.refresh) || 0));
         const refreshIncomplete = variant && requestedRefreshCount > 0 && previous &&
@@ -505,7 +526,7 @@ module.exports = function registerGeneCarrierSummaryEndpoint(app, bioIndexBase, 
             jobs.delete(key);
         }
         const refreshAttemptCount = refreshIncomplete ? previous.refreshAttemptCount + 1 : 0;
-        const job = jobs.get(key) || startJob(key, gene, variant, accessToken, refreshAttemptCount);
+        const job = jobs.get(key) || startJob(key, gene, variant, accessToken, refreshAttemptCount, quality);
         if (job.status === "loading" && job.summary && job.completed && job.snapshotCompleted !== job.completed) {
             job.snapshot = job.summary.snapshot();
             job.snapshotCompleted = job.completed;

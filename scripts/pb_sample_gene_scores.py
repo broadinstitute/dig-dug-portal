@@ -9,6 +9,7 @@ import csv
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import math
+from pathlib import Path
 import re
 from threading import Lock
 
@@ -151,9 +152,12 @@ def main():
     parser.add_argument("--roster", required=True)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8094)
+    parser.add_argument("--port-file", type=Path)
     args = parser.parse_args()
     engine = SampleGeneScores(args.gene_scores, args.covariates, args.roster)
     server = create_server((args.host, args.port), engine)
+    if args.port_file:
+        args.port_file.write_text(f"{server.server_port}\n")
     print(f"Private GRS membership API ready on {args.host}:{server.server_port}", flush=True)
     server.serve_forever()
 

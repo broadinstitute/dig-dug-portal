@@ -1,8 +1,11 @@
 # BCH portal prototype
 
-1. **Trying the prototype:** follow the [local installation guide](docs/pb_local_browser_setup.md): clone, install dependencies, run `npm run setup:pb-runtime`, and launch the browser application in two terminals. The installer downloads approved inputs over company SSH, verifies checksums, and creates local settings. Trial users do not edit scripts.
+1. **Trying the prototype**. Clone the branch, run `npm run start:pb`, and open the address shown in the terminal. [Local installation guide](docs/pb_local_browser_setup.md).
+
 2. **Source:** branch `kyuryung/bch-prototype`. Use a shallow, single-branch clone to avoid downloading the full Git history.
 3. **Maintainers only:** use the [five-page integration guide](docs/pb_front_gene_variant_merge_handoff.md). It is not an installation checklist for trial users.
+
+The [current browser changes and pre-commit checks](docs/pb_precommit_handoff_20261118.md) cover the five pages and runtime changes since `ece680bde`.
 
 <details>
 <summary>Original DIG Portal developer documentation</summary>

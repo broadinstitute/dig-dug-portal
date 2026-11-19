@@ -28,11 +28,16 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
         } else throw new Error(`Unexpected ${parsed.pathname}`);
         return {ok: true, json: async () => ({data})};
     };
-    function instance(token = '') {
+    function instance(token = '', quality = '') {
         const handlers = {};
-        register({get(route, fn) {handlers[route] = fn;}, post() {}}, 'http://source.test');
+        register({get(route, fn) {handlers[route] = fn;}, post() {}}, 'http://source.test', {
+            readVariantQuality: async () => ({min_depth:20,max_af_exclusive:.01,
+                source:{kind:'original_vcf_dp20_af001'},variants:[{
+                    variant_id:'chr1:100:A:G',sample_ids:['TEST_G38'],ac:1,an:200,af:.005,
+                }]}),
+        });
         return () => new Promise(resolve => handlers['/__gene_carrier_summary__'](
-            {query: {gene: 'TEST'}, headers: {cookie: token ? `session=${token}` : ''}},
+            {query: {gene: 'TEST', quality}, headers: {cookie: token ? `session=${token}` : ''}},
             {set() {}, json: resolve, status(code) {throw new Error(`Unexpected ${code}`);}}));
     }
     async function ready(call) {
@@ -62,6 +67,17 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
         build = 'build-2';
         await ready(instance());
         assert.strictEqual(metadataCalls, 3, 'A source rebuild must invalidate previous records');
+        const qualityCold = await ready(instance('quality-session', 'dp20_af001'));
+        const beforeRestart = variantCalls;
+        for (let n=0;n<100;n++) {
+            const directories=await fs.readdir(root);
+            const files=(await Promise.all(directories.map(dir=>fs.readdir(path.join(root,dir))))).flat();
+            if(files.includes('quality-rows-v1-TEST.json.gz')) break;
+            await pause(10);
+        }
+        const qualityWarm = await ready(instance('quality-session', 'dp20_af001'));
+        assert.strictEqual(qualityWarm.carrierTotal, qualityCold.carrierTotal);
+        assert.strictEqual(variantCalls, beforeRestart, 'Restarting qualified summaries must not refetch every BioIndex continuation page');
         await pause(30);
         console.log('Carrier endpoint restart cache: reused results, session isolation and rebuild invalidation PASS');
     } finally {

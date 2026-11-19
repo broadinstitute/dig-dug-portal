@@ -66,6 +66,8 @@ async function openCarrierDiskCache(root, namespace, now = Date.now) {
             return { byVariant, all: new Set([...byVariant.values()].flatMap(ids => [...ids])) };
         },
         putCarriers(gene, sets) { save('carriers-' + gene, [...sets.byVariant].map(([id, ids]) => [id, [...ids]])); },
+        getQualityRows(gene) { return load('quality-rows-v1-' + gene); },
+        putQualityRows(gene, rows) { save('quality-rows-v1-' + gene, rows); },
         getSummary(gene) { return load('summary-' + gene); },
         putSummary(gene, result) { save('summary-' + gene, result); },
         flush() { return writes; },

@@ -109,6 +109,33 @@ async function readHpo(filePath, hpoId) {
 }
 
 module.exports = function registerGeneHpoAssociationEndpoint(app, filePath) {
+    let lambdaCache;
+    function hpoLambdaForRelease() {
+        const directory = path.dirname(filePath);
+        const releaseId = process.env.PB_GENE_HPO_RELEASE_ID || path.basename(directory);
+        const lambdaPath = path.join(directory, 'hpo_lambda_gc.json');
+        try {
+            const info = fs.statSync(lambdaPath);
+            const key = `${releaseId}:${info.mtimeMs}:${info.size}`;
+            if (lambdaCache?.key === key) return lambdaCache.values;
+            const result = JSON.parse(fs.readFileSync(lambdaPath, 'utf8'));
+            const values = new Map();
+            if (result.releaseId === releaseId && result.method === 'median_chi_square_1df' && Array.isArray(result.rows)) {
+                for (const { hpoId, lambdaGc, nValidTests } of result.rows) {
+                    if (!/^HP:\d{7}$/.test(hpoId) || values.has(hpoId) || !Number.isFinite(lambdaGc) ||
+                        lambdaGc < 0 || !Number.isSafeInteger(nValidTests) || nValidTests < 1)
+                        throw new Error('Invalid HPO lambda result.');
+                    values.set(hpoId, { hpoLambdaGc: lambdaGc, hpoLambdaTests: nValidTests });
+                }
+            }
+            lambdaCache = { key, values };
+            return values;
+        } catch (_) {
+            lambdaCache = undefined;
+            return new Map();
+        }
+    }
+
     if (typeof app.post === 'function') {
         const comparisons = new Map();
         app.post('/__hpo_gene_carrier_comparison__', require('express').json({ limit: '1mb' }), async (request, response) => {
@@ -210,7 +237,12 @@ module.exports = function registerGeneHpoAssociationEndpoint(app, filePath) {
                     throw error;
                 }));
             }
-            response.json(await cache.get(key));
+            const result = await cache.get(key);
+            const lambdaValues = hpoLambdaForRelease();
+            response.json({
+                ...result,
+                associations: result.associations.map(row => ({ ...row, ...lambdaValues.get(row.hpoId) })),
+            });
         } catch (error) {
             response.status(502).json({ error: "Gene-HPO associations could not be loaded." });
         }

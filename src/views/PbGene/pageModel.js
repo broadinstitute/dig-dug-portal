@@ -1571,6 +1571,7 @@ export const pbGeneMethods = {
         this.$set(this.carrierSummaryErrors, key, "");
         try {
             const params = new URLSearchParams({ gene });
+            if (this.geneVariantQuality) params.set('quality', this.geneVariantQuality);
             if (variantId) params.set("variant", variantId);
             let incompleteVariantRefreshes = 0;
             for (let attempt = 0; attempt < 2400; attempt += 1) {
@@ -1848,17 +1849,23 @@ export const pbGeneMethods = {
             const genePValue = geneAssociation.p_value != null ? geneAssociation.p_value : useGrs ? null : burden.pValue != null ? burden.pValue : result.p_value;
             const reference = contextMatches(result.rphers_standardization, terms) ? result.rphers_standardization : null;
             const sdAvailable = referenceAvailable(reference);
+            const ciLow = standardizedField(geneAssociation, "beta_ci_low_sd_per_0_1_grs", reference);
+            const ciHigh = standardizedField(geneAssociation, "beta_ci_high_sd_per_0_1_grs", reference);
             this.contextRuns.push({
                 id: `${Date.now()}-${this.contextRuns.length}`,
                 hpos: terms.join(", "),
                 beta: this.contextStatistic(standardizedField(geneAssociation, "beta_sd_per_0_1_grs", reference)),
+                betaInterval: ciLow != null && ciHigh != null
+                    ? `${this.contextStatistic(ciLow)} – ${this.contextStatistic(ciHigh)}` : null,
                 betaRaw: geneAssociation.beta,
                 standardErrorSdPer0_1Grs: standardizedField(geneAssociation, "standard_error_sd_per_0_1_grs", reference),
                 referenceLabel: referenceDescription(reference),
                 pValue: this.contextStatistic(genePValue),
                 pValueSortValue: genePValue != null && Number.isFinite(Number(genePValue)) ? Number(genePValue) : Infinity,
                 status: geneAssociation.status || "unknown",
+                geneScoreModel: useGrs ? grs.model : null,
                 nPositiveBurden: useGrs ? grs.n_positive : burden.n_positive_burden,
+                nAnalysisSamples: geneAssociation.n_samples,
                 minCarriers: burden.min_carriers,
                 nVariantsScored: burden.n_variants_scored,
                 nVariantsTotal: burden.n_variants_total,
@@ -2016,7 +2023,7 @@ export const pbGeneMethods = {
         const query = normalizeGeneQuery(this.searchGeneQuery);
         if (!query) return;
         const current = normalizeGeneQuery(this.geneInfo && this.geneInfo.symbol);
-        if (query === current) {
+        if (query === current && this.liveDataLoaded) {
             this.searchGeneQuery = query;
             return;
         }
@@ -2052,6 +2059,7 @@ export const pbGeneMethods = {
         try {
             const pageCounts = {};
             const geneState = await fetchPbGeneBioIndexState(query, {
+                quality: this.geneVariantQuality,
                 onPartial: partialState => {
                     Object.keys(partialState).forEach(key => {
                         this[key] = partialState[key];

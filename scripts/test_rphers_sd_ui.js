@@ -12,9 +12,11 @@ const reference = { version: units.VERSION, status: 'ok', reference_id: 'referen
     scoring_cohort_id: 'cohort', reference_n: 100, reference_mean: 2, reference_sd: 4, ddof: 1, query_hpo: terms };
 const fields = { standardization_status: 'ok', standardization_reference_id: 'reference' };
 const gene = { ...fields, status: 'ok', beta: 8, standard_error: 2, beta_sd: 2,
-    beta_sd_per_0_1_grs: .2, standard_error_sd_per_0_1_grs: .05, p_value: .04, fdr: .08,
+    beta_sd_per_0_1_grs: .2, standard_error_sd_per_0_1_grs: .05,
+    beta_ci_low_sd_per_0_1_grs: .1, beta_ci_high_sd_per_0_1_grs: .3, p_value: .04, fdr: .08,
     score_type: 'sum', affected_only: true, n_positive: 12 };
 const payload = { rphers_standardization: reference, gene_association: gene,
+    sample_scope: { kind: 'selected_carriers_vs_noncarriers', reference_scope: 'full_scoring_cohort', sample_ids: ['A', 'B'] },
     variant_associations: { 'chr1:1:A:T': { ...fields, status: 'ok', beta: 8, beta_sd: 2, p_value: .03 } },
     variant_match_scores: { 'chr1:1:A:T': { ...fields, status: 'ok', match_score: 6, mean_rphers_z: 1,
         carrier_count: 2, scored_carrier_count: 2 } },
@@ -59,6 +61,7 @@ const hpoMock = { resolveHpoTerms: () => terms, contextApiError: async () => 'er
     await view.runContextAnalysis();
     assert.equal(view.contextError, '');
     assert.equal(view.contextRuns[0].beta, '0.200');
+    assert.equal(view.contextRuns[0].betaInterval, '0.100 – 0.300');
     assert.equal(view.contextRuns[0].betaRaw, 8);
     assert.equal(view.contextRuns[0].pValue, '0.040');
     assert.equal(view.variantRows[0].phenotypeMatchScore, 1);
@@ -68,8 +71,10 @@ const hpoMock = { resolveHpoTerms: () => terms, contextApiError: async () => 'er
 
     const variantModule = load('src/views/PbVariant/pageModel.js', {
         '@/views/PbGene/hpoContextSearch': hpoMock,
+        '../../utils/crdcHpoAvailability': { requireCrdcHpos: async () => {} },
     }, { fetch: fetcher });
     const variant = { ...variantModule.pbVariantMethods, contextInput: terms.join(','), contextRunId: 0,
+        genotypeCarrierCount: 2, genotypeSampleIds: ['A', 'B'], profileRuns: [], resultPages: {}, tableSort: {},
         contextScoreTypeInput: 'sum', contextAnalysisSetInput: 'affected',
         variantIdentity: { gene: 'HBB', canonicalId: 'chr1:1:A:T' }, contextTermDetails: [],
         runCoGeneAssociations() {} };

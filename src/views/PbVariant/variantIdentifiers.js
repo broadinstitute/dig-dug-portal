@@ -52,6 +52,33 @@ function transcriptGene(row) {
     return clean(row && (row.symbol || row.gene_symbol || row.geneId)).toUpperCase();
 }
 
+function chooseVariantGene(rows = []) {
+    // Prefer coding genes, then VEP's selected transcript, direct overlap and impact.
+    // Rank each gene by its best transcript so transcript counts do not bias selection.
+    const candidates = new Map();
+    for (const row of rows) {
+        const gene = transcriptGene(row);
+        if (!gene) continue;
+        const terms = clean(row.consequenceTerms || row.consequence || row.Consequence).split(/[,;&|]/).filter(Boolean);
+        const rank = [
+            /^protein_coding(?:_|$)/i.test(clean(row.biotype)) ? 1 : 0,
+            clean(row.pick) === '1' ? 1 : 0,
+            terms.some(term => !/^(?:upstream_gene_variant|downstream_gene_variant|intergenic_variant)$/.test(term.trim())) ? 1 : 0,
+            ({HIGH: 3, MODERATE: 2, LOW: 1})[clean(row.impact).toUpperCase()] || 0,
+        ];
+        const previous = candidates.get(gene);
+        if (!previous || compareRank(rank, previous) < 0) candidates.set(gene, rank);
+    }
+    return [...candidates.keys()].sort((a, b) => compareRank(candidates.get(a), candidates.get(b)) || a.localeCompare(b))[0] || null;
+}
+
+function compareRank(a, b) {
+    for (let index = 0; index < a.length; index++) {
+        if (a[index] !== b[index]) return b[index] - a[index];
+    }
+    return 0;
+}
+
 function chooseTranscript(rows, geneInfo = {}) {
     const gene = clean(geneInfo.symbol).toUpperCase();
     const candidates = (rows || []).filter(row => !gene || transcriptGene(row) === gene);
@@ -99,6 +126,7 @@ function buildTranscriptIdentity(rows, geneInfo = {}) {
 module.exports = {
     buildTranscriptIdentity,
     canonicalVariantId,
+    chooseVariantGene,
     gnomadVariantHref,
     isRsid,
     isVariantId,

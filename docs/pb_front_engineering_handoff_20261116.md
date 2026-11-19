@@ -2,6 +2,8 @@
 
 Updated: 2026-11-16. Entries: `/pb_front.html`, `/pb_Front.html`, `/pb_front2.html`.
 
+The current local start command is `npm run start:pb`. Use Front2 to verify gene routing to Gene2 and multi-HPO routing to Phenotype. [Local setup](pb_local_browser_setup.md).
+
 **Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry each Front template's own CSS, layout, typography, colors, spacing, input/dropdown states, icons, responsive behavior and Guide assets; preserve the existing differences between Front and Front2.
 
 ## Current search behavior

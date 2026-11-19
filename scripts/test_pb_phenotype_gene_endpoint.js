@@ -45,12 +45,28 @@ async function main() {
     assert.equal(response.payload.associations[0].qSignificant, false, 'Legacy HPO significance is not used on Gene');
     assert.equal(response.payload.nQSignificant, 1);
     assert.equal(response.payload.nTestedHpos, 5000);
+    assert.equal(response.payload.associations[0].hpoLambdaGc, undefined, 'Lambda is optional');
+    const lambdaPath = path.join(root, 'hpo_lambda_gc.json');
+    fs.writeFileSync(lambdaPath, JSON.stringify({
+        releaseId: process.env.PB_GENE_HPO_RELEASE_ID || path.basename(root),
+        method: 'median_chi_square_1df',
+        rows: [{ hpoId: 'HP:0001250', lambdaGc: 0.509, nValidTests: 17952 }],
+    }));
+    await handlers['/__gene_hpo_associations__']({ query: { gene: 'SCN1A' } }, response);
+    assert.equal(response.payload.associations[0].hpoLambdaGc, .509);
+    assert.equal(response.payload.associations[0].hpoLambdaTests, 17952);
+    assert.equal(response.payload.associations[0].pValue, .001);
     await handlers['/__gene_hpo_associations__']({query: {gene: 'LARGE'}}, response);
     assert.equal(response.payload.associations.length, 31, 'All delivered rows are returned without a top-15 cutoff');
+    assert.equal(response.payload.associations.find(row => row.hpoId === 'HP:0000001').hpoLambdaGc, undefined, 'Only the matching HPO receives lambda');
     assert.equal(response.payload.associations.filter(row => row.qSignificant).length, 2);
     assert.equal(response.payload.associations.filter(row => !row.positiveDirection).length, 15, 'Negative directions remain in the delivery');
     await handlers['/__gene_hpo_associations__']({query: {gene: 'NEGATIVE'}}, response);
     assert.equal(response.payload.associations[0].qValue, null, 'A missing gene-wise q is not replaced by HPO-wise q');
+    assert.equal(response.payload.associations[0].hpoLambdaGc, .509, 'The same HPO has the same lambda on other Gene pages');
+    fs.unlinkSync(lambdaPath);
+    await handlers['/__gene_hpo_associations__']({ query: { gene: 'SCN1A' } }, response);
+    assert.equal(response.payload.associations[0].hpoLambdaGc, undefined, 'A removed file cannot leave stale lambda values');
     const indexedSource = path.join(root, 'complete.jsonl.gz');
     const index = path.join(root, 'hpo-gene.sqlite');
     const complete = Array.from({length: 31}, (_, i) => ({gene: 'GENE' + i, selection_rule: 'p_value_lt_0.05', associations: [{hpo_id:'HP:0001250', gene:'GENE'+i, fit_status:'PASS', beta_gene_score_sum_approx:i % 2 ? -1 : 2, se_gene_score_sum_approx:.5, n_samples:100, n_cases:20, n_controls:80, n_positive_samples:10, p_value:.001+i/10000, q_by_hpo:i<3?.01:.4, q_by_gene:.8, positive_direction:i%2===0, odds_ratio_approx:Math.exp(i%2?-1:2), ci_lower_approx:Math.exp(i%2?-2:1), ci_upper_approx:Math.exp(i%2?0:3)}]}));

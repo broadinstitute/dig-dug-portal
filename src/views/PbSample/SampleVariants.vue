@@ -4,14 +4,14 @@
             <table class="pbs-variant-table">
                 <colgroup><col style="width:10%" /><col style="width:22%" /><col style="width:15%" /><col style="width:10%" /><col style="width:13%" /><col style="width:13%" /><col style="width:10%" /><col style="width:7%" /></colgroup>
                 <thead><tr>
-                    <th><div class="pbs-column-heading"><ColumnHeaderFilter label="Gene" :options="geneOptions" :selected="selectedGenes" :match-count="filtered.length" @input="selectedGenes = $event" @sort="setSort('gene',$event)" /><SampleInfo label="Gene and genome build" :text="help.gene" /></div></th>
+                    <th><div class="pbs-column-heading"><ColumnHeaderFilter label="Gene" :query="columnQueries.gene" @query="columnQueries.gene = $event" :options="geneOptions" :selected="selectedGenes" :match-count="filtered.length" @input="selectedGenes = $event" @sort="setSort('gene',$event)" /><SampleInfo label="Gene and genome build" :text="help.gene" /></div></th>
                     <th><ColumnHeaderFilter label="Variant" search-only :query="search" :match-count="filtered.length" @query="search = $event" @sort="setSort('id',$event)" /></th>
-                    <th><ColumnHeaderFilter label="Consequence" :options="consequenceOptions" :selected="selectedConsequences" :match-count="filtered.length" @input="selectedConsequences = $event" @sort="setSort('consequence',$event)" /></th>
-                    <th><div class="pbs-column-heading"><ColumnHeaderFilter label="Score source" :options="annotationOptions" :selected="selectedAnnotations" :match-count="filtered.length" @input="selectedAnnotations = $event" @sort="setSort('annotation',$event)" /><SampleInfo label="Score source and references" :text="help.scoreSource" :links="scoreReferences" /></div></th>
+                    <th><ColumnHeaderFilter label="Consequence" :query="columnQueries.consequence" @query="columnQueries.consequence = $event" :options="consequenceOptions" :selected="selectedConsequences" :match-count="filtered.length" @input="selectedConsequences = $event" @sort="setSort('consequence',$event)" /></th>
+                    <th><div class="pbs-column-heading"><ColumnHeaderFilter label="Score source" :query="columnQueries.annotation" @query="columnQueries.annotation = $event" :options="annotationOptions" :selected="selectedAnnotations" :match-count="filtered.length" @input="selectedAnnotations = $event" @sort="setSort('annotation',$event)" /><SampleInfo label="Score source and references" :text="help.scoreSource" :links="scoreReferences" /></div></th>
                     <th><div class="pbs-column-heading"><button type="button" @click="sortBy('score')">In silico score <b-icon-arrow-down-up /></button><SampleInfo label="In silico score" :text="help.inSilicoScore" /></div></th>
-                    <th><ColumnHeaderFilter label="ClinVar" accent :options="clinvarOptions" :selected="selectedClinvar" :match-count="filtered.length" @input="selectedClinvar = $event" @sort="setSort('clinvar',$event)" /></th>
+                    <th><ColumnHeaderFilter label="ClinVar" :query="columnQueries.clinvar" @query="columnQueries.clinvar = $event" accent :options="clinvarOptions" :selected="selectedClinvar" :match-count="filtered.length" @input="selectedClinvar = $event" @sort="setSort('clinvar',$event)" /></th>
                     <th><button @click="sortBy('crdcAlleleFrequency')" type="button">CRDC AF <b-icon-arrow-down-up /></button></th>
-                    <th><div class="pbs-column-heading"><ColumnHeaderFilter label="GT" :options="genotypeOptions" :selected="selectedGenotypes" :match-count="filtered.length" @input="selectedGenotypes = $event" @sort="setSort('genotype',$event)" /><SampleInfo label="GT (genotype)" :text="help.genotype" /></div></th>
+                    <th><div class="pbs-column-heading"><ColumnHeaderFilter label="GT" :query="columnQueries.genotype" @query="columnQueries.genotype = $event" :options="genotypeOptions" :selected="selectedGenotypes" :match-count="filtered.length" @input="selectedGenotypes = $event" @sort="setSort('genotype',$event)" /><SampleInfo label="GT (genotype)" :text="help.genotype" /></div></th>
                 </tr></thead>
                 <tbody><tr v-for="(row,index) in visible" :key="row.gene + ':' + row.id + ':' + index">
                     <td><a :href="geneHref(row.gene)">{{ row.gene }}</a></td>
@@ -42,7 +42,7 @@ const { clinvarDisplayLabel } = require('../../utils/clinvarLabels');
 export default {
     components: { SummaryPager, ColumnHeaderFilter, SampleInfo },
     props: { variants: { type: Array, default: () => [] } },
-    data: () => ({ help, scoreReferences: VARIANT_ANNOTATION_SOURCES.predictors.links, search:'', selectedGenes:null, selectedConsequences:null, selectedAnnotations:null, selectedClinvar:null, selectedGenotypes:null, sortKey:'gene', sortDirection:1, page:1, pageSize:5 }),
+    data: () => ({ help, scoreReferences: VARIANT_ANNOTATION_SOURCES.predictors.links, search:'', columnQueries:{gene:'',consequence:'',annotation:'',clinvar:'',genotype:''}, selectedGenes:null, selectedConsequences:null, selectedAnnotations:null, selectedClinvar:null, selectedGenotypes:null, sortKey:'gene', sortDirection:1, page:1, pageSize:5 }),
     computed: {
         geneOptions() { return this.valueOptions(row => row.gene); },
         filteredGeneCount() { return new Set(this.filtered.map(row => row.gene).filter(gene => gene && gene !== 'Unavailable' && gene !== '—')).size; },
@@ -52,7 +52,13 @@ export default {
         genotypeOptions() { return this.valueOptions(row => row.genotype); },
         filtered() {
             const search = this.search.trim().toLowerCase();
-            return this.variants.filter(row => (this.selectedGenes === null || this.selectedGenes.includes(row.gene))
+            const includes = (value, query) => String(value || '').toLowerCase().includes(query.trim().toLowerCase());
+            return this.variants.filter(row => includes(row.gene, this.columnQueries.gene)
+                && includes(row.consequence, this.columnQueries.consequence)
+                && includes(this.annotation(row) + ' ' + this.annotationKind(row), this.columnQueries.annotation)
+                && includes(this.clinvarValue(row), this.columnQueries.clinvar)
+                && includes(row.genotype, this.columnQueries.genotype)
+                && (this.selectedGenes === null || this.selectedGenes.includes(row.gene))
                 && (!search || [row.id, row.gene, row.hgvsc, row.hgvsp, row.rsid].join(' ').toLowerCase().includes(search))
                 && (this.selectedConsequences === null || this.selectedConsequences.includes(row.consequence))
                 && (this.selectedClinvar === null || this.selectedClinvar.includes(this.clinvarValue(row)))
@@ -70,9 +76,9 @@ export default {
         }); },
         pageCount() { return Math.max(1, Math.ceil(this.filtered.length / this.pageSize)); },
         visible() { return this.sorted.slice((this.page - 1) * this.pageSize, this.page * this.pageSize); },
-        filterSignature() { return JSON.stringify([this.search, this.selectedGenes, this.selectedConsequences, this.selectedAnnotations, this.selectedClinvar, this.selectedGenotypes, this.pageSize, this.variants]); },
+        filterSignature() { return JSON.stringify([this.search, this.columnQueries, this.selectedGenes, this.selectedConsequences, this.selectedAnnotations, this.selectedClinvar, this.selectedGenotypes, this.pageSize]); },
     },
-    watch: { filterSignature() { this.page = 1; } },
+    watch: { filterSignature() { this.page = 1; }, variants() { this.page = 1; } },
     methods: {
         score: burdenPathogenicScore,
         scoreExplanation: variantScoreExplanation,

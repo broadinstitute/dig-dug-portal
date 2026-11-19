@@ -46,6 +46,7 @@ async function main() {
     let metadataRequests = 0;
     let profileRows = [];
     const pageOptions = load('src/views/PbPhenotype/Template.vue', {
+        '../PbGene/SummaryPager': {}, '../PbGene2/InfoRail.vue': {}, '@/components/pb/PortalGuide.vue': {},
         './orphanetReference.generated': { ORPHANET_REFERENCE: { terms, diseases: [], associations: {}, meta: {} } },
         './additionalDiseaseReferences.generated.json': { terms: {}, profiles: [] },
         './SinglePhenotypeResults.vue': {}, './singlePhenotypeModel': load('src/views/PbPhenotype/singlePhenotypeModel.js', {'./phenotypeModel': model}),

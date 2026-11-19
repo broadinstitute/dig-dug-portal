@@ -72,6 +72,25 @@ class SampleAnalysisTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'missing'):
             engine.sample_matches('BCH-22-11943-01')
 
+    def test_obsolete_hpo_is_resolved_without_dropping_or_double_counting(self):
+        engine = self.engine()
+        engine.hpo['matrix'] = sparse.hstack([engine.hpo['matrix'], np.ones((4, 1))], format='csr')
+        engine.hpo['hpo_columns'].append('HP:0001317')
+        engine.column_index['HP:0001317'] = 53
+        reference = engine.metadata['BCH-22-11943-01']
+        reference['hpo_terms_raw'] += ',HP:0002438,HP:0001317'
+        engine.metadata['BCH-22-12345-01']['hpo_terms_raw'] += ',HP:0002438'
+        raw = reference['hpo_terms_raw']
+        result = engine.sample_matches('BCH-22-11943-01')
+        self.assertEqual(result['reference_hpo_count'], 54)
+        self.assertNotIn('HP:0002438', result['reference_hpo_ids'])
+        self.assertIn('HP:0001317', result['reference_hpo_ids'])
+        self.assertEqual(result['reference_hpo_aliases'], {'HP:0002438': 'HP:0001317'})
+        self.assertEqual(reference['hpo_terms_raw'], raw, 'Original recorded metadata is preserved')
+        detail = engine.sample_match_detail('BCH-22-11943-01', 'BCH-22-12345-01')
+        target = next(row for row in detail['hpo_matches'] if row['id'] == 'HP:0001317')
+        self.assertEqual(target, {'id': 'HP:0001317', 'matched': True, 'matchType': 'recorded'})
+
     def test_private_project_inputs_preserve_scoring_and_validate_vcf_ids(self):
         engine = self.engine()
         engine.metadata['BCH-22-12345-01']['vcf_sample_id'] = 'WRONG_G38'

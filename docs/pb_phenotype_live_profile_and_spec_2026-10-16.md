@@ -1,5 +1,9 @@
 # Phenotype — test-server implementation contract
 
+## Shared analysis API — 2026-11-18
+
+`profileGeneApi.js` accepts score and sample settings for Gene2. Phenotype defaults to Max / All and requests the full eligible gene family for BH correction. Use `ProjectPhenotypeTree.vue` for the accepted hierarchy. [Local setup and review](pb_precommit_handoff_20261118.md).
+
 **Reproduce the user's current prototype design and interactions exactly.** The [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages) applies to this entire page, including its typography, colors, spacing, borders, card/table layout, responsive behavior and every interactive state. Carry the Vue templates and CSS together.
 
 ## Shared UI update — 2026-11-17

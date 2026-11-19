@@ -78,7 +78,7 @@ assert(segments && text(segments).includes('All') && text(segments).includes('He
 instance.variantHpoCount={count:1,metadataCount:2,carrierTotal:2,complete:true};
 instance.variantHpoCountStatus='ready';instance.variantHpoResponseKey=instance.variantHpoCountKey;
 assert.equal(instance.variantHpoCountDisplay,'1');
-assert(instance.variantHpoCountTitle.includes('at least ONE')&&instance.variantHpoCountTitle.includes('Each carrier is counted once'));
+assert(instance.variantHpoCountTitle.includes('at least one')&&instance.variantHpoCountTitle.includes('Each carrier is counted once'));
 assert(instance.carrierPhenotypesHelp.includes('at least one recorded HPO term')&&instance.carrierPhenotypesHelp.includes('excluded from the phenotype-statistics denominator'));
 assert(!text(carrierCard).includes('Mean pathogenicity sum')&&!text(carrierCard).includes('Private BioIndex detail')&&!text(carrierCard).includes('variant carriers shown'));
 const sampleHeading=find(carrierCard,node=>node.data?.staticClass==='pbg-selected-sample-head');
@@ -295,3 +295,59 @@ async function verifyCarrierPhenotypeSearch() {
     console.log('PB_VARIANT_CARRIER_SEARCH_REVEAL_PAGINATION_AND_DISTINCT_HIGHLIGHTS_PASS');
 }
 verifyCarrierPhenotypeSearch().catch(error=>{console.error(error);process.exitCode=1;});
+
+async function verifyUnprofiledCarrierDetails() {
+    const page = new Vue({data: () => ({...model.createPbVariantState(), ...req('./src/views/PbVariant/layoutHelp'),
+        help: req('./src/views/PbGene2/evidenceHelp'), sources: load('src/views/PbGene2/referenceProvenance.js').VARIANT_ANNOTATION_SOURCES,
+        infoReserved: false, phenotypeRootExpanded: true}), computed: model.pbVariantComputed, methods: model.pbVariantMethods, ...functions});
+    page.variantAvailable = true;
+    page.contextInput = '';
+    page.activeContextTerms = [];
+    page.carrierRecords = req('./src/views/PbVariant/carrierStatistics').normalizeCarrierRecords([
+        {id: 'only-carrier', gt: '0/1', hpoCount: 0},
+    ]);
+    assert.equal(page.profileRuns.length, 0);
+    assert.equal(page.profileScoredCarriers.length, 0);
+    assert.equal(page.carrierSamplesTab, 'profile', 'Phenotype profile is the default tab');
+    const initialCarrierPanel = find(page._render(), node => node.data?.attrs?.id === 'pbv-all-carrier-details');
+    assert.equal(initialCarrierPanel.data.directives.find(directive => directive.name === 'show').value, false, 'All-carrier details start hidden');
+    const profileTab = find(page._render(), node => node.data?.attrs?.id === 'pbv-phenotype-profile-tab');
+    assert(profileTab && profileTab.data.attrs['aria-selected'] === 'true');
+    profileTab.data.on.click();
+    assert.equal(page.carrierSamplesTab, 'profile');
+    assert.equal(page.profileRuns.length, 0, 'Switching tabs must not trigger a phenotype analysis');
+    const carrierTab = find(page._render(), node => node.data?.attrs?.id === 'pbv-carrier-details-tab');
+    carrierTab.data.on.click();
+    const profilePanel = find(page._render(), node => node.data?.attrs?.id === 'pbv-phenotype-profile-panel');
+    assert.equal(profilePanel.data.directives.find(directive => directive.name === 'show').value, false);
+    let details = find(page._render(), node => node.data?.attrs?.id === 'pbv-all-carrier-details');
+    assert(details && text(details).includes('only-carrier'), 'An unscored singleton is visible without any phenotype input');
+    assert(find(details, node => node.tag === 'a' && node.data?.attrs?.href === '/pb_sample.html?query=only-carrier'));
+    assert(!text(details).includes('rPheRS Z'), 'The unprofiled table must not invent phenotype scores');
+    assert.equal(page.allCarrierPageCount, 1);
+    assert.equal(page.carrierHpoCount(page.visibleAllCarrierRows[0]), 0, 'An empty phenotype record does not hide a carrier');
+    page.sampleMetadataStatus = 'loading';
+    details = find(page._render(), node => node.data?.attrs?.id === 'pbv-all-carrier-details');
+    assert(text(details).includes('only-carrier') && text(details).includes('Loading sample details'), 'Carrier IDs are available while metadata loads');
+
+    page.carrierRecords = req('./src/views/PbVariant/carrierStatistics').normalizeCarrierRecords(
+        Array.from({length: 6}, (_, index) => ({id: `sample-${index + 1}`, gt: index === 0 ? '1/1' : '0/1'})));
+    assert.equal(page.visibleAllCarrierRows.length, 5);
+    page.setResultPage('allCarriers', 2);
+    assert.equal(page.visibleAllCarrierRows[0].id, 'sample-6');
+    assert.equal(page.resultPages.carriers, 1, 'All-carrier pagination is independent of profile results');
+    page.sortTableColumn('allCarriers', 'sample');
+    assert.equal(page.visibleAllCarrierRows[0].id, 'sample-6');
+    assert.equal(page.resultPages.allCarriers, 1);
+    assert.equal(page.tableSort.carriers.key, 'residual', 'All-carrier sorting does not change profile ordering');
+    page.genotypeDraft = ['homozygous'];
+    await page.applyGenotypeFilter();
+    assert.equal(page.genotypeCarrierCount, 1);
+    assert.equal(page.visibleAllCarrierRows[0].id, 'sample-1');
+    assert.equal(page.resultPages.allCarriers, 1);
+    assert.equal(page.carrierSamplesTab, 'carriers', 'Changing genotype keeps the carrier list available');
+    assert.equal(page.profileRuns.length, 0, 'Opening carrier details never runs a phenotype analysis');
+    page.$destroy();
+    console.log('PB_VARIANT_UNPROFILED_ALL_CARRIERS_SINGLETON_AND_PAGINATION_PASS');
+}
+verifyUnprofiledCarrierDetails().catch(error=>{console.error(error);process.exitCode=1;});

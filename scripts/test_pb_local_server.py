@@ -8,12 +8,29 @@ import sys
 import tempfile
 import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from scripts import pb_local_server as lifecycle
+from scripts import run_pb_browser as browser
 
 
 class LocalServerTests(unittest.TestCase):
+    def test_browser_waits_for_the_validated_analysis_tunnel(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ready = Path(directory) / 'tunnel'
+            tunnel = Mock()
+            tunnel.poll.return_value = None
+            with patch.object(browser, 'api_ready', return_value=True) as probe:
+                def publish(_delay):
+                    probe.assert_not_called()
+                    ready.write_text('opening\n')
+                with patch.object(browser.time, 'sleep', side_effect=publish):
+                    self.assertEqual(browser.wait_for_analysis(tunnel, ready), 'opening')
+                self.assertEqual([call.args[0] for call in probe.call_args_list], list(browser.API_PORTS))
+            tunnel.poll.return_value = 2
+            with self.assertRaisesRegex(RuntimeError, 'ended before'):
+                browser.wait_for_analysis(tunnel, ready)
+
     def test_only_actual_server_commands_match(self):
         for command in ['node ./node_modules/.bin/vue-cli-service serve --port 8098',
                         '/usr/local/bin/Python -m scripts.pb_phenotype_profile_api --port 8093',

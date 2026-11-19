@@ -32,7 +32,7 @@ class BatchLifecycleTest(unittest.TestCase):
         self.root = base / 'deployments/test'
         for directory in ('runtime', 'source', 'inputs', 'scripts', 'pids', 'bin'):
             (self.root / directory).mkdir(parents=True)
-        for relative in ('inputs.ready', 'scripts/pb_sample_gene_scores.py',
+        for relative in ('inputs.ready', 'scripts/pb_sample_gene_scores.py', 'scripts/pb_vcf_quality_api.py',
                          'source/2025_crdc_15764sample_hpo_parent_expanded_binary.tsv.gz',
                          'source/gene_scores.tsv', 'inputs/roster.tsv', 'inputs/covariates.tsv'):
             (self.root / relative).write_text('fixture')
@@ -78,7 +78,7 @@ class BatchLifecycleTest(unittest.TestCase):
     def wait_for_apis(self, process):
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline:
-            if len(list((self.root / 'pids').iterdir())) == 3:
+            if len(list((self.root / 'pids').iterdir())) == 4:
                 return
             if process.poll() is not None:
                 output, errors = process.communicate()

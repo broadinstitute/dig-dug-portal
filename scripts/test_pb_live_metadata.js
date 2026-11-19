@@ -48,10 +48,15 @@ async function main() {
     assert.equal((await adapter.fetchPbSampleBioIndexState('sample1_G38')).patientStatus, 'not-found');
     mode = 'error';
     assert.equal((await adapter.fetchPbSampleBioIndexState('sample1_G38')).patientStatus, 'unavailable');
+    let qualityAvailable = true;
     const gene = load('src/views/PbGene/pbGeneBioIndexAdapter.js', {
-        '@/utils/bioIndexUtils': { query: async index => index === 'gene' ? [] : [{
-            chromosome: '13', position: 20189005, reference: 'CTG', alt: 'C', samples: ['sample1_E38', 'sample2_E38'],
-            af: '8.70549e-05', ac: 2, an: 22974,
+        '@/utils/bioIndexUtils': { query: async (index, symbol) => index === 'gene' ? (
+            symbol === 'KNOWN' ? [{description: 'Known gene with no CRDC records'}] : []
+        ) : [{
+            chromosome: '13', position: 20189005, reference: 'CTG', alt: 'C', samples: ['sample1_E38', 'sample2_E38', 'sample1_E38'],
+            af: '8.70549e-05', ac: 2, an: 22974, crdc_cohort_count: 16366,
+        }, {
+            chromosome: '13', position: 20189006, reference: 'T', alt: 'C', samples: ['sample1_E38', 'sample3_E38'],
         }] },
         './geneHpoDisplay': {},
         './geneAnnotationReference': { getGeneReferenceAnnotation: () => null },
@@ -59,12 +64,18 @@ async function main() {
         './geneIdReference.generated': { PB_GENE_ID_REFERENCE: {} },
         './variantLookup': { collectVariantIdentifiers: () => ({}) },
         './carrierGenotypes': require('../src/views/PbGene/carrierGenotypes'),
-    }, {fetch: async url => ({ok:true,json:async()=>url.startsWith('/__pb_gene_genotypes__')
+    }, {fetch: async url => /gene=(KNOWN|KNO2)$/.test(url) && url.startsWith('/__gene_qualified_variants__')
+        ? {ok:true,json:async()=>({gene:url.split('=').at(-1),quality:'dp20_af001',status:'no_source_variants',source:null,variantRows:[]})}
+        : url.startsWith('/__gene_qualified_variants__') ? {ok:qualityAvailable,json:async()=>({gene:'GJB2',quality:'dp20_af001',source:{kind:'original_vcf_dp20_af001'},variantRows:[{
+        chromosome:'13',position:20189005,reference:'CTG',alt:'C',samples:['sample1_E38'],af:.005,ac:1,an:200,
+    }]})} : ({ok:true,json:async()=>url.startsWith('/__pb_gene_genotypes__')
         ? {gene:'GJB2', rows:[{variant_id:'chr13:20189005:CTG:C',sample_id:'sample1_E38',gt:'0/1',status:'matched'}],
             source:{data_version:'2025_crdc_16366_dp20_af001_20260907'}}
         : {associations:[]}})});
     const state = await gene.fetchPbGeneBioIndexState('GJB2');
-    assert.equal(state.variantRows.length, 1);
+    assert.equal(state.variantRows.length, 2);
+    assert.equal(state.crdcEvidence.crdcCohortCount, 16366);
+    assert.equal(state.crdcEvidence.currentGeneCarrierTotal, 3, 'Count each sample once across all gene variants, independently of cohort size');
     assert.equal(state.variantRows[0].carrierCount, 2);
     assert.equal(state.variantRows[0].crdcFrequencyKind, 'allele');
     assert.equal(Number(state.variantRows[0].crdcAF), 8.70549e-5);
@@ -72,6 +83,16 @@ async function main() {
     assert.equal(state.variantRows[0].carrierSamples[1].gt, 'Unavailable', 'missing GT must not become a carrier-derived genotype');
     const variantCarriers = require('../src/views/PbVariant/carrierStatistics').normalizeCarrierRecords(state.variantRows[0].carrierSamples);
     assert.equal(variantCarriers[0].genotype, '0/1', 'Variant carrier table receives the same exact GT');
+    const qualified = await gene.fetchPbGeneBioIndexState('GJB2', {quality:'dp20_af001'});
+    assert.equal(qualified.crdcEvidence.currentGeneCarrierTotal, 1, 'Gene quality mode cannot reuse the unfiltered cache');
+    assert.equal(qualified.variantRows.length, 1);
+    const knownEmpty = await gene.fetchPbGeneBioIndexState('KNOWN', {quality:'dp20_af001'});
+    assert.equal(knownEmpty.geneInfo.fullName, 'Known gene with no CRDC records');
+    assert.equal(knownEmpty.variantRows.length, 0);
+    assert.equal(knownEmpty.crdcEvidence.currentGeneCarrierTotal, 0);
+    await assert.rejects(gene.fetchPbGeneBioIndexState('KNO2', {quality:'dp20_af001'}), /Gene symbol KNO2 was not found/);
+    qualityAvailable = false;
+    await assert.rejects(gene.fetchPbGeneBioIndexState('OTHER', {quality:'dp20_af001'}), /unavailable/, 'VCF failures cannot silently use raw BioIndex membership');
     const af = gene.sourceAlleleFrequency;
     assert.equal(af({ af: 0, ac: 0, an: 100 }), 0);
     assert.equal(af({ af: 0, ac: 0, an: 0 }), null);

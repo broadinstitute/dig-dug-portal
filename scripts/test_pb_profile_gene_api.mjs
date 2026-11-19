@@ -27,10 +27,16 @@ assert.equal(calls.length, 1);
 assert.equal(calls[0].url, "/phenotype-analyzer-api/co-gene-associations");
 assert.deepEqual([calls[0].body.gene, ...calls[0].body.co_genes], catalog.genes);
 assert.deepEqual(calls[0].body.terms, terms);
+assert.equal(calls[0].body.score_type, "max");
+assert.equal(calls[0].body.affected_only, false);
 assert.equal(actual.n_tests, 2);
 assert.equal(actual.multiple_testing_scope, "all valid genes in approved score source");
 assert.deepEqual(Object.keys(actual.gene_associations), ["A", "B"]);
 assert.equal(actual.gene_associations.A.fdr, 0.02);
+
+await fetchProfileGeneAssociations(terms, fetcher, catalog, { scoreType: "sum", affectedOnly: true });
+assert.equal(calls[1].body.score_type, "sum");
+assert.equal(calls[1].body.affected_only, true);
 
 for (const incomplete of [
     {...result, n_requested: 2},

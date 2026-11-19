@@ -26,6 +26,15 @@ from scripts.rphers_standardization import standardized_value
 from scripts.pb_profile_metadata import load_profile_metadata, load_project_metadata
 
 
+@lru_cache(maxsize=1)
+def scoring_hpo_aliases():
+    path = Path(__file__).resolve().parents[1] / 'configs/hpo_aliases_20260216.json'
+    payload = json.loads(path.read_text())
+    if payload.get('version') != 'hp/releases/2026-02-16':
+        raise ValueError('Unexpected scoring HPO ontology release.')
+    return payload['aliases']
+
+
 def default_sample_variant_source():
     if os.environ.get('PB_SAMPLE_VARIANT_SOURCE'):
         return os.environ['PB_SAMPLE_VARIANT_SOURCE']
@@ -62,9 +71,11 @@ class ProfileEngine:
         found = re.fullmatch(r'(BCH-\d{2}-\d{5})-\d{2}', sample_id, flags=re.I)
         return found.group(1).upper() if found else None
 
-    @staticmethod
-    def _recorded_terms(info):
-        return tuple(sorted(set(re.findall(r'HP:\d{7}', (info or {}).get('hpo_terms_raw') or ''))))
+    def _recorded_terms(self, info):
+        recorded = re.findall(r'HP:\d{7}', (info or {}).get('hpo_terms_raw') or '')
+        aliases = scoring_hpo_aliases()
+        return tuple(sorted({term if term in self.column_index else aliases.get(term, term)
+                             for term in recorded}))
 
     def _overlap_index(self):
         if not hasattr(self, '_overlap_lock'):
@@ -165,6 +176,10 @@ class ProfileEngine:
         for rank, row in enumerate(summaries, 1):
             row['rank'] = rank
         result = {'sample_id': sample_id, 'reference_hpo_count': len(terms), 'reference_hpo_ids': list(terms),
+                  'reference_hpo_aliases': {term: scoring_hpo_aliases()[term]
+                      for term in sorted(set(re.findall(r'HP:\d{7}', info.get('hpo_terms_raw') or '')))
+                      if term not in self.column_index and term in scoring_hpo_aliases()},
+                  'hpo_ontology_version': 'hp/releases/2026-02-16',
                   'reference_scores': self._sample_profile_scores(sample_id, scored),
                   'eligible_sample_count': len(eligible), 'phenotype_scored_sample_count': len(ranked),
                   'genotype_comparable_sample_count': sum(row['genotypeStatus'] == 'ready' for row in rows),

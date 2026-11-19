@@ -108,6 +108,8 @@ class GeneScoreContextRunner:
                 "affected_only": row["affected_only"] == "yes",
                 "beta": float(row["beta"]) if row["beta"] else None,
                 "standard_error": float(row["standard_error"]) if row["standard_error"] else None,
+                "beta_ci_low": float(row["beta_ci_low"]) if row.get("beta_ci_low") else None,
+                "beta_ci_high": float(row["beta_ci_high"]) if row.get("beta_ci_high") else None,
                 "p_value": float(row["p_value"]) if row["p_value"] else None,
                 "n_samples": int(row["n_samples"]),
                 "n_positive": int(row["n_positive"]),

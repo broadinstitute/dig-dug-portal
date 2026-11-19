@@ -26,4 +26,8 @@ done
 
 source scripts/prepare_pb_gene_scoring.sh || exit $?
 source scripts/prepare_pb_genotypes.sh
-exec python3 scripts/pb_local_server.py run -- node ./node_modules/.bin/vue-cli-service serve --port 8098 --host 127.0.0.1 "$@"
+port_args=(--port 8098)
+for arg in "$@"; do
+    case "$arg" in --port|--port=*) port_args=(); break ;; esac
+done
+exec python3 scripts/pb_local_server.py run -- node ./node_modules/.bin/vue-cli-service serve "${port_args[@]}" --host 127.0.0.1 "$@"

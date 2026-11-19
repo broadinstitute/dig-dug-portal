@@ -35,7 +35,7 @@ export const filteredCarrierDemographicsMixin = {
                     if (revision !== this.selectedCarrierRevision || key !== this.selectedCarrierKey) return;
                     const response = await fetch('/__gene_carrier_demographics__', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ gene, variant_ids: variantIds }),
+                        body: JSON.stringify({ gene, variant_ids: variantIds, quality: this.geneVariantQuality }),
                     });
                     if (!response.ok) throw new Error(`Selected carrier metadata returned ${response.status}.`);
                     const result = await response.json();

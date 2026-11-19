@@ -22,11 +22,13 @@ class RphersStandardizationTest(unittest.TestCase):
         z, reference = standardize_scores([-2, 2, 6], ['HP:0001250'], 'data', 'cohort')
         np.testing.assert_allclose(z, [-1, 0, 1])
         self.assertEqual(standardized_value(10, reference, center=True), 2)
-        raw = dict(beta=8, standard_error=2, p_value=0.03, fdr=0.08, status='ok')
+        raw = dict(beta=8, standard_error=2, beta_ci_low=4, beta_ci_high=12,
+                   p_value=0.03, fdr=0.08, status='ok')
         gene = association_with_sd(raw, reference, gene=True)
         variant = association_with_sd(raw, reference)
         self.assertEqual((gene['beta_sd'], gene['standard_error_sd']), (2, 0.5))
         self.assertEqual((gene['beta_sd_per_0_1_grs'], gene['standard_error_sd_per_0_1_grs']), (0.2, 0.05))
+        np.testing.assert_allclose([gene['beta_ci_low_sd_per_0_1_grs'], gene['beta_ci_high_sd_per_0_1_grs']], [.1, .3])
         self.assertEqual((variant['beta_sd'], variant['standard_error_sd']), (2, 0.5))
         self.assertNotIn('beta_sd_per_0_1_grs', variant)
         for key, value in raw.items():

@@ -36,6 +36,9 @@ const register = require('./sample_match_projects_endpoint');
     const detail = await register.detailResult({candidate_id: 'S1', hpo_matches: [{id:'HP:0000001',matched:true},{id:'HP:0000002',matched:true},{id:'HP:0000003',matched:false}]},
         {sampleInfo: async () => ({observedHpoIds:['HP:0000001']})}, 'private-token');
     assert.deepEqual(detail.hpo_matches.map(row=>row.matchType), ['recorded','parent-expanded','unmatched']);
+    const aliased = await register.detailResult({candidate_id:'S1',hpo_matches:[{id:'HP:0001317',matched:true}]},
+        {sampleInfo:async()=>({observedHpoIds:['HP:0002438']})}, 'private-token');
+    assert.equal(aliased.hpo_matches[0].matchType,'recorded','An official old HPO ID remains recorded evidence after canonicalization');
     assert(calls.every(call => call.token === 'private-token'));
     await assert.rejects(register.projectResults({...source, _project_inputs: [{sample_id: 'S1', vcf_sample_id: 'WRONG_G38', residual: 0}]}, provider, ''), /Invalid/);
     await assert.rejects(register.projectResults(source, {sampleInfo: async () => {throw Error('BioIndex failed');}}, ''), /BioIndex failed/);

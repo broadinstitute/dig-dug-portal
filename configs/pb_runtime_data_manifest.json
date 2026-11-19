@@ -44,6 +44,14 @@
       "role": "runtime input"
     },
     {
+      "key": "hpo_lambda_gc",
+      "path": "precomputed/gene_hpo_release_20261112/hpo_lambda_gc.json",
+      "size_bytes": 190963,
+      "sha256": "408ed25bfdb1d62d1067e87ec4dbaf5b9a20524a817892d873524d8b1bbeb922",
+      "purpose": "Precomputed HPO genomic-control diagnostic from the full association release",
+      "role": "runtime input"
+    },
+    {
       "key": "original_memberships",
       "path": "precomputed/burden-original-memberships/membership.sqlite",
       "size_bytes": 19095552,

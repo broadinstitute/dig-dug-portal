@@ -86,6 +86,8 @@ def association_with_sd(association, reference, *, gene=False):
     if gene:
         row["beta_sd_per_0_1_grs"] = standardized_value(row.get("beta"), reference, step=0.1) if available else None
         row["standard_error_sd_per_0_1_grs"] = standardized_value(row.get("standard_error"), reference, step=0.1) if available else None
+        for bound in ("beta_ci_low", "beta_ci_high"):
+            row[f"{bound}_sd_per_0_1_grs"] = standardized_value(row.get(bound), reference, step=0.1) if available else None
     return row
 
 

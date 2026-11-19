@@ -1,6 +1,6 @@
 <template>
     <div class="pg2-crdc-summary">
-        <h2>Variants observed in the CRDC ({{ sampleCount.toLocaleString() }} samples)</h2>
+        <h2>Variants observed in the CRDC ({{ carrierCount.toLocaleString() }} carriers) <help-tooltip info label="Total gene carriers" text="Distinct CRDC samples carrying at least one ALT allele with DP≥20 in this gene and cohort AF<0.01. AF is recalculated from fully called DP≥20 genotypes across the full VCF cohort. Each person is counted once across variants. All consequences are eligible. This gene-wide total does not change with display filters." /></h2>
         <div class="pg2-overview-columns">
             <section v-for="group in groups" :key="group.key" class="pg2-overview-column" :class="'pg2-summary-' + group.key" :aria-label="group.title">
                 <h3>{{ group.title }} <span :class="{ 'pg2-annotated-total': group.key === 'predictors' }">{{ group.key === 'predictors' ? annotatedCount.toLocaleString() : total.toLocaleString() }}</span><span v-if="group.key === 'predictors'" class="pg2-overview-denominator"> / {{ total.toLocaleString() }}</span> <help-tooltip info :label="group.title + ' source'" :text="group.source.text" :links="group.source.links" /></h3>
@@ -49,7 +49,7 @@ export default {
         mix: { type: Object, required: true },
         total: { type: Number, required: true },
         annotatedCount: { type: Number, required: true },
-        sampleCount: { type: Number, required: true },
+        carrierCount: { type: Number, required: true },
         filters: { type: Object, required: true },
         gene: { type: String, default: '' },
     },

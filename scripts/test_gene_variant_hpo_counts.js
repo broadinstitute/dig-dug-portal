@@ -5,7 +5,8 @@ const a = 'chr1:100:A:G', b = 'chr1:200:C:T';
 let lookups = 0;
 register({post(path, ...callbacks) {handler = callbacks[callbacks.length - 1];}}, {
     accessToken: request => request.headers.session || '',
-    carriersForGene: async () => ({byVariant: new Map([[a, new Set(['A','B','D','E','F'])], [b, new Set(['A','C'])]])}),
+    carriersForGene: async () => ({all: new Set(['A','B','C','D','E','F']),
+        byVariant: new Map([[a, new Set(['A','B','D','E','F'])], [b, new Set(['A','C'])]])}),
     sampleInfo: async id => {lookups++; return {hpoIds: {
         A:['HP:0001250','HP:0001252','HP:0000365'],
         B:['HP:0001250','HP:0001252'], C:null, D:['HP:0000365'], E:[], F:['HP:9999999'],
@@ -39,5 +40,10 @@ async function call(body, session = '') {
     const differentScope = await call({...body,variant_ids:[a],sample_ids:['B','D','F']});
     assert.equal(differentScope.value.variants[a].count,2,'Different genotype selections must not reuse a cached denominator');
     assert.equal((await call({...body,sample_ids:['not-a-carrier']})).code,400);
+    const aggregate = await call({gene:'TEST',scope:'gene',hpo_terms:body.hpo_terms});
+    assert.equal(aggregate.value.population, 'observed_gene_carriers');
+    assert.deepEqual(aggregate.value.gene_carriers, {count:3,metadataCount:5,carrierTotal:6,complete:false},
+        'The aggregate counts only gene carriers, deduplicating people shared across variant rows');
+    assert.equal((await call({...body,scope:'gene'})).code,400, 'Whole-gene requests reject variant selections');
     console.log('Recorded variant HPO counts: any-term matching, distinct carriers, empty/unrelated/missing metadata, sessions and validation PASS');
 })().catch(error=>{console.error(error);process.exitCode=1;});

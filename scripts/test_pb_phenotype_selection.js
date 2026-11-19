@@ -26,6 +26,7 @@ const reference={terms,associations:{
 },diseases:[[10,'Disease A',[]],[11,'Disease B',[]],[12,'Disease C',[]]],meta:{}};
 let requestedMemberships=0;
 const options=load('src/views/PbPhenotype/Template.vue',{
+ '../PbGene/SummaryPager':{},
  '../PbGene2/InfoRail.vue':{},
  '@/components/pb/PortalGuide.vue':{},
  './orphanetReference.generated':{ORPHANET_REFERENCE:reference},

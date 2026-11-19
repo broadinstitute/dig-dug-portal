@@ -1,12 +1,14 @@
 # PB Front, Gene2, Phenotype, Variant and Sample — integration starting point
 
-For a colleague trying the prototype, use the [local installation guide](pb_local_browser_setup.md). `npm run setup:pb-runtime` downloads the approved release through the user's own company SSH access, verifies the repository's pinned checksums, builds the GT index and writes local settings. Private inputs remain outside Git. Trial users should not edit scripts or follow test-server migration instructions.
+The [current browser changes and pre-commit review](pb_precommit_handoff_20261118.md) cover the delta after `ece680bde`, including personal e3 jobs and the HPO λ input.
+
+For local review, `npm run start:pb` installs dependencies, verifies private inputs and starts the browser with the user's own e3 job. [Local setup](pb_local_browser_setup.md).
 
 ## Current UI integration scope — 2026-11-17
 
 | Scope | Use |
 |---|---|
-| Variant UI/state | [Current Variant contract](pb_variant_engineering_integration_handoff.md#current-ui-contract--2026-11-17); supersedes dropdown, separate-card, repeated variant-row and applied-profile tree-highlighting instructions. |
+| Variant UI/state | [Current Variant contract](pb_variant_engineering_integration_handoff.md#current-browser-behavior--2026-11-18), with the November 17 table for shared carrier and phenotype layout. |
 | Pagination | Shared component and consumer map below. |
 
 ### Shared pagination — 2026-11-17

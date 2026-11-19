@@ -107,9 +107,11 @@ async function detailResult(result, provider, token) {
     }
     if (!info || !Array.isArray(info.observedHpoIds)) return result;
     const recorded = new Set(info.observedHpoIds);
+    const aliases = require('../configs/hpo_aliases_20260216.json').aliases;
+    const canonicalRecorded = new Set([...recorded].map(id => aliases[id] || id));
     return {...result, candidate_recorded_hpo_count: recorded.size,
         hpo_matches: result.hpo_matches.map(row => ({...row,
-            matchType: row.matched == null ? 'unavailable' : row.matched ? recorded.has(row.id) ? 'recorded' : 'parent-expanded' : 'unmatched'}))};
+            matchType: row.matched == null ? 'unavailable' : row.matched ? canonicalRecorded.has(aliases[row.id] || row.id) ? 'recorded' : 'parent-expanded' : 'unmatched'}))};
 }
 module.exports.projectResults = projectResults;
 module.exports.detailResult = detailResult;

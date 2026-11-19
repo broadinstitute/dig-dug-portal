@@ -1,5 +1,12 @@
 # Gene2 — test-server implementation contract
 
+## Current browser behavior — 2026-11-18
+
+- Use released `nCases` and `q_by_gene` for A–D and their filters. Load HPO λ from `hpo_lambda_gc.json` for the same release. λ is diagnostic context.
+- Custom profiles show standardized β, server-computed 95% CI, P, all-gene BH q and profile λ. Compute q and λ for the applied profile and its exact Max/Sum and All/Affected settings.
+- Count exact HPO IDs with OR matching inside the displayed gene carrier universe. The gene row shows matches / total carriers. The variant row shows the match count beside the carrier total. Mark incomplete metadata with `≥` where a lower bound is available.
+- Apply starts Variant evidence on page one, ordered by mean carrier rPheRS Z descending. Consequence uses exact multi-select values, including compound annotations. [Pre-commit checks](pb_precommit_handoff_20261118.md#pre-commit-review).
+
 **Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, card/table widths and order, icons, responsive layout, filters, expansion and all selected/hover/focus/loading/empty/error states. Compare prototype and target at the same viewport/zoom before marking the UI complete.
 
 ## Shared UI update — 2026-11-17
@@ -24,6 +31,22 @@ Validation: Gene2 expansion, retry/stale-response checks, existing Gene2 tests a
 November 15 delivery: [source delta/checksums against the baseline](pb_page_source_delivery_20261115.json). The November 16 local delta below is additional to that delivered snapshot; include its new files. Neither the manifest nor local checks establish deployment.
 
 Updated: 2026-11-16. Entry/default Gene destination: `/pb_gene2.html?query=<encoded gene>`; bare navigation defaults to GJB2. Baseline HEAD `859cd905d49e61f3a1e6765bb88ff0a2555c3128`; the November 15 delivery reached `306ded0b8`, and the November 16 follow-up below is included in this Git delivery. This is an implementation contract, not deployment evidence. Legacy `/pb_Gene.html` is separately addressable; do not send new Gene links there.
+
+## 2026-11-18 Gene2 descriptive counts — DP20 / AF<0.01
+
+This section overrides the unfiltered observed-carrier overview described below. Gene2's variant table, consequence/predictor/ClinVar counts, gene carrier total, demographics and recorded-HPO reference counts now share **DP >= 20 and cohort AF < 0.01** membership. Count each person once across variants; the heading says `carriers`. Explain the thresholds in its info tooltip only. No consequence restriction is added: qualifying noncoding variants remain eligible.
+
+The previous BioIndex `samples` union was not quality-filtered. GJB2's 16,143 total included common variants and low-depth calls. Use BioIndex for complete annotations and authorized membership, then intersect with exact original-VCF ALT carriers passing DP20. Recompute AF as ALT alleles / called alleles across the **full VCF cohort after DP20**, including reference calls in the denominator. Fully missing/partial calls and missing depth do not qualify; AF exactly 0.01 fails. Do not replace the full-cohort denominator with selected carriers. Do not substitute the existing nonsynonymous processed release, which has a narrower consequence scope.
+
+New dependencies: `scripts/{gene_variant_quality_endpoint.js,pb_vcf_quality_api.py}` and updated `vcf_carrier_genotypes.py`. `GET /__gene_qualified_variants__?gene=...` supplies verified filtered annotation rows. Gene2 sets `quality=dp20_af001` on carrier-summary/demographics/HPO-count requests; keep this in cache keys so old unfiltered summaries cannot reappear. A failed VCF request displays unavailable rather than falling back to raw membership. The shared adapter's quality mode is opt-in; legacy/Variant consumers retain their separate contract and require their own review. This change does not refit beta/P/q results or establish that other pages' analysis populations meet the same rule.
+
+The original VCF is `/lab-share/RC-Data-Science-NR-e2/Groups/gnomad/helen/VEP_pipeline/cleanVCF/finalresult/Data_with_af_dp/combined_crdc.with_af_formatDP.vcf.gz`. The personal compute job publishes the quality API port. The launcher forwards it to local 8096 and Node uses `PB_GENE_QUALITY_HOST_PRIVATE`.
+
+Live API verification on 2026-11-18: SLPI 84 distinct variants / 773 carriers; GJB2 320 / 2,387; EGFR 1,113 / 4,525. These are source-specific results, never constants. Direct browser verification was unavailable because the browser access host was disconnected.
+
+Performance follow-up on 2026-11-18: reuse full BioIndex annotation rows through the existing private, authorization/source-build-scoped disk cache. Original-VCF qualification now aggregates repeated GT:DP values before counting alleles, and persists checksummed results keyed by VCF path/size/mtime, DP/AF rules and exact requested variants/samples. Cached requests bypass the cold-computation lock; do not restore a global HTTP-handler lock. The private quality-service cache defaults to `quality-cache/` in its working directory (`--cache-directory` overrides it) and survives service/job restarts. Inputs that change cannot reuse a previous fingerprint.
+
+IDUA validation: the public-to-private Gene adapter response was byte-content equivalent after JSON parsing (1,227 variants / 4,986 carriers). API time before repair was 114.365 s; after a frontend restart with verified persistent caches it was 2.118 s, and a repeat request was 0.015 s. On identical captured VCF input, genotype parsing fell from 83.186 s to 6.081 s; persistent VCF cache read was 0.017 s. An uncached gene still requires its first full source query. This optimization does not change DP/AF eligibility, AF denominators, sample authorization or analysis results.
 
 ## 2026-11-16 Gene2 follow-up — current local contract
 

@@ -26,7 +26,7 @@ export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
     if (!gene) throw new Error("Provide a valid HGNC gene symbol.");
     if (options.genotypeVariantId) options = {...options,
         genotypeVariantId: 'chr' + String(options.genotypeVariantId).trim().replace(/^chr/i, '').toUpperCase()};
-    const cacheKey = options.genotypeVariantId ? `${gene}|${options.genotypeVariantId}` : gene;
+    const cacheKey = (options.genotypeVariantId ? `${gene}|${options.genotypeVariantId}` : gene) + (options.quality ? '|' + options.quality : '');
 
     if (GENE_STATE_CACHE.has(cacheKey)) {
         const cached = GENE_STATE_CACHE.get(cacheKey);
@@ -51,21 +51,45 @@ export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
 }
 
 async function loadPbGeneBioIndexState(gene, options) {
-    const variantRowsPromise = safeBioIndexQuery("gene-variants-crdc", gene, null, options);
+    let geneLookupFailed = false;
+    const geneRowsPromise = safeBioIndexQuery("gene", gene, 5, {
+        ...options, onLookupError: () => { geneLookupFailed = true; },
+    }).then(rows => {
+        if (options.onPartial && !options.quality) options.onPartial(buildPbGeneState(gene, rows, []));
+        return rows;
+    });
+    const qualified = options.quality === 'dp20_af001';
+    const variantEvidencePromise = qualified
+        ? loadQualifiedGeneVariants(gene)
+        : safeBioIndexQuery("gene-variants-crdc", gene, null, options).then(rows => ({ rows }));
     const associationPromise = loadGeneHpoAssociations(gene);
     const genotypePromise = loadGeneGenotypes(gene, options.genotypeVariantId);
-    const geneRows = await safeBioIndexQuery("gene", gene, 5, options);
-    if (options.onPartial) options.onPartial(buildPbGeneState(gene, geneRows, []));
-    const variantRows = await variantRowsPromise;
+    const [geneRows, { rows, noSourceVariants }] = await Promise.all([geneRowsPromise, variantEvidencePromise]);
 
-    if (!variantRows.length) {
+    if (!rows.length && !options.quality) {
         throw new Error(`No live BioIndex variant rows returned for ${gene}.`);
     }
 
-    const state = buildPbGeneState(gene, geneRows, variantRows, await associationPromise);
-    const genotypes = await genotypePromise;
+    const associations = await associationPromise;
+    if (noSourceVariants && !geneRows.length && !Object.hasOwn(PB_GENE_ID_REFERENCE, gene) && !associations.length) {
+        if (geneLookupFailed) throw new Error('Gene reference lookup is unavailable. Please retry.');
+        throw new Error(`Gene symbol ${gene} was not found. Check the symbol and search again.`);
+    }
+    const state = buildPbGeneState(gene, geneRows, rows, associations);
+    const genotypes = rows.length ? await genotypePromise : null;
     if (genotypes) state.variantRows = applyCarrierGenotypes(state.variantRows, genotypes);
     return state;
+}
+
+async function loadQualifiedGeneVariants(gene) {
+    const response = await fetch(`/__gene_qualified_variants__?gene=${encodeURIComponent(gene)}`);
+    if (!response.ok) throw new Error('DP≥20 / cohort AF<0.01 gene variants are unavailable. Please retry.');
+    const result = await response.json();
+    const noSourceVariants = result.status === 'no_source_variants' && result.variantRows?.length === 0 && result.source === null;
+    if (result.gene !== gene || result.quality !== 'dp20_af001' || !Array.isArray(result.variantRows) ||
+        (!noSourceVariants && result.source?.kind !== 'original_vcf_dp20_af001'))
+        throw new Error('Gene variant quality filtering could not be verified.');
+    return { rows: result.variantRows, noSourceVariants };
 }
 
 async function loadGeneGenotypes(gene, variant) {
@@ -104,9 +128,13 @@ async function safeBioIndexQuery(index, q, limit = null, options = {}) {
             onResolve: json => {
                 if (options.onProgress) options.onProgress(index, json);
             },
+            onError: () => { if (options.onLookupError) options.onLookupError(); },
         }, true);
     } catch (error) {
-        if (index === "gene") return [];
+        if (index === "gene") {
+            if (options.onLookupError) options.onLookupError();
+            return [];
+        }
         throw error;
     }
 }

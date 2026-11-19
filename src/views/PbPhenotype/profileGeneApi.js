@@ -3,7 +3,9 @@ import { fetchContextAssociations } from "../../utils/contextAssociationRequest"
 
 const FULL_SCOPE = "all valid genes in approved score source";
 
-export async function fetchProfileGeneAssociations(hpoIds, fetcher = fetch, catalog = approvedCatalog) {
+export async function fetchProfileGeneAssociations(hpoIds, fetcher = fetch, catalog = approvedCatalog, {
+    scoreType = "max", affectedOnly = false,
+} = {}) {
     // Existing Gene/Variant servers already calculate the full source. Request its
     // complete symbol catalog so selection and BH retain the full testing scope.
     const genes = catalog.genes;
@@ -11,7 +13,7 @@ export async function fetchProfileGeneAssociations(hpoIds, fetcher = fetch, cata
         throw new Error("The complete gene-score catalog is unavailable.");
     const result = await fetchContextAssociations({
         gene: genes[0], terms: hpoIds, co_genes: genes.slice(1),
-        score_type: "max", affected_only: false,
+        score_type: scoreType, affected_only: affectedOnly,
     }, fetcher);
     const rows = result.gene_associations || {};
     if (result.n_requested !== genes.length || Object.keys(rows).length !== genes.length ||

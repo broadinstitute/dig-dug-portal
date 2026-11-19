@@ -116,6 +116,7 @@ fit_null_model <- function(d, design, fixed, model, grm_prefix=NULL) {
 run_gene_score_test <- function(null, indices, scores) {
   positive <- sum(scores>0)
   result <- list(beta=NA_real_,standard_error=NA_real_,p_value=NA_real_,
+                 beta_ci_low=NA_real_,beta_ci_high=NA_real_,
                  n_positive=positive,status='no_positive_score')
   if (!positive) return(result)
   if (null$model=='lm') {
@@ -130,6 +131,7 @@ run_gene_score_test <- function(null, indices, scores) {
     if (rss<=1e-12) {result$status <- 'zero_residual_variance'; return(result)}
     se <- sqrt(rss/null$df/variance)
     p <- 2*stats::pt(-abs(beta/se),df=null$df)
+    critical <- stats::qt(.975,df=null$df)
   } else {
     variance <- as.numeric(crossprod(scores,null$P[indices,indices,drop=FALSE]%*%scores))
     if (!is.finite(variance) || variance<=1e-10) {
@@ -139,8 +141,11 @@ run_gene_score_test <- function(null, indices, scores) {
     beta <- numerator/variance
     se <- 1/sqrt(variance)
     p <- stats::pchisq(numerator*numerator/variance,df=1,lower.tail=FALSE)
+    critical <- stats::qnorm(.975)
   }
   result$beta <- beta; result$standard_error <- se; result$p_value <- p; result$status <- 'ok'
+  result$beta_ci_low <- beta-critical*se
+  result$beta_ci_high <- beta+critical*se
   result
 }
 
@@ -179,6 +184,7 @@ main <- function(model,args=commandArgs(trailingOnly=TRUE)) {
     data.table::data.table(gene_symbol=gene,score_type=score_type,model=model,
       affected_only=option(args,'affected-only','no'),n_samples=nrow(d),
       beta=tested$beta,standard_error=tested$standard_error,p_value=tested$p_value,
+      beta_ci_low=tested$beta_ci_low,beta_ci_high=tested$beta_ci_high,
       n_positive=tested$n_positive,status=tested$status)
   })
   dir.create(dirname(output),recursive=TRUE,showWarnings=FALSE)

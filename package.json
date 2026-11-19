@@ -3,6 +3,7 @@
   "version": "3.0.0",
   "private": true,
   "scripts": {
+    "start:pb": "python3 -m scripts.run_pb_browser",
     "setup:pb-runtime": "python3 scripts/setup_pb_runtime_data.py",
     "setup:pb-genotypes": "python3 scripts/setup_pb_genotypes.py",
     "serve:pb-gene": "bash scripts/serve_pb_gene_context.sh",

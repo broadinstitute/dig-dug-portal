@@ -25,7 +25,7 @@ function load(relative, imports = {}, sfc = false) {
         if (Object.hasOwn(imports, name)) return imports[name];
         if (name.endsWith('.css') || name === '../PbGene/SummaryPager') return {};
         throw new Error(`Unexpected dependency ${name}`);
-    }, window, URL, URLSearchParams, AbortController, setTimeout, clearTimeout, fetch: async () => ({ok:true,json:async()=>({status:'ready',carrierTotal:0,matchedMetadataCount:0,geneCarrierDemographics:{}})}), process: { env: {} } });
+    }, window, document: { removeEventListener() {} }, URL, URLSearchParams, AbortController, setTimeout, clearTimeout, fetch: async () => ({ok:true,json:async()=>({status:'ready',carrierTotal:0,matchedMetadataCount:0,geneCarrierDemographics:{}})}), process: { env: {} } });
     return exports;
 }
 const data = load('src/views/PbGene/mockData.js');
@@ -47,8 +47,10 @@ const base = load('src/views/PbGene/pageModel.js', {
 const options = load('src/views/PbGene2/Template.vue', {
     '@/components/pb/PortalGuide.vue': {},
     '../PbGene/pageModel': base,
-    '../PbGene/hpoContextSearch': { hpoLabel: id => id },
+    '../PbGene/hpoContextSearch': { hpoLabel: id => id, resolveHpoTerms: input => input.match(/HP:\d{7}/g) || [] },
     './associationRows': require('../src/views/PbGene2/associationRows'),
+    './profileAssociationQc': require('../src/views/PbGene2/profileAssociationQc'),
+    './AssociationFilter': {},
     './variantFacets': require('../src/views/PbGene2/variantFacets'),
     './carrierScores': require('../src/views/PbGene2/carrierScores'),
     './filteredCarrierDemographics': load('src/views/PbGene2/filteredCarrierDemographics.js'),
@@ -62,7 +64,7 @@ const options = load('src/views/PbGene2/Template.vue', {
     '../PbGene/variantTableNavigation': load('src/views/PbGene/variantTableNavigation.js'),
     './GeneIdentity': {}, './Demographics': {}, './ContextPanel': {}, './VariantSummary': {}, './VariantOverview': {}, './HelpTooltip': {}, './InfoRail': {}, './VariantAnnotation': {}, './CarrierMetadataList': {},
 }, true).default;
-for (const name of ['GeneIdentity', 'Demographics', 'ContextPanel', 'VariantSummary', 'VariantOverview', 'HelpTooltip', 'ProfileInput', 'InfoRail', 'VariantAnnotation', 'CarrierMetadataList']) {
+for (const name of ['GeneIdentity', 'Demographics', 'ContextPanel', 'VariantSummary', 'VariantOverview', 'HelpTooltip', 'ProfileInput', 'InfoRail', 'VariantAnnotation', 'CarrierMetadataList', 'AssociationFilter']) {
     const parsed = compiler.parseComponent(fs.readFileSync(path.join(root, `src/views/PbGene2/${name}.vue`), 'utf8'));
     assert.deepEqual(compiler.compile(parsed.template.content).errors, []);
 }
@@ -148,6 +150,21 @@ async function main() {
     assert.equal(resultUrl({ hpos: 'HP:0000364, HP:0001250' }), '/pb_phenotype.html?query=HP%3A0000364%2CHP%3A0001250');
     assert.equal(resultUrl({ hpos: 'HP:0001250' }), '/pb_phenotype.html?query=HP%3A0001250', 'Each history row links its own profile');
     assert.equal(resultUrl({ hpos: '' }), '', 'No unrelated default phenotype for an empty run');
+    assert.equal(contextPanel.methods.analysisDetails({ nAnalysisSamples: 12500, coverageLabel: '200 positive-score samples' }), '12,500 samples in the model');
+    const { fetchGeneCarrierHpoCount } = load('src/views/PbGene2/variantHpoCounts.js');
+    const profileTerms = ['HP:0000364', 'HP:0001250'];
+    const profileSummary = { gene: 'TBCB', population: 'observed_gene_carriers', match: 'any', hpo_terms: profileTerms,
+        gene_carriers: { count: 170, carrierTotal: 2018, metadataCount: 2000 } };
+    const reply = summary => ({ ok: true, json: async () => summary });
+    const count = await fetchGeneCarrierHpoCount('TBCB', [...profileTerms, profileTerms[0]].reverse(), 'dp20_af001', 2018, async (url, request) => {
+        assert.equal(url, '/__gene_variant_hpo_counts__');
+        assert.deepEqual(JSON.parse(request.body), { gene: 'TBCB', hpo_terms: profileTerms, quality: 'dp20_af001', scope: 'gene' });
+        return reply(profileSummary);
+    });
+    assert.deepEqual({ ...count }, profileSummary.gene_carriers);
+    const mismatched = { ...profileSummary, gene_carriers: { count: 2252, carrierTotal: 16366, metadataCount: 16366 } };
+    await assert.rejects(fetchGeneCarrierHpoCount('TBCB', profileTerms, 'dp20_af001', 2018, async () => reply(mismatched)), /did not match/);
+    assert.equal(contextPanel.methods.profileSampleCountText(count), '≥170 / 2,018');
     const rows = [ { hpoId: 'HP:0001250', label: 'Seizure', betaPer0_1Grs: .123, pValue: .001 }, { hpoId: 'HP:0001252', label: 'Hypotonia', betaPer0_1Grs: -.01, pValue: .4 } ];
     const pinned = togglePinnedAssociation([], rows[0]);
     assert.notEqual(pinned[0], rows[0], 'Pin keeps an independent release-row snapshot');
@@ -157,20 +174,19 @@ async function main() {
     assert.equal(pinned.length, 1, 'Changing lookup must not remove pinned rows');
     assert.deepEqual(togglePinnedAssociation(pinned, rows[0]), []);
     const sortable = [
-        { hpoId: 'a', pValue: 1e-6, qValue: .05, betaPer0_1Grs: -.1, betaCiLowPer0_1Grs: -.2, betaCiHighPer0_1Grs: .05 },
-        { hpoId: 'b', pValue: .01, qValue: .02, betaPer0_1Grs: .3, betaCiLowPer0_1Grs: .1, betaCiHighPer0_1Grs: .4 },
+        { hpoId: 'a', pValue: 1e-6, qValue: .05, betaPer0_1Grs: -.1, betaCiLowPer0_1Grs: -.2, betaCiHighPer0_1Grs: .05, hpoLambdaGc: .209, nCases: 8 },
+        { hpoId: 'b', pValue: .01, qValue: .02, betaPer0_1Grs: .3, betaCiLowPer0_1Grs: .1, betaCiHighPer0_1Grs: .4, hpoLambdaGc: 1.046, nCases: 2 },
         { hpoId: 'c', pValue: null, qValue: null, betaPer0_1Grs: null },
     ];
-    const counts = { a: 8, b: 2 };
-    for (const key of ['beta', 'ci', 'p', 'q', 'carriers']) {
-        const ascending = sortAssociationRows(sortable, key, 'asc', id => counts[id]);
-        const descending = sortAssociationRows(sortable, key, 'desc', id => counts[id]);
+    for (const key of ['beta', 'ci', 'p', 'q', 'lambda', 'cases']) {
+        const ascending = sortAssociationRows(sortable, key, 'asc');
+        const descending = sortAssociationRows(sortable, key, 'desc');
         assert.equal(ascending[2].hpoId, 'c', 'Missing numeric values stay last ascending');
         assert.equal(descending[2].hpoId, 'c', 'Missing numeric values stay last descending');
         assert.equal(ascending[0].hpoId, descending[1].hpoId);
     }
     assert.deepEqual(sortable.map(row => row.hpoId), ['a', 'b', 'c'], 'Sorting must not reorder the source release');
-    assert.deepEqual(sortAssociationRows(sortable, 'p', 'asc', () => null).map(row => row.hpoId), ['a', 'b', 'c'], 'p-values sort numerically, including scientific notation');
+    assert.deepEqual(sortAssociationRows(sortable, 'p', 'asc').map(row => row.hpoId), ['a', 'b', 'c'], 'p-values sort numerically, including scientific notation');
     const page = new Vue(options);
     const releaseRows = Array.from({length:119}, (_,index)=>({hpoId:`HP:${String(index+1).padStart(7,'0')}`,label:`Phenotype ${index}`,pValue:.001,qValue:index<9?.01:.5}));
     page.genePhenotypeAssociations = releaseRows;
@@ -187,21 +203,61 @@ async function main() {
     page.liveDataLoaded = true;
     page.selectVariant(page.variantRows[0].id);
     assert.equal(page.geneCarrierSummary, originalGeneSummary, 'Variant selection must not replace gene-wide demographics');
-    assert.equal(page.phenotypeCarrierCount('HP:0001250'), '4 (partial)');
-    assert.equal(page.phenotypeCarrierCount('HP:9999999'), '0 (partial)');
-    const qcRows = [0, 9, 10, 19, 20].map((count, index) => ({ hpoId: `HP:${index}`, count }));
-    page.genePhenotypeAssociations = qcRows.map(({ hpoId }) => ({ hpoId, pValue: .01 }));
-    page.geneCarrierSummary = { status: 'ready', carrierTotal: 20, phenotypeMetadataCount: 20, observedPhenotypes: qcRows };
-    assert.deepEqual(Array.from(page.associationDisplayRows, row => row.qc), ['Fail', 'Fail', 'Caution', 'Caution', 'Pass']);
-    page.geneCarrierSummary = { status: 'partial', carrierTotal: 21, phenotypeMetadataCount: 20, observedPhenotypes: qcRows };
-    assert.deepEqual(Array.from(page.associationDisplayRows, row => row.qc), ['Caution', 'Caution', 'Caution', 'Caution', 'Pass']);
-    page.geneCarrierSummary = null;
-    assert(page.associationDisplayRows.every(row => row.qc === 'Unavailable'));
+    assert.equal(page.phenotypeCaseCount({hpoId: 'HP:0001250'}), '—', 'Live HPO metadata cannot substitute for original test counts');
+    const qcRows = [0, 9, 10, 19, 20].map((count, index) => ({ hpoId: `HP:${index}`, nCases: count, pValue: .01, qValue: .049 }));
+    page.genePhenotypeAssociations = qcRows;
+    const reviewLabels = ['D', 'C', 'B', 'B', 'A'];
+    assert.deepEqual(Array.from(page.associationDisplayRows, row => row.qc), reviewLabels);
+    const { associationSupport, associationCaseBand } = require('../src/views/PbGene2/associationRows');
+    assert.deepEqual([0,1,4,5,9,10,19,20].map(nCases => associationCaseBand({nCases})), ['0','1–4','1–4','5–9','5–9','10–19','10–19','20+']);
+    assert.deepEqual(Array.from(page.associationQcOptions), ['A', 'B', 'C', 'D']);
+    assert.equal(associationSupport({ nCases: 20, qValue: .05 }), 'B');
+    assert.equal(associationSupport({ nCases: 3, qValue: .099 }), 'C');
+    assert.equal(associationSupport({ nCases: 20, qValue: .10 }), 'D');
+    assert.equal(associationSupport({ nCases: 20, qValue: null }), null);
+    const { profileAssociationQc, profileLambda } = require('../src/views/PbGene2/profileAssociationQc');
+    const profileOptions = { terms: ['HP:0001250', 'HP:0000364'], scoreType: 'sum', analysisSet: 'affected' };
+    const family = {
+        query_hpo: [...profileOptions.terms].reverse(), score_type: 'sum', affected_only: true, n_tests: 3,
+        gene_associations: {
+            GJB2: { model: 'lm', n_samples: 100, n_positive: 20, p_value: .001, fdr: .05 },
+            HBB: { p_value: .5 }, DNM1: { p_value: .99 },
+        },
+    };
+    const run = { geneScoreModel: 'lm', nAnalysisSamples: 100, nPositiveBurden: 20, pValueSortValue: .001 };
+    const quality = profileAssociationQc(family, 'GJB2', run, profileOptions);
+    assert.equal(quality.qValue, .05, 'The adjusted q remains available for the custom profile');
+    assert.equal(Object.hasOwn(quality, 'grade'), false, 'Custom profiles do not receive a grade based on positive GRS count');
+    assert.equal(quality.nTests, 3);
+    assert(Math.abs(quality.lambda - 1) < 1e-7);
+    assert(Math.abs(profileLambda([{ p_value: .2 }, { p_value: .8 }]) - 1.8756018238) < 1e-7);
+    assert.equal(profileLambda([{ p_value: .5 }]), null);
+    assert.equal(profileAssociationQc(family, 'GJB2', run, { ...profileOptions, analysisSet: 'all' }), null);
+    assert.equal(profileAssociationQc(family, 'GJB2', { ...run, pValueSortValue: .002 }, profileOptions), null);
+    page.toggleAssociationPin(page.genePhenotypeAssociations[4]);
+    page.associationQcSelection = ['B'];
+    page.associationCaseRange = { min: 10, max: 19 };
+    page.associationPage = 2;
+    await Vue.nextTick();
+    assert.equal(page.associationPage, 1, 'Changing filters returns to the first page');
+    assert.deepEqual(Array.from(page.associationDisplayRows, row => row.hpoId), ['HP:2', 'HP:3'], 'Both inclusive limits and QC apply to visible rows, including pins');
+    page.associationQcSelection = null;
+    page.associationCaseRange = { min: null, max: 0 };
+    assert.deepEqual(Array.from(page.associationDisplayRows, row => row.hpoId), ['HP:0'], 'Zero is a usable maximum');
+    page.associationCaseRange = null;
+    assert.equal(page.associationDisplayRows[0].hpoId, 'HP:4', 'Clearing the filters restores the pin');
+    page.toggleAssociationPin(page.genePhenotypeAssociations[4]);
+    page.geneCarrierSummary = { status: 'partial', carrierTotal: 21, phenotypeMetadataCount: 20 };
+    assert.deepEqual(Array.from(page.associationDisplayRows, row => row.qc), reviewLabels, 'Live metadata does not affect support for the precomputed rows');
+    page.genePhenotypeAssociations = qcRows.map(row => ({ ...row, nCases: null }));
+    assert(page.associationDisplayRows.every(row => row.qc === null));
+    page.associationCaseRange = { min: 0, max: null };
+    assert.equal(page.associationDisplayRows.length, 0, 'Missing counts are excluded from a numeric range');
+    page.associationCaseRange = null;
     page.genePhenotypeAssociations = [];
     page.geneCarrierSummary = originalGeneSummary;
-    assert.ok(page.phenotypeCountTitle.includes('10 / 13'), 'The common denominator stays available in the info definition');
-    page.geneCarrierSummary = { status: 'ready', carrierTotal: 13, matchedMetadataCount: 13 };
-    assert.equal(page.phenotypeCarrierCount('HP:0001250'), '—', 'Unavailable HPO coverage is not zero');
+    assert.equal(page.phenotypeCaseCount({ nCases: 0 }), '0', 'Measured zero remains distinct from a missing count');
+    assert.equal(page.phenotypeCaseCount({ nCases: 1274, nSamples: 15574, nPositive: 1093 }), '1,274');
     page.toggleAssociationPin(rows[0]); page.associationSearch = 'Hypotonia';
     page.contextInput = 'HP:0001250';
     assert.equal(page.pinnedAssociations.length, 1);
@@ -356,6 +412,26 @@ async function main() {
     page.clearVariantFilters();
     assert.equal(page.matchingVariantRows.length, 12);
     assert.equal(page.variantRows.length, 12, 'Display filtering must not remove variants from analysis');
+    page.variantRows[2].consequence = 'missense_variant&splice_region_variant';
+    const consequenceFilter = new Vue({ ...load('src/views/PbGene2/AssociationFilter.vue', { 'bootstrap-vue': {} }, true).default,
+        propsData: { label: 'Consequence', options: page.consequenceFilterOptions, optionLabel: page.formatConsequence, searchable: true, requireSelection: true } });
+    consequenceFilter.close = () => {};
+    consequenceFilter.$on('input', page.applyConsequenceFilter);
+    consequenceFilter.loadDraft();
+    consequenceFilter.search = 'missense';
+    assert.deepEqual(Array.from(consequenceFilter.visibleOptions), ['missense', 'missense_variant', 'missense_variant&splice_region_variant']);
+    assert.equal(page.formatConsequence(consequenceFilter.visibleOptions[2]), 'Missense variant + Splice region variant');
+    consequenceFilter.selected = consequenceFilter.visibleOptions.slice(1);
+    assert.equal(page.matchingVariantRows.length, 12, 'Consequence selections wait for Apply');
+    const sortBeforeConsequenceFilter = page.variantSortSelection;
+    page.goToVariantPage(2);
+    consequenceFilter.apply();
+    assert.deepEqual(Array.from(page.matchingVariantRows, row => row.id), [page.variantRows[0].id, page.variantRows[2].id]);
+    assert.equal(page.variantPage, 1);
+    assert.equal(page.variantSortSelection, sortBeforeConsequenceFilter);
+    consequenceFilter.clear();
+    assert.equal(page.matchingVariantRows.length, 12);
+    consequenceFilter.$destroy();
     page.variantRows.forEach(row => { row.variantEvidence = []; });
     page.variantRows[0].variantEvidence = [{ label: 'AlphaMissense', value: 0 }, { label: 'REVEL', value: '0.31' }];
     page.variantRows[1].variantEvidence = [{ label: 'AlphaMissense', value: '—' }, { label: 'REVEL', value: '0' }];
@@ -398,7 +474,7 @@ async function main() {
     assert.ok(page.variantMix.consequence.some(item => item.label === 'splice_region_variant&intron_variant'), 'Composite table values count each variant once');
     const demoOptions = load('src/views/PbGene2/Demographics.vue', { '../PbGene/carrierAge': load('src/views/PbGene/carrierAge.js'), './HelpTooltip':{} }, true).default;
     const overviewOptions = load('src/views/PbGene2/VariantOverview.vue', { './HelpTooltip': {}, './referenceProvenance': load('src/views/PbGene2/referenceProvenance.js') }, true).default;
-    const overview = new Vue({ ...overviewOptions, propsData: { mix: page.variantMix, total: page.variantRows.length, annotatedCount: page.predictionAnnotatedVariantCount, sampleCount: 100, filters: page.variantFilters } });
+    const overview = new Vue({ ...overviewOptions, propsData: { mix: page.variantMix, total: page.variantRows.length, annotatedCount: page.predictionAnnotatedVariantCount, carrierCount: 100, filters: page.variantFilters } });
     assert.equal(overview.groups.length, 3);
     for (const group of overview.groups) assert.equal(group.segments.reduce((sum, item) => sum + item.count, 0), page.variantRows.length, 'Every stacked bar partitions the same full variant set');
     assert.equal(overview.predictorRows[0].count, 1);
@@ -432,7 +508,7 @@ async function main() {
     overview.$destroy();
     const consequenceCounts = [99, 86, 70, 68, 16, 15, 11, 9, 8, 3, 2, 1, 1, 1, 1, 1];
     const fullMix = { consequence: consequenceCounts.map((count, index) => ({ label: 'consequence_' + index, count })), clinvar: [{label:'No ClinVar', count:392}], annotations: [{label:'AM annotated',count:68},{label:'REVEL annotated',count:68}], loftee:21 };
-    const pagedOverview = new Vue({ ...overviewOptions, propsData: { mix: fullMix, total: 392, annotatedCount: 92, sampleCount: 16143, filters: page.variantFilters } });
+    const pagedOverview = new Vue({ ...overviewOptions, propsData: { mix: fullMix, total: 392, annotatedCount: 92, carrierCount: 16143, filters: page.variantFilters } });
     assert.deepEqual(Array.from(pagedOverview.consequenceBarSegments, item => item.count), [99,86,70,68,69], 'The four largest counts stay separate and remaining variants sum to Others');
     const othersSegment = pagedOverview.consequenceBarSegments[4];
     assert.equal(othersSegment.members.length, 12);
@@ -521,6 +597,28 @@ async function main() {
     assert.equal(options.methods.runContextAnalysis.constructor.name, 'AsyncFunction');
     assert.equal(options.methods.variantScoreValue, base.pbGeneMethods.variantScoreValue, 'Variant score calculation is reused unchanged');
     assert.equal(options.methods.applyVariantContextScores.constructor.name, 'Function');
+    await require('../src/utils/crdcHpoAvailability').loadCrdcHpoCounts(async () => ({
+        ok: true, json: async () => ({ counts: { 'HP:0001250': 1 } }),
+    }));
+    page.contextInput = 'HP:0001250';
+    page.variantSortKey = 'matchScore';
+    page.variantSortDir = 'asc';
+    page.variantPage = 2;
+    page.loadContextSampleCount = () => {};
+    page.loadContextQuality = () => {};
+    const runBaseAnalysis = base.pbGeneMethods.runContextAnalysis;
+    try {
+        base.pbGeneMethods.runContextAnalysis = async function () {
+            this.activeContextTerms = ['HP:0001250'];
+            this.contextRuns.push({ id: 'new-profile' });
+        };
+        await page.runContextAnalysis();
+        assert.equal(page.currentContextRunId, 'new-profile');
+        assert.equal(page.variantSortSelection, 'matchScore:desc');
+        assert.equal(page.variantPage, 1);
+    } finally {
+        base.pbGeneMethods.runContextAnalysis = runBaseAnalysis;
+    }
     const rerun = { id: 'previous', hpos: 'HP:0000364, HP:0001250' };
     const saved = { scoreType: 'sum', analysisSet: 'affected', significanceThreshold: .01, minCarriers: 25 };
     let rerunCalls = 0;

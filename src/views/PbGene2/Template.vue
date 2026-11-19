@@ -52,13 +52,17 @@
                     <section class="pg2-card pg2-overview">
                         <gene-identity :gene-info="geneInfo" />
                     </section>
-                    <section class="pg2-card pg2-crdc" aria-label="CRDC variants and carrier demographics">
-                        <variant-overview :gene="geneInfo.symbol" :mix="variantMix" :total="variantRows.length" :annotated-count="predictionAnnotatedVariantCount" :sample-count="Number(totalGeneCarriers) || 0" :filters="variantFilters" @filter="toggleVariantFilter" @filter-consequences="toggleConsequenceGroup" />
+                    <section v-if="variantRows.length" class="pg2-card pg2-crdc" aria-label="CRDC variants and carrier demographics">
+                        <variant-overview :gene="geneInfo.symbol" :mix="variantMix" :total="variantRows.length" :annotated-count="predictionAnnotatedVariantCount" :carrier-count="Number(totalGeneCarriers) || 0" :filters="variantFilters" @filter="toggleVariantFilter" @filter-consequences="toggleConsequenceGroup" />
                         <div v-if="variantFiltersActive" class="pg2-variant-filter-status"><a href="#pg2-variant-evidence">{{ matchingVariantRows.length }} / {{ variantRows.length }} matching variants</a><span>{{ variantFilterLabel }}</span><button class="pg2-text-button" type="button" @click="clearVariantFilters">Clear filters</button></div>
                         <div class="pg2-carrier-overview" data-testid="gene-demographics">
                             <p v-if="carrierSelectionActive" class="pg2-demographic-scope">Carriers of {{ matchingVariantRows.length.toLocaleString() }} selected variants · {{ displayedCarrierCount.toLocaleString() }} samples</p>
                             <demographics :key="selectedCarrierKey || geneInfo.symbol" :summary="displayedCarrierSummary" :fallback="{}" :carrier-count="displayedCarrierCount" :status="displayedCarrierStatus" :scope="carrierSelectionActive ? 'selected variants' : 'gene'" overview />
                         </div>
+                    </section>
+                    <section v-else class="pg2-card pg2-crdc" aria-label="CRDC variants">
+                        <h2>Variants observed in the CRDC (0 carriers)</h2>
+                        <p class="pg2-muted">No CRDC variants meet DP≥20 and cohort AF&lt;0.01 for {{ geneInfo.symbol }}.</p>
                     </section>
                     <section class="pg2-card pg2-associations" aria-labelledby="pg2-associations-title">
                         <div class="pg2-section-heading"><div class="pg2-association-title"><h2 id="pg2-associations-title">Single-phenotype associations <help-tooltip label="Single-phenotype associations" :text="help.precomputedMethods" /></h2><span>Precomputed · CRDC</span></div></div>
@@ -67,24 +71,48 @@
                             <table class="pg2-table pg2-association-table">
                                 <thead><tr><th class="pg2-association-pin"><b-icon-pin-angle aria-label="Pin result" /></th><th>Phenotype</th>
                                     <th v-for="column in associationColumns" :key="column.key" class="pg2-numeric" :aria-sort="associationAriaSort(column.key)">
-                                        <div class="pg2-column-heading"><button class="pg2-sort-button" type="button" :aria-label="'Sort by ' + column.label" @click="sortAssociationColumn(column.key)">{{ column.label }}<b-icon-sort-down v-if="associationSortKey === column.key && associationSortDirection === 'desc'" /><b-icon-sort-up v-else-if="associationSortKey === column.key" /><b-icon-arrow-down-up v-else /></button><help-tooltip v-if="column.help" info :label="'About ' + column.label" :text="column.help" /></div>
+                                        <div class="pg2-column-heading">
+                                            <button class="pg2-sort-button" type="button" :aria-label="'Sort by ' + column.label" @click="sortAssociationColumn(column.key)">
+                                                <template v-if="column.key === 'cases'">Samples with<br>this phenotype</template>
+                                                <template v-else>{{ column.label }}</template>
+                                                <b-icon-sort-down v-if="associationSortKey === column.key && associationSortDirection === 'desc'" /><b-icon-sort-up v-else-if="associationSortKey === column.key" /><b-icon-arrow-down-up v-else />
+                                            </button>
+                                            <help-tooltip v-if="column.help" info :label="'About ' + column.label" :text="column.help" />
+                                            <association-filter v-if="column.key === 'cases'" v-model="associationCaseRange" :label="column.label" range />
+                                        </div>
+                                        <small v-if="column.key === 'beta'" class="pg2-beta-interval">95% CI</small>
                                     </th>
-                                    <th scope="col" class="pg2-numeric"><div class="pg2-column-heading">QC <help-tooltip info label="About association QC" :text="associationQcHelp" /></div></th>
+                                    <th scope="col" class="pg2-numeric">
+                                        <div class="pg2-column-heading">
+                                            <span>Support<br>grade</span> <help-tooltip info label="About support grades" :text="associationQcHelp" />
+                                            <association-filter v-model="associationQcSelection" label="Support grade" :options="associationQcOptions" />
+                                        </div>
+                                    </th>
                                 </tr></thead>
                                 <tbody data-testid="association-search-results">
                                     <tr v-for="row in associationDisplayRows" :key="row.hpoId" :class="{ 'pg2-pinned-row': isAssociationPinned(row) }">
                                         <td class="pg2-association-pin"><button class="pg2-pin" type="button" :aria-label="(isAssociationPinned(row) ? 'Unpin ' : 'Pin ') + row.label" :aria-pressed="String(isAssociationPinned(row))" @click="toggleAssociationPin(row)"><b-icon-pin-angle-fill v-if="isAssociationPinned(row)" /><b-icon-pin-angle v-else /></button></td>
-                                        <td><span class="pg2-association-name">{{ row.label }}</span><a class="pg2-association-hpo" :href="phenotypeUrl(row.hpoId)">{{ row.hpoId }}</a></td><td class="pg2-numeric">{{ contextStatistic(row.betaPer0_1Grs) }}</td><td class="pg2-numeric">{{ associationInterval(row) }}</td><td class="pg2-numeric">{{ contextStatistic(row.pValue) }}</td><td class="pg2-numeric">{{ contextStatistic(row.qValue) }}</td><td class="pg2-numeric">{{ phenotypeCarrierCount(row.hpoId) }}</td>
-                                        <td class="pg2-numeric"><span class="pg2-association-qc" :data-status="row.qc">{{ row.qc }}</span></td>
+                                        <td><span class="pg2-association-name">{{ row.label }}</span><a class="pg2-association-hpo" :href="phenotypeUrl(row.hpoId)">{{ row.hpoId }}</a></td>
+                                        <td class="pg2-numeric">
+                                            {{ contextStatistic(row.betaPer0_1Grs) }}
+                                            <small class="pg2-beta-interval">{{ associationInterval(row) }}</small>
+                                        </td>
+                                        <td class="pg2-numeric">{{ contextStatistic(row.pValue) }}</td><td class="pg2-numeric">{{ contextStatistic(row.qValue) }}</td>
+                                        <td class="pg2-numeric" :title="row.hpoLambdaTests ? row.hpoLambdaTests.toLocaleString() + ' valid gene tests for this HPO' : null">{{ Number.isFinite(row.hpoLambdaGc) ? row.hpoLambdaGc.toFixed(3) : '—' }}</td>
+                                        <td class="pg2-numeric">{{ phenotypeCaseCount(row) }}</td>
+                                        <td class="pg2-numeric">
+                                            <span v-if="row.qc" class="pg2-association-qc" :data-status="row.qc" :title="row.caseBand + ' samples with this phenotype'">{{ row.qc }}</span>
+                                            <span v-else title="Sample count or q-value unavailable">—</span>
+                                        </td>
                                     </tr>
-                                    <tr v-if="!associationDisplayRows.length"><td colspan="8" class="pg2-empty">{{ genePhenotypeAssociations.length ? 'No results match this search and significance filter.' : 'Precomputed results are not available for this gene.' }}</td></tr>
+                                    <tr v-if="!associationDisplayRows.length"><td :colspan="associationColumns.length + 3" class="pg2-empty">{{ genePhenotypeAssociations.length ? 'No results match the search and filters.' : 'Precomputed results are not available for this gene.' }}</td></tr>
                                 </tbody>
                             </table>
                         </div>
                         <SummaryPager :page="associationPage" :total-pages="associationPageCount" label="Single-phenotype association pages" input-id="pg2-association-page" @change="associationPage = $event" />
                     </section>
-                    <context-panel :active-context-terms="activeContextTerms" :context-term-details="contextTermDetails" :context-input.sync="contextInput" :context-loading="contextLoading || searchGeneLoading" :context-score-type.sync="contextScoreType" :context-analysis-set.sync="contextAnalysisSet" :context-significance-threshold.sync="contextSignificanceThreshold" :context-min-carriers.sync="contextMinCarriers" :context-error="contextError" :context-runs="contextRuns" :run-meta="contextRunMeta" :current-run-id="currentContextRunId" :rerunning-run-id="rerunningContextRunId" @run="runContextAnalysis" @rerun="rerunContextAnalysis" @remove="deleteContextRun" />
-                    <section id="pg2-variant-evidence" class="pg2-card pg2-variant-evidence">
+                    <context-panel :active-context-terms="activeContextTerms" :context-term-details="contextTermDetails" :context-input.sync="contextInput" :context-loading="contextLoading || searchGeneLoading" :context-score-type.sync="contextScoreType" :context-analysis-set.sync="contextAnalysisSet" :context-significance-threshold.sync="contextSignificanceThreshold" :context-min-carriers.sync="contextMinCarriers" :context-error="contextError" :context-runs="contextRuns" :run-meta="contextRunMeta" :current-run-id="currentContextRunId" :rerunning-run-id="rerunningContextRunId" @run="runContextAnalysis" @rerun="rerunContextAnalysis" @remove="deleteContextRun" @retry-quality="loadContextQuality" @retry-sample-count="loadContextSampleCount" />
+                    <section v-if="variantRows.length" id="pg2-variant-evidence" class="pg2-card pg2-variant-evidence">
                     <div class="pbg-variant-evidence-block">
                         <div class="pbg-variant-evidence-head">
                             <p class="pbg-section-label">
@@ -104,12 +132,19 @@
                                 <span v-if="variantPositionError" class="pbg-ve-position-error" role="alert">{{ variantPositionError }}</span>
                                 <span v-if="variantIdentifierIds !== null" class="pg2-identifier-search-state">{{ variantIdentifierIds.length }} variant match{{ variantIdentifierIds.length === 1 ? '' : 'es' }} · {{ appliedVariantQuery }} <button class="pg2-text-button" type="button" @click="clearVariantIdentifierSearch">Clear search</button></span>
                             </form>
-                            <label class="pg2-variant-sort-select">Sort by: <select :value="variantSortSelection" aria-label="Sort variant evidence" @change="setVariantSortSelection($event.target.value)"><option value="variantScore:desc">In Silico Predictors ↓</option><option value="carriers:desc">Total carriers ↓</option><option value="hpoCarriers:desc">Carriers with HPO ↓</option><option value="matchScore:desc">Mean carrier rPheRS Z ↓</option><option value="effectScore:desc">Variant β ↓</option><option value="pValue:asc">P ↑</option><option value="variant:asc">Variant position ↑</option><option value="variant:desc">Variant position ↓</option><option v-if="!variantSortOptions.includes(variantSortSelection)" :value="variantSortSelection">{{ variantSortLabel }}</option></select></label>
+                            <label class="pg2-variant-sort-select">Sort by: <select :value="variantSortSelection" aria-label="Sort variant evidence" @change="setVariantSortSelection($event.target.value)"><option value="variantScore:desc">In Silico Predictors ↓</option><option value="carriers:desc">Variant carriers ↓</option><option value="hpoCarriers:desc">Carriers with ≥1 profile HPO ↓</option><option value="matchScore:desc">Mean carrier rPheRS Z ↓</option><option value="effectScore:desc">Variant β ↓</option><option value="pValue:asc">P ↑</option><option value="variant:asc">Variant position ↑</option><option value="variant:desc">Variant position ↓</option><option v-if="!variantSortOptions.includes(variantSortSelection)" :value="variantSortSelection">{{ variantSortLabel }}</option></select></label>
                         </div>
                         <div class="pg2-variant-information-band"><span>Variant information</span><span>Phenotype-based evidence</span></div>
                         <div class="pbg-ve-table-head">
                             <span></span>
-                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variant')"><span>Variant</span><b-icon-arrow-down-up /></button>
+                            <div class="pg2-variant-heading">
+                                <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variant')"><span>Variant</span><b-icon-arrow-down-up /></button>
+                                <div class="pg2-consequence-heading">
+                                    <span>Consequence</span>
+                                    <association-filter label="Consequence" :value="variantFilters.consequence.length ? variantFilters.consequence : null"
+                                                        :options="consequenceFilterOptions" :option-label="formatConsequence" searchable require-selection @input="applyConsequenceFilter" />
+                                </div>
+                            </div>
                             <div class="pg2-clinvar-heading">
                                 <b-dropdown id="pg2-clinvar-filter" ref="clinvarFilter" no-caret no-flip variant="link" :popper-opts="{ modifiers: { applyStyle: { enabled: false } } }" toggle-class="pg2-clinvar-filter-toggle" menu-class="pg2-clinvar-filter-menu" :title="variantFilters.clinvar.length ? 'ClinVar: ' + variantFilters.clinvar.join(', ') : 'Filter ClinVar classifications'" :class="{ 'is-filtered': variantFilters.clinvar.length }" @show="openClinvarFilter">
                                     <template #button-content><span>ClinVar <b-icon-funnel-fill v-if="variantFilters.clinvar.length" aria-hidden="true" /><b-icon-funnel v-else aria-hidden="true" /></span><span class="pg2-sr-only">Filter variants by ClinVar classification{{ variantFilters.clinvar.length ? ': ' + variantFilters.clinvar.join(', ') : '' }}</span></template>
@@ -124,9 +159,9 @@
                                     </b-dropdown-form>
                                 </b-dropdown>
                             </div>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Total carriers" @click="sortVariantsBy('carriers')"><span>Total<br>carriers</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('carriers') }}</span></button><help-tooltip info label="About total variant carriers" :text="help.totalCarriers" /></div>
+                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Variant carriers" @click="sortVariantsBy('carriers')"><span>Variant<br>carriers</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('carriers') }}</span></button><help-tooltip info label="About variant carriers" :text="help.totalCarriers" /></div>
                             <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by In Silico Predictors" @click="sortVariantsBy('variantScore')"><span>In Silico<br>Predictors</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('variantScore') }}</span></button><help-tooltip info label="About In Silico Predictors" :text="help.pathogenicity + '\n\n' + annotationSources.predictors.text" :links="annotationSources.predictors.links" /></div>
-                            <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Carriers with HPO" @click="sortVariantsBy('hpoCarriers')"><span>Carriers<br>with HPO</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('hpoCarriers') }}</span></button><help-tooltip info label="About carriers with the applied HPO profile" :text="help.hpoCarriers" /></div>
+                            <div class="pg2-score-heading pg2-profile-hpo-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Carriers with at least one profile HPO" @click="sortVariantsBy('hpoCarriers')"><span>Carriers with<br>≥1 profile HPO</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('hpoCarriers') }}</span></button><help-tooltip info label="About carriers with at least one profile HPO" :text="help.hpoCarriers" /></div>
                             <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Mean carrier rPheRS Z" @click="sortVariantsBy('matchScore')"><span>Mean carrier<br>rPheRS Z</span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('matchScore') }}</span></button><help-tooltip info label="About mean carrier rPheRS Z" :text="help.meanZ" /></div>
                             <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by Variant beta" @click="sortVariantsBy('effectScore')"><span>Variant β<br><small>(rPheRS SD)</small></span><span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('effectScore') }}</span></button><help-tooltip info label="About variant beta" :text="help.variantBeta" /></div>
                             <div class="pg2-score-heading"><button class="pbg-ve-sort" type="button" aria-label="Sort by P" @click="sortVariantsBy('pValue')">P<span class="pg2-sort-indicator" aria-hidden="true">{{ variantColumnSortIndicator('pValue') }}</span></button><help-tooltip info label="About variant p-value" :text="help.variantP" /></div>
@@ -230,7 +265,8 @@ import PortalGuide from "@/components/pb/PortalGuide.vue";
 import { createPbGeneState, pbGeneComputed, pbGeneMethods } from "../PbGene/pageModel";
 import { hpoLabel, resolveHpoTerms } from "../PbGene/hpoContextSearch";
 import { requireCrdcHpos } from '../../utils/crdcHpoAvailability';
-import { filterAssociations, togglePinnedAssociation, sortAssociationRows, carrierSupportQc, carrierSupportQcHelp } from "./associationRows";
+import { filterAssociations, togglePinnedAssociation, sortAssociationRows, associationCaseCount, associationCaseBand, associationSupport, associationSupportHelp, associationSupportOptions } from "./associationRows";
+import { profileAssociationQc } from './profileAssociationQc';
 import { variantFacets, matchesVariantFacets } from "./variantFacets";
 import { findPositionWindow, parsePositionQuery, VARIANT_PAGE_SIZE } from "../PbGene/variantTableNavigation";
 import { matchVariantIdentifiers } from "../PbGene/variantLookup";
@@ -239,12 +275,13 @@ import Demographics from "./Demographics";
 import ContextPanel from "./ContextPanel";
 import VariantOverview from "./VariantOverview";
 import HelpTooltip from "./HelpTooltip";
+import AssociationFilter from './AssociationFilter';
 import { carrierScoreMixin } from "./carrierScores";
 import { filteredCarrierDemographicsMixin } from "./filteredCarrierDemographics";
 import help from './evidenceHelp';
 import { VARIANT_ANNOTATION_SOURCES } from './referenceProvenance';
 import { pageNumbers } from './evidencePagination';
-import { variantHpoCountsMixin } from './variantHpoCounts';
+import { fetchGeneCarrierHpoCount, variantHpoCountsMixin } from './variantHpoCounts';
 import InfoRail from './InfoRail';
 import VariantAnnotation from './VariantAnnotation';
 import {carrierTableMixin} from './carrierTable';
@@ -255,9 +292,13 @@ import "./style.css";
 export default {
     name: "PbGene2Template",
     mixins: [carrierScoreMixin, filteredCarrierDemographicsMixin, variantHpoCountsMixin, carrierTableMixin, carrierHpoTotalsMixin],
-    components: { SummaryPager, PortalGuide, GeneIdentity, Demographics, ContextPanel, VariantOverview, HelpTooltip, InfoRail, VariantAnnotation },
+    components: { SummaryPager, PortalGuide, GeneIdentity, Demographics, ContextPanel, VariantOverview, HelpTooltip, InfoRail, VariantAnnotation, AssociationFilter },
     data() {
-        return { ...createPbGeneState(), help, annotationSources: VARIANT_ANNOTATION_SOURCES, infoRailReserved: false, clinvarFilterDraft: [], associationSearch: '', associationPage: 1, associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }, contextRunMeta: {}, currentContextRunId: '', rerunningContextRunId: '', appliedContext: null, receivedContextReference: null };
+        return {
+            ...createPbGeneState(), geneVariantQuality: 'dp20_af001', help, annotationSources: VARIANT_ANNOTATION_SOURCES, infoRailReserved: false, clinvarFilterDraft: [], associationSearch: '', associationPage: 1, associationSortKey: '', associationSortDirection: 'asc', pinnedAssociations: [], pinnedVariantIds: [], variantIdentifierIds: null, appliedVariantQuery: '', variantFilters: { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }, contextRunMeta: {}, currentContextRunId: '', rerunningContextRunId: '', appliedContext: null, receivedContextReference: null,
+            associationQcSelection: null,
+            associationCaseRange: null,
+        };
     },
     mounted() { this.loadLiveGeneData(this.searchGeneQuery, false).catch(() => {}); },
     computed: {
@@ -274,38 +315,52 @@ export default {
             ].concat([...counts.keys()].filter(value => !['P/LP', 'VUS', 'B/LB', 'Conflict', 'No ClinVar'].includes(value)).map(value => [value, value]))
                 .map(([value, label]) => ({ value, label, count: counts.get(value) || 0 }));
         },
+        consequenceFilterOptions() {
+            return this.variantMix.consequence.map(item => item.label)
+                .sort((left, right) => this.formatConsequence(left).localeCompare(this.formatConsequence(right)));
+        },
         facetMatchingVariantRows() { return this.variantRows.filter(this.matchesVariantFilters); },
         matchingVariantRows() { return this.facetMatchingVariantRows.filter(this.matchesVariantIdentifier); },
         sortedVariantRows() { return pbGeneComputed.sortedVariantRows.call(this).filter(row => this.matchesVariantFilters(row) && this.matchesVariantIdentifier(row)); },
         positionSortedVariantRows() { return pbGeneComputed.positionSortedVariantRows.call(this).filter(row => this.matchesVariantFilters(row) && this.matchesVariantIdentifier(row)); },
         variantPageCount() { return Math.ceil(this.matchingVariantRows.length / VARIANT_PAGE_SIZE); },
         variantFiltersActive() { return Boolean(this.variantFilters.clinvar.length || this.variantFilters.consequence.length || this.variantFilters.annotations.length || (this.variantFilters.predictionCoverage || []).length || this.variantFilters.loftee); },
-        variantFilterLabel() { return [...this.variantFilters.clinvar, ...this.variantFilters.consequence, ...this.variantFilters.annotations, ...(this.variantFilters.predictionCoverage || []), ...(this.variantFilters.loftee ? ['LoFTEE HC'] : [])].join(' · '); },
+        variantFilterLabel() { return [...this.variantFilters.clinvar, ...this.variantFilters.consequence.map(this.formatConsequence), ...this.variantFilters.annotations, ...(this.variantFilters.predictionCoverage || []), ...(this.variantFilters.loftee ? ['LoFTEE HC'] : [])].join(' · '); },
         pinnedVariantRows() { const rows = new Map(this.variantRows.map(row => [row.id, row])); return this.pinnedVariantIds.map(id => rows.get(id)).filter(Boolean); },
         unpinnedVisibleVariantRows() { const pinned = new Set(this.pinnedVariantIds); return this.visibleVariantRows.filter(row => !pinned.has(row.id)); },
         comparisonVariantRows() { return [...this.pinnedVariantRows, ...this.unpinnedVisibleVariantRows]; },
         variantSortSelection() { return `${this.variantSortKey}:${this.variantSortDir}`; },
         variantSortOptions() { return ['variantScore:desc', 'carriers:desc', 'hpoCarriers:desc', 'matchScore:desc', 'effectScore:desc', 'pValue:asc', 'variant:asc', 'variant:desc']; },
-        variantSortLabel() { return `${{ variant: 'Variant', carriers: 'Total carriers', hpoCarriers: 'Carriers with HPO', consequence: 'Consequence', clinvar: 'ClinVar', variantScore: 'In Silico Predictors', matchScore: 'Mean carrier rPheRS Z', effectScore: 'Variant β', pValue: 'P' }[this.variantSortKey] || this.variantSortKey} ${this.variantSortDir === 'asc' ? '↑' : '↓'}`; },
+        variantSortLabel() { return `${{ variant: 'Variant', carriers: 'Variant carriers', hpoCarriers: 'Carriers with ≥1 profile HPO', consequence: 'Consequence', clinvar: 'ClinVar', variantScore: 'In Silico Predictors', matchScore: 'Mean carrier rPheRS Z', effectScore: 'Variant β', pValue: 'P' }[this.variantSortKey] || this.variantSortKey} ${this.variantSortDir === 'asc' ? '↑' : '↓'}`; },
         variantEvidencePages() { return pageNumbers(this.variantPage, this.variantPageCount); },
-        associationColumns() { return [ { key: 'beta', label: 'β', help: help.precomputedBeta }, { key: 'ci', label: '95% CI', help: help.precomputedCI }, { key: 'p', label: 'P' }, { key: 'q', label: 'q', help: help.geneQ }, { key: 'carriers', label: 'Carriers with term', help: 'Number of gene carriers with this HPO term recorded. Counts use the entire gene carrier set independently of variant display filters. The shared denominator is shown here instead of repeated in each row. ' + this.phenotypeCountTitle } ]; },
-        filteredAssociations() { return filterAssociations(this.genePhenotypeAssociations, this.associationSearch, this.pinnedAssociations).filter(row => row.pValue != null && row.pValue < .05); },
-        sortedAssociations() { return sortAssociationRows(this.filteredAssociations, this.associationSortKey, this.associationSortDirection, this.associationCarrierCountValue); },
-        sortedPinnedAssociations() { return sortAssociationRows(this.pinnedAssociations, this.associationSortKey, this.associationSortDirection, this.associationCarrierCountValue); },
+        associationColumns() {
+            return [
+                { key: 'beta', label: 'β', help: help.precomputedBeta + ' ' + help.precomputedCI },
+                { key: 'p', label: 'P' },
+                { key: 'q', label: 'q', help: help.geneQ },
+                { key: 'lambda', label: 'HPO λ', help: help.precomputedLambda },
+                { key: 'cases', label: 'Samples with this phenotype', help: 'Number of people in the original CRDC analysis who had the phenotype listed on this row.' },
+            ];
+        },
+        filteredAssociations() {
+            return filterAssociations(this.genePhenotypeAssociations, this.associationSearch, this.pinnedAssociations)
+                .filter(row => row.pValue != null && row.pValue < .05 && this.matchesAssociationFilters(row));
+        },
+        sortedAssociations() { return sortAssociationRows(this.filteredAssociations, this.associationSortKey, this.associationSortDirection); },
+        sortedPinnedAssociations() {
+            const rows = this.pinnedAssociations.filter(this.matchesAssociationFilters);
+            return sortAssociationRows(rows, this.associationSortKey, this.associationSortDirection);
+        },
         associationPageCount() { return Math.max(1, Math.ceil(this.filteredAssociations.length / 5)); },
         associationPageNumbers() { return pageNumbers(this.associationPage, this.associationPageCount); },
         visibleAssociations() { return this.sortedAssociations.slice((this.associationPage - 1) * 5, this.associationPage * 5); },
         associationDisplayRows() {
             return [...this.sortedPinnedAssociations, ...this.visibleAssociations].map(row => ({
-                ...row, qc: carrierSupportQc(this.associationCarrierCountValue(row.hpoId), this.associationCountsPartial),
+                ...row, qc: associationSupport(row), caseBand: associationCaseBand(row),
             }));
         },
-        associationQcHelp() { return carrierSupportQcHelp; },
-        associationCountsPartial() {
-            const summary = this.geneCarrierSummary;
-            return !summary || summary.status !== 'ready' || summary.phenotypeMetadataCount < summary.carrierTotal;
-        },
-        phenotypeCountTitle() { const summary = this.geneCarrierSummary; return summary && summary.phenotypeMetadataCount != null ? `${summary.phenotypeMetadataCount} / ${this.totalGeneCarriers} gene carriers have HPO metadata${summary.status === 'ready' ? '' : '; partial results'}.` : 'HPO carrier counts are not supplied by the current metadata service.'; },
+        associationQcHelp() { return associationSupportHelp; },
+        associationQcOptions() { return associationSupportOptions; },
         appliedContextLabel() { return this.appliedContext ? `Applied HPO: ${this.appliedContext.terms.map(hpoLabel).join(' + ')} · ${this.appliedContext.scoreType === 'sum' ? 'Sum' : 'Max'} · ${this.appliedContext.analysisSet === 'affected' ? 'Affected only' : 'All'}` : 'Custom HPO context not calculated'; },
         variantMix() {
             const clinvar = { 'P/LP': 0, VUS: 0, 'B/LB': 0, Conflict: 0, 'No ClinVar': 0 };
@@ -335,6 +390,10 @@ export default {
             this.variantFilters.clinvar = this.clinvarFilterOptions.every(option => this.clinvarFilterDraft.includes(option.value)) ? [] : [...this.clinvarFilterDraft];
             this.goToVariantPage(1);
             if (this.$refs.clinvarFilter) this.$refs.clinvarFilter.hide(true);
+        },
+        applyConsequenceFilter(selected) {
+            this.variantFilters.consequence = selected || [];
+            this.goToVariantPage(1);
         },
         visibleCarrierRows: carrierTableMixin.methods.visibleCarrierRows,
         refreshLocusFilter() {},
@@ -411,7 +470,11 @@ export default {
         },
         setVariantSortSelection(value) { const [key, direction] = value.split(':'); this.sortVariantsBy(key); this.variantSortDir = direction; },
         contextTermLabel(id) { return hpoLabel(id); },
-        consequenceLabel(row) { return String(row.consequence || 'Unavailable').replace(/_variant\b/g, '').replace(/_/g, ' ').replace(/^./, letter => letter.toUpperCase()); },
+        consequenceLabel(row) { return this.formatConsequence(String(row.consequence || '').replace(/_variant\b/g, '')); },
+        formatConsequence(value) {
+            return String(value || 'Unavailable').split('&').map(term => term.trim()
+                .replace(/_/g, ' ').replace(/^./, letter => letter.toUpperCase())).join(' + ');
+        },
         clinvarLabel(row) {
             const value = String(row.clinvar || 'Unavailable');
             return this.clinvarDisplayLabel(({'Pathogenic/Likely_pathogenic': 'P/LP', 'Benign/Likely_benign': 'B/LB', 'Uncertain_significance': 'VUS'})[value] || value.replace(/_/g, ' '));
@@ -419,20 +482,21 @@ export default {
         async submitGeneSearch() { if (!this.contextLoading) await pbGeneMethods.submitGeneSearch.call(this); },
         associationAriaSort(key) { return this.associationSortKey !== key ? 'none' : this.associationSortDirection === 'asc' ? 'ascending' : 'descending'; },
         sortAssociationColumn(key) { this.associationSortDirection = this.associationSortKey === key && this.associationSortDirection === 'asc' ? 'desc' : 'asc'; this.associationSortKey = key; this.associationPage = 1; },
-        associationCarrierCountValue(hpoId) {
-            const summary = this.geneCarrierSummary;
-            if (!summary || !summary.phenotypeMetadataCount) return null;
-            const term = (summary.observedPhenotypes || []).find(item => item.hpoId === hpoId);
-            return term ? Number(term.count) : 0;
+        matchesAssociationFilters(row) {
+            const count = associationCaseCount(row);
+            const range = this.associationCaseRange;
+            if (range) {
+                if (count == null || (range.min != null && count < range.min) || (range.max != null && count > range.max)) return false;
+            }
+            const selected = this.associationQcSelection;
+            return selected === null || selected.includes(associationSupport(row));
         },
         phenotypeUrl(hpoId) { return '/pb_phenotype.html?query=' + encodeURIComponent(hpoId); },
         isAssociationPinned(row) { return this.pinnedAssociations.some(item => item.hpoId === row.hpoId); },
         toggleAssociationPin(row) { this.pinnedAssociations = togglePinnedAssociation(this.pinnedAssociations, row); this.associationPage = 1; },
-        associationInterval(row) { return row.betaCiLowPer0_1Grs == null || row.betaCiHighPer0_1Grs == null ? '—' : `${this.contextStatistic(row.betaCiLowPer0_1Grs)}–${this.contextStatistic(row.betaCiHighPer0_1Grs)}`; },
-        phenotypeCarrierCount(hpoId) {
-            const count = this.associationCarrierCountValue(hpoId);
-            if (count == null) return '—';
-            return `${count.toLocaleString()}${this.associationCountsPartial ? ' (partial)' : ''}`;
+        associationInterval(row) { return row.betaCiLowPer0_1Grs == null || row.betaCiHighPer0_1Grs == null ? '—' : `${this.contextStatistic(row.betaCiLowPer0_1Grs)} – ${this.contextStatistic(row.betaCiHighPer0_1Grs)}`; },
+        phenotypeCaseCount(row) {
+            return associationCaseCount(row)?.toLocaleString() ?? '—';
         },
         applyVariantContextScores(result) {
             pbGeneMethods.applyVariantContextScores.call(this, result);
@@ -483,11 +547,55 @@ export default {
             this.$set(this.contextRunMeta, run.id, { scoreType, analysisSet, significanceThreshold, minCarriers });
             this.currentContextRunId = run.id;
             this.appliedContext = { terms: [...this.activeContextTerms], scoreType, analysisSet, reference: this.receivedContextReference };
+            this.variantSortKey = 'matchScore';
+            this.variantSortDir = 'desc';
+            this.goToVariantPage(1);
+            this.loadContextSampleCount(run);
+            this.loadContextQuality(run);
+        },
+        async loadContextSampleCount(run) {
+            const meta = this.contextRunMeta[run.id];
+            if (!meta || run.profileSampleCount?.status === 'loading') return;
+
+            this.$set(run, 'profileSampleCount', { status: 'loading' });
+            let profileSampleCount;
+            try {
+                const counts = await fetchGeneCarrierHpoCount(this.geneInfo.symbol.toUpperCase(), run.hpos.split(', '),
+                    this.geneVariantQuality, Number(this.totalGeneCarriers) || 0);
+                profileSampleCount = { status: 'ready', ...counts };
+            } catch (error) {
+                profileSampleCount = { status: 'error', message: error.message };
+            }
+            if (this.contextRunMeta[run.id] === meta) this.$set(run, 'profileSampleCount', profileSampleCount);
+        },
+        async loadContextQuality(run) {
+            const meta = this.contextRunMeta[run.id];
+            if (!meta || run.status !== 'ok' || !run.geneScoreModel || run.quality?.status === 'loading') return;
+
+            const gene = this.geneInfo.symbol;
+            const terms = run.hpos.split(', ');
+            this.$set(run, 'quality', { status: 'loading' });
+            let quality;
+            try {
+                const { fetchProfileGeneAssociations } = await import('../PbPhenotype/profileGeneApi');
+                const family = await fetchProfileGeneAssociations(terms, undefined, undefined, {
+                    scoreType: meta.scoreType, affectedOnly: meta.analysisSet === 'affected',
+                });
+                const qc = profileAssociationQc(family, gene, run, { ...meta, terms });
+                quality = qc ? { status: 'ready', ...qc } : { status: 'unavailable' };
+            } catch (error) {
+                quality = { status: 'error', message: error.message };
+            }
+            if (this.geneInfo.symbol === gene && this.contextRunMeta[run.id] === meta) {
+                this.$set(run, 'quality', quality);
+            }
         },
         async loadLiveGeneData(query, updateUrl = false) {
             const previousGene = this.geneInfo.symbol;
             await pbGeneMethods.loadLiveGeneData.call(this, query, false);
             if (this.geneInfo.symbol !== previousGene) {
+                this.associationQcSelection = null;
+                this.associationCaseRange = null;
                 this.associationSearch = ''; this.associationSortKey = ''; this.associationSortDirection = 'asc'; this.pinnedAssociations = []; this.pinnedVariantIds = []; this.variantIdentifierIds = null; this.appliedVariantQuery = ''; this.variantFilters = { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }; this.associationPage = 1;
             }
             this.contextRunMeta = {}; this.currentContextRunId = ''; this.appliedContext = null;
@@ -502,8 +610,13 @@ export default {
     },
     watch: {
         associationSearch() { this.associationPage = 1; },
+        associationQcSelection() { this.associationPage = 1; },
+        associationCaseRange() { this.associationPage = 1; },
+        associationPageCount(count) { this.associationPage = Math.min(this.associationPage, count); },
         'geneInfo.symbol'(symbol, previous) {
             if (symbol === previous) return;
+            this.associationQcSelection = null;
+            this.associationCaseRange = null;
             this.associationSearch = ''; this.associationSortKey = ''; this.associationSortDirection = 'asc'; this.pinnedAssociations = []; this.pinnedVariantIds = []; this.variantIdentifierIds = null; this.appliedVariantQuery = ''; this.variantFilters = { clinvar: [], consequence: [], annotations: [], predictionCoverage: [], loftee: false }; this.associationPage = 1;
             this.contextRunMeta = {}; this.currentContextRunId = ''; this.appliedContext = null;
         },

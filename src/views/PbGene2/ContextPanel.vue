@@ -18,24 +18,45 @@
             <table class="pg2-table pg2-context-history">
                 <thead><tr>
                     <th>Phenotype profile</th>
-                    <th class="pg2-numeric">Gene β <help-tooltip info label="About Custom Gene beta" :text="help.customBeta" /></th>
-                    <th class="pg2-numeric">P</th>
-                    <th class="pg2-numeric">Samples with<br>positive GRS <help-tooltip info label="About samples with positive GRS" :text="help.positiveGRS" /></th>
-                    <th>Settings <help-tooltip info label="About GRS settings" :text="help.settings" /></th>
+                    <th class="pg2-numeric pg2-context-beta">
+                        β <help-tooltip info label="About profile beta and 95% confidence interval" :text="help.customBeta + ' ' + help.customCI" />
+                        <small class="pg2-beta-interval">95% CI</small>
+                    </th>
+                    <th class="pg2-numeric pg2-context-p">P</th>
+                    <th class="pg2-numeric pg2-context-q">q <help-tooltip info label="About profile q" :text="help.customQ" /></th>
+                    <th class="pg2-numeric pg2-context-lambda">Profile λ <help-tooltip info label="About profile lambda" :text="help.customLambda" /></th>
+                    <th class="pg2-numeric pg2-context-sample-count">Gene carriers with<br>≥1 profile HPO <help-tooltip info label="About gene carriers with at least one profile HPO" :text="help.customSampleCount" /></th>
+                    <th class="pg2-context-settings">Settings <help-tooltip info label="About GRS settings" :text="help.settings" /></th>
                     <th class="pg2-context-action"><span class="pg2-sr-only">Result actions</span></th>
                 </tr></thead>
                 <tbody>
                     <tr v-for="run in contextRuns" :key="run.id" :class="{ 'pg2-applied-row': run.id === currentRunId }">
                         <td><strong>{{ profileLabel(run.hpos) }}</strong><span v-if="run.id === currentRunId" class="pg2-applied-tag">Applied</span><small><a :href="phenotypeResultUrl(run)" target="_blank" rel="noopener noreferrer">{{ run.hpos }}</a><help-tooltip v-if="run.noteIsWarning" label="About this analysis result" :text="analysisDetails(run)" info /></small></td>
-                        <td class="pg2-numeric">{{ run.beta }}</td><td class="pg2-numeric">{{ run.pValue }}</td>
-                        <td class="pg2-numeric">{{ positiveCount(run) }}</td>
+                        <td class="pg2-numeric">
+                            {{ run.beta }}
+                            <small class="pg2-beta-interval">{{ run.betaInterval || '—' }}</small>
+                        </td>
+                        <td class="pg2-numeric">{{ run.pValue }}</td>
+                        <td class="pg2-numeric">
+                            <span v-if="run.quality && run.quality.qValue != null">{{ run.quality.qValue.toPrecision(3) }}</span>
+                            <small v-else-if="run.quality && run.quality.status === 'loading'" role="status">Calculating…</small>
+                            <button v-else-if="run.quality && run.quality.status === 'error'" type="button" class="pg2-quality-retry" :title="run.quality.message" @click="$emit('retry-quality', run)">Retry q and λ</button>
+                            <span v-else title="A matching gene test is required to report q">—</span>
+                        </td>
+                        <td class="pg2-numeric" :title="run.quality && run.quality.nTests ? run.quality.nTests.toLocaleString() + ' valid gene tests for this profile' : null">{{ run.quality && run.quality.lambda != null ? run.quality.lambda.toFixed(3) : '—' }}</td>
+                        <td class="pg2-numeric">
+                            <span v-if="run.profileSampleCount && run.profileSampleCount.status === 'ready'" :title="profileSampleCountTitle(run.profileSampleCount)">{{ profileSampleCountText(run.profileSampleCount) }}</span>
+                            <small v-else-if="run.profileSampleCount && run.profileSampleCount.status === 'loading'" role="status">Counting…</small>
+                            <button v-else-if="run.profileSampleCount && run.profileSampleCount.status === 'error'" type="button" class="pg2-quality-retry" :title="run.profileSampleCount.message" @click="$emit('retry-sample-count', run)">Retry count</button>
+                            <span v-else>—</span>
+                        </td>
                         <td><span>GRS: {{ runSettings(run).scoreType }}</span><br><span>Samples: {{ runSettings(run).analysisSet }}</span><help-tooltip info label="Analysis result details" :text="analysisDetails(run)" /></td>
                         <td class="pg2-context-action"><div class="pg2-context-actions">
                             <button type="button" class="pg2-result-action pg2-rerun" :class="{ 'pg2-rerun-loading': contextLoading && rerunningRunId === run.id }" :disabled="contextLoading || !canRerun(run)" :aria-label="'Re-run ' + profileLabel(run.hpos)" :aria-busy="String(contextLoading && rerunningRunId === run.id)" :title="canRerun(run) ? 'Re-run' : 'Saved settings unavailable'" @click="rerunProfile(run)"><b-icon-arrow-clockwise aria-hidden="true" /></button>
                             <button type="button" class="pg2-result-action pg2-remove-run" :disabled="contextLoading" :aria-label="'Delete result for ' + profileLabel(run.hpos)" title="Delete row" @click="$emit('remove', run)"><b-icon-x aria-hidden="true" /></button>
                         </div></td>
                     </tr>
-                    <tr v-if="!contextRuns.length"><td colspan="6" class="pg2-empty">Add a phenotype profile and select Apply.</td></tr>
+                    <tr v-if="!contextRuns.length"><td colspan="8" class="pg2-empty">Add a phenotype profile and select Apply.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -73,8 +94,18 @@ export default {
             const meta = this.runMeta[run.id];
             return { scoreType: meta ? meta.scoreType === 'sum' ? 'Sum' : 'Max' : 'Unavailable', analysisSet: meta ? meta.analysisSet === 'affected' ? 'Affected only' : 'All' : 'Unavailable' };
         },
-        positiveCount(run) { return run.nPositiveBurden == null || !Number.isFinite(Number(run.nPositiveBurden)) ? 'Unavailable' : Number(run.nPositiveBurden).toLocaleString(); },
-        analysisDetails(run) { return [run.statusLabel, run.coverageLabel, run.modelLabel, run.referenceLabel, run.note, run.sourceLabel].filter(Boolean).join('. '); },
+        analysisDetails(run) {
+            const sampleCount = Number.isSafeInteger(run.nAnalysisSamples) ? `${run.nAnalysisSamples.toLocaleString()} samples in the model` : null;
+            return [run.statusLabel, sampleCount, run.modelLabel, run.referenceLabel, run.note, run.sourceLabel].filter(Boolean).join('. ');
+        },
+        profileSampleCountText({ count, carrierTotal, metadataCount }) {
+            if (count == null) return '—';
+            const lowerBound = metadataCount < carrierTotal ? '≥' : '';
+            return `${lowerBound}${count.toLocaleString()} / ${carrierTotal.toLocaleString()}`;
+        },
+        profileSampleCountTitle({ carrierTotal, metadataCount }) {
+            return `HPO metadata available for ${metadataCount.toLocaleString()} of ${carrierTotal.toLocaleString()} observed gene carriers.`;
+        },
         phenotypeResultUrl(run) {
             const terms = [...new Set(String(run.hpos || '').toUpperCase().match(/HP:\d{7}/g) || [])];
             return terms.length ? '/pb_phenotype.html?query=' + encodeURIComponent(terms.join(',')) : '';

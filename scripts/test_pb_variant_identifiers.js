@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const {
     buildTranscriptIdentity,
     canonicalVariantId,
+    chooseVariantGene,
     gnomadVariantHref,
     isRsid,
     isVariantId,
@@ -48,4 +49,17 @@ assert.deepEqual(transcript, {
     rsid: null,
 });
 
-console.log("PB_VARIANT_IDENTIFIERS_PASS");
+for (const [expected, rows] of [
+    ['CFTR', [{geneId: 'AC000111', biotype: 'processed_pseudogene', pick: '1'}, {symbol: 'CFTR', biotype: 'protein_coding', consequenceTerms: 'missense_variant', pick: '1'}]],
+    ['GJB2', [{gene_symbol: 'RP11-264J4', biotype: 'lncRNA'}, {symbol: 'GJB2', biotype: 'protein_coding'}]],
+    ['PICKED', [{symbol: 'OTHER', biotype: 'protein_coding'}, {symbol: 'PICKED', biotype: 'protein_coding', pick: 1}]],
+    ['DIRECT', [{symbol: 'FLANKING', biotype: 'protein_coding', consequenceTerms: 'upstream_gene_variant'}, {symbol: 'DIRECT', biotype: 'protein_coding', consequenceTerms: 'intron_variant'}]],
+    ['A', [{symbol: 'Z'}, {symbol: 'A'}, {symbol: 'Z'}]],
+    ['NONCODING', [{symbol: 'NONCODING', biotype: 'lncRNA'}, {symbol: '', biotype: 'enhancer'}]],
+    [null, [{symbol: '', geneId: ''}]],
+]) {
+    assert.equal(chooseVariantGene(rows), expected);
+    assert.equal(chooseVariantGene([...rows].reverse()), expected, 'Gene selection must not depend on annotation row order');
+}
+
+console.log("PB_VARIANT_IDENTIFIERS_AND_OVERLAPPING_GENE_PRIORITY_PASS");

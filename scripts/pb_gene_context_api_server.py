@@ -3,6 +3,7 @@
 import argparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+from pathlib import Path
 import re
 from time import perf_counter
 
@@ -336,12 +337,12 @@ def main(argv=None):
     parser.add_argument('--bcftools', default='bcftools')
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8092)
+    parser.add_argument("--port-file", type=Path)
     args = parser.parse_args(argv)
     if not args.evidence and not args.bioindex_host:
         parser.error("provide --evidence or --bioindex-host")
     access_token = None
     if args.bioindex_access_token_file:
-        from pathlib import Path
         access_token = Path(args.bioindex_access_token_file).read_text().strip()
 
     gene_runner = (
@@ -373,6 +374,8 @@ def main(argv=None):
         from scripts.vcf_carrier_genotypes import VcfCarrierGenotypes
         genotype_source = VcfCarrierGenotypes(args.genotype_vcf, bcftools=args.bcftools)
     server = create_server((args.host, args.port), engine, genotype_source=genotype_source)
+    if args.port_file:
+        args.port_file.write_text(f"{server.server_port}\n")
     print(f"pb_Gene Context API listening on http://{args.host}:{server.server_port}")
     server.serve_forever()
 

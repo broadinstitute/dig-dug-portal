@@ -1,5 +1,11 @@
 # PB Variant engineering handoff
 
+## Current browser behavior — 2026-11-18
+
+- Honor the gene passed in a Variant link. When choosing a gene from transcript rows, rank protein coding, VEP pick, direct overlap, impact and gene symbol in that order.
+- Keep the genotype segments at the right of the carrier heading. The **Phenotype profile** tab opens by default. **Carrier details** shows the current genotype selection before Apply, including carriers without profile scores.
+- Reuse processed GT and supplement missing rows from the current indexed VCF. Preserve the distinction between a failed lookup and a completed lookup with insufficient depth. [Pre-commit checks](pb_precommit_handoff_20261118.md#pre-commit-review).
+
 **Reproduce the user's current prototype design and interactions exactly.** Follow the [five-page design fidelity requirement](pb_front_gene_variant_merge_handoff.md#required-design-fidelity--all-five-pages). Carry this page's Vue templates and CSS together: typography, colors, spacing, borders, card/table widths and order, icons, responsive layout and every interactive state, including genotype-specific colours. Compare prototype and target at the same viewport/zoom before marking the UI complete.
 
 ## Current UI contract — 2026-11-17
@@ -9,7 +15,7 @@ Use this section for layout/state; keep the regression/source contracts below.
 | Area | Implement |
 |---|---|
 | Order/grouping | Variant identity → **one carrier information card** containing CRDC demographics, a thin divider and Carrier phenotypes → profile-results/carrier-samples card. No separate border/background between demographics and observed phenotypes. |
-| Genotype | Left column: selected carrier count, `carriers`, Genotype, single-select **All / Het / Hom** buttons with source counts. Show Unknown only when count >0; All includes Unknown. Apply immediately, without dropdown/Cancel/Apply. Preserve raw GT and the existing genotype grouping rules. |
+| Genotype | Show the selected carrier count in the heading and right-align the **All / Het / Hom** segments. Show Unknown when its count is positive. All includes Unknown. Apply the selection immediately and preserve raw GT. |
 | Colours | All `#204de3`, Het `#16835d`, Hom `#e3b72d`; selected button and demographics progress fills follow selection. Het/Hom phenotype-tree fills use the same colour. Hom button text `#14213d`. |
 | Observed phenotypes | Own demographic/HPO display filters within selected genotype carriers. Profile Apply must not highlight terms, expand branches, navigate pages, insert unlisted-profile labels or change these filters. Denominator remains carriers with phenotype data. |
 | Profile input | Right-aligned input/Apply/Advanced options in the carrier-samples card; retain Max/Sum and All/Affected. No repeated Variant/ClinVar/total-carrier/predictor columns. |
@@ -139,13 +145,13 @@ The existing committed GT connection (`c98902622`) uses **filtered processed dat
 |---|---|
 | Processed GT | `sample_variant_gene.jsonl.gz`, release `2025_crdc_16366_dp20_af001_20260907`; GRCh38, nonsynonymous, DP ≥20, cohort AF <0.01. SHA-256 `e602b847ccdba8961f788701b43004514346490f55164dd3023be23aa7c6bbc7`. |
 | Processed index | `PB_GENOTYPE_INDEX`, otherwise `.pb-private-data/genotypes/shared/2025_crdc_16366_dp20_af001_20260907/index`. Build using `scripts/build_pb_genotype_index.py` and the approved source. The default discovers an existing index; it does not download one. |
-| Original VCF | `/lab-share/RC-Data-Science-NR-e2/Public/gnomad/helen/VEP_pipeline/cleanVCF/finalresult/Data_with_af_dp/combined_crdc.with_af_formatDP.vcf.gz`; configure the Variant API with `--genotype-vcf` and indexed `bcftools`. Query exact position/REF/ALT and requested samples, DP ≥20, preserving allele indices/phase. |
+| Original VCF | `/lab-share/RC-Data-Science-NR-e2/Groups/gnomad/helen/VEP_pipeline/cleanVCF/finalresult/Data_with_af_dp/combined_crdc.with_af_formatDP.vcf.gz` (moved from `Public/gnomad/helen` on 2026-11-18); configure the Variant API with `--genotype-vcf` and indexed `bcftools`. Query exact position/REF/ALT and requested samples, DP ≥20, preserving allele indices/phase. |
 | VCF cache | `.pb-private-data/genotypes/original-vcf/`: checksum-validated exact variant/sample-selection responses, reusable after restart/offline. New selections need the service. Invalidate on a new VCF release; retain original-file/size/mtime/call provenance. |
 | HPO count lookup | `PB_HPO_TERM_COUNTS_FILE`, otherwise `.pb-private-data/rphers/hpo_term_counts.json`; build with `scripts/build_pb_hpo_term_counts.py` from the same approved scoring matrix. |
 
 `/__pb_variant_context__` proxies to `PB_VARIANT_CONTEXT_HOST_PRIVATE` (default `http://127.0.0.1:8095`), rewriting to `/phenotype-analyzer-api`. Run the scoped Variant API separately from the existing Gene/Sample service.
 
-For the current compute demo, `run_pb_context_demo.sbatch` starts Variant on 18096 from `PB_VARIANT_API_ROOT`, the staged `variant-genotype-20261114` directory, or the demo root; stage the current API modules there. `PB_GENOTYPE_VCF_SOURCE` overrides the VCF path. `start_pb_context_demo.sh` / `connect_pb_context_demo.sh` reuse/start the job and forward 8095 →18096 alongside existing 8092/8094 forwards. Keep the tunnel terminal open.
+For local review, `npm run start:pb` stages the current Python and R code into the user's personal e3 deployment. The compute job publishes the Variant port and the launcher forwards it to local 8095. Configure the VCF on the compute node with `PB_GENOTYPE_VCF_SOURCE` when overriding the approved path. [Local setup](pb_local_browser_setup.md).
 
 A Git push does not deploy the service or install private inputs. Keep VCFs, matrices, indexes, caches and captures outside Git/public assets. This document specifies Variant; the other four pages have their own current contracts linked from the shared integration guide.
 

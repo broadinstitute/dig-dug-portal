@@ -22,9 +22,11 @@ const reply=(term,count,match='any')=>({ok:true,json:async()=>({gene:'TEST',hpo_
     assert.equal(pending[0].options.signal.aborted,true);
     pending[1].resolve(reply('HP:0001252',2));await second;
     pending[0].resolve(reply('HP:0001250',1));await first;
-    assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'2','An older HPO profile must not overwrite current counts');
+    assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'2','An older HPO profile must not overwrite current counts; the adjacent column shows the total');
     page.variantHpoCounts['chr1:1:A:G'].complete=false;
-    assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'2 (partial)');
+    page.variantHpoCounts['chr1:1:A:G'].carrierTotal=5;
+    assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'≥2','Incomplete metadata makes the match count a lower bound');
+    assert.match(page.variantHpoCountTitle(page.comparisonVariantRows[0]),/3 of 5 observed variant carriers/);
     page.variantHpoCounts['chr1:1:A:G'].count=null;
     assert.equal(page.variantHpoCountDisplay(page.comparisonVariantRows[0]),'Unavailable');
     const legacy=page.loadVariantHpoCounts(page.variantHpoCountKey);

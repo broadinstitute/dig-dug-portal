@@ -133,16 +133,20 @@
 
                     <section class="pbv-card pg2-card pbv-carrier-information" :data-genotype="selectedGenotypeSegment" aria-labelledby="pbv-crdc-carriers-title">
                     <section class="pbv-crdc-carriers" aria-labelledby="pbv-crdc-carriers-title">
-                        <div class="pbv-section-heading"><h2 id="pbv-crdc-carriers-title">Carriers observed in CRDC <help-tooltip label="About observed CRDC carriers" :text="help.carrierSummary" /></h2></div>
-                        <div class="pbv-crdc-overview">
+                        <div class="pbv-section-heading pbv-crdc-heading">
+                            <h2 id="pbv-crdc-carriers-title"><strong class="pbv-crdc-count">{{ genotypeCarrierCount.toLocaleString() }}</strong> {{ genotypeCarrierCount === 1 ? 'carrier' : 'carriers' }} observed in CRDC <help-tooltip label="About observed CRDC carriers" :text="help.carrierSummary" /></h2>
                             <div class="pbv-crdc-selection">
-                                <strong class="pbv-crdc-count">{{ genotypeCarrierCount.toLocaleString() }}</strong><span>carriers</span>
                                 <span class="pbv-genotype-caption">Genotype</span>
                                 <div class="pbv-genotype-segments" role="group" aria-label="Carrier genotype">
-                                    <button v-for="option in genotypeSegments" :key="option.value" type="button" :aria-pressed="String(selectedGenotypeSegment === option.value)" :class="{ 'is-selected': selectedGenotypeSegment === option.value }" @click="selectGenotypeSegment(option.value)">{{ option.label }} {{ option.count.toLocaleString() }}</button>
+                                    <button v-for="option in genotypeSegments" :key="option.value" type="button" :aria-pressed="String(selectedGenotypeSegment === option.value)" :class="{ 'is-selected': selectedGenotypeSegment === option.value }" @click="selectGenotypeSegment(option.value)">
+                                        <span class="pbv-genotype-segment-label">{{ option.label }}</span>
+                                        <span class="pbv-genotype-segment-count">{{ option.count.toLocaleString() }}</span>
+                                    </button>
                                 </div>
-                                <p v-if="genotypeLookupFailed" class="pbv-genotype-hint" role="alert">GT lookup unavailable. Check the genotype service.</p>
                             </div>
+                        </div>
+                        <p v-if="genotypeLookupFailed" class="pbv-genotype-hint" role="alert">GT lookup unavailable. Check the genotype service.</p>
+                        <div class="pbv-crdc-overview">
                             <carrier-demographics :summary="carrierDemographicSummary" :carrier-count="genotypeCarrierCount" :scope="variantIdentity.canonicalId + ':' + genotypeSelection.join(',')" compact inline-project-search numbered-project-pager />
                         </div>
                     </section>
@@ -313,8 +317,46 @@
 
                     <section class="pbv-card pg2-card pbv-profile pbv-carrier-samples" aria-labelledby="pbv-context-title">
                         <div class="pbv-section-heading pbv-carrier-samples-heading">
-                            <h2 id="pbv-context-title">{{ genotypeCarrierCount.toLocaleString() }} {{ genotypeCarrierCount === 1 ? 'carrier sample' : 'carrier samples' }}</h2><span class="pbv-internal-tag">Internal only</span><span class="pbv-methods"><help-tooltip label="Phenotype profile methods" :text="profileMethods" /> Methods</span>
+                            <h2 id="pbv-context-title">{{ genotypeCarrierCount.toLocaleString() }} {{ genotypeCarrierCount === 1 ? 'carrier sample' : 'carrier samples' }}</h2><span class="pbv-internal-tag">Internal only</span>
+                            <div ref="carrierSamplesTabs" class="pbv-carrier-sample-tabs" role="tablist" aria-label="Carrier sample views" @keydown="handleCarrierSamplesTabKeydown">
+                                <button id="pbv-carrier-details-tab" type="button" role="tab" :aria-selected="String(carrierSamplesTab === 'carriers')" :tabindex="carrierSamplesTab === 'carriers' ? 0 : -1" aria-controls="pbv-all-carrier-details" @click="carrierSamplesTab = 'carriers'">Carrier details</button>
+                                <button id="pbv-phenotype-profile-tab" type="button" role="tab" :aria-selected="String(carrierSamplesTab === 'profile')" :tabindex="carrierSamplesTab === 'profile' ? 0 : -1" aria-controls="pbv-phenotype-profile-panel" @click="carrierSamplesTab = 'profile'">Phenotype profile</button>
+                            </div>
                         </div>
+                        <div v-show="carrierSamplesTab === 'carriers'" id="pbv-all-carrier-details" class="pbv-all-carrier-details" role="tabpanel" aria-labelledby="pbv-carrier-details-tab" tabindex="0">
+                            <p class="pbv-all-carrier-caption">All carriers in the current genotype selection, including samples without phenotype scores.</p>
+                            <p v-if="sampleMetadataStatus === 'loading'" class="pbv-all-carrier-caption" role="status">Loading sample details…</p>
+                            <p v-if="!genotypeCarrierCount" class="pbv-empty-note">No carriers match the genotype selection.</p>
+                            <template v-else>
+                                <div class="pbv-all-carrier-scroll">
+                                    <table class="pbv-all-carrier-table" aria-label="All carrier sample details">
+                                        <thead><tr>
+                                            <th scope="col"><button type="button" @click="sortTableColumn('allCarriers', 'sample')">Sample <i>{{ tableSortIndicator('allCarriers', 'sample') }}</i></button></th>
+                                            <th scope="col"><button type="button" @click="sortTableColumn('allCarriers', 'age')">Age <i>{{ tableSortIndicator('allCarriers', 'age') }}</i></button></th>
+                                            <th scope="col"><button type="button" @click="sortTableColumn('allCarriers', 'sex')">Sex <i>{{ tableSortIndicator('allCarriers', 'sex') }}</i></button></th>
+                                            <th scope="col"><button type="button" @click="sortTableColumn('allCarriers', 'gt')">GT <i>{{ tableSortIndicator('allCarriers', 'gt') }}</i></button> <help-tooltip label="All carrier genotype source" :text="genotypeSourceHelp" /></th>
+                                            <th scope="col"><button type="button" @click="sortTableColumn('allCarriers', 'hpoCount')">Total HPO terms <i>{{ tableSortIndicator('allCarriers', 'hpoCount') }}</i></button> <help-tooltip label="All carrier total HPO terms" text="Parent-expanded HPO count from the scoring input matrix. Known empty phenotype records display 0; unavailable counts remain unavailable. This count does not require a phenotype profile or establish scoring eligibility." /></th>
+                                            <th scope="col"><button type="button" @click="sortTableColumn('allCarriers', 'affected')">Affected <i>{{ tableSortIndicator('allCarriers', 'affected') }}</i></button></th>
+                                            <th scope="col"><button type="button" @click="sortTableColumn('allCarriers', 'project')">Project <i>{{ tableSortIndicator('allCarriers', 'project') }}</i></button></th>
+                                        </tr></thead>
+                                        <tbody><tr v-for="carrier in visibleAllCarrierRows" :key="carrier.key">
+                                            <td><a class="pbg-sample-link" :href="`/pb_sample.html?query=${encodeURIComponent(carrier.id)}`">{{ carrier.id }}</a></td>
+                                            <td>{{ carrierAge(carrier) }}</td>
+                                            <td>{{ carrierMetadataField(carrier, 'sex') }}</td>
+                                            <td>{{ displayCarrierValue(carrier.genotype) }}</td>
+                                            <td>{{ carrierHpoCount(carrier) }}</td>
+                                            <td>{{ carrierMetadataField(carrier, 'affected') }}</td>
+                                            <td>{{ carrierMetadataField(carrier, 'project') }}</td>
+                                        </tr></tbody>
+                                    </table>
+                                </div>
+                                <SummaryPager v-if="allCarrierPageCount > 1" class="pbv-result-pagination" :page="resultPages.allCarriers" :total-pages="allCarrierPageCount"
+                                              label="All carrier sample pages" input-id="pb-variant-all-carrier-page"
+                                              @change="setResultPage('allCarriers', $event)" />
+                            </template>
+                        </div>
+                        <div v-show="carrierSamplesTab === 'profile'" id="pbv-phenotype-profile-panel" role="tabpanel" aria-labelledby="pbv-phenotype-profile-tab" tabindex="0">
+                        <div class="pbv-profile-methods-row"><span class="pbv-methods"><help-tooltip label="Phenotype profile methods" :text="profileMethods" /> Methods</span></div>
                         <form class="pbv-profile-form" @submit.prevent="applyVariantProfile">
                             <label id="pg2-profile-input-label" class="pbv-profile-label">Phenotype profile</label>
                             <hpo-term-input ref="profile" v-model="contextInput" link-hpo-ids />
@@ -402,6 +444,7 @@
                                 </tbody>
                                 <tbody v-if="!profileRuns.length"><tr><td colspan="8" class="pbv-profile-prompt">{{ contextLoading ? 'Calculating phenotype profile…' : 'Add a phenotype profile and select Apply.' }}</td></tr></tbody>
                             </table>
+                        </div>
                         </div>
                     </section>
 

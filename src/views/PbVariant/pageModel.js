@@ -36,6 +36,7 @@ const { GENOTYPES, allGenotypes, genotypeGroup, selectGenotypeCarriers, matchesS
 const {
     buildTranscriptIdentity,
     canonicalVariantId,
+    chooseVariantGene,
     gnomadVariantHref,
     isRsid,
     isVariantId,
@@ -54,6 +55,15 @@ const DEFAULT_GENE = "HBB";
 
 function normalizeGene(value) {
     return String(value || "").trim().toUpperCase();
+}
+
+function updateVariantSearchUrl(query, gene, replace = true) {
+    if (!window.history || !window.location.href) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("query", query);
+    if (gene) url.searchParams.set("gene", gene);
+    else url.searchParams.delete("gene");
+    window.history[replace ? 'replaceState' : 'pushState']({}, "", url.toString());
 }
 
 function normalizeVariant(value) {
@@ -149,10 +159,11 @@ export function createPbVariantState() {
         sampleMetadataFailed: 0,
         sampleMetadataLoadId: 0,
         sampleMetadataPromise: null,
-        resultPages: { phenotypes: 1, carriers: 1, coGenes: 1, coVariants: 1 },
+        resultPages: { phenotypes: 1, carriers: 1, allCarriers: 1, coGenes: 1, coVariants: 1 },
         tableSort: {
             phenotypes: { key: null, dir: "asc" },
             carriers: { key: "residual", dir: "desc" },
+            allCarriers: { key: "sample", dir: "asc" },
             coGenes: { key: "count", dir: "desc" },
             coVariants: { key: "count", dir: "desc" },
         },
@@ -168,7 +179,7 @@ export function createPbVariantState() {
         profileRuns: [],
         expandedProfileRunId: null,
         profileHpoCounts: {},
-        carrierSamplesExpanded: false,
+        carrierSamplesTab: 'profile',
         variantHpoCount: null,
         variantHpoCountStatus: 'idle',
         variantHpoResponseKey: '',
@@ -486,6 +497,13 @@ export const pbVariantComputed = {
     carrierPageCount() {
         return pageCount(this.profileScoredCarriers.length, CARRIER_TABLE_LIMIT);
     },
+    visibleAllCarrierRows() {
+        const rows = sortCarrierRows(this.genotypeCarriers, this.tableSort.allCarriers, this.sampleMetadataById);
+        return pageRows(rows, this.resultPages.allCarriers, CARRIER_TABLE_LIMIT);
+    },
+    allCarrierPageCount() {
+        return pageCount(this.genotypeCarrierCount, CARRIER_TABLE_LIMIT);
+    },
     carrierGrsSummary() {
         const scored = this.filteredCarriers.filter(carrier =>
             carrier.geneBurdenScoredVariants > 0 && Number.isFinite(carrier.geneBurden)
@@ -592,6 +610,17 @@ export const pbVariantMethods = {
     selectGenotypeSegment(value) {
         this.genotypeDraft = value === 'all' ? allGenotypes() : [value];
         return this.applyGenotypeFilter();
+    },
+    handleCarrierSamplesTabKeydown(event) {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        this.carrierSamplesTab = event.key === 'Home' ? 'carriers' : event.key === 'End' ? 'profile'
+            : this.carrierSamplesTab === 'carriers' ? 'profile' : 'carriers';
+        this.$nextTick(() => {
+            const tabs = this.$refs.carrierSamplesTabs;
+            const selected = tabs && tabs.querySelector('[aria-selected="true"]');
+            if (selected) selected.focus();
+        });
     },
     toggleProfileSamples(run) {
         this.expandedProfileRunId = this.expandedProfileRunId === run.id ? null : run.id;
@@ -864,7 +893,7 @@ export const pbVariantMethods = {
             : [...this.expandedCategories, key];
     },
     resetResultPages() {
-        this.resultPages = { phenotypes: 1, carriers: 1, coGenes: 1, coVariants: 1 };
+        this.resultPages = { phenotypes: 1, carriers: 1, allCarriers: 1, coGenes: 1, coVariants: 1 };
     },
     sortTableColumn(kind, key) {
         const current = this.tableSort[kind];
@@ -882,6 +911,7 @@ export const pbVariantMethods = {
         const totalPages = {
             phenotypes: this.phenotypePageCount,
             carriers: this.carrierPageCount,
+            allCarriers: this.allCarrierPageCount,
             coGenes: this.coGenePageCount,
             coVariants: this.coVariantPageCount,
         }[kind];
@@ -1170,7 +1200,8 @@ export const pbVariantMethods = {
         }
     },
     async submitVariantSearch() {
-        if (normalizeVariant(this.searchQuery) !== normalizeVariant(this.variantIdentity.canonicalId)) {
+        if (normalizeVariant(this.searchQuery) !== normalizeVariant(this.variantIdentity.canonicalId)
+            || normalizeGene(this.geneQuery) !== normalizeGene(this.variantIdentity.gene)) {
             this.geneQuery = "";
         }
         await this.loadLiveVariantData(true);
@@ -1179,7 +1210,7 @@ export const pbVariantMethods = {
         this.genotypeRevision++;
         this.genotypeSelection = allGenotypes();
         this.genotypeDraft = allGenotypes();
-        this.carrierSamplesExpanded = false;
+        this.carrierSamplesTab = 'profile';
         this.sampleMetadataLoadId += 1;
         this.contextRunId += 1;
         this.contextLoading = false;
@@ -1214,6 +1245,7 @@ export const pbVariantMethods = {
         }
         const variantReference = resolveVariantReference(variant);
         if (!rsid && variantReference && variantReference.assembly === "GRCh38") rsid = variantReference.rsid;
+        if (updateUrl) updateVariantSearchUrl(requested, gene, false);
 
         this.searchLoading = true;
         this.searchProgress = "Resolving variant annotation";
@@ -1223,16 +1255,11 @@ export const pbVariantMethods = {
                 onResolve: () => { this.searchProgress = "Loading transcript consequences"; },
             }, true);
             if (!gene) {
-                const genes = Array.from(new Set(transcriptRows
-                    .map(row => normalizeGene(row.symbol || row.gene_symbol || row.geneId))
-                    .filter(Boolean)));
-                if (genes.length !== 1) {
-                    throw new Error(genes.length
-                        ? `${variant} overlaps multiple genes (${genes.join(", ")}); open it from PB Gene to select the carrier context.`
-                        : `${variant} has no gene mapping in the current transcript-consequences index.`);
-                }
-                gene = genes[0];
+                gene = chooseVariantGene(transcriptRows);
+                if (!gene) throw new Error(`${variant} has no gene mapping in the current transcript-consequences index.`);
             }
+            this.geneQuery = gene;
+            updateVariantSearchUrl(requested, gene);
             this.searchProgress = `Loading complete ${gene} carrier evidence`;
             const geneState = await fetchPbGeneBioIndexState(gene, {
                 genotypeVariantId: canonicalVariantId(variant),
@@ -1265,13 +1292,7 @@ export const pbVariantMethods = {
             this.searchQuery = next.variantIdentity.canonicalId;
             this.geneQuery = next.variantIdentity.gene;
             this.sampleMetadataPromise = this.loadCarrierMetadata();
-            if (updateUrl) {
-                const url = new URL(window.location.href);
-                url.searchParams.set("query", this.searchQuery);
-                if (this.geneQuery) url.searchParams.set("gene", this.geneQuery);
-                else url.searchParams.delete("gene");
-                window.history.pushState({}, "", url.toString());
-            }
+            updateVariantSearchUrl(this.searchQuery, this.geneQuery);
         } catch (error) {
             const message = String(error && error.message ? error.message : error);
             if (/no live bioindex carrier or variant rows returned|was not returned for .* by the crdc bioindex/i.test(message)) {

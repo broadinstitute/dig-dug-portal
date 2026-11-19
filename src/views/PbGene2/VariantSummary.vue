@@ -57,7 +57,7 @@ export default {
         visiblePhenotypes() { return this.filteredPhenotypes.slice((this.phenotypePage - 1) * 5, this.phenotypePage * 5); },
         phenotypeCoverage() {
             const count = this.summary.phenotypeMetadataCount;
-            return count == null ? 'HPO coverage unavailable' : `${Number(count).toLocaleString()} / ${this.variant.carrierCount.toLocaleString()} carriers have HPO metadata${this.summary.status === 'ready' ? '' : ' · partial results'}`;
+            return count == null ? 'HPO coverage unavailable' : `${Number(count).toLocaleString()} / ${this.variant.carrierCount.toLocaleString()} carriers have HPO metadata`;
         },
         coGenes() { return (this.summary || {}).coCarrierGenes || []; },
         filteredCoGenes() { const query = this.coGeneSearch.trim().toLowerCase(); return this.coGenes.filter(row => !query || String(row.gene).toLowerCase().includes(query)); },

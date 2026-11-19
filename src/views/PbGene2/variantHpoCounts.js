@@ -1,3 +1,23 @@
+export async function fetchGeneCarrierHpoCount(gene, ids, quality, expectedTotal, fetcher = fetch) {
+    const hpo_terms = [...new Set(ids)].sort();
+    const response = await fetcher('/__gene_variant_hpo_counts__', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gene, hpo_terms, quality, scope: 'gene' }),
+    });
+    if (!response.ok) throw new Error('Gene carrier phenotype counts are unavailable.');
+
+    const result = await response.json();
+    const { count, carrierTotal, metadataCount } = result.gene_carriers || {};
+    if (result.gene !== gene || result.match !== 'any' || result.population !== 'observed_gene_carriers' ||
+        JSON.stringify(result.hpo_terms) !== JSON.stringify(hpo_terms) || carrierTotal !== expectedTotal ||
+        !Number.isSafeInteger(metadataCount) || metadataCount < 0 || metadataCount > carrierTotal ||
+        (metadataCount === 0 && carrierTotal > 0 ? count !== null :
+            !Number.isSafeInteger(count) || count < 0 || count > metadataCount)) {
+        throw new Error('The carrier phenotype count did not match the displayed gene and profile.');
+    }
+    return { count, carrierTotal, metadataCount };
+}
+
 export const variantHpoCountsMixin = {
     data: () => ({ variantHpoCounts: {}, variantHpoCountStatus: '', variantHpoRevision: 0 }),
     computed: {
@@ -21,7 +41,7 @@ export const variantHpoCountsMixin = {
             const controller = new AbortController(); this._variantHpoAbort = controller;
             try {
                 const response = await fetch('/__gene_variant_hpo_counts__', {method: 'POST', headers: {'Content-Type': 'application/json'},
-                    signal: controller.signal, body: JSON.stringify({gene, hpo_terms: terms, variant_ids: variants})});
+                    signal: controller.signal, body: JSON.stringify({gene, hpo_terms: terms, variant_ids: variants, quality: this.geneVariantQuality})});
                 if (!response.ok) throw new Error('Recorded HPO metadata is unavailable.');
                 const result = await response.json();
                 if (revision !== this.variantHpoRevision || key !== this.variantHpoCountKey) return;
@@ -35,11 +55,13 @@ export const variantHpoCountsMixin = {
             if (!this.appliedContext) return '—';
             if (this.variantHpoCountStatus === 'loading') return 'Loading…';
             const count = this.variantHpoCounts[row.id];
-            return count && count.count != null ? Number(count.count).toLocaleString() + (count.complete ? '' : ' (partial)') : 'Unavailable';
+            if (!count || count.count == null) return 'Unavailable';
+            const lowerBound = count.metadataCount < count.carrierTotal ? '≥' : '';
+            return lowerBound + count.count.toLocaleString();
         },
         variantHpoCountTitle(row) {
             const count = this.variantHpoCounts[row.id];
-            return count ? `${count.metadataCount} / ${count.carrierTotal} observed variant carriers have HPO metadata available. Counts require at least ONE HPO term in the applied profile (OR): with 3 terms, 1/3, 2/3 or 3/3 matches all count. Each carrier is counted once. Exact recorded HPO IDs are matched. This reference count does not filter the analysis population or enter the GRS, rPheRS, mean carrier Z-score, beta or p-value calculations.` : 'Apply a phenotype profile to count carriers with at least ONE of its HPO terms recorded (OR). With 3 terms, 1/3, 2/3 or 3/3 matches all count. Each carrier is counted once. This reference count does not affect score or regression calculations.';
+            return count ? `${count.metadataCount} of ${count.carrierTotal} observed variant carriers have HPO metadata. The cell shows matches among those with metadata. Counts require at least ONE HPO term in the applied profile (OR): with 3 terms, 1/3, 2/3 or 3/3 matches all count. Each carrier is counted once. Exact recorded HPO IDs are matched. This reference count does not filter the analysis population or enter the GRS, rPheRS, mean carrier Z-score, beta or p-value calculations.` : 'Apply a phenotype profile to count carriers with at least ONE of its HPO terms recorded (OR). With 3 terms, 1/3, 2/3 or 3/3 matches all count. Each carrier is counted once. This reference count does not affect score or regression calculations.';
         },
     },
 };

@@ -4,15 +4,8 @@ if [[ ! "$ssh_host" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.@:-]*$ ]]; then
   echo 'Invalid PB_CONTEXT_SSH_HOST.' >&2
   exit 2
 fi
-demo_root=${PB_CONTEXT_DEMO_ROOT:-/lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/pb_context_demo/20261007-5a9ab06cc}
-case "$demo_root" in
-  /lab-share/RC-Data-Science-e2/Groups/gnomad/kyuryung/share/dig-dug-portal/pb_context_demo/*) ;;
-  *) echo 'Unexpected demo directory' >&2; exit 2 ;;
-esac
-if [[ "$demo_root" == *[!a-zA-Z0-9_./-]* ]]; then
-  echo 'Invalid characters in demo directory' >&2
-  exit 2
-fi
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd) || exit $?
+source "$script_dir/pb_context_location.sh" || exit $?
 compute_user=${PB_CONTEXT_COMPUTE_USER:-}
 if [[ -z "$compute_user" ]]; then
   compute_user=$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ssh_host" 'id -un') || exit $?
@@ -33,8 +26,20 @@ if [[ "$state" != RUNNING ]]; then
   exit 2
 fi
 bioindex_host=$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ssh_host" "cat '$demo_root/runtime/bioindex_host'") || exit $?
+port_pairs=(8092:18092 8094:18094 8095:18096 8096:18097)
+if [[ "$demo_root" == */.pb-context-demo ]]; then
+  remote_ports=$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ssh_host" "cat '$demo_root/runtime/ports'") || exit $?
+  read -r gene_port sample_port variant_port quality_port extra <<< "$remote_ports"
+  for port in "$gene_port" "$sample_port" "$variant_port" "$quality_port"; do
+    if [[ ! "$port" =~ ^[1-9][0-9]{3,4}$ ]] || (( port > 65535 )); then
+      echo 'The analysis job published an invalid API port.' >&2; exit 2
+    fi
+  done
+  [[ -z "$extra" ]] || { echo 'The analysis job published unexpected API ports.' >&2; exit 2; }
+  port_pairs=("8092:$gene_port" "8094:$sample_port" "8095:$variant_port" "8096:$quality_port")
+fi
 forward_args=()
-for port_pair in 8092:18092 8094:18094 8095:18096; do
+for port_pair in "${port_pairs[@]}"; do
   local_port=${port_pair%%:*}
   remote_port=${port_pair##*:}
   forwarding="127.0.0.1:$local_port:127.0.0.1:$remote_port"
@@ -86,6 +91,13 @@ for port_pair in 8092:18092 8094:18094 8095:18096; do
     echo "Reusing healthy localhost:$local_port tunnel to $node:$remote_port."
   fi
 done
+if [[ -n "${PB_CONTEXT_READY_FILE:-}" ]]; then
+  if [[ ${#forward_args[@]} -eq 0 ]]; then
+    printf 'reused\n' > "$PB_CONTEXT_READY_FILE" || exit $?
+  else
+    printf 'opening\n' > "$PB_CONTEXT_READY_FILE" || exit $?
+  fi
+fi
 if [[ ${#forward_args[@]} -eq 0 ]]; then
   echo "All API tunnels are already available (job $job_id). Keep their original terminals open."
   exit 0
