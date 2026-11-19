@@ -242,6 +242,8 @@
                             :plot-rows="qtlSearchingPlotRows || []"
                             :gene-color-map="qtlGeneColorMap"
                             :deselected-genes="qtlDeselectedGenes"
+                            :hovered-legend-gene="hoveredQtlGene"
+                            @hover-gene="hoveredQtlGene = $event"
                             :display-height="searchingTrackDisplayHeight"
                             pan-mode="searching"
                             :highlight-view-region="viewRegion"
@@ -282,6 +284,7 @@
                                 :plot-rows="qtlViewingPlotRows || []"
                                 :gene-color-map="qtlGeneColorMap"
                                 :deselected-genes="qtlDeselectedGenes"
+                                :hovered-legend-gene="hoveredQtlGene"
                                 :display-height="120"
                                 pan-mode="viewing"
                                 :viewing-center-bp="viewingCenterBp"
@@ -436,7 +439,17 @@
                     :class="{ 'is-pinned': genesDockPinned }"
                     :style="genesDockPinned ? genesDockPinnedStyle : null"
                 >
-                    <VariantSifterGenesTrack
+                    <button
+                        type="button"
+                        class="gp2-genes-track-collapse-btn"
+                        :class="{ 'is-collapsed': genesTrackCollapsed }"
+                        :aria-label="genesTrackCollapsed ? 'Expand genes track' : 'Collapse genes track'"
+                        :title="genesTrackCollapsed ? 'Expand genes track' : 'Collapse genes track'"
+                        @click="onToggleGenesTrackCollapsed"
+                    >
+                        ^
+                    </button>
+                    <GP2BrowserGenesTrack
                         :key="genesTrackKey"
                         :genes="genesTrackData"
                         :recomb-peak-intervals="searchingRecombPeakIntervals"
@@ -447,6 +460,7 @@
                         :shared-canvas-width="stackCanvasWidth"
                         :plot-markers="plotMarkers"
                         :color-by-gene-type="geneTypeColors"
+                        :show-labels="!genesTrackCollapsed"
                         @track-layout="onGenesTrackLayout"
                     />
                 </div>
@@ -462,7 +476,7 @@
 </template>
 
 <script>
-import VariantSifterGenesTrack from "../kpVariantSifter/VariantSifterGenesTrack.vue";
+import GP2BrowserGenesTrack from "./GP2BrowserGenesTrack.vue";
 import VariantSifterCredibleSetsTrack from "../kpVariantSifter/VariantSifterCredibleSetsTrack.vue";
 import VariantSifterAssociationRegionPlot from "../kpVariantSifter/VariantSifterAssociationRegionPlot.vue";
 import GP2BrowserAssociationRegionPlot from "./GP2BrowserAssociationRegionPlot.vue";
@@ -529,7 +543,7 @@ const VIEW_MOVE_SETTLE_MS = 140;
 export default {
     name: "GP2BrowserAssociationsPlot",
     components: {
-        VariantSifterGenesTrack,
+        GP2BrowserGenesTrack,
         VariantSifterCredibleSetsTrack,
         VariantSifterAssociationRegionPlot,
         GP2BrowserAssociationRegionPlot,
@@ -541,6 +555,8 @@ export default {
         return {
             stackCanvasWidth: null,
             genesTrackHeight: 0,
+            genesTrackCollapsed: false,
+            hoveredQtlGene: null,
             genesDockPinned: false,
             genesDockPinnedStyle: {},
             genesDockPinFrame: null,
@@ -1276,6 +1292,16 @@ export default {
                 this.scheduleGenesDockPinUpdate();
             });
         },
+        onToggleGenesTrackCollapsed() {
+            this.genesTrackCollapsed = !this.genesTrackCollapsed;
+            this.$nextTick(() => {
+                const dockHeight = this.$refs.genesDock?.offsetHeight;
+                if (dockHeight != null) {
+                    this.genesTrackHeight = Number(dockHeight) || 0;
+                }
+                this.scheduleGenesDockPinUpdate();
+            });
+        },
         updateStackCanvasWidth() {
             this.stackCanvasWidth = measureVksPlotStackCanvasWidth(this.$refs.plotStack);
             this.scheduleGenesDockPinUpdate();
@@ -1398,6 +1424,7 @@ export default {
 }
 
 .vks-genes-track-dock {
+    position: relative;
     box-sizing: border-box;
     padding: 0 8px;
     background: rgba(255, 255, 255, 0.85);
@@ -1408,6 +1435,35 @@ export default {
     position: fixed;
     bottom: 0;
     z-index: 6;
+}
+
+.gp2-genes-track-collapse-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 7;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--cfde-blue, #2c5c97);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.gp2-genes-track-collapse-btn:hover {
+    background: var(--cfde-blue, #2c5c97);
+    color: #ffffff;
+}
+
+.gp2-genes-track-collapse-btn.is-collapsed {
+    transform: rotate(180deg);
 }
 
 .vks-associations-plot-status,

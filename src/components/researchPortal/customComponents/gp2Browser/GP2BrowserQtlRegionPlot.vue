@@ -19,7 +19,13 @@
             </span>
         </div>
         <div v-if="showLegend && legendGenes.length" class="gp2-qtl-region-plot-legend gp2-qtl-region-plot-gene-legend">
-            <label v-for="entry in legendGenes" :key="entry.gene" class="vks-legend-item gp2-qtl-gene-legend-item">
+            <label
+                v-for="entry in legendGenes"
+                :key="entry.gene"
+                class="vks-legend-item gp2-qtl-gene-legend-item"
+                @mouseenter="$emit('hover-gene', entry.gene)"
+                @mouseleave="$emit('hover-gene', null)"
+            >
                 <input
                     type="checkbox"
                     :style="{ accentColor: entry.color }"
@@ -157,8 +163,9 @@ import {
 import { gp2QtlColorForGene, gp2QtlDotFillColor } from "./gp2BrowserQtlPlotData.js";
 
 /** Upward triangle (beta > 0) or downward triangle (beta < 0), filled solid. */
-function renderQtlTriangleDot(ctx, xPos, yPos, color, size, pointingUp) {
-    ctx.fillStyle = color;
+const GP2_QTL_HOVER_HIGHLIGHT_COLOR = "#FF0000";
+
+function renderQtlTriangleDot(ctx, xPos, yPos, color, size, pointingUp, highlighted = false) {
     ctx.beginPath();
     if (pointingUp) {
         ctx.moveTo(xPos, yPos - size);
@@ -170,7 +177,13 @@ function renderQtlTriangleDot(ctx, xPos, yPos, color, size, pointingUp) {
         ctx.lineTo(xPos + size, yPos - size);
     }
     ctx.closePath();
+    ctx.fillStyle = color;
     ctx.fill();
+    if (highlighted) {
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = GP2_QTL_HOVER_HIGHLIGHT_COLOR;
+        ctx.stroke();
+    }
 }
 
 export default {
@@ -226,6 +239,10 @@ export default {
         deselectedGenes: {
             type: Array,
             default: () => [],
+        },
+        hoveredLegendGene: {
+            type: String,
+            default: null,
         },
         plotMargin: {
             type: Object,
@@ -490,6 +507,9 @@ export default {
             },
             deep: true,
         },
+        hoveredLegendGene() {
+            this.renderPlot();
+        },
         regionZoom() {
             this.renderPlot();
         },
@@ -649,7 +669,15 @@ export default {
                 if (isStarred) {
                     renderStarDot(ctx, xPos, yPos, dotColor);
                 } else {
-                    renderQtlTriangleDot(ctx, xPos, yPos, dotColor, dotRadius, pointingUp);
+                    renderQtlTriangleDot(
+                        ctx,
+                        xPos,
+                        yPos,
+                        dotColor,
+                        dotRadius,
+                        pointingUp,
+                        Boolean(this.hoveredLegendGene) && row.Gene === this.hoveredLegendGene
+                    );
                 }
             });
 
