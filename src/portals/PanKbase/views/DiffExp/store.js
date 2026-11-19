@@ -78,6 +78,11 @@ export default new Vuex.Store({
         const response = await fetch(datasetFile);
         const bulkDataText = await response.text();
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
+        bulkDataObject.forEach(d => {
+          if(d["-log10P"] === undefined){
+            d["-log10P"] = d["-logP10"];
+          }
+        });
         let bulkDataComparisons = bulkDataObject
           .filter(item => !!item.comparison)
           .map(item => [item.comparison_id, item.comparison]);
