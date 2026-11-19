@@ -1,0 +1,80 @@
+name: Nightly builds
+
+# `schedule` and `workflow_dispatch` only run from the default branch.
+on:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Each portal branch must still produce a production build. Four of them
+  # (matkp, mskkp, pankbase, sysbio) commit a package-lock.json; the other
+  # seven do not, so there is no npm cache and install falls back to
+  # `npm install`.
+  portal-branches:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch:
+          - adipose_gw-main
+          - cancerkp-main
+          - cfde-liver-main
+          - cfde-main
+          - matkp-main
+          - mouse-main
+          - mskkp-main
+          - nephkp-main
+          - pankbase-main
+          - radiant-main
+          - sysbio-main
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ matrix.branch }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Production build
+        run: npm run deploy
+
+  # Master carries extra Vue CLI configs besides vue.config.js. They are not
+  # built by CI, so build each one here.
+  master-configs:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - vue.configPapers.js
+          - configs/vue.config.CFDE.js
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: master
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Production build
+        env:
+          # Vue CLI needs an absolute path here.
+          VUE_CLI_SERVICE_CONFIG_PATH: ${{ github.workspace }}/${{ matrix.config }}
+        run: npm run deploy
