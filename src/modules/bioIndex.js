@@ -1,4 +1,4 @@
-import { query } from "@/utils/bioIndexUtils";
+import { query, BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import {
     postAlertNotice,
     postAlertError,
@@ -6,7 +6,10 @@ import {
 } from "@/components/Alert";
 
 import { merge } from "@/utils/lodashUtils";
-const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
+const PANKBASE_BI_HOST = BIO_INDEX_HOST.indexOf("dev") === -1 
+    ? "https://bioindex.pankbase.org"
+    : "https://bioindex-dev.pankbase.org";
+
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -99,7 +102,7 @@ export default function (index, extend, opts = {}) {
                     // if user is querying variant index with rsid, convert to varId
                     if (index === "variant" && q.startsWith("rs")) {
                         await fetch(
-                            `${host || BIO_INDEX_HOST}/api/bio/varIdLookup/${q}`
+                            `${host || PANKBASE_BI_HOST}/api/bio/varIdLookup/${q}`
                         )
                             .then((res) => res.json())
                             .then((res) => {

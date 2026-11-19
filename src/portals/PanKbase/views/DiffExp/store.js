@@ -6,7 +6,10 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import dataConvert from "@/utils/dataConvert";
-const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
+import * as biUtils from "@/utils/bioIndexUtils";
+const BIO_INDEX_HOST = biUtils.BIO_INDEX_HOST.indexOf("dev") === -1 
+    ? "https://bioindex.pankbase.org"
+    : "https://bioindex-dev.pankbase.org";
 
 Vue.use(Vuex);
 
