@@ -2,6 +2,7 @@
 // string survive, and what went wrong on the way (page errors, console errors, failed requests).
 // Takes the Playwright `page` as an argument and never imports Playwright itself, so the pure
 // helpers here stay importable from plain `node --test`.
+import { setTimeout as delay } from 'node:timers/promises';
 
 /**
  * Make messages comparable across servers and builds: the origin's port, the bundle hash and
@@ -16,20 +17,60 @@ export function normalizeMessage(text) {
 
 const LANDMARK_TIMEOUT_MS = 20_000;
 const NETWORK_IDLE_TIMEOUT_MS = 15_000;
+const SETTLE_QUIET_MS = 1_000;
+const SETTLE_TIMEOUT_MS = 15_000;
+const SETTLE_POLL_MS = 100;
 
 // A timeout is an expected outcome of the waits below. Anything else (the page closed, the renderer
 // crashed) fails the probe, so a broken page can never pass as "landmark seen".
 const isTimeout = (error) => error?.name === 'TimeoutError';
 
+/** Milliseconds since the page's DOM last changed, watching from the first call on each document. */
+async function domQuietMs(page) {
+  try {
+    return await page.evaluate(() => {
+      if (window.__e2eLastMutation === undefined) {
+        window.__e2eLastMutation = performance.now();
+        new MutationObserver(() => {
+          window.__e2eLastMutation = performance.now();
+        }).observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+      }
+      return performance.now() - window.__e2eLastMutation;
+    });
+  } catch (error) {
+    // The page navigated during the check: its new document has only just started.
+    if (/Execution context was destroyed/.test(error?.message ?? '')) return 0;
+    throw error;
+  }
+}
+
+/**
+ * Wait (best effort) until no request has been in flight and the DOM has not changed for
+ * SETTLE_QUIET_MS. Network idle fires once per page load, so a later wave of data, what renders
+ * from it, and the "Loading ..." toasts closing can all land after it; two loads of one page are
+ * only comparable once each is at rest.
+ */
+async function waitForRest(page, network) {
+  const deadline = Date.now() + SETTLE_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const networkQuiet = network.inflight.size === 0 && Date.now() - network.lastActivity >= SETTLE_QUIET_MS;
+    if (networkQuiet && (await domQuietMs(page)) >= SETTLE_QUIET_MS) return;
+    await delay(SETTLE_POLL_MS);
+  }
+}
+
 /**
  * @typedef {{ landmarkVisible: boolean, finalSearch: string, pageErrors: string[], consoleErrors: string[], failedRequests: string[] }} Probe
  *
+ * `settle` waits for the page to come to rest before returning (and before the screenshot); it
+ * defaults to on when a screenshot is taken.
+ *
  * @param {import('@playwright/test').Page} page
  * @param {string} url
- * @param {{ landmark: string, mask?: string[], screenshotPath?: string }} opts
+ * @param {{ landmark: string, mask?: string[], screenshotPath?: string, settle?: boolean }} opts
  * @returns {Promise<Probe>}
  */
-export async function probePage(page, url, { landmark, mask = [], screenshotPath }) {
+export async function probePage(page, url, { landmark, mask = [], screenshotPath, settle = Boolean(screenshotPath) }) {
   const pageErrors = [];
   const consoleErrors = [];
   const failedRequests = [];
@@ -47,10 +88,23 @@ export async function probePage(page, url, { landmark, mask = [], screenshotPath
     crashed = true;
   };
 
+  const network = { inflight: new Set(), lastActivity: Date.now() };
+  const onRequestStart = (request) => {
+    network.inflight.add(request);
+    network.lastActivity = Date.now();
+  };
+  const onRequestEnd = (request) => {
+    network.inflight.delete(request);
+    network.lastActivity = Date.now();
+  };
+
   page.on('pageerror', onPageError);
   page.on('console', onConsole);
   page.on('requestfailed', onRequestFailed);
   page.on('crash', onCrash);
+  page.on('request', onRequestStart);
+  page.on('requestfinished', onRequestEnd);
+  page.on('requestfailed', onRequestEnd);
   try {
     await page.goto(url, { waitUntil: 'load' });
     const finalSearch = new URL(page.url()).search;
@@ -71,6 +125,8 @@ export async function probePage(page, url, { landmark, mask = [], screenshotPath
       if (!isTimeout(error)) throw error;
     }
 
+    if (settle) await waitForRest(page, network);
+
     // A crashed renderer can still let the waits settle (a crashed page never goes idle).
     if (crashed) throw new Error(`page crashed while probing ${url}`);
 
@@ -89,5 +145,8 @@ export async function probePage(page, url, { landmark, mask = [], screenshotPath
     page.off('console', onConsole);
     page.off('requestfailed', onRequestFailed);
     page.off('crash', onCrash);
+    page.off('request', onRequestStart);
+    page.off('requestfinished', onRequestEnd);
+    page.off('requestfailed', onRequestEnd);
   }
 }

@@ -12,10 +12,13 @@ test('normalizeMessage strips the origin port, the bundle hash and line:column',
 
 // A stand-in for Playwright's Page with just what probePage uses. `landmark` and `idle` are the
 // landmark wait and the network-idle wait; each may resolve, reject, or emit page events.
-function fakePage({ landmark = async () => {}, idle = async () => {} } = {}) {
+// `domQuietMs` answers the settle step's in-page check: how long the DOM has been unchanged.
+// Screenshots are recorded in `shots`, with the time they were taken.
+function fakePage({ landmark = async () => {}, idle = async () => {}, domQuietMs = () => 60_000 } = {}) {
   const listeners = new Map();
   const page = {
     listeners,
+    shots: [],
     on(event, fn) {
       listeners.set(event, [...(listeners.get(event) ?? []), fn]);
     },
@@ -30,6 +33,10 @@ function fakePage({ landmark = async () => {}, idle = async () => {} } = {}) {
     url: () => 'http://localhost:8080/gene.html?gene=PCSK9',
     locator: () => ({ filter: () => ({ first: () => ({ waitFor: () => landmark(page) }) }) }),
     waitForLoadState: () => idle(page),
+    evaluate: async () => domQuietMs(),
+    screenshot: async (opts) => {
+      page.shots.push({ at: Date.now(), ...opts });
+    },
   };
   return page;
 }
@@ -37,6 +44,7 @@ function fakePage({ landmark = async () => {}, idle = async () => {} } = {}) {
 const timeoutError = () => Object.assign(new Error('Timeout 15000ms exceeded.'), { name: 'TimeoutError' });
 const closedError = () => new Error('page.waitForLoadState: Target page, context or browser has been closed');
 const PROBE = ['http://localhost:8080/gene.html?gene=PCSK9', { landmark: '.mdkp-body' }];
+const SHOT = ['http://localhost:8080/gene.html?gene=PCSK9', { landmark: '.mdkp-body', screenshotPath: 'shot.png' }];
 
 test('probePage: a network-idle timeout is best effort', async () => {
   const page = fakePage({ idle: async () => { throw timeoutError(); } });
@@ -73,4 +81,52 @@ test('probePage: a renderer crash fails the probe even when every wait settles',
   });
   await assert.rejects(probePage(page, ...PROBE), /crashed/);
   assert.equal(page.listenerCount(), 0);
+});
+
+test('probePage: before a screenshot, waits until no request has been in flight for a second', async () => {
+  const request = { url: () => 'https://bioindex.hugeamp.org/api/bio/query/gene?q=PCSK9', method: () => 'GET' };
+  let finishedAt;
+  const page = fakePage({
+    // A second wave of data starts as the page first goes idle, and takes 300 ms.
+    idle: async (p) => {
+      p.emit('request', request);
+      setTimeout(() => {
+        finishedAt = Date.now();
+        p.emit('requestfinished', request);
+      }, 300);
+    },
+  });
+  await probePage(page, ...SHOT);
+  assert.equal(page.shots.length, 1);
+  assert.equal(page.shots[0].path, 'shot.png');
+  assert.ok(page.shots[0].at - finishedAt >= 1000, `screenshot ${page.shots[0].at - finishedAt} ms after the request finished`);
+  assert.equal(page.listenerCount(), 0);
+});
+
+test('probePage: before a screenshot, waits until the DOM has been quiet for a second', async () => {
+  const start = Date.now();
+  // The DOM keeps changing for 500 ms, then stays still.
+  const page = fakePage({ domQuietMs: () => Math.max(0, Date.now() - start - 500) });
+  await probePage(page, ...SHOT);
+  assert.equal(page.shots.length, 1);
+  assert.ok(page.shots[0].at - start >= 1500, `screenshot ${page.shots[0].at - start} ms after the probe started`);
+});
+
+test('probePage: settle: true waits for the page to come to rest without a screenshot', async () => {
+  const start = Date.now();
+  const page = fakePage({ domQuietMs: () => Math.max(0, Date.now() - start - 500) });
+  await probePage(page, PROBE[0], { ...PROBE[1], settle: true });
+  assert.ok(Date.now() - start >= 1500, `returned ${Date.now() - start} ms after the probe started`);
+  assert.equal(page.shots.length, 0);
+});
+
+test('probePage: without a screenshot there is no settle step', async () => {
+  const page = fakePage({
+    domQuietMs: () => {
+      throw new Error('the DOM was checked');
+    },
+  });
+  const probe = await probePage(page, ...PROBE);
+  assert.equal(probe.landmarkVisible, true);
+  assert.equal(page.shots.length, 0);
 });

@@ -74,7 +74,8 @@ export const PAGES = [
     query: { pageid: 'kp_liger_documentation' },
     skip: needsCms('view/rest/get_research_page_access, reset/views/portal_front'),
   },
-  { id: 'egggenerator', path: '/egggenerator.html' },
+  // The page shows a random session ID ("Session ID is 9c56e1c7.") on every load.
+  { id: 'egggenerator', path: '/egggenerator.html', mask: ['#session-id-area'] },
   { id: 'help', path: '/help.html' },
   // tissue from the c2ct-annotation links on phenotype.html?phenotype=T2D (C2ctTable).
   {
@@ -99,7 +100,14 @@ export const PAGES = [
   { id: 'pigean_phenotype', path: '/pigean/phenotype.html' },
   // The "Mechanism Graph" link on pigean/phenotype.html (default phenotype T2D), keys in the sorted
   // order the page writes back.
-  { id: 'network_graph', path: '/pigean/network_graph.html', query: { genesetSize: 'mouse_msigdb', phenotype: 'T2D' } },
+  // Its vis-network canvas lays the graph out with a physics simulation that lands a little
+  // differently on each load.
+  {
+    id: 'network_graph',
+    path: '/pigean/network_graph.html',
+    query: { genesetSize: 'mouse_msigdb', phenotype: 'T2D' },
+    mask: ['.network-container .vis-network'],
+  },
   { id: 'factorization', path: '/factorization.html' },
   { id: 'cvdi_pigean_index', path: '/cvdi_pigean/index.html', landmark: FRONT_PAGE_LANDMARK },
   // gene from the cvdi_pigean/index.html search examples. CVDI data (cvdi.hugeampkpnbi.org) is not a

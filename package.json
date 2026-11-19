@@ -11,7 +11,8 @@
     "test:scripts": "node --test \"scripts/**/*.test.mjs\" \"e2e/**/*.test.mjs\"",
     "lint:vue3": "node scripts/vue3-migration/lint-ratchet.mjs",
     "check:dist": "node scripts/vue3-migration/check-dist.mjs",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:baseline": "node scripts/vue3-migration/build-baseline.mjs"
   },
   "dependencies": {
     "@amcharts/amcharts4": "4.10.40",
@@ -67,8 +68,10 @@
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-vue": "9.17.0",
+    "pixelmatch": "8.0.0",
     "plotly": "^1.0.6",
     "plotly.js-dist": "^4.3.0",
+    "pngjs": "7.0.0",
     "prettier": "2.8.8",
     "regenerator-runtime": "0.13.11",
     "serve": "14.2.6",

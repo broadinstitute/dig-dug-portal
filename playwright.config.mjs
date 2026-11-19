@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
@@ -6,6 +7,27 @@ const viewport = { width: 1366, height: 900 };
 // A project's `use` overrides the top-level `use`, and every device preset carries its own
 // 1280x720 viewport, so each project sets the viewport again after the preset.
 const project = (name, device) => ({ name, use: { ...devices[device], viewport } });
+
+// serve's default cleanUrls 301-redirects /gene.html?gene=PCSK9 to /gene and drops the query.
+// e2e/serve.json turns that off; the -c path must be absolute.
+const serveConfig = path.resolve('e2e/serve.json');
+
+// The candidate build (dist/) on 8080 and, once `npm run e2e:baseline -- <ref>` has built one, the
+// baseline build (dist-baseline/) on 8081 for e2e/compare.spec.mjs.
+const webServer = [
+  {
+    command: `npx serve -l 8080 -c ${serveConfig} dist`,
+    url: 'http://localhost:8080/about.html',
+    reuseExistingServer: !process.env.CI,
+  },
+];
+if (fs.existsSync('dist-baseline')) {
+  webServer.push({
+    command: `npx serve -l 8081 -c ${serveConfig} dist-baseline`,
+    url: 'http://localhost:8081/about.html',
+    reuseExistingServer: !process.env.CI,
+  });
+}
 
 export default defineConfig({
   testDir: 'e2e',
@@ -17,12 +39,6 @@ export default defineConfig({
     viewport,
   },
   projects: [project('chromium', 'Desktop Chrome'), project('firefox', 'Desktop Firefox'), project('webkit', 'Desktop Safari')],
-  webServer: {
-    // serve's default cleanUrls 301-redirects /gene.html?gene=PCSK9 to /gene and drops the query.
-    // e2e/serve.json turns that off; the -c path must be absolute.
-    command: `npx serve -l 8080 -c ${path.resolve('e2e/serve.json')} dist`,
-    url: 'http://localhost:8080/about.html',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer,
   reporter: [['list'], ['html', { open: 'never' }]],
 });
