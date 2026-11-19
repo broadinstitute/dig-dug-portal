@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The ratchet compares against a base ref, so it needs the full history.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Script unit tests
+        run: npm run test:scripts
+
+      - name: Vue 3 lint ratchet
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          # pull_request: compare against the PR's base branch.
+          # push: compare against the previous tip; a new branch reports an all-zero SHA,
+          #       which (like workflow_dispatch) means no comparison, only counts.
+          BASE=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            BASE="origin/$GITHUB_BASE_REF"
+          elif [ "$EVENT_NAME" = "push" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            BASE="$BEFORE_SHA"
+          fi
+
+          if [ -n "$BASE" ]; then
+            npm run lint:vue3 -- --base "$BASE"
+          else
+            npm run lint:vue3
+          fi
+
+      - name: Production build
+        run: npm run deploy
+
+      - name: Check every page was built
+        run: npm run check:dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
