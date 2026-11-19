@@ -25,6 +25,32 @@
         </div>
 
         <div class="pkb-body">
+            <div class="news f-col" style="flex: 1; gap: 10px">
+                <div class="section-title">News</div>
+                <div class="news-items" v-if="$parent.newsFeed">
+                    <div
+                        class="news-item f-row"
+                        v-for="item in $parent.newsFeed"
+                    >
+                        <div
+                            class="news-thumbnail contain"
+                            v-html="item.field_thumbnail_image"
+                        ></div>
+                        <div class="f-col">
+                            <a
+                                :href="`${$parent.content.news.newsItemUrl}${item.nid}`"
+                                ><div class="">{{ item.title }}</div></a
+                            >
+                            <div class="" v-html="item.body"></div>
+                        </div>
+                    </div>
+                    <a
+                        style="align-self: flex-end"
+                        :href="`${$parent.content.news.newsUrl}`"
+                        >See All News</a
+                    >
+                </div>
+            </div>
             <donor-snapshot :prepared-dataset="$parent.preparedDataset" />
             <div class="section">
                 <div>
@@ -132,7 +158,7 @@
                 </div>
             </div>
 
-            <div class="section" style="gap: 5px; margin: 40px 0">
+            <div class="section" style="gap: 5px; margin: 40px 0 0 0">
                 <div class="partners" style="background: #fbfbfb">
                     <div
                         class="partner-logo"
@@ -156,33 +182,6 @@
                             <div v-if="item.icon"><img :src="item.icon" style="height: 80px;"/></div>
                             <div v-html="item.body"></div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="news f-col" style="flex: 1; gap: 10px">
-                    <div class="section-title">News</div>
-                    <div class="news-items" v-if="$parent.newsFeed">
-                        <div
-                            class="news-item f-row"
-                            v-for="item in $parent.newsFeed"
-                        >
-                            <div
-                                class="news-thumbnail contain"
-                                v-html="item.field_thumbnail_image"
-                            ></div>
-                            <div class="f-col">
-                                <a
-                                    :href="`${$parent.content.news.newsItemUrl}${item.nid}`"
-                                    ><div class="">{{ item.title }}</div></a
-                                >
-                                <div class="" v-html="item.body"></div>
-                            </div>
-                        </div>
-                        <a
-                            style="align-self: flex-end"
-                            :href="`${$parent.content.news.newsUrl}`"
-                            >See All News</a
-                        >
                     </div>
                 </div>
             </div>
@@ -236,6 +235,7 @@
     flex-direction: column;
     gap: 40px;
     margin-bottom: 50px;
+    padding-top: 10px !important;
 }
 
 .section {
