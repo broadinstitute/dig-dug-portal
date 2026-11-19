@@ -23,7 +23,10 @@ import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCe
 import * as d3 from "d3";
 import keyParams from "@/utils/keyParams";
 
-const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
+import * as biUtils from "@/utils/bioIndexUtils";
+const BIO_INDEX_HOST = biUtils.BIO_INDEX_HOST.indexOf("dev") === -1 
+    ? "https://bioindex.pankbase.org"
+    : "https://bioindex-dev.pankbase.org";
 
 new Vue({
     store,
@@ -238,6 +241,8 @@ new Vue({
         },
     },
     async mounted() {
+        console.log("is this thing on?");
+        console.log(BIO_INDEX_HOST);
         this.init();
     },
     created() {},
