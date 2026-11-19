@@ -158,7 +158,7 @@
                 </div>
             </div>
 
-            <div class="section" style="gap: 5px; margin: 40px 0">
+            <div class="section" style="gap: 5px; margin: 40px 0 0 0">
                 <div class="partners" style="background: #fbfbfb">
                     <div
                         class="partner-logo"
@@ -235,6 +235,7 @@
     flex-direction: column;
     gap: 40px;
     margin-bottom: 50px;
+    padding-top: 10px !important;
 }
 
 .section {
