@@ -7,7 +7,9 @@
     "build": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode development",
     "deploy": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode production",
     "preview": "serve -l 8080 dist",
-    "preview:dir": "serve -l 8080"
+    "preview:dir": "serve -l 8080",
+    "test:scripts": "node --test \"scripts/**/*.test.mjs\"",
+    "lint:vue3": "node scripts/vue3-migration/lint-ratchet.mjs"
   },
   "dependencies": {
     "@amcharts/amcharts4": "4.10.40",
