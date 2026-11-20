@@ -146,6 +146,7 @@ import DiseaseSystems from "@/components/DiseaseSystems.vue";
 
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { userMixin } from "@/mixins/userMixin";
+import Alert from "@/components/Alert.vue";
 Vue.use(VueCookies);
 
 export default Vue.component("PageHeader", {
@@ -153,6 +154,7 @@ export default Vue.component("PageHeader", {
         GoogleAnalytics,
         MenuItem,
         DiseaseSystems,
+        Alert,
     },
     mixins: [userMixin],
     props: {

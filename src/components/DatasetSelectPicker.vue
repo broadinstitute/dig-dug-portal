@@ -14,8 +14,12 @@
 
 <script>
 import Vue from "vue";
+import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 
 export default Vue.component("dataset-selectpicker", {
+    components: {
+        VueTypeaheadBootstrap,
+    },
     props: ["datasets"],
 
     data() {

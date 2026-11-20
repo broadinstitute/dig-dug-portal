@@ -268,6 +268,9 @@ export default Vue.component("giant-gem-pkg", {
 		ResearchAnnotationsPlotV2,
 		GiantCredibleSets,
 		ResearchGeneLinks,
+		GiantCredibleSetsPlot: GiantCredibleSets,
+		ResearchBiosamplesPlot: ResearchBiosamplePlot,
+		ResearchGeneLinksPlot: ResearchGeneLinks,
 	},
 	mounted: function () {
 		if (this.pkgConfig != null) {

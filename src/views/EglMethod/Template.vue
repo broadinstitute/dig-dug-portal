@@ -96,6 +96,24 @@
     </div>
 </template>
 
+<script>
+import Documentation from "@/components/Documentation.vue";
+import EffectorGenesTable from "@/components/eglt/EffectorGenesTable.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import ResearchMethodSection from "@/components/eglt/ResearchMethod.vue";
+
+export default {
+    components: {
+        Documentation,
+        EffectorGenesTable,
+        PageFooter,
+        PageHeader,
+        ResearchMethodSection,
+    },
+};
+</script>
+
 <style>
 @import url("/css/effectorGenes.css");
 </style>

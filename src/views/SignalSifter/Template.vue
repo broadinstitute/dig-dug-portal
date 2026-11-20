@@ -276,6 +276,36 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import ClumpedAssociationsTable from "@/components/ClumpedAssociationsTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import CriterionPills from "@/components/criterion/template/CriterionPills.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEffectDirectionControl from "@/components/criterion/FilterEffectDirection.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import ManhattanPlot from "@/components/ManhattanPlot.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PhenotypeSelectpicker from "@/components/PhenotypeSelectPicker.vue";
+
+export default {
+    components: {
+        AncestrySelectpicker,
+        ClumpedAssociationsTable,
+        CriterionFunctionGroup,
+        CriterionPills,
+        Documentation,
+        FilterEffectDirectionControl,
+        FilterPvalueControl,
+        ManhattanPlot,
+        PageFooter,
+        PageHeader,
+        PhenotypeSelectpicker,
+    },
+};
+</script>
 <style>
 .selected-phenotype {
     position: relative;

@@ -500,7 +500,7 @@ export default Vue.component("disease-systems", {
 			PBuilderDSystem: null,
 		};
 	},
-	components: { PhenotypeSelectPicker },
+	components: { PhenotypeSelectPicker, PhenotypeSelectpicker: PhenotypeSelectPicker },
 	mounted() {
 		this.setDiseaseSystems();
 		this.getCustomPhenotypes();

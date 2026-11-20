@@ -21,6 +21,9 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("ancestry-selectpicker", {
+    components: {
+        Autocomplete,
+    },
     props: ["ancestries", "defaultMixed", "pageLevel"],
 
     data() {

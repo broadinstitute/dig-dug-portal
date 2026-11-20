@@ -29,6 +29,9 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("phenotype-selectpicker", {
+	components: {
+		VueTypeaheadBootstrap,
+	},
 	props: [
 		"phenotypes",
 		"clearOnSelected",

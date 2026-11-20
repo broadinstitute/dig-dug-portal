@@ -268,6 +268,9 @@ export default Vue.component("kp-gem-pkg", {
 		ResearchAnnotationsPlotV2,
 		ResearchCredibleSets,
 		ResearchGeneLinks,
+		ResearchBiosamplesPlot: ResearchBiosamplePlot,
+		ResearchCredibleSetsPlot: ResearchCredibleSets,
+		ResearchGeneLinksPlot: ResearchGeneLinks,
 	},
 	mounted: function () {
 		if (this.pkgConfig != null) {

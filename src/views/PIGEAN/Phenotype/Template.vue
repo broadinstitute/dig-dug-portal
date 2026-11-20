@@ -286,6 +286,36 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import Heatmap from "@/components/Heatmap.vue";
+import NetworkGraph from "@/components/NetworkGraph.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanPlot from "@/components/PigeanPlot.vue";
+import PigeanTable from "@/components/PigeanTable.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+
+export default {
+    components: {
+        CriterionFunctionGroup,
+        FilterEnumerationControl,
+        FilterGreaterLess,
+        Heatmap,
+        NetworkGraph,
+        PageFooter,
+        PageHeader,
+        PigeanPlot,
+        PigeanTable,
+        SearchHeaderWrapper,
+        TooltipDocumentation,
+    },
+};
+</script>
 <style scoped>
 .phenotype-search-input {
     display: block !important;

@@ -208,7 +208,9 @@ export default Vue.component("research-m-qq-plot", {
 	},
 	components: {
 		ResearchMPlotBitmapVector,
-		ResearchQQPlotVector
+		ResearchQQPlotVector,
+		ResearchMBitmapPlotVector: ResearchMPlotBitmapVector,
+		ResearchQqPlotVector: ResearchQQPlotVector,
 	},
 	mounted: function () {
 		this.renderPlot(this.renderData);

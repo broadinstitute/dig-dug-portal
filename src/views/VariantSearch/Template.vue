@@ -69,5 +69,21 @@
     </div>
 </template>
 
+<script>
+import Documentation from "@/components/Documentation.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import VariantSearch from "@/components/VariantSearch.vue";
+
+export default {
+    components: {
+        Documentation,
+        PageFooter,
+        PageHeader,
+        VariantSearch,
+    },
+};
+</script>
+
 <style>
 </style>

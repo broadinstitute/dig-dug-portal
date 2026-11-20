@@ -66,6 +66,16 @@
 		</div>
 	</div>
 </template>
+
+<script>
+import ResearchByorProjects from "@/components/researchPortal/ResearchByorProjects.vue";
+
+export default {
+    components: {
+        ResearchByorProjects,
+    },
+};
+</script>
 <style>
 .front-page-body {
 	background-color: #178bff !important;

@@ -927,6 +927,18 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</body>
 </template>
+
+<script>
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+
+export default {
+    components: {
+        PageFooter,
+        PageHeader,
+    },
+};
+</script>
 <style>
 @import url("/css/eggserver.css");
 @import url("/css/liquibyte.css");

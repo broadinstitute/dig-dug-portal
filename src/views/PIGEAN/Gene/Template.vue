@@ -192,6 +192,36 @@
     </div>
 </template>
 
+<script>
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import GeneSelectpicker from "@/components/GeneSelectPicker.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanPlot from "@/components/PigeanPlot.vue";
+import PigeanTable from "@/components/PigeanTable.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TraitGroupSelectpicker from "@/components/TraitGroupSelectPicker.vue";
+
+export default {
+    components: {
+        CriterionFunctionGroup,
+        FilterEnumerationControl,
+        FilterGreaterLess,
+        GeneSelectpicker,
+        PageFooter,
+        PageHeader,
+        PigeanPlot,
+        PigeanTable,
+        ResearchPhewasPlot,
+        SearchHeaderWrapper,
+        TraitGroupSelectpicker,
+    },
+};
+</script>
+
 <style>
 * {
     box-sizing: border-box;

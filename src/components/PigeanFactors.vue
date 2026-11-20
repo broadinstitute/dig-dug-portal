@@ -257,12 +257,15 @@ import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtil
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import keyParams from "@/utils/keyParams";
 import { TOOLTIP_MAP } from "../utils/pigeanUtils";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
 export default Vue.component("pigean-factors", {
   components: {
     DataDownload,
     PigeanFactorsViz,
-    ResearchPheWAS
+    ResearchPheWAS,
+    ResearchPhewasPlot: ResearchPheWAS,
+    TooltipDocumentation,
   },
   props: {
     pigeanFactorData: {

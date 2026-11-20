@@ -765,6 +765,58 @@
     </div>
 </template>
 
+<script>
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import Autocomplete from "@/components/Autocomplete.vue";
+import C2ctTable from "@/components/C2ctTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import DataDownload from "@/components/DataDownload.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterControl from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessControl from "@/components/criterion/FilterLessThan.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PhenotypeSelectpicker from "@/components/PhenotypeSelectPicker.vue";
+import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import Scatterplot from "@/components/Scatterplot.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
+import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import VolcanoPlot from "@/components/eglt/VolcanoPlot.vue";
+
+export default {
+    components: {
+        AncestrySelectpicker,
+        Autocomplete,
+        C2ctTable,
+        CriterionFunctionGroup,
+        DataDownload,
+        Documentation,
+        FilterEnumerationControl,
+        FilterGreaterControl,
+        FilterLessControl,
+        FilterPvalueControl,
+        MouseSummaryTable,
+        PageFooter,
+        PageHeader,
+        PhenotypeSelectpicker,
+        ResearchSingleCellBrowser,
+        ResearchSingleSearch,
+        Scatterplot,
+        SearchHeaderWrapper,
+        TissueExpressionTable,
+        TissueHeritabilityTable,
+        TooltipDocumentation,
+        VolcanoPlot,
+    },
+};
+</script>
+
 <style scoped>
 .row .pagination.b-pagination {
     border: none !important;

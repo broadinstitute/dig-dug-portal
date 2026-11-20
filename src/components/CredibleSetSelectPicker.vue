@@ -32,6 +32,9 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("credible-sets-selectpicker", {
+    components: {
+        VueTypeaheadBootstrap,
+    },
     props: {
         credibleSets: {
             type: Array,

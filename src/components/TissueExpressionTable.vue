@@ -67,6 +67,7 @@ import DataDownload from "@/components/DataDownload.vue";
 export default Vue.component("TissueExpressionTable", {
     components: {
         DataDownload,
+        TissueExpressionSubtable,
     },
     props: ["tissueData", "tissue", "filter"],
     data() {

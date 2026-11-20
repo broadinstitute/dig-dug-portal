@@ -82,3 +82,19 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+
+<script>
+import Documentation from "@/components/Documentation.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
+
+export default {
+    components: {
+        Documentation,
+        PageFooter,
+        PageHeader,
+        ResearchPageFilters,
+    },
+};
+</script>

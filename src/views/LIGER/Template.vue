@@ -27,3 +27,17 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+
+<script>
+import CellEvolutionBrowser from "@/components/researchPortal/LIGER/v2/CellEvolutionBrowser.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+
+export default {
+    components: {
+        CellEvolutionBrowser,
+        PageFooter,
+        PageHeader,
+    },
+};
+</script>

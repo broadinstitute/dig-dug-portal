@@ -494,6 +494,7 @@ export default Vue.component("effector-genes-table", {
         SingleGeneView,
         MPlotBitmap,
         Heatmap,
+        MBitmapPlot: MPlotBitmap,
     },
     created() {
         this.$store.dispatch("fetchConfig", {

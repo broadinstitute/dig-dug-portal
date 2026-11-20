@@ -30,6 +30,9 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("tissue-selectpicker", {
+    components: {
+        VueTypeaheadBootstrap,
+    },
     props: {
         tissues: {
             type: Array,

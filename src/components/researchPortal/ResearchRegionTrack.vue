@@ -116,7 +116,8 @@ export default Vue.component("research-region-track", {
     modules: {
     },
     components: {
-        regionTrackVector
+        regionTrackVector,
+        ResearchRegionTrackVector: regionTrackVector,
     },
     mounted: function () {
         this.renderPlot();

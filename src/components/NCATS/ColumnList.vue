@@ -24,8 +24,14 @@
 </template>
 <script>
 import Vue from "vue";
+import ResolvedCurieLink from "@/components/NCATS/ResolvedCurieLink.vue";
+import ResultsTooltip from "@/components/NCATS/ResultsTooltip.vue";
 
 export default Vue.component('column-list', {
+    components: {
+        ResolvedCurieLink,
+        ResultsTooltip,
+    },
     props: {
         list: Array,
         // columns: {

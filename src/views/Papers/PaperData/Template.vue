@@ -78,6 +78,22 @@
     </div>
 </template>
 
+<script>
+import EffectorGenesTable from "@/components/eglt/EffectorGenesTable.vue";
+import PaperPageFooter from "@/components/PaperPageFooter.vue";
+import PaperPageHeader from "@/components/PaperPageHeader.vue";
+import ResearchMethodSection from "@/components/eglt/ResearchMethod.vue";
+
+export default {
+    components: {
+        EffectorGenesTable,
+        PaperPageFooter,
+        PaperPageHeader,
+        ResearchMethodSection,
+    },
+};
+</script>
+
 <style>
 @import url("/css/effectorGenes.css");
 </style>

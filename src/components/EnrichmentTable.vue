@@ -84,6 +84,9 @@ Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
 export default Vue.component("EnrichmentTable", {
+    components: {
+        DataDownload,
+    },
     props: ["phenotypes", "annotations", "filter"],
     component: { DataDownload },
     data() {

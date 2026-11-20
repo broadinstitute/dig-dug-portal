@@ -20,6 +20,10 @@
   import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
   import HugeScoresTable from "@/components/HugeScoresTable.vue";
   export default Vue.component("PhenotypeHugeScores", {
+    components: {
+      HugeScoresTable,
+      ResearchMPlot,
+    },
     props: ["scores", "filter", "phenotypeMap", "phenotype"],
     data() {
         return {

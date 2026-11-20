@@ -1303,7 +1303,8 @@
             ResearchSingleCellSelector,
             ResearchSingleCellInfo,
             ResearchRangeSlider,
-            DownloadChart
+            DownloadChart,
+            ResearchUmapPlotGl: ResearchUmapPlotGL,
         },
         props: {
             sectionId: {

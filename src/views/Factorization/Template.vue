@@ -171,6 +171,30 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FactorizationNetworkGraph from "@/components/FactorizationNetworkGraph.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterLessControl from "@/components/criterion/FilterLessThan.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanBayesTable from "@/components/PigeanBayesTable.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+
+export default {
+    components: {
+        CriterionFunctionGroup,
+        FactorizationNetworkGraph,
+        FilterEnumerationControl,
+        FilterLessControl,
+        PageFooter,
+        PageHeader,
+        PigeanBayesTable,
+        SearchHeaderWrapper,
+    },
+};
+</script>
 <style scoped>
 .card-body.pigean-plots {
     padding-bottom: 0;

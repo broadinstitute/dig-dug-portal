@@ -136,7 +136,7 @@ export default Vue.component("hugecal-score-section", {
 	data() {
 		return {};
 	},
-	components: { TooltipDocumentation, ColorBarPlot, Hugescoretable },
+	components: { TooltipDocumentation, ColorBarPlot, Hugescoretable, HugescoreTable: Hugescoretable },
 	computed: {
 		commonVarBF() {
 			let commonBF = 1;

@@ -146,6 +146,7 @@ export default Vue.component("research-bar-plot", {
 	},
 	components: {
 		barPlotVector,
+		ResearchBarPlotVector: barPlotVector,
 	},
 	created: function () {
 		this.renderBarPlot();

@@ -106,7 +106,7 @@ export default Vue.component("multi-genes-track", {
 		//uiUtils,
 		//Formatters,
 	},
-	components: { genesTrackVector },
+	components: { genesTrackVector, ResearchGenesTrackVector: genesTrackVector },
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
 		if(!!this.genesData) {

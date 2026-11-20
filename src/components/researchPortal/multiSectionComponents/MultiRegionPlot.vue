@@ -198,6 +198,7 @@ export default Vue.component("multi-region-plot", {
 	},
 	components: {
 		regionPlotVector,
+		ResearchRegionPlotVector: regionPlotVector,
 	},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);

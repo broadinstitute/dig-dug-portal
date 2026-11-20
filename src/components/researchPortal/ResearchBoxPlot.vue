@@ -149,6 +149,7 @@ export default Vue.component("research-box-plot", {
 	},
 	components: {
 		boxPlotVector,
+		ResearchBoxPlotVector: boxPlotVector,
 	},
 	created: function () {
 		this.renderBoxPlot();
