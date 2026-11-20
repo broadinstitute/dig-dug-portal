@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { applyRegistrations } from './register-write.mjs';
-import { run } from './register-components.mjs';
+import { pageName, run } from './register-components.mjs';
 
 // The fixture is a tiny tree under a temp root: a page (`P`) whose template uses <comp-a> and <comp-b>,
 // and a component A that is defined as comp-a and uses <comp-b>. Three uses, two files to change.
@@ -186,6 +186,28 @@ test('every page that does not load the tag is listed by its folder, sorted, eve
       assert.deepEqual(table, ['| `src/components/A.vue:3` | `comp-b` | not-loaded | `Q`, `Z`, `group/R` |']);
     },
   );
+});
+
+// Nine portal branches keep their pages under src/portals/<Portal>/views/ (C1).
+test('a page outside src/views is a page too: its evidence makes a tag not-loaded, and the table names it by its path', async () => {
+  await withRoot({ ...FIXTURE, 'src/portals/X/views/Q/main.js': PAGE_Q_MAIN }, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.equal(dry.code, 0);
+    assert.match(dry.out, /^\| Unresolved: not-loaded \| 1 \|$/m);
+    const table = dry.out.split('\n').filter((line) => line.startsWith('| `src/components/A.vue:'));
+    assert.deepEqual(table, ['| `src/components/A.vue:3` | `comp-b` | not-loaded | `portals/X/views/Q` |']);
+    // The real run leaves the use alone, as it would for a page under src/views.
+    const real = await cli(root);
+    assert.equal(real.code, 0);
+    assert.equal(read(root, 'src/components/A.vue'), COMP_A);
+  });
+});
+
+test('pageName is the page folder under src/views, or the path under src/ for a page anywhere else', () => {
+  assert.equal(pageName('src/views/Gene/main.js'), 'Gene');
+  assert.equal(pageName('src/views/group/R/main.js'), 'group/R');
+  assert.equal(pageName('src/portals/PanKbase/views/Gene/main.js'), 'portals/PanKbase/views/Gene');
+  assert.equal(pageName('src/main.js'), 'src');
 });
 
 test('the Unresolved totals rows come in the planner reason order', async () => {

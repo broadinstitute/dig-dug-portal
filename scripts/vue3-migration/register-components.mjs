@@ -105,8 +105,12 @@ export function assertParses(file, before, after) {
 export const oneLine = (text) => String(text).replace(/\s+/g, ' ').trim();
 export const cell = (text) => text.replaceAll('|', '\\|');
 export const code = (text) => `\`${text}\``;
-/** A page entry as its folder under `src/views/`: `src/views/VariantSearch/main.js` -> `VariantSearch`. */
-export const pageName = (entry) => entry.replace(/^src\/views\//, '').replace(/\/main\.js$/, '');
+/**
+ * A page entry (see `pageEntries`) as the reports name it: its folder under `src/views/`
+ * (`src/views/VariantSearch/main.js` -> `VariantSearch`), or for a page anywhere else its folder under
+ * `src/` (`src/portals/PanKbase/views/Gene/main.js` -> `portals/PanKbase/views/Gene`).
+ */
+export const pageName = (entry) => entry.replace(/\/main\.js$/, '').replace(/^src\/(?:views\/)?/, '');
 
 /** A failed file as the reports list it: `error`'s message on one line, without a leading `<file>: `. */
 export function failure(file, error) {

@@ -324,19 +324,30 @@ test('a .vue with no script has no imports, and every .vue/.js source has an ent
   assert.deepEqual([...imports.keys()], ['src/a/NoScript.vue', 'src/a/b.js']);
 });
 
-test('pageEntries lists src/views/**/main.js, sorted, and nothing else', () => {
+// Portal branches keep pages outside src/views (src/portals/PanKbase/views/Gene/main.js), so every
+// main.js under src/ is a page. One that is not built only adds evidence, which makes the rules stricter.
+test('pageEntries lists every main.js under src/, whatever the folder, sorted, and nothing else', () => {
   const sources = srcs({
     'src/views/Gene/main.js': '',
     'src/views/A2fIndex/main.js': '',
     'src/views/Research/Deep/main.js': '',
+    'src/portals/PanKbase/views/Gene/main.js': '',
+    'src/main.js': '',
+    'src/components/views/main.js': '',
     'src/views/Gene/Template.vue': '',
     'src/views/Gene/store.js': '',
     'src/views/Gene/notmain.js': '',
-    'src/main.js': '',
-    'src/components/views/main.js': '',
     'src/views/Gene/main.vue': '',
+    'src/portals/PanKbase/views/Gene/Template.vue': '',
   });
-  assert.deepEqual(pageEntries(sources), ['src/views/A2fIndex/main.js', 'src/views/Gene/main.js', 'src/views/Research/Deep/main.js']);
+  assert.deepEqual(pageEntries(sources), [
+    'src/components/views/main.js',
+    'src/main.js',
+    'src/portals/PanKbase/views/Gene/main.js',
+    'src/views/A2fIndex/main.js',
+    'src/views/Gene/main.js',
+    'src/views/Research/Deep/main.js',
+  ]);
 });
 
 test('reachable follows transitive imports, includes the entry, and terminates on cycles', () => {

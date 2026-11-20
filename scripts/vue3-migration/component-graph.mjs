@@ -3,7 +3,7 @@
 // Reads every `.vue` and `.js` file under `<root>/src` and answers four questions:
 //   - which components does each file register (`Vue.component("name", ...)`)?
 //   - which local files does each file import?
-//   - which files are page entries (`src/views/**/main.js`) and what does each one pull in?
+//   - which files are page entries (every `main.js` under `src/`) and what does each one pull in?
 //   - which files import each other in a loop?
 //
 // All paths are relative to `root`, with forward slashes (`src/components/A.vue`).
@@ -37,7 +37,9 @@ import { parse as parseSfc } from 'vue/compiler-sfc';
  */
 
 const SCRIPT_FILE = /\.(vue|js)$/;
-const PAGE_ENTRY = /^src\/views\/(?:.+\/)?main\.js$/;
+// Any `main.js` under `src/`: master's pages are `src/views/<Page>/main.js`, most portal branches also have
+// `src/portals/<Portal>/views/<Page>/main.js`. See `pageEntries`.
+const PAGE_ENTRY = /^src\/(?:.+\/)?main\.js$/;
 // Tried in this order against the files that exist (webpack resolves `.vue` before `.js`).
 const EXTENSIONS = ['', '.vue', '.js', '/index.js', '/index.vue'];
 // Babel node keys that hold positions, comments or bookkeeping rather than child nodes.
@@ -294,7 +296,11 @@ export function scanImports(sources, errors = []) {
 }
 
 /**
- * Every page entry point, `src/views/**\/main.js`, sorted.
+ * Every page entry point, sorted: every `main.js` under `src/`, in any folder (`src/views/Gene/main.js`,
+ * `src/portals/PanKbase/views/Gene/main.js`). `vue.config.js` decides which of them are built, and this does
+ * not read it, so a `main.js` that is not a built page is counted as one. That only makes the planner more
+ * conservative: an extra page is more evidence, so a duplicate name is settled less often and a tag is
+ * `not-loaded` more often. More uses are reported, never more written.
  * @param {Map<string, string>} sources file path -> source text
  * @returns {string[]}
  */
