@@ -10,7 +10,7 @@
 // and adds `import X from "..."` and `components: { X }` to the file (`register-write.mjs`).
 //
 // The report is markdown on stdout: totals, the uses that could not be planned (and why), failures,
-// analysis errors, and the files changed (or, in a dry run, the files that would change).
+// analysis errors, a lint failure, and the files changed (or, in a dry run, the files that would change).
 //
 //   - A changed file is parsed again before it is written: no SFC error that the original did not
 //     already have (the Vue 2 SFC parser warns about valid void tags such as `<img>`, so a plain "no
@@ -19,12 +19,16 @@
 //   - Errors found while scanning the tree (a script that does not parse, a `Vue.component` call that
 //     cannot be classified) are listed under Analysis errors. A duplicate name could be settled wrongly
 //     by partial knowledge, so a real run with any of them writes nothing at all.
+//   - ESLint finds the uses, and it cannot lint a tree with a script that does not parse. Then there are
+//     no findings and no plan: the totals read `n/a`, the report lists the analysis errors (which name
+//     the file and line) and a Lint failed section with ESLint's message, and the exit code is 1. A real
+//     run writes nothing.
 //   - Files with nothing to add are never touched. A second run changes nothing.
 //
 // ESLint plugins resolve from this repo, so `--root` may be a checkout without `node_modules`.
 //
-// Exit codes: 0 done (unresolved uses are reported, not failures), 1 a file failed or the scan had
-// errors, 2 usage error.
+// Exit codes: 0 done (unresolved uses are reported, not failures), 1 a file failed, the scan had
+// errors or the lint failed, 2 usage error.
 import { realpathSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,6 +43,9 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const USAGE = 'usage: node scripts/vue3-migration/register-components.mjs [--dry-run] [--root <dir>]';
 const REASONS = ['no-registration', 'ambiguous', 'self', 'cycle', 'script-setup'];
+// What the report shows for a figure that needs the lint step, when that step failed.
+const NOT_AVAILABLE = 'n/a';
+const NOT_COMPUTED = 'Not computed: the lint step failed.';
 
 const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -100,17 +107,17 @@ const oneLine = (text) => String(text).replace(/\s+/g, ' ').trim();
 const cell = (text) => text.replaceAll('|', '\\|');
 const code = (text) => `\`${text}\``;
 
-function renderReport({ dryRun, writing, findings, plan, changes, written, failures, analysisErrors }) {
+function renderReport({ dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError }) {
   const entries = changes.reduce((sum, { entries: count }) => sum + count, 0);
   const lines = [
     `# Register components${dryRun ? ' (dry run)' : ''}`,
     '',
     '| Total | Count |',
     '| --- | ---: |',
-    `| Findings | ${findings} |`,
-    `| Files to change | ${changes.length} |`,
-    `| Entries | ${entries} |`,
-    `| Unresolved | ${plan.unresolved.length} |`,
+    `| Findings | ${lintError === null ? findings : NOT_AVAILABLE} |`,
+    `| Files to change | ${lintError === null ? changes.length : NOT_AVAILABLE} |`,
+    `| Entries | ${lintError === null ? entries : NOT_AVAILABLE} |`,
+    `| Unresolved | ${lintError === null ? plan.unresolved.length : NOT_AVAILABLE} |`,
   ];
   for (const reason of REASONS) {
     const count = plan.unresolved.filter((item) => item.reason === reason).length;
@@ -118,7 +125,9 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
   }
 
   lines.push('', '## Unresolved', '');
-  if (plan.unresolved.length === 0) {
+  if (lintError !== null) {
+    lines.push(NOT_COMPUTED);
+  } else if (plan.unresolved.length === 0) {
     lines.push('None.');
   } else {
     lines.push('| file:line | tag | reason | candidates |', '| --- | --- | --- | --- |');
@@ -140,9 +149,15 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
     if (!dryRun) lines.push('', 'Nothing was written: with these errors a duplicate name could be settled wrongly.');
   }
 
+  if (lintError !== null) {
+    lines.push('', '## Lint failed', '', 'ESLint could not lint the tree, so there are no findings and nothing could be planned:', '', `- ${lintError}`);
+    if (!dryRun) lines.push('', 'Nothing was written.');
+  }
+
   lines.push('', writing ? '## Changed files' : '## Files that would change', '');
   const files = writing ? written : changes.map(({ file }) => file);
-  if (files.length === 0) lines.push('None.');
+  if (lintError !== null) lines.push(NOT_COMPUTED);
+  else if (files.length === 0) lines.push('None.');
   for (const file of files) lines.push(`- ${code(file)}`);
   return `${lines.join('\n')}\n`;
 }
@@ -150,19 +165,29 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
 /**
  * Plans the registrations for the tree under `root`, and writes them unless `--dry-run`.
  *
- * `root` defaults to the repo root and `--root <dir>` overrides it. `write(absPath, contents)` and
- * `apply(source, entries, file)` default to `fs.writeFileSync` and `applyRegistrations`; they are seams
- * for tests. The report goes to `out`, usage errors and a one-line summary of what failed go to `err`.
+ * `root` defaults to the repo root and `--root <dir>` overrides it. `write(absPath, contents)`,
+ * `apply(source, entries, file)` and `lint(root)` default to `fs.writeFileSync`, `applyRegistrations` and
+ * `undefinedTags`; they are seams for tests. The report goes to `out`, usage errors and a one-line
+ * summary of what failed go to `err`.
  *
- * Rejects when ESLint cannot lint the tree (see `undefinedTags`).
+ * Does not reject when ESLint cannot lint the tree (a script that does not parse, say): that is a
+ * Lint failed section in the report, exit 1, and nothing is written (the figures that need the lint
+ * read `n/a`; the analysis errors are still listed).
  *
  * @param {string[]} argv
  * @param {{ root?: string, write?: (path: string, contents: string) => void, apply?: typeof applyRegistrations,
- *   out?: { write: (text: string) => unknown }, err?: { write: (text: string) => unknown } }} [deps]
+ *   lint?: typeof undefinedTags, out?: { write: (text: string) => unknown }, err?: { write: (text: string) => unknown } }} [deps]
  * @returns {Promise<number>} the exit code
  */
 export async function run(argv, deps = {}) {
-  const { root: defaultRoot = repoRoot, write = writeFileSync, apply = applyRegistrations, out = process.stdout, err = process.stderr } = deps;
+  const {
+    root: defaultRoot = repoRoot,
+    write = writeFileSync,
+    apply = applyRegistrations,
+    lint = undefinedTags,
+    out = process.stdout,
+    err = process.stderr,
+  } = deps;
 
   let options;
   try {
@@ -179,7 +204,15 @@ export async function run(argv, deps = {}) {
 
   const sources = readSources(root);
   const { registrations, imports, errors: analysisErrors } = analyzeSources(sources);
-  const uses = await undefinedTags(root);
+  // ESLint cannot lint a script that does not parse. The scan above has already listed that file, so a
+  // lint failure is reported beside the analysis errors rather than thrown over them.
+  let uses = new Map();
+  let lintError = null;
+  try {
+    uses = await lint(root);
+  } catch (error) {
+    lintError = oneLine(error instanceof Error ? error.message : error);
+  }
   const plan = planRegistrations({
     uses,
     registrations,
@@ -207,7 +240,7 @@ export async function run(argv, deps = {}) {
   }
 
   // Partial knowledge could settle a duplicate name wrongly, so analysis errors block every write.
-  const writing = !options.dryRun && analysisErrors.length === 0;
+  const writing = !options.dryRun && analysisErrors.length === 0 && lintError === null;
   const written = [];
   if (writing) {
     for (const { file, source } of changes) {
@@ -222,13 +255,14 @@ export async function run(argv, deps = {}) {
   failures.sort((a, b) => byCodeUnit(a.file, b.file));
 
   const findings = [...uses.values()].reduce((sum, list) => sum + list.length, 0);
-  out.write(renderReport({ dryRun: options.dryRun, writing, findings, plan, changes, written, failures, analysisErrors }));
+  out.write(renderReport({ dryRun: options.dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError }));
 
   if (failures.length > 0) err.write(`register-components: ${failures.length} file(s) failed; see the Failed section of the report\n`);
   if (analysisErrors.length > 0) {
     err.write(`register-components: ${analysisErrors.length} analysis error(s)${options.dryRun ? '' : '; nothing was written'}\n`);
   }
-  return failures.length > 0 || analysisErrors.length > 0 ? 1 : 0;
+  if (lintError !== null) err.write(`register-components: the lint step failed${options.dryRun ? '' : '; nothing was written'}\n`);
+  return failures.length > 0 || analysisErrors.length > 0 || lintError !== null ? 1 : 0;
 }
 
 function isMain() {

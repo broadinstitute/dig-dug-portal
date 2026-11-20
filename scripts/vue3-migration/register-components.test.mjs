@@ -259,6 +259,59 @@ test('analysis errors: a dry run prints the full report and exits 1', async () =
   });
 });
 
+// ESLint cannot lint a tree with a script that does not parse, so `undefinedTags` throws. The report
+// must still be printed, with the scan's own errors for that file.
+const BROKEN = '<template><div /></template>\n<script>\nexport default {\n</script>\n';
+
+test('a script that does not parse: a dry run prints the report with the analysis error and the lint failure; exit 1', async () => {
+  await withRoot({ ...FIXTURE, 'src/components/Broken.vue': BROKEN }, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.equal(dry.code, 1);
+    assert.deepEqual(dry.writes, []);
+    assert.match(dry.out, /^# Register components \(dry run\)$/m);
+    const analysis = dry.out.split('## Analysis errors')[1].split('\n## ')[0];
+    assert.match(analysis, /^- `src\/components\/Broken\.vue:4` \(parse\): Unexpected token \(4:0\)$/m);
+    const lint = dry.out.split('## Lint failed')[1].split('\n## ')[0];
+    assert.match(lint, /Broken\.vue/);
+    // Without the lint there are no findings, and the totals say so instead of showing zeros.
+    assert.match(dry.out, /^\| Findings \| n\/a \|$/m);
+    assert.match(dry.out, /^\| Files to change \| n\/a \|$/m);
+    assert.match(dry.out, /^\| Entries \| n\/a \|$/m);
+    assert.match(dry.out, /^\| Unresolved \| n\/a \|$/m);
+    assert.match(dry.err, /lint/i);
+    assert.match(dry.err, /1 analysis error/);
+  });
+});
+
+test('a script that does not parse: a real run writes nothing and says so; exit 1', async () => {
+  await withRoot({ ...FIXTURE, 'src/components/Broken.vue': BROKEN }, async (root) => {
+    const real = await cli(root);
+    assert.equal(real.code, 1);
+    assert.deepEqual(real.writes, []);
+    assert.equal(read(root, 'src/views/P/Template.vue'), TEMPLATE);
+    assert.equal(read(root, 'src/components/A.vue'), COMP_A);
+    assert.match(real.out, /^## Analysis errors$/m);
+    assert.match(real.out.split('## Analysis errors')[1].split('\n## ')[0], /nothing was written/i);
+    assert.match(real.out.split('## Lint failed')[1].split('\n## ')[0], /nothing was written/i);
+    assert.match(real.out, /^## Files that would change$/m);
+    assert.match(real.err, /nothing was written/);
+  });
+});
+
+test('a lint failure without analysis errors is still reported, not thrown', async () => {
+  // The scan finds nothing wrong here, so the lint failure alone decides the exit code.
+  const lintFails = async () => {
+    throw new Error('src/views/P/Odd.vue:1: unexpected ESLint message (fatal): Parsing error');
+  };
+  await withRoot(FIXTURE, async (root) => {
+    const dry = await cli(root, ['--dry-run'], { lint: lintFails });
+    assert.equal(dry.code, 1);
+    assert.doesNotMatch(dry.out, /^## Analysis errors$/m);
+    assert.match(dry.out.split('## Lint failed')[1].split('\n## ')[0], /Odd\.vue:1: unexpected ESLint message/);
+    assert.match(dry.err, /lint/i);
+  });
+});
+
 // ---- usage errors -----------------------------------------------------------------------------------
 
 test('usage errors exit 2 with the usage line on stderr and nothing on stdout', async () => {
