@@ -36,4 +36,30 @@ stopifnot(got$status=='ok',
           isTRUE(all.equal(got$standard_error,1/sqrt(variance),tolerance=1e-9)))
 stopifnot(isTRUE(all.equal(c(got$beta_ci_low,got$beta_ci_high),
                           got$beta + stats::qnorm(c(.025,.975))*got$standard_error,tolerance=1e-9)))
+
+# Exercise the command file that the Python service invokes on a fresh checkout.
+directory <- tempfile('gene-score-cli-')
+dir.create(directory)
+ids <- paste0('test-', seq_len(n))
+phenotype <- data.frame(sample_id=ids, residual_phers=y)
+covariates <- data.frame(sample_id=ids, age=age, sex='Female', affected='Y', WES_WGS='WES', PC1=pc1)
+for (i in 2:10) covariates[[paste0('PC', i)]] <- 0
+scores <- data.frame(sample_id=ids[rows], gene_symbol='TEST', gene_score_max=x[rows])
+for (name in c('phenotype', 'covariates', 'scores')) {
+  utils::write.table(get(name), file.path(directory, name), sep='\t', row.names=FALSE, quote=FALSE)
+}
+output <- file.path(directory, 'output')
+status <- system2(file.path(R.home('bin'), 'Rscript'), shQuote(c(
+  file.path(script_dir, 'run_gene_score_lm.R'),
+  '--phenotype', file.path(directory, 'phenotype'),
+  '--covariates', file.path(directory, 'covariates'),
+  '--gene-scores', file.path(directory, 'scores'),
+  '--output', output
+)))
+stopifnot(status==0, file.exists(file.path(script_dir, 'run_gene_score_lmm.R')))
+cli <- utils::read.delim(output)
+stopifnot(cli$gene_symbol=='TEST', cli$status=='ok', cli$n_samples==n,
+          isTRUE(all.equal(cli$beta, result$beta, tolerance=1e-9)),
+          isTRUE(all.equal(cli$p_value, result$p_value, tolerance=1e-9)))
+unlink(directory, recursive=TRUE)
 cat('GENE_SCORE_ASSOCIATION_R_TEST_PASS\n')

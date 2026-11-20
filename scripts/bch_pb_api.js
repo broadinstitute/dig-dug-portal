@@ -74,17 +74,20 @@ function createRouter(env = process.env) {
     }
 
     const json = express.json({ limit: '2mb' });
-    function register(method, group, host, operation) {
+    function register(method, group, host, operation, timeout) {
         router[method](`/${group}/${operation}`, json,
-            forward(host, `/phenotype-analyzer-api/${operation}`));
+            forward(host, `/phenotype-analyzer-api/${operation}`, { timeout }));
     }
     register('get', '__pb_phenotype_profile__', profile, 'hpo-counts');
     register('post', '__pb_phenotype_profile__', profile, 'profile');
     register('post', '__pb_phenotype_profile__', profile, 'sample-variants');
-    register('post', 'gene-context', env.PB_GENE_CONTEXT_HOST_PRIVATE, 'analyze');
-    register('post', 'gene-context', env.PB_GENE_CONTEXT_HOST_PRIVATE, 'co-gene-associations');
-    register('post', '__pb_variant_context__', env.PB_VARIANT_CONTEXT_HOST_PRIVATE, 'analyze');
-    register('post', '__pb_variant_context__', env.PB_VARIANT_CONTEXT_HOST_PRIVATE, 'co-gene-associations');
+    // The R worker allows 600 seconds for a gene-score fit. Leave time for
+    // the upstream to return its own result or error before the proxy times out.
+    const analysisTimeout = 610000;
+    register('post', 'gene-context', env.PB_GENE_CONTEXT_HOST_PRIVATE, 'analyze', analysisTimeout);
+    register('post', 'gene-context', env.PB_GENE_CONTEXT_HOST_PRIVATE, 'co-gene-associations', analysisTimeout);
+    register('post', '__pb_variant_context__', env.PB_VARIANT_CONTEXT_HOST_PRIVATE, 'analyze', analysisTimeout);
+    register('post', '__pb_variant_context__', env.PB_VARIANT_CONTEXT_HOST_PRIVATE, 'co-gene-associations', analysisTimeout);
     register('post', '__pb_sample_gene_scores__', env.PB_SAMPLE_GENE_SCORE_HOST, 'sample-gene-scores');
     router.use((_request, response) => response.status(404).json({ error: 'Unknown CRDC operation.' }));
     router.use((error, _request, response, next) => {
