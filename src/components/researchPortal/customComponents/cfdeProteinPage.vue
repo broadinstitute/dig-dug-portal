@@ -171,7 +171,15 @@
         >
             <div>
                 <div class="cfde-ptm-panel">
-                    <h4>{{ group.title }}</h4>
+                    <h4 class="cfde-section-title">
+                        <img
+                            v-if="group.icon"
+                            :src="group.icon"
+                            :alt="group.title + ' logo'"
+                            class="cfde-section-icon"
+                        />
+                        <span>{{ group.title }}</span>
+                    </h4>
                     <div v-if="group.header" class="cfde-ptm-header">
                         {{ group.header }}
                     </div>
@@ -225,16 +233,16 @@ const SECTION_INFO = {
     general_info_function: { title: null, header: "Which functions, gene ontologies, and pathways are associated with $protein?" },
     general_info_go: { title: null, header: "Gene Ontology (GO) Annotations" },
     general_info_pathway: { title: null, header: "Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)" },
-    gtex: { title: "GTEx", header: "How specific is $protein expression and how does it compare across GTEx tissues and organ categories?" },
+    gtex: { title: "GTEx", icon: "GTEx.png", header: "How specific is $protein expression and how does it compare across GTEx tissues and organ categories?" },
     gtex_kp: { title: null, header: "GTEx: Gene expression levels and tissue specificity" },
-    fourdn: { title: "4D Nucleome", header: "What are predicted gene-variant disease links for $protein in various tissues?" },
-    lincs: { title: "LINCS L1000 Consensus Signatures", header: "What transcriptional signatures are correlated with the transcriptional signature of $protein?" },
-    idg: { title: "IDG", header: "What evidence supports $protein as a potential drug target?" },
-    exrna: { title: "exRNA", header: "What RNA binding proteins are predicted to interact with extracellular RNAs originating from $protein?" },
-    glygen: { title: "GlyGen", header: "Does the protein encoded by $protein contains glycosylation site(s) or have glycohydrolase or glycosyltransferase activities?" },
-    hubmap: { title: "HuBMAP Program", header: "Which cell types express $protein in human tissue-derived single cell RNA sequencing datasets?" },
-    kidsfirst: { title: "Kids First", header: "How do aggregated variant counts from $protein compare between Kids First rare pediatric disease cohorts relative to population controls?" },
-    motrpac: { title: "Endurance Trained Young Adult Rats Study", header: "How do $protein-derived proteomics or transcriptomics data change across 20 tissues after endurance exercise training in young adult male and female rats?" },
+    fourdn: { title: "4D Nucleome", icon: "4DN.png", header: "What are predicted gene-variant disease links for $protein in various tissues?" },
+    lincs: { title: "LINCS L1000 Consensus Signatures", icon: "LINCS-logo.png", header: "What transcriptional signatures are correlated with the transcriptional signature of $protein?" },
+    idg: { title: "IDG", icon: "IDG.png", header: "What evidence supports $protein as a potential drug target?" },
+    exrna: { title: "exRNA", icon: "exRNA.png", header: "What RNA binding proteins are predicted to interact with extracellular RNAs originating from $protein?" },
+    glygen: { title: "GlyGen", icon: "GlyGen.png", header: "Does the protein encoded by $protein contains glycosylation site(s) or have glycohydrolase or glycosyltransferase activities?" },
+    hubmap: { title: "HuBMAP Program", icon: "HuBMAP.png", header: "Which cell types express $protein in human tissue-derived single cell RNA sequencing datasets?" },
+    kidsfirst: { title: "Kids First", icon: "Kids First.png", header: "How do aggregated variant counts from $protein compare between Kids First rare pediatric disease cohorts relative to population controls?" },
+    motrpac: { title: "Endurance Trained Young Adult Rats Study", icon: "MoTrPAC.png", header: "How do $protein-derived proteomics or transcriptomics data change across 20 tissues after endurance exercise training in young adult male and female rats?" },
     under_development: { title: null, header: "Programs under development" },
 };
 
@@ -322,6 +330,11 @@ export default {
                     return {
                         source,
                         title: info.title || source,
+                        icon: info.icon
+                            ? `/images/DCC_logos/${encodeURIComponent(
+                                  info.icon
+                              )}`
+                            : "",
                         header: (info.header || "").replace(
                             /\$protein/g,
                             this.displayName
@@ -616,6 +629,16 @@ export default {
     padding: 10px 0;
     color: #212529;
 }
+.cfde-protein-page .cfde-section-title {
+    display: flex;
+    align-items: center;
+}
+.cfde-protein-page .cfde-section-icon {
+    height: 38.4px;
+    width: auto;
+    flex: 0 0 auto;
+    margin-right: 30px;
+}
 .cfde-protein-page .cfde-tabs .nav-tabs {
     border-bottom: 0;
 }
@@ -637,7 +660,7 @@ export default {
 .cfde-protein-page .cfde-ptm-header {
     font-size: 15px;
     color: #5a5a5a;
-    padding: 0 0 10px;
+    padding: 0 0 15px;
 }
 .cfde-protein-page .cfde-ptm-filter {
     padding: 0 0 10px;
