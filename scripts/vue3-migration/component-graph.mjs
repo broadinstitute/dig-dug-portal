@@ -43,6 +43,9 @@ const EXTENSIONS = ['', '.vue', '.js', '/index.js', '/index.vue'];
 // Babel node keys that hold positions, comments or bookkeeping rather than child nodes.
 const SKIP_KEYS = new Set(['loc', 'extra', 'leadingComments', 'trailingComments', 'innerComments', 'errors']);
 
+/** How a component script is parsed: an ES module with JSX, carrying on past errors Babel can recover from. */
+export const BABEL_OPTIONS = { sourceType: 'module', plugins: ['jsx', 'dynamicImport'], errorRecovery: true };
+
 const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const hasScriptExtension = (file) => SCRIPT_FILE.test(file);
 
@@ -133,7 +136,8 @@ function walk(node, visit) {
 
 const stringValue = (node) => (node?.type === 'StringLiteral' ? node.value : null);
 
-const isVueComponentCall = ({ callee }) =>
+/** Whether a `CallExpression` node calls `Vue.component(...)`, whatever its arguments. */
+export const isVueComponentCall = ({ callee }) =>
   callee.type === 'MemberExpression' &&
   !callee.computed &&
   callee.object.type === 'Identifier' &&
@@ -204,12 +208,7 @@ function analyzeFile(file, source) {
   for (const block of scriptBlocks(file, source, found.errors)) {
     let ast;
     try {
-      ast = parseBabel(block.content, {
-        sourceType: 'module',
-        plugins: ['jsx', 'dynamicImport'],
-        errorRecovery: true,
-        startLine: block.startLine,
-      });
+      ast = parseBabel(block.content, { ...BABEL_OPTIONS, startLine: block.startLine });
     } catch (err) {
       found.errors.push({ file, kind: 'parse', message: err.message, line: err.loc?.line });
       continue;
