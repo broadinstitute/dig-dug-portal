@@ -80,6 +80,33 @@ test('scanRegistrations records an alias with the import specifier of its identi
   assert.deepEqual(regs.get('picker'), [{ file, name: 'picker', kind: 'definition' }]);
 });
 
+// Phase 2 turns `export default Vue.component("id", {...})` into `export default { name: "id", ... }`. That
+// file no longer registers anything, but phase 1 must still see that a component of that name exists (I1).
+test('scanRegistrations records a .vue whose default export is an options object with a string-literal name as named', () => {
+  const regs = scanRegistrations(
+    srcs({
+      'src/components/Unwrapped.vue': sfc(`import B from "./B.vue";\nexport default {\n    name: "comp-x",\n    components: { B },\n};`),
+      'src/components/Quoted.vue': sfc(`export default { 'name': 'QuotedName', data() { return {}; } };`),
+      'src/components/Last.vue': sfc(`export default { name: "first", name: "last-one" };`),
+      // Not named: a .js file, a name that is not a string literal, no name, a computed key, another export.
+      'src/components/plain.js': `export default { name: "from-js" };`,
+      'src/components/Var.vue': sfc(`const n = "v";\nexport default { name: n };`),
+      'src/components/Tpl.vue': sfc('export default { name: `tpl` };'),
+      'src/components/NoName.vue': sfc(`export default { components: {} };`),
+      'src/components/Computed.vue': sfc(`const k = "name";\nexport default { [k]: "computed" };`),
+      'src/components/Ident.vue': sfc(`const Options = { name: "ident" };\nexport default Options;`),
+      'src/components/NotLast.vue': sfc(`const n = "x";\nexport default { name: "early", name: n };`),
+      'src/components/Wrapped.vue': sfc(`export default Vue.component("wrapped", { name: "WrappedName" });`),
+    }),
+  );
+  assert.deepEqual([...regs.keys()], ['comp-x', 'last-one', 'quoted-name', 'wrapped']);
+  assert.deepEqual(regs.get('comp-x'), [{ file: 'src/components/Unwrapped.vue', name: 'comp-x', kind: 'named' }]);
+  assert.deepEqual(regs.get('quoted-name'), [{ file: 'src/components/Quoted.vue', name: 'QuotedName', kind: 'named' }]);
+  assert.deepEqual(regs.get('last-one'), [{ file: 'src/components/Last.vue', name: 'last-one', kind: 'named' }]);
+  // A Vue.component definition is a definition, whatever name its options carry.
+  assert.deepEqual(regs.get('wrapped'), [{ file: 'src/components/Wrapped.vue', name: 'wrapped', kind: 'definition' }]);
+});
+
 test('scanRegistrations keys a PascalCase name by its kebab form and keeps the name as written', () => {
   const regs = scanRegistrations(srcs({ 'src/components/D.vue': sfc(`export default Vue.component("DownloadChart", {});`) }));
   assert.deepEqual([...regs.keys()], ['download-chart']);

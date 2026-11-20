@@ -24,11 +24,19 @@
 //     the file and line) and a Lint failed section with ESLint's message, and the exit code is 1. A real
 //     run writes nothing.
 //   - Files with nothing to add are never touched. A second run changes nothing.
+//   - Phase 2 output in the tree (`phase-2-present`): a `.vue` that is already `export default { name: "x",
+//     ... }` registers nothing globally, so the uses of `x` cannot be planned safely (a portal-only
+//     definition of `x` would look like the only one). Those uses are unresolved, and a real run with any of
+//     them writes nothing at all.
+//
+// Sync-point order, when `master` is merged down into a portal branch (`scripts/vue3-migration/README.md`):
+// merge `master` up to its last phase 1 commit; run this, with its hand fixes and gates; then merge phase 2
+// and run `unwrap-vue-component`. Run on a tree that already has phase 2, this refuses (`phase-2-present`).
 //
 // ESLint plugins resolve from this repo, so `--root` may be a checkout without `node_modules`.
 //
 // Exit codes: 0 done (unresolved uses are reported, not failures), 1 a file failed, the scan had
-// errors or the lint failed, 2 usage error.
+// errors, the lint failed or phase 2 output is in the tree, 2 usage error.
 import { realpathSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -132,7 +140,7 @@ export function unresolvedTable(unresolved) {
 export const analysisErrorLine = ({ file, line, kind, message }) =>
   `- ${code(line === undefined ? file : `${file}:${line}`)} (${kind}): ${oneLine(message)}`;
 
-function renderReport({ dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError }) {
+function renderReport({ dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError, phaseTwo }) {
   const entries = changes.reduce((sum, { entries: count }) => sum + count, 0);
   const lines = [
     `# Register components${dryRun ? ' (dry run)' : ''}`,
@@ -156,6 +164,17 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
     lines.push('None.');
   } else {
     lines.push(...unresolvedTable(plan.unresolved));
+  }
+
+  if (phaseTwo > 0) {
+    lines.push(
+      '',
+      '## Phase 2 present',
+      '',
+      `${phaseTwo} unresolved uses are \`phase-2-present\`: they name a component that a file already exports as \`export default { name: "...", ... }\` (phase 2 output, or written so by hand), which registers nothing globally. Phase 1 cannot tell from such a tree which component a page loads for the tag, so it writes nothing. Run phase 1 before phase 2 is merged (see "Sync-point order" in \`scripts/vue3-migration/README.md\`), or register these uses by hand.`,
+      '',
+      dryRun ? 'A real run would write nothing.' : 'Nothing was written.',
+    );
   }
 
   if (failures.length > 0) {
@@ -250,6 +269,9 @@ export async function analyzePhaseOne(root, { apply = applyRegistrations, lint =
  * Lint failed section in the report, exit 1, and nothing is written (the figures that need the lint
  * read `n/a`; the analysis errors are still listed).
  *
+ * Any `phase-2-present` use (phase 2 output in the tree) is a Phase 2 present section and exit 1, a dry run
+ * included; a real run then writes nothing at all.
+ *
  * @param {string[]} argv
  * @param {{ root?: string, write?: (path: string, contents: string) => void, apply?: typeof applyRegistrations,
  *   lint?: typeof undefinedTags, out?: { write: (text: string) => unknown }, err?: { write: (text: string) => unknown } }} [deps]
@@ -280,8 +302,10 @@ export async function run(argv, deps = {}) {
 
   const { findings, plan, changes, failures, analysisErrors, lintError } = await analyzePhaseOne(root, { apply, lint });
 
-  // Partial knowledge could settle a duplicate name wrongly, so analysis errors block every write.
-  const writing = !options.dryRun && analysisErrors.length === 0 && lintError === null;
+  // Partial knowledge could settle a duplicate name wrongly, so analysis errors block every write, and so
+  // does phase 2 output in the tree: a component it unwrapped no longer shows where it is registered.
+  const phaseTwo = plan.unresolved.filter(({ reason }) => reason === 'phase-2-present').length;
+  const writing = !options.dryRun && analysisErrors.length === 0 && lintError === null && phaseTwo === 0;
   const written = [];
   if (writing) {
     for (const { file, source } of changes) {
@@ -295,14 +319,18 @@ export async function run(argv, deps = {}) {
   }
   failures.sort((a, b) => byCodeUnit(a.file, b.file));
 
-  out.write(renderReport({ dryRun: options.dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError }));
+  out.write(renderReport({ dryRun: options.dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError, phaseTwo }));
 
   if (failures.length > 0) err.write(`register-components: ${failures.length} file(s) failed; see the Failed section of the report\n`);
   if (analysisErrors.length > 0) {
     err.write(`register-components: ${analysisErrors.length} analysis error(s)${options.dryRun ? '' : '; nothing was written'}\n`);
   }
   if (lintError !== null) err.write(`register-components: the lint step failed${options.dryRun ? '' : '; nothing was written'}\n`);
-  return failures.length > 0 || analysisErrors.length > 0 || lintError !== null ? 1 : 0;
+  if (phaseTwo > 0) {
+    const effect = options.dryRun ? 'a real run would write nothing' : 'nothing was written';
+    err.write(`register-components: ${phaseTwo} use(s) are phase-2-present; ${effect}\n`);
+  }
+  return failures.length > 0 || analysisErrors.length > 0 || lintError !== null || phaseTwo > 0 ? 1 : 0;
 }
 
 function isMain() {

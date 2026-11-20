@@ -51,15 +51,15 @@ test('renderPortalReport: a table with one row per branch and a totals row', () 
   assert.equal(out[0], '# Portal-branch dry run: component registration codemods');
   assert.ok(
     out.includes(
-      '| branch | SHA | status | findings | files to change | entries | unresolved | no-registration | ambiguous | self | not-loaded | script-setup | cycle | phase 1 failed | phase 2 files to change (if phase 1 were complete) | phase 2 refused (if phase 1 were complete) | analysis errors | lint failed |',
+      '| branch | SHA | status | findings | files to change | entries | unresolved | no-registration | phase-2-present | ambiguous | self | not-loaded | script-setup | cycle | phase 1 failed | phase 2 files to change (if phase 1 were complete) | phase 2 refused (if phase 1 were complete) | analysis errors | lint failed |',
     ),
     'header row',
   );
-  assert.ok(out.includes('| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |'), 'separator row');
-  assert.ok(out.includes('| cfde-main | `7ecb0a802` | ok | 12 | 5 | 9 | 3 | 1 | 1 | 0 | 1 | 0 | 0 | 1 | 4 | 1 | 0 | no |'));
-  assert.ok(out.includes('| matkp-main | `abc123def` | ok | 3 | 2 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 2 | no |'));
+  assert.ok(out.includes('| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |'), 'separator row');
+  assert.ok(out.includes('| cfde-main | `7ecb0a802` | ok | 12 | 5 | 9 | 3 | 1 | 0 | 1 | 0 | 1 | 0 | 0 | 1 | 4 | 1 | 0 | no |'));
+  assert.ok(out.includes('| matkp-main | `abc123def` | ok | 3 | 2 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 2 | no |'));
   // The totals line sums every numeric column.
-  assert.ok(out.includes('| **total** |  | 2 ok | 15 | 7 | 12 | 3 | 1 | 1 | 0 | 1 | 0 | 0 | 1 | 5 | 1 | 2 | 0 |'));
+  assert.ok(out.includes('| **total** |  | 2 ok | 15 | 7 | 12 | 3 | 1 | 0 | 1 | 0 | 1 | 0 | 0 | 1 | 5 | 1 | 2 | 0 |'));
   // The table comes before the details, and the rows come in the order given.
   const table = out.findIndex((line) => line.startsWith('| cfde-main |'));
   assert.ok(table > 0 && out.findIndex((line) => line.startsWith('| matkp-main |')) === table + 1);
@@ -109,9 +109,9 @@ test('renderPortalReport: a branch whose lint failed has n/a for the figures tha
   };
   const report = renderPortalReport([WITH_REFUSAL, lintFailed], { fetch: { ok: true } });
   const out = lines(report);
-  assert.ok(out.includes('| sysbio-main | `1234567ab` | ok | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 2 | yes |'));
+  assert.ok(out.includes('| sysbio-main | `1234567ab` | ok | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 2 | yes |'));
   // The n/a cells are left out of the totals; the lint failure is counted.
-  assert.ok(out.includes('| **total** |  | 2 ok | 12 | 5 | 9 | 3 | 1 | 1 | 0 | 1 | 0 | 0 | 1 | 5 | 1 | 2 | 1 |'));
+  assert.ok(out.includes('| **total** |  | 2 ok | 12 | 5 | 9 | 3 | 1 | 0 | 1 | 0 | 1 | 0 | 0 | 1 | 5 | 1 | 2 | 1 |'));
   const details = report.split('## sysbio-main (`1234567ab`)\n')[1];
   assert.match(details, /^### Lint failed$/m);
   assert.match(details, /^- src\/x\.js:1: unexpected ESLint message \(fatal\): Parsing error$/m);
@@ -122,10 +122,10 @@ test('renderPortalReport: an error row names the message and the other rows stil
   const broken = { branch: 'mouse-main', sha: null, error: 'fatal: invalid reference: origin/mouse-main\nmore' };
   const report = renderPortalReport([WITH_REFUSAL, broken, WITH_ANALYSIS_ERRORS], { fetch: { ok: true } });
   const out = lines(report);
-  assert.ok(out.includes('| mouse-main | n/a | error: fatal: invalid reference: origin/mouse-main more | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |'));
-  assert.ok(out.includes('| cfde-main | `7ecb0a802` | ok | 12 | 5 | 9 | 3 | 1 | 1 | 0 | 1 | 0 | 0 | 1 | 4 | 1 | 0 | no |'));
-  assert.ok(out.includes('| matkp-main | `abc123def` | ok | 3 | 2 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 2 | no |'));
-  assert.ok(out.includes('| **total** |  | 2 ok, 1 error | 15 | 7 | 12 | 3 | 1 | 1 | 0 | 1 | 0 | 0 | 1 | 5 | 1 | 2 | 0 |'));
+  assert.ok(out.includes('| mouse-main | n/a | error: fatal: invalid reference: origin/mouse-main more | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |'));
+  assert.ok(out.includes('| cfde-main | `7ecb0a802` | ok | 12 | 5 | 9 | 3 | 1 | 0 | 1 | 0 | 1 | 0 | 0 | 1 | 4 | 1 | 0 | no |'));
+  assert.ok(out.includes('| matkp-main | `abc123def` | ok | 3 | 2 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 2 | no |'));
+  assert.ok(out.includes('| **total** |  | 2 ok, 1 error | 15 | 7 | 12 | 3 | 1 | 0 | 1 | 0 | 1 | 0 | 0 | 1 | 5 | 1 | 2 | 0 |'));
   const details = report.split('## mouse-main\n')[1].split('\n## ')[0];
   assert.match(details, /^Error: fatal: invalid reference: origin\/mouse-main more$/m);
 });

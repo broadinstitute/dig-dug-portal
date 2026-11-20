@@ -40,7 +40,7 @@ const LOCAL_SPECIFIER = /^(?:\.{1,2}\/|@\/)/;
 const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** Every reason a use can be unresolved, in the order the rules decide them. */
-export const REASONS = ['no-registration', 'ambiguous', 'self', 'not-loaded', 'script-setup', 'cycle'];
+export const REASONS = ['no-registration', 'phase-2-present', 'ambiguous', 'self', 'not-loaded', 'script-setup', 'cycle'];
 
 /**
  * One use of an undefined tag, as the lint rule reports it.
@@ -62,6 +62,10 @@ export const REASONS = ['no-registration', 'ambiguous', 'self', 'not-loaded', 's
  * A use that could not be planned.
  *  - `no-registration`: nothing registers the name, or the only registrations are aliases whose
  *    component cannot be located (not imported, or not a file of this repo).
+ *  - `phase-2-present`: a `named` component has the name (`export default { name: "x", ... }`, phase 2
+ *    output or written so by hand). It registers nothing globally, so the scan cannot tell which file a page
+ *    loads the tag from, or whether it loads one at all. `candidates` lists the files that define the name,
+ *    named or `Vue.component`, sorted.
  *  - `ambiguous`: the name has several candidates and the pages do not settle it. `candidates` lists
  *    them, sorted: definition files, or import specifiers when only aliases register the name.
  *  - `self`: the file is the component the tag names (a recursive component).
@@ -71,7 +75,7 @@ export const REASONS = ['no-registration', 'ambiguous', 'self', 'not-loaded', 's
  *  - `script-setup`: the file has `<script setup>` or `lang="ts"`; the codemod leaves it to a person.
  *  - `cycle`: importing the target would put the file in an import loop.
  * @typedef {{ file: string, line: number, tag: string,
- *   reason: 'no-registration' | 'ambiguous' | 'self' | 'not-loaded' | 'script-setup' | 'cycle',
+ *   reason: 'no-registration' | 'phase-2-present' | 'ambiguous' | 'self' | 'not-loaded' | 'script-setup' | 'cycle',
  *   candidates?: string[], pages?: string[] }} Unresolved
  */
 
@@ -160,6 +164,10 @@ function settleByPages(file, candidates, pageSets) {
 function chooseTarget(file, tag, { registrations, files, pageSets }) {
   const found = registrations.get(toKebab(tag)) ?? [];
   if (found.length === 0) return { reason: 'no-registration' };
+  if (found.some(({ kind }) => kind === 'named')) {
+    const defining = found.filter(({ kind }) => kind !== 'alias').map((registration) => registration.file);
+    return { reason: 'phase-2-present', candidates: [...new Set(defining)].sort(byCodeUnit) };
+  }
 
   const definitions = [...new Set(found.filter(({ kind }) => kind === 'definition').map((r) => r.file))].sort(byCodeUnit);
   if (definitions.length === 1) return { target: { source: specifierOf(definitions[0]), file: definitions[0] } };
@@ -228,7 +236,11 @@ function rejection(file, tag, target, scriptSetupFiles, edges, context) {
  *
  * Per file and per tag (tags that differ only in spelling, `<a-b>` and `<AB>`, are one key,
  * `toKey(tag)`), in this order:
- *  1. No registration for `toKebab(tag)` -> `no-registration`.
+ *  1. No registration for `toKebab(tag)` -> `no-registration`. A `named` component of that name (phase 2
+ *     output, see `Registration`) -> `phase-2-present`, with the defining files as `candidates`: what such
+ *     a file used to register, and whether the pages load it, cannot be read from the tree any more, so
+ *     the rules below would decide on part of the picture (a portal-only definition of the name would
+ *     look like the only one).
  *  2. Exactly one defining file -> that file, aliases of the same name ignored. No definition and every
  *     alias leading to one place -> that place: a package name as written, or a local import resolved
  *     against the aliasing file to its `@/` form. An alias that is not imported, or whose local path
@@ -254,7 +266,7 @@ function rejection(file, tag, target, scriptSetupFiles, edges, context) {
  * Every use ends up in exactly one place: covered by an entry in `edits` (the entry stands for all
  * uses of that key in the file), or its own item in `unresolved`, with that use's `line`. `unresolved`
  * is sorted by file, line and tag; `edits` holds only files with at least one entry, in sorted order.
- * `candidates` is set for `ambiguous` only, and `pages` for `not-loaded` only.
+ * `candidates` is set for `ambiguous` and `phase-2-present` only, and `pages` for `not-loaded` only.
  * @param {{ uses: Map<string, Use[]>, registrations: Map<string, import('./component-graph.mjs').Registration[]>,
  *   imports: Map<string, string[]>, pages: string[], scriptSetupFiles: Set<string> }} input
  * @returns {{ edits: Map<string, Entry[]>, unresolved: Unresolved[] }}

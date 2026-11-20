@@ -1,7 +1,8 @@
 // Component graph for the Vue 3 registration codemods. Report only: nothing is written.
 //
 // Reads every `.vue` and `.js` file under `<root>/src` and answers four questions:
-//   - which components does each file register (`Vue.component("name", ...)`)?
+//   - which components does each file register (`Vue.component("name", ...)`), and which `.vue` files are
+//     already plain `export default { name: "name", ... }` (phase 2 output, or written that way by hand)?
 //   - which local files does each file import?
 //   - which files are page entries (every `main.js` under `src/`) and what does each one pull in?
 //   - which files import each other in a loop?
@@ -18,13 +19,18 @@ import { parse as parseBabel } from '@babel/parser';
 import { parse as parseSfc } from 'vue/compiler-sfc';
 
 /**
- * One `Vue.component(...)` call.
+ * One `Vue.component(...)` call, or one component that has a name but no global registration.
  *  - `definition`: `Vue.component("name", { ... })`, the component is defined in place.
  *  - `alias`: `Vue.component("name", Identifier)`; `source` is the import specifier the
  *    identifier comes from, or `null` when it is not imported.
+ *  - `named`: a `.vue` file whose default export is a plain options object with a string-literal `name`,
+ *    `export default { name: "name", ... }`: what phase 2 (`unwrap-vue-component`) leaves, or a component
+ *    written that way by hand. It registers nothing globally; it is recorded so that a tag can be matched
+ *    against it (the planner's `phase-2-present`).
  * `name` is the string as written; the map from `scanRegistrations` is keyed by `toKebab(name)`.
  * @typedef {{ file: string, name: string, kind: 'definition' }
- *   | { file: string, name: string, kind: 'alias', source: string | null }} Registration
+ *   | { file: string, name: string, kind: 'alias', source: string | null }
+ *   | { file: string, name: string, kind: 'named' }} Registration
  */
 
 /**
@@ -153,6 +159,21 @@ export const isVueComponentCall = ({ callee }) =>
 /** `Vue.component("name")`: looks up an already registered component, so it is not a registration. */
 export const isLookup = ({ arguments: args }) => args.length === 1 && args[0].type === 'StringLiteral';
 
+/** The key of a non-computed object property or method as written (`name` and `"name"` alike), else null. */
+const propertyKey = (property) =>
+  property.computed ? null : property.key?.type === 'Identifier' ? property.key.name : stringValue(property.key);
+
+/**
+ * The `name` of `export default { name: "...", ... }` in `program`, or null: the default export must be an
+ * object literal whose last `name` key holds a string literal.
+ */
+function exportedName(program) {
+  const declaration = program.body.find((node) => node.type === 'ExportDefaultDeclaration')?.declaration;
+  if (declaration?.type !== 'ObjectExpression') return null;
+  const name = declaration.properties.filter((property) => property.type !== 'SpreadElement' && propertyKey(property) === 'name').at(-1);
+  return name?.type === 'ObjectProperty' ? stringValue(name.value) : null;
+}
+
 /** Registrations, import specifiers (unresolved) and registration problems found in one parsed script. */
 function collect(file, ast, found) {
   /** import identifier -> specifier */
@@ -163,6 +184,8 @@ function collect(file, ast, found) {
   }
   const problem = (node, message) =>
     found.errors.push({ file, kind: 'registration', message, line: node.loc?.start.line });
+  const named = file.endsWith('.vue') ? exportedName(ast.program) : null;
+  if (named !== null) found.registrations.push({ file, name: named, kind: 'named' });
 
   walk(ast.program, (node) => {
     if (node.type === 'ImportDeclaration' || node.type === 'ExportAllDeclaration' || node.type === 'ExportNamedDeclaration') {
@@ -230,7 +253,8 @@ function analyzeFile(file, source) {
 /**
  * One pass over every `.vue` and `.js` file in `sources`, in sorted file order. Prefer this to
  * calling `scanRegistrations` and `scanImports` separately: it parses each file once and returns
- * the errors for both.
+ * the errors for both. `registrations` holds the `Vue.component` definitions and aliases, and the
+ * `named` components (see `Registration`).
  *
  * Errors are collected, not thrown, and the rest of the tree is still scanned:
  *  - A script block that does not parse contributes no imports and no registrations and gets one

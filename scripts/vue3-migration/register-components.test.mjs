@@ -235,6 +235,72 @@ test('a template warning the file already had does not fail the strict re-parse'
   });
 });
 
+// ---- phase 2 output in the tree (I1) ------------------------------------------------------------------
+// A portal merged master's phase 2 before running phase 1: B is already unwrapped, so nothing registers
+// <comp-b> globally any more, and both uses of it look like a registration phase 1 should add.
+
+const B_UNWRAPPED = '<template><div /></template>\n<script>\nexport default {\n    name: "comp-b",\n};\n</script>\n';
+const MERGED_EARLY = { ...FIXTURE, 'src/components/B.vue': B_UNWRAPPED };
+
+test('phase 2 output in the tree: a real run writes nothing, says why, and exits 1', async () => {
+  await withRoot(MERGED_EARLY, async (root) => {
+    const real = await cli(root);
+    assert.equal(real.code, 1);
+    assert.deepEqual(real.writes, []);
+    for (const [file, contents] of Object.entries(MERGED_EARLY)) assert.equal(read(root, file), contents, file);
+    assert.match(real.out, /^\| Unresolved: phase-2-present \| 2 \|$/m);
+    const table = real.out.split('\n').filter((line) => line.includes('| phase-2-present |'));
+    assert.deepEqual(table, [
+      '| `src/components/A.vue:3` | `comp-b` | phase-2-present | `src/components/B.vue` |',
+      '| `src/views/P/Template.vue:4` | `comp-b` | phase-2-present | `src/components/B.vue` |',
+    ]);
+    const why = real.out.split('## Phase 2 present\n')[1].split('\n## ')[0];
+    assert.match(why, /2 unresolved uses/);
+    assert.match(why, /Sync-point order/);
+    assert.match(why, /^Nothing was written\.$/m);
+    // The report still shows what would change: <comp-a> in the template.
+    assert.match(real.out, /^## Files that would change$/m);
+    assert.match(real.out, /^- `src\/views\/P\/Template\.vue`$/m);
+    assert.doesNotMatch(real.out, /^## Changed files$/m);
+    assert.match(real.err, /2 use\(s\) are phase-2-present; nothing was written/);
+  });
+});
+
+test('phase 2 output in the tree: a dry run prints everything and exits 1', async () => {
+  await withRoot(MERGED_EARLY, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.equal(dry.code, 1);
+    assert.deepEqual(dry.writes, []);
+    assert.match(dry.out, /^\| Files to change \| 1 \|$/m);
+    assert.match(dry.out, /^\| Entries \| 1 \|$/m);
+    const why = dry.out.split('## Phase 2 present\n')[1].split('\n## ')[0];
+    assert.match(why, /^A real run would write nothing\.$/m);
+    assert.match(dry.err, /phase-2-present; a real run would write nothing/);
+  });
+});
+
+// Master at HEAD: both phases ran, so every file registers what it uses and is unwrapped. The named files
+// are seen, but the lint finds no use, so there is nothing for them to block.
+test('a tree where both phases are done reports nothing to do and exits 0, named files and all', async () => {
+  const done = {
+    'src/views/P/main.js': 'import Vue from "vue";\nimport Template from "./Template.vue";\nnew Vue({ render: (h) => h(Template) }).$mount("#app");\n',
+    'src/views/P/Template.vue':
+      '<template>\n  <div>\n    <comp-a />\n    <comp-b />\n  </div>\n</template>\n<script>\nimport CompA from "@/components/A.vue";\nimport CompB from "@/components/B.vue";\nexport default {\n    name: "Template",\n    components: { CompA, CompB },\n};\n</script>\n',
+    'src/components/A.vue':
+      '<template>\n  <div>\n    <comp-b />\n    <comp-a v-if="deep" />\n  </div>\n</template>\n<script>\nimport CompB from "@/components/B.vue";\nexport default {\n    name: "comp-a",\n    components: { CompB },\n    props: ["deep"],\n};\n</script>\n',
+    'src/components/B.vue': B_UNWRAPPED,
+  };
+  await withRoot(done, async (root) => {
+    const real = await cli(root);
+    assert.equal(real.code, 0);
+    assert.deepEqual(real.writes, []);
+    assert.match(real.out, /^\| Findings \| 0 \|$/m);
+    assert.match(real.out, /^\| Unresolved \| 0 \|$/m);
+    assert.doesNotMatch(real.out, /phase-2-present|## Phase 2 present/);
+    assert.equal(real.err, '');
+  });
+});
+
 // ---- failures: nothing is written for the file, the rest still is, exit 1 -------------------------
 
 /** An `apply` that damages the result for Template.vue and is the real writer for everything else. */

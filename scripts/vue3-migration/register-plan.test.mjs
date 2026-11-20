@@ -218,6 +218,44 @@ test('self is decided before script-setup, and a duplicate name is ambiguous bef
   assert.equal(ambiguous.unresolved[0].reason, 'ambiguous');
 });
 
+// ---- phase-2-present: phase 2 output (`export default { name: "x", ... }`) is in the tree ---------------
+
+const named = (file, name) => ({ file, name, kind: 'named' });
+
+test('a tag whose only registration is named is phase-2-present, listing the named file', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('comp-a', 4)] },
+    registrations: [named(COMP_A, 'comp-a')],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: PAGE, line: 4, tag: 'comp-a', reason: 'phase-2-present', candidates: [COMP_A] }]);
+});
+
+// The radiant shape: a portal-only file still defines the name, and master's file of that name is already
+// unwrapped. Without the named file, rule 2 would see one definition and pick the portal file unchecked.
+test('a definition beside a named file of the same name is phase-2-present, not the one definition', () => {
+  const portal = 'src/portals/Radiant/components/VariantSearch.vue';
+  const master = 'src/components/VariantSearch.vue';
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('variant-search', 2)] },
+    registrations: [definition(portal, 'variant-search'), named(master, 'variant-search'), alias('src/a.js', 'variant-search', 'pkg')],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: PAGE, line: 2, tag: 'variant-search', reason: 'phase-2-present', candidates: [master, portal] }]);
+});
+
+test('phase-2-present is decided right after no-registration: before ambiguous, self and the page rules', () => {
+  const both = plan({
+    uses: { [COMP_A]: [use('comp-a')], [DUP_X]: [use('download-chart')] },
+    registrations: [definition(COMP_A, 'comp-a'), named('src/components/Other.vue', 'comp-a'), ...dupes, named('src/z/Z.vue', 'download-chart')],
+    scriptSetup: [COMP_A],
+  });
+  assert.deepEqual(both.unresolved.map(({ reason }) => reason), ['phase-2-present', 'phase-2-present']);
+  // A name nothing registers stays no-registration, named files elsewhere notwithstanding.
+  const none = plan({ uses: { [PAGE]: [use('ghost')] }, registrations: [named(COMP_A, 'comp-a')] });
+  assert.deepEqual(none.unresolved.map(({ reason }) => reason), ['no-registration']);
+});
+
 // ---- not-loaded: a page renders the file but never loads a file that registers the name --------------
 
 const PAGE_P1 = 'src/views/P1/main.js';
@@ -387,7 +425,7 @@ test('not-loaded is decided after the target is chosen and self, and before scri
 });
 
 test('REASONS lists every reason in the order the rules decide them', () => {
-  assert.deepEqual(REASONS, ['no-registration', 'ambiguous', 'self', 'not-loaded', 'script-setup', 'cycle']);
+  assert.deepEqual(REASONS, ['no-registration', 'phase-2-present', 'ambiguous', 'self', 'not-loaded', 'script-setup', 'cycle']);
 });
 
 test('a not-loaded use plans no edge, so it cannot make a later use a cycle', () => {

@@ -204,7 +204,7 @@ export function renderPortalReport(rows, { fetch } = {}) {
   lines.push(
     `Branches: ${rows.length} (${rows.length - errors} analyzed, ${errors} error).`,
     '',
-    '- Phase 1 is `register-components`: `findings` are the uses of an undefined component tag, `files to change` and `entries` what it would write, `unresolved` the uses it cannot place (by reason; each is listed below), and `phase 1 failed` the files it could not edit.',
+    '- Phase 1 is `register-components`: `findings` are the uses of an undefined component tag, `files to change` and `entries` what it would write, `unresolved` the uses it cannot place (by reason; each is listed below), and `phase 1 failed` the files it could not edit. `phase-2-present` uses name a component that is already unwrapped; with any of them phase 1 writes nothing, so a branch should show 0 there until phase 1 has run on it.',
     `- Phase 2 is \`unwrap-vue-component\`. Phase 2 is counted as if phase 1 were complete: the real command refuses until phase 1 is complete (ruling R2), which would only report a refusal on a branch that has not been migrated. \`refused\` files have a shape it will not guess at (\`lang="ts"\`, several \`<script>\` blocks, ...).`,
     '- `analysis errors` are what the scan of the tree found (a script that does not parse, say); `lint failed` says ESLint could not lint the tree, so the phase 1 figures are `n/a` for that branch.',
     '- Totals leave out the `n/a` cells.',

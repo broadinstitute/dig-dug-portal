@@ -30,6 +30,11 @@
 // notes per file, failures, analysis errors, a lint failure, and the files changed (or, in a dry run, the
 // files that would change).
 //
+// Sync-point order, when `master` is merged down into a portal branch (`scripts/vue3-migration/README.md`):
+// merge `master` up to its last phase 1 commit; run `register-components`, with its hand fixes and gates;
+// then merge phase 2 and run this. Phase 1 cannot run once phase 2 output is in the tree (it refuses with
+// `phase-2-present`), and this cannot run before phase 1 is complete (R2).
+//
 //   - A changed file is parsed again before it is written (ruling R7a, as `register-components`): no SFC
 //     error the original did not already have, and every script block through Babel without error
 //     recovery. A file that fails, or that has a shape the codemod will not guess at (a comment inside the
