@@ -32,10 +32,12 @@
                             >Please select a dataset.</b-alert
                         > -->
                     </transition>
+                    <!-- eslint-disable-next-line vue/no-undef-components -- not loaded on this page; rendering it would be a behaviour change (latent bug, owner decision) -->
                     <criterion-list-group
                         v-model="$parent.searchCriteria"
                         :header="'Search Criteria'"
                     >
+                        <!-- eslint-disable-next-line vue/no-undef-components -- not loaded on this page; rendering it would be a behaviour change (latent bug, owner decision) -->
                         <filter-enumeration-control
                             ref="gene"
                             :field="'gene'"

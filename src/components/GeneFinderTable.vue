@@ -105,10 +105,12 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import DataDownload from "@/components/DataDownload";
+import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 
 export default Vue.component("GeneFinderTable", {
     components: {
         DataDownload,
+        ResearchMPlot,
     },
     props: [
         "associations",

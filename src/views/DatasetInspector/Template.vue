@@ -96,6 +96,7 @@
 						>
 							Top single-variant associations for
 							{{ $store.state.selectedDataset.description }}
+							<!-- eslint-disable-next-line vue/no-undef-components -- not loaded on this page; rendering it would be a behaviour change (latent bug, owner decision) -->
 							<tooltip-documentation
 								name="dinspector.topAssociations.tooltip.hover"
 								:contentFill="$parent.docDetails"
