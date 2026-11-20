@@ -179,8 +179,15 @@ function collect(file, ast, found) {
   });
 }
 
-/** Resolves a local specifier to a key of `files`, or `null` for packages and files that do not exist. */
-function resolveImport(from, specifier, files) {
+/**
+ * Resolves a local specifier (`@/`, `./` or `../`) imported by `from` to a key of `files`, or `null`
+ * for packages and files that do not exist. The extensions tried are those of `scanImports`.
+ * @param {string} from importing file, relative to the root
+ * @param {string} specifier
+ * @param {Set<string>} files every scanned file
+ * @returns {string | null}
+ */
+export function resolveImport(from, specifier, files) {
   let base;
   if (specifier.startsWith('@/')) base = posix.normalize(`src/${specifier.slice(2)}`);
   else if (specifier.startsWith('./') || specifier.startsWith('../')) base = posix.join(posix.dirname(from), specifier);
