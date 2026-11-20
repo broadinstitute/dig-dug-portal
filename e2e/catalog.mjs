@@ -23,9 +23,10 @@ export const DEFAULT_LANDMARK = '.mdkp-body';
 // The portal front pages render the banner, not .mdkp-body, once the portal's disease group loads.
 const FRONT_PAGE_LANDMARK = '.front-top-banner';
 
-// The page throws while rendering when its CMS content is missing; it needs CMS fixtures.
+// A page that throws while rendering because its CMS content is missing is skipped with a reason
+// that starts with this prefix, followed by the CMS paths it needs. E2E_CMS_DISCOVERY=1 probes those
+// pages so a capture can unblock them (see e2e/README.md).
 const NEEDS_CMS_PREFIX = 'needs CMS fixtures: ';
-const needsCms = (urls) => `${NEEDS_CMS_PREFIX}${urls}`;
 
 /** @type {Array<{ id: string, path: string, query?: Record<string, string>, landmark?: string, mask?: string[], maxDiff?: number, skip?: string, needsLiveData?: true }>} */
 export const PAGES = [

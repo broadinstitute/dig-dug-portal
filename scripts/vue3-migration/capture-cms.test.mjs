@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { CMS_HOSTS } from '../../e2e/network.mjs';
+import { classifyUrl } from '../../e2e/network.mjs';
 import { CmsFixtures, cmsFixtureKey } from '../../e2e/cms-fixtures.mjs';
 import { CAP, DELAY_MS, USER_AGENT, captureAll, planCapture, readMissingUrls, run } from './capture-cms.mjs';
 
@@ -79,11 +79,12 @@ test('planCapture: more than the cap is overCap with nothing to fetch; exactly t
   assert.equal(planCapture(many(60), (u) => Number(u.slice(H.length)) >= 10, 50).overCap, false);
 });
 
-test('the constants are the agreed ones, and the primary host is one of the CMS hosts', () => {
+test('the constants are the agreed ones, and the e2e network policy serves captured URLs as CMS', () => {
   assert.equal(CAP, 50);
   assert.equal(DELAY_MS, 2000);
   assert.equal(USER_AGENT, 'dig-dug-portal-e2e-fixture-capture');
-  assert.ok(CMS_HOSTS.includes('hugeampkpncms.org'));
+  // A fixture is only replayed for a URL the policy classifies as CMS.
+  assert.equal(classifyUrl(H + 'about?portal=md', []), 'cms');
 });
 
 test('readMissingUrls: one {"url":...} per line, blank lines ignored, a bad line is an error', () => {
