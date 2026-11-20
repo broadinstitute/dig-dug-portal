@@ -2,7 +2,9 @@ const { canonicalSampleId } = require('./sampleRecord');
 
 async function requestSampleEvidence(route, sampleId, comparison = {}) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 180000);
+    // Project summaries join the full candidate roster against BioIndex on a cold cache.
+    const fullComparison = route === 'sample-matches' && !comparison.candidate_id;
+    const timer = setTimeout(() => controller.abort(), fullComparison ? 600000 : 180000);
     try {
         const response = await fetch(`/phenotype-analyzer-api/pb/__pb_phenotype_profile__/${route}`, { method: 'POST',
             headers: { 'Content-Type': 'application/json' },

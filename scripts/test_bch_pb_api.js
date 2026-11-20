@@ -30,6 +30,10 @@ async function main() {
             assert.equal(response.status, 401);
             assert.equal(response.headers.get('cache-control'), 'private, no-store');
         }
+        const denied = await clientFetch(base + '/__pb_phenotype_profile__/sample-variants', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+        });
+        assert.equal(denied.status, 401);
         assert.equal(requests.length, 0);
         let response = await clientFetch(base + hpoPath, { headers });
         assert.equal(response.status, 200);

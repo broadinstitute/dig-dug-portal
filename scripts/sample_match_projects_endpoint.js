@@ -30,7 +30,7 @@ async function projectResults(result, provider, token) {
             const keys = explicit ? [row.vcf_sample_id] : [`${row.sample_id}_E38`, `${row.sample_id}_G38`];
             let info = null;
             for (const key of keys) {
-                info = await provider.sampleInfo(key, token);
+                info = await provider.sampleInfo(key, token, false);
                 if (info) break;
             }
             metadata.set(row.sample_id, info);
