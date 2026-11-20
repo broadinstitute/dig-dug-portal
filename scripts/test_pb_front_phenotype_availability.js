@@ -28,7 +28,7 @@ function harness(view, failFirst = false) {
     let requests = 0, failures = failFirst ? 1 : 0;
     const counts = {'HP:0001250': 2059, 'HP:0001252': 1020, 'HP:0000002': 0, 'HP:1234567': 1};
     const availability = load('src/utils/crdcHpoAvailability.js', {}, {fetch: async url => {
-        assert.equal(url, '/__pb_phenotype_profile__/hpo-counts');
+        assert.equal(url, '/phenotype-analyzer-api/pb/__pb_phenotype_profile__/hpo-counts');
         requests++;
         if (failures-- > 0) return {ok: false};
         return {ok: true, json: async () => ({counts})};

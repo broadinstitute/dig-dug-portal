@@ -1,0 +1,370 @@
+const assert = require("assert");
+const registerEndpoint = require("./gene_carrier_summary_endpoint");
+function register(app, ...args) {
+    app.post = (path, ...callbacks) => app.get(path, callbacks[callbacks.length - 1]);
+    return registerEndpoint(app, ...args, {diskCache:false});
+}
+
+const sampleA = "TEST-A_G38";
+const sampleB = "TEST-B_G38";
+const variantA = "chr1:100:A:G";
+const variantB = "chr1:200:C:T";
+const requests = [];
+const handlers = {};
+
+const app = { get(path, callback) {
+    handlers[path] = callback;
+} };
+
+const originalFetch = global.fetch;
+global.fetch = async url => {
+    const parsed = new URL(url);
+    const q = parsed.searchParams.get("q");
+    requests.push(`${parsed.pathname}:${q}`);
+    if (parsed.pathname.endsWith("/gene-variants-crdc")) {
+        return { ok: true, json: async () => ({ data: [
+            { chromosome: "1", position: 100, reference: "A", alt: "G", samples: [sampleA] },
+            { chromosome: "1", position: 200, reference: "C", alt: "T", samples: [sampleA, sampleB] },
+        ] }) };
+    }
+    if (parsed.pathname.endsWith("/samples-info")) {
+        if (q === sampleB) await new Promise(resolve => setTimeout(resolve, 80));
+        return { ok: true, json: async () => ({ data: [{
+            SampleInVCF: q,
+            age_at_enrollment: q === sampleA ? 12 : 1982,
+            gender: q === sampleA ? "female" : "male",
+            investigator: "test",
+            ...(q === sampleA ? { Project: "Project Alpha" } : { clean_name: "Project Beta" }),
+            initial_study_affected: q === sampleA ? "Y" : "N",
+            genes: q === sampleA ? ["TEST", "OTHER"] : ["TEST", "OTHER", "THIRD"],
+            phenotypes: q === sampleA ? [{ hpo_id: "HP:0001250" }, { hpo_id: "HP:0001250" }, { hpo_id: "HP:0001249" }] : [],
+        }] }) };
+    }
+    throw new Error(`Unexpected request: ${parsed.pathname}`);
+};
+
+register(app, "http://bioindex.test");
+
+function call(query, path = "/__gene_carrier_summary__") {
+    return new Promise(resolve => handlers[path]({ query }, {
+        set() {},
+        json: resolve,
+        status(code) { throw new Error(`Unexpected ${code}`); },
+    }));
+}
+
+async function waitForReady(query) {
+    for (let i = 0; i < 30; i += 1) {
+        const result = await call(query);
+        if (result.status === "ready") return result;
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    throw new Error("Summary did not finish");
+}
+
+(async () => {
+    await call({ gene: "TEST" });
+    await new Promise(resolve => setTimeout(resolve, 20));
+    const partial = await call({ gene: "TEST" });
+    assert.strictEqual(partial.status, "loading");
+    assert.strictEqual(partial.total, 2);
+    assert.strictEqual(partial.completed, 1);
+    assert.strictEqual(partial.matchedMetadataCount, 1);
+    assert.deepStrictEqual(partial.geneCarrierDemographics.bySex, [{ label: "female", count: 1 }]);
+    const partialFilter = await call({ gene: "TEST", start: "100", end: "200", bins: "2", sex: "Female" }, "/__gene_locus_filter__");
+    assert.strictEqual(partialFilter.status, "partial");
+    assert.strictEqual(partialFilter.distinctCarriers, 1);
+
+    const gene = await waitForReady({ gene: "TEST" });
+    assert.strictEqual(gene.carrierTotal, 2);
+    assert.strictEqual(gene.matchedMetadataCount, 2);
+    assert.strictEqual(gene.phenotypeMetadataCount, 2);
+    assert.strictEqual(gene.geneListMetadataCount, 2);
+    assert.deepStrictEqual(gene.observedPhenotypes.find(row => row.hpoId === "HP:0001250"),
+        { hpoId: "HP:0001250", count: 1, denominator: 2 });
+    assert.deepStrictEqual(gene.coCarrierGenes.find(row => row.gene === "OTHER"),
+        { gene: "OTHER", count: 2, denominator: 2 });
+    assert.deepStrictEqual(gene.geneCarrierDemographics.bySex,
+        [{ label: "female", count: 1 }, { label: "male", count: 1 }]);
+    assert.deepStrictEqual(gene.geneCarrierDemographics.byProject,
+        [{ project: "Project Alpha", count: 1 }, { project: "Project Beta", count: 1 }]);
+    assert.deepStrictEqual(gene.geneCarrierDemographics.projectInvestigators,
+        { 'Project Alpha': ['test'], 'Project Beta': ['test'] }, 'Investigator labels are connected to their source projects');
+    assert.deepStrictEqual(gene.geneCarrierDemographics.byAge,
+        [{ band: "10-13", count: 1 }, { band: "Unknown", count: 1 }]);
+    assert.ok(!JSON.stringify(gene).includes(sampleA));
+    assert.ok(!JSON.stringify(gene).includes(sampleB));
+
+    const filtered = await call({ gene: "TEST", start: "100", end: "200", bins: "2", age: "10-13" }, "/__gene_locus_filter__");
+    assert.strictEqual(filtered.status, "ready");
+    assert.strictEqual(filtered.distinctCarriers, 1);
+    assert.deepStrictEqual(filtered.carrierDensity, [1, 1]);
+    assert.strictEqual(filtered.variantCounts[variantA], 1);
+    assert.strictEqual(filtered.variantCounts[variantB], 1);
+    assert.ok(!JSON.stringify(filtered).includes(sampleA));
+    assert.ok(!JSON.stringify(filtered).includes(sampleB));
+
+    const affected = await call({ gene: "TEST", start: "100", end: "200", bins: "2", scope: "Affected" }, "/__gene_locus_filter__");
+    assert.strictEqual(affected.distinctCarriers, 1);
+
+    const project = await call({ gene: "TEST", start: "100", end: "200", bins: "2", layout: "public", project: "Project Alpha" }, "/__gene_locus_filter__");
+    assert.strictEqual(project.distinctCarriers, 1);
+    assert.strictEqual(project.variantCounts[variantB], 1);
+    const cleanNameProject = await call({ gene: "TEST", start: "100", end: "200", bins: "2", layout: "public", project: "Project Beta" }, "/__gene_locus_filter__");
+    assert.strictEqual(cleanNameProject.distinctCarriers, 1);
+    assert.strictEqual(cleanNameProject.variantCounts[variantB], 1);
+    assert.strictEqual(cleanNameProject.variantCounts[variantA], 0);
+
+    const variant = await waitForReady({ gene: "TEST", variant: variantA });
+    assert.strictEqual(variant.carrierTotal, 1);
+    assert.strictEqual(variant.matchedMetadataCount, 1);
+    assert.strictEqual(variant.phenotypeMetadataCount, 1);
+    assert.deepStrictEqual(variant.observedPhenotypes.find(row => row.hpoId === "HP:0001250"),
+        { hpoId: "HP:0001250", count: 1, denominator: 1 });
+    assert.strictEqual(requests.filter(path => path.endsWith(sampleA)).length, 1);
+
+    const selection = variantIds => new Promise(resolve => handlers['/__gene_carrier_demographics__'](
+        {body:{gene:'TEST',variant_ids:variantIds}}, {set(){},json:resolve,status(code){throw new Error(`Unexpected ${code}`);}}
+    ));
+    const selectedReady = async variantIds => {
+        for (let attempt=0;attempt<30;attempt++) {
+            const result=await selection(variantIds);
+            if(result.status==='ready')return result;
+            await new Promise(resolve=>setTimeout(resolve,5));
+        }
+        throw new Error('Filtered demographics did not finish');
+    };
+    const readsBeforeSelection=requests.length;
+    const subset=await selectedReady([variantA]);
+    assert.strictEqual(subset.carrierTotal,1);
+    assert.deepStrictEqual(subset.geneCarrierDemographics.byProject,[{project:'Project Alpha',count:1}]);
+    assert.deepStrictEqual(subset.geneCarrierDemographics.bySex,[{label:'female',count:1}]);
+    assert.deepStrictEqual(subset.geneCarrierDemographics.byAge,[{band:'10-13',count:1}]);
+    assert.deepStrictEqual(subset.geneCarrierDemographics.byAffected,[{label:'Yes',count:1}]);
+    const union=await selectedReady([variantB,variantA,variantA]);
+    assert.strictEqual(union.carrierTotal,2,'A carrier shared by selected variants is counted once');
+    assert.deepStrictEqual(union.geneCarrierDemographics.byProject,gene.geneCarrierDemographics.byProject);
+    assert.deepStrictEqual(union.geneCarrierDemographics.projectInvestigators,gene.geneCarrierDemographics.projectInvestigators);
+    assert.strictEqual(requests.length,readsBeforeSelection,'Selections reuse loaded gene metadata without more BioIndex requests');
+    assert.strictEqual((await selectedReady([])).carrierTotal,0);
+    assert.ok(!JSON.stringify(union).includes(sampleA) && !JSON.stringify(union).includes(sampleB),'Only aggregate demographics leave the server');
+
+    const retryHandlers = {};
+    const retryVariant = "chr1:300:G:A";
+    let sampleAvailable = false;
+    let sampleRequests = 0;
+    global.fetch = async url => {
+        const parsed = new URL(url);
+        if (parsed.pathname.endsWith("/gene-variants-crdc")) {
+            return { ok: true, json: async () => ({ data: [
+                { chromosome: "1", position: 300, reference: "G", alt: "A", samples: [sampleA] },
+            ] }) };
+        }
+        if (parsed.pathname.endsWith("/samples-info")) {
+            sampleRequests += 1;
+            if (!sampleAvailable) throw new Error("temporary BioIndex failure");
+            return { ok: true, json: async () => ({ data: [
+                { SampleInVCF: sampleA, sex: "female", genes: ["TEST", "OTHER"] },
+            ] }) };
+        }
+        throw new Error(`Unexpected request: ${parsed.pathname}`);
+    };
+    register({ get(path, callback) { retryHandlers[path] = callback; } }, "http://bioindex.test");
+    const callRetry = () => new Promise(resolve => retryHandlers["/__gene_carrier_summary__"](
+        { query: { gene: "TEST", variant: retryVariant } },
+        { set() {}, json: resolve, status(code) { throw new Error(`Unexpected ${code}`); } }
+    ));
+    let failed;
+    for (let i = 0; i < 30; i += 1) {
+        failed = await callRetry();
+        if (failed.status === "error") break;
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    assert.strictEqual(failed.status, "error");
+    assert.strictEqual(sampleRequests, 3);
+    sampleAvailable = true;
+    let recovered;
+    for (let i = 0; i < 30; i += 1) {
+        recovered = await callRetry();
+        if (recovered.status === "ready") break;
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    assert.strictEqual(recovered.status, "ready");
+    assert.strictEqual(recovered.matchedMetadataCount, 1);
+    assert.strictEqual(recovered.phenotypeMetadataCount, 0);
+    assert.deepStrictEqual(recovered.observedPhenotypes, []);
+    assert.deepStrictEqual(recovered.coCarrierGenes,
+        [{ gene: "OTHER", count: 1, denominator: 1 }]);
+
+    const refreshHandlers = {};
+    const refreshVariant = "chr1:400:C:T";
+    let metadataIndexed = false;
+    let refreshSampleRequests = 0;
+    global.fetch = async url => {
+        const parsed = new URL(url);
+        if (parsed.pathname.endsWith("/gene-variants-crdc")) {
+            return { ok: true, json: async () => ({ data: [
+                { chromosome: "1", position: 400, reference: "C", alt: "T", samples: [sampleA] },
+            ] }) };
+        }
+        if (parsed.pathname.endsWith("/samples-info")) {
+            refreshSampleRequests += 1;
+            return { ok: true, json: async () => ({ data: metadataIndexed ? [{
+                SampleInVCF: sampleA, sex: "female", genes: ["TEST", "OTHER"],
+            }] : [] }) };
+        }
+        throw new Error(`Unexpected request: ${parsed.pathname}`);
+    };
+    register({ get(path, callback) { refreshHandlers[path] = callback; } }, "http://bioindex.test");
+    const callRefresh = (refresh = false) => new Promise(resolve => refreshHandlers["/__gene_carrier_summary__"](
+        { query: { gene: "TEST", variant: refreshVariant, ...(refresh ? { refresh: "1" } : {}) } },
+        { set() {}, json: resolve, status(code) { throw new Error(`Unexpected ${code}`); } }
+    ));
+    let empty;
+    for (let i = 0; i < 100; i += 1) {
+        empty = await callRefresh();
+        if (empty.status === "ready") break;
+        await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    assert.strictEqual(empty.status, "ready");
+    assert.strictEqual(empty.matchedMetadataCount, 0);
+    metadataIndexed = true;
+    let refreshed = await callRefresh(true);
+    for (let i = 0; i < 30; i += 1) {
+        refreshed = await callRefresh(true);
+        if (refreshed.status === "ready" && refreshed.matchedMetadataCount === 1) break;
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    assert.strictEqual(refreshed.status, "ready");
+    assert.strictEqual(refreshed.matchedMetadataCount, 1);
+    assert.strictEqual(refreshSampleRequests, 4);
+
+    const transientHandlers = {};
+    const transientVariant = "chr1:450:G:C";
+    let transientSampleRequests = 0;
+    global.fetch = async url => {
+        const parsed = new URL(url);
+        if (parsed.pathname.endsWith("/gene-variants-crdc")) {
+            return { ok: true, json: async () => ({ data: [
+                { chromosome: "1", position: 450, reference: "G", alt: "C", samples: [sampleA] },
+            ] }) };
+        }
+        if (parsed.pathname.endsWith("/samples-info")) {
+            transientSampleRequests += 1;
+            return { ok: true, json: async () => ({ data: transientSampleRequests < 3 ? [] : [
+                { SampleInVCF: "UNRELATED_SAMPLE", sex: "male", genes: ["WRONG"] },
+                { SampleInVCF: sampleA, sex: "female", genes: ["TEST"] },
+            ] }) };
+        }
+        throw new Error(`Unexpected request: ${parsed.pathname}`);
+    };
+    register({ get(path, callback) { transientHandlers[path] = callback; } }, "http://bioindex.test");
+    const callTransient = () => new Promise(resolve => transientHandlers["/__gene_carrier_summary__"](
+        { query: { gene: "TEST", variant: transientVariant } },
+        { set() {}, json: resolve, status(code) { throw new Error(`Unexpected ${code}`); } }
+    ));
+    let transient;
+    for (let i = 0; i < 100; i += 1) {
+        transient = await callTransient();
+        if (transient.status === "ready") break;
+        await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    assert.strictEqual(transient.status, "ready");
+    assert.strictEqual(transient.matchedMetadataCount, 1);
+    assert.strictEqual(transientSampleRequests, 3);
+    assert.deepStrictEqual(transient.geneCarrierDemographics.bySex,
+        [{ label: "female", count: 1 }]);
+
+    const authHandlers = {};
+    const authVariant = "chr1:500:A:G";
+    const authCalls = [];
+    global.fetch = async (url, options = {}) => {
+        const parsed = new URL(url);
+        const token = options.headers && options.headers["x-bioindex-access-token"];
+        authCalls.push({ path: parsed.pathname, token });
+        if (parsed.pathname.endsWith("/gene-variants-crdc")) {
+            return { ok: true, json: async () => ({ data: [
+                { chromosome: "1", position: 500, reference: "A", alt: "G", samples: [sampleA] },
+            ] }) };
+        }
+        if (parsed.pathname.endsWith("/samples-info")) {
+            return { ok: true, json: async () => ({ data: [{
+                SampleInVCF: sampleA, sex: "female", genes: ["TEST"],
+                Project: token === "session-one" ? "Project Alpha" : "Project Beta",
+            }] }) };
+        }
+        throw new Error(`Unexpected request: ${parsed.pathname}`);
+    };
+    register({ get(path, callback) { authHandlers[path] = callback; } }, "http://bioindex.test");
+    const callAuthenticated = token => new Promise(resolve => authHandlers["/__gene_carrier_summary__"](
+        { query: { gene: "TEST", variant: authVariant }, headers: { cookie: `session=${token}` } },
+        { set() {}, json: resolve, status(code) { throw new Error(`Unexpected ${code}`); } }
+    ));
+    const waitUntilReady = async token => {
+        let result;
+        for (let i = 0; i < 30; i += 1) {
+            result = await callAuthenticated(token);
+            if (result.status === "ready") return result;
+            await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        return result;
+    };
+    const firstSession = await waitUntilReady("session-one");
+    const secondSession = await waitUntilReady("session-two");
+    assert.deepStrictEqual(firstSession.geneCarrierDemographics.byProject,
+        [{ project: "Project Alpha", count: 1 }]);
+    assert.deepStrictEqual(secondSession.geneCarrierDemographics.byProject,
+        [{ project: "Project Beta", count: 1 }]);
+    assert(authCalls.length >= 4);
+    assert(authCalls.every(call => call.token === "session-one" || call.token === "session-two"));
+    const authenticatedSelection = async token => {
+        for(let attempt=0;attempt<30;attempt++) {
+            const result=await new Promise(resolve=>authHandlers['/__gene_carrier_demographics__'](
+                {body:{gene:'TEST',variant_ids:[authVariant]},headers:{cookie:`session=${token}`}},
+                {set(){},json:resolve,status(code){throw new Error(`Unexpected ${code}`);}}
+            ));
+            if(result.status==='ready')return result;
+            await new Promise(resolve=>setTimeout(resolve,5));
+        }
+        throw new Error('Authenticated selection did not finish');
+    };
+    assert.deepStrictEqual((await authenticatedSelection('session-one')).geneCarrierDemographics.byProject,[{project:'Project Alpha',count:1}]);
+    assert.deepStrictEqual((await authenticatedSelection('session-two')).geneCarrierDemographics.byProject,[{project:'Project Beta',count:1}],'Filtered summary caches remain session-scoped');
+    const streamingHandlers = {};
+    const streamingIds = Array.from({length: 150}, (_, index) => `STREAM-${index}_G38`);
+    let releaseSlowSample;
+    const slowSample = new Promise(resolve => { releaseSlowSample = resolve; });
+    global.fetch = async url => {
+        const parsed = new URL(url);
+        if (parsed.pathname.endsWith('/gene-variants-crdc')) return {ok:true,json:async()=>({data:[{chromosome:'1',position:900,reference:'A',alt:'G',samples:streamingIds}]})};
+        if (parsed.pathname.endsWith('/samples-info')) {
+            const id = parsed.searchParams.get('q');
+            if (id === streamingIds[0]) await slowSample;
+            return {ok:true,json:async()=>({data:[{SampleInVCF:id,sex:'female',Project:'Streaming',investigator: id === streamingIds[0] ? 'Investigator A' : 'Investigator B',genes:['TEST'],phenotypes:[]}]})};
+        }
+        throw new Error('Unexpected streaming request');
+    };
+    register({get(path,callback){streamingHandlers[path]=callback;}},'http://bioindex.test');
+    const readStreaming = () => new Promise(resolve=>streamingHandlers['/__gene_carrier_summary__']({query:{gene:'TEST'}},{set(){},json:resolve,status(code){throw new Error(`Unexpected ${code}`);}}));
+    let streaming;
+    for(let attempt=0;attempt<50;attempt++) {
+        streaming=await readStreaming();
+        if(streaming.completed>120)break;
+        await new Promise(resolve=>setTimeout(resolve,5));
+    }
+    const progressed = streaming.completed;
+    releaseSlowSample();
+    assert(progressed>120,'Later samples proceed before the first slow sample returns');
+    for(let attempt=0;attempt<50;attempt++) {
+        streaming=await readStreaming();
+        if(streaming.status==='ready')break;
+        await new Promise(resolve=>setTimeout(resolve,5));
+    }
+    assert.strictEqual(streaming.status,'ready');
+    assert.strictEqual(streaming.matchedMetadataCount,150);
+    assert.deepStrictEqual(streaming.geneCarrierDemographics.projectInvestigators.Streaming, ['Investigator A', 'Investigator B'], 'Multiple investigators in one project are deduplicated');
+    assert.deepStrictEqual(streaming.geneCarrierDemographics.byProject, [{project:'Streaming',count:150}], 'Investigator associations do not inflate project carrier counts');
+    console.log("Gene and variant carrier summaries, scoped cache and streaming progress: PASS");
+})().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => {
+    global.fetch = originalFetch;
+});

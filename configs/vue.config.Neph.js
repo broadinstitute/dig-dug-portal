@@ -2,6 +2,8 @@
  * exported so we can add/remove pages based on build type.
  */
 
+const { prefix: pbApiPrefix, createRouter: createPbApiRouter } = require("../scripts/bch_pb_api");
+
 let pages = {
     index: {
         entry: "src/views/PbFront/main.js",
@@ -219,8 +221,17 @@ let pages = {
 module.exports = {
     devServer: {
         host: "127.0.0.1",
-	//host: "aggregator-dev.bchresearch.org",
+        useLocalIp: false,
         port: 8080,
+        before(app) {
+            app.use(pbApiPrefix, (request, response, next) => {
+                if (request.socket.remoteAddress !== "127.0.0.1") {
+                    response.status(403).json({ error: "Local CRDC development access only." });
+                    return;
+                }
+                next();
+            }, createPbApiRouter());
+        },
         proxy: {
             "/phenotype-analyzer-api": {
                 target: process.env.SERVICE_HOST_PRIVATE || "http://localhost:4999",

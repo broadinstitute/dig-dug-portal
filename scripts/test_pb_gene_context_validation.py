@@ -1,0 +1,375 @@
+import csv
+import gzip
+import json
+from pathlib import Path
+import tempfile
+import unittest
+from types import SimpleNamespace
+
+import numpy as np
+from scipy import sparse
+
+from scripts.pb_gene_context_validation import (
+    COVARIATE_NAMES,
+    ContextAnalysisEngine,
+    load_covariates,
+    load_gene_evidence,
+    load_hpo_matrix,
+    load_overlap_roster,
+    reconstruct_burden_pathogenic_score,
+    reconstruct_pathogenic_score,
+    run_validation,
+)
+
+
+QUERY_HPO = ["HP:0001336", "HP:0002353", "HP:0001270", "HP:0012373"]
+
+
+class PbGeneContextValidationTest(unittest.TestCase):
+    def test_variant_comparison_retains_controls_and_gene_page_scoring(self):
+        from scripts.variant_association import OLSContext
+        ids = list('ABCDEFGH')
+        variant = 'chr11:5227002:T:A'
+        matrix = [[1,0,0,0], [0,1,1,0], [1,1,1,1], [0,0,0,0],
+                  [1,1,0,0], [0,0,1,0], [1,0,1,0], [0,1,0,1]]
+        hpo = self.write_tsv('comparison-hpo.tsv', ['sample_id', *QUERY_HPO], [[sid, *row] for sid,row in zip(ids,matrix)])
+        roster = self.write_tsv('comparison-roster.tsv', ['sample_id','overlap_status'], [[sid,'both'] for sid in ids])
+        evidence = self.write_tsv('comparison-evidence.tsv', ['sample_id','gene_symbol','Variant_ID','GT','pathogenicity_score','Alphamissense'],
+                                  [[sid,'HBB',variant,'0/1',0.8,0.8] for sid in 'ABC'])
+        engine = ContextAnalysisEngine(hpo, roster, evidence)
+        engine.browser_sample_id_by_analysis = {sid:sid+'_E38' for sid in ids}
+        engine.covariates = {'values':np.empty((8,0)), 'names':[], 'sample_metadata':{},
+                             'age_median':0, 'age_missing_count':0, 'sex_reference':'Female', 'sex_counts':{},
+                             'affected_mask':np.asarray([True,False,True,True,False,True,True,False])}
+        terms = (QUERY_HPO[0],)
+        full = engine.analyze('HBB',terms)
+        all_carriers = engine.for_variant_comparison('HBB',variant,('A_E38','B_E38','C_E38'))
+        all_result = all_carriers.analyze('HBB',terms)
+        self.assertEqual(all_result['analysis_sample_count'],8)
+        self.assertEqual(all_result['variant_associations'][variant]['status'],'ok')
+        self.assertEqual(all_result['variant_associations'][variant],full['variant_associations'][variant], 'GT All must equal the Gene page variant regression')
+        self.assertEqual(all_result['variant_match_scores'][variant],full['variant_match_scores'][variant])
+        self.assertEqual(all_result['rphers_standardization'],full['rphers_standardization'])
+        subset = engine.for_variant_comparison('HBB',variant,('A_E38','B_E38'))
+        self.assertEqual(subset.analysis_sample_ids,list('ABDEFGH'), 'Unselected carrier C is excluded, not relabeled as a control')
+        y,_ = engine._phenotype(terms)
+        scoped_y,_ = subset._phenotype(terms)
+        np.testing.assert_allclose(scoped_y,y[[0,1,3,4,5,6,7]])
+        result = subset.analyze('HBB',terms)
+        expected = OLSContext(subset.analysis_sample_ids,np.empty((7,0)),[]).outcome(scoped_y).variant(['A','B'])
+        self.assertAlmostEqual(result['variant_associations'][variant]['beta'],expected.beta)
+        self.assertAlmostEqual(result['variant_associations'][variant]['p_value'],expected.p_value)
+        self.assertEqual(result['rphers_standardization']['reference_n'],8)
+        residuals = subset.variant_carrier_residuals('HBB',variant,terms)
+        self.assertEqual(set(residuals['sample_scores']),{'A_E38','B_E38'})
+        affected = all_carriers.analyze('HBB',terms,affected_only=True)
+        self.assertEqual(affected['analysis_sample_count'],5, 'Affected-only must filter controls as well as carriers')
+        self.assertEqual(affected['variant_associations'][variant]['n_carriers'],2)
+        self.assertEqual(engine.analysis_sample_ids,ids, 'The shared Gene engine is unchanged')
+        with self.assertRaisesRegex(ValueError,'exact requested variant'):
+            engine.for_variant_comparison('HBB',variant,('D_E38',))
+        with self.assertRaisesRegex(ValueError,'None of the selected carriers'):
+            engine.for_variant_comparison('HBB',variant,('missing',))
+
+    def test_selected_carriers_define_scoring_regression_and_residual_populations(self):
+        from scripts.rphers_fast import score_samples
+        hpo = self.write_tsv('selected-hpo.tsv', ['sample_id', *QUERY_HPO], [
+            ['A', 1, 0, 0, 0], ['B', 0, 1, 1, 0], ['C', 1, 1, 1, 1],
+            ['D', 0, 0, 0, 0], ['E', 1, 1, 0, 0],
+        ])
+        roster = self.write_tsv('selected-roster.tsv', ['sample_id','overlap_status'], [[sid,'both'] for sid in 'ABCDE'])
+        evidence = self.write_tsv('selected-evidence.tsv', ['sample_id','gene_symbol','Variant_ID','GT','pathogenicity_score','Alphamissense'],
+                                  [[sid,'HBB','chr11:5227002:T:A','1/1',0.8,0.8] for sid in 'ABCDE'])
+        engine = ContextAnalysisEngine(hpo, roster, evidence)
+        engine.browser_sample_id_by_analysis = {'A':'A_E38','B':'B_E38','C':'C_E38'}
+        full_y, _ = engine._phenotype((QUERY_HPO[0],))
+        scoped = engine.for_sample_ids(('A_E38','B_E38','C_E38'))
+        self.assertEqual(scoped.analysis_sample_ids,['A','B','C'])
+        self.assertEqual(scoped.hpo['sample_ids'].tolist(),['A','B','C'])
+        expected = score_samples(engine.hpo['matrix'][:3], QUERY_HPO, [QUERY_HPO[0]], sample_ids=['A','B','C'])
+        selected_y, _ = scoped._phenotype((QUERY_HPO[0],))
+        np.testing.assert_allclose(selected_y, expected['phenotype_match_score_resid'])
+        self.assertFalse(np.allclose(selected_y, full_y[:3]), 'Scoring must be recomputed inside the selected genotype cohort')
+        result = scoped.analyze('HBB',[QUERY_HPO[0]])
+        self.assertEqual(result['analysis_sample_count'],3)
+        self.assertEqual(result['variant_match_scores']['chr11:5227002:T:A']['carrier_count'],3)
+        self.assertEqual(result['rphers_standardization']['reference_n'],3)
+        scores = scoped.variant_carrier_residuals('HBB','chr11:5227002:T:A',[QUERY_HPO[0]])
+        self.assertEqual(set(scores['sample_scores']),{'A_E38','B_E38','C_E38'})
+        self.assertEqual(engine.analysis_sample_ids,list('ABCDE'),'Shared Gene engine must remain unchanged')
+        self.assertEqual(engine._standardization((QUERY_HPO[0],))['reference_n'],5)
+        with self.assertRaisesRegex(ValueError,'None of the selected carriers'):
+            engine.for_sample_ids(('missing',))
+
+    def test_profile_uses_real_hpo_counts_filters_and_stable_paging(self):
+        engine = ContextAnalysisEngine.__new__(ContextAnalysisEngine)
+        engine.hpo = {"hpo_columns": ["HP:0001250", "HP:0001252"],
+                      "matrix": sparse.csr_matrix([[1, 1], [1, 0], [0, 0]])}
+        engine.analysis_hpo_indices = np.asarray([0, 1, 2])
+        engine.analysis_sample_ids = ["A", "B", "C"]
+        engine.browser_sample_id_by_analysis = {"A": "A_E38", "B": "B_E38"}
+        engine.covariates = {"sample_metadata": {
+            "A": {"age": 11, "sex": "Female"}, "B": {"age": 11, "sex": "Female"},
+            "C": {"age": 19, "sex": "Male"}}}
+        engine._phenotype = lambda terms: (np.asarray([0.2, -0.1, -0.5]), "checksum")
+        first = engine.phenotype_profile(["HP:0001250", "HP:0001252"],
+                                         {"sex": "Female", "exact_age": 11}, page=1, page_size=1)
+        second = engine.phenotype_profile(["HP:0001250", "HP:0001252"],
+                                          {"sex": "Female", "exact_age": 11}, page=2, page_size=1)
+        self.assertEqual(first["summary"], {"eligible_sample_count": 2,
+                                            "complete_match_sample_count": 1, "median_exact_age": 11.0})
+        self.assertEqual(first["samples"][0]["sample_id"], "A_E38")
+        self.assertEqual(first["samples"][0]["exact_match_count"], 2)
+        self.assertEqual(second["samples"][0]["sample_id"], "B_E38")
+        self.assertEqual(second["pagination"]["next"], None)
+
+    def test_co_gene_fdr_uses_target_and_all_requested_genes(self):
+        engine = ContextAnalysisEngine.__new__(ContextAnalysisEngine)
+        engine.gene_association_runner = SimpleNamespace(model="lm")
+        engine._all_gene_associations = lambda terms, score_type, affected_only: {
+            "HBB": {"beta": 0.3, "p_value": 0.01, "status": "ok"},
+            "HBA1": {"beta": 0.2, "p_value": 0.04, "status": "ok"},
+            "HBA2": {"beta": None, "p_value": None, "status": "no_positive_score"},
+        }
+        result = engine.co_gene_associations("HBB", ["HP:0001250"], ["HBA1", "HBA2", "HBA1"])
+        self.assertEqual(result["n_requested"], 3)
+        self.assertEqual(result["n_tests"], 2)
+        self.assertAlmostEqual(result["gene_associations"]["HBB"]["fdr"], 0.02)
+        self.assertAlmostEqual(result["gene_associations"]["HBA1"]["fdr"], 0.04)
+        self.assertNotIn("fdr", result["gene_associations"]["HBA2"])
+
+    def setUp(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.root = Path(self.tempdir.name)
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def write_gzip_tsv(self, name, header, rows):
+        path = self.root / name
+        with gzip.open(path, "wt", newline="") as handle:
+            writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
+            writer.writerow(header)
+            writer.writerows(rows)
+        return path
+
+    def write_tsv(self, name, header, rows):
+        path = self.root / name
+        with path.open("w", newline="") as handle:
+            writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
+            writer.writerow(header)
+            writer.writerows(rows)
+        return path
+
+    def test_loads_binary_parent_expanded_hpo_matrix_and_requires_query_terms(self):
+        path = self.write_gzip_tsv(
+            "hpo.tsv.gz",
+            ["sample_id", *QUERY_HPO],
+            [["S1", 1, 0, 1, 0], ["S2", 0, 1, 0, 1]],
+        )
+
+        loaded = load_hpo_matrix(path, QUERY_HPO)
+
+        self.assertEqual(loaded["sample_ids"].tolist(), ["S1", "S2"])
+        self.assertEqual(loaded["hpo_columns"], QUERY_HPO)
+        np.testing.assert_array_equal(loaded["matrix"].toarray(), [[1, 0, 1, 0], [0, 1, 0, 1]])
+        with self.assertRaisesRegex(ValueError, "missing query HPO"):
+            load_hpo_matrix(path, [*QUERY_HPO, "HP:9999999"])
+
+    def test_private_variant_residuals_use_full_hpo_matrix_and_only_target_carriers(self):
+        hpo = self.write_tsv("hpo.tsv", ["sample_id", "HP:0001250", "HP:0001252"], [
+            ["A", 1, 0], ["B", 0, 1], ["C", 1, 1], ["D", 0, 0],
+        ])
+        roster = self.write_tsv("roster.tsv", ["sample_id", "overlap_status"], [
+            ["A", "both"], ["B", "both"], ["C", "both"], ["D", "hpo_only"],
+        ])
+        evidence = self.write_tsv("evidence.tsv", ["sample_id", "gene_symbol", "Variant_ID", "GT", "pathogenicity_score", "Alphamissense"], [
+            ["A", "HBB", "chr11:5227002:T:A", "0/1", 0.2, 0.2],
+            ["B", "HBB", "chr11:5227002:T:A", "0/1", 0.2, 0.2],
+            ["C", "HBB", "chr11:5227003:C:T", "0/1", 0.4, 0.4],
+        ])
+        engine = ContextAnalysisEngine(hpo, roster, evidence)
+        result = engine.variant_carrier_residuals("HBB", "11:5227002:T:A", ["HP:0001250"])
+        scores = result["sample_scores"]
+        self.assertEqual(set(scores), {"A", "B"})
+        expected = engine._phenotype(("HP:0001250",))[0]
+        self.assertAlmostEqual(scores["A"], expected[0])
+        self.assertAlmostEqual(scores["B"], expected[1])
+        self.assertNotEqual(scores["A"], scores["B"])
+
+    def test_loads_only_validated_overlap_roster_and_returns_aggregate_qc(self):
+        path = self.write_tsv(
+            "roster.tsv",
+            ["sample_id", "in_genotype", "in_eligibility_roster", "overlap_status"],
+            [
+                ["S1", 1, 1, "both"],
+                ["S2", 1, 1, "both"],
+                ["S3", 1, 0, "genotype_only"],
+                ["S4", 0, 1, "roster_only"],
+            ],
+        )
+
+        loaded = load_overlap_roster(path)
+
+        self.assertEqual(loaded["sample_ids"], ["S1", "S2"])
+        self.assertEqual(loaded["status_counts"], {"both": 2, "genotype_only": 1, "roster_only": 1})
+
+    def test_covariates_use_fixed_age_median_missing_indicator_and_three_level_sex(self):
+        pc_columns = [f"PC{i}" for i in range(1, 11)]
+        path = self.write_tsv(
+            "covariates.tsv",
+            ["sample_id", "age", "sex", *pc_columns],
+            [
+                ["S1", 0, "Female", *range(1, 11)],
+                ["S2", "", "Male", *range(11, 21)],
+                ["S3", 99, "nonbinary", *range(21, 31)],
+                ["S4", 100, "not recorded", *range(31, 41)],
+                ["S5", -1, "Female", *range(41, 51)],
+                ["S6", "old", "Male", *range(51, 61)],
+            ],
+        )
+
+        loaded = load_covariates(path, ["S1", "S2", "S3", "S4", "S5", "S6"])
+
+        self.assertEqual(loaded["names"], COVARIATE_NAMES)
+        self.assertEqual(loaded["age_median"], 49.5)
+        np.testing.assert_array_equal(loaded["values"][:, 0], [0, 49.5, 99, 49.5, 49.5, 49.5])
+        np.testing.assert_array_equal(loaded["values"][:, 1], [0, 1, 0, 1, 1, 1])
+        np.testing.assert_array_equal(
+            loaded["values"][:, 2:4],
+            [[0, 0], [1, 0], [0, 1], [0, 1], [0, 0], [1, 0]],
+        )
+        self.assertEqual(loaded["sex_counts"], {"Female": 2, "Male": 2, "Unknown": 2})
+        with self.assertRaisesRegex(ValueError, "missing 1 analysis samples"):
+            load_covariates(path, ["S1", "S2", "S3", "S4", "S5", "S6", "S7"])
+
+    def test_reconstructs_score_with_revel_fallback_and_strict_precedence(self):
+        lof = reconstruct_pathogenic_score({"LoF": "HC", "Alphamissense": "0.2", "REVEL": "0.9", "pathogenicity_score": "1"})
+        alpha = reconstruct_pathogenic_score({"LoF": "", "Alphamissense": "0.45", "REVEL": "0.9", "pathogenicity_score": "0.45"})
+        revel = reconstruct_pathogenic_score({"LoF": "", "Alphamissense": "NA", "REVEL": "0.99", "pathogenicity_score": "0.99"})
+        zero = reconstruct_pathogenic_score({"LoF": "", "Alphamissense": "0", "REVEL": "0.8", "pathogenicity_score": "0"})
+        missing = reconstruct_pathogenic_score({"LoF": "", "Alphamissense": "NA", "REVEL": "NA", "pathogenicity_score": "0"})
+
+        self.assertEqual(lof, (1.0, "LoFTEE_HC"))
+        self.assertEqual(alpha, (0.45, "AlphaMissense"))
+        self.assertEqual(revel, (0.99, "REVEL"))
+        self.assertEqual(zero, (0.0, "AlphaMissense"))
+        self.assertEqual(missing, (None, "No_score"))
+        self.assertEqual(
+            reconstruct_burden_pathogenic_score({
+                "LoF": "",
+                "Alphamissense": "NA",
+                "REVEL": "0.99",
+            }),
+            (None, "REVEL_only_excluded"),
+        )
+        with self.assertRaisesRegex(ValueError, "REVEL outside"):
+            reconstruct_pathogenic_score({"LoF": "", "Alphamissense": "NA", "REVEL": "1.1"})
+        with self.assertRaisesRegex(ValueError, "stored pathogenicity_score"):
+            reconstruct_pathogenic_score({"LoF": "", "Alphamissense": "0.45", "pathogenicity_score": "0.8"})
+
+    def test_streams_requested_gene_rows_and_excludes_non_overlap_carriers(self):
+        evidence = self.write_gzip_tsv(
+            "evidence.tsv.gz",
+            ["sample_id", "gene_symbol", "Variant_ID", "GT", "alt_dosage", "LoF", "Alphamissense", "REVEL", "pathogenicity_score"],
+            [
+                ["S1", "CEP152", "V1", "0/1", 1, "", 0.4, 0.8, 0.4],
+                ["S2", "DMD", "V2", "1", 1, "HC", "NA", "NA", 1],
+                ["S3", "DMD", "V3", "0/1", 1, "", 0.2, 0.7, 0.2],
+                ["S1", "OTHER", "V4", "0/1", 1, "", 0.9, 0.9, 0.9],
+            ],
+        )
+
+        loaded = load_gene_evidence(evidence, ["CEP152", "DMD"], {"S1", "S2"})
+
+        self.assertEqual([row["variant_id"] for row in loaded["rows_by_gene"]["CEP152"]], ["V1"])
+        self.assertEqual([row["variant_id"] for row in loaded["rows_by_gene"]["DMD"]], ["V2"])
+        self.assertEqual(loaded["carrier_rows_outside_analysis"], {"CEP152": 0, "DMD": 1})
+
+    def test_one_phenotype_vector_produces_distinct_gene_results_without_dosage_weighting(self):
+        hpo_rows = [
+            ["S1", 1, 1, 0, 0, 0],
+            ["S2", 1, 0, 1, 0, 1],
+            ["S3", 0, 1, 0, 1, 0],
+            ["S4", 0, 0, 1, 1, 1],
+            ["S5", 1, 1, 1, 0, 0],
+            ["S6", 0, 0, 0, 1, 1],
+        ]
+        hpo = self.write_gzip_tsv("hpo.tsv.gz", ["sample_id", *QUERY_HPO, "HP:9999998"], hpo_rows)
+        roster = self.write_tsv(
+            "roster.tsv",
+            ["sample_id", "overlap_status"],
+            [[f"S{i}", "both"] for i in range(1, 7)],
+        )
+        evidence = self.write_gzip_tsv(
+            "evidence.tsv.gz",
+            ["sample_id", "gene_symbol", "Variant_ID", "GT", "alt_dosage", "LoF", "Alphamissense", "REVEL", "pathogenicity_score"],
+            [
+                ["S1", "CEP152", "C1", "1/1", 2, "", 0.4, 0.8, 0.4],
+                ["S1", "CEP152", "C1", "1/1", 2, "", 0.4, 0.8, 0.4],
+                ["S2", "CEP152", "C1", "0/1", 1, "", 0.4, 0.8, 0.4],
+                ["S1", "CEP152", "C2", "0/1", 1, "", 0.3, 0.7, 0.3],
+                ["S3", "CEP152", "C3", "0/1", 1, "", "NA", 0.9, 0.9],
+                ["S4", "DMD", "D1", "1", 1, "HC", "NA", "NA", 1],
+                ["S5", "DMD", "D1", "0/1", 1, "HC", "NA", "NA", 1],
+                ["S6", "DMD", "D2", "1", 1, "", 0.2, 0.5, 0.2],
+            ],
+        )
+        covariates = self.write_tsv(
+            "covariates.tsv",
+            ["sample_id", "age", "sex", *[f"PC{i}" for i in range(1, 11)]],
+            [
+                [f"S{i}", "" if i == 3 else 5 + i, ("Female", "Male", "Unknown")[i % 3], *[i * 0.1 + pc for pc in range(1, 11)]]
+                for i in range(1, 7)
+            ],
+        )
+
+        audit_dir = self.root / "audit"
+        result = run_validation(
+            hpo,
+            roster,
+            evidence,
+            QUERY_HPO,
+            ["CEP152", "DMD"],
+            min_carriers=2,
+            audit_dir=audit_dir,
+            covariate_path=covariates,
+        )
+
+        cep152 = result["genes"]["CEP152"]
+        dmd = result["genes"]["DMD"]
+        self.assertEqual(cep152["phenotype_vector_sha256"], dmd["phenotype_vector_sha256"])
+        self.assertEqual(cep152["phenotype_vector_sha256"], result["phenotype_vector_sha256"])
+        self.assertEqual(cep152["gene_burden"]["n_variants_total"], 3)
+        self.assertEqual(cep152["gene_burden"]["n_variants_unscored"], 1)
+        self.assertEqual(cep152["gene_burden"]["n_variants_revel_only"], 1)
+        self.assertEqual(cep152["gene_burden"]["interpretation_scope"], "exploratory_scored_variants_only")
+        self.assertIn("C3", cep152["variant_match_scores"])
+        self.assertNotEqual(cep152["variant_match_scores"], dmd["variant_match_scores"])
+        self.assertIn(cep152["gene_burden"]["status"], {"ok", "zero_residual_scale", "singular_design"})
+        self.assertIn(dmd["gene_burden"]["status"], {"ok", "zero_residual_scale", "singular_design"})
+        self.assertEqual(cep152["gene_burden"]["covariates"], COVARIATE_NAMES)
+        self.assertEqual(
+            cep152["gene_burden"]["formula"],
+            "Y ~ X + " + " + ".join(COVARIATE_NAMES),
+        )
+        self.assertEqual(result["covariate_encoding"]["age_missing_count"], 1)
+
+        self.assertNotIn("sample_id", json.dumps(result))
+        self.assertNotIn("S1", json.dumps(result))
+        with gzip.open(audit_dir / "CEP152_sample_audit.tsv.gz", "rt") as handle:
+            cep152_audit = {
+                row["sample_id"]: float(row["gene_burden_loftee_am"])
+                for row in csv.DictReader(handle, delimiter="\t")
+            }
+        with gzip.open(audit_dir / "DMD_sample_audit.tsv.gz", "rt") as handle:
+            dmd_audit = {
+                row["sample_id"]: float(row["gene_burden_loftee_am"])
+                for row in csv.DictReader(handle, delimiter="\t")
+            }
+        self.assertEqual({key: cep152_audit[key] for key in ("S1", "S2", "S3")}, {"S1": 0.7, "S2": 0.4, "S3": 0.0})
+        self.assertEqual({key: dmd_audit[key] for key in ("S4", "S5", "S6")}, {"S4": 1.0, "S5": 1.0, "S6": 0.2})
+
+
+if __name__ == "__main__":
+    unittest.main()

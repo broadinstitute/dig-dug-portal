@@ -32,3 +32,5 @@ pnpm-lock.yaml
 
 public/data/
 .vs/
+/.pb-private-data/
+__pycache__/

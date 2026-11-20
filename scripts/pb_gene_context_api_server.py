@@ -1,0 +1,384 @@
+"""Serve the private pb_Gene HPO context calculation over local HTTP."""
+
+import argparse
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
+from pathlib import Path
+import re
+from time import perf_counter
+
+from scripts.pb_gene_context_validation import ContextAnalysisEngine
+from scripts.gene_score_context_runner import GeneScoreContextRunner
+
+
+CONTEXT_PATH = "/phenotype-analyzer-api/analyze"
+PUBLIC_CONTEXT_PATH = "/phenotype-analyzer-api/public-analyze"
+CO_GENE_PATH = "/phenotype-analyzer-api/co-gene-associations"
+PROFILE_PATH = "/phenotype-analyzer-api/profile"
+HPO_COUNTS_PATH = "/phenotype-analyzer-api/hpo-counts"
+SAMPLE_MATCH_PATH = "/phenotype-analyzer-api/sample-matches"
+SAMPLE_MATCH_INPUT_PATH = "/phenotype-analyzer-api/sample-match-inputs"
+SAMPLE_VARIANT_PATH = "/phenotype-analyzer-api/sample-variants"
+GENOTYPE_PATH = "/phenotype-analyzer-api/carrier-genotypes"
+MAX_REQUEST_BYTES = 2 * 1024 * 1024
+MAX_CO_GENE_REQUEST_BYTES = 2 * 1024 * 1024
+MAX_CO_GENES = 25000
+HPO_PATTERN = re.compile(r"^HP:\d{7}$")
+GENE_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9.-]*$")
+VARIANT_PATTERN = re.compile(r"^(?:chr)?(?:[0-9]{1,2}|X|Y|M|MT):[0-9]+:[A-Z*.-]+:[A-Z*.-]+$", re.I)
+
+
+def parse_context_request(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("request body must be a JSON object")
+    gene = str(payload.get("gene") or "").strip().upper()
+    if not GENE_PATTERN.fullmatch(gene):
+        raise ValueError("gene must be a valid HGNC symbol")
+
+    raw_terms = payload.get("terms")
+    if isinstance(raw_terms, str):
+        terms = re.split(r"[\s,;]+", raw_terms.upper())
+    elif isinstance(raw_terms, list):
+        terms = [str(term).strip().upper() for term in raw_terms]
+    else:
+        raise ValueError("terms must be a string or list")
+    terms = list(dict.fromkeys(term for term in terms if term))
+    invalid = next((term for term in terms if not HPO_PATTERN.fullmatch(term)), None)
+    if not terms or invalid:
+        raise ValueError("at least one valid HPO term is required" if not invalid else f"invalid HPO term: {invalid}")
+
+    advanced = payload.get("advanced") or {}
+    if not isinstance(advanced, dict):
+        raise ValueError("advanced must be a JSON object")
+    metric = str(advanced.get("significance_metric") or "p_value")
+    if metric not in {"p_value", "fdr"}:
+        raise ValueError("significance_metric must be p_value or fdr")
+    try:
+        threshold = float(advanced.get("significance_threshold", 0.05))
+        min_carriers = int(advanced.get("min_carriers", 10))
+    except (TypeError, ValueError):
+        raise ValueError("threshold and min_carriers must be numeric")
+    if not 0 < threshold <= 1:
+        raise ValueError("significance_threshold must be greater than 0 and no more than 1")
+    if min_carriers < 10:
+        raise ValueError("min_carriers must be at least 10")
+    variant_id = str(payload.get("variant_id") or "").strip()
+    if variant_id and (len(variant_id) > 256 or not VARIANT_PATTERN.fullmatch(variant_id)):
+        raise ValueError("variant_id must be an exact chr:pos:ref:alt identifier")
+    score_type = payload.get("score_type", "max")
+    affected_only = payload.get("affected_only", False)
+    if score_type not in {"max", "sum"} or not isinstance(affected_only, bool):
+        raise ValueError("score_type must be max or sum and affected_only must be boolean")
+    sample_ids = payload.get('sample_ids')
+    if sample_ids is not None:
+        if not isinstance(sample_ids, list) or not 1 <= len(sample_ids) <= 50000 or any(
+            not isinstance(sid, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,150}', sid) for sid in sample_ids
+        ):
+            raise ValueError('sample_ids must be a nonempty list of valid sample IDs')
+        sample_ids = sorted(set(sample_ids))
+    return {
+        "gene": gene,
+        "terms": terms,
+        "metric": metric,
+        "threshold": threshold,
+        "min_carriers": min_carriers,
+        "variant_id": variant_id or None,
+        "score_type": score_type,
+        "affected_only": affected_only,
+        "sample_ids": sample_ids,
+    }
+
+
+def parse_co_gene_request(payload):
+    request = parse_context_request(payload)
+    if request["variant_id"]:
+        raise ValueError("variant_id is not used for co-gene associations")
+    raw_genes = payload.get("co_genes")
+    if not isinstance(raw_genes, list) or len(raw_genes) > MAX_CO_GENES:
+        raise ValueError("co_genes must be a list of at most 25000 symbols")
+    genes = []
+    for value in raw_genes:
+        gene = str(value).strip().upper()
+        if len(gene) > 64 or not GENE_PATTERN.fullmatch(gene):
+            raise ValueError("co_genes contains an invalid HGNC symbol")
+        genes.append(gene)
+    request["co_genes"] = list(dict.fromkeys(genes))
+    return request
+
+
+def parse_profile_request(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("request body must be a JSON object")
+    terms = payload.get("hpo_ids")
+    if not isinstance(terms, list) or not 1 <= len(terms) <= 20:
+        raise ValueError("hpo_ids must contain 1 to 20 HPO terms")
+    terms = list(dict.fromkeys(str(term).strip().upper() for term in terms))
+    if any(not HPO_PATTERN.fullmatch(term) for term in terms):
+        raise ValueError("hpo_ids contains an invalid HPO term")
+    filters = payload.get("filters") or {}
+    if not isinstance(filters, dict) or set(filters) - {"sex", "exact_age"}:
+        raise ValueError("unsupported profile filter")
+    sex = filters.get("sex")
+    if sex not in {None, "Female", "Male", "Unknown"}:
+        raise ValueError("sex must be Female, Male, or Unknown")
+    exact_age = filters.get("exact_age")
+    if exact_age is not None:
+        if isinstance(exact_age, bool) or not isinstance(exact_age, (int, float)) or not 0 <= exact_age <= 99:
+            raise ValueError("exact_age must be a number from 0 to 99")
+    page, page_size = payload.get("page", 1), payload.get("page_size", 25)
+    if type(page) is not int or type(page_size) is not int or page < 1 or not 1 <= page_size <= 100:
+        raise ValueError("invalid profile page or page_size")
+    return {"terms": terms, "filters": {"sex": sex, "exact_age": exact_age},
+            "page": page, "page_size": page_size}
+
+
+def public_context_projection(result, min_support=10):
+    gene_result = result.get("gene_association") or {}
+    if gene_result.get("status") == "ok" and int(gene_result.get("n_positive") or 0) >= min_support:
+        public_gene = {
+            key: gene_result.get(key)
+            for key in ("model", "score_type", "affected_only", "beta", "p_value", "status",
+                        "standard_error", "beta_sd", "standard_error_sd", "beta_sd_per_0_1_grs",
+                        "standard_error_sd_per_0_1_grs", "predictor", "display_predictor_step",
+                        "standardization_reference_id", "standardization_status")
+        }
+    else:
+        public_gene = {"status": "unavailable"}
+    public_variants = {}
+    for variant_id, association in (result.get("variant_associations") or {}).items():
+        if association.get("status") != "ok":
+            continue
+        public_variants[variant_id] = {
+            "beta": association.get("beta"),
+            "p_value": association.get("p_value"),
+            "status": "ok",
+            **{key: association[key] for key in ("standard_error", "beta_sd", "standard_error_sd",
+               "predictor", "display_predictor_step", "standardization_reference_id", "standardization_status") if key in association},
+        }
+    public_match_scores = {}
+    for variant_id, score in (result.get("variant_match_scores") or {}).items():
+        if score.get("status") != "ok":
+            continue
+        public_match_scores[variant_id] = {key: score[key] for key in (
+            "match_score", "mean_rphers_z", "standardization_reference_id", "standardization_status") if key in score}
+    return {
+        "gene": result.get("gene"),
+        "query_hpo": result.get("query_hpo", []),
+        "gene_association": public_gene,
+        "variant_associations": public_variants,
+        "variant_match_scores": public_match_scores,
+        "rphers_standardization": result.get("rphers_standardization"),
+    }
+
+
+def create_server(address, engine, profile_only=False, genotype_source=None):
+    class ContextHandler(BaseHTTPRequestHandler):
+        def _send_json(self, status, payload):
+            body = json.dumps(payload, allow_nan=False, separators=(",", ":")).encode()
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_GET(self):
+            if self.path == "/health":
+                self._send_json(200, {"status": "ok"})
+            elif self.path == HPO_COUNTS_PATH and profile_only:
+                self._send_json(200, engine.phenotype_term_counts())
+            else:
+                self._send_json(404, {"error": "not_found"})
+
+        def do_POST(self):
+            if self.path not in {CONTEXT_PATH, PUBLIC_CONTEXT_PATH, CO_GENE_PATH, PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_MATCH_INPUT_PATH, SAMPLE_VARIANT_PATH, GENOTYPE_PATH}:
+                self._send_json(404, {"error": "not_found"})
+                return
+            if profile_only and self.path not in {PROFILE_PATH, SAMPLE_MATCH_PATH, SAMPLE_MATCH_INPUT_PATH, SAMPLE_VARIANT_PATH}:
+                self._send_json(404, {"error": "not_found"})
+                return
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+                limit = MAX_CO_GENE_REQUEST_BYTES if self.path == CO_GENE_PATH else MAX_REQUEST_BYTES
+                if length <= 0 or length > limit:
+                    raise ValueError("invalid request body size")
+                payload = json.loads(self.rfile.read(length))
+                if self.path == GENOTYPE_PATH:
+                    if genotype_source is None:
+                        self._send_json(503, {'error': 'original_vcf_not_configured'})
+                        return
+                    variant = payload.get('variant_id') if isinstance(payload, dict) else None
+                    ids = payload.get('sample_ids') if isinstance(payload, dict) else None
+                    if not isinstance(variant, str) or not VARIANT_PATTERN.fullmatch(variant) or not isinstance(ids, list) or not 1 <= len(ids) <= 50000 or any(
+                        not isinstance(sid, str) or not re.fullmatch(r'[A-Za-z0-9_.-]{1,150}', sid) for sid in ids
+                    ):
+                        raise ValueError('An exact variant and selected sample IDs are required.')
+                    self._send_json(200, genotype_source.lookup(variant, ids))
+                    return
+                if self.path in {SAMPLE_MATCH_PATH, SAMPLE_MATCH_INPUT_PATH, SAMPLE_VARIANT_PATH}:
+                    if not profile_only or not isinstance(payload, dict) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', str(payload.get('sample_id', ''))):
+                        raise ValueError('A valid sample_id is required by the private profile service.')
+                    if self.path in {SAMPLE_MATCH_PATH, SAMPLE_MATCH_INPUT_PATH} and 'candidate_id' in payload:
+                        candidate = payload['candidate_id']
+                        page = payload.get('gene_page', 1)
+                        gene = payload.get('gene')
+                        if (not isinstance(candidate, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', candidate)
+                                or type(page) is not int or not 1 <= page <= 10000
+                                or gene is not None and (not isinstance(gene, str) or not re.fullmatch(r'[A-Za-z0-9.-]{1,40}', gene))):
+                            raise ValueError('A valid candidate, gene page and optional gene are required.')
+                        result = engine.sample_match_detail(payload['sample_id'], candidate, gene_page=page, gene=gene)
+                    elif self.path == SAMPLE_MATCH_INPUT_PATH:
+                        result = engine.sample_matches(payload['sample_id'], include_project_inputs=True)
+                    else:
+                        result = engine.sample_matches(payload['sample_id']) if self.path == SAMPLE_MATCH_PATH else engine.sample_variants(payload['sample_id'])
+                    self._send_json(200, result)
+                    return
+                if self.path == PROFILE_PATH:
+                    request = parse_profile_request(payload)
+                    self._send_json(200, engine.phenotype_profile(
+                        request["terms"], request["filters"], request["page"], request["page_size"]))
+                    return
+                request = parse_co_gene_request(payload) if self.path == CO_GENE_PATH else parse_context_request(payload)
+                if request['sample_ids'] is not None and self.path == PUBLIC_CONTEXT_PATH:
+                    raise ValueError('sample selection is private-only')
+                if request['sample_ids'] is None:
+                    selected_engine = engine
+                elif request['variant_id'] and self.path == CONTEXT_PATH:
+                    selected_engine = engine.for_variant_comparison(request['gene'], request['variant_id'], tuple(request['sample_ids']))
+                else:
+                    selected_engine = engine.for_sample_ids(tuple(request['sample_ids']))
+                scope = None if request['sample_ids'] is None else {
+                    'sample_ids': request['sample_ids'],
+                    'analysis_sample_count': len(selected_engine.analysis_sample_ids),
+                    'scoring_sample_count': len(selected_engine.hpo['sample_ids']),
+                }
+                if self.path == CO_GENE_PATH:
+                    started = perf_counter()
+                    result = selected_engine.co_gene_associations(
+                        request["gene"], request["terms"], request["co_genes"],
+                        score_type=request["score_type"], affected_only=request["affected_only"],
+                    )
+                    result["request_ms"] = round((perf_counter() - started) * 1000, 3)
+                    if scope is not None:
+                        result['sample_scope'] = scope
+                    self._send_json(200, result)
+                    return
+                if self.path == PUBLIC_CONTEXT_PATH and request["variant_id"]:
+                    raise ValueError("individual variant carrier scores are private-only")
+                started = perf_counter()
+                result = selected_engine.analyze(
+                    request["gene"],
+                    request["terms"],
+                    min_carriers=request["min_carriers"],
+                    score_type=request["score_type"],
+                    affected_only=request["affected_only"],
+                )
+                burden = result.get("gene_burden") or {}
+                p_value = burden.get("p_value")
+                burden.update({
+                    "fdr": p_value,
+                    "fdr_method": "BH",
+                    "multiple_testing_scope": "single gene in current request",
+                    "n_tests": 1,
+                })
+                if self.path == PUBLIC_CONTEXT_PATH:
+                    self._send_json(200, public_context_projection(result, request["min_carriers"]))
+                else:
+                    if request["variant_id"]:
+                        result["variant_carrier_residuals"] = selected_engine.variant_carrier_residuals(
+                            request["gene"], request["variant_id"], request["terms"],
+                            affected_only=request["affected_only"],
+                        )
+                    result["request_ms"] = round((perf_counter() - started) * 1000, 3)
+                    if scope is not None:
+                        if getattr(selected_engine, 'variant_comparison', None):
+                            selected_count = result['variant_carrier_residuals']['carrier_count']
+                            scope.update(selected_engine.variant_comparison)
+                            scope.update({
+                                'analysis_sample_count': result['analysis_sample_count'],
+                                'selected_carrier_count': selected_count,
+                                'noncarrier_count': result['analysis_sample_count'] - selected_count,
+                            })
+                        result['sample_scope'] = scope
+                    self._send_json(200, result)
+            except (ValueError, json.JSONDecodeError) as error:
+                self._send_json(400, {"error": "invalid_request", "detail": str(error)})
+            except Exception:
+                self._send_json(500, {"error": "context_analysis_failed"})
+
+        def log_message(self, format_string, *args):
+            return
+
+    server = ThreadingHTTPServer(address, ContextHandler)
+    server.engine = engine
+    return server
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--hpo-matrix", required=True)
+    parser.add_argument("--overlap-roster", required=True)
+    parser.add_argument("--evidence")
+    parser.add_argument("--bioindex-host")
+    parser.add_argument("--bioindex-evidence-index", choices=("gene-variants-crdc", "gene-samples"),
+                        default="gene-variants-crdc")
+    parser.add_argument("--bioindex-access-token-file")
+    parser.add_argument("--covariates", required=True)
+    parser.add_argument("--gene-scores")
+    parser.add_argument("--gene-score-covariates")
+    parser.add_argument("--gene-score-platform")
+    parser.add_argument("--gene-score-id-map")
+    parser.add_argument("--gene-score-model", choices=("lm", "lmm"), default="lm")
+    parser.add_argument("--gene-score-type", choices=("max", "sum"), default="max")
+    parser.add_argument("--gene-score-affected-only", action="store_true")
+    parser.add_argument("--grm-prefix")
+    parser.add_argument("--rscript", default="Rscript")
+    parser.add_argument('--genotype-vcf')
+    parser.add_argument('--bcftools', default='bcftools')
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8092)
+    parser.add_argument("--port-file", type=Path)
+    args = parser.parse_args(argv)
+    if not args.evidence and not args.bioindex_host:
+        parser.error("provide --evidence or --bioindex-host")
+    access_token = None
+    if args.bioindex_access_token_file:
+        access_token = Path(args.bioindex_access_token_file).read_text().strip()
+
+    gene_runner = (
+        GeneScoreContextRunner(
+            args.gene_scores,
+            args.gene_score_covariates or args.covariates,
+            model=args.gene_score_model,
+            score_type=args.gene_score_type,
+            affected_only=args.gene_score_affected_only,
+            platform_path=args.gene_score_platform,
+            score_id_map=args.gene_score_id_map,
+            grm_prefix=args.grm_prefix,
+            rscript=args.rscript,
+        )
+        if args.gene_scores else None
+    )
+    engine = ContextAnalysisEngine(
+        args.hpo_matrix,
+        args.overlap_roster,
+        args.evidence,
+        covariate_path=args.covariates,
+        gene_association_runner=gene_runner,
+        bioindex_host=args.bioindex_host,
+        bioindex_access_token=access_token,
+        bioindex_evidence_index=args.bioindex_evidence_index,
+    )
+    genotype_source = None
+    if args.genotype_vcf:
+        from scripts.vcf_carrier_genotypes import VcfCarrierGenotypes
+        genotype_source = VcfCarrierGenotypes(args.genotype_vcf, bcftools=args.bcftools)
+    server = create_server((args.host, args.port), engine, genotype_source=genotype_source)
+    if args.port_file:
+        args.port_file.write_text(f"{server.server_port}\n")
+    print(f"pb_Gene Context API listening on http://{args.host}:{server.server_port}")
+    server.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

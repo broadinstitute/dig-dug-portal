@@ -19,7 +19,7 @@ function validateCrdcHpos(ids, counts, status, label = id => id) {
 async function loadCrdcHpoCounts(fetcher) {
     if (cached) return cached;
     if (!pending) pending = (async () => {
-        const response = await (fetcher || fetch)('/__pb_phenotype_profile__/hpo-counts');
+        const response = await (fetcher || fetch)('/phenotype-analyzer-api/pb/__pb_phenotype_profile__/hpo-counts');
         if (!response.ok) throw new Error('CRDC sample availability could not be checked. Retry before applying this profile.');
         const result = await response.json();
         if (!result.counts || typeof result.counts !== 'object' || Array.isArray(result.counts) || !Object.keys(result.counts).length || Object.values(result.counts).some(n => !Number.isInteger(n) || n < 0)) throw new Error('CRDC sample availability returned invalid counts. Retry before applying this profile.');

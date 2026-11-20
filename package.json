@@ -8,10 +8,11 @@
     "deploy": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode production",
     "preview": "serve -l 8080 dist",
     "preview:dir": "serve -l 8080",
-    "serve:neph": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.Neph.js env BIOINDEX_HOST_PRIVATE=http://100.80.30.199:5000 env SERVICE_HOST_PRIVATE=http://100.80.30.199:4999 vue-cli-service serve",
-    "build:neph": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.Neph.js env BIOINDEX_HOST_PRIVATE=http://100.80.30.199:5000 env SERVICE_HOST_PRIVATE=http://100.80.30.199:4999 vue-cli-service build --mode development",
-    "deploy:neph": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.Neph.js env BIOINDEX_HOST_PRIVATE=http://100.80.30.199:5000 env SERVICE_HOST_PRIVATE=http://100.80.30.199:4999 vue-cli-service build --mode production",
-    "watch:neph": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.Neph.js env BIOINDEX_HOST_PRIVATE=http://100.80.30.199:5000 env SERVICE_HOST_PRIVATE=http://100.80.30.199:4999 vue-cli-service build --mode development --watch"
+    "serve:neph-api": "node scripts/bch_pb_api.js",
+    "serve:neph": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.Neph.js vue-cli-service serve",
+    "build:neph": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.Neph.js vue-cli-service build --mode development",
+    "deploy:neph": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.Neph.js vue-cli-service build --mode production",
+    "watch:neph": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.Neph.js vue-cli-service build --mode development --watch"
   },
   "dependencies": {
     "@amcharts/amcharts4": "^4.10.40",
@@ -27,6 +28,7 @@
     "core-js": "^3.37.1",
     "d3": "^5.16.0",
     "dompurify": "^3.1.7",
+    "express": "^4.22.3",
     "flat": "^5.0.2",
     "gwas-credible-sets": "^0.1.0",
     "jquery": "^3.7.1",
