@@ -8,7 +8,7 @@
 import { posix } from 'node:path';
 import { parse as parseBabel } from '@babel/parser';
 import { parse as parseSfc } from 'vue/compiler-sfc';
-import { BABEL_OPTIONS, isVueComponentCall, toKey } from './component-graph.mjs';
+import { BABEL_OPTIONS, isVueComponentCall, toKebab, toKey } from './component-graph.mjs';
 
 const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const isBlank = (text) => /^\s*$/.test(text);
@@ -115,19 +115,23 @@ function defaultImports(body, file) {
 }
 
 /**
- * What to import and what to register for `entries` (sorted, with unique keys). A key that is already
- * in `present` is skipped. A source that is already imported by default (however `canonicalSource`
- * spells it) is reused under that name. Otherwise it is imported as the key, or as `<Key>Component`
- * (then `<Key>Component2`, ...) when a binding of that name exists. `importedAs` and `bindings` are
- * updated as entries are placed, so two entries never declare the same name and one source is never
- * imported twice.
- * Returns the `import` statements to add and the `components` entries (`Key` or `Key: Local`).
+ * What to import and what to register for `entries` (sorted, with unique keys). An entry whose key, or
+ * whose tag's kebab-case name, is in `present` is skipped. A source that is already imported by default
+ * (however `canonicalSource` spells it) is reused under that name. Otherwise it is imported as the key,
+ * or as `<Key>Component` (then `<Key>Component2`, ...) when a binding of that name exists. `importedAs`
+ * and `bindings` are updated as entries are placed, so two entries never declare the same name and one
+ * source is never imported twice.
+ * Returns the `import` statements to add and the `components` entries (`Key` or `Key: Local`). A tag
+ * that its key does not round-trip to (`gene-set-2-phenotype` -> `GeneSet2Phenotype` -> `gene-set2-phenotype`)
+ * is registered under its own kebab-case name instead, `"gene-set-2-phenotype": Local`: Vue looks up the
+ * exact name first, and the lint rule `vue/no-undef-components` compares kebab-case names.
  */
 function resolveEntries(entries, file, { present, importedAs, bindings }) {
   const imports = [];
   const registrations = [];
-  for (const { key, source } of entries) {
-    if (present.has(key)) continue;
+  for (const { tag, key, source } of entries) {
+    const kebab = toKebab(tag);
+    if (present.has(key) || present.has(kebab)) continue;
     const same = canonicalSource(source, file);
     let local = importedAs.get(same);
     if (local === undefined) {
@@ -140,7 +144,8 @@ function resolveEntries(entries, file, { present, importedAs, bindings }) {
       importedAs.set(same, local);
       imports.push(`import ${local} from ${JSON.stringify(source)};`);
     }
-    registrations.push(local === key ? key : `${key}: ${local}`);
+    const name = kebab === toKebab(key) ? key : JSON.stringify(kebab);
+    registrations.push(local === name ? name : `${name}: ${local}`);
   }
   return { imports, registrations };
 }
@@ -276,9 +281,9 @@ function editScript(raw, entries, eol, file, fail) {
   const { body } = ast.program;
   const options = optionsObject(body, fail);
   const components = componentsProperty(options, fail);
-  const present = new Set(
-    (components?.value.properties ?? []).map(keyName).filter((name) => name !== null).map(toKey),
-  );
+  // Each existing key as written and as `toKey` spells it: `"page-header"` is also `PageHeader`.
+  const names = (components?.value.properties ?? []).map(keyName).filter((name) => name !== null);
+  const present = new Set(names.flatMap((name) => [name, toKey(name)]));
   const added = resolveEntries(entries, file, { present, importedAs: defaultImports(body, file), bindings: declaredNames(body) });
   if (added.registrations.length === 0) return [];
 
@@ -337,8 +342,11 @@ function splice(source, edits) {
  *    default is reused (`Key: Local`, or `Key` when the names match); `./A.vue` (relative to `file`),
  *    `@/x/A` and `@/x/A.vue` count as one source. A name already declared in the script means the
  *    new import is `<Key>Component`, registered as `Key: <Key>Component`.
- *  - Keys are compared as `toKey` of the existing key (`"page-header"` and `PageHeader` are the same),
- *    and a key that is already registered is left alone. New entries are ordered by key. With nothing
+ *  - A tag that its key does not round-trip to (digit segments: `<gene-set-2-phenotype>` has the key
+ *    `GeneSet2Phenotype`, whose kebab-case form is `gene-set2-phenotype`) is registered as the string key
+ *    `"gene-set-2-phenotype": GeneSet2Phenotype`, with the import named as above.
+ *  - Keys are compared as written and as `toKey` of the existing key (`"page-header"` and `PageHeader` are
+ *    the same), and also against the tag's kebab-case name; a key that is already registered is left alone. New entries are ordered by key. With nothing
  *    to add the result is `{ source, changed: false }`, and a second run changes nothing.
  *  - Inserted lines use the file's line ending, taken from its first line break.
  *

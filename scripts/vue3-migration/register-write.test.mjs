@@ -555,6 +555,96 @@ test('two entries from one source share one import', () => {
   );
 });
 
+// ---- tags that do not round-trip through their key ------------------------------------------
+
+// `<gene-set-2-phenotype>`: Vue finds `GeneSet2Phenotype` (camelize, then capitalize), but turning the key back
+// into kebab-case gives `gene-set2-phenotype`, which is what the lint rule compares with.
+const DIGIT = { tag: 'gene-set-2-phenotype', key: 'GeneSet2Phenotype', source: '@/components/Cfde2Kp/GeneSet2Phenotype.vue' };
+
+test('a tag whose key does not round-trip is registered under its own kebab-case name as a string key', () => {
+  const input = text('<template>', '    <gene-set-2-phenotype />', '</template>');
+  assert.equal(
+    apply(input, [DIGIT, HEADER]).source,
+    text(
+      '<template>',
+      '    <gene-set-2-phenotype />',
+      '</template>',
+      '',
+      '<script>',
+      'import GeneSet2Phenotype from "@/components/Cfde2Kp/GeneSet2Phenotype.vue";',
+      'import PageHeader from "@/components/PageHeader.vue";',
+      '',
+      'export default {',
+      '    components: {',
+      '        "gene-set-2-phenotype": GeneSet2Phenotype,',
+      '        PageHeader,',
+      '    },',
+      '};',
+      '</script>',
+    ),
+  );
+});
+
+test('the string key goes into an existing components option, and follows the reuse and clash rules for the binding', () => {
+  const existing = text(
+    '<script>',
+    'export default {',
+    '    components: {',
+    '        Other,',
+    '    },',
+    '};',
+    '</script>',
+  );
+  assert.equal(
+    apply(existing, [DIGIT]).source,
+    text(
+      '<script>',
+      `import GeneSet2Phenotype from "${DIGIT.source}";`,
+      'export default {',
+      '    components: {',
+      '        Other,',
+      '        "gene-set-2-phenotype": GeneSet2Phenotype,',
+      '    },',
+      '};',
+      '</script>',
+    ),
+  );
+  const reused = text('<script>', `import Phenotypes from "${DIGIT.source}";`, 'export default {};', '</script>');
+  assert.match(apply(reused, [DIGIT]).source, /^ {8}"gene-set-2-phenotype": Phenotypes,$/m);
+  const clash = text('<script>', 'const GeneSet2Phenotype = 1;', 'export default {};', '</script>');
+  const { source } = apply(clash, [DIGIT]);
+  assert.match(source, /^import GeneSet2PhenotypeComponent from /m);
+  assert.match(source, /^ {8}"gene-set-2-phenotype": GeneSet2PhenotypeComponent,$/m);
+});
+
+test('an existing string key with the tag\'s kebab-case name counts as registered', () => {
+  const input = text(
+    '<script>',
+    'import Phenotype from "@/components/Cfde2Kp/GeneSet2Phenotype.vue";',
+    'export default {',
+    '    components: {',
+    '        "gene-set-2-phenotype": Phenotype,',
+    '    },',
+    '};',
+    '</script>',
+  );
+  assert.deepEqual(applyRegistrations(input, [DIGIT], FILE), { source: input, changed: false });
+});
+
+test('a tag that round-trips keeps the plain key, whatever its spelling', () => {
+  const plain = [
+    { tag: 'page-header', key: 'PageHeader', source: HEADER.source },
+    { tag: 'PageFooter', key: 'PageFooter', source: FOOTER.source },
+    { tag: 'GeneSet2Phenotype', key: 'GeneSet2Phenotype', source: DIGIT.source },
+    { tag: 'gene-set2-phenotype', key: 'GeneSet2Phenotype', source: DIGIT.source },
+  ];
+  for (const one of plain) {
+    const { source } = apply(text('<template><div /></template>'), [one]);
+    assert.match(source, new RegExp(`^ {8}${one.key},$`, 'm'), one.tag);
+    assert.doesNotMatch(source, /": /, one.tag);
+  }
+});
+
 // ---- idempotence ----------------------------------------------------------------------------
 
 test('keys that are already registered are left alone, whatever their spelling', () => {
