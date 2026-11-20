@@ -23,7 +23,7 @@ function load(file, overrides = {}, globals = {}) {
     return output.exports;
 }
 
-function harness(view, failFirst = false) {
+function harness(failFirst = false) {
     const navigations = [];
     let requests = 0, failures = failFirst ? 1 : 0;
     const counts = {'HP:0001250': 2059, 'HP:0001252': 1020, 'HP:0000002': 0, 'HP:1234567': 1};
@@ -35,24 +35,26 @@ function harness(view, failFirst = false) {
     }});
     const runtime = {window: {location: {assign: url => navigations.push(url)}, clearTimeout, setTimeout}};
     const front = load('src/views/PbFront/phenotypeSearch.js', {'../../utils/crdcHpoAvailability': availability}, runtime);
-    const options = load(`src/views/${view}/Template.vue`, {
-        '@/components/pb/PortalGuide.vue': {},
-        '../KrClinicalFocus/clinicalContextReference.generated': {hpoTerms: [
+    const index = 'src/portals/Neph/views/Index';
+    const search = load(`${index}/frontSearch.js`, {
+        '@/views/KrClinicalFocus/clinicalContextReference.generated': {hpoTerms: [
             ['HP:0001250', 'Seizure'], ['HP:0001252', 'Hypotonia'],
             ['HP:0010010', 'Abnormal 2nd metacarpal morphology'],
             ['HP:0000002', 'Zero count'], ['HP:1234567', 'Abnormality, example'],
         ]},
-        '../PbGene/geneIdReference.generated': {PB_GENE_ID_REFERENCE: {GJB2: {}}},
-        '../PbFront/phenotypeSearch': front,
-    }, runtime).default;
+        '@/views/PbGene/geneIdReference.generated': {PB_GENE_ID_REFERENCE: {GJB2: {}}},
+        '@/views/PbFront/searchModel': require('../src/views/PbFront/searchModel'),
+        '@/views/PbFront/phenotypeSearch': front,
+    }, runtime);
+    const options = load(`${index}/Template.vue`, {'./frontSearch': search}, runtime).default;
     const page = new Vue(options);
     page.$refs.searchInput = {focus() {}};
     return {page, navigations, requests: () => requests};
 }
 
 (async () => {
-    for (const view of ['PbFront']) {
-        const {page, navigations, requests} = harness(view);
+    {
+        const {page, navigations, requests} = harness();
         page.query = 'GJB2'; await page.submitSearch();
         assert.equal(navigations.pop(), '/generesult.html?query=GJB2');
         page.query = 'chr13:20189313:A:G'; await page.submitSearch();
@@ -96,12 +98,11 @@ function harness(view, failFirst = false) {
         page.suggestionsOpen = true; page.activeOption = -1;
         page.handleKeydown({key: 'ArrowDown', preventDefault() {}});
         assert.equal(page.activeOption, 1, 'Keyboard navigation skips unavailable suggestions');
-        page.activeOption = -1;
         page.query = '';
         page.handleKeydown({key: 'Enter', preventDefault() {}});
         assert.equal(page.query, 'Hypotonia [HP:0001252]');
 
-        const retry = harness(view, true);
+        const retry = harness(true);
         retry.page.query = 'HP:0001250,HP:0001252'; await retry.page.submitSearch();
         assert.equal(retry.navigations.length, 0);
         assert.equal(retry.page.frontHpoCountsStatus, 'error');

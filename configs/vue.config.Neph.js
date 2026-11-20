@@ -6,11 +6,10 @@ const { prefix: pbApiPrefix, createRouter: createPbApiRouter } = require("../scr
 
 let pages = {
     index: {
-        entry: "src/views/PbFront/main.js",
+        entry: "src/portals/Neph/views/Index/main.js",
         template: "public/index.html",
         filename: "index.html",
         title: "Home",
-        pbLayout: true,
         chunks: ["chunk-vendors", "chunk-common", "index"]
     },
     SearchFront: {
