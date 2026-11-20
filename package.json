@@ -14,7 +14,8 @@
     "e2e": "playwright test",
     "e2e:baseline": "node scripts/vue3-migration/build-baseline.mjs",
     "codemod:register-components": "node scripts/vue3-migration/register-components.mjs",
-    "codemod:unwrap-vue-component": "node scripts/vue3-migration/unwrap-vue-component.mjs"
+    "codemod:unwrap-vue-component": "node scripts/vue3-migration/unwrap-vue-component.mjs",
+    "codemod:portal-dry-run": "node scripts/vue3-migration/portal-dry-run.mjs"
   },
   "dependencies": {
     "@amcharts/amcharts4": "4.10.40",

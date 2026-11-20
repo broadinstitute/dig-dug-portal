@@ -106,7 +106,27 @@ export const oneLine = (text) => String(text).replace(/\s+/g, ' ').trim();
 export const cell = (text) => text.replaceAll('|', '\\|');
 export const code = (text) => `\`${text}\``;
 /** A page entry as its folder under `src/views/`: `src/views/VariantSearch/main.js` -> `VariantSearch`. */
-const pageName = (entry) => entry.replace(/^src\/views\//, '').replace(/\/main\.js$/, '');
+export const pageName = (entry) => entry.replace(/^src\/views\//, '').replace(/\/main\.js$/, '');
+
+/** A failed file as the reports list it: `error`'s message on one line, without a leading `<file>: `. */
+export function failure(file, error) {
+  const message = oneLine(error instanceof Error ? error.message : error);
+  return { file, message: message.startsWith(`${file}: `) ? message.slice(file.length + 2) : message };
+}
+
+/** The lines of the table of uses the planner could not place (`plan.unresolved`), header included. */
+export function unresolvedTable(unresolved) {
+  const lines = ['| file:line | tag | reason | candidates / pages |', '| --- | --- | --- | --- |'];
+  for (const { file, line, tag, reason, candidates = [], pages = [] } of unresolved) {
+    const detail = [...candidates, ...pages.map(pageName)].map(code).join(', ');
+    lines.push(`| ${cell(code(`${file}:${line}`))} | ${cell(code(tag))} | ${reason} | ${cell(detail)} |`);
+  }
+  return lines;
+}
+
+/** One analysis error (see `analyzeSources`) as a list item of a report. */
+export const analysisErrorLine = ({ file, line, kind, message }) =>
+  `- ${code(line === undefined ? file : `${file}:${line}`)} (${kind}): ${oneLine(message)}`;
 
 function renderReport({ dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError }) {
   const entries = changes.reduce((sum, { entries: count }) => sum + count, 0);
@@ -131,11 +151,7 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
   } else if (plan.unresolved.length === 0) {
     lines.push('None.');
   } else {
-    lines.push('| file:line | tag | reason | candidates / pages |', '| --- | --- | --- | --- |');
-    for (const { file, line, tag, reason, candidates = [], pages = [] } of plan.unresolved) {
-      const detail = [...candidates, ...pages.map(pageName)].map(code).join(', ');
-      lines.push(`| ${cell(code(`${file}:${line}`))} | ${cell(code(tag))} | ${reason} | ${cell(detail)} |`);
-    }
+    lines.push(...unresolvedTable(plan.unresolved));
   }
 
   if (failures.length > 0) {
@@ -145,9 +161,7 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
 
   if (analysisErrors.length > 0) {
     lines.push('', '## Analysis errors', '');
-    for (const { file, line, kind, message } of analysisErrors) {
-      lines.push(`- ${code(line === undefined ? file : `${file}:${line}`)} (${kind}): ${oneLine(message)}`);
-    }
+    for (const error of analysisErrors) lines.push(analysisErrorLine(error));
     if (!dryRun) lines.push('', 'Nothing was written: with these errors a duplicate name could be settled wrongly.');
   }
 
@@ -162,6 +176,62 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
   else if (files.length === 0) lines.push('None.');
   for (const file of files) lines.push(`- ${code(file)}`);
   return `${lines.join('\n')}\n`;
+}
+
+/**
+ * Everything `run` reports about phase 1 for the tree under `root`, without writing anything:
+ *
+ *  - `sources`: the tree's `.vue` and `.js` files (see `readSources`);
+ *  - `uses`: the undefined-tag uses ESLint found (empty when the lint failed), and `findings` their count;
+ *  - `plan`: what `planRegistrations` made of them (`edits` and `unresolved`);
+ *  - `changes`: one per file that would change, `{ file, source, entries }` (`source` is its new text);
+ *  - `failures`: files whose registrations could not be applied or did not parse again, sorted by file;
+ *  - `analysisErrors`: what the scan of the tree found (a script that does not parse, say);
+ *  - `lintError`: the lint's message on one line when ESLint could not lint the tree, else `null`. This
+ *    does not reject: the scan's errors are still returned, and `uses` is empty.
+ *
+ * Throws when `root` has no `src/` folder. `apply(source, entries, file)` and `lint(root)` default to
+ * `applyRegistrations` and `undefinedTags`; they are seams for tests.
+ * @param {string} root
+ * @param {{ apply?: typeof applyRegistrations, lint?: typeof undefinedTags }} [deps]
+ */
+export async function analyzePhaseOne(root, { apply = applyRegistrations, lint = undefinedTags } = {}) {
+  const sources = readSources(root);
+  const { registrations, imports, errors: analysisErrors } = analyzeSources(sources);
+  // ESLint cannot lint a script that does not parse. The scan above has already listed that file, so a
+  // lint failure is reported beside the analysis errors rather than thrown over them.
+  let uses = new Map();
+  let lintError = null;
+  try {
+    uses = await lint(root);
+  } catch (error) {
+    lintError = oneLine(error instanceof Error ? error.message : error);
+  }
+  const plan = planRegistrations({
+    uses,
+    registrations,
+    imports,
+    pages: pageEntries(sources),
+    scriptSetupFiles: scriptSetupFiles(sources),
+  });
+
+  const changes = [];
+  const failures = [];
+  for (const [file, entries] of plan.edits) {
+    try {
+      const before = sources.get(file);
+      const result = apply(before, entries, file);
+      if (!result.changed) continue;
+      assertParses(file, before, result.source);
+      changes.push({ file, source: result.source, entries: entries.length });
+    } catch (error) {
+      failures.push(failure(file, error));
+    }
+  }
+  failures.sort((a, b) => byCodeUnit(a.file, b.file));
+
+  const findings = [...uses.values()].reduce((sum, list) => sum + list.length, 0);
+  return { sources, uses, findings, plan, changes, failures, analysisErrors, lintError };
 }
 
 /**
@@ -204,42 +274,7 @@ export async function run(argv, deps = {}) {
     return 2;
   }
 
-  const sources = readSources(root);
-  const { registrations, imports, errors: analysisErrors } = analyzeSources(sources);
-  // ESLint cannot lint a script that does not parse. The scan above has already listed that file, so a
-  // lint failure is reported beside the analysis errors rather than thrown over them.
-  let uses = new Map();
-  let lintError = null;
-  try {
-    uses = await lint(root);
-  } catch (error) {
-    lintError = oneLine(error instanceof Error ? error.message : error);
-  }
-  const plan = planRegistrations({
-    uses,
-    registrations,
-    imports,
-    pages: pageEntries(sources),
-    scriptSetupFiles: scriptSetupFiles(sources),
-  });
-
-  const changes = [];
-  const failures = [];
-  const fail = (file, error) => {
-    const message = oneLine(error instanceof Error ? error.message : error);
-    failures.push({ file, message: message.startsWith(`${file}: `) ? message.slice(file.length + 2) : message });
-  };
-  for (const [file, entries] of plan.edits) {
-    try {
-      const before = sources.get(file);
-      const result = apply(before, entries, file);
-      if (!result.changed) continue;
-      assertParses(file, before, result.source);
-      changes.push({ file, source: result.source, entries: entries.length });
-    } catch (error) {
-      fail(file, error);
-    }
-  }
+  const { findings, plan, changes, failures, analysisErrors, lintError } = await analyzePhaseOne(root, { apply, lint });
 
   // Partial knowledge could settle a duplicate name wrongly, so analysis errors block every write.
   const writing = !options.dryRun && analysisErrors.length === 0 && lintError === null;
@@ -250,13 +285,12 @@ export async function run(argv, deps = {}) {
         write(join(root, file), source);
         written.push(file);
       } catch (error) {
-        fail(file, `write failed: ${error instanceof Error ? error.message : error}`);
+        failures.push(failure(file, `write failed: ${error instanceof Error ? error.message : error}`));
       }
     }
   }
   failures.sort((a, b) => byCodeUnit(a.file, b.file));
 
-  const findings = [...uses.values()].reduce((sum, list) => sum + list.length, 0);
   out.write(renderReport({ dryRun: options.dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError }));
 
   if (failures.length > 0) err.write(`register-components: ${failures.length} file(s) failed; see the Failed section of the report\n`);

@@ -47,7 +47,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseSfc } from 'vue/compiler-sfc';
 import { analyzeSources, isLookup, isVueComponentCall, pageEntries, readSources, scriptSetupFiles, walk } from './component-graph.mjs';
-import { assertParses, cell, code, hasSrc, oneLine, parseArgs, parseStrict } from './register-components.mjs';
+import { analysisErrorLine, assertParses, cell, code, failure, hasSrc, oneLine, parseArgs, parseStrict } from './register-components.mjs';
 import { REASONS, planRegistrations, undefinedTags } from './register-plan.mjs';
 import { addFirstProperty, byCodeUnit, indentUnit, isBlank, keyName, soleScript, splice } from './register-write.mjs';
 
@@ -335,9 +335,7 @@ function renderReport({ dryRun, writing, check, lintError, changes, written, not
 
   if (analysisErrors.length > 0) {
     lines.push('', '## Analysis errors', '');
-    for (const { file, line, kind, message } of analysisErrors) {
-      lines.push(`- ${code(line === undefined ? file : `${file}:${line}`)} (${kind}): ${oneLine(message)}`);
-    }
+    for (const error of analysisErrors) lines.push(analysisErrorLine(error));
     if (!dryRun) lines.push('', 'Nothing was written: the phase 1 check relies on what the scan found.');
   }
 
@@ -351,6 +349,42 @@ function renderReport({ dryRun, writing, check, lintError, changes, written, not
   if (files.length === 0) lines.push('None.');
   for (const file of files) lines.push(`- ${code(file)}`);
   return `${lines.join('\n')}\n`;
+}
+
+/**
+ * What unwrapping would do to every file of `sources` (path -> text, see `readSources`), without writing
+ * anything and without the phase 1 check of ruling R2: the lint is not run, so this is the count to
+ * expect once phase 1 is complete, not a statement that the run would be allowed.
+ *
+ *  - `changes`: one per file that would change, `{ file, source, counts }` (`source` is its new text);
+ *  - `notes`: the files that have notes, `{ file, counts }` (`counts` is a Map from note to occurrences);
+ *  - `failures`: files the codemod refuses (a shape it will not guess at) or whose unwrapped text does
+ *    not parse again, in file order, each `{ file, message }` without a leading `<file>: `.
+ *
+ * `unwrap(source, file)` defaults to `unwrapSource`; it is a seam for tests.
+ * @param {Map<string, string>} sources
+ * @param {{ unwrap?: typeof unwrapSource }} [deps]
+ */
+export function analyzePhaseTwo(sources, { unwrap = unwrapSource } = {}) {
+  const changes = [];
+  const notes = [];
+  const failures = [];
+  for (const [file, before] of sources) {
+    try {
+      const result = unwrap(before, file);
+      if (result.notes.length > 0) {
+        const counts = new Map();
+        for (const kind of result.notes) counts.set(kind, (counts.get(kind) ?? 0) + 1);
+        notes.push({ file, counts });
+      }
+      if (!result.changed) continue;
+      assertParses(file, before, result.source);
+      changes.push({ file, source: result.source, counts: result.counts });
+    } catch (error) {
+      failures.push(failure(file, error));
+    }
+  }
+  return { changes, notes, failures };
 }
 
 /**
@@ -411,28 +445,7 @@ export async function run(argv, deps = {}) {
   });
   const check = phaseOneCheck(uses, plan);
 
-  const changes = [];
-  const notes = [];
-  const failures = [];
-  const fail = (file, error) => {
-    const message = oneLine(error instanceof Error ? error.message : error);
-    failures.push({ file, message: message.startsWith(`${file}: `) ? message.slice(file.length + 2) : message });
-  };
-  for (const [file, before] of sources) {
-    try {
-      const result = unwrap(before, file);
-      if (result.notes.length > 0) {
-        const counts = new Map();
-        for (const kind of result.notes) counts.set(kind, (counts.get(kind) ?? 0) + 1);
-        notes.push({ file, counts });
-      }
-      if (!result.changed) continue;
-      assertParses(file, before, result.source);
-      changes.push({ file, source: result.source, counts: result.counts });
-    } catch (error) {
-      fail(file, error);
-    }
-  }
+  const { changes, notes, failures } = analyzePhaseTwo(sources, { unwrap });
 
   const refused = lintError === null && check.blocking.length > 0;
   const writing = !options.dryRun && analysisErrors.length === 0 && lintError === null && !refused;
@@ -443,7 +456,7 @@ export async function run(argv, deps = {}) {
         write(join(root, file), source);
         written.push(file);
       } catch (error) {
-        fail(file, `write failed: ${error instanceof Error ? error.message : error}`);
+        failures.push(failure(file, `write failed: ${error instanceof Error ? error.message : error}`));
       }
     }
   }
