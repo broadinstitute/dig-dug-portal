@@ -177,8 +177,9 @@ function chooseTarget(file, tag, { registrations, files, pageSets }) {
     return { target: { source: specifierOf(settled), file: settled } };
   }
 
-  // Aliases only: usable when every alias leads to the same place.
-  const targets = found.map((registration) => aliasTarget(registration, files));
+  // Aliases only (an `unexported` registration is no definition and no alias): usable when every alias leads
+  // to the same place.
+  const targets = found.filter(({ kind }) => kind === 'alias').map((registration) => aliasTarget(registration, files));
   const known = new Map(targets.filter((target) => target !== null).map((target) => [target.source, target]));
   if (known.size === 0) return { reason: 'no-registration' };
   if (known.size === 1 && targets.every((target) => target !== null)) return { target: [...known.values()][0] };
@@ -204,10 +205,14 @@ function canReach(edges, from, to) {
 /**
  * The page entries that render `file` but never load a file that registers `tag`, sorted. A page
  * renders `file` when its reach set (`pageSets[i]`, for `pages[i]`) contains it, and loads the tag when
- * that set contains any file with a registration for the tag's kebab name, definition or alias.
+ * that set contains any file with a registration for the tag's kebab name, definition or alias. An
+ * `unexported` registration does not count: on a page that has only that one, the tag is a component the
+ * target is not, so registering the target would change what the page shows.
  */
 function pagesNotLoading(file, tag, { registrations, pages, pageSets }) {
-  const registering = (registrations.get(toKebab(tag)) ?? []).map((registration) => registration.file);
+  const registering = (registrations.get(toKebab(tag)) ?? [])
+    .filter(({ kind }) => kind === 'definition' || kind === 'alias')
+    .map((registration) => registration.file);
   return pages
     .filter((entry, index) => pageSets[index].has(file) && !registering.some((registered) => pageSets[index].has(registered)))
     .sort(byCodeUnit);
@@ -241,7 +246,9 @@ function rejection(file, tag, target, scriptSetupFiles, edges, context) {
  *     a file used to register, and whether the pages load it, cannot be read from the tree any more, so
  *     the rules below would decide on part of the picture (a portal-only definition of the name would
  *     look like the only one).
- *  2. Exactly one defining file -> that file, aliases of the same name ignored. No definition and every
+ *  2. Exactly one defining file -> that file, aliases of the same name ignored. A definition is only
+ *     `export default Vue.component(...)`: an `unexported` registration is neither a definition nor an
+ *     alias, here or below, so a name with nothing else ends as `no-registration`. No definition and every
  *     alias leading to one place -> that place: a package name as written, or a local import resolved
  *     against the aliasing file to its `@/` form. An alias that is not imported, or whose local path
  *     matches no file, is unknown; with only unknown aliases that is `no-registration`, and a mix of

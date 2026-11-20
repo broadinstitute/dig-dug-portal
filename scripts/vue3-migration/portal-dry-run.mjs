@@ -111,6 +111,10 @@ export async function analyzeTree(root, { lint, apply, unwrap } = {}) {
 }
 
 const isError = (row) => row.error !== undefined;
+const isLintFailed = (row) => !isError(row) && row.lintError !== null;
+/** A row's status: `error`, `lint-failed` (analyzed, but the phase 1 figures are `n/a`) or `ok`. */
+const statusOf = (row) => (isError(row) ? 'error' : isLintFailed(row) ? 'lint-failed' : 'ok');
+const STATUSES = ['ok', 'lint-failed', 'error'];
 
 /** The numeric cells of a row, in `NUMERIC_HEADERS` order; null is `n/a`. An error row has none. */
 function figures(row) {
@@ -131,18 +135,21 @@ const shaCell = (row) => (row.sha === null ? NOT_AVAILABLE : code(row.sha));
 const number = (count) => (count === null ? NOT_AVAILABLE : String(count));
 
 function tableRow(row) {
-  const status = isError(row) ? cell(`error: ${oneLine(row.error)}`) : 'ok';
+  const status = isError(row) ? cell(`error: ${oneLine(row.error)}`) : statusOf(row);
   const lint = isError(row) ? NOT_AVAILABLE : row.lintError === null ? 'no' : 'yes';
   return `| ${[cell(row.branch), shaCell(row), status, ...figures(row).map(number), lint].join(' | ')} |`;
 }
 
+/** How many rows have each status, in `STATUSES` order. */
+const statusCounts = (rows) => STATUSES.map((status) => [status, rows.filter((row) => statusOf(row) === status).length]);
+
 function totalsRow(rows) {
-  const analyzed = rows.filter((row) => !isError(row));
-  const errors = rows.length - analyzed.length;
-  const status = [analyzed.length > 0 ? `${analyzed.length} ok` : null, errors > 0 ? `${errors} error` : null].filter(Boolean).join(', ');
+  const status = statusCounts(rows)
+    .filter(([, count]) => count > 0)
+    .map(([name, count]) => `${count} ${name}`)
+    .join(', ');
   const totals = NUMERIC_HEADERS.map((_, i) => rows.reduce((sum, row) => sum + (figures(row)[i] ?? 0), 0));
-  const lintFailures = analyzed.filter((row) => row.lintError !== null).length;
-  return `| ${['**total**', '', status, ...totals, lintFailures].join(' | ')} |`;
+  return `| ${['**total**', '', status, ...totals, rows.filter(isLintFailed).length].join(' | ')} |`;
 }
 
 /** The heading of a branch's section: the branch and, when the ref resolved, its commit. */
@@ -195,7 +202,6 @@ function branchSection(row) {
  * @returns {string}
  */
 export function renderPortalReport(rows, { fetch } = {}) {
-  const errors = rows.filter(isError).length;
   const lines = [
     '# Portal-branch dry run: component registration codemods',
     '',
@@ -209,11 +215,11 @@ export function renderPortalReport(rows, { fetch } = {}) {
     lines.push(`\`git fetch origin\` failed (${oneLine(fetch.message)}); the \`origin/*\` refs already present were used, so they may be out of date.`, '');
   }
   lines.push(
-    `Branches: ${rows.length} (${rows.length - errors} analyzed, ${errors} error).`,
+    `Branches: ${rows.length} (${statusCounts(rows).map(([name, count]) => `${count} ${name}`).join(', ')}).`,
     '',
     '- Phase 1 is `register-components`: `findings` are the uses of an undefined component tag, `files to change` and `entries` what it would write, `unresolved` the uses it cannot place (by reason; each is listed below), and `phase 1 failed` the files it could not edit. `phase-2-present` uses name a component that is already unwrapped; with any of them phase 1 writes nothing, so a branch should show 0 there until phase 1 has run on it.',
     `- Phase 2 is \`unwrap-vue-component\`. Phase 2 is counted as if phase 1 were complete: the real command refuses until phase 1 is complete (ruling R2), which would only report a refusal on a branch that has not been migrated. \`refused\` files have a shape it will not guess at (\`lang="ts"\`, several \`<script>\` blocks, ...).`,
-    '- `analysis errors` are what the scan of the tree found (a script that does not parse, say); `lint failed` says ESLint could not lint the tree, so the phase 1 figures are `n/a` for that branch.',
+    '- `analysis errors` are what the scan of the tree found (a script that does not parse, say); `lint failed` says ESLint could not lint the tree, so the phase 1 figures are `n/a` for that branch and its status is `lint-failed`.',
     '- Totals leave out the `n/a` cells.',
     '',
     `| ${['branch', 'SHA', 'status', ...NUMERIC_HEADERS, 'lint failed'].join(' | ')} |`,

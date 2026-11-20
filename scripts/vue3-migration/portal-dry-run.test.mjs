@@ -109,7 +109,7 @@ test('renderPortalReport: the details list every unresolved use, phase 2 refusal
   assert.match(second, /^- `src\/dyn\.js:12` \(registration\): Vue\.component\(name, \.\.\.\) needs a string literal$/m);
 });
 
-test('renderPortalReport: a branch whose lint failed has n/a for the figures that need the lint, and the message in the details', () => {
+test('renderPortalReport: a branch whose lint failed has the status lint-failed, n/a for the figures that need the lint, and the message in the details', () => {
   const lintFailed = {
     ...WITH_ANALYSIS_ERRORS,
     branch: 'sysbio-main',
@@ -119,9 +119,11 @@ test('renderPortalReport: a branch whose lint failed has n/a for the figures tha
   };
   const report = renderPortalReport([WITH_REFUSAL, lintFailed], { fetch: { ok: true } });
   const out = lines(report);
-  assert.ok(out.includes('| sysbio-main | `1234567ab` | ok | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 2 | yes |'));
+  assert.ok(out.includes('| sysbio-main | `1234567ab` | lint-failed | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 2 | yes |'));
   // The n/a cells are left out of the totals; the lint failure is counted.
-  assert.ok(out.includes('| **total** |  | 2 ok | 12 | 5 | 9 | 3 | 1 | 0 | 1 | 0 | 1 | 0 | 0 | 1 | 5 | 1 | 2 | 1 |'));
+  assert.ok(out.includes('| **total** |  | 1 ok, 1 lint-failed | 12 | 5 | 9 | 3 | 1 | 0 | 1 | 0 | 1 | 0 | 0 | 1 | 5 | 1 | 2 | 1 |'));
+  // The header counts it apart from the branches that are ok.
+  assert.ok(out.includes('Branches: 2 (1 ok, 1 lint-failed, 0 error).'));
   const details = report.split('## sysbio-main (`1234567ab`)\n')[1];
   assert.match(details, /^### Lint failed$/m);
   assert.match(details, /^- src\/x\.js:1: unexpected ESLint message \(fatal\): Parsing error$/m);
@@ -136,6 +138,7 @@ test('renderPortalReport: an error row names the message and the other rows stil
   assert.ok(out.includes('| cfde-main | `7ecb0a802` | ok | 12 | 5 | 9 | 3 | 1 | 0 | 1 | 0 | 1 | 0 | 0 | 1 | 4 | 1 | 0 | no |'));
   assert.ok(out.includes('| matkp-main | `abc123def` | ok | 3 | 2 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 2 | no |'));
   assert.ok(out.includes('| **total** |  | 2 ok, 1 error | 15 | 7 | 12 | 3 | 1 | 0 | 1 | 0 | 1 | 0 | 0 | 1 | 5 | 1 | 2 | 0 |'));
+  assert.ok(out.includes('Branches: 3 (2 ok, 0 lint-failed, 1 error).'));
   const details = report.split('## mouse-main\n')[1].split('\n## ')[0];
   assert.match(details, /^Error: fatal: invalid reference: origin\/mouse-main more$/m);
 });

@@ -408,6 +408,18 @@ test('a throw from applyRegistrations is a failure with its message; the other f
   });
 });
 
+test('an options object with two components keys is a failure; the other files are still written', async () => {
+  const twice = TEMPLATE.replace('name: "Template",', 'name: "Template",\n    components: {},\n    props: [],\n    components: {},');
+  await withRoot({ ...FIXTURE, 'src/views/P/Template.vue': twice }, async (root) => {
+    const real = await cli(root);
+    assert.equal(real.code, 1);
+    const failed = real.out.split('## Failed')[1].split('\n## ')[0];
+    assert.match(failed, /^- `src\/views\/P\/Template\.vue`: the component options have 2 `components` keys/m);
+    assert.deepEqual(real.writes, [join(root, 'src/components/A.vue')]);
+    assert.equal(read(root, 'src/views/P/Template.vue'), twice);
+  });
+});
+
 test('a write that throws is a failure; the other files are still written', async () => {
   await withRoot(FIXTURE, async (root) => {
     const write = (path, text) => {

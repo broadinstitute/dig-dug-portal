@@ -775,6 +775,15 @@ test('a components value that is not an object literal is refused', () => {
   }
 });
 
+// The lint reads the first `components` key and Vue the last; the writer must not pick one (M3, the Task 7 bug).
+test('an options object with more than one components key is refused', () => {
+  refuses(
+    text('<script>', 'export default {', '    components: { A },', '    props: [],', '    "components": {},', '};', '</script>'),
+    /2 `components` keys/,
+  );
+  refuses(text('<script>', 'export default Vue.component("x", { components: {}, components: { B } });', '</script>'), /2 `components` keys/);
+});
+
 test('an options object with a spread is refused', () => {
   refuses(text('<script>', 'export default {', '    ...mixin,', '};', '</script>'), /spread/);
 });

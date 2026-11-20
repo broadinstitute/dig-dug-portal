@@ -41,16 +41,19 @@ Vue 2 warns `Unknown custom element` only in a development build, and the compar
 console error the baseline lacks. So a component that a change forgot to register shows up only
 when both builds are development builds. Run the same steps with these in place of 3 to 5:
 
-1. `npm run build`: the development build of the candidate, into `dist/`.
-2. `npm run e2e:baseline -- origin/master --mode development`: the baseline, built the same way.
-3. `npx playwright test --project=chromium`
+3. `npm run build`: the development build of the candidate, into `dist/`.
+4. `npm run e2e:baseline -- origin/master --mode development`: the baseline, built the same way.
+5. `npx playwright test --project=chromium`
 
 The compare run takes about ten minutes: `compare.spec.mjs` is one file, so it runs on one worker
 and `--shard` cannot split it.
 
-Build both sides in the same mode. A development build logs warnings that a production build never
-does, so comparing across modes fails on noise. `.baseline-ref` records the commit but not the
-mode, so nothing warns you if they differ.
+Always rebuild both sides in the same mode. A development baseline against a production candidate
+passes silently: the compare fails only on errors the candidate has and the baseline lacks, and a
+production candidate never logs the development-only warnings (`Unknown custom element` among
+them), so the very errors the development variant exists to catch cannot show up. The other way
+round, a production baseline against a development candidate, fails on those warnings.
+`.baseline-ref` records the commit but not the mode, so nothing warns you if they differ.
 
 ### Pitfalls
 

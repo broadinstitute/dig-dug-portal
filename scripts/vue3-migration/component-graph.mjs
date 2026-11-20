@@ -22,7 +22,11 @@ import { compileTemplate, parse as parseSfc } from 'vue/compiler-sfc';
 
 /**
  * One `Vue.component(...)` call, or one component that has a name but no global registration.
- *  - `definition`: `Vue.component("name", { ... })`, the component is defined in place.
+ *  - `definition`: `export default Vue.component("name", { ... })`, the component is defined in place and is
+ *    the file's default export (what an `import` of the file gets).
+ *  - `unexported`: `Vue.component("name", { ... })` anywhere else (a second component in the file, or one
+ *    exported later through a variable). It registers the name when it runs, but importing the file does
+ *    not give that component, so the planner does not count it as a definition.
  *  - `alias`: `Vue.component("name", Identifier)`; `source` is the import specifier the
  *    identifier comes from, or `null` when it is not imported.
  *  - `named`: a `.vue` file whose default export is a plain options object with a string-literal `name`,
@@ -30,7 +34,7 @@ import { compileTemplate, parse as parseSfc } from 'vue/compiler-sfc';
  *    written that way by hand. It registers nothing globally; it is recorded so that a tag can be matched
  *    against it (the planner's `phase-2-present`).
  * `name` is the string as written; the map from `scanRegistrations` is keyed by `toKebab(name)`.
- * @typedef {{ file: string, name: string, kind: 'definition' }
+ * @typedef {{ file: string, name: string, kind: 'definition' | 'unexported' }
  *   | { file: string, name: string, kind: 'alias', source: string | null }
  *   | { file: string, name: string, kind: 'named' }} Registration
  */
@@ -272,7 +276,7 @@ function collect(file, ast, code, found) {
   const named = file.endsWith('.vue') ? exportedName(ast.program) : null;
   if (named !== null) found.registrations.push({ file, name: named, kind: 'named' });
 
-  walk(ast.program, (node) => {
+  walk(ast.program, (node, parent) => {
     if (node.type === 'ImportDeclaration' || node.type === 'ExportAllDeclaration' || node.type === 'ExportNamedDeclaration') {
       if (node.source) found.specifiers.push(node.source.value);
     } else if (node.type === 'CallExpression') {
@@ -288,7 +292,8 @@ function collect(file, ast, code, found) {
         if (name === null) {
           problem(node, 'Vue.component(): first argument is not a string literal');
         } else if (second.type === 'ObjectExpression') {
-          found.registrations.push({ file, name, kind: 'definition' });
+          const kind = parent?.type === 'ExportDefaultDeclaration' ? 'definition' : 'unexported';
+          found.registrations.push({ file, name, kind });
         } else if (second.type === 'Identifier') {
           found.registrations.push({ file, name, kind: 'alias', source: importedFrom.get(second.name) ?? null });
         } else {

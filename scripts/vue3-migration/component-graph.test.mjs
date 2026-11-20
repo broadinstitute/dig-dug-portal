@@ -107,6 +107,22 @@ test('scanRegistrations records a .vue whose default export is an options object
   assert.deepEqual(regs.get('wrapped'), [{ file: 'src/components/Wrapped.vue', name: 'wrapped', kind: 'definition' }]);
 });
 
+// The planner imports a definition's file by its default export, so only `export default Vue.component(...)`
+// is a definition; any other `Vue.component("x", {...})` defines a component the file does not export (M2).
+test('a Vue.component definition that is not the export default is recorded as unexported', () => {
+  const regs = scanRegistrations(
+    srcs({
+      'src/components/Multi.vue': sfc(`Vue.component("inner-thing", { template: "<i/>" });\nexport default Vue.component("outer-thing", {});`),
+      'src/components/Later.vue': sfc(`const Later = Vue.component("later-thing", {});\nexport default Later;`),
+      'src/utils/reg.js': `Vue.component("from-js", {});`,
+    }),
+  );
+  assert.deepEqual(regs.get('outer-thing'), [{ file: 'src/components/Multi.vue', name: 'outer-thing', kind: 'definition' }]);
+  assert.deepEqual(regs.get('inner-thing'), [{ file: 'src/components/Multi.vue', name: 'inner-thing', kind: 'unexported' }]);
+  assert.deepEqual(regs.get('later-thing'), [{ file: 'src/components/Later.vue', name: 'later-thing', kind: 'unexported' }]);
+  assert.deepEqual(regs.get('from-js'), [{ file: 'src/utils/reg.js', name: 'from-js', kind: 'unexported' }]);
+});
+
 test('scanRegistrations keys a PascalCase name by its kebab form and keeps the name as written', () => {
   const regs = scanRegistrations(srcs({ 'src/components/D.vue': sfc(`export default Vue.component("DownloadChart", {});`) }));
   assert.deepEqual([...regs.keys()], ['download-chart']);

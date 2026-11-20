@@ -424,6 +424,57 @@ test('not-loaded is decided after the target is chosen and self, and before scri
   assert.deepEqual(loop.unresolved.map(({ reason }) => reason), ['not-loaded']);
 });
 
+// ---- unexported: Vue.component("x", {...}) that is not the file's export default (M2) ----------------
+
+const unexported = (file, name) => ({ file, name, kind: 'unexported' });
+
+test('a name whose only registration is unexported is no-registration: the file exports another component', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('inner-thing', 3)] },
+    registrations: [unexported(COMP_A, 'inner-thing')],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: PAGE, line: 3, tag: 'inner-thing', reason: 'no-registration' }]);
+});
+
+test('an unexported registration is no definition and loads nothing: a page that has only it is not-loaded', () => {
+  const other = 'src/components/Other.vue';
+  const result = plan({
+    uses: { [FILE_F]: [use('comp-t', 2)] },
+    registrations: [definition(COMP_T, 'comp-t'), unexported(other, 'comp-t')],
+    imports: { [PAGE_P1]: [FILE_F, COMP_T], [PAGE_P2]: [FILE_F, other], [FILE_F]: [], [COMP_T]: [], [other]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  assert.equal(result.edits.size, 0);
+  assert.deepEqual(result.unresolved, [{ file: FILE_F, line: 2, tag: 'comp-t', reason: 'not-loaded', pages: [PAGE_P2] }]);
+  // Where every page loads the one definition, it is the target, as with no unexported registration.
+  const loaded = plan({
+    uses: { [FILE_F]: [use('comp-t', 2)] },
+    registrations: [definition(COMP_T, 'comp-t'), unexported(other, 'comp-t')],
+    imports: { [PAGE_P1]: [FILE_F, COMP_T, other], [FILE_F]: [], [COMP_T]: [], [other]: [] },
+    pages: [PAGE_P1],
+  });
+  assert.deepEqual(loaded.edits.get(FILE_F), [{ tag: 'comp-t', key: 'CompT', source: '@/components/T.vue' }]);
+});
+
+test('on real sources, a component defined beside the export default is not imported as that file', () => {
+  const sources = new Map([
+    ['src/views/P/main.js', 'import "./Template.vue";\nimport "@/components/Multi.vue";'],
+    ['src/views/P/Template.vue', '<template><div><inner-thing /><outer-thing /></div></template>'],
+    ['src/components/Multi.vue', '<script>\nVue.component("inner-thing", { template: "<i/>" });\nexport default Vue.component("outer-thing", {});\n</script>'],
+  ]);
+  const { registrations, imports } = analyzeSources(sources);
+  const { edits, unresolved } = planRegistrations({
+    uses: new Map([['src/views/P/Template.vue', [use('inner-thing', 1), use('outer-thing', 1)]]]),
+    registrations,
+    imports,
+    pages: pageEntries(sources),
+    scriptSetupFiles: scriptSetupFiles(sources),
+  });
+  assert.deepEqual(edits.get('src/views/P/Template.vue'), [{ tag: 'outer-thing', key: 'OuterThing', source: '@/components/Multi.vue' }]);
+  assert.deepEqual(unresolved, [{ file: 'src/views/P/Template.vue', line: 1, tag: 'inner-thing', reason: 'no-registration' }]);
+});
+
 test('REASONS lists every reason in the order the rules decide them', () => {
   assert.deepEqual(REASONS, ['no-registration', 'phase-2-present', 'ambiguous', 'self', 'not-loaded', 'script-setup', 'cycle']);
 });

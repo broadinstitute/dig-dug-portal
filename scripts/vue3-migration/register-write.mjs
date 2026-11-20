@@ -209,12 +209,16 @@ function optionsObject(body, fail) {
   return fail('the script has no `export default { ... }` or `export default Vue.component("name", { ... })` to add `components` to');
 }
 
-/** The `components` property of the options (the last one wins), or null. */
+/** The `components` property of the options, or null. Refuses more than one: the lint reads the first, Vue the last. */
 function componentsProperty(options, fail) {
   if (options.properties.some(({ type }) => type === 'SpreadElement')) {
     fail('the component options contain a spread, so where `components` comes from is unclear');
   }
-  const found = options.properties.filter((property) => keyName(property) === 'components').at(-1);
+  const all = options.properties.filter((property) => keyName(property) === 'components');
+  if (all.length > 1) {
+    fail(`the component options have ${all.length} \`components\` keys (the lint reads the first, Vue uses the last); merge them by hand`);
+  }
+  const [found] = all;
   if (found && (found.type !== 'ObjectProperty' || found.value.type !== 'ObjectExpression')) {
     fail('`components` is not an object literal');
   }
@@ -362,7 +366,8 @@ export function splice(source, edits) {
  * Throws an `Error` that starts with `<file>: ` for a shape it will not guess at: two `<script>`
  * blocks, `<script setup>`, `lang="ts"`, a `<script src>`, a script that does not parse, no
  * `export default` of those two forms, a spread in the options, a `components` that is not an
- * object literal, no `<template>` to put a script after, or two entries with one key.
+ * object literal, more than one `components` key, no `<template>` to put a script after, or two
+ * entries with one key.
  * With no entries it returns at once and checks nothing.
  * @param {string} source the `.vue` file's text
  * @param {import('./register-plan.mjs').Entry[]} entries the registrations to add, as planned for this file
