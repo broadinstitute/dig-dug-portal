@@ -14,7 +14,7 @@
               <span>{{ this.maxExp }}</span>
             </div>
         </div>
-        <div style="display:inline-block; width:35%;" class="legend" v-if="sampleGroups.length > 0">
+        <div style="display:inline-block; width:35%;" class="legend" v-if="sampleGroups.length > 0 && !isNumeric">
             <strong>Sample groups</strong>
             <div style="display:flex; margin-top:10px">
               <template v-for="(sample, sIndex) in sampleGroups" >
@@ -65,12 +65,11 @@ export default Vue.component("bulk-heatmap", {
           minExp: null,
           maxExp: null,
           colorScaleArray: [],
+          compField: null,
           sampleCharacters: ["▒", "█"], // for additional visual data besides color
           sampleColors: [
                 "rgb(092 174 000)",
                 "rgb(116 040 129)"], // Green and purple sample labels for colorblind accessibility
-          
-        
         };
     },
     computed: {
@@ -93,14 +92,25 @@ export default Vue.component("bulk-heatmap", {
             let output = {};
             for (let i = 0; i < this.samplesColumns.length; i++){
                 let sample = this.samplesColumns[i];
+                let groupIndex = indices[i];
                 let groupInfo = {
                     sample: sample,
-                    groupIndex: indices[i],
-                    group: this.sampleGroups[indices[i]]
+                    group: this.sampleGroups[groupIndex]
                 }
+                // If the groups are already numeric (i.e. age) use them as indices
+                groupInfo.groupIndex = this.isNumeric ? groupInfo.group : groupIndex;
                 output[sample] = groupInfo;
             }
             return output;
+        },
+        isNumeric(){
+            for (let i = 0; i < this.sampleGroups.length; i++){
+                let item = this.sampleGroups[i];
+                if (isNaN(parseFloat(item))){
+                    return false;
+                }
+            }
+            return true;
         }
     },
     methods: {
@@ -139,14 +149,24 @@ export default Vue.component("bulk-heatmap", {
               .range([ 0, width ])
               .domain(this.sortedSamples) // Pass sorted samples so the domain comes out sorted
               .padding(0.01);
+        
+            let labelingInterval = Math.round(this.sortedSamples.length / 5);
+            let labelingIndex = 0;
           this.svg.append("g")
               .attr("transform", "translate(0," + height + ")")
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
-                      .style("text-anchor", "start")
+                      .style("text-anchor", "middle")
                       .style("fill", d => this.getColor(d))
                       .attr('font-size', this.fontSize)
-                      .text("");
+                      .text(!this.isNumeric ? "" : d => {
+                        let group = this.diseaseMap[d].group;
+                        let shouldLabel = 
+                            labelingIndex % labelingInterval === 0;
+                        let label = shouldLabel ? group : "";
+                        labelingIndex = labelingIndex + 1;
+                        return label;
+                      });
 
           // Build Y scales and axis:
           let selectedGene = this.selectedGene
@@ -194,7 +214,7 @@ export default Vue.component("bulk-heatmap", {
 
           // Building the heatmap
           this.svg.selectAll()
-              .data(collatedData, function(d) {return d.sample+':'+d.expression;})
+              .data(collatedData, function(d) {return d.sample+':'+d.expval;})
               .enter()
               .append("rect")
                   .attr("id", d => d.gene)
@@ -203,7 +223,7 @@ export default Vue.component("bulk-heatmap", {
                   .attr("y", function(d) { return y(d.gene) })
                   .attr("width", x.bandwidth() )
                   .attr("height", y.bandwidth() )
-                  .style("fill", function(d) { return colorScale(d.expression)} )
+                  .style("fill", function(d) { return colorScale(d.expval)} )
                   .on("mouseover", d => this.showTooltip(d))
                   .on("mouseleave", d=> mouseTooltip.hide())
                   .on("click", d => this.clickSquare(d));
@@ -213,12 +233,11 @@ export default Vue.component("bulk-heatmap", {
 				.attr("transform", "translate(0,0)")
                 .style("text-anchor", "end");
 
-
 			this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", ((width / 2)))
 				.attr("y", (height + 50))
-				.text("Sample group");
+				.text(this.compField.startsWith("disease") ? "Sample group" : this.compField);
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")
@@ -254,16 +273,16 @@ export default Vue.component("bulk-heatmap", {
                     minExp = (currentExp < minExp) || minExp === null ? currentExp : minExp;
                     maxExp = (currentExp > maxExp) || maxExp === null ? currentExp : maxExp;
 
-                    let expressionEntry = {
+                    let expvalEntry = {
                         gene: item.gene,
                         sample: sample,
                         condition: sample.split("_")[0],
-                        expression: currentExp,
+                        expval: currentExp,
                         group: groupInfo.group,
                         groupIndex: groupInfo.groupIndex
                     };
 
-                    outputData.push(expressionEntry);
+                    outputData.push(expvalEntry);
                 })
             });
 
@@ -282,10 +301,10 @@ export default Vue.component("bulk-heatmap", {
         let condition = this.diseaseMap[sample].group;
         tooltipHtml = tooltipHtml.concat(
             `<div>Condition: ${condition}<div>`);
-        let expression = classes[1].replace("expr_", "");
-        expression = expression.replace("dot", ".");
+        let expval = classes[1].replace("expr_", "");
+        expval = expval.replace("dot", ".");
         tooltipHtml = tooltipHtml.concat(
-          `<div>RUV-normalized counts: ${expression}</div>`);
+          `<div>RUV-normalized counts: ${expval}</div>`);
         mouseTooltip.show(tooltipHtml);
       },
       clickSquare(event){
@@ -293,7 +312,7 @@ export default Vue.component("bulk-heatmap", {
         this.$emit("highlight", gene);
       },
       dataToClass(value){
-        let expr = `expr_${value.expression}`.replaceAll(".", "dot");
+        let expr = `expr_${value.expval}`.replaceAll(".", "dot");
         return `${value.sample} ${expr}`;
     },
     },
@@ -301,6 +320,7 @@ export default Vue.component("bulk-heatmap", {
       plotData:{
             handler(newData, oldData){
                 if(newData !== oldData){
+                    this.compField = newData[0].comparison_field;
                     this.drawHeatMap();
                 }
             },
