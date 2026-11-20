@@ -27,6 +27,10 @@ const WITH_REFUSAL = {
   phase2: { files: 4, refused: [{ file: 'src/components/Ts.vue', message: 'has a <script lang="ts"> block, which is not plain JavaScript' }] },
   analysisErrors: [],
   lintError: null,
+  checkByHand: [
+    { file: 'src/components/Pick.vue', line: 3, kind: ':is', expression: 'current' },
+    { file: 'src/views/Gene/main.js', line: 40, kind: 'createElement', expression: 'Template' },
+  ],
 };
 
 /** A branch with two analysis errors and nothing unresolved. */
@@ -40,6 +44,7 @@ const WITH_ANALYSIS_ERRORS = {
     { file: 'src/dyn.js', line: 12, kind: 'registration', message: 'Vue.component(name, ...) needs a string literal' },
   ],
   lintError: null,
+  checkByHand: [],
 };
 
 const lines = (report) => report.split('\n');
@@ -91,9 +96,14 @@ test('renderPortalReport: the details list every unresolved use, phase 2 refusal
   assert.match(first, /^- `src\/components\/Ts\.vue`: has a <script lang="ts"> block, which is not plain JavaScript$/m);
   assert.match(first, /^### Analysis errors \(0\)$/m);
   assert.doesNotMatch(first, /### Lint failed/);
+  // Runtime component choices, for the sync point's hand checks (I3).
+  assert.match(first, /^### Check by hand \(2\)$/m);
+  assert.match(first, /^\| `src\/components\/Pick\.vue:3` \| `:is` \| `current` \|$/m);
+  assert.match(first, /^\| `src\/views\/Gene\/main\.js:40` \| `createElement` \| `Template` \|$/m);
 
   const second = report.split('## matkp-main (`abc123def`)\n')[1];
   assert.match(second, /^### Unresolved uses \(0\)\n\nNone\.$/m);
+  assert.match(second, /^### Check by hand \(0\)\n\nNone\.$/m);
   assert.match(second, /^### Analysis errors \(2\)$/m);
   assert.match(second, /^- `src\/bad\.js` \(parse\): Unexpected token \(3:1\)$/m);
   assert.match(second, /^- `src\/dyn\.js:12` \(registration\): Vue\.component\(name, \.\.\.\) needs a string literal$/m);
@@ -158,6 +168,7 @@ const ANALYSIS = {
   phase2: { files: 1, refused: [] },
   analysisErrors: [],
   lintError: null,
+  checkByHand: [],
 };
 
 /** Seams for `run`: no git, no worktrees, no ESLint. `calls` records what was asked of them, in order. */
@@ -377,6 +388,13 @@ test('analyzeTree: phase 1 counts what it would change and lists what it cannot 
     assert.deepEqual(phase1.failed, []);
     assert.deepEqual(analysisErrors, []);
     assert.equal(lintError, null);
+  });
+});
+
+test('analyzeTree: lists the runtime component choices to check by hand', async () => {
+  await withRoot(TREE, async (root) => {
+    const { checkByHand } = await analyzeTree(root, { lint: lintTree });
+    assert.deepEqual(checkByHand, [{ file: 'src/views/P/main.js', line: 5, kind: 'h', expression: 'Template' }]);
   });
 });
 

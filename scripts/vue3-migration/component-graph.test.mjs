@@ -261,6 +261,68 @@ test('scanRegistrations and scanImports push their errors into the array they ar
   assert.doesNotThrow(() => scanImports(sources));
 });
 
+// ---- runtime choices: components picked at run time, which the lint cannot see (I3) ------------------
+
+test('analyzeSources lists every template is binding, with its value and line, wherever the element is', () => {
+  const template = [
+    '<template>',
+    '  <div>',
+    '    <component :is="current" />',
+    '    <tr is="my-row"></tr>',
+    '    <p v-if="a">x</p>',
+    '    <section v-else v-bind:is="\'x-\' + kind">y</section>',
+    '    <child>',
+    '      <template v-slot:cell="{ row }"><component :is="row.view" /></template>',
+    '    </child>',
+    '    <span data-is="not-an-is" this="no">z</span>',
+    '  </div>',
+    '</template>',
+  ].join('\n');
+  const { runtimeChoices } = analyzeSources(srcs({ 'src/components/Pick.vue': `${template}\n<script>\nexport default {};\n</script>\n` }));
+  assert.deepEqual(runtimeChoices, [
+    { file: 'src/components/Pick.vue', line: 3, kind: ':is', expression: 'current' },
+    { file: 'src/components/Pick.vue', line: 4, kind: 'is', expression: 'my-row' },
+    { file: 'src/components/Pick.vue', line: 6, kind: 'v-bind:is', expression: "'x-' + kind" },
+    { file: 'src/components/Pick.vue', line: 8, kind: ':is', expression: 'row.view' },
+  ]);
+});
+
+test('analyzeSources lists render calls given a tag name with a dash or anything but a literal, and nothing else', () => {
+  const script = [
+    'export default {',
+    '  render(h) {',
+    '    if (this.a) return h("my-comp", { props: {} });',
+    '    if (this.b) return h(this.pick);',
+    '    if (this.c) return this.$createElement(`x-${this.kind}`);',
+    '    if (this.d) return h("div", [h("Plain"), h(`tpl-name`), h({ render: () => null }), h()]);',
+    '    document.createElement(this.tag);',
+    '    return null;',
+    '  },',
+    '};',
+  ].join('\n');
+  const { runtimeChoices } = analyzeSources(
+    srcs({
+      'src/components/Render.vue': sfc(script),
+      'src/views/P/main.js': 'import Template from "./Template.vue";\nnew Vue({ render: (createElement) => createElement(Template) });',
+    }),
+  );
+  assert.deepEqual(runtimeChoices, [
+    { file: 'src/components/Render.vue', line: 5, kind: 'h', expression: '"my-comp"' },
+    { file: 'src/components/Render.vue', line: 6, kind: 'h', expression: 'this.pick' },
+    { file: 'src/components/Render.vue', line: 7, kind: 'this.$createElement', expression: '`x-${this.kind}`' },
+    { file: 'src/components/Render.vue', line: 8, kind: 'h', expression: '`tpl-name`' },
+    { file: 'src/views/P/main.js', line: 2, kind: 'createElement', expression: 'Template' },
+  ]);
+});
+
+test('a template that cannot be read is a runtime choice to check, not a silent gap', () => {
+  const { runtimeChoices, errors } = analyzeSources(
+    srcs({ 'src/components/Pug.vue': '<template lang="pug">\ndiv\n  component(:is="x")\n</template>\n<script>\nexport default {};\n</script>\n' }),
+  );
+  assert.deepEqual(runtimeChoices, [{ file: 'src/components/Pug.vue', line: 1, kind: 'template', expression: 'not scanned: <template lang="pug">' }]);
+  assert.deepEqual(errors, []);
+});
+
 test('scanImports resolves @/ and relative specifiers, require() and import(), and drops packages', () => {
   const sources = srcs({
     'src/components/A.vue': sfc(''),

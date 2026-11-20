@@ -9,8 +9,10 @@
 // the lint rule `vue/no-undef-components` reports, this finds the component (`register-plan.mjs`)
 // and adds `import X from "..."` and `components: { X }` to the file (`register-write.mjs`).
 //
-// The report is markdown on stdout: totals, the uses that could not be planned (and why), failures,
-// analysis errors, a lint failure, and the files changed (or, in a dry run, the files that would change).
+// The report is markdown on stdout: totals, the uses that could not be planned (and why), the components
+// chosen at run time to check by hand (template `is` bindings and render calls; informational, they do not
+// change the exit code), failures, analysis errors, a lint failure, and the files changed (or, in a dry
+// run, the files that would change).
 //
 //   - A changed file is parsed again before it is written: no SFC error that the original did not
 //     already have (the Vue 2 SFC parser warns about valid void tags such as `<img>`, so a plain "no
@@ -112,7 +114,12 @@ export function assertParses(file, before, after) {
 
 export const oneLine = (text) => String(text).replace(/\s+/g, ' ').trim();
 export const cell = (text) => text.replaceAll('|', '\\|');
-export const code = (text) => `\`${text}\``;
+/** A markdown code span. Text that holds backticks is fenced with one more than its longest run of them. */
+export function code(text) {
+  const longest = Math.max(0, ...[...text.matchAll(/`+/g)].map(([run]) => run.length));
+  const pad = longest > 0 ? ' ' : '';
+  return `${'`'.repeat(longest + 1)}${pad}${text}${pad}${'`'.repeat(longest + 1)}`;
+}
 /**
  * A page entry (see `pageEntries`) as the reports name it: its folder under `src/views/`
  * (`src/views/VariantSearch/main.js` -> `VariantSearch`), or for a page anywhere else its folder under
@@ -136,11 +143,24 @@ export function unresolvedTable(unresolved) {
   return lines;
 }
 
+/** What the Check by hand sections say before their table. */
+export const CHECK_BY_HAND =
+  'Components chosen at run time: the lint cannot see them, so they are not planned. Once components are no longer registered globally (phase 2), each of these must still find its component, so check them by hand. Listed: every template `is` binding, and every render call (`h`, `createElement`) given a tag name with a `-` or anything but a literal.';
+
+/** The lines of the table of runtime component choices (`RuntimeChoice`, see `analyzeSources`), header included. */
+export function checkByHandTable(choices) {
+  const lines = ['| file:line | kind | expression |', '| --- | --- | --- |'];
+  for (const { file, line, kind, expression } of choices) {
+    lines.push(`| ${cell(code(`${file}:${line}`))} | ${cell(code(kind))} | ${cell(code(expression))} |`);
+  }
+  return lines;
+}
+
 /** One analysis error (see `analyzeSources`) as a list item of a report. */
 export const analysisErrorLine = ({ file, line, kind, message }) =>
   `- ${code(line === undefined ? file : `${file}:${line}`)} (${kind}): ${oneLine(message)}`;
 
-function renderReport({ dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError, phaseTwo }) {
+function renderReport({ dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError, phaseTwo, runtimeChoices }) {
   const entries = changes.reduce((sum, { entries: count }) => sum + count, 0);
   const lines = [
     `# Register components${dryRun ? ' (dry run)' : ''}`,
@@ -156,6 +176,7 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
     const count = plan.unresolved.filter((item) => item.reason === reason).length;
     if (count > 0) lines.push(`| Unresolved: ${reason} | ${count} |`);
   }
+  lines.push(`| Check by hand | ${runtimeChoices.length} |`);
 
   lines.push('', '## Unresolved', '');
   if (lintError !== null) {
@@ -176,6 +197,10 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
       dryRun ? 'A real run would write nothing.' : 'Nothing was written.',
     );
   }
+
+  lines.push('', '## Check by hand', '');
+  if (runtimeChoices.length === 0) lines.push('None.');
+  else lines.push(CHECK_BY_HAND, '', ...checkByHandTable(runtimeChoices));
 
   if (failures.length > 0) {
     lines.push('', '## Failed', '');
@@ -210,6 +235,7 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
  *  - `changes`: one per file that would change, `{ file, source, entries }` (`source` is its new text);
  *  - `failures`: files whose registrations could not be applied or did not parse again, sorted by file;
  *  - `analysisErrors`: what the scan of the tree found (a script that does not parse, say);
+ *  - `runtimeChoices`: the components chosen at run time, for a person to check (see `analyzeSources`);
  *  - `lintError`: the lint's message on one line when ESLint could not lint the tree, else `null`. This
  *    does not reject: the scan's errors are still returned, and `uses` is empty.
  *
@@ -220,7 +246,7 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
  */
 export async function analyzePhaseOne(root, { apply = applyRegistrations, lint = undefinedTags } = {}) {
   const sources = readSources(root);
-  const { registrations, imports, errors: analysisErrors } = analyzeSources(sources);
+  const { registrations, imports, errors: analysisErrors, runtimeChoices } = analyzeSources(sources);
   // ESLint cannot lint a script that does not parse. The scan above has already listed that file, so a
   // lint failure is reported beside the analysis errors rather than thrown over them.
   let uses = new Map();
@@ -254,7 +280,7 @@ export async function analyzePhaseOne(root, { apply = applyRegistrations, lint =
   failures.sort((a, b) => byCodeUnit(a.file, b.file));
 
   const findings = [...uses.values()].reduce((sum, list) => sum + list.length, 0);
-  return { sources, uses, findings, plan, changes, failures, analysisErrors, lintError };
+  return { sources, uses, findings, plan, changes, failures, analysisErrors, lintError, runtimeChoices };
 }
 
 /**
@@ -300,7 +326,7 @@ export async function run(argv, deps = {}) {
     return 2;
   }
 
-  const { findings, plan, changes, failures, analysisErrors, lintError } = await analyzePhaseOne(root, { apply, lint });
+  const { findings, plan, changes, failures, analysisErrors, lintError, runtimeChoices } = await analyzePhaseOne(root, { apply, lint });
 
   // Partial knowledge could settle a duplicate name wrongly, so analysis errors block every write, and so
   // does phase 2 output in the tree: a component it unwrapped no longer shows where it is registered.
@@ -319,7 +345,9 @@ export async function run(argv, deps = {}) {
   }
   failures.sort((a, b) => byCodeUnit(a.file, b.file));
 
-  out.write(renderReport({ dryRun: options.dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError, phaseTwo }));
+  out.write(
+    renderReport({ dryRun: options.dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError, phaseTwo, runtimeChoices }),
+  );
 
   if (failures.length > 0) err.write(`register-components: ${failures.length} file(s) failed; see the Failed section of the report\n`);
   if (analysisErrors.length > 0) {

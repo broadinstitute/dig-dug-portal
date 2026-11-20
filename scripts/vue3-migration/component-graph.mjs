@@ -6,6 +6,8 @@
 //   - which local files does each file import?
 //   - which files are page entries (every `main.js` under `src/`) and what does each one pull in?
 //   - which files import each other in a loop?
+// It also lists the components a file chooses at run time (`runtimeChoices` of `analyzeSources`), which no
+// lint finds, for a person to check.
 //
 // All paths are relative to `root`, with forward slashes (`src/components/A.vue`).
 //
@@ -16,7 +18,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { parse as parseBabel } from '@babel/parser';
-import { parse as parseSfc } from 'vue/compiler-sfc';
+import { compileTemplate, parse as parseSfc } from 'vue/compiler-sfc';
 
 /**
  * One `Vue.component(...)` call, or one component that has a name but no global registration.
@@ -42,12 +44,32 @@ import { parse as parseSfc } from 'vue/compiler-sfc';
  * @typedef {{ file: string, kind: 'parse' | 'registration', message: string, line?: number }} ScanError
  */
 
+/**
+ * A component chosen at run time, which `vue/no-undef-components` cannot see and the codemods do not plan.
+ * Once registrations are local, each one has to find its component another way, so a person checks it.
+ *  - `kind` `is`, `:is` or `v-bind:is`: that template attribute, as written; `expression` is its value.
+ *  - `kind` `h`, `createElement` or `<object>.$createElement` (the callee as written): a render call whose
+ *    first argument is a string literal with a `-` in it, or not a literal at all (a string or template
+ *    literal without a `-`, a number, `null`, a boolean and an object literal are literals);
+ *    `expression` is that argument's source, on one line.
+ *  - `kind` `template`: a `<template>` that was not scanned (`lang` other than html, `src`, or the template
+ *    compiler threw); `expression` says why.
+ * `line` is the 1-based line in the file.
+ * @typedef {{ file: string, line: number, kind: string, expression: string }} RuntimeChoice
+ */
+
 const SCRIPT_FILE = /\.(vue|js)$/;
 // Any `main.js` under `src/`: master's pages are `src/views/<Page>/main.js`, most portal branches also have
 // `src/portals/<Portal>/views/<Page>/main.js`. See `pageEntries`.
 const PAGE_ENTRY = /^src\/(?:.+\/)?main\.js$/;
 // Tried in this order against the files that exist (webpack resolves `.vue` before `.js`).
 const EXTENSIONS = ['', '.vue', '.js', '/index.js', '/index.vue'];
+// Template attributes that choose the component, as the template compiler's `rawAttrsMap` keys them.
+const IS_ATTRIBUTES = new Set([':is', 'is', 'v-bind:is']);
+// Render functions that take a tag or a component as their first argument.
+const RENDER_FUNCTIONS = new Set(['createElement', 'h']);
+// First arguments of a render call that are literals besides strings (a string without a `-` is an element).
+const LITERAL_TYPES = new Set(['BooleanLiteral', 'NullLiteral', 'NumericLiteral', 'ObjectExpression']);
 // Babel node keys that hold positions, comments or bookkeeping rather than child nodes.
 const SKIP_KEYS = new Set(['loc', 'extra', 'leadingComments', 'trailingComments', 'innerComments', 'errors']);
 
@@ -174,8 +196,71 @@ function exportedName(program) {
   return name?.type === 'ObjectProperty' ? stringValue(name.value) : null;
 }
 
+const oneLine = (text) => text.replace(/\s+/g, ' ').trim();
+
+/** The callee of a render call as written (`h`, `createElement`, `this.$createElement`), or null. */
+function renderFunction(callee, code) {
+  if (callee.type === 'Identifier') return RENDER_FUNCTIONS.has(callee.name) ? callee.name : null;
+  const isCreateElement = callee.type === 'MemberExpression' && !callee.computed && callee.property.name === '$createElement';
+  return isCreateElement ? code.slice(callee.start, callee.end) : null;
+}
+
+/** Whether a render call's first argument names a component chosen at run time (see `RuntimeChoice`). */
+function chosenAtRunTime(argument) {
+  const text =
+    argument.type === 'StringLiteral' ? argument.value
+    : argument.type === 'TemplateLiteral' && argument.expressions.length === 0 ? argument.quasis[0].value.cooked
+    : null;
+  return text === null ? !LITERAL_TYPES.has(argument.type) : text.includes('-');
+}
+
+/**
+ * The template attributes of a `.vue` file that choose a component (see `RuntimeChoice`), with `column` for
+ * sorting. A template that does not parse as an SFC is the script scan's to report, so it gives nothing here.
+ */
+function templateChoices(file, source) {
+  let template;
+  try {
+    ({ template } = parseSfc({ source, filename: file }));
+  } catch {
+    return [];
+  }
+  if (!template) return [];
+  const linesBefore = (text, offset) => text.slice(0, offset).split('\n').length - 1;
+  const firstLine = linesBefore(source, template.start) + 1;
+  const notScanned = (why) => [{ file, line: firstLine, column: 0, kind: 'template', expression: `not scanned: ${why}` }];
+  const { lang, src } = template.attrs;
+  if (src !== undefined) return notScanned(`<template src="${src}">`);
+  if (lang !== undefined && lang !== 'html') return notScanned(`<template lang="${lang}">`);
+  let ast;
+  try {
+    ({ ast } = compileTemplate({ source: template.content, filename: file, prettify: false, compilerOptions: { outputSourceRange: true } }));
+  } catch (err) {
+    return notScanned(oneLine(err.message));
+  }
+  // The SFC parser de-indents the template and the compiler trims it, so positions are in that text. Both
+  // keep the line breaks, which is all a line number needs.
+  const { content } = template;
+  const leading = content.length - content.trimStart().length;
+  const found = [];
+  const visit = (element) => {
+    for (const [name, attribute] of Object.entries(element.rawAttrsMap ?? {})) {
+      if (!IS_ATTRIBUTES.has(name)) continue;
+      const offset = leading + attribute.start;
+      const column = offset - content.lastIndexOf('\n', offset - 1) - 1;
+      found.push({ file, line: firstLine + linesBefore(content, offset), column, kind: name, expression: attribute.value });
+    }
+    // `v-else` branches and slot templates are not among the children of the element they belong to.
+    for (const child of element.children ?? []) visit(child);
+    for (const { block } of element.ifConditions ?? []) if (block !== element) visit(block);
+    for (const slot of Object.values(element.scopedSlots ?? {})) visit(slot);
+  };
+  if (ast) visit(ast);
+  return found;
+}
+
 /** Registrations, import specifiers (unresolved) and registration problems found in one parsed script. */
-function collect(file, ast, found) {
+function collect(file, ast, code, found) {
   /** import identifier -> specifier */
   const importedFrom = new Map();
   for (const node of ast.program.body) {
@@ -195,6 +280,9 @@ function collect(file, ast, found) {
       if (node.callee.type === 'Import' || (node.callee.type === 'Identifier' && node.callee.name === 'require')) {
         const specifier = stringValue(first);
         if (specifier !== null) found.specifiers.push(specifier);
+      } else if (renderFunction(node.callee, code) !== null && first !== undefined && chosenAtRunTime(first)) {
+        const { line, column } = node.loc.start;
+        found.runtime.push({ file, line, column, kind: renderFunction(node.callee, code), expression: oneLine(code.slice(first.start, first.end)) });
       } else if (isVueComponentCall(node) && !isLookup(node)) {
         const name = stringValue(first);
         if (name === null) {
@@ -232,7 +320,7 @@ export function resolveImport(from, specifier, files) {
 
 /** Everything one file contributes. `specifiers` are the raw import strings, in source order. */
 function analyzeFile(file, source) {
-  const found = { registrations: [], specifiers: [], errors: [] };
+  const found = { registrations: [], specifiers: [], errors: [], runtime: file.endsWith('.vue') ? templateChoices(file, source) : [] };
   for (const block of scriptBlocks(file, source, found.errors)) {
     let ast;
     try {
@@ -245,7 +333,7 @@ function analyzeFile(file, source) {
     for (const err of ast.errors ?? []) {
       found.errors.push({ file, kind: 'parse', message: err.message, line: err.loc?.line });
     }
-    collect(file, ast, found);
+    collect(file, ast, block.content, found);
   }
   return found;
 }
@@ -254,7 +342,8 @@ function analyzeFile(file, source) {
  * One pass over every `.vue` and `.js` file in `sources`, in sorted file order. Prefer this to
  * calling `scanRegistrations` and `scanImports` separately: it parses each file once and returns
  * the errors for both. `registrations` holds the `Vue.component` definitions and aliases, and the
- * `named` components (see `Registration`).
+ * `named` components (see `Registration`). `runtimeChoices` lists the components chosen at run time (see
+ * `RuntimeChoice`), sorted by file, then by position.
  *
  * Errors are collected, not thrown, and the rest of the tree is still scanned:
  *  - A script block that does not parse contributes no imports and no registrations and gets one
@@ -267,16 +356,20 @@ function analyzeFile(file, source) {
  *    looks up an existing component and is ignored. `Vue.component(name)` and
  *    `Vue.component(...args)` are reported.
  * @param {Map<string, string>} sources file path -> source text
- * @returns {{ registrations: Map<string, Registration[]>, imports: Map<string, string[]>, errors: ScanError[] }}
+ * @returns {{ registrations: Map<string, Registration[]>, imports: Map<string, string[]>, errors: ScanError[],
+ *   runtimeChoices: RuntimeChoice[] }}
  */
 export function analyzeSources(sources) {
   const files = new Set(sources.keys());
   const byName = new Map();
   const imports = new Map();
   const errors = [];
+  const runtimeChoices = [];
   for (const file of [...sources.keys()].filter(hasScriptExtension).sort(byCodeUnit)) {
     const found = analyzeFile(file, sources.get(file));
     errors.push(...found.errors);
+    const inOrder = found.runtime.sort((a, b) => a.line - b.line || a.column - b.column);
+    runtimeChoices.push(...inOrder.map(({ column, ...choice }) => choice));
     const resolved = found.specifiers.map((specifier) => resolveImport(file, specifier, files)).filter((path) => path !== null);
     imports.set(file, [...new Set(resolved)]);
     for (const registration of found.registrations) {
@@ -286,7 +379,7 @@ export function analyzeSources(sources) {
     }
   }
   const registrations = new Map([...byName].sort(([a], [b]) => byCodeUnit(a, b)));
-  return { registrations, imports, errors };
+  return { registrations, imports, errors, runtimeChoices };
 }
 
 /**

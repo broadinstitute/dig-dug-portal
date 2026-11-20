@@ -235,6 +235,67 @@ test('a template warning the file already had does not fail the strict re-parse'
   });
 });
 
+// ---- check by hand: components chosen at run time (I3) ------------------------------------------------
+
+const PICKER = [
+  '<template>',
+  '  <div>',
+  '    <component :is="current" />',
+  '    <tr is="my-row"></tr>',
+  '    <section v-bind:is="kind" />',
+  '  </div>',
+  '</template>',
+  '<script>',
+  'export default {',
+  '    name: "Picker",',
+  '    render(h) {',
+  '        return this.a ? h("comp-a") : h(this.pick);',
+  '    },',
+  '    created() {',
+  '        this.node = this.$createElement(`x-${this.kind}`);',
+  '    },',
+  '};',
+  '</script>',
+  '',
+].join('\n');
+
+test('every runtime component choice is listed under Check by hand; the exit code does not change', async () => {
+  await withRoot({ ...FIXTURE, 'src/components/Picker.vue': PICKER }, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.equal(dry.code, 0);
+    assert.match(dry.out, /^\| Check by hand \| 7 \|$/m);
+    const section = dry.out.split('## Check by hand\n')[1].split('\n## ')[0];
+    assert.match(section, /^\| file:line \| kind \| expression \|$/m);
+    assert.deepEqual(
+      section.split('\n').filter((line) => line.startsWith('| `src/')),
+      [
+        '| `src/components/Picker.vue:3` | `:is` | `current` |',
+        '| `src/components/Picker.vue:4` | `is` | `my-row` |',
+        '| `src/components/Picker.vue:5` | `v-bind:is` | `kind` |',
+        '| `src/components/Picker.vue:12` | `h` | `"comp-a"` |',
+        '| `src/components/Picker.vue:12` | `h` | `this.pick` |',
+        // A code span that holds backticks is fenced with more of them.
+        '| `src/components/Picker.vue:15` | `this.$createElement` | `` `x-${this.kind}` `` |',
+        // The page entry renders its imported Template: not a literal, so it is listed too.
+        '| `src/views/P/main.js:5` | `h` | `Template` |',
+      ],
+    );
+    // A real run still writes what it planned.
+    const real = await cli(root);
+    assert.equal(real.code, 0);
+    assert.match(real.out, /^## Check by hand$/m);
+  });
+});
+
+test('with no runtime choices, Check by hand says None', async () => {
+  const main = MAIN.replace('new Vue({ render: (h) => h(Template) }).$mount("#app");', 'new Vue({ el: "#app" });');
+  await withRoot({ ...FIXTURE, 'src/views/P/main.js': main }, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.match(dry.out, /^\| Check by hand \| 0 \|$/m);
+    assert.equal(dry.out.split('## Check by hand\n')[1].split('\n## ')[0].trim(), 'None.');
+  });
+});
+
 // ---- phase 2 output in the tree (I1) ------------------------------------------------------------------
 // A portal merged master's phase 2 before running phase 1: B is already unwrapped, so nothing registers
 // <comp-b> globally any more, and both uses of it look like a registration phase 1 should add.

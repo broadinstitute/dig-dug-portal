@@ -16,8 +16,8 @@
 //   - The scan's analysis errors, and whether ESLint could lint the tree at all.
 //
 // The report is markdown on stdout: a table with one row per branch and a totals row, then one section per
-// branch with the lists to fix by hand (every unresolved use, every file a phase refuses, every analysis
-// error). Progress goes to stderr.
+// branch with the lists to fix by hand (every unresolved use, every runtime component choice to check, every
+// file a phase refuses, every analysis error). Progress goes to stderr.
 //
 // Read-only: `git fetch origin` once at the start (it moves the `origin/*` refs, not a local branch) and
 // then temporary worktrees; nothing is written to a worktree, committed, pushed or installed. ESLint plugins
@@ -32,7 +32,7 @@ import { realpathSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs as parseNodeArgs } from 'node:util';
-import { analysisErrorLine, analyzePhaseOne, cell, code, oneLine, unresolvedTable } from './register-components.mjs';
+import { CHECK_BY_HAND, analysisErrorLine, analyzePhaseOne, cell, checkByHandTable, code, oneLine, unresolvedTable } from './register-components.mjs';
 import { REASONS } from './register-plan.mjs';
 import { PORTAL_REFS } from './unused-report.mjs';
 import { analyzePhaseTwo } from './unwrap-vue-component.mjs';
@@ -68,11 +68,13 @@ const NUMERIC_HEADERS = [
  *  - `phase2`: the `files` it would change, and the `refused` ones (`{ file, message }`).
  *  - `analysisErrors`: what the scan of the tree found, and `lintError` the lint's message when ESLint could
  *    not lint the tree (`null` otherwise), in which case the phase 1 figures are empty, not zero.
+ *  - `checkByHand`: the components chosen at run time (`RuntimeChoice`, see `analyzeSources`); they need no
+ *    lint.
  * @typedef {{ phase1: { findings: number, files: number, entries: number,
  *     unresolved: import('./register-plan.mjs').Unresolved[], failed: { file: string, message: string }[] },
  *   phase2: { files: number, refused: { file: string, message: string }[] },
  *   analysisErrors: { file: string, line?: number, kind: string, message: string }[],
- *   lintError: string | null }} Analysis
+ *   lintError: string | null, checkByHand: import('./component-graph.mjs').RuntimeChoice[] }} Analysis
  */
 
 /**
@@ -104,6 +106,7 @@ export async function analyzeTree(root, { lint, apply, unwrap } = {}) {
     phase2: { files: two.changes.length, refused: two.failures },
     analysisErrors: one.analysisErrors,
     lintError: one.lintError,
+    checkByHand: one.runtimeChoices,
   };
 }
 
@@ -151,7 +154,7 @@ function branchSection(row) {
     lines.push(`Error: ${oneLine(row.error)}`);
     return lines;
   }
-  const { phase1, phase2, analysisErrors, lintError } = row;
+  const { phase1, phase2, analysisErrors, lintError, checkByHand } = row;
   const lintFailed = lintError !== null;
 
   lines.push(lintFailed ? '### Unresolved uses' : `### Unresolved uses (${phase1.unresolved.length})`, '');
@@ -163,6 +166,10 @@ function branchSection(row) {
   if (lintFailed) lines.push(NOT_COMPUTED);
   else if (phase1.failed.length === 0) lines.push('None.');
   else lines.push(...phase1.failed.map(({ file, message }) => `- ${code(file)}: ${message}`));
+
+  lines.push('', `### Check by hand (${checkByHand.length})`, '');
+  if (checkByHand.length === 0) lines.push('None.');
+  else lines.push(CHECK_BY_HAND, '', ...checkByHandTable(checkByHand));
 
   lines.push('', `### Phase 2 refused, ${IF_COMPLETE.slice(1, -1)} (${phase2.refused.length})`, '');
   if (phase2.refused.length === 0) lines.push('None.');
