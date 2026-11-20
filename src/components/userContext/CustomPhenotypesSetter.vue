@@ -5,10 +5,10 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
 import EventBus from "@/utils/eventBus";
 
-export default Vue.component("custom-phenotypes-setter", {
+export default {
+  name: "custom-phenotypes-setter",
   props: [],
   components: {},
   data() {
@@ -21,7 +21,7 @@ export default Vue.component("custom-phenotypes-setter", {
   computed: {},
   watch: {},
   methods: {}
-});
+};
 </script>
 
 <style>
