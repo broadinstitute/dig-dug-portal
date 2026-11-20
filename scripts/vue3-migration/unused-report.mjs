@@ -1,6 +1,9 @@
 // Cross-branch unused-component report. Report only: nothing is deleted.
 //
-//   node scripts/vue3-migration/unused-report.mjs > test-results/unused-components.md
+//   node scripts/vue3-migration/unused-report.mjs > /tmp/unused-components.md
+//
+// Write it outside test-results/, which every Playwright run empties: to /tmp, or to
+// unused-components.md at the repo root. Don't commit the output.
 //
 // A component is "unused everywhere" only when no file under `src/` imports it on
 // origin/master AND on every live portal branch (portal branches merge down from
