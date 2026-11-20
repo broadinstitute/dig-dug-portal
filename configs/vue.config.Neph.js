@@ -50,10 +50,11 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "phenotyperesult"]
     },
     variantresult: {
-        entry: "src/portals/Neph/views/VariantResult/main.js",
+        entry: "src/views/PbVariant/main.js",
         template: "public/index.html",
         filename: "variantresult.html",
         title: "CRDC Variant",
+        pbLayout: true,
         chunks: ["chunk-vendors", "chunk-common", "variantresult"]
     },
     generesult: {

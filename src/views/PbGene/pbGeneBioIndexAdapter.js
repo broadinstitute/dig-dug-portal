@@ -63,7 +63,9 @@ async function loadPbGeneBioIndexState(gene, options) {
     const variantEvidencePromise = qualified
         ? loadQualifiedGeneVariants(gene)
         : safeBioIndexQuery("gene-variants-crdc", gene, null, options).then(rows => ({ rows }));
-    const associationPromise = loadGeneHpoAssociations(gene);
+    const associationPromise = options.genotypeVariantId
+        ? Promise.resolve({ associations: [], error: '' })
+        : loadGeneHpoAssociations(gene);
     const genotypePromise = loadGeneGenotypes(gene, options.genotypeVariantId);
     const [geneRows, { rows, noSourceVariants }] = await Promise.all([geneRowsPromise, variantEvidencePromise]);
 

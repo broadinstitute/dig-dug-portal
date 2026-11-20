@@ -1,4 +1,5 @@
 const { callKey } = require('./processed_genotype_source');
+const path = require('node:path');
 
 module.exports = function registerGeneGenotypes(app, provider, options = {}) {
     const readGene = options.readGenotypes || require('./processed_genotype_source')();
@@ -38,9 +39,11 @@ module.exports = function registerGeneGenotypes(app, provider, options = {}) {
                 if (missing.length) {
                     try {
                         const supplemental = await readVariant(requestedVariant, missing);
+                        const source = { ...supplemental.source };
+                        if (source.source_file) source.source_file = path.basename(source.source_file);
                         for (const row of supplemental.rows) {
                             if (row.variant_id === requestedVariant && missing.includes(row.sample_id))
-                                rows.push({...row, source:supplemental.source});
+                                rows.push({ ...row, source });
                         }
                         vcfStatus = 'ready';
                     } catch (_) { vcfStatus = 'unavailable'; }

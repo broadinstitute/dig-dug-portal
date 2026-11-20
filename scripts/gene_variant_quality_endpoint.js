@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const path = require('node:path');
 const QUALITY = 'dp20_af001';
 const canonical = id => String(id).replace(/_[EG]38$/i, '');
 const variantId = row => `chr${String(row.chromosome || row.CHROM).replace(/^chr/i, '')}:${row.position || row.POS}:${row.reference || row.REF}:${row.alt || row.ALT}`;
@@ -61,7 +62,9 @@ module.exports = function registerGeneVariantQuality(app, provider, options = {}
                     return match && match.samples.length ? [{...row, samples: match.samples, ac: match.ac, an: match.an, af: match.af}] : [];
                 });
                 const byVariant = new Map([...filtered].filter(([, row]) => row.samples.length).map(([id, row]) => [id, new Set(row.samples)]));
-                return {gene, quality: QUALITY, source: result.source, variantRows, byVariant,
+                const source = { ...result.source };
+                if (source.source_file) source.source_file = path.basename(source.source_file);
+                return {gene, quality: QUALITY, source, variantRows, byVariant,
                     all: new Set([...byVariant.values()].flatMap(set => [...set]))};
             })().catch(error => {cache.delete(key); throw error;});
             cache.set(key, {promise, expires: Date.now() + 15 * 60 * 1000});
