@@ -25,6 +25,9 @@ import {
 } from "./gp2BrowserAiSummary.js";
 
 const PUBMED_BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
+/** First PubMed page size for a new LE run. */
+export const GP2_LITERATURE_INITIAL_LIMIT = 30;
+/** Page size for each "Show next 15" load-more request. */
 export const GP2_LITERATURE_RESULT_LIMIT = 15;
 export const GP2_LITERATURE_LLM_PROVIDER = "bedrock";
 export const GP2_LITERATURE_ABSTRACT_MAX_CHARS = 2000;
@@ -337,10 +340,16 @@ function trimAbstract(text, maxChars = GP2_LITERATURE_ABSTRACT_MAX_CHARS) {
 }
 
 export function buildGp2LiteratureDigest({ phenotype, geneNames, papers, locusDigest }) {
+    // Stable PMID order so the synthesis LLM always sees the same paper sequence.
+    const orderedPapers = [...(papers || [])].sort((a, b) =>
+        String(a?.pmid || "").localeCompare(String(b?.pmid || ""), undefined, {
+            numeric: true,
+        })
+    );
     return {
         phenotype,
         genesSearched: geneNames,
-        papers: papers.map((paper) => ({
+        papers: orderedPapers.map((paper) => ({
             pmid: paper.pmid,
             title: paper.title,
             journal: paper.journal,
@@ -351,20 +360,44 @@ export function buildGp2LiteratureDigest({ phenotype, geneNames, papers, locusDi
     };
 }
 
-export const GP2_LITERATURE_SYSTEM_PROMPT = `You read PubMed abstracts retrieved for a Parkinson's disease GWAS locus and extract claims with supporting excerpts for a researcher.
-Rules:
-- Use only the abstracts in "papers" and, if present, the facts in "locusDigest". Never invent a claim, excerpt, PMID, or fact not present in the input.
-- "excerpts": short verbatim quotes (a sentence or short phrase, copied EXACTLY as written, word-for-word, no paraphrasing, no ellipses or edits) from the "abstract" field of a specific paper. Each excerpt has a sequential "number" starting at 1 (in the order first referenced by a claim), the source "pmid", and the "quote" text. A quote that is not an exact substring of that paper's abstract will be discarded, so copy it verbatim rather than summarizing.
-- "claims": each is one distinct finding the retrieved papers establish or agree on, as "text", plus "excerptNumbers" — the excerpt number(s) (referencing "excerpts") that support it. Every claim MUST cite at least one excerpt number; a claim with no supporting excerpt will be discarded.
-- Distinguish a claim corroborated by more than one independent paper (citing an excerpt from each) from a claim made by only one paper.
-- A paper can mention the searched gene and the phenotype without actually studying their relationship (for example a drug-mechanism paper that happens to involve the gene, in an unrelated disease context). Flag this explicitly as its own claim (with its own supporting excerpt) rather than treating it as evidence connecting the gene to the phenotype.
-- If "locusDigest" is present, add a claim explicitly stating whether any paper discusses the SPECIFIC finding it describes (the lead variant, the exon-resolved missense/coding gene, or the linked-vs-unlinked QTL contrast) versus only the gene's general relevance to the phenotype.
-- "gaps": each is one distinct thing the retrieved papers do NOT address, as "text", plus an optional "excerptNumbers" (usually an empty array, since a gap is an absence — only cite an excerpt number when a specific paper's silence on this exact point is itself notable). Phrase each gap as a property of the retrieved papers ("the retrieved papers do not address X"), never as a claim about the literature as a whole — this is a narrow keyword search over a small set of abstracts, not an exhaustive review.
-Respond with JSON only: {"claims": [{"text": "...", "excerptNumbers": [1]}], "excerpts": [{"number": 1, "pmid": "...", "quote": "..."}], "gaps": [{"text": "...", "excerptNumbers": []}]}`;
+export const GP2_LITERATURE_SYSTEM_PROMPT = `You extract grounded literature claims for a Parkinson's disease GWAS locus.
+Same input must yield the same JSON. Be conservative, mechanical, and maximally granular — do not brainstorm or summarize at a high level.
+
+Granularity (critical — apply to every claim and excerpt):
+- ATOMIC CLAIMS: exactly one subject–predicate–object relationship per claim. Never combine two mechanisms, two targets, two phenotypes, or a mechanism-plus-phenotype into one claim.
+- Split compound sentences. Example: if an abstract says FYN phosphorylates PKCδ and promotes microglial activation, emit TWO claims (phosphorylation; activation), each with its own excerpt.
+- Prefer the most specific entity names in the abstract (e.g. "PKCδ phosphorylation at tyrosine 311", not "signaling"; "α-synuclein Ser129 phosphorylation", not "α-synuclein pathology").
+- Do NOT roll several findings into a broad summary claim. If unsure whether to split, split.
+- EXCERPTS MUST BE AS SHORT AS POSSIBLE while remaining a contiguous verbatim substring that supports that one claim. Prefer a clause or phrase (often 5–20 words) over a full sentence; never quote a whole abstract paragraph or multi-clause summary when a shorter span works.
+- One primary excerpt per claim (extra excerpts only for independent-paper corroboration). Do not attach long multi-fact quotes to a single claim.
+
+Determinism (follow exactly):
+1. Process "papers" in the given array order. Never reorder papers.
+2. Prefer searched genes over peripheral pathway members mentioned only as context — but if a peripheral molecule is the explicit object of a relationship with a searched gene, keep that granular edge as its own claim.
+3. Prefer gene–phenotype and gene–mechanism relationships over drug/assay details unless those are the only finding.
+4. Skip speculative, future-work, and background-review sentences that do not assert a concrete finding.
+5. Cap: at most 16 claims, at most 24 excerpts, at most 6 gaps. Use the room to stay granular rather than merging.
+6. Claim wording: one short factual sentence close to the abstract language. Template "<subject> <predicate> <object>" (e.g. "FYN phosphorylates PKCδ at tyrosine 311"). Do not embellish.
+7. Do not invent synonyms or alternate gene/protein names (keep the exact symbol/name used in the abstract).
+8. Excerpts must be verbatim substrings of that paper's "abstract" (exact characters aside from surrounding whitespace). No paraphrase, no ellipsis, no truncation mid-word. If several quotes work, take the earliest shortest occurrence in that abstract.
+9. Number excerpts 1..N in the order claims first reference them. Reuse an excerpt number only when another claim cites the exact same quote span.
+10. Order claims: (a) the required locusDigest coverage claim first when locusDigest is present; then (b) by ascending primary supporting PMID; then (c) by claim text A→Z for ties.
+11. Order gaps by text A→Z.
+
+Content rules:
+- Use only "papers" abstracts and, if present, "locusDigest". Never invent a claim, excerpt, PMID, or fact.
+- Every claim MUST cite ≥1 excerpt number; unsupported claims are discarded.
+- Multi-paper corroboration: cite one short excerpt from each independent paper (ascending PMID).
+- Mentions without relationship: if a paper names a searched gene and the phenotype but does not study their relationship, say so in its own claim (with excerpt) — do not treat it as gene–phenotype evidence.
+- If "locusDigest" is present, claim #1 must state whether any paper discusses that specific locus finding (lead variant / exon-resolved missense gene / linked-vs-unlinked QTL) versus only general gene–phenotype relevance.
+- Gaps: phrase as properties of THIS retrieved set ("The retrieved papers do not address X"). Empty excerptNumbers unless a specific paper's silence is the point. Prefer gaps about the searched genes, the lead variant, or QTL links — not generic PD biology.
+
+Respond with JSON only: {"claims":[{"text":"...","excerptNumbers":[1]}],"excerpts":[{"number":1,"pmid":"...","quote":"..."}],"gaps":[{"text":"...","excerptNumbers":[]}]}`;
 
 export function buildGp2LiteratureUserPrompt(digest) {
     return [
         `Phenotype: ${digest.phenotype}. Genes searched: ${digest.genesSearched.join(", ")}.`,
+        "Extract claims/excerpts/gaps per the system rules. Same input → same JSON. Keep claims atomic and excerpts as short/verbatim as possible — never coarsen by merging findings.",
         `Papers and locus digest (JSON): ${JSON.stringify({
             papers: digest.papers,
             locusDigest: digest.locusDigest,
@@ -396,6 +429,119 @@ function normalizeForQuoteMatch(text) {
         .toLowerCase()
         .replace(/\s+/g, " ")
         .trim();
+}
+
+function escapeHtmlForHighlight(text) {
+    return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+/**
+ * Map a case/whitespace-insensitive quote onto original abstract indices.
+ * Returns `{ start, end }` (end exclusive) or null when not found.
+ */
+export function findQuoteSpanInAbstract(abstract, quote) {
+    const source = String(abstract || "");
+    const needle = normalizeForQuoteMatch(quote);
+    if (!source || !needle) {
+        return null;
+    }
+
+    const normalizedChars = [];
+    const indexMap = [];
+    let pendingSpace = false;
+    for (let i = 0; i < source.length; i++) {
+        const ch = source[i];
+        if (/\s/.test(ch)) {
+            if (normalizedChars.length) {
+                pendingSpace = true;
+            }
+            continue;
+        }
+        if (pendingSpace) {
+            normalizedChars.push(" ");
+            indexMap.push(i);
+            pendingSpace = false;
+        }
+        normalizedChars.push(ch.toLowerCase());
+        indexMap.push(i);
+    }
+    const normalized = normalizedChars.join("");
+    const hit = normalized.indexOf(needle);
+    if (hit < 0) {
+        return null;
+    }
+    const start = indexMap[hit];
+    const endIndex = indexMap[hit + needle.length - 1];
+    if (start == null || endIndex == null) {
+        return null;
+    }
+    return { start, end: endIndex + 1 };
+}
+
+/**
+ * Escape abstract HTML and wrap the first matching quote span in a <mark>.
+ * When `maxLength` is set (collapsed preview), keep a window that includes
+ * the match when possible so the highlight stays visible.
+ * Returns `{ html, matched }`.
+ */
+export function formatAbstractWithHighlightedQuote(
+    abstract,
+    quote,
+    { maxLength = null, markClass = "gp2-lit-abstract-mark" } = {}
+) {
+    const source = String(abstract || "");
+    if (!source) {
+        return { html: "", matched: false };
+    }
+
+    const span = findQuoteSpanInAbstract(source, quote);
+    let displayStart = 0;
+    let displayEnd = source.length;
+    let prefix = "";
+    let suffix = "";
+
+    if (maxLength != null && source.length > maxLength) {
+        if (span) {
+            const pad = Math.max(24, Math.floor((maxLength - (span.end - span.start)) / 2));
+            displayStart = Math.max(0, span.start - pad);
+            displayEnd = Math.min(source.length, displayStart + maxLength);
+            if (displayEnd - displayStart < maxLength) {
+                displayStart = Math.max(0, displayEnd - maxLength);
+            }
+            if (displayStart > 0) {
+                prefix = "…";
+            }
+            if (displayEnd < source.length) {
+                suffix = "…";
+            }
+        } else {
+            displayEnd = maxLength;
+            suffix = "…";
+        }
+    }
+
+    const slice = source.slice(displayStart, displayEnd);
+    if (!span || span.end <= displayStart || span.start >= displayEnd) {
+        return {
+            html: `${prefix}${escapeHtmlForHighlight(slice)}${suffix}`,
+            matched: false,
+        };
+    }
+
+    const localStart = Math.max(0, span.start - displayStart);
+    const localEnd = Math.min(slice.length, span.end - displayStart);
+    const before = escapeHtmlForHighlight(slice.slice(0, localStart));
+    const match = escapeHtmlForHighlight(slice.slice(localStart, localEnd));
+    const after = escapeHtmlForHighlight(slice.slice(localEnd));
+    return {
+        html: `${prefix}${before}<mark class="${markClass}">${match}</mark>${after}${suffix}`,
+        matched: true,
+    };
 }
 
 /**
@@ -446,9 +592,21 @@ export function parseGp2LiteratureResponse(raw, { papers = [] } = {}) {
             if (!text || !excerptNumbers.length) {
                 return null;
             }
-            return { text, excerptNumbers };
+            return {
+                text,
+                excerptNumbers: [...new Set(excerptNumbers)].sort((a, b) => a - b),
+            };
         })
-        .filter(Boolean);
+        .filter(Boolean)
+        .sort((a, b) => {
+            const aMin = Math.min(...a.excerptNumbers);
+            const bMin = Math.min(...b.excerptNumbers);
+            if (aMin !== bMin) {
+                return aMin - bMin;
+            }
+            return a.text.localeCompare(b.text);
+        })
+        .slice(0, 16);
 
     const gaps = (Array.isArray(json.gaps) ? json.gaps : [])
         .map((entry) => {
@@ -461,9 +619,14 @@ export function parseGp2LiteratureResponse(raw, { papers = [] } = {}) {
             )
                 .map((number) => Number(number))
                 .filter((number) => verifiedExcerptNumbers.has(number));
-            return { text, excerptNumbers };
+            return {
+                text,
+                excerptNumbers: [...new Set(excerptNumbers)].sort((a, b) => a - b),
+            };
         })
-        .filter(Boolean);
+        .filter(Boolean)
+        .sort((a, b) => a.text.localeCompare(b.text))
+        .slice(0, 6);
 
     if (!claims.length && !gaps.length) {
         return null;
@@ -473,9 +636,13 @@ export function parseGp2LiteratureResponse(raw, { papers = [] } = {}) {
         ...claims.flatMap((claim) => claim.excerptNumbers),
         ...gaps.flatMap((gap) => gap.excerptNumbers),
     ]);
+    const citedExcerpts = excerpts
+        .filter((excerpt) => citedExcerptNumbers.has(excerpt.number))
+        .sort((a, b) => a.number - b.number || String(a.pmid).localeCompare(String(b.pmid)))
+        .slice(0, 24);
     return {
         claims,
-        excerpts: excerpts.filter((excerpt) => citedExcerptNumbers.has(excerpt.number)),
+        excerpts: citedExcerpts,
         gaps,
     };
 }
@@ -483,8 +650,10 @@ export function parseGp2LiteratureResponse(raw, { papers = [] } = {}) {
 /**
  * esearch (one page of PMIDs, offset by `retstart`) + esummary + efetch
  * abstracts for an already-built query term. Used both for the first page
- * (inside {@link fetchGp2LiteraturePapers}) and for "Show next 15" pages,
- * which reuse the same term/gene set rather than re-resolving genes.
+ * (inside {@link fetchGp2LiteraturePapers}, default
+ * {@link GP2_LITERATURE_INITIAL_LIMIT}) and for "Show next 15" pages
+ * ({@link GP2_LITERATURE_RESULT_LIMIT}), which reuse the same term/gene set
+ * rather than re-resolving genes.
  * Returns `{ ok: false, reason: "fetch-error", error }` or `{ ok: true, papers }`.
  */
 export async function fetchGp2LiteraturePapersPage(
@@ -570,7 +739,10 @@ export async function fetchGp2LiteraturePapers({
         return { ok: false, reason: "no-genes" };
     }
 
-    const pageResult = await fetchGp2LiteraturePapersPage(term, { retstart: 0 });
+    const pageResult = await fetchGp2LiteraturePapersPage(term, {
+        retstart: 0,
+        limit: GP2_LITERATURE_INITIAL_LIMIT,
+    });
     if (!pageResult.ok) {
         return pageResult;
     }
@@ -617,16 +789,44 @@ export async function synthesizeGp2LiteratureFindings({ phenotype, geneNames, pa
 
 export const GP2_LITERATURE_KG_NODE_TYPES = ["variant", "gene", "mechanism", "phenotype"];
 
+/** Closed relation vocabulary for the literature KG LLM (snake_case). */
+export const GP2_LITERATURE_KG_RELATIONS = [
+    "regulates",
+    "activates",
+    "inhibits",
+    "phosphorylates",
+    "required_for",
+    "mediates",
+    "associated_with",
+    "risk_increasing",
+    "risk_decreasing",
+    "causes",
+    "precedes",
+    "prevents",
+    "enables",
+    "driver_of",
+    "master_regulator_of",
+];
+
 export const GP2_LITERATURE_KG_SYSTEM_PROMPT = `You build a small knowledge graph from already-verified literature claims about a Parkinson's disease GWAS locus.
-Rules:
-- Use ONLY the numbered claims you are given. Never invent a variant, gene, mechanism, phenotype, or relationship that is not explicitly stated in at least one claim.
-- Node types must be exactly one of: "variant", "gene", "mechanism", "phenotype".
-- Create a "variant" node only when a claim names a specific variant (rsID or chr:pos allele). Do not invent variants from gene/phenotype risk statements.
-- Prefer compact reusable mechanism nodes (e.g. "lysosomal pH homeostasis", "autophagy", "α-synuclein aggregation") over restating whole sentences.
-- "edges": directed relationships. Each edge MUST include "claimNumbers" — 1-based indices into the provided claims list that support it. Drop any edge that cannot cite at least one claim.
-- "relation" should be a short snake_case predicate (e.g. genetic_risk_factor, regulates, risk_increasing_allele, impairs).
-- If two claims conflict (e.g. acidification vs alkalinization), keep both edges and set "conflict": true on each conflicting edge rather than choosing one.
-- Ignore vague "mentioned in context" claims that do not assert a concrete relationship.
+Same claims must yield the same graph. Be mechanical and preserve claim granularity — do not invent, embellish, or coarsen.
+
+Determinism (follow exactly):
+1. Use ONLY the numbered claims. Never invent a variant, gene, mechanism, phenotype, or relationship not explicitly stated in at least one claim.
+2. Node types must be exactly one of: "variant", "gene", "mechanism", "phenotype".
+3. Entity labels: copy the exact name/symbol from the claim text. Do not expand synonyms or introduce alternate gene/protein names (e.g. do not add KCa3.1 unless that exact string appears in a claim).
+4. Node "id" = lowercase slug of the label (letters/digits/underscores only).
+5. Create a "variant" node only when a claim names a specific variant (rsID or chr:pos allele).
+6. Mechanism labels: keep the MOST SPECIFIC noun phrase from the claim (e.g. "PKCδ phosphorylation at tyrosine 311", not "phosphorylation"; "α-synuclein Ser129 phosphorylation", not "α-synuclein pathology"). Do NOT collapse distinct mechanisms into a broader parent node.
+7. Phenotype label: use "Parkinson's disease" unless a claim names a more specific phenotype string — then use that exact string.
+8. "relation" MUST be one of: ${GP2_LITERATURE_KG_RELATIONS.join(", ")}. Pick the single closest match; do not invent new predicates.
+9. Emit exactly one edge per concrete relationship claim (at most one edge per claim unless the claim explicitly states two distinct relationships). No multi-hop paths that are not stated. Do not merge two claims into one edge.
+10. Each edge MUST include "claimNumbers" (1-based indices into the claims list). Drop edges that cannot cite ≥1 claim.
+11. If two claims conflict, keep both edges and set "conflict": true on each — do not choose a winner.
+12. Ignore vague "mentioned in context" / no-relationship claims.
+13. Cap: at most 24 nodes and 28 edges. Prefer keeping granular mechanisms over dropping them to fit a coarser graph.
+14. Sort nodes by type order variant → gene → mechanism → phenotype, then label A→Z. Sort edges by min(claimNumbers), then from, then to, then relation.
+
 Respond with JSON only: {"nodes":[{"id":"...","type":"gene","label":"..."}],"edges":[{"from":"...","to":"...","relation":"...","claimNumbers":[1],"conflict":false}]}`;
 
 export function buildGp2LiteratureKgUserPrompt({ phenotype, claims }) {
@@ -636,8 +836,9 @@ export function buildGp2LiteratureKgUserPrompt({ phenotype, claims }) {
     }));
     return [
         `Phenotype: ${phenotype || "Parkinsons"}.`,
+        "Build the KG per the system rules. Same claims → same graph. Preserve atomic claim granularity; do not coarsen mechanism nodes.",
         `Claims (JSON): ${JSON.stringify(numbered)}`,
-        'Respond with JSON only: {"nodes":[{"id":"...","type":"gene","label":"..."}],"edges":[{"from":"...","to":"...","relation":"...","claimNumbers":[1]}]}',
+        'Respond with JSON only: {"nodes":[{"id":"...","type":"gene","label":"..."}],"edges":[{"from":"...","to":"...","relation":"...","claimNumbers":[1],"conflict":false}]}',
     ].join("\n");
 }
 
@@ -650,11 +851,70 @@ function slugifyKgId(value, fallback = "node") {
     return slug || fallback;
 }
 
+const GP2_LITERATURE_KG_RELATION_SET = new Set(GP2_LITERATURE_KG_RELATIONS);
+
+const GP2_LITERATURE_KG_RELATION_ALIASES = {
+    regulate: "regulates",
+    regulation: "regulates",
+    regulator: "regulates",
+    genetic_risk_factor: "associated_with",
+    risk_factor: "associated_with",
+    associated: "associated_with",
+    association: "associated_with",
+    increases_risk: "risk_increasing",
+    risk_increasing_allele: "risk_increasing",
+    decreases_risk: "risk_decreasing",
+    risk_decreasing_allele: "risk_decreasing",
+    impair: "inhibits",
+    impairs: "inhibits",
+    inhibit: "inhibits",
+    activate: "activates",
+    activation: "activates",
+    phosphorylate: "phosphorylates",
+    phosphorylation: "phosphorylates",
+    require: "required_for",
+    requires: "required_for",
+    mediate: "mediates",
+    mediation: "mediates",
+    cause: "causes",
+    leading_to: "causes",
+    precede: "precedes",
+    prevent: "prevents",
+    enable: "enables",
+    driver: "driver_of",
+    driver_gene: "driver_of",
+    master_regulator: "master_regulator_of",
+};
+
+function normalizeKgRelation(value) {
+    const raw = String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+    if (!raw) {
+        return "";
+    }
+    if (GP2_LITERATURE_KG_RELATION_SET.has(raw)) {
+        return raw;
+    }
+    if (GP2_LITERATURE_KG_RELATION_ALIASES[raw]) {
+        return GP2_LITERATURE_KG_RELATION_ALIASES[raw];
+    }
+    // Soft fallback: keep snake_case so a slightly off predicate still renders.
+    return raw;
+}
+
+const GP2_LITERATURE_KG_TYPE_ORDER = {
+    variant: 0,
+    gene: 1,
+    mechanism: 2,
+    phenotype: 3,
+};
+
 /**
  * Normalize + validate an LLM KG against the 1-based claim list the UI shows.
  * Drops edges with invalid endpoints or no surviving claimNumbers; drops
- * nodes that no remaining edge references (except keep phenotype/gene hubs
- * only if cited).
+ * nodes that no remaining edge references. Sorts nodes/edges for stable UI.
  */
 export function parseGp2LiteratureKnowledgeGraph(raw, { claims = [] } = {}) {
     const { ok, json } = parseLlmJsonResponse(raw);
@@ -683,14 +943,11 @@ export function parseGp2LiteratureKnowledgeGraph(raw, { claims = [] } = {}) {
         }
     });
 
-    const edges = [];
+    const edgesByKey = new Map();
     (Array.isArray(json.edges) ? json.edges : []).forEach((entry) => {
         const from = slugifyKgId(entry?.from);
         const to = slugifyKgId(entry?.to);
-        const relation = String(entry?.relation || "")
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, "_");
+        const relation = normalizeKgRelation(entry?.relation);
         if (!from || !to || from === to || !relation) {
             return;
         }
@@ -705,7 +962,16 @@ export function parseGp2LiteratureKnowledgeGraph(raw, { claims = [] } = {}) {
         if (!claimNumbers.length) {
             return;
         }
-        edges.push({
+        const key = `${from}|${to}|${relation}`;
+        const existing = edgesByKey.get(key);
+        if (existing) {
+            existing.claimNumbers = [
+                ...new Set([...existing.claimNumbers, ...claimNumbers]),
+            ].sort((a, b) => a - b);
+            existing.conflict = existing.conflict || Boolean(entry?.conflict);
+            return;
+        }
+        edgesByKey.set(key, {
             from,
             to,
             relation,
@@ -714,21 +980,56 @@ export function parseGp2LiteratureKnowledgeGraph(raw, { claims = [] } = {}) {
         });
     });
 
-    if (!edges.length) {
+    const edges = Array.from(edgesByKey.values()).sort((a, b) => {
+        const aMin = Math.min(...a.claimNumbers);
+        const bMin = Math.min(...b.claimNumbers);
+        if (aMin !== bMin) {
+            return aMin - bMin;
+        }
+        if (a.from !== b.from) {
+            return a.from.localeCompare(b.from);
+        }
+        if (a.to !== b.to) {
+            return a.to.localeCompare(b.to);
+        }
+        return a.relation.localeCompare(b.relation);
+    });
+
+    const cappedEdges = edges.slice(0, 28);
+    if (!cappedEdges.length) {
         return null;
     }
 
     const usedIds = new Set();
-    edges.forEach((edge) => {
+    cappedEdges.forEach((edge) => {
         usedIds.add(edge.from);
         usedIds.add(edge.to);
     });
-    const nodes = Array.from(nodesById.values()).filter((node) => usedIds.has(node.id));
+    const nodes = Array.from(nodesById.values())
+        .filter((node) => usedIds.has(node.id))
+        .sort((a, b) => {
+            const typeDelta =
+                (GP2_LITERATURE_KG_TYPE_ORDER[a.type] ?? 99) -
+                (GP2_LITERATURE_KG_TYPE_ORDER[b.type] ?? 99);
+            if (typeDelta !== 0) {
+                return typeDelta;
+            }
+            return a.label.localeCompare(b.label) || a.id.localeCompare(b.id);
+        })
+        .slice(0, 24);
     if (!nodes.length) {
         return null;
     }
 
-    return { nodes, edges };
+    const keptIds = new Set(nodes.map((node) => node.id));
+    const finalEdges = cappedEdges.filter(
+        (edge) => keptIds.has(edge.from) && keptIds.has(edge.to)
+    );
+    if (!finalEdges.length) {
+        return null;
+    }
+
+    return { nodes, edges: finalEdges };
 }
 
 /**

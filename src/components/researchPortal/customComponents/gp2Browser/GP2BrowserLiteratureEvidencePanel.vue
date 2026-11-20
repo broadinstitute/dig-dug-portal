@@ -1,6 +1,11 @@
 <template>
     <div class="gp2-lit-evidence">
-        <div v-if="synthesizing || kgLoading" class="gp2-lit-evidence-status">
+        <div
+            v-if="synthesizing || kgLoading"
+            class="gp2-lit-evidence-status"
+            role="status"
+            aria-live="polite"
+        >
             {{
                 progressLabel ||
                 (synthesizing
@@ -11,6 +16,7 @@
         <div
             v-if="synthesisError"
             class="gp2-lit-evidence-status gp2-lit-evidence-status-error"
+            role="alert"
         >
             {{ synthesisError }}
         </div>
@@ -20,6 +26,12 @@
             <strong>{{ genesSearched.join(", ") || "—" }}</strong>
             <span v-if="usedLocusDigest"> (genes from this locus digest)</span>
             <span v-else> (LD data unavailable; used a simpler gene set)</span>.
+        </p>
+
+        <p class="gp2-lit-evidence-variability-note" role="note">
+            Note: re-running Literature evidence on the same locus can produce slightly
+            different evidences, excerpts, and networks. The PubMed paper set is usually
+            stable; wording and granularity can vary because synthesis is model-based.
         </p>
 
         <div class="gp2-lit-evidence-tabs" role="tablist">
@@ -145,11 +157,10 @@
                         v-if="excerptPaperAbstract(excerpt)"
                         class="gp2-lit-evidence-excerpt-abstract"
                     >
-                        {{
-                            isExpanded(excerpt.pmid)
-                                ? excerptPaperAbstract(excerpt)
-                                : abstractExcerpt(excerptPaperAbstract(excerpt))
-                        }}
+                        <span
+                            class="gp2-lit-evidence-excerpt-abstract-text"
+                            v-html="highlightedAbstractHtml(excerpt)"
+                        />
                         <button
                             v-if="excerptPaperAbstract(excerpt).length > abstractExcerptLength"
                             type="button"
@@ -213,6 +224,7 @@
 <script>
 import GP2BrowserLiteratureFootnote from "./GP2BrowserLiteratureFootnote.vue";
 import GP2BrowserLiteratureKgNetwork from "./GP2BrowserLiteratureKgNetwork.vue";
+import { formatAbstractWithHighlightedQuote } from "./gp2BrowserLiteratureEvidence.js";
 
 export default {
     name: "GP2BrowserLiteratureEvidencePanel",
@@ -410,12 +422,14 @@ export default {
                 [pmid]: !this.expandedPmids[pmid],
             };
         },
-        abstractExcerpt(abstract) {
-            const text = String(abstract || "").trim();
-            if (text.length <= this.abstractExcerptLength) {
-                return text;
-            }
-            return `${text.slice(0, this.abstractExcerptLength).trim()}…`;
+        highlightedAbstractHtml(excerpt) {
+            const abstract = this.excerptPaperAbstract(excerpt);
+            const expanded = this.isExpanded(excerpt.pmid);
+            const { html } = formatAbstractWithHighlightedQuote(abstract, excerpt.quote, {
+                maxLength: expanded ? null : this.abstractExcerptLength,
+                markClass: "gp2-lit-abstract-mark",
+            });
+            return html;
         },
     },
 };
@@ -479,18 +493,42 @@ export default {
     color: var(--cfde-muted, #6b6b6b);
 }
 
+.gp2-lit-evidence-variability-note {
+    margin: 10px 0 0;
+    padding: 8px 12px;
+    border: 1px solid rgba(224, 123, 57, 0.35);
+    border-left: 4px solid var(--cfde-orange, #e07b39);
+    border-radius: 8px;
+    background: #fff6ef;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
+}
+
 .gp2-lit-evidence-empty {
     font-size: 13px;
     color: var(--cfde-muted, #6b6b6b);
 }
 
 .gp2-lit-evidence-status {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border: 1px solid rgba(44, 92, 151, 0.28);
+    border-left: 4px solid var(--cfde-blue, #2c5c97);
+    border-radius: 8px;
+    background: #eef4fb;
+    box-shadow: 0 1px 2px rgba(51, 54, 61, 0.06);
     font-size: 13px;
-    color: var(--cfde-muted, #6b6b6b);
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
 }
 
 .gp2-lit-evidence-status-error {
-    color: #ee3124;
+    border-color: rgba(238, 49, 36, 0.35);
+    border-left-color: #ee3124;
+    background: #fdeeee;
+    color: #9f1c14;
 }
 
 .gp2-lit-evidence-tabs {
@@ -630,6 +668,17 @@ export default {
     line-height: 1.5;
     color: var(--cfde-ink, #33363d);
     white-space: pre-line;
+}
+
+.gp2-lit-evidence-excerpt-abstract-text >>> .gp2-lit-abstract-mark {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: #ffe08a;
+    color: inherit;
+    font-style: normal;
+    font-weight: 600;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
 }
 
 .gp2-lit-evidence-abstract-toggle {

@@ -52,12 +52,18 @@
                     </template>
                 </template>
                 <template v-else-if="panelId === 'literatureEvidence'">
-                    <div v-if="literatureEvidenceState.loading" class="gp2-research-status">
+                    <div
+                        v-if="literatureEvidenceState.loading"
+                        class="gp2-research-status"
+                        role="status"
+                        aria-live="polite"
+                    >
                         {{ literatureEvidenceState.progressLabel || "Searching PubMed…" }}
                     </div>
                     <div
                         v-else-if="literatureEvidenceState.error"
                         class="gp2-research-status gp2-research-status-error"
+                        role="alert"
                     >
                         {{ literatureEvidenceState.error }}
                     </div>
@@ -65,6 +71,7 @@
                         <div
                             v-if="literatureEvidenceState.loadMoreError"
                             class="gp2-research-status gp2-research-status-error gp2-research-status-spaced"
+                            role="alert"
                         >
                             {{ literatureEvidenceState.loadMoreError }}
                         </div>
@@ -307,12 +314,24 @@ export default {
 }
 
 .gp2-research-status {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border: 1px solid rgba(44, 92, 151, 0.28);
+    border-left: 4px solid var(--cfde-blue, #2c5c97);
+    border-radius: 8px;
+    background: #eef4fb;
+    box-shadow: 0 1px 2px rgba(51, 54, 61, 0.06);
     font-size: 13px;
-    color: var(--cfde-muted, #6b6b6b);
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
 }
 
 .gp2-research-status-error {
-    color: #ee3124;
+    border-color: rgba(238, 49, 36, 0.35);
+    border-left-color: #ee3124;
+    background: #fdeeee;
+    color: #9f1c14;
 }
 
 .gp2-research-status-spaced {

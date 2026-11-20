@@ -502,6 +502,7 @@ import {
     restoreGp2SessionExtras,
 } from "./gp2Browser/gp2BrowserSessionExtras.js";
 import {
+    GP2_LITERATURE_INITIAL_LIMIT,
     GP2_LITERATURE_RESULT_LIMIT,
     extractGp2LiteratureKnowledgeGraph,
     fetchGp2LiteraturePapers,
@@ -2680,9 +2681,16 @@ export default Vue.component("gp2-browser", {
                 this.activeResearchPanelId = payload.action;
                 return;
             }
-            // LE always goes through the assistant action so AI summary runs
-            // first (visible in Actions), then the LE panel opens.
+            // Reopen existing LE without regenerating; otherwise run the
+            // SG → PubMed pipeline via the assistant action.
             if (payload.action === "literatureEvidence") {
+                if (
+                    this.literatureEvidenceState.loaded &&
+                    !this.literatureEvidenceState.loading
+                ) {
+                    this.activeResearchPanelId = "literatureEvidence";
+                    return;
+                }
                 this.runGenerateLiteratureEvidenceAction({ silent: false });
                 return;
             }
@@ -3049,6 +3057,7 @@ export default Vue.component("gp2-browser", {
                     qtlState: this.qtlState,
                     assistantState: this.assistantState,
                     literatureEvidenceState: this.literatureEvidenceState,
+                    aiSummaryMessage: this.lastAiSummaryMessage,
                     visibleSectionIds: this.visibleSectionIds,
                     viewingCenterBp: this.viewingCenterBp,
                     viewingRegionWidthBp: this.viewingRegionWidthBp,
@@ -3245,6 +3254,7 @@ export default Vue.component("gp2-browser", {
             this.aiAssistantOpen = false;
             this.literatureEvidenceState =
                 gp2Extras?.literatureEvidenceState || emptyLiteratureEvidenceState();
+            this.lastAiSummaryMessage = gp2Extras?.aiSummaryMessage || null;
             this.viewingCenterBp = gp2Extras?.viewingCenterBp ?? null;
             this.viewingRegionWidthBp = gp2Extras?.viewingRegionWidthBp ?? 0;
             this.syncUrlSearchParams(restored.searchSession);
@@ -7531,6 +7541,30 @@ export default Vue.component("gp2-browser", {
                 return;
             }
 
+            // Already generated for this search — just reopen the panel.
+            if (
+                this.literatureEvidenceState.loaded &&
+                !this.literatureEvidenceState.loading
+            ) {
+                this.activeResearchPanelId = "literatureEvidence";
+                this.markAssistantStepState(resolvedStepId, "done");
+                if (!silent) {
+                    this.aiAssistantOpen = true;
+                    this.assistantState = {
+                        ...this.assistantState,
+                        threadEntries: appendAssistantEntries(
+                            this.assistantState.threadEntries,
+                            [
+                                createAssistantStepMessage(
+                                    "Literature evidence for this locus is already available — reopening the panel."
+                                ),
+                            ]
+                        ),
+                    };
+                }
+                return;
+            }
+
             this.literatureEvidenceAssistantStepId = resolvedStepId;
             this.literatureEvidenceReportAssistant = !silent;
             this.markAssistantStepState(resolvedStepId, "running");
@@ -7681,6 +7715,8 @@ export default Vue.component("gp2-browser", {
                 this.literatureEvidenceState.usedLocusDigest = result.usedLocusDigest;
                 this.literatureEvidenceState.locusDigest = result.locusDigest;
                 this.literatureEvidenceState.papers = result.papers;
+                this.literatureEvidenceState.exhausted =
+                    result.papers.length < GP2_LITERATURE_INITIAL_LIMIT;
                 this.literatureEvidenceState.loading = false;
 
                 (result.digestFindings || []).forEach((finding) => {
@@ -7914,6 +7950,9 @@ export default Vue.component("gp2-browser", {
                 }
 
                 state.papers = [...state.papers, ...pageResult.papers];
+                if (pageResult.papers.length < GP2_LITERATURE_RESULT_LIMIT) {
+                    state.exhausted = true;
+                }
                 await this.synthesizeAndAppendLiteratureEvidence(pageResult.papers);
             } catch (error) {
                 state.loadMoreError =

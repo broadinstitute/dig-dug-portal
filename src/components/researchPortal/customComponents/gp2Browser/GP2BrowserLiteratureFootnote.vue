@@ -49,11 +49,10 @@
                         </div>
                     </div>
                     <div v-if="excerptsByNumber[number].abstract" class="gp2-lit-footnote-popover-abstract">
-                        {{
-                            isExpanded(number)
-                                ? excerptsByNumber[number].abstract
-                                : abstractExcerpt(excerptsByNumber[number].abstract)
-                        }}
+                        <span
+                            class="gp2-lit-footnote-popover-abstract-text"
+                            v-html="highlightedAbstractHtml(number)"
+                        />
                         <button
                             v-if="excerptsByNumber[number].abstract.length > abstractExcerptLength"
                             type="button"
@@ -70,6 +69,8 @@
 </template>
 
 <script>
+import { formatAbstractWithHighlightedQuote } from "./gp2BrowserLiteratureEvidence.js";
+
 export default {
     name: "GP2BrowserLiteratureFootnote",
     props: {
@@ -197,12 +198,14 @@ export default {
                 [number]: !this.expandedNumbers[number],
             };
         },
-        abstractExcerpt(abstract) {
-            const text = String(abstract || "").trim();
-            if (text.length <= this.abstractExcerptLength) {
-                return text;
-            }
-            return `${text.slice(0, this.abstractExcerptLength).trim()}…`;
+        highlightedAbstractHtml(number) {
+            const entry = this.excerptsByNumber[number] || {};
+            const expanded = this.isExpanded(number);
+            const { html } = formatAbstractWithHighlightedQuote(entry.abstract, entry.quote, {
+                maxLength: expanded ? null : this.abstractExcerptLength,
+                markClass: "gp2-lit-abstract-mark",
+            });
+            return html;
         },
     },
 };
@@ -298,6 +301,17 @@ export default {
     line-height: 1.5;
     color: var(--cfde-ink, #33363d);
     white-space: pre-line;
+}
+
+.gp2-lit-footnote-popover-abstract-text >>> .gp2-lit-abstract-mark {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: #ffe08a;
+    color: inherit;
+    font-style: normal;
+    font-weight: 600;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
 }
 
 .gp2-lit-footnote-popover-toggle {

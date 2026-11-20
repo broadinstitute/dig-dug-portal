@@ -29,6 +29,7 @@ export function buildGp2SessionExtras({
     qtlState,
     assistantState,
     literatureEvidenceState,
+    aiSummaryMessage = null,
     visibleSectionIds,
     viewingCenterBp,
     viewingRegionWidthBp,
@@ -45,6 +46,8 @@ export function buildGp2SessionExtras({
         assistant: {
             threadEntries: assistantState?.threadEntries || [],
         },
+        /** Stage-1 AI summary prose (also nested under literatureEvidence when LE loaded). */
+        aiSummaryMessage: aiSummaryMessage ? String(aiSummaryMessage) : null,
         literatureEvidence: literatureEvidenceState?.loaded
             ? {
                   phenotype: literatureEvidenceState.phenotype || null,
@@ -52,6 +55,7 @@ export function buildGp2SessionExtras({
                   genesSearched: literatureEvidenceState.genesSearched || [],
                   geneReasons: literatureEvidenceState.geneReasons || [],
                   digestFindings: literatureEvidenceState.digestFindings || [],
+                  aiSummary: aiSummaryMessage ? String(aiSummaryMessage) : null,
                   usedLocusDigest: Boolean(literatureEvidenceState.usedLocusDigest),
                   locusDigest: literatureEvidenceState.locusDigest || null,
                   papers: literatureEvidenceState.papers || [],
@@ -82,6 +86,11 @@ export function restoreGp2SessionExtras(payload) {
         assistantThreadEntries: Array.isArray(gp2.assistant?.threadEntries)
             ? gp2.assistant.threadEntries
             : [],
+        aiSummaryMessage:
+            (typeof gp2.aiSummaryMessage === "string" && gp2.aiSummaryMessage.trim()) ||
+            (typeof literatureEvidence?.aiSummary === "string" &&
+                literatureEvidence.aiSummary.trim()) ||
+            null,
         literatureEvidenceState: literatureEvidence
             ? (() => {
                   const locusDigest = literatureEvidence.locusDigest || null;
