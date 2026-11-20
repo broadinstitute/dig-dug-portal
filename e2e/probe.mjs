@@ -107,7 +107,6 @@ export async function probePage(page, url, { landmark, mask = [], screenshotPath
   page.on('requestfailed', onRequestEnd);
   try {
     await page.goto(url, { waitUntil: 'load' });
-    const finalSearch = new URL(page.url()).search;
 
     let landmarkVisible = true;
     try {
@@ -129,6 +128,11 @@ export async function probePage(page, url, { landmark, mask = [], screenshotPath
 
     // A crashed renderer can still let the waits settle (a crashed page never goes idle).
     if (crashed) throw new Error(`page crashed while probing ${url}`);
+
+    // Read after the waits, not at `load`: some pages rewrite their query string while their data
+    // loads (region.html drops `phenotype`, then writes it back once its associations arrive), so the
+    // URL at `load` depends on how fast the data services answer.
+    const finalSearch = new URL(page.url()).search;
 
     if (screenshotPath) {
       await page.screenshot({
