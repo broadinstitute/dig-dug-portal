@@ -18,11 +18,12 @@
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
-import DownloadChart from "./DownloadChart.vue";
+import DownloadChart from "@/components/researchPortal/singleCellBrowser/DownloadChart.vue";
 import plotUtils from "@/utils/plotUtils";
 import Formatters from "@/utils/formatters";
 export default Vue.component("scatterplot", {
   components: {
+    DownloadChart,
   },
   props: ["plotData", "config", "filter", "plotName", "logScale", "translucentDots"],
   data() {
