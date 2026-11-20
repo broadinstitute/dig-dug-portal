@@ -32,18 +32,8 @@
                             <div v-if="structureError">{{ structureError }}</div>
                             <div v-else>
                                 <div
-                                    ref="structureViewer"
-                                    style="
-                                        width: 100%;
-                                        height: 500px;
-                                        position: relative;
-                                        box-sizing: border-box;
-                                        overflow: hidden;
-                                        border: 1px solid #dddddd;
-                                        border-radius: 5px;
-                                    "
-                                ></div>
-                                <div class="mt-2 d-flex align-items-center">
+                                    class="mb-2 d-flex flex-wrap align-items-center justify-content-start"
+                                >
                                     <label class="mb-0 mr-2 small" for="zoomSlider"
                                         >Zoom</label
                                     >
@@ -55,16 +45,28 @@
                                         step="0.1"
                                         v-model.number="zoomLevel"
                                         @input="onZoomChange"
-                                        style="max-width: 250px; width: 100%"
+                                        style="width: 200px"
                                     />
                                     <span class="ml-2 small"
                                         >{{ zoomLevel.toFixed(1) }}x</span
                                     >
+                                    <span class="ml-4 small text-muted"
+                                        >Drag with the mouse to rotate. Use the
+                                        slider to zoom.</span
+                                    >
                                 </div>
-                                <div class="mt-1 small text-muted">
-                                    Drag with the mouse to rotate. Use the slider
-                                    to zoom.
-                                </div>
+                                <div
+                                    ref="structureViewer"
+                                    style="
+                                        width: 100%;
+                                        height: 500px;
+                                        position: relative;
+                                        box-sizing: border-box;
+                                        overflow: hidden;
+                                        border: 1px solid #dddddd;
+                                        border-radius: 5px;
+                                    "
+                                ></div>
                                 <div v-if="afEntry" class="mt-2">
                                     <a :href="afEntry.url" target="_blank"
                                         >{{ afEntry.id }} on AlphaFold DB</a
@@ -78,14 +80,75 @@
                         </div>
                     </b-tab>
                     <b-tab title="Protein Pathway" lazy>
-                        <translator-predicate-table
-                            v-if="uniprotId"
-                            title="Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)"
-                            :gene-symbol="uniprotQuery"
-                            :field="'pathway'"
-                            :hide-search="true"
-                        >
-                        </translator-predicate-table>
+                        <div class="cfde-ptm-panel-inner">
+                            <h4>
+                                Pathway Annotations (Reactome, KEGG, BioCarta,
+                                WikiPathways)
+                            </h4>
+                            <div v-if="pathwayLoading">Loading...</div>
+                            <div v-else-if="pathwayRows.length === 0">
+                                No pathway annotations found.
+                            </div>
+                            <div v-else>
+                                <div class="cfde-ptm-filter">
+                                    <strong class="mr-2">Search:</strong>
+                                    <input
+                                        v-model="pathwayFilter"
+                                        type="text"
+                                        class="form-control form-control-sm d-inline-block"
+                                        style="width: 250px"
+                                        @input="pathwayPage = 1"
+                                    />
+                                </div>
+                                <b-table
+                                    :items="pathwayRows"
+                                    :fields="pathwayFields"
+                                    :per-page="ptmPerPage"
+                                    :current-page="pathwayPage"
+                                    :filter="pathwayFilter"
+                                    :filter-function="filterPathwayRow"
+                                    small
+                                    striped
+                                    @filtered="onPathwayFiltered"
+                                >
+                                    <template #cell(id)="data">
+                                        <resolved-curie-link
+                                            v-if="
+                                                biolinkContext &&
+                                                typeof biolinkContext[
+                                                    supportedPrefix(
+                                                        data.item.source,
+                                                        biolinkContext
+                                                    )
+                                                ] !== 'undefined'
+                                            "
+                                            :key="data.item.id"
+                                            :id="data.item.id"
+                                            :prefix="
+                                                supportedPrefix(
+                                                    data.item.source,
+                                                    biolinkContext
+                                                )
+                                            "
+                                        ></resolved-curie-link>
+                                        <resolved-curie-link
+                                            v-else
+                                            :key="data.item.id"
+                                            :curie="`${data.item.id}`"
+                                        ></resolved-curie-link>
+                                    </template>
+                                    <template #empty>
+                                        No rows match the search.
+                                    </template>
+                                </b-table>
+                                <b-pagination
+                                    v-model="pathwayPage"
+                                    :total-rows="pathwayTotal"
+                                    :per-page="ptmPerPage"
+                                    size="sm"
+                                ></b-pagination>
+                            </div>
+                        </div>
                     </b-tab>
                 </b-tabs>
             </div>
@@ -154,7 +217,8 @@
 </template>
 
 <script>
-import "@/components/NCATS/old/PredicateTable.vue";
+import "@/components/NCATS/ResolvedCurieLink.vue";
+import trapi from "@/components/NCATS/trapi";
 
 // section_id -> title/header (merged from section_headers.json)
 const SECTION_INFO = {
@@ -210,6 +274,17 @@ export default {
             ptmPages: {},
             ptmTypeFilters: {},
             ptmPerPage: 10,
+            pathwayRows: [],
+            pathwayLoading: false,
+            pathwayFilter: "",
+            pathwayPage: 1,
+            pathwayTotal: 0,
+            biolinkContext: null,
+            pathwayFields: [
+                { key: "id", label: "Id", sortable: true },
+                { key: "name", label: "Name", sortable: true },
+                { key: "source", label: "Source", sortable: true },
+            ],
             ptmFields: [
                 { key: "site_id", label: "Site ID", sortable: true },
                 { key: "position", sortable: true },
@@ -274,9 +349,94 @@ export default {
         if (this.uniprotId) {
             this.loadUniprot();
             this.loadPtm();
+            this.loadPathway();
         }
     },
     methods: {
+        supportedPrefix: trapi.identifiers.supportedPrefix,
+        async loadPathway() {
+            this.pathwayLoading = true;
+            try {
+                // same biolink context the old predicate table used to pick
+                // the id prefix for resolved links
+                this.biolinkContext = await fetch(
+                    "https://raw.githubusercontent.com/biolink/biolink-model/master/project/jsonld/biolink_model.context.jsonld"
+                )
+                    .then((r) => r.json())
+                    .then((j) => j["@context"])
+                    .catch(() => null);
+                const resp = await fetch(
+                    `https://mygene.info/v3/query?q=${encodeURIComponent(
+                        this.uniprotQuery
+                    )}&fields=pathway`
+                );
+                if (!resp.ok) throw new Error(`MyGene HTTP ${resp.status}`);
+                const hits = (await resp.json()).hits || [];
+                const rows = [];
+                hits.forEach((hit) => {
+                    Object.entries(hit.pathway || {}).forEach(
+                        ([source, val]) => {
+                            // a single annotation comes back as an object
+                            []
+                                .concat(val || [])
+                                .forEach((e) => rows.push({ ...e, source }));
+                        }
+                    );
+                });
+                this.pathwayRows = rows;
+                this.pathwayTotal = rows.length;
+                this.pathwayPage = 1;
+                this.resolveIdLabels(rows);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                this.pathwayLoading = false;
+            }
+        },
+        // Id cells show a resolved label (via node normalization); fetch the
+        // same labels so the search box can match what the user sees.
+        async resolveIdLabels(rows) {
+            const ctx = this.biolinkContext;
+            await Promise.all(
+                rows.map(async (row) => {
+                    try {
+                        const [, parsedId] = trapi.identifiers.deserializeCurie(
+                            String(row.id)
+                        );
+                        let curie = String(row.id);
+                        const p =
+                            ctx && this.supportedPrefix(row.source, ctx);
+                        if (p && typeof ctx[p] !== "undefined") {
+                            const prefix =
+                                this.supportedPrefix(p, ctx, {
+                                    reactome: "REACT",
+                                }) || p;
+                            const id = parsedId || row.id;
+                            curie = trapi.identifiers.serializeCurie(prefix, id);
+                        }
+                        const label = await trapi.normalize.curieLabel(curie);
+                        this.$set(row, "idLabel", label);
+                    } catch (e) {
+                        /* keep raw id only */
+                    }
+                })
+            );
+        },
+        // search matches the Id (raw + displayed label), Name and Source columns
+        filterPathwayRow(item, filter) {
+            const needle = String(filter || "").trim().toLowerCase();
+            if (!needle) return true;
+            return [item.id, item.idLabel, item.name, item.source].some(
+                (v) =>
+                    v !== undefined &&
+                    v !== null &&
+                    String(v).replace(/_/g, " ").toLowerCase().includes(needle)
+            );
+        },
+        onPathwayFiltered(items) {
+            this.pathwayTotal = items.length;
+            this.pathwayPage = 1;
+        },
         async loadPtm() {
             const host = "https://cfde-dev.hugeampkpnbi.org";
             this.ptmLoading = true;
@@ -488,6 +648,54 @@ export default {
     font-size: 24px;
     font-weight: 500;
     color: #212529;
+}
+/* keep wide tables (e.g. Pathway tab) inside the white wrapper */
+.cfde-protein-page,
+.cfde-protein-page .cfde-protein-card,
+.cfde-protein-page .cfde-tabs {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+.cfde-protein-page .cfde-tabs .tab-content {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+.cfde-protein-page .cfde-tabs .tab-content .tab-pane,
+.cfde-protein-page .cfde-tabs .tab-content .row {
+    max-width: 100%;
+    min-width: 0;
+}
+.cfde-protein-page .cfde-tabs .tab-content .row {
+    display: block;
+}
+.cfde-protein-page .cfde-tabs .tab-content .row > .card-body {
+    width: 100%;
+    margin: 0;
+}
+.cfde-protein-page .cfde-tabs .tab-content .table {
+    display: table;
+    width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
+}
+.cfde-protein-page .cfde-tabs .tab-content .table th,
+.cfde-protein-page .cfde-tabs .tab-content .table td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.cfde-protein-page .cfde-tabs .tab-content .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+.cfde-protein-page .cfde-tabs .tab-content .row > .card-body {
+    min-width: 0;
+    padding: 0;
+}
+.cfde-protein-page .cfde-tabs .tab-content .table {
+    width: 100%;
+    word-break: break-word;
 }
 /* tab content already has the panel padding; drop Bootstrap's extra card-body padding */
 .cfde-protein-page .cfde-tabs .tab-content .card-body {
