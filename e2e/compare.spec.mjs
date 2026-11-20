@@ -4,7 +4,7 @@
 // console errors or failed requests, or a screenshot that differs by more than the page allows.
 import fs from 'node:fs';
 import { DEFAULT_LANDMARK, PAGES, pageUrl } from './catalog.mjs';
-import { diffRatio, newItems } from './diff.mjs';
+import { diffRatio, newConsoleErrors, newFailedRequests, newItems } from './diff.mjs';
 import { LOCAL_ORIGINS, expect, test } from './fixtures.mjs';
 import { installNetworkPolicy } from './network.mjs';
 import { probePage } from './probe.mjs';
@@ -12,6 +12,9 @@ import { probePage } from './probe.mjs';
 const BASELINE = 'http://localhost:8081';
 const CANDIDATE = 'http://localhost:8080';
 const DEFAULT_MAX_DIFF = Number(process.env.E2E_MAX_DIFF ?? 0.002);
+
+// How each list in a probe is compared: what the candidate has that the baseline does not.
+const NEW_IN_CANDIDATE = { pageErrors: newItems, consoleErrors: newConsoleErrors, failedRequests: newFailedRequests };
 
 test.skip(!fs.existsSync('dist-baseline'), 'run npm run e2e:baseline -- <ref> first');
 
@@ -61,8 +64,8 @@ for (const p of PAGES) {
     if (baseline.landmarkVisible) {
       expect.soft(candidate.landmarkVisible, `landmark ${landmark} renders in the baseline but not in the candidate`).toBe(true);
     }
-    for (const key of ['pageErrors', 'consoleErrors', 'failedRequests']) {
-      expect.soft(newItems(baseline[key], candidate[key]), `${key} the candidate has and the baseline does not`).toEqual([]);
+    for (const [key, newInCandidate] of Object.entries(NEW_IN_CANDIDATE)) {
+      expect.soft(newInCandidate(baseline[key], candidate[key]), `${key} the candidate has and the baseline does not`).toEqual([]);
     }
 
     const before = fs.readFileSync(baselinePath);

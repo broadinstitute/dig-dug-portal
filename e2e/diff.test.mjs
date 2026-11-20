@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import pngjs from 'pngjs';
-import { diffRatio, newItems } from './diff.mjs';
+import { diffRatio, newConsoleErrors, newFailedRequests, newItems } from './diff.mjs';
 
 const { PNG } = pngjs;
 
@@ -45,4 +45,43 @@ test('newItems: the multiset difference, in the order of `after`', () => {
   assert.deepEqual(newItems(['x', 'y'], []), []);
   assert.deepEqual(newItems(['x', 'y'], ['y', 'x']), []);
   assert.deepEqual(newItems(['a'], ['c', 'a', 'a', 'b']), ['c', 'a', 'b']);
+});
+
+// Failed-request entries as probePage builds them: `${method} ${url without query} ${errorText}`.
+const BLOCKED = 'net::ERR_BLOCKED_BY_CLIENT.Inspector';
+const CMS_IMAGE = `GET https://hugeampkpncms.org/sites/default/files/images/KP_guide_images/1_2_3_icon_slim.png ${BLOCKED}`;
+const CMS_VIEW = `GET https://hugeampkpncms.org/rest/views/news2vueportal ${BLOCKED}`;
+const LIVE_FAILED = 'GET https://bioindex.hugeamp.org/api/bio/query/gene net::ERR_FAILED';
+
+test('newFailedRequests: a blocked URL requested more often in the candidate is nothing new', () => {
+  assert.deepEqual(newFailedRequests([CMS_IMAGE, CMS_IMAGE], [CMS_IMAGE, CMS_IMAGE, CMS_IMAGE]), []);
+});
+
+test('newFailedRequests: a blocked URL the baseline never requested is new, once', () => {
+  assert.deepEqual(newFailedRequests([CMS_IMAGE], [CMS_VIEW, CMS_IMAGE, CMS_VIEW]), [CMS_VIEW]);
+});
+
+test('newFailedRequests: any other failure still counts as a multiset', () => {
+  assert.deepEqual(newFailedRequests([LIVE_FAILED], [LIVE_FAILED, LIVE_FAILED]), [LIVE_FAILED]);
+  assert.deepEqual(newFailedRequests([LIVE_FAILED, CMS_IMAGE], [CMS_IMAGE, LIVE_FAILED, CMS_IMAGE]), []);
+});
+
+test('newFailedRequests: the same failure on the baseline (8081) and candidate (8080) servers is nothing new', () => {
+  const baseline = 'GET http://localhost:8081/js/chunk-vendors.06e212f7.js net::ERR_ABORTED';
+  const candidate = 'GET http://localhost:8080/js/chunk-vendors.e0f38165.js net::ERR_ABORTED';
+  assert.deepEqual(newFailedRequests([baseline], [candidate]), []);
+  assert.deepEqual(newFailedRequests([], [candidate]), ['GET <origin>/js/chunk-vendors.js net::ERR_ABORTED']);
+});
+
+test('newConsoleErrors: leaves out the URL-less line logged for each blocked request', () => {
+  const blockedLine = `Failed to load resource: ${BLOCKED}`;
+  const typeError = "TypeError: Cannot read properties of null (reading 'name')";
+  assert.deepEqual(newConsoleErrors([blockedLine], [blockedLine, blockedLine, blockedLine]), []);
+  assert.deepEqual(newConsoleErrors([], [blockedLine, 'Failed to load resource: net::ERR_BLOCKED_BY_CLIENT']), []);
+  // Everything else is still a multiset.
+  assert.deepEqual(newConsoleErrors([typeError, blockedLine], [blockedLine, typeError, typeError]), [typeError]);
+  assert.deepEqual(
+    newConsoleErrors([], ['Failed to load resource: the server responded with a status of 404 (Not Found)']),
+    ['Failed to load resource: the server responded with a status of 404 (Not Found)'],
+  );
 });
