@@ -91,21 +91,22 @@ export default Vue.component("bulk-heatmap", {
             let output = {};
             for (let i = 0; i < this.samplesColumns.length; i++){
                 let sample = this.samplesColumns[i];
+                let groupIndex = indices[i];
                 let groupInfo = {
                     sample: sample,
-                    groupIndex: indices[i],
-                    group: this.sampleGroups[indices[i]]
+                    group: this.sampleGroups[groupIndex]
                 }
+                // If the groups are already numeric (i.e. age) use them as indices
+                groupInfo.groupIndex = this.isNumeric ? groupInfo.group : groupIndex;
                 output[sample] = groupInfo;
             }
+            //console.log(JSON.stringify(output));
             return output;
         },
         isNumeric(){
             for (let i = 0; i < this.sampleGroups.length; i++){
                 let item = this.sampleGroups[i];
-                console.log(item, parseFloat(item));
                 if (isNaN(parseFloat(item))){
-                    console.log("This is not numeric data.")
                     return false;
                 }
             }
@@ -203,7 +204,7 @@ export default Vue.component("bulk-heatmap", {
 
           // Building the heatmap
           this.svg.selectAll()
-              .data(collatedData, function(d) {return d.sample+':'+d.expression;})
+              .data(collatedData, function(d) {return d.sample+':'+d.expval;})
               .enter()
               .append("rect")
                   .attr("id", d => d.gene)
@@ -212,7 +213,7 @@ export default Vue.component("bulk-heatmap", {
                   .attr("y", function(d) { return y(d.gene) })
                   .attr("width", x.bandwidth() )
                   .attr("height", y.bandwidth() )
-                  .style("fill", function(d) { return colorScale(d.expression)} )
+                  .style("fill", function(d) { return colorScale(d.expval)} )
                   .on("mouseover", d => this.showTooltip(d))
                   .on("mouseleave", d=> mouseTooltip.hide())
                   .on("click", d => this.clickSquare(d));
@@ -254,6 +255,7 @@ export default Vue.component("bulk-heatmap", {
             let maxExp = null;
 
             rawData.forEach(item => {
+                console.log(JSON.stringify(item));
                 ///DK: Modified to add group
                 samplesColumns.map(sample =>{
 
@@ -263,16 +265,16 @@ export default Vue.component("bulk-heatmap", {
                     minExp = (currentExp < minExp) || minExp === null ? currentExp : minExp;
                     maxExp = (currentExp > maxExp) || maxExp === null ? currentExp : maxExp;
 
-                    let expressionEntry = {
+                    let expvalEntry = {
                         gene: item.gene,
                         sample: sample,
                         condition: sample.split("_")[0],
-                        expression: currentExp,
+                        expval: currentExp,
                         group: groupInfo.group,
                         groupIndex: groupInfo.groupIndex
                     };
 
-                    outputData.push(expressionEntry);
+                    outputData.push(expvalEntry);
                 })
             });
 
@@ -291,10 +293,10 @@ export default Vue.component("bulk-heatmap", {
         let condition = this.diseaseMap[sample].group;
         tooltipHtml = tooltipHtml.concat(
             `<div>Condition: ${condition}<div>`);
-        let expression = classes[1].replace("expr_", "");
-        expression = expression.replace("dot", ".");
+        let expval = classes[1].replace("expr_", "");
+        expval = expval.replace("dot", ".");
         tooltipHtml = tooltipHtml.concat(
-          `<div>RUV-normalized counts: ${expression}</div>`);
+          `<div>RUV-normalized counts: ${expval}</div>`);
         mouseTooltip.show(tooltipHtml);
       },
       clickSquare(event){
@@ -302,7 +304,7 @@ export default Vue.component("bulk-heatmap", {
         this.$emit("highlight", gene);
       },
       dataToClass(value){
-        let expr = `expr_${value.expression}`.replaceAll(".", "dot");
+        let expr = `expr_${value.expval}`.replaceAll(".", "dot");
         return `${value.sample} ${expr}`;
     },
     },
