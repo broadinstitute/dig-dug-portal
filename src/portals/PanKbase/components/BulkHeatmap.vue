@@ -14,7 +14,7 @@
               <span>{{ this.maxExp }}</span>
             </div>
         </div>
-        <div style="display:inline-block; width:35%;" class="legend" v-if="sampleGroups.length > 0">
+        <div style="display:inline-block; width:35%;" class="legend" v-if="sampleGroups.length > 0 && !isNumeric">
             <strong>Sample groups</strong>
             <div style="display:flex; margin-top:10px">
               <template v-for="(sample, sIndex) in sampleGroups" >
@@ -69,8 +69,6 @@ export default Vue.component("bulk-heatmap", {
           sampleColors: [
                 "rgb(092 174 000)",
                 "rgb(116 040 129)"], // Green and purple sample labels for colorblind accessibility
-          
-        
         };
     },
     computed: {
@@ -101,6 +99,17 @@ export default Vue.component("bulk-heatmap", {
                 output[sample] = groupInfo;
             }
             return output;
+        },
+        isNumeric(){
+            for (let i = 0; i < this.sampleGroups.length; i++){
+                let item = this.sampleGroups[i];
+                console.log(item, parseFloat(item));
+                if (isNaN(parseFloat(item))){
+                    console.log("This is not numeric data.")
+                    return false;
+                }
+            }
+            return true;
         }
     },
     methods: {
