@@ -21,7 +21,6 @@
 </template>
 <script>
 
-import Vue from "vue";
 import ResultsTable from "./ResultsTable"
 import trapi from "@/components/NCATS/trapi"
 import Formatters from "@/utils/formatters.js"
@@ -29,7 +28,8 @@ import Formatters from "@/utils/formatters.js"
 // Note: Here's the LoC for predicate label decoding
 // 🠖 ${biolinkTypeFormatter(query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].predicate)} 
 
-export default Vue.component("translator-results-dashboard", {
+export default {
+    name: "translator-results-dashboard",
     components: {
         ResultsTable,
         TranslatorResultsTable: ResultsTable,
@@ -61,5 +61,5 @@ export default Vue.component("translator-results-dashboard", {
             return Formatters.capitalizedFormatter(trapi.identifiers._stripPrefix(biolinkTypeCurie))
         }
     }
-})
+}
 </script>

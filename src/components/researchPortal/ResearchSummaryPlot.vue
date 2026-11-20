@@ -11,12 +11,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import ResearchMultiPlot from "./ResearchMultiPlot.vue";
-export default Vue.component("research-summary-plot", {
+export default {
+    name: "research-summary-plot",
     components: {
         ResearchMultiPlot,
     },
@@ -230,7 +230,7 @@ export default Vue.component("research-summary-plot", {
         }
 
     },
-});
+};
 </script>
 <style>
 div{

@@ -23,7 +23,8 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-genes-track", {
+export default {
+    name: "research-genes-track",
     props: ["region", "genesData", "plotConfig", "plotType"],
     data() {
         return {
@@ -187,7 +188,7 @@ export default Vue.component("research-genes-track", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

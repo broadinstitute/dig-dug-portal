@@ -153,7 +153,8 @@ import uiUtils from "@/utils/uiUtils";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("phenotype-signal-multiple", {
+export default {
+    name: "phenotype-signal-multiple",
     modules: {
         uiUtils
     },
@@ -265,7 +266,7 @@ export default Vue.component("phenotype-signal-multiple", {
             uiUtils.showHideByClass(CLASS);
         }
     }
-});
+};
 </script>
 
 <style>

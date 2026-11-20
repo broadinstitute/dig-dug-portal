@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 
 // The inner tab strip inside a detail panel. Visually distinct from the card's own
 // tab band above it -- these are pills rather than a full-width band, so two levels
@@ -8,7 +7,8 @@ import Vue from "vue";
 // A tab carrying a count shows it. A tab with nothing behind it is still rendered
 // but disabled, because "this program has no gene set associations" is information,
 // and hiding the tab would make that indistinguishable from "not loaded".
-export default Vue.component("InfoTabs", {
+export default {
+    name: "InfoTabs",
     props: {
         // [{ key, label, count? }] -- count null means "unknown / not loaded",
         // which is NOT the same as 0 and does not disable the tab.
@@ -35,7 +35,7 @@ export default Vue.component("InfoTabs", {
             this.$emit("input", tab.key);
         }
     }
-});
+};
 </script>
 
 <template>

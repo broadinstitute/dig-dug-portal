@@ -488,7 +488,8 @@ import ResearchSingleSearchCfde from "@/components/researchPortal/ResearchSingle
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("cfde-landing", {
+export default {
+    name: "cfde-landing",
     components: {
         ResearchSingleSearchCfde,
     },
@@ -1093,7 +1094,7 @@ export default Vue.component("cfde-landing", {
             }
         },
     },
-});
+};
 </script>
 <style scoped>
 

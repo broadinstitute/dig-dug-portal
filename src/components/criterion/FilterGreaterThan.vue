@@ -14,9 +14,9 @@
     </filter-control-template>
 </template>
 <script>
-import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
-export default Vue.component("filter-greater-control", {
+export default {
+    name: "filter-greater-control",
     props: {
         field: String,
         computedField: Function,
@@ -37,5 +37,5 @@ export default Vue.component("filter-greater-control", {
     components: {
         FilterControlTemplate
     }
-});
+};
 </script>

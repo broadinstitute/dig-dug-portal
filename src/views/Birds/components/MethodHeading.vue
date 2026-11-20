@@ -8,10 +8,10 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import BIRD_PANEL_HTML from "../content/panels.js";
 
-export default Vue.component("method-heading", {
+export default {
+  name: "method-heading",
   props: { method: { type: String, required: true } },
   computed: {
     identity() { return this.panelMarkup(this.method).querySelector('.methodIdentity').outerHTML; },
@@ -24,7 +24,7 @@ export default Vue.component("method-heading", {
         return panel;
     }
   }
-});
+};
 </script>
 <style>
 @import url("/css/birdcss/revisions.css");

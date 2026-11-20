@@ -32,9 +32,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { userMixin } from "@/mixins/userMixin";
-export default Vue.component("unauthorized-message", {
+export default {
+    name: "unauthorized-message",
     mixins: [userMixin],
     data() {
         return {};
@@ -51,7 +51,7 @@ export default Vue.component("unauthorized-message", {
             return null;
         },
     },
-});
+};
 </script>
 
 <style>

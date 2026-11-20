@@ -25,10 +25,9 @@ import regionUtils from "@/utils/regionUtils";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("gene-selectpicker", {
+export default {
+	name: "gene-selectpicker",
 	components: {
 		Autocomplete,
 	},
@@ -61,5 +60,5 @@ export default Vue.component("gene-selectpicker", {
 			}
 		},
 	},
-});
+};
 </script>

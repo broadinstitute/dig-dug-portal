@@ -64,7 +64,8 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import TissueExpressionSubtable from "@/components/TissueExpressionSubtable.vue";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("TissueExpressionTable", {
+export default {
+    name: "TissueExpressionTable",
     components: {
         DataDownload,
         TissueExpressionSubtable,
@@ -164,5 +165,5 @@ export default Vue.component("TissueExpressionTable", {
             this.$emit("highlight", details);
         },
     },
-});
+};
 </script>

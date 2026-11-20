@@ -29,9 +29,9 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
-export default Vue.component("ResearchDatasetSubtable", {
+export default {
+    name: "ResearchDatasetSubtable",
     props: ["row", "fields", "plotByField"],
     data() {
         return {
@@ -80,7 +80,7 @@ export default Vue.component("ResearchDatasetSubtable", {
             });
         },
     },
-});
+};
 </script>
 <style scoped>
 .row {

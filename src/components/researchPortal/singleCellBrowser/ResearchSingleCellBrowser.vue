@@ -1293,7 +1293,8 @@
     //cell, so this is a hard cap on the DOM, not a preference - see openFilterLabels
     const FILTER_LABELS_SHOWN = 200;
 
-    export default Vue.component('research-single-cell-browser', {
+    export default {
+        name: "research-single-cell-browser",
         components: {
             ResearchUmapPlotGL,
             ResearchStackedBarPlot,
@@ -3396,7 +3397,7 @@
                 this.cellCompositionVars.highlightLabel = e.hoveredLabel;
             }
         },
-    });
+    };
 </script>
 
 <style scoped>

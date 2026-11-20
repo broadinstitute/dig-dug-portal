@@ -6,7 +6,6 @@
   
   <script>
   import * as d3 from 'd3';
-  import Vue from 'vue';
   import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
   import EventBus from "@/utils/eventBus";
   import {llog} from "./llog.js";
@@ -32,7 +31,8 @@
   */
   const FACET_BOX_WIDTH_TO_ROW_HEIGHT = 0.5;
 
-  export default Vue.component('research-violin-plot', {
+  export default {
+    name: "research-violin-plot",
     props: {
       data: {                           
         type: (Array, null),
@@ -784,7 +784,7 @@
             }
         }
     },
-  });
+  };
   </script>
   
   <style scoped>

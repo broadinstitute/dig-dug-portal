@@ -159,7 +159,8 @@ import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.v
 import ResolvedCurieLink from "@/components/NCATS/ResolvedCurieLink.vue";
 Vue.use(AsyncComputed);
 
-export default Vue.component('translator-results-table', {
+export default {
+    name: "translator-results-table",
     props: ['query_graph', 'selectable', 'filter', 'mock', 'relationsOnly'],
     props: {
         query_graph: Object,
@@ -345,5 +346,5 @@ export default Vue.component('translator-results-table', {
             deep: true,
         }
     }
-})
+}
 </script>

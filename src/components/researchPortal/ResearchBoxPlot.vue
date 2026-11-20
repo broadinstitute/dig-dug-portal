@@ -121,7 +121,8 @@ import boxPlotVector from "@/components/researchPortal/vectorPlots/ResearchBoxPl
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-box-plot", {
+export default {
+	name: "research-box-plot",
 	props: [
 		"phenotypeMap",
 		"phenotypesData",
@@ -842,7 +843,7 @@ export default Vue.component("research-box-plot", {
 			});
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

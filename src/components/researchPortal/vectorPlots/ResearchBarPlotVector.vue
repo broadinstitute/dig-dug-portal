@@ -15,7 +15,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-bar-plot-vector", {
+export default {
+	name: "research-bar-plot-vector",
 	props: [
 		"renderData",
 		"renderConfig",
@@ -254,7 +255,7 @@ export default Vue.component("research-bar-plot-vector", {
 			
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

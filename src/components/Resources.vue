@@ -73,7 +73,8 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import uiUtils from "@/utils/uiUtils";
 
-export default Vue.component("resources-section", {
+export default {
+    name: "resources-section",
     props: ["resources", "nid"],
     data() {
         return {
@@ -123,6 +124,6 @@ export default Vue.component("resources-section", {
                 : (this.selectedResource = nid);
         }
     }
-});
+};
 </script>
 

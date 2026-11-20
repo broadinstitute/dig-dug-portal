@@ -36,7 +36,8 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("m-bitmap-plot", {
+export default {
+    name: "m-bitmap-plot",
     props: ["plotData", "renderConfig"],
     data() {
         return {
@@ -460,7 +461,7 @@ export default Vue.component("m-bitmap-plot", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

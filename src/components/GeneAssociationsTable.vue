@@ -289,7 +289,8 @@ function joinMultiValues(fieldsToJoin, joinBy, row) {
     return out;
 }
 
-export default Vue.component("GeneAssociationsTable", {
+export default {
+    name: "GeneAssociationsTable",
     components: {
         DataDownload,
         KcCfdeLogo,
@@ -506,5 +507,5 @@ export default Vue.component("GeneAssociationsTable", {
             }
         },
     },
-});
+};
 </script>

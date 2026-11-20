@@ -3,10 +3,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import documentationParser from "@/utils/documentationUtils";
 
-export default Vue.component("menu-item", {
+export default {
+    name: "menu-item",
     props: ["name", "contentFill", "contentMap"],
 
     data: context => {
@@ -33,7 +33,7 @@ export default Vue.component("menu-item", {
     },
 
     methods: {},
-});
+};
 </script>
 <style scoped>
 .tooltip {

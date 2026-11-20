@@ -38,7 +38,8 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default Vue.component("filter-control-template", {
+export default {
+    name: "filter-control-template",
     props: {
         value: Object,
         field: String,
@@ -165,5 +166,5 @@ export default Vue.component("filter-control-template", {
             }
         },
     },
-});
+};
 </script>

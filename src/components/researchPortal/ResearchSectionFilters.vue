@@ -282,9 +282,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("research-section-filters", {
+export default {
+	name: "research-section-filters",
 	props: [
 		"apiParameters",
 		"dataComparisonConfig",
@@ -1523,7 +1523,7 @@ export default Vue.component("research-section-filters", {
 		removeSearch(FIELD, ITEM) {
 		},
 	},
-});
+};
 </script>
 
 <style>

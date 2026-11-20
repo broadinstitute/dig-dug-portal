@@ -149,7 +149,8 @@ import { userMixin } from "@/mixins/userMixin";
 import Alert from "@/components/Alert.vue";
 Vue.use(VueCookies);
 
-export default Vue.component("PageHeader", {
+export default {
+    name: "PageHeader",
     components: {
         GoogleAnalytics,
         MenuItem,
@@ -231,7 +232,7 @@ export default Vue.component("PageHeader", {
 
         this.$store.dispatch("bioPortal/getDocumentations");
     },
-});
+};
 </script>
 <style scoped>
 .disease-in-session {

@@ -64,9 +64,9 @@
 * - simplify the data-class configuration to its cleanest, most canonical form (see notes in the example dataclass below)
 */
 
-import Vue from "vue"
 
-export default Vue.component('lz-panel', {
+export default {
+    name: "lz-panel",
     props: {
         panelClass: Object,
         layout: Object,
@@ -108,7 +108,7 @@ export default Vue.component('lz-panel', {
             // TODO
         }
     }
-})
+}
 
 </script>
 <template>

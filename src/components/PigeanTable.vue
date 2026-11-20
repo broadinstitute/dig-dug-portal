@@ -13,7 +13,8 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
-export default Vue.component("pigean-table", {
+export default {
+    name: "pigean-table",
     components: {
         DataDownload,
         PigeanTable,
@@ -245,7 +246,7 @@ export default Vue.component("pigean-table", {
             return this.traitGroup !== "portal";
         },
     },
-});
+};
 </script>
 <template>
     <div id="pigean-gene" :class="isSubtable ? 'pigean-subtable' : ''">

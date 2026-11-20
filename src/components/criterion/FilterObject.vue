@@ -23,11 +23,11 @@
     </filter-control-template>
 </template>
 <script>
-import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
 import Formatter from "@/utils/formatters";
 
-export default Vue.component("filter-object-control", {
+export default {
+    name: "filter-object-control",
     props: {
         field: String,
         placeholder: String,
@@ -73,5 +73,5 @@ export default Vue.component("filter-object-control", {
             return options;
         },
     },
-});
+};
 </script>

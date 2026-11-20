@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import InfoTip from "./InfoTip.vue";
 
 // The source-data tab: metadata for the single-cell dataset the programs in the
@@ -12,7 +11,8 @@ import InfoTip from "./InfoTip.vue";
 // dataset the portal has and the rows are not uniform, so an empty field is normal
 // -- printing a label with nothing after it would read as missing data rather than
 // as a field this dataset does not carry.
-export default Vue.component("DatasetInfo", {
+export default {
+    name: "DatasetInfo",
     components: {
         InfoTip
     },
@@ -153,7 +153,7 @@ export default Vue.component("DatasetInfo", {
             return label === "Email";
         }
     }
-});
+};
 </script>
 
 <template>

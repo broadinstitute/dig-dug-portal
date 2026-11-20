@@ -174,11 +174,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 //import uiUtils from "@/utils/uiUtils";
 //import alertUtils from "@/utils/alertUtils";
 
-export default Vue.component("research-in-section-search", {
+export default {
+	name: "research-in-section-search",
 	props: [
 		"searchParameters",
 		"phenotypesInUse",
@@ -460,7 +460,7 @@ export default Vue.component("research-in-section-search", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style>

@@ -108,7 +108,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import DataDownload from "@/components/DataDownload";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 
-export default Vue.component("GeneFinderTable", {
+export default {
+    name: "GeneFinderTable",
     components: {
         DataDownload,
         ResearchMPlot,
@@ -311,7 +312,7 @@ export default Vue.component("GeneFinderTable", {
             return 2 * pdf;
         },
     },
-});
+};
 </script>
 
 <style>

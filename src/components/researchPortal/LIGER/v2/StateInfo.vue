@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import InfoTip from "./InfoTip.vue";
 import { pathValue, firstPathValue } from "../ligerApi";
 import InfoTabs from "./InfoTabs.vue";
@@ -26,7 +25,8 @@ import TraitTable from "./TraitTable.vue";
 // - `quality.quality_badges[]` and `summary.portal_primary_badges[]` -- constants,
 //   and identical to each other. The four curation constants collapse into one
 //   provenance line instead of six badges.
-export default Vue.component("StateInfo", {
+export default {
+    name: "StateInfo",
     components: {
         InfoTabs,
         InfoTip,
@@ -204,7 +204,7 @@ export default Vue.component("StateInfo", {
             return (marker.citations || []).filter((citation) => !!citation.url);
         }
     }
-});
+};
 </script>
 
 <template>

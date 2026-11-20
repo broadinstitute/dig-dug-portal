@@ -584,7 +584,8 @@ function emptyGlobalEnrichmentState() {
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("kp-variant-sifter", {
+export default {
+    name: "kp-variant-sifter",
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
     components: {
         VariantSifterMenuBar,
@@ -7527,7 +7528,7 @@ export default Vue.component("kp-variant-sifter", {
             };
         },
     },
-});
+};
 </script>
 
 <style scoped>

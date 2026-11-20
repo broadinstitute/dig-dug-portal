@@ -3,14 +3,14 @@
 </template>
 
 <script>
-import Vue from "vue";
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 am4core.useTheme(am4themes_animated);
 am4core.options.autoDispose = true;
 
-export default Vue.component("ForestPlot", {
+export default {
+    name: "ForestPlot",
     props: {
         data: {
             type: Array,
@@ -232,7 +232,7 @@ export default Vue.component("ForestPlot", {
             }
         },
     },
-});
+};
 </script>
 
 <style></style>

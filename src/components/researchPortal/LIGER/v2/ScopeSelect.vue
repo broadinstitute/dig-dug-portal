@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 
 // The tissue and cell-type dropdowns in the header band. One component for both:
 // they differ only in their options and their disabled reason.
@@ -10,7 +9,8 @@ import Vue from "vue";
 // keeps it custom is the rest -- the band's label/control/error layout, the disabled
 // reason standing in for the placeholder, and the keyboard handling. **If this is
 // ever revisited, a native select is a legitimate option again.**
-export default Vue.component("ScopeSelect", {
+export default {
+    name: "ScopeSelect",
     props: {
         label: {
             type: String,
@@ -194,7 +194,7 @@ export default Vue.component("ScopeSelect", {
             this.$emit("select", option);
         }
     }
-});
+};
 </script>
 
 <template>

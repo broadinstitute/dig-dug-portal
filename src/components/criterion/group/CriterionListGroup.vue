@@ -23,10 +23,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue";
 
-export default Vue.component("criterion-list-group", {
+export default {
+    name: "criterion-list-group",
     props: {
         hide: Boolean,
         value: {
@@ -69,5 +69,5 @@ export default Vue.component("criterion-list-group", {
             this.$emit("update-filter-function", value);
         },
     },
-});
+};
 </script>

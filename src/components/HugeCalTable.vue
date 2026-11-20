@@ -49,10 +49,9 @@ import Formatters from "@/utils/formatters";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("hugecal-table", {
+export default {
+    name: "hugecal-table",
     props: {
         hugeScore: {
             type: Number,
@@ -138,7 +137,7 @@ export default Vue.component("hugecal-table", {
             return ppa;
         },
     },
-});
+};
 </script>
 
 <style scoped>

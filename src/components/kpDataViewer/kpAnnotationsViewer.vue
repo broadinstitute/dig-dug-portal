@@ -398,7 +398,8 @@ import Chi from "chi-squared";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-region-plot", {
+export default {
+	name: "research-region-plot",
 	props: [
 		"plotData",
 		"renderConfig",
@@ -1854,7 +1855,7 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

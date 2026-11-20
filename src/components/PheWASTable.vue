@@ -108,7 +108,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
-export default Vue.component("phewas-table", {
+export default {
+    name: "phewas-table",
     props: ["associations", "phenotypeMap", "filter"],
     components: {
         Documentation,
@@ -236,5 +237,5 @@ export default Vue.component("phewas-table", {
             this.beta = "";
         },
     },
-});
+};
 </script>

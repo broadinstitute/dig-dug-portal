@@ -114,7 +114,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-region-plot", {
+export default {
+	name: "research-region-plot",
 	props: [
 		"plotData",
 		"renderConfig",
@@ -1766,7 +1767,7 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () { });
 </script>

@@ -15,7 +15,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-phewas-plot-vector", {
+export default {
+	name: "research-phewas-plot-vector",
 	props: [
 		"renderData",
 		"renderConfig",
@@ -318,7 +319,7 @@ export default Vue.component("research-phewas-plot-vector", {
 			})			
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

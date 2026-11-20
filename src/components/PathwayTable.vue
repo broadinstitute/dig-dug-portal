@@ -34,10 +34,10 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("PathwayTable", {
+export default {
+    name: "PathwayTable",
     components: {
         DataDownload,
     },
@@ -101,7 +101,7 @@ export default Vue.component("PathwayTable", {
             return phenotypeEntry.description;
         },
     },
-});
+};
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");

@@ -23,7 +23,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("single-gene-view", {
+export default {
+    name: "single-gene-view",
     props: ["geneViewData", "renderConfig", "geneOfInterest"],
     data() {
         return {};
@@ -59,7 +60,7 @@ export default Vue.component("single-gene-view", {
     methods: {
         ...uiUtils,
     },
-});
+};
 
 $(function () {});
 </script>

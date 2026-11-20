@@ -6,7 +6,6 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import trapi from "./trapi"
@@ -30,7 +29,8 @@ function translateGraph(knowledge_graph) {
   return graph;
 }
 
-export default Vue.component("translator-knowledge-graph", {
+export default {
+    name: "translator-knowledge-graph",
     props: ['knowledge_graph', 'query_graph'],
     computed: {
         graph: function() { return translateGraph(this.knowledge_graph) },
@@ -70,5 +70,5 @@ export default Vue.component("translator-knowledge-graph", {
             console.log(arguments)
         }
     }
-})
+}
 </script>

@@ -80,7 +80,8 @@ import genesTrackVector from "@/components/researchPortal/vectorPlots/ResearchGe
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("multi-genes-track", {
+export default {
+	name: "multi-genes-track",
 	props: [
 		"region",
 		"genesData",
@@ -527,7 +528,7 @@ export default Vue.component("multi-genes-track", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

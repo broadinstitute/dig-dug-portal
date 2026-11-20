@@ -692,7 +692,8 @@ function joinMultiValues(fieldsToJoin, joinBy, row) {
     return out;
 }
 
-export default Vue.component("pigean-gene", {
+export default {
+  name: "pigean-gene",
   components: {
     ResearchPigeanPheWAS,
     ResearchPheWAS,
@@ -1552,7 +1553,7 @@ export default Vue.component("pigean-gene", {
       return `${phenotype},${this.gene},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE}`;
     },
   },
-});
+};
 </script>
 <style scoped>
   .loading {

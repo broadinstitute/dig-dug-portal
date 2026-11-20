@@ -2,11 +2,11 @@
     <span>{{biolinkTypeFormatter(label)}}</span>
 </template>
 <script>
-import Vue from "vue";
 import trapi from "./trapi"
 import Formatters from "@/utils/formatters";
 
-export default Vue.component('curie-label', {
+export default {
+    name: "curie-label",
     props: ["curie", "keepTitlePrefix"],
     data() {
         return {
@@ -26,5 +26,5 @@ export default Vue.component('curie-label', {
             }
         }
     }
-})
+}
 </script>

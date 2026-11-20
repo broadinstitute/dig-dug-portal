@@ -76,7 +76,8 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("TissueHeritabilityTable", {
+export default {
+    name: "TissueHeritabilityTable",
     components: {
         DataDownload,
     },
@@ -241,7 +242,7 @@ export default Vue.component("TissueHeritabilityTable", {
             return this.subTableData[query];
         },
     },
-});
+};
 </script>
 
 <style scoped>

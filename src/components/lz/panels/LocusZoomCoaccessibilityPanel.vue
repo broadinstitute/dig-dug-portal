@@ -1,6 +1,5 @@
 <script>
 
-import Vue from "vue";
 import LzPanel from "./LzPanel"
 import LocusZoom from "locuszoom"
 import { LZBioIndexSource } from "@/utils/lzUtils"
@@ -8,7 +7,8 @@ import idCounter from "@/utils/idCounter"
 import Formatters from "@/utils/formatters"
 import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
 
-export default Vue.component('lz-coaccessibility-panel', {
+export default {
+    name: "lz-coaccessibility-panel",
     components: {
         LzPanel
     },
@@ -30,7 +30,7 @@ export default Vue.component('lz-coaccessibility-panel', {
         this.plot = this.$parent.plot;
     }
 
-});
+};
 
 export function makeCoaccessibilityPanel(tissue, title, onLoad, onResolve, onError) {
     const namespace_id = `access_${idCounter.getUniqueId()}`

@@ -145,7 +145,8 @@ import regionPlotVector from "@/components/researchPortal/vectorPlots/ResearchRe
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("multi-region-plot", {
+export default {
+	name: "multi-region-plot",
 	props: [
 		"plotData",
 		"renderConfig",
@@ -2088,7 +2089,7 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () { });
 </script>

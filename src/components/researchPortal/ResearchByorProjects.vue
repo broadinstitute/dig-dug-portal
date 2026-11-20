@@ -28,7 +28,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-byor-projects", {
+export default {
+	name: "research-byor-projects",
 	props: [],
 	data() {
 		return {
@@ -59,7 +60,7 @@ export default Vue.component("research-byor-projects", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

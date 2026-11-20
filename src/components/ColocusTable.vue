@@ -148,9 +148,9 @@
 <script>
 //TODO: When more data is available, add pagination.
 //Make sure it support dynamic loading so we don't have to pull all data at once.
-import Vue from "vue";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("ColocusTable", {
+export default {
+    name: "ColocusTable",
     components: {
         DataDownload,
     },
@@ -258,7 +258,7 @@ export default Vue.component("ColocusTable", {
             return `<a href="/gene.html?gene=${gene}">${gene}</a>`;
         },
     },
-});
+};
 </script>
 
 <style scoped></style>

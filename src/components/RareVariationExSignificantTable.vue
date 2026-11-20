@@ -89,10 +89,9 @@ import Formatters from "@/utils/formatters";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("rarevariation-exomesig-table", {
+export default {
+    name: "rarevariation-exomesig-table",
     props: {
         isExomeWideSignificant: {
             type: Boolean,
@@ -131,7 +130,7 @@ export default Vue.component("rarevariation-exomesig-table", {
         }
     },
     methods: {}
-});
+};
 </script>
 
 <style>

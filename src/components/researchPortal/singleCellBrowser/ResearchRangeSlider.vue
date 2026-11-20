@@ -47,9 +47,9 @@
 </template>
 
 <script>
-    import Vue from "vue";
 
-    export default Vue.component('research-range-slider', {
+    export default {
+        name: "research-range-slider",
         props: {
             min: { type: Number, required: true },
             max: { type: Number, required: true },
@@ -141,7 +141,7 @@
                 this.commit();
             },
         },
-    });
+    };
 </script>
 
 <style scoped>

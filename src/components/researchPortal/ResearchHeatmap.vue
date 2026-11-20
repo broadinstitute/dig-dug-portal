@@ -66,7 +66,8 @@ import ResearchHeatmapVector from "@/components/researchPortal/vectorPlots/Resea
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-heatmap", {
+export default {
+	name: "research-heatmap",
 	components: {
 		ResearchHeatmapVector,
 	},
@@ -611,7 +612,7 @@ export default Vue.component("research-heatmap", {
 
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

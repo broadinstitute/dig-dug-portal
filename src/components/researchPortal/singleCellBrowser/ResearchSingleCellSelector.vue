@@ -83,7 +83,6 @@
   
 <script>
 import * as d3 from 'd3';
-import Vue from 'vue';
 import {llog} from "./llog.js";
 
 /*
@@ -117,7 +116,8 @@ selectedField: "field1"
 
 */
 
-export default Vue.component('research-single-cell-selector', {
+export default {
+    name: "research-single-cell-selector",
     props: {
         data: {                           
             type: (Object, Array, null),
@@ -316,7 +316,7 @@ export default Vue.component('research-single-cell-selector', {
             }
         }
     },
-});
+};
 </script>
 
 <style scoped>

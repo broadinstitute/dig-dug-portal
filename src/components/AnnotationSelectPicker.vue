@@ -26,9 +26,9 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-export default Vue.component("annotation-selectpicker", {
+export default {
+    name: "annotation-selectpicker",
     components: {
         VueTypeaheadBootstrap,
     },
@@ -76,5 +76,5 @@ export default Vue.component("annotation-selectpicker", {
             });
         }
     }
-});
+};
 </script>

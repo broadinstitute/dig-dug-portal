@@ -117,7 +117,8 @@ import barPlotVector from "@/components/researchPortal/vectorPlots/ResearchBarPl
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-bar-plot", {
+export default {
+	name: "research-bar-plot",
 	props: [
 		"canvasId",
 		"phenotypeMap",
@@ -865,7 +866,7 @@ export default Vue.component("research-bar-plot", {
 			});
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

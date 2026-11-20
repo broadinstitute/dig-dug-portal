@@ -40,10 +40,9 @@ import Formatters from "@/utils/formatters";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("genepage-combinedevidence-table", {
+export default {
+    name: "genepage-combinedevidence-table",
     props: {
         commonBF: {
             type: Number,
@@ -76,7 +75,7 @@ export default Vue.component("genepage-combinedevidence-table", {
         }
     },
     methods: {}
-});
+};
 </script>
 
 <style>

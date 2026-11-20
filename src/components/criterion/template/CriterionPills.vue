@@ -30,8 +30,8 @@
     </span>
 </template>
 <script>
-import Vue from "vue"
-export default Vue.component('criterion-pills', {
+export default {
+    name: "criterion-pills",
     props: {
         header: String,
         filterList: Array,
@@ -40,5 +40,5 @@ export default Vue.component('criterion-pills', {
             default: false,
         }
     }
-});
+};
 </script>

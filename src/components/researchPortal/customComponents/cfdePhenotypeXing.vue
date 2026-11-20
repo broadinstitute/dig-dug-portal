@@ -66,7 +66,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-cfde-xing", {
+export default {
+	name: "research-cfde-xing",
 	props: [
 		"canvasId",
 		"data",
@@ -151,7 +152,7 @@ export default Vue.component("research-cfde-xing", {
             return size;
         }
     },
-});
+};
 </script>
 
 <style scoped>

@@ -7,10 +7,10 @@
   </b-dropdown>
 </template>
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 import * as d3 from "d3";
-export default Vue.component("DownloadChart", {
+export default {
+    name: "DownloadChart",
     props: {
       chartId: {
         type: String,
@@ -100,7 +100,7 @@ export default Vue.component("DownloadChart", {
         document.body.removeChild(newDiv);
       }
     },
-});
+};
 </script>
 <style>
   .download-chart {

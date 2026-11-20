@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import InfoTip from "./InfoTip.vue";
 
 // One gene program, as a two-line row in the programs list.
@@ -17,7 +16,8 @@ import InfoTip from "./InfoTip.vue";
 //
 // Specificity survives only as the gutter: the arrow for its direction, the value
 // under it, both explained by one tooltip on the gutter itself.
-export default Vue.component("ProgramRow", {
+export default {
+    name: "ProgramRow",
     components: {
         InfoTip
     },
@@ -92,7 +92,7 @@ export default Vue.component("ProgramRow", {
                 + "Open the program for the full report.";
         }
     }
-});
+};
 </script>
 
 <template>

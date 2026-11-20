@@ -83,7 +83,8 @@ const EventListener = {
     },
 };
 
-export default Vue.component("criterion-group-template", {
+export default {
+    name: "criterion-group-template",
     components: {
         CriterionPills,
         EventListener,
@@ -367,5 +368,5 @@ export default Vue.component("criterion-group-template", {
             deep: true,
         },
     },
-});
+};
 </script>

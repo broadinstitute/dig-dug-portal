@@ -104,7 +104,8 @@ const typeColor = code => getComputedStyle(document.documentElement).getProperty
 
 Vue.use(BootstrapVue);
 
-export default Vue.component("tissue-explorer", {
+export default {
+    name: "tissue-explorer",
     props: [],
 
     data() {
@@ -413,7 +414,7 @@ export default Vue.component("tissue-explorer", {
             this.renderScatter(); this.renderAssayDetail(); this.renderAssayList();
         }
     },
-});
+};
 </script>
 <style>
     /* Styled after the Knowledge Portal pages (hugeamp.org): Roboto/Arial, #eee page,

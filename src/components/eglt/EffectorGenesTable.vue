@@ -463,7 +463,8 @@ import formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("effector-genes-table", {
+export default {
+    name: "effector-genes-table",
     props: ["dataset", "trait"],
     data() {
         return {
@@ -1305,7 +1306,7 @@ export default Vue.component("effector-genes-table", {
             return VALUE;
         },
     },
-});
+};
 </script>
 
 <style>

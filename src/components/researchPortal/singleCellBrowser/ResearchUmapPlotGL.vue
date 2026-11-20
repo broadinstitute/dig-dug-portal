@@ -67,7 +67,6 @@
 
 <script>
 import * as d3 from 'd3';
-import Vue from 'vue';
 import EventBus from "@/utils/eventBus";
 import sharedUmapData from "@/components/researchPortal/singleCellBrowser/sharedUmapData.js";
 import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
@@ -214,7 +213,8 @@ function colorToRgba(color, alpha = 255) {
     return [rgb.r, rgb.g, rgb.b, alpha];
 }
 
-export default Vue.component('research-umap-plot-gl', {
+export default {
+    name: "research-umap-plot-gl",
     props: {
         group: {
             type: String,
@@ -1752,7 +1752,7 @@ export default Vue.component('research-umap-plot-gl', {
             link.click();
         },
     },
-});
+};
 </script>
 
 <style scoped>

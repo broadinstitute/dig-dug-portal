@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import { formatMetric, formatPValue } from "../ligerFormat";
 import HeatTable from "./HeatTable.vue";
 
@@ -28,7 +27,8 @@ const PREVIEW_TRAIT_ROWS = 4;
 // only thing in the API that speaks to whether the program is worth reading
 // biologically. It does not assert a quality class -- the panel used to show one
 // ("Exploratory biological") that no endpoint returns.
-export default Vue.component("ProgramDetails", {
+export default {
+    name: "ProgramDetails",
     components: {
         HeatTable
     },
@@ -225,7 +225,7 @@ export default Vue.component("ProgramDetails", {
                 : `${row.rank}. ${row.gene}`;
         },
     },
-});
+};
 </script>
 
 <template>

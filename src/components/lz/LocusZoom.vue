@@ -9,7 +9,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import LocusZoom from "locuszoom";
 import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
@@ -37,7 +36,8 @@ LocusZoom.use(toolbar_addons);
 
 LocusZoom.Widgets.add("toggleloglog", ToggleLogLog);
 
-export default Vue.component("locuszoom", {
+export default {
+    name: "locuszoom",
     props: [
         "chr",
         "start",
@@ -405,7 +405,7 @@ export default Vue.component("locuszoom", {
             this.plot.applyState();
         },
     },
-});
+};
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 const LZDataSources = {

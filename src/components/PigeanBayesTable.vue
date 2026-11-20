@@ -143,11 +143,11 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import PigeanBayesTable from "./PigeanBayesTable.vue";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("pigean-bayes-table", {
+export default {
+    name: "pigean-bayes-table",
     components: {
         DataDownload,
     },
@@ -233,7 +233,7 @@ export default Vue.component("pigean-bayes-table", {
             }
         },
     },
-});
+};
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");

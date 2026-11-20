@@ -112,7 +112,8 @@ import uiUtils from "@/utils/uiUtils";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("phenotype-signal", {
+export default {
+    name: "phenotype-signal",
     modules: {
         uiUtils
     },
@@ -188,7 +189,7 @@ export default Vue.component("phenotype-signal", {
             uiUtils.showHideByClass(CLASS);
         }
     }
-});
+};
 </script>
 
 <style>
