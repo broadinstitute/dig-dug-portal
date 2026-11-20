@@ -1,6 +1,4 @@
 const { timingSafeEqual } = require('node:crypto');
-const { Readable } = require('node:stream');
-const { pipeline } = require('node:stream/promises');
 const cookie = require('cookie');
 const express = require('express');
 
@@ -58,8 +56,10 @@ function createRouter(env = process.env) {
                     await upstream.body?.cancel();
                     throw new Error('The upstream response was not JSON.');
                 }
-                response.status(upstream.status).type('json');
-                await pipeline(Readable.fromWeb(upstream.body), response);
+                // Read the complete reply before sending its status. An upstream
+                // timeout after headers must stay a recoverable JSON error.
+                const payload = await upstream.json();
+                if (!response.destroyed) response.status(upstream.status).json(payload);
             } catch (error) {
                 if (!response.headersSent && !response.destroyed) {
                     response.status(error.name === 'TimeoutError' ? 504 : 502)

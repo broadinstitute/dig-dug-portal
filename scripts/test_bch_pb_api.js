@@ -54,6 +54,13 @@ async function main() {
         response = await clientFetch(base + '/gene-context/analyze', { method: 'POST', headers });
         assert.equal(response.status, 503);
         assert.equal(requests.length, 2);
+
+        global.fetch = async () => new Response(new ReadableStream({
+            pull(controller) { controller.error(new DOMException('upstream timed out', 'TimeoutError')); },
+        }), { headers: { 'Content-Type': 'application/json' } });
+        response = await clientFetch(base + hpoPath, { headers });
+        assert.equal(response.status, 504);
+        assert.match((await response.json()).error, /unavailable/i);
     } finally {
         global.fetch = clientFetch;
         await new Promise(resolve => server.close(resolve));
