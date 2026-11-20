@@ -35,10 +35,11 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "analyzer_new"]
     },
     sampleresult: {
-        entry: "src/portals/Neph/views/SampleResult/main.js",
+        entry: "src/views/PbSample/main.js",
         template: "public/index.html",
         filename: "sampleresult.html",
         title: "CRDC Sample",
+        pbLayout: true,
         chunks: ["chunk-vendors", "chunk-common", "sampleresult"]
     },
     phenotyperesult: {
