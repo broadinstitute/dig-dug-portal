@@ -2,6 +2,8 @@
 //
 // A fixture is e2e/fixtures/cms/<cmsFixtureKey(url)>.json holding { url, status, headers, body }.
 // A binary response (an image, say) holds its bytes as base64 in `bodyBase64`, with `body` empty.
+// A redirect holds its status and a `location` header; installNetworkPolicy follows it through the
+// fixtures (see e2e/network.mjs) rather than replaying it, so the target is never requested live.
 // URLs a page asked for that have no fixture are appended to test-results/missing-cms.ndjson,
 // one {"url":...} per line, for the capture step to work from.
 import { createHash } from 'node:crypto';

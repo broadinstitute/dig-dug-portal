@@ -59,6 +59,107 @@ test('installNetworkPolicy routes each class: continue, CMS fixture, cache, abor
   ]);
 });
 
+// Chromium follows a redirect that route.fulfill replays, but the redirect target does not go back
+// through the route: it is requested live. So the policy never hands the browser a 3xx with a
+// location; it follows the redirect through the fixtures itself and fulfills with the final response.
+// (Checked against Playwright 1.64.1: the target of a fulfilled 301 got no route callback.)
+function redirectHarness(fixtures) {
+  const cms = { get: (url) => fixtures[url] ?? null };
+  const noted = [];
+  const out = [];
+  const setup = async () => {
+    let handler;
+    await installNetworkPolicy({ route: async (pattern, fn) => { handler = fn; } }, { cache: {}, cms, localOrigins: L, noteMissing: (u) => noted.push(u) });
+    return (url) =>
+      handler({
+        request: () => ({ url: () => url, method: () => 'GET', postData: () => null }),
+        fulfill: async (r) => out.push(['fulfill', url, r]),
+        abort: async (code) => out.push(['abort', url, code]),
+        continue: async () => out.push(['continue', url]),
+      });
+  };
+  return { setup, noted, out };
+}
+
+const moved = (location, extra = {}) => ({ status: 301, headers: { 'content-type': 'text/html', location }, body: 'moved', ...extra });
+const png = { status: 200, headers: { 'content-type': 'image/png' }, body: Buffer.from([1, 2, 3]) };
+
+test('CmsFixtures.get passes a redirect fixture\'s location header through', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'cms-fixtures-'));
+  try {
+    const url = 'http://hugeampkpncms.org/sites/default/files/a.png';
+    const location = 'https://hugeampkpncms.org/sites/default/files/a.png';
+    writeFileSync(join(dir, `${cmsFixtureKey(url)}.json`), JSON.stringify({ url, status: 301, headers: { 'content-type': 'text/html', location }, body: 'moved' }));
+    assert.deepEqual(new CmsFixtures(dir).get(url), { status: 301, headers: { 'content-type': 'text/html', location }, body: 'moved' });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a CMS redirect fixture is followed through the fixtures: the browser gets the final response, never a 3xx to replay', async () => {
+  const A = 'http://hugeampkpncms.org/a.png';
+  const B = 'https://hugeampkpncms.org/a.png';
+  const h = redirectHarness({ [A]: moved(B), [B]: png });
+  const route = await h.setup();
+  await route(A);
+  assert.deepEqual(h.out, [['fulfill', A, png]]);
+  assert.deepEqual(h.noted, []);
+});
+
+test('a CMS redirect: a relative location resolves against the URL that sent it, and a chain is followed', async () => {
+  const A = 'https://hugeampkpncms.org/rest/old/a.json';
+  const B = 'https://hugeampkpncms.org/rest/new/a.json';
+  const C = 'https://hugeampkpncms.org/rest/newer/a.json';
+  const h = redirectHarness({ [A]: moved('../new/a.json'), [B]: moved('/rest/newer/a.json'), [C]: png });
+  const route = await h.setup();
+  await route(A);
+  assert.deepEqual(h.out, [['fulfill', A, png]]);
+});
+
+test('a CMS redirect whose target has no fixture is aborted and the target is logged as missing, never requested', async () => {
+  const A = 'http://hugeampkpncms.org/a.png';
+  const B = 'https://hugeampkpncms.org/a.png';
+  const h = redirectHarness({ [A]: moved(B) });
+  const route = await h.setup();
+  await route(A);
+  assert.deepEqual(h.out, [['abort', A, 'blockedbyclient']]);
+  assert.deepEqual(h.noted, [B]);
+});
+
+test('a redirect off the CMS, a redirect loop and a chain longer than five hops are aborted, not followed', async () => {
+  const A = 'https://hugeampkpncms.org/a';
+  const B = 'https://hugeampkpncms.org/b';
+  const off = redirectHarness({ [A]: moved('https://example.org/x') });
+  await (await off.setup())(A);
+  assert.deepEqual(off.out, [['abort', A, 'blockedbyclient']]);
+  assert.deepEqual(off.noted, []);
+
+  const loop = redirectHarness({ [A]: moved(B), [B]: moved(A) });
+  await (await loop.setup())(A);
+  assert.deepEqual(loop.out, [['abort', A, 'blockedbyclient']]);
+  assert.deepEqual(loop.noted, []);
+
+  const hop = (i) => `https://hugeampkpncms.org/hop${i}`;
+  const chain = Object.fromEntries(Array.from({ length: 8 }, (_, i) => [hop(i), moved(hop(i + 1))]));
+  const long = redirectHarness({ ...chain, [hop(8)]: png });
+  await (await long.setup())(hop(0));
+  assert.deepEqual(long.out, [['abort', hop(0), 'blockedbyclient']]);
+  assert.deepEqual(long.noted, []);
+
+  // Five hops is still followed.
+  const five = redirectHarness({ ...Object.fromEntries(Array.from({ length: 5 }, (_, i) => [hop(i), moved(hop(i + 1))])), [hop(5)]: png });
+  await (await five.setup())(hop(0));
+  assert.deepEqual(five.out, [['fulfill', hop(0), png]]);
+});
+
+test('a 3xx fixture without a location is served as it is', async () => {
+  const A = 'https://hugeampkpncms.org/a';
+  const fixture = { status: 304, headers: {}, body: '' };
+  const h = redirectHarness({ [A]: fixture });
+  await (await h.setup())(A);
+  assert.deepEqual(h.out, [['fulfill', A, fixture]]);
+});
+
 test('CmsFixtures: <sha256(url)>.json holds { url, status, headers, body }; a missing fixture is null', () => {
   const dir = mkdtempSync(join(tmpdir(), 'cms-fixtures-'));
   try {

@@ -12,7 +12,9 @@
 //   - at most 50 URLs per run; a bigger plan is refused (exit 2), never trimmed or raised
 //   - sequential plain GETs, 2,000 ms apart, no retries, no cache-busting, one fixed User-Agent
 //   - refuses to run (exit 2) unless E2E_ALLOW_CMS_CAPTURE=yes, which only the user's explicit go sets
-//   - a 5xx or a network error stops the run at once and writes nothing for that URL
+//   - a 5xx, a 429 (the CMS asking us to back off) or a network error stops the run at once and
+//     writes nothing for that URL
+//   - redirects are not followed (see below), so one URL is one request
 //
 // Workflow (Playwright empties test-results/ at the start of every run, the log included, so the
 // log is whatever the last run asked for: run step 1 right before steps 2 and 3, with no other
@@ -30,8 +32,13 @@
 //
 // A fixture is { url, status, headers: { 'content-type' }, body }. A binary response (an image)
 // keeps its bytes as base64 in `bodyBase64`, with `body` empty; CmsFixtures serves it as a Buffer.
-// Redirects are followed, and the final response is stored under the URL the page asked for,
-// which is what the page's own request would have received.
+// Redirects are never followed (redirect: 'manual'): a followed redirect is a second request that is
+// neither spaced nor counted, and a loop is up to 20 of them back to back. A 3xx is stored as the CMS
+// returned it, with its `location` header (when it sent one) beside content-type. At test time the
+// network policy (e2e/network.mjs) follows that redirect through the fixtures and fulfills with the
+// final response; it never sends the browser a redirect, because Chromium would then request the
+// target live. A target with no fixture yet is aborted and logged, so it lands in the next
+// discovery log for a later capped, spaced round.
 //
 // Exit codes: 0 done (or nothing to do), 1 a request failed, 2 refused or usage error.
 import { mkdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
@@ -133,14 +140,17 @@ function writeJsonAtomic(file, data) {
 
 /**
  * Fetch each URL once, in order, `delayMs` apart, and write its response as a fixture in `dir`.
- * No retries. A network error or a 5xx stops the run (the CMS may be struggling) and writes nothing
- * for that URL; other statuses, 404 included, are what the page would have seen and are kept.
+ * No retries, and redirects are not followed, so each URL is exactly one request. A network error,
+ * a 5xx or a 429 stops the run (the CMS may be struggling or asking us to back off) and writes
+ * nothing for that URL; other statuses, 404 and 3xx included, are what the page would have seen and
+ * are kept. Throws, before any request, when given more than CAP URLs.
  *
  * @param {string[]} urls
  * @param {{ fetchFn: typeof fetch, sleepFn: (ms: number) => Promise<unknown>, dir: string, log: (message: string) => void, delayMs?: number }} deps
  * @returns {Promise<{ ok: boolean, written: number }>}
  */
 export async function captureAll(urls, { fetchFn, sleepFn, dir, log, delayMs = DELAY_MS }) {
+  if (urls.length > CAP) throw new Error(`captureAll refuses more than ${CAP} URLs per run (got ${urls.length})`);
   mkdirSync(dir, { recursive: true });
   let written = 0;
   for (const [i, url] of urls.entries()) {
@@ -148,24 +158,32 @@ export async function captureAll(urls, { fetchFn, sleepFn, dir, log, delayMs = D
     const label = `[${i + 1}/${urls.length}]`;
     let status;
     let contentType;
+    let location;
     let encoded;
     try {
-      const response = await fetchFn(url, { headers: { 'User-Agent': USER_AGENT } });
+      const response = await fetchFn(url, { headers: { 'User-Agent': USER_AGENT }, redirect: 'manual' });
       status = response.status;
       contentType = response.headers.get('content-type');
+      if (status === 429) {
+        log(`${label} 429 ${url}: the CMS asked us to back off, stopping (no retry)`);
+        return { ok: false, written };
+      }
       if (status >= 500) {
         log(`${label} ${status} ${url}: server error, stopping (no retry)`);
         return { ok: false, written };
       }
+      if (status >= 300 && status < 400) location = response.headers.get('location') ?? undefined;
       encoded = encodeBody(Buffer.from(await response.arrayBuffer()), contentType ?? '');
     } catch (error) {
       log(`${label} ${url}: ${error instanceof Error ? error.message : error}, stopping (no retry)`);
       return { ok: false, written };
     }
-    const headers = contentType === null ? {} : { 'content-type': contentType };
+    const headers = {};
+    if (contentType !== null) headers['content-type'] = contentType;
+    if (location !== undefined) headers.location = location;
     writeJsonAtomic(join(dir, `${cmsFixtureKey(url)}.json`), { url, status, headers, ...encoded });
     written += 1;
-    log(`${label} ${status} ${contentType ?? '(no content-type)'} ${url}`);
+    log(`${label} ${status} ${contentType ?? '(no content-type)'} ${url}${location === undefined ? '' : ` -> ${location}`}`);
   }
   return { ok: true, written };
 }

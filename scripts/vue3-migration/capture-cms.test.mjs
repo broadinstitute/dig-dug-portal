@@ -102,7 +102,7 @@ test('readMissingUrls: one {"url":...} per line, blank lines ignored, a bad line
   }
 });
 
-test('captureAll: one plain GET per URL, in order, User-Agent set, 2000 ms between requests only', async () => {
+test('captureAll: one plain GET per URL (redirects not followed), in order, User-Agent set, 2000 ms between requests only', async () => {
   const dir = tempDir();
   try {
     const { fetchFn, calls } = stubFetch();
@@ -116,7 +116,7 @@ test('captureAll: one plain GET per URL, in order, User-Agent set, 2000 ms betwe
     assert.equal(result.ok, true);
     assert.deepEqual(events, [`fetch ${H}a`, 'sleep 2000', `fetch ${H}b`, 'sleep 2000', `fetch ${H}c`]);
     for (const c of calls) {
-      assert.deepEqual(c.init, { headers: { 'User-Agent': 'dig-dug-portal-e2e-fixture-capture' } });
+      assert.deepEqual(c.init, { headers: { 'User-Agent': 'dig-dug-portal-e2e-fixture-capture' }, redirect: 'manual' });
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -192,6 +192,91 @@ test('captureAll: no retries, and a 5xx or a network error stops the run (the CM
     });
     assert.equal(result2.ok, false);
     assert.deepEqual(failing, [H + 'a']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('captureAll: a 3xx is stored as returned (status, content-type, location, body), not followed', async () => {
+  const dir = tempDir();
+  try {
+    const moved = 'http://hugeampkpncms.org/sites/default/files/a.png';
+    const noType = H + 'found';
+    const noLocation = H + 'odd';
+    const answers = {
+      [moved]: new Response('<a href="https://hugeampkpncms.org/sites/default/files/a.png">moved</a>', {
+        status: 301,
+        headers: { 'content-type': 'text/html; charset=iso-8859-1', location: 'https://hugeampkpncms.org/sites/default/files/a.png' },
+      }),
+      [noType]: new Response(null, { status: 302, headers: { location: '/rest/views/elsewhere' } }),
+      [noLocation]: new Response('x', { status: 301, headers: { 'content-type': 'text/plain' } }),
+    };
+    const calls = [];
+    const fetchFn = async (url, init) => {
+      calls.push({ url, init });
+      return answers[url];
+    };
+    const result = await captureAll([moved, noType, noLocation], { fetchFn, sleepFn: async () => {}, dir, log: () => {} });
+    assert.equal(result.ok, true);
+    assert.equal(calls.length, 3); // one request each: the redirect target is never requested
+    for (const c of calls) assert.equal(c.init.redirect, 'manual');
+
+    const read = (url) => JSON.parse(readFileSync(join(dir, `${cmsFixtureKey(url)}.json`), 'utf8'));
+    assert.deepEqual(read(moved), {
+      url: moved,
+      status: 301,
+      headers: { 'content-type': 'text/html; charset=iso-8859-1', location: 'https://hugeampkpncms.org/sites/default/files/a.png' },
+      body: '<a href="https://hugeampkpncms.org/sites/default/files/a.png">moved</a>',
+    });
+    // No content-type: only location. A relative location is kept as the CMS sent it.
+    assert.deepEqual(read(noType), { url: noType, status: 302, headers: { location: '/rest/views/elsewhere' }, body: '' });
+    // No location: nothing invented.
+    assert.deepEqual(read(noLocation).headers, { 'content-type': 'text/plain' });
+    // CmsFixtures hands the location back, so route.fulfill replays the redirect.
+    assert.deepEqual(new CmsFixtures(dir).get(noType), { status: 302, headers: { location: '/rest/views/elsewhere' }, body: '' });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('captureAll: a non-redirect response never gets a location header, even if the CMS sent one', async () => {
+  const dir = tempDir();
+  try {
+    const fetchFn = async () => new Response('{}', { status: 200, headers: { 'content-type': 'application/json', location: 'https://x.invalid/' } });
+    await captureAll([H + 'a'], { fetchFn, sleepFn: async () => {}, dir, log: () => {} });
+    assert.deepEqual(JSON.parse(readFileSync(join(dir, `${cmsFixtureKey(H + 'a')}.json`), 'utf8')).headers, { 'content-type': 'application/json' });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('captureAll: a 429 stops the run like a 5xx: no fixture for it, nothing after it, a back-off message', async () => {
+  const dir = tempDir();
+  try {
+    const { fetchFn, calls } = stubFetch({ [H + 'b']: { status: 429, type: 'text/html', body: 'slow down' } });
+    const logged = [];
+    const result = await captureAll([H + 'a', H + 'b', H + 'c'], { fetchFn, sleepFn: async () => {}, dir, log: (m) => logged.push(m) });
+    assert.equal(result.ok, false);
+    assert.deepEqual(calls.map((c) => c.url), [H + 'a', H + 'b']); // b once (no retry), c never
+    assert.deepEqual(readdirSync(dir), [`${cmsFixtureKey(H + 'a')}.json`]);
+    assert.match(logged.join('\n'), /429.*back off/i);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('captureAll: more than the cap is refused before any request, whoever calls it', async () => {
+  const dir = tempDir();
+  try {
+    const { fetchFn, calls } = stubFetch();
+    const urls = Array.from({ length: 51 }, (_, i) => H + i);
+    await assert.rejects(captureAll(urls, { fetchFn, sleepFn: async () => {}, dir, log: () => {} }), /more than 50/);
+    assert.equal(calls.length, 0);
+    assert.deepEqual(readdirSync(dir), []);
+    // Exactly the cap is allowed.
+    const ok = await captureAll(urls.slice(0, 50), { fetchFn, sleepFn: async () => {}, dir, log: () => {} });
+    assert.equal(ok.ok, true);
+    assert.equal(calls.length, 50);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -308,6 +393,7 @@ test('run: nothing to capture (no log, or nothing eligible) exits 0 without a re
   const nothing = harness({ missing: [H + 'a'], existing: new Set([H + 'a']), env: { E2E_ALLOW_CMS_CAPTURE: 'yes' } });
   const down = harness({ missing: [H + 'a'], env: { E2E_ALLOW_CMS_CAPTURE: 'yes' }, responses: { [H + 'a']: { status: 500, type: 'text/html', body: 'x' } } });
   const flags = harness({ missing: [H + 'a'], env: { E2E_ALLOW_CMS_CAPTURE: 'yes' } });
+  const backOff = harness({ missing: [H + 'a', H + 'b'], env: { E2E_ALLOW_CMS_CAPTURE: 'yes' }, responses: { [H + 'a']: { status: 429, type: 'text/html', body: 'x' } } });
   try {
     assert.equal(await run(['--dry-run'], none.deps), 0);
     assert.equal(await run([], none.deps), 0);
@@ -317,7 +403,10 @@ test('run: nothing to capture (no log, or nothing eligible) exits 0 without a re
     assert.equal(await run([], down.deps), 1);
     assert.equal(await run(['--force'], flags.deps), 2);
     assert.equal(flags.calls.length, 0);
+    assert.equal(await run([], backOff.deps), 1); // a 429 is a non-zero exit, and b is never requested
+    assert.deepEqual(backOff.calls.map((c) => c.url), [H + 'a']);
+    assert.match(backOff.out.join('\n'), /back off/);
   } finally {
-    for (const h of [none, nothing, down, flags]) rmSync(h.dir, { recursive: true, force: true });
+    for (const h of [none, nothing, down, flags, backOff]) rmSync(h.dir, { recursive: true, force: true });
   }
 });
