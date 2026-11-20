@@ -8,6 +8,8 @@
 //   mask      selectors to mask in screenshots (A/B comparison)
 //   maxDiff   allowed screenshot difference (A/B comparison)
 //   skip      why the page cannot be checked yet
+//   needsLiveData  true when the landmark only renders with live BioIndex data (smoke skips it in the
+//             no-live-data mode, E2E_NO_LIVE_DATA=1)
 //
 // Some pages rewrite their own query string on load (keyParams.set: keys sorted by query-string,
 // defaults filled in). Their queries are written in that canonical form, so the URL a page ends
@@ -25,7 +27,7 @@ const FRONT_PAGE_LANDMARK = '.front-top-banner';
 const NEEDS_CMS_PREFIX = 'needs CMS fixtures: ';
 const needsCms = (urls) => `${NEEDS_CMS_PREFIX}${urls}`;
 
-/** @type {Array<{ id: string, path: string, query?: Record<string, string>, landmark?: string, mask?: string[], maxDiff?: number, skip?: string }>} */
+/** @type {Array<{ id: string, path: string, query?: Record<string, string>, landmark?: string, mask?: string[], maxDiff?: number, skip?: string, needsLiveData?: true }>} */
 export const PAGES = [
   {
     id: 'index',
@@ -126,8 +128,9 @@ export const PAGES = [
   { id: 'liger', path: '/liger.html' },
   { id: 'pigean_method', path: '/pigean-method.html', landmark: '.pigean-method-page' },
   { id: 'eaggl', path: '/EAGGL.html' },
-  // The GP2 browser workspace, rendered once the session's phenotypes load.
-  { id: 'gp2browser', path: '/gp2browser.html', landmark: '.kp-variant-sifter-workspace' },
+  // The GP2 browser workspace, rendered once the session's phenotypes load from BioIndex
+  // (api/portal/phenotypes); without them the page stays on "Loading phenotypes…".
+  { id: 'gp2browser', path: '/gp2browser.html', landmark: '.kp-variant-sifter-workspace', needsLiveData: true },
   { id: 'pegasus', path: '/pegasus.html' },
   { id: 'bottomline', path: '/bottom-line.html' },
   { id: 'birds', path: '/birds.html' },
@@ -147,4 +150,12 @@ export function pageUrl(entry) {
  */
 export function needsCmsFixtures(entry) {
   return typeof entry.skip === 'string' && entry.skip.startsWith(NEEDS_CMS_PREFIX);
+}
+
+/**
+ * Whether the page's landmark only renders with live BioIndex data, so the smoke test cannot check
+ * it when E2E_NO_LIVE_DATA=1.
+ */
+export function needsLiveData(entry) {
+  return entry.needsLiveData === true;
 }

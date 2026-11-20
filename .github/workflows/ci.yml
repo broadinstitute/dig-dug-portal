@@ -120,7 +120,18 @@ jobs:
       - name: Build the baseline
         run: npm run e2e:baseline -- "$BASE"
 
+      - name: Note that this run has no live BioIndex data
+        run: |
+          echo "e2e ran with no live BioIndex data (E2E_NO_LIVE_DATA=1): GitHub-hosted runners get a Cloudflare managed challenge (403) from bioindex.hugeamp.org and ld.hugeamp.org. The smoke test skips the pages whose landmark needs that data, and the A/B comparison sees the same empty data in both builds." >> "$GITHUB_STEP_SUMMARY"
+
       - name: A/B e2e (Chromium)
+        env:
+          # GitHub-hosted runners get a Cloudflare managed challenge (403) from
+          # bioindex.hugeamp.org and ld.hugeamp.org, so no live BioIndex data is
+          # available. This aborts every live-data request instead of running against
+          # challenge pages. Remove it once the runners are allowlisted or a
+          # self-hosted runner is used.
+          E2E_NO_LIVE_DATA: '1'
         run: npx playwright test --project=chromium
 
       - uses: actions/upload-artifact@v7

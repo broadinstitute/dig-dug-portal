@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { classifyUrl, installNetworkPolicy, CMS_HOSTS, LIVE_HOSTS } from './network.mjs';
+import { classifyUrl, installNetworkPolicy, liveDataDisabled, CMS_HOSTS, LIVE_HOSTS } from './network.mjs';
 import { CmsFixtures, cmsFixtureKey } from './cms-fixtures.mjs';
 
 const L = ['http://localhost:8080', 'http://localhost:8081'];
@@ -57,6 +57,106 @@ test('installNetworkPolicy routes each class: continue, CMS fixture, cache, abor
     ['cache', 'https://bioindex.hugeamp.org/api/bio/query/gene?q=PCSK9'],
     ['abort', 'https://www.googletagmanager.com/gtag/js', 'blockedbyclient'],
   ]);
+});
+
+// E2E_NO_LIVE_DATA=1 is the no-live-data mode for runs that cannot reach the live data services (the
+// GitHub runners get a Cloudflare managed challenge, 403, from them): live requests are aborted, so
+// every run sees the same "no data" and no request leaves the machine for a live host.
+test('liveDataDisabled: true only for E2E_NO_LIVE_DATA=1', () => {
+  assert.equal(liveDataDisabled({ E2E_NO_LIVE_DATA: '1' }), true);
+  assert.equal(liveDataDisabled({}), false);
+  for (const value of ['0', 'true', '', 'yes', ' 1', undefined]) {
+    assert.equal(liveDataDisabled({ E2E_NO_LIVE_DATA: value }), false, JSON.stringify(value));
+  }
+});
+
+test('liveDataDisabled reads process.env by default', () => {
+  const saved = process.env.E2E_NO_LIVE_DATA;
+  try {
+    process.env.E2E_NO_LIVE_DATA = '1';
+    assert.equal(liveDataDisabled(), true);
+    delete process.env.E2E_NO_LIVE_DATA;
+    assert.equal(liveDataDisabled(), false);
+  } finally {
+    if (saved === undefined) delete process.env.E2E_NO_LIVE_DATA;
+    else process.env.E2E_NO_LIVE_DATA = saved;
+  }
+});
+
+function liveHarness(opts) {
+  const calls = [];
+  const cache = { fulfill: async (route) => calls.push(['cache', route.request().url()]) };
+  const fixture = { status: 200, headers: { 'content-type': 'application/json' }, body: '[]' };
+  const cms = { get: (url) => (url.includes('has-fixture') ? fixture : null) };
+  const setup = async () => {
+    let handler;
+    await installNetworkPolicy({ route: async (pattern, fn) => { handler = fn; } }, { cache, cms, localOrigins: L, ...opts });
+    return (url) =>
+      handler({
+        request: () => ({ url: () => url, method: () => 'GET', postData: () => null }),
+        continue: async () => calls.push(['continue', url]),
+        fulfill: async (r) => calls.push(['fulfill', url, r]),
+        abort: async (code) => calls.push(['abort', url, code]),
+      });
+  };
+  return { setup, calls, fixture };
+}
+
+const LIVE_URLS = [
+  'https://bioindex.hugeamp.org/api/bio/query/gene?q=PCSK9',
+  'https://bioindex-dev.hugeamp.org/api/bio/query/gene?q=PCSK9',
+  'https://ld.hugeamp.org/api/ld/query',
+  'https://portaldev.sph.umich.edu/api/v1/statistic/single/',
+];
+
+test('installNetworkPolicy with no live data aborts every live URL and never calls the cache', async () => {
+  const h = liveHarness({ noLiveData: true });
+  const route = await h.setup();
+  for (const url of LIVE_URLS) await route(url);
+  assert.deepEqual(
+    h.calls,
+    LIVE_URLS.map((url) => ['abort', url, 'blockedbyclient']),
+  );
+});
+
+test('installNetworkPolicy with no live data leaves local, CMS and blocked requests as they are', async () => {
+  const h = liveHarness({ noLiveData: true });
+  const route = await h.setup();
+  await route('http://localhost:8080/gene.html?gene=PCSK9');
+  await route('https://hugeampkpncms.org/rest/has-fixture');
+  await route('https://hugeampkpncms.org/rest/no-fixture');
+  await route('https://www.googletagmanager.com/gtag/js');
+  assert.deepEqual(h.calls, [
+    ['continue', 'http://localhost:8080/gene.html?gene=PCSK9'],
+    ['fulfill', 'https://hugeampkpncms.org/rest/has-fixture', h.fixture],
+    ['abort', 'https://hugeampkpncms.org/rest/no-fixture', 'blockedbyclient'],
+    ['abort', 'https://www.googletagmanager.com/gtag/js', 'blockedbyclient'],
+  ]);
+});
+
+test('installNetworkPolicy with live data sends a live URL to the cache', async () => {
+  const h = liveHarness({ noLiveData: false });
+  const route = await h.setup();
+  await route(LIVE_URLS[0]);
+  assert.deepEqual(h.calls, [['cache', LIVE_URLS[0]]]);
+});
+
+test('installNetworkPolicy takes the no-live-data mode from E2E_NO_LIVE_DATA when no option is given', async () => {
+  const saved = process.env.E2E_NO_LIVE_DATA;
+  try {
+    process.env.E2E_NO_LIVE_DATA = '1';
+    const off = liveHarness({});
+    await (await off.setup())(LIVE_URLS[0]);
+    assert.deepEqual(off.calls, [['abort', LIVE_URLS[0], 'blockedbyclient']]);
+
+    delete process.env.E2E_NO_LIVE_DATA;
+    const on = liveHarness({});
+    await (await on.setup())(LIVE_URLS[0]);
+    assert.deepEqual(on.calls, [['cache', LIVE_URLS[0]]]);
+  } finally {
+    if (saved === undefined) delete process.env.E2E_NO_LIVE_DATA;
+    else process.env.E2E_NO_LIVE_DATA = saved;
+  }
 });
 
 // Chromium follows a redirect that route.fulfill replays, but the redirect target does not go back

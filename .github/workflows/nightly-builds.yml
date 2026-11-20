@@ -122,7 +122,18 @@ jobs:
       - name: Install Firefox and WebKit
         run: npx playwright install --with-deps firefox webkit
 
+      - name: Note that this run has no live BioIndex data
+        run: |
+          echo "e2e ran with no live BioIndex data (E2E_NO_LIVE_DATA=1): GitHub-hosted runners get a Cloudflare managed challenge (403) from bioindex.hugeamp.org and ld.hugeamp.org. The smoke test skips the pages whose landmark needs that data." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Smoke test (Firefox and WebKit)
+        env:
+          # GitHub-hosted runners get a Cloudflare managed challenge (403) from
+          # bioindex.hugeamp.org and ld.hugeamp.org, so no live BioIndex data is
+          # available. This aborts every live-data request instead of running against
+          # challenge pages. Remove it once the runners are allowlisted or a
+          # self-hosted runner is used.
+          E2E_NO_LIVE_DATA: '1'
         run: npx playwright test e2e/smoke.spec.mjs --project=firefox --project=webkit
 
       - uses: actions/upload-artifact@v7

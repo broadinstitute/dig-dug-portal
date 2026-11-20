@@ -2,7 +2,8 @@
 //   local    the static server(s) under test: passed through
 //   cms      the Drupal CMS: served from a checked-in fixture (a redirect is followed through the
 //            fixtures), never requested live
-//   live     public data services: fetched once through the response cache, then replayed
+//   live     public data services: fetched once through the response cache, then replayed; in the
+//            no-live-data mode (E2E_NO_LIVE_DATA=1) aborted like the blocked ones, never requested
 //   blocked  everything else (analytics, fonts, CDNs, other services): aborted
 import { noteMissingCms } from './cms-fixtures.mjs';
 
@@ -10,6 +11,15 @@ import { noteMissingCms } from './cms-fixtures.mjs';
 export const CMS_HOSTS = ['hugeampkpncms.org', 'kp4cd.org'];
 
 export const LIVE_HOSTS = ['bioindex.hugeamp.org', 'bioindex-dev.hugeamp.org', 'ld.hugeamp.org', 'portaldev.sph.umich.edu'];
+
+/**
+ * Whether this run has no live data: E2E_NO_LIVE_DATA=1. For runs from a network the live data
+ * services refuse (GitHub-hosted runners get a Cloudflare managed challenge), so every run sees the
+ * same "no data" instead of challenge pages.
+ */
+export function liveDataDisabled(env = process.env) {
+  return env.E2E_NO_LIVE_DATA === '1';
+}
 
 /** True when `hostname` is `host` or one of its subdomains (dot boundary respected). */
 function matchesHost(hostname, host) {
@@ -75,9 +85,10 @@ function followFixtureRedirects(url, cms, localOrigins) {
  * any page navigates.
  *
  * @param {import('@playwright/test').BrowserContext} context
- * @param {{ cache: import('./response-cache.mjs').ResponseCache, cms: import('./cms-fixtures.mjs').CmsFixtures, localOrigins: string[], noteMissing?: (url: string) => void }} opts
+ * @param {{ cache: import('./response-cache.mjs').ResponseCache, cms: import('./cms-fixtures.mjs').CmsFixtures, localOrigins: string[], noteMissing?: (url: string) => void, noLiveData?: boolean }} opts
+ *   `noLiveData` (default: liveDataDisabled()) aborts live requests instead of sending them to the cache
  */
-export async function installNetworkPolicy(context, { cache, cms, localOrigins, noteMissing = noteMissingCms }) {
+export async function installNetworkPolicy(context, { cache, cms, localOrigins, noteMissing = noteMissingCms, noLiveData = liveDataDisabled() }) {
   await context.route('**/*', async (route) => {
     const url = route.request().url();
     switch (classifyUrl(url, localOrigins)) {
@@ -90,7 +101,7 @@ export async function installNetworkPolicy(context, { cache, cms, localOrigins, 
         return route.abort('blockedbyclient');
       }
       case 'live':
-        return cache.fulfill(route);
+        return noLiveData ? route.abort('blockedbyclient') : cache.fulfill(route);
       default:
         return route.abort('blockedbyclient');
     }
