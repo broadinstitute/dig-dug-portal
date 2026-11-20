@@ -192,7 +192,7 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
       '',
       '## Phase 2 present',
       '',
-      `${phaseTwo} unresolved uses are \`phase-2-present\`: they name a component that a file already exports as \`export default { name: "...", ... }\` (phase 2 output, or written so by hand), which registers nothing globally. Phase 1 cannot tell from such a tree which component a page loads for the tag, so it writes nothing. Run phase 1 before phase 2 is merged (see "Sync-point order" in \`scripts/vue3-migration/README.md\`), or register these uses by hand.`,
+      `Unresolved uses that are \`phase-2-present\`: ${phaseTwo}. They name a component that a file already exports as \`export default { name: "...", ... }\` (phase 2 output, or written so by hand), which registers nothing globally. Phase 1 cannot tell from such a tree which component a page loads for the tag, so it writes nothing. Run phase 1 before phase 2 is merged (see "Sync-point order" in \`scripts/vue3-migration/README.md\`), or register these uses by hand.`,
       '',
       dryRun ? 'A real run would write nothing.' : 'Nothing was written.',
     );

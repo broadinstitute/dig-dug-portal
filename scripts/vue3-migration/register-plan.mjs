@@ -60,8 +60,9 @@ export const REASONS = ['no-registration', 'phase-2-present', 'ambiguous', 'self
 
 /**
  * A use that could not be planned.
- *  - `no-registration`: nothing registers the name, or the only registrations are aliases whose
- *    component cannot be located (not imported, or not a file of this repo).
+ *  - `no-registration`: nothing registers the name, or the only registrations are `unexported` ones (the
+ *    file's default export is another component) and aliases whose component cannot be located (not
+ *    imported, or not a file of this repo).
  *  - `phase-2-present`: a `named` component has the name (`export default { name: "x", ... }`, phase 2
  *    output or written so by hand). It registers nothing globally, so the scan cannot tell which file a page
  *    loads the tag from, or whether it loads one at all. `candidates` lists the files that define the name,

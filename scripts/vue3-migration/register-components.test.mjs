@@ -316,7 +316,7 @@ test('phase 2 output in the tree: a real run writes nothing, says why, and exits
       '| `src/views/P/Template.vue:4` | `comp-b` | phase-2-present | `src/components/B.vue` |',
     ]);
     const why = real.out.split('## Phase 2 present\n')[1].split('\n## ')[0];
-    assert.match(why, /2 unresolved uses/);
+    assert.match(why, /^Unresolved uses that are `phase-2-present`: 2\. /m);
     assert.match(why, /Sync-point order/);
     assert.match(why, /^Nothing was written\.$/m);
     // The report still shows what would change: <comp-a> in the template.

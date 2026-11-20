@@ -244,7 +244,7 @@ test('a definition beside a named file of the same name is phase-2-present, not 
   assert.deepEqual(unresolved, [{ file: PAGE, line: 2, tag: 'variant-search', reason: 'phase-2-present', candidates: [master, portal] }]);
 });
 
-test('phase-2-present is decided right after no-registration: before ambiguous, self and the page rules', () => {
+test('phase-2-present is decided right after no-registration: before ambiguous, self and script-setup', () => {
   const both = plan({
     uses: { [COMP_A]: [use('comp-a')], [DUP_X]: [use('download-chart')] },
     registrations: [definition(COMP_A, 'comp-a'), named('src/components/Other.vue', 'comp-a'), ...dupes, named('src/z/Z.vue', 'download-chart')],

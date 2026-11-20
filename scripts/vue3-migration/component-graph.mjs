@@ -346,8 +346,8 @@ function analyzeFile(file, source) {
 /**
  * One pass over every `.vue` and `.js` file in `sources`, in sorted file order. Prefer this to
  * calling `scanRegistrations` and `scanImports` separately: it parses each file once and returns
- * the errors for both. `registrations` holds the `Vue.component` definitions and aliases, and the
- * `named` components (see `Registration`). `runtimeChoices` lists the components chosen at run time (see
+ * the errors for both. `registrations` holds every `Vue.component` registration (definitions, unexported
+ * ones and aliases) and the `named` components (see `Registration`). `runtimeChoices` lists the components chosen at run time (see
  * `RuntimeChoice`), sorted by file, then by position.
  *
  * Errors are collected, not thrown, and the rest of the tree is still scanned:
