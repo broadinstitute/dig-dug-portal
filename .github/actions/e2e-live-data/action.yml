@@ -1,0 +1,45 @@
+name: e2e live data
+description: >-
+  Route the Cloudflare-proxied data hosts to their origin server, so a GitHub-hosted runner gets
+  live BioIndex and LD data instead of a Cloudflare challenge. Without an origin address, fall back
+  to the no-live-data mode (E2E_NO_LIVE_DATA=1).
+
+inputs:
+  origin-ip:
+    description: IPv4 address of the origin (the E2E_ORIGIN_IP repository secret). Empty means no live data.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Route the data hosts to their origin
+      shell: bash
+      env:
+        ORIGIN_IP: ${{ inputs.origin-ip }}
+      run: |
+        # Cloudflare proxies bioindex.hugeamp.org, bioindex-dev.hugeamp.org and ld.hugeamp.org and
+        # answers GitHub-hosted runners with a managed challenge (403). The origin serves the same
+        # hostnames with a valid certificate, so mapping them in /etc/hosts keeps production's URLs,
+        # TLS and responses and only skips Cloudflare. It also skips Cloudflare's cache, so every
+        # request reaches the production BioIndex service: keep this off the per-PR path. The
+        # address is a secret so that this public repository does not publish a way around
+        # Cloudflare.
+        if [ -z "$ORIGIN_IP" ]; then
+          echo "E2E_NO_LIVE_DATA=1" >> "$GITHUB_ENV"
+          echo "e2e ran with no live data (E2E_NO_LIVE_DATA=1): the E2E_ORIGIN_IP secret is not available (it never is on PRs from forks), and through Cloudflare a GitHub-hosted runner gets a managed challenge. Pages that need live data were skipped, and the A/B comparison saw the same empty data in both builds." >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+        fi
+
+        if ! printf '%s' "$ORIGIN_IP" | grep -Eqx '[0-9]{1,3}(\.[0-9]{1,3}){3}'; then
+          echo "::error::The E2E_ORIGIN_IP secret is not an IPv4 address."
+          exit 1
+        fi
+        echo "$ORIGIN_IP bioindex.hugeamp.org bioindex-dev.hugeamp.org ld.hugeamp.org" | sudo tee -a /etc/hosts > /dev/null
+
+        # One request, so a wrong or unreachable origin fails here rather than on every page.
+        if ! curl -sS -f -o /dev/null --max-time 30 https://bioindex.hugeamp.org/api/bio/indexes; then
+          echo "::error::BioIndex did not answer through the origin in E2E_ORIGIN_IP."
+          exit 1
+        fi
+        echo "e2e ran with live data: bioindex.hugeamp.org, bioindex-dev.hugeamp.org and ld.hugeamp.org were routed to their origin (E2E_ORIGIN_IP), not through Cloudflare." >> "$GITHUB_STEP_SUMMARY"

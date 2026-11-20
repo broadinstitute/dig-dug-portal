@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/egls?gene=PCSK9",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"field_page_id\": \"cardiogram_165\"}, {\"field_page_id\": \"egea_217\"}]"
+}

@@ -1,0 +1,9 @@
+{
+  "url": "http://hugeampkpncms.org/sites/default/files/images/KP_guide_images/1_2_3_icon_slim.png",
+  "status": 301,
+  "headers": {
+    "content-type": "text/html; charset=iso-8859-1",
+    "location": "https://hugeampkpncms.org/sites/default/files/images/KP_guide_images/1_2_3_icon_slim.png"
+  },
+  "body": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n<html><head>\n<title>301 Moved Permanently</title>\n</head><body>\n<h1>Moved Permanently</h1>\n<p>The document has moved <a href=\"https://hugeampkpncms.org/sites/default/files/images/KP_guide_images/1_2_3_icon_slim.png\">here</a>.</p>\n</body></html>\n"
+}
