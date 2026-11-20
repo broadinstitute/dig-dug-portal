@@ -1,6 +1,10 @@
 <template>
     <div class="cfde-protein-page">
-<<<<<<< HEAD
+        <div v-if="uniprotId" class="cfde-protein-card">
+            <div class="cfde-ptm-panel">
+                <h3 class="cfde-protein-title">{{ displayName }}</h3>
+            </div>
+        </div>
         <div class="cfde-protein-card">
             <div>
                 <b-tabs class="cfde-tabs">
@@ -28,11 +32,39 @@
                             <div v-if="structureError">{{ structureError }}</div>
                             <div v-else>
                                 <div
+                                    class="mb-2 d-flex flex-wrap align-items-center justify-content-start"
+                                >
+                                    <label class="mb-0 mr-2 small" for="zoomSlider"
+                                        >Zoom</label
+                                    >
+                                    <input
+                                        id="zoomSlider"
+                                        type="range"
+                                        min="0.5"
+                                        max="4"
+                                        step="0.1"
+                                        v-model.number="zoomLevel"
+                                        @input="onZoomChange"
+                                        style="width: 200px"
+                                    />
+                                    <span class="ml-2 small"
+                                        >{{ zoomLevel.toFixed(1) }}x</span
+                                    >
+                                    <span class="ml-4 small text-muted"
+                                        >Drag with the mouse to rotate. Use the
+                                        slider to zoom.</span
+                                    >
+                                </div>
+                                <div
                                     ref="structureViewer"
                                     style="
                                         width: 100%;
                                         height: 500px;
                                         position: relative;
+                                        box-sizing: border-box;
+                                        overflow: hidden;
+                                        border: 1px solid #dddddd;
+                                        border-radius: 5px;
                                     "
                                 ></div>
                                 <div v-if="afEntry" class="mt-2">
@@ -48,14 +80,75 @@
                         </div>
                     </b-tab>
                     <b-tab title="Protein Pathway" lazy>
-                        <translator-predicate-table
-                            v-if="uniprotId"
-                            title="Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)"
-                            :gene-symbol="uniprotQuery"
-                            :field="'pathway'"
-                            :hide-search="true"
-                        >
-                        </translator-predicate-table>
+                        <div class="cfde-ptm-panel-inner">
+                            <h4>
+                                Pathway Annotations (Reactome, KEGG, BioCarta,
+                                WikiPathways)
+                            </h4>
+                            <div v-if="pathwayLoading">Loading...</div>
+                            <div v-else-if="pathwayRows.length === 0">
+                                No pathway annotations found.
+                            </div>
+                            <div v-else>
+                                <div class="cfde-ptm-filter">
+                                    <strong class="mr-2">Search:</strong>
+                                    <input
+                                        v-model="pathwayFilter"
+                                        type="text"
+                                        class="form-control form-control-sm d-inline-block"
+                                        style="width: 250px"
+                                        @input="pathwayPage = 1"
+                                    />
+                                </div>
+                                <b-table
+                                    :items="pathwayRows"
+                                    :fields="pathwayFields"
+                                    :per-page="ptmPerPage"
+                                    :current-page="pathwayPage"
+                                    :filter="pathwayFilter"
+                                    :filter-function="filterPathwayRow"
+                                    small
+                                    striped
+                                    @filtered="onPathwayFiltered"
+                                >
+                                    <template #cell(id)="data">
+                                        <resolved-curie-link
+                                            v-if="
+                                                biolinkContext &&
+                                                typeof biolinkContext[
+                                                    supportedPrefix(
+                                                        data.item.source,
+                                                        biolinkContext
+                                                    )
+                                                ] !== 'undefined'
+                                            "
+                                            :key="data.item.id"
+                                            :id="data.item.id"
+                                            :prefix="
+                                                supportedPrefix(
+                                                    data.item.source,
+                                                    biolinkContext
+                                                )
+                                            "
+                                        ></resolved-curie-link>
+                                        <resolved-curie-link
+                                            v-else
+                                            :key="data.item.id"
+                                            :curie="`${data.item.id}`"
+                                        ></resolved-curie-link>
+                                    </template>
+                                    <template #empty>
+                                        No rows match the search.
+                                    </template>
+                                </b-table>
+                                <b-pagination
+                                    v-model="pathwayPage"
+                                    :total-rows="pathwayTotal"
+                                    :per-page="ptmPerPage"
+                                    size="sm"
+                                ></b-pagination>
+                            </div>
+                        </div>
                     </b-tab>
                 </b-tabs>
             </div>
@@ -78,7 +171,15 @@
         >
             <div>
                 <div class="cfde-ptm-panel">
-                    <h4>{{ group.title }}</h4>
+                    <h4 class="cfde-section-title">
+                        <img
+                            v-if="group.icon"
+                            :src="group.icon"
+                            :alt="group.title + ' logo'"
+                            class="cfde-section-icon"
+                        />
+                        <span>{{ group.title }}</span>
+                    </h4>
                     <div v-if="group.header" class="cfde-ptm-header">
                         {{ group.header }}
                     </div>
@@ -126,24 +227,24 @@
 </template>
 
 <script>
-<<<<<<< HEAD
-import "@/components/NCATS/old/PredicateTable.vue";
+import "@/components/NCATS/ResolvedCurieLink.vue";
+import trapi from "@/components/NCATS/trapi";
 
 // section_id -> title/header (merged from section_headers.json)
 const SECTION_INFO = {
     general_info_function: { title: null, header: "Which functions, gene ontologies, and pathways are associated with $protein?" },
     general_info_go: { title: null, header: "Gene Ontology (GO) Annotations" },
     general_info_pathway: { title: null, header: "Pathway Annotations (Reactome, KEGG, BioCarta, WikiPathways)" },
-    gtex: { title: "GTEx", header: "How specific is $protein expression and how does it compare across GTEx tissues and organ categories?" },
+    gtex: { title: "GTEx", icon: "GTEx.png", header: "How specific is $protein expression and how does it compare across GTEx tissues and organ categories?" },
     gtex_kp: { title: null, header: "GTEx: Gene expression levels and tissue specificity" },
-    fourdn: { title: "4D Nucleome", header: "What are predicted gene-variant disease links for $protein in various tissues?" },
-    lincs: { title: "LINCS L1000 Consensus Signatures", header: "What transcriptional signatures are correlated with the transcriptional signature of $protein?" },
-    idg: { title: "IDG", header: "What evidence supports $protein as a potential drug target?" },
-    exrna: { title: "exRNA", header: "What RNA binding proteins are predicted to interact with extracellular RNAs originating from $protein?" },
-    glygen: { title: "GlyGen", header: "Does the protein encoded by $protein contains glycosylation site(s) or have glycohydrolase or glycosyltransferase activities?" },
-    hubmap: { title: "HuBMAP Program", header: "Which cell types express $protein in human tissue-derived single cell RNA sequencing datasets?" },
-    kidsfirst: { title: "Kids First", header: "How do aggregated variant counts from $protein compare between Kids First rare pediatric disease cohorts relative to population controls?" },
-    motrpac: { title: "Endurance Trained Young Adult Rats Study", header: "How do $protein-derived proteomics or transcriptomics data change across 20 tissues after endurance exercise training in young adult male and female rats?" },
+    fourdn: { title: "4D Nucleome", icon: "4DN.png", header: "What are predicted gene-variant disease links for $protein in various tissues?" },
+    lincs: { title: "LINCS L1000 Consensus Signatures", icon: "LINCS-logo.png", header: "What transcriptional signatures are correlated with the transcriptional signature of $protein?" },
+    idg: { title: "IDG", icon: "IDG.png", header: "What evidence supports $protein as a potential drug target?" },
+    exrna: { title: "exRNA", icon: "exRNA.png", header: "What RNA binding proteins are predicted to interact with extracellular RNAs originating from $protein?" },
+    glygen: { title: "GlyGen", icon: "GlyGen.png", header: "Does the protein encoded by $protein contains glycosylation site(s) or have glycohydrolase or glycosyltransferase activities?" },
+    hubmap: { title: "HuBMAP Program", icon: "HuBMAP.png", header: "Which cell types express $protein in human tissue-derived single cell RNA sequencing datasets?" },
+    kidsfirst: { title: "Kids First", icon: "Kids First.png", header: "How do aggregated variant counts from $protein compare between Kids First rare pediatric disease cohorts relative to population controls?" },
+    motrpac: { title: "Endurance Trained Young Adult Rats Study", icon: "MoTrPAC.png", header: "How do $protein-derived proteomics or transcriptomics data change across 20 tissues after endurance exercise training in young adult male and female rats?" },
     under_development: { title: null, header: "Programs under development" },
 };
 
@@ -186,6 +287,17 @@ export default {
             ptmPages: {},
             ptmTypeFilters: {},
             ptmPerPage: 10,
+            pathwayRows: [],
+            pathwayLoading: false,
+            pathwayFilter: "",
+            pathwayPage: 1,
+            pathwayTotal: 0,
+            biolinkContext: null,
+            pathwayFields: [
+                { key: "id", label: "Id", sortable: true },
+                { key: "name", label: "Name", sortable: true },
+                { key: "source", label: "Source", sortable: true },
+            ],
             ptmFields: [
                 { key: "site_id", label: "Site ID", sortable: true },
                 { key: "position", sortable: true },
@@ -196,6 +308,8 @@ export default {
             ],
             structureLoading: false,
             pdbText: "",
+            zoomLevel: 1,
+            appliedZoom: 1,
         };
     },
     computed: {
@@ -221,6 +335,11 @@ export default {
                     return {
                         source,
                         title: info.title || source,
+                        icon: info.icon
+                            ? `/images/DCC_logos/${encodeURIComponent(
+                                  info.icon
+                              )}`
+                            : "",
                         header: (info.header || "").replace(
                             /\$protein/g,
                             this.displayName
@@ -248,9 +367,94 @@ export default {
         if (this.uniprotId) {
             this.loadUniprot();
             this.loadPtm();
+            this.loadPathway();
         }
     },
     methods: {
+        supportedPrefix: trapi.identifiers.supportedPrefix,
+        async loadPathway() {
+            this.pathwayLoading = true;
+            try {
+                // same biolink context the old predicate table used to pick
+                // the id prefix for resolved links
+                this.biolinkContext = await fetch(
+                    "https://raw.githubusercontent.com/biolink/biolink-model/master/project/jsonld/biolink_model.context.jsonld"
+                )
+                    .then((r) => r.json())
+                    .then((j) => j["@context"])
+                    .catch(() => null);
+                const resp = await fetch(
+                    `https://mygene.info/v3/query?q=${encodeURIComponent(
+                        this.uniprotQuery
+                    )}&fields=pathway`
+                );
+                if (!resp.ok) throw new Error(`MyGene HTTP ${resp.status}`);
+                const hits = (await resp.json()).hits || [];
+                const rows = [];
+                hits.forEach((hit) => {
+                    Object.entries(hit.pathway || {}).forEach(
+                        ([source, val]) => {
+                            // a single annotation comes back as an object
+                            []
+                                .concat(val || [])
+                                .forEach((e) => rows.push({ ...e, source }));
+                        }
+                    );
+                });
+                this.pathwayRows = rows;
+                this.pathwayTotal = rows.length;
+                this.pathwayPage = 1;
+                this.resolveIdLabels(rows);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                this.pathwayLoading = false;
+            }
+        },
+        // Id cells show a resolved label (via node normalization); fetch the
+        // same labels so the search box can match what the user sees.
+        async resolveIdLabels(rows) {
+            const ctx = this.biolinkContext;
+            await Promise.all(
+                rows.map(async (row) => {
+                    try {
+                        const [, parsedId] = trapi.identifiers.deserializeCurie(
+                            String(row.id)
+                        );
+                        let curie = String(row.id);
+                        const p =
+                            ctx && this.supportedPrefix(row.source, ctx);
+                        if (p && typeof ctx[p] !== "undefined") {
+                            const prefix =
+                                this.supportedPrefix(p, ctx, {
+                                    reactome: "REACT",
+                                }) || p;
+                            const id = parsedId || row.id;
+                            curie = trapi.identifiers.serializeCurie(prefix, id);
+                        }
+                        const label = await trapi.normalize.curieLabel(curie);
+                        this.$set(row, "idLabel", label);
+                    } catch (e) {
+                        /* keep raw id only */
+                    }
+                })
+            );
+        },
+        // search matches the Id (raw + displayed label), Name and Source columns
+        filterPathwayRow(item, filter) {
+            const needle = String(filter || "").trim().toLowerCase();
+            if (!needle) return true;
+            return [item.id, item.idLabel, item.name, item.source].some(
+                (v) =>
+                    v !== undefined &&
+                    v !== null &&
+                    String(v).replace(/_/g, " ").toLowerCase().includes(needle)
+            );
+        },
+        onPathwayFiltered(items) {
+            this.pathwayTotal = items.length;
+            this.pathwayPage = 1;
+        },
         async loadPtm() {
             const host = "https://cfde-dev.hugeampkpnbi.org";
             this.ptmLoading = true;
@@ -297,6 +501,12 @@ export default {
                 document.head.appendChild(s);
             });
         },
+        onZoomChange() {
+            if (!this._viewer) return;
+            // viewer.zoom() is relative, so apply the ratio to the last level
+            this._viewer.zoom(this.zoomLevel / this.appliedZoom);
+            this.appliedZoom = this.zoomLevel;
+        },
         async loadStructure() {
             if (!this.uniprotId || this.structureLoading) return;
             this.structureLoading = true;
@@ -324,7 +534,30 @@ export default {
                 const pdb = this.pdbText;
                 await this.$nextTick();
                 if (!this.$refs.structureViewer) return;
-                this.$refs.structureViewer.innerHTML = "";
+                const el = this.$refs.structureViewer;
+                el.innerHTML = "";
+                // disable mouse-wheel, pinch and right/middle-button zoom
+                // (capture phase, so 3Dmol never sees them); rotate stays
+                el.addEventListener("wheel", (e) => e.stopPropagation(), {
+                    capture: true,
+                    passive: true,
+                });
+                el.addEventListener(
+                    "mousedown",
+                    (e) => {
+                        if (e.button !== 0) e.stopPropagation();
+                    },
+                    true
+                );
+                el.addEventListener(
+                    "touchstart",
+                    (e) => {
+                        if (e.touches.length > 1) e.stopPropagation();
+                    },
+                    { capture: true, passive: true }
+                );
+                this.zoomLevel = 1;
+                this.appliedZoom = 1;
                 const viewer = window.$3Dmol.createViewer(
                     this.$refs.structureViewer,
                     { backgroundColor: "white" }
@@ -347,6 +580,7 @@ export default {
                 );
                 viewer.zoomTo();
                 viewer.render();
+                this._viewer = viewer;
             } catch (e) {
                 console.error(e);
                 this.structureError =
@@ -390,7 +624,7 @@ export default {
 .cfde-protein-page .cfde-protein-card {
     background: none;
     border-radius: 10px;
-    padding: 10px 20px 30px;
+    padding: 10px 20px 20px;
     font-family: Roboto, Arial, sans-serif;
 }
 .cfde-protein-page .cfde-protein-card h4 {
@@ -399,6 +633,16 @@ export default {
     margin: 0 0 7px;
     padding: 10px 0;
     color: #212529;
+}
+.cfde-protein-page .cfde-section-title {
+    display: flex;
+    align-items: center;
+}
+.cfde-protein-page .cfde-section-icon {
+    height: 38.4px;
+    width: auto;
+    flex: 0 0 auto;
+    margin-right: 30px;
 }
 .cfde-protein-page .cfde-tabs .nav-tabs {
     border-bottom: 0;
@@ -421,11 +665,69 @@ export default {
 .cfde-protein-page .cfde-ptm-header {
     font-size: 15px;
     color: #5a5a5a;
-    padding: 0 0 10px;
+    padding: 0 0 15px;
 }
 .cfde-protein-page .cfde-ptm-filter {
     padding: 0 0 10px;
     font-size: 14px;
+}
+.cfde-protein-page .cfde-protein-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: #212529;
+}
+/* keep wide tables (e.g. Pathway tab) inside the white wrapper */
+.cfde-protein-page,
+.cfde-protein-page .cfde-protein-card,
+.cfde-protein-page .cfde-tabs {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+.cfde-protein-page .cfde-tabs .tab-content {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+.cfde-protein-page .cfde-tabs .tab-content .tab-pane,
+.cfde-protein-page .cfde-tabs .tab-content .row {
+    max-width: 100%;
+    min-width: 0;
+}
+.cfde-protein-page .cfde-tabs .tab-content .row {
+    display: block;
+}
+.cfde-protein-page .cfde-tabs .tab-content .row > .card-body {
+    width: 100%;
+    margin: 0;
+}
+.cfde-protein-page .cfde-tabs .tab-content .table {
+    display: table;
+    width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
+}
+.cfde-protein-page .cfde-tabs .tab-content .table th,
+.cfde-protein-page .cfde-tabs .tab-content .table td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.cfde-protein-page .cfde-tabs .tab-content .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+.cfde-protein-page .cfde-tabs .tab-content .row > .card-body {
+    min-width: 0;
+    padding: 0;
+}
+.cfde-protein-page .cfde-tabs .tab-content .table {
+    width: 100%;
+    word-break: break-word;
+}
+/* tab content already has the panel padding; drop Bootstrap's extra card-body padding */
+.cfde-protein-page .cfde-tabs .tab-content .card-body {
+    padding: 0;
 }
 .cfde-protein-page .cfde-ptm-panel,
 .cfde-protein-page .cfde-tabs .tab-content {
