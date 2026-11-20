@@ -29,12 +29,7 @@ const needsCms = (urls) => `${NEEDS_CMS_PREFIX}${urls}`;
 
 /** @type {Array<{ id: string, path: string, query?: Record<string, string>, landmark?: string, mask?: string[], maxDiff?: number, skip?: string, needsLiveData?: true }>} */
 export const PAGES = [
-  {
-    id: 'index',
-    path: '/index.html',
-    landmark: FRONT_PAGE_LANDMARK,
-    skip: needsCms('rest/directcsv, rest/views/news2vueportal, rest/views/a2f_community_kps, reset/views/portal_front'),
-  },
+  { id: 'index', path: '/index.html', landmark: FRONT_PAGE_LANDMARK },
   { id: 'phenotype', path: '/phenotype.html', query: { phenotype: 'T2D' } },
   // Once its associations load, the page writes the region's top phenotype into the URL (keys sorted),
   // before or after `load` depending on timing; pinning that phenotype (CHOL here) keeps the URL fixed.
@@ -49,13 +44,13 @@ export const PAGES = [
   { id: 'downloads', path: '/downloads.html' },
   { id: 'policies', path: '/policies.html' },
   { id: 'about', path: '/about.html' },
-  { id: 'collaborate', path: '/collaborate.html', skip: needsCms('rest/views/collaborate, reset/views/portal_front') },
+  { id: 'collaborate', path: '/collaborate.html' },
   { id: 'resources', path: '/resources.html' },
   { id: 'publications', path: '/publications.html' },
   { id: 'news', path: '/news.html' },
-  { id: 'contacts', path: '/contacts.html', skip: needsCms('rest/views/contacts, reset/views/portal_front') },
+  { id: 'contacts', path: '/contacts.html' },
   { id: 'kplab', path: '/kplab.html' },
-  { id: 'apis', path: '/apis.html', skip: needsCms('rest/views/apis, reset/views/portal_front') },
+  { id: 'apis', path: '/apis.html' },
   { id: 'epigeneticdatasets', path: '/epigeneticdatasets.html' },
   { id: 'epigenomicdatasets', path: '/epigenomicdatasets.html' },
   { id: 'ampt2dpartnership', path: '/ampt2dpartnership.html' },
@@ -71,12 +66,7 @@ export const PAGES = [
   { id: 'project', path: '/project.html' },
   { id: 'variantsearch', path: '/variantsearch.html' },
   // pageid from LigerBrowser's documentation link.
-  {
-    id: 'research',
-    path: '/research.html',
-    query: { pageid: 'kp_liger_documentation' },
-    skip: needsCms('view/rest/get_research_page_access, reset/views/portal_front'),
-  },
+  { id: 'research', path: '/research.html', query: { pageid: 'kp_liger_documentation' } },
   // The page shows a random session ID ("Session ID is 9c56e1c7.") on every load.
   { id: 'egggenerator', path: '/egggenerator.html', mask: ['#session-id-area'] },
   { id: 'help', path: '/help.html' },

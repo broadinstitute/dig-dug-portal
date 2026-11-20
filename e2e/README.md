@@ -114,9 +114,19 @@ To add fixtures:
    `node scripts/vue3-migration/capture-cms.mjs --dry-run`
 4. Get the project owner's explicit go on that plan.
 5. Capture: `E2E_ALLOW_CMS_CAPTURE=yes node scripts/vue3-migration/capture-cms.mjs`
-6. Rerun step 2. The log should now be empty or absent; a redirect whose target had no fixture
-   shows up here and needs another round. Then remove the "needs CMS fixtures" skips from the
-   catalog and commit `e2e/fixtures/cms/`.
+6. Rerun step 2. A redirect whose target had no fixture, or content that the new fixtures make a
+   page request, shows up here and may need another round. Then remove the "needs CMS fixtures"
+   skips from the catalog and commit `e2e/fixtures/cms/`.
+
+**What is captured (2026-11-20, 50 fixtures).** The CMS text every catalog page asks for, plus the
+header images on every page. The log is not empty after a run, on purpose:
+
+- About 120 images inside CMS content (news thumbnails, partner logos, help screenshots) are not
+  captured. Both builds see them blocked in the same way, so they cannot fail a comparison. Capture
+  them, at most 50 per run, only if a change needs to be checked against them.
+- `servedata/dataset?dataset=…/undefined/undefined_config.json` and `…_undefined.json` answer 500
+  every time (a page asks for a dataset named `undefined`). Remove them from the log before a
+  capture, or the run stops at the first one.
 
 Run steps 2 to 5 back to back: any Playwright run empties `test-results/`, log included.
 
