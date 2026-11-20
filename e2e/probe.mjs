@@ -6,16 +6,25 @@ import { setTimeout as delay } from 'node:timers/promises';
 
 /**
  * Make messages comparable across servers and builds: the origin's port, the bundle hash,
- * line:column positions and, in a development build, the path to node_modules in a stack frame's
- * module name (`push../node_modules/...` in the candidate, `push.../../home/me/repo/node_modules/...`
- * in a baseline built in a worktree that links to this repo's node_modules) vary between the
- * baseline and the candidate.
+ * line:column positions, a production build's function names in stack frames, and, in a development
+ * build, the path to node_modules in a stack frame's module name vary between the baseline and the
+ * candidate.
+ *
+ *  - Function names: the minifier names a function after where it lands in the bundle, so moving a module
+ *    renames it (`at ia.f (` in one build, `at ia.p (` in the other, ruling R14). An indented frame
+ *    `at <name> (<location>)` becomes `at <fn> (<location>)`; the location, already without its hash and
+ *    position, still tells frames apart, and the message text is left as it is.
+ *  - Module names: a development build names a frame after its webpack module (`push../node_modules/...`
+ *    in the candidate, `push.../../home/me/repo/node_modules/...` in a baseline built in a worktree that
+ *    links to this repo's node_modules). Those names hold a path, so they are not function names above;
+ *    the path to node_modules is made one, and the module path after it is kept.
  */
 export function normalizeMessage(text) {
   return text
     .replace(/http:\/\/localhost:\d+/g, '<origin>')
     .replace(/\.[0-9a-f]{8}\.js/g, '.js')
     .replace(/:\d+:\d+/g, ':<l>:<c>')
+    .replace(/^([ \t]+at (?:new |async )?)[\w$.<>]+(?: \[as [\w$]+\])? \(/gm, '$1<fn> (')
     .replace(/(\w\.)\.{1,2}\/[^\s()]*?node_modules\//g, '$1./node_modules/');
 }
 
