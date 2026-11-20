@@ -98,3 +98,36 @@ jobs:
           # Vue CLI needs an absolute path here.
           VUE_CLI_SERVICE_CONFIG_PATH: ${{ github.workspace }}/${{ matrix.config }}
         run: npm run deploy
+
+  # CI's A/B e2e runs Chromium only. This runs the single-build smoke test in the other two
+  # engines, against a fresh production build of master.
+  cross-browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: master
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Production build
+        run: npm run deploy
+
+      - name: Install Firefox and WebKit
+        run: npx playwright install --with-deps firefox webkit
+
+      - name: Smoke test (Firefox and WebKit)
+        run: npx playwright test e2e/smoke.spec.mjs --project=firefox --project=webkit
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 14

@@ -60,3 +60,74 @@ jobs:
           name: dist
           path: dist
           retention-days: 7
+
+  # Opens every catalog page in the PR's build (the `dist` artifact) and in a build of the commit
+  # it branched from, and fails on anything the PR adds: a landmark that stops rendering, new page
+  # errors, console errors or failed requests, or a screenshot that drifts. Chromium only; the
+  # other engines run the single-build smoke test in the nightly workflow.
+  e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The baseline ref is a merge base or the previous tip, so it needs the full history.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Pick the baseline ref
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          # pull_request: the commit the PR branched from.
+          # otherwise:    the previous tip. A new branch reports an all-zero SHA and
+          #               workflow_dispatch has none, so both use the commit before this one.
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            if ! REF=$(git merge-base HEAD "origin/$GITHUB_BASE_REF"); then
+              echo "::error::No merge base between HEAD and origin/$GITHUB_BASE_REF."
+              exit 1
+            fi
+          elif [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            REF="$BEFORE_SHA"
+          else
+            REF="HEAD~1"
+          fi
+
+          # Fail here, not after the baseline build starts, if the ref names no commit.
+          if ! BASE=$(git rev-parse --verify --quiet "$REF^{commit}"); then
+            echo "::error::Baseline ref '$REF' ($EVENT_NAME event) does not resolve to a commit in this checkout."
+            exit 1
+          fi
+          echo "Baseline ref: $BASE"
+          echo "BASE=$BASE" >> "$GITHUB_ENV"
+
+      - name: Build the baseline
+        run: npm run e2e:baseline -- "$BASE"
+
+      - name: A/B e2e (Chromium)
+        run: npx playwright test --project=chromium
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
