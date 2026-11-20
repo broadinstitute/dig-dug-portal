@@ -62,10 +62,8 @@
 					</ul>
 				</li>
 			</ul>
-
-			<div class="menu-cfde-wheel" v-if="researchMenu?.['custom components']?.['cfde-wheel']" style="height:40px; cursor:pointer" @click="addCfdeWheel" title="CFDE Wheel">
-				<img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/cfde_unified_icon.png"  style="max-height: 100%;"/>
-			</div>
+			
+			<cfde-wheel size="40"></cfde-wheel>
 		</div>
 
 		<div class="menu-search-container" ref="searchContainer"></div>
@@ -74,11 +72,13 @@
 </template>
 
 <script>
+Vue.config.ignoredElements = ['cfde-wheel'];
+
 import Vue from "vue";
 import EventBus from "@/utils/eventBus";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 import ResearchSingleSearchCFDEllm from "@/components/researchPortal/ResearchSingleSearchCFDEllm.vue";
-import cfdeWheel from "./customComponents/cfdeWheel.vue";
+import CfdeSingleSearch from "@/components/researchPortal/customComponents/CfdeSingleSearch.vue";
 
 export default Vue.component("research-page-header", {
 	props: ["researchMenu","phenotypes", "utils", "headerLogo","sectionConfig","utils"],
@@ -198,11 +198,16 @@ export default Vue.component("research-page-header", {
 			const phenotypes = this.phenotypes;
 			const utilsBox = this.utils;
 
+			let searchComponent = ResearchSingleSearchCFDE;
+			if(searchConfig['single search version']==='cfde hybrid') {
+				searchComponent =  CfdeSingleSearch;
+			}
+
 			// dynamically create and mount the search component with its props
 			const SearchComponentClass = Vue.extend({
 				render(h) {
 				//return h(ResearchSingleSearchCFDEllm, {
-				return h(ResearchSingleSearchCFDE, {
+				return h(searchComponent, {
 					props: {
 					singleSearchConfig: searchConfig,
 					phenotypes: phenotypes,
@@ -222,6 +227,7 @@ export default Vue.component("research-page-header", {
 			if(this.researchMenu && !this.researchMenu.length){
 				if(this.researchMenu["favicon"]) this.injectFavicon(this.researchMenu["favicon"]);
 				if(this.researchMenu["google font"]) this.injectFont(this.researchMenu["google font"]);
+				if(this.researchMenu['custom components']['cfde-wheel']) this.injectScript("https://cdn.jsdelivr.net/gh/broadinstitute/cfde-wheel@main/dist/cfde-wheel.js");
 			}
 		},
         injectFavicon(faviconUrl) {
@@ -243,6 +249,11 @@ export default Vue.component("research-page-header", {
 				//console.log(linkTag.textContent);
 			};
 		},
+		injectScript(scriptUrl){
+			const scriptTag = document.createElement('script');
+			scriptTag.src = scriptUrl;
+			document.head.appendChild(scriptTag);
+		},
 		tryCustomElements(){
 			if(this.researchMenu["google font"] && this.researchMenu["favicon"]){
 				const temp = document.createElement('div');
@@ -250,26 +261,6 @@ export default Vue.component("research-page-header", {
 				document.body.appendChild(temp.firstChild);
 			}
 		},
-		addCfdeWheel(){
-			// dynamically create and mount the component with its props
-			const CFDEwheelClass = Vue.extend({
-				render(h) {
-					return h(cfdeWheel, {
-						on: {
-							close: () => {
-								document.body.removeChild(wheelInstance.$el);
-								wheelInstance.$destroy(); // clean up
-							}
-						}
-					})
-				},
-			});
-			const wheelInstance = new CFDEwheelClass();
-
-			// mount component and append it to body
-			wheelInstance.$mount();
-			document.body.appendChild(wheelInstance.$el);
-		}
 	},
 	computed: {},
 });

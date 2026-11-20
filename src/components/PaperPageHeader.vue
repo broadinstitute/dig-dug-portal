@@ -70,7 +70,7 @@ export default Vue.component("paper-page-header", {
                     if (links[i].rel == "shortcut icon") {
                         links[
                             i
-                        ].href = `https://kp4cd.org/sites/default/files/vueportal/favicon/${group.name}/favicon.png`;
+                        ].href = `https://hugeampkpncms.org/sites/default/files/vueportal/favicon/${group.name}/favicon.png`;
                     }
                 }
             }

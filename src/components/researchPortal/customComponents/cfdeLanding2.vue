@@ -267,6 +267,29 @@
                             >Start here</a
                         >
                     </div>
+                    <div class="home-section f-col">
+                        <div class="analysis-figure">
+                            <img
+                                src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/kc_biomarkers.png"
+                            />
+                        </div>
+                        <h2>BIOMARKERS TO MECHANISMS</h2>
+                        <div style="flex:1">
+                            <strong>Nominate candidate biomarkers from a mechanism, or candidate mechanisms for a biomarker.</strong>
+                            <div>This workflow starts with a biomarker from BiomarkerKB and identifies candidate mechanisms through:</div>
+                            <ul>
+                                <li>diseases associated with the selected biomarker</li>
+                                <li>CFDE REVEAL gene–trait–factor evidence for those diseases</li>
+                                <li>Overlap between disease-associated genes and biological factors</li>
+                            </ul>
+                            <div>It produces a ranked list of candidate mechanisms supported by gene and disease evidence.</div>
+                        </div>
+                        <a
+                            href="/r/kc_biomarker"
+                            style="align-self: flex-end"
+                            >Start here</a
+                        >
+                    </div>
                 </div>
             </div>
         </div>
@@ -344,8 +367,8 @@
             <div class="home-section-wrap">
                 <h3 class="kc">Examples of CFDE Knowledge</h3>
                 <div>
-                    Secondary analyses created by The Knowledge Center using
-                    Common Fund data
+                    Secondary analyses created by the CFDE Knowledge Center using Common Fund data,
+                    and new offerings developed by the CFDE Knowledge Center and Data Resource Center
                 </div>
                 <div class="home-section">
                     <template v-for="example in this.examplesData">
@@ -455,19 +478,19 @@
                     <div class="home-section-wrap" v-if="this.parsedData">
                         <h3 class="kc">Common Fund Program Spotlight</h3>
                         <div class="home-section">
-                            <template v-for="(value, key) in this.parsedData.map">
+                            <template v-for="item in this.spotlightItems">
                                 <div class="spotlight-item">
                                     <div class="spotlight-logo f-row">
-                                        <img :src="value.logo" />
+                                        <img :src="item[1].logo" />
                                     </div>
                                     <div class="f-col fill-width">
                                         <div class="spotlight-text f-col fill-height">
-                                            <h3>{{ value.name }}</h3>
-                                            <div v-html="value.spotlight"></div>
+                                            <h3>{{ item[1].name }}</h3>
+                                            <div v-html="item[1].spotlight"></div>
                                         </div>
                                         <a
                                             style="align-self: flex-end"
-                                            :href="`/r/kc_programs?DCC=${key}`"
+                                            :href="`/r/kc_programs?DCC=${item[0]}`"
                                             >Learn More</a
                                         >
                                     </div>
@@ -514,7 +537,7 @@
 
                     <div class="home-section-wrap" v-if="this.parsedData">
                         <h3 class="kc">CFDE Workbench</h3>
-                        <div class="home-section">
+                        <div class="home-section" style="padding-bottom: 35px;">
                             <div class="f-row" style="gap:20px">
                                 <div class="drc-logo">
                                     <img
@@ -552,17 +575,50 @@
                         </div>
                     </div>
                 </div>
-                <div class="home-section-wrap" v-if="this.newsFeed">
-                    <h3 class="kc">Knowledge Center News</h3>
-                    <div class="home-section f-col" style="padding-top:30px;">
-                        <div class="news-item f-row" v-for="item in this.newsFeed">
-                            <div class="thumbnail" v-html="item.field_thumbnail_image"></div>
-                            <div class="f-col">
-                                <a :href="`/r/kc_news_item?id=${item.nid}`"><h3 class="">{{item.title}}</h3></a>
-                                <div class="" v-html="item.body"></div>
+                <div class="f-col" style="gap: 40px">
+                    <div class="home-section-wrap" v-if="this.newsFeed">
+                        <h3 class="kc">Knowledge Center News</h3>
+                        <div class="home-section f-col" style="padding-top:30px;">
+                            <div class="news-item f-row" v-for="item in this.newsFeed">
+                                <div class="thumbnail" v-html="item.field_thumbnail_image"></div>
+                                <div class="f-col">
+                                    <a :href="`/r/kc_news_item?id=${item.nid}`"><h3 class="">{{item.title}}</h3></a>
+                                    <div class="" v-html="item.body"></div>
+                                </div>
+                            </div>
+                            <a style="align-self: flex-end;" :href="`/r/kc_news`">See All News</a>
+                        </div>
+                    </div>
+                    <div class="home-section-wrap">
+                        <h3 class="kc">CFDE Liver Resource</h3>
+                        <div class="home-section">
+                            <div class="f-row" style="gap:20px">
+                                <div>
+                                    <img style="width:200px"
+                                        src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_examples/CFDELiver_small.png"
+                                    />
+                                </div>
+                                <div class="f-col">
+                                    <div>
+                                        Developed through a collaboration between the CFDE Data Resource Center
+                                        and CFDE Knowledge Center, the CFDE Liver Resource aggregates liver-relevant resources
+                                        from NIH Common Fund programs and additional public resources into a single user-friendly portal.
+                                    </div>
+                                    <ul>
+                                        <li>
+                                            Connect liver anatomy, function, cell (sub)types, cell states, and diseases
+                                        </li>
+                                    </ul>
+                                    <div class="drc-link">
+                                        <a
+                                            href="https://cfdeliverresource.org"
+                                            target="_blank"
+                                            >Visit CFDE Liver Resource</a
+                                        >
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <a style="align-self: flex-end;" :href="`/r/kc_news`">See All News</a>
                     </div>
                 </div>
             </div>
@@ -681,6 +737,10 @@ export default Vue.component("cfde-landing-2", {
             const content = this.sectionConfigs && this.sectionConfigs["content"];
             return (content && content["single search version"]) || "";
         },
+        spotlightItems(){
+            let allItems = Object.entries(this.parsedData.map);
+            return allItems.filter(item => !!item[1].spotlight);
+        }
     },
     watch: {},
     updated() {},
@@ -711,7 +771,7 @@ export default Vue.component("cfde-landing-2", {
             const newsFeedUrl = this.sectionConfigs["content"]["custom"]["news feed"];
             if(newsFeedUrl) {
                 const newsFeed = await this.loadFile(newsFeedUrl);
-                if(newsFeed.length > 5) newsFeed.length = 5;
+                if(newsFeed.length > 3) newsFeed.length = 3; // Truncating to fit the CFDE Liver Resource card
                 newsFeed.forEach(item=>{
                     //extract only img element from thumbnail
                     item.field_thumbnail_image = new DOMParser().parseFromString(item.field_thumbnail_image, 'text/html').querySelector('img')?.outerHTML || '';
@@ -780,6 +840,7 @@ export default Vue.component("cfde-landing-2", {
                     dccItem["examples"]["gene_example"]!=""
                 ){
                     examples.push({
+                        dcc: dccItem["dcc"],
                         type: 'gene',
                         logo: dccItem["logo"] || "",
                         name: dccItem["name"] || "",
@@ -792,6 +853,7 @@ export default Vue.component("cfde-landing-2", {
                     dccItem["examples"]["disease_example"]!=""
                 ){
                     examples.push({
+                        dcc: dccItem["dcc"],
                         type: 'disease',
                         logo: dccItem["logo"] || "",
                         name: dccItem["name"] || "",
@@ -1144,7 +1206,7 @@ export default Vue.component("cfde-landing-2", {
             const randInt = (min, max) =>
                 Math.floor(Math.random() * (max - min + 1)) + min;
             let currSpotlight = this.currSpotlight;
-            const max = Object.keys(this.parsedData.map).length;
+            const max = this.spotlightItems.length;
             let dir = "next";
             if (e?.target) {
                 clearInterval(this.spotlightInterval);

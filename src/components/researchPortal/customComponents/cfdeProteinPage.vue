@@ -221,6 +221,8 @@
                 </div>
             </div>
         </div>
+=======
+>>>>>>> da9386ae2 (protein page development set up.)
     </div>
 </template>
 
@@ -252,6 +254,8 @@ const sectionKey = (k) =>
         .toLowerCase()
         .replace(/_gene(?=_|$)/g, "");
 
+=======
+>>>>>>> da9386ae2 (protein page development set up.)
 export default {
     name: "cfdeProteinPage",
     props: {
@@ -268,6 +272,7 @@ export default {
             default: () => ({}),
         },
     },
+<<<<<<< HEAD
     data() {
         return {
             uniprotId: "",
@@ -730,4 +735,10 @@ export default {
     border-radius: 5px;
     padding: 17.5px;
 }
+=======
+};
+</script>
+
+<style scoped>
+>>>>>>> da9386ae2 (protein page development set up.)
 </style>
