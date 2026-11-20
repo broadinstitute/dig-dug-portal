@@ -122,14 +122,17 @@ function scriptBlocks(file, source, errors) {
   return blocks.sort((a, b) => a.start - b.start);
 }
 
-/** Calls `visit` on every AST node under `node`, children in source order. */
-function walk(node, visit) {
+/**
+ * Calls `visit(node, parent)` on every AST node under `node`, children in source order. `parent` is
+ * the node that holds it (the node itself for the nodes of an array, `null` for the first call).
+ */
+export function walk(node, visit, parent = null) {
   if (Array.isArray(node)) {
-    for (const child of node) walk(child, visit);
+    for (const child of node) walk(child, visit, parent);
   } else if (node && typeof node.type === 'string') {
-    visit(node);
+    visit(node, parent);
     for (const [key, child] of Object.entries(node)) {
-      if (!SKIP_KEYS.has(key) && child && typeof child === 'object') walk(child, visit);
+      if (!SKIP_KEYS.has(key) && child && typeof child === 'object') walk(child, visit, node);
     }
   }
 }
@@ -146,7 +149,7 @@ export const isVueComponentCall = ({ callee }) =>
   callee.property.name === 'component';
 
 /** `Vue.component("name")`: looks up an already registered component, so it is not a registration. */
-const isLookup = ({ arguments: args }) => args.length === 1 && args[0].type === 'StringLiteral';
+export const isLookup = ({ arguments: args }) => args.length === 1 && args[0].type === 'StringLiteral';
 
 /** Registrations, import specifiers (unresolved) and registration problems found in one parsed script. */
 function collect(file, ast, found) {

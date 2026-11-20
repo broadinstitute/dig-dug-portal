@@ -62,7 +62,7 @@ export function parseArgs(argv) {
   return { dryRun: values['dry-run'] === true, root: values.root };
 }
 
-function hasSrc(root) {
+export function hasSrc(root) {
   try {
     return statSync(join(root, 'src')).isDirectory();
   } catch {
@@ -70,14 +70,14 @@ function hasSrc(root) {
   }
 }
 
-const parseStrict = (code) => parseBabel(code, { ...BABEL_OPTIONS, errorRecovery: false });
+export const parseStrict = (code) => parseBabel(code, { ...BABEL_OPTIONS, errorRecovery: false });
 
 /**
  * Throws when `after`, the new text of `file`, does not parse. A `.js` file is parsed as a module.
  * A `.vue` file must have no SFC error that `before` did not have (errors are compared by message,
  * as a multiset), must still have a script, and each script block must parse without error recovery.
  */
-function assertParses(file, before, after) {
+export function assertParses(file, before, after) {
   if (!file.endsWith('.vue')) {
     parseStrict(after);
     return;
@@ -102,9 +102,9 @@ function assertParses(file, before, after) {
   }
 }
 
-const oneLine = (text) => String(text).replace(/\s+/g, ' ').trim();
-const cell = (text) => text.replaceAll('|', '\\|');
-const code = (text) => `\`${text}\``;
+export const oneLine = (text) => String(text).replace(/\s+/g, ' ').trim();
+export const cell = (text) => text.replaceAll('|', '\\|');
+export const code = (text) => `\`${text}\``;
 /** A page entry as its folder under `src/views/`: `src/views/VariantSearch/main.js` -> `VariantSearch`. */
 const pageName = (entry) => entry.replace(/^src\/views\//, '').replace(/\/main\.js$/, '');
 
