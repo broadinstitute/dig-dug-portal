@@ -65,6 +65,7 @@ export default Vue.component("bulk-heatmap", {
           minExp: null,
           maxExp: null,
           colorScaleArray: [],
+          compField: null,
           sampleCharacters: ["▒", "█"], // for additional visual data besides color
           sampleColors: [
                 "rgb(092 174 000)",
@@ -100,7 +101,6 @@ export default Vue.component("bulk-heatmap", {
                 groupInfo.groupIndex = this.isNumeric ? groupInfo.group : groupIndex;
                 output[sample] = groupInfo;
             }
-            //console.log(JSON.stringify(output));
             return output;
         },
         isNumeric(){
@@ -223,12 +223,11 @@ export default Vue.component("bulk-heatmap", {
 				.attr("transform", "translate(0,0)")
                 .style("text-anchor", "end");
 
-
 			this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", ((width / 2)))
 				.attr("y", (height + 50))
-				.text("Sample group");
+				.text(this.compField.startsWith("disease") ? "Sample group" : this.compField);
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")
@@ -312,6 +311,7 @@ export default Vue.component("bulk-heatmap", {
       plotData:{
             handler(newData, oldData){
                 if(newData !== oldData){
+                    this.compField = newData[0].comparison_field;
                     this.drawHeatMap();
                 }
             },
