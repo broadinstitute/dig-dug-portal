@@ -1,158 +1,212 @@
 <template>
     <div class="gp2-lit-evidence">
+        <div v-if="synthesizing || kgLoading" class="gp2-lit-evidence-status">
+            {{
+                progressLabel ||
+                (synthesizing
+                    ? "Extracting evidences from abstracts…"
+                    : "Building the knowledge graph…")
+            }}
+        </div>
+        <div
+            v-if="synthesisError"
+            class="gp2-lit-evidence-status gp2-lit-evidence-status-error"
+        >
+            {{ synthesisError }}
+        </div>
+
         <p class="gp2-lit-evidence-query">
-            Searched PubMed for <strong>{{ genesSearched.join(", ") }}</strong>
-            <span v-if="usedLocusDigest"> (genes from this locus's AI-summary digest)</span>
+            Searched PubMed for
+            <strong>{{ genesSearched.join(", ") || "—" }}</strong>
+            <span v-if="usedLocusDigest"> (genes from this locus digest)</span>
             <span v-else> (LD data unavailable; used a simpler gene set)</span>.
         </p>
 
-        <div v-if="!papers.length" class="gp2-lit-evidence-empty">
-            No PubMed papers matched this search.
+        <div class="gp2-lit-evidence-tabs" role="tablist">
+            <button
+                type="button"
+                role="tab"
+                class="gp2-lit-evidence-tab"
+                :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'evidences' }"
+                @click="activeTab = 'evidences'"
+            >
+                Evidences
+            </button>
+            <button
+                type="button"
+                role="tab"
+                class="gp2-lit-evidence-tab"
+                :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'excerpts' }"
+                @click="activeTab = 'excerpts'"
+            >
+                Excerpts
+            </button>
+            <button
+                type="button"
+                role="tab"
+                class="gp2-lit-evidence-tab"
+                :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'summaryDigest' }"
+                @click="activeTab = 'summaryDigest'"
+            >
+                Summary digest
+            </button>
         </div>
 
-        <template v-else>
-            <div v-if="synthesizing" class="gp2-lit-evidence-status">
-                Generating literature synthesis…
-            </div>
-            <div
-                v-if="synthesisError"
-                class="gp2-lit-evidence-status gp2-lit-evidence-status-error"
-            >
-                {{ synthesisError }}
-            </div>
+        <div v-show="activeTab === 'evidences'" class="gp2-lit-evidence-evidences-tab">
+            <p v-if="!papers.length" class="gp2-lit-evidence-empty">
+                No PubMed papers matched this search.
+            </p>
+            <template v-else>
+                <section class="gp2-lit-evidence-network">
+                    <h3>Knowledge graph</h3>
+                    <GP2BrowserLiteratureKgNetwork
+                        ref="kgNetwork"
+                        :kg="kg"
+                        :loading="kgLoading"
+                        :error="kgError"
+                        :visible="activeTab === 'evidences'"
+                        @focus-claims="onFocusClaims"
+                    />
+                </section>
 
-            <div class="gp2-lit-evidence-tabs" role="tablist">
-                <button
-                    type="button"
-                    role="tab"
-                    class="gp2-lit-evidence-tab"
-                    :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'evidences' }"
-                    @click="activeTab = 'evidences'"
-                >
-                    Evidences
-                </button>
-                <button
-                    type="button"
-                    role="tab"
-                    class="gp2-lit-evidence-tab"
-                    :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'network' }"
-                    @click="activeTab = 'network'"
-                >
-                    Network
-                </button>
-                <button
-                    type="button"
-                    role="tab"
-                    class="gp2-lit-evidence-tab"
-                    :class="{ 'gp2-lit-evidence-tab-active': activeTab === 'excerpts' }"
-                    @click="activeTab = 'excerpts'"
-                >
-                    Excerpts
-                </button>
-            </div>
+                <div class="gp2-lit-evidence-columns">
+                    <section ref="claimsCol" class="gp2-lit-evidence-col">
+                        <h3>Evidences</h3>
+                        <ol v-if="claims.length" class="gp2-lit-evidence-list">
+                            <li
+                                v-for="(claim, claimIndex) in claims"
+                                :id="claimAnchorId(claimIndex + 1)"
+                                :key="`claim-${claimIndex}`"
+                                :class="{
+                                    'is-focused': focusedClaimNumbers.includes(claimIndex + 1),
+                                }"
+                            >
+                                {{ claim.text }}
+                                <GP2BrowserLiteratureFootnote
+                                    v-if="claim.excerptNumbers.length"
+                                    :numbers="claim.excerptNumbers"
+                                    :excerpts-by-number="excerptsByNumber"
+                                    :popover-width="columnWidth"
+                                />
+                            </li>
+                        </ol>
+                        <p v-else class="gp2-lit-evidence-empty">
+                            No evidences could be extracted with a verified supporting excerpt.
+                        </p>
+                    </section>
+                    <section class="gp2-lit-evidence-col">
+                        <h3>Open questions</h3>
+                        <ol v-if="gaps.length" class="gp2-lit-evidence-list">
+                            <li v-for="(gap, gapIndex) in gaps" :key="`gap-${gapIndex}`">
+                                {{ gap.text }}
+                                <GP2BrowserLiteratureFootnote
+                                    v-if="gap.excerptNumbers.length"
+                                    :numbers="gap.excerptNumbers"
+                                    :excerpts-by-number="excerptsByNumber"
+                                    :popover-width="columnWidth"
+                                />
+                            </li>
+                        </ol>
+                        <p v-else class="gp2-lit-evidence-empty">No open questions identified yet.</p>
+                    </section>
+                </div>
+            </template>
+        </div>
 
-            <div v-show="activeTab === 'evidences'" class="gp2-lit-evidence-columns">
-                <section ref="claimsCol" class="gp2-lit-evidence-col">
-                    <h3>What the literature establishes</h3>
-                    <ol v-if="claims.length" class="gp2-lit-evidence-list">
-                        <li
-                            v-for="(claim, claimIndex) in claims"
-                            :id="claimAnchorId(claimIndex + 1)"
-                            :key="`claim-${claimIndex}`"
-                            :class="{ 'is-focused': focusedClaimNumbers.includes(claimIndex + 1) }"
+        <div v-show="activeTab === 'excerpts'" class="gp2-lit-evidence-excerpts-tab">
+            <ol v-if="excerpts.length" class="gp2-lit-evidence-excerpts-list">
+                <li
+                    v-for="excerpt in excerpts"
+                    :id="excerptAnchorId(excerpt.number)"
+                    :key="`excerpt-${excerpt.number}`"
+                    class="gp2-lit-evidence-excerpt"
+                >
+                    <span class="gp2-lit-evidence-excerpt-number">{{ excerpt.number }}.</span>
+                    <blockquote class="gp2-lit-evidence-excerpt-quote">
+                        &ldquo;{{ excerpt.quote }}&rdquo;
+                    </blockquote>
+                    <div class="gp2-lit-evidence-excerpt-meta">
+                        <a
+                            class="gp2-lit-evidence-excerpt-title"
+                            :href="`https://pubmed.ncbi.nlm.nih.gov/${excerpt.pmid}/`"
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
-                            {{ claim.text }}
-                            <GP2BrowserLiteratureFootnote
-                                v-if="claim.excerptNumbers.length"
-                                :numbers="claim.excerptNumbers"
-                                :excerpts-by-number="excerptsByNumber"
-                                :popover-width="columnWidth"
-                            />
-                        </li>
-                    </ol>
-                    <p v-else class="gp2-lit-evidence-empty">
-                        No claims could be extracted with a verified supporting excerpt.
-                    </p>
-                </section>
-                <section class="gp2-lit-evidence-col">
-                    <h3>Knowledge gaps</h3>
-                    <ol v-if="gaps.length" class="gp2-lit-evidence-list">
-                        <li v-for="(gap, gapIndex) in gaps" :key="`gap-${gapIndex}`">
-                            {{ gap.text }}
-                            <GP2BrowserLiteratureFootnote
-                                v-if="gap.excerptNumbers.length"
-                                :numbers="gap.excerptNumbers"
-                                :excerpts-by-number="excerptsByNumber"
-                                :popover-width="columnWidth"
-                            />
-                        </li>
-                    </ol>
-                    <p v-else class="gp2-lit-evidence-empty">No knowledge gaps identified yet.</p>
-                </section>
-            </div>
-
-            <div v-show="activeTab === 'network'" class="gp2-lit-evidence-network-tab">
-                <GP2BrowserLiteratureKgNetwork
-                    ref="kgNetwork"
-                    :kg="kg"
-                    :loading="kgLoading"
-                    :error="kgError"
-                    :visible="activeTab === 'network'"
-                    @focus-claims="onFocusClaims"
-                />
-            </div>
-
-            <div v-show="activeTab === 'excerpts'" class="gp2-lit-evidence-excerpts-tab">
-                <ol v-if="excerpts.length" class="gp2-lit-evidence-excerpts-list">
-                    <li
-                        v-for="excerpt in excerpts"
-                        :id="excerptAnchorId(excerpt.number)"
-                        :key="`excerpt-${excerpt.number}`"
-                        class="gp2-lit-evidence-excerpt"
+                            {{ excerptPaperTitle(excerpt) }}
+                        </a>
+                        <div class="gp2-lit-evidence-excerpt-sub">
+                            PMID: {{ excerpt.pmid
+                            }}<span v-if="excerptPaperMeta(excerpt)"> · {{ excerptPaperMeta(excerpt) }}</span
+                            ><span v-if="excerptPaperAuthors(excerpt).length"><br /></span
+                            >{{ excerptPaperAuthors(excerpt).join(", ") }}
+                        </div>
+                    </div>
+                    <div
+                        v-if="excerptPaperAbstract(excerpt)"
+                        class="gp2-lit-evidence-excerpt-abstract"
                     >
-                        <span class="gp2-lit-evidence-excerpt-number">{{ excerpt.number }}.</span>
-                        <blockquote class="gp2-lit-evidence-excerpt-quote">
-                            &ldquo;{{ excerpt.quote }}&rdquo;
-                        </blockquote>
-                        <div class="gp2-lit-evidence-excerpt-meta">
-                            <a
-                                class="gp2-lit-evidence-excerpt-title"
-                                :href="`https://pubmed.ncbi.nlm.nih.gov/${excerpt.pmid}/`"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {{ excerptPaperTitle(excerpt) }}
-                            </a>
-                            <div class="gp2-lit-evidence-excerpt-sub">
-                                PMID: {{ excerpt.pmid
-                                }}<span v-if="excerptPaperMeta(excerpt)"> · {{ excerptPaperMeta(excerpt) }}</span
-                                ><span v-if="excerptPaperAuthors(excerpt).length"><br /></span
-                                >{{ excerptPaperAuthors(excerpt).join(", ") }}
-                            </div>
-                        </div>
-                        <div
-                            v-if="excerptPaperAbstract(excerpt)"
-                            class="gp2-lit-evidence-excerpt-abstract"
+                        {{
+                            isExpanded(excerpt.pmid)
+                                ? excerptPaperAbstract(excerpt)
+                                : abstractExcerpt(excerptPaperAbstract(excerpt))
+                        }}
+                        <button
+                            v-if="excerptPaperAbstract(excerpt).length > abstractExcerptLength"
+                            type="button"
+                            class="gp2-lit-evidence-abstract-toggle"
+                            @click="toggleAbstract(excerpt.pmid)"
                         >
-                            {{
-                                isExpanded(excerpt.pmid)
-                                    ? excerptPaperAbstract(excerpt)
-                                    : abstractExcerpt(excerptPaperAbstract(excerpt))
-                            }}
-                            <button
-                                v-if="excerptPaperAbstract(excerpt).length > abstractExcerptLength"
-                                type="button"
-                                class="gp2-lit-evidence-abstract-toggle"
-                                @click="toggleAbstract(excerpt.pmid)"
-                            >
-                                {{ isExpanded(excerpt.pmid) ? "Show less" : "Read full abstract" }}
-                            </button>
-                        </div>
-                    </li>
-                </ol>
-                <p v-else class="gp2-lit-evidence-empty">No supporting excerpts extracted yet.</p>
-            </div>
-        </template>
+                            {{ isExpanded(excerpt.pmid) ? "Show less" : "Read full abstract" }}
+                        </button>
+                    </div>
+                </li>
+            </ol>
+            <p v-else class="gp2-lit-evidence-empty">No supporting excerpts extracted yet.</p>
+        </div>
+
+        <div v-show="activeTab === 'summaryDigest'" class="gp2-lit-evidence-digest-tab">
+            <section class="gp2-lit-evidence-context">
+                <div v-if="aiSummary" class="gp2-lit-evidence-ai-summary">
+                    <h3>AI summary (stage 1)</h3>
+                    <p class="gp2-lit-evidence-findings-note">
+                        Generated before the PubMed search so the locus narrative is visible first.
+                    </p>
+                    <div class="gp2-lit-evidence-ai-summary-body">{{ aiSummary }}</div>
+                </div>
+                <p v-else class="gp2-lit-evidence-empty">
+                    No AI summary was produced for this run (often because LD scores were
+                    unavailable). Literature evidence may still use a fallback gene set.
+                </p>
+
+                <div v-if="digestFindings.length" class="gp2-lit-evidence-findings">
+                    <h3>Locus digest facts used for the PubMed search</h3>
+                    <p class="gp2-lit-evidence-findings-note">
+                        Structured associations / LD / QTL facts that selected the search genes.
+                    </p>
+                    <ul>
+                        <li
+                            v-for="(finding, findingIndex) in digestFindings"
+                            :key="`finding-${findingIndex}`"
+                        >
+                            {{ finding }}
+                        </li>
+                    </ul>
+                </div>
+
+                <div v-if="resolvedGeneReasons.length" class="gp2-lit-evidence-gene-reasons">
+                    <h3>Why these genes were searched</h3>
+                    <ul>
+                        <li
+                            v-for="entry in resolvedGeneReasons"
+                            :key="`gene-reason-${entry.gene}`"
+                        >
+                            <strong>{{ entry.gene }}</strong>
+                            — {{ entry.reasons.join("; ") }}
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </div>
     </div>
 </template>
 
@@ -171,6 +225,21 @@ export default {
             type: Array,
             default: () => [],
         },
+        /** Each: { gene, reasons: string[] }. */
+        geneReasons: {
+            type: Array,
+            default: () => [],
+        },
+        /** Bullet strings of structured locus findings. */
+        digestFindings: {
+            type: Array,
+            default: () => [],
+        },
+        /** Prose from the AI summary stage that precedes LE. */
+        aiSummary: {
+            type: String,
+            default: null,
+        },
         usedLocusDigest: {
             type: Boolean,
             default: false,
@@ -184,6 +253,10 @@ export default {
             default: false,
         },
         synthesisError: {
+            type: String,
+            default: null,
+        },
+        progressLabel: {
             type: String,
             default: null,
         },
@@ -226,6 +299,19 @@ export default {
         };
     },
     computed: {
+        resolvedGeneReasons() {
+            if (Array.isArray(this.geneReasons) && this.geneReasons.length) {
+                return this.geneReasons;
+            }
+            return (this.genesSearched || []).map((gene) => ({
+                gene,
+                reasons: [
+                    this.usedLocusDigest
+                        ? "Included from the locus digest"
+                        : "Fallback gene set (LD digest unavailable)",
+                ],
+            }));
+        },
         excerptsByNumber() {
             const map = {};
             this.excerpts.forEach((excerpt) => {
@@ -275,27 +361,23 @@ export default {
             return `gp2-lit-excerpt-${number}`;
         },
         onFocusClaims(claimNumbers) {
-            this.activeTab = "evidences";
+            if (this.focusClearTimer) {
+                clearTimeout(this.focusClearTimer);
+                this.focusClearTimer = null;
+            }
             this.focusedClaimNumbers = Array.isArray(claimNumbers)
                 ? claimNumbers.map((number) => Number(number)).filter(Boolean)
                 : [];
+            if (!this.focusedClaimNumbers.length) {
+                return;
+            }
             this.$nextTick(() => {
                 const first = this.focusedClaimNumbers[0];
-                if (!first) {
-                    return;
-                }
-                const el = document.getElementById(this.claimAnchorId(first));
+                const el = first ? document.getElementById(this.claimAnchorId(first)) : null;
                 if (el) {
                     el.scrollIntoView({ behavior: "smooth", block: "nearest" });
                 }
             });
-            if (this.focusClearTimer) {
-                clearTimeout(this.focusClearTimer);
-            }
-            this.focusClearTimer = setTimeout(() => {
-                this.focusedClaimNumbers = [];
-                this.focusClearTimer = null;
-            }, 4000);
         },
         paperByPmid(pmid) {
             return this.papers.find((paper) => String(paper.pmid) === String(pmid)) || null;
@@ -349,6 +431,48 @@ export default {
     padding: 7px 8px 9px;
 }
 
+.gp2-lit-evidence-digest-tab,
+.gp2-lit-evidence-context {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.gp2-lit-evidence-ai-summary h3,
+.gp2-lit-evidence-findings h3,
+.gp2-lit-evidence-gene-reasons h3 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.gp2-lit-evidence-ai-summary-body {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cfde-ink, #33363d);
+    white-space: pre-line;
+}
+
+.gp2-lit-evidence-findings-note {
+    margin: 0 0 6px;
+    font-size: 12px;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.gp2-lit-evidence-findings ul,
+.gp2-lit-evidence-gene-reasons ul {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
+}
+
 .gp2-lit-evidence-query {
     margin: 0;
     font-size: 13px;
@@ -391,6 +515,27 @@ export default {
     border-bottom-color: var(--cfde-blue, #2c5c97);
 }
 
+.gp2-lit-evidence-evidences-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.gp2-lit-evidence-network {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.gp2-lit-evidence-network h3,
+.gp2-lit-evidence-col h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
 .gp2-lit-evidence-columns {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -403,13 +548,6 @@ export default {
     flex-direction: column;
     gap: 8px;
     min-width: 0;
-}
-
-.gp2-lit-evidence-col h3 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--cfde-ink, #33363d);
 }
 
 .gp2-lit-evidence-list {

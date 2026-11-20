@@ -3,15 +3,31 @@
         <div v-if="loading" class="gp2-lit-kg-status">Building knowledge graph…</div>
         <div v-else-if="error" class="gp2-lit-kg-status gp2-lit-kg-status-error">{{ error }}</div>
         <template v-else-if="hasGraph">
+            <div class="gp2-lit-kg-toolbar" @click.stop>
+                <label class="gp2-lit-kg-zoom">
+                    <span>Zoom</span>
+                    <input
+                        v-model.number="zoomPercent"
+                        type="range"
+                        min="25"
+                        max="150"
+                        step="5"
+                        aria-label="Network zoom"
+                    />
+                    <span class="gp2-lit-kg-zoom-value">{{ zoomPercent }}%</span>
+                </label>
+                <button type="button" class="gp2-lit-kg-fit" @click="fitToViewport">
+                    Fit
+                </button>
+            </div>
             <div
+                ref="scroll"
                 class="gp2-lit-kg-scroll"
                 @click="clearFocus"
                 @mouseleave="clearHover"
             >
-                <div
-                    class="gp2-lit-kg-diagram"
-                    :style="{ minWidth: diagramWidth + 'px', height: diagramHeight + 'px' }"
-                >
+                <div class="gp2-lit-kg-scale-wrap" :style="scaleWrapStyle">
+                    <div class="gp2-lit-kg-diagram" :style="diagramStyle">
                     <!-- Layer 1: column backgrounds only (edges must paint above these). -->
                     <div
                         v-for="column in layoutColumns"
@@ -112,13 +128,32 @@
                         <span class="gp2-lit-kg-node-text">{{ node.label }}</span>
                     </button>
 
-                    <!-- Layer 4: labels only in column corridors, above nodes. -->
+                    <!-- Layer 4: start dots + labels above nodes so origins stay visible. -->
                     <svg
                         class="gp2-lit-kg-labels"
                         :width="diagramWidth"
                         :height="diagramHeight"
                         aria-hidden="true"
                     >
+                        <g
+                            v-for="edge in layoutEdges"
+                            :key="`start-${edge.id}`"
+                            class="gp2-lit-kg-edge-start"
+                            :class="{
+                                'is-active': edge.id === focusEdgeId,
+                                'is-dimmed': isEdgeDimmed(edge),
+                            }"
+                            @click.stop="selectEdge(edge)"
+                            @mouseenter="hoverEdge(edge)"
+                            @mouseleave="clearHover"
+                        >
+                            <circle
+                                :cx="edge.startX"
+                                :cy="edge.startY"
+                                r="3.5"
+                                :fill="edgeStroke(edge)"
+                            />
+                        </g>
                         <g
                             v-for="edge in layoutEdges"
                             :key="`label-${edge.id}`"
@@ -152,28 +187,21 @@
                             </text>
                         </g>
                     </svg>
+                    </div>
                 </div>
             </div>
 
             <p v-if="selectedDetail" class="gp2-lit-kg-detail">
                 <strong>{{ selectedDetail.title }}</strong>
-                <span v-if="selectedDetail.claims"> — claims {{ selectedDetail.claims }}</span>
-                <button
-                    v-if="selectedDetail.claimNumbers.length"
-                    type="button"
-                    class="gp2-lit-kg-detail-action"
-                    @click="$emit('focus-claims', selectedDetail.claimNumbers)"
-                >
-                    Show claims
-                </button>
+                <span v-if="selectedDetail.claims"> — evidences {{ selectedDetail.claims }}</span>
             </p>
             <p v-else class="gp2-lit-kg-hint">
-                Hover or click an edge or node to highlight links. Click empty space to clear a
-                pinned selection.
+                Hover or click an edge or node to highlight links and related evidences. Click empty
+                space to clear a pinned selection.
             </p>
         </template>
         <p v-else class="gp2-lit-kg-status">
-            No knowledge graph yet. Generate claims first, then a graph will appear here.
+            No knowledge graph yet. Generate evidences first, then a graph will appear here.
         </p>
     </div>
 </template>
@@ -196,8 +224,13 @@ const GROUP_PAD_TOP = 30;
 const GROUP_PAD_BOTTOM = 16;
 const COLUMN_GAP_MIN = 180;
 const DIAGRAM_PAD = 16;
+const DIAGRAM_MARGIN = 10;
 const CHAR_PX = 7.1;
 const PORT_PAD = 6;
+const ZOOM_MIN = 25;
+const ZOOM_MAX = 150;
+/** Cross-column labels sit this far right of the edge start, at start Y. */
+const CROSS_LABEL_OFFSET_X = 50;
 
 function humanizeRelation(relation) {
     return String(relation || "")
@@ -215,14 +248,37 @@ function estimateLabelWidth(label) {
     return Math.max(40, Math.min(180, text.length * 6.4 + 14));
 }
 
-function cubicPath(x1, y1, x2, y2) {
+function cubicControls(x1, y1, x2, y2) {
     const dx = Math.max(56, (x2 - x1) * 0.55);
-    return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+    return {
+        p0: { x: x1, y: y1 },
+        p1: { x: x1 + dx, y: y1 },
+        p2: { x: x2 - dx, y: y2 },
+        p3: { x: x2, y: y2 },
+    };
 }
 
-/** Same-side U-turn: both ports on x, arched outward (positive = right). */
-function sameSidePath(x, y1, y2, bulge) {
-    return `M ${x} ${y1} C ${x + bulge} ${y1}, ${x + bulge} ${y2}, ${x} ${y2}`;
+function sameSideControls(x, y1, y2, bulge) {
+    return {
+        p0: { x, y: y1 },
+        p1: { x: x + bulge, y: y1 },
+        p2: { x: x + bulge, y: y2 },
+        p3: { x, y: y2 },
+    };
+}
+
+function cubicPathFromControls({ p0, p1, p2, p3 }) {
+    return `M ${p0.x} ${p0.y} C ${p1.x} ${p1.y}, ${p2.x} ${p2.y}, ${p3.x} ${p3.y}`;
+}
+
+function cubicPointAt({ p0, p1, p2, p3 }, t) {
+    const u = 1 - t;
+    const uu = u * u;
+    const tt = t * t;
+    return {
+        x: uu * u * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + tt * t * p3.x,
+        y: uu * u * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + tt * t * p3.y,
+    };
 }
 
 /** Evenly spaced Y ports along a node side so edges don't share one anchor. */
@@ -275,11 +331,31 @@ export default {
             hoveredEdgeId: null,
             hoveredNodeId: null,
             hoverClearTimer: null,
+            zoomPercent: 100,
+            viewportWidth: 0,
+            resizeObserver: null,
         };
     },
     computed: {
         hasGraph() {
             return Boolean(this.kg?.nodes?.length && this.kg?.edges?.length);
+        },
+        zoomScale() {
+            return this.zoomPercent / 100;
+        },
+        scaleWrapStyle() {
+            return {
+                width: `${this.diagramWidth * this.zoomScale + DIAGRAM_MARGIN * 2}px`,
+                height: `${this.diagramHeight * this.zoomScale + DIAGRAM_MARGIN * 2}px`,
+            };
+        },
+        diagramStyle() {
+            return {
+                width: `${this.diagramWidth}px`,
+                height: `${this.diagramHeight}px`,
+                transform: `scale(${this.zoomScale})`,
+                transformOrigin: "top left",
+            };
         },
         // Click pins focus; hover previews the same dimming when nothing is pinned.
         focusEdgeId() {
@@ -543,22 +619,19 @@ export default {
                 edges.forEach((edge, index) => sameColRank.set(edge.id, index));
             });
 
-            const drafted = raw.map((edge) => {
+            return raw.map((edge) => {
                 const y1 =
                     exitY.get(edge.id) ?? edge.fromNode.y + edge.fromNode.height / 2;
                 const y2 =
                     entryY.get(edge.id) ?? edge.toNode.y + edge.toNode.height / 2;
                 const fromIdx = presentTypes.indexOf(edge.fromType);
-                const toIdx = presentTypes.indexOf(edge.toType);
+                const labelWidth = estimateLabelWidth(edge.label);
 
-                let path;
+                let controls;
                 let labelX;
-                let labelY = (y1 + y2) / 2;
-                let labelWidth = estimateLabelWidth(edge.label);
-                let corridorKey;
+                let labelY;
 
                 if (edge.sameColumn) {
-                    const col = columnByType.get(edge.fromType);
                     const onRight = edge.sameSide === "right";
                     const x = onRight
                         ? edge.fromNode.x + edge.fromNode.width
@@ -567,55 +640,30 @@ export default {
                     const rank = sameColRank.get(edge.id) || 0;
                     const bulgeMag = Math.max(40, Math.min(160, 32 + dy * 0.55 + rank * 18));
                     const bulge = onRight ? bulgeMag : -bulgeMag;
-                    path = sameSidePath(x, y1, y2, bulge);
-
-                    // Label sits on the arch, in the open corridor beside the column.
-                    if (onRight) {
-                        const nextType = presentTypes[fromIdx + 1];
-                        const nextCol = nextType ? columnByType.get(nextType) : null;
-                        const gapLeft = (col ? col.x + col.width : x) + 10;
-                        const gapRight = nextCol
-                            ? nextCol.x - 10
-                            : gapLeft + Math.max(bulgeMag + 24, 120);
-                        corridorKey = `${edge.fromType}->${nextType || "end"}`;
-                        labelWidth = Math.min(labelWidth, Math.max(40, gapRight - gapLeft - 8));
-                        labelX = Math.min(
-                            Math.max(x + bulgeMag * 0.7, gapLeft + labelWidth / 2),
-                            gapRight - labelWidth / 2
-                        );
-                    } else {
-                        const prevType = presentTypes[fromIdx - 1];
-                        const prevCol = prevType ? columnByType.get(prevType) : null;
-                        const gapRight = (col ? col.x : x) - 10;
-                        const gapLeft = prevCol
-                            ? prevCol.x + prevCol.width + 10
-                            : gapRight - Math.max(bulgeMag + 24, 120);
-                        corridorKey = `${prevType || "start"}->${edge.fromType}`;
-                        labelWidth = Math.min(labelWidth, Math.max(40, gapRight - gapLeft - 8));
-                        labelX = Math.max(
-                            Math.min(x - bulgeMag * 0.7, gapRight - labelWidth / 2),
-                            gapLeft + labelWidth / 2
-                        );
-                    }
+                    controls = sameSideControls(x, y1, y2, bulge);
+                    // Keep same-column labels on the arch (not the 50px rule).
+                    const onArch = cubicPointAt(controls, 0.5);
+                    labelX = onArch.x;
+                    labelY = onArch.y;
                 } else {
                     const x1 = edge.fromNode.x + edge.fromNode.width;
                     const x2 = edge.toNode.x;
-                    path = cubicPath(x1, y1, x2, y2);
+                    controls = cubicControls(x1, y1, x2, y2);
+                    // Cross-column: 50px right of the start port, same Y as start.
+                    labelX = x1 + CROSS_LABEL_OFFSET_X;
+                    labelY = y1;
 
-                    const leftIdx = Math.min(fromIdx, toIdx);
-                    const rightIdx = Math.max(fromIdx, toIdx);
-                    const corridorLeftType = presentTypes[leftIdx];
-                    const corridorRightType =
-                        rightIdx === leftIdx + 1
-                            ? presentTypes[rightIdx]
-                            : presentTypes[Math.min(leftIdx + 1, presentTypes.length - 1)];
-                    const leftCol = columnByType.get(corridorLeftType);
-                    const rightCol = columnByType.get(corridorRightType);
-                    const gapLeft = leftCol ? leftCol.x + leftCol.width + 10 : x1 + 10;
-                    const gapRight = rightCol ? rightCol.x - 10 : x2 - 10;
-                    corridorKey = `${corridorLeftType}->${corridorRightType}`;
-                    labelWidth = Math.min(labelWidth, Math.max(40, gapRight - gapLeft - 8));
-                    labelX = (gapLeft + gapRight) / 2;
+                    // Keep the pill inside the first corridor after the source.
+                    const nextType = presentTypes[fromIdx + 1];
+                    const col = columnByType.get(edge.fromType);
+                    const nextCol = nextType ? columnByType.get(nextType) : null;
+                    const gapLeft = (col ? col.x + col.width : x1) + 8;
+                    const gapRight = nextCol ? nextCol.x - 8 : x2 - 8;
+                    const minX = gapLeft + labelWidth / 2;
+                    const maxX = gapRight - labelWidth / 2;
+                    if (maxX >= minX) {
+                        labelX = Math.min(Math.max(labelX, minX), maxX);
+                    }
                 }
 
                 return {
@@ -629,32 +677,11 @@ export default {
                     labelWidth,
                     labelX,
                     labelY,
-                    corridorKey,
-                    path,
+                    startX: controls.p0.x,
+                    startY: controls.p0.y,
+                    path: cubicPathFromControls(controls),
                 };
             });
-
-            // Nudge overlapping labels apart within the same corridor.
-            const byCorridor = new Map();
-            drafted.forEach((edge) => {
-                if (!byCorridor.has(edge.corridorKey)) {
-                    byCorridor.set(edge.corridorKey, []);
-                }
-                byCorridor.get(edge.corridorKey).push(edge);
-            });
-            byCorridor.forEach((edges) => {
-                edges.sort((a, b) => a.labelY - b.labelY || a.id.localeCompare(b.id));
-                for (let i = 1; i < edges.length; i += 1) {
-                    const prev = edges[i - 1];
-                    const cur = edges[i];
-                    const minGap = 20;
-                    if (cur.labelY - prev.labelY < minGap) {
-                        cur.labelY = prev.labelY + minGap;
-                    }
-                }
-            });
-
-            return drafted.map(({ corridorKey, ...edge }) => edge);
         },
         activeNodeIds() {
             const ids = new Set();
@@ -715,9 +742,66 @@ export default {
             this.selectedEdgeId = null;
             this.selectedNodeId = null;
             this.clearHoverNow();
+            this.emitFocusClaims([]);
+            this.$nextTick(() => this.fitToViewport());
+        },
+        visible(isVisible) {
+            if (isVisible) {
+                this.$nextTick(() => this.fitToViewport());
+            }
+        },
+        hasGraph(ready) {
+            if (ready) {
+                this.$nextTick(() => {
+                    this.observeViewport();
+                    this.fitToViewport();
+                });
+            }
         },
     },
+    mounted() {
+        this.$nextTick(() => {
+            this.observeViewport();
+            this.fitToViewport();
+        });
+    },
     methods: {
+        observeViewport() {
+            if (typeof ResizeObserver === "undefined" || !this.$refs.scroll) {
+                return;
+            }
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect();
+            }
+            this.resizeObserver = new ResizeObserver(() => {
+                const el = this.$refs.scroll;
+                if (!el) {
+                    return;
+                }
+                const next = el.clientWidth;
+                const wasEmpty = this.viewportWidth < 40;
+                if (Math.abs(next - this.viewportWidth) < 2) {
+                    return;
+                }
+                this.viewportWidth = next;
+                // Refit when the panel first gets a real width; otherwise leave
+                // the user's slider choice alone until they hit Fit.
+                if (wasEmpty && next >= 40) {
+                    this.fitToViewport();
+                }
+            });
+            this.resizeObserver.observe(this.$refs.scroll);
+            this.viewportWidth = this.$refs.scroll.clientWidth;
+        },
+        fitToViewport() {
+            const el = this.$refs.scroll;
+            if (!el || !this.hasGraph || !this.diagramWidth) {
+                return;
+            }
+            const available = Math.max(120, el.clientWidth - DIAGRAM_MARGIN * 2 - 8);
+            const fit = Math.floor((available / this.diagramWidth) * 100);
+            this.zoomPercent = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, fit));
+        },
         groupStyle(column) {
             return {
                 left: `${column.x}px`,
@@ -803,24 +887,45 @@ export default {
             this.hoveredEdgeId = null;
             this.hoveredNodeId = null;
         },
+        claimNumbersForEdge(edge) {
+            return Array.isArray(edge?.claimNumbers) ? [...edge.claimNumbers] : [];
+        },
+        claimNumbersForNode(nodeId) {
+            const related = this.layoutEdges.filter(
+                (edge) => edge.from === nodeId || edge.to === nodeId
+            );
+            return [
+                ...new Set(related.flatMap((edge) => edge.claimNumbers || [])),
+            ].sort((a, b) => a - b);
+        },
+        emitFocusClaims(claimNumbers) {
+            this.$emit("focus-claims", claimNumbers || []);
+        },
         selectEdge(edge) {
             this.selectedEdgeId = edge.id;
             this.selectedNodeId = null;
             this.clearHoverNow();
+            this.emitFocusClaims(this.claimNumbersForEdge(edge));
         },
         selectNode(node) {
             this.selectedNodeId = node.id;
             this.selectedEdgeId = null;
             this.clearHoverNow();
+            this.emitFocusClaims(this.claimNumbersForNode(node.id));
         },
         clearFocus() {
             this.selectedEdgeId = null;
             this.selectedNodeId = null;
             this.clearHoverNow();
+            this.emitFocusClaims([]);
         },
     },
     beforeDestroy() {
         this.cancelHoverClear();
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
     },
 };
 </script>
@@ -841,12 +946,53 @@ export default {
     color: #ee3124;
 }
 
+.gp2-lit-kg-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.gp2-lit-kg-zoom {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 12px;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.gp2-lit-kg-zoom input[type="range"] {
+    width: 140px;
+    vertical-align: middle;
+}
+
+.gp2-lit-kg-zoom-value {
+    min-width: 40px;
+    font-variant-numeric: tabular-nums;
+    color: var(--cfde-ink, #33363d);
+}
+
+.gp2-lit-kg-fit {
+    padding: 2px 10px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 4px;
+    background: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cfde-blue, #2c5c97);
+    cursor: pointer;
+}
+
 .gp2-lit-kg-scroll {
     width: 100%;
     overflow: auto;
     border: 1px solid var(--cfde-border, #e6e1d6);
     border-radius: 8px;
     background: #ffffff;
+}
+
+.gp2-lit-kg-scale-wrap {
+    position: relative;
 }
 
 .gp2-lit-kg-diagram {
@@ -887,8 +1033,14 @@ export default {
 }
 
 .gp2-lit-kg-edge.is-dimmed,
+.gp2-lit-kg-edge-start.is-dimmed,
 .gp2-lit-kg-edge-label-group.is-dimmed {
     opacity: 0.16;
+}
+
+.gp2-lit-kg-edge-start {
+    pointer-events: all;
+    cursor: pointer;
 }
 
 .gp2-lit-kg-labels {
@@ -973,17 +1125,5 @@ export default {
 
 .gp2-lit-kg-hint {
     color: var(--cfde-muted, #6b6b6b);
-}
-
-.gp2-lit-kg-detail-action {
-    margin-left: 8px;
-    padding: 0;
-    border: none;
-    background: none;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--cfde-blue, #2c5c97);
-    cursor: pointer;
-    text-decoration: underline;
 }
 </style>

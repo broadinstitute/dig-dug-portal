@@ -52,25 +52,174 @@ export function buildGp2PubmedQueryTerm({ phenotype, genes }) {
     return `(${phenotypeParts.join(" OR ")}) AND (${geneParts.join(" OR ")})`;
 }
 
-/** Genes referenced anywhere in an AI-summary digest (variants + QTL hits). */
-export function geneNamesFromAiSummaryDigest(digest) {
-    const names = new Set();
-    const addVariantGenes = (variant) => {
-        if (!variant) {
+function formatCompactPValue(value) {
+    if (value == null || Number.isNaN(Number(value))) {
+        return null;
+    }
+    const number = Number(value);
+    if (number === 0) {
+        return "0";
+    }
+    if (number >= 0.001) {
+        return String(Number(number.toPrecision(3)));
+    }
+    return number.toExponential(2);
+}
+
+function variantDisplayName(variant) {
+    if (!variant) {
+        return "variant";
+    }
+    return variant.dbSNP || variant.varId || "variant";
+}
+
+function addGeneReason(byGene, gene, reason) {
+    const name = String(gene || "").trim();
+    const why = String(reason || "").trim();
+    if (!name || !why) {
+        return;
+    }
+    if (!byGene.has(name)) {
+        byGene.set(name, new Set());
+    }
+    byGene.get(name).add(why);
+}
+
+function addVariantGeneReasons(byGene, variant, roleLabel) {
+    if (!variant) {
+        return;
+    }
+    const label = variantDisplayName(variant);
+    const role = roleLabel || "variant";
+    (variant.consequenceGenes || []).forEach((gene) => {
+        addGeneReason(byGene, gene, `Exon overlap with ${role} ${label}`);
+    });
+    (variant.nearestGenes || []).forEach((gene) => {
+        addGeneReason(byGene, gene, `Nearest gene to ${role} ${label}`);
+    });
+}
+
+/**
+ * Why each PubMed search gene was pulled from the structured locus digest
+ * (deterministic associations/LD/QTL facts — not the AI-summary LLM prose).
+ */
+export function geneSearchPlanFromAiSummaryDigest(digest) {
+    const byGene = new Map();
+    if (!digest) {
+        return { genes: [], geneReasons: [] };
+    }
+
+    addVariantGeneReasons(byGene, digest.leadVariant, "lead");
+
+    (digest.highLdCluster?.missenseVariants || []).forEach((variant) => {
+        if (variant?.varId && variant.varId === digest.leadVariant?.varId) {
             return;
         }
-        (variant.nearestGenes || []).forEach((name) => names.add(name));
-        (variant.consequenceGenes || []).forEach((name) => names.add(name));
-    };
-    addVariantGenes(digest?.leadVariant);
-    (digest?.highLdCluster?.missenseVariants || []).forEach(addVariantGenes);
-    (digest?.moderateLdMissense || []).forEach(addVariantGenes);
-    (digest?.qtlByGene || []).forEach((entry) => {
-        if (entry.gene) {
-            names.add(entry.gene);
-        }
+        addVariantGeneReasons(byGene, variant, "high-LD missense");
     });
-    return Array.from(names);
+
+    (digest.moderateLdMissense || []).forEach((variant) => {
+        addVariantGeneReasons(byGene, variant, "moderate-LD missense");
+    });
+
+    (digest.qtlByGene || []).forEach((entry) => {
+        if (!entry?.gene) {
+            return;
+        }
+        const tissue = entry.tissue || "tissue";
+        const pValue = formatCompactPValue(entry.linkedToLead?.pValue);
+        const r2 = entry.linkedToLead?.r2;
+        const parts = [`QTL in ${tissue} linked to lead`];
+        if (pValue) {
+            parts.push(`p=${pValue}`);
+        }
+        if (r2 != null) {
+            parts.push(`r²=${r2}`);
+        }
+        addGeneReason(byGene, entry.gene, parts.join(", "));
+    });
+
+    const geneReasons = Array.from(byGene.entries())
+        .map(([gene, reasons]) => ({
+            gene,
+            reasons: Array.from(reasons),
+        }))
+        .sort((a, b) => a.gene.localeCompare(b.gene));
+
+    return {
+        genes: geneReasons.map((entry) => entry.gene),
+        geneReasons,
+    };
+}
+
+/** Genes referenced anywhere in an AI-summary digest (variants + QTL hits). */
+export function geneNamesFromAiSummaryDigest(digest) {
+    return geneSearchPlanFromAiSummaryDigest(digest).genes;
+}
+
+/**
+ * Human-readable locus findings from the structured digest (data facts only).
+ * Returns bullet strings for the LE panel / assistant thread.
+ */
+export function describeGp2LocusDigestFindings(digest) {
+    if (!digest?.leadVariant) {
+        return [];
+    }
+    const bullets = [];
+    const lead = digest.leadVariant;
+    const leadName = variantDisplayName(lead);
+    const leadBits = [`Lead variant ${leadName}`];
+    if (lead.pValue != null) {
+        leadBits.push(`p=${formatCompactPValue(lead.pValue)}`);
+    }
+    if (lead.consequence) {
+        leadBits.push(String(lead.consequence).replace(/_/g, " "));
+    }
+    const leadGenes = [
+        ...(lead.consequenceGenes || []),
+        ...(lead.nearestGenes || []),
+    ].filter(Boolean);
+    if (leadGenes.length) {
+        leadBits.push(`genes ${Array.from(new Set(leadGenes)).join(", ")}`);
+    }
+    bullets.push(`${leadBits.join(" — ")}.`);
+
+    const cluster = digest.highLdCluster;
+    if (cluster) {
+        const missenseCount = (cluster.missenseVariants || []).length;
+        let clusterText = `High-LD cluster (r²≥${cluster.r2Threshold}): ${
+            cluster.variantCount || 0
+        } variant${cluster.variantCount === 1 ? "" : "s"}`;
+        if (missenseCount) {
+            clusterText += `, ${missenseCount} missense`;
+        }
+        if (cluster.span?.start != null && cluster.span?.end != null) {
+            clusterText += `, span ${cluster.span.start.toLocaleString()}-${cluster.span.end.toLocaleString()}`;
+        }
+        bullets.push(`${clusterText}.`);
+    }
+
+    const moderate = digest.moderateLdMissense || [];
+    if (moderate.length) {
+        const names = moderate.map(variantDisplayName).slice(0, 4);
+        const more = moderate.length > names.length ? ` (+${moderate.length - names.length} more)` : "";
+        bullets.push(
+            `Moderate-LD missense (0.2≤r²<0.8): ${names.join(", ")}${more}.`
+        );
+    }
+
+    const qtl = digest.qtlByGene || [];
+    if (qtl.length) {
+        const top = qtl.slice(0, 4).map((entry) => {
+            const pValue = formatCompactPValue(entry.linkedToLead?.pValue);
+            const tissue = entry.tissue || "tissue";
+            return pValue ? `${entry.gene} (${tissue}, p=${pValue})` : `${entry.gene} (${tissue})`;
+        });
+        const more = qtl.length > top.length ? ` (+${qtl.length - top.length} more)` : "";
+        bullets.push(`Lead-linked QTL signals: ${top.join("; ")}${more}.`);
+    }
+
+    return bullets;
 }
 
 /** Used only when the AI-summary digest can't be resolved (no LD data). */
@@ -400,9 +549,21 @@ export async function fetchGp2LiteraturePapers({
     });
     const locusDigest = digestResult.ok ? digestResult.digest : null;
 
-    const geneNames = locusDigest
-        ? geneNamesFromAiSummaryDigest(locusDigest)
-        : fallbackGeneNames({ associationRows, qtlRows, genes });
+    let geneNames;
+    let geneReasons = [];
+    let digestFindings = [];
+    if (locusDigest) {
+        const plan = geneSearchPlanFromAiSummaryDigest(locusDigest);
+        geneNames = plan.genes;
+        geneReasons = plan.geneReasons;
+        digestFindings = describeGp2LocusDigestFindings(locusDigest);
+    } else {
+        geneNames = fallbackGeneNames({ associationRows, qtlRows, genes });
+        geneReasons = geneNames.map((gene) => ({
+            gene,
+            reasons: ["Fallback gene set (LD digest unavailable)"],
+        }));
+    }
 
     const term = buildGp2PubmedQueryTerm({ phenotype, genes: geneNames });
     if (!geneNames.length || !term) {
@@ -419,6 +580,8 @@ export async function fetchGp2LiteraturePapers({
         phenotype,
         query: term,
         genesSearched: geneNames,
+        geneReasons,
+        digestFindings,
         papers: pageResult.papers,
         locusDigest,
         usedLocusDigest: Boolean(locusDigest),

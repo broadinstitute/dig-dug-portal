@@ -20,6 +20,10 @@
  * payload's own keys and is trivially ignored by anything reading the
  * payload as a plain Variant Sifter session.
  */
+import {
+    describeGp2LocusDigestFindings,
+    geneSearchPlanFromAiSummaryDigest,
+} from "./gp2BrowserLiteratureEvidence.js";
 
 export function buildGp2SessionExtras({
     qtlState,
@@ -46,6 +50,8 @@ export function buildGp2SessionExtras({
                   phenotype: literatureEvidenceState.phenotype || null,
                   query: literatureEvidenceState.query || null,
                   genesSearched: literatureEvidenceState.genesSearched || [],
+                  geneReasons: literatureEvidenceState.geneReasons || [],
+                  digestFindings: literatureEvidenceState.digestFindings || [],
                   usedLocusDigest: Boolean(literatureEvidenceState.usedLocusDigest),
                   locusDigest: literatureEvidenceState.locusDigest || null,
                   papers: literatureEvidenceState.papers || [],
@@ -77,41 +83,67 @@ export function restoreGp2SessionExtras(payload) {
             ? gp2.assistant.threadEntries
             : [],
         literatureEvidenceState: literatureEvidence
-            ? {
-                  loading: false,
-                  loaded: true,
-                  error: null,
-                  phenotype: literatureEvidence.phenotype || null,
-                  query: literatureEvidence.query || null,
-                  genesSearched: Array.isArray(literatureEvidence.genesSearched)
-                      ? literatureEvidence.genesSearched
-                      : [],
-                  usedLocusDigest: Boolean(literatureEvidence.usedLocusDigest),
-                  locusDigest: literatureEvidence.locusDigest || null,
-                  papers: Array.isArray(literatureEvidence.papers)
-                      ? literatureEvidence.papers
-                      : [],
-                  synthesizing: false,
-                  synthesisError: null,
-                  claims: Array.isArray(literatureEvidence.claims)
-                      ? literatureEvidence.claims
-                      : [],
-                  excerpts: Array.isArray(literatureEvidence.excerpts)
-                      ? literatureEvidence.excerpts
-                      : [],
-                  gaps: Array.isArray(literatureEvidence.gaps) ? literatureEvidence.gaps : [],
-                  kg:
-                      literatureEvidence.kg &&
-                      Array.isArray(literatureEvidence.kg.nodes) &&
-                      Array.isArray(literatureEvidence.kg.edges)
-                          ? literatureEvidence.kg
-                          : null,
-                  kgLoading: false,
-                  kgError: null,
-                  loadingMore: false,
-                  loadMoreError: null,
-                  exhausted: Boolean(literatureEvidence.exhausted),
-              }
+            ? (() => {
+                  const locusDigest = literatureEvidence.locusDigest || null;
+                  const savedGeneReasons = Array.isArray(literatureEvidence.geneReasons)
+                      ? literatureEvidence.geneReasons
+                      : [];
+                  const savedDigestFindings = Array.isArray(literatureEvidence.digestFindings)
+                      ? literatureEvidence.digestFindings
+                      : [];
+                  const plan =
+                      locusDigest && !savedGeneReasons.length
+                          ? geneSearchPlanFromAiSummaryDigest(locusDigest)
+                          : null;
+                  const geneReasons = savedGeneReasons.length
+                      ? savedGeneReasons
+                      : plan?.geneReasons || [];
+                  const digestFindings = savedDigestFindings.length
+                      ? savedDigestFindings
+                      : locusDigest
+                        ? describeGp2LocusDigestFindings(locusDigest)
+                        : [];
+                  return {
+                      loading: false,
+                      loaded: true,
+                      error: null,
+                      phenotype: literatureEvidence.phenotype || null,
+                      query: literatureEvidence.query || null,
+                      genesSearched: Array.isArray(literatureEvidence.genesSearched)
+                          ? literatureEvidence.genesSearched
+                          : [],
+                      geneReasons,
+                      digestFindings,
+                      usedLocusDigest: Boolean(literatureEvidence.usedLocusDigest),
+                      locusDigest,
+                      progressLabel: null,
+                      papers: Array.isArray(literatureEvidence.papers)
+                          ? literatureEvidence.papers
+                          : [],
+                      synthesizing: false,
+                      synthesisError: null,
+                      claims: Array.isArray(literatureEvidence.claims)
+                          ? literatureEvidence.claims
+                          : [],
+                      excerpts: Array.isArray(literatureEvidence.excerpts)
+                          ? literatureEvidence.excerpts
+                          : [],
+                      gaps: Array.isArray(literatureEvidence.gaps)
+                          ? literatureEvidence.gaps
+                          : [],
+                      kg:
+                          literatureEvidence.kg &&
+                          Array.isArray(literatureEvidence.kg.nodes) &&
+                          Array.isArray(literatureEvidence.kg.edges)
+                              ? literatureEvidence.kg
+                              : null,
+                      kgLoading: false,
+                      kgError: null,
+                      loadingMore: false,
+                      loadMoreError: null,
+                      exhausted: Boolean(literatureEvidence.exhausted),
+                  };
+              })()
             : null,
         visibleSectionIds: Array.isArray(gp2.visibleSectionIds) ? gp2.visibleSectionIds : null,
         viewingCenterBp: gp2.viewingCenterBp ?? null,

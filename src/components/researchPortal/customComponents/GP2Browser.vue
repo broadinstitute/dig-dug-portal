@@ -261,6 +261,7 @@
             :utils-box="utilsBox"
             :search-region="activeRegion"
             :literature-evidence-state="literatureEvidenceState"
+            :ai-summary-message="lastAiSummaryMessage"
             @close="activeResearchPanelId = null"
             @navigate-region="onGenePrioritizationNavigateRegion"
             @load-more-literature-evidence="loadMoreLiteratureEvidence"
@@ -655,9 +656,15 @@ function emptyLiteratureEvidenceState() {
         loading: false,
         loaded: false,
         error: null,
+        /** Short live status for the LE modal / panel (PubMed → synthesis → KG). */
+        progressLabel: null,
         phenotype: null,
         query: null,
         genesSearched: [],
+        /** Each: { gene, reasons: string[] } — why this gene was searched. */
+        geneReasons: [],
+        /** Bullet strings of structured locus findings from the digest. */
+        digestFindings: [],
         usedLocusDigest: false,
         locusDigest: null,
         papers: [],
@@ -818,6 +825,12 @@ export default Vue.component("gp2-browser", {
             workspaceGuideOpen: false,
             activeResearchPanelId: null,
             literatureEvidenceState: emptyLiteratureEvidenceState(),
+            /** When LE was started from the assistant action, stream step messages there. */
+            literatureEvidenceReportAssistant: false,
+            literatureEvidenceAssistantStepId: null,
+            literatureEvidenceActionToken: 0,
+            /** Last successful AI-summary prose for this search (shown in LE Summary digest). */
+            lastAiSummaryMessage: null,
             chromePinned: false,
             headerHeightPx: 53,
             assistantPanelTopPx: 53,
@@ -2662,10 +2675,15 @@ export default Vue.component("gp2-browser", {
             }
             if (
                 payload.action === "genePrioritization" ||
-                payload.action === "associatedPhenotypes" ||
-                payload.action === "literatureEvidence"
+                payload.action === "associatedPhenotypes"
             ) {
                 this.activeResearchPanelId = payload.action;
+                return;
+            }
+            // LE always goes through the assistant action so AI summary runs
+            // first (visible in Actions), then the LE panel opens.
+            if (payload.action === "literatureEvidence") {
+                this.runGenerateLiteratureEvidenceAction({ silent: false });
                 return;
             }
             if (payload.action === "generateAiSummary") {
@@ -3492,7 +3510,7 @@ export default Vue.component("gp2-browser", {
                 : remainingId === "find_understudied_bottom_line"
                   ? buildUnderstudiedOfferMessage(this.searchSession)
                   : remainingId === GP2_LITERATURE_EVIDENCE_ACTION_ID
-                    ? "Search PubMed for the genes and phenotype in this locus, and summarize what the literature establishes versus what it leaves as knowledge gaps."
+                    ? "Optional next: Generate literature evidence — it will reuse (or run) the AI summary, then search PubMed and build evidences."
                     : buildGeRelevanceOfferMessage(
                           this.searchSession,
                           this.globalEnrichmentState?.catalog,
@@ -3781,6 +3799,14 @@ export default Vue.component("gp2-browser", {
             this.s2gState = emptyS2gState();
             this.assistantState = emptyAssistantState();
             this.aiAssistantOpen = false;
+            this.literatureEvidenceState = emptyLiteratureEvidenceState();
+            this.literatureEvidenceReportAssistant = false;
+            this.literatureEvidenceAssistantStepId = null;
+            this.literatureEvidenceActionToken += 1;
+            this.lastAiSummaryMessage = null;
+            if (this.activeResearchPanelId === "literatureEvidence") {
+                this.activeResearchPanelId = null;
+            }
             this.lastAssociationsRegion = null;
             this.lastZoomedAssociationsRegion = null;
             this.zoomAssociationsRequestToken += 1;
@@ -3878,6 +3904,16 @@ export default Vue.component("gp2-browser", {
             this.assistantActionToken += 1;
             this.assistantState = emptyAssistantState();
             this.aiAssistantOpen = false;
+            // Drop prior-locus LE so a later open/action refetches for this region
+            // (loadLiteratureEvidence no-ops while `loaded` is still true).
+            this.literatureEvidenceState = emptyLiteratureEvidenceState();
+            this.literatureEvidenceReportAssistant = false;
+            this.literatureEvidenceAssistantStepId = null;
+            this.literatureEvidenceActionToken += 1;
+            this.lastAiSummaryMessage = null;
+            if (this.activeResearchPanelId === "literatureEvidence") {
+                this.activeResearchPanelId = null;
+            }
             this.regionZoom = 0;
             this.regionZoomOut = 0;
             this.regionViewArea = 0;
@@ -6605,7 +6641,7 @@ export default Vue.component("gp2-browser", {
                 return;
             }
             if (actionId === GP2_LITERATURE_EVIDENCE_ACTION_ID) {
-                this.runGenerateLiteratureEvidenceAction({ silent, stepId });
+                await this.runGenerateLiteratureEvidenceAction({ silent, stepId });
                 return;
             }
             if (actionId !== "filter_ge_relevance") {
@@ -7294,7 +7330,20 @@ export default Vue.component("gp2-browser", {
                 }
             }
         },
-        async runGenerateAiSummaryAction({ silent = false, stepId } = {}) {
+        /**
+         * @param {object} [options]
+         * @param {boolean} [options.silent]
+         * @param {string} [options.stepId]
+         * @param {boolean} [options.offerNext=true] — offer LE as optional next step
+         * @param {boolean} [options.keepExecuting=false] — leave assistant "executing" for a follow-on step (LE)
+         * @returns {Promise<boolean>} true when a summary was produced
+         */
+        async runGenerateAiSummaryAction({
+            silent = false,
+            stepId,
+            offerNext = true,
+            keepExecuting = false,
+        } = {}) {
             const session = this.searchSession;
             const resolvedStepId = stepId || this.researchActionStepId(GP2_AI_SUMMARY_ACTION_ID);
             if (!session?.region || !this.associationsState?.rows?.length) {
@@ -7311,7 +7360,7 @@ export default Vue.component("gp2-browser", {
                         ]),
                     };
                 }
-                return;
+                return false;
             }
 
             const actionToken = ++this.assistantActionToken;
@@ -7342,7 +7391,7 @@ export default Vue.component("gp2-browser", {
                     genes: this.genesState?.data || [],
                 });
                 if (actionToken !== this.assistantActionToken) {
-                    return;
+                    return false;
                 }
 
                 if (!result.ok) {
@@ -7354,76 +7403,127 @@ export default Vue.component("gp2-browser", {
                     if (!silent) {
                         this.assistantState = {
                             ...this.assistantState,
-                            executing: false,
-                            executionProgressLabel: "",
+                            executing: keepExecuting ? true : false,
+                            executionProgressLabel: keepExecuting
+                                ? this.assistantState.executionProgressLabel
+                                : "",
                             threadEntries: replacePendingAssistantEntry(
                                 this.assistantState.threadEntries,
                                 message,
                                 { isClarify: true }
                             ),
                         };
-                    } else if (this.assistantState.executing) {
+                    } else if (this.assistantState.executing && !keepExecuting) {
                         this.assistantState = {
                             ...this.assistantState,
                             executing: false,
                             executionProgressLabel: "",
                         };
                     }
-                    return;
+                    return false;
                 }
 
+                const summaryMessage = formatGp2AiSummaryMessage(result);
+                this.lastAiSummaryMessage = summaryMessage;
                 this.markAssistantStepState(resolvedStepId, "done");
                 if (!silent) {
                     this.assistantState = {
                         ...this.assistantState,
-                        executing: false,
-                        executionProgressLabel: "",
+                        executing: keepExecuting ? true : false,
+                        executionProgressLabel: keepExecuting
+                            ? "AI summary ready — continuing…"
+                            : "",
                         threadEntries: replacePendingAssistantEntry(
                             this.assistantState.threadEntries,
-                            formatGp2AiSummaryMessage(result)
+                            summaryMessage
                         ),
                     };
-                } else {
+                } else if (!keepExecuting) {
                     this.assistantState = {
                         ...this.assistantState,
                         executing: false,
                         executionProgressLabel: "",
                     };
                 }
-                this.offerRemainingResearchAction(GP2_AI_SUMMARY_ACTION_ID);
+                if (offerNext) {
+                    this.offerRemainingResearchAction(GP2_AI_SUMMARY_ACTION_ID);
+                }
+                return true;
             } catch (error) {
                 if (actionToken !== this.assistantActionToken) {
-                    return;
+                    return false;
                 }
                 console.warn("GP2 Browser AI summary failed", error);
                 this.markAssistantStepState(resolvedStepId, "error");
                 if (!silent) {
                     this.assistantState = {
                         ...this.assistantState,
-                        executing: false,
-                        executionProgressLabel: "",
+                        executing: keepExecuting ? true : false,
+                        executionProgressLabel: keepExecuting
+                            ? this.assistantState.executionProgressLabel
+                            : "",
                         threadEntries: replacePendingAssistantEntry(
                             this.assistantState.threadEntries,
                             error?.message || "Could not generate an AI summary.",
                             { isClarify: true }
                         ),
                     };
-                } else if (this.assistantState.executing) {
+                } else if (this.assistantState.executing && !keepExecuting) {
                     this.assistantState = {
                         ...this.assistantState,
                         executing: false,
                         executionProgressLabel: "",
                     };
                 }
+                return false;
             }
         },
+        setLiteratureEvidenceProgress(label) {
+            this.literatureEvidenceState.progressLabel = label || null;
+            if (!this.literatureEvidenceReportAssistant) {
+                return;
+            }
+            this.assistantState = {
+                ...this.assistantState,
+                executionProgressLabel: label || "",
+            };
+        },
+        appendLiteratureEvidenceAssistantStep(text, { isClarify = false } = {}) {
+            if (!this.literatureEvidenceReportAssistant || !String(text || "").trim()) {
+                return;
+            }
+            this.assistantState = {
+                ...this.assistantState,
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantStepMessage(text, { isClarify }),
+                ]),
+            };
+        },
+        finishLiteratureEvidenceAssistantRun({ ok = true, errorMessage = null } = {}) {
+            const stepId = this.literatureEvidenceAssistantStepId;
+            this.literatureEvidenceState.progressLabel = null;
+            if (stepId) {
+                this.markAssistantStepState(stepId, ok ? "done" : "error");
+            }
+            if (this.literatureEvidenceReportAssistant) {
+                if (errorMessage) {
+                    this.appendLiteratureEvidenceAssistantStep(errorMessage, { isClarify: true });
+                }
+                this.assistantState = {
+                    ...this.assistantState,
+                    executing: false,
+                    executionProgressLabel: "",
+                };
+            }
+            this.literatureEvidenceReportAssistant = false;
+            this.literatureEvidenceAssistantStepId = null;
+        },
         /**
-         * The Literature evidence panel already does its own fetch (PubMed
-         * search + LLM synthesis) when opened, so this action just opens it
-         * rather than duplicating that pipeline inline in the assistant
-         * thread.
+         * Literature evidence is a two-stage flow so the dependency is obvious:
+         * (1) open Actions and run AI summary, then (2) open the LE panel and
+         * run PubMed → evidences → knowledge graph.
          */
-        runGenerateLiteratureEvidenceAction({ silent = false, stepId } = {}) {
+        async runGenerateLiteratureEvidenceAction({ silent = false, stepId } = {}) {
             const resolvedStepId =
                 stepId || this.researchActionStepId(GP2_LITERATURE_EVIDENCE_ACTION_ID);
             if (!this.searchSession?.region) {
@@ -7431,19 +7531,97 @@ export default Vue.component("gp2-browser", {
                 return;
             }
 
+            this.literatureEvidenceAssistantStepId = resolvedStepId;
+            this.literatureEvidenceReportAssistant = !silent;
             this.markAssistantStepState(resolvedStepId, "running");
-            this.activeResearchPanelId = "literatureEvidence";
-            this.markAssistantStepState(resolvedStepId, "done");
+
+            if (!this.literatureEvidenceState.loading) {
+                this.literatureEvidenceActionToken += 1;
+            }
+            const actionToken = this.literatureEvidenceActionToken;
+            const regionLabel =
+                this.searchSession.regionLabel ||
+                formatRegion(this.searchSession.region) ||
+                "this locus";
 
             if (!silent) {
+                this.aiAssistantOpen = true;
                 this.assistantState = {
                     ...this.assistantState,
+                    activeTab: "request",
+                    executing: true,
+                    executionProgressLabel: "Stage 1/2: AI summary…",
                     threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
                         createAssistantStepMessage(
-                            "Opened the Literature evidence panel — searching PubMed and generating a synthesis there."
+                            `Literature evidence for ${regionLabel} runs in two stages: first an AI summary of this locus from your loaded data, then a PubMed search and synthesis.`
                         ),
                     ]),
                 };
+            }
+
+            // Stage 1 — AI summary (visible in Actions). Reuse if already done.
+            const sgStepId = this.researchActionStepId(GP2_AI_SUMMARY_ACTION_ID);
+            const sgAlreadyDone =
+                this.isResearchActionStepDone(GP2_AI_SUMMARY_ACTION_ID) &&
+                Boolean(this.lastAiSummaryMessage);
+            if (sgAlreadyDone) {
+                this.appendLiteratureEvidenceAssistantStep(
+                    "Stage 1/2: AI summary already available for this locus — reusing it."
+                );
+            } else {
+                this.appendLiteratureEvidenceAssistantStep(
+                    "Stage 1/2: generating AI summary in Actions…"
+                );
+                const sgOk = await this.runGenerateAiSummaryAction({
+                    silent,
+                    stepId: sgStepId,
+                    offerNext: false,
+                    keepExecuting: true,
+                });
+                if (actionToken !== this.literatureEvidenceActionToken) {
+                    return;
+                }
+                if (!sgOk) {
+                    this.appendLiteratureEvidenceAssistantStep(
+                        "AI summary could not be completed. Continuing with literature evidence using the locus digest or a fallback gene set when possible.",
+                        { isClarify: true }
+                    );
+                } else {
+                    this.appendLiteratureEvidenceAssistantStep(
+                        "Stage 1/2 complete. Opening the Literature evidence panel for stage 2…"
+                    );
+                }
+            }
+
+            if (actionToken !== this.literatureEvidenceActionToken) {
+                return;
+            }
+
+            this.appendLiteratureEvidenceAssistantStep(
+                "Stage 2/2: searching PubMed and building evidences…"
+            );
+
+            // Fresh LE state after SG so loadLiteratureEvidence always refetches.
+            if (!this.literatureEvidenceState.loading) {
+                this.literatureEvidenceState = emptyLiteratureEvidenceState();
+            }
+            this.setLiteratureEvidenceProgress("Stage 2/2: searching PubMed…");
+
+            // Stage 2 — open LE panel; watcher starts loadLiteratureEvidence.
+            const openLiteratureEvidence = () => {
+                if (actionToken !== this.literatureEvidenceActionToken) {
+                    return;
+                }
+                this.activeResearchPanelId = "literatureEvidence";
+            };
+            if (this.activeResearchPanelId === "literatureEvidence") {
+                if (this.literatureEvidenceState.loading) {
+                    return;
+                }
+                this.activeResearchPanelId = null;
+                this.$nextTick(openLiteratureEvidence);
+            } else {
+                openLiteratureEvidence();
             }
         },
         /**
@@ -7453,11 +7631,24 @@ export default Vue.component("gp2-browser", {
          */
         async loadLiteratureEvidence() {
             if (this.literatureEvidenceState.loaded || this.literatureEvidenceState.loading) {
+                if (
+                    this.literatureEvidenceReportAssistant &&
+                    this.literatureEvidenceState.loaded &&
+                    !this.literatureEvidenceState.loading
+                ) {
+                    this.appendLiteratureEvidenceAssistantStep(
+                        "Literature evidence for this locus is already loaded."
+                    );
+                    this.finishLiteratureEvidenceAssistantRun({ ok: true });
+                }
                 return;
             }
+            const actionToken = this.literatureEvidenceActionToken;
             this.literatureEvidenceState.loading = true;
             this.literatureEvidenceState.error = null;
+            this.setLiteratureEvidenceProgress("Resolving genes for this locus…");
             try {
+                this.setLiteratureEvidenceProgress("Searching PubMed…");
                 const result = await fetchGp2LiteraturePapers({
                     session: this.searchSession,
                     region: this.searchSession?.region,
@@ -7465,11 +7656,19 @@ export default Vue.component("gp2-browser", {
                     qtlRows: this.qtlState?.rawRows || [],
                     genes: this.genesState?.data || [],
                 });
+                if (actionToken !== this.literatureEvidenceActionToken) {
+                    return;
+                }
                 if (!result.ok) {
-                    this.literatureEvidenceState.error =
+                    const message =
                         result.reason === "no-genes"
                             ? "Not enough data to search the literature for this locus (no genes could be resolved). Please select a Type and Tissue in the QTL evidences drawer to load QTL data for this locus, then try again."
                             : result.error?.message || "Could not search PubMed for this locus.";
+                    this.literatureEvidenceState.error = message;
+                    this.finishLiteratureEvidenceAssistantRun({
+                        ok: false,
+                        errorMessage: message,
+                    });
                     return;
                 }
 
@@ -7477,20 +7676,75 @@ export default Vue.component("gp2-browser", {
                 this.literatureEvidenceState.phenotype = result.phenotype;
                 this.literatureEvidenceState.query = result.query;
                 this.literatureEvidenceState.genesSearched = result.genesSearched;
+                this.literatureEvidenceState.geneReasons = result.geneReasons || [];
+                this.literatureEvidenceState.digestFindings = result.digestFindings || [];
                 this.literatureEvidenceState.usedLocusDigest = result.usedLocusDigest;
                 this.literatureEvidenceState.locusDigest = result.locusDigest;
                 this.literatureEvidenceState.papers = result.papers;
+                this.literatureEvidenceState.loading = false;
+
+                (result.digestFindings || []).forEach((finding) => {
+                    this.appendLiteratureEvidenceAssistantStep(finding);
+                });
+                const geneList = (result.genesSearched || []).join(", ") || "the resolved genes";
+                const digestNote = result.usedLocusDigest
+                    ? " (genes from the locus digest)"
+                    : " (fallback gene set; LD digest unavailable)";
+                this.appendLiteratureEvidenceAssistantStep(
+                    result.papers.length
+                        ? `Found ${result.papers.length} PubMed paper${
+                              result.papers.length === 1 ? "" : "s"
+                          } for ${geneList}${digestNote}.`
+                        : `No PubMed papers matched the search for ${geneList}${digestNote}.`
+                );
 
                 if (!result.papers.length) {
+                    this.finishLiteratureEvidenceAssistantRun({ ok: true });
                     return;
                 }
 
-                await this.synthesizeAndAppendLiteratureEvidence(result.papers);
+                await this.synthesizeAndAppendLiteratureEvidence(result.papers, {
+                    actionToken,
+                });
+                if (actionToken !== this.literatureEvidenceActionToken) {
+                    return;
+                }
+                if (this.literatureEvidenceState.synthesisError) {
+                    this.finishLiteratureEvidenceAssistantRun({
+                        ok: false,
+                        errorMessage: this.literatureEvidenceState.synthesisError,
+                    });
+                    return;
+                }
+                if (this.literatureEvidenceState.kgError) {
+                    this.appendLiteratureEvidenceAssistantStep(
+                        this.literatureEvidenceState.kgError,
+                        { isClarify: true }
+                    );
+                }
+                this.appendLiteratureEvidenceAssistantStep(
+                    "Literature evidence is ready in the panel."
+                );
+                const offerNext = this.literatureEvidenceReportAssistant;
+                this.finishLiteratureEvidenceAssistantRun({ ok: true });
+                if (offerNext) {
+                    this.offerRemainingResearchAction(GP2_LITERATURE_EVIDENCE_ACTION_ID);
+                }
             } catch (error) {
-                this.literatureEvidenceState.error =
-                    error?.message || "Could not search PubMed for this locus.";
+                if (actionToken !== this.literatureEvidenceActionToken) {
+                    return;
+                }
+                const message = error?.message || "Could not search PubMed for this locus.";
+                this.literatureEvidenceState.error = message;
+                this.finishLiteratureEvidenceAssistantRun({
+                    ok: false,
+                    errorMessage: message,
+                });
             } finally {
                 this.literatureEvidenceState.loading = false;
+                if (this.literatureEvidenceState.progressLabel === "Searching PubMed…") {
+                    this.literatureEvidenceState.progressLabel = null;
+                }
             }
         },
         /**
@@ -7501,10 +7755,11 @@ export default Vue.component("gp2-browser", {
          * footnote must point at a globally unique excerpt number regardless
          * of which page it came from.
          */
-        async synthesizeAndAppendLiteratureEvidence(pagePapers) {
+        async synthesizeAndAppendLiteratureEvidence(pagePapers, { actionToken = null } = {}) {
             const state = this.literatureEvidenceState;
             state.synthesizing = true;
             state.synthesisError = null;
+            this.setLiteratureEvidenceProgress("Extracting evidences from abstracts…");
             try {
                 const synthesis = await synthesizeGp2LiteratureFindings({
                     phenotype: state.phenotype,
@@ -7512,6 +7767,12 @@ export default Vue.component("gp2-browser", {
                     papers: pagePapers,
                     locusDigest: state.locusDigest,
                 });
+                if (
+                    actionToken != null &&
+                    actionToken !== this.literatureEvidenceActionToken
+                ) {
+                    return;
+                }
                 if (!synthesis.ok) {
                     state.synthesisError =
                         synthesis.error?.message || "Could not generate a literature synthesis.";
@@ -7544,9 +7805,22 @@ export default Vue.component("gp2-browser", {
                         excerptNumbers: renumber(gap.excerptNumbers),
                     })),
                 ];
-                await this.rebuildLiteratureKnowledgeGraph();
+                this.appendLiteratureEvidenceAssistantStep(
+                    `Extracted ${synthesis.claims.length} evidence${
+                        synthesis.claims.length === 1 ? "" : "s"
+                    } and ${synthesis.gaps.length} open question${
+                        synthesis.gaps.length === 1 ? "" : "s"
+                    } from the abstracts.`
+                );
+                await this.rebuildLiteratureKnowledgeGraph({ actionToken });
             } finally {
                 state.synthesizing = false;
+                if (
+                    state.progressLabel === "Extracting evidences from abstracts…" ||
+                    state.progressLabel === "Building the knowledge graph…"
+                ) {
+                    state.progressLabel = null;
+                }
             }
         },
         /**
@@ -7554,35 +7828,61 @@ export default Vue.component("gp2-browser", {
          * Rebuilt after every successful synthesis page so "Show next 15"
          * refreshes the graph from the full claim list.
          */
-        async rebuildLiteratureKnowledgeGraph() {
+        async rebuildLiteratureKnowledgeGraph({ actionToken = null } = {}) {
             const state = this.literatureEvidenceState;
             if (!state.claims.length) {
                 state.kg = null;
                 state.kgError = null;
                 state.kgLoading = false;
+                this.appendLiteratureEvidenceAssistantStep(
+                    "No evidences to build a knowledge graph from."
+                );
                 return;
             }
             state.kgLoading = true;
             state.kgError = null;
+            this.setLiteratureEvidenceProgress("Building the knowledge graph…");
             try {
                 const result = await extractGp2LiteratureKnowledgeGraph({
                     phenotype: state.phenotype,
                     claims: state.claims,
                 });
+                if (
+                    actionToken != null &&
+                    actionToken !== this.literatureEvidenceActionToken
+                ) {
+                    return;
+                }
                 if (!result.ok) {
                     state.kg = null;
                     state.kgError =
                         result.error?.message ||
-                        "Could not build a knowledge graph from these claims.";
+                        "Could not build a knowledge graph from these evidences.";
                     return;
                 }
                 state.kg = result.kg;
+                const nodeCount = result.kg?.nodes?.length || 0;
+                const edgeCount = result.kg?.edges?.length || 0;
+                this.appendLiteratureEvidenceAssistantStep(
+                    `Built a knowledge graph with ${nodeCount} node${
+                        nodeCount === 1 ? "" : "s"
+                    } and ${edgeCount} edge${edgeCount === 1 ? "" : "s"}.`
+                );
             } catch (error) {
+                if (
+                    actionToken != null &&
+                    actionToken !== this.literatureEvidenceActionToken
+                ) {
+                    return;
+                }
                 state.kg = null;
                 state.kgError =
-                    error?.message || "Could not build a knowledge graph from these claims.";
+                    error?.message || "Could not build a knowledge graph from these evidences.";
             } finally {
                 state.kgLoading = false;
+                if (state.progressLabel === "Building the knowledge graph…") {
+                    state.progressLabel = null;
+                }
             }
         },
         /**

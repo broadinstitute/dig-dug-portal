@@ -43,7 +43,7 @@ Same canvas-first locus workspace as KP Variant Sifter (search → explore → m
 - **Page chrome:** GP2 project header on `/gp2browser.html` (logo linking to https://gp2.broadinstitute.org/) — no portal `PageHeader` / `PageFooter`
 - **Table & tooltip styling:** `/gp2browser.html` imports `/css/effectorGenes.css` and `/css/tooltipDocumentation.css` (plus scoped `.research-data-table` and `.byor-tooltip` rules in `GP2Browser.vue`) so drawer data tables and header tooltips render identically to Research Portal pages.
 - **LLM:** shared Variant Sifter GE relevance path uses Bedrock (`@/utils/llmClient` → `https://llm.hugeamp.org/bedrock`)
-- **Literature evidence network:** After claims are verified, a second Bedrock pass (`extractGp2LiteratureKnowledgeGraph` in `gp2BrowserLiteratureEvidence.js`) builds a variant / gene / mechanism / phenotype graph grounded only in those claims. The LE panel **Network** tab renders a Mermaid-style layered flowchart (`GP2BrowserLiteratureKgNetwork.vue`: grouped columns, rounded nodes, curved labeled edges — no `vis-network`); edge click can jump back to supporting claims.
+- **Literature evidence network:** After claims are verified, a second Bedrock pass (`extractGp2LiteratureKnowledgeGraph` in `gp2BrowserLiteratureEvidence.js`) builds a variant / gene / mechanism / phenotype graph grounded only in those claims. The LE panel **Evidences** tab shows that graph above evidences / open questions (`GP2BrowserLiteratureKgNetwork.vue`: layered SVG/HTML flowchart — no `vis-network`); selecting an edge/node can highlight and scroll to supporting evidences in the same tab.
 
 ---
 

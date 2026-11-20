@@ -53,7 +53,7 @@
                 </template>
                 <template v-else-if="panelId === 'literatureEvidence'">
                     <div v-if="literatureEvidenceState.loading" class="gp2-research-status">
-                        Searching PubMed…
+                        {{ literatureEvidenceState.progressLabel || "Searching PubMed…" }}
                     </div>
                     <div
                         v-else-if="literatureEvidenceState.error"
@@ -70,10 +70,14 @@
                         </div>
                         <GP2BrowserLiteratureEvidencePanel
                             :genes-searched="literatureEvidenceState.genesSearched"
+                            :gene-reasons="literatureEvidenceState.geneReasons"
+                            :digest-findings="literatureEvidenceState.digestFindings"
+                            :ai-summary="aiSummaryMessage"
                             :used-locus-digest="literatureEvidenceState.usedLocusDigest"
                             :papers="literatureEvidenceState.papers"
                             :synthesizing="literatureEvidenceState.synthesizing"
                             :synthesis-error="literatureEvidenceState.synthesisError"
+                            :progress-label="literatureEvidenceState.progressLabel"
                             :claims="literatureEvidenceState.claims"
                             :excerpts="literatureEvidenceState.excerpts"
                             :gaps="literatureEvidenceState.gaps"
@@ -127,6 +131,11 @@ export default {
         literatureEvidenceState: {
             type: Object,
             required: true,
+        },
+        /** Prose from the AI summary stage that precedes LE. */
+        aiSummaryMessage: {
+            type: String,
+            default: null,
         },
     },
     data() {

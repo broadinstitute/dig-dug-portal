@@ -39,7 +39,7 @@ For system structure, session model, data flow, and assistant runtime, see [`../
 | Settings panel | `./GP2BrowserSettingsPanel.vue` | GP2-branded Settings modal (`Suggest Actions` unchecked by default; `Refetch association data for zoomed-in region` checked by default; section checkboxes drive on-demand data loading) |
 | Viewport controls | `./GP2BrowserViewportControls.vue` | Header toolbar: **Zoom level:** dropdown (50/25/10 kb, sets `viewingRegionWidthBp`), table/actions/settings buttons. No longer renders the old continuous region-zoom slider |
 | Actions panel | `./GP2BrowserAiAssistantPanel.vue` | GP2-branded Actions / AI assistant side panel |
-| Literature evidence KG | `./gp2BrowserLiteratureEvidence.js` (`extractGp2LiteratureKnowledgeGraph`), `./GP2BrowserLiteratureKgNetwork.vue` | Second LLM pass over verified LE claims → variant/gene/mechanism/phenotype graph; Network tab renders a layered SVG/HTML flowchart (variants → genes → mechanisms → phenotype) |
+| Literature evidence KG | `./gp2BrowserLiteratureEvidence.js` (`extractGp2LiteratureKnowledgeGraph`), `./GP2BrowserLiteratureKgNetwork.vue` | Second LLM pass over verified LE claims → variant/gene/mechanism/phenotype graph; rendered above evidences / open questions on the Evidences tab as a layered SVG/HTML flowchart (variants → genes → mechanisms → phenotype) |
 
 ## GP2 data-loading & rendering architecture
 

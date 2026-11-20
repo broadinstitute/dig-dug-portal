@@ -27,7 +27,7 @@ const GP2_LITERATURE_EVIDENCE_ACTION = {
     id: GP2_LITERATURE_EVIDENCE_ACTION_ID,
     label: "Generate literature evidence",
     description:
-        "Optional. Searches PubMed for the phenotype and the genes this locus's AI-summary digest identified as relevant, then summarizes what the retrieved abstracts establish and what they leave as knowledge gaps. Opens the Literature evidence panel (Tools menu) to show the papers and synthesis.",
+        "Optional. Runs in two visible stages: first Generate AI summary (locus findings from Associations/LD/QTL), then searches PubMed for those genes and the phenotype and summarizes evidences / open questions in the Literature evidence panel.",
     runnable: true,
     autoOnSearch: false,
     examples: [
