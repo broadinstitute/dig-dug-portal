@@ -1,0 +1,14 @@
+const assert = require('assert');
+const { sampleVariantRows } = require('./sampleEvidence');
+const { burdenPathogenicScore } = require('./variantEvidence');
+const base = { gene_symbol: 'GJB2', variant_id: 'chr13:1:A:T', gt: '0/1', cohort_af_dp20: 0 };
+const normalize = extra => sampleVariantRows([{ ...base, ...extra }])[0];
+assert.equal(normalize({}).crdcAlleleFrequency, 0);
+assert.equal(burdenPathogenicScore(normalize({ score_source: 'AlphaMissense', pathogenicity_score: .25 })).display, '0.25');
+assert.equal(burdenPathogenicScore(normalize({ score_source: 'AlphaMissense', pathogenicity_score: 0 })).display, '0.00');
+assert.equal(burdenPathogenicScore(normalize({ score_source: 'LoFTEE_HC', pathogenicity_score: 1 })).display, '1.00');
+assert.equal(burdenPathogenicScore(normalize({ score_source: 'REVEL', pathogenicity_score: .9 })).display, '—*');
+assert.equal(burdenPathogenicScore(normalize({ score_source: 'No_score', pathogenicity_score: 0 })).display, '—');
+assert.equal(sampleVariantRows([base, base]).length, 1);
+assert.throws(() => sampleVariantRows([base, { ...base, gt: '1/1' }]), /Conflicting/);
+console.log('Sample variant evidence source scores, missingness, zero AF and genotype conflict: PASS');

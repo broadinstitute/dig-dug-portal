@@ -2,12 +2,15 @@
  * exported so we can add/remove pages based on build type.
  */
 
+const { prefix: pbApiPrefix, createRouter: createPbApiRouter } = require("../scripts/bch_pb_api");
+
 let pages = {
     index: {
-        entry: "src/portals/Neph/views/Index/main.js",
+        entry: "src/views/PbFront/main.js",
         template: "public/index.html",
         filename: "index.html",
         title: "Home",
+        pbLayout: true,
         chunks: ["chunk-vendors", "chunk-common", "index"]
     },
     SearchFront: {
@@ -32,39 +35,36 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "analyzer_new"]
     },
     sampleresult: {
-        entry: "src/portals/Neph/views/SampleResult/main.js",
+        entry: "src/views/PbSample/main.js",
         template: "public/index.html",
         filename: "sampleresult.html",
         title: "CRDC Sample",
+        pbLayout: true,
         chunks: ["chunk-vendors", "chunk-common", "sampleresult"]
     },
     phenotyperesult: {
-        entry: "src/portals/Neph/views/PhenotypeResult/main.js",
+        entry: "src/views/PbPhenotype/main.js",
         template: "public/index.html",
         filename: "phenotyperesult.html",
         title: "CRDC Phenotype",
+        pbLayout: true,
         chunks: ["chunk-vendors", "chunk-common", "phenotyperesult"]
     },
     variantresult: {
-        entry: "src/portals/Neph/views/VariantResult/main.js",
+        entry: "src/views/PbVariant/main.js",
         template: "public/index.html",
         filename: "variantresult.html",
         title: "CRDC Variant",
+        pbLayout: true,
         chunks: ["chunk-vendors", "chunk-common", "variantresult"]
     },
     generesult: {
-        entry: "src/portals/Neph/views/GeneResult/main.js",
+        entry: "src/views/PbGene2/main.js",
         template: "public/index.html",
         filename: "generesult.html",
         title: "CRDC Gene Evidence",
+        pbLayout: true,
         chunks: ["chunk-vendors", "chunk-common", "generesult"]
-    },
-    pbGene: {
-        entry: "src/portals/Neph/views/PbGene/main.js",
-        template: "public/index.html",
-        filename: "pbGene.html",
-        title: "PB Gene",
-        chunks: ["chunk-vendors", "chunk-common", "pbGene"]
     },
     page404: {
         entry: "src/views/404/main.js",
@@ -225,8 +225,17 @@ let pages = {
 module.exports = {
     devServer: {
         host: "127.0.0.1",
-	//host: "aggregator-dev.bchresearch.org",
+        useLocalIp: false,
         port: 8080,
+        before(app) {
+            app.use(pbApiPrefix, (request, response, next) => {
+                if (request.socket.remoteAddress !== "127.0.0.1") {
+                    response.status(403).json({ error: "Local CRDC development access only." });
+                    return;
+                }
+                next();
+            }, createPbApiRouter());
+        },
         proxy: {
             "/phenotype-analyzer-api": {
                 target: process.env.SERVICE_HOST_PRIVATE || "http://localhost:4999",
