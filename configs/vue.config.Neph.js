@@ -59,13 +59,6 @@ let pages = {
         title: "CRDC Gene Evidence",
         chunks: ["chunk-vendors", "chunk-common", "generesult"]
     },
-    pbGene: {
-        entry: "src/portals/Neph/views/PbGene/main.js",
-        template: "public/index.html",
-        filename: "pbGene.html",
-        title: "PB Gene",
-        chunks: ["chunk-vendors", "chunk-common", "pbGene"]
-    },
     page404: {
         entry: "src/views/404/main.js",
         template: "public/index.html",
