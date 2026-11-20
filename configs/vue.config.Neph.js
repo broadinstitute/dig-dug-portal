@@ -56,10 +56,11 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "variantresult"]
     },
     generesult: {
-        entry: "src/portals/Neph/views/GeneResult/main.js",
+        entry: "src/views/PbGene2/main.js",
         template: "public/index.html",
         filename: "generesult.html",
         title: "CRDC Gene Evidence",
+        pbLayout: true,
         chunks: ["chunk-vendors", "chunk-common", "generesult"]
     },
     page404: {
