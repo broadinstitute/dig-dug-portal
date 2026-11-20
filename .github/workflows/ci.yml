@@ -1,7 +1,24 @@
+# Portal branches (merge-down)
+#
+# Portal branches (matkp-main, cfde-main, ...) get this file when master merges down, but pull
+# requests into them do not run it: `pull_request` below is limited to master and dev/**. On a
+# portal branch the root vue.config.js is master's page set, not the portal's, so as it stands
+# this workflow would build, check and e2e-test the wrong site there. Before a portal branch adds
+# itself to `pull_request.branches`, its migration wave must:
+#   1. build with VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.<Portal>.js, as
+#      nightly-builds.yml does: the production build here and the e2e job's baseline build
+#      (npm run e2e:baseline inherits the environment);
+#   2. pass that config to the dist check, which takes it as its second argument:
+#      npm run check:dist -- dist configs/vue.config.<Portal>.js
+#   3. point the catalog test (e2e/catalog.test.mjs loads ../vue.config.js) at the same config;
+#   4. regenerate and commit a package-lock.json: 7 portal branches have none, so `npm ci` fails,
+#      and master's lockfile does not match their dependencies.
+
 name: CI
 
 on:
   pull_request:
+    branches: [master, 'dev/**']
   push:
     branches: [master]
   workflow_dispatch:
@@ -60,11 +77,13 @@ jobs:
           name: dist
           path: dist
           retention-days: 7
+          # A re-run of the job uploads again under the same name.
+          overwrite: true
 
-  # Opens every catalog page in the PR's build (the `dist` artifact) and in a build of the commit
-  # it branched from, and fails on anything the PR adds: a landmark that stops rendering, new page
-  # errors, console errors or failed requests, or a screenshot that drifts. Chromium only; the
-  # other engines run the single-build smoke test in the nightly workflow.
+  # Opens every catalog page in the PR's build (the `dist` artifact) and in a build of its base
+  # (see "Pick the baseline ref"), and fails on anything the PR adds: a landmark that stops
+  # rendering, new page errors, console errors or failed requests, or a screenshot that drifts.
+  # Chromium only; the other engines run the single-build smoke test in the nightly workflow.
   e2e:
     needs: build
     runs-on: ubuntu-latest
@@ -95,7 +114,9 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           BEFORE_SHA: ${{ github.event.before }}
         run: |
-          # pull_request: the commit the PR branched from.
+          # pull_request: HEAD is GitHub's test-merge commit (the PR merged into its base), so
+          #               this merge base is the base branch's tip that was merged in, not the
+          #               commit the PR branched from. That is the build the PR would change.
           # otherwise:    the previous tip. A new branch reports an all-zero SHA and
           #               workflow_dispatch has none, so both use the commit before this one.
           if [ "$EVENT_NAME" = "pull_request" ]; then
@@ -142,3 +163,5 @@ jobs:
             playwright-report
             test-results
           retention-days: 14
+          # A re-run of the job uploads again under the same name.
+          overwrite: true

@@ -6,7 +6,12 @@ const viewport = { width: 1366, height: 900 };
 
 // A project's `use` overrides the top-level `use`, and every device preset carries its own
 // 1280x720 viewport, so each project sets the viewport again after the preset.
-const project = (name, device) => ({ name, use: { ...devices[device], viewport } });
+const project = (name, device, extra = {}) => ({ name, use: { ...devices[device], viewport }, ...extra });
+
+// The A/B comparison (e2e/compare.spec.mjs) was calibrated in Chromium only (its screenshot
+// thresholds, masks and skips were never checked in the other engines), so Firefox and WebKit run
+// the single-build smoke test only, even when dist-baseline/ exists.
+const smokeOnly = { testIgnore: /compare\.spec\.mjs/ };
 
 // serve's default cleanUrls 301-redirects /gene.html?gene=PCSK9 to /gene and drops the query.
 // e2e/serve.json turns that off; the -c path must be absolute.
@@ -38,7 +43,11 @@ export default defineConfig({
     baseURL: 'http://localhost:8080',
     viewport,
   },
-  projects: [project('chromium', 'Desktop Chrome'), project('firefox', 'Desktop Firefox'), project('webkit', 'Desktop Safari')],
+  projects: [
+    project('chromium', 'Desktop Chrome'),
+    project('firefox', 'Desktop Firefox', smokeOnly),
+    project('webkit', 'Desktop Safari', smokeOnly),
+  ],
   webServer,
   reporter: [['list'], ['html', { open: 'never' }]],
 });
