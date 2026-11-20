@@ -6,6 +6,7 @@
                 :plotData="plotData"
                 :renderConfig="assocPlotConfig"
             ></research-m-plot>
+            <!-- eslint-disable-next-line vue/no-undef-components -- obsolete HTML element the rule does not know -->
             <center style="margin-bottom: 30px">
                 <b v-show="!!showChiSquared">
                     Combined P-Value(Χ²) across

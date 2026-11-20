@@ -929,11 +929,13 @@
 </template>
 
 <script>
+import { codemirror as Codemirror } from "vue-codemirror";
 import PageFooter from "@/components/PageFooter.vue";
 import PageHeader from "@/components/PageHeader.vue";
 
 export default {
     components: {
+        Codemirror,
         PageFooter,
         PageHeader,
     },

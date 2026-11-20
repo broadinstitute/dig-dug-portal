@@ -89,7 +89,7 @@
 							</tr>
 							<tr>
 								<td>
-									<Strong>Hide table: </Strong><input type="checkbox" class="chkbox"
+									<strong>Hide table: </strong><input type="checkbox" class="chkbox"
 									@click="utils.uiUtils.showHideElement(sectionId + '_table_wrapper')"
 								/>
 								</td>

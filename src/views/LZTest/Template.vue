@@ -17,6 +17,7 @@
 			</div>
 			<div class="card mdkp-card">
 				<div class="card-body">
+					<!-- eslint-disable-next-line vue/no-undef-components -- never registered; renders as an unknown element today -->
 					<kp-data-viewer-pkg
 						v-if="this.$store.state.associationData != null"
 						:pkgConfig="{
