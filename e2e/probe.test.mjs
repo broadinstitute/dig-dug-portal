@@ -72,6 +72,20 @@ test('probePage: any other landmark-wait failure fails the probe', async () => {
   assert.equal(page.listenerCount(), 0);
 });
 
+test('probePage: a request the page cancelled itself (net::ERR_ABORTED) is not a failed request', async () => {
+  const failed = (url, errorText) => ({ url: () => url, method: () => 'GET', failure: () => ({ errorText }) });
+  const page = fakePage({
+    idle: async (p) => {
+      // Chromium cancels an image whose element re-renders while it loads.
+      p.emit('requestfailed', failed('http://hugeampkpncms.org/logo.svg', 'net::ERR_ABORTED'));
+      p.emit('requestfailed', failed('https://elsewhere.example/x.js?v=1', 'net::ERR_BLOCKED_BY_CLIENT'));
+    },
+  });
+  const probe = await probePage(page, ...PROBE);
+  assert.deepEqual(probe.failedRequests, ['GET https://elsewhere.example/x.js net::ERR_BLOCKED_BY_CLIENT']);
+  assert.equal(page.listenerCount(), 0);
+});
+
 test('probePage: a renderer crash fails the probe even when every wait settles', async () => {
   const page = fakePage({
     idle: async (p) => {

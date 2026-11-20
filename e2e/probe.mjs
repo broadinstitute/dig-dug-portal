@@ -79,8 +79,13 @@ export async function probePage(page, url, { landmark, mask = [], screenshotPath
     if (message.type() === 'error') consoleErrors.push(normalizeMessage(message.text()));
   };
   const onRequestFailed = (request) => {
+    const errorText = request.failure()?.errorText ?? '';
+    // net::ERR_ABORTED is the page cancelling its own request (an image whose element re-renders
+    // while it loads, a superseded fetch), not a failure, and it comes and goes with timing. The
+    // network policy never produces it: it blocks with ERR_BLOCKED_BY_CLIENT or ERR_FAILED.
+    if (errorText === 'net::ERR_ABORTED') return;
     const [withoutQuery] = request.url().split('?');
-    failedRequests.push(`${request.method()} ${withoutQuery} ${request.failure()?.errorText ?? ''}`);
+    failedRequests.push(`${request.method()} ${withoutQuery} ${errorText}`);
   };
 
   let crashed = false;
