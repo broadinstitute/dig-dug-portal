@@ -17,7 +17,12 @@ const CARRIER_GENOTYPE_PENDING = new WeakMap();
 export function createPbGeneState() {
     const params = new URLSearchParams(window.location.search);
     const query = normalizeGeneQuery(params.get("query") || "GJB2");
-    return createPbGeneRuntimeState(createUnavailableGeneState(query), query, params);
+    return {
+        ...createPbGeneRuntimeState(createUnavailableGeneState(query), query, params),
+        geneVariantLoading: false,
+        geneVariantError: "",
+        geneVariantReload: null,
+    };
 }
 
 function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams()) {
@@ -1761,8 +1766,8 @@ export const pbGeneMethods = {
     },
 
     async runContextAnalysis() {
-        if (this.searchGeneLoading) {
-            this.contextError = "Wait for this gene's variant evidence to finish loading.";
+        if (this.searchGeneLoading || this.geneVariantLoading || this.geneVariantError) {
+            this.contextError = "Load this gene's variant evidence before running a custom analysis.";
             return;
         }
         let terms;
@@ -1960,6 +1965,7 @@ export const pbGeneMethods = {
     },
 
     async submitGeneSearch() {
+        if (this.searchGeneLoading) return;
         const query = normalizeGeneQuery(this.searchGeneQuery);
         if (!query) return;
         const current = normalizeGeneQuery(this.geneInfo && this.geneInfo.symbol);
@@ -1986,11 +1992,15 @@ export const pbGeneMethods = {
         this.searchGeneLoading = true;
         this.searchGeneProgress = "Loading gene evidence";
         this.searchGeneError = "";
+        this.geneVariantLoading = Boolean(this.geneVariantQuality);
+        this.geneVariantError = "";
+        this.geneVariantReload = null;
         try {
             const pageCounts = {};
             const geneState = await fetchPbGeneBioIndexState(query, {
                 quality: this.geneVariantQuality,
-                onPartial: partialState => {
+                onPartial: (partialState, reloadVariants) => {
+                    this.geneVariantReload = reloadVariants || null;
                     Object.keys(partialState).forEach(key => {
                         this[key] = partialState[key];
                     });
@@ -2022,11 +2032,12 @@ export const pbGeneMethods = {
             Object.keys(nextState).forEach(key => {
                 this[key] = nextState[key];
             });
-            this.pendingVariantId = null;
+            this.geneVariantError = geneState.geneVariantError || "";
+            this.pendingVariantId = this.geneVariantError ? selectedId : null;
             if (this.expandedVariantId) this.selectVariant(this.expandedVariantId);
             this.liveDataLoaded = true;
             this.liveDataSource = "private BioIndex";
-            this.loadCarrierSummary();
+            if (!this.geneVariantError) this.loadCarrierSummary();
             if (this.expandedVariantId) {
                 this.loadCarrierSummary(this.expandedVariantId);
                 this.fetchVisibleCarrierSampleDetails(this.expandedVariantId);
@@ -2049,6 +2060,30 @@ export const pbGeneMethods = {
         } finally {
             this.searchGeneLoading = false;
             this.searchGeneProgress = "";
+            this.geneVariantLoading = false;
+        }
+    },
+
+    async retryGeneVariants() {
+        const reload = this.geneVariantReload;
+        if (!reload || this.geneVariantLoading || !this.geneVariantError) return;
+        this.geneVariantLoading = true;
+        try {
+            const state = await reload();
+            if (reload !== this.geneVariantReload) return;
+            this.geneVariantError = state.geneVariantError;
+            if (this.geneVariantError) return;
+
+            this.geneInfo = state.geneInfo;
+            this.crdcEvidence = state.crdcEvidence;
+            this.genomeWindow = state.genomeWindow;
+            this.variantRows = state.variantRows;
+            const selectedId = this.pendingVariantId;
+            this.pendingVariantId = null;
+            if (selectedId) this.selectVariant(selectedId);
+            this.loadCarrierSummary();
+        } finally {
+            if (reload === this.geneVariantReload) this.geneVariantLoading = false;
         }
     },
 

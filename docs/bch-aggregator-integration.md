@@ -2,6 +2,8 @@
 
 The frontend port uses prototype commit `c48649298` and starts from Helen’s `bch-aggregator` commit `3ebf3af8c`. The five page URLs are `/index.html`, `/generesult.html`, `/phenotyperesult.html`, `/variantresult.html` and `/sampleresult.html`.
 
+The Index uses the existing BCH home page, including its navigation, banner, portal and project information, dataset links, news and footer. Its search field uses the integrated search behavior and routes to the four result pages.
+
 ## Service configuration
 
 Use the existing portal ingress for `/phenotype-analyzer-api/`. Keep its legacy Flask routes on Helen’s port 4999. Route the more specific `/phenotype-analyzer-api/pb/` prefix to the Node gateway without removing the prefix. Both rules require the portal’s existing authenticated CRDC cohort access policy.
@@ -26,6 +28,8 @@ Start the gateway with `npm run serve:neph-api` on the same machine as the authe
 Use the same variant scoring reference and eligible noncarrier cohort for Gene2 and Variant. The Python analysis processes use NumPy and SciPy. Original-VCF services need `bcftools` and the matching VCF index. The Gene2 score runner needs R and `data.table`, plus `GMMAT` and a GRM for the optional mixed model. Build the HPO-keyed index with `python3 -m scripts.pb_hpo_gene_index --source "$PB_GENE_HPO_FILE" --database "$PB_HPO_GENE_INDEX"`. Build the processed GT index with `python3 -m scripts.build_pb_genotype_index --source "$PB_SAMPLE_VARIANT_SOURCE" --out "$PB_GENOTYPE_INDEX"`. Keep inputs, indices, caches and credentials outside the static web root and Git.
 
 Set the PB ingress read timeout to at least 630 seconds to cover the analysis worker's R timeout and a full Sample comparison on a cold metadata cache. Preserve the existing private BioIndex session scope and retain the gateway cache across restarts. Each cache namespace incorporates the BioIndex index versions and access scope.
+
+For the Gene2 DP and cohort AF error, check `GET /health` on the worker configured by `PB_GENE_QUALITY_HOST_PRIVATE` from the gateway host. Then request `/phenotype-analyzer-api/pb/__gene_qualified_variants__?gene=AKT1` through the authenticated portal. A successful legacy Flask AKT1 POST confirms the legacy route. Gene2 also requires the original-VCF quality worker. In the local check, a disconnected quality-worker tunnel produced HTTP 502 while the legacy Flask POST returned HTTP 200. Reconnecting the tunnel returned 877 eligible AKT1 variants with the existing DP ≥20 and cohort AF <1% thresholds.
 
 ## Local verification
 

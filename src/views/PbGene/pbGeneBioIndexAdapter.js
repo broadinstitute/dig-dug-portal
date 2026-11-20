@@ -10,6 +10,7 @@ const DENSITY_BINS = 50;
 const MAX_CACHED_GENES = 5;
 const GENE_STATE_CACHE = new Map();
 const GENE_STATE_PENDING = new Map();
+const QUALIFIED_VARIANT_ERROR = 'Could not load CRDC variants filtered by DP ≥20 and cohort AF <1%.';
 
 export function sourceAlleleFrequency(row) {
     const number = v => v == null || String(v).trim() === '' ? null : Number(v);
@@ -37,7 +38,7 @@ export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
     if (!GENE_STATE_PENDING.has(cacheKey)) {
         GENE_STATE_PENDING.set(cacheKey, loadPbGeneBioIndexState(gene, options)
             .then(state => {
-                if (state.geneAssociationError ||
+                if (state.geneAssociationError || state.geneVariantError ||
                     state.variantRows.some(variant => variant.carrierSamples.some(sample => sample.gtStatus === 'lookup_unavailable')))
                     return state;
                 if (GENE_STATE_CACHE.size >= MAX_CACHED_GENES) {
@@ -59,25 +60,48 @@ async function loadPbGeneBioIndexState(gene, options) {
         if (options.onPartial && !options.quality) options.onPartial(buildPbGeneState(gene, rows, []));
         return rows;
     });
-    const qualified = options.quality === 'dp20_af001';
-    const variantEvidencePromise = qualified
-        ? loadQualifiedGeneVariants(gene)
-        : safeBioIndexQuery("gene-variants-crdc", gene, null, options).then(rows => ({ rows }));
     const associationPromise = options.genotypeVariantId
         ? Promise.resolve({ associations: [], error: '' })
         : loadGeneHpoAssociations(gene);
+    if (options.quality === 'dp20_af001') {
+        const overview = Promise.all([geneRowsPromise, associationPromise]).then(([geneRows, result]) => {
+            const { associations, error } = result;
+            const known = Boolean(geneRows.length || Object.hasOwn(PB_GENE_ID_REFERENCE, gene) || associations.length);
+            if (known && options.onPartial) {
+                options.onPartial({ ...buildPbGeneState(gene, geneRows, [], associations), geneAssociationError: error }, loadVariants);
+            }
+            return { geneRows, associations, error, known };
+        });
+
+        async function loadVariants() {
+            const evidence = loadQualifiedGeneVariants(gene).catch(() => null);
+            const genotypes = loadGeneGenotypes(gene, options.genotypeVariantId);
+            const [{ geneRows, associations, error, known }, variants] = await Promise.all([overview, evidence]);
+            if (!known && !variants) throw new Error(QUALIFIED_VARIANT_ERROR);
+            if (!known && variants.noSourceVariants) {
+                if (geneLookupFailed) throw new Error('Gene reference lookup is unavailable. Please retry.');
+                throw new Error(`Gene symbol ${gene} was not found. Check the symbol and search again.`);
+            }
+            const rows = variants?.rows || [];
+            const state = buildPbGeneState(gene, geneRows, rows, associations);
+            state.geneAssociationError = error;
+            state.geneVariantError = variants ? '' : QUALIFIED_VARIANT_ERROR;
+            if (rows.length) state.variantRows = applyCarrierGenotypes(state.variantRows, await genotypes);
+            return state;
+        }
+
+        return loadVariants();
+    }
+
+    const variantRowsPromise = safeBioIndexQuery("gene-variants-crdc", gene, null, options);
     const genotypePromise = loadGeneGenotypes(gene, options.genotypeVariantId);
-    const [geneRows, { rows, noSourceVariants }] = await Promise.all([geneRowsPromise, variantEvidencePromise]);
+    const [geneRows, rows] = await Promise.all([geneRowsPromise, variantRowsPromise]);
 
     if (!rows.length && !options.quality) {
         throw new Error(`No live BioIndex variant rows returned for ${gene}.`);
     }
 
     const { associations, error: geneAssociationError } = await associationPromise;
-    if (noSourceVariants && !geneRows.length && !Object.hasOwn(PB_GENE_ID_REFERENCE, gene) && !associations.length) {
-        if (geneLookupFailed) throw new Error('Gene reference lookup is unavailable. Please retry.');
-        throw new Error(`Gene symbol ${gene} was not found. Check the symbol and search again.`);
-    }
     const state = buildPbGeneState(gene, geneRows, rows, associations);
     state.geneAssociationError = geneAssociationError;
     const genotypes = rows.length ? await genotypePromise : null;
@@ -86,8 +110,10 @@ async function loadPbGeneBioIndexState(gene, options) {
 }
 
 async function loadQualifiedGeneVariants(gene) {
-    const response = await fetch(`/phenotype-analyzer-api/pb/__gene_qualified_variants__?gene=${encodeURIComponent(gene)}`);
-    if (!response.ok) throw new Error('DP≥20 / cohort AF<0.01 gene variants are unavailable. Please retry.');
+    const url = `/phenotype-analyzer-api/pb/__gene_qualified_variants__?gene=${encodeURIComponent(gene)}`;
+    let response = await fetch(url).catch(() => null);
+    if (!response || [502, 503, 504].includes(response.status)) response = await fetch(url);
+    if (!response.ok) throw new Error(QUALIFIED_VARIANT_ERROR);
     const result = await response.json();
     const noSourceVariants = result.status === 'no_source_variants' && result.variantRows?.length === 0 && result.source === null;
     if (result.gene !== gene || result.quality !== 'dp20_af001' || !Array.isArray(result.variantRows) ||
