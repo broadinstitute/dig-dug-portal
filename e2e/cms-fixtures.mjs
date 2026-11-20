@@ -1,6 +1,7 @@
 // CMS responses for e2e runs come from checked-in fixtures, never from the live CMS.
 //
 // A fixture is e2e/fixtures/cms/<cmsFixtureKey(url)>.json holding { url, status, headers, body }.
+// A binary response (an image, say) holds its bytes as base64 in `bodyBase64`, with `body` empty.
 // URLs a page asked for that have no fixture are appended to test-results/missing-cms.ndjson,
 // one {"url":...} per line, for the capture step to work from.
 import { createHash } from 'node:crypto';
@@ -19,12 +20,12 @@ export class CmsFixtures {
     this.dir = dir;
   }
 
-  /** @returns {{ status: number, headers: Record<string,string>, body: string } | null} */
+  /** @returns {{ status: number, headers: Record<string,string>, body: string | Buffer } | null} */
   get(url) {
     const file = join(this.dir, `${cmsFixtureKey(url)}.json`);
     if (!existsSync(file)) return null;
-    const { status, headers, body } = JSON.parse(readFileSync(file, 'utf8'));
-    return { status, headers, body };
+    const { status, headers, body, bodyBase64 } = JSON.parse(readFileSync(file, 'utf8'));
+    return { status, headers, body: bodyBase64 === undefined ? body : Buffer.from(bodyBase64, 'base64') };
   }
 }
 

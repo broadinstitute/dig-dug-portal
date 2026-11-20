@@ -22,7 +22,8 @@ export const DEFAULT_LANDMARK = '.mdkp-body';
 const FRONT_PAGE_LANDMARK = '.front-top-banner';
 
 // The page throws while rendering when its CMS content is missing; it needs CMS fixtures.
-const needsCms = (urls) => `needs CMS fixtures: ${urls}`;
+const NEEDS_CMS_PREFIX = 'needs CMS fixtures: ';
+const needsCms = (urls) => `${NEEDS_CMS_PREFIX}${urls}`;
 
 /** @type {Array<{ id: string, path: string, query?: Record<string, string>, landmark?: string, mask?: string[], maxDiff?: number, skip?: string }>} */
 export const PAGES = [
@@ -137,4 +138,13 @@ export const PAGES = [
 export function pageUrl(entry) {
   const search = new URLSearchParams(entry.query ?? {}).toString();
   return search ? `${entry.path}?${search}` : entry.path;
+}
+
+/**
+ * Whether the page is skipped only because the CMS fixtures have not been captured yet. A discovery
+ * run (E2E_CMS_DISCOVERY=1, see scripts/vue3-migration/capture-cms.mjs) probes these pages anyway,
+ * so the CMS URLs they request get logged.
+ */
+export function needsCmsFixtures(entry) {
+  return typeof entry.skip === 'string' && entry.skip.startsWith(NEEDS_CMS_PREFIX);
 }

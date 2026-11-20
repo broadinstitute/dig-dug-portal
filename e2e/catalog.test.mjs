@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { expectedHtmlFiles } from '../scripts/vue3-migration/check-dist.mjs';
-import { PAGES, DEFAULT_LANDMARK, pageUrl } from './catalog.mjs';
+import { PAGES, DEFAULT_LANDMARK, needsCmsFixtures, pageUrl } from './catalog.mjs';
 
 // vue.config.js drops the dev-only pages when NODE_ENV is production, at require time.
 process.env.NODE_ENV = 'production';
@@ -60,4 +60,13 @@ test('pageUrl appends the encoded query, or nothing', () => {
     '/region.html?chr=1&start=55000000&end=55100000',
   );
   assert.equal(pageUrl({ id: 'x', path: '/x.html', query: { q: 'a b&c' } }), '/x.html?q=a+b%26c');
+});
+
+test('needsCmsFixtures: true only for a skip that starts with "needs CMS fixtures: "', () => {
+  assert.equal(needsCmsFixtures({ id: 'a', path: '/a.html', skip: 'needs CMS fixtures: rest/views/a' }), true);
+  assert.equal(needsCmsFixtures({ id: 'a', path: '/a.html', skip: 'needs cvdi.hugeampkpnbi.org, which is not a live host' }), false);
+  assert.equal(needsCmsFixtures({ id: 'a', path: '/a.html', skip: 'loads a file that needs CMS fixtures: no' }), false);
+  assert.equal(needsCmsFixtures({ id: 'a', path: '/a.html' }), false);
+  // It answers for every real catalog entry.
+  for (const p of PAGES) assert.equal(typeof needsCmsFixtures(p), 'boolean', p.id);
 });
