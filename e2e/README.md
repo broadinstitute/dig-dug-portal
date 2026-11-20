@@ -45,15 +45,29 @@ images, probe attachments). Playwright empties `test-results/` at the start of e
 
 ## What CI runs, and what it can't catch
 
-- `.github/workflows/ci.yml`, on PRs into `master` and `dev/**` and on pushes to `master`: script
-  unit tests, the Vue 3 lint ratchet, the production build and `check:dist`; then a job that
-  builds the baseline (the PR's base) and runs `npx playwright test --project=chromium`.
+- `.github/workflows/ci.yml`, on every PR into `master` and `dev/**` and on pushes to `master`:
+  script unit tests, the Vue 3 lint ratchet, the production build and `check:dist`. This is the
+  per-PR gate, a few minutes long.
+- The A/B e2e job in the same workflow builds a baseline and runs
+  `npx playwright test --project=chromium`. It does not run on every PR, only:
+  - on a PR labelled `e2e`, against the PR's base, on every push while the label is on;
+  - nightly on `master`, against `master` as it stood 24 hours earlier (skipped when nothing
+    merged);
+  - from the Actions tab (Run workflow) on any branch, against its merge base with `master`.
 - `.github/workflows/nightly-builds.yml`: each portal branch's production build, master's extra
   configs, and smoke in Firefox and WebKit.
-- GitHub-hosted runners get a Cloudflare challenge from BioIndex, so CI sets `E2E_NO_LIVE_DATA=1`.
-  Live requests are aborted and the `needsLiveData` pages are skipped, so CI compares empty
-  states only. A change that only shows once data loads passes CI. The local run above is the
-  strong gate.
+- GitHub starts nightly and Actions-tab runs only once the workflow file is on `master`. Until
+  then, the `e2e` label is the only way to run the A/B job.
+- **Live data.** Cloudflare answers GitHub-hosted runners with a challenge, so CI maps
+  `bioindex.hugeamp.org`, `bioindex-dev.hugeamp.org` and `ld.hugeamp.org` to their origin server in
+  `/etc/hosts` (`.github/actions/e2e-live-data`). The address is in the `E2E_ORIGIN_IP` repository
+  secret, so this public repo doesn't publish a way around Cloudflare. These requests skip
+  Cloudflare's cache and reach the production BioIndex service, which is one reason e2e stays off
+  the per-PR path.
+- Without the secret (PRs from forks, or before it is set) CI falls back to `E2E_NO_LIVE_DATA=1`:
+  live requests are aborted, the `needsLiveData` pages are skipped, and only empty states are
+  compared. The job summary says which mode a run used.
+- The CMS is served from fixtures in CI as everywhere else (see below).
 
 ## Environment variables
 
