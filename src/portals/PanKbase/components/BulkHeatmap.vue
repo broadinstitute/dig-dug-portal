@@ -132,7 +132,7 @@ export default Vue.component("bulk-heatmap", {
 
           let genesRows = this.plotData.map(d => d.gene);
           let collatedData = this.collateData(this.plotData, this.samplesColumns)
-          let sampleColors = this.sampleColors
+          let sampleColors = this.sampleColors;
 
           // Build X scales and axis:
           let x = d3.scaleBand()
@@ -160,6 +160,7 @@ export default Vue.component("bulk-heatmap", {
                 .style('fill',function(d) {
                     return ( d == selectedGene)? "#FF8800":"black"}) //set colors by group
                   .attr('font-size', this.fontSize);
+
             
             // There may be > 2 conditions in some datasets;
             // using a loop to account for any number

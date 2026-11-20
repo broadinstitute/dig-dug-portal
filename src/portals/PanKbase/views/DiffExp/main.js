@@ -209,7 +209,7 @@ new Vue({
             };
         },
         samplesColumns() {
-            let sampleIds = this.sampleMetadata["ID"];
+            let sampleIds = this.sampleMetadata["ID"] || this.sampleMetadata["sample_id"];
             if (sampleIds === undefined) {
                 sampleIds = [];
             }
