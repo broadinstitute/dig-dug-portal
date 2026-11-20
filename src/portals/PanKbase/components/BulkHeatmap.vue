@@ -149,14 +149,24 @@ export default Vue.component("bulk-heatmap", {
               .range([ 0, width ])
               .domain(this.sortedSamples) // Pass sorted samples so the domain comes out sorted
               .padding(0.01);
+        
+            let labelingInterval = Math.round(this.sortedSamples.length / 5);
+            let labelingIndex = 0;
           this.svg.append("g")
               .attr("transform", "translate(0," + height + ")")
               .call(d3.axisBottom(x)) //Need to rotate axis labels!!
               .selectAll("text")
-                      .style("text-anchor", "start")
+                      .style("text-anchor", "middle")
                       .style("fill", d => this.getColor(d))
                       .attr('font-size', this.fontSize)
-                      .text("");
+                      .text(!this.isNumeric ? "" : d => {
+                        let group = this.diseaseMap[d].group;
+                        let shouldLabel = 
+                            labelingIndex % labelingInterval === 0;
+                        let label = shouldLabel ? group : "";
+                        labelingIndex = labelingIndex + 1;
+                        return label;
+                      });
 
           // Build Y scales and axis:
           let selectedGene = this.selectedGene
@@ -254,7 +264,6 @@ export default Vue.component("bulk-heatmap", {
             let maxExp = null;
 
             rawData.forEach(item => {
-                console.log(JSON.stringify(item));
                 ///DK: Modified to add group
                 samplesColumns.map(sample =>{
 
