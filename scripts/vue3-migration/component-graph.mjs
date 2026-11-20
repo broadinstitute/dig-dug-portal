@@ -420,9 +420,10 @@ export function scanImports(sources, errors = []) {
 /**
  * Every page entry point, sorted: every `main.js` under `src/`, in any folder (`src/views/Gene/main.js`,
  * `src/portals/PanKbase/views/Gene/main.js`). `vue.config.js` decides which of them are built, and this does
- * not read it, so a `main.js` that is not a built page is counted as one. That only makes the planner more
- * conservative: an extra page is more evidence, so a duplicate name is settled less often and a tag is
- * `not-loaded` more often. More uses are reported, never more written.
+ * not read it, so a `main.js` that is not a built page is counted as one. That never makes a write riskier.
+ * Where a built page reaches a file, an extra page only adds a constraint (a duplicate name must be settled
+ * the same way there too, a tag must be loaded there too), so more uses are reported. Where only extra pages
+ * reach a file, no built page renders it, so what is settled for it changes nothing a page shows.
  * @param {Map<string, string>} sources file path -> source text
  * @returns {string[]}
  */
