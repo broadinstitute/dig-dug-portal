@@ -232,7 +232,9 @@ test('captureAll: a 3xx is stored as returned (status, content-type, location, b
     assert.deepEqual(read(noType), { url: noType, status: 302, headers: { location: '/rest/views/elsewhere' }, body: '' });
     // No location: nothing invented.
     assert.deepEqual(read(noLocation).headers, { 'content-type': 'text/plain' });
-    // CmsFixtures hands the location back, so route.fulfill replays the redirect.
+    // CmsFixtures hands the location back, so the network policy (e2e/network.mjs) can follow the
+    // redirect through the fixtures itself. It never hands a 3xx to Chromium, which would request
+    // the target live.
     assert.deepEqual(new CmsFixtures(dir).get(noType), { status: 302, headers: { location: '/rest/views/elsewhere' }, body: '' });
   } finally {
     rmSync(dir, { recursive: true, force: true });

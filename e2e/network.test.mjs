@@ -33,10 +33,12 @@ test('installNetworkPolicy routes each class: continue, CMS fixture, cache, abor
   let handler;
   const context = { route: async (pattern, fn) => { handler = fn; } };
   const calls = [];
+  const noted = [];
   const cache = { fulfill: async (route) => calls.push(['cache', route.request().url()]) };
   const fixture = { status: 200, headers: { 'content-type': 'application/json' }, body: '[]' };
   const cms = { get: (url) => (url.includes('has-fixture') ? fixture : null) };
-  await installNetworkPolicy(context, { cache, cms, localOrigins: L });
+  // noLiveData explicitly, so the result does not depend on the E2E_NO_LIVE_DATA this runs under.
+  await installNetworkPolicy(context, { cache, cms, localOrigins: L, noLiveData: false, noteMissing: (u) => noted.push(u) });
   assert.equal(typeof handler, 'function');
 
   const fakeRoute = (url) => ({
@@ -57,6 +59,7 @@ test('installNetworkPolicy routes each class: continue, CMS fixture, cache, abor
     ['cache', 'https://bioindex.hugeamp.org/api/bio/query/gene?q=PCSK9'],
     ['abort', 'https://www.googletagmanager.com/gtag/js', 'blockedbyclient'],
   ]);
+  assert.deepEqual(noted, []);
 });
 
 // E2E_NO_LIVE_DATA=1 is the no-live-data mode for runs that cannot reach the live data services (the
@@ -83,14 +86,20 @@ test('liveDataDisabled reads process.env by default', () => {
   }
 });
 
+// noteMissing is always a recorder: the default appends to the real test-results/missing-cms.ndjson,
+// which is the CMS capture tool's input, and no unit test may write there.
 function liveHarness(opts) {
   const calls = [];
+  const noted = [];
   const cache = { fulfill: async (route) => calls.push(['cache', route.request().url()]) };
   const fixture = { status: 200, headers: { 'content-type': 'application/json' }, body: '[]' };
   const cms = { get: (url) => (url.includes('has-fixture') ? fixture : null) };
   const setup = async () => {
     let handler;
-    await installNetworkPolicy({ route: async (pattern, fn) => { handler = fn; } }, { cache, cms, localOrigins: L, ...opts });
+    await installNetworkPolicy(
+      { route: async (pattern, fn) => { handler = fn; } },
+      { cache, cms, localOrigins: L, noteMissing: (u) => noted.push(u), ...opts },
+    );
     return (url) =>
       handler({
         request: () => ({ url: () => url, method: () => 'GET', postData: () => null }),
@@ -99,7 +108,7 @@ function liveHarness(opts) {
         abort: async (code) => calls.push(['abort', url, code]),
       });
   };
-  return { setup, calls, fixture };
+  return { setup, calls, noted, fixture };
 }
 
 const LIVE_URLS = [
@@ -132,6 +141,16 @@ test('installNetworkPolicy with no live data leaves local, CMS and blocked reque
     ['abort', 'https://hugeampkpncms.org/rest/no-fixture', 'blockedbyclient'],
     ['abort', 'https://www.googletagmanager.com/gtag/js', 'blockedbyclient'],
   ]);
+  assert.deepEqual(h.noted, ['https://hugeampkpncms.org/rest/no-fixture']);
+});
+
+test('a plain CMS miss (no fixture, no redirect) is noted with its exact URL and aborted, never requested', async () => {
+  const url = 'https://hugeampkpncms.org/rest/views/news2vueportal?portal=md&x=%20y';
+  const h = liveHarness({ noLiveData: false });
+  const route = await h.setup();
+  await route(url);
+  assert.deepEqual(h.calls, [['abort', url, 'blockedbyclient']]);
+  assert.deepEqual(h.noted, [url]);
 });
 
 test('installNetworkPolicy with live data sends a live URL to the cache', async () => {
