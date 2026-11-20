@@ -36,13 +36,12 @@ import { parseArgs as parseNodeArgs } from 'node:util';
 import { parse as parseBabel } from '@babel/parser';
 import { parse as parseSfc } from 'vue/compiler-sfc';
 import { BABEL_OPTIONS, analyzeSources, pageEntries, readSources, scriptSetupFiles } from './component-graph.mjs';
-import { planRegistrations, undefinedTags } from './register-plan.mjs';
+import { REASONS, planRegistrations, undefinedTags } from './register-plan.mjs';
 import { applyRegistrations } from './register-write.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const USAGE = 'usage: node scripts/vue3-migration/register-components.mjs [--dry-run] [--root <dir>]';
-const REASONS = ['no-registration', 'ambiguous', 'self', 'cycle', 'script-setup'];
 // What the report shows for a figure that needs the lint step, when that step failed.
 const NOT_AVAILABLE = 'n/a';
 const NOT_COMPUTED = 'Not computed: the lint step failed.';
@@ -106,6 +105,8 @@ function assertParses(file, before, after) {
 const oneLine = (text) => String(text).replace(/\s+/g, ' ').trim();
 const cell = (text) => text.replaceAll('|', '\\|');
 const code = (text) => `\`${text}\``;
+/** A page entry as its folder under `src/views/`: `src/views/VariantSearch/main.js` -> `VariantSearch`. */
+const pageName = (entry) => entry.replace(/^src\/views\//, '').replace(/\/main\.js$/, '');
 
 function renderReport({ dryRun, writing, findings, plan, changes, written, failures, analysisErrors, lintError }) {
   const entries = changes.reduce((sum, { entries: count }) => sum + count, 0);
@@ -130,9 +131,10 @@ function renderReport({ dryRun, writing, findings, plan, changes, written, failu
   } else if (plan.unresolved.length === 0) {
     lines.push('None.');
   } else {
-    lines.push('| file:line | tag | reason | candidates |', '| --- | --- | --- | --- |');
-    for (const { file, line, tag, reason, candidates = [] } of plan.unresolved) {
-      lines.push(`| ${cell(code(`${file}:${line}`))} | ${cell(code(tag))} | ${reason} | ${cell(candidates.map(code).join(', '))} |`);
+    lines.push('| file:line | tag | reason | candidates / pages |', '| --- | --- | --- | --- |');
+    for (const { file, line, tag, reason, candidates = [], pages = [] } of plan.unresolved) {
+      const detail = [...candidates, ...pages.map(pageName)].map(code).join(', ');
+      lines.push(`| ${cell(code(`${file}:${line}`))} | ${cell(code(tag))} | ${reason} | ${cell(detail)} |`);
     }
   }
 

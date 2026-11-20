@@ -146,9 +146,60 @@ test('unresolved items are a table sorted by file and line, with candidates, and
       '| `src/views/P/Legacy.vue:3` | `center` | no-registration |  |',
       '| `src/views/P/Legacy.vue:4` | `dup-comp` | ambiguous | `src/components/Dup1.vue`, `src/components/Dup2.vue` |',
     ]);
-    assert.match(dry.out, /^\| file:line \| tag \| reason \| candidates \|$/m);
+    assert.match(dry.out, /^\| file:line \| tag \| reason \| candidates \/ pages \|$/m);
     // The resolvable <comp-a> in the same file is still planned.
     assert.match(dry.out, /^\| Entries \| 4 \|$/m);
+  });
+});
+
+// A second page, Q, loads A (which uses <comp-b>) but not B: on Q the tag is an unknown element today.
+const PAGE_Q_MAIN = 'import Vue from "vue";\nimport "@/components/A.vue";\nnew Vue({}).$mount("#app");\n';
+
+test('a tag a page never loads is not-loaded: it has its own totals row and its table row shows the page', async () => {
+  await withRoot({ ...FIXTURE, 'src/views/Q/main.js': PAGE_Q_MAIN }, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.equal(dry.code, 0);
+    assert.match(dry.out, /^\| Unresolved \| 1 \|$/m);
+    assert.match(dry.out, /^\| Unresolved: not-loaded \| 1 \|$/m);
+    assert.match(dry.out, /^\| file:line \| tag \| reason \| candidates \/ pages \|$/m);
+    const table = dry.out.split('\n').filter((line) => line.startsWith('| `src/components/A.vue:'));
+    assert.deepEqual(table, ['| `src/components/A.vue:3` | `comp-b` | not-loaded | `Q` |']);
+    // A has no other use, so only the template (comp-a, comp-b: both pages that render it load them) changes.
+    assert.match(dry.out, /^\| Files to change \| 1 \|$/m);
+    assert.match(dry.out, /^\| Entries \| 2 \|$/m);
+    assert.doesNotMatch(dry.out.split('## Files that would change')[1], /A\.vue/);
+
+    // A real run leaves the not-loaded use alone.
+    const real = await cli(root);
+    assert.equal(real.code, 0);
+    assert.equal(read(root, 'src/components/A.vue'), COMP_A);
+  });
+});
+
+test('every page that does not load the tag is listed by its folder, sorted, even for a nested page', async () => {
+  const nested = 'import "@/components/A.vue";\n';
+  await withRoot(
+    { ...FIXTURE, 'src/views/Z/main.js': nested, 'src/views/Q/main.js': PAGE_Q_MAIN, 'src/views/group/R/main.js': nested },
+    async (root) => {
+      const dry = await cli(root, ['--dry-run']);
+      const table = dry.out.split('\n').filter((line) => line.startsWith('| `src/components/A.vue:'));
+      assert.deepEqual(table, ['| `src/components/A.vue:3` | `comp-b` | not-loaded | `Q`, `Z`, `group/R` |']);
+    },
+  );
+});
+
+test('the Unresolved totals rows come in the planner reason order', async () => {
+  const files = {
+    ...FIXTURE,
+    'src/views/Q/main.js': PAGE_Q_MAIN,
+    'src/views/P/Legacy.vue': '<template>\n  <div>\n    <center />\n    <dup-comp />\n  </div>\n</template>\n<script>\nexport default {};\n</script>\n',
+    'src/components/Dup1.vue': '<template><div /></template>\n<script>\nimport Vue from "vue";\nexport default Vue.component("dup-comp", {});\n</script>\n',
+    'src/components/Dup2.vue': '<template><div /></template>\n<script>\nimport Vue from "vue";\nexport default Vue.component("dup-comp", {});\n</script>\n',
+  };
+  await withRoot(files, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    const rows = dry.out.split('\n').filter((line) => line.startsWith('| Unresolved: '));
+    assert.deepEqual(rows, ['| Unresolved: no-registration | 1 |', '| Unresolved: ambiguous | 1 |', '| Unresolved: not-loaded | 1 |']);
   });
 });
 

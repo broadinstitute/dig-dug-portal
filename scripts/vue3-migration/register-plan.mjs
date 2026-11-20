@@ -39,6 +39,9 @@ const LOCAL_SPECIFIER = /^(?:\.{1,2}\/|@\/)/;
 
 const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
+/** Every reason a use can be unresolved, in the order the rules decide them. */
+export const REASONS = ['no-registration', 'ambiguous', 'self', 'not-loaded', 'script-setup', 'cycle'];
+
 /**
  * One use of an undefined tag, as the lint rule reports it.
  * `tag` is the name exactly as the message gives it (`page-header`, `Strong`, `LigerBrowser`);
@@ -62,10 +65,14 @@ const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
  *  - `ambiguous`: the name has several candidates and the pages do not settle it. `candidates` lists
  *    them, sorted: definition files, or import specifiers when only aliases register the name.
  *  - `self`: the file is the component the tag names (a recursive component).
+ *  - `not-loaded`: some page renders the file but never loads a file that registers the name, so the
+ *    tag is an unknown element there today and registering it would change what the page shows.
+ *    `pages` lists those page entries, sorted.
  *  - `script-setup`: the file has `<script setup>` or `lang="ts"`; the codemod leaves it to a person.
  *  - `cycle`: importing the target would put the file in an import loop.
  * @typedef {{ file: string, line: number, tag: string,
- *   reason: 'no-registration' | 'ambiguous' | 'self' | 'cycle' | 'script-setup', candidates?: string[] }} Unresolved
+ *   reason: 'no-registration' | 'ambiguous' | 'self' | 'not-loaded' | 'script-setup' | 'cycle',
+ *   candidates?: string[], pages?: string[] }} Unresolved
  */
 
 /**
@@ -186,11 +193,25 @@ function canReach(edges, from, to) {
   return false;
 }
 
-/** Rules 4 to 6: why `file` cannot import `target`, or null when it can. */
-function rejection(file, target, scriptSetupFiles, edges) {
-  if (target.file === file) return 'self';
-  if (scriptSetupFiles.has(file)) return 'script-setup';
-  if (target.file !== null && canReach(edges, target.file, file)) return 'cycle';
+/**
+ * The page entries that render `file` but never load a file that registers `tag`, sorted. A page
+ * renders `file` when its reach set (`pageSets[i]`, for `pages[i]`) contains it, and loads the tag when
+ * that set contains any file with a registration for the tag's kebab name, definition or alias.
+ */
+function pagesNotLoading(file, tag, { registrations, pages, pageSets }) {
+  const registering = (registrations.get(toKebab(tag)) ?? []).map((registration) => registration.file);
+  return pages
+    .filter((entry, index) => pageSets[index].has(file) && !registering.some((registered) => pageSets[index].has(registered)))
+    .sort(byCodeUnit);
+}
+
+/** Rules 4 to 7: `{ reason, pages? }` for why `file` cannot import `target`, or null when it can. */
+function rejection(file, tag, target, scriptSetupFiles, edges, context) {
+  if (target.file === file) return { reason: 'self' };
+  const pages = pagesNotLoading(file, tag, context);
+  if (pages.length > 0) return { reason: 'not-loaded', pages };
+  if (scriptSetupFiles.has(file)) return { reason: 'script-setup' };
+  if (target.file !== null && canReach(edges, target.file, file)) return { reason: 'cycle' };
   return null;
 }
 
@@ -217,18 +238,23 @@ function rejection(file, target, scriptSetupFiles, edges) {
  *     reaches. All pages reach the same single candidate -> that file. Otherwise, and when no page reaches
  *     the using file, `ambiguous` with all candidates.
  *  4. The target is the using file -> `self`.
- *  5. The using file has `<script setup>` or `lang="ts"` -> `script-setup`.
- *  6. Some import path leads from the target back to the using file -> `cycle`. A registration reads the
+ *  5. Some page reaches the using file (its reach set contains it) but reaches no file that registers
+ *     `toKebab(tag)`, as a definition or an alias -> `not-loaded`, with `pages` the page entries where
+ *     that holds, sorted. The tag is an unknown element on those pages today, so registering it would
+ *     change what they show. A using file no page reaches never renders and keeps its entry. The reach
+ *     sets come from `imports` alone, not from planned edges.
+ *  6. The using file has `<script setup>` or `lang="ts"` -> `script-setup`.
+ *  7. Some import path leads from the target back to the using file -> `cycle`. A registration reads the
  *     imported component while the using file loads, so a path back is unsafe even when the file already
  *     imports the target today. Files are taken in sorted order and tags in key order, over a running
  *     edge set that starts as `imports`; an accepted entry adds its edge, a `cycle` one is dropped and
  *     the next carries on. The same input always gives the same plan.
- *  7. Entries in one file are deduplicated by key, with the tag as first used, and sorted by key.
+ *  8. Entries in one file are deduplicated by key, with the tag as first used, and sorted by key.
  *
  * Every use ends up in exactly one place: covered by an entry in `edits` (the entry stands for all
  * uses of that key in the file), or its own item in `unresolved`, with that use's `line`. `unresolved`
  * is sorted by file, line and tag; `edits` holds only files with at least one entry, in sorted order.
- * `candidates` is set for `ambiguous` only.
+ * `candidates` is set for `ambiguous` only, and `pages` for `not-loaded` only.
  * @param {{ uses: Map<string, Use[]>, registrations: Map<string, import('./component-graph.mjs').Registration[]>,
  *   imports: Map<string, string[]>, pages: string[], scriptSetupFiles: Set<string> }} input
  * @returns {{ edits: Map<string, Entry[]>, unresolved: Unresolved[] }}
@@ -237,6 +263,7 @@ export function planRegistrations({ uses, registrations, imports, pages, scriptS
   const context = {
     registrations,
     files: new Set(imports.keys()),
+    pages,
     pageSets: pages.map((entry) => reachable(imports, entry)),
   };
   const edges = new Map([...imports].map(([file, targets]) => [file, new Set(targets)]));
@@ -254,16 +281,17 @@ export function planRegistrations({ uses, registrations, imports, pages, scriptS
     for (const key of [...byKey.keys()].sort(byCodeUnit)) {
       const group = byKey.get(key);
       const choice = chooseTarget(file, group[0].tag, context);
-      const reason = choice.reason ?? rejection(file, choice.target, scriptSetupFiles, edges);
-      if (reason === null) {
+      const rejected = choice.reason === undefined ? rejection(file, group[0].tag, choice.target, scriptSetupFiles, edges, context) : choice;
+      if (rejected === null) {
         if (choice.target.file !== null) {
           if (!edges.has(file)) edges.set(file, new Set());
           edges.get(file).add(choice.target.file);
         }
         edits.set(file, [...(edits.get(file) ?? []), { tag: group[0].tag, key, source: choice.target.source }]);
       } else {
+        const { reason, candidates, pages: notLoaded } = rejected;
         for (const { tag, line } of group) {
-          unresolved.push({ file, line, tag, reason, ...(choice.candidates && { candidates: choice.candidates }) });
+          unresolved.push({ file, line, tag, reason, ...(candidates && { candidates }), ...(notLoaded && { pages: notLoaded }) });
         }
       }
     }
