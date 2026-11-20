@@ -103,7 +103,7 @@ test('scanRegistrations also reads plain .js files and ignores other Vue.compone
   const regs = scanRegistrations(
     srcs({
       'src/utils/reg.js': `import Vue from "vue";\nVue.component("from-js", {});`,
-      'src/utils/getter.js': `const C = Vue.component("only-a-lookup"); const D = Vue.component(someName);`,
+      'src/utils/getter.js': `const C = Vue.component("only-a-lookup");`,
       'src/utils/other.js': `Other.component("not-vue", {}); component("bare", {}); Vue["component"]("computed", {});`,
       'src/utils/text.js': `const s = 'Vue.component("in-a-string", {})'; // Vue.component("in-a-comment", {})`,
     }),
@@ -135,6 +135,39 @@ test('scanRegistrations reports a non-literal name or an unrecognised component 
   );
   assert.match(errors[0].message, /first argument is not a string literal/);
   assert.match(errors[2].message, /second argument is neither an object literal nor an identifier/);
+});
+
+test('a one-argument Vue.component("x") is a lookup: no registration and no error', () => {
+  const errors = [];
+  const regs = scanRegistrations(
+    srcs({
+      'src/utils/lookup.js': `const C = Vue.component("only-a-lookup");`,
+      'src/components/Lookup.vue': sfc(`export default { created() { this.C = Vue.component('another-lookup'); } };`),
+    }),
+    errors,
+  );
+  assert.equal(regs.size, 0);
+  assert.deepEqual(errors, []);
+});
+
+test('a one-argument Vue.component(...) that is not a string-literal lookup is reported', () => {
+  const errors = [];
+  const regs = scanRegistrations(
+    srcs({
+      'src/utils/ident.js': `Vue.component(name);`,
+      'src/utils/spread.js': `\n\nVue.component(...args);`,
+    }),
+    errors,
+  );
+  assert.equal(regs.size, 0);
+  assert.deepEqual(
+    errors.map((e) => [e.file, e.kind, e.line]),
+    [
+      ['src/utils/ident.js', 'registration', 1],
+      ['src/utils/spread.js', 'registration', 3],
+    ],
+  );
+  assert.ok(errors.every((e) => /first argument is not a string literal/.test(e.message)));
 });
 
 test('a file that fails to parse is reported with its file name and line, and the other files are still scanned', () => {

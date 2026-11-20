@@ -141,6 +141,9 @@ const isVueComponentCall = ({ callee }) =>
   callee.property.type === 'Identifier' &&
   callee.property.name === 'component';
 
+/** `Vue.component("name")`: looks up an already registered component, so it is not a registration. */
+const isLookup = ({ arguments: args }) => args.length === 1 && args[0].type === 'StringLiteral';
+
 /** Registrations, import specifiers (unresolved) and registration problems found in one parsed script. */
 function collect(file, ast, found) {
   /** import identifier -> specifier */
@@ -160,8 +163,7 @@ function collect(file, ast, found) {
       if (node.callee.type === 'Import' || (node.callee.type === 'Identifier' && node.callee.name === 'require')) {
         const specifier = stringValue(first);
         if (specifier !== null) found.specifiers.push(specifier);
-      } else if (isVueComponentCall(node) && node.arguments.length !== 1) {
-        // One argument is a lookup of an already registered component, not a registration.
+      } else if (isVueComponentCall(node) && !isLookup(node)) {
         const name = stringValue(first);
         if (name === null) {
           problem(node, 'Vue.component(): first argument is not a string literal');
@@ -226,7 +228,9 @@ function analyzeFile(file, source) {
  *    the file is scanned normally. A `.vue` whose `<script>` the SFC parser lost is a `parse` entry.
  *  - A `Vue.component(...)` call whose name is not a string literal, or whose second argument is
  *    neither an object literal nor an identifier, is one `kind: 'registration'` entry and is not
- *    counted. A call with a single argument looks up an existing component and is ignored.
+ *    counted. The one exception is `Vue.component("name")`, a single string-literal argument: it
+ *    looks up an existing component and is ignored. `Vue.component(name)` and
+ *    `Vue.component(...args)` are reported.
  * @param {Map<string, string>} sources file path -> source text
  * @returns {{ registrations: Map<string, Registration[]>, imports: Map<string, string[]>, errors: ScanError[] }}
  */
