@@ -10,7 +10,7 @@ const root = path.resolve(__dirname, '..');
 const location = { search: '?query=SLC6A7', href: 'http://localhost/generesult.html?query=SLC6A7' };
 let resolved;
 const window = { location, history: { pushState(_, __, url) { location.href = url; location.search = new URL(url).search; } } };
-function load(relative, imports = {}, sfc = false) {
+function load(relative, imports = {}, sfc = false, runtime = {}) {
     const filename = path.join(root, relative);
     let text = fs.readFileSync(filename, 'utf8');
     if (sfc) {
@@ -25,13 +25,12 @@ function load(relative, imports = {}, sfc = false) {
         if (Object.hasOwn(imports, name)) return imports[name];
         if (name.endsWith('.css') || name === '../PbGene/SummaryPager') return {};
         throw new Error(`Unexpected dependency ${name}`);
-    }, window, document: { removeEventListener() {} }, URL, URLSearchParams, AbortController, setTimeout, clearTimeout, fetch: async () => ({ok:true,json:async()=>({status:'ready',carrierTotal:0,matchedMetadataCount:0,geneCarrierDemographics:{}})}), process: { env: {} } });
+    }, window, document: { removeEventListener() {} }, URL, URLSearchParams, AbortController, setTimeout, clearTimeout, structuredClone, fetch: async () => ({ok:true,json:async()=>({status:'ready',carrierTotal:0,matchedMetadataCount:0,geneCarrierDemographics:{}})}), process: { env: {} }, ...runtime });
     return exports;
 }
 const data = load('scripts/fixtures_pb_gene.js');
-const base = load('src/views/PbGene/pageModel.js', {
+const baseImports = {
     '../../utils/rphersUnits': require('../src/utils/rphersUnits'),
-    './pbGeneBioIndexAdapter': { fetchPbGeneBioIndexState: async (_, { onPartial }) => { onPartial({ variantRows: [] }); return JSON.parse(JSON.stringify(resolved)); } },
     './hpoContextSearch': { resolveHpoTerms: () => [], contextApiError: async () => '' },
     './variantTableNavigation': load('src/views/PbGene/variantTableNavigation.js'),
     './carrierAge': load('src/views/PbGene/carrierAge.js'),
@@ -41,6 +40,10 @@ const base = load('src/views/PbGene/pageModel.js', {
     './hgvsNotation': load('src/views/PbGene/hgvsNotation.js'),
     '@/utils/pbBioIndex': { query: async () => [] },
     '../KrClinicalFocus/focusStore': { readClinicalFocus: () => null },
+};
+const base = load('src/views/PbGene/pageModel.js', {
+    ...baseImports,
+    './pbGeneBioIndexAdapter': { fetchPbGeneBioIndexState: async (_, { onPartial }) => { onPartial({ variantRows: [] }); return JSON.parse(JSON.stringify(resolved)); } },
 });
 const options = load('src/views/PbGene2/Template.vue', {
     '@/components/pb/PortalGuide.vue': {},
@@ -604,6 +607,76 @@ async function main() {
     assert.equal(deleting.contextRuns.length,0); assert.equal(deleting.currentContextRunId,'');
     assert.equal(deleting.appliedContext,null); assert.equal(deleting.activeContextTerms.length,0);
     assert.equal(clearedScores,1,'Deleting the applied row clears the matching variant evidence');
-    console.log('PB Gene2: pin/search isolation, metadata coverage, independent gene scope, route retention, shared calculations, and Vue templates PASS');
+    await verifyQualifiedVariantRecovery();
+    console.log('PB Gene2: pin/search isolation, metadata coverage, independent gene scope, route retention, qualified variant recovery, and Vue templates PASS');
 }
+
+async function verifyQualifiedVariantRecovery() {
+    const gene = 'AKT1';
+    const association = { hpoId: 'HP:0001250', pValue: .001 };
+    let finishFirstRequest;
+    const pendingRequest = new Promise(resolve => { finishFirstRequest = resolve; });
+    let geneLookups = 0;
+    let associationRequests = 0;
+    let variantRequests = 0;
+    const unavailable = { ok: false, status: 502 };
+    const reply = result => ({ ok: true, json: async () => result });
+    const adapter = load('src/views/PbGene/pbGeneBioIndexAdapter.js', {
+        '@/utils/pbBioIndex': { query: async () => {
+            geneLookups++;
+            return [{ summary: 'AKT1 gene summary' }];
+        } },
+        './geneHpoDisplay': { displayGeneHpoAssociations: rows => rows },
+        './geneAnnotationReference': { getGeneReferenceAnnotation: () => null },
+        './geneExonReference': { getGeneExons: () => [] },
+        './geneIdReference.generated': { PB_GENE_ID_REFERENCE: {} },
+        './variantLookup': require('../src/views/PbGene/variantLookup'),
+        './carrierGenotypes': require('../src/views/PbGene/carrierGenotypes'),
+    }, false, { fetch: async url => {
+        if (url.includes('__gene_hpo_associations__')) {
+            associationRequests++;
+            return reply({ gene, associations: [association] });
+        }
+        if (url.includes('__pb_gene_genotypes__')) return reply({ gene, rows: [] });
+        assert.ok(url.includes('__gene_qualified_variants__'));
+        variantRequests++;
+        if (variantRequests === 1) return pendingRequest;
+        if (variantRequests === 2) return unavailable;
+        return reply({ gene, quality: 'dp20_af001', source: { kind: 'original_vcf_dp20_af001' }, variantRows: [
+            { chromosome: '14', position: 101523000, reference: 'G', alt: 'A', samples: ['fixture'] },
+        ] });
+    } });
+
+    const model = load('src/views/PbGene/pageModel.js', { ...baseImports, './pbGeneBioIndexAdapter': adapter });
+    const page = new Vue({
+        data: () => ({ ...model.createPbGeneState(), geneVariantQuality: 'dp20_af001' }),
+        methods: { ...model.pbGeneMethods, loadCarrierSummary() {} },
+    });
+    const search = page.loadLiveGeneData(gene);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(page.liveDataLoaded, true, 'The overview is visible while the filter request is pending');
+    assert.equal(page.geneInfo.description, 'AKT1 gene summary');
+    assert.equal(page.genePhenotypeAssociations[0].hpoId, association.hpoId);
+    assert.equal(page.geneVariantLoading, true);
+    assert.equal(variantRequests, 1);
+
+    finishFirstRequest(unavailable);
+    await search;
+    assert.equal(variantRequests, 2, 'A gateway failure is retried once automatically');
+    assert.equal(page.liveDataLoaded, true);
+    assert.equal(page.searchGeneError, '');
+    assert.match(page.geneVariantError, /Could not load CRDC variants/);
+
+    page.contextInput = 'HP:0001250';
+    await page.retryGeneVariants();
+    assert.equal(page.geneVariantError, '');
+    assert.equal(page.geneVariantLoading, false);
+    assert.equal(page.variantRows[0].id, 'chr14:101523000:G:A');
+    assert.equal(page.contextInput, 'HP:0001250');
+    assert.equal(variantRequests, 3);
+    assert.equal(geneLookups, 1, 'Retry reuses the already loaded gene summary');
+    assert.equal(associationRequests, 1, 'Retry reuses the already loaded associations');
+    page.$destroy();
+}
+
 main().catch(error => { console.error(error); process.exitCode = 1; });
