@@ -10,6 +10,21 @@ test('normalizeMessage strips the origin port, the bundle hash and line:column',
   assert.equal(normalizeMessage('no location here'), 'no location here');
 });
 
+// A development build names the webpack module in each stack frame by its path relative to the build
+// directory. The baseline is built in a temporary worktree whose node_modules links to this repo's,
+// so the same package file is `../../home/me/repo/node_modules/...` there and `./node_modules/...` in
+// the candidate.
+test('normalizeMessage gives a node_modules frame one name wherever the build ran', () => {
+  const frame = (moduleId) => `at push.${moduleId}.Watcher.get (http://localhost:8081/js/chunk-vendors.js:10:20)`;
+  const inRepo = frame('./node_modules/vue/dist/vue.runtime.esm.js');
+  const inWorktree = frame('../../home/me/repo/node_modules/vue/dist/vue.runtime.esm.js');
+  assert.equal(normalizeMessage(inWorktree), normalizeMessage(inRepo));
+  // The package path after node_modules/ is kept, so frames from different files stay different.
+  assert.notEqual(normalizeMessage(frame('../../x/node_modules/vue/a.js')), normalizeMessage(frame('../../x/node_modules/vue/b.js')));
+  // Source modules are relative to the build directory already and are left alone.
+  assert.match(normalizeMessage(frame('./src/views/Gene/Template.vue')), /push\.\.\/src\/views\/Gene\/Template\.vue\.Watcher/);
+});
+
 // A stand-in for Playwright's Page with just what probePage uses. `landmark` and `idle` are the
 // landmark wait and the network-idle wait; each may resolve, reject, or emit page events.
 // `domQuietMs` answers the settle step's in-page check: how long the DOM has been unchanged.

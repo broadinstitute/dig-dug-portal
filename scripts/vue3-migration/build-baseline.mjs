@@ -1,8 +1,10 @@
 // Build a git ref into dist-baseline/, the baseline that e2e/compare.spec.mjs compares dist/ against.
 //
-//   npm run e2e:baseline -- <ref>
+//   npm run e2e:baseline -- <ref> [--mode production|development]
 //
-// The ref is checked out in a temporary worktree and built with `npm run deploy`. When its
+// The ref is checked out in a temporary worktree and built with `npm run deploy` (production, the
+// default) or, with `--mode development`, `npm run build`. Compare it with a dist/ built the same
+// way: Vue 2 only warns about an unregistered component in a development build. When the ref's
 // package-lock.json matches this checkout's, the worktree borrows this repo's node_modules through
 // symlinks; when it has one that differs, it runs `npm ci`; when it has none (the lockfile-less
 // portal branches), `npm install`. The build's dist/ replaces dist-baseline/, and
@@ -13,14 +15,22 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
 import { withWorktree } from './worktree.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const OUT_DIR = 'dist-baseline';
 const REF_FILE = '.baseline-ref';
-const USAGE = 'usage: npm run e2e:baseline -- <ref>';
+const USAGE = 'usage: npm run e2e:baseline -- <ref> [--mode production|development]';
 
 class StepFailed extends Error {}
+
+/** The npm script that builds `mode`: `deploy` is the production build, `build` the development one. */
+export function buildScript(mode) {
+  if (mode === 'production') return 'deploy';
+  if (mode === 'development') return 'build';
+  throw new Error(`unknown mode: ${mode}`);
+}
 
 /** The full commit SHA `ref` names, or null when it names no commit. */
 function resolveCommit(ref) {
@@ -81,11 +91,21 @@ function run(command, args, cwd) {
 }
 
 async function main(argv) {
-  if (argv.length !== 1 || argv[0].startsWith('-')) {
-    console.error(USAGE);
+  let ref;
+  let script;
+  try {
+    const { values, positionals } = parseArgs({
+      args: argv,
+      allowPositionals: true,
+      options: { mode: { type: 'string', default: 'production' } },
+    });
+    if (positionals.length !== 1 || positionals[0].startsWith('-')) throw new Error('expected one <ref>');
+    [ref] = positionals;
+    script = buildScript(values.mode);
+  } catch (err) {
+    console.error(`${err.message}\n${USAGE}`);
     return 2;
   }
-  const [ref] = argv;
 
   // `git worktree add` and `git diff` run against the process cwd, so anchor it to this repo.
   process.chdir(repoRoot);
@@ -110,7 +130,7 @@ async function main(argv) {
       console.log(`${ref} (${sha}): running npm ${plan.args.join(' ')}`);
       run('npm', plan.args, dir);
     }
-    run('npm', ['run', 'deploy'], dir);
+    run('npm', ['run', script], dir);
 
     const out = join(repoRoot, OUT_DIR);
     rmSync(out, { recursive: true, force: true });

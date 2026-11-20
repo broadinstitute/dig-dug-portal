@@ -35,6 +35,23 @@ From a network BioIndex accepts (not a GitHub runner), in the repo root:
 Results land in `playwright-report/` (HTML) and `test-results/` (per-test screenshots, diff
 images, probe attachments). Playwright empties `test-results/` at the start of every run.
 
+### The development-mode variant
+
+Vue 2 warns `Unknown custom element` only in a development build, and the compare tests fail on a
+console error the baseline lacks. So a component that a change forgot to register shows up only
+when both builds are development builds. Run the same steps with these in place of 3 to 5:
+
+1. `npm run build`: the development build of the candidate, into `dist/`.
+2. `npm run e2e:baseline -- origin/master --mode development`: the baseline, built the same way.
+3. `npx playwright test --project=chromium`
+
+The compare run takes about ten minutes: `compare.spec.mjs` is one file, so it runs on one worker
+and `--shard` cannot split it.
+
+Build both sides in the same mode. A development build logs warnings that a production build never
+does, so comparing across modes fails on noise. `.baseline-ref` records the commit but not the
+mode, so nothing warns you if they differ.
+
 ### Pitfalls
 
 - Don't have `npm run preview` running on port 8080. Locally Playwright reuses a server already
