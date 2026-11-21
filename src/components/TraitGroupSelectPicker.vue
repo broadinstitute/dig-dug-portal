@@ -20,7 +20,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-export default Vue.component("trait-group-selectpicker", {
+export default {
+    name: "trait-group-selectpicker",
     props: {
         cvdi: {
             type: Boolean,
@@ -59,5 +60,5 @@ export default Vue.component("trait-group-selectpicker", {
             }
         },
     },
-});
+};
 </script>

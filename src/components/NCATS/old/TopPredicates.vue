@@ -22,8 +22,8 @@
     </b-card>
 </template>
 <script>
-import Vue from "vue";
-export default Vue.component("top-predicates", {
+export default {
+    name: "top-predicates",
     props: ["title", "geneSymbol", "fields"],
     data() {
         return {
@@ -54,5 +54,5 @@ export default Vue.component("top-predicates", {
             .then(json => { this.geneInfoData = json; })
             .catch(error => console.error(error));
     }
-});
+};
 </script>

@@ -261,7 +261,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-scatter-plot", {
+export default {
+	name: "research-scatter-plot",
 	props: [
 		"plotData",
 		"renderConfig",
@@ -1113,7 +1114,7 @@ export default Vue.component("research-scatter-plot", {
 
 		},
 	},
-});
+};
 
 $(function () { });
 </script>

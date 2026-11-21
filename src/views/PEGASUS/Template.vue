@@ -346,6 +346,20 @@
     </div>
 </template>
 
+<script>
+import DataDownload from "@/components/DataDownload.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+
+export default {
+    components: {
+        DataDownload,
+        PageFooter,
+        PageHeader,
+    },
+};
+</script>
+
 <style scope>
 body.kp-default{
     height: 100vh !important;

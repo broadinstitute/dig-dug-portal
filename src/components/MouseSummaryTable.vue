@@ -50,9 +50,9 @@
   @import url("/css/table.css");
 </style>
 <script>
-  import Vue from "vue";
   import DataDownload from "@/components/DataDownload.vue";
-  export default Vue.component("MouseSummaryTable", {
+  export default {
+    name: "MouseSummaryTable",
     components: {
         DataDownload,
     },
@@ -153,5 +153,5 @@
 
       }
     }
-  });
+  };
 </script>

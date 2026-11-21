@@ -28,9 +28,12 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-export default Vue.component("phenotype-picker", {
+export default {
+    name: "phenotype-picker",
+    components: {
+        VueTypeaheadBootstrap,
+    },
     props: {
         phenotypes: {
             type: Array,
@@ -109,7 +112,7 @@ export default Vue.component("phenotype-picker", {
             this.value.push(tag);
         },
     },
-});
+};
 </script>
 
 <style>

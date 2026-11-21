@@ -308,7 +308,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import ResearchInSectionSearch from "@/components/researchPortal/ResearchInSectionSearch.vue";
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
@@ -317,8 +316,11 @@ import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSect
 import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchInfoCards from "@/components/researchPortal/ResearchInfoCards.vue";
+import ResearchLoadingSpinner from "@/components/researchPortal/ResearchLoadingSpinner.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 
-export default Vue.component("research-section", {
+export default {
+	name: "research-section",
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse",
 		"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils", "starItems", "regionZoom",
 		"regionViewArea", "isInTab", "pageParams","searchParameters"],
@@ -329,7 +331,9 @@ export default Vue.component("research-section", {
 		ResearchSectionComponents,
 		ResearchDataTable,
 		ResearchInfoCards,
-		ResearchInSectionSearch
+		ResearchInSectionSearch,
+		ResearchLoadingSpinner,
+		ResearchPageDescription,
 	},
 	data() {
 		return {
@@ -1972,7 +1976,7 @@ export default Vue.component("research-section", {
 		}
 
 	},
-});
+};
 
 $(function () { });
 </script>

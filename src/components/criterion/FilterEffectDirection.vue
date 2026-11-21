@@ -17,9 +17,9 @@
     </filter-control-template>
 </template>
 <script>
-import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
-export default Vue.component("filter-effect-direction-control", {
+export default {
+    name: "filter-effect-direction-control",
     props: {
         field: String,
         placeholder: String,
@@ -65,5 +65,5 @@ export default Vue.component("filter-effect-direction-control", {
     components: {
         FilterControlTemplate,
     },
-});
+};
 </script>

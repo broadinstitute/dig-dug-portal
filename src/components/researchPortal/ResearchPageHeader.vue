@@ -70,7 +70,8 @@ import Vue from "vue";
 import EventBus from "@/utils/eventBus";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 
-export default Vue.component("research-page-header", {
+export default {
+	name: "research-page-header",
 	props: ["researchMenu","phenotypes", "utils", "headerLogo","sectionConfig","utils"],
 	components: {},
 	data() {
@@ -241,7 +242,7 @@ export default Vue.component("research-page-header", {
 		}
 	},
 	computed: {},
-});
+};
 </script>
 
 <style>

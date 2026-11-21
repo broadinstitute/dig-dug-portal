@@ -53,11 +53,11 @@
 	</div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";
-export default Vue.component("ResearchExpressionFilter", {
+export default {
+	name: "ResearchExpressionFilter",
 	props: ["rawData", "filter", "plotByField", "skipSort"],
 	data() {
 		return {
@@ -165,5 +165,5 @@ export default Vue.component("ResearchExpressionFilter", {
 			this.$emit("dataReady", processedData);
 		},
 	},
-});
+};
 </script>

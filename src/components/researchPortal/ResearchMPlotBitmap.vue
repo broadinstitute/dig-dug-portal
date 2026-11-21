@@ -74,7 +74,8 @@ import ResearchMPlotBitmapVector from "@/components/researchPortal/vectorPlots/R
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-m-bitmap-plot", {
+export default {
+	name: "research-m-bitmap-plot",
 	props: [
 		"plotData",
 		"renderConfig",
@@ -134,7 +135,8 @@ export default Vue.component("research-m-bitmap-plot", {
 	modules: {
 	},
 	components: {
-		ResearchMPlotBitmapVector
+		ResearchMPlotBitmapVector,
+		ResearchMBitmapPlotVector: ResearchMPlotBitmapVector,
 	},
 	mounted: function () {
 		this.renderPlot(this.renderData);
@@ -729,7 +731,7 @@ export default Vue.component("research-m-bitmap-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

@@ -695,6 +695,45 @@
 </template>
 
 <script>
+import ColorBarPlot from "@/components/ColorBarPlot.vue";
+import CommonvariationGenomesigTable from "@/components/CommonVariationGenSignificantTable.vue";
+import CommonvariationNotGenomesigTable from "@/components/CommonVariationNotGenSignificantTable.vue";
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import HugecalScoreSection from "@/components/HugeCalScoreSection.vue";
+import HugecalTable from "@/components/HugeCalTable.vue";
+import Locuszoom from "@/components/lz/LocusZoom.vue";
+import LzAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel.vue";
+import MaskTable from "@/components/MaskTable.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
+import RarevariationExomesigTable from "@/components/RareVariationExSignificantTable.vue";
+import RarevariationNotExomesigTable from "@/components/RareVariationNotExSignificantTable.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+
+export default {
+    components: {
+        ColorBarPlot,
+        CommonvariationGenomesigTable,
+        CommonvariationNotGenomesigTable,
+        CriterionListGroup,
+        Documentation,
+        FilterEnumerationControl,
+        HugecalScoreSection,
+        HugecalTable,
+        Locuszoom,
+        LzAssociationsPanel,
+        MaskTable,
+        PageFooter,
+        PageHeader,
+        PosteriorProbabilityPlot,
+        RarevariationExomesigTable,
+        RarevariationNotExomesigTable,
+        TooltipDocumentation,
+    },
+};
 </script>
 <style>
 .color-bar-plot-wrapper {

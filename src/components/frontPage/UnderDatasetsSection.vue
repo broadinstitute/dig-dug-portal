@@ -8,9 +8,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("under-datasets-section", {
+export default {
+    name: "under-datasets-section",
     props: ["frontContents"],
-});
+};
 </script>

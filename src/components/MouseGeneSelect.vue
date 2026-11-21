@@ -25,10 +25,12 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("mouse-gene-select", {
+export default {
+  name: "mouse-gene-select",
+  components: {
+    Autocomplete,
+  },
   props: [],
   data() {
       return {
@@ -62,5 +64,5 @@ export default Vue.component("mouse-gene-select", {
   },
   watch: {
   },
-});
+};
 </script>

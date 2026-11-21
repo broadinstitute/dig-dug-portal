@@ -140,10 +140,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import ResearchContextSearch from "@/components/researchPortal/ResearchContextSearch.vue";
 
-export default Vue.component("research-multi-sections-search", {
+export default {
+	name: "research-multi-sections-search",
 	props: [
 		"searchParameters",
 		"phenotypesInUse",
@@ -564,7 +564,7 @@ export default Vue.component("research-multi-sections-search", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style>

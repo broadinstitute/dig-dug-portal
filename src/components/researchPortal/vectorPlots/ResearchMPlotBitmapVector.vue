@@ -15,7 +15,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-m-bitmap-plot-vector", {
+export default {
+	name: "research-m-bitmap-plot-vector",
 	props: [
 		"renderData",
 		"renderConfig",
@@ -206,7 +207,7 @@ export default Vue.component("research-m-bitmap-plot-vector", {
 			})
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

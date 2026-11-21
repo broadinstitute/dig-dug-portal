@@ -51,12 +51,12 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import { BIO_INDEX_HOST, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 
-export default Vue.component("NetworkGraph", {
+export default {
+    name: "NetworkGraph",
     props: {
         phenotype: {
             type: [Object, String],
@@ -453,7 +453,7 @@ export default Vue.component("NetworkGraph", {
             }
         },
     },
-});
+};
 </script>
 
 <style scoped>

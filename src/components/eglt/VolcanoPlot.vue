@@ -38,10 +38,15 @@ import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
+import DownloadChart from "@/components/researchPortal/singleCellBrowser/DownloadChart.vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("volcano-plot", {
+export default {
+    name: "volcano-plot",
+    components: {
+        DownloadChart,
+    },
     props: ["plotData", "renderConfig", "geneOfInterest", "chartName"],
     data() {
         return {
@@ -672,7 +677,7 @@ export default Vue.component("volcano-plot", {
             dtx.stroke();
         },
     },
-});
+};
 
 $(function () {});
 </script>

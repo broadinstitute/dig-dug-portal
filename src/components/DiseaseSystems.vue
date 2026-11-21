@@ -468,7 +468,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils.js";
 import keyParams from "@/utils/keyParams";
 import userUtils from "@/utils/userUtils.js";
@@ -477,7 +476,8 @@ import sortUtils from "@/utils/sortUtils.js";
 import Formatters from "@/utils/formatters";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 
-export default Vue.component("disease-systems", {
+export default {
+	name: "disease-systems",
 	props: [
 		"page",
 		"phenotypes",
@@ -500,7 +500,7 @@ export default Vue.component("disease-systems", {
 			PBuilderDSystem: null,
 		};
 	},
-	components: { PhenotypeSelectPicker },
+	components: { PhenotypeSelectPicker, PhenotypeSelectpicker: PhenotypeSelectPicker },
 	mounted() {
 		this.setDiseaseSystems();
 		this.getCustomPhenotypes();
@@ -900,7 +900,7 @@ export default Vue.component("disease-systems", {
 			return kps;
 		},
 	},
-});
+};
 </script>
 <style scoped>
 .ph-builder-filters-wrapper {

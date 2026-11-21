@@ -361,7 +361,8 @@ import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload";
 import uiUtils from "@/utils/uiUtils";
 
-export default Vue.component("VariantSearch", {
+export default {
+    name: "VariantSearch",
     components: {
         DataDownload,
     },
@@ -748,7 +749,7 @@ export default Vue.component("VariantSearch", {
             return frequency?.toFixed(5) || "";
         },
     },
-});
+};
 </script>
 <style>
 @import url("/css/table.css");

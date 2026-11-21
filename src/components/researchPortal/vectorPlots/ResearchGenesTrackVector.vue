@@ -15,7 +15,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-genes-track-vector", {
+export default {
+	name: "research-genes-track-vector",
 	props: [
 		"genesData",
 		"renderConfig",
@@ -335,7 +336,7 @@ export default Vue.component("research-genes-track-vector", {
 		
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

@@ -348,6 +348,30 @@
         </div>
     </div>
 </template>
+
+<script>
+import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
+import DiseaseSystems from "@/components/DiseaseSystems.vue";
+import Documentation from "@/components/Documentation.vue";
+import NewsFeedSection from "@/components/frontPage/NewsFeedSection.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+
+export default {
+    components: {
+        DiseaseGroupSelect,
+        DiseaseSystems,
+        Documentation,
+        NewsFeedSection,
+        PageFooter,
+        PageHeader,
+        ResearchPageDescription,
+        ResearchSingleSearch,
+    },
+};
+</script>
 <style>
 p[id="home.example"] {
     white-space: break-spaces;

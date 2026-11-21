@@ -502,7 +502,8 @@ import userUtils from "@/utils/userUtils.js";
 import { TOOLTIP_MAP } from "../utils/pigeanUtils";
 import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 
-export default Vue.component("pigean-phenotype", {
+export default {
+  name: "pigean-phenotype",
   components: {
     DataDownload,
     FilterEnumeration,
@@ -513,7 +514,10 @@ export default Vue.component("pigean-phenotype", {
     HugeScoresTable,
     Documentation,
     TooltipDocumentation,
-    PigeanLocusZoom
+    PigeanLocusZoom,
+    FilterEnumerationControl: FilterEnumeration,
+    FilterGreaterControl: FilterGreaterThan,
+    ResearchPigeanPhewasPlot: ResearchPigeanPheWAS,
   },
   props: ["phenotypeMap", "pigeanData", "hugeScores", "falconTraitAssociatedGenes", "phenotype", "docDetails", "filter", "plotColors"],
   data() {
@@ -1053,7 +1057,7 @@ export default Vue.component("pigean-phenotype", {
       }
     },
   }
-});
+};
 </script>
 <style scoped>
   .tab-documentation {

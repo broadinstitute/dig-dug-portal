@@ -277,7 +277,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import ResearchGEMTableFeatures from "@/components/researchPortal/ResearchGEMTableFeatures.vue";
 
 //import Formatters from "@/utils/formatters";
@@ -285,7 +284,8 @@ import ResearchGEMTableFeatures from "@/components/researchPortal/ResearchGEMTab
 //import uiUtils from "@/utils/uiUtils";
 //import sortUtils from "@/utils/sortUtils";
 
-export default Vue.component("research-gem-data-table", {
+export default {
+	name: "research-gem-data-table",
 	props: [
 		"pageID",
 		"dataset",
@@ -314,7 +314,7 @@ export default Vue.component("research-gem-data-table", {
 		};
 	},
 	modules: {},
-	components: { ResearchGEMTableFeatures },
+	components: { ResearchGEMTableFeatures, ResearchGemTableFeatures: ResearchGEMTableFeatures },
 	created() {},
 	beforeMount() {},
 
@@ -1901,7 +1901,7 @@ export default Vue.component("research-gem-data-table", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style>

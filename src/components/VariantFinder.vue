@@ -142,7 +142,8 @@ import colorIndex from "@/utils/colors";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-export default Vue.component("variant-finder", {
+export default {
+    name: "variant-finder",
     props: ["phenotypes", "associations"],
 
     components: {
@@ -294,5 +295,5 @@ export default Vue.component("variant-finder", {
             return colors;
         }
     }
-});
+};
 </script>

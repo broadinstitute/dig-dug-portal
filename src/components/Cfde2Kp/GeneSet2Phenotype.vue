@@ -293,7 +293,8 @@ function translateToCategory(value, categories) {
     return cat ? cat.name : "";
 }
 
-export default Vue.component("gene-set-2-phenotype", {
+export default {
+    name: "gene-set-2-phenotype",
     components: {},
     props: {
         phenotype: {
@@ -517,7 +518,7 @@ export default Vue.component("gene-set-2-phenotype", {
             }
         },
     },
-});
+};
 </script>
 
 <style scoped>

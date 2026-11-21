@@ -42,7 +42,8 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("kp-region-viewer", {
+export default {
+	name: "kp-region-viewer",
 	props: ["plotData", "plotLayout", "renderConfig", "region", "pkgID"],
 	data() {
 		return {
@@ -630,7 +631,7 @@ export default Vue.component("kp-region-viewer", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style>

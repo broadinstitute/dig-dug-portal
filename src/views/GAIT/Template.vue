@@ -995,6 +995,26 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import ForestPlotSimple from "@/components/ForestPlotSimple.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+
+export default {
+    components: {
+        CriterionListGroup,
+        Documentation,
+        FilterEnumerationControl,
+        ForestPlotSimple,
+        PageFooter,
+        PageHeader,
+    },
+};
+</script>
 <style>
 @import url("/css/table.css");
 /*

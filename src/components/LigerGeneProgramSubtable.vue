@@ -38,10 +38,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 
-export default Vue.component("liger-gene-program-subtable", {
+export default {
+    name: "liger-gene-program-subtable",
     props: {
         programs: {
             type: Array,
@@ -141,7 +141,7 @@ export default Vue.component("liger-gene-program-subtable", {
             );
         },
     },
-});
+};
 </script>
 
 <style scoped>

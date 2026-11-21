@@ -293,9 +293,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("research-section-filters-vertical", {
+export default {
+	name: "research-section-filters-vertical",
 	props: [
 		"apiParameters",
 		"dataComparisonConfig",
@@ -1531,7 +1531,7 @@ export default Vue.component("research-section-filters-vertical", {
 		removeSearch(FIELD, ITEM) {
 		},
 	},
-});
+};
 </script>
 
 <style>

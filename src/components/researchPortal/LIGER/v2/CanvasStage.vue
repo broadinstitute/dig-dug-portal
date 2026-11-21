@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import InfoTip from "./InfoTip.vue";
 
 // An infinite-canvas viewport built from HTML elements rather than a <canvas>.
@@ -34,7 +33,8 @@ const FIT_MIN_SCALE = 0.6;
 // Below this much pointer movement a drag is a click, so a node stays clickable.
 const DRAG_THRESHOLD_PX = 4;
 
-export default Vue.component("CanvasStage", {
+export default {
+    name: "CanvasStage",
     components: {
         InfoTip
     },
@@ -414,7 +414,7 @@ export default Vue.component("CanvasStage", {
             window.setTimeout(() => this.$el.removeEventListener("click", swallow, { capture: true }), 0);
         }
     }
-});
+};
 </script>
 
 <template>

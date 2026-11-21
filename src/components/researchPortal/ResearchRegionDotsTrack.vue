@@ -55,7 +55,8 @@ import regionDotsVector from "@/components/researchPortal/vectorPlots/ResearchRe
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-region-dots-track", {
+export default {
+    name: "research-region-dots-track",
     props: [
         "sectionId",
         "plotConfig",
@@ -79,7 +80,7 @@ export default Vue.component("research-region-dots-track", {
     },
     modules: {
     },
-    components: { regionDotsVector },
+    components: { regionDotsVector, ResearchRegionDotsVector: regionDotsVector },
     mounted: function () {
         this.renderPlot();
         window.addEventListener("resize", this.onResize);
@@ -471,7 +472,7 @@ export default Vue.component("research-region-dots-track", {
         },
        
     },
-});
+};
 
 $(function () { });
 </script>

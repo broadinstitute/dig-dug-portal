@@ -25,8 +25,8 @@
   @import url("/css/table.css");
 </style>
 <script>
-  import Vue from "vue";
-  export default Vue.component("mouse-diff-exp-table", {
+  export default {
+    name: "mouse-diff-exp-table",
     props: ["items"],
     data() {
       return {
@@ -58,7 +58,7 @@
     },
     methods: {
     }
-  });
+  };
 </script>
 <style scoped>
 @import url("/css/table.css");

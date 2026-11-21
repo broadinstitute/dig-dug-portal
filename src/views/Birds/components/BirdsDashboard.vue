@@ -48,17 +48,18 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import ModelGraph from "./ModelGraph.vue";
 import ValidationGallery from "./ValidationGallery.vue";
 import MethodPanel from "./MethodPanel.vue";
 import BIRD_PANEL_HTML from "../content/panels.js";
 
-export default Vue.component("birds-dashboard", {
+export default {
+    name: "birds-dashboard",
     components: {
         ModelGraph,
         ValidationGallery,
-        MethodPanel
+        MethodPanel,
+        Modelgraph: ModelGraph,
     },
   data() {
     return {
@@ -118,7 +119,7 @@ export default Vue.component("birds-dashboard", {
         return panel;
     }
   },
-});
+};
 </script>
 <style>
 @import url("/css/birdcss/revisions.css");

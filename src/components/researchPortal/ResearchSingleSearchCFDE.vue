@@ -144,13 +144,13 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 import EventBus from "@/utils/eventBus";
 
-export default Vue.component("research-single-search-cfde", {
+export default {
+	name: "research-single-search-cfde",
 	props: ["singleSearchConfig", "phenotypes", "utils", "fromNav"],
 	modules: {},
 
@@ -768,7 +768,7 @@ export default Vue.component("research-single-search-cfde", {
 			this.singleSearchResult.genes = matches;
 		},
 	},
-});
+};
 </script>
 
 <style scoped>

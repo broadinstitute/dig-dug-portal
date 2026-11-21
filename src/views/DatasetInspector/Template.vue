@@ -96,6 +96,7 @@
 						>
 							Top single-variant associations for
 							{{ $store.state.selectedDataset.description }}
+							<!-- eslint-disable-next-line vue/no-undef-components -- not loaded on this page; rendering it would be a behaviour change (latent bug, owner decision) -->
 							<tooltip-documentation
 								name="dinspector.topAssociations.tooltip.hover"
 								:contentFill="$parent.docDetails"
@@ -139,3 +140,29 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+
+<script>
+import AssociationsTable from "@/components/AssociationsTable.vue";
+import DatasetInfoSection from "@/components/DatasetInfo.vue";
+import DatasetSelectpicker from "@/components/DatasetSelectPicker.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PhenotypeSelectpicker from "@/components/PhenotypeSelectPicker.vue";
+import RawImg from "@/components/RawImage.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage.vue";
+
+export default {
+    components: {
+        AssociationsTable,
+        DatasetInfoSection,
+        DatasetSelectpicker,
+        PageFooter,
+        PageHeader,
+        PhenotypeSelectpicker,
+        RawImg,
+        SearchHeaderWrapper,
+        UnauthorizedMessage,
+    },
+};
+</script>

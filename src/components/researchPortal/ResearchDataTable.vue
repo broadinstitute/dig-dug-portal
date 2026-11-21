@@ -89,7 +89,7 @@
 							</tr>
 							<tr>
 								<td>
-									<Strong>Hide table: </Strong><input type="checkbox" class="chkbox"
+									<strong>Hide table: </strong><input type="checkbox" class="chkbox"
 									@click="utils.uiUtils.showHideElement(sectionId + '_table_wrapper')"
 								/>
 								</td>
@@ -430,14 +430,14 @@
 </template>
 
 <script>
-import Vue from "vue";
 import EventBus from "@/utils/eventBus";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 import ResearchSubSection from "@/components/researchPortal/ResearchSubSection.vue";
 import ResearchByoglSection from "@/components/researchPortal/ResearchByoglSection.vue";
 
-export default Vue.component("research-data-table", {
+export default {
+	name: "research-data-table",
 	props: [
 		"pageID",
 		"dataset",
@@ -1691,7 +1691,7 @@ export default Vue.component("research-data-table", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style scoped>

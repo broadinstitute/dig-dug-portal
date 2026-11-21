@@ -21,15 +21,15 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("research-page-footer", {
+export default {
+    name: "research-page-footer",
     props: [],
 
     data() {
         return {};
     },
-});
+};
 </script>
 
 <style>

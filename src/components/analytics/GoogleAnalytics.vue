@@ -5,16 +5,18 @@
     </div>
 </template>
 <script>
-    import Vue from "vue";
     import gaUtils from "@/utils/gaUtils";
     import GAErrors from "@/components/analytics/GAErrors"
     import GAPageView from "@/components/analytics/GAPageView"
 
-    export default Vue.component("analytics", {
+    export default {
+        name: "analytics",
         components: {
             GAErrors,
-            GAPageView
+            GAPageView,
+            GaErrors: GAErrors,
+            GaPageview: GAPageView,
         },
-    });
+    };
 
 </script>

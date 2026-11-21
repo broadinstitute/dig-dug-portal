@@ -18,9 +18,12 @@ import Formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-export default Vue.component("ancestry-selectpicker", {
+export default {
+    name: "ancestry-selectpicker",
+    components: {
+        Autocomplete,
+    },
     props: ["ancestries", "defaultMixed", "pageLevel"],
 
     data() {
@@ -69,5 +72,5 @@ export default Vue.component("ancestry-selectpicker", {
             return Formatters.ancestryFormatter(ancestry);
         }
     },
-});
+};
 </script>

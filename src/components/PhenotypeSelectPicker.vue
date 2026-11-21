@@ -26,9 +26,12 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-export default Vue.component("phenotype-selectpicker", {
+export default {
+	name: "phenotype-selectpicker",
+	components: {
+		VueTypeaheadBootstrap,
+	},
 	props: [
 		"phenotypes",
 		"clearOnSelected",
@@ -98,5 +101,5 @@ export default Vue.component("phenotype-selectpicker", {
 			}
 		},
 	},
-});
+};
 </script>

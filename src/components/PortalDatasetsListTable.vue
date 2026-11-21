@@ -183,7 +183,8 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default Vue.component("portal-datasets-list-table", {
+export default {
+	name: "portal-datasets-list-table",
 	props: [
 		"diseaseGroups",
 		"phenotypes",
@@ -249,7 +250,7 @@ export default Vue.component("portal-datasets-list-table", {
 			this.ascending = this.ascending == true ? false : true;
 		},
 	},
-});
+};
 </script>
 
 <style>

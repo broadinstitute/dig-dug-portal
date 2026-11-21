@@ -281,6 +281,7 @@
 import { BIconCheck, BIconClipboard, BIconDownload } from "bootstrap-vue";
 import ProvenanceTable from "./ProvenanceTable.vue";
 import ProvenanceGraph from "./ProvenanceGraph.vue";
+import Documentation from "@/components/Documentation.vue";
 
 const TRAIT_LIST_URL = "https://translator.broadinstitute.org/artifact_provenance/ws/bottom_line/trait_list_full";
 const PROVENANCE_URL = "https://translator.broadinstitute.org/artifact_provenance/get_provenance?id=";
@@ -320,6 +321,7 @@ export default {
         BIconDownload,
         ProvenanceTable,
         ProvenanceGraph,
+        Documentation,
     },
     data() {
         return {

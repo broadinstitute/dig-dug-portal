@@ -63,15 +63,16 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import ResearchInSectionSearch from "@/components/researchPortal/ResearchInSectionSearch.vue";
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 
 
-export default Vue.component("research-sections-summary", {
+export default {
+	name: "research-sections-summary",
 	props: ["sectionIndex","uId", "description","sectionsConfig", "sectionsData","utils","starItems", "regionZoom",
 		"regionViewArea","isInTab"],
 	components: {
@@ -79,6 +80,7 @@ export default Vue.component("research-sections-summary", {
 		ResearchSectionVisualizers,
 		ResearchDataTable,
 		ResearchInSectionSearch,
+		ResearchPageDescription,
 	},
 	data() {
 		return {
@@ -496,7 +498,7 @@ export default Vue.component("research-sections-summary", {
 			return ifNumber;
 		},
 	},
-});
+};
 
 $(function () { });
 </script>

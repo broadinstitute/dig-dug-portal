@@ -21,8 +21,10 @@ import bioIndexUtils from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
-export default Vue.component("pigean-plot", {
+export default {
+  name: "pigean-plot",
   components: {
+    DownloadChart,
   },
   props: [
     "pigeanData", "config", "phenotypeMap", "filter", 
@@ -313,7 +315,7 @@ export default Vue.component("pigean-plot", {
       this.drawChart();
     }
   }
-});
+};
 </script>
 <style>
   @import url("/css/effectorGenes.css");

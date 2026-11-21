@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import DatasetInfo from "./DatasetInfo.vue";
 import EntityList from "./EntityList.vue";
 import ProgramInfo from "./ProgramInfo.vue";
@@ -15,7 +14,8 @@ import StateInfo from "./StateInfo.vue";
 // Only the Source data tab is built. The other two are declared so the shape of the
 // card is visible and so their selection state can already be threaded through, but
 // their bodies are placeholders.
-export default Vue.component("MetadataCard", {
+export default {
+    name: "MetadataCard",
     components: {
         DatasetInfo,
         EntityList,
@@ -228,7 +228,7 @@ export default Vue.component("MetadataCard", {
             this.$emit("update:active-tab", "program");
         }
     }
-});
+};
 </script>
 
 <template>

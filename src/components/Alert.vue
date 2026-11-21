@@ -1,12 +1,12 @@
 <template></template>
 
 <script>
-import Vue from "vue";
 import Counter from "@/utils/idCounter";
 import EventBus from "@/utils/eventBus";
 import logErrorEvent from "@/utils/gaUtils";
 
-export default Vue.component("alert", {
+export default {
+    name: "alert",
     data() {
         return {
             message: null,
@@ -62,7 +62,7 @@ export default Vue.component("alert", {
             alertQueue = [];
         },
     },
-});
+};
 
 let alertQueue = [];
 // https://stackoverflow.com/a/5927432

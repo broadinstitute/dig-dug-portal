@@ -32,10 +32,12 @@
                             >Please select a dataset.</b-alert
                         > -->
                     </transition>
+                    <!-- eslint-disable-next-line vue/no-undef-components -- not loaded on this page; rendering it would be a behaviour change (latent bug, owner decision) -->
                     <criterion-list-group
                         v-model="$parent.searchCriteria"
                         :header="'Search Criteria'"
                     >
+                        <!-- eslint-disable-next-line vue/no-undef-components -- not loaded on this page; rendering it would be a behaviour change (latent bug, owner decision) -->
                         <filter-enumeration-control
                             ref="gene"
                             :field="'gene'"
@@ -68,6 +70,22 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import Documentation from "@/components/Documentation.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import VariantSearch from "@/components/VariantSearch.vue";
+
+export default {
+    components: {
+        Documentation,
+        PageFooter,
+        PageHeader,
+        VariantSearch,
+    },
+};
+</script>
 
 <style>
 </style>

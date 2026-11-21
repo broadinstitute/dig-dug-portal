@@ -27,7 +27,8 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default Vue.component("DiseaseGroupSelect", {
+export default {
+    name: "DiseaseGroupSelect",
     props: ["diseaseGroups"],
 
     data() {
@@ -56,5 +57,5 @@ export default Vue.component("DiseaseGroupSelect", {
             window.location.href = host.urlWithSubdomain(newGroup).href;
         },
     },
-});
+};
 </script>

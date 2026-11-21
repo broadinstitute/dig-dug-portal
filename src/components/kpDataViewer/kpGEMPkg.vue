@@ -241,7 +241,8 @@ import ResearchGeneLinks from "@/components/researchPortal/ResearchGeneLinks.vue
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("kp-gem-pkg", {
+export default {
+	name: "kp-gem-pkg",
 	props: [
 		"pkgConfig",
 		"dataComparisonConfig",
@@ -268,6 +269,9 @@ export default Vue.component("kp-gem-pkg", {
 		ResearchAnnotationsPlotV2,
 		ResearchCredibleSets,
 		ResearchGeneLinks,
+		ResearchBiosamplesPlot: ResearchBiosamplePlot,
+		ResearchCredibleSetsPlot: ResearchCredibleSets,
+		ResearchGeneLinksPlot: ResearchGeneLinks,
 	},
 	mounted: function () {
 		if (this.pkgConfig != null) {
@@ -307,7 +311,7 @@ export default Vue.component("kp-gem-pkg", {
 			this.utils.uiUtils.showHideSvg(SECTION_ID);
 		},
 	},
-});
+};
 </script>
 
 <style>

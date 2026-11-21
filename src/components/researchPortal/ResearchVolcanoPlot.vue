@@ -59,7 +59,8 @@ import volcanoPlotVector from "@/components/researchPortal/vectorPlots/ResearchV
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-volcano-plot", {
+export default {
+	name: "research-volcano-plot",
 	props: ["plotData", "renderConfig", "geneOfInterest","utils","sectionId","colors"],
 	data() {
 		return { posData: {} };
@@ -68,6 +69,7 @@ export default Vue.component("research-volcano-plot", {
 	},
 	components: {
 		volcanoPlotVector,
+		ResearchVolcanoPlotVector: volcanoPlotVector,
 	},
 	mounted: function () {
 		this.renderPlot();
@@ -766,7 +768,7 @@ export default Vue.component("research-volcano-plot", {
 			dtx.stroke();
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

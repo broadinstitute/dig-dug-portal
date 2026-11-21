@@ -6,11 +6,11 @@
   
   <script>
   import * as d3 from 'd3';
-  import Vue from 'vue';
   import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
   import {llog} from "./llog.js";
   
-  export default Vue.component('research-stacked-bar-plot', {
+  export default {
+    name: "research-stacked-bar-plot",
     props: {
       data: {                           //tabular data as array
         type: (Array, null),
@@ -754,7 +754,7 @@
             
         }
     },
-  });
+  };
   </script>
   
   <style scoped>

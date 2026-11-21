@@ -15,7 +15,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-qq-plot-vector", {
+export default {
+	name: "research-qq-plot-vector",
 	props: [
 		"renderData",
 		"renderConfig",
@@ -302,7 +303,7 @@ export default Vue.component("research-qq-plot-vector", {
 			})*/
 		},
 	},
-});
+};
 
 $(function () { });
 </script>

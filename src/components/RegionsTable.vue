@@ -105,7 +105,8 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("regions-table", {
+export default {
+    name: "regions-table",
     components: {
         DataDownload,
     },
@@ -195,5 +196,5 @@ export default Vue.component("regions-table", {
             this.tissues = this.tissues === this[option] ? this[option] : [];
         },
     },
-});
+};
 </script>

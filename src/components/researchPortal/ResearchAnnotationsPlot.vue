@@ -348,7 +348,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-annotations-plot", {
+export default {
+	name: "research-annotations-plot",
 	props: [
 		"region",
 		"phenotype",
@@ -2422,7 +2423,7 @@ export default Vue.component("research-annotations-plot", {
 			});
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

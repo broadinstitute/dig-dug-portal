@@ -97,9 +97,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
-export default Vue.component("effector-genes-features", {
+export default {
+    name: "effector-genes-features",
     props: ["features", "featureIndex", "columnHeader"],
     data() {
         return {};
@@ -117,5 +117,5 @@ export default Vue.component("effector-genes-features", {
             return S.toString().replace(/[^a-zA-Z ]/g, "");
         },
     },
-});
+};
 </script>

@@ -27,7 +27,6 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 
 function tagEntry(entry) {
     let right = typeof entry[1];
@@ -48,7 +47,8 @@ function tagEntries(object) {
     return Object.entries(object).map(tagEntry)
 }
 
-export default Vue.component('field-nav', {
+export default {
+    name: "field-nav",
     props: ["knowledgeItem", "withFields", "withoutFields"],
     computed: {
         itemsInput() {
@@ -74,5 +74,5 @@ export default Vue.component('field-nav', {
             }
         }
     }
-})
+}
 </script>

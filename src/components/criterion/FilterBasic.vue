@@ -17,9 +17,9 @@
   </filter-control-template>
 </template>
 <script>
-import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
-export default Vue.component("filter-basic-control", {
+export default {
+  name: "filter-basic-control",
   props: {
     field: String,
     placeholder: String,
@@ -47,5 +47,5 @@ export default Vue.component("filter-basic-control", {
   components: {
     FilterControlTemplate,
   },
-});
+};
 </script>

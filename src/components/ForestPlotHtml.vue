@@ -264,7 +264,8 @@ import formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("forest-plot-html", {
+export default {
+	name: "forest-plot-html",
 	props: [
 		"forestPlotData",
 		"start",
@@ -470,7 +471,7 @@ export default Vue.component("forest-plot-html", {
 			return formatters.pValueFormatter(VALUE);
 		},
 	},
-});
+};
 </script>
 
 <style>

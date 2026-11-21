@@ -42,7 +42,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("effector-genes-m-plot", {
+export default {
+    name: "effector-genes-m-plot",
     props: [
         "plotData",
         "locusKey",
@@ -458,7 +459,7 @@ export default Vue.component("effector-genes-m-plot", {
             }
         },
     },
-});
+};
 
 $(function () {
     let customScript = document.createElement("script");

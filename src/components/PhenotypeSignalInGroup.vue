@@ -174,7 +174,8 @@ import Formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("phenotype-signal-in-group", {
+export default {
+	name: "phenotype-signal-in-group",
 	modules: {
 		uiUtils,
 	},
@@ -307,7 +308,7 @@ export default Vue.component("phenotype-signal-in-group", {
 			window.location.href = "#associations-table";
 		},
 	},
-});
+};
 </script>
 
 <style>

@@ -75,10 +75,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import dataConvert from "@/utils/dataConvert";
 
-export default Vue.component("egls-section-on-gene", {
+export default {
+	name: "egls-section-on-gene",
 	props: ["gene"],
 	components: {},
 	data() {
@@ -133,7 +133,7 @@ export default Vue.component("egls-section-on-gene", {
 			}
 		},
 	},
-});
+};
 </script>
 <style scoped>
 .egls-list-header {

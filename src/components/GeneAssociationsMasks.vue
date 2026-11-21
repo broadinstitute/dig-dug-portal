@@ -201,7 +201,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";
 import "bootstrap/dist/css/bootstrap.css";
@@ -347,7 +346,8 @@ function joinMultiValues(fieldsToJoin, joinBy, row) {
     return out;
 }
 
-export default Vue.component("GeneAssociationsMasks", {
+export default {
+    name: "GeneAssociationsMasks",
     props: ["associations", "phenotypeMap", "filter"],
     components: { MaskTable, DataDownload, KcCfdeLogo },
     data() {
@@ -539,7 +539,7 @@ export default Vue.component("GeneAssociationsMasks", {
             }
         },
     },
-});
+};
 </script>
 
 <style>

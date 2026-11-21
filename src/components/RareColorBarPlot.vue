@@ -42,9 +42,9 @@
 
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("rare-color-bar-plot", {
+export default {
+    name: "rare-color-bar-plot",
     props: {
         elementid: {
             type: String
@@ -67,5 +67,5 @@ export default Vue.component("rare-color-bar-plot", {
     computed: {},
 
     watch: {}
-});
+};
 </script>

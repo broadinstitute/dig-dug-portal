@@ -18,7 +18,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 Vue.use(BootstrapVue);
 
-export default Vue.component("kc-cfde-logo", {
+export default {
     name: "KcCfdeLogo",
     props: {
         kcLogo: {
@@ -30,7 +30,7 @@ export default Vue.component("kc-cfde-logo", {
             default: "https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/CFDE_logo.png",
         },
     },
-});
+};
 </script>
 
 <style scoped>

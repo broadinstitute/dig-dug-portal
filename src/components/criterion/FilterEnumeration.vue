@@ -21,11 +21,11 @@
     </filter-control-template>
 </template>
 <script>
-import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
 import Formatter from "@/utils/formatters";
 
-export default Vue.component("filter-enumeration-control", {
+export default {
+    name: "filter-enumeration-control",
     props: {
         field: String,
         placeholder: String,
@@ -93,5 +93,5 @@ export default Vue.component("filter-enumeration-control", {
             }
         },
     },
-});
+};
 </script>

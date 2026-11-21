@@ -156,7 +156,8 @@ import Chi from "chi-squared";
 
 import { isEqual } from "@/utils/lodashUtils";
 
-export default Vue.component("AssociationsTable", {
+export default {
+    name: "AssociationsTable",
     components: {
         DataDownload,
     },
@@ -404,5 +405,5 @@ export default Vue.component("AssociationsTable", {
                 : "";
         },
     },
-});
+};
 </script>

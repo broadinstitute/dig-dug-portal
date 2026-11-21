@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import {
     field,
     numericField,
@@ -30,7 +29,8 @@ const TOP_GENE_SET_ROWS = 25;
 //
 // The honest replacement is here: the factorization's own `label`, which for islet
 // beta calls 7 of 10 programs QC or artifact programs, plus counted QC enrichment.
-export default Vue.component("ProgramInfo", {
+export default {
+    name: "ProgramInfo",
     components: {
         InfoTabs,
         InfoTip,
@@ -436,7 +436,7 @@ export default Vue.component("ProgramInfo", {
                 .join("\n");
         }
     }
-});
+};
 </script>
 
 <template>

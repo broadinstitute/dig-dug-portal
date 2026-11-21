@@ -169,11 +169,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { orderBy, groupBy } from "@/utils/lodashUtils";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
-export default Vue.component("dataset-associations", {
+export default {
+    name: "dataset-associations",
     props: ["associations", "phenotypeMap", "datasetMap"],
     data() {
         return {
@@ -198,7 +198,7 @@ export default Vue.component("dataset-associations", {
             uiUtils.showHideElement("feature-headers-" + index);
         },
     },
-});
+};
 </script>
 
 <style>

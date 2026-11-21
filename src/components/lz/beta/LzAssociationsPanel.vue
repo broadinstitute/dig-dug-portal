@@ -1,6 +1,5 @@
 <script>
 
-import Vue from "vue";
 import LzPanel from "./LzPanel"
 import { LZBioIndexSource } from "@/utils/lzUtils"
 import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "./lzConfiguration";
@@ -11,7 +10,8 @@ import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "./lzConfig
 
 
 
-export default Vue.component('lz-associations-panel', {
+export default {
+    name: "lz-associations-panel",
     components: {
         LzPanel
     },
@@ -29,7 +29,7 @@ export default Vue.component('lz-associations-panel', {
         // hack - needs to be replaced
         this.addPanels = this.$parent.addPanels;
     }
-});
+};
 
 
 

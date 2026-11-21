@@ -1,10 +1,10 @@
 <script>
-import Vue from "vue";
 import InfoTip from "./InfoTip.vue";
 
 // Trait associations, grouped by phenotype group. Shared by both detail panels --
 // the two trait endpoints return the same three fields, so there is one table.
-export default Vue.component("TraitTable", {
+export default {
+    name: "TraitTable",
     components: {
         InfoTip
     },
@@ -48,7 +48,7 @@ export default Vue.component("TraitTable", {
             return `Top ${this.traits.shown} by |beta|`;
         }
     }
-});
+};
 </script>
 
 <template>

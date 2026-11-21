@@ -54,7 +54,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload";
 
-export default Vue.component("datasets-table", {
+export default {
+    name: "datasets-table",
     components: { DataDownload },
     props: ["datasets", "phenotype", "filter"],
     data() {
@@ -117,7 +118,7 @@ export default Vue.component("datasets-table", {
             return dataRows;
         },
     },
-});
+};
 </script>
 
 <style>

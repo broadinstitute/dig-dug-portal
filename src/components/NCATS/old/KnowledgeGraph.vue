@@ -6,7 +6,6 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import { uniqBy } from "@/utils/lodashUtils";
@@ -58,7 +57,8 @@ const makeGraph = (query_graph, knowledge_graph_results) => {
     return graph;
 };
 
-export default Vue.component("translator-knowledge-graph", {
+export default {
+    name: "translator-knowledge-graph",
     props: ['query_graph', 'results'],
     computed: {
         graph: function() { return makeGraph(this.query_graph, this.results) },
@@ -98,5 +98,5 @@ export default Vue.component("translator-knowledge-graph", {
             console.log(arguments)
         }
     }
-})
+}
 </script>

@@ -122,10 +122,10 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import JSZip from "jszip";
 
-export default Vue.component("pigean-factors-viz", {
+export default {
+  name: "pigean-factors-viz",
   props: {
     pigeanFactorData: {
       type: Array,
@@ -1755,7 +1755,7 @@ export default Vue.component("pigean-factors-viz", {
       }
     }
   }
-});
+};
 </script>
 <style scoped>
 .factors-viz-container {

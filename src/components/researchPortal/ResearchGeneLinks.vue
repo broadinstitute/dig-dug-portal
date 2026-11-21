@@ -218,7 +218,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-gene-links-plot", {
+export default {
+	name: "research-gene-links-plot",
 	props: [
 		"region",
 		"phenotype",
@@ -1256,7 +1257,7 @@ export default Vue.component("research-gene-links-plot", {
 			//}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

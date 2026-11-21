@@ -55,7 +55,8 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("heatmap", {
+export default {
+    name: "heatmap",
     props: {
         heatmapData: {
             type: Array,
@@ -634,7 +635,7 @@ export default Vue.component("heatmap", {
             return rowName.slice(index + this.separator.length);
         },
     },
-});
+};
 
 $(function () {});
 </script>

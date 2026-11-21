@@ -891,6 +891,66 @@
 	</div>
 </template>
 
+<script>
+import GiantGemPkg from "@/components/researchPortal/customComponents/GiantGemPkg.vue";
+import KpGemPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import ResearchFrontPage from "@/components/researchPortal/ResearchFrontPage.vue";
+import ResearchGemDataTable from "@/components/researchPortal/ResearchGEMDataTable.vue";
+import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
+import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap.vue";
+import ResearchMBitmapPlot from "@/components/researchPortal/ResearchMPlotBitmap.vue";
+import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
+import ResearchMQqPlot from "@/components/researchPortal/ResearchMQQPlot.vue";
+import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
+import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
+import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
+import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
+import ResearchScorePlot from "@/components/researchPortal/ResearchScorePlot.vue";
+import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
+import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import ResearchSingleSearchCfde from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
+import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
+import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
+
+export default {
+    components: {
+        GiantGemPkg,
+        KpGemPkg,
+        PageFooter,
+        PageHeader,
+        ResearchDataTable,
+        ResearchFrontPage,
+        ResearchGemDataTable,
+        ResearchGenesTrack,
+        ResearchHeatmap,
+        ResearchMBitmapPlot,
+        ResearchMPlot,
+        ResearchMQqPlot,
+        ResearchMultiSectionsSearch,
+        ResearchPageDescription,
+        ResearchPageFilters,
+        ResearchPageFooter,
+        ResearchPageHeader,
+        ResearchPhewasPlot,
+        ResearchRegionPlot,
+        ResearchScorePlot,
+        ResearchSection,
+        ResearchSectionsSummary,
+        ResearchSingleSearch,
+        ResearchSingleSearchCfde,
+        ResearchSingleSearchV2,
+        ResearchVolcanoPlot,
+    },
+};
+</script>
+
 <style>
 @import url("/css/effectorGenes.css");
 @import url("/css/tooltipDocumentation.css");

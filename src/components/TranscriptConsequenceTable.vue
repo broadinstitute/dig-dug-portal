@@ -114,10 +114,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("TranscriptConsequenceTable", {
+export default {
+    name: "TranscriptConsequenceTable",
     components: {
         DataDownload,
     },
@@ -228,7 +228,7 @@ export default Vue.component("TranscriptConsequenceTable", {
             if (item.pick === 1) return "row-pick";
         },
     },
-});
+};
 </script>
 <style>
 @import url("/css/table.css");

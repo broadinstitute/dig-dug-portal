@@ -80,10 +80,12 @@ import uiUtils from "@/utils/uiUtils";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("hugescore-table", {
+export default {
+    name: "hugescore-table",
+    components: {
+        ResetPriorWidget,
+    },
     props: {
         commonBF: {
             type: Number,
@@ -145,7 +147,7 @@ export default Vue.component("hugescore-table", {
         //     $(element).modal("show");
         // }
     }
-});
+};
 </script>
 
 <style>

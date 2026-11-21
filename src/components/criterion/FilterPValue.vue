@@ -14,10 +14,10 @@
     </filter-control-template>
 </template>
 <script>
-import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
 import Formatter from "@/utils/formatters";
-export default Vue.component("filter-pvalue-control", {
+export default {
+    name: "filter-pvalue-control",
     props: {
         field: String,
         placeholder: String,
@@ -44,5 +44,5 @@ export default Vue.component("filter-pvalue-control", {
     components: {
         FilterControlTemplate,
     },
-});
+};
 </script>

@@ -162,6 +162,36 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import Autocomplete from "@/components/Autocomplete.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import CvdiPigeanTable from "@/views/CVDI_Pigean/CVDIPigeanTable.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanPlot from "@/components/PigeanPlot.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TraitGroupSelectpicker from "@/components/TraitGroupSelectPicker.vue";
+
+export default {
+    components: {
+        Autocomplete,
+        CriterionFunctionGroup,
+        CvdiPigeanTable,
+        FilterEnumerationControl,
+        FilterGreaterLess,
+        PageFooter,
+        PageHeader,
+        PigeanPlot,
+        ResearchPhewasPlot,
+        SearchHeaderWrapper,
+        TraitGroupSelectpicker,
+    },
+};
+</script>
 <style scoped>
 .card-body.pigean-plots {
     padding-bottom: 0;

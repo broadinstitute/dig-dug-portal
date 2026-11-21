@@ -271,7 +271,8 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import DataDownload from "@/components/DataDownload";
-export default Vue.component("clumped-variants-table", {
+export default {
+    name: "clumped-variants-table",
     components: {
         DataDownload,
     },
@@ -429,7 +430,7 @@ export default Vue.component("clumped-variants-table", {
             window.location.href = "#associations-table";
         },
     },
-});
+};
 </script>
 <style>
 @import url("/css/table.css");

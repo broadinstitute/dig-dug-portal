@@ -15,7 +15,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-volcano-plot-vector", {
+export default {
+	name: "research-volcano-plot-vector",
 	props: [
 		"renderData",
 		"renderConfig",
@@ -347,7 +348,7 @@ export default Vue.component("research-volcano-plot-vector", {
 					
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

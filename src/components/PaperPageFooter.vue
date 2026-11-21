@@ -23,15 +23,15 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("paper-page-footer", {
+export default {
+    name: "paper-page-footer",
     props: ["diseaseGroup"],
 
     data() {
         return {};
     },
-});
+};
 </script>
 
 <style>

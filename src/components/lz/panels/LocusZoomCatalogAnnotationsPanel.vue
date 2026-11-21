@@ -1,11 +1,11 @@
 <script>
 
-import Vue from "vue";
 import LzPanel from "./LzPanel"
 import { LZBioIndexSource } from "@/utils/lzUtils"
 import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
 
-export default Vue.component('lz-catalog-annotations-panel', {
+export default {
+    name: "lz-catalog-annotations-panel",
     components: {
         LzPanel
     },
@@ -39,7 +39,7 @@ export default Vue.component('lz-catalog-annotations-panel', {
             this.updatePanel();
         },
     }
-});
+};
 
 export function makeCatalogAnnotationsPanel(phenotype, title='', onLoad, onResolve, onError, initialData) {
     // console.log(LocusZoom.Layouts.get("panel", "annotation_catalog").data_layers[0])

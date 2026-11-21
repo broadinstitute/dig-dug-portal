@@ -72,9 +72,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("research-data-table-features", {
+export default {
+	name: "research-data-table-features",
 	props: ["featureRowsNumber","featuresData", "featuresFormat", "phenotypeMap","utils", "summarySection"],
 	data() {
 		return {};
@@ -191,7 +191,7 @@ export default Vue.component("research-data-table-features", {
 			return content;
 		},
 	},
-});
+};
 </script>
 
 <style>

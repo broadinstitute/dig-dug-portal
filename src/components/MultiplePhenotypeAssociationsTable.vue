@@ -110,7 +110,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
-export default Vue.component("multiple-phenotype-associations-table", {
+export default {
+    name: "multiple-phenotype-associations-table",
     props: [
         "associations",
         "phenotypes",
@@ -273,7 +274,7 @@ export default Vue.component("multiple-phenotype-associations-table", {
             return Formatters.consequenceFormatter(consequence);
         },
     },
-});
+};
 </script>
 
 <style>

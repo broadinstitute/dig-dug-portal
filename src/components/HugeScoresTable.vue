@@ -321,9 +321,11 @@ function joinMultiValues(fieldsToJoin, joinBy, row) {
     return out;
 }
 
-export default Vue.component("HugeScoresTable", {
+export default {
+    name: "HugeScoresTable",
     components: {
         DataDownload,
+        KcCfdeLogo,
     },
     props: [
         "leadTableField",
@@ -601,7 +603,7 @@ export default Vue.component("HugeScoresTable", {
             }
         },
     },
-});
+};
 </script>
 <style>
 .compelling {
