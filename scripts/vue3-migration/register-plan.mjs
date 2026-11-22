@@ -68,7 +68,8 @@ export const REASONS = ['no-registration', 'phase-2-present', 'ambiguous', 'self
  *    loads the tag from, or whether it loads one at all. `candidates` lists the files that define the name,
  *    named or `Vue.component`, sorted.
  *  - `ambiguous`: the name has several candidates and the pages do not settle it. `candidates` lists
- *    them, sorted: definition files, or import specifiers when only aliases register the name.
+ *    them, sorted: each component's file (`src/...`) or package name, and for a registration whose
+ *    component cannot be imported, the registering file followed by " (component not importable)".
  *  - `self`: the file is the component the tag names (a recursive component).
  *  - `not-loaded`: some page renders the file but never loads a file that registers the name, so the
  *    tag is an unknown element there today and registering it would change what the page shows.
@@ -144,21 +145,41 @@ function aliasTarget({ file, source }, files) {
 }
 
 /**
- * The one candidate every page that reaches `file` also reaches, or null. A page counts only when it
- * reaches `file`; a page that reaches no candidate or several of them, two pages that disagree, and
- * a `file` no page reaches (no evidence) all give null.
+ * Every global registration of a name, as what a page that loads it gets: `via` is the file whose import
+ * runs the `Vue.component` call, `target` the component it registers (`{ source, file }`, as for an entry),
+ * or null when that component cannot be imported (an `unexported` registration, or an alias whose
+ * component cannot be located). A definition registers its own file; an alias, what it was imported from.
+ * `label` is how the candidate is listed: the component's file (`src/...`), a package name, or the
+ * registering file followed by " (component not importable)".
  */
-function settleByPages(file, candidates, pageSets) {
-  const chosen = new Set();
+function registrationOptions(found, files) {
+  return found.map((registration) => {
+    const { file, kind } = registration;
+    if (kind === 'definition') return { via: file, target: { source: specifierOf(file), file }, label: file };
+    const target = kind === 'alias' ? aliasTarget(registration, files) : null;
+    return { via: file, target, label: target === null ? `${file} (component not importable)` : (target.file ?? target.source) };
+  });
+}
+
+/**
+ * The one target every page that reaches `file` loads, or null. A page loads an option when it reaches
+ * the option's `via` file. A page counts only when it reaches `file`; a page that loads no option, loads
+ * options with different targets (whichever registration runs last wins), or loads an option whose
+ * component cannot be imported gives null, and so do two pages that disagree and a `file` no page
+ * reaches (no evidence).
+ */
+function settleByPages(file, options, pageSets) {
+  const chosen = new Map();
   let evidence = 0;
   for (const reached of pageSets) {
     if (!reached.has(file)) continue;
     evidence++;
-    const hits = candidates.filter((candidate) => reached.has(candidate));
-    if (hits.length !== 1) return null;
-    chosen.add(hits[0]);
+    const hits = options.filter(({ via }) => reached.has(via));
+    if (hits.length === 0 || hits.some(({ target }) => target === null)) return null;
+    if (new Set(hits.map(({ target }) => target.source)).size !== 1) return null;
+    chosen.set(hits[0].target.source, hits[0].target);
   }
-  return evidence > 0 && chosen.size === 1 ? [...chosen][0] : null;
+  return evidence > 0 && chosen.size === 1 ? [...chosen.values()][0] : null;
 }
 
 /** Rules 1 to 3: `{ target: { source, file } }` or `{ reason, candidates? }`. */
@@ -170,21 +191,13 @@ function chooseTarget(file, tag, { registrations, files, pageSets }) {
     return { reason: 'phase-2-present', candidates: [...new Set(defining)].sort(byCodeUnit) };
   }
 
-  const definitions = [...new Set(found.filter(({ kind }) => kind === 'definition').map((r) => r.file))].sort(byCodeUnit);
-  if (definitions.length === 1) return { target: { source: specifierOf(definitions[0]), file: definitions[0] } };
-  if (definitions.length > 1) {
-    const settled = settleByPages(file, definitions, pageSets);
-    if (settled === null) return { reason: 'ambiguous', candidates: definitions };
-    return { target: { source: specifierOf(settled), file: settled } };
-  }
-
-  // Aliases only (an `unexported` registration is no definition and no alias): usable when every alias leads
-  // to the same place.
-  const targets = found.filter(({ kind }) => kind === 'alias').map((registration) => aliasTarget(registration, files));
-  const known = new Map(targets.filter((target) => target !== null).map((target) => [target.source, target]));
+  const options = registrationOptions(found, files);
+  const known = new Map(options.filter(({ target }) => target !== null).map(({ target }) => [target.source, target]));
   if (known.size === 0) return { reason: 'no-registration' };
-  if (known.size === 1 && targets.every((target) => target !== null)) return { target: [...known.values()][0] };
-  return { reason: 'ambiguous', candidates: [...known.keys()].sort(byCodeUnit) };
+  if (known.size === 1 && options.every(({ target }) => target !== null)) return { target: [...known.values()][0] };
+  const settled = settleByPages(file, options, pageSets);
+  if (settled !== null) return { target: settled };
+  return { reason: 'ambiguous', candidates: [...new Set(options.map(({ label }) => label))].sort(byCodeUnit) };
 }
 
 /** Whether `to` can be reached from `from` along `edges`. */
@@ -206,9 +219,9 @@ function canReach(edges, from, to) {
 /**
  * The page entries that render `file` but never load a file that registers `tag`, sorted. A page
  * renders `file` when its reach set (`pageSets[i]`, for `pages[i]`) contains it, and loads the tag when
- * that set contains any file with a registration for the tag's kebab name, definition or alias. An
- * `unexported` registration does not count: on a page that has only that one, the tag is a component the
- * target is not, so registering the target would change what the page shows.
+ * that set contains any file with a registration for the tag's kebab name, definition or alias. It only
+ * sees targets every candidate agrees on (rules 2 and 3), so no `unexported` registration of the name is
+ * left by then; one never counts as loading the target.
  */
 function pagesNotLoading(file, tag, { registrations, pages, pageSets }) {
   const registering = (registrations.get(toKebab(tag)) ?? [])
@@ -247,16 +260,21 @@ function rejection(file, tag, target, scriptSetupFiles, edges, context) {
  *     a file used to register, and whether the pages load it, cannot be read from the tree any more, so
  *     the rules below would decide on part of the picture (a portal-only definition of the name would
  *     look like the only one).
- *  2. Exactly one defining file -> that file, aliases of the same name ignored. A definition is only
- *     `export default Vue.component(...)`: an `unexported` registration is neither a definition nor an
- *     alias, here or below, so a name with nothing else ends as `no-registration`. No definition and every
- *     alias leading to one place -> that place: a package name as written, or a local import resolved
- *     against the aliasing file to its `@/` form. An alias that is not imported, or whose local path
- *     matches no file, is unknown; with only unknown aliases that is `no-registration`, and a mix of
- *     different places, or of known and unknown, is `ambiguous`.
- *  3. Several defining files -> for every page that reaches the using file, the candidates that page
- *     reaches. All pages reach the same single candidate -> that file. Otherwise, and when no page reaches
- *     the using file, `ambiguous` with all candidates.
+ *  2. Every registration of the name is a candidate, for what a page that loads it shows (ruling R17: a
+ *     portal alias beside a `master` definition must not be swapped for the definition). A definition
+ *     (`export default Vue.component(...)`) registers its own file. An alias registers the default import
+ *     it passes: a package name as written, or a local import resolved against the aliasing file to its
+ *     `@/` form. An `unexported` registration registers a component no file exports. An alias that is not
+ *     a default import, or whose local path matches no file, registers an unknown component. Unknown and
+ *     `unexported` components cannot be imported. Every candidate is one importable component -> that
+ *     component (one definition, its aliases, or aliases that share a source). No importable candidate
+ *     -> `no-registration`.
+ *  3. Otherwise, the pages decide: a page loads a candidate when it reaches the file that registers it.
+ *     Every page that reaches the using file loads candidates that are all one importable component, and
+ *     the pages agree -> that component. A page that loads none, loads several different components or
+ *     one that cannot be imported, pages that disagree, and no page reaching the using file -> `ambiguous`,
+ *     with every candidate: each component's file or package name, and the registering file
+ *     marked "(component not importable)" for the rest.
  *  4. The target is the using file -> `self`.
  *  5. Some page reaches the using file (its reach set contains it) but reaches no file that registers
  *     `toKebab(tag)`, as a definition or an alias -> `not-loaded`, with `pages` the page entries where

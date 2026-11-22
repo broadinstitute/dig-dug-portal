@@ -51,7 +51,7 @@ test('scanRegistrations finds definitions in double quotes, single quotes, and s
   assert.deepEqual(regs.get('split-comp'), [{ file: 'src/components/Split.vue', name: 'split-comp', kind: 'definition' }]);
 });
 
-test('scanRegistrations records an alias with the import specifier of its identifier', () => {
+test('scanRegistrations records an alias with the specifier of its default import; a named or namespace import has none', () => {
   const regs = scanRegistrations(
     srcs({
       'src/components/Picker.vue': sfc(
@@ -60,10 +60,12 @@ test('scanRegistrations records an alias with the import specifier of its identi
           `import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";`,
           `import { Autocomplete } from "./Autocomplete.vue";`,
           `import * as Ns from "@/components/Ns";`,
+          `import { default as Fancy } from "../Fancy.vue";`,
           `const Local = { template: "<i/>" };`,
           `Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);`,
           `Vue.component("autocomplete", Autocomplete);`,
           `Vue.component("ns", Ns);`,
+          `Vue.component("fancy", Fancy);`,
           `Vue.component("local", Local);`,
           `export default Vue.component("picker", {});`,
         ].join('\n'),
@@ -74,8 +76,11 @@ test('scanRegistrations records an alias with the import specifier of its identi
   assert.deepEqual(regs.get('vue-typeahead-bootstrap'), [
     { file, name: 'vue-typeahead-bootstrap', kind: 'alias', source: 'vue-typeahead-bootstrap' },
   ]);
-  assert.deepEqual(regs.get('autocomplete'), [{ file, name: 'autocomplete', kind: 'alias', source: './Autocomplete.vue' }]);
-  assert.deepEqual(regs.get('ns'), [{ file, name: 'ns', kind: 'alias', source: '@/components/Ns' }]);
+  // The codemod writes `import Autocomplete from "./Autocomplete.vue"`, the default export, which is not
+  // the named `Autocomplete`; a namespace object is no component at all. Neither has a source.
+  assert.deepEqual(regs.get('autocomplete'), [{ file, name: 'autocomplete', kind: 'alias', source: null }]);
+  assert.deepEqual(regs.get('ns'), [{ file, name: 'ns', kind: 'alias', source: null }]);
+  assert.deepEqual(regs.get('fancy'), [{ file, name: 'fancy', kind: 'alias', source: '../Fancy.vue' }]);
   assert.deepEqual(regs.get('local'), [{ file, name: 'local', kind: 'alias', source: null }]);
   assert.deepEqual(regs.get('picker'), [{ file, name: 'picker', kind: 'definition' }]);
 });
