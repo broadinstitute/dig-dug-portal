@@ -164,7 +164,8 @@ Vue.use(BootstrapVueIcons);
 
 */
 
-export default Vue.component("research-bar-in-cell-plot", {
+export default {
+    name: "research-bar-in-cell-plot",
     props: ["canvasId", "plotData", "plotConfig", "plotMargin", "utils"],
     data() {
         return {
@@ -497,7 +498,7 @@ export default Vue.component("research-bar-in-cell-plot", {
             }
         },
     },
-});
+};
 
 $(function () {});
 </script>

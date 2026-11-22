@@ -16,7 +16,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-region-track-vector", {
+export default {
+    name: "research-region-track-vector",
     props: [
         "renderData",
         "renderConfig",
@@ -306,7 +307,7 @@ export default Vue.component("research-region-track-vector", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

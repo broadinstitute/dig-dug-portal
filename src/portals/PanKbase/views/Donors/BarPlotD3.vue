@@ -21,7 +21,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 
 const DEFAULT_COLORS = [
@@ -34,7 +33,8 @@ const DEFAULT_COLORS = [
     "#6b4226",
 ];
 
-export default Vue.component("BarPlotD3", {
+export default {
+    name: "BarPlotD3",
     props: {
         data: {
             type: Array,
@@ -1105,7 +1105,7 @@ export default Vue.component("BarPlotD3", {
             });
         },
     },
-});
+};
 </script>
 
 <style scoped>

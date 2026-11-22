@@ -16,7 +16,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-region-plot-vector", {
+export default {
+    name: "research-region-plot-vector",
     props: [
         "assoData",
         "ldData",
@@ -292,7 +293,7 @@ export default Vue.component("research-region-plot-vector", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

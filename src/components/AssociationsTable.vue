@@ -155,7 +155,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import DataDownload from "@/components/DataDownload";
 import Chi from "chi-squared";
 
-export default Vue.component("AssociationsTable", {
+export default {
+    name: "AssociationsTable",
     components: {
         DataDownload,
     },
@@ -403,5 +404,5 @@ export default Vue.component("AssociationsTable", {
                 : "";
         },
     },
-});
+};
 </script>

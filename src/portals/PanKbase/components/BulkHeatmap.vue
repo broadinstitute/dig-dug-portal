@@ -31,7 +31,6 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from 'd3';
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 import sortUtils from "@/utils/sortUtils";
@@ -39,7 +38,8 @@ import "../assets/pkb-styles.css";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 import DownloadChart from "@/components/DownloadChart.vue";
 
-export default Vue.component("bulk-heatmap", {
+export default {
+    name: "bulk-heatmap",
     components: {
         DownloadChart
     },
@@ -340,7 +340,7 @@ export default Vue.component("bulk-heatmap", {
         this.chartWidth = this.chart.clientWidth;
         this.drawHeatMap();
     }
-});
+};
 </script>
 <style scoped>
 .legends {

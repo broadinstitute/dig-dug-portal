@@ -76,14 +76,14 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
 
 const SAFE_BLUE = "#2F67B1"; // colorblind safe blue from UCSB
 const SAFE_RED = "#BF2C23"; // colorblind safe red from UCSB,
 
-export default Vue.component("time-series-line-plot", {
+export default {
+    name: "time-series-line-plot",
     components: {},
     props: [
         "plotData",
@@ -597,7 +597,7 @@ export default Vue.component("time-series-line-plot", {
             this.drawChart();
         }
     },
-});
+};
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");

@@ -23,7 +23,8 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default Vue.component("filter-radio", {
+export default {
+    name: "filter-radio",
     props: {
         value: Object,
         field: String,
@@ -132,5 +133,5 @@ export default Vue.component("filter-radio", {
             this.updateFilter(newThreshold);
         },
     }
-});
+};
 </script>

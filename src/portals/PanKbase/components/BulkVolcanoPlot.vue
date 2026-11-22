@@ -47,7 +47,8 @@ import DownloadChart from "@/components/researchPortal/singleCellBrowser/Downloa
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("bulk-volcano-plot", {
+export default {
+    name: "bulk-volcano-plot",
     props: [
         "renderData",
         "renderConfig",
@@ -589,7 +590,7 @@ export default Vue.component("bulk-volcano-plot", {
             return extreme;
         },
     },
-});
+};
 
 $(function () {});
 </script>

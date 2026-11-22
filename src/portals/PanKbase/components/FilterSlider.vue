@@ -30,7 +30,8 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default Vue.component("filter-slider", {
+export default {
+    name: "filter-slider",
     props: {
         value: Object,
         field: String,
@@ -129,5 +130,5 @@ export default Vue.component("filter-slider", {
             }
         },
     },
-});
+};
 </script>

@@ -49,7 +49,6 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import { fetchTracks } from "@/portals/PanKbase/utils/tracks";
 import { loadWashUAssets } from "@/portals/PanKbase/utils/washU";
 import { TRACKS } from "@/portals/PanKbase/utils/tracks.js";
@@ -60,7 +59,8 @@ const DEFAULT_GENOME = "hg38";
 const DEFAULT_GENOME_BIOINDEX = "GRCh38";
 const DEFAULT_REGION = "chr11:2150341-2238950";
 
-export default Vue.component("AtacSeq", {
+export default {
+    name: "AtacSeq",
     props: ["gene"],
     data() {
         return {
@@ -251,7 +251,7 @@ export default Vue.component("AtacSeq", {
     },
     watch: {
     }
-});
+};
 </script>
 <style scoped>
 .atac-seq {

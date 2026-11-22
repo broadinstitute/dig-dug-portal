@@ -16,7 +16,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-region-dots-vector", {
+export default {
+    name: "research-region-dots-vector",
     props: [
         "renderData",
         "colorGroups",
@@ -286,7 +287,7 @@ export default Vue.component("research-region-dots-vector", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

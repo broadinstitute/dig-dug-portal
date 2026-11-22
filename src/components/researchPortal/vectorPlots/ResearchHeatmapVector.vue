@@ -16,7 +16,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-heatmap-vector", {
+export default {
+    name: "research-heatmap-vector",
     props: ["renderData", "renderConfig", "sectionId", "utils"],
     data() {
         return {};
@@ -416,7 +417,7 @@ export default Vue.component("research-heatmap-vector", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

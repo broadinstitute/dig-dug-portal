@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import { formatMetric, formatPValue } from "./ligerFormat";
 import { heatColor } from "./ligerHeat";
 
@@ -11,7 +10,8 @@ import { heatColor } from "./ligerHeat";
 //
 // Each column scales independently -- a p-value column and a correlation column
 // have nothing in common, so a shared range would make one of them unreadable.
-export default Vue.component("HeatTable", {
+export default {
+    name: "HeatTable",
     props: {
         // [{ key, label, scale: "diverging" | "sequential" | "pvalue", unit }]
         // The first column is the row label and needs no scale.
@@ -156,7 +156,7 @@ export default Vue.component("HeatTable", {
             }
         },
     },
-});
+};
 </script>
 
 <template>

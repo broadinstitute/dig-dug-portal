@@ -16,11 +16,11 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import mouseTooltip from "@/components/researchPortal/singleCellBrowser/mouseTooltip.js";
 import DownloadChart from "@/components/researchPortal/singleCellBrowser/DownloadChart.vue";
-export default Vue.component("scatterplot", {
+export default {
+  name: "scatterplot",
   components: {
     DownloadChart,
   },
@@ -229,7 +229,7 @@ export default Vue.component("scatterplot", {
       this.drawChart();
     }
   }
-});
+};
 </script>
 <style scoped>
   @import url("/css/effectorGenes.css");

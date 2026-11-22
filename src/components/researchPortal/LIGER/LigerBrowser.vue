@@ -164,7 +164,8 @@ const LIGER_DATASET_TISSUE_MAP = Object.keys(LIGER_TISSUE_CONFIG).reduce((map, t
     return map;
 }, {});
 
-export default Vue.component('LigerBrowser', {
+export default {
+    name: "LigerBrowser",
     components: {
         CellStateInfographic,
         StateDetails,
@@ -2888,7 +2889,7 @@ export default Vue.component('LigerBrowser', {
             }
         },
     }
-});
+};
 </script>
 
 <template>

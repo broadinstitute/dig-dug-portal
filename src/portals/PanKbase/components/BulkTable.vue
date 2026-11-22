@@ -97,7 +97,8 @@ import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
 
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
-export default Vue.component("bulk-table", {
+export default {
+    name: "bulk-table",
     components: {
         DataDownload,
         BulkTable,
@@ -307,7 +308,7 @@ export default Vue.component("bulk-table", {
             this.findGene(this.highlightedGene);
         }
     }
-});
+};
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");

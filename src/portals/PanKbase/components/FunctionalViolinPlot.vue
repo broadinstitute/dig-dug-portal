@@ -8,9 +8,9 @@
 <script>
 import * as d3 from "d3";
 import colors from "@/utils/colors";
-import Vue from "vue";
 
-export default Vue.component("functional-violin-plot", {
+export default {
+    name: "functional-violin-plot",
     props: {
         data: {
             type: (Array, null),
@@ -276,7 +276,7 @@ export default Vue.component("functional-violin-plot", {
             return t;
         },
     },
-});
+};
 </script>
 
 <style scoped>

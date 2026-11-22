@@ -176,7 +176,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { formatDataTypeLabel, normalizeDataTypeValue } from "./dataTypeUtils";
 import { parseNumericValue } from "./datasetUtils";
 
@@ -185,7 +184,8 @@ const ALL_DONOR_COLORS = ["#1a7b79", "#2f918e", "#47a8a1", "#68bcb0", "#8fd0c0"]
 const ASSAY_DONOR_COLORS = ["#12647a", "#1a7ca0", "#2598c5", "#53b1dc", "#8fd0ee"];
 const DATA_TYPE_COLORS = ["#0f766e", "#1d8f7d", "#34a98d", "#6ec2a9", "#9dd9c8"];
 
-export default Vue.component("DonorSnapshot", {
+export default {
+    name: "DonorSnapshot",
     props: {
         preparedDataset: {
             type: Object,
@@ -885,7 +885,7 @@ export default Vue.component("DonorSnapshot", {
             };
         },
     },
-});
+};
 
 function formatPercentValue(value) {
     if (!Number.isFinite(value)) {

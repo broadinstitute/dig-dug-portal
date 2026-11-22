@@ -45,10 +45,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { pkbMenu } from '@/portals/PanKbase/assets/pkbMenu.js';
 
-export default Vue.component("PkbFooter", {
+export default {
+    name: "PkbFooter",
     components: {},
     props: {},
     data() { 
@@ -59,7 +59,7 @@ export default Vue.component("PkbFooter", {
     computed: {},
     created() {},
     methods: {},
-});
+};
 </script>
 
 <style scoped>
