@@ -43,6 +43,7 @@ import { cloneDeep } from "@/utils/lodashUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
+import DownloadChart from "@/components/researchPortal/singleCellBrowser/DownloadChart.vue";
 
 Vue.use(BootstrapVueIcons);
 
@@ -73,7 +74,9 @@ export default Vue.component("bulk-volcano-plot", {
         };
     },
     modules: {},
-    components: {},
+    components: {
+        DownloadChart,
+    },
     created: function () {},
     mounted: function () {
         this.chart = document.getElementById(

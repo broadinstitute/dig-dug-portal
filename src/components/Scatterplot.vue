@@ -19,8 +19,10 @@
 import Vue from "vue";
 import * as d3 from "d3";
 import mouseTooltip from "@/components/researchPortal/singleCellBrowser/mouseTooltip.js";
+import DownloadChart from "@/components/researchPortal/singleCellBrowser/DownloadChart.vue";
 export default Vue.component("scatterplot", {
   components: {
+    DownloadChart,
   },
   props: ["plotData", "config", "filter", "plotName", "logScale", "translucentDots"],
   data() {
