@@ -26,9 +26,11 @@ import { compileTemplate, parse as parseSfc } from 'vue/compiler-sfc';
  *    the file's default export (what an `import` of the file gets).
  *  - `unexported`: `Vue.component("name", { ... })` anywhere else (a second component in the file, or one
  *    exported later through a variable). It registers the name when it runs, but importing the file does
- *    not give that component, so the planner does not count it as a definition.
- *  - `alias`: `Vue.component("name", Identifier)`; `source` is the import specifier the
- *    identifier comes from, or `null` when it is not imported.
+ *    not give that component, so the planner does not count it as a definition: it is a candidate that
+ *    cannot be imported, so a page that loads it blocks a choice for the name (ruling R17).
+ *  - `alias`: `Vue.component("name", Identifier)`; `source` is the specifier of the default import the
+ *    identifier comes from, or `null` when it is not a default import (not imported, or a named or
+ *    namespace import, which a default import of that specifier would not give).
  *  - `named`: a `.vue` file whose default export is a plain options object with a string-literal `name`,
  *    `export default { name: "name", ... }`: what phase 2 (`unwrap-vue-component`) leaves, or a component
  *    written that way by hand. It registers nothing globally; it is recorded so that a tag can be matched
@@ -265,11 +267,18 @@ function templateChoices(file, source) {
 
 /** Registrations, import specifiers (unresolved) and registration problems found in one parsed script. */
 function collect(file, ast, code, found) {
-  /** import identifier -> specifier */
+  /**
+   * default-import identifier -> specifier. Only default imports (`import X from`, `import { default as X }
+   * from`): the codemod writes a default import of the alias's source, so an alias of a named or namespace
+   * import (`import { X } from`, `import * as X from`) has no source it could import, and stays `null`.
+   */
   const importedFrom = new Map();
   for (const node of ast.program.body) {
     if (node.type !== 'ImportDeclaration') continue;
-    for (const specifier of node.specifiers) importedFrom.set(specifier.local.name, node.source.value);
+    for (const specifier of node.specifiers) {
+      const imported = specifier.imported?.name ?? specifier.imported?.value;
+      if (specifier.type === 'ImportDefaultSpecifier' || imported === 'default') importedFrom.set(specifier.local.name, node.source.value);
+    }
   }
   const problem = (node, message) =>
     found.errors.push({ file, kind: 'registration', message, line: node.loc?.start.line });
