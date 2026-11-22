@@ -134,7 +134,8 @@ export default Vue.component("research-m-bitmap-plot", {
 	modules: {
 	},
 	components: {
-		ResearchMPlotBitmapVector
+		ResearchMPlotBitmapVector,
+		ResearchMBitmapPlotVector: ResearchMPlotBitmapVector,
 	},
 	mounted: function () {
 		this.renderPlot(this.renderData);

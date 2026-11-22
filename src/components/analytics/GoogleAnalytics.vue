@@ -13,7 +13,9 @@
     export default Vue.component("analytics", {
         components: {
             GAErrors,
-            GAPageView
+            GAPageView,
+            GaErrors: GAErrors,
+            GaPageview: GAPageView,
         },
     });
 

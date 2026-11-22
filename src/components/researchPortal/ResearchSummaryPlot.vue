@@ -17,6 +17,9 @@ import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import ResearchMultiPlot from "./ResearchMultiPlot.vue";
 export default Vue.component("research-summary-plot", {
+    components: {
+        ResearchMultiPlot,
+    },
     props: ["rawData", "summaryPlot", "isPlotByRow"],
     data(){
         return {};

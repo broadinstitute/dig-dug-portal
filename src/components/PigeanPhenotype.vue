@@ -513,7 +513,10 @@ export default Vue.component("pigean-phenotype", {
     HugeScoresTable,
     Documentation,
     TooltipDocumentation,
-    PigeanLocusZoom
+    PigeanLocusZoom,
+    FilterEnumerationControl: FilterEnumeration,
+    FilterGreaterControl: FilterGreaterThan,
+    ResearchPigeanPhewasPlot: ResearchPigeanPheWAS,
   },
   props: ["phenotypeMap", "pigeanData", "hugeScores", "falconTraitAssociatedGenes", "phenotype", "docDetails", "filter", "plotColors"],
   data() {

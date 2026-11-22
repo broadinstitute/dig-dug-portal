@@ -100,6 +100,9 @@ import Formatters from "@/utils/formatters";
 import ForestPlot from "@/components/ForestPlot";
 
 export default Vue.component("MaskTable", {
+    components: {
+        ForestPlot,
+    },
     props: {
         maskData: Array,
         index: [String, Number],

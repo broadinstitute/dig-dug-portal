@@ -234,6 +234,9 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("cfde-eco-system", {
+	components: {
+		ResearchSingleSearch,
+	},
 	props: ["sectionConfigs", "phenotypesInUse", "utilsBox", "keyParams"],
 	data() {
 		return {

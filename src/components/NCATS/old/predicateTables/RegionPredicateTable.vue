@@ -11,7 +11,8 @@ import PredicateTable from "@/components/NCATS/old/PredicateTable"
 export default Vue.component('translator-region-predicate-table', {
     props: ["title", "chr", "start", "end", "region", "field", "filter"],
     components: {
-        PredicateTable
+        PredicateTable,
+        TranslatorPredicateTable: PredicateTable,
     },
     computed: {
         regionQuery() {

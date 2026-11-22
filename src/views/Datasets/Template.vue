@@ -118,3 +118,23 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+
+<script>
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
+
+export default {
+    components: {
+        CriterionListGroup,
+        Documentation,
+        FilterEnumerationControl,
+        PageFooter,
+        PageHeader,
+        PortalDatasetsListTable,
+    },
+};
+</script>

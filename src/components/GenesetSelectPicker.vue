@@ -27,6 +27,9 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 Vue.component("autocomplete", Autocomplete);
 
 export default Vue.component("geneset-selectpicker", {
+	components: {
+		Autocomplete,
+	},
 	props: [],
 
 	data() {

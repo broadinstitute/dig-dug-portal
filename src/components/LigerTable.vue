@@ -256,6 +256,8 @@ export default Vue.component("LigerTable", {
         FilterEnumeration,
         FilterGreaterLess,
         FilterPValue,
+        FilterEnumerationControl: FilterEnumeration,
+        FilterPvalueControl: FilterPValue,
     },
     props: {
         geneName: {

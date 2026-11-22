@@ -23,6 +23,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 export default Vue.component("pigean-plot", {
   components: {
+    DownloadChart,
   },
   props: [
     "pigeanData", "config", "phenotypeMap", "filter", 

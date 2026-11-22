@@ -18,6 +18,7 @@ export default Vue.component("pigean-table", {
         DataDownload,
         PigeanTable,
         PigeanLocusZoom,
+        ResearchPhewasPlot: ResearchPheWAS,
     },
     props: [
         "pigeanData",

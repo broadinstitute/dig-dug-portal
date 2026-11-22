@@ -23,12 +23,15 @@ import host from "@/utils/hostUtils";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { userMixin } from "@/mixins/userMixin";
+import Alert from "@/components/Alert.vue";
 Vue.use(VueCookies);
 
 export default Vue.component("paper-page-header", {
     props: ["diseaseGroup", "frontContents", "paperMenu"],
     components: {
         GoogleAnalytics,
+        Alert,
+        Analytics: GoogleAnalytics,
     },
     mixins: [userMixin],
     data() {

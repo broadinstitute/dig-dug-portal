@@ -39,10 +39,16 @@
 
 <script>
 import BottomLineProvenance from "@/components/researchPortal/bottomLineProvenance/BottomLineProvenance.vue";
+import Documentation from "@/components/Documentation.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
 
 export default {
     components: {
         BottomLineProvenance,
+        Documentation,
+        PageFooter,
+        PageHeader,
     },
 };
 </script>

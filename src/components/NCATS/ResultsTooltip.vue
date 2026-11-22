@@ -13,8 +13,12 @@
 <script>
 import Vue from "vue";
 import trapi from "@/components/NCATS/trapi"
+import ResolvedCurieLink from "@/components/NCATS/ResolvedCurieLink.vue";
 
 export default Vue.component("results-tooltip", {
+    components: {
+        ResolvedCurieLink,
+    },
     props: ['rowData', 'target', 'curie', 'query_graph'],
     data() {
         return {

@@ -5,14 +5,18 @@
 import { setTimeout as delay } from 'node:timers/promises';
 
 /**
- * Make messages comparable across servers and builds: the origin's port, the bundle hash and
- * line:column positions vary between the baseline and the candidate.
+ * Make messages comparable across servers and builds: the origin's port, the bundle hash,
+ * line:column positions and, in a development build, the path to node_modules in a stack frame's
+ * module name (`push../node_modules/...` in the candidate, `push.../../home/me/repo/node_modules/...`
+ * in a baseline built in a worktree that links to this repo's node_modules) vary between the
+ * baseline and the candidate.
  */
 export function normalizeMessage(text) {
   return text
     .replace(/http:\/\/localhost:\d+/g, '<origin>')
     .replace(/\.[0-9a-f]{8}\.js/g, '.js')
-    .replace(/:\d+:\d+/g, ':<l>:<c>');
+    .replace(/:\d+:\d+/g, ':<l>:<c>')
+    .replace(/(\w\.)\.{1,2}\/[^\s()]*?node_modules\//g, '$1./node_modules/');
 }
 
 const LANDMARK_TIMEOUT_MS = 20_000;

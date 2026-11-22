@@ -22,6 +22,11 @@
   import ResearchExpressionTable from "@/components/researchPortal/ResearchExpressionTable.vue";
   import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
   export default Vue.component("ResearchExpressionDisplay", {
+    components: {
+      ResearchExpressionFilter,
+      ResearchExpressionPlot,
+      ResearchExpressionTable,
+    },
     props: ["rawData", "plotName"],
     data() {
       return {

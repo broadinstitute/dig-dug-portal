@@ -79,7 +79,7 @@ export default Vue.component("research-region-dots-track", {
     },
     modules: {
     },
-    components: { regionDotsVector },
+    components: { regionDotsVector, ResearchRegionDotsVector: regionDotsVector },
     mounted: function () {
         this.renderPlot();
         window.addEventListener("resize", this.onResize);

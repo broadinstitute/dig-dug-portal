@@ -279,7 +279,13 @@ export default Vue.component("research-section-visualizers", {
 		ResearchRegionDotsTrack,
 		ResearchSingleCellBrowser,
 		ResearchSpliceTrack,
-		cfdePhenotypeXing
+		cfdePhenotypeXing,
+		MultiGenesTrack: ResearchGenesTrack,
+		MultiRegionPlot: ResearchRegionPlot,
+		ResearchCfdeXing: cfdePhenotypeXing,
+		ResearchMBitmapPlot: ResearchMPlotBitmap,
+		ResearchMQqPlot: ResearchMQQPlot,
+		ResearchPhewasPlot: ResearchPheWAS,
     },
 	data() {
 		return {

@@ -32,6 +32,7 @@ import Formatters from "@/utils/formatters.js"
 export default Vue.component("translator-results-dashboard", {
     components: {
         ResultsTable,
+        TranslatorResultsTable: ResultsTable,
     },
     props: {
         query_graph: Object,

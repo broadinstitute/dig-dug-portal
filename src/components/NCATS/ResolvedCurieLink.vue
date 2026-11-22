@@ -20,7 +20,8 @@ import NormalizedCurieLabel from "./NormalizedCurieLabel"
 export default Vue.component('resolved-curie-link', {
     props: ["curie", "id", "prefix", "keepTitlePrefix"],
     components: {
-        NormalizedCurieLabel
+        NormalizedCurieLabel,
+        CurieLabel: NormalizedCurieLabel,
     },
     data() {
         return {

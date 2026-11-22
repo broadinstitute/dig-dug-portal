@@ -69,6 +69,7 @@ import ResearchInSectionSearch from "@/components/researchPortal/ResearchInSecti
 import ResearchSectionFilters from "@/components/researchPortal/ResearchSectionFilters.vue";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 
 
 export default Vue.component("research-sections-summary", {
@@ -79,6 +80,7 @@ export default Vue.component("research-sections-summary", {
 		ResearchSectionVisualizers,
 		ResearchDataTable,
 		ResearchInSectionSearch,
+		ResearchPageDescription,
 	},
 	data() {
 		return {

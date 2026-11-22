@@ -314,7 +314,7 @@ export default Vue.component("research-gem-data-table", {
 		};
 	},
 	modules: {},
-	components: { ResearchGEMTableFeatures },
+	components: { ResearchGEMTableFeatures, ResearchGemTableFeatures: ResearchGEMTableFeatures },
 	created() {},
 	beforeMount() {},
 

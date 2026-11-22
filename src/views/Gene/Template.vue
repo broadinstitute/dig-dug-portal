@@ -835,6 +835,62 @@
     </div>
 </template>
 
+<script>
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import ColocusTable from "@/components/ColocusTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import EglsSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import GeneAssociationsMasks from "@/components/GeneAssociationsMasks.vue";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable.vue";
+import LigerTable from "@/components/LigerTable.vue";
+import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanGene from "@/components/PigeanGene.vue";
+import ResearchExpressionDisplay from "@/components/researchPortal/ResearchExpressionDisplay.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import TranscriptSelectpicker from "@/components/TranscriptSelectPicker.vue";
+import TranslatorPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage.vue";
+import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
+import VariantSearch from "@/components/VariantSearch.vue";
+
+export default {
+    components: {
+        AncestrySelectpicker,
+        ColocusTable,
+        CriterionFunctionGroup,
+        Documentation,
+        EglsSectionOnGene,
+        FilterEnumerationControl,
+        FilterPvalueControl,
+        GeneAssociationsMasks,
+        GeneAssociationsTable,
+        LigerTable,
+        MouseSummaryTable,
+        PageFooter,
+        PageHeader,
+        PigeanGene,
+        ResearchExpressionDisplay,
+        ResearchPhewasPlot,
+        ResearchSingleSearch,
+        SearchHeaderWrapper,
+        TooltipDocumentation,
+        TranscriptSelectpicker,
+        TranslatorPredicateTable,
+        UnauthorizedMessage,
+        UniprotReferencesTable,
+        VariantSearch,
+    },
+};
+</script>
+
 <style scoped>
 .container {
     display: flex;

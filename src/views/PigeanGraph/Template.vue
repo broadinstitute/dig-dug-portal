@@ -119,6 +119,26 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanGraphViz from "@/components/PigeanGraphViz.vue";
+import PigeanTable from "@/components/PigeanTable.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+
+export default {
+    components: {
+        PageFooter,
+        PageHeader,
+        PigeanGraphViz,
+        PigeanTable,
+        SearchHeaderWrapper,
+        TooltipDocumentation,
+    },
+};
+</script>
 <style scoped>
 .phenotype-search-input {
     display: block !important;

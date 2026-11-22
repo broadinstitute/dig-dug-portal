@@ -16,6 +16,9 @@ import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import DownloadChart from "@/components/DownloadChart.vue";
 export default Vue.component("mouse-whisker-plot", {
+  components: {
+    DownloadChart,
+  },
   props: ["data", "plotName"],
   data() {
       return {

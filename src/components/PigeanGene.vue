@@ -705,7 +705,11 @@ export default Vue.component("pigean-gene", {
     FilterGreaterThan,
     KcCfdeLogo,
     TooltipDocumentation,
-    PigeanLocusZoom
+    PigeanLocusZoom,
+    FilterEnumerationControl: FilterEnumeration,
+    FilterGreaterControl: FilterGreaterThan,
+    ResearchPhewasPlot: ResearchPheWAS,
+    ResearchPigeanPhewasPlot: ResearchPigeanPheWAS,
   },
   props: ["gene","pigeanData","falconGeneAssociations","phenotypeMap","phenotypesInSession","hugeScores","docDetails"],
   data() {

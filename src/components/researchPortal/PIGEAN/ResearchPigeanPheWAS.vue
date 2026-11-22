@@ -264,6 +264,7 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("ResearchPigeanPhewasPlot", {
     components: {
         pheWasPlotVector,
+        ResearchPhewasPlotVector: pheWasPlotVector,
     },
     props: [
         "canvasId",

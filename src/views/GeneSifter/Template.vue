@@ -344,6 +344,30 @@
 	</div>
 </template>
 
+<script>
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterControl from "@/components/criterion/FilterGreaterThan.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import GeneFinderWEglTable from "@/components/GeneFinderTableWEgl.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+
+export default {
+    components: {
+        CriterionListGroup,
+        Documentation,
+        FilterEnumerationControl,
+        FilterGreaterControl,
+        FilterPvalueControl,
+        GeneFinderWEglTable,
+        PageFooter,
+        PageHeader,
+    },
+};
+</script>
+
 <style>
 .labele:before {
 	content: "*";

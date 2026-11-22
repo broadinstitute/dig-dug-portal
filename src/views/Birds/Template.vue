@@ -10,6 +10,20 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import BirdsDashboard from "@/views/Birds/components/BirdsDashboard.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+
+export default {
+    components: {
+        BirdsDashboard,
+        PageFooter,
+        PageHeader,
+    },
+};
+</script>
 <style scoped>
 @import url("/css/birdcss/revisions.css");
 @import url("/css/birdcss/style.css");

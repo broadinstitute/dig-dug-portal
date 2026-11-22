@@ -58,6 +58,9 @@ import * as d3 from "d3";
 import Formatters from "@/utils/formatters";
 import ResearchDatasetSubtable from "@/components/researchPortal/ResearchDatasetSubtable.vue";
 export default Vue.component("ResearchExpressionTable", {
+    components: {
+        ResearchDatasetSubtable,
+    },
     props: {
         filteredData: Array,
         plotByField: {

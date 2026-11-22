@@ -58,7 +58,8 @@ export default Vue.component("birds-dashboard", {
     components: {
         ModelGraph,
         ValidationGallery,
-        MethodPanel
+        MethodPanel,
+        Modelgraph: ModelGraph,
     },
   data() {
     return {

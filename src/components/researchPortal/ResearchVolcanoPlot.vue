@@ -68,6 +68,7 @@ export default Vue.component("research-volcano-plot", {
 	},
 	components: {
 		volcanoPlotVector,
+		ResearchVolcanoPlotVector: volcanoPlotVector,
 	},
 	mounted: function () {
 		this.renderPlot();

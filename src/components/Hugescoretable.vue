@@ -84,6 +84,9 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 Vue.component("autocomplete", Autocomplete);
 
 export default Vue.component("hugescore-table", {
+    components: {
+        ResetPriorWidget,
+    },
     props: {
         commonBF: {
             type: Number,
