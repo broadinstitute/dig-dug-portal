@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/directcsv?id=Portal_stats_501",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"field_data_points\":\"Release date,Portal,Portal ID,Genetic datasets,Phenotypes,Genomic datasets,Curated datasets,Bioinformatic methods\\r\\n10\\/2\\/26,A2FKP,a2f,1478,1490,9853,175,10\\r\\n10\\/2\\/26,CMDKP,md,1026,1040,9853,175,10\\r\\n10\\/2\\/26,T2DKP,t2d,816,786,9853,175,10\\r\\n10\\/2\\/26,T1DKP,t1d,373,328,9853,175,10\\r\\n10\\/2\\/26,CDKP,cd,217,173,9853,175,10\\r\\n10\\/2\\/26,CVDKP,cvd,333,246,9853,175,10\\r\\n10\\/2\\/26,SDKP,sleep,165,158,9853,175,10\\r\\n10\\/2\\/26,AKP,aging,334,108,9853,175,10\\r\\n10\\/2\\/26,KDKP,kidney,100,104,9853,175,10\\r\\n10\\/2\\/26,ADKP,autoimmune,93,62,9853,175,10\\r\\n10\\/2\\/26,OcularKP,ocular,223,184,9853,175,10\\r\\n10\\/2\\/26,RSKP,reproductive,375,213,9853,175,10\\r\\n10\\/2\\/26,LungDiseaseKP,lung,89,139,9853,175,10\\r\\n10\\/2\\/26,MSK-KP,msk,767,690,9853,175,10\\r\\n10\\/2\\/26,NDKP,ndkp,460,378,9853,175,10\\r\\n10\\/2\\/26,NAGEKP,nage,749,775,9853,175,10\\r\\n10\\/2\\/26,SkinKP,skin,57,28,9853,175,10\\r\\n10\\/2\\/26,CancerGeneticsKP,cancer,17,20,0,0,10\",\"field_data_table_format\":false,\"field_filters\":false,\"field_visualizer_configuration\":false,\"body\":false}]"
+}
