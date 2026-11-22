@@ -191,6 +191,22 @@
     </div>
 </template>
 
+<script>
+import DonorSnapshot from "@/portals/PanKbase/views/Donors/DonorSnapshot.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+
+export default {
+    components: {
+        DonorSnapshot,
+        PkbFooter,
+        PkbHeader,
+        ResearchSingleSearch,
+    },
+};
+</script>
+
 <style scoped>
 .pkb-nav {
     background: #fafafa99 !important;

@@ -620,6 +620,8 @@ import { formatDataTypeLabel, getDataTypeDetails, normalizeDataTypeValue } from 
 import DataDownload from "@/components/DataDownload.vue";
 import uiUtils from "@/utils/uiUtils";
 import { parseNumericValue } from "./datasetUtils";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
 
 const AVAILABILITY_PLOT_COLORS = [
     "#1197b7",
@@ -645,6 +647,8 @@ export default {
         NumericRangeFilter,
         TableConfigButton,
         UpSetPlot,
+        PkbFooter,
+        PkbHeader,
     },
     data() {
         return {

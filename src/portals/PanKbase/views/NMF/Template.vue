@@ -261,6 +261,22 @@
     </div>
 </template>
 
+<script>
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
+import ResearchUmapPlotGl from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlotGL.vue";
+
+export default {
+    components: {
+        PkbFooter,
+        PkbHeader,
+        ResearchSingleCellInfo,
+        ResearchUmapPlotGl,
+    },
+};
+</script>
+
 <style scoped>
 #histogram:empty + .histogram-note{
     display:none !important;

@@ -568,6 +568,56 @@
   </div>
 </template>
 
+<script>
+import AssociationsTable from "@/components/AssociationsTable.vue";
+import C2ctTable from "@/components/C2ctTable.vue";
+import CorrelationTable from "@/components/CorrelationTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import EglsSection from "@/components/EffectorGenesSection.vue";
+import EnrichmentTable from "@/components/EnrichmentTable.vue";
+import FilterEffectDirectionControl from "@/components/criterion/FilterEffectDirection.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterControl from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessControl from "@/components/criterion/FilterLessThan.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import GeneFinderTable from "@/components/GeneFinderTable.vue";
+import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
+import PathwayTable from "@/components/PathwayTable.vue";
+import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue";
+import PhenotypeSelectpicker from "@/components/PhenotypeSelectPicker.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import RawImg from "@/components/RawImage.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+
+export default {
+    components: {
+        AssociationsTable,
+        C2ctTable,
+        CorrelationTable,
+        CriterionFunctionGroup,
+        Documentation,
+        EglsSection,
+        EnrichmentTable,
+        FilterEffectDirectionControl,
+        FilterEnumerationControl,
+        FilterGreaterControl,
+        FilterLessControl,
+        FilterPvalueControl,
+        GeneFinderTable,
+        MetaAnalysisBarGraph,
+        PathwayTable,
+        PhenotypeHugeScores,
+        PhenotypeSelectpicker,
+        PkbFooter,
+        PkbHeader,
+        RawImg,
+        TooltipDocumentation,
+    },
+};
+</script>
+
 <style scoped>
     #search-heading {
         text-align: center;

@@ -2,6 +2,8 @@
 import SearchSection from "./SearchSection.vue";
 import CanvasSection from "./CanvasSection.vue";
 import DetailsSection from "./DetailsSection.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
 
 export default {
     name: "LigerTemplate",
@@ -9,7 +11,9 @@ export default {
     components: {
         SearchSection,
         CanvasSection,
-        DetailsSection
+        DetailsSection,
+        PkbFooter,
+        PkbHeader,
     }
 };
 </script>

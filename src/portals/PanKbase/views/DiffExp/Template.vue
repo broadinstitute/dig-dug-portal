@@ -219,6 +219,30 @@
       </div>
   </div>
 </template>
+
+<script>
+import BulkHeatmap from "@/portals/PanKbase/components/BulkHeatmap.vue";
+import BulkTable from "@/portals/PanKbase/components/BulkTable.vue";
+import BulkVolcanoPlot from "@/portals/PanKbase/components/BulkVolcanoPlot.vue";
+import GeneSelectpicker from "@/components/GeneSelectPicker.vue";
+import MouseGeneSelect from "@/components/MouseGeneSelect.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
+
+export default {
+    components: {
+        BulkHeatmap,
+        BulkTable,
+        BulkVolcanoPlot,
+        GeneSelectpicker,
+        MouseGeneSelect,
+        PkbFooter,
+        PkbHeader,
+        ResearchSingleCellInfo,
+    },
+};
+</script>
 <style scoped>
 .tabs-group{
   display:flex;

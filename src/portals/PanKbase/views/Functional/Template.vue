@@ -548,6 +548,30 @@
         <pkb-footer></pkb-footer>
     </div>
 </template>
+
+<script>
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import DataDownload from "@/components/DataDownload.vue";
+import FilterRadio from "@/portals/PanKbase/components/FilterRadio.vue";
+import FilterSlider from "@/portals/PanKbase/components/FilterSlider.vue";
+import FunctionalViolinPlot from "@/portals/PanKbase/components/FunctionalViolinPlot.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import TimeSeriesLinePlot from "@/portals/PanKbase/components/TimeSeriesLinePlot.vue";
+
+export default {
+    components: {
+        CriterionFunctionGroup,
+        DataDownload,
+        FilterRadio,
+        FilterSlider,
+        FunctionalViolinPlot,
+        PkbFooter,
+        PkbHeader,
+        TimeSeriesLinePlot,
+    },
+};
+</script>
 <style scoped>
 .pkb-body {
     max-width: 2000px;

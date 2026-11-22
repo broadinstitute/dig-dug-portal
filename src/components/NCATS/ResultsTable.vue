@@ -175,6 +175,8 @@ import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 
 import AsyncComputed from "vue-async-computed";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import ResolvedCurieLink from "@/components/NCATS/ResolvedCurieLink.vue";
 Vue.use(AsyncComputed);
 
 export default Vue.component("translator-results-table", {
@@ -196,6 +198,8 @@ export default Vue.component("translator-results-table", {
     components: {
         ResultsTooltip,
         CriterionFunctionGroup,
+        FilterEnumerationControl,
+        ResolvedCurieLink,
     },
     data() {
         return {

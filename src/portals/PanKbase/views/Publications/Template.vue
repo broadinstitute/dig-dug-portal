@@ -49,6 +49,20 @@
       <pkb-footer></pkb-footer> 
   </div>
 </template>
+
+<script>
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+
+export default {
+    components: {
+        CriterionFunctionGroup,
+        PkbFooter,
+        PkbHeader,
+    },
+};
+</script>
 <style>
   .page-item.active .page-link {
     color: #fff !important;
