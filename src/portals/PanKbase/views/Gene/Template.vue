@@ -339,6 +339,7 @@
                       class="col filter-col-md"
                   >
                       <div class="label">Transcript</div>
+                      <!-- eslint-disable-next-line vue/no-undef-components -- not loaded on this page; rendering it would be a behaviour change (latent bug, owner decision) -->
                       <transcript-selectpicker
                           v-if="
                               $store.state.geneToTranscript &&
