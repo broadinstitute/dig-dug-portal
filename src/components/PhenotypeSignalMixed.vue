@@ -319,7 +319,8 @@ import Formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("phenotype-signal-mixed", {
+export default {
+	name: "phenotype-signal-mixed",
 	modules: {
 		uiUtils,
 	},
@@ -448,7 +449,7 @@ export default Vue.component("phenotype-signal-mixed", {
 			window.location.href = "#associations-table";
 		},
 	},
-});
+};
 </script>
 
 <style>

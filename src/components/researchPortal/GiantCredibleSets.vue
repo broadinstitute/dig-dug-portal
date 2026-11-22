@@ -168,7 +168,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("giant-credible-sets-plot", {
+export default {
+	name: "giant-credible-sets-plot",
 	props: [
 		"region",
 		"phenotype",
@@ -1198,7 +1199,7 @@ export default Vue.component("giant-credible-sets-plot", {
 			}
         },
 	},
-});
+};
 
 $(function () {});
 </script>

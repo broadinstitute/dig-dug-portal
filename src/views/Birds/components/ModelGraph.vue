@@ -255,9 +255,9 @@
   </svg>
 </template>
 <script>
-import Vue from "vue";
 
-export default Vue.component("modelgraph", {
+export default {
+  name: "modelgraph",
   components: {
   },
   props: { method: { type: String, required: true } },
@@ -308,7 +308,7 @@ export default Vue.component("modelgraph", {
     },
   },
   watch: { method() { this.$nextTick(this.applyFocus); } },
-});
+};
 </script>
 <style>
 @import url("/css/birdcss/revisions.css");

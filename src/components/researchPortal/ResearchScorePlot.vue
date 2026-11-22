@@ -96,7 +96,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-score-plot", {
+export default {
+	name: "research-score-plot",
 	props: [
 		"region",
 		"plotData",
@@ -1030,7 +1031,7 @@ export default Vue.component("research-score-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

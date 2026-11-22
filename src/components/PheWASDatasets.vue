@@ -306,13 +306,13 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { BIO_INDEX_HOST } from "../utils/bioIndexUtils";
 import { orderBy, groupBy, cloneDeep } from "@/utils/lodashUtils";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import DataDownload from "@/components/DataDownload";
-export default Vue.component("PhewasDatasets", {
+export default {
+    name: "PhewasDatasets",
     components: { DataDownload },
     props: [
         "associations",
@@ -508,7 +508,7 @@ export default Vue.component("PhewasDatasets", {
             this.showTop25(index);
         },
     },
-});
+};
 </script>
 
 <style>

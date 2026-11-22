@@ -459,7 +459,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import DataDownload from "@/components/DataDownload";
 
-export default Vue.component("GeneFinderWEglTable", {
+export default {
+	name: "GeneFinderWEglTable",
 	components: {
 		TooltipDocumentation,
 		DataDownload,
@@ -785,7 +786,7 @@ export default Vue.component("GeneFinderWEglTable", {
 			uiUtils.convertJson2Csv(downloadData, "gene_finder_data");
 		},
 	},
-});
+};
 </script>
 
 <style>

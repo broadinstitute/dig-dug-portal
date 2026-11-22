@@ -7,9 +7,9 @@
   
   <script>
   import * as d3 from 'd3';
-  import Vue from 'vue';
   
-  export default Vue.component('research-bar-plot-v2', {
+  export default {
+    name: "research-bar-plot-v2",
     props: {
       data: {                           //tabular data as array or object
         type: (Array, Object, null),
@@ -689,7 +689,7 @@
             
         },
     },
-  });
+  };
   </script>
   
   <style scoped>

@@ -1,10 +1,13 @@
 // Component graph for the Vue 3 registration codemods. Report only: nothing is written.
 //
 // Reads every `.vue` and `.js` file under `<root>/src` and answers four questions:
-//   - which components does each file register (`Vue.component("name", ...)`)?
+//   - which components does each file register (`Vue.component("name", ...)`), and which `.vue` files are
+//     already plain `export default { name: "name", ... }` (phase 2 output, or written that way by hand)?
 //   - which local files does each file import?
-//   - which files are page entries (`src/views/**/main.js`) and what does each one pull in?
+//   - which files are page entries (every `main.js` under `src/`) and what does each one pull in?
 //   - which files import each other in a loop?
+// It also lists the components a file chooses at run time (`runtimeChoices` of `analyzeSources`), which no
+// lint finds, for a person to check.
 //
 // All paths are relative to `root`, with forward slashes (`src/components/A.vue`).
 //
@@ -15,16 +18,27 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { parse as parseBabel } from '@babel/parser';
-import { parse as parseSfc } from 'vue/compiler-sfc';
+import { compileTemplate, parse as parseSfc } from 'vue/compiler-sfc';
 
 /**
- * One `Vue.component(...)` call.
- *  - `definition`: `Vue.component("name", { ... })`, the component is defined in place.
- *  - `alias`: `Vue.component("name", Identifier)`; `source` is the import specifier the
- *    identifier comes from, or `null` when it is not imported.
+ * One `Vue.component(...)` call, or one component that has a name but no global registration.
+ *  - `definition`: `export default Vue.component("name", { ... })`, the component is defined in place and is
+ *    the file's default export (what an `import` of the file gets).
+ *  - `unexported`: `Vue.component("name", { ... })` anywhere else (a second component in the file, or one
+ *    exported later through a variable). It registers the name when it runs, but importing the file does
+ *    not give that component, so the planner does not count it as a definition: it is a candidate that
+ *    cannot be imported, so a page that loads it blocks a choice for the name (ruling R17).
+ *  - `alias`: `Vue.component("name", Identifier)`; `source` is the specifier of the default import the
+ *    identifier comes from, or `null` when it is not a default import (not imported, or a named or
+ *    namespace import, which a default import of that specifier would not give).
+ *  - `named`: a `.vue` file whose default export is a plain options object with a string-literal `name`,
+ *    `export default { name: "name", ... }`: what phase 2 (`unwrap-vue-component`) leaves, or a component
+ *    written that way by hand. It registers nothing globally; it is recorded so that a tag can be matched
+ *    against it (the planner's `phase-2-present`).
  * `name` is the string as written; the map from `scanRegistrations` is keyed by `toKebab(name)`.
- * @typedef {{ file: string, name: string, kind: 'definition' }
- *   | { file: string, name: string, kind: 'alias', source: string | null }} Registration
+ * @typedef {{ file: string, name: string, kind: 'definition' | 'unexported' }
+ *   | { file: string, name: string, kind: 'alias', source: string | null }
+ *   | { file: string, name: string, kind: 'named' }} Registration
  */
 
 /**
@@ -36,10 +50,32 @@ import { parse as parseSfc } from 'vue/compiler-sfc';
  * @typedef {{ file: string, kind: 'parse' | 'registration', message: string, line?: number }} ScanError
  */
 
+/**
+ * A component chosen at run time, which `vue/no-undef-components` cannot see and the codemods do not plan.
+ * Once registrations are local, each one has to find its component another way, so a person checks it.
+ *  - `kind` `is`, `:is` or `v-bind:is`: that template attribute, as written; `expression` is its value.
+ *  - `kind` `h`, `createElement` or `<object>.$createElement` (the callee as written): a render call whose
+ *    first argument is a string literal with a `-` in it, or not a literal at all (a string or template
+ *    literal without a `-`, a number, `null`, a boolean and an object literal are literals);
+ *    `expression` is that argument's source, on one line.
+ *  - `kind` `template`: a `<template>` that was not scanned (`lang` other than html, `src`, or the template
+ *    compiler threw); `expression` says why.
+ * `line` is the 1-based line in the file.
+ * @typedef {{ file: string, line: number, kind: string, expression: string }} RuntimeChoice
+ */
+
 const SCRIPT_FILE = /\.(vue|js)$/;
-const PAGE_ENTRY = /^src\/views\/(?:.+\/)?main\.js$/;
+// Any `main.js` under `src/`: master's pages are `src/views/<Page>/main.js`, most portal branches also have
+// `src/portals/<Portal>/views/<Page>/main.js`. See `pageEntries`.
+const PAGE_ENTRY = /^src\/(?:.+\/)?main\.js$/;
 // Tried in this order against the files that exist (webpack resolves `.vue` before `.js`).
 const EXTENSIONS = ['', '.vue', '.js', '/index.js', '/index.vue'];
+// Template attributes that choose the component, as the template compiler's `rawAttrsMap` keys them.
+const IS_ATTRIBUTES = new Set([':is', 'is', 'v-bind:is']);
+// Render functions that take a tag or a component as their first argument.
+const RENDER_FUNCTIONS = new Set(['createElement', 'h']);
+// First arguments of a render call that are literals besides strings (a string without a `-` is an element).
+const LITERAL_TYPES = new Set(['BooleanLiteral', 'NullLiteral', 'NumericLiteral', 'ObjectExpression']);
 // Babel node keys that hold positions, comments or bookkeeping rather than child nodes.
 const SKIP_KEYS = new Set(['loc', 'extra', 'leadingComments', 'trailingComments', 'innerComments', 'errors']);
 
@@ -122,14 +158,17 @@ function scriptBlocks(file, source, errors) {
   return blocks.sort((a, b) => a.start - b.start);
 }
 
-/** Calls `visit` on every AST node under `node`, children in source order. */
-function walk(node, visit) {
+/**
+ * Calls `visit(node, parent)` on every AST node under `node`, children in source order. `parent` is
+ * the node that holds it (the node itself for the nodes of an array, `null` for the first call).
+ */
+export function walk(node, visit, parent = null) {
   if (Array.isArray(node)) {
-    for (const child of node) walk(child, visit);
+    for (const child of node) walk(child, visit, parent);
   } else if (node && typeof node.type === 'string') {
-    visit(node);
+    visit(node, parent);
     for (const [key, child] of Object.entries(node)) {
-      if (!SKIP_KEYS.has(key) && child && typeof child === 'object') walk(child, visit);
+      if (!SKIP_KEYS.has(key) && child && typeof child === 'object') walk(child, visit, node);
     }
   }
 }
@@ -146,20 +185,107 @@ export const isVueComponentCall = ({ callee }) =>
   callee.property.name === 'component';
 
 /** `Vue.component("name")`: looks up an already registered component, so it is not a registration. */
-const isLookup = ({ arguments: args }) => args.length === 1 && args[0].type === 'StringLiteral';
+export const isLookup = ({ arguments: args }) => args.length === 1 && args[0].type === 'StringLiteral';
+
+/** The key of a non-computed object property or method as written (`name` and `"name"` alike), else null. */
+const propertyKey = (property) =>
+  property.computed ? null : property.key?.type === 'Identifier' ? property.key.name : stringValue(property.key);
+
+/**
+ * The `name` of `export default { name: "...", ... }` in `program`, or null: the default export must be an
+ * object literal whose last `name` key holds a string literal.
+ */
+function exportedName(program) {
+  const declaration = program.body.find((node) => node.type === 'ExportDefaultDeclaration')?.declaration;
+  if (declaration?.type !== 'ObjectExpression') return null;
+  const name = declaration.properties.filter((property) => property.type !== 'SpreadElement' && propertyKey(property) === 'name').at(-1);
+  return name?.type === 'ObjectProperty' ? stringValue(name.value) : null;
+}
+
+const oneLine = (text) => text.replace(/\s+/g, ' ').trim();
+
+/** The callee of a render call as written (`h`, `createElement`, `this.$createElement`), or null. */
+function renderFunction(callee, code) {
+  if (callee.type === 'Identifier') return RENDER_FUNCTIONS.has(callee.name) ? callee.name : null;
+  const isCreateElement = callee.type === 'MemberExpression' && !callee.computed && callee.property.name === '$createElement';
+  return isCreateElement ? code.slice(callee.start, callee.end) : null;
+}
+
+/** Whether a render call's first argument names a component chosen at run time (see `RuntimeChoice`). */
+function chosenAtRunTime(argument) {
+  const text =
+    argument.type === 'StringLiteral' ? argument.value
+    : argument.type === 'TemplateLiteral' && argument.expressions.length === 0 ? argument.quasis[0].value.cooked
+    : null;
+  return text === null ? !LITERAL_TYPES.has(argument.type) : text.includes('-');
+}
+
+/**
+ * The template attributes of a `.vue` file that choose a component (see `RuntimeChoice`), with `column` for
+ * sorting. A template that does not parse as an SFC is the script scan's to report, so it gives nothing here.
+ */
+function templateChoices(file, source) {
+  let template;
+  try {
+    ({ template } = parseSfc({ source, filename: file }));
+  } catch {
+    return [];
+  }
+  if (!template) return [];
+  const linesBefore = (text, offset) => text.slice(0, offset).split('\n').length - 1;
+  const firstLine = linesBefore(source, template.start) + 1;
+  const notScanned = (why) => [{ file, line: firstLine, column: 0, kind: 'template', expression: `not scanned: ${why}` }];
+  const { lang, src } = template.attrs;
+  if (src !== undefined) return notScanned(`<template src="${src}">`);
+  if (lang !== undefined && lang !== 'html') return notScanned(`<template lang="${lang}">`);
+  let ast;
+  try {
+    ({ ast } = compileTemplate({ source: template.content, filename: file, prettify: false, compilerOptions: { outputSourceRange: true } }));
+  } catch (err) {
+    return notScanned(oneLine(err.message));
+  }
+  // The SFC parser de-indents the template and the compiler trims it, so positions are in that text. Both
+  // keep the line breaks, which is all a line number needs.
+  const { content } = template;
+  const leading = content.length - content.trimStart().length;
+  const found = [];
+  const visit = (element) => {
+    for (const [name, attribute] of Object.entries(element.rawAttrsMap ?? {})) {
+      if (!IS_ATTRIBUTES.has(name)) continue;
+      const offset = leading + attribute.start;
+      const column = offset - content.lastIndexOf('\n', offset - 1) - 1;
+      found.push({ file, line: firstLine + linesBefore(content, offset), column, kind: name, expression: attribute.value });
+    }
+    // `v-else` branches and slot templates are not among the children of the element they belong to.
+    for (const child of element.children ?? []) visit(child);
+    for (const { block } of element.ifConditions ?? []) if (block !== element) visit(block);
+    for (const slot of Object.values(element.scopedSlots ?? {})) visit(slot);
+  };
+  if (ast) visit(ast);
+  return found;
+}
 
 /** Registrations, import specifiers (unresolved) and registration problems found in one parsed script. */
-function collect(file, ast, found) {
-  /** import identifier -> specifier */
+function collect(file, ast, code, found) {
+  /**
+   * default-import identifier -> specifier. Only default imports (`import X from`, `import { default as X }
+   * from`): the codemod writes a default import of the alias's source, so an alias of a named or namespace
+   * import (`import { X } from`, `import * as X from`) has no source it could import, and stays `null`.
+   */
   const importedFrom = new Map();
   for (const node of ast.program.body) {
     if (node.type !== 'ImportDeclaration') continue;
-    for (const specifier of node.specifiers) importedFrom.set(specifier.local.name, node.source.value);
+    for (const specifier of node.specifiers) {
+      const imported = specifier.imported?.name ?? specifier.imported?.value;
+      if (specifier.type === 'ImportDefaultSpecifier' || imported === 'default') importedFrom.set(specifier.local.name, node.source.value);
+    }
   }
   const problem = (node, message) =>
     found.errors.push({ file, kind: 'registration', message, line: node.loc?.start.line });
+  const named = file.endsWith('.vue') ? exportedName(ast.program) : null;
+  if (named !== null) found.registrations.push({ file, name: named, kind: 'named' });
 
-  walk(ast.program, (node) => {
+  walk(ast.program, (node, parent) => {
     if (node.type === 'ImportDeclaration' || node.type === 'ExportAllDeclaration' || node.type === 'ExportNamedDeclaration') {
       if (node.source) found.specifiers.push(node.source.value);
     } else if (node.type === 'CallExpression') {
@@ -167,12 +293,16 @@ function collect(file, ast, found) {
       if (node.callee.type === 'Import' || (node.callee.type === 'Identifier' && node.callee.name === 'require')) {
         const specifier = stringValue(first);
         if (specifier !== null) found.specifiers.push(specifier);
+      } else if (renderFunction(node.callee, code) !== null && first !== undefined && chosenAtRunTime(first)) {
+        const { line, column } = node.loc.start;
+        found.runtime.push({ file, line, column, kind: renderFunction(node.callee, code), expression: oneLine(code.slice(first.start, first.end)) });
       } else if (isVueComponentCall(node) && !isLookup(node)) {
         const name = stringValue(first);
         if (name === null) {
           problem(node, 'Vue.component(): first argument is not a string literal');
         } else if (second.type === 'ObjectExpression') {
-          found.registrations.push({ file, name, kind: 'definition' });
+          const kind = parent?.type === 'ExportDefaultDeclaration' ? 'definition' : 'unexported';
+          found.registrations.push({ file, name, kind });
         } else if (second.type === 'Identifier') {
           found.registrations.push({ file, name, kind: 'alias', source: importedFrom.get(second.name) ?? null });
         } else {
@@ -204,7 +334,7 @@ export function resolveImport(from, specifier, files) {
 
 /** Everything one file contributes. `specifiers` are the raw import strings, in source order. */
 function analyzeFile(file, source) {
-  const found = { registrations: [], specifiers: [], errors: [] };
+  const found = { registrations: [], specifiers: [], errors: [], runtime: file.endsWith('.vue') ? templateChoices(file, source) : [] };
   for (const block of scriptBlocks(file, source, found.errors)) {
     let ast;
     try {
@@ -217,7 +347,7 @@ function analyzeFile(file, source) {
     for (const err of ast.errors ?? []) {
       found.errors.push({ file, kind: 'parse', message: err.message, line: err.loc?.line });
     }
-    collect(file, ast, found);
+    collect(file, ast, block.content, found);
   }
   return found;
 }
@@ -225,7 +355,9 @@ function analyzeFile(file, source) {
 /**
  * One pass over every `.vue` and `.js` file in `sources`, in sorted file order. Prefer this to
  * calling `scanRegistrations` and `scanImports` separately: it parses each file once and returns
- * the errors for both.
+ * the errors for both. `registrations` holds every `Vue.component` registration (definitions, unexported
+ * ones and aliases) and the `named` components (see `Registration`). `runtimeChoices` lists the components chosen at run time (see
+ * `RuntimeChoice`), sorted by file, then by position.
  *
  * Errors are collected, not thrown, and the rest of the tree is still scanned:
  *  - A script block that does not parse contributes no imports and no registrations and gets one
@@ -238,16 +370,20 @@ function analyzeFile(file, source) {
  *    looks up an existing component and is ignored. `Vue.component(name)` and
  *    `Vue.component(...args)` are reported.
  * @param {Map<string, string>} sources file path -> source text
- * @returns {{ registrations: Map<string, Registration[]>, imports: Map<string, string[]>, errors: ScanError[] }}
+ * @returns {{ registrations: Map<string, Registration[]>, imports: Map<string, string[]>, errors: ScanError[],
+ *   runtimeChoices: RuntimeChoice[] }}
  */
 export function analyzeSources(sources) {
   const files = new Set(sources.keys());
   const byName = new Map();
   const imports = new Map();
   const errors = [];
+  const runtimeChoices = [];
   for (const file of [...sources.keys()].filter(hasScriptExtension).sort(byCodeUnit)) {
     const found = analyzeFile(file, sources.get(file));
     errors.push(...found.errors);
+    const inOrder = found.runtime.sort((a, b) => a.line - b.line || a.column - b.column);
+    runtimeChoices.push(...inOrder.map(({ column, ...choice }) => choice));
     const resolved = found.specifiers.map((specifier) => resolveImport(file, specifier, files)).filter((path) => path !== null);
     imports.set(file, [...new Set(resolved)]);
     for (const registration of found.registrations) {
@@ -257,7 +393,7 @@ export function analyzeSources(sources) {
     }
   }
   const registrations = new Map([...byName].sort(([a], [b]) => byCodeUnit(a, b)));
-  return { registrations, imports, errors };
+  return { registrations, imports, errors, runtimeChoices };
 }
 
 /**
@@ -291,7 +427,12 @@ export function scanImports(sources, errors = []) {
 }
 
 /**
- * Every page entry point, `src/views/**\/main.js`, sorted.
+ * Every page entry point, sorted: every `main.js` under `src/`, in any folder (`src/views/Gene/main.js`,
+ * `src/portals/PanKbase/views/Gene/main.js`). `vue.config.js` decides which of them are built, and this does
+ * not read it, so a `main.js` that is not a built page is counted as one. That never makes a write riskier.
+ * Where a built page reaches a file, an extra page only adds a constraint (a duplicate name must be settled
+ * the same way there too, a tag must be loaded there too), so more uses are reported. Where only extra pages
+ * reach a file, no built page renders it, so what is settled for it changes nothing a page shows.
  * @param {Map<string, string>} sources file path -> source text
  * @returns {string[]}
  */

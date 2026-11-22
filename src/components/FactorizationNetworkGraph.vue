@@ -51,12 +51,12 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import { BIO_INDEX_HOST, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 
-export default Vue.component("FactorizationNetworkGraph", {
+export default {
+    name: "FactorizationNetworkGraph",
     props: {
         factorGraphData: {
             type: Object,
@@ -380,7 +380,7 @@ export default Vue.component("FactorizationNetworkGraph", {
             }
         },
     },
-});
+};
 </script>
 
 <style scoped>

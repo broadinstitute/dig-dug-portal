@@ -12,10 +12,11 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("static-page-info-section", {
+export default {
+    name: "static-page-info-section",
     props: ["pageInfo"],
     mounted: function () {},
-});
+};
 </script>
 
 <style>

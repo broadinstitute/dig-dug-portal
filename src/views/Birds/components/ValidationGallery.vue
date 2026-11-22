@@ -14,11 +14,11 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import MethodHeading from "./MethodHeading.vue";
 import { BirdValidationData } from "../content/validation.js";
 
-export default Vue.component("validation-gallery", {
+export default {
+  name: "validation-gallery",
   components: {
     MethodHeading
   },
@@ -27,7 +27,7 @@ export default Vue.component("validation-gallery", {
     config() { return BirdValidationData[this.method]; },
     title() { return this.config.name + ' validation'; }
   },
-});
+};
 </script>
 <style>
 @import url("/css/birdcss/revisions.css");

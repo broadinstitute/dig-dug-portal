@@ -51,7 +51,7 @@ test('scanRegistrations finds definitions in double quotes, single quotes, and s
   assert.deepEqual(regs.get('split-comp'), [{ file: 'src/components/Split.vue', name: 'split-comp', kind: 'definition' }]);
 });
 
-test('scanRegistrations records an alias with the import specifier of its identifier', () => {
+test('scanRegistrations records an alias with the specifier of its default import; a named or namespace import has none', () => {
   const regs = scanRegistrations(
     srcs({
       'src/components/Picker.vue': sfc(
@@ -60,10 +60,12 @@ test('scanRegistrations records an alias with the import specifier of its identi
           `import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";`,
           `import { Autocomplete } from "./Autocomplete.vue";`,
           `import * as Ns from "@/components/Ns";`,
+          `import { default as Fancy } from "../Fancy.vue";`,
           `const Local = { template: "<i/>" };`,
           `Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);`,
           `Vue.component("autocomplete", Autocomplete);`,
           `Vue.component("ns", Ns);`,
+          `Vue.component("fancy", Fancy);`,
           `Vue.component("local", Local);`,
           `export default Vue.component("picker", {});`,
         ].join('\n'),
@@ -74,10 +76,56 @@ test('scanRegistrations records an alias with the import specifier of its identi
   assert.deepEqual(regs.get('vue-typeahead-bootstrap'), [
     { file, name: 'vue-typeahead-bootstrap', kind: 'alias', source: 'vue-typeahead-bootstrap' },
   ]);
-  assert.deepEqual(regs.get('autocomplete'), [{ file, name: 'autocomplete', kind: 'alias', source: './Autocomplete.vue' }]);
-  assert.deepEqual(regs.get('ns'), [{ file, name: 'ns', kind: 'alias', source: '@/components/Ns' }]);
+  // The codemod writes `import Autocomplete from "./Autocomplete.vue"`, the default export, which is not
+  // the named `Autocomplete`; a namespace object is no component at all. Neither has a source.
+  assert.deepEqual(regs.get('autocomplete'), [{ file, name: 'autocomplete', kind: 'alias', source: null }]);
+  assert.deepEqual(regs.get('ns'), [{ file, name: 'ns', kind: 'alias', source: null }]);
+  assert.deepEqual(regs.get('fancy'), [{ file, name: 'fancy', kind: 'alias', source: '../Fancy.vue' }]);
   assert.deepEqual(regs.get('local'), [{ file, name: 'local', kind: 'alias', source: null }]);
   assert.deepEqual(regs.get('picker'), [{ file, name: 'picker', kind: 'definition' }]);
+});
+
+// Phase 2 turns `export default Vue.component("id", {...})` into `export default { name: "id", ... }`. That
+// file no longer registers anything, but phase 1 must still see that a component of that name exists (I1).
+test('scanRegistrations records a .vue whose default export is an options object with a string-literal name as named', () => {
+  const regs = scanRegistrations(
+    srcs({
+      'src/components/Unwrapped.vue': sfc(`import B from "./B.vue";\nexport default {\n    name: "comp-x",\n    components: { B },\n};`),
+      'src/components/Quoted.vue': sfc(`export default { 'name': 'QuotedName', data() { return {}; } };`),
+      'src/components/Last.vue': sfc(`export default { name: "first", name: "last-one" };`),
+      // Not named: a .js file, a name that is not a string literal, no name, a computed key, another export.
+      'src/components/plain.js': `export default { name: "from-js" };`,
+      'src/components/Var.vue': sfc(`const n = "v";\nexport default { name: n };`),
+      'src/components/Tpl.vue': sfc('export default { name: `tpl` };'),
+      'src/components/NoName.vue': sfc(`export default { components: {} };`),
+      'src/components/Computed.vue': sfc(`const k = "name";\nexport default { [k]: "computed" };`),
+      'src/components/Ident.vue': sfc(`const Options = { name: "ident" };\nexport default Options;`),
+      'src/components/NotLast.vue': sfc(`const n = "x";\nexport default { name: "early", name: n };`),
+      'src/components/Wrapped.vue': sfc(`export default Vue.component("wrapped", { name: "WrappedName" });`),
+    }),
+  );
+  assert.deepEqual([...regs.keys()], ['comp-x', 'last-one', 'quoted-name', 'wrapped']);
+  assert.deepEqual(regs.get('comp-x'), [{ file: 'src/components/Unwrapped.vue', name: 'comp-x', kind: 'named' }]);
+  assert.deepEqual(regs.get('quoted-name'), [{ file: 'src/components/Quoted.vue', name: 'QuotedName', kind: 'named' }]);
+  assert.deepEqual(regs.get('last-one'), [{ file: 'src/components/Last.vue', name: 'last-one', kind: 'named' }]);
+  // A Vue.component definition is a definition, whatever name its options carry.
+  assert.deepEqual(regs.get('wrapped'), [{ file: 'src/components/Wrapped.vue', name: 'wrapped', kind: 'definition' }]);
+});
+
+// The planner imports a definition's file by its default export, so only `export default Vue.component(...)`
+// is a definition; any other `Vue.component("x", {...})` defines a component the file does not export (M2).
+test('a Vue.component definition that is not the export default is recorded as unexported', () => {
+  const regs = scanRegistrations(
+    srcs({
+      'src/components/Multi.vue': sfc(`Vue.component("inner-thing", { template: "<i/>" });\nexport default Vue.component("outer-thing", {});`),
+      'src/components/Later.vue': sfc(`const Later = Vue.component("later-thing", {});\nexport default Later;`),
+      'src/utils/reg.js': `Vue.component("from-js", {});`,
+    }),
+  );
+  assert.deepEqual(regs.get('outer-thing'), [{ file: 'src/components/Multi.vue', name: 'outer-thing', kind: 'definition' }]);
+  assert.deepEqual(regs.get('inner-thing'), [{ file: 'src/components/Multi.vue', name: 'inner-thing', kind: 'unexported' }]);
+  assert.deepEqual(regs.get('later-thing'), [{ file: 'src/components/Later.vue', name: 'later-thing', kind: 'unexported' }]);
+  assert.deepEqual(regs.get('from-js'), [{ file: 'src/utils/reg.js', name: 'from-js', kind: 'unexported' }]);
 });
 
 test('scanRegistrations keys a PascalCase name by its kebab form and keeps the name as written', () => {
@@ -234,6 +282,68 @@ test('scanRegistrations and scanImports push their errors into the array they ar
   assert.doesNotThrow(() => scanImports(sources));
 });
 
+// ---- runtime choices: components picked at run time, which the lint cannot see (I3) ------------------
+
+test('analyzeSources lists every template is binding, with its value and line, wherever the element is', () => {
+  const template = [
+    '<template>',
+    '  <div>',
+    '    <component :is="current" />',
+    '    <tr is="my-row"></tr>',
+    '    <p v-if="a">x</p>',
+    '    <section v-else v-bind:is="\'x-\' + kind">y</section>',
+    '    <child>',
+    '      <template v-slot:cell="{ row }"><component :is="row.view" /></template>',
+    '    </child>',
+    '    <span data-is="not-an-is" this="no">z</span>',
+    '  </div>',
+    '</template>',
+  ].join('\n');
+  const { runtimeChoices } = analyzeSources(srcs({ 'src/components/Pick.vue': `${template}\n<script>\nexport default {};\n</script>\n` }));
+  assert.deepEqual(runtimeChoices, [
+    { file: 'src/components/Pick.vue', line: 3, kind: ':is', expression: 'current' },
+    { file: 'src/components/Pick.vue', line: 4, kind: 'is', expression: 'my-row' },
+    { file: 'src/components/Pick.vue', line: 6, kind: 'v-bind:is', expression: "'x-' + kind" },
+    { file: 'src/components/Pick.vue', line: 8, kind: ':is', expression: 'row.view' },
+  ]);
+});
+
+test('analyzeSources lists render calls given a tag name with a dash or anything but a literal, and nothing else', () => {
+  const script = [
+    'export default {',
+    '  render(h) {',
+    '    if (this.a) return h("my-comp", { props: {} });',
+    '    if (this.b) return h(this.pick);',
+    '    if (this.c) return this.$createElement(`x-${this.kind}`);',
+    '    if (this.d) return h("div", [h("Plain"), h(`tpl-name`), h({ render: () => null }), h()]);',
+    '    document.createElement(this.tag);',
+    '    return null;',
+    '  },',
+    '};',
+  ].join('\n');
+  const { runtimeChoices } = analyzeSources(
+    srcs({
+      'src/components/Render.vue': sfc(script),
+      'src/views/P/main.js': 'import Template from "./Template.vue";\nnew Vue({ render: (createElement) => createElement(Template) });',
+    }),
+  );
+  assert.deepEqual(runtimeChoices, [
+    { file: 'src/components/Render.vue', line: 5, kind: 'h', expression: '"my-comp"' },
+    { file: 'src/components/Render.vue', line: 6, kind: 'h', expression: 'this.pick' },
+    { file: 'src/components/Render.vue', line: 7, kind: 'this.$createElement', expression: '`x-${this.kind}`' },
+    { file: 'src/components/Render.vue', line: 8, kind: 'h', expression: '`tpl-name`' },
+    { file: 'src/views/P/main.js', line: 2, kind: 'createElement', expression: 'Template' },
+  ]);
+});
+
+test('a template that cannot be read is a runtime choice to check, not a silent gap', () => {
+  const { runtimeChoices, errors } = analyzeSources(
+    srcs({ 'src/components/Pug.vue': '<template lang="pug">\ndiv\n  component(:is="x")\n</template>\n<script>\nexport default {};\n</script>\n' }),
+  );
+  assert.deepEqual(runtimeChoices, [{ file: 'src/components/Pug.vue', line: 1, kind: 'template', expression: 'not scanned: <template lang="pug">' }]);
+  assert.deepEqual(errors, []);
+});
+
 test('scanImports resolves @/ and relative specifiers, require() and import(), and drops packages', () => {
   const sources = srcs({
     'src/components/A.vue': sfc(''),
@@ -324,19 +434,30 @@ test('a .vue with no script has no imports, and every .vue/.js source has an ent
   assert.deepEqual([...imports.keys()], ['src/a/NoScript.vue', 'src/a/b.js']);
 });
 
-test('pageEntries lists src/views/**/main.js, sorted, and nothing else', () => {
+// Portal branches keep pages outside src/views (src/portals/PanKbase/views/Gene/main.js), so every
+// main.js under src/ is a page. One that is not built only adds evidence, which makes the rules stricter.
+test('pageEntries lists every main.js under src/, whatever the folder, sorted, and nothing else', () => {
   const sources = srcs({
     'src/views/Gene/main.js': '',
     'src/views/A2fIndex/main.js': '',
     'src/views/Research/Deep/main.js': '',
+    'src/portals/PanKbase/views/Gene/main.js': '',
+    'src/main.js': '',
+    'src/components/views/main.js': '',
     'src/views/Gene/Template.vue': '',
     'src/views/Gene/store.js': '',
     'src/views/Gene/notmain.js': '',
-    'src/main.js': '',
-    'src/components/views/main.js': '',
     'src/views/Gene/main.vue': '',
+    'src/portals/PanKbase/views/Gene/Template.vue': '',
   });
-  assert.deepEqual(pageEntries(sources), ['src/views/A2fIndex/main.js', 'src/views/Gene/main.js', 'src/views/Research/Deep/main.js']);
+  assert.deepEqual(pageEntries(sources), [
+    'src/components/views/main.js',
+    'src/main.js',
+    'src/portals/PanKbase/views/Gene/main.js',
+    'src/views/A2fIndex/main.js',
+    'src/views/Gene/main.js',
+    'src/views/Research/Deep/main.js',
+  ]);
 });
 
 test('reachable follows transitive imports, includes the entry, and terminates on cycles', () => {

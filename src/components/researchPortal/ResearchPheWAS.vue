@@ -171,7 +171,8 @@ import bioIndexUtils from "@/utils/bioIndexUtils";
 import pheWasPlotVector from "@/components/researchPortal/vectorPlots/ResearchPheWasPlotVector.vue";
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("ResearchPhewasPlot", {
+export default {
+    name: "ResearchPhewasPlot",
     components: {
         pheWasPlotVector,
         ResearchPhewasPlotVector: pheWasPlotVector,
@@ -1125,7 +1126,7 @@ export default Vue.component("ResearchPhewasPlot", {
             return destination;
         },
     },
-});
+};
 </script>
 
 <style>

@@ -12,12 +12,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 
 //colorStyle options: none = white, "black", "color"
-export default Vue.component("research-loading-spinner", {
+export default {
+  name: "research-loading-spinner",
   props: ["isLoading", "colorStyle"]
-});
+};
 </script>
 
 <style scoped>

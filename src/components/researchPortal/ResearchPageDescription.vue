@@ -3,9 +3,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("research-page-description", {
+export default {
+	name: "research-page-description",
 	props: ["content","utils"],
 	components: {},
 
@@ -323,7 +323,7 @@ export default Vue.component("research-page-description", {
 			this.renderPlots();
 		},
 	},
-});
+};
 </script>
 
 <style>

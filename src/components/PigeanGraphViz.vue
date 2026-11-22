@@ -194,12 +194,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import { BIO_INDEX_HOST, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 
-export default Vue.component("PigeanGraphViz", {
+export default {
+    name: "PigeanGraphViz",
     props: {
         phenotypeId: {
             type: String,
@@ -1111,7 +1111,7 @@ export default Vue.component("PigeanGraphViz", {
             }
         },
     },
-});
+};
 </script>
 
 <style scoped>

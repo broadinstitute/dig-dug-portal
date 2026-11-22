@@ -211,7 +211,8 @@ const catName = code => (CAT_ORDER.find(c=>c.code===code)||{}).full || code;
 const ticktext = labels => [1,2,3,4,5].map(t => labels[t] ? `${t}<br><i style='font-size:9px'>${labels[t]}</i>` : String(t));
 const built={};
 
-export default Vue.component("interactive-kp", {
+export default {
+    name: "interactive-kp",
     props: [],
 
     data() {
@@ -376,5 +377,5 @@ export default Vue.component("interactive-kp", {
         }
       }
     },
-});
+};
 </script>

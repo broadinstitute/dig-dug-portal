@@ -29,9 +29,9 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
-export default Vue.component("TissueExpressionSubtable", {
+export default {
+    name: "TissueExpressionSubtable",
     props: ["datasets"],
     data() {
         return {
@@ -129,7 +129,7 @@ export default Vue.component("TissueExpressionSubtable", {
             });
         },
     },
-});
+};
 </script>
 <style scoped>
 .row {

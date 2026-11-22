@@ -16,10 +16,10 @@
   </div>
 </template>
 <script>
-  import Vue from "vue";
   import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
   import HugeScoresTable from "@/components/HugeScoresTable.vue";
-  export default Vue.component("PhenotypeHugeScores", {
+  export default {
+    name: "PhenotypeHugeScores",
     components: {
       HugeScoresTable,
       ResearchMPlot,
@@ -59,5 +59,5 @@
         return data;
       }
     },
-});
+};
 </script>

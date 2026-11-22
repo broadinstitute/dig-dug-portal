@@ -9,12 +9,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("dataset-info-section", {
+export default {
+    name: "dataset-info-section",
     props: ["datasetInfo"],
     mounted: function () {},
-});
+};
 </script>
 
 <style>

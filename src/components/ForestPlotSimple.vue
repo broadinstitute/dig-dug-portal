@@ -27,9 +27,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("forest-plot-simple", {
+export default {
+    name: "forest-plot-simple",
     props: {
         effect: {
             type: Number,
@@ -72,7 +72,7 @@ export default Vue.component("forest-plot-simple", {
                 : ((1 + this.effect) / 2) * 100;
         },
     },
-});
+};
 </script>
 <style>
 @import url("/css/forestPlotHtml.css");

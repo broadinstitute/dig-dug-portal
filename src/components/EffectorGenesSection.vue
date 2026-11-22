@@ -53,10 +53,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import dataConvert from "@/utils/dataConvert";
 
-export default Vue.component("EglsSection", {
+export default {
+    name: "EglsSection",
     components: {},
     props: ["phenotype"],
     data() {
@@ -106,7 +106,7 @@ export default Vue.component("EglsSection", {
             }
         },
     },
-});
+};
 </script>
 <style scoped>
 .egls-list-header {

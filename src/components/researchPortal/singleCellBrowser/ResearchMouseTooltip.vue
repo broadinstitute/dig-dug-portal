@@ -3,7 +3,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 
 /*
 usage: mouseTooltip.js
@@ -21,7 +20,8 @@ mouseTooltip.hide();
 the tooltip will keep following mouse until hide() is called
 */
 
-export default Vue.component("research-mouse-tooltip", {
+export default {
+    name: "research-mouse-tooltip",
     props: {},
     data() {
         return {
@@ -88,7 +88,7 @@ export default Vue.component("research-mouse-tooltip", {
             }
         },
     },
-});
+};
 </script>
 
 <style scoped>

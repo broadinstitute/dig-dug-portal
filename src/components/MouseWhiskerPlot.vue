@@ -10,12 +10,12 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import DownloadChart from "@/components/DownloadChart.vue";
-export default Vue.component("mouse-whisker-plot", {
+export default {
+  name: "mouse-whisker-plot",
   components: {
     DownloadChart,
   },
@@ -324,7 +324,7 @@ export default Vue.component("mouse-whisker-plot", {
         return 0;
       }
   },
-});
+};
 </script>
 <style scoped>
 div {

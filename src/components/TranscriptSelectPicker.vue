@@ -18,9 +18,9 @@ import Formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-export default Vue.component("transcript-selectpicker", {
+export default {
+    name: "transcript-selectpicker",
     props: ["transcripts"],
 
     data() {
@@ -46,5 +46,5 @@ export default Vue.component("transcript-selectpicker", {
             placeholder.disabled = true;
         }
     },
-});
+};
 </script>

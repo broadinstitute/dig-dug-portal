@@ -13,12 +13,12 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import DownloadChart from "@/components/researchPortal/singleCellBrowser/DownloadChart.vue";
-export default Vue.component("ResearchExpressionPlot", {
+export default {
+    name: "ResearchExpressionPlot",
     components: {
         DownloadChart,
     },
@@ -465,7 +465,7 @@ export default Vue.component("ResearchExpressionPlot", {
                 .style("top", ycoord);
         },
     },
-});
+};
 </script>
 <style>
 div {

@@ -83,7 +83,8 @@ import { decodeNamespace } from "@/utils/filterHelpers";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-export default Vue.component("EnrichmentTable", {
+export default {
+    name: "EnrichmentTable",
     components: {
         DataDownload,
     },
@@ -223,5 +224,5 @@ export default Vue.component("EnrichmentTable", {
         tissueFormatter: Formatters.tissueFormatter,
         toSnakeFormatter: Formatters.toSnakeFormatter,
     },
-});
+};
 </script>

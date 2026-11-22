@@ -10,7 +10,8 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
-export default Vue.component("cvdi-pigean-table", {
+export default {
+    name: "cvdi-pigean-table",
     components: {
         DataDownload,
         CVDIPigeanTable,
@@ -161,7 +162,7 @@ export default Vue.component("cvdi-pigean-table", {
             return inputData;
         },
     },
-});
+};
 </script>
 <template>
     <div id="pigean-gene" :class="isSubtable ? 'pigean-subtable' : ''">

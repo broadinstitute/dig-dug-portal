@@ -359,7 +359,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-biosamples-plot", {
+export default {
+	name: "research-biosamples-plot",
 	props: [
 		"region",
 		"phenotype",
@@ -2207,7 +2208,7 @@ export default Vue.component("research-biosamples-plot", {
 			});
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

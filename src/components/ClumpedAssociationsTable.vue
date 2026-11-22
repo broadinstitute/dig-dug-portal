@@ -146,7 +146,8 @@ import DataDownload from "@/components/DataDownload";
 
 import { isEqual } from "@/utils/lodashUtils";
 
-export default Vue.component("ClumpedAssociationsTable", {
+export default {
+    name: "ClumpedAssociationsTable",
     components: {
         Documentation,
         DataDownload,
@@ -334,5 +335,5 @@ export default Vue.component("ClumpedAssociationsTable", {
             return Formatters.consequenceFormatter(consequence);
         },
     },
-});
+};
 </script>

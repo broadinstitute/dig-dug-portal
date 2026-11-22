@@ -57,5 +57,7 @@ Vue.config.errorHandler = (error, _, info) => {
     logError(vueErrorDescription(error, info));
 };
 
-export default Vue.component("ga-errors", {});
+export default {
+    name: "ga-errors",
+};
 </script>

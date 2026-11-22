@@ -54,7 +54,8 @@ import { request } from "@/utils/bioIndexUtils.js";
 import { userMixin } from "@/mixins/userMixin";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
-export default Vue.component("raw-img", {
+export default {
+    name: "raw-img",
     props: ["src", "documentation", "contentFill", "customFailureMsg"],
     mixins: [userMixin],
     components: {
@@ -113,5 +114,5 @@ export default Vue.component("raw-img", {
             handler: "getImage",
         },
     },
-});
+};
 </script>

@@ -89,7 +89,8 @@ import { indexOf } from "@amcharts/amcharts4/.internal/core/utils/Array";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-region-track", {
+export default {
+    name: "research-region-track",
     props: [
         "sectionId",
         "plotConfig",
@@ -842,7 +843,7 @@ export default Vue.component("research-region-track", {
         },
        
     },
-});
+};
 
 $(function () { });
 

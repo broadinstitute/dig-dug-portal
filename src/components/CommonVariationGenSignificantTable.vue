@@ -69,10 +69,9 @@ import Formatters from "@/utils/formatters";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("commonvariation-genomesig-table", {
+export default {
+    name: "commonvariation-genomesig-table",
     props: {
         isGenomeWideSignificant: {
             type: Boolean,
@@ -115,7 +114,7 @@ export default Vue.component("commonvariation-genomesig-table", {
         }
     },
     methods: {}
-});
+};
 </script>
 
 <style>

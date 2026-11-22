@@ -30,10 +30,10 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
-export default Vue.component("autocomplete", {
+export default {
+    name: "autocomplete",
     components: {
         VueTypeaheadBootstrap,
     },
@@ -96,5 +96,5 @@ export default Vue.component("autocomplete", {
             this.$emit("input-change", text);
         },
     },
-});
+};
 </script>

@@ -88,7 +88,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
-export default Vue.component("gene-finder-table", {
+export default {
+    name: "gene-finder-table",
     props: [
         "associations",
         "phenotypes",
@@ -284,7 +285,7 @@ export default Vue.component("gene-finder-table", {
             return 2 * pdf;
         },
     },
-});
+};
 </script>
 
 <style>

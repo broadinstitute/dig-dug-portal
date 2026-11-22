@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import HeatTable from "./HeatTable.vue";
 
 // Show every match by default; the thresholds are opt-in filters.
@@ -23,7 +22,8 @@ const PREVIEW_TRAIT_ROWS = 4;
 // it. The overview answers "what is this state and how far has it been curated";
 // every many-row association lives behind its own tab rather than all landing at
 // once.
-export default Vue.component("StateDetails", {
+export default {
+    name: "StateDetails",
     components: {
         HeatTable
     },
@@ -229,7 +229,7 @@ export default Vue.component("StateDetails", {
             this.activeTab = key;
         },
     },
-});
+};
 </script>
 
 <template>

@@ -113,7 +113,6 @@
 </template>
         
 <script>
-import Vue from "vue";
 import "bootstrap/dist/css/bootstrap.css";
 import Formatters from "@/utils/formatters";
 
@@ -121,7 +120,8 @@ import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import Hugescoretable from "@/components/Hugescoretable.vue";
 
-export default Vue.component("hugecal-score-section", {
+export default {
+	name: "hugecal-score-section",
 	props: [
 		"currentPage",
 		"docDetails",
@@ -346,7 +346,7 @@ export default Vue.component("hugecal-score-section", {
 			return isExomeWideSignificant;
 		},
 	},
-});
+};
 </script>
 
 <style scoped>

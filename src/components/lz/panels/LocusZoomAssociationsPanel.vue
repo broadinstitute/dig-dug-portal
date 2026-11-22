@@ -1,11 +1,11 @@
 <script>
 
-import Vue from "vue";
 import LzPanel from "./LzPanel"
 import { LZBioIndexSource } from "@/utils/lzUtils"
 import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
 
-export default Vue.component('lz-associations-panel', {
+export default {
+    name: "lz-associations-panel",
     components: {
         LzPanel
     },
@@ -33,7 +33,7 @@ export default Vue.component('lz-associations-panel', {
             this.$refs.panel.updatePanel();
         },
     }
-});
+};
 
 export function makeAssociationsPanel(phenotype, title='', onLoad, onResolve, onError, initialData) {
     

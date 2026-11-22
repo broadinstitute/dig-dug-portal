@@ -26,7 +26,8 @@ import { userMixin } from "@/mixins/userMixin";
 import Alert from "@/components/Alert.vue";
 Vue.use(VueCookies);
 
-export default Vue.component("paper-page-header", {
+export default {
+    name: "paper-page-header",
     props: ["diseaseGroup", "frontContents", "paperMenu"],
     components: {
         GoogleAnalytics,
@@ -79,7 +80,7 @@ export default Vue.component("paper-page-header", {
             }
         },
     },
-});
+};
 </script>
 
 <style>

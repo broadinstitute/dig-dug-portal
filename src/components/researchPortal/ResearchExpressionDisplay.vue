@@ -17,11 +17,11 @@
   </div>
 </template>
 <script>
-  import Vue from "vue";
   import ResearchExpressionFilter from "@/components/researchPortal/ResearchExpressionFilter.vue";
   import ResearchExpressionTable from "@/components/researchPortal/ResearchExpressionTable.vue";
   import ResearchExpressionPlot from "@/components/researchPortal/ResearchExpressionPlot.vue";
-  export default Vue.component("ResearchExpressionDisplay", {
+  export default {
+    name: "ResearchExpressionDisplay",
     components: {
       ResearchExpressionFilter,
       ResearchExpressionPlot,
@@ -42,5 +42,5 @@
         this.datasetDetails = details;
       }
     }
-  });
+  };
 </script>

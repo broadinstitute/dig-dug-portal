@@ -259,7 +259,8 @@ import keyParams from "@/utils/keyParams";
 import { TOOLTIP_MAP } from "../utils/pigeanUtils";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
-export default Vue.component("pigean-factors", {
+export default {
+  name: "pigean-factors",
   components: {
     DataDownload,
     PigeanFactorsViz,
@@ -1002,7 +1003,7 @@ export default Vue.component("pigean-factors", {
       return label.replaceAll(",", "").replaceAll(" ", "_");
     },
   }
-});
+};
 </script>
 <style scoped>
 .subtable-container {

@@ -172,7 +172,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-credible-sets-plot", {
+export default {
+	name: "research-credible-sets-plot",
 	props: [
 		"region",
 		"phenotype",
@@ -1045,7 +1046,7 @@ export default Vue.component("research-credible-sets-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

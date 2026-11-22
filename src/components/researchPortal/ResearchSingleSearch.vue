@@ -93,12 +93,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 
-export default Vue.component("research-single-search", {
+export default {
+	name: "research-single-search",
 	props: {
 		singleSearchConfig: {},
 		phenotypes: {},
@@ -552,7 +552,7 @@ export default Vue.component("research-single-search", {
 			this.singleSearchResult.genes = matches;
 		},
 	},
-});
+};
 </script>
 
 <style scoped>

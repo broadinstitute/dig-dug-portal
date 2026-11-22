@@ -147,7 +147,8 @@ import ResearchQQPlotVector from "@/components/researchPortal/vectorPlots/Resear
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-m-qq-plot", {
+export default {
+	name: "research-m-qq-plot",
 	props: [
 		"plotData",
 		"renderConfig",
@@ -1126,7 +1127,7 @@ export default Vue.component("research-m-qq-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

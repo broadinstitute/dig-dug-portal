@@ -233,7 +233,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("cfde-eco-system", {
+export default {
+	name: "cfde-eco-system",
 	components: {
 		ResearchSingleSearch,
 	},
@@ -602,7 +603,7 @@ export default Vue.component("cfde-eco-system", {
 			infoEl.style.display = 'none';
 		}
 	}
-});
+};
 
 $(function () {
 });

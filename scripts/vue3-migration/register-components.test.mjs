@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { applyRegistrations } from './register-write.mjs';
-import { run } from './register-components.mjs';
+import { pageName, run } from './register-components.mjs';
 
 // The fixture is a tiny tree under a temp root: a page (`P`) whose template uses <comp-a> and <comp-b>,
 // and a component A that is defined as comp-a and uses <comp-b>. Three uses, two files to change.
@@ -188,6 +188,28 @@ test('every page that does not load the tag is listed by its folder, sorted, eve
   );
 });
 
+// Nine portal branches keep their pages under src/portals/<Portal>/views/ (C1).
+test('a page outside src/views is a page too: its evidence makes a tag not-loaded, and the table names it by its path', async () => {
+  await withRoot({ ...FIXTURE, 'src/portals/X/views/Q/main.js': PAGE_Q_MAIN }, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.equal(dry.code, 0);
+    assert.match(dry.out, /^\| Unresolved: not-loaded \| 1 \|$/m);
+    const table = dry.out.split('\n').filter((line) => line.startsWith('| `src/components/A.vue:'));
+    assert.deepEqual(table, ['| `src/components/A.vue:3` | `comp-b` | not-loaded | `portals/X/views/Q` |']);
+    // The real run leaves the use alone, as it would for a page under src/views.
+    const real = await cli(root);
+    assert.equal(real.code, 0);
+    assert.equal(read(root, 'src/components/A.vue'), COMP_A);
+  });
+});
+
+test('pageName is the page folder under src/views, or the path under src/ for a page anywhere else', () => {
+  assert.equal(pageName('src/views/Gene/main.js'), 'Gene');
+  assert.equal(pageName('src/views/group/R/main.js'), 'group/R');
+  assert.equal(pageName('src/portals/PanKbase/views/Gene/main.js'), 'portals/PanKbase/views/Gene');
+  assert.equal(pageName('src/main.js'), 'src');
+});
+
 test('the Unresolved totals rows come in the planner reason order', async () => {
   const files = {
     ...FIXTURE,
@@ -210,6 +232,133 @@ test('a template warning the file already had does not fail the strict re-parse'
     assert.equal(real.code, 0);
     assert.doesNotMatch(real.out, /^## Failed$/m);
     assert.match(read(root, 'src/views/P/Template.vue'), /import CompA from/);
+  });
+});
+
+// ---- check by hand: components chosen at run time (I3) ------------------------------------------------
+
+const PICKER = [
+  '<template>',
+  '  <div>',
+  '    <component :is="current" />',
+  '    <tr is="my-row"></tr>',
+  '    <section v-bind:is="kind" />',
+  '  </div>',
+  '</template>',
+  '<script>',
+  'export default {',
+  '    name: "Picker",',
+  '    render(h) {',
+  '        return this.a ? h("comp-a") : h(this.pick);',
+  '    },',
+  '    created() {',
+  '        this.node = this.$createElement(`x-${this.kind}`);',
+  '    },',
+  '};',
+  '</script>',
+  '',
+].join('\n');
+
+test('every runtime component choice is listed under Check by hand; the exit code does not change', async () => {
+  await withRoot({ ...FIXTURE, 'src/components/Picker.vue': PICKER }, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.equal(dry.code, 0);
+    assert.match(dry.out, /^\| Check by hand \| 7 \|$/m);
+    const section = dry.out.split('## Check by hand\n')[1].split('\n## ')[0];
+    assert.match(section, /^\| file:line \| kind \| expression \|$/m);
+    assert.deepEqual(
+      section.split('\n').filter((line) => line.startsWith('| `src/')),
+      [
+        '| `src/components/Picker.vue:3` | `:is` | `current` |',
+        '| `src/components/Picker.vue:4` | `is` | `my-row` |',
+        '| `src/components/Picker.vue:5` | `v-bind:is` | `kind` |',
+        '| `src/components/Picker.vue:12` | `h` | `"comp-a"` |',
+        '| `src/components/Picker.vue:12` | `h` | `this.pick` |',
+        // A code span that holds backticks is fenced with more of them.
+        '| `src/components/Picker.vue:15` | `this.$createElement` | `` `x-${this.kind}` `` |',
+        // The page entry renders its imported Template: not a literal, so it is listed too.
+        '| `src/views/P/main.js:5` | `h` | `Template` |',
+      ],
+    );
+    // A real run still writes what it planned.
+    const real = await cli(root);
+    assert.equal(real.code, 0);
+    assert.match(real.out, /^## Check by hand$/m);
+  });
+});
+
+test('with no runtime choices, Check by hand says None', async () => {
+  const main = MAIN.replace('new Vue({ render: (h) => h(Template) }).$mount("#app");', 'new Vue({ el: "#app" });');
+  await withRoot({ ...FIXTURE, 'src/views/P/main.js': main }, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.match(dry.out, /^\| Check by hand \| 0 \|$/m);
+    assert.equal(dry.out.split('## Check by hand\n')[1].split('\n## ')[0].trim(), 'None.');
+  });
+});
+
+// ---- phase 2 output in the tree (I1) ------------------------------------------------------------------
+// A portal merged master's phase 2 before running phase 1: B is already unwrapped, so nothing registers
+// <comp-b> globally any more, and both uses of it look like a registration phase 1 should add.
+
+const B_UNWRAPPED = '<template><div /></template>\n<script>\nexport default {\n    name: "comp-b",\n};\n</script>\n';
+const MERGED_EARLY = { ...FIXTURE, 'src/components/B.vue': B_UNWRAPPED };
+
+test('phase 2 output in the tree: a real run writes nothing, says why, and exits 1', async () => {
+  await withRoot(MERGED_EARLY, async (root) => {
+    const real = await cli(root);
+    assert.equal(real.code, 1);
+    assert.deepEqual(real.writes, []);
+    for (const [file, contents] of Object.entries(MERGED_EARLY)) assert.equal(read(root, file), contents, file);
+    assert.match(real.out, /^\| Unresolved: phase-2-present \| 2 \|$/m);
+    const table = real.out.split('\n').filter((line) => line.includes('| phase-2-present |'));
+    assert.deepEqual(table, [
+      '| `src/components/A.vue:3` | `comp-b` | phase-2-present | `src/components/B.vue` |',
+      '| `src/views/P/Template.vue:4` | `comp-b` | phase-2-present | `src/components/B.vue` |',
+    ]);
+    const why = real.out.split('## Phase 2 present\n')[1].split('\n## ')[0];
+    assert.match(why, /^Unresolved uses that are `phase-2-present`: 2\. /m);
+    assert.match(why, /Sync-point order/);
+    assert.match(why, /^Nothing was written\.$/m);
+    // The report still shows what would change: <comp-a> in the template.
+    assert.match(real.out, /^## Files that would change$/m);
+    assert.match(real.out, /^- `src\/views\/P\/Template\.vue`$/m);
+    assert.doesNotMatch(real.out, /^## Changed files$/m);
+    assert.match(real.err, /2 use\(s\) are phase-2-present; nothing was written/);
+  });
+});
+
+test('phase 2 output in the tree: a dry run prints everything and exits 1', async () => {
+  await withRoot(MERGED_EARLY, async (root) => {
+    const dry = await cli(root, ['--dry-run']);
+    assert.equal(dry.code, 1);
+    assert.deepEqual(dry.writes, []);
+    assert.match(dry.out, /^\| Files to change \| 1 \|$/m);
+    assert.match(dry.out, /^\| Entries \| 1 \|$/m);
+    const why = dry.out.split('## Phase 2 present\n')[1].split('\n## ')[0];
+    assert.match(why, /^A real run would write nothing\.$/m);
+    assert.match(dry.err, /phase-2-present; a real run would write nothing/);
+  });
+});
+
+// Master at HEAD: both phases ran, so every file registers what it uses and is unwrapped. The named files
+// are seen, but the lint finds no use, so there is nothing for them to block.
+test('a tree where both phases are done reports nothing to do and exits 0, named files and all', async () => {
+  const done = {
+    'src/views/P/main.js': 'import Vue from "vue";\nimport Template from "./Template.vue";\nnew Vue({ render: (h) => h(Template) }).$mount("#app");\n',
+    'src/views/P/Template.vue':
+      '<template>\n  <div>\n    <comp-a />\n    <comp-b />\n  </div>\n</template>\n<script>\nimport CompA from "@/components/A.vue";\nimport CompB from "@/components/B.vue";\nexport default {\n    name: "Template",\n    components: { CompA, CompB },\n};\n</script>\n',
+    'src/components/A.vue':
+      '<template>\n  <div>\n    <comp-b />\n    <comp-a v-if="deep" />\n  </div>\n</template>\n<script>\nimport CompB from "@/components/B.vue";\nexport default {\n    name: "comp-a",\n    components: { CompB },\n    props: ["deep"],\n};\n</script>\n',
+    'src/components/B.vue': B_UNWRAPPED,
+  };
+  await withRoot(done, async (root) => {
+    const real = await cli(root);
+    assert.equal(real.code, 0);
+    assert.deepEqual(real.writes, []);
+    assert.match(real.out, /^\| Findings \| 0 \|$/m);
+    assert.match(real.out, /^\| Unresolved \| 0 \|$/m);
+    assert.doesNotMatch(real.out, /phase-2-present|## Phase 2 present/);
+    assert.equal(real.err, '');
   });
 });
 
@@ -256,6 +405,18 @@ test('a throw from applyRegistrations is a failure with its message; the other f
     assert.match(failed, /contain a spread/);
     assert.deepEqual(real.writes, [join(root, 'src/components/A.vue')]);
     assert.equal(read(root, 'src/views/P/Template.vue'), spread);
+  });
+});
+
+test('an options object with two components keys is a failure; the other files are still written', async () => {
+  const twice = TEMPLATE.replace('name: "Template",', 'name: "Template",\n    components: {},\n    props: [],\n    components: {},');
+  await withRoot({ ...FIXTURE, 'src/views/P/Template.vue': twice }, async (root) => {
+    const real = await cli(root);
+    assert.equal(real.code, 1);
+    const failed = real.out.split('## Failed')[1].split('\n## ')[0];
+    assert.match(failed, /^- `src\/views\/P\/Template\.vue`: the component options have 2 `components` keys/m);
+    assert.deepEqual(real.writes, [join(root, 'src/components/A.vue')]);
+    assert.equal(read(root, 'src/views/P/Template.vue'), twice);
   });
 });
 

@@ -159,7 +159,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-multi-annotations-plot", {
+export default {
+	name: "research-multi-annotations-plot",
 	props: [
 		"region",
 		"phenotype",
@@ -2029,7 +2030,7 @@ export default Vue.component("research-multi-annotations-plot", {
 			});
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

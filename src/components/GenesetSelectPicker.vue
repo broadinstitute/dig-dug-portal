@@ -23,10 +23,9 @@ import { match } from "@/utils/bioIndexUtils";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("geneset-selectpicker", {
+export default {
+	name: "geneset-selectpicker",
 	components: {
 		Autocomplete,
 	},
@@ -57,5 +56,5 @@ export default Vue.component("geneset-selectpicker", {
 			this.$emit("onGenesetChange", geneset);
 		},
 	},
-});
+};
 </script>

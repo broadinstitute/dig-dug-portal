@@ -29,7 +29,8 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 
-export default Vue.component("credible-variants-table", {
+export default {
+    name: "credible-variants-table",
     props: ["credibleVariants", "filter"],
     data() {
         return {
@@ -72,5 +73,5 @@ export default Vue.component("credible-variants-table", {
             return dataRows;
         },
     },
-});
+};
 </script>

@@ -13,12 +13,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import colors from "@/utils/colors";
-export default Vue.component("research-multi-plot", {
+export default {
+    name: "research-multi-plot",
     props: ["rawData", "summaryPlot"],
     data(){
         return {
@@ -328,7 +328,7 @@ export default Vue.component("research-multi-plot", {
             return margin;
         }
     },
-});
+};
 </script>
 <style>
 div{

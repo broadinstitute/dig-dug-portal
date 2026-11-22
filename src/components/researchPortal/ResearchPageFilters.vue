@@ -492,11 +492,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 
 //import alertUtils from "@/utils/alertUtils";
 
-export default Vue.component("research-page-filters", {
+export default {
+	name: "research-page-filters",
 	props: [
 		"apiParameters",
 		"dataComparisonConfig",
@@ -1816,7 +1816,7 @@ export default Vue.component("research-page-filters", {
 			//this.applyFilters();
 		},
 	},
-});
+};
 </script>
 
 <style>

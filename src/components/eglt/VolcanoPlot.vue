@@ -42,7 +42,8 @@ import DownloadChart from "@/components/researchPortal/singleCellBrowser/Downloa
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("volcano-plot", {
+export default {
+    name: "volcano-plot",
     components: {
         DownloadChart,
     },
@@ -676,7 +677,7 @@ export default Vue.component("volcano-plot", {
             dtx.stroke();
         },
     },
-});
+};
 
 $(function () {});
 </script>

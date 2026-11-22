@@ -95,11 +95,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import ForestPlot from "@/components/ForestPlot";
 
-export default Vue.component("MaskTable", {
+export default {
+    name: "MaskTable",
     components: {
         ForestPlot,
     },
@@ -162,7 +162,7 @@ export default Vue.component("MaskTable", {
         intFormatter: Formatters.intFormatter,
         maskFormatter: Formatters.maskFormatter,
     },
-});
+};
 </script>
 <style>
 @import url("/css/effectorGenes.css");

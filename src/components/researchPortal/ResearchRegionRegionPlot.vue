@@ -14,7 +14,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("region-region-plot", {
+export default {
+	name: "region-region-plot",
 	props: [
 		"renderConfig",
 		"plotMargin",
@@ -453,7 +454,7 @@ export default Vue.component("region-region-plot", {
 			this.renderPlot();
 		},
 	},
-});
+};
 
 $(function () { });
 </script>

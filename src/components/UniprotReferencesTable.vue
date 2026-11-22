@@ -55,7 +55,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import DataDownload from "@/components/DataDownload";
 
-export default Vue.component("UniprotReferencesTable", {
+export default {
+    name: "UniprotReferencesTable",
     components: {
         DataDownload,
     },
@@ -121,5 +122,5 @@ export default Vue.component("UniprotReferencesTable", {
             this[obj] = "";
         },
     },
-});
+};
 </script>

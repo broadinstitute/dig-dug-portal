@@ -15,7 +15,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-export default Vue.component("geneset-size-selectpicker", {
+export default {
+    name: "geneset-size-selectpicker",
     props: [],
     data() {
         return {
@@ -38,5 +39,5 @@ export default Vue.component("geneset-size-selectpicker", {
             }
         },
     },
-});
+};
 </script>

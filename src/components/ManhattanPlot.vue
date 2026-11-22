@@ -5,13 +5,13 @@
 </template>
 
 <script>
-import Vue from "vue";
 import c3 from "c3";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import { difference } from "@/utils/lodashUtils";
 
-export default Vue.component("ManhattanPlot", {
+export default {
+    name: "ManhattanPlot",
     props: ["associations", "colorByPhenotype", "phenotypes", "phenotypeMap"],
 
     data() {
@@ -202,7 +202,7 @@ export default Vue.component("ManhattanPlot", {
             });
         },
     },
-});
+};
 
 let chromosomeLength = {
     //chromosome name, length

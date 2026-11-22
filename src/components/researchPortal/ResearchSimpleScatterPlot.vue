@@ -74,7 +74,8 @@ import defaultColors from "@/utils/colors";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-simple-scatter-plot", {
+export default {
+	name: "research-simple-scatter-plot",
 	props: {
 		plotData: {
 			type: Array,
@@ -866,7 +867,7 @@ export default Vue.component("research-simple-scatter-plot", {
 			}
 		},
 	},
-});
+};
 </script>
 <style>
 .scatter-plot.hover,

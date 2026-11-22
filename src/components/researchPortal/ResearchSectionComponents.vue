@@ -10,7 +10,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 
 import cfdeEcoSystem from "@/components/researchPortal/customComponents/cfdeEcoSystem.vue";
@@ -19,7 +18,8 @@ import GiantGemPkg from "@/components/researchPortal/customComponents/GiantGemPk
 import kpVariantSifter from "@/components/researchPortal/customComponents/kpVariantSifter.vue";
 import GP2Browser from "@/components/researchPortal/customComponents/GP2Browser.vue";
 
-export default Vue.component("research-section-components", {
+export default {
+	name: "research-section-components",
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
 	components: {
 		cfdeEcoSystem,
@@ -63,7 +63,7 @@ export default Vue.component("research-section-components", {
 	methods: {
 		
 	},
-});
+};
 
 $(function () { });
 </script>

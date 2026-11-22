@@ -20,7 +20,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-export default Vue.component("mouse-tissue-select", {
+export default {
+  name: "mouse-tissue-select",
   props: [],
   data() {
       return {
@@ -51,5 +52,5 @@ export default Vue.component("mouse-tissue-select", {
           }
       },
   },
-});
+};
 </script>

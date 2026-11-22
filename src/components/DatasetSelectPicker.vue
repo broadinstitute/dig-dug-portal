@@ -13,10 +13,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 
-export default Vue.component("dataset-selectpicker", {
+export default {
+    name: "dataset-selectpicker",
     components: {
         VueTypeaheadBootstrap,
     },
@@ -56,5 +56,5 @@ export default Vue.component("dataset-selectpicker", {
             });
         },
     },
-});
+};
 </script>

@@ -25,6 +25,42 @@ test('normalizeMessage gives a node_modules frame one name wherever the build ra
   assert.match(normalizeMessage(frame('./src/views/Gene/Template.vue')), /push\.\.\/src\/views\/Gene\/Template\.vue\.Watcher/);
 });
 
+// A production build's minifier names functions after where they land in the bundle, so moving a module
+// renames them: the same pre-existing pegasus TypeError was `at ia.f (` in the baseline and `at ia.p (` in
+// the candidate (ruling R14). The frame's location still tells frames apart.
+const PEGASUS = (fn) =>
+  [
+    'TypeError: Object(...) is not a function',
+    `    at ${fn} (http://localhost:8081/js/chunk-common.3f2a1b9c.js:1:2345)`,
+    '    at http://localhost:8081/js/pegasus.0a1b2c3d.js:1:99',
+    '    at Generator.<anonymous> (http://localhost:8081/js/chunk-vendors.11223344.js:7:8)',
+    '    at n (http://localhost:8081/js/chunk-vendors.11223344.js:7:9)',
+  ].join('\n');
+
+test('normalizeMessage gives a stack frame one function name, so a minified name that moved compares equal', () => {
+  assert.equal(normalizeMessage(PEGASUS('ia.f')), normalizeMessage(PEGASUS('ia.p')));
+  assert.equal(
+    normalizeMessage(PEGASUS('ia.f')),
+    [
+      'TypeError: Object(...) is not a function',
+      '    at <fn> (<origin>/js/chunk-common.js:<l>:<c>)',
+      '    at <origin>/js/pegasus.js:<l>:<c>',
+      '    at <fn> (<origin>/js/chunk-vendors.js:<l>:<c>)',
+      '    at <fn> (<origin>/js/chunk-vendors.js:<l>:<c>)',
+    ].join('\n'),
+  );
+  // `new`, `async` and an `[as alias]` are frame names too.
+  assert.equal(normalizeMessage('    at new ia (x.js)\n    at async Promise.all (index 0)\n    at Object.f [as g] (y.js)'), '    at new <fn> (x.js)\n    at async <fn> (index 0)\n    at <fn> (y.js)');
+});
+
+test('normalizeMessage keeps frames at different locations, and the message text, apart', () => {
+  const at = (file) => `TypeError: x is undefined\n    at ia.f (http://localhost:8080/js/${file}.0a1b2c3d.js:1:2)`;
+  assert.notEqual(normalizeMessage(at('chunk-common')), normalizeMessage(at('pegasus')));
+  // Only an indented stack frame is a frame: "at" in the message itself is left as it is.
+  assert.equal(normalizeMessage('Failed at step (2)'), 'Failed at step (2)');
+  assert.notEqual(normalizeMessage(PEGASUS('ia.f')), normalizeMessage(PEGASUS('ia.f').replace('Object(...)', 'Array(...)')));
+});
+
 // A stand-in for Playwright's Page with just what probePage uses. `landmark` and `idle` are the
 // landmark wait and the network-idle wait; each may resolve, reject, or emit page events.
 // `domQuietMs` answers the settle step's in-page check: how long the DOM has been unchanged.

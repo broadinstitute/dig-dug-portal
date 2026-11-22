@@ -669,7 +669,8 @@ function emptyGlobalEnrichmentState() {
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("gp2-browser", {
+export default {
+    name: "gp2-browser",
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
     components: {
         GP2BrowserMenuBar,
@@ -7851,7 +7852,7 @@ export default Vue.component("gp2-browser", {
             };
         },
     },
-});
+};
 </script>
 
 <style scoped>

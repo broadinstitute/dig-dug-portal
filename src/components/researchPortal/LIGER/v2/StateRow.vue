@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import InfoTip from "./InfoTip.vue";
 
 // One cell state, as a two-line row: the name on the first line, its one-line lede
@@ -20,7 +19,8 @@ import InfoTip from "./InfoTip.vue";
 // What stays is the color accent on the left edge. It is the same color as this
 // state's edges, which makes the list its own legend: a reader traces a line to a
 // color and finds the color at the head of a row.
-export default Vue.component("StateRow", {
+export default {
+    name: "StateRow",
     components: {
         InfoTip
     },
@@ -42,7 +42,7 @@ export default Vue.component("StateRow", {
             default: false
         }
     }
-});
+};
 </script>
 
 <template>

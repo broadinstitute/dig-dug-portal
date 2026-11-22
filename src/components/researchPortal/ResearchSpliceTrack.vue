@@ -67,7 +67,8 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("research-splice-track", {
+export default {
+	name: "research-splice-track",
 	props: [
 		"plotConfig",
 		"plotType",
@@ -642,7 +643,7 @@ export default Vue.component("research-splice-track", {
 			);
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

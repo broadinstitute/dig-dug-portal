@@ -58,7 +58,8 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("gene-finder-heatmap", {
+export default {
+	name: "gene-finder-heatmap",
 	props: [
 		"rawData",
 		"heatmapData",
@@ -763,7 +764,7 @@ export default Vue.component("gene-finder-heatmap", {
 			});
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

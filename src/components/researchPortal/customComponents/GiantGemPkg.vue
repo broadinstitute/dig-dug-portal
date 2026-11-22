@@ -241,7 +241,8 @@ import ResearchGeneLinks from "@/components/researchPortal/ResearchGeneLinks.vue
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("giant-gem-pkg", {
+export default {
+	name: "giant-gem-pkg",
 	props: [
 		"pkgConfig",
 		"dataComparisonConfig",
@@ -310,7 +311,7 @@ export default Vue.component("giant-gem-pkg", {
 			this.utils.uiUtils.showHideSvg(SECTION_ID);
 		},
 	},
-});
+};
 </script>
 
 <style>

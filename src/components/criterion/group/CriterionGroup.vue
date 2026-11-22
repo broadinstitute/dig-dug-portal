@@ -24,9 +24,9 @@
     </criterion-group-template>
 </template>
 <script>
-import Vue from "vue";
 import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue";
-export default Vue.component("criterion-function-group", {
+export default {
+    name: "criterion-function-group",
     props: {
         value: {
             type: Function,
@@ -58,5 +58,5 @@ export default Vue.component("criterion-function-group", {
             this.$emit("update-filter-function", value);
         },
     },
-});
+};
 </script>

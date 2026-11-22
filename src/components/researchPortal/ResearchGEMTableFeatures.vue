@@ -71,10 +71,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 //import Formatters from "@/utils/formatters";
 
-export default Vue.component("research-gem-table-features", {
+export default {
+	name: "research-gem-table-features",
 	props: ["featuresData", "featuresFormat","utils"],
 	data() {
 		return {};
@@ -263,7 +263,7 @@ export default Vue.component("research-gem-table-features", {
 		},
 	},
 	watch: {},
-});
+};
 </script>
 
 <style>

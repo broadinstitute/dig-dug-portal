@@ -247,7 +247,8 @@ import plotUtils from "@/utils/plotUtils";
 import dataConvert from "@/utils/dataConvert";
 import colors from "@/utils/colors";
 
-export default Vue.component("LigerTable", {
+export default {
+    name: "LigerTable",
     components: {
         DataDownload,
         LigerGeneProgramSubtable,
@@ -759,5 +760,5 @@ export default Vue.component("LigerTable", {
             row.toggleDetails();
         },
     },
-});
+};
 </script>

@@ -10,11 +10,11 @@ import { parse as parseBabel } from '@babel/parser';
 import { parse as parseSfc } from 'vue/compiler-sfc';
 import { BABEL_OPTIONS, isVueComponentCall, toKebab, toKey } from './component-graph.mjs';
 
-const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-const isBlank = (text) => /^\s*$/.test(text);
+export const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+export const isBlank = (text) => /^\s*$/.test(text);
 
 /** Indentation of the line that holds `offset`. */
-function lineIndent(text, offset) {
+export function lineIndent(text, offset) {
   const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
   return /^[ \t]*/.exec(text.slice(lineStart))[0];
 }
@@ -41,7 +41,7 @@ function skipTrivia(text, from) {
  * of its `\r` or `\n`, or the end of `text`. When code follows, or a comment runs on to another line,
  * `from` itself. New lines go here, after a trailing comment, so the comment stays with its code.
  */
-function lineEnd(text, from) {
+export function lineEnd(text, from) {
   let i = from;
   for (;;) {
     while (text[i] === ' ' || text[i] === '\t') i++;
@@ -59,7 +59,7 @@ function lineEnd(text, from) {
 }
 
 /** The key of an object property as written (`foo` and `"foo"` are both `foo`), or null when it is not known. */
-function keyName(property) {
+export function keyName(property) {
   if (property.type === 'SpreadElement' || property.computed) return null;
   const { key } = property;
   if (key.type === 'Identifier') return key.name;
@@ -174,7 +174,7 @@ function componentsBlock(indent, unit, registrations, eol) {
  * line the options object opens on. A file that does not show one (a first property level with the
  * brace, an empty object) gets a tab when it is tab-indented, else four spaces.
  */
-function indentUnit(raw, options) {
+export function indentUnit(raw, options) {
   const outer = lineIndent(raw, options.start);
   const first = options.properties[0];
   const inner = first ? lineIndent(raw, first.start) : outer;
@@ -187,7 +187,7 @@ function indentUnit(raw, options) {
  * (`{}`, `{ }` or `{` and `}` on lines of their own). A closing brace that shares the line with the
  * opening one moves to its own line at `closeIndent`.
  */
-function fillEmpty(raw, node, lines, closeIndent, eol) {
+export function fillEmpty(raw, node, lines, closeIndent, eol) {
   const interior = raw.slice(node.start + 1, node.end - 1);
   if (interior.includes('\n')) {
     const at = lineEnd(raw, node.start + 1);
@@ -209,12 +209,16 @@ function optionsObject(body, fail) {
   return fail('the script has no `export default { ... }` or `export default Vue.component("name", { ... })` to add `components` to');
 }
 
-/** The `components` property of the options (the last one wins), or null. */
+/** The `components` property of the options, or null. Refuses more than one: the lint reads the first, Vue the last. */
 function componentsProperty(options, fail) {
   if (options.properties.some(({ type }) => type === 'SpreadElement')) {
     fail('the component options contain a spread, so where `components` comes from is unclear');
   }
-  const found = options.properties.filter((property) => keyName(property) === 'components').at(-1);
+  const all = options.properties.filter((property) => keyName(property) === 'components');
+  if (all.length > 1) {
+    fail(`the component options have ${all.length} \`components\` keys (the lint reads the first, Vue uses the last); merge them by hand`);
+  }
+  const [found] = all;
   if (found && (found.type !== 'ObjectProperty' || found.value.type !== 'ObjectExpression')) {
     fail('`components` is not an object literal');
   }
@@ -254,15 +258,24 @@ function extendComponents(raw, property, registrations, unit, eol) {
   return edits;
 }
 
-/** Edit that adds a `components` property as the first property of the options object. */
-function newComponents(raw, options, registrations, unit, eol) {
+/**
+ * Edit that adds a property as the first property of the options object. `lines(indent)` is its text
+ * (one or more lines, joined with `eol`, no outer line breaks): `indent` is that of the first property,
+ * or one `unit` in from the line the braces are on when the object is empty.
+ */
+export function addFirstProperty(raw, options, lines, unit, eol) {
   const first = options.properties[0];
   if (first) {
     const at = lineEnd(raw, options.start + 1);
-    return { start: at, end: at, text: `${eol}${componentsBlock(lineIndent(raw, first.start), unit, registrations, eol)}` };
+    return { start: at, end: at, text: `${eol}${lines(lineIndent(raw, first.start))}` };
   }
   const outer = lineIndent(raw, options.start);
-  return fillEmpty(raw, options, componentsBlock(outer + unit, unit, registrations, eol), outer, eol);
+  return fillEmpty(raw, options, lines(outer + unit), outer, eol);
+}
+
+/** Edit that adds a `components` property as the first property of the options object. */
+function newComponents(raw, options, registrations, unit, eol) {
+  return addFirstProperty(raw, options, (indent) => componentsBlock(indent, unit, registrations, eol), unit, eol);
 }
 
 /** The script's own edits, in the script's coordinates (`raw` is its text). */
@@ -299,7 +312,7 @@ function editScript(raw, entries, eol, file, fail) {
  * several `<script>` blocks, so the openers are counted separately: the writer cannot tell which
  * of two blocks a person means, so it refuses.
  */
-function soleScript(source, descriptor, fail) {
+export function soleScript(source, descriptor, fail) {
   const { script, scriptSetup } = descriptor;
   if (scriptSetup) fail('has a <script setup> block');
   if (!script) return null;
@@ -317,7 +330,7 @@ function soleScript(source, descriptor, fail) {
 }
 
 /** Edits applied in position order; edits at one position keep their order. */
-function splice(source, edits) {
+export function splice(source, edits) {
   let result = '';
   let at = 0;
   for (const edit of [...edits].sort((a, b) => a.start - b.start)) {
@@ -353,7 +366,8 @@ function splice(source, edits) {
  * Throws an `Error` that starts with `<file>: ` for a shape it will not guess at: two `<script>`
  * blocks, `<script setup>`, `lang="ts"`, a `<script src>`, a script that does not parse, no
  * `export default` of those two forms, a spread in the options, a `components` that is not an
- * object literal, no `<template>` to put a script after, or two entries with one key.
+ * object literal, more than one `components` key, no `<template>` to put a script after, or two
+ * entries with one key.
  * With no entries it returns at once and checks nothing.
  * @param {string} source the `.vue` file's text
  * @param {import('./register-plan.mjs').Entry[]} entries the registrations to add, as planned for this file

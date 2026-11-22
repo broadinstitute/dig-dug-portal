@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import CellStateInfographic from "../CellStateInfographic.vue";
 import GeneSearch from "./GeneSearch.vue";
 import ScopeSelect from "./ScopeSelect.vue";
@@ -203,7 +202,8 @@ const TOOLTIP_EDGE_MARGIN_Y = 150;
 const TOOLTIP_PROSE_MARGIN_X = 340;
 const TOOLTIP_PROSE_MARGIN_Y = 260;
 
-export default Vue.component("CellEvolutionBrowser", {
+export default {
+    name: "CellEvolutionBrowser",
     components: {
         CellStateInfographic,
         GeneSearch,
@@ -2631,7 +2631,7 @@ export default Vue.component("CellEvolutionBrowser", {
             this.canvasTooltip = null;
         }
     }
-});
+};
 </script>
 
 <template>
