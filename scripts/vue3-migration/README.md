@@ -46,13 +46,25 @@ npm run codemod:declare-emits -- [--root <dir>] [--dry-run]
 ```
 
 Both take ESLint from this checkout (so `--root` may be a portal without `node_modules`), splice text without
-reformatting, and write nothing if a changed file no longer parses (exit 1). A second run changes nothing.
+reformatting, and write nothing if a changed file no longer parses (exit 1). A second run changes nothing. Both
+exit 2 for a usage error or a lint that cannot run.
 
 `lint-fix` applies ESLint's own fix: `slot="x" slot-scope="s"` becomes `v-slot:x="s"`, a lone `slot-scope="s"`
-becomes `v-slot="s"`, and a root `data: {...}` becomes `data: () => ({...})`. It refuses a rule whose fix writes
-Vue 3-only syntax (`.sync`, `beforeDestroy`) with exit 2. Two reshapes depend on how ESLint 8.57.1's fixer calls its
-`fix` predicate, so re-check after an ESLint upgrade. A slot name with a character outside `[\w-]`, such as
-`cell(name)`, is left and stays counted: write `<template v-slot:cell(name)="r">` by hand.
+becomes `v-slot="s"`, and `data: {...}` in the options of `new Vue({...})` becomes `data: () => ({...})`. It refuses
+a rule whose fix writes Vue 3-only syntax (`.sync`, `beforeDestroy`) with exit 2. Two reshapes depend on how ESLint
+8.57.1's fixer calls its `fix` predicate, so re-check after an ESLint upgrade.
+
+It leaves some findings, which stay counted, for you:
+
+- A component's `data: {...}` (`export default` of a `.vue` file, `Vue.extend`, `Vue.component`). 2.7 drops it with a
+  warning, so the component has no data today, and a function would give it some. Delete it, or, if it was meant to
+  hold data, write `data() { return {...}; }` and check the page.
+- A slot name with a character outside `[\w-]`, such as `cell(name)`: write `<template v-slot:cell(name)="r">`.
+- A `slot` on an element that is not a `<template>`, such as `<div slot="b">`: wrap it in
+  `<template v-slot:b>...</template>`, which is how the 2.6+ syntax gives an element to a named slot. 2.7 renders the
+  `<div>` with a `slot="b"` attribute and the wrapped one without it, so check that no CSS or script selects `[slot]`.
+- A `<template slot>` that shares its slot with another template, or that is not directly in a component: write the
+  `v-slot` form by hand.
 
 `declare-emits` adds the events a component emits to `emits`, which 2.7 ignores. Vue 3 also binds a listener for an
 undeclared event to the root element, so a native-named event such as `click` fires twice. Names are verbatim
@@ -60,19 +72,23 @@ undeclared event to the root element, so a native-named event such as `click` fi
 `name`, else first; an existing array gets the missing names. Its report lists two things for a person:
 
 - Unresolved: a file it will not edit (object-form `emits`, a `.js` file, `<script setup>`, a spread in the
-  options). Add the listed names by hand, placed the same way. The exit code stays 0.
+  options), or one that still has findings after `export default` declares every name: a second component in the
+  file, such as a `Vue.extend({...})`, emits them, and the first run put the names on the wrong component. Add the
+  listed names by hand, to the component that emits them, placed the same way. The exit code stays 0.
 - Check by hand: a `$emit(` whose first argument is not a string literal, such as `$emit(eventName)`. Declare the
   names it can emit. A hit inside a comment is not a call.
 
-Its other blind spot is an emit through an alias, such as `self.$emit("name")`: the lint rule reads only
-`this.$emit` and the template. Find them from the repo root (single quotes, or the shell eats the `\$`):
+Its other blind spot is an emit through an alias. The lint rule reads `this.$emit`, the template and a
+`const x = this` alias, but not a `let` or `var` alias (`let self = this; self.$emit("name")`, as `LocusZoom.vue`
+does) and not an emit through any other object. Find them from the repo root (single quotes, or the shell eats the
+`\$`):
 
 ```bash
 grep -rnoE '[A-Za-z_$][A-Za-z0-9_$]*\.\$emit\(' src | grep -vE 'this\.\$emit|EventBus\.\$emit|eventBus\.\$emit|\$parent\.\$emit|\$root\.\$emit'
 ```
 
 On `dev/vue3` it finds only the two `self.$emit` calls in `src/components/lz/LocusZoom.vue`, both declared. Declare
-any other hit by hand.
+the events of any other hit by hand, unless its component lists them already.
 
 ### compare-render
 
@@ -81,11 +97,36 @@ npm run tool:compare-render -- --base <ref> [--root <dir>] <file.vue> [<file.vue
 ```
 
 It compiles each file's `<template>` with Vue 2.7 at `<ref>` and in the working tree, and compares the `render` and
-`staticRenderFns` text. `same` means 2.7 renders the same; `differs` prints both sides, as it does for a side that
-does not compile or has no `<template>`. Exit 0 if every file is `same`, 1 if any differs, 2 for a usage error. It
-refuses `NODE_ENV=production`, where the 2.7 compiler drops compile errors. Two `differs` are false: a stray end tag
-removed between two text runs (it splits or merges text nodes, the DOM is the same), and a file whose template moved
-into a `render()` option. Check those by rendering the VNode trees, with adjacent text merged.
+`staticRenderFns` text. `same` means the two templates compile to the same render; `differs` prints both sides, as
+it does for a side that does not compile or has no `<template>`. Exit 0 if every file is `same`, 1 if any differs, 2
+for a usage error. It refuses `NODE_ENV=production`, where the 2.7 compiler drops compile errors.
+
+It proves less than it seems. It compares compiled text, not the DOM, and it reads `<template>` only:
+
+- `same` proves the template renders as before. It says nothing about an edit to a `<script>` (the `data` and `emits`
+  codemods, `no-dupe-keys`, `require-valid-default-prop`), which it never reads.
+- `differs` is not a failure when the compiled text changes and the DOM does not. That is every `v-if`/`v-for` split,
+  every `.sync` rewrite, a duplicate-attribute fix, a `v-html` replacement, a bare `slot="x"` rewritten to
+  `v-slot:x`, a stray end tag deleted between two text runs (the text node splits), and a template that moved into a
+  `render()` option. The hand-fix list says what each rule should show. For these, render the VNode trees (adjacent
+  text merged) where the bullet says so, and run the development A/B.
+- Script-only edits have no compare-render result at all: use the development A/B, and for `no-dupe-keys` the check
+  in its bullet.
+
+The development A/B compares a development build of your tree with one of the base, page by page, and fails on a page
+or console error the base lacks, a landmark that does not render, or a screenshot that changed. From a network
+BioIndex accepts, after `npx playwright install chromium` once (`e2e/README.md` has the prerequisites and the
+pitfalls), from the repo root:
+
+```bash
+npm run build
+npm run e2e:baseline -- <base ref> --mode development
+npx playwright test --project=chromium
+```
+
+`<base ref>` is a commit from before your change (`HEAD` while it is uncommitted). Both sides must be development
+builds. It takes about ten minutes and covers the pages in `e2e/catalog.mjs`. It loads pages and does not click, so it
+cannot prove a handler or an event name: for those, read the code, as the bullets say.
 
 ### Rules that wait for the Vue 3 switch
 
@@ -97,44 +138,66 @@ Three rules stay at their counts: their Vue 3 form is invalid on 2.7. They run a
 
 ### Hand fixes
 
-Each keeps what 2.7 renders today, unless its bullet says otherwise. Run `compare-render` on what you edit: `same`
-is the proof, and a `differs` should be a change listed here.
+Each keeps what 2.7 renders today, unless its bullet says otherwise. Run `compare-render` on each template you edit and
+read the result as the bullet says: `same`; `differs` with the DOM unchanged (then run the development A/B, see
+compare-render); or not covered, a `<script>`-only edit (the A/B, or the check the bullet names).
 
-- `vue/no-use-v-if-with-v-for` (2.7 runs `v-for` first, then `v-if` per item; keep that):
-  - the condition does not use the loop variables: wrap in `<template v-if="cond">` and drop the `v-if`. Never put a
-    `v-for` or `key` on a `<template>`;
+- `vue/no-use-v-if-with-v-for` (2.7 runs `v-for` first, then `v-if` per item; keep that). compare-render:
+  `differs`, DOM unchanged.
+  - the condition does not use the loop variables: wrap in `<template v-if="cond">` and drop the `v-if`. The wrapper
+    `<template>` carries only the `v-if`; the `v-for` stays on its element. A `<template v-for>` never gets a `key`
+    on 2.7 (a `key` there is a compile error);
   - otherwise filter the source, `v-for="x in (src || []).filter((x) => cond)"`. Guard a plain property with
     `(src || [])`: 2.7 renders nothing for null, but `null.filter()` throws;
   - the body uses the index for more than `:key`: `v-for="[x, i] in (src || []).map((x, i) => [x, i]).filter(([x, i]) => cond)"`;
   - an object source: `v-for="[v, k] in Object.keys(src || {}).map((k) => [src[k], k]).filter(([v, k]) => cond)"`
     (the index only where the original alias had one).
-- `vue/no-parsing-error`: write a bare `<` in text as `&lt;`. Delete a stray end tag, unless it is the template's
-  only closer: the typo `</tempate>` is one, which 2.7 accepts, so fix the typo.
+- `vue/no-parsing-error`. compare-render: `same`, except where noted.
+  - Write a bare `<` in text as `&lt;`.
+  - A stray `</br>` becomes `<br />` and a stray `</p>` becomes `<p></p>`: 2.7 renders each as an element, so deleting
+    it would drop one (`matkp-main` has a `</br>` in `src/portals/MATKP/views/Index/Template.vue`).
+  - Delete any other stray end tag (`differs`, DOM unchanged, when it stood between two text runs: the text node
+    splits), unless it is the template's only closer. The typo `</tempate>` is one, which 2.7 accepts, so fix the typo.
 - `vue/valid-template-root`: an empty template renders an empty `<div>` on 2.7, so use `render(h) { return h("div"); }`.
+  compare-render: `differs` (no `<template>` in the working tree), DOM unchanged.
 - `vue/no-v-text-v-html-on-component`: use the native element and classes BootstrapVue 2.23 renders for the current
   props, keeping every other attribute (`<b-row>` is `<div class="row">`, `<b-badge pill>` is
   `<span class="badge badge-secondary badge-pill">`; read `node_modules/bootstrap-vue/src/components/`).
-  `compare-render` says `differs` here, so compare the rendered DOM.
+  compare-render: `differs`, DOM unchanged, so compare the rendered DOM.
 - `vue/no-dupe-keys`: keep the declaration 2.7 resolves: it sets up `props`, then `methods`, `data`, `computed`; a
   later key in an object literal wins; a `props` array is read from the end, so delete the earlier of a name listed
-  twice. If unsure, build the component with `Vue.extend(options)` and `new Ctor({ propsData })` and read the key.
+  twice. Not covered (script only). To find which declaration 2.7 resolves, run a small script on
+  `vue/dist/vue.common.dev.js` from the repo root, with the component's own options in place of the example (Vue's
+  warnings name the clashing pair):
+
+  ```bash
+  node -e 'const Vue = require("vue/dist/vue.common.dev.js"); const Ctor = Vue.extend({ props: ["a"], data: () => ({ a: "data" }) }); console.log(new Ctor({ propsData: { a: "prop" } }).a)'
+  ```
 - `vue/no-deprecated-v-bind-sync`: `:x="y" @update:<event>="y = $event"`, with `<event>` the name the child really
   emits. 2.7's `.sync` listens for both the camelCase and the hyphenated name, so read the child's `$emit`
   (`b-table` emits `update:sortBy`, `CriterionFunctionGroup` emits `update:filter-list`). A member target uses
-  `$set(obj, key, $event)`, as `.sync` does today.
-- `vue/no-child-content`: delete the content inside a `v-html` element; 2.7 drops it.
+  `$set(obj, key, $event)`, as `.sync` does today. compare-render: `differs`, DOM unchanged. The A/B does not click, so
+  the event name rests on reading the child's `$emit`.
+- `vue/no-child-content`: delete the content inside a `v-html` element; 2.7 drops it. compare-render: `differs`, DOM
+  unchanged.
 - `vue/no-textarea-mustache`: `<textarea :value="expr"></textarea>`. The box now follows `expr` after the user types.
-- `vue/require-valid-default-prop`: `default: () => [...]`; each instance gets its own array.
-- `vue/valid-v-html`: delete an empty `v-html=""`.
-- `vue/no-duplicate-attributes`: keep the last, which is the value 2.7 uses.
+  compare-render: `differs`; the change in behaviour is the one named here.
+- `vue/require-valid-default-prop`: `default: () => [...]`; each instance gets its own array. Not covered (script
+  only).
+- `vue/valid-v-html`: delete an empty `v-html=""`. compare-render: `differs`, DOM unchanged.
+- `vue/no-duplicate-attributes`: keep the last, which is the value 2.7 uses. compare-render: `differs` (the base side
+  reports a compile error for the duplicate), DOM unchanged.
 - `vue/no-useless-template-attributes`: delete it, such as `center` in `<template center v-slot:cell(image)="r">`.
+  compare-render: `same`.
 
 ### Portal procedure
 
-On the portal's `vue3/<portal>` branch:
+On the portal's `vue3/<portal>` branch, from a clean working tree (`git status` shows nothing): neither codemod checks
+for local changes, and step 3 commits their output alone.
 
 1. Merge `dev/vue3`.
-2. In a conflicted file the codemods rewrote, take the portal's side (`git checkout --ours <file>`). Commit the merge.
+2. In a conflicted file the codemods rewrote, take the portal's side (`git checkout --ours <file>`, then
+   `git add <file>`). Commit the merge.
 3. From a current `dev/vue3` checkout, run both codemods with `--root <portal checkout>`. Commit their output alone.
 4. Run the alias grep from the portal checkout. Declare its hits, and the Unresolved and Check by hand names, by hand.
 5. Hand-fix the findings only the portal has, by the rules above.

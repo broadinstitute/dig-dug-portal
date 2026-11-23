@@ -21,8 +21,10 @@
 //
 // A file it will not edit is listed under Unresolved, with its names and why, and is not written: an object-form
 // `emits`, a `.js` file, a script without `export default { ... }` (or one with a spread in it), a property that
-// shares its line with other code, a `<script setup>`. Those are for a person. Unresolved files do not change
-// the exit code, and the next run reports them again.
+// shares its line with other code, a `<script setup>`. Those are for a person. So is a file that still has
+// findings when its `export default` declares every name already: a second component in the file (`Vue.extend({
+// ... })`) emits them, and the names were added to the wrong one (the first run cannot tell the two apart).
+// Unresolved files do not change the exit code, and the next run reports them again.
 //
 // Every changed file is parsed again before anything is written (no SFC error the original did not have, every
 // script block through Babel without error recovery, as `register-components.mjs` does). A file that fails is
@@ -55,6 +57,9 @@ const USAGE = 'usage: node scripts/vue3-migration/declare-emits.mjs [--root <dir
 const RULE = 'vue/require-explicit-emits';
 /** The message of the rule for a component with an `emits` option (eslint-plugin-vue 9.17.0); the name is in quotes. */
 const MISSING = /^The "(.*)" event has been triggered but not declared on `emits` option\.$/s;
+
+/** Why a file with findings has nothing to add: its `export default` already declares every name the lint gives. */
+const DECLARED_ELSEWHERE = 'findings remain that the default export already declares (another component in the file?)';
 
 /** Longest line, in characters, that `emits: ["a", "b"],` may be before it is split one name to a line. */
 const MAX_LINE = 100;
@@ -231,7 +236,8 @@ export function dynamicEmits(source) {
  *  - `changed`: the files (relative to `root`, `/` separators, sorted) written, or in a dry run the files a real run
  *    would write; `outputs` the same with each one's new text, whether or not it was written. Empty `changed` when any
  *    file failed;
- *  - `unresolved`: the files with findings that were not edited, `{ file, names, reason }`, sorted by file;
+ *  - `unresolved`: the files with findings that were not edited (including one whose `export default` already
+ *    declares every name), `{ file, names, reason }`, sorted by file;
  *  - `failures`: `{ file, message }`, sorted. A file fails when its new text does not parse again, in which case
  *    nothing is written at all, or when its write throws, in which case the other files are still written;
  *  - `checkByHand`: the `$emit(` calls with a first argument that is not a string literal, `{ file, line, argument }`;
@@ -275,6 +281,9 @@ export async function declareTree({ root, dryRun = false, write = writeFileSync,
       } else if (declared.changed) {
         assertParses(file, source, declared.source);
         outputs.push({ file, text: declared.source });
+      } else {
+        // The file has findings and `export default` has every name already: the lint means another component in the file.
+        unresolved.push({ file, names, reason: DECLARED_ELSEWHERE });
       }
     } catch (error) {
       failures.push(failure(file, error));

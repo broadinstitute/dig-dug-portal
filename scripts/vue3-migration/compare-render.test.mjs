@@ -123,7 +123,7 @@ before(() => {
 
   writeIn(root, 'src/Edited.vue', sfc('<p>b</p>'));
   writeIn(root, 'src/Entity.vue', sfc('<p>a &lt; b</p>'));
-  // What Task 6 does to an empty template: the block goes, a render function takes over.
+  // An empty template that becomes a `render()` option: the block goes, a render function takes over.
   writeIn(root, 'src/Emptied.vue', sfc(null));
   rmSync(join(root, 'src/Gone.vue'));
   writeIn(root, 'src/Added.vue', sfc('<p>new</p>'));

@@ -15,8 +15,11 @@
 //     characters and `-`, and no other template for the same slot; any other stays as it is, and stays counted.
 //     Its fix takes the element's `slot-scope` along, so the next rule has little left to fix.
 //   - `vue/no-deprecated-slot-scope-attribute`: a `slot-scope="s"` with no `slot` beside it becomes `v-slot="s"`.
-//   - `vue/no-deprecated-data-object-declaration`: `data: { ... }` on a root instance or component becomes
-//     `data: () => ({ ... })`.
+//   - `vue/no-deprecated-data-object-declaration`: `data: { ... }` in the options of `new Vue({ ... })` becomes
+//     `data: () => ({ ... })`. A component's `data: { ... }` (`export default` of a `.vue` file, `Vue.extend`,
+//     `Vue.component`) is left as it is and stays counted: Vue 2.7 drops a component's object `data` with a
+//     warning, so the component has no data today, and a function would give it some. Whoever owns the
+//     component decides what it was meant to hold.
 //
 // Every output is ESLint's own splice of the original text: bytes outside the fix, line endings and
 // indentation included, stay as they were, and nothing is reformatted. The only change to a fix is made in
@@ -40,15 +43,16 @@
 // ESLint plugins resolve from this repo, so `--root` may be a checkout without `node_modules`.
 //
 // Exit codes: 0 done, 1 a file failed (a fixed file failed the re-parse, or a write failed), 2 usage error
-// (no `--rule`, a rule outside `SAFE_ON_VUE2`, a root without a `src/` folder).
+// (no `--rule`, a rule outside `SAFE_ON_VUE2`, a root without a `src/` folder) or the lint could not run.
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs as parseNodeArgs } from 'node:util';
 import { parse as parseSfc } from 'vue/compiler-sfc';
+import { walk } from './component-graph.mjs';
 import { countByRule } from './ratchet.mjs';
-import { code, failure, hasSrc } from './register-components.mjs';
-import { byCodeUnit } from './register-write.mjs';
+import { code, failure, hasSrc, oneLine, parseStrict } from './register-components.mjs';
+import { byCodeUnit, keyName } from './register-write.mjs';
 import { vue3Linter } from './vue3-eslint.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -68,6 +72,80 @@ const DATA_RULE = 'vue/no-deprecated-data-object-declaration';
 const FUNCTION_OPEN = 'function() {\nreturn ';
 const FUNCTION_CLOSE = ';\n}';
 
+// Which data objects are a root instance's. `shouldFix` sees one lint message at a time, with no file name and no
+// syntax tree, and the rule reports a component's `data` as it does a root instance's. So the sites are found
+// first, from the lint that counts the findings before any fix: each file with a data finding is parsed (Babel,
+// as the sibling codemods do), and a finding is a root site when its fix range holds the value of a `data`
+// property in the first argument of a `new Vue(...)` call. `shouldFix` then looks the finding up by `dataSiteKey`.
+//
+// The key is the fix's range and text. ESLint's fix covers the whole value, and its text holds the object itself,
+// so two findings share a key only when two files hold the same object at the same offset; a key that belongs to a
+// root site and to some other site is dropped, so neither is fixed. ESLint lints a file again after it applies
+// fixes, and a later pass sees offsets moved by an earlier fix: such a finding finds no key and stays, which is
+// the safe side, and a second run (offsets from the unchanged text) takes it.
+
+/** What identifies a data-object finding in the lint before any fix, and to `shouldFix` while ESLint fixes. */
+export const dataSiteKey = ({ range, text }) => `${range[0]}-${range[1]}:${text}`;
+
+/** The `data: <value>` properties in the options of each `new Vue({ ... })` call in `script`, offset by `offset`. */
+function rootDataProperties(script, offset) {
+  const found = [];
+  walk(parseStrict(script), (node) => {
+    const isRootInstance = node.type === 'NewExpression' && node.callee.type === 'Identifier' && node.callee.name === 'Vue';
+    const [options] = isRootInstance ? node.arguments : [];
+    if (options?.type !== 'ObjectExpression') return;
+    for (const property of options.properties) {
+      if (property.type !== 'ObjectProperty' || keyName(property) !== 'data') continue;
+      found.push({
+        after: property.key.end + offset,
+        end: property.end + offset,
+        value: [property.value.start + offset, property.value.end + offset],
+      });
+    }
+  });
+  return found;
+}
+
+/** `rootDataProperties` of a file's scripts (a `.js` file is one script), `[]` when it cannot be read or parsed. */
+function rootDataPropertiesOf(file) {
+  try {
+    const source = readFileSync(file, 'utf8');
+    const { script, scriptSetup } = file.endsWith('.vue') ? parseSfc({ source, filename: file }) : {};
+    const scripts = file.endsWith('.vue') ? [script, scriptSetup].filter(Boolean) : [{ content: source, start: 0 }];
+    return scripts.flatMap(({ content, start }) => rootDataProperties(content, start));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The `dataSiteKey`s of the data-object findings in `results` (from a lint without fixes) that are a root
+ * instance's data. A file that cannot be read or parsed gives none, so its findings stay.
+ * @param {{ filePath: string, messages: { ruleId: string | null, fix?: { range: number[], text: string } }[] }[]} results
+ * @returns {Set<string>}
+ */
+export function rootDataSites(results) {
+  const root = new Set();
+  const other = new Set();
+  for (const { filePath, messages } of results) {
+    const findings = messages.filter((message) => message.ruleId === DATA_RULE && message.fix);
+    if (findings.length === 0) continue;
+    const properties = rootDataPropertiesOf(filePath);
+    for (const { fix } of findings) {
+      const [start, end] = fix.range;
+      // The fix covers the property's value (and its parentheses, if it has any) and nothing before the key's end,
+      // so a component inside the value, whose fix lies within it, is not the property's own data.
+      const isRoot = properties.some((property) => {
+        const [valueStart, valueEnd] = property.value;
+        return property.after <= start && start <= valueStart && valueEnd <= end && end <= property.end;
+      });
+      (isRoot ? root : other).add(dataSiteKey(fix));
+    }
+  }
+  for (const key of other) root.delete(key);
+  return root;
+}
+
 /**
  * ESLint's `fix` predicate for `wanted` rules: true for a message whose rule is wanted, which is then fixed.
  * Two rules have their fix reshaped first. Both reshapes depend on how ESLint 8.57.1's
@@ -81,19 +159,24 @@ const FUNCTION_CLOSE = ';\n}';
  * line, a leading ` ` when `slot-scope` came first. Trimmed, the attributes close up and no space or blank
  * line is left behind.
  *
- * `vue/no-deprecated-data-object-declaration`: ESLint's text `function() {\nreturn <object>;\n}` becomes
- * `() => (<object>)`, with `<object>` the original text, so its lines keep their indentation (ESLint's form
- * puts `return` in column 0 and leaves the object's lines under-indented). The arrow form is safe because
- * Vue 2.7 calls `data` with the instance as `this` and as the argument, and the original expression ran once,
- * before any instance existed, so it can use neither: a module-level object literal gives every instance the
- * same shape as before. (An arrow function also keeps the surrounding `this`, where `function` would give it the
- * instance.) Only a text that is exactly that prefix, a non-empty body and that suffix is rewritten; for any
- * other the predicate returns false, so the finding stays and nothing half-rewritten is applied.
+ * `vue/no-deprecated-data-object-declaration`: fixed only when `rootSites` (from `rootDataSites`) holds the
+ * finding's `dataSiteKey`, that is, when the object is the `data` of a `new Vue({ ... })`. The rule also reports a
+ * component's `data: { ... }`, which 2.7 drops with a warning, so there the fix would give the component data it
+ * has never had; the predicate returns false and the finding stays counted. For a root site, ESLint's text
+ * `function() {\nreturn <object>;\n}` becomes `() => (<object>)`, with `<object>` the original text, so its lines
+ * keep their indentation (ESLint's form puts `return` in column 0 and leaves the object's lines
+ * under-indented). The arrow form is safe because Vue 2.7 calls `data` with the instance as `this` and as the
+ * argument, and the original expression ran once, before any instance existed, so it can use neither: a
+ * module-level object literal gives every instance the same shape as before. (An arrow function also keeps the
+ * surrounding `this`, where `function` would give it the instance.) Only a text that is exactly that prefix, a
+ * non-empty body and that suffix is rewritten; for any other the predicate returns false, so the finding stays
+ * and nothing half-rewritten is applied.
  */
-export function shouldFix(message, wanted) {
+export function shouldFix(message, wanted, rootSites = new Set()) {
   if (!wanted.has(message.ruleId)) return false;
   if (message.ruleId === SLOT_RULE) message.fix.text = message.fix.text.trim();
   if (message.ruleId === DATA_RULE) {
+    if (!rootSites.has(dataSiteKey(message.fix))) return false;
     const { text } = message.fix;
     const hasBody = text.length > FUNCTION_OPEN.length + FUNCTION_CLOSE.length;
     if (!hasBody || !text.startsWith(FUNCTION_OPEN) || !text.endsWith(FUNCTION_CLOSE)) return false;
@@ -176,8 +259,10 @@ export async function fixTree({ root, rules, dryRun = false, write = writeFileSy
   for (const rule of wanted) if (!SAFE_ON_VUE2.has(rule)) throw new Error(unsafeMessage(rule));
 
   const cwd = resolve(root);
-  const before = countRules(await makeLinter({ cwd }).lintFiles(['src']), wanted);
-  const results = await makeLinter({ cwd, fix: (message) => shouldFix(message, wanted) }).lintFiles(['src']);
+  const lintedBefore = await makeLinter({ cwd }).lintFiles(['src']);
+  const before = countRules(lintedBefore, wanted);
+  const rootSites = rootDataSites(lintedBefore);
+  const results = await makeLinter({ cwd, fix: (message) => shouldFix(message, wanted, rootSites) }).lintFiles(['src']);
   const after = countRules(results, wanted);
 
   const outputs = [];
@@ -238,8 +323,7 @@ function renderReport({ dryRun, rules, before, after, changed, failures }) {
  *
  * `root` defaults to the repo root and `--root <dir>` overrides it. `write(absPath, contents)` and
  * `makeLinter(options)` default to `fs.writeFileSync` and `vue3Linter`; they are seams for tests. The report
- * goes to `out`, usage errors and a one-line summary of what failed go to `err`. Rejects when ESLint cannot lint
- * the tree at all (the CLI prints the message and exits 1).
+ * goes to `out`, usage errors, a lint that could not run (exit 2) and a one-line summary of what failed go to `err`.
  *
  * @param {string[]} argv
  * @param {{ root?: string, write?: (path: string, contents: string) => void, makeLinter?: typeof vue3Linter,
@@ -271,7 +355,14 @@ export async function run(argv, deps = {}) {
     return 2;
   }
 
-  const { before, after, changed, failures } = await fixTree({ root, rules: options.rules, dryRun: options.dryRun, write, makeLinter });
+  let tree;
+  try {
+    tree = await fixTree({ root, rules: options.rules, dryRun: options.dryRun, write, makeLinter });
+  } catch (error) {
+    err.write(`lint-fix: the lint failed: ${oneLine(error instanceof Error ? error.message : error)}\n`);
+    return 2;
+  }
+  const { before, after, changed, failures } = tree;
   out.write(renderReport({ dryRun: options.dryRun, rules: new Set(options.rules), before, after, changed, failures }));
 
   if (failures.length > 0) {

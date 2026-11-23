@@ -25,7 +25,7 @@
 // Nothing is run. The script is parsed with Babel, and the source text of the `render` initializer and of each
 // element of the `staticRenderFns` array is cut out by position, so the strings are exactly what the compiler wrote.
 //
-// A file that exists on one side only, or has no `<template>` on one side (Task 6 turns three empty templates into a
+// A file that exists on one side only, or has no `<template>` on one side (an empty template that becomes a
 // `render()` option), is `differs` with a note. A file on neither side is a usage error. Files are paths under
 // `--root` (default: this repo).
 //

@@ -1,5 +1,6 @@
-// One ESLint setup for the Vue 3 migration tools that lint `src`: the lint ratchet (`lint-ratchet.mjs`) and the
-// autofix codemod (`lint-fix.mjs`) both use the Vue 3 rule set in `eslint-vue3.cjs` through it.
+// One ESLint setup for the Vue 3 migration tools that lint `src`: the lint ratchet (`lint-ratchet.mjs`), the
+// autofix codemod (`lint-fix.mjs`) and the emits codemod (`declare-emits.mjs`) all use the Vue 3 rule set in
+// `eslint-vue3.cjs` through it.
 //
 //   const results = await vue3Linter({ cwd: root }).lintFiles(['src']);
 //   const fixed = await vue3Linter({ cwd: root, fix: (message) => message.ruleId === 'vue/x' }).lintFiles(['src']);

@@ -2,12 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import vueTemplateCompiler from 'vue-template-compiler';
-import { SAFE_ON_VUE2, fixTree, run, shouldFix } from './lint-fix.mjs';
+import { SAFE_ON_VUE2, dataSiteKey, fixTree, rootDataSites, run, shouldFix } from './lint-fix.mjs';
 import { vue3Linter } from './vue3-eslint.mjs';
 
 const { compile, parseComponent } = vueTemplateCompiler;
+const require = createRequire(import.meta.url);
 
 const SLOT = 'vue/no-deprecated-slot-attribute';
 const SLOT_SCOPE = 'vue/no-deprecated-slot-scope-attribute';
@@ -262,9 +264,10 @@ const WRAP_CLOSE = ';\n}';
 test('shouldFix rewrites the data-object fix only when its text is exactly the function wrapper', () => {
   const wanted = new Set([DATA]);
   const fixOf = (text) => ({ range: [10, 30], text });
+  // The site is one of the root instances' data objects, which is what lets the fix through.
   const accepts = (text) => {
     const message = { ruleId: DATA, fix: fixOf(text) };
-    return [shouldFix(message, wanted), message.fix];
+    return [shouldFix(message, wanted, new Set([dataSiteKey(message.fix)])), message.fix];
   };
 
   // The shape ESLint 8.57.1 writes, for an object, a parenthesised object and a call.
@@ -279,8 +282,143 @@ test('shouldFix rewrites the data-object fix only when its text is exactly the f
 
   // A rule that was not asked for is refused without touching its fix.
   const other = { ruleId: SLOT, fix: fixOf(' v-slot:a="s" ') };
-  assert.equal(shouldFix(other, wanted), false);
+  assert.equal(shouldFix(other, wanted, new Set()), false);
   assert.deepEqual(other.fix, fixOf(' v-slot:a="s" '));
+});
+
+test('shouldFix refuses a data object that is not a root instance\'s, and leaves its fix as ESLint made it', () => {
+  const wanted = new Set([DATA]);
+  const fix = { range: [10, 30], text: `${WRAP_OPEN}{ a: 1 }${WRAP_CLOSE}` };
+  const message = { ruleId: DATA, fix: { ...fix } };
+  assert.equal(shouldFix(message, wanted, new Set()), false);
+  assert.deepEqual(message.fix, fix);
+  // Not even the default, with no root sites given, lets a data fix through.
+  assert.equal(shouldFix(message, wanted), false);
+  assert.deepEqual(message.fix, fix);
+});
+
+// ---- component data: left alone ---------------------------------------------------------------------------
+//
+// `vue/no-deprecated-data-object-declaration` also fires on a component's `data: { ... }`. There 2.7 drops the
+// object (with a warning), so the component has no data at all, and an arrow function around it would make the
+// data live. Only the options of `new Vue(...)` may take the fix: 2.7 does read an object there.
+
+test('2.7 drops a component\'s object data and keeps a root instance\'s (why only `new Vue` takes the fix)', () => {
+  const Vue = require('vue/dist/vue.common.dev.js');
+  const warnings = [];
+  const { warnHandler } = Vue.config;
+  Vue.config.warnHandler = (message) => warnings.push(message);
+  try {
+    const Component = Vue.extend({ data: { x: 1 } });
+    assert.equal(new Component().x, undefined);
+    assert.match(warnings.join('\n'), /The "data" option should be a function/);
+    assert.equal(new Vue({ data: { x: 1 } }).x, 1);
+  } finally {
+    Vue.config.warnHandler = warnHandler;
+  }
+});
+
+const COMPONENT_DATA_VUE = '<template>\n  <div>{{ x }}</div>\n</template>\n<script>\nexport default {\n  name: "Plain",\n  data: { x: 1 },\n};\n</script>\n';
+const COMPONENT_DATA_JS = [
+  'import Vue from "vue";',
+  'export const A = Vue.extend({ data: { x: 1 } });',
+  'Vue.component("b", { data: { y: 2 } });',
+  '',
+].join('\n');
+
+test('a component\'s data object is left as it is and stays counted: `export default` in a .vue, Vue.extend and Vue.component in a .js', async () => {
+  await withRoot({ 'src/components/Plain.vue': COMPONENT_DATA_VUE, 'src/components/defs.js': COMPONENT_DATA_JS }, async (root) => {
+    const dry = await fixTree({ root, rules: [DATA], dryRun: true });
+    assert.deepEqual(dry, { before: { [DATA]: 3 }, after: { [DATA]: 3 }, changed: [], failed: [], failures: [] });
+
+    const real = await cli(root, ['--rule', DATA]);
+    assert.equal(real.code, 0);
+    assert.deepEqual(real.writes, []);
+    assert.equal(read(root, 'src/components/Plain.vue'), COMPONENT_DATA_VUE);
+    assert.equal(read(root, 'src/components/defs.js'), COMPONENT_DATA_JS);
+    assert.match(real.out, /^\| `vue\/no-deprecated-data-object-declaration` \| 3 \| 3 \|$/m);
+    assert.equal(real.out.split('## Changed files')[1].trim(), 'None.');
+  });
+});
+
+test('in one file the root instance\'s data is fixed and the component\'s beside it is not', async () => {
+  const before = [
+    'import Vue from "vue";',
+    'export const A = Vue.extend({ data: { x: 1 } });',
+    'new Vue({ data: ({ a: 1 }), render: (h) => h(A) });',
+    'new Vue({ "data": { b: 2 } });',
+    '',
+  ].join('\n');
+  const after = [
+    'import Vue from "vue";',
+    'export const A = Vue.extend({ data: { x: 1 } });',
+    'new Vue({ data: () => (({ a: 1 })), render: (h) => h(A) });',
+    'new Vue({ "data": () => ({ b: 2 }) });',
+    '',
+  ].join('\n');
+  await withRoot({ 'src/views/Z/main.js': before }, async (root) => {
+    const real = await fixTree({ root, rules: [DATA], dryRun: false });
+    assert.deepEqual(real.changed, ['src/views/Z/main.js']);
+    assert.deepEqual([real.before, real.after], [{ [DATA]: 3 }, { [DATA]: 1 }]);
+    assert.equal(read(root, 'src/views/Z/main.js'), after);
+    // A second run changes nothing.
+    assert.deepEqual((await fixTree({ root, rules: [DATA], dryRun: false })).changed, []);
+  });
+});
+
+test('in a .vue file the root instance in the script is found at its file offset, past a slot fix in the template', async () => {
+  const before = [
+    '<template>',
+    '  <b-table><template slot="a" slot-scope="s">{{ s }}</template></b-table>',
+    '</template>',
+    '<script>',
+    'import Vue from "vue";',
+    'new Vue({ data: { a: 1 } });',
+    'export default {',
+    '  name: "Both",',
+    '  data: { x: 1 },',
+    '};',
+    '</script>',
+    '',
+  ].join('\n');
+  const after = before.replace('<template slot="a" slot-scope="s">', '<template v-slot:a="s">').replace('{ data: { a: 1 } }', '{ data: () => ({ a: 1 }) }');
+  await withRoot({ 'src/components/Both.vue': before }, async (root) => {
+    const real = await fixTree({ root, rules: [SLOT, SLOT_SCOPE, DATA], dryRun: false });
+    assert.deepEqual([real.before[DATA], real.after[DATA]], [2, 1]);
+    assert.equal(read(root, 'src/components/Both.vue'), after);
+  });
+});
+
+test('a component inside a root instance\'s data object is not the root\'s data, so only the outer one is fixed', async () => {
+  const before = 'import Vue from "vue";\nnew Vue({ data: { Child: Vue.extend({ data: { z: 1 } }) } });\n';
+  const after = 'import Vue from "vue";\nnew Vue({ data: () => ({ Child: Vue.extend({ data: { z: 1 } }) }) });\n';
+  await withRoot({ 'src/views/Z/main.js': before }, async (root) => {
+    const real = await fixTree({ root, rules: [DATA], dryRun: false });
+    assert.deepEqual([real.before, real.after], [{ [DATA]: 2 }, { [DATA]: 1 }]);
+    assert.equal(read(root, 'src/views/Z/main.js'), after);
+  });
+});
+
+test('a root instance and a component whose fixes read alike (same position, same text) are both left alone', async () => {
+  // Both fixes start at column 11 and wrap the same object text, so a lookup by position and text cannot tell them
+  // apart. Rather than guess, it fixes neither.
+  const root1 = 'import Vue from "vue";\nnew Vue(   { data: { a: 1 } });\n';
+  const same = 'import Vue from "vue";\nVue.extend({ data: { a: 1 } });\n';
+  await withRoot({ 'src/views/Z/main.js': root1, 'src/components/same.js': same }, async (root) => {
+    const real = await fixTree({ root, rules: [DATA], dryRun: false });
+    assert.deepEqual(real.changed, []);
+    assert.deepEqual([real.before, real.after], [{ [DATA]: 2 }, { [DATA]: 2 }]);
+    assert.equal(read(root, 'src/views/Z/main.js'), root1);
+    assert.equal(read(root, 'src/components/same.js'), same);
+  });
+});
+
+test('a file the parser cannot read gives no root sites, so its data object stays', async () => {
+  await withRoot({ 'src/views/Z/main.js': 'new Vue({ data: { a: 1 },\n' }, async (root) => {
+    const message = { ruleId: DATA, fix: { range: [20, 28], text: `${WRAP_OPEN}{ a: 1 }${WRAP_CLOSE}` } };
+    assert.equal(rootDataSites([{ filePath: join(root, 'src/views/Z/main.js'), messages: [message] }]).size, 0);
+    assert.equal(rootDataSites([{ filePath: join(root, 'src/views/Z/gone.js'), messages: [message] }]).size, 0);
+  });
 });
 
 test('leaves other rules alone: beforeDestroy stays, though another rule would fix it', async () => {
@@ -365,6 +503,33 @@ test('files that ESLint cannot parse are counted as fatal, not skipped silently'
     assert.equal(result.after.fatal, 1);
     const report = await cli(root, ['--rule', SLOT, '--dry-run']);
     assert.match(report.out, /^\| fatal \| 1 \| 1 \|$/m);
+  });
+});
+
+// ---- a lint that cannot run: exit 2 ---------------------------------------------------------------------------
+
+test('a lint that cannot run exits 2 with its message, writes nothing and prints no report', async () => {
+  await withRoot(FIXTURE, async (root) => {
+    const broken = (message) => () => ({
+      lintFiles: async () => {
+        throw new Error(message);
+      },
+    });
+    const result = await cli(root, ALL_SAFE, { makeLinter: broken('No files matching "src" were found.') });
+    assert.equal(result.code, 2);
+    assert.match(result.err, /^lint-fix: the lint failed: No files matching "src" were found\.$/m);
+    assert.equal(result.out, '');
+    assert.deepEqual(result.writes, []);
+
+    // The same when only the second lint, the one that fixes, cannot run.
+    const second = await cli(root, ALL_SAFE, {
+      makeLinter: (options) => (options.fix ? broken('the fixing lint broke\nacross two lines')(options) : vue3Linter(options)),
+    });
+    assert.equal(second.code, 2);
+    assert.match(second.err, /^lint-fix: the lint failed: the fixing lint broke across two lines$/m);
+    assert.equal(second.out, '');
+    assert.deepEqual(second.writes, []);
+    assert.equal(read(root, 'src/views/X/Template.vue'), TEMPLATE);
   });
 });
 

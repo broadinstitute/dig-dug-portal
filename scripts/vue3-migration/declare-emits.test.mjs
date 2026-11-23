@@ -496,6 +496,53 @@ test('a rule message that names no event leaves its file unresolved, not silentl
   });
 });
 
+// A `.vue` file with a second component inside it: the lint attributes `inner` to the `Vue.extend` component, and
+// a name added to the `export default` options (what the first run does) does not declare it there.
+const NESTED = text(
+  '<script>',
+  'import Vue from "vue";',
+  'const Inner = Vue.extend({',
+  '    methods: {',
+  '        go() {',
+  '            this.$emit("inner");',
+  '        },',
+  '    },',
+  '});',
+  'export default {',
+  '    name: "Outer",',
+  '    components: { Inner },',
+  '    methods: {',
+  '        go() {',
+  '            this.$emit("outer");',
+  '        },',
+  '    },',
+  '};',
+  '</script>',
+);
+
+test('a file whose findings the default export already declares is listed as unresolved, not left out of the report', async () => {
+  await withRoot({ 'src/components/Nested.vue': NESTED, 'src/components/Other.vue': OTHER }, async (root) => {
+    // The first run cannot tell the two components apart: both names go to `export default`.
+    const first = await cli(root);
+    assert.equal(first.code, 0, first.err);
+    assert.match(read(root, 'src/components/Nested.vue'), /emits: \["outer", "inner"\]|emits: \["inner", "outer"\]/);
+    assert.match(first.out, /^\| Unresolved \| 0 \|$/m);
+
+    // The second finds `inner` still undeclared on the inner component, with nothing left to add: it says so.
+    const second = await cli(root);
+    assert.equal(second.code, 0, second.err);
+    assert.deepEqual(second.writes, []);
+    assert.match(second.out, /^\| Findings \| 1 \|$/m);
+    assert.match(second.out, /^\| Files with findings \| 1 \|$/m);
+    assert.match(second.out, /^\| Files to change \| 0 \|$/m);
+    assert.match(second.out, /^\| Unresolved \| 1 \|$/m);
+    assert.match(
+      section(second.out, 'Unresolved'),
+      /^\| `src\/components\/Nested\.vue` \| `inner` \| findings remain that the default export already declares \(another component in the file\?\) \|$/m,
+    );
+  });
+});
+
 // ---- usage and failures ---------------------------------------------------------------------
 
 test('usage errors exit 2 with the usage line on stderr and nothing on stdout', async () => {
