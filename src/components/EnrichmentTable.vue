@@ -68,20 +68,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import c3 from "c3";
 
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload";
 
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
 import { decodeNamespace } from "@/utils/filterHelpers";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
 
 export default {
     name: "EnrichmentTable",

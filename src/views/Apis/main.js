@@ -1,10 +1,6 @@
-import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
 
 
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
@@ -19,7 +15,8 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
 
     components: {
@@ -32,10 +29,6 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     methods: {
@@ -79,4 +72,4 @@ new Vue({
         },
 
     }
-}).$mount("#app");
+});

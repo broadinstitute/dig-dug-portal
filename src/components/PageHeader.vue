@@ -137,7 +137,6 @@
 
 <script>
 import Vue from "vue";
-import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
 //import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics4";
@@ -147,7 +146,6 @@ import DiseaseSystems from "@/components/DiseaseSystems.vue";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { userMixin } from "@/mixins/userMixin";
 import Alert from "@/components/Alert.vue";
-Vue.use(VueCookies);
 
 export default {
     name: "PageHeader",

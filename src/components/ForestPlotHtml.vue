@@ -255,14 +255,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import sortUtils from "@/utils/sortUtils";
 import uiUtils from "@/utils/uiUtils";
 import formatters from "@/utils/formatters";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "forest-plot-html",

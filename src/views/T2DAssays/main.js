@@ -1,11 +1,7 @@
 // Adapted from Endrina's LLM generated html files.
-import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -14,7 +10,8 @@ import Alert from "@/components/Alert";
 import InteractiveKP from "./components/InteractiveKP.vue";
 import TissueExplorer from "./components/TissueExplorer.vue";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         PageHeader,
@@ -26,10 +23,6 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     methods: {
@@ -59,4 +52,4 @@ new Vue({
         },
 
     }
-}).$mount("#app");
+});

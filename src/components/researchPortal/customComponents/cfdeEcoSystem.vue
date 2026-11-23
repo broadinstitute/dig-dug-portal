@@ -225,13 +225,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 //import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "cfde-eco-system",

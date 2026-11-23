@@ -68,11 +68,7 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import defaultColors from "@/utils/colors";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "research-simple-scatter-plot",

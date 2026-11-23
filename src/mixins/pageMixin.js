@@ -1,7 +1,3 @@
-import Vue from "vue";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Documentation from "@/components/Documentation.vue";
@@ -12,9 +8,6 @@ import Alert, {
     postAlertError,
     closeAlert,
 } from "@/components/Alert";
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-Vue.config.productionTip = false;
 
 export const pageMixin = {
     components: {

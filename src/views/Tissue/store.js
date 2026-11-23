@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
@@ -21,8 +20,6 @@ const CONNECTIVITY_KEYS = {
     pancreas: "pancreas"
 }
 const ADIPOSE_TYPES = ["adipose_subcutaneous", "adipose_visceral"]
-
-Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {

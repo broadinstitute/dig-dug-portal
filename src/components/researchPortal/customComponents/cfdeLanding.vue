@@ -482,11 +482,7 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import ResearchSingleSearchCfde from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
     name: "cfde-landing",

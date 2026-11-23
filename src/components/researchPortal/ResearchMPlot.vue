@@ -39,12 +39,8 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 //import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
     name: "research-m-plot",

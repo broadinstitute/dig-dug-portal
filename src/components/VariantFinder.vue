@@ -131,16 +131,10 @@
 </template>
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
 import Formatters from "@/utils/formatters";
 import colorIndex from "@/utils/colors";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
 
 export default {
     name: "variant-finder",

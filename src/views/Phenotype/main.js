@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -42,7 +42,8 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import BottomLineProvenance from "@/components/researchPortal/bottomLineProvenance/BottomLineProvenance.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         AncestrySelectPicker,
@@ -327,8 +328,4 @@ new Vue({
             this.$store.dispatch("getCs2ct");
         }
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

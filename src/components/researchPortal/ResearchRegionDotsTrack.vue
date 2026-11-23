@@ -48,12 +48,8 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import regionDotsVector from "@/components/researchPortal/vectorPlots/ResearchRegionDotsVector.vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
     name: "research-region-dots-track",

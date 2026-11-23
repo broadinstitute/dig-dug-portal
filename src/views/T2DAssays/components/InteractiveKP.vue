@@ -181,13 +181,7 @@
   .ctrl-divider { width: 1px; height: 26px; background: var(--filter-border); margin: 0 4px; }
 </style>
 <script>
-import Vue from "vue";
-import { BootstrapVue } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import * as plotly from "plotly.js-dist";
-
-Vue.use(BootstrapVue);
 
 import assays from "../data/assays.json";
 const ASSAYS = assays;

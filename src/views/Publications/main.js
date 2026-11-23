@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -7,7 +7,8 @@ import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import uiUtils from "@/utils/uiUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         StaticPageInfo,
@@ -76,8 +77,4 @@ new Vue({
     methods: {
         ...uiUtils,
     },
-
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

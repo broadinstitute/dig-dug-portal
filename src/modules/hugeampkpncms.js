@@ -4,11 +4,8 @@
  */
 
 import Vue from "vue";
-import VueCookies from "vue-cookies";
 
 import keyParams from "@/utils/keyParams";
-
-Vue.use(VueCookies);
 
 export default {
     namespaced: true,

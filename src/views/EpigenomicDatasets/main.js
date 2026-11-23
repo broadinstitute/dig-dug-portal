@@ -1,10 +1,6 @@
-import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
 
 
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
@@ -19,7 +15,8 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
 
     components: {
@@ -36,10 +33,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     methods: {
@@ -100,4 +93,4 @@ new Vue({
             this.$store.dispatch("kp4cd/getStaticContent", "epigenomic_datasets");
         },
     }
-}).$mount("#app");
+});

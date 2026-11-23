@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -8,7 +8,8 @@ import { pageMixin } from "@/mixins/pageMixin.js";
 
 import CellEvolutionBrowser from "@/components/researchPortal/LIGER/v2/CellEvolutionBrowser.vue";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         StaticPageInfo,
@@ -83,8 +84,4 @@ new Vue({
     methods: {
         ...uiUtils,
     },
-
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

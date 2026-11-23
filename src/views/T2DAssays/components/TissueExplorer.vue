@@ -74,10 +74,6 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
-import { BootstrapVue } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import * as plotly from "plotly.js-dist";
 import tissue_assays from "../data/tissue_assays.json";
 
@@ -101,8 +97,6 @@ const pip = (score, pal) => score
   : `<span class="pip unknown" title="Not scored">?</span>`;
 const typeColor = code => getComputedStyle(document.documentElement).getPropertyValue("--type-"+code).trim() || "#999";
 
-
-Vue.use(BootstrapVue);
 
 export default {
     name: "tissue-explorer",

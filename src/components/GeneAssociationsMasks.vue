@@ -203,8 +203,6 @@
 <script>
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import MaskTable from "@/components/MaskTable";
 import DataDownload from "@/components/DataDownload";
 import KcCfdeLogo from "@/components/Cfde2Kp/KcCfdeLogo.vue";

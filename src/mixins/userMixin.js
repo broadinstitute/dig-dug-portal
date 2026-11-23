@@ -1,8 +1,6 @@
 import Vue from "vue";
-import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
 import gaUtils from "@/utils/gaUtils"
-Vue.use(VueCookies);
 
 export const userMixin = {
     computed: {

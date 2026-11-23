@@ -1,9 +1,10 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store";
 import { pageMixin } from "@/mixins/pageMixin";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     mixins: [pageMixin],
     created() {
@@ -14,5 +15,4 @@ new Vue({
             }
         );
     },
-    render: (createElement) => createElement(Template),
-}).$mount("#app");
+});
