@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -28,7 +28,8 @@ const BIO_INDEX_HOST = biUtils.BIO_INDEX_HOST.indexOf("dev") === -1
     ? "https://bioindex.pankbase.org"
     : "https://bioindex-dev.pankbase.org";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         Scatterplot,
@@ -369,8 +370,4 @@ new Vue({
             }
         },
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

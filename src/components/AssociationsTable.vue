@@ -140,17 +140,10 @@ div.assoc-table-bottom-line >>> table.table-sm td:first-child {
 </style>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 import { isEqual } from "@/utils/lodashUtils";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import DataDownload from "@/components/DataDownload";
 import Chi from "chi-squared";

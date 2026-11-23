@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
@@ -9,7 +9,8 @@ import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBro
 import keyParams from "@/utils/keyParams";
 import EventBus from "@/utils/eventBus";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     components: {
         ResearchSingleCellBrowser
     },
@@ -81,9 +82,6 @@ new Vue({
         const bioIndex = isDev ? this.scbConfig.bioIndexDev : this.scbConfig.bioIndex;
         this.allMetadata = await this.fetchMetadata(bioIndex+metadataEndpoint);
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
     methods: {
       async fetchMetadata(url) {
         console.log('getting metadata', url);
@@ -106,4 +104,4 @@ new Vue({
         EventBus.$emit('on-select', {id: "scb", value: datasetId});
       }
     }
-}).$mount("#app");
+});

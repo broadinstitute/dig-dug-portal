@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 import "../../assets/layout.css";
@@ -32,7 +32,8 @@ const dashFormatter = function(item){
     return item === '-' ? "N/A" : item;
 };
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         ResearchSingleSearch,
@@ -545,7 +546,4 @@ new Vue({
             this.maxTimeGcg = newData.maxTime;
         },
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

@@ -19,16 +19,8 @@
 </template>
 
 <script>
-import Vue from "vue";
 import NumericRangeFilter from "../views/Donors/NumericRangeFilter.vue";
 import { parseNumericValue } from "../views/Donors/datasetUtils";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default {
     name: "filter-slider",

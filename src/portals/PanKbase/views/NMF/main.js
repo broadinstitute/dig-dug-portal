@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
@@ -11,7 +11,8 @@ import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowse
 
 const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"];
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     components: {
         ResearchUmapPlotGL,
         ResearchSingleCellInfo
@@ -369,8 +370,4 @@ new Vue({
 
 
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

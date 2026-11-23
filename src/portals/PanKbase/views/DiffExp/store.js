@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
@@ -10,8 +9,6 @@ import * as biUtils from "@/utils/bioIndexUtils";
 const BIO_INDEX_HOST = biUtils.BIO_INDEX_HOST.indexOf("dev") === -1 
     ? "https://bioindex.pankbase.org"
     : "https://bioindex-dev.pankbase.org";
-
-Vue.use(Vuex);
 
 
 export default new Vuex.Store({

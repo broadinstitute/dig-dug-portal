@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 import "../../assets/layout.css";
@@ -15,7 +15,8 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         ResearchSingleSearch,
@@ -124,7 +125,4 @@ new Vue({
             window.navigator.clipboard.writeText(content);
         }
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

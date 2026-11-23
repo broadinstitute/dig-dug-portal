@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 import "../../assets/layout.css";
@@ -34,7 +34,8 @@ import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import filterUtils from "@/utils/filterUtils";
 import bioPortal from "../../../../modules/bioPortal.js";
-new Vue({
+// @vue/component
+mountPage(Template, {
     // Based on HuGeAMP Gene page.
     store,
     components: {
@@ -586,7 +587,4 @@ new Vue({
 			return returnData;
 		},
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

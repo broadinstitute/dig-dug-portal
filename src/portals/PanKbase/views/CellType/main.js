@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
@@ -11,7 +11,8 @@ import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSear
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 const HUGEAMP_GENE_BIOINDEX = "https://bioindex.hugeamp.org/api/bio/query/gene?q=";
-new Vue({
+// @vue/component
+mountPage(Template, {
     components: {
     },
     mixins: [pankbaseMixin],
@@ -30,7 +31,4 @@ new Vue({
     },
     methods: {
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});
