@@ -1,4 +1,3 @@
-<template></template>
 <script>
 import Vue from "vue";
 import gaUtils from "@/utils/gaUtils";
@@ -59,5 +58,8 @@ Vue.config.errorHandler = (error, _, info) => {
 
 export default {
     name: "ga-errors",
+    render(h) {
+        return h("div");
+    },
 };
 </script>

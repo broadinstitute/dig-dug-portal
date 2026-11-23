@@ -52,7 +52,7 @@ new Vue({
         DiseaseSystems,
     },
 
-    data: {
+    data: () => ({
         selected: "",
         searches: [
             { id: "gene", name: "gene" },
@@ -67,7 +67,7 @@ new Vue({
             { icon: "curated_datasets", label: "Curated datasets" },
         ],
         oldStats: keyParams.oldstats,
-    },
+    }),
 
     computed: {
         utilsBox() {

@@ -49,6 +49,7 @@ export default {
         "filterAssociations",
         "filterAnnotations",
     ],
+    emits: ["panelremoved", "regionchanged"],
     data() {
         return {
             locuszoommounted: false,

@@ -137,6 +137,12 @@ export default {
             default: 0,
         },
     },
+    emits: [
+        "update:selectedCategoryIds",
+        "remove-category",
+        "update:mappingMode",
+        "update:workspaceFilterActive",
+    ],
     data() {
         return {
             modeOptions: VKS_MAPPING_MODES,

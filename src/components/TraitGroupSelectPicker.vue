@@ -28,6 +28,7 @@ export default {
             default: false,
         },
     },
+    emits: ["onTraitGroupChange"],
     data() {
         return {
             traitGroup: keyParams.traitGroup ||

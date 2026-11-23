@@ -20,6 +20,7 @@ export default {
             required: true,
         },
     },
+    emits: ["input", "resolve", "error"],
     created() {
         this.panelClass = new LZCredibleVariantsPanel(
             this.phenotype, 

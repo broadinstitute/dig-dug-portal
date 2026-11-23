@@ -48,25 +48,28 @@
 						>
 							<ul>
 								<template
-									v-for="suggestion in suggestions.suggestions"
 									v-if="
 										suggestions.field == filter.field &&
 										suggestions.suggestions.length > 0
 									"
 								>
-									<li
-										@click="
-											filterData(
-												$event,
-												filter.field,
-												filter.type,
-												'',
-												suggestion
-											)
-										"
-										v-html="suggestion"
-										:title="suggestion"
-									></li>
+									<template
+										v-for="suggestion in suggestions.suggestions"
+									>
+										<li
+											@click="
+												filterData(
+													$event,
+													filter.field,
+													filter.type,
+													'',
+													suggestion
+												)
+											"
+											v-html="suggestion"
+											:title="suggestion"
+										></li>
+									</template>
 								</template>
 							</ul>
 						</div>
@@ -262,24 +265,25 @@
 				:class="'search-field f-' + index"
 				:key="name"
 			>
-				<b-badge
-					pill
-					v-if="value.type != 'checkbox' && value.search.length > 0"
-					v-for="(v, i) in value.search.filter(
-						(v, i, arr) => arr.indexOf(v) == i
-					)"
-					:key="v"
-					:class="'btn search-bubble ' + i"
-					@click="removeFilter(value.field, i)"
-					v-html="
-						value['label in bubble'] == true
-							? value.field +
-							  ': ' +
-							  v +
-							  '&nbsp;<span class=\'remove\'>X</span>'
-							: v + '&nbsp;<span class=\'remove\'>X</span>'
-					"
-				></b-badge>
+				<template v-if="value.type != 'checkbox' && value.search.length > 0">
+					<span
+						class="badge badge-secondary badge-pill"
+						v-for="(v, i) in value.search.filter(
+							(v, i, arr) => arr.indexOf(v) == i
+						)"
+						:key="v"
+						:class="'btn search-bubble ' + i"
+						@click="removeFilter(value.field, i)"
+						v-html="
+							value['label in bubble'] == true
+								? value.field +
+								  ': ' +
+								  v +
+								  '&nbsp;<span class=\'remove\'>X</span>'
+								: v + '&nbsp;<span class=\'remove\'>X</span>'
+						"
+					></span>
+				</template>
 			</div>
 			<b-badge
 				v-if="this.numberOfSearches() > 1"
@@ -311,6 +315,7 @@ export default {
 		"sectionId",
 		"utils",
 	],
+	emits: ["clicked-sort", "on-filtering"],
 	components: {
 	},
 	data() {

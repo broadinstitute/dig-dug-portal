@@ -17,9 +17,9 @@ new Vue({
     components: {
     },
 
-    data: {
+    data: () => ({
 
-    },
+    }),
 
     computed: {
 

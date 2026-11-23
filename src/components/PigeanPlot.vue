@@ -30,6 +30,7 @@ export default {
     "pigeanData", "config", "phenotypeMap", "filter", 
     "genesetSize", "traitGroup", "matchingHoverDots", "pigeanColors"
   ],
+  emits: ["dotsHovered"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,

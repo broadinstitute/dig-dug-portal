@@ -71,6 +71,7 @@ export default {
         TissueExpressionSubtable,
     },
     props: ["tissueData", "tissue", "filter"],
+    emits: ["highlight"],
     data() {
         return {
             perPage: 10,

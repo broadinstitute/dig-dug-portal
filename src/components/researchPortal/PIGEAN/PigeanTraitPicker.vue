@@ -63,6 +63,7 @@ export default {
         id: String,
         label: { type: String, default: "Phenotype" },
     },
+    emits: ["input", "selected"],
     data: () => ({ open: false, active: 0 }),
     computed: {
         selectedTrait() {

@@ -68,6 +68,7 @@ export default {
             default: "tissue",
         },
     },
+    emits: ["highlight"],
     data() {
         return {
             tableConfig: {

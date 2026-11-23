@@ -123,7 +123,7 @@
                         >
                             <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <div class="row pigean-plots">
                                 <div class="col-md-8">
                                     <research-phewas-plot

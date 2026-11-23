@@ -23,7 +23,7 @@
                         <b-td
                             style="width:200px;color:gray;white-space: nowrap;"
                             class="text-left"
-                        ><--Exome wide Significance</b-td>
+                        >&lt;--Exome wide Significance</b-td>
                     </b-tr>
                     <b-tr style="border: 3px solid white !important;">
                         <b-th style="width:150px"></b-th>
@@ -36,7 +36,7 @@
                         <b-td
                             style="width:200px;color:gray;white-space: nowrap;"
                             class="text-left"
-                        ><--Burden statistic(beta)</b-td>
+                        >&lt;--Burden statistic(beta)</b-td>
                     </b-tr>
                     <b-tr style="border: 3px solid white !important;">
                         <b-th style="width:150px" rowspan="1" class="text-right"></b-th>
@@ -48,7 +48,7 @@
                         <b-td
                             style="width:200px;color:gray;white-space: nowrap;"
                             class="text-left"
-                        ><--Prior Allelic variance</b-td>
+                        >&lt;--Prior Allelic variance</b-td>
                     </b-tr>
                 </b-tbody>
                 <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->

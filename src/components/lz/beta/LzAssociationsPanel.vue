@@ -18,6 +18,7 @@ export default {
     props: {
         phenotype: String
     },
+    emits: ["input", "resolve", "error"],
     created() {
         this.panelClass = makeAssociationsPanel(
             this.phenotype, 

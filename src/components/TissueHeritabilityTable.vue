@@ -90,6 +90,7 @@ export default {
             type: Object,
         },
     },
+    emits: ["topPhenotypeFound"],
     data() {
         return {
             perPage: 10,

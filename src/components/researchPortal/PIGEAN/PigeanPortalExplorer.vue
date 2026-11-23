@@ -610,6 +610,7 @@ export default {
         PigeanPhenotypeSummary,
     },
     props: { route: { type: Object, required: true } },
+    emits: ["navigate"],
     data: () => ({
         models: MODELS,
         labels: METRIC_LABELS,

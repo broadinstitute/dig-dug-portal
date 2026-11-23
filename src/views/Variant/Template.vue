@@ -229,7 +229,7 @@
                             <div class="label">Effect (+/-)</div>
                         </filter-effect-direction-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <b-tabs content-class="mt-3" align="center">
                                 <b-tab title="PheWAS plot" active>
                                     <b-button

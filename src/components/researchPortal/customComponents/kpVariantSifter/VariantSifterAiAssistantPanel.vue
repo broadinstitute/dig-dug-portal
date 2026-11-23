@@ -586,6 +586,19 @@ export default {
             default: () => VKS_ASSISTANT_ACTION_CATALOG_SECTIONS,
         },
     },
+    emits: [
+        "close",
+        "update:activeTab",
+        "execute-step",
+        "open-correlated-phenotype",
+        "dismiss-cs2ct-star",
+        "dismiss-understudied-star",
+        "confirm-understudied-star",
+        "execute-catalog-action",
+        "confirm-cs2ct-star",
+        "execute-all",
+        "plan-request",
+    ],
     data() {
         return {
             draft: "",

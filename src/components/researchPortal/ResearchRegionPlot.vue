@@ -52,7 +52,7 @@
 								style="background-color: #dddddd" @click="resetLdReference('All', d)"></strong>
 						</template>
 					</div>
-					<div v-if="g != 'Combined' && !!assoData[g].data[d]" v-for="(g, gIndex) in plotsList">
+					<div v-for="(g, gIndex) in (plotsList || []).filter((g) => g != 'Combined' && !!assoData[g].data[d])">
 						<div v-for="(h, hIndex) in renderConfig['hover content']">
 							<span v-html="h + '(' + g + '):' + assoData[g].data[d][h]
 								"></span>
@@ -132,6 +132,7 @@ export default {
 		"utils",
 		"starItems"
 	],
+	emits: ["on-star", "plotRendered"],
 	data() {
 		return {
 			plotRenderBy: "all",

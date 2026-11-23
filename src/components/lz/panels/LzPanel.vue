@@ -73,6 +73,7 @@ export default {
         source: Object,
         filter: Function
     },
+    emits: ["updated"],
     data() {
         return {
             panelId: null,
@@ -105,4 +106,4 @@ export default {
 </script>
 <template>
     <div :id="this.panelId"></div>
-</tempate>
+</template>

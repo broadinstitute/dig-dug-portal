@@ -73,6 +73,7 @@ export default {
         source: Object,
         filter: Function
     },
+    emits: ["create"],
     data() {
         return {
             id: null,
@@ -113,4 +114,4 @@ export default {
 </script>
 <template>
     <div :id="this.id"></div>
-</tempate>
+</template>

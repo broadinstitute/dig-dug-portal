@@ -57,6 +57,7 @@ export default {
             type: Object
         }
     },
+    emits: ["input-change"],
     components: {
         FilterControlTemplate,
     },

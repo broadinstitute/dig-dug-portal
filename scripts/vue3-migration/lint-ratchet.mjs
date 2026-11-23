@@ -7,28 +7,17 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import eslint from 'eslint';
 import { compareCounts, countByRule, resolveBaseRef } from './ratchet.mjs';
+import { vue3Linter } from './vue3-eslint.mjs';
 import { withWorktree } from './worktree.mjs';
-
-const { ESLint } = eslint;
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..', '..');
-const configFile = resolve(here, 'eslint-vue3.cjs');
 
 const USAGE = 'usage: node scripts/vue3-migration/lint-ratchet.mjs [--base <ref>] [--json]';
 
 async function lintCounts(cwd) {
-  const linter = new ESLint({
-    cwd,
-    useEslintrc: false,
-    overrideConfigFile: configFile,
-    // Worktrees have no node_modules, so always resolve plugins from the real repo.
-    resolvePluginsRelativeTo: repoRoot,
-    extensions: ['.js', '.vue'],
-  });
-  return countByRule(await linter.lintFiles(['src']));
+  return countByRule(await vue3Linter({ cwd }).lintFiles(['src']));
 }
 
 function formatTable(header, rows) {

@@ -122,6 +122,7 @@ export default {
             default: null,
         },
     },
+    emits: ["toggle-ancestry"],
     computed: {
         resolvedGroups() {
             if (Array.isArray(this.groups) && this.groups.length) {

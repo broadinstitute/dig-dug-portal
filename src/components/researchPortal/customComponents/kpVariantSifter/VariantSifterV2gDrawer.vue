@@ -282,6 +282,13 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "update:deselectedTissues",
+        "update:deselectedBiosamples",
+        "update:selectedTissues",
+        "update:deselectedMethods",
+        "update:deselectedGenes",
+    ],
     data() {
         return {
             activeControlTab: "tissues",

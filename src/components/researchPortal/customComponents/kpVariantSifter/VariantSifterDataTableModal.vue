@@ -125,6 +125,13 @@ export default {
             default: () => [],
         },
     },
+    emits: [
+        "close",
+        "update:workspaceFilterActive",
+        "remove-mapping-category",
+        "toggle-star-variant",
+        "update:mappingState",
+    ],
     computed: {
         selectedCategoryIds() {
             return normalizeMappingState(this.mappingState).selectedCategoryIds;

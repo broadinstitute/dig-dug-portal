@@ -41,7 +41,8 @@ export default {
             type: Boolean,
             default: false
         }
-    }
+    },
+    emits: ["select", "hover"],
 };
 </script>
 

@@ -31,6 +31,18 @@ export default {
         // Change URL when plot updates. Only one plot on the page should use this.
         dynamic_urls: { type: Boolean, default: false },
     },
+    emits: [
+        "connected",
+        "data_rendered",
+        "data_requested",
+        "element_clicked",
+        "element_selection",
+        "layout_changed",
+        "panel_removed",
+        "region_changed",
+        "set_ldrefvar",
+        "state_changed",
+    ],
     data() {
         return {
             onload: false

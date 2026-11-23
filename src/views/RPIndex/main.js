@@ -16,9 +16,9 @@ import ResearchByorProjects from "@/components/researchPortal/ResearchByorProjec
 new Vue({
     store,
 
-    data: {
+    data: () => ({
 
-    },
+    }),
 
     components: {
         ResearchByorProjects,

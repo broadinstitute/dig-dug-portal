@@ -62,6 +62,7 @@ export default {
             },
         },
     },
+    emits: ["input-change"],
     components: {
         FilterControlTemplate,
     },

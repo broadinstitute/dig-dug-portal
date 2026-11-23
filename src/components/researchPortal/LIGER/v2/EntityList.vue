@@ -41,6 +41,7 @@ export default {
             default: ""
         }
     },
+    emits: ["select"],
 
     computed: {
         showMatches() {

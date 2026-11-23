@@ -168,6 +168,7 @@ export default {
             default: true,
         },
     },
+    emits: ["on-update", "on-hover"],
     data() {
         return {
             selectedOption: '',

@@ -59,6 +59,7 @@ import Formatters from "@/utils/formatters";
 export default {
 	name: "ResearchExpressionFilter",
 	props: ["rawData", "filter", "plotByField", "skipSort"],
+	emits: ["dataReady"],
 	data() {
 		return {
 			logScale: true,

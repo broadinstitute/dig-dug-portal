@@ -82,6 +82,7 @@ export default {
             default: null,
         },
     },
+    emits: ["toggle-tissue-selection"],
     data() {
         return {
             dotPositions: [],

@@ -49,6 +49,7 @@ export default {
             default: "Nothing available"
         }
     },
+    emits: ["select"],
 
     data() {
         return {

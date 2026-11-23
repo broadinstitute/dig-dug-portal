@@ -70,7 +70,7 @@
 									>{{ hugeScore }}</b-td
 								>
 								<b-td style="width: 20px" class="text-left"
-									><-- HuGE Score</b-td
+									>&lt;-- HuGE Score</b-td
 								>
 							</b-tr>
 						</b-tbody>

@@ -114,6 +114,7 @@ export default {
 			default: null,
 		},
 	},
+	emits: ["hover-key-change"],
 	data() {
 		return {
 			posDataByPlot: {},

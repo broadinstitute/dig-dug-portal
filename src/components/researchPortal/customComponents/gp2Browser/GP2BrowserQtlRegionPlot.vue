@@ -249,6 +249,16 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "update:viewingCenterBp",
+        "commit-viewing-region",
+        "set-reference-variant",
+        "toggle-star-variant",
+        "toggle-position-marker",
+        "update:regionViewArea",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             dotPositions: [],

@@ -178,6 +178,7 @@ export default {
             default: 10,
         },
     },
+    emits: ["toggle-star-variant"],
     data() {
         return {
             currentPage: 1,

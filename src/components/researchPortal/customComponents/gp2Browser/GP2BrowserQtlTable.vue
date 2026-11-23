@@ -126,6 +126,7 @@ export default {
             default: null,
         },
     },
+    emits: ["toggle-star-variant"],
     data() {
         return {
             perPageNumber: "10",

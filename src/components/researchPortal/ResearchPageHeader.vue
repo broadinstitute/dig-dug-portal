@@ -72,7 +72,7 @@ import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingle
 
 export default {
 	name: "research-page-header",
-	props: ["researchMenu","phenotypes", "utils", "headerLogo","sectionConfig","utils"],
+	props: ["researchMenu","phenotypes", "headerLogo","sectionConfig","utils"],
 	components: {},
 	data() {
 		return {

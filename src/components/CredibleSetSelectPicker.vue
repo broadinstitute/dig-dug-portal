@@ -9,7 +9,7 @@
         :minMatchingChars="0"
         :maxMatches="1000"
         @hit="onCredibleSetSelected($event)">
-        <template slot="suggestion" slot-scope="{ data, htmlText }">
+        <template v-slot:suggestion="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
             <small class="text-secondary">
                 {{ data.credibleSetId === 'computed' ? 'from current associations' : `${data.dataset}` }}
@@ -49,6 +49,7 @@ export default {
             required: false,
         }
     },
+    emits: ["credibleset"],
     data() {
         return {
             userText: this.defaultSet || null

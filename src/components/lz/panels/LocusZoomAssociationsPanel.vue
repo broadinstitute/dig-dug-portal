@@ -13,6 +13,7 @@ export default {
         phenotype: String,
         title: String,
     },
+    emits: ["input", "resolve", "error"],
     created() {
         this.panelClass = makeAssociationsPanel(
             this.phenotype, 

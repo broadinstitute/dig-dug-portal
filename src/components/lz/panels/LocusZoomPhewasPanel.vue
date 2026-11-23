@@ -23,6 +23,7 @@ export default {
             required: true,
         },
     },
+    emits: ["input", "resolve", "error"],
     created() {
         this.panelClass = makePhewasPanel(
             this.id, 

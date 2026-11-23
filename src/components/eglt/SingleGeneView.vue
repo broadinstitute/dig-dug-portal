@@ -1,11 +1,17 @@
 <template>
     <div class="single-gene-view-wrapper">
         <div
-            v-for="(value, key) in this.geneData"
+            v-for="
+                [value, key] in Object.keys(this.geneData || {})
+                    .map((k) => [geneData[k], k])
+                    .filter(
+                        ([value, key]) =>
+                            !!renderConfig && !!renderConfig.topLevelRender[key]
+                    )
+            "
             class="single-gene-view-info-box"
             :class="key"
             :key="key"
-            v-if="!!renderConfig && !!renderConfig.topLevelRender[key]"
         >
             <div v-html="renderConfig.topLevelRender[key]" class="key"></div>
             <div

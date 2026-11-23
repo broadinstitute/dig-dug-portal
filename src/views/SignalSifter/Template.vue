@@ -117,10 +117,17 @@
                                     <criterion-function-group
                                         v-model="p.filter"
                                         :no-pills="true"
-                                        :filter-list.sync="
+                                        :filter-list="
                                             $parent.displayedFilterList[
                                                 p.phenotype.name
                                             ]
+                                        "
+                                        @update:filter-list="
+                                            $set(
+                                                $parent.displayedFilterList,
+                                                p.phenotype.name,
+                                                $event
+                                            )
                                         "
                                     >
                                         <filter-pvalue-control

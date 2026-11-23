@@ -16,7 +16,7 @@
                 :per-page="perPage"
                 :current-page="currentPage"
             >
-                <template center v-slot:cell(image)="r">
+                <template v-slot:cell(image)="r">
                     <span :class="'community-icon ' + r.item.community"></span>
                 </template>
                 <template v-slot:cell(link)="r">

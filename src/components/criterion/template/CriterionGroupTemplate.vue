@@ -135,6 +135,7 @@ export default {
             default: true,
         },
     },
+    emits: ["update:filter-list", "update:filter-function", "input"],
     data() {
         return {
             // the filter on the end prevents malformed initial values from being used in the component

@@ -77,6 +77,7 @@ export default {
         pointRadius: { type: Number, default: 3 },
         labelQuadrants: { type: Boolean, default: false}
     },
+    emits: ["select"],
     data: () => ({ height: 425, tip: null, width: 600 }),
     computed: {
         points() {

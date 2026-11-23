@@ -73,6 +73,7 @@ export default {
             default: false
         }
     },
+    emits: ["input-change"],
     components: {
         FilterControlTemplate,
     },

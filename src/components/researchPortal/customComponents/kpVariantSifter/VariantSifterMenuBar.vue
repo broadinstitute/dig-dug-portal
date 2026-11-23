@@ -49,6 +49,7 @@ export default {
             default: () => [],
         },
     },
+    emits: ["action"],
     computed: {
         menus() {
             const topRecent = Array.isArray(this.recentSearches)

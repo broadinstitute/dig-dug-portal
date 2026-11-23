@@ -38,6 +38,7 @@ export default {
             default: "No rows returned."
         }
     },
+    emits: ["row-click"],
 
     computed: {
         allRows() {

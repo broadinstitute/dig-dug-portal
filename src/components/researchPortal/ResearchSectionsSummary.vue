@@ -75,6 +75,7 @@ export default {
 	name: "research-sections-summary",
 	props: ["sectionIndex","uId", "description","sectionsConfig", "sectionsData","utils","starItems", "regionZoom",
 		"regionViewArea","isInTab"],
+	emits: ["on-star"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionVisualizers,

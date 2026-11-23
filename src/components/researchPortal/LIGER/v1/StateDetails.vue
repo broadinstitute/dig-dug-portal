@@ -46,6 +46,7 @@ export default {
             default: false
         }
     },
+    emits: ["open-program"],
 
     data() {
         return {

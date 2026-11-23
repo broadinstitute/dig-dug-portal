@@ -261,6 +261,7 @@ export default {
   components: {
   },
   props: { method: { type: String, required: true } },
+  emits: ["show-tip", "hide-tip", "move-tip"],
   data() { return { activeHover: null }; },
   mounted() { 
     this.drawEdges();
