@@ -93,6 +93,7 @@ export default {
         "yAxisLabels",
         "isletTab"
     ],
+    emits: ["showContent"],
     data() {
         return {
             chart: null,

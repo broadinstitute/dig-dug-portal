@@ -122,6 +122,7 @@ export default {
             default: 0
         }
     },
+    emits: ["input"],
     data() {
         return {
             localMin: 0,

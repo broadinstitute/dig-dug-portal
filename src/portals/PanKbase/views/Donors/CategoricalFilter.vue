@@ -57,6 +57,7 @@ export default {
             default: () => [],
         },
     },
+    emits: ["input"],
     computed: {
         optionCount() {
             return this.options.length;

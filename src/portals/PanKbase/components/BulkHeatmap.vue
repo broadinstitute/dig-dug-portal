@@ -54,6 +54,7 @@ export default {
         "plotId",
         "diseaseData",
     ],
+    emits: ["highlight"],
     data() {
         return {
           chart: null,

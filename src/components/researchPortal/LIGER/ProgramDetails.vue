@@ -47,6 +47,7 @@ export default {
             default: false
         }
     },
+    emits: ["open-state"],
 
     data() {
         return {

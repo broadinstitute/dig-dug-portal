@@ -59,6 +59,7 @@ export default {
         "plotId",
         "upregulatedIn",
     ],
+    emits: ["highlight"],
     data() {
         return {
             tooltip: null,

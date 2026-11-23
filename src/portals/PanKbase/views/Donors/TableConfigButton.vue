@@ -59,6 +59,7 @@ export default {
             default: null,
         },
     },
+    emits: ["save"],
     data() {
         return {
             draftColumns: [],
