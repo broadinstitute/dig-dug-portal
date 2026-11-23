@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/byor_content?id=pankbase_funding",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"title\":\"PanKbase Funding Opportunities\",\"field_data_points\":false,\"field_data_table_format\":false,\"body\":\"\\u003Ch3\\u003ECurrent Funding Opportunities\\u003C\\/h3\\u003E\\n\\u003Cp\\u003EFor a list of current funding opportunities, please visit the \\u003Ca href=\\u0022https:\\/\\/dknet.org\\/about\\/nih-niddk-grant-corner\\u0022\\u003EdkNET NIH\\/NIDDK Grant Corner\\u003C\\/a\\u003E and \\u003Ca href=\\u0022https:\\/\\/hirnetwork.org\\/funding-opportunities\\u0022\\u003EFunding Announcements from the Human Islet Research Network\\u003C\\/a\\u003E.\\u003C\\/p\\u003E\\n\\u003Ch3\\u003EPrevious Funding Opportunities\\u003C\\/h3\\u003E\\n\\u003Cp\\u003E\\u003Ca href=\\u0022https:\\/\\/hugeampkpncms.org\\/sites\\/default\\/files\\/images\\/pankbase\\/funding\\/PanKbase%20AI%20Pilot%20Funding%20Program.pdf\\u0022\\u003EPanKbase AI Pilot Funding Program\\u003C\\/a\\u003E\\u003C\\/p\\u003E\\n\",\"field_page_style\":false}]"
+}

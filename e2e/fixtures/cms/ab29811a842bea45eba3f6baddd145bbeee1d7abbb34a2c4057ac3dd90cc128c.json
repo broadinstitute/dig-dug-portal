@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/byor_content?id=pankbase_donor_metadata",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"title\":\"Donor Summary\",\"field_data_points\":false,\"field_data_table_format\":false,\"body\":\"\\u003Ch2\\u003EDonor Summary Tool\\u003C\\/h2\\u003E\\n\\u003Cp style=\\u0022font-size:18px;\\u0022\\u003EThe Donor Summary tool provides interactive visualizations of available data types and metadata for the 532 pancreatic donors with data currently included in PanKbase. These donors are from a larger set of all 3,737 donors in \\u003Ca href=\\u0022\\/programs.html\\u0022 target=\\u0022blank\\u0022\\u003Eexternal programs\\u003C\\/a\\u003E including HPAP, IIDP, nPOD, ADI and Prodo.\\u003C\\/p\\u003E\\n\\u003Cp style=\\u0022font-size:18px;\\u0022\\u003EMetadata fields have been harmonized across programs by experts, and detailed descriptions of metadata variables and standards are listed \\u003Ca href=\\u0022https:\\/\\/data.pankbase.org\\/standards\\/human-donor\\/\\u0022 target=\\u0022blank\\u0022\\u003Ehere\\u003C\\/a\\u003E. To view more comprehensive metadata for each donor visit the \\u003Ca href=\\u0022https:\\/\\/data.pankbase.org\\u0022 target=\\u0022blank\\u0022\\u003EData Library\\u003C\\/a\\u003E.\\u003C\\/p\\u003E\\n\\u003Cp style=\\u0022font-size:18px;\\u0022\\u003EFor each data type currently included in PanKbase, links are provided to interactive tools and visualizations for that data type, as well as to the uniformly processed data files in the \\u003Ca href=\\u0022https:\\/\\/data.pankbase.org\\u0022 target=\\u0022blank\\u0022\\u003EData Library\\u003C\\/a\\u003E.\\u003C\\/p\\u003E\\n\",\"field_page_style\":false}]"
+}

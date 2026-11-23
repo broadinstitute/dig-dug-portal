@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/byor_content?id=contact_pankbase",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"title\":\"Contact\",\"field_data_points\":false,\"field_data_table_format\":\"{}\",\"body\":\"\\u003Cp\\u003EWe welcome your questions and feedback about how we can improve PanKbase! Please contact us through our \\u003Ca href=\\u0022https:\\/\\/github.com\\/PanKbase\\/external-feedback\\/discussions\\u0022\\u003ECommunity Forum\\u003C\\/a\\u003E on GitHub or email us at \\u003Ca href=\\u0022mailto:help@pankbase.org\\u0022\\u003Ehelp@pankbase.org\\u003C\\/a\\u003E. If you are reporting a bug, please include the URL of the page you are viewing. We endeavor to answer all queries within two business days.\\u003C\\/p\\u003E\\n\\u003Ch4\\u003EFeedback\\u003C\\/h4\\u003E\\n\\u003Cp\\u003EWe value your feedback and strive to continuously update our resource to reflect the needs of the community. Please \\u003Ca href=\\u0022https:\\/\\/forms.gle\\/tyuYH8Tx2JcQVuuRA\\u0022\\u003Efill out our survey here\\u003C\\/a\\u003E.\\u003C\\/p\\u003E\\n\",\"field_page_style\":\".dataset-page-header {\\r\\nbackground: none;\\r\\nborder: none;\\r\\n}\\r\\n\\r\\n.dataset-page-header h3 {\\r\\n    font-weight: 600;\\r\\npadding-left: 15px;\\r\\n}\\r\\n\\r\\na { color: #1acedb !important; }\\r\\n\\r\\nh4.section-header { font-size: 24px; font-weight: 600; margin-top: 45px; }\\r\\n\\r\\np { line-height: 1.65rem !important; margin-bottom: 1.65rem !important; }\\r\\n\\r\\n#rp_tabs_contents { display: none; }\"}]"
+}

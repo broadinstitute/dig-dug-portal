@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/byor_content?id=pankbase_pcaexplorer",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"title\":\"PanKbase PCA Explorer\",\"field_data_points\":false,\"field_data_table_format\":false,\"body\":\"\\u003Ch2\\u003EPCA Explorer\\u003C\\/h2\\u003E\\n\\u003Cp style=\\u0022font-size:18px;\\u0022\\u003EInvestigate interactive Principal Component Analyses (PCA) of pseudo-bulk normalized RNA expression categorized by cell type. For each cell type, gain insights into how samples are distinguished based on biological or technical variables, such as diabetes status, age, and sequencing chemistry. Hover over individual points to access additional donor information. To learn more about the methods used for these analyses, see \\u003Ca href=\\u0022https:\\/\\/data.pankbase.org\\/method\\/pca_analysismethods\\u0022\\u003Ehere\\u003C\\/a\\u003E. To examine differential gene expression analyses with corrections for technical variations, please visit the \\u003Ca href=\\u0022\\/diff-exp.html?comparison=dea_comp_1\\u0026amp;dataset=islet_of_Langerhans_scRNA_v3-3_Pseudobulk_Acinar\\u0022\\u003EDifferential Gene Expression Browser\\u003C\\/a\\u003E.\\u003C\\/p\\u003E\\n\",\"field_page_style\":false}]"
+}

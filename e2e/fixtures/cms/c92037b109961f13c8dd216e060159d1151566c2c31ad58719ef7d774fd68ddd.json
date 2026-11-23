@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/byor_content?id=pankbase_gene_tableofcontents",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"title\":\"PanKbase gene page table of contents\",\"field_data_points\":\"Which functions, gene ontologies, and pathways are associated with [Gene]?\\r\\nIn which cell types is [Gene] expressed in PanKbase\\u2019s integrated single cell map of the human pancreas?\\r\\nHow specific is the expression of [Gene] in pancreas relative to other human tissues from GTEx?\\r\\nWhich T1D-related human phenotypes have genetic support for involvement of [Gene]?\",\"field_data_table_format\":false,\"body\":\"\",\"field_page_style\":false}]"
+}
