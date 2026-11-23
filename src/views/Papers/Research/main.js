@@ -1,10 +1,6 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
@@ -46,10 +42,7 @@ import userUtils from "@/utils/userUtils.js";
 import $ from "jquery";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-new Vue({
+mountPage(Template, {
     store,
     components: {
         ResearchPageHeader,
@@ -2319,8 +2312,4 @@ new Vue({
         }
 
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});
