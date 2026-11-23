@@ -43,9 +43,8 @@
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseArgs as parseNodeArgs } from 'node:util';
 import { parse as parseSfc } from 'vue/compiler-sfc';
-import { assertParses, cell, code, failure, hasSrc, oneLine, parseStrict } from './register-components.mjs';
+import { assertParses, cell, code, failure, hasSrc, oneLine, parseArgs, parseStrict } from './register-components.mjs';
 import { addFirstProperty, addPropertyAfter, byCodeUnit, extendList, indentUnit, keyName, soleScript, splice } from './register-write.mjs';
 import { vue3Linter } from './vue3-eslint.mjs';
 
@@ -222,20 +221,6 @@ export function dynamicEmits(source) {
     found.push({ line: source.slice(0, match.index).split('\n').length, argument: shown.length > SHOWN ? `${shown.slice(0, SHOWN - 3)}...` : shown });
   }
   return found;
-}
-
-/**
- * @param {string[]} argv
- * @returns {{ dryRun: boolean, root: string | undefined }}
- * @throws {Error} on an unknown option, a positional argument, or `--root` without a value
- */
-export function parseArgs(argv) {
-  const { values } = parseNodeArgs({
-    args: argv,
-    options: { 'dry-run': { type: 'boolean' }, root: { type: 'string' } },
-    allowPositionals: false,
-  });
-  return { dryRun: values['dry-run'] === true, root: values.root };
 }
 
 /**
