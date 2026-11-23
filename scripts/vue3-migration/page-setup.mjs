@@ -24,19 +24,21 @@
 // is done.
 //
 // Every change is a text splice: bytes outside it stay as they were and the file keeps its line endings. A statement
-// goes with its line, and with a comment that trails it there; a comment on a line of its own stays. Where a removal
-// leaves a blank line on each side, one of them goes too.
+// takes its line along when nothing else is on it. A comment stays where it stood, on a line of its own or after what
+// goes: it can be code that was commented out. Where a removal leaves a blank line on each side, one of them goes too.
 //
 // It reports what it will not decide, as markdown on stdout, after the totals:
 //   - Unresolved: an entry that mounts in another way (an `el` or `template` option, a `render` that does more than
 //     return `createElement(Template)`, a second `new Vue`, ...), and a component whose script it cannot edit
-//     (`<script setup>`, `lang="ts"`, two scripts). The file is not changed. Convert it by hand, then run this again.
+//     (`<script setup>`, `lang="ts"`, two scripts). The file is not changed. Convert it by hand, then run this again,
+//     and an entry before its page is built: its store is stripped like any other, and runs when it is imported,
+//     before an entry that installs Vuex itself gets to it.
 //   - Left in place: any other install, with its line. Another plugin, `Vue.use(X, options)`, an install in a
 //     function or a condition, a plugin or a `Vue` that is re-assigned or not imported as above. Note that
 //     `pageSetup.js` runs first, and Vue ignores a second install of a plugin, its options included.
 //   - Pages that gain or lose something: the plugins and stylesheets that run when the page's files load, by
-//     reachability from its entry, before and after. A page loses something when its entry is unresolved and a
-//     shared file that installed it is not: finish that entry before the page is built.
+//     reachability from its entry, before and after. A page loses something when its entry is unresolved and a file
+//     that installed it for the page is stripped. An unresolved entry can need converting without losing anything.
 //
 // Every changed file is parsed again (as `register-components.mjs` does). When one fails, or any file under `src/`
 // does not parse to begin with (what it imports is then unknown), it is listed under Failed and nothing at all is
@@ -51,7 +53,7 @@ import { traverse } from '@babel/core';
 import { parse as parseSfc } from 'vue/compiler-sfc';
 import { pageEntries, reachable, readSources, resolveImport, scanImports } from './component-graph.mjs';
 import { assertParses, cell, code, failure, hasSrc, oneLine, pageName, parseArgs, parseStrict } from './register-components.mjs';
-import { byCodeUnit, isBlank, keyName, lineEnd, lineIndent, soleScript, splice } from './register-write.mjs';
+import { byCodeUnit, isBlank, keyName, lineIndent, soleScript, splice } from './register-write.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -144,13 +146,12 @@ const propertyName = ({ computed, property }) => (computed ? (property.type === 
 
 const atLineBreak = (text, offset) => offset >= text.length || text[offset] === '\r' || text[offset] === '\n';
 
-/** The lines `range` is on, the last line break included, when nothing else is on them but a comment after it; else null. */
+/** The lines `range` is on, the last line break included, when nothing else is on them; else null. */
 function wholeLines(text, range) {
   const start = text.lastIndexOf('\n', range.start - 1) + 1;
-  const end = lineEnd(text, range.end);
-  if (!isBlank(text.slice(start, range.start)) || !atLineBreak(text, end)) return null;
-  const lineBreak = text.indexOf('\n', end);
-  return { start, end: lineBreak === -1 ? text.length : lineBreak + 1 };
+  const lineBreak = text.indexOf('\n', range.end);
+  const end = lineBreak === -1 ? text.length : lineBreak + 1;
+  return isBlank(text.slice(start, range.start)) && isBlank(text.slice(range.end, end)) ? { start, end } : null;
 }
 
 /**
@@ -458,6 +459,8 @@ function mountShape(program) {
     mount.node.arguments[0].type === 'StringLiteral' &&
     mount.node.arguments[0].value === '#app';
   if (!isMounted) return unresolve('not mounted with `.$mount("#app")`');
+  // Parentheses that open before `new` close among what is replaced.
+  if (mount.node.start !== vue.node.start) return unresolve('parentheses around `new Vue({ ... })`');
   if (!mount.parentPath.isExpressionStatement() || !mount.parentPath.parentPath.isProgram()) {
     return unresolve('`new Vue({ ... }).$mount("#app")` is not a statement of its own at the top level');
   }
@@ -483,7 +486,8 @@ function propertyRemovals(text, ast, options, dropped) {
     const range = { start: property.start, end: hasComma ? trivia.lastIndex + 1 : property.end };
     // The last of several on a line: the comma before it goes instead.
     const previous = options.properties[options.properties.indexOf(property) - 1];
-    if (!hasComma && previous && !dropped.includes(previous) && !wholeLines(text, range) && !hasComment(ast, previous.end, range.start)) range.start = previous.end;
+    const sharesLine = previous && !text.slice(previous.end, range.start).includes('\n');
+    if (!hasComma && sharesLine && !dropped.includes(previous) && !hasComment(ast, previous.end, range.start)) range.start = previous.end;
     return range;
   });
   return removals(text, ranges, { start: options.start + 1, end: options.end - 1 });
@@ -645,8 +649,10 @@ export function setupTree({ root, dryRun = false, write = writeFileSync, strip =
 
 const LEFT_NOTE =
   'Each of these still runs where it is, after `pageSetup.js`. An install of a plugin that `pageSetup.js` has installed does nothing there, and its options are ignored: move those into `pageSetup.js` by hand. A plugin of one page belongs in the third argument of its `mountPage`.';
+const UNRESOLVED_NOTE =
+  'These files are not changed. Convert every entry listed here by hand before it is built, whether its page loses something below or not: its store is stripped like any other, and runs when it is imported, before an entry that installs Vuex itself gets to it.';
 const PAGES_NOTE =
-  'What runs when the files of a page load, by reachability from its entry, before and after. A page that loses something does not reach `pageSetup.js`: convert its entry by hand before it is built.';
+  'What runs when the files of a page load, by reachability from its entry, before and after. A page that loses something does not reach `pageSetup.js`: its entry is unresolved.';
 
 /** A table with the given header cells, or `None.` when it has no rows. */
 const table = (header, rows) =>
@@ -668,7 +674,9 @@ function renderReport({ dryRun, changed, failed, unresolved, left, pages, planne
     `| Pages that lose | ${pages.filter(({ lost }) => lost.length > 0).length} |`,
   ];
 
-  lines.push('', '## Unresolved', '', ...table(['file', 'reason'], unresolved.map(({ file, reason }) => [code(file), reason])));
+  lines.push('', '## Unresolved', '');
+  if (unresolved.length > 0) lines.push(UNRESOLVED_NOTE, '');
+  lines.push(...table(['file', 'reason'], unresolved.map(({ file, reason }) => [code(file), reason])));
 
   lines.push('', '## Left in place', '');
   if (left.length > 0) lines.push(LEFT_NOTE, '');

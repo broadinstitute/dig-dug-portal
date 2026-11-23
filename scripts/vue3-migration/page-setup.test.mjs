@@ -383,7 +383,7 @@ test('one blank line stays where there was one on each side, and none at the edg
   );
 });
 
-test('a trailing comment goes with its line, and a comment on a line of its own stays', () => {
+test('a comment stays where it stood, on a line of its own or after what goes', () => {
   assert.equal(
     strippedText(
       text(
@@ -398,9 +398,38 @@ test('a trailing comment goes with its line, and a comment on a line of its own 
         'export default new Vuex.Store({});',
       ),
     ),
-    text('// The store of the page.', 'import Vuex from "vuex";', '', '// Vuex first.', '', '/* the store */', 'export default new Vuex.Store({});'),
+    text(
+      '// The store of the page.',
+      '// for the install',
+      'import Vuex from "vuex";',
+      '',
+      '// Vuex first.',
+      '// the install',
+      '',
+      '/* the store */',
+      'export default new Vuex.Store({});',
+    ),
   );
-  // A comment that runs on to the next line is not only about this line.
+  // What trails a removed line can be code that was commented out.
+  for (const [line, comment] of [
+    ['Vue.use(BootstrapVue); // Vue.use(IconsPlugin);', '// Vue.use(IconsPlugin);'],
+    ['Vue.use(IconsPlugin); /* TODO */', '/* TODO */'],
+    ['import "bootstrap/dist/css/bootstrap.css"; // import "./theme.css";', '// import "./theme.css";'],
+    ['Vue.config.productionTip = false; // true', '// true'],
+    ['    Vue.use(BootstrapVue); // indented', '    // indented'],
+    ['/* before */ Vue.use(BootstrapVue); // after', '/* before */ // after'],
+  ]) {
+    const imports = ['import Vue from "vue";', 'import { BootstrapVue, IconsPlugin } from "bootstrap-vue";'];
+    const rest = ['', 'a();', '', line, '', 'b(Vue, BootstrapVue, IconsPlugin);'];
+    const expected = text(...imports, '', 'a();', '', comment, '', 'b(Vue, BootstrapVue, IconsPlugin);');
+    assert.equal(strippedText(text(...imports, ...rest)), expected, line);
+    assert.equal(strippedText(crlf(text(...imports, ...rest))), crlf(expected), line);
+  }
+  assert.equal(
+    strippedText(text('import { BootstrapVue } from "bootstrap-vue"; // import "./icons";', 'import Vue from "vue";', 'Vue.use(BootstrapVue);', 'export default {};')),
+    text('// import "./icons";', 'export default {};'),
+  );
+  // Also one that runs on to the next line.
   assert.equal(
     strippedText(text('import V from "vue";', 'import S from "vuex";', 'V.use(S); /* one', 'two */', 'S();')),
     text('import S from "vuex";', '/* one', 'two */', 'S();'),
@@ -419,10 +448,12 @@ test('a statement that shares its line goes alone', () => {
     ['a(); V.use(S); // both', 'a(); // both'],
     ['a(); V.use(S); b();', 'a(); b();'],
     ['a();V.use(S); b();', 'a(); b();'],
+    ['V.use(S); // both', '// both'],
   ]) {
     assert.equal(strippedText(text(...imports, before)), text(after), before);
   }
-  assert.equal(strippedText(text(...imports, 'import B from "bootstrap-vue";', 'x();', 'V.use(S); V.use(B); // both', 'y();')), text('x();', 'y();'));
+  assert.equal(strippedText(text(...imports, 'import B from "bootstrap-vue";', 'x();', 'V.use(S); V.use(B);', 'y();')), text('x();', 'y();'));
+  assert.equal(strippedText(text(...imports, 'import B from "bootstrap-vue";', 'x();', 'V.use(S); V.use(B); // both', 'y();')), text('x();', '// both', 'y();'));
 });
 
 test('a removal that would join two statements is an error, not a silent change', () => {
@@ -475,6 +506,29 @@ test('rewrites render when it is the first or the last option, with the blank li
   );
 });
 
+test('keeps a comment that trails render', () => {
+  for (const [render, comment] of [
+    ['render: h => h(Template), // data: {},', '// data: {},'],
+    ['render: h => h(Template) // data: {},', '// data: {},'],
+    ['render: h => h(Template), /* data: {}, */', '/* data: {}, */'],
+  ]) {
+    assert.equal(
+      mounted(text(...HEAD, 'new Vue({', '    store,', `    ${render}`, '}).$mount("#app");')),
+      text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', `    ${comment}`, '});'),
+      render,
+    );
+  }
+  assert.equal(
+    mounted(text(...HEAD, 'new Vue({', '    store,', '    render(h) {', '        return h(Template);', '    }, // data: {},', '    methods: {},', '}).$mount("#app");')),
+    text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', '    // data: {},', '    methods: {},', '});'),
+  );
+  // And one that trails the import of Vue.
+  assert.equal(
+    mounted(text('import Vue from "vue"; // import Vue from "./vue";', ...HEAD.slice(1), 'new Vue({ a: 1, render: (h) => h(Template) }).$mount("#app");')),
+    text(MOUNTED_HEAD[0], '// import Vue from "./vue";', ...HEAD.slice(1), 'mountPage(Template, { a: 1 });'),
+  );
+});
+
 test('rewrites an arrow render', () => {
   for (const render of ['render: (h) => h(Template),', 'render: h => h(Template)', 'render: (createElement) => { return createElement(Template); },', 'render: function (h) { return h(Template) },']) {
     assert.equal(
@@ -492,6 +546,7 @@ test('rewrites options on one line', () => {
     ['{ store, render: (h) => h(Template), methods: {} }', '{ store, methods: {} }'],
     ['{ store, render: (h) => h(Template), }', '{ store, }'],
     ['{ render: (h) => h(Template) }', '{ }'],
+    ['({ store, render: (h) => (h(Template)) })', '{ store }'],
   ]) {
     assert.equal(mounted(text(...HEAD, `new Vue(${options}).$mount("#app");`)), text(...MOUNTED_HEAD, `mountPage(Template, ${after});`), options);
   }
@@ -552,6 +607,8 @@ test('leaves an entry of another shape unresolved, with the reason', () => {
     [text(...HEAD, 'new Vue({', render, '}).$mount(document.body);'), /not mounted with/],
     [text(...HEAD, 'new Vue({', render, '}).$mount();'), /not mounted with/],
     [text(...HEAD, 'new Vue({', render, '}).$mount("#app", true);'), /not mounted with/],
+    [text(...HEAD, '(new Vue({', render, '})).$mount("#app");'), /parentheses/],
+    [text(...HEAD, '(new Vue({', render, '}).$mount)("#app");'), /parentheses/],
     [text(...HEAD, 'new Vue(options).$mount("#app");'), /object literal/],
     [text(...HEAD, 'new Vue().$mount("#app");'), /object literal/],
     [text(...HEAD, 'export const vm = new Vue({', render, '}).$mount("#app");'), /statement of its own/],
@@ -726,7 +783,7 @@ test('keeps comments and CRLF', () => {
   assert.equal(converted(before), after);
   assert.equal(converted(crlf(before)), crlf(after));
   const sfc = component('import Vue from "vue";', 'import Vuex from "vuex";', '', 'Vue.use(Vuex); // now', '', 'export default {};');
-  assert.equal(stripped(crlf(sfc)).source, crlf(component('export default {};')));
+  assert.equal(stripped(crlf(sfc)).source, crlf(component('// now', '', 'export default {};')));
 });
 
 // ---- the tree -------------------------------------------------------------------------------
@@ -950,6 +1007,8 @@ test('an unresolved entry is listed with its reason and not changed; what is lef
     const rows = section(result.out, 'Unresolved');
     assert.match(rows, /^\| `src\/views\/Widget\/main\.js` \| .*`el`.* \|$/m);
     assert.match(rows, /^\| `src\/components\/Setup\.vue` \| .*<script setup>.* \|$/m);
+    // A store that is stripped runs before the entry that installs Vuex, even in a page that loses nothing.
+    assert.match(rows, /Convert every entry listed here by hand before it is built/);
     assert.match(section(result.out, 'Left in place'), /^\| `src\/views\/Widget\/main\.js:5` \| `Vue\.use\(VueCodemirror\)` \|$/m);
     assert.match(result.out, /^\| Unresolved \| 2 \|$/m);
     assert.match(result.out, /^\| Left in place \| 1 \|$/m);
@@ -965,6 +1024,28 @@ test('a converted entry is stripped again when a merge brings an install back', 
     assert.match(result.out, /^\| Entries converted \| 2 \|$/m);
     assert.match(result.out, /^\| Entries already on pageSetup \| 1 \|$/m);
   });
+});
+
+test('an entry in parentheses is unresolved on its own, and the rest of the run goes on', async () => {
+  const wrapped = entry().replace('new Vue({', '(new Vue({').replace('}).$mount', '})).$mount');
+  await withRoot({ ...FIXTURE, 'src/views/Wrapped/main.js': wrapped, 'src/views/Wrapped/store.js': STORE_AFTER, 'src/views/Wrapped/Template.vue': component('export default {};') }, async (root) => {
+    const result = await cli(root);
+    assert.equal(result.code, 0, result.err);
+    assert.deepEqual(result.writes, CHANGED);
+    assert.match(section(result.out, 'Unresolved'), /^\| `src\/views\/Wrapped\/main\.js` \| .*parentheses.* \|$/m);
+  });
+});
+
+test('an unresolved entry that installs Vuex itself loses nothing, and is still one to convert first', async () => {
+  const own = entry('import Vuex from "vuex";', 'Vue.use(Vuex);').replace('"#app"', '"#widget"');
+  await withRoot({ ...FIXTURE, 'src/views/Own/main.js': own, 'src/views/Own/store.js': STORE_TEXT, 'src/views/Own/Template.vue': component('export default {};') }, async (root) => {
+    const result = await cli(root);
+    assert.equal(read(root, 'src/views/Own/store.js'), STORE_AFTER);
+    assert.doesNotMatch(section(result.out, 'Pages that gain or lose something'), /`Own`/);
+    assert.match(section(result.out, 'Unresolved'), /Convert every entry listed here by hand before it is built/);
+  });
+  // Without one, nothing is said.
+  await withRoot(FIXTURE, async (root) => assert.equal(section((await cli(root)).out, 'Unresolved').trim(), 'None.'));
 });
 
 // ---- failures and usage -----------------------------------------------------------------------
