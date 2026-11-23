@@ -45,6 +45,17 @@ test('renderOf reports compile errors as plain strings', () => {
   assert.match(errors[0], /exactly one root element/);
 });
 
+test('renderOf on a template that does not compile returns the compiler\'s stub render, so callers must check errors first', () => {
+  // `compileTemplate` throws the real render away when there are errors: whatever the template says, the render is
+  // this stub. The tests below pin that a file is never `same` on the strength of it.
+  for (const source of ['<p>a</p><p>b</p>', '<p>X</p><p>Y</p>']) {
+    const result = renderOf(source);
+    assert.equal(result.render, 'function () {}', source);
+    assert.deepEqual(result.staticRenderFns, [], source);
+    assert.equal(result.errors.length, 1, source);
+  }
+});
+
 test('renderOf keeps asset paths in the render, so a changed src is a change', () => {
   assert.notEqual(renderOf('<div><img src="./a.png"></div>').staticRenderFns[0], renderOf('<div><img src="./b.png"></div>').staticRenderFns[0]);
 });
@@ -64,6 +75,15 @@ test('compareRenders lists the parts that differ, and nothing for equal results'
   assert.ok(compareRenders(a, broken).map(({ label }) => label).includes('compile errors'));
 });
 
+test('compareRenders never calls results equal when either has compile errors, the stub render included', () => {
+  const broken = renderOf('<p>a</p><p>b</p>');
+  const otherBroken = renderOf('<p>X</p><p>Y</p>');
+  assert.equal(broken.render, otherBroken.render, 'the stubs are equal, which is the trap');
+  assert.deepEqual(compareRenders(broken, otherBroken).map(({ label }) => label), ['compile errors']);
+  assert.deepEqual(compareRenders(broken, broken).map(({ label }) => label), ['compile errors']);
+  assert.deepEqual(compareRenders(renderOf('<p>a</p>'), broken).map(({ label }) => label), ['compile errors']);
+});
+
 // ---- the CLI --------------------------------------------------------------------------------
 
 /** Runs `git` in `cwd`, for building the temp repository. Only local config is set; global git config is never touched. */
@@ -78,8 +98,12 @@ const writeIn = (root, file, contents) => {
 const sfc = (template) => `${template === null ? '' : `<template>${template}</template>\n`}<script>\nexport default { name: "T" };\n</script>\n`;
 
 let root;
+// `run` refuses to start under NODE_ENV=production, and the tests expect compile errors, which that setting hides.
+let nodeEnv;
 
 before(() => {
+  nodeEnv = process.env.NODE_ENV;
+  delete process.env.NODE_ENV;
   root = mkdtempSync(join(tmpdir(), 'compare-render-'));
   git(root, 'init', '-q');
   git(root, 'config', 'user.email', 'compare-render@example.invalid');
@@ -90,6 +114,10 @@ before(() => {
   writeIn(root, 'src/Entity.vue', sfc('<p>a < b</p>'));
   writeIn(root, 'src/Emptied.vue', sfc(''));
   writeIn(root, 'src/Gone.vue', sfc('<p>gone</p>'));
+  // Two root elements: the compiler reports an error and returns a stub render, whatever the text says.
+  writeIn(root, 'src/BrokenBoth.vue', sfc('<p>a</p><p>b</p>'));
+  writeIn(root, 'src/BrokenAfter.vue', sfc('<p>a</p>'));
+  writeIn(root, 'src/BrokenSame.vue', sfc('<p>a</p><p>b</p>'));
   git(root, 'add', '.');
   git(root, 'commit', '-q', '-m', 'base');
 
@@ -99,10 +127,14 @@ before(() => {
   writeIn(root, 'src/Emptied.vue', sfc(null));
   rmSync(join(root, 'src/Gone.vue'));
   writeIn(root, 'src/Added.vue', sfc('<p>new</p>'));
+  writeIn(root, 'src/BrokenBoth.vue', sfc('<p>X</p><p>Y</p>'));
+  writeIn(root, 'src/BrokenAfter.vue', sfc('<p>a</p><p>b</p>'));
 });
 
 after(() => {
   rmSync(root, { recursive: true, force: true });
+  if (nodeEnv === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = nodeEnv;
 });
 
 /** Runs the CLI in-process against the temp repo; returns the exit code and what it wrote. */
@@ -154,6 +186,50 @@ test('cli reports a file missing on one side as differs, with a note', async () 
   const added = await cli('--base', 'HEAD', 'src/Added.vue');
   assert.equal(added.exitCode, 1, added.err);
   assert.match(added.out, /`src\/Added\.vue` \| differs \| not in HEAD/);
+});
+
+const STUB = /function \(\) \{\}/;
+const ERRORS_HEADING = /_compile errors:_/g;
+const ROOT_ERROR = /Component template should contain exactly one root element/g;
+
+test('cli never says same for templates that do not compile, even when both sides give the same stub render', async () => {
+  const { exitCode, out, err } = await cli('--base', 'HEAD', 'src/BrokenBoth.vue');
+  assert.equal(exitCode, 1, err);
+  assert.match(out, /`src\/BrokenBoth\.vue` \| differs \| compile errors in HEAD and working tree/);
+  assert.doesNotMatch(out, /\| same \|/);
+  // Both sides are shown as errors, not as the stub render that the compiler put in their place.
+  assert.equal(out.match(ERRORS_HEADING)?.length, 2, 'both sides show their compile errors');
+  assert.equal(out.match(ROOT_ERROR)?.length, 2, 'both sides show the error text');
+  assert.doesNotMatch(out, STUB);
+});
+
+test('cli says differs for an unchanged template that does not compile', async () => {
+  const { exitCode, out } = await cli('--base', 'HEAD', 'src/BrokenSame.vue');
+  assert.equal(exitCode, 1);
+  assert.match(out, /`src\/BrokenSame\.vue` \| differs \| compile errors in HEAD and working tree/);
+});
+
+test('cli shows the side that compiles as its render and the side that does not as its errors', async () => {
+  const { exitCode, out, err } = await cli('--base', 'HEAD', 'src/BrokenAfter.vue');
+  assert.equal(exitCode, 1, err);
+  assert.match(out, /`src\/BrokenAfter\.vue` \| differs \| compile errors in working tree/);
+  assert.match(out, /_vm\._v\("a"\)/, 'the base render is shown');
+  assert.equal(out.match(ERRORS_HEADING)?.length, 1, 'only the working tree shows errors');
+  assert.equal(out.match(ROOT_ERROR)?.length, 1);
+  assert.doesNotMatch(out, STUB);
+});
+
+test('cli refuses to run under NODE_ENV=production, which hides compile errors, and exits 2', async () => {
+  process.env.NODE_ENV = 'production';
+  try {
+    const { exitCode, out, err } = await cli('--base', 'HEAD', 'src/Edited.vue');
+    assert.equal(exitCode, 2);
+    assert.equal(out, '');
+    assert.match(err, /NODE_ENV=production/);
+    assert.match(err, /compile errors/);
+  } finally {
+    delete process.env.NODE_ENV;
+  }
 });
 
 test('cli exits 2 with the usage line for bad arguments', async () => {

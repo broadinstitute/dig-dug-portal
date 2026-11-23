@@ -1,11 +1,16 @@
-// Proves that an edit to a `<template>` leaves what Vue 2.7 renders unchanged. Run it from the repo root:
+// Proves that an edit to a `<template>` leaves what Vue 2.7 renders unchanged. Paths resolve against `--root`
+// (default: this repo), so it runs from anywhere:
 //
 //   npm run tool:compare-render -- --base <ref> <file.vue> [<file.vue> ...]
 //   npm run tool:compare-render -- --base origin/dev/vue3 --root <dir> src/components/Thing.vue
 //
 // For each file it compiles the `<template>` as it is at `<ref>` (`git show <ref>:<path>`) and as it is in the
-// working tree, and compares the two compiled results: the `render` function, the `staticRenderFns`, and the
-// compile errors. Each file is `same` or `differs`; for a difference the report shows both sides.
+// working tree, and compares the two compiled results: the `render` function and the `staticRenderFns`. Each file
+// is `same` or `differs`; for a difference the report shows both sides.
+//
+// A template that does not compile has no render: `compileTemplate` replaces it with a stub, the same for every
+// such template, so comparing stubs would call two different broken templates `same`. A side with compile errors
+// is never `same`: the file is `differs`, and the report shows that side's errors, not the stub.
 //
 // The compile matches the build: `compileTemplate` from `vue/compiler-sfc`, which is what vue-loader 15.10 calls
 // on Vue 2.7, with the options Vue CLI 4 gives it (`whitespace: "condense"`, `transformAssetUrls`). The template
@@ -24,10 +29,13 @@
 // `render()` option), is `differs` with a note. A file on neither side is a usage error. Files are paths under
 // `--root` (default: this repo).
 //
+// With `NODE_ENV=production` the 2.7 compiler collects no errors, so the tool refuses to run (exit 2) instead of
+// passing templates that do not compile.
+//
 // The report is markdown on stdout, usage errors go to stderr. Nothing is written to disk.
 //
 // Exit codes: 0 every file is the same, 1 some file differs, 2 usage error (bad arguments, an unknown ref, a file on
-// neither side, git not usable).
+// neither side, git not usable, `NODE_ENV=production`).
 import { spawnSync } from 'node:child_process';
 import { readFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
@@ -69,6 +77,10 @@ function splitCompiled(script) {
 
 /**
  * What Vue 2.7 compiles the template source `source` to (the text between `<template>` and `</template>`).
+ *
+ * When `errors` is not empty the template did not compile, and `render` is not its render: `compileTemplate` swaps
+ * in the stub `function () {}` (and `staticRenderFns` is `[]`), the same for every such template. Check `errors`
+ * before trusting `render`.
  * @param {string} source
  * @param {{ filename?: string }} [options]
  * @returns {{ render: string, staticRenderFns: string[], errors: string[] }}
@@ -77,7 +89,6 @@ export function renderOf(source, { filename = 'template.vue' } = {}) {
   const compiled = compileTemplate({
     source,
     filename,
-    id: 'compare-render',
     prettify: false,
     transformAssetUrls: true,
     compilerOptions: { whitespace: 'condense' },
@@ -86,20 +97,23 @@ export function renderOf(source, { filename = 'template.vue' } = {}) {
   return { ...splitCompiled(compiled.code), errors };
 }
 
+/** How the report shows a result of `renderOf`: its errors if it has any (its `render` is then a stub), else its render. */
+const viewOf = (result) => (result.errors.length > 0 ? { errors: result.errors } : { code: result.render });
+
 /**
- * The parts in which two results of `renderOf` differ, each `{ label, base, head }` with the two texts; none when
- * the results are equal.
+ * The parts in which two results of `renderOf` differ, each `{ label, base, head }` with the two sides as the report
+ * shows them (`{ code }` or `{ errors }`); none when the results are equal. A result with compile errors is never
+ * equal to anything, itself included: its `render` is the compiler's stub, which says nothing about the template.
  */
 export function compareRenders(base, head) {
+  if (base.errors.length > 0 || head.errors.length > 0) {
+    return [{ label: 'compile errors', base: viewOf(base), head: viewOf(head) }];
+  }
   const parts = [];
-  if (base.render !== head.render) parts.push({ label: 'render', base: base.render, head: head.render });
-  const fns = (result) => result.staticRenderFns.map((fn, i) => `// staticRenderFns[${i}]\n${fn}`).join('\n') || '(none)';
+  if (base.render !== head.render) parts.push({ label: 'render', base: { code: base.render }, head: { code: head.render } });
+  const fns = (result) => ({ code: result.staticRenderFns.map((fn, i) => `// staticRenderFns[${i}]\n${fn}`).join('\n') || '(none)' });
   if (JSON.stringify(base.staticRenderFns) !== JSON.stringify(head.staticRenderFns)) {
     parts.push({ label: 'static render functions', base: fns(base), head: fns(head) });
-  }
-  const errors = (result) => result.errors.join('\n') || '(none)';
-  if (JSON.stringify(base.errors) !== JSON.stringify(head.errors)) {
-    parts.push({ label: 'compile errors', base: errors(base), head: errors(head) });
   }
   return parts;
 }
@@ -146,7 +160,7 @@ function readAtRef(root, ref, file) {
 
 // ---- comparing a file ----------------------------------------------------------------------
 
-/** What `side` says about itself, for the notes: `no <template> in working tree`. */
+/** Why `side` has no render to compare, for the notes (`no <template> in working tree`); null for a side that compiled. */
 function problemOf(side, where) {
   if (side.kind === 'missing') return `not in ${where}`;
   if (side.kind === 'no-template') return `no \`<template>\` in ${where}`;
@@ -154,38 +168,50 @@ function problemOf(side, where) {
   return null;
 }
 
+const hasErrors = (side) => side.kind === 'compiled' && side.errors.length > 0;
+
 /**
- * Compares the two sides of one file.
- * @returns {{ same: boolean, note: string, parts: { label: string, base: { code?: string, note?: string }, head: { code?: string, note?: string } }[] }}
+ * Compares the two sides of one file. Only two sides that compiled without errors can be `same`: a template with
+ * errors has no render (see `renderOf`), so it is `differs` even when the other side is the same text.
+ * @returns {{ same: boolean, note: string, parts: { label: string, base: object, head: object }[] }} each side of a
+ *   part is `{ code }`, `{ errors }` or `{ note }`
  */
 function compareSides(base, head, ref) {
-  const where = { base: ref, head: 'working tree' };
   if (base.kind === 'no-template' && head.kind === 'no-template') {
     return { same: true, note: 'no `<template>` on either side', parts: [] };
   }
-  if (base.kind === 'compiled' && head.kind === 'compiled') {
-    const parts = compareRenders(base, head).map(({ label, base: before, head: after }) => ({ label, base: { code: before }, head: { code: after } }));
+  const sides = [[base, ref], [head, 'working tree']];
+  if (sides.every(([side]) => side.kind === 'compiled' && !hasErrors(side))) {
+    const parts = compareRenders(base, head);
     return { same: parts.length === 0, note: parts.map(({ label }) => label).join(', '), parts };
   }
-  // At least one side has nothing to compile. Show the other side's render, if it has one, next to the reason.
-  const view = (side, place) => (side.kind === 'compiled' ? { code: side.render } : { note: problemOf(side, place) });
+  // Not comparable. Show each side as its render, its errors or the reason it has none.
+  const view = (side, place) => (side.kind === 'compiled' ? viewOf(side) : { note: problemOf(side, place) });
+  const errored = sides.filter(([side]) => hasErrors(side)).map(([, place]) => place);
+  const problems = [errored.length > 0 ? `compile errors in ${errored.join(' and ')}` : null, ...sides.map(([side, place]) => problemOf(side, place))];
   return {
     same: false,
-    note: [problemOf(base, where.base), problemOf(head, where.head)].filter(Boolean).join('; '),
-    parts: [{ label: 'render', base: view(base, where.base), head: view(head, where.head) }],
+    note: problems.filter(Boolean).join('; '),
+    parts: [{ label: errored.length > 0 ? 'compile errors' : 'render', base: view(base, ref), head: view(head, 'working tree') }],
   };
 }
 
 // ---- report --------------------------------------------------------------------------------
 
 /** A fenced block for `text`, fenced with more backticks than any run in it. */
-function fenced(text) {
+function fenced(text, language = 'js') {
   const longest = Math.max(0, ...[...text.matchAll(/`+/g)].map(([run]) => run.length));
   const fence = '`'.repeat(Math.max(3, longest + 1));
-  return [`${fence}js`, text, fence].join('\n');
+  return [`${fence}${language}`, text, fence].join('\n');
 }
 
-const sideLines = (title, view) => ['', `${title}:`, '', view.code !== undefined ? fenced(view.code) : `_${view.note}_`];
+/** One side of a part: its code, or its compile errors (never the stub render), or the note that it has nothing. */
+function sideLines(title, view) {
+  let body = [`_${view.note}_`];
+  if (view.code !== undefined) body = [fenced(view.code)];
+  if (view.errors !== undefined) body = ['_compile errors:_', '', fenced(view.errors.join('\n'), 'text')];
+  return ['', `${title}:`, '', ...body];
+}
 
 function renderReport(ref, results) {
   const differing = results.filter(({ same }) => !same);
@@ -257,6 +283,11 @@ function underRoot(root, file) {
  */
 export async function run(argv, deps = {}) {
   const { root: defaultRoot = repoRoot, out = process.stdout, err = process.stderr } = deps;
+  // With NODE_ENV=production the 2.7 compiler collects no errors, so a template that does not compile would pass.
+  if (process.env.NODE_ENV === 'production') {
+    err.write('compare-render: NODE_ENV=production makes the Vue 2.7 compiler drop template compile errors, so a template that does not compile would go unseen. Unset NODE_ENV, or set it to another value, and run again.\n');
+    return 2;
+  }
   try {
     const options = parseArgs(argv);
     const root = resolve(options.root ?? defaultRoot);
