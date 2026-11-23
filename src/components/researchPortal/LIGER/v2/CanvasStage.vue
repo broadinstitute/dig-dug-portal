@@ -62,6 +62,7 @@ export default {
             default: null
         }
     },
+    emits: ["viewport-change"],
 
     data() {
         return {

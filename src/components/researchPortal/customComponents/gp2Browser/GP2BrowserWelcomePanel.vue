@@ -241,6 +241,7 @@ export default {
             default: "Welcome to GP2 Browser",
         },
     },
+    emits: ["import-session", "start-search"],
     data() {
         welcomeFieldCounter += 1;
         const suffix = welcomeFieldCounter;

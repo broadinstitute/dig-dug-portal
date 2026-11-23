@@ -11,7 +11,7 @@
             :showOnFocus="true"
             @hit="onSecondaryPhenotypeSelected($event)"
         >
-            <template slot="suggestion" slot-scope="{ data, htmlText }">
+            <template v-slot:suggestion="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
                 <small class="text-secondary">{{ data.group }}</small>
             </template>
@@ -58,6 +58,7 @@ export default {
             default: false,
         },
     },
+    emits: ["secphenotypeAssociationGeneData", "updatePhenotypeList"],
 
     data() {
         return {
@@ -516,5 +517,4 @@ fieldset[disabled] .multiselect {
         transform: rotate(2turn);
     }
 }
-</style>
 </style>

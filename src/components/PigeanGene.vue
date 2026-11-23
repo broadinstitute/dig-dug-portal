@@ -68,8 +68,10 @@
                     :fields="tableFields"
                     :per-page="perPage"
                     :current-page="currentPage"
-                    :sort-by.sync="pigeanTableSortBy"
-                    :sort-desc.sync="pigeanTableSortDesc"
+                    :sort-by="pigeanTableSortBy"
+                    @update:sortBy="pigeanTableSortBy = $event"
+                    :sort-desc="pigeanTableSortDesc"
+                    @update:sortDesc="pigeanTableSortDesc = $event"
                     detail-key="_rowKey"
                     responsive
                 >
@@ -395,7 +397,7 @@
                         <strong>HuGE Score (&ge;)</strong>
                     </div>
                 </filter-greater-control>
-                <template slot="filtered" slot-scope="{ filter }">
+                <template v-slot:filtered="{ filter }">
                     <research-phewas-plot
                         v-if="hugeScores && hugeScores.length > 0"
                         ref="hugeScorePheWASPlot"

@@ -261,6 +261,7 @@ export default {
             default: "Welcome to Variant Sifter",
         },
     },
+    emits: ["import-session", "start-search"],
     data() {
         welcomeFieldCounter += 1;
         const suffix = welcomeFieldCounter;

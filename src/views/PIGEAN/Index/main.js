@@ -37,7 +37,7 @@ new Vue({
     },
     mixins: [pageMixin],
 
-    data: {
+    data: () => ({
         selected: "",
         searches: [
             { id: "gene", name: "gene" },
@@ -152,7 +152,7 @@ new Vue({
                 },
             ],
         },
-    },
+    }),
 
     computed: {
         utilsBox() {

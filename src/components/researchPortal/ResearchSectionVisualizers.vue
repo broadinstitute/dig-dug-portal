@@ -259,6 +259,7 @@ export default {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
 		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom",
 		"regionViewArea","starItems","region","bigRegion","rowKeyField","linkedHoverKey"],
+	emits: ["hover-key-change", "on-star", "ld-data-loaded"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,

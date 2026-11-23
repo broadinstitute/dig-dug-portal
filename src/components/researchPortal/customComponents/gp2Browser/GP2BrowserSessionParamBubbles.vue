@@ -274,6 +274,7 @@ export default {
             default: "",
         },
     },
+    emits: ["remove-phenotype", "apply-search"],
     data() {
         paramFieldCounter += 1;
         const suffix = paramFieldCounter;

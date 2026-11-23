@@ -32,6 +32,7 @@ export default {
 		Autocomplete,
 	},
 	props: [],
+	emits: ["onGeneChange"],
 
 	data() {
 		return {

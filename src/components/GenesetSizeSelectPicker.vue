@@ -18,6 +18,7 @@ Vue.use(IconsPlugin);
 export default {
     name: "geneset-size-selectpicker",
     props: [],
+    emits: ["onGenesetSizeChange"],
     data() {
         return {
             size: keyParams.genesetSize,

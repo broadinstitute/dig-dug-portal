@@ -18,7 +18,7 @@
             
     >
         <slot></slot>
-        <template slot="filtered" slot-scope="{ filter }">
+        <template v-slot:filtered="{ filter }">
             <slot name="filtered" :filter="filter"></slot>
         </template>
     </criterion-group-template>
@@ -46,6 +46,7 @@ export default {
             type: Boolean,
         },
     },
+    emits: ["input", "update-filter-list", "update-filter-function"],
     components: { CriterionGroupTemplate },
     methods: {
         emitInput(value) {

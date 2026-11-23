@@ -228,7 +228,7 @@
                         <strong>HuGE Score (&ge;)</strong>
                     </div>
                 </filter-greater-control>
-                <template slot="filtered" slot-scope="{ filter }">
+                <template v-slot:filtered="{ filter }">
                     <research-pigean-phewas-plot
                         v-if="hugePhewasData.length > 0"
                         ref="hugeScorePhewasPlot"

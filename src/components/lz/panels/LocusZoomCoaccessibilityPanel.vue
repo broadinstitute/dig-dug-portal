@@ -16,6 +16,7 @@ export default {
         title: String,
         tissue: String,
     },
+    emits: ["input", "resolve", "error"],
     created() {
         this.panelClass = makeCoaccessibilityPanel(
             this.tissue,

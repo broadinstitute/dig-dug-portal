@@ -117,6 +117,7 @@ export default {
             default: false,
         },
     },
+    emits: ["update:filters"],
     computed: {
         evidenceScoreField() {
             return GP2_GENE_PRIORITIZATION_SCORE_FIELDS[0];

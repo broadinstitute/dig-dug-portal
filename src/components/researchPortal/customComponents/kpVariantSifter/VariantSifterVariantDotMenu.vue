@@ -47,6 +47,7 @@ export default {
             default: 0,
         },
     },
+    emits: ["set-reference", "toggle-star"],
     data() {
         return {
             clampedX: 0,

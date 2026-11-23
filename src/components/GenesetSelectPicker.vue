@@ -30,6 +30,7 @@ export default {
 		Autocomplete,
 	},
 	props: [],
+	emits: ["onGenesetChange"],
 
 	data() {
 		return {

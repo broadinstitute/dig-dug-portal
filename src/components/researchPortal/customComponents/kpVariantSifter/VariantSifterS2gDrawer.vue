@@ -106,6 +106,7 @@ export default {
             default: null,
         },
     },
+    emits: ["load", "clear", "update:deselectedGenes"],
     data() {
         return {
             s2gTableColumns: S2G_TABLE_COLUMNS,

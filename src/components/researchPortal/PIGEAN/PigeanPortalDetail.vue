@@ -317,6 +317,7 @@ export default {
         phenotypeMetadata: Object,
         metadataBusy: Boolean,
     },
+    emits: ["close", "trait", "select"],
     data: () => ({
         tab: 0,
         metric: "combined",

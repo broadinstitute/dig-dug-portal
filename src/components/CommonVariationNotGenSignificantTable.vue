@@ -24,7 +24,7 @@
                             class="text-center"
                             style="width:150px;background-color:#E7EDF7"
                         >{{gwasEvidence}}</b-td>
-                        <b-td style="width:200px;color:gray;" class="text-left"><--GWAS Evidence</b-td>
+                        <b-td style="width:200px;color:gray;" class="text-left">&lt;--GWAS Evidence</b-td>
                     </b-tr>
                 </b-tbody>
                 <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->

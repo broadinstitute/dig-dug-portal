@@ -58,6 +58,7 @@ export default {
         height: { type: String, default: "420px" },
         label: { type: String, default: "Results" },
     },
+    emits: ["select"],
     data: () => ({ page: 1 }),
     computed: {
         highlightSet() {

@@ -615,7 +615,6 @@
                                             :subsetKey="cellCompositionVars.segmentByLabel"
                                             :highlightKey="cellCompositionVars.highlightLabel"
                                             :height="300"
-                                            xAxisLabel="Log-Normalized Expression"
                                             :xAxisLabel="isATACseq ? 'Gene Activity Score' : 'Log-Normalized Expression'"
                                             :yAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
                                         />
@@ -657,7 +656,6 @@
                                             :facetAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
                                             :highlightKey="cellCompositionVars.highlightLabel"
                                             :height="320"
-                                            xAxisLabel="Log-Normalized Expression"
                                             :xAxisLabel="isATACseq ? 'Gene Activity Score' : 'Log-Normalized Expression'"
                                             :yAxisLabel="displayLabel(cellCompositionVars.segmentByLabel)"
                                             :range="[minExpressionValue(geneExpressionVars.selectedGene), maxExpressionValue(geneExpressionVars.selectedGene)]"

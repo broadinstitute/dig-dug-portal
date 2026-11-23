@@ -13,7 +13,7 @@
                 :class="'feature-list ' + i"
                 :key="i"
             >
-                <b-row :class="'feature-name ' + i" v-html="i"></b-row>
+                <div class="row" :class="'feature-name ' + i" v-html="i"></div>
                 <template v-for="(col, j) in row">
                     <b-row
                         :class="'feature-headers ' + i"
@@ -21,7 +21,8 @@
                         :title="i"
                         :key="`h_${i}_${j}`"
                     >
-                        <b-col
+                        <div
+                            class="col"
                             :class="
                                 $parent.config[
                                     $parent.dataset
@@ -32,7 +33,7 @@
                             v-for="header in Object.keys(col)"
                             :key="header"
                             v-html="header"
-                        ></b-col>
+                        ></div>
                     </b-row>
 
                     <b-row
@@ -40,7 +41,8 @@
                         :key="`c_${i}_${j}`"
                     >
                         <template v-for="(item, name) in col">
-                            <b-col
+                            <div
+                                class="col"
                                 :key="name"
                                 v-if="item == '' && item == null"
                                 :class="
@@ -59,8 +61,9 @@
                                 v-html="
                                     '<span class=\'col-content-filler\'>filler</span>'
                                 "
-                            ></b-col>
-                            <b-col
+                            ></div>
+                            <div
+                                class="col"
                                 :key="name"
                                 v-else
                                 :class="
@@ -87,7 +90,7 @@
                                         'feature'
                                     )
                                 "
-                            ></b-col>
+                            ></div>
                         </template>
                     </b-row>
                 </template>

@@ -5,7 +5,7 @@
                 <span style="color: #3fb54a">{{ data.label }}</span>
             </template>
 
-            <template slot="bottom-row" slot-scope="data">
+            <template v-slot:bottom-row="data">
                 <td style="white-space: nowrap">Set prior</td>
                 <td>
                     <input

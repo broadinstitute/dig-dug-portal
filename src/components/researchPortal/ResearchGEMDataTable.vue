@@ -198,8 +198,14 @@
 						></span>
 					</td>
 					<template
-						v-for="(tdValue, tdKey) in value"
-						v-if="topRows.includes(tdKey)"
+						v-for="
+							[tdValue, tdKey] in Object.keys(value || {})
+								.map((k) => [value[k], k])
+								.filter(
+									([tdValue, tdKey]) =>
+										topRows.includes(tdKey)
+								)
+						"
 					>
 						<td
 							v-if="

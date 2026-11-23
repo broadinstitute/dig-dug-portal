@@ -272,6 +272,13 @@ export default {
             default: true,
         },
     },
+    emits: [
+        "close",
+        "update:projectId",
+        "update:suggestActionsAfterUserAction",
+        "update:refetchAssociationsOnZoom",
+        "update:visibleSectionIds",
+    ],
     data() {
         return {
             tabs: VKS_SETTINGS_TABS,

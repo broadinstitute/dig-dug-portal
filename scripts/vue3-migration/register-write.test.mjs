@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toKebab } from './component-graph.mjs';
-import { applyRegistrations } from './register-write.mjs';
+import { parse as parseBabel } from '@babel/parser';
+import { BABEL_OPTIONS, toKebab } from './component-graph.mjs';
+import { addPropertyAfter, applyRegistrations, keyName, splice } from './register-write.mjs';
 
 /** Source text from lines: every file in this test ends with a newline. */
 const text = (...lines) => `${lines.join('\n')}\n`;
@@ -807,4 +808,69 @@ test('duplicate keys in the entries are refused', () => {
 
 test('the file name is optional and defaults to a placeholder in messages', () => {
   assert.throws(() => applyRegistrations(text('<style>', '</style>'), [HEADER]), /^Error: <source>: /);
+});
+
+// ---- addPropertyAfter -----------------------------------------------------------------------
+
+/** The `props` property of `export default {...}` in `raw`, parsed the way the writer parses a script. */
+function propsOf(raw) {
+  const ast = parseBabel(raw, { ...BABEL_OPTIONS, errorRecovery: false });
+  const options = ast.program.body.find(({ type }) => type === 'ExportDefaultDeclaration').declaration;
+  return options.properties.find((property) => keyName(property) === 'props');
+}
+
+/** `raw` with `emits: ["a"],` added after its `props` property; null when addPropertyAfter declines. */
+function addEmitsAfterProps(raw, eol = '\n') {
+  const edit = addPropertyAfter(raw, propsOf(raw), (indent) => `${indent}emits: ["a"],`, eol);
+  return edit === null ? null : splice(raw, [edit]);
+}
+
+test('addPropertyAfter puts the new lines after the comma, indented like the property', () => {
+  const raw = text('export default {', '    props: {', '        a: String,', '    },', '    data() {},', '};');
+  assert.equal(
+    addEmitsAfterProps(raw),
+    text('export default {', '    props: {', '        a: String,', '    },', '    emits: ["a"],', '    data() {},', '};'),
+  );
+});
+
+test('addPropertyAfter adds the comma a last property lacks, right after the property', () => {
+  const raw = text('export default {', '    name: "x",', '    props: { a: String }', '};');
+  assert.equal(
+    addEmitsAfterProps(raw),
+    text('export default {', '    name: "x",', '    props: { a: String },', '    emits: ["a"],', '};'),
+  );
+});
+
+test('addPropertyAfter puts the new lines after a trailing comment, with or without the comma', () => {
+  const withComma = text('export default {', '    props: [], // what it takes', '    data() {},', '};');
+  assert.equal(
+    addEmitsAfterProps(withComma),
+    text('export default {', '    props: [], // what it takes', '    emits: ["a"],', '    data() {},', '};'),
+  );
+  const without = text('export default {', '    props: [] /* what it takes */', '};');
+  assert.equal(addEmitsAfterProps(without), text('export default {', '    props: [], /* what it takes */', '    emits: ["a"],', '};'));
+  const gap = text('export default {', '    props: [] /* a */ , // b', '    data() {},', '};');
+  assert.equal(addEmitsAfterProps(gap), text('export default {', '    props: [] /* a */ , // b', '    emits: ["a"],', '    data() {},', '};'));
+});
+
+test('addPropertyAfter uses the eol it is given, and the tab indentation of the property', () => {
+  const raw = crlf('export default {\n\tprops: [],\n\tdata() {},\n};\n');
+  const result = addEmitsAfterProps(raw, '\r\n');
+  assert.equal(result, crlf('export default {\n\tprops: [],\n\temits: ["a"],\n\tdata() {},\n};\n'));
+  assert.equal(result.replace(/\r\n/g, '').includes('\n'), false);
+
+  const last = crlf('export default {\n\tprops: []\n};\n');
+  assert.equal(addEmitsAfterProps(last, '\r\n'), crlf('export default {\n\tprops: [],\n\temits: ["a"],\n};\n'));
+});
+
+test('addPropertyAfter declines when code shares a line with the end of the property, or with its start', () => {
+  // A second property after the comma.
+  assert.equal(addEmitsAfterProps(text('export default {', '    props: [], data() {},', '};')), null);
+  // The closing brace after a last property that has no comma.
+  assert.equal(addEmitsAfterProps(text('export default { props: [] };')), null);
+  assert.equal(addEmitsAfterProps(text('export default {', '    props: [] };')), null);
+  // A comment that runs on to another line.
+  assert.equal(addEmitsAfterProps(text('export default {', '    props: [], /* one', '    two */', '};')), null);
+  // Code before the property on its line.
+  assert.equal(addEmitsAfterProps(text('export default {', '    name: "x", props: [],', '};')), null);
 });

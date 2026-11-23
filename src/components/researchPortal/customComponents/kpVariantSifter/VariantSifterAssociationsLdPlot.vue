@@ -166,6 +166,7 @@ export default {
             default: null,
         },
     },
+    emits: ["toggle-star-variant", "set-reference-variant"],
     data() {
         return {
             activeSeriesKey: null,

@@ -388,6 +388,13 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "toggle-star-variant",
+        "set-reference-variant",
+        "toggle-ancestry",
+        "update:filtersIndex",
+        "update:mappingState",
+    ],
     data() {
         return {
             tableFormat: ASSOCIATIONS_TABLE_FORMAT,

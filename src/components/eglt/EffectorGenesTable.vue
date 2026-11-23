@@ -1,7 +1,7 @@
 <template>
     <div class="eglt-table-wrapper" :id="dataset">
-        <b-container
-            fluid
+        <div
+            class="container-fluid"
             v-if="
                 !!config &&
                 config[dataset].extra_content != undefined &&
@@ -9,7 +9,7 @@
             "
             v-html="config[dataset].extra_content.content"
         >
-        </b-container>
+        </div>
         <b-container
             fluid
             v-if="
@@ -124,17 +124,18 @@
                 v-for="(value, name, index) in this.filtersIndex"
                 :class="'search-field f-' + index"
             >
-                <b-badge
-                    pill
-                    v-if="value.search.length > 0"
-                    v-for="(v, i) in value.search.filter(
-                        (v, i, arr) => arr.indexOf(v) == i
-                    )"
-                    :key="v"
-                    :class="'btn search-bubble ' + i"
-                    @click="removeFilter(value.field, i)"
-                    v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
-                ></b-badge>
+                <template v-if="value.search.length > 0">
+                    <span
+                        class="badge badge-secondary badge-pill"
+                        v-for="(v, i) in value.search.filter(
+                            (v, i, arr) => arr.indexOf(v) == i
+                        )"
+                        :key="v"
+                        :class="'btn search-bubble ' + i"
+                        @click="removeFilter(value.field, i)"
+                        v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
+                    ></span>
+                </template>
             </div>
             <b-badge
                 v-if="this.numberOfSearches() > 1"
@@ -234,12 +235,12 @@
                 v-if="!!config && !!tableData"
                 class="legend-wrapper"
             >
-                <b-row
-                    class="each-legend"
+                <div
+                    class="row each-legend"
                     v-for="(legend, i) in config[dataset]['legend']"
                     v-html="legend"
                     :key="i"
-                ></b-row>
+                ></div>
             </b-container>
             <b-container
                 fluid
@@ -381,22 +382,23 @@
                                 config[dataset]['plots']['render'] == true
                             "
                         >
-                            <b-button
+                            <button
                                 v-if="config[dataset]['render_feature'] == true"
                                 @click="showFeatures(index)"
-                                class="view-features-btn"
+                                type="button"
+                                class="btn view-features-btn btn-secondary"
                                 v-html="
                                     config[dataset]['feature_btn_name']
                                         ? config[dataset]['feature_btn_name']
                                         : 'Features'
                                 "
-                            ></b-button>
+                            ></button>
                             <template
                                 v-if="
                                     config[dataset]['plots']['render'] == true
                                 "
                             >
-                                <b-button
+                                <button
                                     @click="
                                         showVisualizer(
                                             value[
@@ -406,9 +408,10 @@
                                             ]
                                         )
                                     "
-                                    class="view-visualizer-btn"
+                                    type="button"
+                                    class="btn view-visualizer-btn btn-secondary"
                                     v-html="config[dataset]['plots']['btnName']"
-                                ></b-button>
+                                ></button>
                             </template>
                         </div>
                         <effector-genes-features
@@ -432,8 +435,8 @@
                     :per-page="perPage"
                 ></b-pagination>
             </b-container>
-            <b-container
-                fluid
+            <div
+                class="container-fluid"
                 v-if="
                     !!config &&
                     config[dataset].extra_content != undefined &&
@@ -441,7 +444,7 @@
                 "
                 v-html="config[dataset].extra_content.content"
             >
-            </b-container>
+            </div>
         </div>
     </div>
 </template>

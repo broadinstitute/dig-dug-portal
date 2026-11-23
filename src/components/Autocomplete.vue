@@ -12,7 +12,7 @@
         @keyup.enter="onUserEnterNonAutoCompleteItem"
     >
 
-        <template slot="suggestion" slot-scope="{ data, htmlText }">
+        <template v-slot:suggestion="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
             <small v-if="secondaryKey" class="text-secondary">{{
                 data[secondaryKey]
@@ -49,6 +49,7 @@ export default {
         },
         disabled: Boolean,
     },
+    emits: ["item-select", "keyup-enter", "input-change"],
     data() {
         return {
             userInput: this.initialText || "",

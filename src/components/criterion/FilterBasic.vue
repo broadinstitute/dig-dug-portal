@@ -44,6 +44,7 @@ export default {
     },
     computedField: Function,
   },
+  emits: ["input-change"],
   components: {
     FilterControlTemplate,
   },

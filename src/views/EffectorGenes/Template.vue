@@ -67,13 +67,14 @@
 						:unfilteredDataset="$parent.summaryData.data"
 						:utils="$parent.utilsBox"
 					></research-page-filters>
-					<div
-						class="row"
-						v-if="$store.state.filteredData != ''"
-						v-for="item in $store.state.filteredData"
-					>
-						<div class="col-md-12" v-html="item.body"></div>
-					</div>
+					<template v-if="$store.state.filteredData != ''">
+						<div
+							class="row"
+							v-for="item in $store.state.filteredData"
+						>
+							<div class="col-md-12" v-html="item.body"></div>
+						</div>
+					</template>
 				</div>
 			</div>
 		</div>

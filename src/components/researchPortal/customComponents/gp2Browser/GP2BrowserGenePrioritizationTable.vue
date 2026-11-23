@@ -101,6 +101,7 @@ export default {
             default: null,
         },
     },
+    emits: ["navigate-region"],
     data() {
         return {
             perPageNumber: "10",

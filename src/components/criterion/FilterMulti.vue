@@ -42,6 +42,7 @@ export default {
       default: (string, selection) => string === selection,
     },
   },
+  emits: ["input-change"],
   components: {
     FilterControlTemplate,
   },

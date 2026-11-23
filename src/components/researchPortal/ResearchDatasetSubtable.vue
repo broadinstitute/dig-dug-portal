@@ -33,6 +33,7 @@ import Formatters from "@/utils/formatters";
 export default {
     name: "ResearchDatasetSubtable",
     props: ["row", "fields", "plotByField"],
+    emits: ["highlight"],
     data() {
         return {
             perPage: 10,

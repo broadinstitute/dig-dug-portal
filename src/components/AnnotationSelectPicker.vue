@@ -10,7 +10,7 @@
         :maxMatches="1000"
         @hit="onAnnotationSelect($event)"
     >
-        <template slot="suggestion" slot-scope="{ data, htmlText }">
+        <template v-slot:suggestion="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
         </template>
     </vue-typeahead-bootstrap>
@@ -46,6 +46,7 @@ export default {
             required: false
         }
     },
+    emits: ["annotation"],
     data() {
         return {
             userText: this.defaultSet || null

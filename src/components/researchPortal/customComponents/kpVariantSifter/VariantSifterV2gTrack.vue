@@ -203,6 +203,13 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "update:regionViewArea",
+        "toggle-position-marker",
+        "update:selectedLinks",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             hitRegions: [],

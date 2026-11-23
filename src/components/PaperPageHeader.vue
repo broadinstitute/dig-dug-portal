@@ -11,7 +11,6 @@
             v-if="!!this.paperMenu"
             v-html="this.paperMenu"
         >
-            {{ this.paperMenu }}
         </div>
     </div>
 </template>

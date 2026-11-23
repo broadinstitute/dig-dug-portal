@@ -324,6 +324,7 @@ export default {
 	props: ["uId", "sectionConfig", "phenotypeMap", "description", "phenotypesInUse",
 		"sectionIndex", "plotMargin", "plotLegend", "tableLegend", "colors", "utils", "starItems", "regionZoom",
 		"regionViewArea", "isInTab", "pageParams","searchParameters"],
+	emits: ["on-sectionData", "on-zoom", "on-star", "ld-data-loaded", "splice"],
 	components: {
 		ResearchSectionFilters,
 		ResearchSectionFiltersVertical,

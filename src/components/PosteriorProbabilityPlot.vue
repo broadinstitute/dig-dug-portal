@@ -37,7 +37,7 @@ export default {
         universalPriorList: {
             type: Array,
             required: false,
-            default: [0.05,0.2]
+            default: () => [0.05,0.2]
         }
     },
 

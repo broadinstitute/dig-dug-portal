@@ -23,6 +23,7 @@ Vue.use(IconsPlugin);
 export default {
   name: "mouse-tissue-select",
   props: [],
+  emits: ["onTissueChange"],
   data() {
       return {
           tissue: keyParams.tissue || "",

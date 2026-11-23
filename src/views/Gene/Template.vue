@@ -131,8 +131,13 @@
                                             >Alternative names:&nbsp;</strong
                                         >
                                         <span
-                                            v-for="gene in $parent.alternateNames"
-                                            v-if="gene.source == 'alias'"
+                                            v-for="
+                                                gene in ($parent.alternateNames || [])
+                                                    .filter(
+                                                        (gene) =>
+                                                            gene.source == 'alias'
+                                                    )
+                                            "
                                             :key="gene.name"
                                         >
                                             {{ gene.name }}
@@ -292,7 +297,7 @@
                             >
                             </transcript-selectpicker>
                         </div>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <span class="filter-pill-collection center">
                                 <b-badge
                                     v-if="
@@ -693,7 +698,7 @@
                                 Adjusted p-value: strain and sex (&le;)
                             </div>
                         </filter-pvalue-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <mouse-summary-table
                                 :items="$store.state.mouseSummary.data"
                                 :is-gene-page="true"
@@ -761,7 +766,7 @@
                             >
                                 <div class="label">Sources</div>
                             </filter-enumeration-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <uniprot-references-table
                                     :references="$parent.dbReference"
                                     :filter="filter"
@@ -794,8 +799,7 @@
                             </a>
                         </div>
                         <div
-                            v-for="gene in $parent.alternateNames"
-                            v-if="gene.source != 'alias'"
+                            v-for="gene in ($parent.alternateNames || []).filter((gene) => gene.source != 'alias')"
                             :key="gene.name"
                             class="gene-with-signal none"
                         >

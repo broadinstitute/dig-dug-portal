@@ -39,6 +39,7 @@ export default {
             default: false
         }
     },
+    emits: ["select", "hover"],
 
     computed: {
         // null when the API reports no specificity for the row, which is a third

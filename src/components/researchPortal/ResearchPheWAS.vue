@@ -189,7 +189,6 @@ export default {
         "filter",
         "options",
         "sectionId",
-        "sectionId",
         "utils",
         "plotName",
         "top1500",
@@ -197,6 +196,7 @@ export default {
         "isPigean",
         "matchingHoverDots",
     ],
+    emits: ["dotsHovered", "pigeanColors"],
 
     data() {
         return {
