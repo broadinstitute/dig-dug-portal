@@ -90,6 +90,7 @@ export default {
             default: null,
         },
     },
+    emits: ["set-reference-variant", "toggle-star-variant", "hover-variant"],
     data() {
         return {
             loading: false,

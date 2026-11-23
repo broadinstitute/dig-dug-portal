@@ -264,6 +264,7 @@ export default {
             default: () => [],
         },
     },
+    emits: ["remove-set", "toggle-star-variant", "update:panelFilters", "add-set"],
     data() {
         return {
             activeControlTab: "credible-sets",

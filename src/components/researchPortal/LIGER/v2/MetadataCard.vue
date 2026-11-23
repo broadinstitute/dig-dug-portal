@@ -148,6 +148,7 @@ export default {
             default: ""
         }
     },
+    emits: ["update:active-tab", "select-state", "select-program", "clear-program", "clear-state"],
 
     computed: {
         tabs() {

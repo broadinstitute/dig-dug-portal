@@ -33,6 +33,7 @@ import Formatters from "@/utils/formatters";
 export default {
     name: "TissueExpressionSubtable",
     props: ["datasets"],
+    emits: ["highlight"],
     data() {
         return {
             perPage: 10,

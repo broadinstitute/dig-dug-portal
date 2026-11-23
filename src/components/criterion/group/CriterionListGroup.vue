@@ -57,6 +57,7 @@ export default {
         },
         header: String,
     },
+    emits: ["input", "update-filter-list", "update-filter-function"],
     components: { CriterionGroupTemplate },
     methods: {
         emitInput(value) {

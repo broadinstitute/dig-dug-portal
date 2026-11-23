@@ -192,6 +192,13 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "toggle-star-variant",
+        "update:selectedTypes",
+        "update:selectedTissues",
+        "update:pValueMax",
+        "update:selectedGenes",
+    ],
     data() {
         return {
             tabs: QTL_DRAWER_TABS,

@@ -460,6 +460,7 @@ export default {
 		"colors",
 		"plotMargin"
 	],
+	emits: ["on-feature-rows-change", "splice", "on-star", "clicked-sort"],
 	data() {
 		return {
 			currentPage: 1,

@@ -46,6 +46,7 @@ export default {
             type: Boolean,
         },
     },
+    emits: ["input", "update-filter-list", "update-filter-function"],
     components: { CriterionGroupTemplate },
     methods: {
         emitInput(value) {

@@ -149,6 +149,7 @@ import ResearchSectionComponents from "@/components/researchPortal/ResearchSecti
 export default {
 	name: "research-sub-section",
 	props: ["sectionId","rowId","subSectionConfig", "subSectionData","phenotypeMap","utils","colors","starItems","plotMargin","multiSectionPage"],
+	emits: ["ld-data-loaded"],
 	components: {
 		ResearchSectionVisualizers,
 		ResearchSectionComponents,

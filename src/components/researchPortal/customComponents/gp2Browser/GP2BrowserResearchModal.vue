@@ -81,6 +81,7 @@ export default {
             default: null,
         },
     },
+    emits: ["close", "navigate-region"],
     data() {
         return {
             genePrioritizationState: {

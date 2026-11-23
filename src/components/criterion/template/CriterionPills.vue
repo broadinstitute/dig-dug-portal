@@ -39,6 +39,7 @@ export default {
             type: Boolean,
             default: false,
         }
-    }
+    },
+    emits: ["unset"],
 };
 </script>

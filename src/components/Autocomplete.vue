@@ -49,6 +49,7 @@ export default {
         },
         disabled: Boolean,
     },
+    emits: ["item-select", "keyup-enter", "input-change"],
     data() {
         return {
             userInput: this.initialText || "",

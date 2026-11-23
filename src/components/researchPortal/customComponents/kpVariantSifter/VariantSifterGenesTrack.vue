@@ -102,6 +102,7 @@ export default {
             default: () => ({}),
         },
     },
+    emits: ["track-layout"],
     data() {
         return {
             geneHitRegions: [],

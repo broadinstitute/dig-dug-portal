@@ -36,6 +36,7 @@ export default {
         onResolve: Function,
         onError: Function,
     },
+    emits: ["input"],
     data() {
         return {
             panelId: null,

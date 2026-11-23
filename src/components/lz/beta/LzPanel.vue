@@ -73,6 +73,7 @@ export default {
         source: Object,
         filter: Function
     },
+    emits: ["create"],
     data() {
         return {
             id: null,

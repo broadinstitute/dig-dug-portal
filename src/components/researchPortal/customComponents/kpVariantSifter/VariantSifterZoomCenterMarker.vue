@@ -52,6 +52,7 @@ export default {
             validator: (value) => value === "recomb" || value === "track",
         },
     },
+    emits: ["update:regionViewArea"],
     data() {
         return {
             trackWidthPx: 0,

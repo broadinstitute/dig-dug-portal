@@ -64,6 +64,7 @@ export default {
             default: ""
         }
     },
+    emits: ["select-program"],
 
     data() {
         return {

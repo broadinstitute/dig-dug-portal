@@ -388,6 +388,15 @@ export default {
             default: false,
         },
     },
+    emits: [
+        "update:geTrackPValueMax",
+        "update:selectedMethods",
+        "update:selectedSources",
+        "update:enabledMutedAnnotations",
+        "update:enabledMutedAnnotationTissues",
+        "update:disabledAnnotationTissues",
+        "update:tissueTrackSort",
+    ],
     data() {
         return {
             activeTab: "tissues",

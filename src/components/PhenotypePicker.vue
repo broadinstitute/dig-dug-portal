@@ -58,6 +58,7 @@ export default {
             default: false,
         },
     },
+    emits: ["secphenotypeAssociationGeneData", "updatePhenotypeList"],
 
     data() {
         return {

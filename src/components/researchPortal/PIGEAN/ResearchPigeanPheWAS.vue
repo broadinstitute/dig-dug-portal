@@ -286,6 +286,7 @@ export default {
         "isPigean",
         "matchingHoverDots",
     ],
+    emits: ["dotsHovered", "pigeanColors"],
 
     data() {
         return {

@@ -289,6 +289,16 @@ export default {
             default: () => [],
         },
     },
+    emits: [
+        "update:viewingCenterBp",
+        "commit-viewing-region",
+        "toggle-position-marker",
+        "set-reference-variant",
+        "toggle-star-variant",
+        "update:regionViewArea",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             loading: false,

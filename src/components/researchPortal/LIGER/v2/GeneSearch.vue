@@ -38,6 +38,7 @@ export default {
             default: () => []
         }
     },
+    emits: ["input", "submit", "select"],
 
     data() {
         return {

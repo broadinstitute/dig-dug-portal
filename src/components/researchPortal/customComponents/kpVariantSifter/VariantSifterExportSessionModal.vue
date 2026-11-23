@@ -85,6 +85,7 @@ export default {
             default: false,
         },
     },
+    emits: ["close", "export"],
     data() {
         return {
             localFilename: "",

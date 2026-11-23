@@ -26,6 +26,7 @@ export default {
         scoring: Object,
         title: String,
     },
+    emits: ["input", "resolve", "error"],
     data() {
         return {
             panelId: null,

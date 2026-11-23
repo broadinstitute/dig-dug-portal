@@ -126,6 +126,14 @@ export default {
             default: () => [],
         },
     },
+    emits: [
+        "update:regionViewArea",
+        "set-reference-variant",
+        "toggle-star-variant",
+        "toggle-position-marker",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             dotPositions: [],

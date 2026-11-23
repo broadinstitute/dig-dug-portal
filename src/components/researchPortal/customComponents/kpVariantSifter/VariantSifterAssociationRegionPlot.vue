@@ -191,6 +191,14 @@ export default {
             default: () => [],
         },
     },
+    emits: [
+        "update:regionViewArea",
+        "toggle-position-marker",
+        "set-reference-variant",
+        "toggle-star-variant",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             loading: false,

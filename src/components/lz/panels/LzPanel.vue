@@ -73,6 +73,7 @@ export default {
         source: Object,
         filter: Function
     },
+    emits: ["updated"],
     data() {
         return {
             panelId: null,

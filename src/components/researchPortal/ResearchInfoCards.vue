@@ -178,6 +178,7 @@ export default {
 		"thumbnailWidth",
 		'openCardPreset'
 	],
+	emits: ["on-feature-rows-change", "on-star", "on-openCard", "clicked-sort"],
 	data() {
 		return {
 			currentPage: 1,

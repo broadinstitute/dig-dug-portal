@@ -132,6 +132,7 @@ export default {
 		"utils",
 		"starItems"
 	],
+	emits: ["on-star", "plotRendered"],
 	data() {
 		return {
 			plotRenderBy: "all",

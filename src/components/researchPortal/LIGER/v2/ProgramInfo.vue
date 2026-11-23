@@ -89,6 +89,7 @@ export default {
             default: ""
         }
     },
+    emits: ["select-state"],
 
     data() {
         return {

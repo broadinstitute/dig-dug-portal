@@ -49,6 +49,7 @@ export default {
             required: false,
         }
     },
+    emits: ["credibleset"],
     data() {
         return {
             userText: this.defaultSet || null

@@ -47,6 +47,7 @@ export default {
             required: false,
         },
     },
+    emits: ["tissue"],
     data() {
         return {
             userText: this.defaultSet || null,

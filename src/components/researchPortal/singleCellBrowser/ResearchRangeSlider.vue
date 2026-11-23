@@ -58,6 +58,7 @@
             //[low, high]. null or an incomplete pair means the full extent
             value: { type: Array, default: null },
         },
+        emits: ["input", "change"],
         data() {
             return {
                 low: this.min,

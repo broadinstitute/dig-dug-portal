@@ -46,6 +46,7 @@ export default {
             required: false
         }
     },
+    emits: ["annotation"],
     data() {
         return {
             userText: this.defaultSet || null

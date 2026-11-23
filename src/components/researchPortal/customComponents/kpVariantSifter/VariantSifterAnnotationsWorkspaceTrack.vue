@@ -386,6 +386,20 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "update:regionViewArea",
+        "update:activeAnnotation",
+        "update:selectedTissues",
+        "update:selectedAnnotations",
+        "select-plot-tissue",
+        "update:biosampleTissueRegions",
+        "update:biosampleLoading",
+        "update:biosampleFilterOptions",
+        "update:selectedBiosamples",
+        "toggle-position-marker",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             workspacePanel: "annotations",

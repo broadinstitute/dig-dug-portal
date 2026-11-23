@@ -300,6 +300,7 @@ export default {
 		"sectionId",
 		"utils",
 	],
+	emits: ["clicked-sort", "on-filtering"],
 	components: {
 	},
 	data() {

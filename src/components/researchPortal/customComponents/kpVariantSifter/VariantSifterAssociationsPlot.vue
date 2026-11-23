@@ -497,6 +497,24 @@ export default {
             default: VKS_PROJECT_DEFAULT_ID,
         },
     },
+    emits: [
+        "update:regionShiftBp",
+        "update:regionViewArea",
+        "pan-end",
+        "toggle-position-marker",
+        "toggle-star-variant",
+        "set-reference-variant",
+        "update:geSelectedBiosamples",
+        "update:geActiveAnnotation",
+        "update:geSelectedTissues",
+        "update:geSelectedAnnotations",
+        "select-ge-plot-tissue",
+        "update:geBiosampleFilterOptions",
+        "update:geBiosampleTissueRegions",
+        "update:geBiosampleLoading",
+        "update:v2gSelectedLinks",
+        "update:s2gSelectedLinks",
+    ],
     computed: {
         primaryAncestry() {
             return primaryAssociationAncestry(this.searchSession);

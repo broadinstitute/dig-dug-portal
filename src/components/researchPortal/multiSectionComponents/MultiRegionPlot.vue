@@ -164,6 +164,7 @@ export default {
 		"starItems",
 		"colors",
 	],
+	emits: ["ld-data-loaded", "on-star"],
 	data() {
 		return {
 			plotRenderBy: "all",

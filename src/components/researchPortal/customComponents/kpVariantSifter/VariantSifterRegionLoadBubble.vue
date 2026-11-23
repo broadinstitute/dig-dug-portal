@@ -53,6 +53,7 @@ export default {
             required: true,
         },
     },
+    emits: ["dismiss"],
     methods: {
         iconClass(status) {
             if (status === VKS_REGION_LOAD_STATUS.DONE) {
