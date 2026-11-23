@@ -23,6 +23,15 @@ export const GP2_BROWSER_SECTIONS = [
         trackImplemented: false,
     },
     {
+        id: "gene-scores",
+        label: "Gene scores",
+        drawerLabel: "Gene scores",
+        shortLabel: "Scores",
+        description:
+            "Locus-grouped gene prioritization scores for the searched region.",
+        trackImplemented: false,
+    },
+    {
         id: "credible-sets",
         label: "Credible sets",
         drawerLabel: "Cred. sets",
@@ -67,6 +76,7 @@ export const GP2_BROWSER_SECTIONS = [
 export const GP2_DEFAULT_VISIBLE_SECTION_IDS = [
     "associations",
     "qtl-evidences",
+    "gene-scores",
     "genes",
 ];
 

@@ -98,6 +98,11 @@
                         @update:pValueMax="$emit('update:qtlPValueMax', $event)"
                         @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
                     />
+                    <GP2BrowserGeneScoresDrawer
+                        v-else-if="openSection.id === 'gene-scores'"
+                        :gene-scores-state="geneScoresState"
+                        @update:visibleFields="$emit('update:geneScoresVisibleFields', $event)"
+                    />
                     <VariantSifterGlobalEnrichmentDrawer
                         v-else-if="openSection.id === 'global-enrichment'"
                         :global-enrichment-state="globalEnrichmentState"
@@ -195,6 +200,7 @@ import VariantSifterAssociationsDrawer from "../kpVariantSifter/VariantSifterAss
 import VariantSifterCredibleSetsDrawer from "../kpVariantSifter/VariantSifterCredibleSetsDrawer.vue";
 import GP2BrowserGenesDrawer from "./GP2BrowserGenesDrawer.vue";
 import GP2BrowserQtlDrawer from "./GP2BrowserQtlDrawer.vue";
+import GP2BrowserGeneScoresDrawer from "./GP2BrowserGeneScoresDrawer.vue";
 import VariantSifterGlobalEnrichmentDrawer from "../kpVariantSifter/VariantSifterGlobalEnrichmentDrawer.vue";
 import VariantSifterV2gDrawer from "../kpVariantSifter/VariantSifterV2gDrawer.vue";
 import VariantSifterS2gDrawer from "../kpVariantSifter/VariantSifterS2gDrawer.vue";
@@ -206,6 +212,7 @@ export default {
         VariantSifterCredibleSetsDrawer,
         GP2BrowserGenesDrawer,
         GP2BrowserQtlDrawer,
+        GP2BrowserGeneScoresDrawer,
         VariantSifterGlobalEnrichmentDrawer,
         VariantSifterV2gDrawer,
         VariantSifterS2gDrawer,
@@ -308,6 +315,16 @@ export default {
                 selectedGenes: [],
                 pValueMax: "",
                 loadedRegionKey: null,
+            }),
+        },
+        geneScoresState: {
+            type: Object,
+            default: () => ({
+                loading: false,
+                error: null,
+                rows: [],
+                loadedKey: null,
+                visibleFields: [],
             }),
         },
         globalEnrichmentState: {

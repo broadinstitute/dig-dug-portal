@@ -236,10 +236,6 @@ import {
     projectUsesTokenSearch,
     VKS_PROJECT_DEFAULT_ID,
 } from "../kpVariantSifter/variantSifterProjects.js";
-import {
-    activeRegionTrimmedMessage,
-    ensureRegionWithinActiveDataLimit,
-} from "../kpVariantSifter/variantSifterRegionPan.js";
 import { GP2_BROWSER_PHENOTYPES } from "./gp2BrowserSections.js";
 import { resolveGp2GeneOrVariantToRegion } from "./gp2BrowserGenesAndRecomb.js";
 
@@ -696,16 +692,8 @@ export default {
                             "Could not resolve that gene, variant, location, or region.";
                         return;
                     }
-                    const ensured = ensureRegionWithinActiveDataLimit(region);
-                    if (ensured.trimmed) {
-                        window.alert(
-                            activeRegionTrimmedMessage(
-                                ensured.originalRegion,
-                                ensured.region
-                            )
-                        );
-                    }
-                    region = ensured.region;
+                    // GP2 has no active-region width cap (Variant Sifter's 500 kb
+                    // trim does not apply here).
                     regionLabel = formatRegion(region);
                     geneOrVariantQuery = this.locusQuery.trim();
                 }

@@ -10,16 +10,44 @@
         <div class="gp2-research-panel">
             <header class="gp2-research-head">
                 <h2 :id="titleId">{{ title }}</h2>
-                <button
-                    v-if="showLiteratureLoadMoreButton"
-                    type="button"
-                    class="gp2-research-head-action"
-                    :class="{ 'gp2-research-head-action-dim': literatureEvidenceState.exhausted }"
-                    :disabled="literatureEvidenceState.loadingMore || literatureEvidenceState.exhausted"
-                    @click="$emit('load-more-literature-evidence')"
-                >
-                    {{ literatureEvidenceState.loadingMore ? "Loading next 15…" : "Show next 15" }}
-                </button>
+                <div v-if="showLiteratureActionButtons" class="gp2-research-head-actions">
+                    <button
+                        v-if="showLiteratureLoadMoreButton"
+                        type="button"
+                        class="gp2-research-head-action"
+                        :class="{ 'gp2-research-head-action-dim': literatureEvidenceState.exhausted }"
+                        :disabled="
+                            literatureEvidenceState.loadingMore ||
+                            literatureEvidenceState.exhausted ||
+                            literatureBusy
+                        "
+                        @click="$emit('load-more-literature-evidence')"
+                    >
+                        {{
+                            literatureEvidenceState.loadingMore
+                                ? "Loading next 15…"
+                                : "Show next 15"
+                        }}
+                    </button>
+                    <button
+                        type="button"
+                        class="gp2-research-head-action"
+                        :disabled="literatureBusy"
+                        title="Re-run PubMed search, evidences, and knowledge graph (skips AI summary)"
+                        @click="$emit('find-literature-evidence')"
+                    >
+                        Find evidences
+                    </button>
+                    <button
+                        type="button"
+                        class="gp2-research-head-action"
+                        :disabled="!canDownloadLiteratureEvidence || literatureBusy"
+                        title="Download evidences, excerpts, papers, and network as HTML"
+                        @click="downloadLiteratureEvidence"
+                    >
+                        Download
+                    </button>
+                </div>
                 <button
                     type="button"
                     class="gp2-research-close"
@@ -41,7 +69,6 @@
                         <GP2BrowserGenePrioritizationFilters
                             :rows="genePrioritizationState.rows"
                             :filters="genePrioritizationFilters"
-                            :has-search-region="Boolean(searchRegion)"
                             @update:filters="onGenePrioritizationFiltersUpdate"
                         />
                         <GP2BrowserGenePrioritizationTable
@@ -76,11 +103,15 @@
                             {{ literatureEvidenceState.loadMoreError }}
                         </div>
                         <GP2BrowserLiteratureEvidencePanel
+                            ref="literaturePanel"
                             :genes-searched="literatureEvidenceState.genesSearched"
                             :gene-reasons="literatureEvidenceState.geneReasons"
                             :digest-findings="literatureEvidenceState.digestFindings"
                             :ai-summary="aiSummaryMessage"
                             :used-locus-digest="literatureEvidenceState.usedLocusDigest"
+                            :phenotype="literatureEvidenceState.phenotype"
+                            :query="literatureEvidenceState.query"
+                            :region-label="regionLabel"
                             :papers="literatureEvidenceState.papers"
                             :synthesizing="literatureEvidenceState.synthesizing"
                             :synthesis-error="literatureEvidenceState.synthesisError"
@@ -144,6 +175,11 @@ export default {
             type: String,
             default: null,
         },
+        /** Human-readable locus label for LE download filename/header. */
+        regionLabel: {
+            type: String,
+            default: null,
+        },
     },
     data() {
         return {
@@ -160,8 +196,7 @@ export default {
         genePrioritizationFilteredRows() {
             return gp2GenePrioritizationFilterRows(
                 this.genePrioritizationState.rows,
-                this.genePrioritizationFilters,
-                this.searchRegion
+                this.genePrioritizationFilters
             );
         },
         open() {
@@ -173,13 +208,40 @@ export default {
         titleId() {
             return `gp2-research-title-${this.panelId || "panel"}`;
         },
-        showLiteratureLoadMoreButton() {
+        literatureBusy() {
+            const state = this.literatureEvidenceState || {};
+            return Boolean(
+                state.loading ||
+                    state.loadingMore ||
+                    state.synthesizing ||
+                    state.kgLoading
+            );
+        },
+        showLiteratureActionButtons() {
             return (
                 this.panelId === "literatureEvidence" &&
+                (this.literatureEvidenceState.loaded ||
+                    this.literatureEvidenceState.error ||
+                    this.literatureBusy)
+            );
+        },
+        showLiteratureLoadMoreButton() {
+            return (
                 this.literatureEvidenceState.loaded &&
                 !this.literatureEvidenceState.loading &&
                 !this.literatureEvidenceState.error &&
                 Boolean(this.literatureEvidenceState.papers?.length)
+            );
+        },
+        canDownloadLiteratureEvidence() {
+            return (
+                this.literatureEvidenceState.loaded &&
+                !this.literatureEvidenceState.error &&
+                Boolean(
+                    this.literatureEvidenceState.papers?.length ||
+                        this.literatureEvidenceState.claims?.length ||
+                        this.literatureEvidenceState.excerpts?.length
+                )
             );
         },
     },
@@ -210,6 +272,12 @@ export default {
         },
         onGenePrioritizationFiltersUpdate(filters) {
             this.genePrioritizationFilters = filters;
+        },
+        downloadLiteratureEvidence() {
+            const panel = this.$refs.literaturePanel;
+            if (panel && typeof panel.downloadHtmlReport === "function") {
+                panel.downloadHtmlReport();
+            }
         },
         async loadGenePrioritization() {
             if (this.genePrioritizationState.loaded || this.genePrioritizationState.loading) {
@@ -274,6 +342,15 @@ export default {
     font-size: 15px;
     font-weight: 700;
     color: var(--cfde-ink, #33363d);
+}
+
+.gp2-research-head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 .gp2-research-head-action {

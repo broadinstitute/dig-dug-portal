@@ -323,6 +323,39 @@ export function renderDiamond(ctx, xPos, yPos, color) {
     ctx.restore();
 }
 
+/** rsID / dbSNP label from an association plot row, or `""`. */
+export function associationRowRsidLabel(row) {
+    return String(row?.rsID || row?.dbSNP || row?.["rsID"] || "").trim();
+}
+
+/**
+ * Draw an rsID to the upper-right of the reference-variant diamond.
+ */
+export function renderRefVariantRsidLabel(
+    ctx,
+    xPos,
+    yPos,
+    label,
+    color = VKS_LD_REFERENCE_COLOR
+) {
+    const text = String(label || "").trim();
+    if (!text || !ctx) {
+        return;
+    }
+    ctx.save();
+    ctx.font = "bold 11px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "bottom";
+    const labelX = xPos + 12;
+    const labelY = yPos - 10;
+    const width = ctx.measureText(text).width;
+    ctx.fillStyle = "rgba(255,255,255,0.88)";
+    ctx.fillRect(labelX - 2, labelY - 11, width + 4, 13);
+    ctx.fillStyle = color;
+    ctx.fillText(text, labelX, labelY);
+    ctx.restore();
+}
+
 export function renderRecombinationLine(ctx, margin, plotWidth, plotHeight, region, recombData) {
     if (!recombData?.position?.length) {
         return;

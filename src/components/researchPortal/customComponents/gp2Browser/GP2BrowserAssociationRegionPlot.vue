@@ -152,7 +152,9 @@ import {
     getInternalPlotHeight,
     measureAssociationCanvasWidth,
     normalizePlotMargin,
+    associationRowRsidLabel,
     renderDiamond,
+    renderRefVariantRsidLabel,
     renderTrackHighlightBands,
     renderPlotAxis,
     renderPlotDot,
@@ -706,6 +708,12 @@ export default {
 
                 if (isRef) {
                     renderDiamond(ctx, xPos, yPos, VKS_LD_REFERENCE_COLOR);
+                    renderRefVariantRsidLabel(
+                        ctx,
+                        xPos,
+                        yPos,
+                        associationRowRsidLabel(row)
+                    );
                 } else if (isStarred) {
                     renderStarDot(ctx, xPos, yPos, dotColor);
                 } else {

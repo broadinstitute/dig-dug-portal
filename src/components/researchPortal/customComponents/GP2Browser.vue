@@ -90,6 +90,7 @@
                     :associations-state="associationsState"
                     :genes-state="genesState"
                     :qtl-state="qtlState"
+                    :gene-scores-state="geneScoresState"
                     :plot-overlays-state="plotOverlaysState"
                     :plot-markers="plotMarkersState"
                     :credible-sets-state="credibleSetsState"
@@ -168,6 +169,7 @@
                     :credible-set-pill-colors="credibleSetPillColors"
                     :genes-state="genesState"
                     :qtl-state="qtlState"
+                    :gene-scores-state="geneScoresState"
                     :global-enrichment-state="globalEnrichmentState"
                     :v2g-state="v2gState"
                     :s2g-state="s2gState"
@@ -192,6 +194,7 @@
                     @update:qtlSelectedGenes="onQtlSelectedGenesUpdate"
                     @update:qtlPValueMax="onQtlPValueMaxUpdate"
                     @toggle-qtl-star-variant="onToggleQtlStarVariant"
+                    @update:geneScoresVisibleFields="onGeneScoresVisibleFieldsUpdate"
                     @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
                     @update:geEnabledMutedAnnotationTissues="
                         onGeEnabledMutedAnnotationTissuesUpdate
@@ -262,9 +265,11 @@
             :search-region="activeRegion"
             :literature-evidence-state="literatureEvidenceState"
             :ai-summary-message="lastAiSummaryMessage"
+            :region-label="literatureEvidenceRegionLabel"
             @close="activeResearchPanelId = null"
             @navigate-region="onGenePrioritizationNavigateRegion"
             @load-more-literature-evidence="loadMoreLiteratureEvidence"
+            @find-literature-evidence="rerunLiteratureEvidenceSkipSummary"
         />
     </div>
 </template>
@@ -292,6 +297,12 @@ import {
     gp2QtlLoadKey,
 } from "./gp2Browser/gp2BrowserQtlApi.js";
 import { gp2GenePrioritizationRowRegion } from "./gp2Browser/gp2BrowserGenePrioritizationApi.js";
+import { resolveGp2GeneOrVariantToRegion } from "./gp2Browser/gp2BrowserGenesAndRecomb.js";
+import {
+    fetchGp2LocusSummaryGeneScores,
+    gp2DefaultGeneScoreVisibleFields,
+    gp2GeneScoresLoadKey,
+} from "./gp2Browser/gp2BrowserLocusSummaryApi.js";
 import GP2BrowserSessionParamBubbles from "./gp2Browser/GP2BrowserSessionParamBubbles.vue";
 import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
 import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
@@ -333,6 +344,7 @@ import {
     rowToLdVariant,
 } from "./gp2Browser/gp2BrowserLdServer.js";
 import {
+    GP2_MAX_ACTIVE_REGION_WIDTH_BP,
     GP2_VIEWING_REGION_WIDTH_BP,
     clampViewingCenterBp,
     computeGp2ViewingRegion,
@@ -378,8 +390,6 @@ import {
     resolveZoomOutLimitRegion,
     trimRecombData,
     unionGenomicRegions,
-    activeRegionTrimmedMessage,
-    ensureRegionWithinActiveDataLimit,
 } from "./kpVariantSifter/variantSifterRegionPan.js";
 import {
     fetchGp2GenesTrackData as fetchGenesTrackData,
@@ -551,12 +561,6 @@ import {
 } from "./kpVariantSifter/variantSifterRegionLoadProgress.js";
 import "./kpVariantSifter/vksSharedStyles.css";
 
-/**
- * GP2 Browser-only override: disables the shared Variant Sifter active-region
- * width cap (500 kb) without changing the default for Variant Sifter itself.
- */
-const GP2_MAX_ACTIVE_REGION_WIDTH_BP = Infinity;
-
 const GP2_REGION_LOAD_STEP_CATALOG = [
     { id: "associations", label: "Association data" },
     { id: "genes", label: "Genes track" },
@@ -643,6 +647,18 @@ function emptyQtlState(previous = {}) {
             : [],
         pValueMax: previous.pValueMax != null ? String(previous.pValueMax) : "",
         loadedRegionKey: null,
+    };
+}
+
+function emptyGeneScoresState(previous = {}) {
+    return {
+        loading: false,
+        error: null,
+        rows: [],
+        loadedKey: null,
+        visibleFields: Array.isArray(previous.visibleFields)
+            ? previous.visibleFields.slice()
+            : gp2DefaultGeneScoreVisibleFields(),
     };
 }
 
@@ -797,6 +813,8 @@ export default Vue.component("gp2-browser", {
             genesState: emptyGenesState(),
             qtlState: emptyQtlState(),
             qtlRequestToken: 0,
+            geneScoresState: emptyGeneScoresState(),
+            geneScoresRequestToken: 0,
             plotOverlaysState: emptyPlotOverlaysState(),
             plotMarkersState: emptyPlotMarkersState(),
             credibleSetsState: emptyCredibleSetsState(),
@@ -876,6 +894,16 @@ export default Vue.component("gp2-browser", {
             return buildSessionExportFilename(this.searchSession, {
                 projectId: this.projectId,
             });
+        },
+        literatureEvidenceRegionLabel() {
+            if (!this.searchSession) {
+                return null;
+            }
+            return (
+                this.searchSession.regionLabel ||
+                formatRegion(this.searchSession.region) ||
+                null
+            );
         },
         exportSessionSummary() {
             const rows = this.associationsState?.rows?.length || 0;
@@ -1531,6 +1559,7 @@ export default Vue.component("gp2-browser", {
             // gap-filled incrementally — just refetch the (now wider) region
             // in one shot if a type+tissue selection is already active.
             this.maybeLoadQtlEvidences();
+            this.maybeLoadGeneScores();
 
             const hadZoomOut = this.regionZoomOut > 0;
             const hadPanPendingReset = this.pendingPanSliderReset;
@@ -2626,11 +2655,7 @@ export default Vue.component("gp2-browser", {
                 }
             }
         },
-        onGenePrioritizationNavigateRegion(row) {
-            const region = gp2GenePrioritizationRowRegion(row);
-            if (!region) {
-                return;
-            }
+        async onGenePrioritizationNavigateRegion(targetOrRow) {
             const phenotype =
                 this.searchSession?.phenotype ||
                 projectPhenotypes(this.projectId, GP2_BROWSER_PHENOTYPES)[0];
@@ -2638,6 +2663,59 @@ export default Vue.component("gp2-browser", {
                 return;
             }
             const ancestry = this.searchSession?.ancestry ?? null;
+            const geneOrVariantQuery = String(
+                targetOrRow?.geneOrVariantQuery || ""
+            ).trim();
+
+            // Gene prioritization Gene link: pass the symbol as the region
+            // query and let the browser resolve it (same path as welcome search).
+            if (geneOrVariantQuery) {
+                if (!this.utilsBox?.regionUtils) {
+                    return;
+                }
+                const region = await resolveGp2GeneOrVariantToRegion(
+                    geneOrVariantQuery,
+                    this.utilsBox.regionUtils,
+                    this.searchSession?.regionExpandBp ?? null,
+                    this.bioIndexHostFor("gene") || null
+                );
+                if (!region) {
+                    window.alert(
+                        `Could not resolve gene "${geneOrVariantQuery}" to a genomic region.`
+                    );
+                    return;
+                }
+                this.activeResearchPanelId = null;
+                this.onStartSearch({
+                    phenotype,
+                    ancestry,
+                    region,
+                    regionLabel: formatRegion(region),
+                    geneOrVariantQuery,
+                    regionExpandBp: this.searchSession?.regionExpandBp ?? null,
+                });
+                return;
+            }
+
+            // Locus link (or legacy scoring row): navigate with locus coords.
+            const region =
+                targetOrRow &&
+                targetOrRow.chr != null &&
+                targetOrRow.start != null &&
+                targetOrRow.end != null
+                    ? {
+                          chr: String(targetOrRow.chr),
+                          start: Number(targetOrRow.start),
+                          end: Number(targetOrRow.end),
+                      }
+                    : gp2GenePrioritizationRowRegion(targetOrRow);
+            if (
+                !region ||
+                !Number.isFinite(region.start) ||
+                !Number.isFinite(region.end)
+            ) {
+                return;
+            }
             this.activeResearchPanelId = null;
             this.onStartSearch({
                 phenotype,
@@ -2781,6 +2859,87 @@ export default Vue.component("gp2-browser", {
                 if (newlyChecked.includes("qtl-evidences")) {
                     this.maybeLoadQtlEvidences();
                 }
+                if (newlyChecked.includes("gene-scores")) {
+                    this.maybeLoadGeneScores({ force: true });
+                }
+            }
+        },
+        onGeneScoresVisibleFieldsUpdate(fields) {
+            this.geneScoresState = {
+                ...this.geneScoresState,
+                visibleFields: Array.isArray(fields) ? fields.slice() : [],
+            };
+        },
+        maybeLoadGeneScores({ force = false } = {}) {
+            if (!this.isSectionChecked("gene-scores")) {
+                return;
+            }
+            if (!this.searchSession?.region || !this.searchSession?.phenotype) {
+                return;
+            }
+            const phenotypeName =
+                this.searchSession.phenotype?.name || this.searchSession.phenotype;
+            const targetRegion = cloneGenomicRegion(
+                this.dataRegion || this.searchSession.region
+            );
+            const key = gp2GeneScoresLoadKey(phenotypeName, targetRegion);
+            if (
+                !force &&
+                (this.geneScoresState.loading ||
+                    this.geneScoresState.loadedKey === key)
+            ) {
+                return;
+            }
+            this.loadGeneScoresForSession({
+                ...this.searchSession,
+                region: targetRegion,
+            });
+        },
+        async loadGeneScoresForSession(session) {
+            const region = session?.region;
+            const phenotypeName =
+                session?.phenotype?.name || session?.phenotype || null;
+            if (
+                !phenotypeName ||
+                !region?.chr ||
+                region.start == null ||
+                region.end == null
+            ) {
+                return false;
+            }
+            const key = gp2GeneScoresLoadKey(phenotypeName, region);
+            const token = ++this.geneScoresRequestToken;
+            this.geneScoresState = {
+                ...this.geneScoresState,
+                loading: true,
+                error: null,
+            };
+            try {
+                const rows = await fetchGp2LocusSummaryGeneScores({
+                    phenotype: phenotypeName,
+                    region,
+                });
+                if (token !== this.geneScoresRequestToken) {
+                    return false;
+                }
+                this.geneScoresState = {
+                    ...this.geneScoresState,
+                    loading: false,
+                    error: null,
+                    rows,
+                    loadedKey: key,
+                };
+                return true;
+            } catch (error) {
+                if (token !== this.geneScoresRequestToken) {
+                    return false;
+                }
+                console.warn("GP2 Browser gene scores load failed", error);
+                this.geneScoresState = {
+                    ...emptyGeneScoresState(this.geneScoresState),
+                    error: "Gene scores could not be loaded.",
+                };
+                return false;
             }
         },
         async loadDataForCheckedSections(sectionIds = []) {
@@ -3115,29 +3274,8 @@ export default Vue.component("gp2-browser", {
             }
         },
         applyImportedSession(restored, gp2Extras = null) {
-            if (restored.searchSession?.region) {
-                const ensured = ensureRegionWithinActiveDataLimit(
-                    restored.searchSession.region,
-                    GP2_MAX_ACTIVE_REGION_WIDTH_BP
-                );
-                if (ensured.trimmed) {
-                    window.alert(
-                        activeRegionTrimmedMessage(
-                            ensured.originalRegion,
-                            ensured.region
-                        )
-                    );
-                    restored.searchSession = {
-                        ...restored.searchSession,
-                        region: ensured.region,
-                        regionLabel:
-                            formatRegion(ensured.region) ||
-                            restored.searchSession.regionLabel,
-                        regionTrimmed: true,
-                        regionBeforeTrim: ensured.originalRegion,
-                    };
-                }
-            }
+            // GP2 does not center-trim imported regions to the Variant Sifter
+            // 500 kb active-region cap.
 
             if (restored.projectId != null) {
                 this.projectId = normalizeProjectId(restored.projectId);
@@ -3801,6 +3939,8 @@ export default Vue.component("gp2-browser", {
             this.genesState = emptyGenesState(this.genesState?.selectedTypes);
             this.qtlState = emptyQtlState(this.qtlState);
             this.qtlRequestToken += 1;
+            this.geneScoresState = emptyGeneScoresState(this.geneScoresState);
+            this.geneScoresRequestToken += 1;
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
@@ -3874,34 +4014,9 @@ export default Vue.component("gp2-browser", {
             this.onStartSearch(session, { subAncestries });
         },
         onStartSearch(session, { subAncestries = [], additionalPhenotypes = [] } = {}) {
-            let searchSession = session;
-            if (session?.region) {
-                const ensured = ensureRegionWithinActiveDataLimit(
-                    session.region,
-                    GP2_MAX_ACTIVE_REGION_WIDTH_BP
-                );
-                if (ensured.trimmed) {
-                    // Welcome already alerts when it trims; only notify here for
-                    // other entry points (recent search, URL hydrate, etc.).
-                    if (!session.regionTrimmed) {
-                        window.alert(
-                            activeRegionTrimmedMessage(
-                                ensured.originalRegion,
-                                ensured.region
-                            )
-                        );
-                    }
-                    searchSession = {
-                        ...session,
-                        region: ensured.region,
-                        regionLabel:
-                            formatRegion(ensured.region) || session.regionLabel,
-                        regionTrimmed: true,
-                        regionBeforeTrim:
-                            session.regionBeforeTrim || ensured.originalRegion,
-                    };
-                }
-            }
+            // GP2_MAX_ACTIVE_REGION_WIDTH_BP is Infinity — do not center-trim
+            // or alert on wide search regions (Variant Sifter's 500 kb cap).
+            const searchSession = session;
 
             this.searchSession = searchSession;
             this.pendingSubAncestries = parseSubAncestriesParam(
@@ -3931,6 +4046,8 @@ export default Vue.component("gp2-browser", {
             this.viewingCenterBp = null;
             this.qtlRequestToken += 1;
             this.qtlState = emptyQtlState(this.qtlState);
+            this.geneScoresRequestToken += 1;
+            this.geneScoresState = emptyGeneScoresState(this.geneScoresState);
             this.dataRegion = cloneGenomicRegion(searchSession.region);
             this.genesState = emptyGenesState(this.genesState?.selectedTypes);
             this.plotOverlaysState = emptyPlotOverlaysState();
@@ -3965,6 +4082,7 @@ export default Vue.component("gp2-browser", {
             });
             this.loadInitialSearchData(searchSession);
             this.maybeLoadQtlEvidences();
+            this.maybeLoadGeneScores({ force: true });
         },
         syncCredibleSetsToActiveRegion(activeRegion) {
             if (
@@ -7656,6 +7774,39 @@ export default Vue.component("gp2-browser", {
                 this.$nextTick(openLiteratureEvidence);
             } else {
                 openLiteratureEvidence();
+            }
+        },
+        /**
+         * Header "Find evidences": re-run PubMed → evidences → KG only.
+         * Skips the AI summary stage and replaces the current LE results.
+         */
+        rerunLiteratureEvidenceSkipSummary() {
+            if (!this.searchSession?.region) {
+                return;
+            }
+            const state = this.literatureEvidenceState;
+            if (
+                state.loading ||
+                state.loadingMore ||
+                state.synthesizing ||
+                state.kgLoading
+            ) {
+                return;
+            }
+
+            this.literatureEvidenceActionToken += 1;
+            this.literatureEvidenceReportAssistant = false;
+            this.literatureEvidenceAssistantStepId = null;
+            this.literatureEvidenceState = emptyLiteratureEvidenceState();
+
+            const openPanel = () => {
+                this.activeResearchPanelId = "literatureEvidence";
+            };
+            if (this.activeResearchPanelId === "literatureEvidence") {
+                this.activeResearchPanelId = null;
+                this.$nextTick(openPanel);
+            } else {
+                openPanel();
             }
         },
         /**

@@ -919,6 +919,79 @@ export default {
             this.clearHoverNow();
             this.emitFocusClaims([]);
         },
+        /**
+         * Self-contained SVG snapshot of the current layout (no hover/selection
+         * dimming). Used by the Literature evidence HTML download.
+         */
+        exportSvgString() {
+            if (!this.hasGraph) {
+                return "";
+            }
+            const escapeXml = (value) =>
+                String(value || "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            const width = this.diagramWidth;
+            const height = this.diagramHeight;
+            const parts = [
+                `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Literature evidence knowledge graph">`,
+                "<defs>",
+                `<marker id="gp2-lit-kg-export-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a8f98"/></marker>`,
+                `<marker id="gp2-lit-kg-export-arrow-conflict" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ee3124"/></marker>`,
+                "</defs>",
+            ];
+            this.layoutColumns.forEach((column) => {
+                parts.push(
+                    `<rect x="${column.x}" y="${column.y}" width="${column.width}" height="${column.height}" rx="8" ry="8" fill="#f3f4f6" stroke="#d5d8de"/>`
+                );
+                parts.push(
+                    `<text x="${column.x + 12}" y="${column.y + 18}" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#6b6b6b">${escapeXml(
+                        column.title
+                    )}</text>`
+                );
+            });
+            this.layoutEdges.forEach((edge) => {
+                const stroke = edge.conflict ? "#ee3124" : "#8a8f98";
+                const marker = edge.conflict
+                    ? "url(#gp2-lit-kg-export-arrow-conflict)"
+                    : "url(#gp2-lit-kg-export-arrow)";
+                parts.push(
+                    `<path d="${escapeXml(edge.path)}" fill="none" stroke="${stroke}" stroke-width="1.6" marker-end="${marker}"/>`
+                );
+                parts.push(
+                    `<circle cx="${edge.startX}" cy="${edge.startY}" r="3.5" fill="${stroke}"/>`
+                );
+                if (edge.label) {
+                    const lx = edge.labelX - edge.labelWidth / 2;
+                    const ly = edge.labelY - 9;
+                    parts.push(
+                        `<rect x="${lx}" y="${ly}" width="${edge.labelWidth}" height="18" rx="4" ry="4" fill="#ffffff" stroke="#d8dbe0"/>`
+                    );
+                    parts.push(
+                        `<text x="${edge.labelX}" y="${edge.labelY + 4}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#33363d">${escapeXml(
+                            edge.label
+                        )}</text>`
+                    );
+                }
+            });
+            this.flatNodes.forEach((node) => {
+                parts.push(
+                    `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="8" ry="8" fill="#ffffff" stroke="#c9ced6"/>`
+                );
+                parts.push(
+                    `<text x="${node.x + node.width / 2}" y="${
+                        node.y + node.height / 2 + 4
+                    }" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#33363d">${escapeXml(
+                        node.label
+                    )}</text>`
+                );
+            });
+            parts.push("</svg>");
+            return parts.join("");
+        },
     },
     beforeDestroy() {
         this.cancelHoverClear();

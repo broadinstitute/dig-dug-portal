@@ -50,17 +50,6 @@
                     <span class="gp2-gp-slider-bound">{{ formatBound(sliderMax(evidenceScoreField)) }}</span>
                 </div>
             </div>
-
-            <label class="gp2-gp-filter gp2-gp-filter-checkbox" for="gp2-gp-region-only">
-                <input
-                    id="gp2-gp-region-only"
-                    type="checkbox"
-                    :checked="filters.showInRegionOnly"
-                    :disabled="!hasSearchRegion"
-                    @change="onShowInRegionOnlyChange"
-                />
-                <span>Show Genes in the region</span>
-            </label>
         </div>
 
         <div class="gp2-gp-filter-row gp2-gp-filter-row-sliders">
@@ -112,10 +101,6 @@ export default {
             type: Object,
             required: true,
         },
-        hasSearchRegion: {
-            type: Boolean,
-            default: false,
-        },
     },
     computed: {
         evidenceScoreField() {
@@ -150,9 +135,6 @@ export default {
         },
         onCategoryChange(event) {
             this.emitFilters({ evidenceCategory: event?.target?.value || "" });
-        },
-        onShowInRegionOnlyChange(event) {
-            this.emitFilters({ showInRegionOnly: Boolean(event?.target?.checked) });
         },
         onScoreMinInput(field, event) {
             const value = Number(event?.target?.value);
@@ -221,24 +203,6 @@ export default {
     border-radius: 15px;
     border: solid 1px #aaa;
     background-color: #fff;
-}
-
-.gp2-gp-filter-checkbox {
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    padding-bottom: 6px;
-    cursor: pointer;
-}
-
-.gp2-gp-filter-checkbox input {
-    margin: 0;
-}
-
-.gp2-gp-filter-checkbox span {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--cfde-ink, #33363d);
 }
 
 .gp2-gp-filter-row-sliders .gp2-gp-filter-label {

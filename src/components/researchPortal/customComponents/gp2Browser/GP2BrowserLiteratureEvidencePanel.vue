@@ -70,7 +70,10 @@
             </p>
             <template v-else>
                 <section class="gp2-lit-evidence-network">
-                    <h3>Knowledge graph</h3>
+                    <h3 class="gp2-lit-evidence-heading">
+                        Knowledge graph
+                        <span class="gp2-lit-ai-badge" title="Generated with AI">AI</span>
+                    </h3>
                     <GP2BrowserLiteratureKgNetwork
                         ref="kgNetwork"
                         :kg="kg"
@@ -83,7 +86,10 @@
 
                 <div class="gp2-lit-evidence-columns">
                     <section ref="claimsCol" class="gp2-lit-evidence-col">
-                        <h3>Evidences</h3>
+                        <h3 class="gp2-lit-evidence-heading">
+                            Evidences
+                            <span class="gp2-lit-ai-badge" title="Generated with AI">AI</span>
+                        </h3>
                         <ol v-if="claims.length" class="gp2-lit-evidence-list">
                             <li
                                 v-for="(claim, claimIndex) in claims"
@@ -107,7 +113,10 @@
                         </p>
                     </section>
                     <section class="gp2-lit-evidence-col">
-                        <h3>Open questions</h3>
+                        <h3 class="gp2-lit-evidence-heading">
+                            Open questions
+                            <span class="gp2-lit-ai-badge" title="Generated with AI">AI</span>
+                        </h3>
                         <ol v-if="gaps.length" class="gp2-lit-evidence-list">
                             <li v-for="(gap, gapIndex) in gaps" :key="`gap-${gapIndex}`">
                                 {{ gap.text }}
@@ -126,6 +135,10 @@
         </div>
 
         <div v-show="activeTab === 'excerpts'" class="gp2-lit-evidence-excerpts-tab">
+            <h3 class="gp2-lit-evidence-heading">
+                Excerpts
+                <span class="gp2-lit-ai-badge" title="Generated with AI">AI</span>
+            </h3>
             <ol v-if="excerpts.length" class="gp2-lit-evidence-excerpts-list">
                 <li
                     v-for="excerpt in excerpts"
@@ -173,12 +186,42 @@
                 </li>
             </ol>
             <p v-else class="gp2-lit-evidence-empty">No supporting excerpts extracted yet.</p>
+
+            <section class="gp2-lit-evidence-papers">
+                <h3>PubMed papers returned</h3>
+                <p class="gp2-lit-evidence-findings-note">
+                    {{ papers.length }} paper{{ papers.length === 1 ? "" : "s" }} from this search
+                    (including any “Show next 15” pages).
+                </p>
+                <ol v-if="papers.length" class="gp2-lit-evidence-papers-list">
+                    <li v-for="paper in papers" :key="`paper-${paper.pmid}`">
+                        <a
+                            class="gp2-lit-evidence-excerpt-title"
+                            :href="`https://pubmed.ncbi.nlm.nih.gov/${paper.pmid}/`"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {{ paper.title || `PMID ${paper.pmid}` }}
+                        </a>
+                        <div class="gp2-lit-evidence-excerpt-sub">
+                            PMID: {{ paper.pmid
+                            }}<span v-if="paperListMeta(paper)"> · {{ paperListMeta(paper) }}</span
+                            ><span v-if="(paper.authors || []).length"><br /></span
+                            >{{ (paper.authors || []).join(", ") }}
+                        </div>
+                    </li>
+                </ol>
+                <p v-else class="gp2-lit-evidence-empty">No PubMed papers returned.</p>
+            </section>
         </div>
 
         <div v-show="activeTab === 'summaryDigest'" class="gp2-lit-evidence-digest-tab">
             <section class="gp2-lit-evidence-context">
                 <div v-if="aiSummary" class="gp2-lit-evidence-ai-summary">
-                    <h3>AI summary (stage 1)</h3>
+                    <h3 class="gp2-lit-evidence-heading">
+                        AI summary (stage 1)
+                        <span class="gp2-lit-ai-badge" title="Generated with AI">AI</span>
+                    </h3>
                     <p class="gp2-lit-evidence-findings-note">
                         Generated before the PubMed search so the locus narrative is visible first.
                     </p>
@@ -225,6 +268,7 @@
 import GP2BrowserLiteratureFootnote from "./GP2BrowserLiteratureFootnote.vue";
 import GP2BrowserLiteratureKgNetwork from "./GP2BrowserLiteratureKgNetwork.vue";
 import { formatAbstractWithHighlightedQuote } from "./gp2BrowserLiteratureEvidence.js";
+import { downloadGp2LiteratureEvidenceHtml } from "./gp2BrowserLiteratureEvidenceExport.js";
 
 export default {
     name: "GP2BrowserLiteratureEvidencePanel",
@@ -255,6 +299,18 @@ export default {
         usedLocusDigest: {
             type: Boolean,
             default: false,
+        },
+        phenotype: {
+            type: String,
+            default: null,
+        },
+        query: {
+            type: String,
+            default: null,
+        },
+        regionLabel: {
+            type: String,
+            default: null,
         },
         papers: {
             type: Array,
@@ -431,6 +487,32 @@ export default {
             });
             return html;
         },
+        paperListMeta(paper) {
+            return [paper?.journal, paper?.pubdate].filter(Boolean).join(" · ");
+        },
+        /** Called by the research modal Download button. */
+        downloadHtmlReport() {
+            const network = this.$refs.kgNetwork;
+            const networkSvg =
+                network && typeof network.exportSvgString === "function"
+                    ? network.exportSvgString()
+                    : "";
+            downloadGp2LiteratureEvidenceHtml({
+                regionLabel: this.regionLabel,
+                phenotype: this.phenotype,
+                query: this.query,
+                genesSearched: this.genesSearched,
+                geneReasons: this.resolvedGeneReasons,
+                digestFindings: this.digestFindings,
+                aiSummary: this.aiSummary,
+                usedLocusDigest: this.usedLocusDigest,
+                papers: this.papers,
+                claims: this.claims,
+                excerpts: this.excerpts,
+                gaps: this.gaps,
+                networkSvg,
+            });
+        },
     },
 };
 </script>
@@ -452,13 +534,36 @@ export default {
     gap: 12px;
 }
 
+.gp2-lit-evidence-heading,
 .gp2-lit-evidence-ai-summary h3,
 .gp2-lit-evidence-findings h3,
-.gp2-lit-evidence-gene-reasons h3 {
+.gp2-lit-evidence-gene-reasons h3,
+.gp2-lit-evidence-papers h3 {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
     margin: 0 0 4px;
     font-size: 14px;
     font-weight: 700;
     color: var(--cfde-ink, #33363d);
+}
+
+.gp2-lit-ai-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(224, 123, 57, 0.45);
+    background: #fff6ef;
+    color: #b85a1a;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    vertical-align: middle;
 }
 
 .gp2-lit-evidence-ai-summary-body {
@@ -553,7 +658,8 @@ export default {
     border-bottom-color: var(--cfde-blue, #2c5c97);
 }
 
-.gp2-lit-evidence-evidences-tab {
+.gp2-lit-evidence-evidences-tab,
+.gp2-lit-evidence-excerpts-tab {
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -566,12 +672,11 @@ export default {
     min-width: 0;
 }
 
-.gp2-lit-evidence-network h3,
-.gp2-lit-evidence-col h3 {
+.gp2-lit-evidence-network .gp2-lit-evidence-heading,
+.gp2-lit-evidence-col .gp2-lit-evidence-heading,
+.gp2-lit-evidence-excerpts-tab > .gp2-lit-evidence-heading {
     margin: 0;
     font-size: 15px;
-    font-weight: 700;
-    color: var(--cfde-ink, #33363d);
 }
 
 .gp2-lit-evidence-columns {
@@ -668,6 +773,25 @@ export default {
     line-height: 1.5;
     color: var(--cfde-ink, #33363d);
     white-space: pre-line;
+}
+
+.gp2-lit-evidence-papers {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.gp2-lit-evidence-papers-list {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.gp2-lit-evidence-papers-list li {
+    font-size: 13px;
+    line-height: 1.45;
 }
 
 .gp2-lit-evidence-excerpt-abstract-text >>> .gp2-lit-abstract-mark {

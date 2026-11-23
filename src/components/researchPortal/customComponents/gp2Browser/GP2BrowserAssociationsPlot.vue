@@ -312,6 +312,29 @@
                         </template>
                     </template>
                 </div>
+                <div v-if="showGeneScoresSection" class="vks-plot-section">
+                    <header class="vks-plot-section-head">
+                        <h3 class="vks-plot-section-title">Gene scores</h3>
+                    </header>
+                    <div
+                        v-if="geneScoresState.loading"
+                        class="vks-associations-plot-status vks-associations-plot-status--inline"
+                    >
+                        Loading gene scores…
+                    </div>
+                    <div
+                        v-else-if="geneScoresState.error"
+                        class="vks-associations-plot-status vks-associations-plot-status--inline vks-associations-plot-status--warning"
+                        role="status"
+                    >
+                        {{ geneScoresState.error }}
+                    </div>
+                    <GP2BrowserGeneScoresPanel
+                        v-else-if="geneScoresModel"
+                        :model="geneScoresModel"
+                        :visible-fields="geneScoresState.visibleFields"
+                    />
+                </div>
                 <div v-if="showCredibleSetsSection" class="vks-plot-section">
                     <header class="vks-plot-section-head">
                         <h3 class="vks-plot-section-title">Credible sets</h3>
@@ -481,6 +504,7 @@ import VariantSifterCredibleSetsTrack from "../kpVariantSifter/VariantSifterCred
 import VariantSifterAssociationRegionPlot from "../kpVariantSifter/VariantSifterAssociationRegionPlot.vue";
 import GP2BrowserAssociationRegionPlot from "./GP2BrowserAssociationRegionPlot.vue";
 import GP2BrowserQtlRegionPlot from "./GP2BrowserQtlRegionPlot.vue";
+import GP2BrowserGeneScoresPanel from "./GP2BrowserGeneScoresPanel.vue";
 import VariantSifterAnnotationsWorkspaceTrack from "../kpVariantSifter/VariantSifterAnnotationsWorkspaceTrack.vue";
 import VariantSifterV2gTrack from "../kpVariantSifter/VariantSifterV2gTrack.vue";
 import { associationRowsToPlotData } from "../kpVariantSifter/variantSifterAssociationsPlotData.js";
@@ -536,6 +560,10 @@ import {
     buildGp2QtlGeneColorMap,
     qtlRowsToPlotData,
 } from "./gp2BrowserQtlPlotData.js";
+import {
+    buildGp2LocusSummaryModel,
+    locusSummarySessionAncestry,
+} from "./gp2BrowserLocusSummaryApi.js";
 import { GP2_VIEWING_REGION_HALF_BP } from "./gp2BrowserViewingRegion.js";
 
 const VIEW_MOVE_SETTLE_MS = 140;
@@ -548,6 +576,7 @@ export default {
         VariantSifterAssociationRegionPlot,
         GP2BrowserAssociationRegionPlot,
         GP2BrowserQtlRegionPlot,
+        GP2BrowserGeneScoresPanel,
         VariantSifterAnnotationsWorkspaceTrack,
         VariantSifterV2gTrack,
     },
@@ -682,6 +711,16 @@ export default {
                 selectedGenes: [],
                 pValueMax: "",
                 loadedRegionKey: null,
+            }),
+        },
+        geneScoresState: {
+            type: Object,
+            default: () => ({
+                loading: false,
+                error: null,
+                rows: [],
+                loadedKey: null,
+                visibleFields: [],
             }),
         },
         utils: {
@@ -939,6 +978,25 @@ export default {
                 isSectionVisible(this.visibleSectionIds, "qtl-evidences") &&
                 this.qtlHasSelection
             );
+        },
+        showGeneScoresSection() {
+            return isSectionVisible(this.visibleSectionIds, "gene-scores");
+        },
+        geneScoresModel() {
+            if (!this.showGeneScoresSection) {
+                return null;
+            }
+            const phenotypeName =
+                this.searchSession?.phenotype?.name ||
+                this.searchSession?.phenotype ||
+                null;
+            return buildGp2LocusSummaryModel({
+                geneScoreRows: this.geneScoresState?.rows || [],
+                associationRows: this.rows || [],
+                geneTracks: this.genesState?.data || [],
+                phenotypeName,
+                ancestry: locusSummarySessionAncestry(this.searchSession),
+            });
         },
         qtlFilteredDownsampledRows() {
             const typeTissueFiltered = filterQtlRows(this.qtlState?.downsampledRows || [], {

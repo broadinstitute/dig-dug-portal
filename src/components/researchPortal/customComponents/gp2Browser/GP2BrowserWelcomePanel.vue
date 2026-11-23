@@ -202,10 +202,6 @@ import {
     VKS_PROJECT_DEFAULT_ID,
 } from "../kpVariantSifter/variantSifterProjects.js";
 import {
-    activeRegionTrimmedMessage,
-    ensureRegionWithinActiveDataLimit,
-} from "../kpVariantSifter/variantSifterRegionPan.js";
-import {
     applyGwasCeMetadataToSearchFields,
     fetchGwasCeTokenMetadata,
 } from "../kpVariantSifter/variantSifterGwasCeMetadataApi.js";
@@ -625,17 +621,8 @@ export default {
                     return;
                 }
 
-                const ensured = ensureRegionWithinActiveDataLimit(region);
-                if (ensured.trimmed) {
-                    window.alert(
-                        activeRegionTrimmedMessage(
-                            ensured.originalRegion,
-                            ensured.region
-                        )
-                    );
-                }
-                region = ensured.region;
-
+                // GP2 has no active-region width cap (Variant Sifter's 500 kb
+                // trim does not apply here).
                 this.resolvedRegionLabel = formatRegion(region);
                 this.$emit("start-search", {
                     phenotype,
@@ -647,10 +634,8 @@ export default {
                     geneOrVariantQuery: this.geneOrVariantQuery.trim(),
                     regionExpandBp: this.regionExpandBp,
                     gwasCeToken: gwasCeToken || null,
-                    regionTrimmed: Boolean(ensured.trimmed),
-                    regionBeforeTrim: ensured.trimmed
-                        ? ensured.originalRegion
-                        : null,
+                    regionTrimmed: false,
+                    regionBeforeTrim: null,
                 });
             } finally {
                 this.submitting = false;

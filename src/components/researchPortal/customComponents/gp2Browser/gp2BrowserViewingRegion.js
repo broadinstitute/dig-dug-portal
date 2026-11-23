@@ -6,6 +6,13 @@ export const GP2_VIEWING_REGION_HALF_BP = 25000;
 export const GP2_VIEWING_REGION_WIDTH_BP = GP2_VIEWING_REGION_HALF_BP * 2;
 
 /**
+ * GP2 disables the shared Variant Sifter active-region width cap (500 kb).
+ * Welcome / session-bubble searches must pass this into
+ * `ensureRegionWithinActiveDataLimit` or they still trim at 500 kb.
+ */
+export const GP2_MAX_ACTIVE_REGION_WIDTH_BP = Infinity;
+
+/**
  * Extract numeric genomic position (bp) from a formatted row, raw row, or variant ID string.
  */
 export function extractVariantPositionBp(variantOrRow) {

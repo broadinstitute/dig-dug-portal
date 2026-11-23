@@ -45,14 +45,22 @@
                                     :class="getColumnId(column)"
                                 >
                                     <button
-                                        v-if="isNavigableColumn(column) && rowHasRegion(row)"
+                                        v-if="canNavigate(row, column)"
                                         type="button"
                                         class="gp2-gene-prioritization-link"
-                                        :title="`Search this region: ${formatCell(row, column)}`"
-                                        @click="$emit('navigate-region', row)"
+                                        :title="navigateTitle(row, column)"
+                                        @click="onNavigate(row, column)"
                                     >
                                         {{ formatCell(row, column) }}
                                     </button>
+                                    <span
+                                        v-else-if="cellPresentation(row, column)"
+                                        class="gp2-gene-prioritization-pill"
+                                        :class="cellPresentation(row, column).className"
+                                        :style="cellPresentation(row, column).style"
+                                    >
+                                        {{ cellPresentation(row, column).display }}
+                                    </span>
                                     <template v-else>{{ formatCell(row, column) }}</template>
                                 </td>
                             </tr>
@@ -78,9 +86,11 @@
 <script>
 import VariantSifterTableSettings from "../kpVariantSifter/VariantSifterTableSettings.vue";
 import {
+    gp2FormatRegionLabel,
+    gp2GenePrioritizationCellPresentation,
     gp2GenePrioritizationColumnLabels,
     gp2GenePrioritizationFormatCell,
-    gp2GenePrioritizationRowRegion,
+    gp2GenePrioritizationNavigateTarget,
     gp2GenePrioritizationSortValue,
 } from "./gp2BrowserGenePrioritizationApi.js";
 
@@ -210,11 +220,29 @@ export default {
         getColumnId(label) {
             return String(label || "").replace(/\W/g, "").toLowerCase();
         },
-        isNavigableColumn(column) {
-            return NAVIGABLE_COLUMNS.has(column);
+        canNavigate(row, column) {
+            return (
+                NAVIGABLE_COLUMNS.has(column) &&
+                Boolean(gp2GenePrioritizationNavigateTarget(row, column))
+            );
         },
-        rowHasRegion(row) {
-            return Boolean(gp2GenePrioritizationRowRegion(row));
+        navigateTitle(row, column) {
+            const target = gp2GenePrioritizationNavigateTarget(row, column);
+            if (column === "Gene") {
+                const gene = target?.geneOrVariantQuery || this.formatCell(row, column);
+                return `Search gene: ${gene}`;
+            }
+            const label =
+                gp2FormatRegionLabel(target) ||
+                gp2GenePrioritizationFormatCell(row, column);
+            return `Search locus region: ${label}`;
+        },
+        onNavigate(row, column) {
+            const target = gp2GenePrioritizationNavigateTarget(row, column);
+            if (!target) {
+                return;
+            }
+            this.$emit("navigate-region", target);
         },
         onPerPageUpdate(perPage) {
             this.perPageNumber = String(perPage);
@@ -233,6 +261,9 @@ export default {
         },
         formatCell(row, column) {
             return gp2GenePrioritizationFormatCell(row, column);
+        },
+        cellPresentation(row, column) {
+            return gp2GenePrioritizationCellPresentation(row, column);
         },
         exportCsv() {
             if (!this.utils?.uiUtils?.saveByorCsv) {
@@ -304,6 +335,48 @@ export default {
 
 .gp2-gene-prioritization-link:hover {
     color: #1b3f6b;
+}
+
+.gp2-gene-prioritization-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    max-width: 100%;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+    background: #eef2f0;
+    color: #1f3d2a;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.gp2-gene-prioritization-pill.is-empty {
+    background: transparent;
+    color: #9aa3ad;
+    font-weight: 600;
+}
+
+.gp2-gene-prioritization-pill.is-category {
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.gp2-gene-prioritization-data-table td.evidencecategory,
+.gp2-gene-prioritization-data-table td.evidencescore,
+.gp2-gene-prioritization-data-table td.normalizedscore,
+.gp2-gene-prioritization-data-table td.locusnormalizedscore,
+.gp2-gene-prioritization-data-table td.proposedcausalnormalized,
+.gp2-gene-prioritization-data-table td.qtlcolocalizationnormalized,
+.gp2-gene-prioritization-data-table td.codingvariantnormalized,
+.gp2-gene-prioritization-data-table td.burdennormalized,
+.gp2-gene-prioritization-data-table td.expressionlocalizationnormalized,
+.gp2-gene-prioritization-data-table td.diseaseassociationnormalized {
+    text-align: center;
+    vertical-align: middle;
 }
 
 .gp2-gene-prioritization-table-empty {

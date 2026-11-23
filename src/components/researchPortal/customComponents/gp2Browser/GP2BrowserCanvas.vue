@@ -38,6 +38,7 @@
                         :viewing-region-width-bp="viewingRegionWidthBp"
                         :genes-state="genesState"
                         :qtl-state="qtlState"
+                        :gene-scores-state="geneScoresState"
                         :plot-overlays-state="plotOverlaysState"
                         :plot-markers="plotMarkers"
                         :credible-sets-state="credibleSetsState"
@@ -254,6 +255,16 @@ export default {
                 selectedGenes: [],
                 pValueMax: "",
                 loadedRegionKey: null,
+            }),
+        },
+        geneScoresState: {
+            type: Object,
+            default: () => ({
+                loading: false,
+                error: null,
+                rows: [],
+                loadedKey: null,
+                visibleFields: [],
             }),
         },
         plotOverlaysState: {
