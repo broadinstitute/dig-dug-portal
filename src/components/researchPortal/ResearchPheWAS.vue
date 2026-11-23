@@ -189,7 +189,6 @@ export default {
         "filter",
         "options",
         "sectionId",
-        "sectionId",
         "utils",
         "plotName",
         "top1500",

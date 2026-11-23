@@ -68,8 +68,10 @@
                     :fields="tableFields"
                     :per-page="perPage"
                     :current-page="currentPage"
-                    :sort-by.sync="pigeanTableSortBy"
-                    :sort-desc.sync="pigeanTableSortDesc"
+                    :sort-by="pigeanTableSortBy"
+                    @update:sortBy="pigeanTableSortBy = $event"
+                    :sort-desc="pigeanTableSortDesc"
+                    @update:sortDesc="pigeanTableSortDesc = $event"
                     detail-key="_rowKey"
                     responsive
                 >

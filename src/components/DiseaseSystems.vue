@@ -349,7 +349,7 @@
 						></phenotype-selectpicker>
 					</div>
 					<div class="col filter-col-sm">
-						<div class="label">P-Value(<=)</div>
+						<div class="label">P-Value(&lt;=)</div>
 
 						<input
 							type="text"

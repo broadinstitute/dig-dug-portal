@@ -106,4 +106,4 @@ export default {
 </script>
 <template>
     <div :id="this.panelId"></div>
-</tempate>
+</template>

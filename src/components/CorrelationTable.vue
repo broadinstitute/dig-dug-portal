@@ -15,7 +15,8 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-                :sort-by.sync="sortBy"
+                :sort-by="sortBy"
+                @update:sortBy="sortBy = $event"
             >
                 <template #cell(other_phenotype)="r">
                     <a

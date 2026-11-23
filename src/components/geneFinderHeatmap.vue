@@ -35,7 +35,7 @@
 					</canvas>
 				</div>
 			</div>
-			<div class="heatmap-label" v-html=""></div>
+			<div class="heatmap-label"></div>
 		</div>
 		<pre></pre>
 		<b-pagination

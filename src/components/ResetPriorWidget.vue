@@ -24,7 +24,7 @@
                     <b-td
                         style="width:200px;color:gray;"
                         class="text-left"
-                    ><--Burden Association Summary Statistics</b-td>
+                    >&lt;--Burden Association Summary Statistics</b-td>
                 </b-tr>
                 <b-tr>
                     <b-th style="width:100px" rowspan="1" class="text-right">X</b-th>
@@ -40,7 +40,7 @@
                     <b-td
                         style="width:200px;color:gray;"
                         class="text-left"
-                    ><--Prior Allelic Variance</b-td>
+                    >&lt;--Prior Allelic Variance</b-td>
                 </b-tr>
             </b-tbody>
             <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->

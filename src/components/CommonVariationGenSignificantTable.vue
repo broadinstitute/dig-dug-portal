@@ -30,7 +30,7 @@
                         <b-td
                             style="width:200px;color:gray;white-space: nowrap;"
                             class="text-left"
-                        ><--GWAS Evidence</b-td>
+                        >&lt;--GWAS Evidence</b-td>
                     </b-tr>
                 </b-tbody>
                 <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->

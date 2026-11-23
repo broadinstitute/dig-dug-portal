@@ -138,7 +138,7 @@
                             </div>
                             <div class="vks-cs-filter-field">
                                 <label class="vks-cs-filter-label" for="vks-cs-filter-pvalue">
-                                    P-Value (<=)
+                                    P-Value (&lt;=)
                                 </label>
                                 <input
                                     id="vks-cs-filter-pvalue"

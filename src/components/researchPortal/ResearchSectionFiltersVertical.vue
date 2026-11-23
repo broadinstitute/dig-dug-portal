@@ -266,8 +266,8 @@
 				:key="name"
 			>
 				<template v-if="value.type != 'checkbox' && value.search.length > 0">
-					<b-badge
-						pill
+					<span
+						class="badge badge-secondary badge-pill"
 						v-for="(v, i) in value.search.filter(
 							(v, i, arr) => arr.indexOf(v) == i
 						)"
@@ -282,7 +282,7 @@
 								  '&nbsp;<span class=\'remove\'>X</span>'
 								: v + '&nbsp;<span class=\'remove\'>X</span>'
 						"
-					></b-badge>
+					></span>
 				</template>
 			</div>
 			<b-badge

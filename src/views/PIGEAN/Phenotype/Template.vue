@@ -217,7 +217,7 @@
                     </div>
                     <criterion-function-group>
                         <div class="col filter-col-md">
-                            <div class="label">P-value (<=)</div>
+                            <div class="label">P-value (&lt;=)</div>
                             <input
                                 type="number"
                                 class="form-control"

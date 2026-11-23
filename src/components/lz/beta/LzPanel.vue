@@ -114,4 +114,4 @@ export default {
 </script>
 <template>
     <div :id="this.id"></div>
-</tempate>
+</template>

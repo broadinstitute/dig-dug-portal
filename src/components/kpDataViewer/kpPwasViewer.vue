@@ -1853,25 +1853,6 @@ export default {
 			CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
 			CTX.fill();
 		},
-		feedHoverContent(xLoc, yLoc, ID, CONTENT) {
-			let hoverContent;
-
-			if (!!this.renderConfig.hoverContent) {
-				hoverContent = this.renderConfig.hoverContent;
-			}
-
-			if (!this.dotPosData[xLoc]) {
-				this.dotPosData[xLoc] = {};
-			}
-			this.dotPosData[xLoc][yLoc] = {};
-			this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] = ID;
-			if (!!this.renderConfig.hoverContent) {
-				hoverContent.map((h) => {
-					this.dotPosData[xLoc][yLoc][h] = CONTENT[h];
-				});
-			}
-		},
-
 		feedHoverContent(xLoc, yLoc, ID, CONTENT, POS_DATA) {
 			let hoverContent;
 

@@ -518,4 +518,3 @@ fieldset[disabled] .multiselect {
     }
 }
 </style>
-</style>

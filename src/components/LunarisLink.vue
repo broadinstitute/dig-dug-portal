@@ -52,9 +52,7 @@
             >
                 Copy data
             </button>
-            <textarea class="lunaris-modal-textarea" id="dataFromLunaris">{{
-                this.dataContent
-            }}</textarea>
+            <textarea class="lunaris-modal-textarea" id="dataFromLunaris" :value="this.dataContent"></textarea>
         </div>
     </div>
 </template>
