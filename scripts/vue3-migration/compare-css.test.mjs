@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -125,7 +125,48 @@ test('external and print-only links are ignored', () => {
   assert.deepEqual(pageCss(dir, html), { files: ['css/one.css'], text: 'a{color:red}' });
 });
 
+// ---- scoped ids -----------------------------------------------------------------------------
+
+/** A stylesheet whose rules carry the scoped id `id`: an attribute selector, and a keyframes name with its use. */
+const scoped = (id, color = 'red') =>
+  `.a[data-v-${id}]{color:${color}}@keyframes spin-data-v-${id}{from{opacity:0}to{opacity:1}}.b[data-v-${id}]{animation:spin-data-v-${id} 1s}`;
+
+const oneSheet = (css) => site({ 'a.html': page('/css/one.css'), 'css/one.css': css });
+
+test('scoped ids do not matter', () => {
+  const results = comparePages(oneSheet(scoped('1a2b3c4d')), oneSheet(scoped('9f8e7d6c')));
+  assert.deepEqual(results, [{ page: 'a.html', status: 'same' }]);
+});
+
+test('scoped ids do not matter when a file has several of them', () => {
+  const css = (a, b) => `.a[data-v-${a}]{color:red}.b[data-v-${b}]{color:blue}.c[data-v-${a}] .d[data-v-${b}]{color:green}`;
+  assert.equal(comparePages(oneSheet(css('11111111', '22222222')), oneSheet(css('aaaaaaaa', 'bbbbbbbb')))[0].status, 'same');
+});
+
+test('a changed declaration next to a changed id is still differs', () => {
+  const results = comparePages(oneSheet(scoped('1a2b3c4d', 'red')), oneSheet(scoped('9f8e7d6c', 'blue')));
+  assert.deepEqual(results, [{ page: 'a.html', status: 'differs' }]);
+});
+
+test('rules are split after the ids are masked, so a reorder with changed ids is reordered', () => {
+  const base = oneSheet('.a[data-v-1a2b3c4d]{color:red}.b[data-v-1a2b3c4d]{color:blue}');
+  const head = oneSheet('.b[data-v-9f8e7d6c]{color:blue}.a[data-v-9f8e7d6c]{color:red}');
+  assert.equal(comparePages(base, head)[0].status, 'reordered');
+});
+
+test('only data-v- followed by 8 lowercase hex digits is a scoped id', () => {
+  const css = (id) => `.a[data-v-${id}]{color:red}`;
+  assert.equal(comparePages(oneSheet(css('1234567')), oneSheet(css('7654321')))[0].status, 'differs');
+  assert.equal(comparePages(oneSheet(css('1A2B3C4D')), oneSheet(css('9F8E7D6C')))[0].status, 'differs');
+});
+
 // ---- pageCss --------------------------------------------------------------------------------
+
+test('pageCss reads links written without attribute quotes, as the minified production HTML has them', () => {
+  const dir = site({ 'css/a.css': 'a{}', 'css/print.css': 'p{}' });
+  const html = '<link href=/css/a.css rel=stylesheet><link href=/css/print.css rel=stylesheet media=print><link href=/js/app.js rel=preload as=script>';
+  assert.deepEqual(pageCss(dir, html), { files: ['css/a.css'], text: 'a{}' });
+});
 
 test('pageCss ignores a link that is not a URL, and a data: link', () => {
   const html = '<link href="http://" rel="stylesheet"><link href="data:text/css,a{}" rel="stylesheet">';
@@ -244,6 +285,36 @@ test('main exits 2 when neither directory has a page, so an empty comparison is 
   const { exitCode, err } = run(['--base', site({ 'css/one.css': 'a{}' }), '--head', site({})]);
   assert.equal(exitCode, 2);
   assert.match(err, /no \.html/);
+});
+
+// A process that can read any file (root) cannot make one unreadable.
+const canReadUnreadable = (() => {
+  const path = join(tmpdir(), `compare-css-probe-${process.pid}`);
+  writeFileSync(path, 'x', { mode: 0o000 });
+  try {
+    readFileSync(path);
+    return true;
+  } catch {
+    return false;
+  } finally {
+    rmSync(path, { force: true });
+  }
+})();
+
+test('main exits 2 with the error message, not 1 with a stack trace, when a page cannot be read', { skip: canReadUnreadable }, () => {
+  const files = { 'a.html': page('/css/one.css'), 'b.html': page('/css/one.css'), 'css/one.css': 'a{}' };
+  const base = site(files);
+  const head = site(files);
+  chmodSync(join(head, 'b.html'), 0o000);
+  const { exitCode, out, err } = run(['--base', base, '--head', head]);
+  assert.equal(exitCode, 2);
+  assert.equal(out, '');
+  assert.match(err, /EACCES.*b\.html/);
+  assert.doesNotMatch(err, /\n\s+at /);
+
+  const spawned = spawnSync(process.execPath, [SCRIPT, '--base', base, '--head', head], { encoding: 'utf8' });
+  assert.equal(spawned.status, 2);
+  assert.doesNotMatch(spawned.stderr, /\n\s+at /);
 });
 
 test('the CLI runs as a script', () => {

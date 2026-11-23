@@ -14,8 +14,15 @@
 //   differs    anything else
 //   missing    the page exists in one directory only
 //
-// Nothing is normalised beyond that: whitespace, comments and declaration order all count. The cascade depends on
-// the order, so a `reordered` page is a failure to look at, not a pass.
+// Nothing is normalised beyond that and the scoped ids below: whitespace, comments and declaration order all count.
+// The cascade depends on the order, so a `reordered` page is a failure to look at, not a pass.
+//
+// Scoped ids (`data-v-` and 8 hex digits, see `maskScopedIds`) are replaced by one constant before anything is
+// compared. In a production build vue-loader makes an id from a hash of the component's path and source, so two
+// builds from different checkouts never agree on a vendor component's id, and a branch changes the id of every
+// component it edits; compared as they are, every page would differ. What this cannot see: two rules that differ
+// only in their scoped id, such as the same selector scoped to another component, or a rule that moved from one
+// component's styles to another's. Both read as the same rule.
 //
 // The comparison cannot vouch for a page whose CSS it could not read, so a page is never `same` when a linked local
 // file does not exist or a file does not parse: it is `differs`, with a `problems` list on its result.
@@ -23,7 +30,7 @@
 // The report is markdown on stdout, usage errors go to stderr. Paths resolve against the current directory.
 //
 // Exit codes: 0 every page is same, 1 some page is not, 2 usage error (bad arguments, a directory that does not
-// exist, no pages in either directory).
+// exist, no pages in either directory) or a page or directory that could not be read (the message goes to stderr).
 import { readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -98,9 +105,21 @@ function localPath(href, page) {
 /** `css/chunk-vendors.1a2b3c4d.css` as `css/chunk-vendors.css`: Vue CLI puts an 8-digit hex content hash before `.css`. */
 const withoutHash = (file) => file.replace(/\.[0-9a-f]{8}(?=\.css$)/, '');
 
+// vue-loader scopes a component's styles with `data-v-<8 hex digits>`, in selectors (`.a[data-v-1a2b3c4d]`) and
+// at the end of a scoped keyframes name (`spin-data-v-1a2b3c4d`). A production build derives the id from a hash of
+// the component's path and source, so builds from two checkouts disagree on every vendor component's id, and a
+// branch gets a new id for each component it edits. Left alone, that made every page differ.
+const SCOPED_ID = /data-v-[0-9a-f]{8}/g;
+// The same length as an id, so a parse error's line and column still point into the file on disk.
+const MASKED_ID = 'data-v-00000000';
+
+/** `text` with each scoped id replaced by one constant. */
+const maskScopedIds = (text) => text.replace(SCOPED_ID, MASKED_ID);
+
 /**
- * Reads the local stylesheets `html` links, in link order. `cache` (path -> `{ text }`) saves reading the large
- * shared files once per page. Returns the files as `{ file, sheet }`, `file` being the name as linked.
+ * Reads the local stylesheets `html` links, in link order. `cache` (path -> `{ text, masked, rules }`) saves
+ * reading the large shared files once per page. Returns the files as `{ file, sheet }`, `file` being the name as
+ * linked, `sheet.text` what is on disk and `sheet.masked` the text the comparison uses (see `maskScopedIds`).
  * @throws {Error} when a linked local file does not exist or cannot be read
  */
 function readLinked(dir, html, page, cache) {
@@ -112,7 +131,8 @@ function readLinked(dir, html, page, cache) {
     let sheet = cache.get(path);
     if (sheet === undefined) {
       try {
-        sheet = { text: readFileSync(path, 'utf8'), rules: undefined };
+        const text = readFileSync(path, 'utf8');
+        sheet = { text, masked: maskScopedIds(text), rules: undefined };
       } catch {
         throw new Error(`${file} is linked but is not a readable file in ${dir}`);
       }
@@ -162,7 +182,10 @@ function topLevelRules(text, file) {
   return root.nodes.map((node) => node.toString());
 }
 
-/** What one side of a page loads: its text and top-level rules, or the problems that kept it from being read. */
+/**
+ * What one side of a page loads: its text and top-level rules, both with the scoped ids masked, or the problems
+ * that kept it from being read.
+ */
 function loadSide(dir, page, cache) {
   const html = readFileSync(join(dir, page), 'utf8');
   let linked;
@@ -175,13 +198,13 @@ function loadSide(dir, page, cache) {
   const problems = [];
   for (const { file, sheet } of linked) {
     try {
-      sheet.rules ??= topLevelRules(sheet.text, file);
+      sheet.rules ??= topLevelRules(sheet.masked, file);
       for (const rule of sheet.rules) rules.push(rule);
     } catch (error) {
       problems.push(error.message);
     }
   }
-  return { text: linked.map(({ sheet }) => sheet.text).join(''), rules, problems };
+  return { text: linked.map(({ sheet }) => sheet.masked).join(''), rules, problems };
 }
 
 const sameList = (a, b) => a.length === b.length && a.every((item, index) => item === b[index]);
@@ -282,22 +305,8 @@ function renderReport(options, results) {
   return `${lines.join('\n')}\n`;
 }
 
-/**
- * Compares the pages of `--base` (default `dist-baseline`) with those of `--head` (default `dist`). The report goes
- * to `out`, usage errors to `err`.
- *
- * @param {string[]} argv
- * @param {{ out?: { write: (text: string) => unknown }, err?: { write: (text: string) => unknown } }} [deps]
- * @returns {number} the exit code
- */
-export function main(argv, { out = process.stdout, err = process.stderr } = {}) {
-  let options;
-  try {
-    options = parseArgs(argv);
-  } catch (error) {
-    err.write(`${error.message}\n${USAGE}\n`);
-    return 2;
-  }
+/** The comparison and its report for parsed `options`; the exit code. Throws when a directory or page cannot be read. */
+function compare(options, out, err) {
   for (const [flag, dir] of [['--base', options.base], ['--head', options.head]]) {
     if (!isDirectory(dir)) {
       err.write(`${flag} ${dir} is not a directory\n${USAGE}\n`);
@@ -313,6 +322,32 @@ export function main(argv, { out = process.stdout, err = process.stderr } = {}) 
   }
   out.write(renderReport(options, results));
   return results.every(({ status }) => status === 'same') ? 0 : 1;
+}
+
+/**
+ * Compares the pages of `--base` (default `dist-baseline`) with those of `--head` (default `dist`). The report goes
+ * to `out`, usage errors and the message of a failed read to `err`.
+ *
+ * @param {string[]} argv
+ * @param {{ out?: { write: (text: string) => unknown }, err?: { write: (text: string) => unknown } }} [deps]
+ * @returns {number} the exit code
+ */
+export function main(argv, { out = process.stdout, err = process.stderr } = {}) {
+  let options;
+  try {
+    options = parseArgs(argv);
+  } catch (error) {
+    err.write(`${error.message}\n${USAGE}\n`);
+    return 2;
+  }
+  try {
+    return compare(options, out, err);
+  } catch (error) {
+    // A page that cannot be read is neither "same" nor "some page differs": say what failed and exit 2, so a caller
+    // that tests for exit 1 does not take it for a CSS difference.
+    err.write(`${error instanceof Error ? error.message : error}\n`);
+    return 2;
+  }
 }
 
 function isMain() {
