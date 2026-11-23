@@ -1,5 +1,8 @@
 import plotUtils from "@/utils/plotUtils.js";
-import { normalizePlotMargin } from "./variantSifterPlotShared.js";
+import {
+    normalizePlotMargin,
+    renderTrackHighlightBands,
+} from "./variantSifterPlotShared.js";
 
 export const VKS_STAR_DOT_SCALE = 1.25;
 const VKS_STAR_DOT_INNER = 5 * VKS_STAR_DOT_SCALE;
@@ -8,11 +11,19 @@ const VKS_STAR_DOT_SPIKE = 6 * VKS_STAR_DOT_SCALE;
 
 export const VKS_STAR_LINE_COLOR = "#FFAA0088";
 export const VKS_POSITION_MARKER_COLOR = "#ff0000";
+/** Red x-axis band fill for highlighted gene regions (50% opacity). */
+export const VKS_GENE_REGION_X_AXIS_FILL = "rgba(255, 0, 0, 0.5)";
+/** Fixed height (canvas px) for gene-region x-axis highlight bars. */
+export const VKS_GENE_REGION_X_AXIS_HEIGHT = 10;
+export const VKS_GENE_REGION_X_AXIS_LABEL_COLOR = "#b71c1c";
+/** Canvas font for gene-region x-axis labels (retina canvases are 2× CSS px). */
+export const VKS_GENE_REGION_X_AXIS_LABEL_FONT = "bold 22px sans-serif";
 
 export function emptyPlotMarkersState() {
     return {
         starredVariants: [],
         positionMarkers: [],
+        geneRegionMarkers: [],
     };
 }
 
@@ -84,6 +95,63 @@ export function togglePositionMarker(positionMarkers, position, visibleRegion) {
     return markers;
 }
 
+function normalizeGeneRegionMarkerName(value) {
+    return String(value || "").trim().toUpperCase();
+}
+
+/**
+ * Toggle a gene genomic span used for genes-track underlines and association/QTL
+ * x-axis highlight bars. `gene` needs `{ geneName|symbol, start, end }`.
+ */
+export function toggleGeneRegionMarker(geneRegionMarkers, gene) {
+    const geneName = String(
+        gene?.geneName || gene?.gene_name || gene?.symbol || ""
+    ).trim();
+    const start = Number(gene?.start);
+    const end = Number(gene?.end);
+    if (
+        !geneName ||
+        !Number.isFinite(start) ||
+        !Number.isFinite(end) ||
+        start === end
+    ) {
+        return Array.isArray(geneRegionMarkers) ? [...geneRegionMarkers] : [];
+    }
+
+    const markers = Array.isArray(geneRegionMarkers)
+        ? [...geneRegionMarkers]
+        : [];
+    const key = normalizeGeneRegionMarkerName(geneName);
+    const existingIndex = markers.findIndex(
+        (marker) =>
+            normalizeGeneRegionMarkerName(
+                marker?.geneName || marker?.gene_name || marker?.symbol
+            ) === key
+    );
+    if (existingIndex >= 0) {
+        markers.splice(existingIndex, 1);
+        return markers;
+    }
+    markers.push({
+        geneName,
+        start: Math.min(start, end),
+        end: Math.max(start, end),
+    });
+    return markers;
+}
+
+export function geneRegionMarkerNameSet(geneRegionMarkers) {
+    return new Set(
+        (geneRegionMarkers || [])
+            .map((marker) =>
+                normalizeGeneRegionMarkerName(
+                    marker?.geneName || marker?.gene_name || marker?.symbol
+                )
+            )
+            .filter(Boolean)
+    );
+}
+
 export const VKS_X_AXIS_INTERACTION_BAND_FRACTION = 0.5;
 
 export function getXAxisBandBounds(margin, plotHeight, canvasHeight) {
@@ -126,6 +194,89 @@ export function renderXAxisBandHoverHighlight(ctx, options) {
     }
     ctx.fillStyle = VKS_X_AXIS_BAND_HOVER_FILL;
     ctx.fillRect(margin.left, bandTop, plotWidth, bandHeight);
+}
+
+/**
+ * Draw thin red semi-transparent bars on the x-axis for highlighted gene spans,
+ * with the gene symbol centered just above each bar.
+ */
+export function renderGeneRegionXAxisBands(ctx, options) {
+    const {
+        geneRegionMarkers = [],
+        visibleRegion,
+        margin,
+        plotWidth,
+        plotHeight,
+        canvasHeight,
+        fillStyle = VKS_GENE_REGION_X_AXIS_FILL,
+        bandHeight = VKS_GENE_REGION_X_AXIS_HEIGHT,
+        labelColor = VKS_GENE_REGION_X_AXIS_LABEL_COLOR,
+    } = options;
+
+    if (!ctx || !geneRegionMarkers?.length || !visibleRegion || !margin) {
+        return;
+    }
+
+    const { bandTop } = getXAxisBandBounds(margin, plotHeight, canvasHeight);
+    if (!bandHeight) {
+        return;
+    }
+
+    renderTrackHighlightBands(ctx, {
+        intervals: geneRegionMarkers,
+        visibleRegion,
+        margin,
+        plotWidth,
+        plotHeight,
+        bandTop,
+        bandHeight,
+        fillStyle,
+    });
+
+    const xMin = Number(visibleRegion.start);
+    const xMax = Number(visibleRegion.end);
+    const xSpan = xMax - xMin;
+    if (!xSpan) {
+        return;
+    }
+
+    const xPosByPixel = plotWidth / xSpan;
+    const labelY = bandTop - 2;
+    const plotLeft = margin.left;
+    const plotRight = margin.left + plotWidth;
+
+    ctx.save();
+    ctx.font = VKS_GENE_REGION_X_AXIS_LABEL_FONT;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+
+    geneRegionMarkers.forEach((marker) => {
+        const name = String(
+            marker?.geneName || marker?.gene_name || marker?.symbol || ""
+        ).trim();
+        if (!name) {
+            return;
+        }
+        const start = Number(marker.start);
+        const end = Number(marker.end);
+        if (!Number.isFinite(start) || !Number.isFinite(end)) {
+            return;
+        }
+        const x1 = plotLeft + (Math.min(start, end) - xMin) * xPosByPixel;
+        const x2 = plotLeft + (Math.max(start, end) - xMin) * xPosByPixel;
+        const mid = (x1 + x2) / 2;
+        if (mid < plotLeft || mid > plotRight) {
+            return;
+        }
+
+        // Light halo so the symbol stays readable over tick labels / the bar.
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "rgba(255,255,255,0.9)";
+        ctx.strokeText(name, mid, labelY);
+        ctx.fillStyle = labelColor;
+        ctx.fillText(name, mid, labelY);
+    });
+    ctx.restore();
 }
 
 export function renderLivePositionGuideline(ctx, xPos, options) {

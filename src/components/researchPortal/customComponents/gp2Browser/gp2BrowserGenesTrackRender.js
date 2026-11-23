@@ -328,6 +328,19 @@ function renderStrandArrow(ctx, x, y, color, pointingRight) {
  * `showLabels: false` renders the collapsed view (exons + a strand arrowhead,
  * no text label) — see the file-level comment.
  */
+function isHighlightedGene(gene, highlightedGeneNames) {
+    if (!highlightedGeneNames || highlightedGeneNames.size === 0) {
+        return false;
+    }
+    const name = String(gene?.gene_name || gene?.gene || "").trim().toUpperCase();
+    return Boolean(name) && highlightedGeneNames.has(name);
+}
+
+/** Red underline under selected gene-symbol labels (canvas px). */
+const HIGHLIGHT_LABEL_UNDERLINE_COLOR = "#ff0000";
+const HIGHLIGHT_LABEL_UNDERLINE_THICKNESS = 4;
+const HIGHLIGHT_LABEL_UNDERLINE_GAP = 4;
+
 export function renderGenesTrack(ctx, options) {
     const {
         genes = [],
@@ -337,6 +350,7 @@ export function renderGenesTrack(ctx, options) {
         canvasHeight,
         colorByGeneType = {},
         showLabels = true,
+        highlightedGeneNames = null,
     } = options;
 
     if (!ctx || !visibleRegion || !canvasWidth || !canvasHeight) {
@@ -372,13 +386,31 @@ export function renderGenesTrack(ctx, options) {
         const onRight = labelOnRight(gene);
 
         if (showLabels) {
-            ctx.fillStyle = color;
+            const label = formatGeneLabel(gene);
+            const textX = onRight
+                ? xEndPos + GP2_GENE_LABEL_GAP
+                : xStartPos - GP2_GENE_LABEL_GAP;
             ctx.textAlign = onRight ? "left" : "right";
-            ctx.fillText(
-                formatGeneLabel(gene),
-                onRight ? xEndPos + GP2_GENE_LABEL_GAP : xStartPos - GP2_GENE_LABEL_GAP,
-                bodyCenterY
-            );
+            ctx.fillStyle = color;
+            ctx.fillText(label, textX, bodyCenterY);
+
+            if (isHighlightedGene(gene, highlightedGeneNames)) {
+                const textWidth = ctx.measureText(label).width;
+                const underlineLeft = onRight ? textX : textX - textWidth;
+                const underlineY =
+                    bodyCenterY +
+                    HIGHLIGHT_LABEL_UNDERLINE_GAP +
+                    HIGHLIGHT_LABEL_UNDERLINE_THICKNESS / 2;
+                ctx.save();
+                ctx.strokeStyle = HIGHLIGHT_LABEL_UNDERLINE_COLOR;
+                ctx.lineWidth = HIGHLIGHT_LABEL_UNDERLINE_THICKNESS;
+                ctx.lineCap = "round";
+                ctx.beginPath();
+                ctx.moveTo(underlineLeft, underlineY);
+                ctx.lineTo(underlineLeft + textWidth, underlineY);
+                ctx.stroke();
+                ctx.restore();
+            }
         }
 
         ctx.beginPath();

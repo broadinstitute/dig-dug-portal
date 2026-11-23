@@ -333,6 +333,8 @@
                         v-else-if="geneScoresModel"
                         :model="geneScoresModel"
                         :visible-fields="geneScoresState.visibleFields"
+                        :gene-region-markers="plotMarkers?.geneRegionMarkers || []"
+                        @toggle-gene-region="$emit('toggle-gene-region', $event)"
                     />
                 </div>
                 <div v-if="showCredibleSetsSection" class="vks-plot-section">

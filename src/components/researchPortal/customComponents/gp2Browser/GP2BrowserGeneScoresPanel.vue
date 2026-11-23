@@ -68,19 +68,22 @@
                                 gridTemplateRows: matrixRowTemplate,
                             }"
                         >
-                            <div
+                            <button
                                 v-for="gene in locus.genes"
                                 :key="`gh-${locus.locusId}-${gene.symbol}`"
+                                type="button"
                                 class="gp2-gene-scores-gene-col-head"
-                                :title="
-                                    gene.trackGene
-                                        ? `${gene.symbol} (gene track)`
-                                        : `${gene.symbol} (no gene-track match)`
-                                "
+                                :class="{
+                                    'is-clickable': canHighlightGene(gene),
+                                    'is-highlighted': isGeneHighlighted(gene),
+                                }"
+                                :disabled="!canHighlightGene(gene)"
+                                :title="geneHighlightTitle(gene)"
+                                @click="onGeneClick(gene)"
                             >
                                 {{ gene.symbol
                                 }}{{ gene.trackGene ? "" : "*" }}
-                            </div>
+                            </button>
                             <div
                                 v-for="cell in matrixCells(locus)"
                                 :key="cell.key"
@@ -145,6 +148,11 @@ export default {
             type: Array,
             default: null,
         },
+        /** Active gene-region highlights from plot markers. */
+        geneRegionMarkers: {
+            type: Array,
+            default: () => [],
+        },
     },
     computed: {
         displayLoci() {
@@ -173,10 +181,58 @@ export default {
                 locus.genes.some((gene) => !gene.trackGene)
             );
         },
+        highlightedGeneNames() {
+            return new Set(
+                (this.geneRegionMarkers || [])
+                    .map((marker) =>
+                        String(
+                            marker?.geneName ||
+                                marker?.gene_name ||
+                                marker?.symbol ||
+                                ""
+                        )
+                            .trim()
+                            .toUpperCase()
+                    )
+                    .filter(Boolean)
+            );
+        },
     },
     methods: {
         locusMinWidth(locus) {
             return Math.max(220, (locus.genes?.length || 1) * COL_W);
+        },
+        canHighlightGene(gene) {
+            return (
+                Boolean(gene?.symbol) &&
+                Number.isFinite(Number(gene?.start)) &&
+                Number.isFinite(Number(gene?.end)) &&
+                Number(gene.start) !== Number(gene.end)
+            );
+        },
+        isGeneHighlighted(gene) {
+            const key = String(gene?.symbol || "")
+                .trim()
+                .toUpperCase();
+            return Boolean(key) && this.highlightedGeneNames.has(key);
+        },
+        geneHighlightTitle(gene) {
+            if (!this.canHighlightGene(gene)) {
+                return `${gene.symbol} (no gene-track match)`;
+            }
+            return this.isGeneHighlighted(gene)
+                ? `Clear highlight for ${gene.symbol}`
+                : `Highlight ${gene.symbol} on genes track and plots`;
+        },
+        onGeneClick(gene) {
+            if (!this.canHighlightGene(gene)) {
+                return;
+            }
+            this.$emit("toggle-gene-region", {
+                geneName: gene.symbol,
+                start: Number(gene.start),
+                end: Number(gene.end),
+            });
         },
         matrixCells(locus) {
             const cells = [];
@@ -369,13 +425,35 @@ export default {
     display: flex;
     align-items: flex-end;
     justify-content: center;
+    width: 100%;
     height: var(--gs-gene-h);
+    margin: 0;
     padding: 0 0 4px;
+    border: 0;
+    background: transparent;
     text-align: center;
     font-size: 11px;
     font-weight: 700;
     line-height: 1.2;
     color: var(--cfde-blue, #2c5c97);
+}
+
+.gp2-gene-scores-gene-col-head.is-clickable {
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+.gp2-gene-scores-gene-col-head.is-clickable:hover,
+.gp2-gene-scores-gene-col-head.is-highlighted {
+    color: var(--cfde-ink, #1b365d);
+}
+
+.gp2-gene-scores-gene-col-head:disabled {
+    cursor: default;
+    opacity: 0.72;
+    text-decoration: none;
 }
 
 .gp2-gene-scores-cell {

@@ -256,6 +256,7 @@ export function exportVariantSifterSession({
         plotMarkers: {
             starredVariants: plotMarkersState?.starredVariants ?? [],
             positionMarkers: plotMarkersState?.positionMarkers ?? [],
+            geneRegionMarkers: plotMarkersState?.geneRegionMarkers ?? [],
         },
         credibleSets: credibleSetsState
             ? {
@@ -578,6 +579,9 @@ function normalizePlotMarkersState(payload) {
             : [],
         positionMarkers: Array.isArray(exported.positionMarkers)
             ? exported.positionMarkers
+            : [],
+        geneRegionMarkers: Array.isArray(exported.geneRegionMarkers)
+            ? exported.geneRegionMarkers
             : [],
     };
 }

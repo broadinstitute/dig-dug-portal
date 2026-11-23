@@ -58,6 +58,7 @@
                         @commit-viewing-region="$emit('commit-viewing-region')"
                         @pan-end="$emit('pan-end')"
                         @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                        @toggle-gene-region="$emit('toggle-gene-region', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                         @toggle-qtl-star-variant="$emit('toggle-qtl-star-variant', $event)"
                         @set-reference-variant="$emit('set-reference-variant', $event)"

@@ -56,7 +56,10 @@ import {
     resolveGeneType,
 } from "../kpVariantSifter/variantSifterGenesFilter.js";
 import { geneColorForGene } from "../kpVariantSifter/variantSifterGenesColors.js";
-import { renderPlotMarkerLines } from "../kpVariantSifter/variantSifterPlotMarkers.js";
+import {
+    geneRegionMarkerNameSet,
+    renderPlotMarkerLines,
+} from "../kpVariantSifter/variantSifterPlotMarkers.js";
 import { positionAnchoredPopupElement } from "../kpVariantSifter/variantSifterPopupPosition.js";
 
 export default {
@@ -142,6 +145,9 @@ export default {
                 return "";
             }
             return geneColorForGene(this.hoveredGene, this.colorByGeneType);
+        },
+        highlightedGeneNames() {
+            return geneRegionMarkerNameSet(this.plotMarkers?.geneRegionMarkers);
         },
     },
     watch: {
@@ -331,6 +337,7 @@ export default {
                 canvasHeight,
                 colorByGeneType: this.colorByGeneType,
                 showLabels: this.showLabels,
+                highlightedGeneNames: this.highlightedGeneNames,
             });
 
             renderPlotMarkerLines(ctx, {

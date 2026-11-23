@@ -132,6 +132,7 @@ import {
     genomicPositionToCanvasX,
     isCanvasPointInXAxisInteractionZone,
     isVariantStarred,
+    renderGeneRegionXAxisBands,
     renderLivePositionGuideline,
     renderPlotMarkerLines,
     renderStarDot,
@@ -327,6 +328,9 @@ export default {
         },
         positionMarkers() {
             return this.plotMarkers?.positionMarkers || [];
+        },
+        geneRegionMarkers() {
+            return this.plotMarkers?.geneRegionMarkers || [];
         },
         dotMenuVariantId() {
             return this.dotMenuRow?.["Variant ID"] || "";
@@ -724,6 +728,15 @@ export default {
             renderPlotMarkerLines(ctx, {
                 starredVariants: this.starredVariants,
                 positionMarkers: this.positionMarkers,
+                visibleRegion,
+                margin,
+                plotWidth,
+                plotHeight,
+                canvasHeight,
+            });
+
+            renderGeneRegionXAxisBands(ctx, {
+                geneRegionMarkers: this.geneRegionMarkers,
                 visibleRegion,
                 margin,
                 plotWidth,

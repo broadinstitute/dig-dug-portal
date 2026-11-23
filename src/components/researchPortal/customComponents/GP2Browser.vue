@@ -106,6 +106,7 @@
                     @commit-viewing-region="onCommitViewingRegion"
                     @pan-end="onRegionPanEnd"
                     @toggle-position-marker="onTogglePositionMarker"
+                    @toggle-gene-region="onToggleGeneRegionMarker"
                     @toggle-star-variant="onToggleStarVariant"
                     @toggle-qtl-star-variant="onToggleQtlStarVariant"
                     @set-reference-variant="onSetReferenceVariant"
@@ -354,6 +355,7 @@ import {
     emptyPlotMarkersState,
     createStarredVariant,
     isVariantStarred,
+    toggleGeneRegionMarker,
     togglePositionMarker,
     toggleStarredVariant,
 } from "./kpVariantSifter/variantSifterPlotMarkers.js";
@@ -1827,6 +1829,15 @@ export default Vue.component("gp2-browser", {
                     this.plotMarkersState.positionMarkers,
                     position,
                     viewRegion
+                ),
+            };
+        },
+        onToggleGeneRegionMarker(gene) {
+            this.plotMarkersState = {
+                ...this.plotMarkersState,
+                geneRegionMarkers: toggleGeneRegionMarker(
+                    this.plotMarkersState.geneRegionMarkers,
+                    gene
                 ),
             };
         },
