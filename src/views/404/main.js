@@ -4,6 +4,7 @@ import store from "./store.js";
 
 import { pageMixin } from "@/mixins/pageMixin";
 
+// @vue/component
 mountPage(Template, {
     store,
     mixins: [pageMixin],

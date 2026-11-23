@@ -23,6 +23,10 @@
 // creates its `Vuex.Store` when it is imported, which needs Vuex installed. An entry that calls `mountPage` already
 // is done.
 //
+// The line above the call gets `// @vue/component`, the marker of eslint-plugin-vue. The plugin knows the options of
+// `new Vue({ ... })` for a component, but not those of `mountPage(Template, { ... })`: without the marker the lint
+// would stop checking the entries, and its findings in them would vanish unfixed.
+//
 // Every change is a text splice: bytes outside it stay as they were and the file keeps its line endings. A statement
 // takes its line along when nothing else is on it. A comment stays where it stood, on a line of its own or after what
 // goes: it can be code that was commented out. Where a removal leaves a blank line on each side, one of them goes too.
@@ -30,9 +34,9 @@
 // It reports what it will not decide, as markdown on stdout, after the totals:
 //   - Unresolved: an entry that mounts in another way (an `el` or `template` option, a `render` that does more than
 //     return `createElement(Template)`, a second `new Vue`, ...), and a component whose script it cannot edit
-//     (`<script setup>`, `lang="ts"`, two scripts). The file is not changed. Convert it by hand, then run this again,
-//     and an entry before its page is built: its store is stripped like any other, and runs when it is imported,
-//     before an entry that installs Vuex itself gets to it.
+//     (`<script setup>`, `lang="ts"`, two scripts). The file is not changed: edit it by hand, then run this again. An
+//     entry must be converted before its page is built, even one that installs Vuex itself. Its store is stripped like
+//     any other file, and creates its `Vuex.Store` when it is imported, before the entry can install Vuex.
 //   - Left in place: any other install, with its line. Another plugin, `Vue.use(X, options)`, an install in a
 //     function or a condition, a plugin or a `Vue` that is re-assigned or not imported as above. Note that
 //     `pageSetup.js` runs first, and Vue ignores a second install of a plugin, its options included.
@@ -61,6 +65,7 @@ const USAGE = 'usage: node scripts/vue3-migration/page-setup.mjs [--root <dir>] 
 
 const PAGE_SETUP = 'src/utils/pageSetup.js';
 const MOUNT_IMPORT = 'import { mountPage } from "@/utils/pageSetup";';
+const COMPONENT_MARKER = '// @vue/component';
 
 /** What `pageSetup.js` installs: module -> exported name -> plugin. */
 const PLUGINS = {
@@ -459,11 +464,11 @@ function mountShape(program) {
     mount.node.arguments[0].type === 'StringLiteral' &&
     mount.node.arguments[0].value === '#app';
   if (!isMounted) return unresolve('not mounted with `.$mount("#app")`');
-  // Parentheses that open before `new` close among what is replaced.
-  if (mount.node.start !== vue.node.start) return unresolve('parentheses around `new Vue({ ... })`');
   if (!mount.parentPath.isExpressionStatement() || !mount.parentPath.parentPath.isProgram()) {
     return unresolve('`new Vue({ ... }).$mount("#app")` is not a statement of its own at the top level');
   }
+  // Parentheses that open before `new` would hold the marker, and can close among what is replaced.
+  if (mount.parent.start !== vue.node.start) return unresolve('parentheses around `new Vue({ ... })`');
 
   const renders = named('render');
   if (renders.length === 0) return unresolve('no `render` option');
@@ -494,9 +499,24 @@ function propertyRemovals(text, ast, options, dropped) {
 }
 
 /**
+ * Edits that put the marker on the line above the call that starts at `vue`, unless one is there. eslint-plugin-vue
+ * looks for it on the line before the one the options open on, which is the call's own line once it is rewritten.
+ */
+function markerEdits(text, { comments }, vue, eol) {
+  if (comments.some(({ value, loc }) => /@vue\/component/.test(value) && loc.end.line === vue.loc.start.line - 1)) return [];
+  const indent = lineIndent(text, vue.start);
+  const marker = `${COMPONENT_MARKER}${eol}${indent}`;
+  const before = text.slice(text.lastIndexOf('\n', vue.start) + 1, vue.start);
+  if (isBlank(before)) return [{ start: vue.start, end: vue.start, text: marker }];
+  // What shares the line stays on it, and the call moves to one of its own.
+  return [{ start: vue.start - /[ \t]*$/.exec(before)[0].length, end: vue.start, text: `${eol}${indent}${marker}` }];
+}
+
+/**
  * Mounts an entry through `mountPage` (see the header comment): `new Vue({ ... }).$mount("#app")` becomes
- * `mountPage(Template, { ... })` without its `render`, `mountPage` is imported before the first import, and the import
- * of Vue goes with its last reference. An entry that calls `mountPage` already comes back as it is.
+ * `mountPage(Template, { ... })` without its `render` and with the marker above it, `mountPage` is imported before the
+ * first import, and the import of Vue goes with its last reference. An entry that calls `mountPage` already comes back
+ * as it is.
  *
  * For an entry of any other shape the result is the reason, alone.
  * @param {string} source the entry's text
@@ -523,6 +543,7 @@ export function mountEntry(source, file = '<source>') {
     const eol = firstBreak > 0 && source[firstBreak - 1] === '\r' ? '\r\n' : '\n';
     const text = splice(source, [
       { start: first.start, end: first.start, text: `${MOUNT_IMPORT}${eol}${lineIndent(source, first.start)}` },
+      ...markerEdits(source, ast, vue, eol),
       { start: vue.start, end: options.start, text: 'mountPage(Template, ' },
       ...propertyRemovals(source, ast, options, renders),
       { start: options.end, end: mount.end, text: ')' },
@@ -650,7 +671,7 @@ export function setupTree({ root, dryRun = false, write = writeFileSync, strip =
 const LEFT_NOTE =
   'Each of these still runs where it is, after `pageSetup.js`. An install of a plugin that `pageSetup.js` has installed does nothing there, and its options are ignored: move those into `pageSetup.js` by hand. A plugin of one page belongs in the third argument of its `mountPage`.';
 const UNRESOLVED_NOTE =
-  'These files are not changed. Convert every entry listed here by hand before it is built, whether its page loses something below or not: its store is stripped like any other, and runs when it is imported, before an entry that installs Vuex itself gets to it.';
+  'These files are not changed. Convert every entry listed here by hand before it is built, whether its page loses something below or not: its store is stripped like any other file, and creates its `Vuex.Store` when it is imported, before the entry can install Vuex itself. In a component, leave one plain `<script>` block, or take out its installs, stylesheet imports and what they leave unused by hand. Then run this again.';
 const PAGES_NOTE =
   'What runs when the files of a page load, by reachability from its entry, before and after. A page that loses something does not reach `pageSetup.js`: its entry is unresolved.';
 

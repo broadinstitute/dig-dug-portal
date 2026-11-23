@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { mountEntry, pagePlugins, run, setupTree, stripPlugins } from './page-setup.mjs';
+import { vue3Linter } from './vue3-eslint.mjs';
 
 /** Source text from lines: every file in this test ends with a newline. */
 const text = (...lines) => `${lines.join('\n')}\n`;
@@ -467,6 +469,7 @@ test('a removal that would join two statements is an error, not a silent change'
 // ---- entries --------------------------------------------------------------------------------
 
 const HEAD = ['import Vue from "vue";', 'import Template from "./Template.vue";', 'import store from "./store.js";', ''];
+const MARK = '// @vue/component';
 const MOUNTED_HEAD = ['import { mountPage } from "@/utils/pageSetup";', ...HEAD.slice(1)];
 
 test('rewrites render(createElement, context)', () => {
@@ -486,23 +489,23 @@ test('rewrites render(createElement, context)', () => {
         '}).$mount("#app");',
       ),
     ),
-    text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', '    methods: {},', '', '    watch: {},', '});'),
+    text(...MOUNTED_HEAD, MARK, 'mountPage(Template, {', '    store,', '    methods: {},', '', '    watch: {},', '});'),
   );
 });
 
 test('rewrites render when it is the first or the last option, with the blank line that set it apart', () => {
   assert.equal(
     mounted(text(...HEAD, 'new Vue({', '    store,', '', '    render(h) {', '        return h(Template);', '    },', '}).$mount("#app");')),
-    text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', '});'),
+    text(...MOUNTED_HEAD, MARK, 'mountPage(Template, {', '    store,', '});'),
   );
   assert.equal(
     mounted(text(...HEAD, 'new Vue({', '    render(h) {', '        return h(Template);', '    },', '', '    store,', '}).$mount("#app");')),
-    text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', '});'),
+    text(...MOUNTED_HEAD, MARK, 'mountPage(Template, {', '    store,', '});'),
   );
   // No trailing comma, and a comment on a line of its own.
   assert.equal(
     mounted(text(...HEAD, 'new Vue({', '    store,', '    // the page', '    render(h) {', '        return h(Template);', '    }', "}).$mount('#app')")),
-    text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', '    // the page', '})'),
+    text(...MOUNTED_HEAD, MARK, 'mountPage(Template, {', '    store,', '    // the page', '})'),
   );
 });
 
@@ -514,26 +517,61 @@ test('keeps a comment that trails render', () => {
   ]) {
     assert.equal(
       mounted(text(...HEAD, 'new Vue({', '    store,', `    ${render}`, '}).$mount("#app");')),
-      text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', `    ${comment}`, '});'),
+      text(...MOUNTED_HEAD, MARK, 'mountPage(Template, {', '    store,', `    ${comment}`, '});'),
       render,
     );
   }
   assert.equal(
     mounted(text(...HEAD, 'new Vue({', '    store,', '    render(h) {', '        return h(Template);', '    }, // data: {},', '    methods: {},', '}).$mount("#app");')),
-    text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', '    // data: {},', '    methods: {},', '});'),
+    text(...MOUNTED_HEAD, MARK, 'mountPage(Template, {', '    store,', '    // data: {},', '    methods: {},', '});'),
   );
   // And one that trails the import of Vue.
   assert.equal(
     mounted(text('import Vue from "vue"; // import Vue from "./vue";', ...HEAD.slice(1), 'new Vue({ a: 1, render: (h) => h(Template) }).$mount("#app");')),
-    text(MOUNTED_HEAD[0], '// import Vue from "./vue";', ...HEAD.slice(1), 'mountPage(Template, { a: 1 });'),
+    text(MOUNTED_HEAD[0], '// import Vue from "./vue";', ...HEAD.slice(1), MARK, 'mountPage(Template, { a: 1 });'),
   );
+});
+
+test('puts the marker of eslint-plugin-vue on the line above the call', () => {
+  const options = ['    store,', '    render: (h) => h(Template),', '}).$mount("#app");'];
+  for (const [label, before, after] of [
+    ['a comment above', ['// The page.', 'new Vue({', ...options], ['// The page.', MARK, 'mountPage(Template, {', '    store,', '});']],
+    ['a block comment above', ['/*', ' * The page.', ' */', 'new Vue({', ...options], ['/*', ' * The page.', ' */', MARK, 'mountPage(Template, {', '    store,', '});']],
+    ['a marker above', [MARK, 'new Vue({', ...options], [MARK, 'mountPage(Template, {', '    store,', '});']],
+    ['a marker further up', [MARK, '', 'new Vue({', ...options], [MARK, '', MARK, 'mountPage(Template, {', '    store,', '});']],
+    ['an indented call', ['\tnew Vue({', ...options], [`\t${MARK}`, '\tmountPage(Template, {', '    store,', '});']],
+    ['code before it on its line', ['    start(); new Vue({', ...options], ['    start();', `    ${MARK}`, '    mountPage(Template, {', '    store,', '});']],
+    ['a comment before it on its line', ['/* the page */ new Vue({', ...options], ['/* the page */', MARK, 'mountPage(Template, {', '    store,', '});']],
+    ['options on a line of their own', ['new Vue(', '{', ...options], [MARK, 'mountPage(Template, {', '    store,', '});']],
+  ]) {
+    assert.equal(mounted(text(...HEAD, ...before)), text(...MOUNTED_HEAD, ...after), label);
+    assert.equal(mounted(crlf(text(...HEAD, ...before))), crlf(text(...MOUNTED_HEAD, ...after)), label);
+  }
+});
+
+test('eslint-plugin-vue sees the options of a converted entry as a component, and would not without the marker', async () => {
+  const cwd = fileURLToPath(new URL('../..', import.meta.url));
+  const linter = vue3Linter({ cwd });
+  const findings = async (source) => {
+    const [{ messages }] = await linter.lintText(source, { filePath: join(cwd, ENTRY) });
+    assert.deepEqual(messages.filter(({ fatal }) => fatal), []);
+    return messages.map(({ ruleId }) => ruleId).filter((rule) => rule === 'vue/no-deprecated-destroyed-lifecycle').length;
+  };
+  for (const render of ['render(createElement, context) {\n        return createElement(Template);\n    },', 'render: (h) => h(Template),']) {
+    const before = text(...HEAD, '// The page.', 'new Vue({', '    store,', '    destroyed() {', '        stop();', '    },', `    ${render}`, '}).$mount("#app");');
+    const after = mounted(before);
+    assert.equal(await findings(before), 1);
+    assert.equal(await findings(after), 1);
+    assert.equal(await findings(crlf(after)), 1);
+    assert.equal(await findings(after.replace(`${MARK}\n`, '')), 0);
+  }
 });
 
 test('rewrites an arrow render', () => {
   for (const render of ['render: (h) => h(Template),', 'render: h => h(Template)', 'render: (createElement) => { return createElement(Template); },', 'render: function (h) { return h(Template) },']) {
     assert.equal(
       mounted(text(...HEAD, 'new Vue({', '    store,', `    ${render}`, '}).$mount("#app");')),
-      text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', '});'),
+      text(...MOUNTED_HEAD, MARK, 'mountPage(Template, {', '    store,', '});'),
       render,
     );
   }
@@ -548,7 +586,7 @@ test('rewrites options on one line', () => {
     ['{ render: (h) => h(Template) }', '{ }'],
     ['({ store, render: (h) => (h(Template)) })', '{ store }'],
   ]) {
-    assert.equal(mounted(text(...HEAD, `new Vue(${options}).$mount("#app");`)), text(...MOUNTED_HEAD, `mountPage(Template, ${after});`), options);
+    assert.equal(mounted(text(...HEAD, `new Vue(${options}).$mount("#app");`)), text(...MOUNTED_HEAD, MARK, `mountPage(Template, ${after});`), options);
   }
 });
 
@@ -556,7 +594,7 @@ test('rewrites two renders that both return the template, since the later one wi
   const render = ['    render(createElement, context) {', '        return createElement(Template);', '    },'];
   assert.equal(
     mounted(text(...HEAD, 'new Vue({', '    store,', ...render, ...render, '}).$mount("#app");')),
-    text(...MOUNTED_HEAD, 'mountPage(Template, {', '    store,', '});'),
+    text(...MOUNTED_HEAD, MARK, 'mountPage(Template, {', '    store,', '});'),
   );
   assert.match(unresolved(text(...HEAD, 'new Vue({', ...render, '    render: (h) => h("div"),', '}).$mount("#app");')), /render/);
 });
@@ -609,6 +647,7 @@ test('leaves an entry of another shape unresolved, with the reason', () => {
     [text(...HEAD, 'new Vue({', render, '}).$mount("#app", true);'), /not mounted with/],
     [text(...HEAD, '(new Vue({', render, '})).$mount("#app");'), /parentheses/],
     [text(...HEAD, '(new Vue({', render, '}).$mount)("#app");'), /parentheses/],
+    [text(...HEAD, '(new Vue({', render, '}).$mount("#app"));'), /parentheses/],
     [text(...HEAD, 'new Vue(options).$mount("#app");'), /object literal/],
     [text(...HEAD, 'new Vue().$mount("#app");'), /object literal/],
     [text(...HEAD, 'export const vm = new Vue({', render, '}).$mount("#app");'), /statement of its own/],
@@ -643,17 +682,17 @@ test('puts the pageSetup import first', () => {
   // The store comes before `vue` here, and its `new Vuex.Store` runs when it is imported.
   assert.equal(
     mounted(text('import store from "./store.js";', 'import Vue from "vue";', 'import Template from "./Template.vue";', '', 'new Vue({ store, render: (h) => h(Template) }).$mount("#app");')),
-    text('import { mountPage } from "@/utils/pageSetup";', 'import store from "./store.js";', 'import Template from "./Template.vue";', '', 'mountPage(Template, { store });'),
+    text('import { mountPage } from "@/utils/pageSetup";', 'import store from "./store.js";', 'import Template from "./Template.vue";', '', MARK, 'mountPage(Template, { store });'),
   );
   // After a comment that heads the file, and after code that stands before the imports.
   assert.equal(
     mounted(text('// Adapted from a generated page.', 'import Vue from "vue";', '', 'import Template from "./Template.vue";', 'new Vue({ a: 1, render: (h) => h(Template) }).$mount("#app");')),
-    text('// Adapted from a generated page.', 'import { mountPage } from "@/utils/pageSetup";', '', 'import Template from "./Template.vue";', 'mountPage(Template, { a: 1 });'),
+    text('// Adapted from a generated page.', 'import { mountPage } from "@/utils/pageSetup";', '', 'import Template from "./Template.vue";', MARK, 'mountPage(Template, { a: 1 });'),
   );
   // `Vue` stays imported when something else uses it.
   assert.equal(
     mounted(text(...HEAD, 'Vue.prototype.$x = 1;', 'new Vue({ a: 1, render: (h) => h(Template) }).$mount("#app");')),
-    text(MOUNTED_HEAD[0], ...HEAD, 'Vue.prototype.$x = 1;', 'mountPage(Template, { a: 1 });'),
+    text(MOUNTED_HEAD[0], ...HEAD, 'Vue.prototype.$x = 1;', MARK, 'mountPage(Template, { a: 1 });'),
   );
 });
 
@@ -696,6 +735,7 @@ test('both steps give an entry the shape the pages converted by hand have, and c
     '',
     'const started = Date.now();',
     '',
+    MARK,
     'mountPage(Template, {',
     '    store,',
     '    mixins: [pageMixin],',
@@ -739,6 +779,7 @@ test('both steps give an entry the shape the pages converted by hand have, and c
       '',
       'Vue.use(VueCodemirror);',
       '',
+      MARK,
       'mountPage(Template, {',
       '    a: 1,',
       '});',
@@ -776,6 +817,7 @@ test('keeps comments and CRLF', () => {
     '/* The installs. */',
     '// Quiet.',
     '',
+    MARK,
     'mountPage(Template, {',
     '\ta: 1, // one',
     '}); // done',
@@ -817,7 +859,7 @@ const STORE_AFTER = text('import Vuex from "vuex";', '', 'export default new Vue
 /** An entry that mounts `Template` after `head` (lines) and imports `./store.js`. */
 const entry = (...head) =>
   text('import Vue from "vue";', 'import Template from "./Template.vue";', 'import store from "./store.js";', ...head, '', 'new Vue({', '    store,', '    render(createElement) {', '        return createElement(Template);', '    },', '}).$mount("#app");');
-const ENTRY_AFTER = text('import { mountPage } from "@/utils/pageSetup";', 'import Template from "./Template.vue";', 'import store from "./store.js";', '', 'mountPage(Template, {', '    store,', '});');
+const ENTRY_AFTER = text('import { mountPage } from "@/utils/pageSetup";', 'import Template from "./Template.vue";', 'import store from "./store.js";', '', MARK, 'mountPage(Template, {', '    store,', '});');
 
 const FULL = component(
   'import Vue from "vue";',
@@ -1007,6 +1049,7 @@ test('an unresolved entry is listed with its reason and not changed; what is lef
     const rows = section(result.out, 'Unresolved');
     assert.match(rows, /^\| `src\/views\/Widget\/main\.js` \| .*`el`.* \|$/m);
     assert.match(rows, /^\| `src\/components\/Setup\.vue` \| .*<script setup>.* \|$/m);
+    assert.match(rows, /In a component, leave one plain `<script>` block/);
     // A store that is stripped runs before the entry that installs Vuex, even in a page that loses nothing.
     assert.match(rows, /Convert every entry listed here by hand before it is built/);
     assert.match(section(result.out, 'Left in place'), /^\| `src\/views\/Widget\/main\.js:5` \| `Vue\.use\(VueCodemirror\)` \|$/m);

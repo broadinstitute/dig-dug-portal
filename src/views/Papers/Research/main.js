@@ -42,6 +42,7 @@ import userUtils from "@/utils/userUtils.js";
 import $ from "jquery";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
+// @vue/component
 mountPage(Template, {
     store,
     components: {
