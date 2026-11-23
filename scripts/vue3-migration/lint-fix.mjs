@@ -6,8 +6,8 @@
 //   npm run codemod:lint-fix -- --rule <id> --root <dir>                    # another checkout (a portal branch)
 //
 // The lint is the Vue 3 rule set of the ratchet (`eslint-vue3.cjs`, through `vue3-eslint.mjs`) and ESLint
-// does the fixing, with `fix: (message) => rules.has(message.ruleId)`: only the rules named with `--rule`
-// are fixed, and only rules in `SAFE_ON_VUE2`. A rule whose fix writes Vue 3-only syntax (`v-model:arg` for
+// does the fixing, with a `fix` predicate (`shouldFix`) that accepts a message only when its rule is in
+// `--rule`: only the rules named with `--rule` are fixed, and only rules in `SAFE_ON_VUE2`. A rule whose fix writes Vue 3-only syntax (`v-model:arg` for
 // `.sync`, `beforeUnmount` for `beforeDestroy`, no `.native`) is refused with exit 2, so the tree keeps running
 // on Vue 2.7.
 //
@@ -21,8 +21,8 @@
 //     `data: function() { return { ... }; }`.
 //
 // Every output is ESLint's own splice of the original text: bytes outside the fix, line endings and
-// indentation included, stay as they were, and nothing is reformatted. It also leaves what the fix leaves
-// (a space where `slot-scope` was removed).
+// indentation included, stay as they were, and nothing is reformatted. The one change to a fix is that the
+// slot rule's text is trimmed (see `shouldFix`), so removing `slot-scope` leaves no stray space or blank line.
 //
 // All outputs are computed in memory first, and each is checked again before anything is written:
 //   - a `.vue` file may not have an SFC parser error (`vue/compiler-sfc`, compared by message, as a
@@ -62,6 +62,23 @@ export const SAFE_ON_VUE2 = new Set([
   'vue/no-deprecated-slot-scope-attribute',
   'vue/no-deprecated-data-object-declaration',
 ]);
+
+/**
+ * ESLint's `fix` predicate for `wanted` rules: true for a message of a wanted rule, which is then fixed.
+ *
+ * For `vue/no-deprecated-slot-attribute` it first trims the fix's text. This depends on how ESLint 8.57.1's
+ * `SourceCodeFixer.applyFixes` works: it calls the predicate with the problem object (only for a problem that
+ * has a fix) and then applies that same `problem.fix`, so a change to `problem.fix.text` made here is what gets
+ * written. ESLint merges the rule's two edits (replace `slot`, remove `slot-scope`) into one fix, and the merged
+ * text keeps the whitespace that stood between and around the two attributes: ` ` after `v-slot:a="s"`, a
+ * newline and indent after one that sat on its own line, a leading ` ` when `slot-scope` came first. Trimmed,
+ * the attributes close up and no space or blank line is left behind. Check this again when ESLint is upgraded.
+ */
+function shouldFix(message, wanted) {
+  if (!wanted.has(message.ruleId)) return false;
+  if (message.ruleId === 'vue/no-deprecated-slot-attribute') message.fix.text = message.fix.text.trim();
+  return true;
+}
 
 const unsafeMessage = (rule) =>
   `${rule} is not safe on Vue 2.7: its fix writes Vue 3-only syntax, or it has none. Allowed: ${[...SAFE_ON_VUE2].sort(byCodeUnit).join(', ')}`;
@@ -138,7 +155,7 @@ export async function fixTree({ root, rules, dryRun = false, write = writeFileSy
 
   const cwd = resolve(root);
   const before = countRules(await makeLinter({ cwd }).lintFiles(['src']), wanted);
-  const results = await makeLinter({ cwd, fix: (message) => wanted.has(message.ruleId) }).lintFiles(['src']);
+  const results = await makeLinter({ cwd, fix: (message) => shouldFix(message, wanted) }).lintFiles(['src']);
   const after = countRules(results, wanted);
 
   const outputs = [];

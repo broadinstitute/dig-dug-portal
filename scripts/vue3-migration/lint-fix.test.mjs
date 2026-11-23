@@ -152,18 +152,65 @@ test('rewrites slot and slot-scope on a template to v-slot', async () => {
     const real = await cli(root, ['--rule', SLOT, '--rule', SLOT_SCOPE]);
     assert.equal(real.code, 0);
     const template = read(root, 'src/views/X/Template.vue');
-    assert.match(template, /<template v-slot:title="s"\s*>\{\{ s\.value \}\}<\/template>/);
-    assert.match(template, /<template v-slot:foot>footer<\/template>/);
     assert.doesNotMatch(template, /\sslot=/);
     assert.doesNotMatch(template, /slot-scope=/);
-    // Only the two attributes change: ESLint leaves a space where it removed `slot-scope`, and nothing else moves.
+    // Only the two attributes change, and nothing else moves.
     assert.equal(
       template,
-      TEMPLATE.replace('<template slot="title" slot-scope="s">', '<template v-slot:title="s" >').replace('<template slot="foot">', '<template v-slot:foot>'),
+      TEMPLATE.replace('<template slot="title" slot-scope="s">', '<template v-slot:title="s">').replace('<template slot="foot">', '<template v-slot:foot>'),
     );
     // The result still compiles on Vue 2.7.
     const { errors } = compile(parseComponent(template).template.content);
     assert.deepEqual(errors, []);
+  });
+});
+
+// ESLint's merged fix for `slot` + `slot-scope` replaces one attribute and removes the other, and its text keeps
+// the whitespace that stood between them. lint-fix trims it, so no stray space or blank line is left behind.
+const WHITESPACE_BEFORE = [
+  '<template>',
+  '  <b-table>',
+  '    <template slot="a" slot-scope="s"><p>{{ s }}</p></template>',
+  '    <template',
+  '      slot="b"',
+  '      slot-scope="{ f }"',
+  '    ><p>{{ f }}</p></template>',
+  '    <template slot-scope="t" slot="c"><p>{{ t }}</p></template>',
+  '  </b-table>',
+  '</template>',
+  '<script>',
+  'export default { name: "Whitespace" };',
+  '</script>',
+  '',
+].join('\n');
+const WHITESPACE_AFTER = [
+  '<template>',
+  '  <b-table>',
+  '    <template v-slot:a="s"><p>{{ s }}</p></template>',
+  '    <template',
+  '      v-slot:b="{ f }"',
+  '    ><p>{{ f }}</p></template>',
+  '    <template v-slot:c="t"><p>{{ t }}</p></template>',
+  '  </b-table>',
+  '</template>',
+  '<script>',
+  'export default { name: "Whitespace" };',
+  '</script>',
+  '',
+].join('\n');
+
+test('the slot fix leaves no stray whitespace: same line, attributes on their own lines, slot-scope first', async () => {
+  await withRoot({ ...FIXTURE, 'src/components/Whitespace.vue': WHITESPACE_BEFORE }, async (root) => {
+    const real = await cli(root, ['--rule', SLOT, '--rule', SLOT_SCOPE]);
+    assert.equal(real.code, 0);
+    const text = read(root, 'src/components/Whitespace.vue');
+    assert.equal(text, WHITESPACE_AFTER);
+    assert.doesNotMatch(text, /^[ \t]+$/m);
+    assert.deepEqual(compile(parseComponent(text).template.content).errors, []);
+
+    const again = await cli(root, ['--rule', SLOT, '--rule', SLOT_SCOPE]);
+    assert.equal(again.code, 0);
+    assert.equal(read(root, 'src/components/Whitespace.vue'), WHITESPACE_AFTER);
   });
 });
 
