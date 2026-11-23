@@ -259,6 +259,9 @@ for (const [label, code, line, shown] of [
   ['a production tip that is part of an assignment', ['window.quiet = Vue.config.productionTip = false;'], 4, 'Vue.config.productionTip = false'],
   ['a required Bootstrap stylesheet', ['require("bootstrap/dist/css/bootstrap.css");'], 4, 'require("bootstrap/dist/css/bootstrap.css")'],
   ['a Bootstrap stylesheet imported as a value', ['import css from "bootstrap/dist/css/bootstrap.css";'], 4, 'import css from "bootstrap/dist/css/bootstrap.css";'],
+  ['the minified Bootstrap stylesheet', ['import "bootstrap/dist/css/bootstrap.min.css";'], 4, 'import "bootstrap/dist/css/bootstrap.min.css";'],
+  ['the minified BootstrapVue stylesheet', ['import "bootstrap-vue/dist/bootstrap-vue.min.css";'], 4, 'import "bootstrap-vue/dist/bootstrap-vue.min.css";'],
+  ['a required minified stylesheet', ['require("bootstrap-vue/dist/bootstrap-vue.min.css");'], 4, 'require("bootstrap-vue/dist/bootstrap-vue.min.css")'],
 ]) {
   test(`reports an install it will not move: ${label}`, () => {
     const source = text(...IMPORTS, ...code);
@@ -290,6 +293,22 @@ test('reports a long install on one line, cut short', () => {
   assert.equal(line, 2);
   assert.equal(shown.length, 80);
   assert.match(shown, /^Vue\.use\(\{ install\(\) \{ x+\.\.\.$/);
+});
+
+test('a minified stylesheet in a file with nothing else to find is reported, and the rest of that file is stripped', () => {
+  // The text of the file has nothing but the import: the file must still be read.
+  const alone = text('import "bootstrap/dist/css/bootstrap.min.css";');
+  assert.deepEqual(stripPlugins(alone, STORE), { source: alone, removed: [], left: [{ line: 1, text: 'import "bootstrap/dist/css/bootstrap.min.css";' }] });
+  const mixed = stripped(text('import "bootstrap/dist/css/bootstrap.css";', 'import "bootstrap-vue/dist/bootstrap-vue.min.css";', 'export default {};'), STORE);
+  assert.equal(mixed.source, text('import "bootstrap-vue/dist/bootstrap-vue.min.css";', 'export default {};'));
+  assert.deepEqual(mixed.left, [{ line: 2, text: 'import "bootstrap-vue/dist/bootstrap-vue.min.css";' }]);
+});
+
+test('a stylesheet of these packages that is a part of Bootstrap, or of another name, is not reported', () => {
+  for (const file of ['bootstrap/dist/css/bootstrap-grid.min.css', 'bootstrap/dist/css/bootstrap-reboot.css', 'bootstrap-vue/dist/bootstrap-vue-icons.min.css', './bootstrap.min.css']) {
+    const source = text(`import "${file}";`);
+    assert.deepEqual(stripPlugins(source, STORE), { source, removed: [], left: [] }, file);
+  }
 });
 
 test('keeps other CSS imports', () => {
@@ -1053,6 +1072,7 @@ test('an unresolved entry is listed with its reason and not changed; what is lef
     // A store that is stripped runs before the entry that installs Vuex, even in a page that loses nothing.
     assert.match(rows, /Convert every entry listed here by hand before it is built/);
     assert.match(section(result.out, 'Left in place'), /^\| `src\/views\/Widget\/main\.js:5` \| `Vue\.use\(VueCodemirror\)` \|$/m);
+    assert.match(section(result.out, 'Left in place'), /minified .* a second time/);
     assert.match(result.out, /^\| Unresolved \| 2 \|$/m);
     assert.match(result.out, /^\| Left in place \| 1 \|$/m);
   });

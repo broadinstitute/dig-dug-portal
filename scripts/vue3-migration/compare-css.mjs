@@ -3,8 +3,9 @@
 //   npm run tool:compare-css -- [--base dist-baseline] [--head dist]
 //
 // Both directories are production builds (`npm run deploy`; `build-baseline.mjs` writes `dist-baseline`). Only a
-// production build extracts CSS into linked files: a development build keeps it in the JavaScript, where this tool
-// sees just the stylesheets of the HTML shell.
+// production build extracts CSS into linked files: a development build keeps it in the JavaScript, and links just the
+// stylesheets of the HTML shell. Two of those would compare as `same`, so a side where no page links a stylesheet with
+// a content hash in its name is refused: Vue CLI puts one on every file a production build extracts.
 //
 // Pages are every `.html` file under either directory, nested ones such as `pigean/index.html` included. For each
 // page the local stylesheets it links (see `pageCss`) are read in link order and their text is joined. A page is:
@@ -37,7 +38,8 @@
 // The report is markdown on stdout, usage errors go to stderr. Paths resolve against the current directory.
 //
 // Exit codes: 0 every page is same, 1 some page is not, 2 usage error (bad arguments, a directory that does not
-// exist, no pages in either directory) or a page or directory that could not be read (the message goes to stderr).
+// exist or is not a production build, no pages in either directory) or a page or directory that could not be read (the
+// message goes to stderr).
 import { readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -109,8 +111,11 @@ function localPath(href, page) {
   }
 }
 
-/** `css/chunk-vendors.1a2b3c4d.css` as `css/chunk-vendors.css`: Vue CLI puts an 8-digit hex content hash before `.css`. */
-const withoutHash = (file) => file.replace(/\.[0-9a-f]{8}(?=\.css$)/, '');
+// Vue CLI puts an 8-digit hex content hash before `.css`.
+const CONTENT_HASH = /\.[0-9a-f]{8}(?=\.css$)/;
+
+/** `css/chunk-vendors.1a2b3c4d.css` as `css/chunk-vendors.css`. */
+const withoutHash = (file) => file.replace(CONTENT_HASH, '');
 
 // vue-loader scopes a component's styles with `data-v-<8 hex digits>`, in selectors (`.a[data-v-1a2b3c4d]`) and
 // at the end of a scoped keyframes name (`spin-data-v-1a2b3c4d`). A production build derives the id from a hash of
@@ -345,6 +350,13 @@ export function comparePages(baseDir, headDir) {
   });
 }
 
+/** Whether some page under `dir` links a local stylesheet with a content hash, as those of a production build do. */
+function isProductionBuild(dir) {
+  return htmlPages(dir).some((page) =>
+    stylesheetHrefs(readFileSync(join(dir, page), 'utf8')).some((href) => CONTENT_HASH.test(localPath(href, page) ?? '')),
+  );
+}
+
 // ---- the command line -----------------------------------------------------------------------
 
 /**
@@ -437,7 +449,8 @@ function renderReport(options, results) {
 
 /** The comparison and its report for parsed `options`; the exit code. Throws when a directory or page cannot be read. */
 function compare(options, out, err) {
-  for (const [flag, dir] of [['--base', options.base], ['--head', options.head]]) {
+  const sides = [['--base', options.base], ['--head', options.head]];
+  for (const [flag, dir] of sides) {
     if (!isDirectory(dir)) {
       err.write(`${flag} ${dir} is not a directory\n${USAGE}\n`);
       return 2;
@@ -450,6 +463,11 @@ function compare(options, out, err) {
     err.write(`no .html files in ${options.base} or ${options.head}\n${USAGE}\n`);
     return 2;
   }
+  const unbuilt = sides.filter(([, dir]) => !isProductionBuild(dir));
+  for (const [flag, dir] of unbuilt) {
+    err.write(`${flag} ${dir} is not a production build: no page in it links a stylesheet with a content hash. Build it with npm run deploy.\n`);
+  }
+  if (unbuilt.length > 0) return 2;
   out.write(renderReport(options, results));
   return results.every(({ status }) => status === 'same') ? 0 : 1;
 }

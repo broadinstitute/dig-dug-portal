@@ -252,7 +252,7 @@ test('parseArgs defaults to dist-baseline and dist', () => {
 });
 
 test('main exits 0 when every page is same and says so', () => {
-  const files = { 'a.html': page('/css/one.css'), 'css/one.css': 'a{}' };
+  const files = { 'a.html': page('/css/one.1a2b3c4d.css'), 'css/one.1a2b3c4d.css': 'a{}' };
   const { exitCode, out, err } = run(['--base', site(files), '--head', site(files)]);
   assert.equal(exitCode, 0);
   assert.match(out, /1 page/);
@@ -262,20 +262,20 @@ test('main exits 0 when every page is same and says so', () => {
 
 test('main exits 1 and names each page that is not same, with the files on both sides', () => {
   const base = site({
-    'a.html': page('/css/one.css', '/css/two.css'),
-    'b.html': page('/css/one.css'),
-    'c.html': page('/css/one.css'),
-    'd.html': page('/css/one.css', '/css/two.css'),
-    'css/one.css': 'a{}',
-    'css/two.css': 'b{}',
+    'a.html': page('/css/one.1a2b3c4d.css', '/css/two.1a2b3c4d.css'),
+    'b.html': page('/css/one.1a2b3c4d.css'),
+    'c.html': page('/css/one.1a2b3c4d.css'),
+    'd.html': page('/css/one.1a2b3c4d.css', '/css/two.1a2b3c4d.css'),
+    'css/one.1a2b3c4d.css': 'a{}',
+    'css/two.1a2b3c4d.css': 'b{}',
   });
   const head = site({
-    'a.html': page('/css/two.css', '/css/one.css'),
-    'b.html': page('/css/one.css'),
-    'd.html': page('/css/one.css', '/css/three.css'),
-    'css/one.css': 'a{}',
-    'css/two.css': 'b{}',
-    'css/three.css': 'b{color:red}',
+    'a.html': page('/css/two.1a2b3c4d.css', '/css/one.1a2b3c4d.css'),
+    'b.html': page('/css/one.1a2b3c4d.css'),
+    'd.html': page('/css/one.1a2b3c4d.css', '/css/three.1a2b3c4d.css'),
+    'css/one.1a2b3c4d.css': 'a{}',
+    'css/two.1a2b3c4d.css': 'b{}',
+    'css/three.1a2b3c4d.css': 'b{color:red}',
   });
   const { exitCode, out } = run(['--base', base, '--head', head]);
   assert.equal(exitCode, 1);
@@ -302,13 +302,60 @@ test('main exits 2 when neither directory has a page, so an empty comparison is 
   assert.match(err, /no \.html/);
 });
 
+// A development build keeps the pages' CSS in their JavaScript: all it links is the HTML shell's own sheets.
+const DEVELOPMENT = { 'a.html': page('/css/shell.css'), 'b.html': page('/css/shell.css'), 'css/shell.css': 'a{}' };
+const PRODUCTION = { 'a.html': page('/css/shell.css', '/css/one.1a2b3c4d.css'), 'b.html': page('/css/shell.css'), 'css/shell.css': 'a{}', 'css/one.1a2b3c4d.css': 'b{}' };
+
+test('main exits 2 for a side that is not a production build, and names it', () => {
+  for (const [base, head, named, other] of [
+    [DEVELOPMENT, PRODUCTION, '--base', '--head'],
+    [PRODUCTION, DEVELOPMENT, '--head', '--base'],
+  ]) {
+    const dirs = { '--base': site(base), '--head': site(head) };
+    const { exitCode, out, err } = run(['--base', dirs['--base'], '--head', dirs['--head']]);
+    assert.equal(exitCode, 2);
+    assert.equal(out, '');
+    assert.ok(err.includes(`${named} ${dirs[named]} is not a production build`), err);
+    assert.ok(!err.includes(dirs[other]), err);
+  }
+  // Two development builds link the same shell sheets, so every page would be same.
+  const base = site(DEVELOPMENT);
+  const head = site(DEVELOPMENT);
+  const both = run(['--base', base, '--head', head]);
+  assert.equal(both.exitCode, 2);
+  assert.equal(both.out, '');
+  assert.ok(both.err.includes(`--base ${base} is not a production build`) && both.err.includes(`--head ${head} is not a production build`), both.err);
+});
+
+test('one page that links a stylesheet with a content hash makes a production build', () => {
+  assert.equal(run(['--base', site(PRODUCTION), '--head', site(PRODUCTION)]).exitCode, 0);
+  // Any page will do, a nested one too, and the hash need not be on a file that can be read: that page is not same.
+  const nested = { 'a.html': page('/css/shell.css'), 'pigean/a.html': page('/css/gone.1a2b3c4d.css'), 'css/shell.css': 'a{}' };
+  assert.equal(run(['--base', site(nested), '--head', site(nested)]).exitCode, 1);
+});
+
+test('a hash counts only in the name of a local stylesheet that the page applies', () => {
+  for (const html of [
+    page('https://cdn.example.org/lib.1a2b3c4d.css'),
+    page('/css/shell.12345.css'),
+    page('/css/shell.css?1a2b3c4d.css'),
+    page('/css/shell.css').replace('</head>', '<link href="/css/one.1a2b3c4d.css" rel="preload" as="style"></head>'),
+    page('/css/shell.css').replace('</head>', '<!-- <link href="/css/one.1a2b3c4d.css" rel="stylesheet"> --></head>'),
+  ]) {
+    const files = { 'a.html': html, 'css/shell.css': 'a{}', 'css/shell.12345.css': 'a{}', 'css/one.1a2b3c4d.css': 'b{}' };
+    const { exitCode, err } = run(['--base', site(files), '--head', site(files)]);
+    assert.equal(exitCode, 2, html);
+    assert.match(err, /not a production build/);
+  }
+});
+
 // ---- moved rules ----------------------------------------------------------------------------
 
 const rule = (name) => `.${name}{color:red}`;
 
-/** A directory whose pages (default: `a.html`) all link `css/one.css`, which holds `rules` one per line. */
+/** A directory whose pages (default: `a.html`) all link `css/one.1a2b3c4d.css`, which holds `rules` one per line. */
 const withRules = (rules, pages = ['a.html']) =>
-  site({ ...Object.fromEntries(pages.map((name) => [name, page('/css/one.css')])), 'css/one.css': rules.map(rule).join('\n') });
+  site({ ...Object.fromEntries(pages.map((name) => [name, page('/css/one.1a2b3c4d.css')])), 'css/one.1a2b3c4d.css': rules.map(rule).join('\n') });
 
 test('a reordered page lists the moved rules', () => {
   // `one` moves past three rules; the three it passed are not what moved.
@@ -391,8 +438,8 @@ test('pages with the same moves are listed once', () => {
 });
 
 test('pages with different moves are listed in separate groups', () => {
-  const base = site({ 'a.html': page('/css/one.css'), 'b.html': page('/css/two.css'), 'css/one.css': [rule('x'), rule('y')].join(''), 'css/two.css': [rule('p'), rule('q')].join('') });
-  const head = site({ 'a.html': page('/css/one.css'), 'b.html': page('/css/two.css'), 'css/one.css': [rule('y'), rule('x')].join(''), 'css/two.css': [rule('q'), rule('p')].join('') });
+  const base = site({ 'a.html': page('/css/one.1a2b3c4d.css'), 'b.html': page('/css/two.1a2b3c4d.css'), 'css/one.1a2b3c4d.css': [rule('x'), rule('y')].join(''), 'css/two.1a2b3c4d.css': [rule('p'), rule('q')].join('') });
+  const head = site({ 'a.html': page('/css/one.1a2b3c4d.css'), 'b.html': page('/css/two.1a2b3c4d.css'), 'css/one.1a2b3c4d.css': [rule('y'), rule('x')].join(''), 'css/two.1a2b3c4d.css': [rule('q'), rule('p')].join('') });
   const { out } = run(['--base', base, '--head', head]);
   assert.match(out, /1 page reordered: `a\.html`/);
   assert.match(out, /1 page reordered: `b\.html`/);
@@ -408,8 +455,8 @@ test('a group of more than five pages is named by its count only', () => {
 });
 
 test('a page that is same or differs lists no moves', () => {
-  const base = site({ 'same.html': page('/css/one.css'), 'differs.html': page('/css/two.css'), 'css/one.css': rule('a') + rule('b'), 'css/two.css': rule('a') + rule('b') });
-  const head = site({ 'same.html': page('/css/one.css'), 'differs.html': page('/css/two.css'), 'css/one.css': rule('a') + rule('b'), 'css/two.css': rule('b') + rule('a').replace('red', 'blue') });
+  const base = site({ 'same.html': page('/css/one.1a2b3c4d.css'), 'differs.html': page('/css/two.1a2b3c4d.css'), 'css/one.1a2b3c4d.css': rule('a') + rule('b'), 'css/two.1a2b3c4d.css': rule('a') + rule('b') });
+  const head = site({ 'same.html': page('/css/one.1a2b3c4d.css'), 'differs.html': page('/css/two.1a2b3c4d.css'), 'css/one.1a2b3c4d.css': rule('a') + rule('b'), 'css/two.1a2b3c4d.css': rule('b') + rule('a').replace('red', 'blue') });
   const results = comparePages(base, head);
   assert.deepEqual(results, [
     { page: 'differs.html', status: 'differs' },
@@ -421,7 +468,7 @@ test('a page that is same or differs lists no moves', () => {
 
 test('a moved rule is shown on one line, at most 160 characters', () => {
   const long = `.long{\n  ${Array.from({ length: 40 }, (_, index) => `margin-left: ${index}px;`).join('\n  ')}\n}`;
-  const dir = (rules) => site({ 'a.html': page('/css/one.css'), 'css/one.css': rules.join('\n') });
+  const dir = (rules) => site({ 'a.html': page('/css/one.1a2b3c4d.css'), 'css/one.1a2b3c4d.css': rules.join('\n') });
   const { out } = run(['--base', dir([rule('h'), long, rule('t')]), '--head', dir([long, rule('h'), rule('t')])]);
   const [, shown] = out.match(/moved `([^`]*)`/);
   assert.ok(shown.length <= 160, shown.length);
@@ -444,7 +491,7 @@ const canReadUnreadable = (() => {
 })();
 
 test('main exits 2 with the error message, not 1 with a stack trace, when a page cannot be read', { skip: canReadUnreadable }, () => {
-  const files = { 'a.html': page('/css/one.css'), 'b.html': page('/css/one.css'), 'css/one.css': 'a{}' };
+  const files = { 'a.html': page('/css/one.1a2b3c4d.css'), 'b.html': page('/css/one.1a2b3c4d.css'), 'css/one.1a2b3c4d.css': 'a{}' };
   const base = site(files);
   const head = site(files);
   chmodSync(join(head, 'b.html'), 0o000);
@@ -460,10 +507,10 @@ test('main exits 2 with the error message, not 1 with a stack trace, when a page
 });
 
 test('the CLI runs as a script', () => {
-  const files = { 'a.html': page('/css/one.css'), 'css/one.css': 'a{}' };
+  const files = { 'a.html': page('/css/one.1a2b3c4d.css'), 'css/one.1a2b3c4d.css': 'a{}' };
   const ok = spawnSync(process.execPath, [SCRIPT, '--base', site(files), '--head', site(files)], { encoding: 'utf8' });
   assert.equal(ok.status, 0, ok.stderr);
-  const bad = spawnSync(process.execPath, [SCRIPT, '--base', site(files), '--head', site({ ...files, 'css/one.css': 'a{color:red}' })], { encoding: 'utf8' });
+  const bad = spawnSync(process.execPath, [SCRIPT, '--base', site(files), '--head', site({ ...files, 'css/one.1a2b3c4d.css': 'a{color:red}' })], { encoding: 'utf8' });
   assert.equal(bad.status, 1, bad.stderr);
   assert.equal(spawnSync(process.execPath, [SCRIPT, '--wat'], { encoding: 'utf8' }).status, 2);
 });

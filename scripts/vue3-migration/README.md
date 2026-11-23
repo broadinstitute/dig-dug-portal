@@ -73,6 +73,9 @@ is, so a hand-written or hand-converted entry needs the marker by hand. Edits ar
 too) and line endings stay, and a second run changes nothing. Merge first: it needs `src/utils/pageSetup.js` under
 `--root`.
 
+Run it again after any merge of `master`, or of a `<portal>-main`. `npm run test:scripts` (`page-setup.tree.test.mjs`)
+fails while it has something to convert, and for any file that uses Vue or one of the plugins without importing it.
+
 The report has three lists for a person:
 
 - Unresolved: an entry that mounts another way (an `el` option, a custom `render`, a second `new Vue`), or a component
@@ -80,8 +83,10 @@ The report has three lists for a person:
   page loses nothing: its store is stripped and creates its `Vuex.Store` before the entry could install Vuex.
 - Left in place: any other install, with its line. It runs after `pageSetup.js`, and Vue ignores a second install of a
   plugin, options included: move the options there. A plugin of one page goes in the third argument of its `mountPage`.
+  An import of a minified Bootstrap stylesheet is listed too: delete it, or its rules load twice.
 - Pages that gain or lose something: the plugins and stylesheets that run when a page's files load, before and after.
-  A gain is expected: every page now gets all of them. A page that loses something has an unresolved entry.
+  A gain is expected: every page now gets all of them, and gets them first, so a `Vue.component("b-...", X)` that ran
+  before a later `Vue.use(BootstrapVue)` used to lose and now wins. A page that loses something has an unresolved entry.
 
 Exit 0 when done (what it reports is not a failure), 1 when a file failed, 2 for a usage error or no `pageSetup.js`. A
 file that does not parse, such as one with committed conflict markers, makes the run exit 1 and write nothing.
@@ -99,30 +104,69 @@ each page it joins the local stylesheets the page links, in link order, and comp
 
 - `same`: equal, however the files are split. `reordered`: the same top-level rules, in another order, and the report
   lists the rules that moved. `differs`: anything else, or a stylesheet it could not read. `missing`: one build only.
-  Exit 0 if every page is `same`, 1 if any is not, 2 for a usage error or an unreadable page. The cascade depends on
-  the order, so `reordered` is for you to look at, not a pass.
+  Exit 0 if every page is `same`, 1 if any is not, 2 for a usage error, an unreadable page, or a side that is not a
+  production build (no page links a stylesheet with a content hash). The cascade depends on the order, so `reordered` is
+  for you to look at, not a pass.
 - Scoped ids (`data-v-` and 8 hex digits) are masked. A production build hashes the component's path and source, so two
   checkouts never agree on a vendor component's id and every page would differ.
 
-On `dev/vue3` all 54 pages are `reordered` by exactly two rules of vue-typeahead-bootstrap's `ListItem`,
-`a[data-v-…]:not(.disabled)` and `a.disabled[data-v-…]`. They moved from between `bootstrap.css` and `bootstrap-vue.css`
-to after both. None of the rules they pass can match a typeahead item. Expect the same pair on a portal. Anything else
-needs a look: a portal entry that imports its own stylesheet ahead of Bootstrap now gets Bootstrap first.
+Against a baseline from before this change all 54 pages are `reordered` by exactly two rules of
+vue-typeahead-bootstrap's `ListItem`, `a[data-v-…]:not(.disabled)` and `a.disabled[data-v-…]`. They moved from between
+`bootstrap.css` and `bootstrap-vue.css` to after both. None of the rules they pass can match a typeahead item. Expect the
+same pair on a portal. Anything else needs a look. The 5 pages of `vue.configPapers.js` are `reordered` by all four
+vue-typeahead-bootstrap rules, from before `bootstrap.css` to after it; they share no property with a Bootstrap rule of
+equal or higher specificity on the same element.
 
 ### Portal procedure for page setup
+
+A portal that has not taken Stage 1 yet starts at Sync-point order (above) instead. Step 3 there is the merge of step 1
+here.
 
 On the portal's `vue3/<portal>` branch, from a clean working tree, so the output is committed alone:
 
 1. Merge `dev/vue3`. In a conflicted file the codemod rewrote, take the portal's side (`git checkout --ours <file>`, then
-   `git add <file>`). Commit the merge.
+   `git add <file>`). This drops every change `dev/vue3` made to the file, codemod output or not, and git then
+   counts them as merged. So, before you commit, check `git log -p HEAD..dev/vue3 -- <file>` (the file's commits since
+   the merge base) and re-apply by hand what is not codemod output. Commit the merge.
 2. Run the earlier codemods first (sync-point order, then the template fixes): `lint-fix` finds `data: {...}` by
    `new Vue({...})`, which an entry stops having.
 3. From a current `dev/vue3` checkout, read `npm run codemod:page-setup -- --root <portal checkout> --dry-run`, then run
    it without `--dry-run`. Commit its output alone.
 4. Convert each Unresolved entry by hand and run it again. Settle each Left in place. Check that no page loses anything.
    Replace each `Vue.$cookies` the grep finds.
-5. Run the production build and `compare-css` against the portal's branch from before the merge, then compare the pages
-   before and after: the development A/B (see compare-render) or a sweep of the portal's pages.
+5. Compare the CSS of the portal's own site, before and after. `configs/vue.config.<Portal>.js` builds it, into
+   `portals/<Portal>/`. A plain `npm run deploy`, and `e2e:baseline`, build the default config into `dist/`. `<before>`
+   is the absolute path of a new worktree, for the branch as it was before step 1:
+
+   ```bash
+   git worktree add --detach <before> <commit before the merge>
+   cd <before>
+   npm ci
+   VUE_CLI_SERVICE_CONFIG_PATH="$PWD/configs/vue.config.<Portal>.js" npm run deploy
+   cd <portal checkout>
+   npm ci
+   VUE_CLI_SERVICE_CONFIG_PATH="$PWD/configs/vue.config.<Portal>.js" npm run deploy
+   npm run tool:compare-css -- --base <before>/portals/<Portal> --head portals/<Portal>
+   ```
+
+   - `portals/<Portal>` is the config's `outputDir`. It is `portals/<Portal>/dist` on some portals, and `dist` when the
+     config sets none.
+   - A wrong config path is not an error: Vue CLI builds the default config instead.
+   - Without a `package-lock.json`, run `npm install` in place of `npm ci`. If a build stops at
+     `ERR_OSSL_EVP_UNSUPPORTED`, that branch's `deploy` does not set `NODE_OPTIONS`: put
+     `NODE_OPTIONS=--openssl-legacy-provider` before `npm`.
+6. Sweep the portal's own pages. This is required: the A/B of step 7 does not open them. Serve both builds, each command
+   in a terminal of its own, from the portal checkout. Open every page of the config in both, and compare what renders.
+   (`npm run preview:dir` will not do: it drops query strings.)
+
+   ```bash
+   npx serve -l 8080 -c "$PWD/e2e/serve.json" portals/<Portal>
+   npx serve -l 8081 -c "$PWD/e2e/serve.json" <before>/portals/<Portal>
+   ```
+
+7. Check the pages of the default config with the development A/B (see compare-render). It can show a page whose entry
+   imports its own stylesheet ahead of Bootstrap: the page now gets Bootstrap first. That is development now matching
+   production, which links `chunk-vendors` first anyway.
 
 ## Template fixes (Stage 1 item 3)
 
@@ -288,7 +332,9 @@ for local changes, and step 3 commits their output alone.
 
 1. Merge `dev/vue3`.
 2. In a conflicted file the codemods rewrote, take the portal's side (`git checkout --ours <file>`, then
-   `git add <file>`). Commit the merge.
+   `git add <file>`). This drops every change `dev/vue3` made to the file, codemod output or not, and git then
+   counts them as merged. So, before you commit, check `git log -p HEAD..dev/vue3 -- <file>` (the file's commits since
+   the merge base) and re-apply by hand what is not codemod output. Commit the merge.
 3. From a current `dev/vue3` checkout, run both codemods with `--root <portal checkout>`. Commit their output alone.
 4. Run the alias grep from the portal checkout. Declare its hits, and the Unresolved and Check by hand names, by hand.
 5. Hand-fix the findings only the portal has, by the rules above.

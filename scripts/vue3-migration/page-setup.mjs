@@ -38,15 +38,17 @@
 //     entry must be converted before its page is built, even one that installs Vuex itself. Its store is stripped like
 //     any other file, and creates its `Vuex.Store` when it is imported, before the entry can install Vuex.
 //   - Left in place: any other install, with its line. Another plugin, `Vue.use(X, options)`, an install in a
-//     function or a condition, a plugin or a `Vue` that is re-assigned or not imported as above. Note that
-//     `pageSetup.js` runs first, and Vue ignores a second install of a plugin, its options included.
+//     function or a condition, a plugin or a `Vue` that is re-assigned or not imported as above, and an import of the
+//     minified copy of a Bootstrap stylesheet. Note that `pageSetup.js` runs first, and Vue ignores a second install of
+//     a plugin, its options included.
 //   - Pages that gain or lose something: the plugins and stylesheets that run when the page's files load, by
 //     reachability from its entry, before and after. A page loses something when its entry is unresolved and a file
 //     that installed it for the page is stripped. An unresolved entry can need converting without losing anything.
 //
 // Every changed file is parsed again (as `register-components.mjs` does). When one fails, or any file under `src/`
 // does not parse to begin with (what it imports is then unknown), it is listed under Failed and nothing at all is
-// written. A second run changes nothing.
+// written. A second run changes nothing. A merge can bring back something to change: `page-setup.tree.test.mjs` fails
+// until this has run again.
 //
 // Exit codes: 0 done (what it reports is not a failure), 1 a file failed (it does not parse, or a write failed), 2
 // usage error, or no `src/utils/pageSetup.js` under the root.
@@ -74,13 +76,15 @@ const PLUGINS = {
   'vue-cookies': { default: 'VueCookies' },
 };
 const STYLESHEETS = ['bootstrap/dist/css/bootstrap.css', 'bootstrap-vue/dist/bootstrap-vue.css'];
+/** The same rules, minified. Reported only: a page that imports one gets both copies, and a person picks which goes. */
+const MINIFIED_STYLESHEETS = STYLESHEETS.map((file) => file.replace(/\.css$/, '.min.css'));
 /** What a page can get, in report order. */
 const SETUP = ['Vuex', 'BootstrapVue', 'BootstrapVueIcons', 'VueCookies', ...STYLESHEETS];
 /** `BootstrapVueIcons` is `IconsPlugin` in a plugin of its own. */
 const SAME_PLUGIN = { IconsPlugin: 'BootstrapVueIcons' };
 
 /** A file without any of these has nothing to strip, so it is not parsed. */
-const CANDIDATE = /\.\s*use\b|\[\s*["'`]use["'`]|productionTip|bootstrap(?:-vue)?\.css/;
+const CANDIDATE = /\.\s*use\b|\[\s*["'`]use["'`]|productionTip|bootstrap(?:-vue)?(?:\.min)?\.css/;
 
 /** Longest code the Left in place table shows. */
 const SHOWN = 80;
@@ -93,8 +97,8 @@ const unresolve = (reason) => {
 
 // ---- bindings ---------------------------------------------------------------------------------
 
-/** The Babel path of the program of `raw`, with its scopes. */
-function programPath(raw) {
+/** The AST of `raw` and the Babel path of its program, with its scopes. */
+export function programPath(raw) {
   const ast = parseStrict(raw);
   let program;
   traverse(ast, {
@@ -338,6 +342,7 @@ function findInstalls({ ast, program }, raw, startLine) {
     },
     ImportDeclaration(path) {
       const { source, specifiers } = path.node;
+      if (MINIFIED_STYLESHEETS.includes(source.value)) leave(path);
       if (!STYLESHEETS.includes(source.value)) return;
       installed.add(source.value);
       if (specifiers.length === 0 && isBare(path)) take(path, `import "${source.value}"`);
@@ -346,7 +351,7 @@ function findInstalls({ ast, program }, raw, startLine) {
     CallExpression(path) {
       const { callee, arguments: args } = path.node;
       const isRequire = callee.type === 'Import' || (callee.type === 'Identifier' && callee.name === 'require');
-      if (isRequire && args[0]?.type === 'StringLiteral' && STYLESHEETS.includes(args[0].value)) leave(path);
+      if (isRequire && args[0]?.type === 'StringLiteral' && [...STYLESHEETS, ...MINIFIED_STYLESHEETS].includes(args[0].value)) leave(path);
     },
   });
   const inOrder = (a, b) => a.start - b.start;
@@ -669,7 +674,7 @@ export function setupTree({ root, dryRun = false, write = writeFileSync, strip =
 }
 
 const LEFT_NOTE =
-  'Each of these still runs where it is, after `pageSetup.js`. An install of a plugin that `pageSetup.js` has installed does nothing there, and its options are ignored: move those into `pageSetup.js` by hand. A plugin of one page belongs in the third argument of its `mountPage`.';
+  'Each of these still runs where it is, after `pageSetup.js`. An install of a plugin that `pageSetup.js` has installed does nothing there, and its options are ignored: move those into `pageSetup.js` by hand. A plugin of one page belongs in the third argument of its `mountPage`. A minified Bootstrap stylesheet loads the same rules a second time: delete the import.';
 const UNRESOLVED_NOTE =
   'These files are not changed. Convert every entry listed here by hand before it is built, whether its page loses something below or not: its store is stripped like any other file, and creates its `Vuex.Store` when it is imported, before the entry can install Vuex itself. In a component, leave one plain `<script>` block, or take out its installs, stylesheet imports and what they leave unused by hand. Then run this again.';
 const PAGES_NOTE =

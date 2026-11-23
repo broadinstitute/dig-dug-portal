@@ -24,7 +24,7 @@ test('every path is a built HTML file', () => {
   }
 });
 
-test('no landmark mentions #app (Vue 2 replaces it on mount, Vue 3 renders inside it)', () => {
+test('no landmark mentions #app (the id is gone once a page has mounted)', () => {
   assert.equal(DEFAULT_LANDMARK, '.mdkp-body');
   for (const p of PAGES) {
     if (p.landmark !== undefined) {
