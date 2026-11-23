@@ -4,7 +4,8 @@
 //   path      the built HTML file, from the server root
 //   query     URL parameters the page needs to render (values taken from links the site generates)
 //   landmark  CSS selector that is visible once the page body has rendered (default DEFAULT_LANDMARK).
-//             Never `#app`: Vue 2 replaces the #app element when it mounts, Vue 3 renders inside it.
+//             Never `#app`: mountPage (src/utils/pageSetup.js) takes that id off the element, so it
+//             is gone once the page has mounted, on 2.7 and on Vue 3.
 //   mask      selectors to mask in screenshots (A/B comparison)
 //   maxDiff   allowed screenshot difference (A/B comparison)
 //   skip      why the page cannot be checked yet

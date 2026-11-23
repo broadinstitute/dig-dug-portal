@@ -247,9 +247,6 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-
 import VariantSifterMenuBar from "./kpVariantSifter/VariantSifterMenuBar.vue";
 import VariantSifterSessionParamBubbles from "./kpVariantSifter/VariantSifterSessionParamBubbles.vue";
 import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
@@ -580,9 +577,6 @@ function emptyGlobalEnrichmentState() {
         biosampleLoading: false,
     };
 }
-
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
 
 export default {
     name: "kp-variant-sifter",

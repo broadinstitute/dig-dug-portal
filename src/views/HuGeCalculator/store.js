@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
@@ -9,8 +8,6 @@ import regionUtils from "@/utils/regionUtils";
 import keyParams from "@/utils/keyParams";
 import { query } from "@/utils/bioIndexUtils";
 import { uniqBy } from "@/utils/lodashUtils";
-
-Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {

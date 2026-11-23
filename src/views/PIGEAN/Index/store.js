@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
@@ -8,8 +7,6 @@ import regionUtils from "@/utils/regionUtils";
 import variantUtils from "@/utils/variantUtils";
 import { postAlertError } from "@/components/Alert.vue";
 import { match } from "@/utils/bioIndexUtils";
-
-Vue.use(Vuex);
 
 export default new Vuex.Store({
 

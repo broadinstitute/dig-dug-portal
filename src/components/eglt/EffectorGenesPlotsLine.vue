@@ -10,13 +10,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
     name: "effector-genes-plots-line",

@@ -1,10 +1,6 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -31,11 +27,8 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import pigeanUtils from "@/utils/pigeanUtils";
 
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     modules: {},
     components: {
@@ -285,8 +278,4 @@ new Vue({
             return output;
         }
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

@@ -90,11 +90,7 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "research-score-plot",

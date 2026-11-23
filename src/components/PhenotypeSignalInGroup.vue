@@ -166,13 +166,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { groupBy } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
     name: "phenotype-signal-in-group",

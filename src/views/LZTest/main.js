@@ -1,18 +1,10 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 
 //import BootstrapVue from "bootstrap-vue";
 //import { BootstrapVueIcons } from "bootstrap-vue";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-Vue.use(BootstrapVueIcons);
 
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
 
 
 import PageHeader from "@/components/PageHeader.vue";
@@ -27,7 +19,8 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
 
     components: {
@@ -39,10 +32,6 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     methods: {
@@ -99,4 +88,4 @@ new Vue({
         },
 
     }
-}).$mount("#app");
+});

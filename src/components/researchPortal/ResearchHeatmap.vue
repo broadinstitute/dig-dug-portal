@@ -59,12 +59,8 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import ResearchHeatmapVector from "@/components/researchPortal/vectorPlots/ResearchHeatmapVector.vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "research-heatmap",

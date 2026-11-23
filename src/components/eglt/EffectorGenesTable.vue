@@ -450,8 +450,6 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
 //import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
 import SingleGeneView from "@/components/eglt/SingleGeneView.vue";
@@ -463,8 +461,6 @@ import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 import keyParams from "@/utils/keyParams";
 import formatters from "@/utils/formatters";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
     name: "effector-genes-table",

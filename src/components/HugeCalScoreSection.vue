@@ -113,7 +113,6 @@
 </template>
         
 <script>
-import "bootstrap/dist/css/bootstrap.css";
 import Formatters from "@/utils/formatters";
 
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";

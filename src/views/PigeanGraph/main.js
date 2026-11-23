@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -14,7 +14,8 @@ import PigeanGraphViz from "@/components/PigeanGraphViz.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
 import { BIO_INDEX_HOST, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         TooltipDocumentation,
@@ -221,8 +222,5 @@ new Vue({
             this.$store.dispatch("queryPhenotype");
         },
     },
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});
 

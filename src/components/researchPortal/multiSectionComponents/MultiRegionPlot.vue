@@ -137,13 +137,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import { isEqual } from "@/utils/lodashUtils";
 import regionPlotVector from "@/components/researchPortal/vectorPlots/ResearchRegionPlotVector.vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "multi-region-plot",

@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -27,7 +27,8 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import NetworkGraph from "@/components/NetworkGraph.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         SearchHeaderWrapper,
@@ -303,8 +304,4 @@ new Vue({
             this.$store.dispatch("queryPhenotype");
         },
     },
-
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

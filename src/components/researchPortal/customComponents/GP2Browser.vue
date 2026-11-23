@@ -265,9 +265,6 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-
 import GP2BrowserMenuBar from "./gp2Browser/GP2BrowserMenuBar.vue";
 import GP2BrowserResearchModal from "./gp2Browser/GP2BrowserResearchModal.vue";
 import GP2BrowserSectionDrawers from "./gp2Browser/GP2BrowserSectionDrawers.vue";
@@ -665,9 +662,6 @@ function emptyGlobalEnrichmentState() {
         biosampleLoading: false,
     };
 }
-
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
 
 export default {
     name: "gp2-browser",

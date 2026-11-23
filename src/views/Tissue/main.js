@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
@@ -32,7 +32,8 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         TissueHeritabilityTable,
@@ -332,5 +333,4 @@ new Vue({
             this.$store.dispatch("getTissue");
         }
     },
-    render: (h) => h(Template),
-}).$mount("#app");
+});

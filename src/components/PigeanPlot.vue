@@ -13,14 +13,11 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import DownloadChart from "./DownloadChart.vue";
 import plotUtils from "@/utils/plotUtils";
 import bioIndexUtils from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
-import { BootstrapVueIcons } from "bootstrap-vue";
-Vue.use(BootstrapVueIcons);
 export default {
   name: "pigean-plot",
   components: {

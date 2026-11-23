@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
@@ -8,8 +7,6 @@ import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
 import regionUtils from "@/utils/regionUtils";
 import { DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
-
-Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {

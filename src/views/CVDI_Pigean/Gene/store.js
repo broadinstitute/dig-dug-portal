@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
@@ -6,8 +5,6 @@ import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 
 import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
-
-Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {

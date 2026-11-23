@@ -10,8 +10,8 @@ const project = (name, device, extra = {}) => ({ name, use: { ...devices[device]
 
 // The A/B comparison (e2e/compare.spec.mjs) was calibrated in Chromium only (its screenshot
 // thresholds, masks and skips were never checked in the other engines), so Firefox and WebKit run
-// the single-build smoke test only, even when dist-baseline/ exists.
-const smokeOnly = { testIgnore: /compare\.spec\.mjs/ };
+// the single-build specs only (smoke and page setup), even when dist-baseline/ exists.
+const singleBuildOnly = { testIgnore: /compare\.spec\.mjs/ };
 
 // serve's default cleanUrls 301-redirects /gene.html?gene=PCSK9 to /gene and drops the query.
 // e2e/serve.json turns that off; the -c path must be absolute.
@@ -45,8 +45,8 @@ export default defineConfig({
   },
   projects: [
     project('chromium', 'Desktop Chrome'),
-    project('firefox', 'Desktop Firefox', smokeOnly),
-    project('webkit', 'Desktop Safari', smokeOnly),
+    project('firefox', 'Desktop Firefox', singleBuildOnly),
+    project('webkit', 'Desktop Safari', singleBuildOnly),
   ],
   webServer,
   reporter: [['list'], ['html', { open: 'never' }]],

@@ -49,14 +49,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "gene-finder-heatmap",

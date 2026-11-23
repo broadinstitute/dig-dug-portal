@@ -139,13 +139,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import ResearchMPlotBitmapVector from "@/components/researchPortal/vectorPlots/ResearchMPlotBitmapVector.vue";
 import ResearchQQPlotVector from "@/components/researchPortal/vectorPlots/ResearchQqPlotVector.vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "research-m-qq-plot",
