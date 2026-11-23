@@ -14,6 +14,13 @@
 //   differs    anything else
 //   missing    the page exists in one directory only
 //
+// A `reordered` page lists the rules that moved (`movedRules`): those of the base order that are not in a longest
+// common subsequence of the two orders, so a rule moved past many others is one move. Each is shown, shortened to
+// one line, with the rules next to it in the base and in the head. Of two rules that swapped, the later one in the
+// base order is the one listed. Pages that moved the same rules are one entry in the report (named when there are
+// few); the same pair of rules out of place in a shared chunk is one line, not one per page. When the part of the
+// two lists that differs is too long to compare, the page is `reordered` without the list.
+//
 // Nothing is normalised beyond that and the scoped ids below: whitespace, comments and declaration order all count.
 // The cascade depends on the order, so a `reordered` page is a failure to look at, not a pass.
 //
@@ -36,7 +43,7 @@ import { createRequire } from 'node:module';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs as parseNodeArgs } from 'node:util';
-import { code } from './register-components.mjs';
+import { code, oneLine } from './register-components.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -216,6 +223,87 @@ function statusOf(base, head) {
   return 'differs';
 }
 
+// The longest-common-subsequence table has one cell per pair of rules in the part of the two lists that differs.
+// The real case is a window of a few hundred rules (about 250,000 cells). Past this many cells the table would take
+// seconds and tens of megabytes for a list nobody can read anyway, so the moves are not worked out. The cap also
+// keeps every table entry (at most the shorter side, so at most 2,000) within 16 bits.
+const MAX_WINDOW_CELLS = 4_000_000;
+
+/**
+ * The rules that moved between two orderings of the same rules: those of `base` that are not in a longest common
+ * subsequence of the two lists, in base order (a rule moved past many others is one move, not many). The equal
+ * head and tail of the lists are trimmed first, so the table covers only the part that differs.
+ *
+ * Each move has the rule before and after it (`null` at an end of the list) in `base` and in `head`. A repeated
+ * rule is matched to its place in `head` in order of occurrence. Ties in the subsequence go to the later rule of
+ * the base order, so two neighbours that swapped report the second one.
+ *
+ * @param {string[]} base
+ * @param {string[]} head the same rules as `base`, in another order
+ * @returns {{ rule: string, base: [string | null, string | null], head: [string | null, string | null] }[] | undefined}
+ *   undefined when the window is past `MAX_WINDOW_CELLS`
+ */
+function movedRules(base, head) {
+  let start = 0;
+  while (start < base.length && start < head.length && base[start] === head[start]) start++;
+  let tail = 0;
+  while (tail < base.length - start && tail < head.length - start && base[base.length - 1 - tail] === head[head.length - 1 - tail]) tail++;
+  const x = base.slice(start, base.length - tail);
+  const y = head.slice(start, head.length - tail);
+  if (x.length * y.length > MAX_WINDOW_CELLS) return undefined;
+
+  // Numbers compare faster than rule texts, which can be long, and the table compares each pair.
+  const ids = new Map();
+  const idOf = (text) => {
+    if (!ids.has(text)) ids.set(text, ids.size);
+    return ids.get(text);
+  };
+  const a = x.map(idOf);
+  const b = y.map(idOf);
+
+  const width = b.length + 1;
+  const table = new Uint16Array((a.length + 1) * width);
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const up = table[(i - 1) * width + j];
+      const left = table[i * width + j - 1];
+      table[i * width + j] = a[i - 1] === b[j - 1] ? table[(i - 1) * width + j - 1] + 1 : Math.max(up, left);
+    }
+  }
+
+  const keptBase = new Array(a.length).fill(false);
+  const keptHead = new Array(b.length).fill(false);
+  let i = a.length;
+  let j = b.length;
+  while (i > 0 && j > 0) {
+    if (a[i - 1] === b[j - 1]) {
+      keptBase[i - 1] = true;
+      keptHead[j - 1] = true;
+      i--;
+      j--;
+    } else if (table[(i - 1) * width + j] >= table[i * width + j - 1]) {
+      i--;
+    } else {
+      j--;
+    }
+  }
+
+  // The two lists hold the same rules, so the rules left out of the subsequence are the same on both sides.
+  const places = new Map();
+  keptHead.forEach((kept, offset) => {
+    if (kept) return;
+    if (!places.has(b[offset])) places.set(b[offset], []);
+    places.get(b[offset]).push(start + offset);
+  });
+  const around = (list, index) => [list[index - 1] ?? null, list[index + 1] ?? null];
+  const moved = [];
+  keptBase.forEach((kept, offset) => {
+    if (kept) return;
+    moved.push({ rule: x[offset], base: around(base, start + offset), head: around(head, places.get(a[offset]).shift()) });
+  });
+  return moved;
+}
+
 /** Every `.html` file under `dir`, as a forward-slash path relative to it. */
 function htmlPages(dir) {
   return readdirSync(dir, { recursive: true, withFileTypes: true })
@@ -226,11 +314,17 @@ function htmlPages(dir) {
 /**
  * Compares the CSS each page loads in `baseDir` and in `headDir`, for every `.html` file in either, sorted by page.
  * A page whose stylesheets could not be read or parsed on a side is `differs` and carries `problems`, one line per
- * problem naming the side, so an unreadable page is never `same`.
+ * problem naming the side, so an unreadable page is never `same`. A `reordered` page carries `moved`, the rules that
+ * changed place (see `movedRules`), unless the part of its rule lists that differs is too long to compare.
  *
  * @param {string} baseDir
  * @param {string} headDir
- * @returns {{ page: string, status: 'same' | 'reordered' | 'differs' | 'missing', problems?: string[] }[]}
+ * @returns {{
+ *   page: string,
+ *   status: 'same' | 'reordered' | 'differs' | 'missing',
+ *   problems?: string[],
+ *   moved?: { rule: string, base: [string | null, string | null], head: [string | null, string | null] }[],
+ * }[]}
  * @throws {Error} when a directory cannot be read
  */
 export function comparePages(baseDir, headDir) {
@@ -244,7 +338,10 @@ export function comparePages(baseDir, headDir) {
     const head = loadSide(headDir, page, cache);
     const problems = [...base.problems.map((line) => `base: ${line}`), ...head.problems.map((line) => `head: ${line}`)];
     if (problems.length > 0) return { page, status: 'differs', problems };
-    return { page, status: statusOf(base, head) };
+    const status = statusOf(base, head);
+    if (status !== 'reordered') return { page, status };
+    const moved = movedRules(base.rules, head.rules);
+    return moved === undefined ? { page, status } : { page, status, moved };
   });
 }
 
@@ -269,6 +366,23 @@ const STATUSES = ['same', 'reordered', 'differs', 'missing'];
 const isDirectory = (path) => statSync(path, { throwIfNoEntry: false })?.isDirectory() === true;
 const isFile = (path) => statSync(path, { throwIfNoEntry: false })?.isFile() === true;
 
+/** A group of pages is named when it has no more than this many; a larger one is only counted. */
+const MAX_NAMED_PAGES = 5;
+/** The most characters of a rule the report shows. */
+const MAX_RULE_CHARS = 160;
+
+/** `text` on one line, cut to `MAX_RULE_CHARS` with `...` when longer. */
+function shorten(text) {
+  const line = oneLine(text);
+  return line.length > MAX_RULE_CHARS ? `${line.slice(0, MAX_RULE_CHARS - 3)}...` : line;
+}
+
+/** Where a moved rule sits: between its two neighbours, `null` being an end of the list. */
+function between([before, after]) {
+  const neighbour = (rule, end) => (rule === null ? `the ${end}` : code(shorten(rule)));
+  return `between ${neighbour(before, 'start')} and ${neighbour(after, 'end')}`;
+}
+
 function renderReport(options, results) {
   const count = (status) => results.filter((result) => result.status === status).length;
   const notSame = results.filter(({ status }) => status !== 'same');
@@ -286,9 +400,17 @@ function renderReport(options, results) {
   if (notSame.length === 0) return `${lines.join('\n')}\n`;
 
   lines.push('', '## Not same', '');
-  for (const { page, status, problems } of notSame) {
+  // Reordered pages that moved the same rules are one entry: a chunk shared by every page moves once, not 54 times.
+  const groups = new Map();
+  for (const { page, status, problems, moved } of notSame) {
     if (status === 'missing') {
       lines.push(`- ${code(page)}: missing (only in ${isFile(join(options.base, page)) ? 'base' : 'head'})`);
+      continue;
+    }
+    if (moved) {
+      const key = JSON.stringify(moved);
+      if (!groups.has(key)) groups.set(key, { pages: [], moved });
+      groups.get(key).pages.push(page);
       continue;
     }
     lines.push(`- ${code(page)}: ${status}`);
@@ -296,10 +418,18 @@ function renderReport(options, results) {
       for (const problem of problems) lines.push(`  - ${problem}`);
       continue;
     }
+    if (status === 'reordered') lines.push('  - the moved rules are not listed: too many rules changed place to compare');
     // Both sides read cleanly, or comparePages would have listed problems.
     for (const [label, dir] of [['base', options.base], ['head', options.head]]) {
       const { files } = pageCss(dir, readFileSync(join(dir, page), 'utf8'), page);
       lines.push(`  - ${label}: ${files.length === 0 ? 'no stylesheets' : files.map(code).join(', ')}`);
+    }
+  }
+  for (const { pages, moved } of groups.values()) {
+    const names = pages.length <= MAX_NAMED_PAGES ? `: ${pages.map(code).join(', ')}` : '';
+    lines.push(`- ${pages.length} page${pages.length === 1 ? '' : 's'} reordered${names}`);
+    for (const { rule, base, head } of moved) {
+      lines.push(`  - moved ${code(shorten(rule))}`, `    - base: ${between(base)}`, `    - head: ${between(head)}`);
     }
   }
   return `${lines.join('\n')}\n`;

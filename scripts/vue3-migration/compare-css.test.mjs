@@ -261,14 +261,29 @@ test('main exits 0 when every page is same and says so', () => {
 });
 
 test('main exits 1 and names each page that is not same, with the files on both sides', () => {
-  const base = site({ 'a.html': page('/css/one.css', '/css/two.css'), 'b.html': page('/css/one.css'), 'css/one.css': 'a{}', 'css/two.css': 'b{}', 'c.html': page('/css/one.css') });
-  const head = site({ 'a.html': page('/css/two.css', '/css/one.css'), 'b.html': page('/css/one.css'), 'css/one.css': 'a{}', 'css/two.css': 'b{}' });
+  const base = site({
+    'a.html': page('/css/one.css', '/css/two.css'),
+    'b.html': page('/css/one.css'),
+    'c.html': page('/css/one.css'),
+    'd.html': page('/css/one.css', '/css/two.css'),
+    'css/one.css': 'a{}',
+    'css/two.css': 'b{}',
+  });
+  const head = site({
+    'a.html': page('/css/two.css', '/css/one.css'),
+    'b.html': page('/css/one.css'),
+    'd.html': page('/css/one.css', '/css/three.css'),
+    'css/one.css': 'a{}',
+    'css/two.css': 'b{}',
+    'css/three.css': 'b{color:red}',
+  });
   const { exitCode, out } = run(['--base', base, '--head', head]);
   assert.equal(exitCode, 1);
-  assert.match(out, /`a\.html`.*reordered/);
-  assert.match(out, /head: `css\/two\.css`, `css\/one\.css`/);
-  assert.match(out, /base: `css\/one\.css`, `css\/two\.css`/);
+  assert.match(out, /1 page reordered: `a\.html`/);
   assert.match(out, /`c\.html`.*missing/);
+  assert.match(out, /`d\.html`: differs/);
+  assert.match(out, /base: `css\/one\.css`, `css\/two\.css`/);
+  assert.match(out, /head: `css\/one\.css`, `css\/three\.css`/);
   assert.doesNotMatch(out, /`b\.html`/);
 });
 
@@ -285,6 +300,133 @@ test('main exits 2 when neither directory has a page, so an empty comparison is 
   const { exitCode, err } = run(['--base', site({ 'css/one.css': 'a{}' }), '--head', site({})]);
   assert.equal(exitCode, 2);
   assert.match(err, /no \.html/);
+});
+
+// ---- moved rules ----------------------------------------------------------------------------
+
+const rule = (name) => `.${name}{color:red}`;
+
+/** A directory whose pages (default: `a.html`) all link `css/one.css`, which holds `rules` one per line. */
+const withRules = (rules, pages = ['a.html']) =>
+  site({ ...Object.fromEntries(pages.map((name) => [name, page('/css/one.css')])), 'css/one.css': rules.map(rule).join('\n') });
+
+test('a reordered page lists the moved rules', () => {
+  // `one` moves past three rules; the three it passed are not what moved.
+  const base = withRules(['h', 'one', 'two', 'three', 'four', 't']);
+  const head = withRules(['h', 'two', 'three', 'four', 'one', 't']);
+  const [result] = comparePages(base, head);
+  assert.equal(result.status, 'reordered');
+  assert.deepEqual(result.moved, [{ rule: rule('one'), base: [rule('h'), rule('two')], head: [rule('four'), rule('t')] }]);
+
+  const { exitCode, out } = run(['--base', base, '--head', head]);
+  assert.equal(exitCode, 1);
+  assert.match(out, /1 page reordered: `a\.html`/);
+  assert.match(out, /moved `\.one\{color:red\}`/);
+  assert.match(out, /base: between `\.h\{color:red\}` and `\.two\{color:red\}`/);
+  assert.match(out, /head: between `\.four\{color:red\}` and `\.t\{color:red\}`/);
+  assert.doesNotMatch(out, /moved `\.(two|three|four)\{/);
+});
+
+test('a moved rule at the start or end of the list is between the start or the end and its neighbour', () => {
+  const [result] = comparePages(withRules(['one', 'two', 'three']), withRules(['two', 'three', 'one']));
+  assert.deepEqual(result.moved, [{ rule: rule('one'), base: [null, rule('two')], head: [rule('three'), null] }]);
+  const { out } = run(['--base', withRules(['one', 'two', 'three']), '--head', withRules(['two', 'three', 'one'])]);
+  assert.match(out, /base: between the start and `\.two\{color:red\}`/);
+  assert.match(out, /head: between `\.three\{color:red\}` and the end/);
+});
+
+test('swapped neighbours count as one move, the later rule of the base order', () => {
+  const [result] = comparePages(withRules(['h', 'a', 'b', 't']), withRules(['h', 'b', 'a', 't']));
+  assert.deepEqual(result.moved, [{ rule: rule('b'), base: [rule('a'), rule('t')], head: [rule('h'), rule('a')] }]);
+});
+
+test('repeated rules are matched in order, so each moved rule has its place in the head', () => {
+  const baseRules = ['h', 'a', 'x', 'a', 'y', 'x', 't'].map(rule);
+  const headRules = ['h', 'x', 'a', 'a', 'x', 'y', 't'].map(rule);
+  const dir = (rules) => site({ 'a.html': page('/css/one.css'), 'css/one.css': rules.join('') });
+  const [result] = comparePages(dir(baseRules), dir(headRules));
+  assert.equal(result.status, 'reordered');
+  assert.ok(result.moved.length > 0);
+  for (const { rule: text, head } of result.moved) {
+    // Some occurrence of the rule in the head has exactly these neighbours.
+    const places = headRules.flatMap((candidate, index) => (candidate === text ? [[headRules[index - 1] ?? null, headRules[index + 1] ?? null]] : []));
+    assert.ok(places.some(([before, after]) => before === head[0] && after === head[1]), JSON.stringify({ text, head }));
+  }
+});
+
+test('a long window of rules still lists the moved rule', () => {
+  const names = Array.from({ length: 500 }, (_, index) => `r${index}`);
+  const [result] = comparePages(withRules(names), withRules([...names.slice(1), names[0]]));
+  assert.deepEqual(result.moved, [{ rule: rule('r0'), base: [null, rule('r1')], head: [rule('r499'), null] }]);
+});
+
+test('a window too long to compare is reordered with no list, and the report says so', () => {
+  // 2100 x 2100 rules is past the limit on the table the comparison builds.
+  const names = Array.from({ length: 2100 }, (_, index) => `r${index}`);
+  const base = withRules(names);
+  const head = withRules([...names].reverse());
+  const [result] = comparePages(base, head);
+  assert.equal(result.status, 'reordered');
+  assert.equal('moved' in result, false);
+
+  const { exitCode, out } = run(['--base', base, '--head', head]);
+  assert.equal(exitCode, 1);
+  assert.match(out, /`a\.html`: reordered/);
+  assert.match(out, /moved rules are not listed/);
+  assert.match(out, /base: `css\/one\.css`/);
+});
+
+test('pages with the same moves are listed once', () => {
+  const pages = ['a.html', 'b.html', 'c.html'];
+  const base = withRules(['h', 'one', 'two', 't'], pages);
+  const head = withRules(['h', 'two', 'one', 't'], pages);
+  const results = comparePages(base, head);
+  assert.deepEqual(results.map(({ status }) => status), ['reordered', 'reordered', 'reordered']);
+  assert.deepEqual(results[1].moved, results[0].moved);
+
+  const { out } = run(['--base', base, '--head', head]);
+  assert.match(out, /3 pages reordered: `a\.html`, `b\.html`, `c\.html`/);
+  assert.equal(out.match(/moved `/g).length, 1);
+  assert.equal(out.match(/reordered:/g).length, 1);
+});
+
+test('pages with different moves are listed in separate groups', () => {
+  const base = site({ 'a.html': page('/css/one.css'), 'b.html': page('/css/two.css'), 'css/one.css': [rule('x'), rule('y')].join(''), 'css/two.css': [rule('p'), rule('q')].join('') });
+  const head = site({ 'a.html': page('/css/one.css'), 'b.html': page('/css/two.css'), 'css/one.css': [rule('y'), rule('x')].join(''), 'css/two.css': [rule('q'), rule('p')].join('') });
+  const { out } = run(['--base', base, '--head', head]);
+  assert.match(out, /1 page reordered: `a\.html`/);
+  assert.match(out, /1 page reordered: `b\.html`/);
+  assert.equal(out.match(/moved `/g).length, 2);
+});
+
+test('a group of more than five pages is named by its count only', () => {
+  const pages = ['a', 'b', 'c', 'd', 'e', 'f'].map((name) => `${name}.html`);
+  const { out } = run(['--base', withRules(['h', 'one', 'two', 't'], pages), '--head', withRules(['h', 'two', 'one', 't'], pages)]);
+  assert.match(out, /6 pages reordered\n/);
+  assert.doesNotMatch(out, /a\.html/);
+  assert.equal(out.match(/moved `/g).length, 1);
+});
+
+test('a page that is same or differs lists no moves', () => {
+  const base = site({ 'same.html': page('/css/one.css'), 'differs.html': page('/css/two.css'), 'css/one.css': rule('a') + rule('b'), 'css/two.css': rule('a') + rule('b') });
+  const head = site({ 'same.html': page('/css/one.css'), 'differs.html': page('/css/two.css'), 'css/one.css': rule('a') + rule('b'), 'css/two.css': rule('b') + rule('a').replace('red', 'blue') });
+  const results = comparePages(base, head);
+  assert.deepEqual(results, [
+    { page: 'differs.html', status: 'differs' },
+    { page: 'same.html', status: 'same' },
+  ]);
+  const { out } = run(['--base', base, '--head', head]);
+  assert.doesNotMatch(out, /moved/);
+});
+
+test('a moved rule is shown on one line, at most 160 characters', () => {
+  const long = `.long{\n  ${Array.from({ length: 40 }, (_, index) => `margin-left: ${index}px;`).join('\n  ')}\n}`;
+  const dir = (rules) => site({ 'a.html': page('/css/one.css'), 'css/one.css': rules.join('\n') });
+  const { out } = run(['--base', dir([rule('h'), long, rule('t')]), '--head', dir([long, rule('h'), rule('t')])]);
+  const [, shown] = out.match(/moved `([^`]*)`/);
+  assert.ok(shown.length <= 160, shown.length);
+  assert.ok(shown.endsWith('...'));
+  assert.ok(!shown.includes('\n'));
 });
 
 // A process that can read any file (root) cannot make one unreadable.
