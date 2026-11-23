@@ -7,7 +7,7 @@
                 <div>
                     <label>
                         <input type="checkbox" v-model="selectAll"
-                            @change="toggleTracks()"></input>
+                            @change="toggleTracks()">
                         <strong> Select/deselect all</strong>
                     </label>
                 </div>

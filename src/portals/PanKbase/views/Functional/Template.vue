@@ -337,41 +337,39 @@
                                                 </div>
                                                 <div v-else>Select a trait to view functional secretion data by category.</div>
                                                 <div class="vlnPlots row">
-                                                    <div
-                                                        v-for="(
-                                                            condition, index
-                                                        ) in $parent.vlnConditions.filter(
-                                                            (c) =>
-                                                                c.startsWith(
-                                                                    'INS'
-                                                                )
-                                                        )"
-                                                        class="vlnPlot col-md-4"
-                                                        v-if="
-                                                            $parent.functionalTrait !==
-                                                            null
-                                                        "
-                                                    >
-                                                        <functional-violin-plot
-                                                            v-if="
-                                                                $parent
-                                                                    .filteredAucData
-                                                                    .length > 0
-                                                            "
-                                                            :data="
-                                                                $parent.filteredAucData
-                                                            "
-                                                            :xField="
-                                                                $parent.functionalTrait
-                                                            "
-                                                            :xLabel="
-                                                                $parent.functionalTrait
-                                                            "
-                                                            :yField="condition"
-                                                            :yLabel="'Insulin secretion\n(ng/100 IEQs/min)'"
+                                                    <template v-if="$parent.functionalTrait !== null">
+                                                        <div
+                                                            v-for="(
+                                                                condition, index
+                                                            ) in $parent.vlnConditions.filter(
+                                                                (c) =>
+                                                                    c.startsWith(
+                                                                        'INS'
+                                                                    )
+                                                            )"
+                                                            class="vlnPlot col-md-4"
                                                         >
-                                                        </functional-violin-plot>
-                                                    </div>
+                                                            <functional-violin-plot
+                                                                v-if="
+                                                                    $parent
+                                                                        .filteredAucData
+                                                                        .length > 0
+                                                                "
+                                                                :data="
+                                                                    $parent.filteredAucData
+                                                                "
+                                                                :xField="
+                                                                    $parent.functionalTrait
+                                                                "
+                                                                :xLabel="
+                                                                    $parent.functionalTrait
+                                                                "
+                                                                :yField="condition"
+                                                                :yLabel="'Insulin secretion\n(ng/100 IEQs/min)'"
+                                                            >
+                                                            </functional-violin-plot>
+                                                        </div>
+                                                    </template>
                                                 </div>
                                                 <div v-if="$parent.functionalTrait !== null">
                                                     <strong
@@ -396,41 +394,39 @@
                                                             .length > 0
                                                     "
                                                 >
-                                                    <div
-                                                        v-for="(
-                                                            condition, index
-                                                        ) in $parent.vlnConditions.filter(
-                                                            (c) =>
-                                                                c.startsWith(
-                                                                    'GCG'
-                                                                )
-                                                        )"
-                                                        class="vlnPlot col-md-4"
-                                                        v-if="
-                                                            $parent.functionalTrait !==
-                                                            null
-                                                        "
-                                                    >
-                                                        <functional-violin-plot
-                                                            v-if="
-                                                                $parent
-                                                                    .filteredAucData
-                                                                    .length > 0
-                                                            "
-                                                            :data="
-                                                                $parent.filteredAucData
-                                                            "
-                                                            :xField="
-                                                                $parent.functionalTrait
-                                                            "
-                                                            :xLabel="
-                                                                $parent.functionalTrait
-                                                            "
-                                                            :yField="condition"
-                                                            :yLabel="'Glucagon secretion\n(pg/100 IEQs/min)'"
+                                                    <template v-if="$parent.functionalTrait !== null">
+                                                        <div
+                                                            v-for="(
+                                                                condition, index
+                                                            ) in $parent.vlnConditions.filter(
+                                                                (c) =>
+                                                                    c.startsWith(
+                                                                        'GCG'
+                                                                    )
+                                                            )"
+                                                            class="vlnPlot col-md-4"
                                                         >
-                                                        </functional-violin-plot>
-                                                    </div>
+                                                            <functional-violin-plot
+                                                                v-if="
+                                                                    $parent
+                                                                        .filteredAucData
+                                                                        .length > 0
+                                                                "
+                                                                :data="
+                                                                    $parent.filteredAucData
+                                                                "
+                                                                :xField="
+                                                                    $parent.functionalTrait
+                                                                "
+                                                                :xLabel="
+                                                                    $parent.functionalTrait
+                                                                "
+                                                                :yField="condition"
+                                                                :yLabel="'Glucagon secretion\n(pg/100 IEQs/min)'"
+                                                            >
+                                                            </functional-violin-plot>
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             </div>
                                         </div>

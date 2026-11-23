@@ -480,8 +480,7 @@
                                 </div>
 
                                 <div
-                                    v-for="tab in openTableTabs"
-                                    v-if="activeContentTab === tab.key"
+                                    v-for="tab in (openTableTabs || []).filter((tab) => activeContentTab === tab.key)"
                                     :key="tab.key"
                                     class="dataset-content-panel"
                                     role="tabpanel"

@@ -181,7 +181,6 @@ Vue.use(AsyncComputed);
 
 export default {
     name: "translator-results-table",
-    props: ["query_graph", "selectable", "filter", "mock", "relationsOnly"],
     emits: ["change", "change-knowledge-graph"],
     props: {
         query_graph: Object,
