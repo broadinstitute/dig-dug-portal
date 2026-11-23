@@ -89,13 +89,14 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                        <button class="fs-submit" type="submit">Search</button>
+                                        <button class="fs-submit" type="submit" :disabled="frontSearchPending">Search</button>
                                         <button class="fs-help-button" type="button" aria-label="Show accepted search formats" :aria-expanded="String(helpOpen)" @click.stop="toggleHelp">?</button>
                                     </form>
                                     <p id="front-search-hint" class="fs-hint" aria-live="polite">{{ hint }}</p>
+                                    <button v-if="frontHpoCountsStatus === 'error'" class="fs-retry" type="button" @click.stop="retryFrontHpoCounts">Retry phenotype availability</button>
                                     <div v-if="helpOpen" class="fs-format-help" role="tooltip" @click.stop>
                                         <strong>Accepted search formats</strong>
-                                        <span>Sample · BCH-22-44945-01</span>
+                                        <span>Sample · BCH-00-00000-00</span>
                                         <span>Gene · SLC6A7</span>
                                         <span>Variant · chr12:102912793:CA:C</span>
                                         <span>Phenotype · Progressive muscle weakness [HP:0003323]</span>
@@ -164,5 +165,6 @@ export default {
 .fs-submit { padding: 0 22px; border: 1px solid #fff; border-radius: 4px; background-color: rgba(255, 255, 255, 0.75); color: #666; font-size: 16px; }
 .fs-help-button { width: 50px; border: 1px solid #fff; border-radius: 4px; background-color: rgba(255, 255, 255, 0.75); color: #666; font-weight: 700; }
 .fs-hint { margin: 8px 0 0; color: #fff; font-size: 15px; text-align: left; }
+.fs-retry { display: block; margin-top: 4px; padding: 0; border: 0; background: transparent; color: #fff; text-decoration: underline; }
 .fs-format-help { position: absolute; z-index: 20; right: 0; display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding: 12px 14px; background: #fff; color: #20242a; border: 1px solid #b8c4d6; border-radius: 4px; box-shadow: 0 6px 18px rgba(0, 0, 0, .15); font-size: 15px; text-align: left; }
 </style>

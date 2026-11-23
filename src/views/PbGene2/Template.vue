@@ -52,7 +52,13 @@
                     <section class="pg2-card pg2-overview">
                         <gene-identity :gene-info="geneInfo" />
                     </section>
-                    <section v-if="variantRows.length" class="pg2-card pg2-crdc" aria-label="CRDC variants and carrier demographics">
+                    <section v-if="geneVariantLoading || geneVariantError" class="pg2-card pg2-crdc" aria-label="CRDC variants" :aria-busy="String(geneVariantLoading)">
+                        <h2>Variants observed in the CRDC</h2>
+                        <p v-if="geneVariantLoading" class="pg2-muted" role="status">Loading variants filtered by DP ≥20 and cohort AF &lt;1%…</p>
+                        <p v-else class="pg2-error" role="alert">{{ geneVariantError }}</p>
+                        <button v-if="geneVariantError && geneVariantReload" class="pg2-text-button" type="button" :disabled="geneVariantLoading" @click="retryGeneVariants">Retry variants</button>
+                    </section>
+                    <section v-else-if="variantRows.length" class="pg2-card pg2-crdc" aria-label="CRDC variants and carrier demographics">
                         <variant-overview :gene="geneInfo.symbol" :mix="variantMix" :total="variantRows.length" :annotated-count="predictionAnnotatedVariantCount" :carrier-count="Number(totalGeneCarriers) || 0" :filters="variantFilters" @filter="toggleVariantFilter" @filter-consequences="toggleConsequenceGroup" />
                         <div v-if="variantFiltersActive" class="pg2-variant-filter-status"><a href="#pg2-variant-evidence">{{ matchingVariantRows.length }} / {{ variantRows.length }} matching variants</a><span>{{ variantFilterLabel }}</span><button class="pg2-text-button" type="button" @click="clearVariantFilters">Clear filters</button></div>
                         <div class="pg2-carrier-overview" data-testid="gene-demographics">
@@ -112,7 +118,7 @@
                         <SummaryPager :page="associationPage" :total-pages="associationPageCount" label="Single-phenotype association pages" input-id="pg2-association-page" @change="associationPage = $event" />
                     </section>
                     <context-panel :active-context-terms="activeContextTerms" :context-term-details="contextTermDetails" :context-input.sync="contextInput" :context-loading="contextLoading || searchGeneLoading" :context-score-type.sync="contextScoreType" :context-analysis-set.sync="contextAnalysisSet" :context-significance-threshold.sync="contextSignificanceThreshold" :context-min-carriers.sync="contextMinCarriers" :context-error="contextError" :context-runs="contextRuns" :run-meta="contextRunMeta" :current-run-id="currentContextRunId" :rerunning-run-id="rerunningContextRunId" @run="runContextAnalysis" @rerun="rerunContextAnalysis" @remove="deleteContextRun" @retry-quality="loadContextQuality" @retry-sample-count="loadContextSampleCount" />
-                    <section v-if="variantRows.length" id="pg2-variant-evidence" class="pg2-card pg2-variant-evidence">
+                    <section v-if="!geneVariantLoading && !geneVariantError && variantRows.length" id="pg2-variant-evidence" class="pg2-card pg2-variant-evidence">
                     <div class="pbg-variant-evidence-block">
                         <div class="pbg-variant-evidence-head">
                             <p class="pbg-section-label">
