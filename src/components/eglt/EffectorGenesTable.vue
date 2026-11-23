@@ -124,17 +124,18 @@
                 v-for="(value, name, index) in this.filtersIndex"
                 :class="'search-field f-' + index"
             >
-                <b-badge
-                    pill
-                    v-if="value.search.length > 0"
-                    v-for="(v, i) in value.search.filter(
-                        (v, i, arr) => arr.indexOf(v) == i
-                    )"
-                    :key="v"
-                    :class="'btn search-bubble ' + i"
-                    @click="removeFilter(value.field, i)"
-                    v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
-                ></b-badge>
+                <template v-if="value.search.length > 0">
+                    <b-badge
+                        pill
+                        v-for="(v, i) in value.search.filter(
+                            (v, i, arr) => arr.indexOf(v) == i
+                        )"
+                        :key="v"
+                        :class="'btn search-bubble ' + i"
+                        @click="removeFilter(value.field, i)"
+                        v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
+                    ></b-badge>
+                </template>
             </div>
             <b-badge
                 v-if="this.numberOfSearches() > 1"

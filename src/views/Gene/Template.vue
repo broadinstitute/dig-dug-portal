@@ -131,8 +131,13 @@
                                             >Alternative names:&nbsp;</strong
                                         >
                                         <span
-                                            v-for="gene in $parent.alternateNames"
-                                            v-if="gene.source == 'alias'"
+                                            v-for="
+                                                gene in ($parent.alternateNames || [])
+                                                    .filter(
+                                                        (gene) =>
+                                                            gene.source == 'alias'
+                                                    )
+                                            "
                                             :key="gene.name"
                                         >
                                             {{ gene.name }}
@@ -794,8 +799,7 @@
                             </a>
                         </div>
                         <div
-                            v-for="gene in $parent.alternateNames"
-                            v-if="gene.source != 'alias'"
+                            v-for="gene in ($parent.alternateNames || []).filter((gene) => gene.source != 'alias')"
                             :key="gene.name"
                             class="gene-with-signal none"
                         >

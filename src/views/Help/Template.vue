@@ -102,8 +102,7 @@
 									></span>
 									<ol>
 										<li
-											v-for="page in value.pages"
-											v-if="page.title != chapter"
+											v-for="page in (value.pages || []).filter((page) => page.title != chapter)"
 											:key="page.nid"
 											v-html="page.title"
 											@click="

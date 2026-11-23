@@ -94,33 +94,40 @@
 						v-html="'Click dot for more options.'"
 					></span>
 					<template
-						v-for="(variant, vIndex) in hoverDotPosFullList"
-						v-if="vIndex < 5"
+						v-for="(variant, vIndex) in (hoverDotPosFullList || []).filter((variant, vIndex) => vIndex < 5)"
 					>
 						<span class="gene-on-clicked-dot-mplot">
 							<b v-html="variant[renderConfig.renderBy]"></b
 						></span>
 						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == false
-							"
 							class="content-on-clicked-dot"
-							v-for="(info, infoKey, infoIndex) in variant"
+							v-for="
+								[info, infoKey, infoIndex] in Object.keys(variant || {})
+									.map((k, i) => [variant[k], k, i])
+									.filter(
+										([info, infoKey, infoIndex]) =>
+											dataComparisonConfig == null ||
+											dataComparisonConfig.fieldsToCompare.includes(
+												infoKey
+											) == false
+									)
+							"
 							v-html="infoKey + ': ' + info"
 						>
 						</span>
 						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == true
-							"
 							class="content-on-clicked-dot"
-							v-for="(info, infoKey, infoIndex) in variant"
+							v-for="
+								[info, infoKey, infoIndex] in Object.keys(variant || {})
+									.map((k, i) => [variant[k], k, i])
+									.filter(
+										([info, infoKey, infoIndex]) =>
+											dataComparisonConfig != null &&
+											dataComparisonConfig.fieldsToCompare.includes(
+												infoKey
+											) == true
+									)
+							"
 						>
 							{{ infoKey }}: <br />
 							<span
@@ -149,26 +156,34 @@
 							<b v-html="variant[renderConfig.renderBy]"></b
 						></span>
 						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == false
-							"
 							class="content-on-clicked-dot"
-							v-for="(info, infoKey) in variant"
+							v-for="
+								[info, infoKey] in Object.keys(variant || {})
+									.map((k) => [variant[k], k])
+									.filter(
+										([info, infoKey]) =>
+											dataComparisonConfig == null ||
+											dataComparisonConfig.fieldsToCompare.includes(
+												infoKey
+											) == false
+									)
+							"
 							v-html="infoKey + ': ' + info"
 						>
 						</span>
 						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == true
-							"
 							class="content-on-clicked-dot"
-							v-for="(info, infoKey) in variant"
+							v-for="
+								[info, infoKey] in Object.keys(variant || {})
+									.map((k) => [variant[k], k])
+									.filter(
+										([info, infoKey]) =>
+											dataComparisonConfig != null &&
+											dataComparisonConfig.fieldsToCompare.includes(
+												infoKey
+											) == true
+									)
+							"
 						>
 							{{ infoKey }}: <br />
 							<span
@@ -253,33 +268,46 @@
 						v-html="'Click dot for more options.'"
 					></span>
 					<template
-						v-for="(hLdVariant, hLdVIndex) in hoverLdDotPosFullList"
-						v-if="hLdVIndex < 5"
+						v-for="
+							(hLdVariant, hLdVIndex) in (hoverLdDotPosFullList || [])
+								.filter(
+									(hLdVariant, hLdVIndex) =>
+										hLdVIndex < 5
+								)
+						"
 					>
 						<span class="gene-on-clicked-dot-mplot">
 							<b v-html="hLdVariant[renderConfig.renderBy]"></b
 						></span>
 						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									hLdVInfoKey
-								) == false
-							"
 							class="content-on-clicked-dot"
-							v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
+							v-for="
+								[hLdVInfo, hLdVInfoKey] in Object.keys(hLdVariant || {})
+									.map((k) => [hLdVariant[k], k])
+									.filter(
+										([hLdVInfo, hLdVInfoKey]) =>
+											dataComparisonConfig == null ||
+											dataComparisonConfig.fieldsToCompare.includes(
+												hLdVInfoKey
+											) == false
+									)
+							"
 							v-html="hLdVInfoKey + ': ' + hLdVInfo"
 						>
 						</span>
 						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									hLdVInfoKey
-								) == true
-							"
 							class="content-on-clicked-dot"
-							v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
+							v-for="
+								[hLdVInfo, hLdVInfoKey] in Object.keys(hLdVariant || {})
+									.map((k) => [hLdVariant[k], k])
+									.filter(
+										([hLdVInfo, hLdVInfoKey]) =>
+											dataComparisonConfig != null &&
+											dataComparisonConfig.fieldsToCompare.includes(
+												hLdVInfoKey
+											) == true
+									)
+							"
 						>
 							{{ hLdVInfoKey }}: <br />
 							<span
@@ -311,26 +339,34 @@
 							<b v-html="ldVariant[renderConfig.renderBy]"></b
 						></span>
 						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									ldInfoKey
-								) == false
-							"
 							class="content-on-clicked-dot"
-							v-for="(ldInfo, ldInfoKey) in ldVariant"
+							v-for="
+								[ldInfo, ldInfoKey] in Object.keys(ldVariant || {})
+									.map((k) => [ldVariant[k], k])
+									.filter(
+										([ldInfo, ldInfoKey]) =>
+											dataComparisonConfig == null ||
+											dataComparisonConfig.fieldsToCompare.includes(
+												ldInfoKey
+											) == false
+									)
+							"
 							v-html="ldInfoKey + ': ' + ldInfo"
 						>
 						</span>
 						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									ldInfoKey
-								) == true
-							"
 							class="content-on-clicked-dot"
-							v-for="(ldInfo, ldInfoKey) in ldVariant"
+							v-for="
+								[ldInfo, ldInfoKey] in Object.keys(ldVariant || {})
+									.map((k) => [ldVariant[k], k])
+									.filter(
+										([ldInfo, ldInfoKey]) =>
+											dataComparisonConfig != null &&
+											dataComparisonConfig.fieldsToCompare.includes(
+												ldInfoKey
+											) == true
+									)
+							"
 						>
 							{{ ldInfoKey }}: <br />
 							<span
