@@ -7,6 +7,9 @@ site. They exist to catch what a migration step breaks before it ships.
 
 - **Smoke** (`e2e/smoke.spec.mjs`, one build): each page's landmark becomes visible, and the
   query string the page was opened with is still the query string it ends on.
+- **Page setup** (`e2e/page-setup.spec.mjs`, one build): a page that mounts through `src/utils/pageSetup.js` sits in one
+  `#page-root` wrapper with `display: contents`, and `body` has no `#app` child. A page with an `#app` of its own keeps
+  that one, inside the wrapper. It covers `page404` and `research` so far.
 - **Compare** (`e2e/compare.spec.mjs`, A/B): each page is opened in a baseline build
   (`dist-baseline/`, port 8081) and in the candidate (`dist/`, port 8080). It fails when the
   candidate has a landmark that does not render, page errors, console errors or failed requests
@@ -60,7 +63,7 @@ round, a production baseline against a development candidate, fails on those war
 - Don't have `npm run preview` running on port 8080. Locally Playwright reuses a server already
   on that port (`reuseExistingServer`), and `preview` keeps serve's `cleanUrls`, which redirects
   `/gene.html?gene=PCSK9` to `/gene` and drops every query string. Stop it before a run.
-- Only Chromium is calibrated for compare. Firefox and WebKit run smoke only
+- Only Chromium is calibrated for compare. Firefox and WebKit run the one-build specs only, smoke and page setup
   (`playwright.config.mjs` ignores `compare.spec.mjs` for them).
 
 ## What CI runs, and what it can't catch
