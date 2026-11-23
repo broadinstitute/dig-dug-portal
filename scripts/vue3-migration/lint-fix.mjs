@@ -5,24 +5,23 @@
 //   npm run codemod:lint-fix -- --rule <id> [--rule <id> ...]               # write the fixes
 //   npm run codemod:lint-fix -- --rule <id> --root <dir>                    # another checkout (a portal branch)
 //
-// The lint is the Vue 3 rule set of the ratchet (`eslint-vue3.cjs`, through `vue3-eslint.mjs`) and ESLint
-// does the fixing, with a `fix` predicate (`shouldFix`) that accepts a message only when its rule is in
-// `--rule`: only the rules named with `--rule` are fixed, and only rules in `SAFE_ON_VUE2`. A rule whose fix writes Vue 3-only syntax (`v-model:arg` for
-// `.sync`, `beforeUnmount` for `beforeDestroy`, no `.native`) is refused with exit 2, so the tree keeps running
-// on Vue 2.7.
+// ESLint does the fixing, with the lint of the ratchet (`eslint-vue3.cjs`, through `vue3-eslint.mjs`). Only the
+// rules named with `--rule` are fixed, and only rules in `SAFE_ON_VUE2`: a rule whose fix writes Vue 3-only
+// syntax (`v-model:arg` for `.sync`, `beforeUnmount` for `beforeDestroy`, no `.native`) is refused with exit 2,
+// so the tree keeps running on Vue 2.7.
 //
 //   - `vue/no-deprecated-slot-attribute`: `<template slot="x" slot-scope="s">` becomes `<template v-slot:x="s">`
-//     (Vue 2.6+). ESLint converts only a `<template>` directly inside a component, a slot name of word
-//     characters and `-`, and no other template for the same slot; the rest stays as it is, and stays counted.
-//     Its fix also takes the element's `slot-scope`, which is why `vue/no-deprecated-slot-scope-attribute` has
-//     fewer fixes of its own to make.
+//     (Vue 2.6+). ESLint converts only a `<template>` directly inside a component, with a slot name of word
+//     characters and `-`, and no other template for the same slot; any other stays as it is, and stays counted.
+//     Its fix takes the element's `slot-scope` along, so the next rule has little left to fix.
 //   - `vue/no-deprecated-slot-scope-attribute`: a `slot-scope="s"` with no `slot` beside it becomes `v-slot="s"`.
 //   - `vue/no-deprecated-data-object-declaration`: `data: { ... }` on a root instance or component becomes
-//     `data: function() { return { ... }; }`.
+//     `data: () => ({ ... })`.
 //
 // Every output is ESLint's own splice of the original text: bytes outside the fix, line endings and
-// indentation included, stay as they were, and nothing is reformatted. The one change to a fix is that the
-// slot rule's text is trimmed (see `shouldFix`), so removing `slot-scope` leaves no stray space or blank line.
+// indentation included, stay as they were, and nothing is reformatted. The only change to a fix is made in
+// `shouldFix`, before ESLint applies it: the slot fix's text is trimmed (no stray space or blank line where
+// `slot-scope` was removed), and the data fix is written as an arrow function around the object's own text.
 //
 // All outputs are computed in memory first, and each is checked again before anything is written:
 //   - a `.vue` file may not have an SFC parser error (`vue/compiler-sfc`, compared by message, as a
@@ -63,20 +62,43 @@ export const SAFE_ON_VUE2 = new Set([
   'vue/no-deprecated-data-object-declaration',
 ]);
 
+const SLOT_RULE = 'vue/no-deprecated-slot-attribute';
+const DATA_RULE = 'vue/no-deprecated-data-object-declaration';
+// What ESLint's data-object fix wraps around the object's own text (it inserts both ends, which ESLint merges).
+const FUNCTION_OPEN = 'function() {\nreturn ';
+const FUNCTION_CLOSE = ';\n}';
+
 /**
- * ESLint's `fix` predicate for `wanted` rules: true for a message of a wanted rule, which is then fixed.
- *
- * For `vue/no-deprecated-slot-attribute` it first trims the fix's text. This depends on how ESLint 8.57.1's
+ * ESLint's `fix` predicate for `wanted` rules: true for a message whose rule is wanted, which is then fixed.
+ * Two rules have their fix reshaped first. Both reshapes depend on how ESLint 8.57.1's
  * `SourceCodeFixer.applyFixes` works: it calls the predicate with the problem object (only for a problem that
  * has a fix) and then applies that same `problem.fix`, so a change to `problem.fix.text` made here is what gets
- * written. ESLint merges the rule's two edits (replace `slot`, remove `slot-scope`) into one fix, and the merged
- * text keeps the whitespace that stood between and around the two attributes: ` ` after `v-slot:a="s"`, a
- * newline and indent after one that sat on its own line, a leading ` ` when `slot-scope` came first. Trimmed,
- * the attributes close up and no space or blank line is left behind. Check this again when ESLint is upgraded.
+ * written. Check both again when ESLint is upgraded; the tests for them fail if the mechanism changes.
+ *
+ * `vue/no-deprecated-slot-attribute`: the fix text is trimmed. ESLint merges the rule's two edits (replace
+ * `slot`, remove `slot-scope`) into one fix, and the merged text keeps the whitespace that stood between and
+ * around the two attributes: ` ` after `v-slot:a="s"`, a newline and indent after one that sat on its own
+ * line, a leading ` ` when `slot-scope` came first. Trimmed, the attributes close up and no space or blank
+ * line is left behind.
+ *
+ * `vue/no-deprecated-data-object-declaration`: ESLint's text `function() {\nreturn <object>;\n}` becomes
+ * `() => (<object>)`, with `<object>` the original text, so its lines keep their indentation (ESLint's form
+ * puts `return` in column 0 and leaves the object's lines under-indented). The arrow form is safe because
+ * Vue 2.7 calls `data` with the instance as `this` and as the argument, and the original expression ran once,
+ * before any instance existed, so it can use neither: a module-level object literal gives every instance the
+ * same shape as before. (An arrow function also keeps the surrounding `this`, where `function` would give it the
+ * instance.) Only a text that is exactly that prefix, a non-empty body and that suffix is rewritten; for any
+ * other the predicate returns false, so the finding stays and nothing half-rewritten is applied.
  */
-function shouldFix(message, wanted) {
+export function shouldFix(message, wanted) {
   if (!wanted.has(message.ruleId)) return false;
-  if (message.ruleId === 'vue/no-deprecated-slot-attribute') message.fix.text = message.fix.text.trim();
+  if (message.ruleId === SLOT_RULE) message.fix.text = message.fix.text.trim();
+  if (message.ruleId === DATA_RULE) {
+    const { text } = message.fix;
+    const hasBody = text.length > FUNCTION_OPEN.length + FUNCTION_CLOSE.length;
+    if (!hasBody || !text.startsWith(FUNCTION_OPEN) || !text.endsWith(FUNCTION_CLOSE)) return false;
+    message.fix.text = `() => (${text.slice(FUNCTION_OPEN.length, -FUNCTION_CLOSE.length)})`;
+  }
   return true;
 }
 

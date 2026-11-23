@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import vueTemplateCompiler from 'vue-template-compiler';
-import { SAFE_ON_VUE2, fixTree, run } from './lint-fix.mjs';
+import { SAFE_ON_VUE2, fixTree, run, shouldFix } from './lint-fix.mjs';
 import { vue3Linter } from './vue3-eslint.mjs';
 
 const { compile, parseComponent } = vueTemplateCompiler;
@@ -235,14 +235,52 @@ test('the v-slot form of a parenthesised slot name compiles on Vue 2.7', () => {
   assert.match(render, /key:"cell\(name\)"/);
 });
 
-test('turns a root data object into a function that returns it', async () => {
-  await withRoot(FIXTURE, async (root) => {
+// ESLint's own fix writes `function() {\nreturn <object>;\n}`, which leaves `return` in column 0 and the object's
+// lines under-indented. lint-fix writes the arrow form `() => (<object>)` around the same object text instead.
+const DATA_MULTILINE = 'new Vue({\n    data: {\n        a: 1,\n    },\n})\n';
+const DATA_MULTILINE_FIXED = 'new Vue({\n    data: () => ({\n        a: 1,\n    }),\n})\n';
+
+test('turns a root data object into an arrow function that returns it, around the same object text', async () => {
+  await withRoot({ ...FIXTURE, 'src/views/Y/main.js': `import Vue from "vue";\n${DATA_MULTILINE}` }, async (root) => {
     const real = await cli(root, ['--rule', DATA]);
     assert.equal(real.code, 0);
-    assert.match(read(root, 'src/views/X/main.js'), /data: function\(\) \{\s*return \{ a: 1 \};\s*\}, beforeDestroy\(\) \{\}/);
+    assert.equal(read(root, 'src/views/X/main.js'), MAIN.replace('data: { a: 1 }', 'data: () => ({ a: 1 })'));
+    assert.equal(read(root, 'src/views/Y/main.js'), `import Vue from "vue";\n${DATA_MULTILINE_FIXED}`);
     // The slot rules were not asked for.
     assert.equal(read(root, 'src/views/X/Template.vue'), TEMPLATE);
+
+    const again = await cli(root, ['--rule', DATA]);
+    assert.equal(again.code, 0);
+    assert.deepEqual(again.writes, []);
+    assert.equal(read(root, 'src/views/Y/main.js'), `import Vue from "vue";\n${DATA_MULTILINE_FIXED}`);
   });
+});
+
+const WRAP_OPEN = 'function() {\nreturn ';
+const WRAP_CLOSE = ';\n}';
+
+test('shouldFix rewrites the data-object fix only when its text is exactly the function wrapper', () => {
+  const wanted = new Set([DATA]);
+  const fixOf = (text) => ({ range: [10, 30], text });
+  const accepts = (text) => {
+    const message = { ruleId: DATA, fix: fixOf(text) };
+    return [shouldFix(message, wanted), message.fix];
+  };
+
+  // The shape ESLint 8.57.1 writes, for an object, a parenthesised object and a call.
+  assert.deepEqual(accepts(`${WRAP_OPEN}{\n  a: 1,\n}${WRAP_CLOSE}`), [true, fixOf('() => ({\n  a: 1,\n})')]);
+  assert.deepEqual(accepts(`${WRAP_OPEN}({ a: 1 })${WRAP_CLOSE}`), [true, fixOf('() => (({ a: 1 }))')]);
+  assert.deepEqual(accepts(`${WRAP_OPEN}make()${WRAP_CLOSE}`), [true, fixOf('() => (make())')]);
+
+  // Anything else is refused, and the fix is left exactly as ESLint made it.
+  for (const text of ['', 'odd(', `${WRAP_OPEN}{}`, `{}${WRAP_CLOSE}`, `${WRAP_OPEN}${WRAP_CLOSE}`, `function () {\nreturn {};\n}`, `${WRAP_OPEN}{}; // x\n}`]) {
+    assert.deepEqual(accepts(text), [false, fixOf(text)], JSON.stringify(text));
+  }
+
+  // A rule that was not asked for is refused without touching its fix.
+  const other = { ruleId: SLOT, fix: fixOf(' v-slot:a="s" ') };
+  assert.equal(shouldFix(other, wanted), false);
+  assert.deepEqual(other.fix, fixOf(' v-slot:a="s" '));
 });
 
 test('leaves other rules alone: beforeDestroy stays, though another rule would fix it', async () => {
