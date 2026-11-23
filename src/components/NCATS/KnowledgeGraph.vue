@@ -6,6 +6,7 @@
     </div>
 </template>
 <script>
+import { markRaw } from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import trapi from "./trapi"
@@ -64,7 +65,7 @@ export default {
                 nodes: new DataSet(this.nodes),
                 edges: new DataSet(this.edges),
             };
-            this.network = new Network(container, data, {});
+            this.network = markRaw(new Network(container, data, {}));
         },
         onNodeHovered() {
             console.log(arguments)

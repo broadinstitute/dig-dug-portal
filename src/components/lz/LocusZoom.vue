@@ -9,6 +9,7 @@
 </template>
 
 <script>
+import { markRaw } from "vue";
 import LocusZoom from "locuszoom";
 import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
@@ -58,7 +59,7 @@ export default {
         };
     },
     mounted() {
-        this.dataSources = new LocusZoom.DataSources();
+        this.dataSources = markRaw(new LocusZoom.DataSources());
         Object.keys(LZDataSources).forEach((lzType) => {
             if (!!this[lzType]) {
                 this.createSource(lzType, this[lzType]);
@@ -73,7 +74,7 @@ export default {
         let widgets = [download_png];
         if (!!this.ldpop) widgets.push(ldlz2_pop_selector_menu);
 
-        this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
+        this.plot = markRaw(LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
             responsive_resize: "width",
             max_region_scale: 500000, // without this, zooming out will fail (circa LocusZoom v0.13.1)
             state: {
@@ -85,7 +86,7 @@ export default {
                 // top-to-bottom in the array => right-to-left on the layout
                 widgets,
             },
-        });
+        }));
         this.locuszoommounted = true;
 
         // event listeners

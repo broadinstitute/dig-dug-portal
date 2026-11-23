@@ -5,6 +5,7 @@
 </template>
 
 <script>
+import { markRaw } from "vue";
 import c3 from "c3";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
@@ -100,7 +101,7 @@ export default {
             }
 
             // attach to the dom
-            this.chart = c3.generate({
+            const config = {
                 bindto: "#manhattan",
                 size: {
                     height: 300,
@@ -199,7 +200,8 @@ export default {
                         label: "-log10(p)",
                     },
                 },
-            });
+            };
+            this.chart = markRaw(c3.generate(config));
         },
     },
 };
