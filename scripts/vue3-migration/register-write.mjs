@@ -236,25 +236,29 @@ function importsEdit(raw, body, imports, eol) {
   return { start: 0, end: 0, text: lines(body[0] ? lineIndent(raw, body[0].start) : '') };
 }
 
-/** Edits that add `registrations` to the existing `components` object. */
-function extendComponents(raw, property, registrations, unit, eol) {
-  const object = property.value;
-  if (object.properties.length === 0) {
+/**
+ * Edits that add `items` (each as source text: `Key`, `"name"`) to the object or array literal that is the
+ * value of `property` (`components: { ... }`, `emits: [ ... ]`).
+ */
+export function extendList(raw, property, items, unit, eol) {
+  const list = property.value;
+  const members = list.properties ?? list.elements;
+  if (members.length === 0) {
     const indent = lineIndent(raw, property.start);
-    return [fillEmpty(raw, object, registrations.map((registration) => `${indent}${unit}${registration},`).join(eol), indent, eol)];
+    return [fillEmpty(raw, list, items.map((item) => `${indent}${unit}${item},`).join(eol), indent, eol)];
   }
-  const last = object.properties.at(-1);
+  const last = members.at(-1);
   const commaAt = skipTrivia(raw, last.end);
   const hasComma = raw[commaAt] === ',';
   const afterLast = hasComma ? commaAt + 1 : last.end;
-  if (!raw.slice(afterLast, object.end).includes('\n')) {
+  if (!raw.slice(afterLast, list.end).includes('\n')) {
     // `{ A, B }`: the new entries stay on that line, and a trailing comma stays last.
-    return [{ start: last.end, end: last.end, text: registrations.map((registration) => `, ${registration}`).join('') }];
+    return [{ start: last.end, end: last.end, text: items.map((item) => `, ${item}`).join('') }];
   }
   const indent = lineIndent(raw, last.start);
   const at = lineEnd(raw, afterLast);
   const edits = hasComma ? [] : [{ start: last.end, end: last.end, text: ',' }];
-  edits.push({ start: at, end: at, text: registrations.map((registration) => `${eol}${indent}${registration},`).join('') });
+  edits.push({ start: at, end: at, text: items.map((item) => `${eol}${indent}${item},`).join('') });
   return edits;
 }
 
@@ -271,6 +275,31 @@ export function addFirstProperty(raw, options, lines, unit, eol) {
   }
   const outer = lineIndent(raw, options.start);
   return fillEmpty(raw, options, lines(outer + unit), outer, eol);
+}
+
+/**
+ * Edit that adds a property to the options object, on the line after `property`: after its comma and any
+ * comment that trails it, indented like `property`. `lines(indent)` is the new property (one or more
+ * lines, joined with `eol`, no outer line breaks, ending in its own comma). A `property` without a trailing
+ * comma (the last one) gets the comma, right after its end, in the same edit.
+ *
+ * Returns null when the new lines cannot go on a line of their own: code other than a comment follows the
+ * property's comma on its line (a second property, the closing brace), or code precedes the property on
+ * its line. The caller reports it; nothing is guessed.
+ */
+export function addPropertyAfter(raw, property, lines, eol) {
+  const indent = lineIndent(raw, property.start);
+  if (raw.lastIndexOf('\n', property.start - 1) + 1 + indent.length !== property.start) return null;
+  const commaAt = skipTrivia(raw, property.end);
+  const hasComma = raw[commaAt] === ',';
+  const after = hasComma ? commaAt + 1 : property.end;
+  const at = lineEnd(raw, after);
+  // `lineEnd` gives `after` back both at the end of a line and when code follows.
+  if (at === after && raw[after] !== undefined && raw[after] !== '\r' && raw[after] !== '\n') return null;
+  const added = `${eol}${lines(indent)}`;
+  if (hasComma) return { start: at, end: at, text: added };
+  // One edit: it starts at the property's end and repeats the text up to `at` (a trailing comment, if any), so the comma lands before it.
+  return { start: property.end, end: at, text: `,${raw.slice(property.end, at)}${added}` };
 }
 
 /** Edit that adds a `components` property as the first property of the options object. */
@@ -302,7 +331,7 @@ function editScript(raw, entries, eol, file, fail) {
 
   const unit = indentUnit(raw, options);
   const edits = added.imports.length > 0 ? [importsEdit(raw, body, added.imports, eol)] : [];
-  if (components) edits.push(...extendComponents(raw, components, added.registrations, unit, eol));
+  if (components) edits.push(...extendList(raw, components, added.registrations, unit, eol));
   else edits.push(newComponents(raw, options, added.registrations, unit, eol));
   return edits;
 }

@@ -16,7 +16,8 @@
     "codemod:register-components": "node scripts/vue3-migration/register-components.mjs",
     "codemod:unwrap-vue-component": "node scripts/vue3-migration/unwrap-vue-component.mjs",
     "codemod:portal-dry-run": "node scripts/vue3-migration/portal-dry-run.mjs",
-    "codemod:lint-fix": "node scripts/vue3-migration/lint-fix.mjs"
+    "codemod:lint-fix": "node scripts/vue3-migration/lint-fix.mjs",
+    "codemod:declare-emits": "node scripts/vue3-migration/declare-emits.mjs"
   },
   "dependencies": {
     "@amcharts/amcharts4": "4.10.40",
