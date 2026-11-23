@@ -111,7 +111,7 @@
                         >
                             <div class="label">Filter by Genes in Query</div>
                         </filter-enumeration-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-bayes-table
                                 :pigeanData="$parent.geneFactor"
                                 :fields="$parent.geneFields"
@@ -135,7 +135,7 @@
                         >
                             <div class="label">Filter by Factor Label</div>
                         </filter-enumeration-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-bayes-table
                                 :pigeanData="$parent.genesetFactor"
                                 :fields="$parent.genesetFields"
@@ -155,7 +155,7 @@
                         >
                             <div class="label">Filter by P-Value (&le;)</div>
                         </filter-less-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-bayes-table
                                 :pigeanData="$store.state.phenotypeData"
                                 :fields="$parent.phenotypeFields"

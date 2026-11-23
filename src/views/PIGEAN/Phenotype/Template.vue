@@ -117,7 +117,7 @@
                         >
                             <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-plot
                                 v-if="$store.state.pigeanPhenotype.data.length > 0 &&
                                     Object.keys($parent.pigeanMap).length > 0"
@@ -174,7 +174,7 @@
                             <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-plot
                                 v-if="$store.state.genesetPhenotype.data.length > 0 &&
                                     Object.keys($parent.pigeanMap).length > 0"

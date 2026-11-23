@@ -57,7 +57,7 @@
             >
                 <div class="label">P-Value (&le;)</div>
             </filter-pvalue-control>
-            <template slot="filtered">
+            <template v-slot:filtered>
                 <template v-if="filteredItems().length > 0">
                     <div
                         v-if="plotsReady"

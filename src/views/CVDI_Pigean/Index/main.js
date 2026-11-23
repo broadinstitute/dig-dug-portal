@@ -37,7 +37,7 @@ new Vue({
     },
     mixins: [pageMixin],
 
-    data: {
+    data: () => ({
         pigeanPhenotypeMap: {},
         genesetSearchOptions: [],
         selected: "",
@@ -155,7 +155,7 @@ new Vue({
             ],
             "showTraitGroup": true
         },
-    },
+    }),
 
     computed: {
         utilsBox() {

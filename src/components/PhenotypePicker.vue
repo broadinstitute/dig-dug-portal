@@ -11,7 +11,7 @@
             :showOnFocus="true"
             @hit="onSecondaryPhenotypeSelected($event)"
         >
-            <template slot="suggestion" slot-scope="{ data, htmlText }">
+            <template v-slot:suggestion="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
                 <small class="text-secondary">{{ data.group }}</small>
             </template>

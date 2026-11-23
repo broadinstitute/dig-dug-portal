@@ -86,7 +86,7 @@
                             >
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 
                                     <div>
                                         <scatterplot
@@ -206,7 +206,7 @@
                                     Adjusted p-value: strain and sex (&le;)
                                 </div>
                             </filter-pvalue-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <mouse-summary-table
                                     :items="$store.state.mouseSummary.data"
                                     :filter="filter"
@@ -320,7 +320,7 @@
                                 <div class="label">Variants (&ge;)</div>
                             </filter-greater-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <c2ct-table
                                     :c2ct-data="$parent.cs2ctData"
                                     :filter="filter"
@@ -464,7 +464,7 @@
                             >
                                 <div class="label">Search pathway</div>
                             </filter-enumeration-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <div v-if="$parent.connectivityData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
@@ -654,7 +654,7 @@
                             >
                                 <div class="label">Search gene</div>
                             </filter-enumeration-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <div
                                     v-if="
                                         $parent.connectivityCrisprData.length >

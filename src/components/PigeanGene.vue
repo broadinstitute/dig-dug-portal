@@ -395,7 +395,7 @@
                         <strong>HuGE Score (&ge;)</strong>
                     </div>
                 </filter-greater-control>
-                <template slot="filtered" slot-scope="{ filter }">
+                <template v-slot:filtered="{ filter }">
                     <research-phewas-plot
                         v-if="hugeScores && hugeScores.length > 0"
                         ref="hugeScorePheWASPlot"

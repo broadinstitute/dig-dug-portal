@@ -148,8 +148,7 @@
                                     <div class="label">P-Value (&le;)</div>
                                 </filter-pvalue-control>
                                 <template
-                                    slot="filtered"
-                                    slot-scope="{ filter }"
+                                    v-slot:filtered="{ filter }"
                                 >
                                     <span class="filter-pill-collection center">
                                         <b-badge

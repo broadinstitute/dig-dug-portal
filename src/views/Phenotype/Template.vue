@@ -180,7 +180,7 @@
                                 <div class="label">Meta-analysis</div>
                             </filter-enumeration-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <documentation
                                     name="pheno.top_assoc.subheader"
                                     :content-map="
@@ -319,7 +319,7 @@
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <c2ct-table
                                     :c2ct-data="$parent.c2ctData"
                                     :filter="filter"
@@ -364,7 +364,7 @@
                             >
                                 <div class="label">Technology</div>
                             </filter-enumeration-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <datasets-table
                                     :datasets="$parent.ancestryDatasets"
                                     :phenotype="$store.state.phenotype"
@@ -412,7 +412,7 @@
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <b-tabs>
                                     <b-tab
                                         title="HuGE Scores"
@@ -601,7 +601,7 @@
                             <filter-greater-control :field="'rg'">
                                 <div class="label">Correlation (&ge;)</div>
                             </filter-greater-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <correlation-table
                                     :correlation-data="
                                         $store.state.geneticCorrelation.data
@@ -678,7 +678,7 @@
                                 <div class="label">Fold (&ge;)</div>
                             </filter-greater-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <enrichment-table
                                     :phenotypes="[$store.state.phenotype]"
                                     :annotations="$parent.ancestryAnnotations"

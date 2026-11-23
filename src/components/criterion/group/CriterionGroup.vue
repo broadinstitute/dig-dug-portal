@@ -18,7 +18,7 @@
             
     >
         <slot></slot>
-        <template slot="filtered" slot-scope="{ filter }">
+        <template v-slot:filtered="{ filter }">
             <slot name="filtered" :filter="filter"></slot>
         </template>
     </criterion-group-template>
