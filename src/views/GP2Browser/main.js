@@ -1,10 +1,6 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import GP2Browser from "@/components/researchPortal/customComponents/GP2Browser.vue";
 
@@ -19,11 +15,8 @@ import filterUtils from "@/utils/filterUtils";
 import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
 
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         GP2Browser,
@@ -59,7 +52,4 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
     },
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

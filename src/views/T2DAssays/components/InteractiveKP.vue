@@ -180,15 +180,8 @@
   .ctrl-btn.cat-lm.active {background:#332288; border-color:#332288; color:white;}
   .ctrl-divider { width: 1px; height: 26px; background: var(--filter-border); margin: 0 4px; }
 </style>
-<script>if (new URLSearchParams(location.search).get("embed") === "1") document.body.classList.add("embed");</script>
 <script>
-import Vue from "vue";
-import { BootstrapVue } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import * as plotly from "plotly.js-dist";
-
-Vue.use(BootstrapVue);
 
 import assays from "../data/assays.json";
 const ASSAYS = assays;

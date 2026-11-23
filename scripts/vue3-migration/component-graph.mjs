@@ -135,7 +135,7 @@ export function readSources(root) {
  * blocks yields only the last, as vue-loader sees it). Problems with the SFC itself go to `errors`.
  * @returns {{ content: string, start: number, startLine: number }[]}
  */
-function scriptBlocks(file, source, errors) {
+export function scriptBlocks(file, source, errors) {
   if (!file.endsWith('.vue')) return [{ content: source, start: 0, startLine: 1 }];
   let descriptor;
   try {

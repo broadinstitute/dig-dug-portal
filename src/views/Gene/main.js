@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 import {
@@ -56,9 +56,8 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-Vue.config.productionTip = false;
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     modules: {},
     components: {
@@ -750,8 +749,4 @@ new Vue({
             }
         },
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

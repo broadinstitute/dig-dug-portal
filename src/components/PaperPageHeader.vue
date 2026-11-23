@@ -16,14 +16,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { userMixin } from "@/mixins/userMixin";
 import Alert from "@/components/Alert.vue";
-Vue.use(VueCookies);
 
 export default {
     name: "paper-page-header",
@@ -40,10 +38,10 @@ export default {
         };
     },
     created() {
-        if (Vue.$cookies.isKey("session")) {
+        if (VueCookies.isKey("session")) {
             this.$store.dispatch(
                 "bioPortal/getUser",
-                Vue.$cookies.get("session")
+                VueCookies.get("session")
             );
         }
         if (BIO_INDEX_HOST.indexOf("dev") != -1) this.bioindex_dev = true;

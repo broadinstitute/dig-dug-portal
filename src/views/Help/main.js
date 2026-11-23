@@ -1,14 +1,6 @@
-import Vue from "vue";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-Vue.config.productionTip = false;
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -20,7 +12,8 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     data() {
         return {
@@ -37,10 +30,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getPhenotypes");
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     methods: {
@@ -163,4 +152,4 @@ new Vue({
         },
 
     }
-}).$mount("#app");
+});

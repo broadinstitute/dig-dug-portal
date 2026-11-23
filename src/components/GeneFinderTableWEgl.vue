@@ -443,19 +443,11 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import GeneFinderHeatmap from "@/components/geneFinderHeatmap.vue";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import DataDownload from "@/components/DataDownload";
 

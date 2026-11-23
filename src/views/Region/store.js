@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 
 import keyParams from "@/utils/keyParams";
@@ -7,8 +6,6 @@ import bioIndex from "@/modules/bioIndex";
 import lunaris from "@/modules/lunaris";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
-
-Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {

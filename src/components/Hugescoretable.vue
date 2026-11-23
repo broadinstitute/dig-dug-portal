@@ -63,22 +63,14 @@
 
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";
 import ResetPriorWidget from "@/components/ResetPriorWidget.vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import $ from "jquery";
 
 import uiUtils from "@/utils/uiUtils";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
 
 
 export default {

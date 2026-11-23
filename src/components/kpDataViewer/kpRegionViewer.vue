@@ -36,12 +36,8 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import umLdServer from "@/modules/umLdServer.js";
 import Formatters from "@/utils/formatters.js";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "kp-region-viewer",

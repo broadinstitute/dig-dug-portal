@@ -226,10 +226,7 @@
 </template>
 
 <script>
-import Vue from "vue";
 //import uiUtils from "@/utils/uiUtils";
-
-import { BootstrapVueIcons } from "bootstrap-vue";
 
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
@@ -238,8 +235,6 @@ import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotat
 import ResearchAnnotationsPlotV2 from "@/components/researchPortal/ResearchAnnotationsPlotV2.vue";
 import ResearchCredibleSets from "@/components/researchPortal/ResearchCredibleSets.vue";
 import ResearchGeneLinks from "@/components/researchPortal/ResearchGeneLinks.vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "kp-gem-pkg",

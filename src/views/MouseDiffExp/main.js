@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -32,7 +32,8 @@ import regionUtils from "@/utils/regionUtils";
 
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         CriterionFunctionGroup,
@@ -339,5 +340,4 @@ new Vue({
             }
         }
     },
-    render: (h) => h(Template),
-}).$mount("#app");
+});

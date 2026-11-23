@@ -1,10 +1,6 @@
-import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
 
 
 import PageHeader from "@/components/PageHeader.vue";
@@ -77,7 +73,8 @@ const PEG_EVIDENCE_CATEGORIES = {
     Other: "Custom evidence category supplied by the submitter.",
 };
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
 
     components: {
@@ -122,10 +119,6 @@ new Vue({
         if (this.selectedAccession) {
             this.getStudyList();
         }
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     methods: {
@@ -424,4 +417,4 @@ new Vue({
         },
 
     }
-}).$mount("#app");
+});

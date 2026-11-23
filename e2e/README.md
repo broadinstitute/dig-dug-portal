@@ -7,6 +7,9 @@ site. They exist to catch what a migration step breaks before it ships.
 
 - **Smoke** (`e2e/smoke.spec.mjs`, one build): each page's landmark becomes visible, and the
   query string the page was opened with is still the query string it ends on.
+- **Page setup** (`e2e/page-setup.spec.mjs`, one build): every page mounts through `src/utils/pageSetup.js`, so it sits
+  in one `#page-root` wrapper with `display: contents`, and `body` has no `#app` child. A page with an `#app` of its own
+  (`research`) keeps that one, inside the wrapper. It asks for no live data and takes about 40 s.
 - **Compare** (`e2e/compare.spec.mjs`, A/B): each page is opened in a baseline build
   (`dist-baseline/`, port 8081) and in the candidate (`dist/`, port 8080). It fails when the
   candidate has a landmark that does not render, page errors, console errors or failed requests
@@ -60,7 +63,7 @@ round, a production baseline against a development candidate, fails on those war
 - Don't have `npm run preview` running on port 8080. Locally Playwright reuses a server already
   on that port (`reuseExistingServer`), and `preview` keeps serve's `cleanUrls`, which redirects
   `/gene.html?gene=PCSK9` to `/gene` and drops every query string. Stop it before a run.
-- Only Chromium is calibrated for compare. Firefox and WebKit run smoke only
+- Only Chromium is calibrated for compare. Firefox and WebKit run the one-build specs only, smoke and page setup
   (`playwright.config.mjs` ignores `compare.spec.mjs` for them).
 
 ## What CI runs, and what it can't catch
@@ -104,7 +107,7 @@ One entry per page in `vue.config.js`, in the same order. Adding a page means ad
 `e2e/catalog.test.mjs` (part of `npm run test:scripts`) fails until you do.
 
 - `landmark`: a selector that is visible once the page body has rendered. Default `.mdkp-body`.
-  Never `#app`: Vue 2 replaces that element on mount, Vue 3 renders inside it.
+  Never `#app`: `mountPage` takes that id off the element, so it is gone once the page has mounted, on 2.7 and on Vue 3.
 - `query`: the URL parameters the page needs, in the canonical form the page writes back (sorted
   keys, defaults filled in), so the URL it ends on is the one it was opened with.
 - `mask`: selectors painted over in compare screenshots, for content that changes on every load

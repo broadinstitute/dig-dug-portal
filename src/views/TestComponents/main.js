@@ -1,16 +1,11 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 //import VueCodeMirror from "vue-codemirror";
-import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
 import VueCodemirror from "vue-codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material.css";
-
-Vue.use(BootstrapVue);
-Vue.use(VueCodemirror);
-Vue.config.productionTip = false;
 
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
@@ -25,7 +20,8 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
 
     components: {
@@ -42,10 +38,6 @@ new Vue({
     },
 
     mounted() {
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     methods: {},
@@ -66,4 +58,4 @@ new Vue({
             });
         }
     }
-}).$mount("#app");
+}, [VueCodemirror]);

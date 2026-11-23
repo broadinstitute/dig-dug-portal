@@ -81,13 +81,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import regionTrackVector from "@/components/researchPortal/vectorPlots/ResearchRegionTrackVector.vue";
 import { indexOf } from "@amcharts/amcharts4/.internal/core/utils/Array";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
     name: "research-region-track",

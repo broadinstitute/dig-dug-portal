@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store";
 
@@ -9,7 +9,8 @@ import { DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils"
 import keyParams from "@/utils/keyParams";
 import pigeanUtils from "@/utils/pigeanUtils.js";
 import { pageMixin } from "@/mixins/pageMixin.js";
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         NetworkGraph,
@@ -70,7 +71,4 @@ new Vue({
         let initialPhenotype = this.pigeanPhenotypeMap[keyParams.phenotype];
         this.$store.dispatch("sendSearch", initialPhenotype)
     },
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

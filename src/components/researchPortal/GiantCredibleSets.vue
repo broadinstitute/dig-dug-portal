@@ -161,12 +161,8 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import queryString from "query-string";
-import { BootstrapVueIcons } from "bootstrap-vue";
-
-Vue.use(BootstrapVueIcons);
 
 export default {
 	name: "giant-credible-sets-plot",

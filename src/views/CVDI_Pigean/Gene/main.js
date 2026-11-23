@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -23,7 +23,8 @@ import pigeanUtils from "@/utils/pigeanUtils.js";
 import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     modules: {},
     components: {
@@ -219,8 +220,4 @@ new Vue({
             this.pigeanColors = colors;
         }
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

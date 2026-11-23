@@ -1,12 +1,11 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
 import { pageMixin } from "@/mixins/pageMixin";
 
-Vue.config.productionTip = false;
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     mixins: [pageMixin],
     created() {
@@ -15,9 +14,6 @@ new Vue({
 
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
-    },
-    render(createElement) {
-        return createElement(Template);
     },
     computed: {
         currentPath() {
@@ -44,4 +40,4 @@ new Vue({
             }
         }
     }
-}).$mount("#app");
+});

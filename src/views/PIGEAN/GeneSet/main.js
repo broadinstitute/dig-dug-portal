@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -23,7 +23,8 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         SearchHeaderWrapper,
@@ -165,8 +166,4 @@ new Vue({
         this.pigeanPhenotypeMap = 
             pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

@@ -1,10 +1,8 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 
 import Template from "./Template.vue";
 import store from "./store.js";
-import { BootstrapVue, BootstrapVueIcons, BIconMouse2 } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
+import { BIconMouse2 } from "bootstrap-vue";
 import uiUtils from "@/utils/uiUtils";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -35,11 +33,8 @@ import MaskTable from "@/components/MaskTable";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import sessionUtils from "@/utils/sessionUtils";
 
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         Documentation,
@@ -495,7 +490,4 @@ new Vue({
             }
         },
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -28,7 +28,8 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         Documentation,
@@ -1199,7 +1200,4 @@ new Vue({
             this.searchCriteria = copiedArray;
         },
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

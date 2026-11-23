@@ -1,10 +1,7 @@
+import { mountPage } from "@/utils/pageSetup";
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -34,11 +31,8 @@ import Alert, {
 import { query } from "@/utils/bioIndexUtils";
 import { isEqual, difference } from "@/utils/lodashUtils";
 
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     modules: {},
     components: {
@@ -1010,12 +1004,4 @@ new Vue({
             });
         },
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});
