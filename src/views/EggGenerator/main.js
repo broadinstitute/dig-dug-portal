@@ -1,5 +1,4 @@
 import { mountPage } from "@/utils/pageSetup";
-import Vue from "vue";
 //import VueCodeMirror from "vue-codemirror";
 import Template from "./Template.vue";
 import store from "./store.js";
@@ -7,8 +6,6 @@ import store from "./store.js";
 import VueCodemirror from "vue-codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/material.css";
-
-Vue.use(VueCodemirror);
 
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
@@ -761,4 +758,4 @@ mountPage(Template, {
             });
         }
     }
-});
+}, [VueCodemirror]);

@@ -1,4 +1,4 @@
-import Vue from "vue";
+import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
 import gaUtils from "@/utils/gaUtils"
 
@@ -10,7 +10,7 @@ export const userMixin = {
     },
     methods: {
         saveCurrentPage() {
-            Vue.$cookies.set("whereAmI", location.href, "", "", host.domain);
+            VueCookies.set("whereAmI", location.href, "", "", host.domain);
         },
         async loginUser() {
             this.saveCurrentPage();
