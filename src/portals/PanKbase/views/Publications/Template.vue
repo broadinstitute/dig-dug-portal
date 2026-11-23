@@ -21,7 +21,7 @@
               </option>
             </select>
           </div>
-          <template slot="filtered" slot-scope="{ filter }">
+          <template v-slot:filtered="{ filter }">
           <b-table 
             :items="$parent.pubSearchResults"
             :sortable="true"

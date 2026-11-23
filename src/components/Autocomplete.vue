@@ -11,7 +11,7 @@
         @hit="onAutoCompleteItemSelected($event)"
         @keyup.enter="onUserEnterNonAutoCompleteItem"
     >
-        <template slot="suggestion" slot-scope="{ data, htmlText }">
+        <template v-slot:suggestion="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
             <small v-if="secondaryKey" class="text-secondary">{{
                 data[secondaryKey]

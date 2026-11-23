@@ -351,7 +351,7 @@
                       >
                       </transcript-selectpicker>
                   </div>
-                  <template slot="filtered" slot-scope="{ filter }">
+                  <template v-slot:filtered="{ filter }">
                       <span class="filter-pill-collection center">
                           <b-badge
                               v-if="

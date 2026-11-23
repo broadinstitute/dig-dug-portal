@@ -28,7 +28,7 @@ new Vue({
 
     mixins: [pankbaseMixin],
 
-    data: {
+    data: () => ({
         newsFeed: null,
         content: {
             hero: {
@@ -268,7 +268,7 @@ new Vue({
         },
 
         preparedDataset: null
-    },
+    }),
 
     computed: {
         utilsBox() {

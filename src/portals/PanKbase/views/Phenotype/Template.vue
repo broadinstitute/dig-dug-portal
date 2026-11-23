@@ -125,7 +125,7 @@
                             <div class="label">Meta-analysis</div>
                         </filter-enumeration-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <documentation
                                 name="pheno.top_assoc.subheader"
                                 :content-map="
@@ -229,7 +229,7 @@
                             <div class="label">Genericity (&le;)</div>
                         </filter-less-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <c2ct-table v-if="$parent.c2ctData.length > 0"
                                 :c2ct-data="$parent.c2ctData"
                                 :filter="filter"
@@ -276,7 +276,7 @@
                             <div class="label">P-Value (&le;)</div>
                         </filter-pvalue-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <b-tabs>
                                 <b-tab 
                                     v-if="$store.state.hugePhenotype.data.length > 0"
@@ -438,7 +438,7 @@
                         <filter-greater-control :field="'rg'">
                             <div class="label">Correlation (&ge;)</div>
                         </filter-greater-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <correlation-table
                                 v-if="$store.state.geneticCorrelation.data.length > 0"
                                 :correlation-data="
@@ -516,7 +516,7 @@
                             <div class="label">Fold (&ge;)</div>
                         </filter-greater-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <enrichment-table
                                 v-if="$parent.ancestryAnnotations.length > 0"
                                 :phenotypes="[$store.state.phenotype]"

@@ -133,8 +133,7 @@
                                                 advanced filters
                                             </button>
                                             <template
-                                                slot="filtered"
-                                                slot-scope="{ filter }"
+                                                v-slot:filtered="{ filter }"
                                             >
                                                 <div class="invisible-table">
                                                     <b-table

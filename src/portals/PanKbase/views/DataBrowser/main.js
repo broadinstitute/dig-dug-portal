@@ -9,7 +9,7 @@ import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 new Vue({
     components: {},
     mixins: [pankbaseMixin],
-    data: {
+    data: () => ({
         dataUrl: process.env.VUE_APP_DATA_BASE_URL,
         donors: [],
         biosamples: [],
@@ -143,7 +143,7 @@ new Vue({
 
         pageId: "pankbase_databrowser",
         info: null,
-    },
+    }),
     computed: {},
     watch: {
         currentPageDonors(newPage) {
