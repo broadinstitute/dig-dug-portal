@@ -27,6 +27,7 @@ import BTab from "./BTab.vue";
 import BTabs from "./BTabs.vue";
 import BTh from "./BTh.vue";
 import { bvModal } from "./modals";
+import tooltip from "./tooltip";
 
 const plugin = (components) => ({
     install(app) {
@@ -66,6 +67,7 @@ const components = plugin({
 export const BootstrapVue = {
     install(app) {
         components.install(app);
+        app.directive("b-tooltip", tooltip);
         const { globalProperties } = app.config;
         globalProperties.$bvModal = bvModal;
     },
