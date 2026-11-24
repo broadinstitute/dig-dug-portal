@@ -237,7 +237,8 @@ export default {
       }
     },
 
-    // If v-model is being used, emit an input event
+    // If v-model is being used, emit the input events and reset the list's active entry. The package's list reset itself
+    // on that event, which it got only with a v-model: without one the entry stays active, as in the package.
     emitInput(newValue) {
       if (typeof this.boundValue !== 'undefined') {
         this.$emit('update:modelValue', newValue)

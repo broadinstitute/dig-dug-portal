@@ -48,6 +48,7 @@ function findIndex(items, predicate, fromIndex = 0) {
 export default {
   name: 'VueTypeaheadBootstrapList',
 
+  // Plain Vue 3, as the parent: the same under compat and without it
   compatConfig: { MODE: 3 },
 
   components: {
@@ -250,8 +251,8 @@ export default {
     }
   },
   watch: {
-    // v-show acts after the next watcher (on Vue 2 it acted before). That one sets the focus, which an entry gets only if
-    // its list is displayed: not in a list that closes in the same tick (Enter without a v-model).
+    // Show or hide before the `activeListItem` watcher below focuses an entry (v-show acts after it on Vue 3, before it
+    // on Vue 2): a closing list must not take the focus (Enter without a v-model).
     visible: {
       flush: 'sync',
       handler(newValue) {

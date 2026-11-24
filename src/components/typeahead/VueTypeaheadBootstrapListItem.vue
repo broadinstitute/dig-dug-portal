@@ -24,6 +24,7 @@
 export default {
   name: 'VueTypeaheadBootstrapListItem',
 
+  // Plain Vue 3, as the parent: the same under compat and without it
   compatConfig: { MODE: 3 },
 
   props: {
