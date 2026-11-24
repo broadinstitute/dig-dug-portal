@@ -675,9 +675,10 @@ compared with Vue 2. `configs/vue.config.CFDE.js` and `vue.configPapers.js` are 
   CSS nesting (Safari before 16.5, Chrome before 112, Firefox before 117) drops the declarations of `.a` with the rest
   (the footer lost its flex and padding), where Vue 2 wrote `.a[data-v]{decls; …}`. The flat `.a .b` is scoped as
   `.a .b[data-v]`: own elements only, where Vue 2's nested `.b` also reached into child components, slot content and
-  `v-html`. None of the 27 does (no such element carries those classes), so no `::v-deep`; the two blocks of the
-  single-cell browser match no element of its template at all. A build that has nested rules in a scoped style again
-  prints a number above 0 here (32 before this change, 0 after):
+  `v-html`. None of the 27 does (no such element carries those classes), so no `::v-deep`; the blocks of the
+  single-cell browser match no element of its template at all. A build (its `--dest` folder is `<dest>`) that has nested
+  rules in a scoped style again prints a number above 0 here, run from the root of the checkout (32 before this change,
+  0 after):
 
   ```bash
   node -e 'const postcss = require("postcss"), fs = require("fs"); let n = 0; for (const f of fs.readdirSync(process.argv[1] + "/css").filter((f) => f.endsWith(".css"))) postcss.parse(fs.readFileSync(process.argv[1] + "/css/" + f, "utf8")).walkRules((r) => { if (r.parent.type === "rule") n++; }); console.log(n);' <dest>
@@ -689,8 +690,8 @@ compared with Vue 2. `configs/vue.config.CFDE.js` and `vue.configPapers.js` are 
 
 From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is `vue3/pankbase`.
 
-1. `git diff --stat vue3/pankbase HEAD`: keep the list of files (`--name-only` gives a plain list), for step 7. Then
-   `git merge vue3/pankbase`.
+1. `git merge-base HEAD vue3/pankbase`, then `git diff --stat <that commit> HEAD`: keep the output for step 7. It is
+   what this branch itself changed. Then `git merge vue3/pankbase`.
 2. A conflict in a file that the key commits changed (the 41 files of `vue3: template-keys output` and
    `vue3: template keys by hand`; `git show --name-only --format= <commit>` lists them): this branch's own change in the
    file is keys only, and the script writes them again, so take the incoming file whole. Not `--ours`: it drops every
@@ -724,10 +725,10 @@ From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is
 7. The checks:
    - The dry run of step 5 again reads Left 0 and `Key errors left on Vue 3` 0, with the line `Vue 3 check: ran`.
    - The tests of the two scripts pass (below).
-   - `git diff --stat vue3/pankbase HEAD` lists the same files as before the merge (step 1), plus the key files the merge
-     added, and the eight non-key fix files above with the same line counts. A merge that is clean, or a `--theirs` on
-     one of those eight, shows no conflict to read, and a lost fix shows only here: the file is missing from the list or
-     its numbers have shrunk.
+   - `git diff --stat vue3/pankbase HEAD` now lists the files of step 1 plus the key files the merge added. The eight
+     non-key fix files above have the line counts of step 1, unless `vue3/pankbase` changed the same lines. A merge that
+     is clean, or a `--theirs` on one of those eight, shows no conflict to read, and a lost fix shows only here: the file
+     is missing from the list, or its numbers have shrunk.
    - Serve the build and load the pages the merge changed, and gene, phenotype and diff-exp for the typeahead, next to a
      build of `vue3/pankbase` on another port (step 6 of "Portal procedure for page setup").
    - Read what the merge added for a watcher of an array that another file changes in place: Vue 3 does not run that
