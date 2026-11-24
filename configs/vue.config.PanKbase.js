@@ -345,12 +345,12 @@ module.exports = {
         }
     },
     chainWebpack: (config) => {
-        // Vue 3 under @vue/compat: one Vue module for our code, which needs none of compat, and for BootstrapVue
-        config.resolve.alias.set("vue$", require.resolve("../src/portals/PanKbase/vueCompat.js"));
-        config.module
-            .rule("vue")
-            .use("vue-loader")
-            .tap((options) => ({ ...options, compilerOptions: { compatConfig: { MODE: 3 } } }));
+        // Vue 3 as it is, without @vue/compat (Vue CLI sets `vue$`), with our own components in place of BootstrapVue's
+        config.resolve.alias.set("bootstrap-vue$", require.resolve("../src/components/bv/index.js"));
+        // the feature flag of Vue 3.4 and later that Vue CLI 4.5 does not define
+        config
+            .plugin("feature-flags")
+            .tap(([flags]) => [{ ...flags, __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false" }]);
         // vue-typeahead-bootstrap 2.12 is written for Vue 2: ours is a copy of it for Vue 3
         config.resolve.alias.set(
             "vue-typeahead-bootstrap$",

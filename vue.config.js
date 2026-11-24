@@ -491,6 +491,8 @@ module.exports = {
     chainWebpack: (config) => {
         // Vue 3 under @vue/compat: one Vue module for our code and for the Vue 2 packages, templates compiled as Vue 2's
         config.resolve.alias.set("vue$", require.resolve("./src/utils/vueCompat.js"));
+        // BootstrapVue, installed on that Vue
+        config.resolve.alias.set("bootstrap-vue$", require.resolve("./src/utils/bootstrapVueCompat.js"));
         config.module
             .rule("vue")
             .use("vue-loader")
