@@ -462,7 +462,7 @@ without `__ob__`. A function stays the same function, where `structuredClone` wo
 
 It does not keep: a class instance (the copy is a plain object with the own enumerable properties, so the prototype,
 methods and getters are gone); two properties that share one object (they get two copies); a cycle (it overflows the
-stack); a `RegExp`, an `Error`, an `ArrayBuffer` or a boxed primitive (each becomes `{}`); symbol keys and
+stack); a `RegExp`, an `Error`, an `ArrayBuffer` or a boxed primitive (each becomes a plain object); symbol keys and
 non-enumerable properties.
 
 So check what each call clones before you replace it. Plain data from BioIndex or the store is the rule. A class
@@ -523,19 +523,21 @@ places rely on it, and each has a comment that says so:
   `starItems`). `ldData` comes first so that the LD state set at creation is sent to the other sections, and the drawing
   watchers come last so that they find the plots set up.
 
-2.7 always runs them in declaration order. On Vue 3.5 watchers that are triggered through props keep that order, but a
-trigger that comes from the store and fires first runs its watcher first. In both region plots `staredVariants` (it reads
-the store's `pkgDataSelected`) is such a trigger, and so is `hoverPos` in `MultiRegionPlot`. A draw with the new
-association data and the old LD data or positions is therefore possible there: look at the region plots after a new
-region, a zoom and a star.
+2.7 always runs them in declaration order. Vue 3.5 runs them in the order in which they are triggered: for props, the
+order in which the parent lists them, and a trigger that comes from the store and fires first runs its watcher first.
+The parents of both region plots list `plotData` before `starItems`. But `staredVariants` (it reads the store's
+`pkgDataSelected`) is a store trigger, and so is `hoverPos` in `MultiRegionPlot`. A draw with the new association data
+and the old LD data or positions is therefore possible there: look at the region plots after a new region, a zoom and a
+star.
 
 #### Rows that get a new key
 
 On Vue 3 a key added to a row is reactive, so it runs again every computed that enumerates rows (`Object.entries`,
 `Object.keys`, `for...in`, a spread). The two region plots read their rows through `toRaw` for that reason, and a new
-plot that enumerates rows in a computed has to do the same. The GEM table's `tableContent` (the last row of the table
-below) adds keys to the store's rows, so computeds elsewhere that enumerate the same rows are run again by it, not only
-`tableContent` itself.
+plot that enumerates rows in a computed has to do the same. What is read through `toRaw` does not trigger either, so a
+value changed in place in a drawn row would not redraw on Vue 3; nothing in this tree does that. The GEM table's
+`tableContent` (the last row of the table below) adds keys to the store's rows, so computeds elsewhere that enumerate
+the same rows are run again by it, not only `tableContent` itself.
 
 #### Computeds that change shared data through an alias
 
@@ -543,8 +545,7 @@ The lint does not count these: each sorts, or adds fields to, rows or lists of t
 variable or a callback parameter. They were found by reading the computeds of `src/`, following locals, callback
 parameters, destructuring, loops, the component's own methods and the functions of `src/utils/`. Not covered: methods
 that come from a mixin or a spread (`...uiUtils`), what a child does with a prop in its methods or watchers, and
-functions of npm packages. The computeds that the commit "computed side effects through aliases" fixed are not listed;
-these were left as they are.
+functions of npm packages. Those that Stage 1 item 7 fixed are not listed; these were left as they are.
 
 In every row the danger on Vue 3 is the same: a slot or a child evaluates the computed at another moment than 2.7 does,
 so another reader sees the data before or after the change, with no error. And a reactive write inside a computed, to
@@ -582,35 +583,37 @@ Computeds that dispatch or commit also run whenever they are evaluated, which Vu
 `rareVarBF` and `hugeScore` of `HugeCalScoreSection.vue`, `complicationViewerPhenotypes` of
 `views/ComplicationsViewer/main.js`, `eglSummaries` of `views/EffectorGenes/main.js`, `helpTOC` of `views/Help/main.js`,
 `researchData` of `views/Papers/Research/main.js`, and `topAssociations` of `views/Region/main.js`, which also hides an
-element and sets `keyParams`. They are not in the table.
+element and sets `keyParams`. The table lists a computed only for the data it changes.
 
 ### Portal procedure for Vue 3 semantics
 
+A portal that has not taken Stage 1 yet starts at Sync-point order (above) instead (its step 3 is the merge of step 1
+here), then runs the page setup and template fixes procedures, and goes on with step 2. The order matters: a file with
+a space to add whose template does not compile on 2.7 makes `explicit-spaces` write nothing.
+
 On the portal's `vue3/<portal>` branch, from a clean working tree (`git status` shows nothing): `explicit-spaces` does
-not check for local changes, and step 3 commits its output alone.
+not check for local changes, and step 2 commits its output alone.
 
 1. Merge `dev/vue3`. In a conflicted file, take the portal's side, with the warning of step 1 of "Portal procedure for
    page setup": that drops every change `dev/vue3` made to the file. Here most of those are hand fixes, not codemod
    output, so check `git log -p HEAD..dev/vue3 -- <file>` and re-apply each one by hand. In a file that `explicit-spaces`
    rewrote, take the portal's side and run the codemod on it again. Commit the merge.
-2. If the portal has not taken page setup and the template fixes, run those procedures first (they are above): a file
-   with a space to add whose template does not compile on 2.7 makes `explicit-spaces` write nothing.
-3. From a current `dev/vue3` checkout, read `npm run codemod:explicit-spaces -- --root <portal checkout> --dry-run`,
+2. From a current `dev/vue3` checkout, read `npm run codemod:explicit-spaces -- --root <portal checkout> --dry-run`,
    then run it without `--dry-run`. Commit its output alone. Decide each place under Left by hand.
-4. From the same checkout, `npm run tool:semantics-scan -- --root <portal checkout>`. The merge brought the fixes of
+3. From the same checkout, `npm run tool:semantics-scan -- --root <portal checkout>`. The merge brought the fixes of
    `master`'s files, so what is listed is the portal's own, and any fix that a conflict dropped. Fix each hit by the
    rules above, then run it again:
    - `structuredClone`: `cloneDeep`, after checking what each call clones.
    - `chartObjects`: `markRaw`, after listing the reads of the object.
    - `computedParams`: read `this`, not the parameter.
    - `extraScripts` and `unknownTags`: as in the table at the top of the section.
-   - `inlineSpaces`: what is left is Left of step 3.
-5. In the portal checkout, `npm run lint:vue3 -- --base <commit before the merge>`: no rule rose, and
+   - `inlineSpaces`: what is left is Left of step 2.
+4. In the portal checkout, `npm run lint:vue3 -- --base <commit before the merge>`: no rule rose, and
    `vue/no-side-effects-in-computed-properties` is down to the portal's own findings. Fix those by the three rules.
    Then read the portal's own computeds for the cases the lint does not see (a local, a callback parameter,
    `Object.assign`: the third point of Computed side effects). A portal's own copy of something `dev/vue3` fixed needs
    the same fix: the PanKbase `Gene` entry has its own `transcriptOr52k`.
-6. Compare the rendered pages: the development A/B (see compare-render) with the commit before the merge as `<base ref>`,
+5. Compare the rendered pages: the development A/B (see compare-render) with the commit before the merge as `<base ref>`,
    then sweep the portal's own pages as in step 6 of "Portal procedure for page setup". Look at what the fixes touch:
    spaces between a label and its value, the order of rows and options, the charts and graphs, and the associations
    table of the region page, which must come out sorted by p-value, smallest first.

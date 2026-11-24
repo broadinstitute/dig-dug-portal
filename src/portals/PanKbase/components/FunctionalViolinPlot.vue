@@ -6,8 +6,10 @@
 </template>
 
 <script>
+import { markRaw } from "vue";
 import * as d3 from "d3";
 import colors from "@/utils/colors";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 export default {
     name: "functional-violin-plot",
@@ -132,17 +134,22 @@ export default {
                 this.getYAxisSpacing(y);
             width = this.chartWidth - leftMargin - this.margin.right;
 
-            this.svg = d3
-                .select(plotId)
-                .append("svg")
-                .attr("width", width + leftMargin + this.margin.right)
-                .attr("height", height + this.margin.top + this.margin.bottom)
-                .attr("id", `${this.plotId}_svg`)
-                .append("g")
-                .attr(
-                    "transform",
-                    `translate(${leftMargin},${this.margin.top})`
-                );
+            this.svg = markRaw(
+                d3
+                    .select(plotId)
+                    .append("svg")
+                    .attr("width", width + leftMargin + this.margin.right)
+                    .attr(
+                        "height",
+                        height + this.margin.top + this.margin.bottom
+                    )
+                    .attr("id", `${this.plotId}_svg`)
+                    .append("g")
+                    .attr(
+                        "transform",
+                        `translate(${leftMargin},${this.margin.top})`
+                    )
+            );
             this.svg
                 .append("g")
                 .call(d3.axisLeft(y))
@@ -177,7 +184,7 @@ export default {
                 .thresholds(y.ticks(20))
                 .value((d) => d);
 
-            let statData = structuredClone(this.data).filter(
+            let statData = cloneDeep(this.data).filter(
                 (d) => d[xField] !== empty
             );
 
