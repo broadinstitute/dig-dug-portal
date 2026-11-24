@@ -17,6 +17,7 @@ import BFormRadioGroup from "./BFormRadioGroup.vue";
 import BIcon from "./BIcon";
 import BIconInfoCircleFill from "./BIconInfoCircleFill";
 import BIconPlusCircleFill from "./BIconPlusCircleFill";
+import BModal from "./BModal.vue";
 import BPagination from "./BPagination.vue";
 import BRow from "./BRow";
 import BSkeletonImg from "./BSkeletonImg";
@@ -25,6 +26,7 @@ import BSpinner from "./BSpinner";
 import BTab from "./BTab.vue";
 import BTabs from "./BTabs.vue";
 import BTh from "./BTh.vue";
+import { bvModal } from "./modals";
 
 const plugin = (components) => ({
     install(app) {
@@ -34,7 +36,7 @@ const plugin = (components) => ({
     },
 });
 
-export const BootstrapVue = plugin({
+const components = plugin({
     BAlert,
     BBadge,
     BButton,
@@ -50,6 +52,7 @@ export const BootstrapVue = plugin({
     BFormInput,
     BFormRadio,
     BFormRadioGroup,
+    BModal,
     BPagination,
     BRow,
     BSkeletonImg,
@@ -59,6 +62,14 @@ export const BootstrapVue = plugin({
     BTabs,
     BTh,
 });
+
+export const BootstrapVue = {
+    install(app) {
+        components.install(app);
+        const { globalProperties } = app.config;
+        globalProperties.$bvModal = bvModal;
+    },
+};
 
 export const BootstrapVueIcons = plugin({
     BIcon,
