@@ -5,6 +5,10 @@ import Vue from "@vue/compat/dist/vue.runtime.esm-bundler.js";
 // Compat's WATCH_ARRAY deep-traverses every watched array, so a watcher that edits the rows it watches loops forever.
 Vue.configureCompat({ WATCH_ARRAY: false });
 
+// COMPONENT_ASYNC takes a plain function for `() => import(...)`. We have no such component; the functional ones in
+// src/components/bv are plain functions.
+Vue.configureCompat({ COMPONENT_ASYNC: false });
+
 // BootstrapVue does rely on it (b-table and items.push). Its components are built with Vue.extend; ours are not, but for
 // two that watch nothing.
 const extend = Vue.extend;

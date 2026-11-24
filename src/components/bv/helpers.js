@@ -1,10 +1,21 @@
-import { warn } from "vue";
+import { Comment, warn } from "vue";
 
 // A functional component, as BootstrapVue's is: Vue leaves these out of `$parent`, which FilterControlTemplate.vue counts
-// on (`this.$parent.$parent`). @vue/compat takes a function for an async component unless it is marked as one of its own;
-// plain Vue ignores the mark.
-export function functional(render, options) {
-    return Object.assign(render, { __isBuiltIn: true }, options);
+// on (`this.$parent.$parent`). `supported`: see checkUse; native listeners always reach the element.
+export function functional(tag, render, options, supported) {
+    const component =
+        process.env.NODE_ENV === "production"
+            ? render
+            : (props, context) => {
+                  checkUse(tag, context, { listeners: true, ...supported });
+                  return render(props, context);
+              };
+    return Object.assign(component, {
+        displayName: render.name,
+        // class, style and listeners in attrs, also under a compat parent
+        compatConfig: { MODE: 3 },
+        ...options,
+    });
 }
 
 let lastId = 0;
@@ -22,10 +33,18 @@ const PLAIN =
 const NATIVE_LISTENER = /^on[A-Z][a-z]+(Once|Passive|Capture)*$/;
 const reported = new Set();
 
+function onlyComments(slot) {
+    try {
+        return slot().every((vnode) => vnode.type === Comment);
+    } catch (err) {
+        return false;
+    }
+}
+
 // Development only: warns once about each attribute, listener and slot that a component does not support, so that nothing
 // of BootstrapVue is left out silently. `listeners`: native ones reach the element. `attributes`: more plain ones that the
 // element takes. `not`: exceptions to what is let through. `slots`: names, or patterns of names.
-export function checkUse(
+function checkUse(
     tag,
     { attrs, slots },
     {
@@ -59,20 +78,22 @@ export function checkUse(
         }
     }
     for (const name of Object.keys(slots)) {
-        if (
-            !known.some((k) =>
-                typeof k === "string" ? k === name : k.test(name)
-            )
-        ) {
+        const supported = known.some((k) =>
+            typeof k === "string" ? k === name : k.test(name)
+        );
+        if (!supported && !onlyComments(slots[name])) {
             report("slot", name);
         }
     }
 }
 
-// The same for a component with an instance, as a mixin.
+// The same for a component with an instance, as its mixins.
 export function checksUse(tag, supported) {
+    if (process.env.NODE_ENV === "production") {
+        return [];
+    }
     const check = function () {
         checkUse(tag, { attrs: this.$attrs, slots: this.$slots }, supported);
     };
-    return { created: check, beforeUpdate: check };
+    return [{ created: check, beforeUpdate: check }];
 }

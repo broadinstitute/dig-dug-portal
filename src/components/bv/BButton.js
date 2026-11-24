@@ -1,5 +1,5 @@
 import { h, mergeProps } from "vue";
-import { checkUse, functional } from "./helpers";
+import { functional } from "./helpers";
 
 // For events that a disabled element still gets: dispatched by script on a button, any on a link.
 function stopButton(event) {
@@ -22,17 +22,11 @@ function pressOnSpace(event) {
 }
 
 export default functional(
+    "b-button",
     function BButton(
         { disabled, href, pill, size, variant },
         { attrs, slots }
     ) {
-        if (process.env.NODE_ENV !== "production") {
-            checkUse(
-                "b-button",
-                { attrs, slots },
-                { listeners: true, attributes: ["name", "value"] }
-            );
-        }
         const look = {
             class: [
                 "btn",
@@ -77,5 +71,6 @@ export default functional(
             variant: String,
         },
         inheritAttrs: false,
-    }
+    },
+    { attributes: ["name", "value"] }
 );

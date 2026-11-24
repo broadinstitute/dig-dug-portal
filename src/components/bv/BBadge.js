@@ -1,11 +1,9 @@
 import { h } from "vue";
-import { checkUse, functional } from "./helpers";
+import { functional } from "./helpers";
 
 export default functional(
-    function BBadge({ pill }, { attrs, slots }) {
-        if (process.env.NODE_ENV !== "production") {
-            checkUse("b-badge", { attrs, slots }, { listeners: true });
-        }
+    "b-badge",
+    function BBadge({ pill }, { slots }) {
         return h(
             "span",
             { class: ["badge badge-secondary", { "badge-pill": pill }] },

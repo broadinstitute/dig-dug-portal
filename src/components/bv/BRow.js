@@ -1,11 +1,9 @@
 import { h } from "vue";
-import { checkUse, functional } from "./helpers";
+import { functional } from "./helpers";
 
 export default functional(
-    function BRow({ noGutters }, { attrs, slots }) {
-        if (process.env.NODE_ENV !== "production") {
-            checkUse("b-row", { attrs, slots }, { listeners: true });
-        }
+    "b-row",
+    function BRow({ noGutters }, { slots }) {
         return h(
             "div",
             { class: ["row", { "no-gutters": noGutters }] },

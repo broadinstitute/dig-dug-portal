@@ -17,14 +17,9 @@ export default {
     name: "BFormRadioGroup",
     // attributes, listeners and v-model as in plain Vue 3, also under a compat parent
     compatConfig: { MODE: 3 },
-    mixins:
-        process.env.NODE_ENV === "production"
-            ? []
-            : [
-                  checksUse("b-form-radio-group", {
-                      not: ["aria-describedby", "aria-labelledby"],
-                  }),
-              ],
+    mixins: checksUse("b-form-radio-group", {
+        not: ["aria-describedby", "aria-labelledby"],
+    }),
     provide() {
         return { bvRadioGroup: this };
     },

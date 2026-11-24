@@ -18,7 +18,7 @@ export default {
     name: "BAlert",
     // attributes and listeners as in plain Vue 3, also under a compat parent
     compatConfig: { MODE: 3 },
-    mixins: process.env.NODE_ENV === "production" ? [] : [checksUse("b-alert")],
+    mixins: checksUse("b-alert"),
     props: {
         // BootstrapVue also counts down from a number: not in use
         show: Boolean,

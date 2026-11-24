@@ -1,15 +1,9 @@
 import { h } from "vue";
-import { checkUse, functional } from "./helpers";
+import { functional } from "./helpers";
 
 export default functional(
-    function BCard({ noBody }, { attrs, slots }) {
-        if (process.env.NODE_ENV !== "production") {
-            checkUse(
-                "b-card",
-                { attrs, slots },
-                { listeners: true, not: ["title"] }
-            );
-        }
+    "b-card",
+    function BCard({ noBody }, { slots }) {
         const content = slots.default?.();
         return h(
             "div",
@@ -17,5 +11,6 @@ export default functional(
             noBody ? content : [h("div", { class: "card-body" }, content)]
         );
     },
-    { props: { noBody: Boolean } }
+    { props: { noBody: Boolean } },
+    { not: ["title"] }
 );

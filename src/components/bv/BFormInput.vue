@@ -22,24 +22,19 @@ export default {
     name: "BFormInput",
     // attributes, listeners and v-model as in plain Vue 3, also under a compat parent
     compatConfig: { MODE: 3 },
-    mixins:
-        process.env.NODE_ENV === "production"
-            ? []
-            : [
-                  checksUse("b-form-input", {
-                      listeners: true,
-                      attributes: [
-                          "inputmode",
-                          "maxlength",
-                          "minlength",
-                          "pattern",
-                          "spellcheck",
-                      ],
-                      // BootstrapVue's own events, with the text as payload
-                      not: ["onInput", "onChange", "onUpdate"],
-                      slots: [],
-                  }),
-              ],
+    mixins: checksUse("b-form-input", {
+        listeners: true,
+        attributes: [
+            "inputmode",
+            "maxlength",
+            "minlength",
+            "pattern",
+            "spellcheck",
+        ],
+        // BootstrapVue's own events, with the text as payload
+        not: ["onInput", "onChange", "onUpdate"],
+        slots: [],
+    }),
     directives: {
         // Sets the property only: Vue's `:value` sets the attribute too, and its v-model waits for a composition to end.
         shows: {

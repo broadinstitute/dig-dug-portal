@@ -1,11 +1,9 @@
 import { h } from "vue";
-import { checkUse, functional } from "./helpers";
+import { functional } from "./helpers";
 
 export default functional(
-    function BContainer({ fluid }, { attrs, slots }) {
-        if (process.env.NODE_ENV !== "production") {
-            checkUse("b-container", { attrs, slots }, { listeners: true });
-        }
+    "b-container",
+    function BContainer({ fluid }, { slots }) {
         const size = fluid === true || fluid === "" ? "fluid" : fluid;
         return h(
             "div",

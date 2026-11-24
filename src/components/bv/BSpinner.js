@@ -1,15 +1,9 @@
 import { h, mergeProps } from "vue";
-import { checkUse, functional } from "./helpers";
+import { functional } from "./helpers";
 
 export default functional(
-    function BSpinner({ small, variant }, { attrs, slots }) {
-        if (process.env.NODE_ENV !== "production") {
-            checkUse(
-                "b-spinner",
-                { attrs, slots },
-                { listeners: true, slots: [] }
-            );
-        }
+    "b-spinner",
+    function BSpinner({ small, variant }, { attrs }) {
         const look = [
             "spinner-border",
             { "spinner-border-sm": small, [`text-${variant}`]: variant },
@@ -24,5 +18,6 @@ export default functional(
             })
         );
     },
-    { props: { small: Boolean, variant: String }, inheritAttrs: false }
+    { props: { small: Boolean, variant: String }, inheritAttrs: false },
+    { slots: [] }
 );

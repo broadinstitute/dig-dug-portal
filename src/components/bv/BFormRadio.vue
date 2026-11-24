@@ -33,10 +33,7 @@ export default {
     name: "BFormRadio",
     // attributes, listeners and v-model as in plain Vue 3, also under a compat parent
     compatConfig: { MODE: 3 },
-    mixins:
-        process.env.NODE_ENV === "production"
-            ? []
-            : [checksUse("b-form-radio")],
+    mixins: checksUse("b-form-radio"),
     directives: {
         // Sets the properties only: Vue's `:checked` sets the attribute too.
         shows: {

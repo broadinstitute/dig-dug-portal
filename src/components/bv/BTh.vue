@@ -16,15 +16,10 @@ export default {
     name: "BTh",
     // attributes and listeners as in plain Vue 3, also under a compat parent
     compatConfig: { MODE: 3 },
-    mixins:
-        process.env.NODE_ENV === "production"
-            ? []
-            : [
-                  checksUse("b-th", {
-                      listeners: true,
-                      attributes: ["abbr", "headers", "scope"],
-                  }),
-              ],
+    mixins: checksUse("b-th", {
+        listeners: true,
+        attributes: ["abbr", "headers", "scope"],
+    }),
     // What a table's row tells its cells: () => ({ inThead, isStickyHeader, headVariant }). In the thead-top slot there is
     // no row, so a cell is a row header there, as in BootstrapVue.
     inject: {

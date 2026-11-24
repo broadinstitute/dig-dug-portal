@@ -1,14 +1,11 @@
 import { functional } from "./helpers";
-import { renderIcon } from "./icons";
+import { renderIcon, SUPPORTED } from "./icons";
 
 export default functional(
-    function BIconPlusCircleFill({ variant }, context) {
-        return renderIcon(
-            "b-icon-plus-circle-fill",
-            "plus-circle-fill",
-            variant,
-            context
-        );
+    "b-icon-plus-circle-fill",
+    function BIconPlusCircleFill({ variant }, { attrs }) {
+        return renderIcon("plus-circle-fill", variant, attrs);
     },
-    { props: { variant: String }, inheritAttrs: false }
+    { props: { variant: String }, inheritAttrs: false },
+    SUPPORTED
 );

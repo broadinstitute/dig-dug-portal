@@ -51,25 +51,3 @@ export const BootstrapVueIcons = plugin({
     BIconInfoCircleFill,
     BIconPlusCircleFill,
 });
-
-export {
-    BAlert,
-    BBadge,
-    BButton,
-    BCard,
-    BCardBody,
-    BCardText,
-    BCol,
-    BContainer,
-    BFormInput,
-    BFormRadio,
-    BFormRadioGroup,
-    BIcon,
-    BIconInfoCircleFill,
-    BIconPlusCircleFill,
-    BRow,
-    BSkeletonImg,
-    BSkeletonWrapper,
-    BSpinner,
-    BTh,
-};

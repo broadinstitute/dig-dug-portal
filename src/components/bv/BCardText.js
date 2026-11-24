@@ -1,11 +1,9 @@
 import { h } from "vue";
-import { checkUse, functional } from "./helpers";
+import { functional } from "./helpers";
 
 export default functional(
-    function BCardText(props, { attrs, slots }) {
-        if (process.env.NODE_ENV !== "production") {
-            checkUse("b-card-text", { attrs, slots }, { listeners: true });
-        }
+    "b-card-text",
+    function BCardText(props, { slots }) {
         return h("p", { class: "card-text" }, slots.default?.());
     },
     // declared, if only to let every attribute through

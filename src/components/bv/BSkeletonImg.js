@@ -1,15 +1,9 @@
 import { h, mergeProps } from "vue";
-import { checkUse, functional } from "./helpers";
+import { functional } from "./helpers";
 
 export default functional(
-    function BSkeletonImg({ height, noAspect }, { attrs, slots }) {
-        if (process.env.NODE_ENV !== "production") {
-            checkUse(
-                "b-skeleton-img",
-                { attrs, slots },
-                { listeners: true, slots: [] }
-            );
-        }
+    "b-skeleton-img",
+    function BSkeletonImg({ height, noAspect }, { attrs }) {
         const own = {
             class: "b-skeleton b-skeleton-img b-skeleton-animate-wave",
             style: { height },
@@ -34,5 +28,6 @@ export default functional(
             ),
         ]);
     },
-    { props: { height: String, noAspect: Boolean }, inheritAttrs: false }
+    { props: { height: String, noAspect: Boolean }, inheritAttrs: false },
+    { slots: [] }
 );
