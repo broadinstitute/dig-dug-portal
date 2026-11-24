@@ -35,8 +35,6 @@
 <script>
 export default {
     name: "CategoricalFilter",
-    // compat would make value/input of a parent's v-model
-    compatConfig: { COMPONENT_V_MODEL: false },
     props: {
         columnName: {
             type: String,

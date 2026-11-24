@@ -96,8 +96,6 @@ import * as d3 from "d3";
 
 export default {
     name: "NumericRangeFilter",
-    // compat would make value/input of a parent's v-model
-    compatConfig: { COMPONENT_V_MODEL: false },
     props: {
         columnName: {
             type: String,

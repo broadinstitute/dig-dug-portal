@@ -620,13 +620,15 @@ not check for local changes, and step 2 commits its output alone.
 
 ## PanKbase switch branch
 
-`vue3/pankbase-switch` is PanKbase on Vue 3.5 under `@vue/compat`, made from `vue3/pankbase`. It is temporary: it builds
-with Vue CLI 4, and Vite is a later stage. Do not merge it into `dev/vue3` or `master`, and do not open a PR from it. It
-takes `vue3/pankbase` by merge (below), never the other way round.
+`vue3/pankbase-switch` is PanKbase on Vue 3.5, made from `vue3/pankbase`. Its own components use none of `@vue/compat`,
+BootstrapVue runs on it. It is temporary: it builds with Vue CLI 4, and Vite is a later stage. Do not merge it into
+`dev/vue3` or `master`, and do not open a PR from it. It takes `vue3/pankbase` by merge (below), never the other way
+round.
 
-The default `vue.config.js` has the same changes as `configs/vue.config.PanKbase.js`, but only PanKbase's pages were
-compared with Vue 2. `configs/vue.config.CFDE.js` and `vue.configPapers.js` are not switched: they have no
-`chainWebpack`, so they build against plain Vue 3, where `import Vue from "vue"` has no default export.
+The default `vue.config.js` has the same changes as `configs/vue.config.PanKbase.js`, but for compat, which it keeps for
+all components (MODE 2), and only PanKbase's pages were compared with Vue 2. `configs/vue.config.CFDE.js` and
+`vue.configPapers.js` are not switched: they have no `chainWebpack`, so they build against plain Vue 3, where
+`import Vue from "vue"` has no default export.
 
 ### What differs from `vue3/pankbase`
 
@@ -634,22 +636,30 @@ compared with Vue 2. `configs/vue.config.CFDE.js` and `vue.configPapers.js` are 
   `vue-template-compiler`, and the override `"vue": "$vue"`. The override because npm refuses the tree without it
   (`vue-async-computed` asks for Vue 2), and because `portal-vue` and `vue-typeahead-bootstrap` would each bring a Vue
   2.7.
-- Aliases and compat mode (`vue.config.js`, `configs/vue.config.PanKbase.js`): `vue$` is `src/utils/vueCompat.js`, and
-  vue-loader compiles templates with `compatConfig: { MODE: 2 }`, so our code and the Vue 2 packages (BootstrapVue,
-  `vue-async-computed`) share one Vue, Vue 3 with the Vue 2 API, and templates keep Vue 2's rules. `vuex$` is
+- Aliases and compat mode (`vue.config.js`, `configs/vue.config.PanKbase.js`): `vue$` is `src/utils/vueCompat.js`, in
+  PanKbase's build `src/portals/PanKbase/vueCompat.js`, so our code and the Vue 2 packages (BootstrapVue,
+  `vue-async-computed`) share one Vue, Vue 3 with the Vue 2 API. vue-loader compiles templates with
+  `compatConfig: { MODE: 2 }` (Vue 2's rules) in the default build and `MODE: 3` in PanKbase's. `vuex$` is
   `vuex/dist/vuex.esm-bundler.js`: webpack 4 takes Vuex 4's `browser` field first, its development build, which logs in
   production what Vue 2's Vuex does not. `vue-typeahead-bootstrap$` is
   `src/components/typeahead/VueTypeaheadBootstrap.vue`.
 - `src/utils/vueCompat.js` (new) is the module `vue` resolves to: `@vue/compat` and two changes. Compat's `WATCH_ARRAY`
   is off, because it deep-traverses every watched array and a watcher that edits its own rows loops forever; it is on
-  again for what `Vue.extend` makes, which is BootstrapVue's components (`b-table` relies on it). And a no-op
+  again, with all of compat (`MODE: 2`), for what `Vue.extend` makes, which is BootstrapVue's components (`b-table`
+  relies on it). And a no-op
   `el._assign` for BootstrapVue's `model` directive: since Vue 3.4 the assigner is under a symbol, so changing such an
   input threw.
 - `mountPage` (`src/utils/pageSetup.js`): `createApp`, the same signature, the store and the plugins installed on the
   app. It mounts into `#page-root` itself (the old `#app`, renamed, with `display: contents`), not into a child `div` as
   "Page setup" above says: Vue 3 keeps its target where 2.7 replaces it, so a child would stay as a block `div` between
-  `#page-root` and the page. BootstrapVue, its icons and `vue-cookies` stay installed on compat's global `Vue`, so the
-  apps BootstrapVue makes for tooltips, popovers and toasts get them.
+  `#page-root` and the page. BootstrapVue and its icons stay installed on compat's global `Vue`, so the apps
+  BootstrapVue makes for tooltips, popovers and toasts get them. The root has the page as `$refs.page`, which replaces
+  `$children[0]`.
+- Our components without compat (PanKbase's build). `src/portals/PanKbase/vueCompat.js` (new) sets `MODE: 3` and leaves
+  on what BootstrapVue uses outside its own components; the file says which and why. The code off compat's features:
+  lifecycle hooks by their Vue 3 names (all of `src`), and in what PanKbase's pages reach assignments instead of `$set`
+  and `$delete`, an event bus that is no Vue instance, `modelValue` for `v-model`, named imports instead of the global
+  `Vue`, and a few render functions. Components that the default build uses as well have `COMPONENT_V_MODEL: false`.
 - Template keys, 41 files. Vue 3 wants the key of the children of a `<template v-for>` on the template, and 2.7 refuses
   it there, so these files build on this branch only. `vue3: template-keys output` is what `codemod:template-keys` wrote
   (38 templates, 25 files). `vue3: template keys by hand` is 30 templates in 19 files: the 27 the script listed under
@@ -704,12 +714,13 @@ From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is
    git add <file>
    ```
 
-   All 41 are keys only today (checked by taking the key attributes out of both versions). The other changes of this
-   branch are in eight files the key commits did not change: `Phenotype/main.js`, `NMF/Template.vue`,
-   `BulkHeatmap.vue`, `pkb-footer.vue`, `Index/Template.vue` and the three single-cell browser files
-   (`ResearchSingleCellBrowser.vue`, `ResearchSingleCellSelector.vue`, `ResearchUmapPlotGL.vue`). A conflict in one of
-   those, or in any file whose diff shows more than keys, is resolved by hand, keeping both sides. A taken file also
-   loses the hand fixes in it; step 5 puts them back.
+   40 of the 41 are keys only today (checked by taking the key attributes out of both versions), and in nine of them one
+   lifecycle hook that step 5 renames again. `GeneAssociationsMasks.vue` also has assignments in place of `$set`. The
+   other changes of this branch are in files the key commits did not change: `Phenotype/main.js`, `NMF/Template.vue`,
+   `BulkHeatmap.vue`, `pkb-footer.vue`, `Index/Template.vue`, the three single-cell browser files
+   (`ResearchSingleCellBrowser.vue`, `ResearchSingleCellSelector.vue`, `ResearchUmapPlotGL.vue`), and the files of "Our
+   components without compat". A conflict in one of those, or in any file whose diff shows more than keys, is resolved by
+   hand, keeping both sides. A taken file also loses the hand fixes in it; step 5 puts them back.
 3. Other conflicts. `package.json`: keep this branch's `vue`, `@vue/compat`, `@vue/compiler-sfc`, `vuex`, the
    `"vue": "$vue"` override and the missing `vue-template-compiler`, and take the rest. `package-lock.json`: take the
    incoming file, then `npm install --package-lock-only`. The two build configs and `src/utils/pageSetup.js`: keep both
@@ -732,10 +743,15 @@ From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is
 7. The checks:
    - The dry run of step 5 again reads Left 0 and `Key errors left on Vue 3` 0, with the line `Vue 3 check: ran`.
    - The tests of the two scripts pass (below).
-   - `git diff --stat vue3/pankbase HEAD` now lists the files of step 1 plus the key files the merge added. The eight
-     non-key fix files above have the line counts of step 1, unless `vue3/pankbase` changed the same lines. A merge that
-     is clean, or a `--theirs` on one of those eight, shows no conflict to read, and a lost fix shows only here: the file
-     is missing from the list, or its numbers have shrunk.
+   - `git diff --stat vue3/pankbase HEAD` now lists the files of step 1 plus the key files the merge added. The non-key
+     files above have the line counts of step 1, unless `vue3/pankbase` changed the same lines. A merge that is clean, or
+     a `--theirs` on one of those, shows no conflict to read, and a lost fix shows only here: the file is missing from
+     the list, or its numbers have shrunk.
+   - `npm run tool:nocompat-scan -- --config configs/vue.config.PanKbase.js` has no hit under Script, Global API, Options
+     and Template but these: `vueImport` 1 and `vueRegister` 2 (BootstrapVue in `pageSetup.js`), `rootListener` 1 (the
+     typeahead's list, meant so) and `vForRef` 2 (donors: each ref is an array of one). What the merge added is to be
+     fixed: without compat `$set` and the like throw, `v-model` on a `value`/`input` component does nothing, and an old
+     lifecycle name is never called.
    - Serve the build and load the pages the merge changed, and gene, phenotype and diff-exp for the typeahead, next to a
      build of `vue3/pankbase` on another port (step 6 of "Portal procedure for page setup").
    - Read what the merge added for a watcher of an array that another file changes in place: Vue 3 does not run that
@@ -772,7 +788,7 @@ It lists what the pages of a build reach that Vue 3 without `@vue/compat` does n
 code off compat, and the specification of the BootstrapVue components that would replace the library's. `--config` reads
 the pages of a build config (parsed, never run) and follows its aliases; `--entries` takes the `main.js` entries under a
 folder; with neither it scans every entry. It follows `import`, `export ... from`, `import()` and `require()`, and lists
-the imports it could not follow. Run with `--config configs/vue.config.PanKbase.js`, it reads 41 pages and 239 of 819
+the imports it could not follow. Run with `--config configs/vue.config.PanKbase.js`, it reads 41 pages and 239 of 820
 files. The report is markdown: a table of the patterns (hits, and notes that may be right as they stand), a section for
 each pattern with `file:line` and the code, a table of every `b-*` tag with the props, events and slots it is used with,
 the `v-b-*` directives and `$bv` calls, the packages that depend on Vue, the imports it could not follow, and the files
