@@ -1,3 +1,4 @@
+import { markRaw } from "vue";
 import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
@@ -535,12 +536,13 @@ mountPage(Template, {
     },
     watch: {
         insData(newData){
-            this.resultsIns = newData.results;
+            // not reactive: the plot reads every row many times (slow on Vue 3), nothing changes one
+            this.resultsIns = markRaw(newData.results);
             this.maxScoreIns = newData.maxScore;
             this.maxTimeIns = newData.maxTime;
         },
         gcgData(newData){
-            this.resultsGcg = newData.results;
+            this.resultsGcg = markRaw(newData.results);
             this.maxScoreGcg = newData.maxScore;
             this.maxTimeGcg = newData.maxTime;
         },
