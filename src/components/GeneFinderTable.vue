@@ -6,8 +6,7 @@
                 :plotData="plotData"
                 :renderConfig="assocPlotConfig"
             ></research-m-plot>
-            <!-- eslint-disable-next-line vue/no-undef-components -- obsolete HTML element the rule does not know -->
-            <center style="margin-bottom: 30px">
+            <div style="text-align: center; margin-bottom: 30px">
                 <b v-show="!!showChiSquared">
                     Combined P-Value(Χ²) across
                     <a
@@ -17,7 +16,7 @@
                         >{{ phenotypeMap[p].description }}</a
                     >
                 </b>
-            </center>
+            </div>
         </div>
         <div v-if="tableData.length > 0">
             <div class="text-right mb-2">
