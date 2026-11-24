@@ -312,7 +312,6 @@ export default {
 			currentPage: 1,
 			perPageNumber: null,
 			filterTissueType: "or",
-			newTableFormat: null,
 			compareGroups: [],
 			sortByCredibleSet: false,
 			sortDirection: "asc",
@@ -418,7 +417,7 @@ export default {
 			}
 		},
 
-		rawData() {
+		tableContent() {
 			let newTableFormat = Object.assign({}, this.tableFormat);
 			let updatedData = {};
 			let rawData = {};
@@ -1244,13 +1243,9 @@ export default {
 				}
 			}
 
-			// replace global tableFormat with newTableFormat
-
-			this.newTableFormat = newTableFormat;
-
 			/// format data before adding linked genes
 
-			let formattedData = this.formattedData(updatedData);
+			let formattedData = this.formattedData(updatedData, newTableFormat);
 
 			///Let's filter data by linked genes
 			///This is a messy solution but easier to understand
@@ -1401,7 +1396,14 @@ export default {
 				}
 			}
 
-			return formattedData;
+			return { rows: formattedData, format: newTableFormat };
+		},
+		rawData() {
+			return this.tableContent.rows;
+		},
+		// replace global tableFormat with newTableFormat
+		newTableFormat() {
+			return !!this.dataset ? this.tableContent.format : null;
 		},
 
 		pagedData() {
@@ -1498,7 +1500,7 @@ export default {
 		addRemoveColumn(EVENT) {
 			this.$forceUpdate();
 		},
-		formattedData(DATA) {
+		formattedData(DATA, FORMAT) {
 			let rawData = DATA;
 
 			let formattedData = [];
@@ -1507,17 +1509,17 @@ export default {
 				rawData.map((d) => {
 					let tempObj = {};
 
-					this.newTableFormat["top rows"].map((t) => {
+					FORMAT["top rows"].map((t) => {
 						tempObj[t] = d[t];
 					});
 
-					if (this.newTableFormat["features"] != undefined) {
+					if (FORMAT["features"] != undefined) {
 						tempObj["features"] = {};
-						this.newTableFormat["features"].map((f) => {
+						FORMAT["features"].map((f) => {
 							tempObj["features"][f] = [];
 
 							let fTempObj = {};
-							this.newTableFormat[f].map((fItem) => {
+							FORMAT[f].map((fItem) => {
 								fTempObj[fItem] = d[fItem];
 							});
 
@@ -1530,18 +1532,18 @@ export default {
 				for (const [key, value] of Object.entries(rawData)) {
 					let tempObj = {};
 
-					this.newTableFormat["top rows"].map((t) => {
+					FORMAT["top rows"].map((t) => {
 						tempObj[t] = value[t];
 					});
 
-					if (this.newTableFormat["features"] != undefined) {
+					if (FORMAT["features"] != undefined) {
 						tempObj["features"] = {};
-						this.newTableFormat["features"].map((f) => {
+						FORMAT["features"].map((f) => {
 							tempObj["features"][f] = [];
 
 							let fTempObj = {};
 
-							this.newTableFormat[f].map((fItem) => {
+							FORMAT[f].map((fItem) => {
 								fTempObj[fItem] = value[fItem];
 							});
 
