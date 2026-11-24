@@ -120,7 +120,7 @@ export const KINDS = [
   { key: 'keyCodeModifier', group: 'Template', why: 'A numeric key code modifier (`@keyup.13`) is gone: use the key name (`.enter`, `.page-down`).' },
   { key: 'oldSlotSyntax', group: 'Template', why: '`slot="name"` and `slot-scope` are gone: `v-slot:name="props"` (`#name="props"`) on a `<template>` or on the component.' },
   { key: 'templateFilters', group: 'Template', why: 'Template filters (`{{ x | f }}`) are gone, and `|` is now the bitwise OR: `x | f` evaluates to a number, with no error.' },
-  { key: 'vModelComponent', group: 'Template', why: '`v-model` on a component of ours (or of a package) binds `modelValue` and listens to `update:modelValue` on Vue 3, not `value` and `input`: the child\'s contract has to change with it (see the note column; a child that has the new one is no hit).' },
+  { key: 'vModelComponent', group: 'Template', why: '`v-model` on a component of ours (or of a package) binds `modelValue` and listens to `update:modelValue` on Vue 3, not `value` and `input`: the child\'s contract has to change with it (see the note column; a child that has the new one, a `modelValue` prop and `update:modelValue` in its `emits` or a `$emit`, is no hit).' },
   { key: 'inlineTemplate', group: 'Template', why: '`inline-template` is gone.' },
   { key: 'isOnElement', group: 'Template', why: '`is` on a plain element needs the `vue:` prefix on Vue 3 (`is="vue:my-row"`); without it the element is a native one with an `is` attribute.' },
   { key: 'templateNoDirective', group: 'Template', why: 'A `<template>` with no `v-if`, `v-for` or `v-slot` renders as a native `<template>` element on Vue 3 (its content is inert), where Vue 2 rendered the children.' },
@@ -1595,7 +1595,10 @@ function contractOf(context, target) {
   if (target.inline) return 'a component written in place';
   const child = infoOf(context, target.file);
   if (child.model !== null) return `${target.file}: ${child.model.prop} + ${child.model.event} (model option)`;
-  if (child.props.has('modelValue')) return `${target.file}${VUE3_CONTRACT}`;
+  if (child.props.has('modelValue')) {
+    const sets = child.emits?.has('update:modelValue') || child.emittedNames.has('update:modelValue');
+    return sets ? `${target.file}${VUE3_CONTRACT}` : `${target.file}: modelValue, but no update:modelValue in emits or $emit`;
+  }
   if (child.props.has('value')) return `${target.file}: value + input (Vue 2 contract)`;
   return `${target.file}: no value or modelValue prop`;
 }

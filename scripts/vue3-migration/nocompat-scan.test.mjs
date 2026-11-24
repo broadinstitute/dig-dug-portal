@@ -911,7 +911,7 @@ test('templateFilters: a filter in an interpolation or a binding; || and a strin
   ]);
 });
 
-test('vModelComponent: v-model on a component with the child\'s contract; on a child with modelValue, a native element or a BootstrapVue component it is not', () => {
+test('vModelComponent: v-model on a component with the child\'s contract; on a child with modelValue and update:modelValue, a native element or a BootstrapVue component it is not', () => {
   const found = notesOf('vModelComponent', {
     'src/components/Parent.vue': component(
       lines(
@@ -925,6 +925,7 @@ test('vModelComponent: v-model on a component with the child\'s contract; on a c
         '  <input v-model="x"><select v-model="y"></select><textarea v-model="z"></textarea>', // 9
         '  <b-form-input v-model="f" /><b-pagination v-model="g" />', // 10
         '  <missing-one v-model="m" />', // 11
+        '  <child-e v-model="e" /><child-f v-model="f2" /><child-g v-model="g2" />', // 12
         '</div>',
       ),
       lines(
@@ -932,14 +933,21 @@ test('vModelComponent: v-model on a component with the child\'s contract; on a c
         'import ChildB from "./ChildB.vue";',
         'import ChildC from "./ChildC.vue";',
         'import ChildD from "./ChildD.vue";',
+        'import ChildE from "./ChildE.vue";',
+        'import ChildF from "./ChildF.vue";',
+        'import ChildG from "./ChildG.vue";',
         'import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";',
-        'export default { components: { ChildA, ChildB, ChildC, ChildD, VueTypeaheadBootstrap } };',
+        'export default { components: { ChildA, ChildB, ChildC, ChildD, ChildE, ChildF, ChildG, VueTypeaheadBootstrap } };',
       ),
     ),
     'src/components/ChildA.vue': component('<input>', 'export default { props: ["value"], methods: { go(v) { this.$emit("input", v); } } };'),
     'src/components/ChildB.vue': component('<input>', 'export default { props: { checked: Boolean }, model: { prop: "checked", event: "change" }, emits: ["change"] };'),
     'src/components/ChildC.vue': component('<input>', 'export default { props: ["modelValue"], emits: ["update:modelValue"] };'),
     'src/components/ChildD.vue': component('<input>', 'export default { props: ["label"] };'),
+    // modelValue alone is half of it: nothing sets the parent's value without the event
+    'src/components/ChildE.vue': component('<input>', 'export default { props: ["modelValue"], methods: { go(v) { this.$emit("input", v); } } };'),
+    'src/components/ChildF.vue': component('<input>', 'export default { props: ["modelValue"], methods: { go(v) { this.$emit("update:modelValue", v); } } };'),
+    'src/components/ChildG.vue': component('<input>', 'export default { props: ["modelValue"], emits: { "update:modelValue": null } };'),
   });
   assert.deepEqual(found, [
     { line: 3, text: '<child-a v-model="a">', note: 'src/components/ChildA.vue: value + input (Vue 2 contract)' },
@@ -948,6 +956,7 @@ test('vModelComponent: v-model on a component with the child\'s contract; on a c
     { line: 7, text: '<vue-typeahead-bootstrap v-model="q">', note: 'package vue-typeahead-bootstrap' },
     { line: 8, text: '<component :is="which" v-model="w">', note: 'dynamic component' },
     { line: 11, text: '<missing-one v-model="m">', note: 'component not found' },
+    { line: 12, text: '<child-e v-model="e">', note: 'src/components/ChildE.vue: modelValue, but no update:modelValue in emits or $emit' },
   ]);
 });
 
