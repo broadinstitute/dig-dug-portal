@@ -20,6 +20,7 @@
     "codemod:declare-emits": "node scripts/vue3-migration/declare-emits.mjs",
     "codemod:page-setup": "node scripts/vue3-migration/page-setup.mjs",
     "codemod:explicit-spaces": "node scripts/vue3-migration/explicit-spaces.mjs",
+    "codemod:template-keys": "node scripts/vue3-migration/template-keys.mjs",
     "tool:compare-render": "node scripts/vue3-migration/compare-render.mjs",
     "tool:compare-css": "node scripts/vue3-migration/compare-css.mjs",
     "tool:semantics-scan": "node scripts/vue3-migration/semantics-scan.mjs"
