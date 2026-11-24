@@ -1254,7 +1254,7 @@ export default {
 
             if (remainingTabs.length !== this.openTableTabs.length) {
                 removedTabs.forEach((tab) => {
-                    this.$delete(this.scopedTablePages, tab.key);
+                    delete this.scopedTablePages[tab.key];
                 });
                 this.openTableTabs = remainingTabs;
                 if (this.activeContentTab !== "plot" && this.activeContentTab !== "table" && !remainingTabs.some((tab) => tab.key === this.activeContentTab)) {
@@ -1314,7 +1314,7 @@ export default {
             };
 
             this.openTableTabs = this.openTableTabs.concat(nextTab);
-            this.$set(this.scopedTablePages, nextTab.key, 1);
+            this.scopedTablePages[nextTab.key] = 1;
             this.activeContentTab = nextTab.key;
             this.scrollContentTabsIntoView();
         },
@@ -1339,13 +1339,13 @@ export default {
             };
 
             this.openTableTabs = this.openTableTabs.concat(nextTab);
-            this.$set(this.scopedTablePages, nextTab.key, 1);
+            this.scopedTablePages[nextTab.key] = 1;
             this.activeContentTab = nextTab.key;
             this.scrollContentTabsIntoView();
         },
         closeDataTypeTableTab(tabKey) {
             this.openTableTabs = this.openTableTabs.filter((tab) => tab.key !== tabKey);
-            this.$delete(this.scopedTablePages, tabKey);
+            delete this.scopedTablePages[tabKey];
             if (this.activeContentTab === tabKey) {
                 this.activeContentTab = "table";
             }
@@ -1465,10 +1465,10 @@ export default {
                 return;
             }
 
-            this.$set(this.numericFilters, columnName, {
+            this.numericFilters[columnName] = {
                 min: summary.min,
                 max: summary.max,
-            });
+            };
         },
         resetCategoricalFilter(columnName) {
             const summary = this.categoricalFilterData[columnName];
@@ -1476,7 +1476,7 @@ export default {
                 return;
             }
 
-            this.$set(this.categoricalFilters, columnName, summary.options.map((option) => option.value));
+            this.categoricalFilters[columnName] = summary.options.map((option) => option.value);
         },
         removeFilter(pill) {
             if (pill.type === "numeric") {
@@ -1679,7 +1679,7 @@ export default {
             return this.scopedTablePages[tabKey] || 1;
         },
         setDataTypeTablePage(tabKey, page) {
-            this.$set(this.scopedTablePages, tabKey, page);
+            this.scopedTablePages[tabKey] = page;
         },
         scrollContentTabsIntoView() {
             this.$nextTick(() => {

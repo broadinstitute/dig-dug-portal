@@ -532,7 +532,7 @@ export default {
         },
         setGeneSetSubtablePage(item, page) {
             const key = this.getRowKey(item);
-            this.$set(this.geneSetSubtablePageByRow, key, page);
+            this.geneSetSubtablePageByRow[key] = page;
         },
         formatGeneSetCell(value) {
             if (value == null) return "";
@@ -568,11 +568,11 @@ export default {
             const key = this.getRowKey(item);
             const phenotype = item.phenotype;
             if (!phenotype) return;
-            this.$set(this.geneSetDataByRow, key, {
+            this.geneSetDataByRow[key] = {
                 loading: true,
                 data: [],
                 error: null,
-            });
+            };
             const url = this.geneSetsApi.replace(
                 "$phenotype",
                 encodeURIComponent(phenotype)
@@ -586,17 +586,17 @@ export default {
                 const json = await response.json();
                 const rawRows = json.data || json || [];
                 const data = this.applyGeneSetDataConvert(rawRows);
-                this.$set(this.geneSetDataByRow, key, {
+                this.geneSetDataByRow[key] = {
                     loading: false,
                     data,
                     error: null,
-                });
+                };
             } catch (err) {
-                this.$set(this.geneSetDataByRow, key, {
+                this.geneSetDataByRow[key] = {
                     loading: false,
                     data: [],
                     error: err.message || "Failed to load gene sets.",
-                });
+                };
             }
         },
     },

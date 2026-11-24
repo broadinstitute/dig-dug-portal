@@ -212,7 +212,7 @@ mountPage(Template, {
 
             console.log('loading')
 
-            this.$set(row.item, 'detailsLoading', true)
+            row.item.detailsLoading = true
 
             const factor = row.item.factor
 
@@ -222,25 +222,25 @@ mountPage(Template, {
             const genesURL = `${this.genesURL}scRNA,${this.cellType},${this.model},${factor}`;
             const genesRespoonse = await this.fetchData(genesURL);
             const genesData = genesRespoonse.data;
-            this.$set(row.item, 'genesData', genesData);
-            this.$set(row.item, 'cellsPerPage', 5);
-            this.$set(row.item, 'cellsCurrentPage', 1);
+            row.item.genesData = genesData;
+            row.item.cellsPerPage = 5;
+            row.item.cellsCurrentPage = 1;
 
             //const cellsURL = `${this.cellsURL}${this.datasetId},${this.cellType},${this.model},${factor}`;
             const cellsURL = `${this.cellsURL}scRNA,${this.cellType},${this.model},${factor}`;
             const cellsResponse = await this.fetchData(cellsURL);
             const cellsData = cellsResponse.data;
-            this.$set(row.item, 'cellsData', cellsData);
-            this.$set(row.item, 'genesPerPage', 5);
-            this.$set(row.item, 'genesCurrentPage', 1);
+            row.item.cellsData = cellsData;
+            row.item.genesPerPage = 5;
+            row.item.genesCurrentPage = 1;
 
             this.colorFactorLoadings(row.item.cellsData);
 
             //row.toggleDetails();
             this.toggleDetails(row.item);
 
-            this.$set(row.item, 'detailsLoading', false);
-            this.$set(row.item, 'detailsLoaded', true);
+            row.item.detailsLoading = false;
+            row.item.detailsLoaded = true;
         },
         toggleDetails(item) {
             const isClosed = !item._showDetails;
@@ -248,13 +248,13 @@ mountPage(Template, {
                 console.log(`Row is closed, opening details.`);
                 if(item.detailsLoaded){
                     console.log('recalculating');
-                    this.$set(item, 'detailsLoading', true);
+                    item.detailsLoading = true;
                     this.colorFactorLoadings(item.cellsData);
-                    this.$set(item, 'detailsLoading', false)
+                    item.detailsLoading = false
                 }
                 this.factorsData.forEach((row) => {
                     if (row !== item) {
-                        this.$set(row, '_showDetails', false);
+                        row._showDetails = false;
                     }
                 });
             } else {
@@ -262,7 +262,7 @@ mountPage(Template, {
                 this.factorCellLoadings = null;
                 d3.select("#histogram").selectAll("*").remove();
             }
-            this.$set(item, '_showDetails', !item._showDetails);
+            item._showDetails = !item._showDetails;
         },
         splitValues(value) {
             if (!value) return []

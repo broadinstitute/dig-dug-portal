@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import { formatMetric, formatPValue, isFiniteNumber } from "./ligerFormat";
 import { clamp, mixColor, heatColor } from "./ligerHeat";
 import CellStateInfographic from "./CellStateInfographic.vue";
@@ -2122,7 +2121,7 @@ export default {
             try {
                 let payload = await this.fetchJson(this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), this.selectedCellType.key, stateId));
                 let rows = this.rowsFromResponse(payload);
-                this.$set(this.stateTraitRowsCache, stateId, rows);
+                this.stateTraitRowsCache[stateId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2143,7 +2142,7 @@ export default {
                 // partition: factor IDs are namespaced per cell type.
                 let payload = await this.fetchJson(this.buildProgramTraitUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
                 let rows = this.rowsFromResponse(payload);
-                this.$set(this.programTraitRowsCache, programId, rows);
+                this.programTraitRowsCache[programId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2162,7 +2161,7 @@ export default {
             try {
                 let payload = await this.fetchJson(this.buildProgramGeneInfoUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
                 let rows = this.rowsFromResponse(payload);
-                this.$set(this.programGeneRowsCache, programId, rows);
+                this.programGeneRowsCache[programId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2181,7 +2180,7 @@ export default {
             try {
                 let payload = await this.fetchJson(this.buildProgramGeneSetInfoUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
                 let rows = this.rowsFromResponse(payload);
-                this.$set(this.programGeneSetRowsCache, programId, rows);
+                this.programGeneSetRowsCache[programId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2216,7 +2215,7 @@ export default {
 
                         return aPSort - bPSort;
                     });
-                this.$set(this.programQcRowsCache, programId, rows);
+                this.programQcRowsCache[programId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2582,7 +2581,7 @@ export default {
                 let tissueKey = this.rowTissueKey(row);
 
                 if (datasetId && tissueKey && !this.observedDatasetIds[tissueKey]) {
-                    Vue.set(this.observedDatasetIds, tissueKey, datasetId);
+                    this.observedDatasetIds[tissueKey] = datasetId;
                 }
             });
         },

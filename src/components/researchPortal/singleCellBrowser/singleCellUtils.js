@@ -318,7 +318,7 @@ export async function fetchGeneExpression(url, gene, datasetId){
             return null;
         }
         const expression = json.data[0]['expression'];
-        //one value per cell, and it lands on reactive state via Vue.set. unfrozen, every
+        //one value per cell, and it lands on reactive state. unfrozen, every
         //read during a render walks all of it through dependArray - and the template reads
         //it once per stratify value via min/maxExpressionValue. never mutated after load.
         return Object.freeze(expression);

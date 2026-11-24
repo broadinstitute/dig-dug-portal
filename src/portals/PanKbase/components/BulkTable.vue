@@ -85,7 +85,6 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
@@ -193,8 +192,8 @@ export default {
             if (!this.subtableData[queryKey]) {
                 let data = await this.query(this.config.subtableEndpoint, queryKey);
                 let fields = this.getFields(data[0]);
-                Vue.set(this.subtableData, queryKey, this.toNumeric(data, fields));
-                Vue.set(this.subtableFields, queryKey, fields);
+                this.subtableData[queryKey] = this.toNumeric(data, fields);
+                this.subtableFields[queryKey] = fields;
             }
         },
         async showDetails(row) {

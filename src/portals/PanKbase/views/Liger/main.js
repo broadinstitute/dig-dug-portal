@@ -543,7 +543,7 @@ mountPage(Template, {
         },
         async toggleGroup(groupKey, loader = null) {
             const nextExpandedState = !this.isGroupExpanded(groupKey);
-            this.$set(this.expandedGroups, groupKey, nextExpandedState);
+            this.expandedGroups[groupKey] = nextExpandedState;
 
             if (nextExpandedState && loader) {
                 await loader();
@@ -572,7 +572,7 @@ mountPage(Template, {
             }
 
             try {
-                this.$set(this.modelFactorLoading, factorContextKey, true);
+                this.modelFactorLoading[factorContextKey] = true;
 
                 // Progressive loading note: only fetch factor summaries once the
                 // user opens a specific model branch. That keeps the first result
@@ -583,10 +583,10 @@ mountPage(Template, {
                     return lookup;
                 }, {});
 
-                this.$set(this.modelFactorDetails, factorContextKey, factorMap);
+                this.modelFactorDetails[factorContextKey] = factorMap;
                 return factorMap;
             } finally {
-                this.$set(this.modelFactorLoading, factorContextKey, false);
+                this.modelFactorLoading[factorContextKey] = false;
             }
         },
         resetSearchState() {

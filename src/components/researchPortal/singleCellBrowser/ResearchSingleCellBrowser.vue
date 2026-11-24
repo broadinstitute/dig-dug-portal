@@ -2667,8 +2667,8 @@
                     const index = this.expressionLRU.findIndex(g => g !== this.geneExpressionVars.selectedGene);
                     if(index === -1) break;
                     const [evicted] = this.expressionLRU.splice(index, 1);
-                    Vue.delete(this.expressionData, evicted);
-                    Vue.delete(this.expressionExtents, evicted);
+                    delete this.expressionData[evicted];
+                    delete this.expressionExtents[evicted];
                     llog(`evicted ${evicted} expression, keeping ${limit} genes`);
                 }
             },
@@ -2696,14 +2696,14 @@
                         && !this.geneNames.includes(gene)) {
                         this.geneNames.push(gene);
                     }
-                    Vue.set(this.expressionData, gene, expressionResult);
+                    this.expressionData[gene] = expressionResult;
                     this.touchGene(gene);
                     this.evictExpressionData(expressionResult.length);
                     //same d3 calls the template used to make per violin, run once here
-                    Vue.set(this.expressionExtents, gene, {
+                    this.expressionExtents[gene] = {
                         min: d3.min(expressionResult),
                         max: d3.max(expressionResult)
-                    });
+                    };
 
                     llog('getGeneExpression', gene);
                     //llog(addToKeyParams);
@@ -3094,7 +3094,7 @@
             numericRangeFor(field){
                 if(!field || !this.fields) return null;
                 if(!(field in this.numericRanges)){
-                    this.$set(this.numericRanges, field, scUtils.numericRangeFor(this.fields, field));
+                    this.numericRanges[field] = scUtils.numericRangeFor(this.fields, field);
                 }
                 return this.numericRanges[field];
             },
