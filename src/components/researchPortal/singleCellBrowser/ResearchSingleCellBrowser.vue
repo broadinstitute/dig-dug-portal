@@ -1260,7 +1260,7 @@
     */
 
     import * as d3 from 'd3';
-    import Vue, { shallowRef } from 'vue';
+    import { nextTick, shallowRef } from 'vue';
     import keyParams from "@/utils/keyParams";
     import EventBus from "@/utils/eventBus";
     import {llog} from "./llog.js";
@@ -2411,7 +2411,7 @@
                 this.preloadItem = '';
                 this.dataLoaded = true;
 
-                await Vue.nextTick();
+                await nextTick();
 
                 //configuration settings
 
@@ -2485,7 +2485,7 @@
 
                 this.dataReady = true;
 
-                await Vue.nextTick();
+                await nextTick();
 
                 //return;
                 
@@ -2531,7 +2531,7 @@
                 }
 
                 //debug only, mem=1 in the url. see memoryReport.js
-                await Vue.nextTick();
+                await nextTick();
                 reportSingleCellMemory({
                     datasetId: this.datasetId,
                     fields: this.fields,
@@ -2725,7 +2725,7 @@
                             */
                     }
 
-                    await Vue.nextTick();
+                    await nextTick();
 
                     if(!this.geneExpressionVars.selectedGene || setAsSelected){
                         this.geneClick(gene);
@@ -2734,7 +2734,7 @@
                     if(!this.genesNotFound.includes(gene)){
                         this.genesNotFound.push(gene);
                     }
-                    await Vue.nextTick();
+                    await nextTick();
                 }
             },
             maxCountValue(){
@@ -3372,7 +3372,7 @@
                 //e.target.value = '';
                 parts.forEach(async (gene) => {
                     await this.getGeneExpression(gene.toUpperCase(), true, true);
-                    await Vue.nextTick();
+                    await nextTick();
                 })
             },
             geneListClick(e){

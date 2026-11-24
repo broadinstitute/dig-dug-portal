@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { createApp } from "vue";
 import ResearchMouseTooltip from "@/components/researchPortal/singleCellBrowser/ResearchMouseTooltip.vue";
 
 /*
@@ -27,9 +27,7 @@ let isTrackingMouse = false;
 
 function initTooltip() {
     if (!tooltipInstance) {
-        const TooltipConstructor = Vue.extend(ResearchMouseTooltip);
-        tooltipInstance = new TooltipConstructor();
-        tooltipInstance.$mount(document.createElement("div"));
+        tooltipInstance = createApp(ResearchMouseTooltip).mount(document.createElement("div"));
         document.body.appendChild(tooltipInstance.$el);
     }
 }
