@@ -1,7 +1,8 @@
 import { callWithAsyncErrorHandling, ErrorCodes } from "vue";
 
-// What `new Vue()` gave as a bus: $emit calls the handlers in the order they were added, logs an error in one and still
-// calls the others, and does not see a handler that is added or removed meanwhile.
+// What `new Vue()` gave as a bus: $emit calls the handlers in the order they were added, and does not see a handler that
+// is added or removed meanwhile. An error in one is logged and the others still run in production; in development Vue's
+// handleError throws it and the handlers after it do not run.
 const handlers = new Map();
 const handlersOf = (event) => handlers.get(event) || [];
 

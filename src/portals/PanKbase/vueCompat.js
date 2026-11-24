@@ -16,6 +16,10 @@ Vue.configureCompat({
     INSTANCE_EVENT_EMITTER: true,
     // $bvToast takes $createElement from the component that calls it
     PRIVATE_APIS: true,
+    // its tooltip spreads the $attrs of the component it belongs to onto its own element (bv-tooltip-template.js); in MODE 3
+    // they hold class, style and the listeners not in `emits`, which would land on the tooltip. Nothing of ours reads $attrs
+    // or sets inheritAttrs, so class and style still fall through to the root
+    INSTANCE_ATTRS_CLASS_STYLE: true,
 });
 
 export * from "../../utils/vueCompat";
