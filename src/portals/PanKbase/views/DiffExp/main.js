@@ -138,10 +138,12 @@ mountPage(Template, {
             let outputData = cloneDeep(
                 this.$store.state.singleBulkZNormData
             );
+            // rows without data: a throw here would take the whole page away on Vue 3
+            outputData = outputData.filter((item) => item != null);
             outputData.forEach((item) => {
                 item["-log10P"] = item.log10FDR;
                 for (let i = 0; i < this.samplesColumns.length; i++) {
-                    let expressionDataPoint = item.expression[i];
+                    let expressionDataPoint = item.expression?.[i];
                     let sampleLabel = this.samplesColumns[i];
                     item[sampleLabel] = expressionDataPoint;
                 }
@@ -239,7 +241,7 @@ mountPage(Template, {
                 this.$store.state.currentComparisons[
                     this.$store.state.selectedComparison
                 ];
-            return label.split(/[^w]vs/)[0];
+            return (label || "").split(/[^w]vs/)[0];
         },
     },
     async mounted() {

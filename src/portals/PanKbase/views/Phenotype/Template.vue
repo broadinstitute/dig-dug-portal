@@ -95,7 +95,7 @@
                             :field="'nearest'"
                             :options="
                                 $store.state.associations.data.map(
-                                    (association) => association.nearest[0]
+                                    (association) => association.nearest?.[0]
                                 )
                             "
                             :inclusive="false"
