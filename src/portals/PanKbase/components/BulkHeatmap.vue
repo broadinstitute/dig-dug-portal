@@ -34,6 +34,7 @@
 import * as d3 from 'd3';
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 import sortUtils from "@/utils/sortUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 import "../assets/pkb-styles.css";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 import DownloadChart from "@/components/DownloadChart.vue";
@@ -84,7 +85,7 @@ export default {
             return this.diseaseData.diseaseLabels;
         },
         sortedSamples(){
-            let samples = structuredClone(this.samplesColumns);
+            let samples = cloneDeep(this.samplesColumns);
             samples.sort((a,b) => this.diseaseMap[a].groupIndex - this.diseaseMap[b].groupIndex);
             return samples;
         },

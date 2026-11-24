@@ -95,6 +95,7 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 export default {
@@ -145,12 +146,10 @@ export default {
             return utils;
         },
         scatterConfig(){
-            if (this.contField === null){
-                this.contField = this.contFields[0];
-            }
+            let contField = this.contField === null ? this.contFields[0] : this.contField;
             let config = {
-                xField: this.contField.key,
-                xAxisLabel: this.contField.label,
+                xField: contField.key,
+                xAxisLabel: contField.label,
                 yField: "norm_counts",
                 yAxisLabel: "Gene expression (CPM)",
                 dotKey: "sample_id",
@@ -158,7 +157,7 @@ export default {
                 plotHeight: 350,
                 hoverFields: [
                     {key: "sample_id", label: "Sample"},
-                    {key: this.contField.key, label: this.contField.label},
+                    {key: contField.key, label: contField.label},
                     {key: "norm_counts", label: "Gene expression (CPM)"}
                 ],
             };
@@ -168,7 +167,7 @@ export default {
             return this.tableData.length || 0;
         },
         tableData() {
-            let data = structuredClone(this.bulkData);
+            let data = cloneDeep(this.bulkData);
             if (this.filter) {
                 data = data.filter(this.filter);
             }
@@ -257,7 +256,7 @@ export default {
           let fieldsToConvert = fields.filter(field => field.isNumerical)
             .map(field => field.key);
           fieldsToConvert.push("norm_counts");
-          let outputData = structuredClone(geneData);
+          let outputData = cloneDeep(geneData);
           for (let i = 0; i < fieldsToConvert.length; i++){
             let field = fieldsToConvert[i];
             outputData = outputData.map(item => {

@@ -14,6 +14,7 @@ import BulkTable from "../../components/BulkTable.vue";
 import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
 import Formatters from "@/utils/formatters";
+import { cloneDeep } from "@/utils/lodashUtils";
 import uiUtils from "@/utils/uiUtils";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
@@ -134,7 +135,7 @@ mountPage(Template, {
             return this.$store.state.selectedGene;
         },
         zNormData() {
-            let outputData = structuredClone(
+            let outputData = cloneDeep(
                 this.$store.state.singleBulkZNormData
             );
             outputData.forEach((item) => {

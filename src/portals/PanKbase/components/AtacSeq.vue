@@ -49,10 +49,12 @@
     </div>
 </template>
 <script>
+import { markRaw } from "vue";
 import { fetchTracks } from "@/portals/PanKbase/utils/tracks";
 import { loadWashUAssets } from "@/portals/PanKbase/utils/washU";
 import { TRACKS } from "@/portals/PanKbase/utils/tracks.js";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 const HUGEAMP_GENE_BIOINDEX = `${BIO_INDEX_HOST}/api/bio/query/gene?q=`;
 const DEFAULT_GENOME = "hg38";
@@ -95,7 +97,8 @@ export default {
 
             try {
                 await loadWashUAssets();
-                this.allTracks = await this.loadTracks();
+                // not reactive: the genome browser gets these objects
+                this.allTracks = markRaw(await this.loadTracks());
                 this.cellTypes = Array.from(new Set(this.allTracks.map(t => t.cellType)));
                 this.selectedCellTypes = this.cellTypes;
                 this.trackTypes = Array.from(new Set(this.allTracks.map(t => t.trackType)));
@@ -239,7 +242,7 @@ export default {
         },
         populateCellsAndTracks(input){
             // this assumes same formatting for all track names - quick fix
-            let output = structuredClone(input);
+            let output = cloneDeep(input);
             for (let i = 0; i < output.length; i++){
                 let name = output[i].name;
                 let splitPoint = name.indexOf(" ");

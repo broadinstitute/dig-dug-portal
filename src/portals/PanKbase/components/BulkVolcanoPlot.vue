@@ -36,6 +36,7 @@
 </template>
 
 <script>
+import { markRaw } from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "@/utils/lodashUtils";
@@ -179,23 +180,27 @@ export default {
                 margin.middleSpacing;
             let height = this.renderConfig["height"];
 
-            this.tooltip = d3
-                .select(wrapperClass)
-                .append("div")
-                .style("opacity", 0)
-                .attr("class", "tooltip")
-                .style("background-color", "white")
-                .style("border", "2px solid gray")
-                .style("padding", "5px")
-                .style("border-radius", "5px")
-                .style("font-size", "smaller");
+            this.tooltip = markRaw(
+                d3
+                    .select(wrapperClass)
+                    .append("div")
+                    .style("opacity", 0)
+                    .attr("class", "tooltip")
+                    .style("background-color", "white")
+                    .style("border", "2px solid gray")
+                    .style("padding", "5px")
+                    .style("border-radius", "5px")
+                    .style("font-size", "smaller")
+            );
 
-            this.svg = d3
-                .select(wrapperClass)
-                .append("svg")
-                .attr("id", "vector_volcano_plot_" + this.sectionId)
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom);
+            this.svg = markRaw(
+                d3
+                    .select(wrapperClass)
+                    .append("svg")
+                    .attr("id", "vector_volcano_plot_" + this.sectionId)
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+            );
 
             this.yAxisField = this.renderConfig["y axis field"];
             this.xAxisField = this.renderConfig["x axis field"];
