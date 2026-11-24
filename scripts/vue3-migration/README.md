@@ -620,15 +620,19 @@ not check for local changes, and step 2 commits its output alone.
 
 ## PanKbase switch branch
 
-`vue3/pankbase-switch` is PanKbase on Vue 3.5, made from `vue3/pankbase`. Its own components use none of `@vue/compat`,
-BootstrapVue runs on it. It is temporary: it builds with Vue CLI 4, and Vite is a later stage. Do not merge it into
-`dev/vue3` or `master`, and do not open a PR from it. It takes `vue3/pankbase` by merge (below), never the other way
-round.
+`vue3/pankbase-switch` is PanKbase on Vue 3.5, made from `vue3/pankbase`. PanKbase's build has neither `@vue/compat` nor
+BootstrapVue's code: it runs on Vue 3 as it is, with components of our own (`src/components/bv/`) in place of
+BootstrapVue's. It is temporary: it builds with Vue CLI 4, and Vite is a later stage. Do not merge it into `dev/vue3` or
+`master`, and do not open a PR from it. It takes `vue3/pankbase` by merge (below), never the other way round.
 
-The default `vue.config.js` has the same changes as `configs/vue.config.PanKbase.js`, but for compat, which it keeps for
-all components (MODE 2), and only PanKbase's pages were compared with Vue 2. `configs/vue.config.CFDE.js` and
-`vue.configPapers.js` are not switched: they have no `chainWebpack`, so they build against plain Vue 3, where
-`import Vue from "vue"` has no default export.
+The default `vue.config.js` keeps `@vue/compat` (MODE 2) for all components, and BootstrapVue on it, and only PanKbase's
+pages were compared with Vue 2. `configs/vue.config.CFDE.js` and `vue.configPapers.js` are not switched: they have no
+`chainWebpack`, so they build against plain Vue 3, where `import Vue from "vue"` has no default export.
+
+What a portal has to do to follow: take its own code off compat until `npm run tool:nocompat-scan -- --config <its
+config>` has only hits with a reason (PanKbase's are in step 7 of the merge below), set its config up as PanKbase's (the
+second bullet below), add to `src/components/bv/` what the scan and the development build (`[bv] <b-x> does not support
+...`) say is missing, and compare its pages with its Vue 2 build.
 
 ### What differs from `vue3/pankbase`
 
@@ -636,30 +640,40 @@ all components (MODE 2), and only PanKbase's pages were compared with Vue 2. `co
   `vue-template-compiler`, and the override `"vue": "$vue"`. The override because npm refuses the tree without it
   (`vue-async-computed` asks for Vue 2), and because `portal-vue` and `vue-typeahead-bootstrap` would each bring a Vue
   2.7.
-- Aliases and compat mode (`vue.config.js`, `configs/vue.config.PanKbase.js`): `vue$` is `src/utils/vueCompat.js`, in
-  PanKbase's build `src/portals/PanKbase/vueCompat.js`, so our code and the Vue 2 packages (BootstrapVue,
-  `vue-async-computed`) share one Vue, Vue 3 with the Vue 2 API. vue-loader compiles templates with
-  `compatConfig: { MODE: 2 }` (Vue 2's rules) in the default build and `MODE: 3` in PanKbase's. `vuex$` is
-  `vuex/dist/vuex.esm-bundler.js`: webpack 4 takes Vuex 4's `browser` field first, its development build, which logs in
-  production what Vue 2's Vuex does not. `vue-typeahead-bootstrap$` is
+- PanKbase's build (`configs/vue.config.PanKbase.js`): no alias for `vue` (Vue CLI 4.5 sets `vue$` to
+  `vue/dist/vue.runtime.esm-bundler.js` when it finds Vue 3, so everything, Vuex included, shares that one), no
+  `compatConfig`, `bootstrap-vue$` is `src/components/bv/index.js`, and `__VUE_PROD_HYDRATION_MISMATCH_DETAILS__` is added
+  to the feature flags that Vue CLI defines (`__VUE_OPTIONS_API__` true, `__VUE_PROD_DEVTOOLS__` false; it does not know
+  the third). The alias is exact, so `bootstrap-vue/dist/bootstrap-vue.css` is still the package's.
+- The default build (`vue.config.js`): `vue$` is `src/utils/vueCompat.js`, so our code and the Vue 2 packages
+  (BootstrapVue, `vue-async-computed`) share one Vue, Vue 3 with the Vue 2 API; vue-loader compiles templates with
+  `compatConfig: { MODE: 2 }` (Vue 2's rules); `bootstrap-vue$` is `src/utils/bootstrapVueCompat.js`.
+- Both: `vuex$` is `vuex/dist/vuex.esm-bundler.js`: webpack 4 takes Vuex 4's `browser` field first, its development
+  build, which logs in production what Vue 2's Vuex does not. `vue-typeahead-bootstrap$` is
   `src/components/typeahead/VueTypeaheadBootstrap.vue`.
-- `src/utils/vueCompat.js` (new) is the module `vue` resolves to: `@vue/compat` and two changes. Compat's `WATCH_ARRAY`
-  is off, because it deep-traverses every watched array and a watcher that edits its own rows loops forever; it is on
-  again, with all of compat (`MODE: 2`), for what `Vue.extend` makes, which is BootstrapVue's components (`b-table`
-  relies on it). And a no-op
-  `el._assign` for BootstrapVue's `model` directive: since Vue 3.4 the assigner is under a symbol, so changing such an
-  input threw.
+- `src/utils/vueCompat.js` (new, default build): `@vue/compat` and two changes. Compat's `WATCH_ARRAY` is off, because it
+  deep-traverses every watched array and a watcher that edits its own rows loops forever; it is on again for what
+  `Vue.extend` makes, which is BootstrapVue's components (`b-table` relies on it). And a no-op `el._assign` for
+  BootstrapVue's `model` directive: since Vue 3.4 the assigner is under a symbol, so changing such an input threw.
 - `mountPage` (`src/utils/pageSetup.js`): `createApp`, the same signature, the store and the plugins installed on the
   app. It mounts into `#page-root` itself (the old `#app`, renamed, with `display: contents`), not into a child `div` as
   "Page setup" above says: Vue 3 keeps its target where 2.7 replaces it, so a child would stay as a block `div` between
-  `#page-root` and the page. BootstrapVue and its icons stay installed on compat's global `Vue`, so the apps
-  BootstrapVue makes for tooltips, popovers and toasts get them. The root has the page as `$refs.page`, which replaces
+  `#page-root` and the page. It installs `BootstrapVue` and `BootstrapVueIcons` on the app, whichever the alias gives:
+  ours, or, in the default build, those of `src/utils/bootstrapVueCompat.js` (new), which installs the package on
+  compat's global `Vue` when it is read and has nothing left for the app. On the app alone the package would be missing
+  in the apps that are not `mountPage`'s: a component in the slot of a `b-popover` or `b-tooltip`, and the search box of
+  `ResearchPageHeader.vue`, would show a raw `<b-icon>`. The root has the page as `$refs.page`, which replaces
   `$children[0]`.
-- Our components without compat (PanKbase's build). `src/portals/PanKbase/vueCompat.js` (new) sets `MODE: 3` and leaves
-  on what BootstrapVue uses outside its own components; the file says which and why. The code off compat's features:
-  lifecycle hooks by their Vue 3 names (all of `src`), and in what PanKbase's pages reach assignments instead of `$set`
-  and `$delete`, an event bus that is no Vue instance, `modelValue` for `v-model`, named imports instead of the global
-  `Vue`, and a few render functions. Components that the default build uses as well have `COMPONENT_V_MODEL: false`.
+- Our components without compat. Lifecycle hooks by their Vue 3 names (all of `src`), and in what PanKbase's pages reach
+  assignments instead of `$set` and `$delete`, an event bus that is no Vue instance, `modelValue` for `v-model`, named
+  imports instead of the global `Vue`, and a few render functions. Components that the default build uses as well have
+  `COMPONENT_V_MODEL: false`, which plain Vue ignores.
+- `src/components/bv/` (new): what PanKbase uses of BootstrapVue 2.23, with the same tags, markup and classes, on
+  Bootstrap 4 and BootstrapVue's stylesheet, both still imported from their packages: 25 components, three icons (six
+  bodies), `v-b-tooltip`, `$bvModal` and `$bvToast`, for the props, events and slots in use and no others; in development
+  every other one warns. Its components are `compatConfig: { MODE: 3 }`, so that they can be tried under compat too (a
+  build that does it also needs `configureCompat({ COMPONENT_ASYNC: false })`: compat takes the functional ones, plain
+  functions, for async components); plain Vue ignores it.
 - Template keys, 41 files. Vue 3 wants the key of the children of a `<template v-for>` on the template, and 2.7 refuses
   it there, so these files build on this branch only. `vue3: template-keys output` is what `codemod:template-keys` wrote
   (38 templates, 25 files). `vue3: template keys by hand` is 30 templates in 19 files: the 27 the script listed under
@@ -669,16 +683,17 @@ all components (MODE 2), and only PanKbase's pages were compared with Vue 2. `co
 - `src/components/typeahead/` (new): vue-typeahead-bootstrap 2.12.0 (MIT) written for Vue 3, with `v-slot` and `emits`
   and without `$parent.$on`, `$listeners` and `.native`; under compat the package lost the text of its suggestions. The
   three components are `compatConfig: { MODE: 3 }`, so they behave the same with and without compat. The package is
-  still in `package.json`.
+  still in `package.json`, for the two configs that are not switched.
 - Four fixes for differences that the comparison found, each valid on 2.7 too. `Phenotype/main.js` defines
   `maFormatter`, which the Meta-analysis filter calls (both versions throw it, and Vue 3 also took the input away). The
   single-cell browser watches what it changes in place (Vue 2 runs a watcher when its array gets an item, Vue 3 only
   when it is replaced) and reads the highlighted labels once. `NMF/Template.vue` gives its tooltips a class:
   BootstrapVue reads `$options._scopeId`, which vue-loader 16 calls `__scopeId`, so the scoped `::v-deep` rule matched
-  nothing. `BulkHeatmap.vue` returns no sample groups as `[]` (an empty selection threw, and Vue 3 did not recover until
-  a reload), and draws, or shows its download button and legend, only with rows and samples: since it mounts with
-  neither, a failed `dea.tsv.gz` gave an empty frame and an unhandled `reading '0'`, and a failed `fields.json.gz` gave
-  axes without cells, where Vue 2 shows nothing. What "Select a dataset" does is unchanged: the old heatmap stays.
+  nothing (our own tooltip carries the scope id again, so the class is no longer needed for that). `BulkHeatmap.vue`
+  returns no sample groups as `[]` (an empty selection threw, and Vue 3 did not recover until a reload), and draws, or
+  shows its download button and legend, only with rows and samples: since it mounts with neither, a failed `dea.tsv.gz`
+  gave an empty frame and an unhandled `reading '0'`, and a failed `fields.json.gz` gave axes without cells, where Vue 2
+  shows nothing. What "Select a dataset" does is unchanged: the old heatmap stays.
 - Scoped styles without nested rules: `pkb-footer.vue`, `Index/Template.vue`, `ResearchSingleCellSelector.vue` and
   `ResearchSingleCellBrowser.vue` had 27 nested rules in 10 blocks, now written flat, in the same order and with the same
   specificity. vue-loader 16 turns `.a { decls; .b {} }` into `.a{&[data-v]{decls} .b[data-v]{}}`, so a browser without
@@ -747,11 +762,14 @@ From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is
      files above have the line counts of step 1, unless `vue3/pankbase` changed the same lines. A merge that is clean, or
      a `--theirs` on one of those, shows no conflict to read, and a lost fix shows only here: the file is missing from
      the list, or its numbers have shrunk.
-   - `npm run tool:nocompat-scan -- --config configs/vue.config.PanKbase.js` has no hit under Script, Global API, Options
-     and Template but these: `vueImport` 1 and `vueRegister` 2 (BootstrapVue in `pageSetup.js`), `rootListener` 1 (the
-     typeahead's list, meant so) and `vForRef` 2 (donors: each ref is an array of one). What the merge added is to be
-     fixed: without compat `$set` and the like throw, `v-model` on a `value`/`input` component does nothing, and an old
-     lifecycle name is never called.
+   - `npm run tool:nocompat-scan -- --config configs/vue.config.PanKbase.js` has no hit under Script and Global API, and
+     elsewhere only these: `emitInput` 1 (`BPagination.vue`, which emits `input` beside `update:modelValue` for the uses
+     with `:value` and `@input`), `rootListener` 4 (the typeahead's list and the toggle of `BDropdown.vue`, meant so),
+     `vForRef` 3 (donors: each ref is an array of one; `BTabs.vue`, which looks for its buttons by id), `bvImports` 1
+     (the stylesheet), `bvRefs` 3 (refs that the scan cannot place, none of BootstrapVue) and `bvCss` 30 (rules on
+     BootstrapVue's classes, which our components have). What the merge added is to be fixed: without compat `$set` and
+     the like throw, `v-model` on a `value`/`input` component does nothing, and an old lifecycle name is never called. A
+     `bvTags` hit is a use that our component does not support.
    - Serve the build and load the pages the merge changed, and gene, phenotype and diff-exp for the typeahead, next to a
      build of `vue3/pankbase` on another port (step 6 of "Portal procedure for page setup").
    - Read what the merge added for a watcher of an array that another file changes in place: Vue 3 does not run that
@@ -788,19 +806,21 @@ It lists what the pages of a build reach that Vue 3 without `@vue/compat` does n
 code off compat, and the specification of the BootstrapVue components that would replace the library's. `--config` reads
 the pages of a build config (parsed, never run) and follows its aliases; `--entries` takes the `main.js` entries under a
 folder; with neither it scans every entry. It follows `import`, `export ... from`, `import()` and `require()`, and lists
-the imports it could not follow. Run with `--config configs/vue.config.PanKbase.js`, it reads 41 pages and 239 of 820
+the imports it could not follow. Run with `--config configs/vue.config.PanKbase.js`, it reads 41 pages and 278 of 859
 files. The report is markdown: a table of the patterns (hits, and notes that may be right as they stand), a section for
 each pattern with `file:line` and the code, a table of every `b-*` tag with the props, events and slots it is used with,
 the `v-b-*` directives and `$bv` calls, the packages that depend on Vue, the imports it could not follow, and the files
-that did not parse. `--json` prints the same as JSON. It writes no file. Exit 0 whatever it finds, 2 for a usage error.
-A 0 is not a proof. It cannot see a value known only at run time (`:is`, a ref or event name built from a variable),
-what a mixin declares for the component that uses it (each file is read on its own), `$watch(...)` calls, JSX, templates
-written as strings, Sass nesting with `&-suffix`, loaders and webpack settings other than the aliases, or
-`public/*.html`. It lists the watchers of arrays (`watchArrays`) and notes a change in place only in the watcher's own
-file, so an array that another component changes in place (the single-cell browser had three) is not seen.
+that did not parse. Where the config aliases `bootstrap-vue` to components of ours, a `b-*` tag is a hit only for what
+ours do not support, as their own development check declares it (`functional(...)` and `checksUse(...)`). `--json`
+prints the same as JSON. It writes no file. Exit 0 whatever it finds, 2 for a usage error. A 0 is not a proof. It cannot
+see a value known only at run time (`:is`, a ref or event name built from a variable), what a mixin declares for the
+component that uses it (each file is read on its own), `$watch(...)` calls, JSX, templates written as strings, Sass
+nesting with `&-suffix`, loaders and webpack settings other than the aliases, or `public/*.html`. It lists the watchers
+of arrays (`watchArrays`) and notes a change in place only in the watcher's own file, so an array that another component
+changes in place (the single-cell browser had three) is not seen.
 
 The other scripts need Vue 2.7's compiler, which this branch does not have: run them from a `dev/vue3` checkout with
-`--root <this checkout>`. `npm run test:scripts` is not a gate here: 216 of its 703 tests fail, those of the scripts
+`--root <this checkout>`. `npm run test:scripts` is not a gate here: 216 of its 707 tests fail, those of the scripts
 that call `compiler-sfc`'s `parse({ source })` and `compileTemplate` as Vue 2.7 does (Vue 3's `parse` takes other
 arguments: `currentInput.slice is not a function`). The tests of the two scripts above run here, and pass:
 
@@ -815,23 +835,22 @@ VUE_CLI_SERVICE_CONFIG_PATH="$PWD/configs/vue.config.PanKbase.js" npm run deploy
 npx serve -l tcp://127.0.0.1:<port> -c "$PWD/e2e/serve.json" portals/PanKbase
 ```
 
-The first command builds production into `portals/PanKbase/`, the config's `outputDir` (git ignores it); add
-`-- --dest <dir>` to build elsewhere. A wrong config path is not an error: Vue CLI builds the default config.
-`npm run build` is the development build, which prints compat's deprecation warnings. `tcp://127.0.0.1:<port>` keeps the
-server on the loopback. `e2e/serve.json` is `{ "cleanUrls": false }`. Without it `serve` answers `/gene.html?gene=PCSK9`
-with a 301 to `/gene` and drops the query string, which the pages read; `npm run preview` has no such config.
+The first command builds production into `portals/PanKbase/`, the config's `outputDir` (git ignores it); add `-- --dest
+<dir>` to build elsewhere. A wrong config path is not an error: Vue CLI builds the default config. `npm run build` is
+the development build, in which our BootstrapVue components warn about what they do not support (the default config's
+prints compat's deprecation warnings). `tcp://127.0.0.1:<port>` keeps the server on the loopback. `e2e/serve.json` is
+`{ "cleanUrls": false }`. Without it `serve` answers `/gene.html?gene=PCSK9` with a 301 to `/gene` and drops the query
+string, which the pages read; `npm run preview` has no such config.
 
 ### Known differences to Vue 2
 
-Production builds of this branch and of `vue3/pankbase` (Vue 2.7) were compared, from the same recorded answers, on
-every page of the config: the same text and screenshots (within 0.2% of the pixels), and no error on Vue 3 only. Single
-actions (sorts, page changes, selects, tabs, clicks, hovers: 749 in all) and by-hand flows (458 steps) were done on both
-in lockstep, and every difference found has its cause below. Downloads (CSV, TSV, JSON, SVG, PNG) have the same names
-and text, and the real 110 MB single-cell dataset gives the same text. The comparison tools are not in the repository.
+Production builds of this branch, without compat and BootstrapVue, and of `vue3/pankbase` (Vue 2.7) were compared, from
+the same recorded answers, on every page of the config: the same text, screenshots (no pixel differs) and DOM, and no
+error on Vue 3 only. Single actions (sorts, page changes, selects, tabs, clicks, hovers: 722 in all) and by-hand flows
+(458 steps) were done on both in lockstep, and every difference found has its cause below. Downloads (CSV, TSV, JSON,
+SVG, PNG) have the same names and text, and the real 110 MB single-cell dataset gives the same text. The comparison
+tools are not in the repository.
 
-- An empty `div` is left at the end of `body` for each time a tooltip is shown, not for each tooltip: ten shows of one
-  tooltip leave ten (BootstrapVue mounts a tooltip on a new element at every show, and Vue 3 keeps its target). Nothing
-  to see.
 - A watcher on a computed value that is an object or an array: when a dependency changes and the computed returns the
   same object or array as before, Vue 2 runs the watcher and Vue 3 does not (it runs for another value only). Seen on
   404.html with an empty groups answer (the `diseaseGroup` watcher of `pageMixin`, which loads the front content). Not
@@ -846,24 +865,26 @@ and text, and the real 110 MB single-cell dataset gives the same text. The compa
   change keeps its place (2 px) where Vue 2's follows.
 - A development build stops at an error that a production build logs and goes on from (gene's phenotype filter,
   phenotype with another phenotype, diff-exp with no comparison, a download of 0 rows on functional): the page stops
-  updating. Development builds also print two notices that production does not
-  (`provide() can only be used inside setup()` from `vue-cookies` on compat's global `Vue`, and
-  `__VUE_PROD_HYDRATION_MISMATCH_DETAILS__`, which Vue CLI 4.5 does not define).
+  updating.
 - Invisible attributes and properties differ: the `value`, `checked` and `selected` attributes beside the properties,
-  BootstrapVue's props as attributes, the order of classes and of style declarations, a row-click listener on every
-  `b-table` body.
+  the order of classes and of style declarations, and the listeners of BootstrapVue that did nothing (`keydown` on
+  buttons, `click` on their links, `mouseenter` on table rows, `focusin` on a tooltip).
+- Our own BootstrapVue components, where a visitor could meet it: a toast belongs to the app and not to the component
+  that made it; on phenotype, when two more tabs come at once, the tab that came first stays active (Vue 2: the first in
+  order); a toast that is neither text nor a vnode shows what it is (Vue 2: "undefined"); the row or header that has the
+  focus keeps it when others change places. NMF's tooltips have the class of the fix above besides.
 - NMF: the factor table is missing in some loads on both versions, since the page uses `d3` from a CDN without waiting
   for it.
-- Speed and memory: functional's plots take about 12% longer to appear (median of 20 runs, 4.2 s against 3.7 s), and the
-  single-cell dataset about 9% longer to load. The heap after loading is smaller (phenotype 49 MB against 76 MB), and it
-  does not grow with sorts and pages on either version.
-- Size: every page loads about 30-33 KB more gzip than on Vue 2 (the JS and CSS of the page, gzip level 6): +3%, and
-  +1.4% on gene.html, which is twice as large. All JS raw is +3.5%.
+- Speed and memory: functional's plots appear in 2.1 s (Vue 2: 3.6 s; medians of 6 loads each), mostly because the table
+  before them is there sooner. The heap after loading is smaller (phenotype 31 MB against 76 MB), and it does not grow
+  with sorts and pages on either version.
+- Size: every page loads 227-230 KB less gzip than on Vue 2 (the JS and CSS of the page, gzip level 6): -22%, and -10% on
+  gene.html, which is twice as large. All JS raw is -13%.
 - A typeahead whose serializer throws or gives no text for an option shows an empty list on Vue 3 (a component whose
   render throws is replaced by an empty node; Vue 2 keeps the last DOM). The recorded data has no such option; a new
   ancestry code in BioIndex would be the first.
-- A component in the slot of a `b-tooltip`, `b-popover` or `b-toast` has no `$store`: BootstrapVue makes a separate app
-  for them. Nothing in PanKbase's build does it.
+- Default build: a component in the slot of a `b-tooltip`, `b-popover` or `b-toast` has no `$store`: BootstrapVue makes a
+  separate app for them.
 - Not changed, as in Vue 2: Enter on a suggestion can pick twice (package bug).
 - The default build has one known break: `egggenerator.html`, where editing the CodeMirror throws, because
   vue-codemirror keeps the editor in reactive data and Vue 3 wraps it.
@@ -873,12 +894,10 @@ Safari and any other WebKit browser (Chromium for everything; Firefox for the pa
 and the other, phenotype, depends on which of two answers comes first, on both versions), the header's menus on touch,
 single-cell datasets other than the one that was loaded with real data, and the default config's pages.
 
-Checked as well, on the final build: the comparison of all 42 pages again (the same text, screenshots and errors on 42
-of 42); every page with BioIndex answering 500, answering empty, and not answering at all (the same text on 42 of 42
-for each, and the same errors on all but 404.html, the watcher above, and diff-exp for 500 and empty: Vue 2 logs the
-error of the heatmap's failed render and Vue 3 leaves two empty `div`s where Vue 2 leaves none); and a browser without
-CSS nesting, imitated by dropping the nested blocks from the served CSS (the computed style of every element on index,
-policies, single-cell, cell-states and donors is the same with and without them). The single actions and the flows
-(749 and 458 steps) were not repeated after the last fixes (the flat styles and the heatmap's guard); the pages were
-compared again as a whole, and the heatmap by hand (a failed or empty `dea.tsv.gz` or `fields.json.gz`, "Select a
+Checked as well: every page with BioIndex answering 500, answering empty, and not answering at all (the same text on 42
+of 42 for each, and the same errors on all but 404.html, the watcher above, and diff-exp for 500 and empty: Vue 2 logs
+the error of the heatmap's failed render and Vue 3 leaves two empty `div`s where Vue 2 leaves none). Under compat,
+before BootstrapVue went, and not again: Firefox, a browser without CSS nesting, imitated by dropping the nested blocks
+from the served CSS (the computed style of every element on index, policies, single-cell, cell-states and donors is the
+same with and without them), and the heatmap by hand (a failed or empty `dea.tsv.gz` or `fields.json.gz`, "Select a
 dataset", "Select a comparison").
