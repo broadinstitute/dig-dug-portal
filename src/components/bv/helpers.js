@@ -28,6 +28,17 @@ export function same(a, b) {
     return a === b || String(a) === String(b);
 }
 
+// Where an element is around the one that the attributes are for: what BootstrapVue gives to the outer one (class, style and
+// listeners), and the rest.
+export function splitAttrs(attrs) {
+    const [outer, inner] = [{}, {}];
+    for (const [name, value] of Object.entries(attrs)) {
+        const isOuter = /^(class|style|on[A-Z].*)$/.test(name);
+        (isOuter ? outer : inner)[name] = value;
+    }
+    return [outer, inner];
+}
+
 const PLAIN =
     /^(class|style|id|title|role|tabindex|lang|dir|hidden|(aria|data)-.+)$/;
 const NATIVE_LISTENER = /^on[A-Z][a-z]+(Once|Passive|Capture)*$/;

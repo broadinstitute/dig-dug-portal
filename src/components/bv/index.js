@@ -7,6 +7,10 @@ import BCardBody from "./BCardBody";
 import BCardText from "./BCardText";
 import BCol from "./BCol";
 import BContainer from "./BContainer";
+import BDropdown from "./BDropdown.vue";
+import BDropdownDivider from "./BDropdownDivider";
+import BDropdownItem from "./BDropdownItem.vue";
+import BDropdownText from "./BDropdownText";
 import BFormInput from "./BFormInput.vue";
 import BFormRadio from "./BFormRadio.vue";
 import BFormRadioGroup from "./BFormRadioGroup.vue";
@@ -39,6 +43,10 @@ export const BootstrapVue = plugin({
     BCardText,
     BCol,
     BContainer,
+    BDropdown,
+    BDropdownDivider,
+    BDropdownItem,
+    BDropdownText,
     BFormInput,
     BFormRadio,
     BFormRadioGroup,
