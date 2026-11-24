@@ -861,10 +861,12 @@ export default {
                 return;
             }
 
+            //read once, not for every cell: a read through `this` is slow on Vue 3
+            const { expression } = this;
             let min = Infinity;
             let max = -Infinity;
-            for (let index = 0; index < this.expression.length; index++) {
-                const value = this.expression[index];
+            for (let index = 0; index < expression.length; index++) {
+                const value = expression[index];
                 if (value == null || Number.isNaN(value)) continue;
                 if (value < min) min = value;
                 if (value > max) max = value;
@@ -919,13 +921,15 @@ export default {
             const metadataLabels = this.labels.metadata_labels[labelField];
             const colors = new Uint8Array(indices.length * 4);
             const labelColors = this.colors[labelField] || {};
+            //read once, as in updateExpressionScale
+            const { expression, expressionScale } = this;
 
             for (let drawIndex = 0; drawIndex < indices.length; drawIndex++) {
                 const index = indices[drawIndex];
 
                 let rgba;
-                if (this.expressionScale && this.expression[index] != null) {
-                    rgba = colorToRgba(this.expressionScale(this.expression[index]));
+                if (expressionScale && expression[index] != null) {
+                    rgba = colorToRgba(expressionScale(expression[index]));
                 } else {
                     const labelIndex = metadata[index];
                     const label = metadataLabels[labelIndex];
