@@ -13,6 +13,7 @@ import BFormRadioGroup from "./BFormRadioGroup.vue";
 import BIcon from "./BIcon";
 import BIconInfoCircleFill from "./BIconInfoCircleFill";
 import BIconPlusCircleFill from "./BIconPlusCircleFill";
+import BPagination from "./BPagination.vue";
 import BRow from "./BRow";
 import BSkeletonImg from "./BSkeletonImg";
 import BSkeletonWrapper from "./BSkeletonWrapper";
@@ -39,6 +40,7 @@ export const BootstrapVue = plugin({
     BFormInput,
     BFormRadio,
     BFormRadioGroup,
+    BPagination,
     BRow,
     BSkeletonImg,
     BSkeletonWrapper,
