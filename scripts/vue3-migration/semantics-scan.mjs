@@ -10,8 +10,9 @@
 //   structuredClone  a call `structuredClone(...)` in code, or `window.`/`globalThis.` `structuredClone(...)`.
 //                    Comments and strings are not code, so they never count.
 //   chartObjects     a chart or graph object stored where Vue makes it reactive: `this.<x> = <object>` (or a
-//                    property of `this.<x>`), or a property of the object `data()` returns (nested objects and
-//                    arrays too), where `<object>` is one of
+//                    property of `this.<x>`), or a property of the object `data()` returns (of a nested object too,
+//                    and of an object inside an array; an array element that is itself the chart object is not
+//                    looked at), where `<object>` is one of
 //                      new Network(...), new DataSet(...)        from `vis-network`, `vis-data`
 //                      am4core.create(...)                       from `@amcharts/amcharts4/core`
 //                      c3.generate(...)                          from `c3`
@@ -33,10 +34,30 @@
 //                    Vue 3 package is installed here) and that no component is named after (a
 //                    `Vue.component("name", ...)`, a `components: { Name }` key or a `.vue` file's `name`
 //                    anywhere in the tree). Every other unknown tag is a component, found by the lint.
-//   inlineSpaces     an inline element (`INLINE_TAGS`) whose first or last child is whitespace-only text next to
-//                    an interpolation, when the neighbour on that side is inline content (text, an
-//                    interpolation or an inline element) or the element has `v-for`. Content under `<pre>` and
-//                    elements with `v-text`, `v-html` or `v-pre` are skipped.
+//   inlineSpaces     a space Vue 2 renders that Vue 3 may drop: an inline element (`INLINE_TAGS`), or a
+//                    `<template>` with `v-if`, `v-else-if`, `v-else` or `v-for` that fills no slot (it is no
+//                    element once rendered, so it stands among its siblings), whose first or last child is blank
+//                    text next to an interpolation. Vue 3 drops that text; Vue 2 renders it
+//                    as a space. The default is that every such side is a hit, because the two mistakes are not
+//                    alike: a needless `{{ " " }}` changes nothing (2.7 renders that space there today, and the
+//                    explicit one replaces the whitespace), while a miss is a visible defect on Vue 3. A side is
+//                    left out only when it is known to be safe, and never for an element with `v-for`, which
+//                    stands next to itself where nothing known is beside it:
+//                      1. the sibling right beside it on that side carries the space: text that ends (leading
+//                         side) or starts (trailing side) with whitespace, or whitespace-only text that Vue 3
+//                         keeps as one space (see `carriesSpace`);
+//                      2. the nearest sibling that is not blank text, comments aside, is a native block-level
+//                         element, `br` or `hr` (`BLOCK_TAGS`): the line starts or ends there;
+//                      3. there is no such sibling and the parent is not an inline element or a `<template>`
+//                         that fills no slot (`isOpenParent`): the edge of a block, or of a component's slot
+//                         content, which a `<template v-slot>` is.
+//                    So `input`, `button`, `select`, components, `<template>`, inline elements, text without a
+//                    space, interpolations and the first or last child of an inline parent or of a `<template>`
+//                    that fills no slot (the file's root one included) are hits. The neighbour's own edges are not read, nor `v-if`/`v-else` chains: they would only
+//                    remove hits that are harmless. Blank is Vue's own: tab, line feed, form feed, carriage
+//                    return and space; a non-breaking space is content, so nothing is lost beside it. Content
+//                    under `<pre>` and elements with `v-text`, `v-html` or `v-pre` are skipped. `lostSpaces` is
+//                    the one test; the report counts its sides and a fix replaces their blank text.
 //
 // Scripts are read with Babel, as in `component-graph.mjs`, templates with `vue-eslint-parser`, the parser
 // `eslint-plugin-vue` brings and the lint already uses. Vue 2's own template compiler would not do here: it
@@ -44,8 +65,10 @@
 // The lint rule `vue/no-side-effects-in-computed-properties` finds the seventh pattern, computed properties
 // with side effects, and counts it in `npm run lint:vue3`.
 //
-// A file that does not parse (a script Babel cannot read, a template that is not plain HTML) is listed under
-// Errors, with the line when there is one, and the rest of the tree is still scanned. Its hits are not counted.
+// A file that does not parse is listed under Errors, with the line when there is one, and the rest of the tree is
+// still scanned. A script Babel cannot read gives no script hits (its template is still scanned), a template that
+// is not plain HTML is not scanned, and a template the parser reports errors in is still scanned and its hits
+// counted: the errors say the tree there may be off.
 //
 // Exit codes: 0 always (hits and errors are what the report is for), 2 usage error.
 import { realpathSync } from 'node:fs';
@@ -71,7 +94,10 @@ export const KINDS = [
   { key: 'computedParams', why: 'Vue 2.7 passes the instance to a computed function; Vue 3 (3.4 and later) passes the previous value.' },
   { key: 'extraScripts', why: 'A Vue 3 single-file component has one plain `<script>` block; a file with two does not compile.' },
   { key: 'unknownTags', why: 'Vue 3 does not know these as HTML tags, so it looks for a component of that name first.' },
-  { key: 'inlineSpaces', why: 'Vue 3 drops a whitespace-only text at the start or end of an element, where Vue 2 rendered a space, so "up 3.06" runs together as "up3.06".' },
+  {
+    key: 'inlineSpaces',
+    why: 'Vue 3 drops a whitespace-only text at the start or end of an element, where Vue 2 rendered a space, so "up 3.06" runs together as "up3.06". Every side that is not known to be safe is listed: a needless `{{ " " }}` changes nothing, and a missed one is a visible defect.',
+  },
 ];
 
 // Vue 3's `isHTMLTag` and `isSVGTag` lists (`@vue/shared`, `domTagConfig`, as of 3.5): the tags its compiler treats as
@@ -223,7 +249,7 @@ function scanScript(file, ast, text, hits, names) {
     return known || fromPanels || inFile ? `${how === 'new' ? 'new ' : ''}${source(node.callee)}(...)` : null;
   };
 
-  /** The chart objects among the properties of an object `data()` returns, nested ones included. */
+  /** The chart objects among the properties of an object `data()` returns, those of nested objects and of objects in arrays included. */
   const dataCharts = (object, path) => {
     for (const property of object.properties) {
       if (property.type !== 'ObjectProperty') continue;
@@ -284,45 +310,132 @@ function scanScript(file, ast, text, hits, names) {
   });
 }
 
-/** Whether a template node is whitespace-only text. */
-const isBlank = (node) => node?.type === 'VText' && node.value.trim() === '';
-const hasDirective = (element, name) => element.startTag.attributes.some((attribute) => attribute.directive && attribute.key.name.name === name);
+// The whitespace Vue's template compilers trim and condense: these five characters. `String#trim` also strips U+00A0
+// and the other Unicode spaces, which Vue keeps as content, so a `&nbsp;` beside an interpolation is not a lost space.
+const BLANK = /^[\t\r\n\f ]*$/;
+const STARTS_WITH_SPACE = /^[\t\r\n\f ]/;
+const ENDS_WITH_SPACE = /[\t\r\n\f ]$/;
+// Native elements that start a new line, where a space at the edge is not drawn. A fixed list, as for `NON_STANDARD_TAGS`;
+// `br` and `hr` end a line too.
+const BLOCK_TAGS = new Set(
+  'address,article,aside,blockquote,center,dd,details,dialog,div,dl,dt,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hr,li,main,nav,ol,p,pre,section,table,tbody,td,tfoot,th,thead,tr,ul,br'.split(','),
+);
 
-/** Which sides of an inline element lose a space on Vue 3: `'leading'`, `'trailing'`, both or `null`. */
-function lostSpace(siblings, index) {
-  const element = siblings[index];
-  const { children } = element;
-  if (!children.some((child) => child.type === 'VExpressionContainer')) return null;
-  const leading = isBlank(children[0]) && children[1]?.type === 'VExpressionContainer';
-  const trailing = isBlank(children.at(-1)) && children.at(-2)?.type === 'VExpressionContainer';
-  const inline = (node) => node !== undefined && (node.type !== 'VElement' || INLINE_TAGS.has(node.rawName));
-  const repeated = hasDirective(element, 'for');
-  const before = siblings.slice(0, index).reverse().find((node) => !isBlank(node));
-  const after = siblings.slice(index + 1).find((node) => !isBlank(node));
-  const sides = [];
-  if (leading && (inline(before) || repeated)) sides.push('leading');
-  if (trailing && (inline(after) || repeated)) sides.push('trailing');
-  return sides.length > 0 ? sides.join(' and ') : null;
+/** Whether a template node is text that is only whitespace in Vue's sense. */
+const isBlank = (node) => node?.type === 'VText' && BLANK.test(node.value);
+const hasDirective = (element, name) => element.startTag.attributes.some((attribute) => attribute.directive && attribute.key.name.name === name);
+// A `<template>` that fills a slot (`v-slot`, `#name`, `slot`, `slot-scope`): its content goes into a component, so its
+// edge is the edge of that component's slot content, whatever stands around the template.
+const SLOT_ATTRIBUTES = new Set(['slot', 'slot-scope']);
+const fillsSlot = (element) =>
+  element.rawName === 'template' && element.startTag.attributes.some((attribute) => SLOT_ATTRIBUTES.has(attribute.directive ? attribute.key.name.name : attribute.key.name));
+// A `<template>` with a condition or a loop that fills no slot: it is no element once rendered, so what it holds stands
+// among its siblings and loses a space as an inline element does.
+const isWrapperTemplate = (element) =>
+  element.rawName === 'template' && !fillsSlot(element) && ['if', 'else-if', 'else', 'for'].some((name) => hasDirective(element, name));
+// The elements whose blank edges are checked.
+const isChecked = (element) => INLINE_TAGS.has(element.rawName) || isWrapperTemplate(element);
+// Parents whose content edge meets what stands around the parent: an inline element, or a `<template>` that fills no slot
+// (the root `<template>` of a file included, which sits wherever its component is used). Any other parent (a block, a
+// component, or a template that fills a slot, whose content starts a line of its own) ends a line at its edge.
+const isOpenParent = (parent) => INLINE_TAGS.has(parent.rawName) || (parent.rawName === 'template' && !fillsSlot(parent));
+// Two template nodes with nothing, a comment say, between them. Comments are not among a node's children.
+const adjacent = (a, b) => a.range[1] === b.range[0] || b.range[1] === a.range[0];
+
+/**
+ * Whether the sibling right beside `siblings[index]` on `side` already gives Vue 3 the space the element loses:
+ *  - text that ends (leading side) or starts (trailing side) with whitespace;
+ *  - whitespace-only text that Vue 3 keeps as one space: it has something on its far side that is not a comment, and
+ *    either no line break, or the far side is text or an interpolation. Vue 3 drops whitespace-only text that is the
+ *    first or last node, that lies between two elements with a line break, or that touches a comment, so those do
+ *    not count.
+ */
+function carriesSpace(siblings, index, side) {
+  const step = side === 'leading' ? -1 : 1;
+  const beside = siblings[index + step];
+  if (beside?.type !== 'VText') return false;
+  if (!isBlank(beside)) return (side === 'leading' ? ENDS_WITH_SPACE : STARTS_WITH_SPACE).test(beside.value);
+  const beyond = siblings[index + 2 * step];
+  if (beyond === undefined || !adjacent(beside, siblings[index]) || !adjacent(beyond, beside)) return false;
+  return !/[\r\n]/.test(beside.value) || beyond.type === 'VText' || beyond.type === 'VExpressionContainer';
 }
 
-/** Finds `unknownTags` and `inlineSpaces` in the template tree `body` of a `.vue` file. */
-function scanTemplate(file, body, names, hits) {
-  const visit = (parent, skipSpaces) => {
+/**
+ * Why the blank edge of `siblings[index]` on `side` may lose a space on Vue 3, or null when it is known to be safe. The
+ * default is that it may: a needless `{{ " " }}` changes nothing, because Vue 2.7 renders that space there today and the
+ * explicit one replaces the whitespace, while a miss is a visible defect on Vue 3. Known safe, each only for an element
+ * that is not repeated (`v-for`: an element is next to itself, where nothing known stands beside it):
+ *  1. the sibling right beside it carries the space (`carriesSpace`);
+ *  2. the nearest sibling that is not blank text, comments aside, is a block-level element or `br` (`BLOCK_TAGS`);
+ *  3. there is no such sibling, and the parent is not an inline element or a `<template>` that fills no slot (`isOpenParent`).
+ * Otherwise the reason is `repeated`, `text`, `interpolation`, the neighbouring tag (`<input>`), or `inside <parent>`.
+ */
+function whyLost(parent, index, side) {
+  const siblings = parent.children;
+  if (hasDirective(siblings[index], 'for')) return 'repeated';
+  if (carriesSpace(siblings, index, side)) return null;
+  const step = side === 'leading' ? -1 : 1;
+  let neighbour;
+  for (let at = index + step; neighbour === undefined && siblings[at] !== undefined; at += step) {
+    if (!isBlank(siblings[at])) neighbour = siblings[at];
+  }
+  if (neighbour === undefined) return isOpenParent(parent) ? `inside <${parent.rawName}>` : null;
+  if (neighbour.type === 'VElement') return BLOCK_TAGS.has(neighbour.rawName) ? null : `<${neighbour.rawName}>`;
+  return neighbour.type === 'VText' ? 'text' : 'interpolation';
+}
+
+/**
+ * Every blank edge of an inline element (`INLINE_TAGS`) or of a `<template>` with `v-if`, `v-else-if`, `v-else` or
+ * `v-for` that fills no slot (`isChecked`), beside an interpolation, that may lose its space on Vue 3,
+ * in document order, the leading side of an element before its trailing one. This is the one test of what is lost: the
+ * report counts these, and a fix writes `{{ " " }}` over `blank`. Content under `<pre>` and elements with `v-text`,
+ * `v-html` or `v-pre` are left out.
+ * @param {import('vue-eslint-parser').AST.VElement} body the template element of a `.vue` file (`templateBody`)
+ * @returns {{ element: import('vue-eslint-parser').AST.VElement, side: 'leading' | 'trailing',
+ *   blank: import('vue-eslint-parser').AST.VText, because: string }[]} `blank` is the whitespace text whose `range`
+ *   is to be replaced; `because` says why the side is not known to be safe (see `whyLost`)
+ */
+export function lostSpaces(body) {
+  const found = [];
+  const visit = (parent, skipped) => {
     parent.children.forEach((child, index) => {
       if (child.type !== 'VElement') return;
-      const tag = child.rawName;
-      const skip = skipSpaces || tag.toLowerCase() === 'pre' || ['pre', 'text', 'html'].some((name) => hasDirective(child, name));
-      if (NON_STANDARD_TAGS.has(tag.toLowerCase()) && !HTML_TAGS.has(tag) && !SVG_TAGS.has(tag) && !names.has(toKey(tag))) {
-        hits.unknownTags.push({ file, line: child.loc.start.line, text: `<${tag}>` });
-      }
-      if (!skip && INLINE_TAGS.has(tag)) {
-        const sides = lostSpace(parent.children, index);
-        if (sides !== null) hits.inlineSpaces.push({ file, line: child.loc.start.line, text: `<${tag}>: ${sides} space` });
+      const skip = skipped || child.rawName.toLowerCase() === 'pre' || ['pre', 'text', 'html'].some((name) => hasDirective(child, name));
+      if (!skip && isChecked(child)) {
+        const { children } = child;
+        const edges = [];
+        if (isBlank(children[0]) && children[1]?.type === 'VExpressionContainer') edges.push(['leading', children[0]]);
+        if (isBlank(children.at(-1)) && children.at(-2)?.type === 'VExpressionContainer') edges.push(['trailing', children.at(-1)]);
+        for (const [side, blank] of edges) {
+          const because = whyLost(parent, index, side);
+          if (because !== null) found.push({ element: child, side, blank, because });
+        }
       }
       visit(child, skip);
     });
   };
   visit(body, false);
+  return found;
+}
+
+/** Finds `unknownTags` and `inlineSpaces` in the template tree `body` of a `.vue` file. */
+function scanTemplate(file, body, names, hits) {
+  const visit = (parent) => {
+    for (const child of parent.children) {
+      if (child.type !== 'VElement') continue;
+      const tag = child.rawName;
+      if (NON_STANDARD_TAGS.has(tag.toLowerCase()) && !HTML_TAGS.has(tag) && !SVG_TAGS.has(tag) && !names.has(toKey(tag))) {
+        hits.unknownTags.push({ file, line: child.loc.start.line, text: `<${tag}>` });
+      }
+      visit(child);
+    }
+  };
+  visit(body);
+  const sides = new Map();
+  for (const { element, side } of lostSpaces(body)) sides.set(element, [...(sides.get(element) ?? []), side]);
+  for (const [element, lost] of sides) {
+    hits.inlineSpaces.push({ file, line: element.loc.start.line, text: `<${element.rawName}>: ${lost.join(' and ')} space` });
+  }
 }
 
 /** Finds the template and `<script>` block hits of a `.vue` file; `errors` gets the template problems. */
@@ -354,9 +467,9 @@ function scanSfc(file, source, names, hits, errors) {
  * then line. `sources` is what `readSources` returns; the tree's component names come from all of it, so the order
  * of the files does not matter.
  *
- * Errors are collected, not thrown, and the rest of the tree is still scanned: a script Babel cannot read, a
- * template that is not plain HTML or that the template parser rejects each give one `ScanError`, and that script
- * or template gives no hits. `errors` is sorted by file too.
+ * Errors are collected, not thrown, and the rest of the tree is still scanned: a script Babel cannot read and a
+ * template that is not plain HTML each give one `ScanError` and no hits. A template the parser reports errors in
+ * gives one `ScanError` per error and is still scanned, so its hits are counted. `errors` is sorted by file too.
  * @param {Map<string, string>} sources file path -> source text
  * @param {ScanError[]} [errors] receives the files that did not parse
  * @returns {Record<'structuredClone' | 'chartObjects' | 'computedParams' | 'extraScripts' | 'unknownTags' | 'inlineSpaces', Hit[]>}

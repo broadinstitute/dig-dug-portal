@@ -5,7 +5,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { KINDS, parseArgs, renderReport, run, scan } from './semantics-scan.mjs';
+import vueEslintParser from 'vue-eslint-parser';
+import { KINDS, lostSpaces, parseArgs, renderReport, run, scan } from './semantics-scan.mjs';
 
 const SCRIPT = fileURLToPath(new URL('./semantics-scan.mjs', import.meta.url));
 
@@ -76,7 +77,7 @@ test('ignores commented-out code', () => {
     'src/components/VariantSearch.vue': lines(
       '<template>',
       '  <div>',
-      '    <p>text <!-- <span> {{ x }}</span> <center>old</center> --></p>',
+      '    <p>text<!-- <span> {{ x }}</span> <center>old</center> --></p>',
       '  </div>',
       '</template>',
       '<script>',
@@ -291,17 +292,28 @@ test('unknownTags: a real tag that Vue 3 does not know, unless a component has t
 
 // ---- inlineSpaces -------------------------------------------------------------------------
 
+const lead = (tag = 'span') => [`<${tag}>: leading space`];
+const trail = (tag = 'span') => [`<${tag}>: trailing space`];
+
+/** The `inlineSpaces` hits (their texts) of `html` placed in a `<div>`. */
+const spacesIn = (html) => hitsOf('inlineSpaces', { 'src/components/S.vue': `<template>\n<div>${html}</div>\n</template>` }).map(({ text }) => text);
+
+/** Checks each `[html, expected]` pair, naming the html when one is wrong. */
+function checkCases(cases) {
+  for (const [html, expected] of cases) assert.deepEqual(spacesIn(html), expected, html);
+}
+
 /** A template with `body` in a `<div>`; the first line of `body` is line 3. */
 const template = (body) => `<template>\n<div>\n${body}\n</div>\n</template>`;
 
-test('inlineSpaces: a leading or trailing space beside an interpolation, next to inline content', () => {
+test('inlineSpaces: a leading or trailing space beside an interpolation, and where it is reported', () => {
   const body = lines(
-    '<p>total <span> {{ a }}</span></p>', // 3
-    '<p><b>{{ a }} </b> and more</p>', // 4
+    '<p>total<span> {{ a }}</span></p>', // 3
+    '<p><b>{{ a }} </b>and more</p>', // 4
     '<p>{{ a }}<em> {{ b }} </em>{{ c }}</p>', // 5
     '<p><span>{{ a }}</span></p>', // 6
-    '<p>total <span> text only</span></p>', // 7
-    '<p>total <span> </span></p>', // 8
+    '<p>total<span> text only</span></p>', // 7
+    '<p>total<span> </span></p>', // 8
   );
   assert.deepEqual(hitsOf('inlineSpaces', { 'src/components/S.vue': template(body) }), [
     { line: 3, text: '<span>: leading space' },
@@ -310,34 +322,176 @@ test('inlineSpaces: a leading or trailing space beside an interpolation, next to
   ]);
 });
 
-test('an inline space needs inline content beside it', () => {
+test('inlineSpaces: only the whitespace Vue trims is blank, so a non-breaking space is content', () => {
   const body = lines(
-    '<span> {{ alone }}</span>', // 3: nothing beside it
-    '<div>block</div><span> {{ afterBlock }}</span>', // 4: a block element before it
-    '<span>{{ beforeBlock }} </span><div>block</div>', // 5: a block element after it
-    '<table><tr><td><span> {{ inCell }}</span></td></tr></table>', // 6
-    '<span v-for="n in list" :key="n"> {{ n }}</span>', // 7: a repeated element is next to itself
-    'some text <span> {{ afterText }}</span>', // 8
-    '{{ interpolation }}<span> {{ afterInterpolation }}</span>', // 9
-    '<a href="#">link</a><span> {{ afterInline }}</span>', // 10
+    '<p>text<span>&nbsp;{{ a }}</span></p>', // 3: the space is content, nothing is lost
+    '<p><span>{{ a }}&nbsp;</span>text</p>', // 4
+    '<p>text<span>&nbsp; {{ a }}</span></p>', // 5: one text node, kept whole
+    '<p>text<span> {{ a }}</span></p>', // 6: String#trim strips it, Vue does not
+    '<p>text<span> {{ a }}</span></p>', // 7: a space
+    '<p><span>{{ a }}\t</span>text</p>', // 8: a tab
   );
   assert.deepEqual(hitsOf('inlineSpaces', { 'src/components/S.vue': template(body) }), [
     { line: 7, text: '<span>: leading space' },
-    { line: 8, text: '<span>: leading space' },
-    { line: 9, text: '<span>: leading space' },
-    { line: 10, text: '<span>: leading space' },
+    { line: 8, text: '<span>: trailing space' },
   ]);
+});
+
+test('inlineSpaces: exception 1, the sibling beside it carries the space', () => {
+  checkCases([
+    ['text <span> {{ a }}</span>', []], // the text ends with a space
+    ['text\n<span> {{ a }}</span>', []], // a line break is whitespace too
+    ['<span>{{ a }} </span> text', []], // the text starts with one
+    ['<span>{{ a }} </span>\ntext', []],
+    ['{{ b }} <span> {{ a }}</span>', []], // whitespace-only text with no line break: Vue 3 keeps one space
+    ['<i>x</i> <span> {{ a }}</span>', []], // ...between two elements too
+    ['{{ b }}\n<span> {{ a }}</span>', []], // with a line break it is kept unless it lies between two elements
+    ['<span>{{ a }} </span>\n{{ b }}', []],
+    ['text <!-- note --><span> {{ a }}</span>', []], // text carries it whatever follows the text
+    // Not carried.
+    ['<i>x</i>\n<span> {{ a }}</span>', lead()], // a line break between two elements is dropped
+    ['<span>{{ a }} </span>\n<i>x</i>', trail()],
+    ['<i>x</i> <!-- note --><span> {{ a }}</span>', lead()], // whitespace-only text beside a comment is dropped
+    ['text&nbsp;<span> {{ a }}</span>', lead()], // a non-breaking space is not whitespace to Vue
+    ['<span>{{ a }} </span>&nbsp;text', trail()],
+    ['<b> <span> {{ a }}</span></b>', lead()], // whitespace-only text that is the first child is dropped
+    ['text <span v-for="n in list" :key="n"> {{ n }}</span>', lead()], // a repeated element is next to itself
+    ['<span v-for="n in list" :key="n">{{ n }} </span> text', trail()],
+  ]);
+});
+
+test('inlineSpaces: exception 2, a block-level neighbour starts a new line', () => {
+  checkCases([
+    ['<div>x</div><span> {{ a }}</span>', []],
+    ['<p>x</p><span> {{ a }}</span>', []],
+    ['<h4>x</h4><span> {{ a }}</span>', []],
+    ['<ul><li>x</li></ul><span> {{ a }}</span>', []],
+    ['<table><tr><td>x</td></tr></table><span> {{ a }}</span>', []],
+    ['<section>x</section><span> {{ a }}</span>', []],
+    ['x<br><span> {{ a }}</span>', []],
+    ['<hr><span> {{ a }}</span>', []],
+    ['<span>{{ a }} </span><div>x</div>', []], // the trailing side
+    ['<span>{{ a }} </span><br>text', []],
+    ['<div>x</div>\n  <span> {{ a }}</span>', []], // blank text is skipped
+    ['<div>x</div><!-- note --><span> {{ a }}</span>', []], // so is a comment
+    ['<div>x</div><span v-for="n in list" :key="n"> {{ n }}</span>', lead()], // a repeated element is not at a line start
+    ['<b-card>x</b-card><span> {{ a }}</span>', lead()], // a component is not a native block
+    ['<label>x</label><span> {{ a }}</span>', lead()], // nor is an inline element
+  ]);
+});
+
+test('inlineSpaces: exception 3, no sibling beside it and a block parent or a component slot', () => {
+  checkCases([
+    ['<p><span> {{ a }}</span></p>', []],
+    ['<p><span> {{ a }} </span></p>', []],
+    ['<td><span> {{ a }}</span></td>', []],
+    ['<b-card><span> {{ a }}</span></b-card>', []], // the edge of a component's slot content
+    ['<p>\n  <span> {{ a }}</span>\n</p>', []], // whitespace-only text at the edge is dropped by Vue
+    ['<p><!-- note --><span> {{ a }}</span></p>', []],
+    ['<p><span v-for="n in list" :key="n"> {{ n }}</span></p>', lead()],
+    // The edge of an inline parent or a template meets what is around the parent.
+    ['<span><b> {{ a }}</b></span>', lead('b')],
+    ['<span><b>{{ a }} </b></span>', trail('b')],
+    ['<a href="#"><span> {{ a }}</span></a>', lead()],
+    ['<b-badge><span> {{ a }}</span></b-badge>', lead()],
+    ['<b-link><span> {{ a }}</span></b-link>', lead()],
+    ['<template v-if="a"><span> {{ a }}</span></template>', lead()],
+    ['<template v-for="n in list" :key="n"><span> {{ n }}</span></template>', lead()],
+    ['<template><span> {{ a }}</span></template>', lead()], // a template with no directive is not a slot
+  ]);
+  const root = hitsOf('inlineSpaces', { 'src/components/S.vue': '<template>\n<span> {{ a }}</span>\n</template>' });
+  assert.deepEqual(root, [{ line: 2, text: '<span>: leading space' }]); // the root of a component sits anywhere
+});
+
+test('inlineSpaces: a template that fills a slot is the edge of a component slot content', () => {
+  checkCases([
+    ['<b-table><template v-slot:cell(a)="row"><span> {{ a }}</span></template></b-table>', []],
+    ['<b-table><template #cell(a)="row"><span> {{ a }} </span></template></b-table>', []],
+    ['<b-table><template slot="cell(a)"><span> {{ a }}</span></template></b-table>', []],
+    ['<b-table><template slot-scope="row"><span> {{ a }}</span></template></b-table>', []],
+    ['<b-table><template #head><span>{{ a }} </span></template></b-table>', []],
+    // The other exceptions apply there as everywhere, and the default does too.
+    ['<b-table><template #head>text<span> {{ a }}</span></template></b-table>', lead()],
+    ['<b-table><template #head><input><span> {{ a }}</span></template></b-table>', lead()],
+    ['<b-table><template #head><span v-for="n in list" :key="n"> {{ n }}</span></template></b-table>', lead()],
+    ['<b-table><template #head><b> <span> {{ a }}</span></b></template></b-table>', lead()],
+  ]);
+});
+
+test('inlineSpaces: a template with v-if, v-else-if, v-else or v-for is checked as an element', () => {
+  checkCases([
+    ['text<template v-if="a"> {{ a }}</template>', lead('template')],
+    ['text<template v-else-if="a"> {{ a }}</template>', lead('template')],
+    ['text<template v-else> {{ a }}</template>', lead('template')],
+    ['<template v-if="a">{{ a }} </template>text', trail('template')],
+    ['text<template v-if="a"> {{ a }} </template>{{ b }}', ['<template>: leading and trailing space']],
+    ['<input><template v-if="a"> {{ a }}</template>', lead('template')],
+    ['<template v-for="n in list" :key="n"> {{ n }}</template>', lead('template')], // repeated
+    // The same exceptions as for an inline element.
+    ['text <template v-if="a"> {{ a }}</template>', []],
+    ['<div>x</div><template v-if="a"> {{ a }}</template>', []],
+    ['<p><template v-if="a"> {{ a }}</template></p>', []],
+    ['<span><template v-if="a"> {{ a }}</template></span>', lead('template')],
+    // Not checked: a slot template, and a template with no condition or loop.
+    ['text<template v-slot:x> {{ a }}</template>', []],
+    ['text<template #x="row"> {{ a }}</template>', []],
+    ['text<template slot="x"> {{ a }}</template>', []],
+    ['text<template slot-scope="row"> {{ a }}</template>', []],
+    ['text<template v-if="a" #x> {{ a }}</template>', []],
+    ['text<template> {{ a }}</template>', []],
+  ]);
+});
+
+test('inlineSpaces: anything else is a hit', () => {
+  checkCases([
+    ['<input><span> {{ a }}</span>', lead()],
+    ['<button>x</button><span> {{ a }}</span>', lead()],
+    ['<select></select><span> {{ a }}</span>', lead()],
+    ['<b-button>x</b-button>\n<span> {{ a }}</span>', lead()],
+    ['<template v-if="a">x</template><span> {{ a }}</span>', lead()],
+    ['<i>x</i><span> {{ a }}</span>', lead()],
+    ['text<span> {{ a }}</span>', lead()],
+    ['{{ b }}<span> {{ a }}</span>', lead()],
+    ['<span>{{ a }} </span><input>', trail()],
+    ['<span>{{ a }} </span><button>x</button>', trail()],
+    ['<span>{{ a }} </span><select></select>', trail()],
+    ['<span>{{ a }} </span>\n<b-button>x</b-button>', trail()],
+    ['<span>{{ a }} </span><template v-if="a">x</template>', trail()],
+    ['<span>{{ a }} </span><i>x</i>', trail()],
+    ['<span>{{ a }} </span>text', trail()],
+    ['<span>{{ a }} </span>{{ b }}', trail()],
+    ['text<span> {{ a }} </span>{{ b }}', ['<span>: leading and trailing space']],
+  ]);
+});
+
+test('lostSpaces: the side, the blank text to replace, and why', () => {
+  const source = '<template>\n<div>text<span> {{ a }} </span><input><b> {{ b }}</b></div>\n</template>';
+  const { ast } = vueEslintParser.parseForESLint(source, { parser: false, ecmaVersion: 2022, sourceType: 'module' });
+  const found = lostSpaces(ast.templateBody);
+  assert.deepEqual(
+    found.map(({ element, side, because }) => [element.rawName, side, because]),
+    [
+      ['span', 'leading', 'text'],
+      ['span', 'trailing', '<input>'],
+      ['b', 'leading', '<input>'],
+    ],
+  );
+  assert.deepEqual(
+    found.map(({ blank }) => source.slice(...blank.range)),
+    [' ', ' ', ' '],
+  );
+  assert.deepEqual(lostSpaces(vueEslintParser.parseForESLint('<template><div>text <span> {{ a }}</span></div></template>', { parser: false }).ast.templateBody), []);
 });
 
 test('inlineSpaces: content under pre, v-pre, v-html and v-text is left alone, and so are block elements', () => {
   const body = lines(
-    '<pre>text <span> {{ a }}</span></pre>', // 3
-    '<div v-pre>text <span> {{ a }}</span></div>', // 4
-    '<div v-html="html">text <span> {{ a }}</span></div>', // 5
-    '<div v-text="text">text <span> {{ a }}</span></div>', // 6
-    '<p>text <span v-html="html"> {{ a }}</span></p>', // 7
-    '<section>text <section> {{ a }}</section></section>', // 8
-    '<p>text <label> {{ a }}</label></p>', // 9
+    '<pre>text<span> {{ a }}</span></pre>', // 3
+    '<div v-pre>text<span> {{ a }}</span></div>', // 4
+    '<div v-html="html">text<span> {{ a }}</span></div>', // 5
+    '<div v-text="text">text<span> {{ a }}</span></div>', // 6
+    '<p>text<span v-html="html"> {{ a }}</span></p>', // 7
+    '<section>text<section> {{ a }}</section></section>', // 8
+    '<p>text<label> {{ a }}</label></p>', // 9
   );
   assert.deepEqual(hitsOf('inlineSpaces', { 'src/components/S.vue': template(body) }), [{ line: 9, text: '<label>: leading space' }]);
 });
@@ -350,7 +504,7 @@ test('a file that does not parse is listed under errors, and the rest is still s
     tree({
       'src/a.js': 'export default {',
       'src/b.vue': lines('<template><div /></template>', '<script>', 'export default {', '</script>'),
-      'src/c.vue': lines('<template>', '  <p>text <span> {{ a }}</span></p>', '</template>', '<script>', 'export const x = structuredClone(y);', '</script>'),
+      'src/c.vue': lines('<template>', '  <p>text<span> {{ a }}</span></p>', '</template>', '<script>', 'export const x = structuredClone(y);', '</script>'),
     }),
     errors,
   );
@@ -379,6 +533,21 @@ test('a template that is not plain HTML is listed under errors, and a self-closi
     errors.map(({ file, kind }) => ({ file, kind })),
     [{ file: 'src/pug.vue', kind: 'template' }],
   );
+});
+
+test('a template with parse errors is listed under errors and still scanned', () => {
+  const errors = [];
+  const found = scan(
+    tree({
+      'src/e.vue': lines('<template>', '  <div>', '    <p>text<span> {{ a }}</span></p>', '    </section>', '  </div>', '</template>', '<script>', 'export default {};', '</script>'),
+    }),
+    errors,
+  );
+  assert.deepEqual(
+    errors.map(({ file, kind, line }) => ({ file, kind, line })),
+    [{ file: 'src/e.vue', kind: 'template', line: 4 }],
+  );
+  assert.deepEqual(found.inlineSpaces, [{ file: 'src/e.vue', line: 3, text: '<span>: leading space' }]);
 });
 
 test('hits come back sorted by file, then line, whatever the order of the sources', () => {
