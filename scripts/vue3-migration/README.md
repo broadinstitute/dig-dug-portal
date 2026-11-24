@@ -338,7 +338,279 @@ for local changes, and step 3 commits their output alone.
 3. From a current `dev/vue3` checkout, run both codemods with `--root <portal checkout>`. Commit their output alone.
 4. Run the alias grep from the portal checkout. Declare its hits, and the Unresolved and Check by hand names, by hand.
 5. Hand-fix the findings only the portal has, by the rules above.
-6. In the portal checkout, `npm run lint:vue3 -- --base <commit before the merge>`: the 16 rules read 0 and none rose.
+6. In the portal checkout, `npm run lint:vue3 -- --base <commit before the merge>`: the 16 rules of this section read 0
+   and none rose. The config counts one more rule, `vue/no-side-effects-in-computed-properties`, which is not one of the
+   16: after the template fixes alone it only has to stay level or fall, and it reads 0 at the end of the Vue 3
+   semantics procedure.
 
 Never hand-merge codemod output: take the portal's side and run the codemods again. Never squash a branch that
 carries it.
+
+## Vue 3 semantics (Stage 1 item 7)
+
+Some code compiles and runs on both Vue versions and means something else on Vue 3, with no error: a space that is
+dropped, a clone that throws, a chart that is made reactive, a computed property that runs at another moment. Every fix
+here runs on Vue 2.7 too, with the same output unless the commit that made it says otherwise. One tool counts six
+patterns, the lint finds a seventh, and one codemod writes the spaces:
+
+| Pattern | What goes wrong on Vue 3 | Fix |
+| --- | --- | --- |
+| `structuredClone` | Vue 3 wraps component and store data in a Proxy, and `structuredClone` throws a `DataCloneError` on it. | `cloneDeep`, below. |
+| `chartObjects` | Vue 3 makes what a component stores reactive, deeply. An amCharts chart overflowed the stack there and stopped the page update partway. | `markRaw`, below. |
+| `computedParams` | Vue 2.7 passes the instance to a computed function, Vue 3 (3.4 and later) the previous value. | Read `this.x`, not the parameter. |
+| `extraScripts` | A Vue 3 single-file component has one plain `<script>` block, and a file with two does not compile. | Delete every block but the last: 2.7 uses the last one, so the component does not change. |
+| `unknownTags` | Vue 3 does not know `<center>`, `<font>` and the like as HTML tags, so it looks for a component of that name. | A `div` or `span` with the same style. `<center>` also centres block children, so look at the page. |
+| `inlineSpaces` | Vue 3 drops whitespace-only text at the start or end of an element, where 2.7 renders a space: "up 3.06" runs together as "up3.06". | `explicit-spaces`, below. |
+| `vue/no-side-effects-in-computed-properties` (lint) | A computed that sets data or sorts in place runs when its value is first read, and Vue 3 renders slot content lazily, in the child, so that moment moves. A region table whose computed sorted its rows in place came out unsorted. | The rules below. |
+
+### The scan
+
+```bash
+npm run tool:semantics-scan -- [--root <dir>] [--json]
+```
+
+It reads the `.vue` and `.js` files under `src/` of this checkout, or of `--root <dir>`, which may be a portal without
+`node_modules`. The report is markdown: a count for each pattern above, then every hit as `file:line` with its code,
+then the files that did not parse. `--json` prints the hits of each pattern and `errors` instead. It writes no file.
+Exit 0 whatever it finds, so it is a report and not a gate; 2 for a usage error or a `--root` without a `src/` folder.
+A file it cannot parse is listed under Errors, and the rest of the tree is still scanned. A template that is not plain
+HTML is not scanned and is listed too. On `dev/vue3` every pattern reads 0.
+
+A 0 is not a proof. What it does not see:
+
+- `structuredClone`: only a direct call, with or without `window.` or `globalThis.` before it. Not
+  `self.structuredClone`, an alias (`const copy = structuredClone`), `rows.map(structuredClone)` or
+  `structuredClone?.(x)`: `grep -rn structuredClone src` shows those.
+- `chartObjects`: only the objects it names, found by their import: `Network` and `DataSet` (vis-network, vis-data),
+  `create` of amCharts core, `generate` of c3, `populate` and `DataSources` of locuszoom, and the classes of
+  `src/components/lz/panels/`. Another chart library, or one that is a global, is not seen. The creating expression has
+  to be the value that is assigned (`this.x = new Network(...)`, or a property of the object `data()` returns): not one
+  that goes through a local (also one that `data()` returns), a helper function, an alias of `this` (`const self =
+  this`), a ternary, `||=` or an array element, and of a chained assignment only the last target. It does not check that
+  `x` is declared in `data()`. Objects of d3, Plotly, IGV or CodeMirror on `this` are not in its list: read those by
+  hand.
+- `computedParams`: only a function written in the `computed` object; a spread brings in what it brings.
+- `unknownTags`: only a fixed list of obsolete tags (`center`, `font`, `tt`, `big`, `strike`, `marquee`, `acronym` and
+  their kind), and not a tag that a component is named after. Any other unknown tag is a component, which
+  `vue/no-undef-components` finds.
+- `inlineSpaces`: only `span a strong em b i small sup sub u code label b-badge b-link` and a `<template>` with a
+  condition or a loop that fills no slot, not `b-button` or another component. It lists every side that is not known to
+  be safe, so some hits need no space: a needless `{{ " " }}` changes nothing, and a missed one is a visible defect. It
+  takes the first or last child of a `<transition>`, a `<slot>` or a component as the edge of a block, and a block
+  element beside it as a line break, even when that element has a `v-if`. If the wrapper or the neighbour renders no
+  block there, the space is lost and not counted.
+- Computed side effects are not in the scan. The lint counts them, but not those through an alias (see below).
+
+### Computed side effects
+
+`vue/no-side-effects-in-computed-properties` is an error in `eslint-vue3.cjs`, so `npm run lint:vue3` counts it and the
+ratchet fails when it rises. It reads 0 on `dev/vue3`. Fix a finding by one of three rules, and check who else reads
+what the computed used to change:
+
+1. Sorting or reversing `this.x` or store data: sort a copy, `[...this.x].sort(...)`. If another computed, a method or
+   the template read `x` and relied on that order, make it read the sorted computed instead.
+2. Writing `this.y = ...`: if only this computed reads `y`, make `y` a local. If others read it, make `y` a computed of
+   its own, or move the write to a watcher with `immediate: true`.
+3. Changing an item of props or store data (`item.group = ...`): map to new objects, and check that nothing else reads
+   the added fields from the original.
+
+Three more points:
+
+- A write that has to stay goes into a watcher with `immediate: true`, never into `created`. The computed ran again
+  whenever what it read changed, and `created` runs once. An immediate watcher runs when the component is set up, before
+  `created`, in the order the watchers are declared, so its write is in place before anything draws.
+- A getter must not throw. On 2.7 a watcher whose getter throws keeps only what it read before the throw, and one whose
+  source is a computed that throws keeps nothing and never runs again. The region plots had this: a gene symbol in the
+  region search made `searchingRegion` throw inside the watched `plotsSetup`, and zoom and new rows did nothing until
+  the plot was mounted again. `plotsSetup` now reads what `searchingRegion` reads, so the throw happens in the handler,
+  and the next search sets the plot up again.
+- The lint rule reads `this.x`, `this.$store.state...` and `const self = this`. It does not read a local that holds
+  `this.x` or store data (`const rows = this.rows; rows.sort()`), a callback parameter
+  (`this.rows.forEach((r) => { r.group = 1; })`) or `Object.assign(this.obj, ...)`. Those stay uncounted:
+  "Checks for the Vue 3 switch" lists the ones in this tree.
+
+### markRaw for chart objects
+
+Use it where a component stores an object that a chart or graph library made: the `chartObjects` hits of the scan, and
+any other library the scan does not know.
+
+```js
+import { markRaw } from "vue";
+
+this.chart = markRaw(c3.generate(config));
+```
+
+Vue 2.7 exports `markRaw`. It makes `observe()` skip the object, so 2.7 leaves its properties as they are, and Vue 3
+does not wrap it in a Proxy. Wrap the object where it is created: `this.network = markRaw(new Network(...))`, and
+`nodes: markRaw(new DataSet(...))` in `data()`. An object that is already raw and is handed on needs nothing (the
+LocusZoom panels' `this.plot = this.$parent.plot`).
+
+The condition: nothing reactive reads the object's own properties. Before you wrap, list every read of a property of the
+object in a template, a computed property or a watcher; a read in a method is fine. After `markRaw`, such a read no
+longer runs again when the property changes, on 2.7 as on Vue 3 (assigning a new object to the property that holds it
+still does). If there is one, stop and decide that case by itself: `markRaw` changes what the page shows.
+
+### cloneDeep
+
+`structuredClone(x)` becomes `cloneDeep(x)`, with `import { cloneDeep } from "@/utils/lodashUtils";`. It is a plain
+recursive copy and gives the same result on both versions. `clone-deep.test.mjs` (in `npm run test:scripts`) runs the
+shipped file.
+
+It keeps: nested arrays and objects, as new containers; `Date`, `Map` (its keys too) and `Set`; typed arrays and
+`DataView`s, as copies of their bytes; `null`, `undefined` and primitives. A 2.7 observed object clones to plain data,
+without `__ob__`. A function stays the same function, where `structuredClone` would throw.
+
+It does not keep: a class instance (the copy is a plain object with the own enumerable properties, so the prototype,
+methods and getters are gone); two properties that share one object (they get two copies); a cycle (it overflows the
+stack); a `RegExp`, an `Error`, an `ArrayBuffer` or a boxed primitive (each becomes `{}`); symbol keys and
+non-enumerable properties.
+
+So check what each call clones before you replace it. Plain data from BioIndex or the store is the rule. A class
+instance, a cycle or a shared object is a case for a decision, not for a mechanical replacement.
+
+### explicit-spaces
+
+```bash
+npm run codemod:explicit-spaces -- [--root <dir>] [--dry-run]
+```
+
+It finds the places the `inlineSpaces` count lists and replaces the whitespace at the edge of the element with
+`{{ " " }}`, which gives the same text on both versions: 2.7 renders that whitespace as one space, and Vue 3 keeps an
+interpolation. When the whitespace holds a line break, the break moves inside the braces, so no line of the file moves.
+This is a leading space, before and after:
+
+```html
+up<span>
+    {{ x }}
+</span>
+```
+
+```html
+up<span>{{
+    " " }}{{ x }}
+</span>
+```
+
+Only the template block of a `.vue` file is edited, as text splices: bytes outside the spaces stay, line endings
+included. A second run changes nothing. It leaves alone the content of `<pre>` and of elements with `v-text`, `v-html`
+or `v-pre`. Its report lists the spaces it adds, then Left, which is for you: a place where an interpolation would
+change what 2.7 renders, such as a comment between the whitespace and the interpolation (2.7 drops a whitespace-only
+piece at the edge of an element). It does not edit those and the scan still counts them: decide each by hand.
+
+Before it writes anything it checks every changed file: the SFC parses as before, the text outside the template is
+unchanged, and the template compiles on 2.7 to the same render, with each added interpolation read as the space it is.
+If a file fails, or its template does not compile on 2.7 to begin with, it lists the file under Failed and no file is
+written in that run. Exit 0 when done (Left is not a failure), 1 when a file failed, 2 for a usage error, a root without
+`src/`, or `NODE_ENV=production`, where the 2.7 compiler drops the compile errors the checks need. Commit its output
+alone, as for the other codemods.
+
+### Checks for the Vue 3 switch
+
+These are what the lint and the scan cannot show. They change nothing on 2.7. Whoever switches a build to Vue 3 compares
+the pages named here on both builds.
+
+#### Watcher declaration order
+
+On 2.7 the watchers of a component that are triggered together run in the order they are declared in `watch`. Three
+places rely on it, and each has a comment that says so:
+
+- `CriterionGroupTemplate`: `filtersToDefine` (immediate) completes the parent's filters with the definitions of their
+  fields. It is declared before `filterListInternal` and `criterion`, whose watchers use the definitions. If the order
+  changed, an extra `input` event is possible. Look at the pages with criterion filters.
+- `ResearchRegionPlot`: `plotsSetup` (immediate) is declared first, so that the watchers of `staredVariants` and
+  `starItems`, which draw, find the plots set up.
+- `MultiRegionPlot`: `ldData`, then `plotsSetup` (immediate), then the drawing watchers (`hoverPos`, `staredVariants`,
+  `starItems`). `ldData` comes first so that the LD state set at creation is sent to the other sections, and the drawing
+  watchers come last so that they find the plots set up.
+
+2.7 always runs them in declaration order. On Vue 3.5 watchers that are triggered through props keep that order, but a
+trigger that comes from the store and fires first runs its watcher first. In both region plots `staredVariants` (it reads
+the store's `pkgDataSelected`) is such a trigger, and so is `hoverPos` in `MultiRegionPlot`. A draw with the new
+association data and the old LD data or positions is therefore possible there: look at the region plots after a new
+region, a zoom and a star.
+
+#### Rows that get a new key
+
+On Vue 3 a key added to a row is reactive, so it runs again every computed that enumerates rows (`Object.entries`,
+`Object.keys`, `for...in`, a spread). The two region plots read their rows through `toRaw` for that reason, and a new
+plot that enumerates rows in a computed has to do the same. The GEM table's `tableContent` (the last row of the table
+below) adds keys to the store's rows, so computeds elsewhere that enumerate the same rows are run again by it, not only
+`tableContent` itself.
+
+#### Computeds that change shared data through an alias
+
+The lint does not count these: each sorts, or adds fields to, rows or lists of the store or of a prop through a local
+variable or a callback parameter. They were found by reading the computeds of `src/`, following locals, callback
+parameters, destructuring, loops, the component's own methods and the functions of `src/utils/`. Not covered: methods
+that come from a mixin or a spread (`...uiUtils`), what a child does with a prop in its methods or watchers, and
+functions of npm packages. The computeds that the commit "computed side effects through aliases" fixed are not listed;
+these were left as they are.
+
+In every row the danger on Vue 3 is the same: a slot or a child evaluates the computed at another moment than 2.7 does,
+so another reader sees the data before or after the change, with no error. And a reactive write inside a computed, to
+data it reads, can evaluate it again. At the switch, compare the pages of a row on both builds: the order of the rows and
+options named in it, and the text of the fields it changes. A row with no page is reached by no page of the default
+`vue.config.js`; a portal may load it.
+
+35 computeds in 21 rows. Fields such as `group` are on the store's rows unless the row says otherwise.
+
+| File (under `src/`) | Computed | What it changes, and who else reads it | Pages |
+| --- | --- | --- | --- |
+| `components/PhenotypeSignalBarChart.vue`, `components/PhenotypeSignalInGroup.vue` | `topAssociationsGrouped`, `topAssociations`, `topAssociationsFiltered` (in each) | `group` (as is in the first, in capitals in the other two) and `description` on the rows that come in as the prop `phenotypes`. The three overwrite each other's `group`, and `ClumpedVariantsTable` shows `item.group` of the same rows | region |
+| `components/PhenotypeSignal.vue`, `components/PhenotypeSignalMixed.vue`, `components/PhenotypeSignalMultiple.vue` | `topAssociationsGrouped` and `topAssociations` in each; also `topAssociationsFiltered` in `Mixed`, `topAssociations2nd` in `Multiple` | as the row above | none |
+| `views/Phenotype/main.js` | `c2ctData` | `originalBiosample` and `biosample`. There are two row sets, switched by `selectedAnnotation`: coming back to rows already formatted makes the formatted name the "original". The download reads `originalBiosample`, and so does the computed, when it runs again on rows it already changed | phenotype |
+| `views/Phenotype/main.js` | `ancestryAnnotations` | sorts `annotations.data` by p-value when no ancestry is chosen and fewer than 20 rows are significant. `Template.vue` reads the same array for its options, so their order follows | phenotype |
+| `views/Papers/Research/main.js` | `multiSectionsSearchParameters` | on `sectionConfigs` (the result of another computed): flags the sections' parameters, pushes them into `"search parameters"` again on every evaluation, and replaces `values: "kp phenotypes"` with the list (the first time only, so the list keeps the order of that moment). Read by `rawSearchParameters`, `pageParams`, the section configs and itself | research |
+| `components/PigeanTable.vue` | `tableData` | `subtableActive` and `phewasActive` on the rows of `probData`, reset on every evaluation (in a subtable they are the prop's own rows). `toggleTable` writes the same fields for the user. Read by the template and the methods | pigean_gene, pigean_geneset, pigean_phenotype, factorization, pigeangraph |
+| `components/PigeanTable.vue`, `views/CVDI_Pigean/CVDIPigeanTable.vue` | `probData` | `<field>_probability` on the prop's rows in a subtable (elsewhere it works on a clone). The parent's cached subtable holds those rows. Whether anything else reads the field is not known | as `tableData` above; cvdi_pigean_gene, cvdi_pigean_geneset, cvdi_pigean_phenotype |
+| `components/HugeScoresTable.vue` | `tableData` | `range` on the prop's rows (gene, mouse_diff_exp: the items of the page's `hugeScores`; phenotype: the store's rows). Read by its own table and download. The PheWAS plot gets the same rows and does not show it | gene, phenotype, mouse_diff_exp |
+| `components/HugeCalScoreSection.vue` | `rareVarBF` | sorts `masks` of the store's rows. `HuGeCalculator/main.js` `masks` hands the same array to the mask table, whose order follows | hugecalculator, gene |
+| `components/HugeCalScoreSection.vue` | `commonVarBF` | `distance` on the store's genes. Nothing else reads it | hugecalculator, gene |
+| `components/MetaAnalysisBarGraph.vue` | `tableData` (through `collateData`) | `bottomLineOnly`, `bottomLineMinP` and `allMetas` of the component. The bars in the template read them, and a watcher on `tableData` writes them too | phenotype |
+| `components/researchPortal/ResearchCredibleSets.vue` | `searchingRegion` (through `getCredibleSetsList`) | sends a request, then empties and fills `credibleSets`, `CSData` and `pkgData.CSData`. Read by the template and the GEM table | research |
+| `views/Datasets/main.js` | `datasetsList` | `phenotype_group`, `ancestry_name` and `data_type` on the store's datasets. Read by `phenotypeGroupOptions` and `techOptions` (both through `datasetsList`) and the table | datasets |
+| `components/DiseaseSystems.vue` | `correlatedPhenotypes` | sorts the store's `phenotypeCorrelation.data` by `rg` when neither filter box is filled. Read by itself: back on "pValue", the rows stay in `rg` order | most pages (the header) |
+| `components/DatasetsTable.vue` | `sortedDatasets` | sorts the prop `datasets` when there is no phenotype. The phenotype page passes one, so a filtered copy is sorted there | phenotype |
+| `components/GeneFinderTable.vue` | `plotData` (through `formatAssocData`) | `position`, `minusLogP` and `p` on the rows of `associations`. Nothing but this table's plot reads them | complicationsviewer, phenotype (a hidden card) |
+| `components/GeneFinderTable.vue`, `components/NCATS/old/GeneFinderTable.vue` | `fields` | pushes a column into the data property `baseFields` on every evaluation (with `showChiSquared`): one more column each time. Read by itself | the same (the second file: none) |
+| `views/Factorization/main.js` | `geneFactor` | `gene_score`. Nothing reads it: the result is a clone | factorization |
+| `views/Factorization/main.js` | `genesetFactor` | `p_value` and `gene_set_score`. Nothing reads them: the result is a clone | factorization |
+| `components/NCATS/ResultsTable.vue` | `tableItems` | pushes into the data property `tableFields` on every evaluation. Read by the table's columns | none |
+| `components/researchPortal/ResearchGEMDataTable.vue` | `tableContent` | on the rows (the format's `features` list is a copy now): `indexNum`, `overStart`, `overEnd`, `bioStart`, `bioEnd`, a key for each tissue and biosample, `Annotation Overlap`, `Biosample Overlap` and `Biosamples:array`. Read by itself when it runs again (stale text in the tissue and biosample columns). On Vue 3 the new keys also run again every computed that enumerates these rows (see Rows that get a new key) | research |
+
+Computeds that dispatch or commit also run whenever they are evaluated, which Vue 3 moves like the rest: `commonVarBF`,
+`rareVarBF` and `hugeScore` of `HugeCalScoreSection.vue`, `complicationViewerPhenotypes` of
+`views/ComplicationsViewer/main.js`, `eglSummaries` of `views/EffectorGenes/main.js`, `helpTOC` of `views/Help/main.js`,
+`researchData` of `views/Papers/Research/main.js`, and `topAssociations` of `views/Region/main.js`, which also hides an
+element and sets `keyParams`. They are not in the table.
+
+### Portal procedure for Vue 3 semantics
+
+On the portal's `vue3/<portal>` branch, from a clean working tree (`git status` shows nothing): `explicit-spaces` does
+not check for local changes, and step 3 commits its output alone.
+
+1. Merge `dev/vue3`. In a conflicted file, take the portal's side, with the warning of step 1 of "Portal procedure for
+   page setup": that drops every change `dev/vue3` made to the file. Here most of those are hand fixes, not codemod
+   output, so check `git log -p HEAD..dev/vue3 -- <file>` and re-apply each one by hand. In a file that `explicit-spaces`
+   rewrote, take the portal's side and run the codemod on it again. Commit the merge.
+2. If the portal has not taken page setup and the template fixes, run those procedures first (they are above): a file
+   with a space to add whose template does not compile on 2.7 makes `explicit-spaces` write nothing.
+3. From a current `dev/vue3` checkout, read `npm run codemod:explicit-spaces -- --root <portal checkout> --dry-run`,
+   then run it without `--dry-run`. Commit its output alone. Decide each place under Left by hand.
+4. From the same checkout, `npm run tool:semantics-scan -- --root <portal checkout>`. The merge brought the fixes of
+   `master`'s files, so what is listed is the portal's own, and any fix that a conflict dropped. Fix each hit by the
+   rules above, then run it again:
+   - `structuredClone`: `cloneDeep`, after checking what each call clones.
+   - `chartObjects`: `markRaw`, after listing the reads of the object.
+   - `computedParams`: read `this`, not the parameter.
+   - `extraScripts` and `unknownTags`: as in the table at the top of the section.
+   - `inlineSpaces`: what is left is Left of step 3.
+5. In the portal checkout, `npm run lint:vue3 -- --base <commit before the merge>`: no rule rose, and
+   `vue/no-side-effects-in-computed-properties` is down to the portal's own findings. Fix those by the three rules.
+   Then read the portal's own computeds for the cases the lint does not see (a local, a callback parameter,
+   `Object.assign`: the third point of Computed side effects). A portal's own copy of something `dev/vue3` fixed needs
+   the same fix: the PanKbase `Gene` entry has its own `transcriptOr52k`.
+6. Compare the rendered pages: the development A/B (see compare-render) with the commit before the merge as `<base ref>`,
+   then sweep the portal's own pages as in step 6 of "Portal procedure for page setup". Look at what the fixes touch:
+   spaces between a label and its value, the order of rows and options, the charts and graphs, and the associations
+   table of the region page, which must come out sorted by p-value, smallest first.
