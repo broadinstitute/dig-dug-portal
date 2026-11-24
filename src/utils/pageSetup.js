@@ -6,7 +6,8 @@ import VueCookies from "vue-cookies";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-// Installed on the global Vue of @vue/compat: every app inherits them, also the ones BootstrapVue creates itself.
+// Installed on the global Vue of @vue/compat: every app inherits them, also the ones BootstrapVue creates itself
+// (tooltips, popovers, toasts), which do not get the page's store or the plugins passed to mountPage.
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 Vue.use(VueCookies);

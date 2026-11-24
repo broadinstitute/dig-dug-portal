@@ -495,6 +495,8 @@ module.exports = {
             .rule("vue")
             .use("vue-loader")
             .tap((options) => ({ ...options, compilerOptions: { compatConfig: { MODE: 2 } } }));
+        // Vuex 4's `browser` field, which webpack 4 takes first, is its development build
+        config.resolve.alias.set("vuex$", "vuex/dist/vuex.esm-bundler.js");
         // Optimize CSS extraction to prevent ordering conflicts in multi-page builds
         // when the same component CSS is used across multiple entry points
         if (config.plugins.has("extract-css")) {
