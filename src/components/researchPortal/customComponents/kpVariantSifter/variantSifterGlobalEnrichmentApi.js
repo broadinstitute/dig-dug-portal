@@ -1,5 +1,10 @@
 import { query } from "@/utils/bioIndexUtils";
 import { formatRegion } from "./variantSifterSearchUtils.js";
+import {
+    gwasCeGlobalEnrichmentIndex,
+    resolveGwasCeToken,
+    VKS_GWAS_CE_BIOINDEX_HOST,
+} from "./variantSifterProjects.js";
 
 export async function fetchGlobalEnrichment(session, host) {
     const phenotype = session?.phenotype?.name;
@@ -9,6 +14,48 @@ export async function fetchGlobalEnrichment(session, host) {
 
     const data = await query("global-enrichment", phenotype, { host });
     return Array.isArray(data) ? data : [];
+}
+
+/**
+ * GWAS-CE: the dataset's own S-LDSC enrichment (`global-enrichment-{token}`,
+ * `q=token`), built by the GWAS-CE sifter run. Soft-fails to [] when the index
+ * does not exist (the run had no S-LDSC results) or the host is unreachable.
+ */
+export async function fetchGwasCeGlobalEnrichment(session) {
+    const token = resolveGwasCeToken(session);
+    if (!token) {
+        return [];
+    }
+
+    try {
+        const data = await query(gwasCeGlobalEnrichmentIndex(token), token, {
+            host: VKS_GWAS_CE_BIOINDEX_HOST,
+        });
+        return Array.isArray(data) ? data : [];
+    } catch (error) {
+        console.warn("Variant Sifter GWAS-CE global enrichment failed", error);
+        return [];
+    }
+}
+
+/**
+ * Key GWAS-CE rows (phenotype = token, ancestry = upload metadata) to the
+ * session's phenotype/ancestry, which is what every GE view filters on. The
+ * original keys are kept as `sourcePhenotype` / `sourceAncestry`.
+ */
+export function adoptGwasCeGeRows(rows, session) {
+    const phenotype = session?.phenotype?.name;
+    if (!phenotype) {
+        return [];
+    }
+    const ancestry = session?.ancestry || "Mixed";
+    return (Array.isArray(rows) ? rows : []).map((row) => ({
+        ...row,
+        sourcePhenotype: row.phenotype,
+        sourceAncestry: row.ancestry,
+        phenotype,
+        ancestry,
+    }));
 }
 
 /**

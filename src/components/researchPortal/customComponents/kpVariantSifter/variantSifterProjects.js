@@ -189,6 +189,12 @@ export function gwasCeCredibleVariantsIndex(token) {
     return id ? `credible-variants-${id}` : "credible-variants";
 }
 
+/** Index name for GWAS-CE global enrichment: global-enrichment-{token}. */
+export function gwasCeGlobalEnrichmentIndex(token) {
+    const id = normalizeGwasCeToken(token);
+    return id ? `global-enrichment-${id}` : "global-enrichment";
+}
+
 /** Resolve the GWAS-CE token stored on a search session. */
 export function resolveGwasCeToken(session) {
     return normalizeGwasCeToken(session?.gwasCeToken);
