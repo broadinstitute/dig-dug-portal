@@ -16,7 +16,7 @@ export default new Vuex.Store({
         associations: bioIndex("global-associations"),
         annotations: bioIndex("global-enrichment"),
         genes: bioIndex("gene-finder"), // Commented out - gene-level associations section is muted
-        genes52k: bioIndex("gene-finder-52k"), // Commented out - gene-level associations section is muted
+        genes52k: bioIndex("gene-finder-rare"), // Commented out - gene-level associations section is muted
         hugePhenotype: bioIndex("huge-phenotype"), // Commented out - gene-level associations section is muted
         ancestryGlobalAssoc: bioIndex("ancestry-global-associations"),
         geneticCorrelation: bioIndex("genetic-correlation"),
