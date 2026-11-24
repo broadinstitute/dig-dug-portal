@@ -184,8 +184,8 @@
 						<div class="legend-scale">
 							<span class="legend-left">0</span>
 							<span class="legend-center">-log10(p)</span>
-							<span class="legend-right" v-if="phenotypes[0]">
-								{{ getEvalue(phenotypes[0]["pValue"]) }}
+							<span class="legend-right" v-if="phenotypes[0]">{{
+								" " }}{{ getEvalue(phenotypes[0]["pValue"]) }}
 							</span>
 						</div>
 						<div class="legend"></div>

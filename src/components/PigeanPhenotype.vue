@@ -115,8 +115,8 @@
                                 <span
                                     :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_support)]"
                                 ></span>
-                                {{ formatScore(row.item.Combined_support) }}
-                            </span>
+                                {{ formatScore(row.item.Combined_support) }}{{ " "
+                            }}</span>
                           </span>
                     </template>
                     <template #cell(Direct_support)="row">
@@ -125,8 +125,8 @@
                           <span
                               :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Direct_support)]"
                           ></span>
-                            {{ formatScore(row.item.Direct_support) }}
-                        </span>
+                            {{ formatScore(row.item.Direct_support) }}{{ " "
+                        }}</span>
                         <b-button
                           style="margin-left: 5px;"
                           variant="outline-primary"
@@ -144,8 +144,8 @@
                           <span
                               :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Indirect_support)]"
                           ></span>
-                            {{ formatScore(row.item.Indirect_support) }}
-                        </span>
+                            {{ formatScore(row.item.Indirect_support) }}{{ " "
+                        }}</span>
                         <b-button
                           style="margin-left: 5px;"
                           variant="outline-primary"

@@ -128,8 +128,8 @@
 											) == true
 									)
 							"
-						>
-							{{ infoKey }}: <br />
+						>{{
+							" " }}{{ infoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(infoItem, infoItemKey) in info"
@@ -184,8 +184,8 @@
 											) == true
 									)
 							"
-						>
-							{{ infoKey }}: <br />
+						>{{
+							" " }}{{ infoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(infoItem, infoItemKey) in info"
@@ -308,8 +308,8 @@
 											) == true
 									)
 							"
-						>
-							{{ hLdVInfoKey }}: <br />
+						>{{
+							" " }}{{ hLdVInfoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(hLdVItem, hLdVItemKey) in hLdVInfo"
@@ -367,8 +367,8 @@
 											) == true
 									)
 							"
-						>
-							{{ ldInfoKey }}: <br />
+						>{{
+							" " }}{{ ldInfoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(ldInfoItem, ldInfoItemKey) in ldInfo"
@@ -503,19 +503,22 @@ export default {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
-		renderData() {
+		plotContent() {
 			if (this.plotData == null) {
 				return null;
 			} else {
 				let rawData = this.plotData;
 				let comparingData = [];
-				this.yAxisFieldItems = [];
+				let yAxisFieldItems = [];
 
 				if (!!this.dataComparisonConfig) {
 					for (const [rKey, r] of Object.entries(rawData)) {
 						let tempObj = r;
 
 						if (!!this.renderConfig.ifCombineYAxisField) {
+							// the rows belong to the parent
+							tempObj = { ...r };
+
 							let yAxisFieldArr = [];
 							let yAxisField =
 								r[this.renderConfig.ifCombineYAxisField.field];
@@ -523,7 +526,7 @@ export default {
 							for (const [yKey, y] of Object.entries(
 								yAxisField
 							)) {
-								this.yAxisFieldItems.push(yKey);
+								yAxisFieldItems.push(yKey);
 								yAxisFieldArr.push(y);
 							}
 							let combined;
@@ -566,13 +569,17 @@ export default {
 						comparingData.push(tempObj);
 					}
 
-					this.yAxisFieldItems = [...new Set(this.yAxisFieldItems)];
-
-					return comparingData;
+					return {
+						data: comparingData,
+						yAxisFieldItems: [...new Set(yAxisFieldItems)],
+					};
 				} else {
-					return rawData;
+					return { data: rawData, yAxisFieldItems: yAxisFieldItems };
 				}
 			}
+		},
+		renderData() {
+			return !!this.plotContent ? this.plotContent.data : null;
 		},
 		ldVariantCorrelationsData() {
 			let contents = this.$store.state.umLdServer.variantCorrelations;
@@ -600,6 +607,15 @@ export default {
 		},
 	},
 	watch: {
+		// first, so that the watchers below draw with the items of the current data
+		plotContent: {
+			handler(CONTENT) {
+				if (!!CONTENT) {
+					this.yAxisFieldItems = CONTENT.yAxisFieldItems;
+				}
+			},
+			immediate: true,
+		},
 		ldVariantCorrelationsData(data) {
 			let ldData = {};
 

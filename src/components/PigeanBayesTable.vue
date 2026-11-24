@@ -37,8 +37,8 @@
                         v-if="!!phenotypeMap[r.item.phenotype]"
                         :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}`"
                     >
-                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
-                    </a>
+                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}{{ " "
+                    }}</a>
                     <span v-else>{{ r.item.phenotype }}</span>
                 </template>
                 <template #cell(gene_set)="r">
@@ -144,6 +144,7 @@
 </template>
 <script>
 import Formatters from "@/utils/formatters";
+import { cloneDeep } from "@/utils/lodashUtils";
 import PigeanBayesTable from "./PigeanBayesTable.vue";
 import DataDownload from "@/components/DataDownload.vue";
 export default {
@@ -170,7 +171,7 @@ export default {
     },
     computed: {
         tableData() {
-            let data = structuredClone(this.pigeanData);
+            let data = cloneDeep(this.pigeanData);
             if (this.filter) {
                 data = data.filter(this.filter);
             }

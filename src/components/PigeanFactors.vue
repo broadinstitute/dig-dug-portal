@@ -83,8 +83,8 @@
           <template v-slot:cell(top_gene_sets)="row">
             <div class="top-list-cell">
               <span v-if="row.item.top_gene_sets" class="top-gene-sets-cell">
-                {{ formatSemicolonList(row.item.top_gene_sets) }}
-              </span>
+                {{ formatSemicolonList(row.item.top_gene_sets) }}{{ " "
+              }}</span>
               <span v-else>-</span>
               <b-button
                 variant="outline-primary"
@@ -99,8 +99,8 @@
           <template v-slot:cell(top_genes)="row">
             <div class="top-list-cell">
               <span v-if="row.item.top_genes">
-                {{ formatSemicolonList(row.item.top_genes) }}
-              </span>
+                {{ formatSemicolonList(row.item.top_genes) }}{{ " "
+              }}</span>
               <span v-else>-</span>
               <b-button
                 variant="outline-primary"

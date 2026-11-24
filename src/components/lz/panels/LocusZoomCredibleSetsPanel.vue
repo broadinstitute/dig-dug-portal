@@ -1,5 +1,6 @@
 <script>
 
+import { markRaw } from "vue";
 import LzPanel from "./LzPanel"
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
 import idCounter from "@/utils/idCounter";
@@ -22,13 +23,13 @@ export default {
     },
     emits: ["input", "resolve", "error"],
     created() {
-        this.panelClass = new LZCredibleVariantsPanel(
+        this.panelClass = markRaw(new LZCredibleVariantsPanel(
             this.phenotype, 
             this.credibleSetId,
             event => this.$emit('input', event),
             event => this.$emit('resolve', event),
             event => this.$emit('error', event)
-        )
+        ))
         // hack - needs to be replaced
         this.addPanels = this.$parent.addPanels;
         this.plot = this.$parent.plot;

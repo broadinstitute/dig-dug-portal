@@ -39,8 +39,8 @@
                                     .displayedConnected"
                                 :key="idx"
                                 :class="`connected-node-${connected.shape}`"
-                            >
-                                {{ connected.label
+                            >{{
+                                " " }}{{ connected.label
                                 }}<span
                                     v-if="
                                         idx <
@@ -53,8 +53,8 @@
                                 v-if="row.item.hasMore"
                                 class="show-more-link"
                                 @click.stop="toggleShowMore(row.item.id)"
-                            >
-                                {{
+                            >{{
+                                " " }}{{
                                     row.item.showMore
                                         ? " (show less)"
                                         : "... show more (" +
@@ -194,6 +194,7 @@
 </template>
 
 <script>
+import { markRaw } from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import { BIO_INDEX_HOST, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
@@ -434,8 +435,8 @@ export default {
             }
 
             // Create datasets
-            this.nodes = new DataSet(nodeData);
-            this.edges = new DataSet(edgeData);
+            this.nodes = markRaw(new DataSet(nodeData));
+            this.edges = markRaw(new DataSet(edgeData));
 
             const networkData = {
                 nodes: this.nodes,
@@ -485,7 +486,9 @@ export default {
 
             // Create new network or update existing one
             if (this.network === null) {
-                this.network = new Network(container, networkData, options);
+                this.network = markRaw(
+                    new Network(container, networkData, options)
+                );
 
                 // Disable physics after stabilization if it was enabled
                 if (!this.hasPositions) {
@@ -809,10 +812,8 @@ export default {
                 this.hoverPopupNetwork.destroy();
             }
 
-            this.hoverPopupNetwork = new Network(
-                popupContainer,
-                popupNetworkData,
-                popupOptions
+            this.hoverPopupNetwork = markRaw(
+                new Network(popupContainer, popupNetworkData, popupOptions)
             );
 
             // Disable physics after stabilization
@@ -1040,10 +1041,8 @@ export default {
                 this.clickPopupNetwork.destroy();
             }
 
-            this.clickPopupNetwork = new Network(
-                popupContainer,
-                popupNetworkData,
-                popupOptions
+            this.clickPopupNetwork = markRaw(
+                new Network(popupContainer, popupNetworkData, popupOptions)
             );
 
             // Disable physics after stabilization

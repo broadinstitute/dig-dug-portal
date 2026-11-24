@@ -70,7 +70,7 @@ export default {
     },
     computed: {
         tissueOptions() {
-            return this.tissueBox.sort((a, b) => {
+            return [...this.tissueBox].sort((a, b) => {
                 if (a < b) return -1;
                 if (b < a) return 1;
                 return 0;

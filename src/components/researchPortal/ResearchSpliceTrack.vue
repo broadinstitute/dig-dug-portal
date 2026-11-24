@@ -62,6 +62,7 @@
 
 <script>
 import $ from "jquery";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 export default {
 	name: "research-splice-track",
@@ -333,7 +334,7 @@ export default {
 							: this.colors.charcoal;
 
 						ctx.fillRect(xStartPos, yPos + 10, xonWidth, 20);
-						let mappedExon = structuredClone(gene);
+						let mappedExon = cloneDeep(gene);
 						mappedExon.exonStart = xStartPos;
 						mappedExon.exonEnd = xStartPos + xonWidth;
 						mappedExon.exonTop = yPos + 10;
@@ -353,7 +354,7 @@ export default {
 					let spliceMidpoint = xStart + (splice.midpoint - xMin) * xposbypixel;
 					let spliceStart = xStart + (splice.splice_start - xMin) * xposbypixel;
 					let spliceEnd = xStart + (splice.splice_end - xMin) * xposbypixel;
-					let mappedSplice = structuredClone(splice);
+					let mappedSplice = cloneDeep(splice);
 					mappedSplice.spliceStart = spliceStart;
 					mappedSplice.spliceEnd = spliceEnd;
 					mappedSplice.spliceMidpoint = spliceMidpoint;
@@ -408,7 +409,7 @@ export default {
 		},
 		tileExons(exonsInput){
 			let allRows = [];
-			let exons = structuredClone(exonsInput);
+			let exons = cloneDeep(exonsInput);
 
 			// Initiate first row with first exon
 			allRows.push([exons.shift()]);
@@ -444,7 +445,7 @@ export default {
 			return this.getSpliceMidpoints(splices.data);
 		},
 		getSpliceMidpoints(splices){
-			let output = structuredClone(splices);
+			let output = cloneDeep(splices);
 			for (let i = 0; i < output.length; i++){
 				output[i].midpoint = (output[i].splice_start + output[i].splice_end)/2;
 			}
@@ -464,7 +465,7 @@ export default {
 			let strand = this.exonData[0].strand;
 			let start_splice_event = this.spliceStart(strand);
 			let end_splice_event = this.spliceEnd(strand);
-			let validExons = structuredClone(this.exonData);
+			let validExons = cloneDeep(this.exonData);
 			validExons = validExons.filter(e => 
 				!!this.validExon(strand, e, start_splice_event, end_splice_event));
 		},

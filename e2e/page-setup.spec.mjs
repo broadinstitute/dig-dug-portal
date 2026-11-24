@@ -8,10 +8,6 @@ import { classifyUrl } from './network.mjs';
 // Papers/Research has an #app in its own template, which has to survive inside the wrapper.
 const OWN_APP = new Set(['research']);
 
-// These templates throw until the page has its CMS text, which it asks for once live data has come. Until then the
-// root that Vue mounts is a comment.
-const RENDERS_LATER = new Set(['collaborate', 'contacts', 'apis']);
-
 for (const p of PAGES) {
   test(`page setup: ${p.id}`, async ({ page }) => {
     test.skip(!!p.skip, p.skip);
@@ -26,7 +22,7 @@ for (const p of PAGES) {
     await expect(root).toHaveCount(1);
     await expect(root).toHaveCSS('display', 'contents');
     await expect(root).toHaveJSProperty('childNodes.length', 1);
-    if (!RENDERS_LATER.has(p.id)) await expect(page.locator('#page-root > *')).toHaveCount(1);
+    await expect(page.locator('#page-root > *')).toHaveCount(1);
     await expect(page.locator('body > #app')).toHaveCount(0);
 
     if (OWN_APP.has(p.id)) {

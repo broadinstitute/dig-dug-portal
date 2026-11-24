@@ -24,6 +24,7 @@
 </template>
 
 <script>
+import { markRaw } from "vue";
 import { DataSet } from "vis-data";
 import { Network } from "vis-network";
 import { BIconArrowsFullscreen, BIconZoomIn, BIconZoomOut } from "bootstrap-vue";
@@ -362,7 +363,7 @@ export default {
                     if (this.network) {
                         this.network.destroy();
                     }
-                    this.network = new Network(this.$refs.graph, {
+                    this.network = markRaw(new Network(this.$refs.graph, {
                         nodes: new DataSet(this.orderedNodes()),
                         edges: new DataSet(this.graphData.edges),
                     }, {
@@ -395,7 +396,7 @@ export default {
                             width: 1.5,
                         },
                         interaction: { hover: true, navigationButtons: true, keyboard: false, zoomSpeed: 0.35 },
-                    });
+                    }));
                     this.network.on("zoom", (event) => {
                         this.zoomLevel = Math.round(event.scale * 100);
                     });

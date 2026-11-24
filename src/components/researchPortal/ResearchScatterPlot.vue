@@ -93,7 +93,7 @@
 				<div style="display:flex; flex-direction: column;">
 					<div style="display:flex; flex-direction: column;">
 						<label 
-							v-if="!!renderConfig && renderConfig['y axis fields'].length > 1"
+							v-if="!!renderConfig && axisFields.y.length > 1"
 						>
 							Y Axis
 						</label>
@@ -101,7 +101,7 @@
 							class="y-axis-select" 
 							@change="setPlotAxisIndex($event, 'y')">
 							<option 
-								v-for="(option, index) in renderConfig['y axis fields']" 
+								v-for="(option, index) in axisFields.y"
 								:value="option"
 								:selected="renderConfig['y axis index'] === option"
 							>
@@ -110,7 +110,7 @@
 						</select>
 
 						<label 
-							v-if="!!renderConfig && renderConfig['x axis fields'].length > 1"
+							v-if="!!renderConfig && axisFields.x.length > 1"
 						>
 							X Axis
 						</label>
@@ -118,7 +118,7 @@
 							class="x-axis-select" 
 							@change="setPlotAxisIndex($event, 'x')">
 							<option 
-								v-for="(option, index) in renderConfig['x axis fields']" 
+								v-for="(option, index) in axisFields.x"
 								:value="option"
 								:selected="renderConfig['x axis field'] === option"
 							>
@@ -128,7 +128,7 @@
 					</div>
 					<div class="color-key-options" style="display:flex; flex-direction: column;">
 						<label 
-							v-if="!!renderConfig && renderConfig['color by'].length > 1"
+							v-if="!!renderConfig && colorByFields.length > 1"
 						>
 							Color by
 						</label>
@@ -136,7 +136,7 @@
 							class="color-by-select" 
 							@change="setColorField($event)">
 							<option 
-								v-for="(option, index) in renderConfig['color by']" 
+								v-for="(option, index) in colorByFields"
 								:value="typeof option === 'object' ? option['field'] : option"
 								:selected="renderConfig['color by'] === index"
 							>
@@ -273,10 +273,6 @@ export default {
 	],
 	data() {
 		return {
-			multiList:null,
-			groupsList:null,
-			colorsList:null,
-			colorByList:null,
 			colorByField:null,
 			colorByGradient:null,
 			gradientMinMax:{},
@@ -304,7 +300,8 @@ export default {
 			dimension["height"] = (!!this.renderConfig.height)? this.renderConfig.height * 2:600;
 			dimension["width"] = (!!this.renderConfig.width) ? this.renderConfig.width * 2 : 1000;
 
-			let plotMargin = this.plotMargin;
+			//the given margin belongs to all plots of the page
+			let plotMargin = { ...this.plotMargin };
 
 			if(!!this.renderConfig["plot margin"]) {
 				plotMargin.topMargin = this.renderConfig["plot margin"]["top"];
@@ -327,7 +324,20 @@ export default {
 
 			return dimension
 		},
-		renderData() {
+		axisFields() {
+			//"single plot" can be configured with lists of fields or with one field for each axis
+			if(this.renderConfig["render type"] === 'single plot' && !this.renderConfig["x axis fields"]){
+				return { x: [this.renderConfig["x axis field"]], y: [this.renderConfig["y axis field"]] };
+			}
+			return { x: this.renderConfig["x axis fields"], y: this.renderConfig["y axis fields"] };
+		},
+		colorByFields() {
+			//check if "color by" is array, if not make it one
+			//allows users to enter a string or an array in config without having to condition check later
+			let colorBy = this.renderConfig["color by"];
+			return colorBy.constructor !== Array ? [colorBy] : colorBy;
+		},
+		plotContent() {
 			//what is dataComparisonConfig?
 			let rawData = (!!this.dataComparisonConfig) 
 					? 
@@ -344,21 +354,12 @@ export default {
 			//check render type
 			if(this.renderConfig["render type"] === 'single plot'){
 
-				if(this.renderConfig["x axis fields"]){
-					//index of the values each field should display; default: 0
-					this.renderConfig["x axis field"] = this.renderConfig["x axis fields"][0];
-					this.renderConfig["y axis field"] = this.renderConfig["y axis fields"][0];
-				}else{
-					this.renderConfig["x axis fields"] = [this.renderConfig["x axis field"]]
-					this.renderConfig["y axis fields"] = [this.renderConfig["y axis field"]]
-				}
-				
 				//save field labels
-				this.renderConfig["x axis fields"].forEach(field => {
+				this.axisFields.x.forEach(field => {
 					filterFields.push(field)
 				});
 				//save field labels
-				this.renderConfig["y axis fields"].forEach(field => {
+				this.axisFields.y.forEach(field => {
 					filterFields.push(field)
 				});
 
@@ -370,12 +371,6 @@ export default {
 					multi.push( [ fieldpair["x axis field"], fieldpair["y axis field"], fieldpair["color by"] ] );
 				});
 
-			}
-
-			//check if "color by" is array, if not make it one
-			//allows users to enter a string or an array in config without having to condition check later
-			if(this.renderConfig["color by"].constructor !== Array){
-				this.renderConfig["color by"] = [this.renderConfig["color by"]];
 			}
 
 			/*
@@ -403,7 +398,7 @@ export default {
 			//to be filled with arrays of all possible values for each field
 			//eg: colorsBy: { "Sex": ["male", "female"], "Field": [1, 2, 3], ... }
 			colorsBy = {};
-			this.renderConfig["color by"].forEach(colorBy => {
+			this.colorByFields.forEach(colorBy => {
 				if(typeof colorBy === 'object'){
 					colorsBy = { ...colorsBy, [colorBy["field"]]:[] };
 				}else{
@@ -411,8 +406,6 @@ export default {
 				}
 				
 			})
-			this.colorByField = this.renderConfig["color field"] = this.renderConfig["color by"][0];
-			this.renderConfig["color highlight"] = null;
 			
 			//console.log('colorsBy', colorsBy);
 			//console.log('alex render config', this.renderConfig);
@@ -426,14 +419,14 @@ export default {
 					//single plot
 
 					tempObj["x"] = {};
-					this.renderConfig["x axis fields"].forEach((field) => {
+					this.axisFields.x.forEach((field) => {
 						let key = field;
 						let value = typeof(r[field]) == 'string' ? 0 : r[field]; //TODO: filter out? not here though
 						tempObj["x"] = { ...tempObj["x"], [key]:value }
 					})
 					
 					tempObj["y"] = {};
-					this.renderConfig["y axis fields"].forEach((field) => {
+					this.axisFields.y.forEach((field) => {
 						let key = field;
 						let value = typeof(r[field]) == 'string' ? 0 : r[field]; //TODO: filter out? not here though
 						tempObj["y"] = { ...tempObj["y"], [key]:value }
@@ -486,30 +479,30 @@ export default {
 					}
 				}
 
-				if (!!this.renderConfig["color by"] && !tempObj["color"]) {
+				if (!!this.colorByFields && !tempObj["color"]) {
 
 					tempObj["color"] = {};
-					if(this.renderConfig["color by"].length > 1){
+					if(this.colorByFields.length > 1){
 						//create object of objects containing the fields and their values as requested in "color by"
 						//renderConfig["color by"]: [ "Sex", "Time of Day" ]
 						//   >    tempObj["color"]: { "Sex": ["male", "female"], "Time of Day": ["night", "day", "all day"], ...}
 						//console.log('this.renderConfig["color by"]', this.renderConfig["color by"]);
-						this.renderConfig["color by"].forEach((colorBy, index) => {
+						this.colorByFields.forEach((colorBy, index) => {
 							if(typeof colorBy === 'object'){
 								tempObj["color"] = { ...tempObj["color"], [colorBy["field"]]: r[ colorBy["field"] ] };
 								if( !colorsBy[colorBy["field"]].includes( r[ colorBy["field"] ] ) ){
 									colorsBy[colorBy["field"]].push( r[ colorBy["field"] ] )
 								}
 							}else{
-								tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ this.renderConfig["color by"][index] ] };
-								if( !colorsBy[colorBy].includes( r[ this.renderConfig["color by"][index] ] ) ){
-									colorsBy[colorBy].push( r[ this.renderConfig["color by"][index] ] )
+								tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ this.colorByFields[index] ] };
+								if( !colorsBy[colorBy].includes( r[ this.colorByFields[index] ] ) ){
+									colorsBy[colorBy].push( r[ this.colorByFields[index] ] )
 								}
 							}
 						});
 					}else{
 						//UNUSED?
-						this.renderConfig["color by"].forEach((colorBy, index) => {
+						this.colorByFields.forEach((colorBy, index) => {
 							tempObj["color"] = { ...tempObj["color"], [colorBy]: r[ colorBy ] };
 	
 							if( !colors.includes( r[ colorBy ] ) ){
@@ -549,25 +542,47 @@ export default {
 				})
 			}
 
-			this.groupsList = groups.length > 0? groups.sort(): null;
-			this.colorsList = colors.length > 0? colors.sort() : null;
-			this.multiList = multi.length > 0 ? multi : null;
-			this.colorByList = Object.keys(colorsBy).length > 0 ? colorsBy : null;
-			/*
-			console.log('alex groups list', this.groupsList);
-			console.log('alex colorsby list', this.colorByList );
-			console.log('alex colors list', this.colorsList);
-			console.log('alex multi', this.multiList);
-
-			console.log('\n- - - - - - - -\n\n')
-			*/
-			return massagedData;
+			return {
+				data: massagedData,
+				groupsList: groups.length > 0? groups.sort(): null,
+				colorsList: colors.length > 0? colors.sort() : null,
+				multiList: multi.length > 0 ? multi : null,
+				colorByList: Object.keys(colorsBy).length > 0 ? colorsBy : null
+			};
+		},
+		renderData() {
+			return this.plotContent.data;
+		},
+		groupsList() {
+			return this.plotContent.groupsList;
+		},
+		colorsList() {
+			return this.plotContent.colorsList;
+		},
+		multiList() {
+			return this.plotContent.multiList;
+		},
+		colorByList() {
+			return this.plotContent.colorByList;
 		}
 	},
 	watch: {
-		renderData(DATA){
-			//console.log(DATA);
-			this.renderPlot()
+		renderData: {
+			handler(DATA, PREVIOUS){
+				//new data starts with the first field of each option; this has to come before the data is drawn
+				if(this.renderConfig["render type"] === 'single plot'){
+					this.renderConfig["x axis field"] = this.axisFields.x[0];
+					this.renderConfig["y axis field"] = this.axisFields.y[0];
+				}
+				this.colorByField = this.renderConfig["color field"] = this.colorByFields[0];
+				this.renderConfig["color highlight"] = null;
+
+				//the first time there is no canvas yet
+				if(!!PREVIOUS) {
+					this.renderPlot()
+				}
+			},
+			immediate: true
 		},
 		groupsList(LIST){
 			this.renderPlot()
@@ -866,7 +881,7 @@ export default {
 			//TEMP
 			//if(this.renderConfig["color field"] === "Ambient Temp. (C)" ||
 			//this.renderConfig["color field"] === "Duration (hrs)") {
-			if(!this.renderConfig["color by"].includes(this.renderConfig["color field"])){
+			if(!this.colorByFields.includes(this.renderConfig["color field"])){
 				this.colorByGradient = this.renderConfig["color field gradient"] = this.renderConfig["color field"];
 				this.gradientMinMax.max = this.colorByList[ this.renderConfig["color field"] ][this.colorByList[ this.renderConfig["color field"] ].length-1];
 				this.gradientMinMax.min = this.colorByList[ this.renderConfig["color field"] ][0];

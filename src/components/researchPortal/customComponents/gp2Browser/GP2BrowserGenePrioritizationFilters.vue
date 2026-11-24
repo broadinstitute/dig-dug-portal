@@ -34,8 +34,8 @@
                 </label>
                 <div class="gp2-gp-slider-row">
                     <span class="gp2-gp-slider-value">
-                        {{ formatBound(filters.scoreMin[evidenceScoreField.field]) }}
-                    </span>
+                        {{ formatBound(filters.scoreMin[evidenceScoreField.field]) }}{{ " "
+                    }}</span>
                     <span class="gp2-gp-slider-bound">{{ formatBound(evidenceScoreField.min) }}</span>
                     <input
                         :id="`gp2-gp-slider-${evidenceScoreField.field}`"
@@ -74,8 +74,8 @@
                 </label>
                 <div class="gp2-gp-slider-row">
                     <span class="gp2-gp-slider-value">
-                        {{ formatBound(filters.scoreMin[score.field]) }}
-                    </span>
+                        {{ formatBound(filters.scoreMin[score.field]) }}{{ " "
+                    }}</span>
                     <span class="gp2-gp-slider-bound">{{ formatBound(score.min) }}</span>
                     <input
                         :id="`gp2-gp-slider-${score.field}`"

@@ -207,8 +207,8 @@
 								>
 								<label
 									:for="'filter_' + sectionId + getColumnId(filter.id) + '_' + value"
-								>
-									{{ value }}
+								>{{
+									" " }}{{ value }}
 								</label>
 							</div>
 						</div>

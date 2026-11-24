@@ -19,6 +19,7 @@
 import * as d3 from "d3";
 import mouseTooltip from "@/components/researchPortal/singleCellBrowser/mouseTooltip.js";
 import DownloadChart from "@/components/researchPortal/singleCellBrowser/DownloadChart.vue";
+import { cloneDeep } from "@/utils/lodashUtils";
 export default {
   name: "scatterplot",
   components: {
@@ -53,7 +54,7 @@ export default {
   },
   computed: {
     dataWithLogs(){
-      let data = structuredClone(this.plotData);
+      let data = cloneDeep(this.plotData);
       data.forEach(entry => {
         entry[`${this.config.yField}_log`] = Math.log10(entry[this.config.yField] + 1);
       });

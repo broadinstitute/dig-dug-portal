@@ -25,9 +25,9 @@ export default {
 		this.renderPlots();
 	},
 	computed: {
-		pageContent(content) {
+		pageContent() {
 			
-			if(!!content && content != "") {
+			if(!!this.content && this.content != "") {
 				let formattedContent = this.content
 					.replace(/&lt;plot&gt;/g, "<div class='plot'>")
 					.replace(/&lt;plot-end&gt;/g, "</div>");

@@ -29,6 +29,7 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { cloneDeep, orderBy } from "@/utils/lodashUtils";
 
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
@@ -98,21 +99,6 @@ mountPage(Template, {
                 ],
             },
             annotation: "",
-            scTissueDataset: null,
-            scbConfig: {
-                type: "cell browser",
-                label: "Single Cell Browser",
-                parameters:{
-                    datasetId: "datasetId",
-                    gene: "gene"
-                },
-                presets:{
-                    datasetId: null,
-                    layout: 3
-                },
-                bioIndex: "https://bioindex.hugeamp.org",
-                bioIndexDev: "https://bioindex-dev.hugeamp.org"
-            },
             connectivityPage: 1,
             connectivityCrisprPage: 1,
             connectivityCrisprFields: [
@@ -146,12 +132,16 @@ mountPage(Template, {
             };
             return utils;
         },
+        // in the order of the phenotype picker, for the header and the search box
         rawPhenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
+            return orderBy(this.$store.state.bioPortal.phenotypes, [
+                "group",
+                "description",
+            ]);
         },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
+                return this.rawPhenotypes;
             } else {
                 return this.$store.state.phenotypesInSession;
             }
@@ -170,41 +160,56 @@ mountPage(Template, {
             };
         },
         cs2ctData() {
-            let data = this.$store.state.cs2ct.data;
-            data.forEach((d) => {
+            let data = this.$store.state.cs2ct.data.map((d) => ({
                 // Makes biosamples show up alphabetically in the dropdown menu.
-                d.originalBiosample = d.biosample;
-                d.biosample = Formatters.tissueFormatter(d.biosample);
-            });
+                ...d,
+                originalBiosample: d.biosample,
+                biosample: Formatters.tissueFormatter(d.biosample),
+            }));
             return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
         showDiffExp(){
             return this.deployment !== 'production' &&
                 this.$store.state.mouseSummary.data.length > 0;
         },
-        hasMatchingSingleCellTissue(){
-            if(!this.$store.state.singleCellDatasets) return false;
-            if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
-            if(!this.tissue) return false;
+        scTissueDataset(){
+            if(!this.$store.state.singleCellDatasets) return null;
+            if(!Array.isArray(this.$store.state.singleCellDatasets)) return null;
+            if(!this.tissue) return null;
             let scTissues = this.$store.state.singleCellDatasets.filter(x => x.tissue_a2fkp === this.tissue);
             if (scTissues.length === 0){
                 scTissues = this.$store.state.singleCellDatasets
                     .filter(x => x.tissue.replaceAll(" ", "_") === this.tissue);
             }
             let versionFinder = /_v([\d]+.*[\d]*)/;
-            scTissues.forEach(t => {
+            let versions = scTissues.map(t => {
                 let version = t.datasetId.match(versionFinder);
-                t.version = version === null ? -1 : parseFloat(version[1]);
+                return {
+                    dataset: t,
+                    version: version === null ? -1 : parseFloat(version[1])
+                };
             });
-            scTissues = scTissues.sort((a,b) => b.version - a.version);
-            let scTissue = scTissues[0];
-            if(scTissue){
-                this.scTissueDataset = scTissue;
-                this.scbConfig.presets.datasetId = scTissue.datasetId;
-                return true;
-            }else{
-                return false;
-            }
+            versions.sort((a,b) => b.version - a.version);
+            return versions.length > 0 ? versions[0].dataset : null;
+        },
+        hasMatchingSingleCellTissue(){
+            return this.scTissueDataset !== null;
+        },
+        scbConfig(){
+            return {
+                type: "cell browser",
+                label: "Single Cell Browser",
+                parameters:{
+                    datasetId: "datasetId",
+                    gene: "gene"
+                },
+                presets:{
+                    datasetId: this.scTissueDataset ? this.scTissueDataset.datasetId : null,
+                    layout: 3
+                },
+                bioIndex: "https://bioindex.hugeamp.org",
+                bioIndexDev: "https://bioindex-dev.hugeamp.org"
+            };
         },
         connectivityData(){
             return this.processConnectivityData(this.$store.state.connectivity.data);
@@ -275,7 +280,7 @@ mountPage(Template, {
             return `${prefix}_${dataPoint.tissue}_${dataPoint.comparison}`;
         },
         processConnectivityData(inputData){
-            let data = structuredClone(inputData);
+            let data = cloneDeep(inputData);
             data.forEach(d => {
                 let pValField = d.best_direction === "reversed"
                     ? "reversed_p_adj" : d.best_direction === "concordant" 

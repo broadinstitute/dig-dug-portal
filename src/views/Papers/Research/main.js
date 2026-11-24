@@ -42,6 +42,9 @@ import userUtils from "@/utils/userUtils.js";
 import $ from "jquery";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
+const takesKPPhenotypes = (pr) =>
+    pr.parameter == "phenotype" && pr.values == "kp phenotypes";
+
 // @vue/component
 mountPage(Template, {
     store,
@@ -364,15 +367,39 @@ mountPage(Template, {
                 return this.$store.state.diseaseInSession;
             }
         },
+        // with the kp phenotypes as an API parameter the shorter descriptions come first, in the list of the
+        // parameter and for all others that go through the phenotypes of the page
+        shorterPhenotypesFirst() {
+            let contents = this.researchPage;
+            if (
+                contents === null ||
+                contents[0]["field_api_parameters"] == false
+            ) {
+                return false;
+            }
+
+            try {
+                let apiConfig = JSON.parse(contents[0]["field_api_parameters"]);
+
+                return (apiConfig?.parameters || []).some(takesKPPhenotypes);
+            } catch (error) {
+                // apiParameters throws on the pages that use the config, this is read on front pages too
+                return false;
+            }
+        },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
+                return this.rawPhenotypes;
             } else {
-                return this.$store.state.phenotypesInSession;
+                return this.phenotypesInOrder(
+                    this.$store.state.phenotypesInSession
+                );
             }
         },
         rawPhenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
+            return this.phenotypesInOrder(
+                this.$store.state.bioPortal.phenotypes
+            );
         },
         kpGenes() {
             return kpGenes;
@@ -394,19 +421,8 @@ mountPage(Template, {
                 let parameters = apiConfig.parameters;
 
                 parameters.map((pr) => {
-                    if (
-                        pr.parameter == "phenotype" &&
-                        pr.values == "kp phenotypes"
-                    ) {
-
-                        let shorterFirst = this.phenotypesInSession.sort(
-                            (a, b) =>
-                                a.description.length - b.description.length
-                        );
-
-                        let values = shorterFirst.map((p) => p.name);
-                        //.sort();
-                        pr.values = values;
+                    if (takesKPPhenotypes(pr)) {
+                        pr.values = this.phenotypesInSession.map((p) => p.name);
                     }
                 });
 
@@ -1121,10 +1137,7 @@ mountPage(Template, {
 
                         if (apis) {
                             apis.parameters.map((pr) => {
-                                if (
-                                    pr.parameter == "phenotype" &&
-                                    pr.values == "kp phenotypes"
-                                ) {
+                                if (takesKPPhenotypes(pr)) {
                                     isKPPhenotype = true;
                                 }
                             });
@@ -1337,6 +1350,13 @@ mountPage(Template, {
         ...uiUtils,
         ...sessionUtils,
 
+        phenotypesInOrder(PHENOTYPES) {
+            return this.shorterPhenotypesFirst
+                ? [...PHENOTYPES].sort(
+                      (a, b) => a.description.length - b.description.length
+                  )
+                : PHENOTYPES;
+        },
         copyOverPlots(DIRECTION) {
 
             if (DIRECTION == 'from') {

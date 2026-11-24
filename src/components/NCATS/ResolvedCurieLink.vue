@@ -8,9 +8,9 @@
             </curie-label>
         </slot>
     </a>
-    <span v-else>
-        {{curie}}
-    </span>
+    <span v-else>{{
+        " " }}{{curie}}{{ " "
+    }}</span>
 </template>
 <script>
 import trapi from "./trapi"

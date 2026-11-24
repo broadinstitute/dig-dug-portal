@@ -47,7 +47,7 @@ export default {
     },
     computed: {
         annotationOptions() {
-            return this.annotations.sort((a, b) => {
+            return [...this.annotations].sort((a, b) => {
                 if (a.annotation < b.annotation) return -1;
                 if (b.annotation < a.annotation) return 1;
                 return 0;

@@ -165,7 +165,6 @@ export default {
             spaceBy: 7,
             trigger: 0,
             hoverItems: {},
-            showCanvas: true,
         };
     },
     modules: {},
@@ -194,7 +193,6 @@ export default {
             }
         },
         renderData() {
-            this.showCanvas = true;
             let content = {};
             content["data"] = [];
 
@@ -230,9 +228,11 @@ export default {
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
-                this.showCanvas = false;
                 return null;
             }
+        },
+        showCanvas() {
+            return !!this.renderData;
         },
         adjPlotMargin() {
             let customPlotMargin = !!this.renderConfig["plot margin"]

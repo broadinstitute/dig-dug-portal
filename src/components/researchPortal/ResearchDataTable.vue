@@ -310,8 +310,8 @@
 									:key="sKey"
 								>
 
-									<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options">
-										{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
+									<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options">{{
+										" " }}{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
 										<span class="btns-wrapper">
 											<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
 												v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter, section.compare)" ></button>

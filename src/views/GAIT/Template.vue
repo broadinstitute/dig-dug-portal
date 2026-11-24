@@ -54,39 +54,39 @@
                                             v-if="$parent.selectedGene.length"
                                             class="filter-pill-gene"
                                         >
-                                            {{ $parent.selectedGene[0] }}
-                                        </b-badge>
+                                            {{ $parent.selectedGene[0] }}{{ " "
+                                        }}</b-badge>
                                         <b-badge
                                             v-if="
                                                 $parent.selectedTranscript
                                                     .length
                                             "
                                             class="filter-pill-transcript"
-                                        >
-                                            {{ $parent.selectedTranscript[0] }}
-                                        </b-badge>
+                                        >{{
+                                            " " }}{{ $parent.selectedTranscript[0] }}{{ " "
+                                        }}</b-badge>
                                         <b-badge
                                             v-if="
                                                 $parent.selectedDataset.length >
                                                 0
                                             "
                                             class="filter-pill-dataset"
-                                        >
-                                            {{
+                                        >{{
+                                            " " }}{{
                                                 $parent.datasets.find(
                                                     (o) =>
                                                         o.value ===
                                                         $parent
                                                             .selectedDataset[0]
                                                 ).text
-                                            }}
-                                        </b-badge>
+                                            }}{{ " "
+                                        }}</b-badge>
 
                                         <b-badge
                                             v-if="$parent.selectedMask.length"
                                             class="filter-pill-mask"
-                                        >
-                                            {{
+                                        >{{
+                                            " " }}{{
                                                 $parent.masks.find(
                                                     (o) =>
                                                         o.value ===
@@ -252,8 +252,8 @@
                                                 v-for="phenotype in $parent.selectedPhenotypes"
                                                 :key="phenotype"
                                                 class="filter-pill-phenotype"
-                                            >
-                                                {{
+                                            >{{
+                                                " " }}{{
                                                     !!$store.state.bioPortal
                                                         .phenotypeMap[phenotype]
                                                         ? $store.state.bioPortal
@@ -261,8 +261,8 @@
                                                               phenotype
                                                           ].description
                                                         : phenotype
-                                                }}
-                                            </b-badge>
+                                                }}{{ " "
+                                            }}</b-badge>
                                         </template>
                                         <template
                                             v-if="
@@ -273,13 +273,13 @@
                                                 v-for="test in $parent.selectedTests"
                                                 :key="test"
                                                 class="filter-pill-test"
-                                            >
-                                                {{
+                                            >{{
+                                                " " }}{{
                                                     $parent.testMethods.find(
                                                         (o) => o.value === test
                                                     ).text
-                                                }}
-                                            </b-badge>
+                                                }}{{ " "
+                                            }}</b-badge>
                                         </template>
                                     </div></b-button
                                 >

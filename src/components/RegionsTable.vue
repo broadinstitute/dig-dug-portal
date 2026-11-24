@@ -24,8 +24,8 @@
                             :key="v"
                             @click="removeFilter(i, 'annotations')"
                             class="btn"
-                        >
-                            {{ v }}
+                        >{{
+                            " " }}{{ v }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -38,8 +38,8 @@
                             :key="v"
                             @click="removeFilter(i, 'methods')"
                             class="btn"
-                        >
-                            {{ v }}
+                        >{{
+                            " " }}{{ v }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -52,8 +52,8 @@
                             :key="v"
                             @click="removeFilter(i, 'tissues')"
                             class="btn"
-                        >
-                            {{ v }}
+                        >{{
+                            " " }}{{ v }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>

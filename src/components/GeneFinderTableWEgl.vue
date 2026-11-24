@@ -507,15 +507,11 @@ export default {
 		},
 
 		groupedAssociations() {
-			//console.log(this.associations);
-			let groups = {};
-			let associations = this.tableData;
-
-			let data = associations; //Object.values(groups);
-
 			// calculate the chiSquared for each row
-
-			data.forEach((r) => (r.chiSquared = this.chiSquared(r)));
+			let data = this.tableData.map((r) => ({
+				...r,
+				chiSquared: this.chiSquared(r),
+			}));
 
 			// sort all the records by combined p-value
 			data.sort((a, b) => a.chiSquared - b.chiSquared);
@@ -528,18 +524,18 @@ export default {
 				this.currentPage * this.rowsPerPage - this.rowsPerPage;
 			let endIndex = this.currentPage * this.rowsPerPage - 1;
 			for (let i = startIndex; i <= endIndex; i++) {
-				if (this.groupedAssociations[i]) {
+				let row = this.groupedAssociations[i];
+				if (row) {
 					if (this.minMaxTPM) {
 						let tpmPercent =
-							((this.groupedAssociations[i].maxTPM -
-								this.minMaxTPM.min) /
+							((row.maxTPM - this.minMaxTPM.min) /
 								(this.minMaxTPM.max - this.minMaxTPM.min)) *
 							100;
 
-						this.groupedAssociations[i]["tpmPercent"] = tpmPercent;
+						row = { ...row, tpmPercent };
 					}
 
-					returnList.push(this.groupedAssociations[i]);
+					returnList.push(row);
 				}
 			}
 

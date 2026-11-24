@@ -132,6 +132,8 @@ export default {
             // the filter on the end prevents malformed initial values from being used in the component
             filterListInternal: null,
             filterFunctionInternal: null,
+            // the list that the `filtersToDefine` watcher set last, so that it does not take its own change for a new list
+            definedFilterList: null,
 
             // Vue doesn't identify anonymous functions of the same form with one another,
             // so we are turning these two props into data to prevent infinite loops that result
@@ -177,21 +179,20 @@ export default {
             if (this.filterType === "function") {
                 return this.filterFunctionInternal;
             } else if (this.filterType === "list") {
-                if (
-                    this.filterListInternal != null &&
-                    Object.keys(this.initialFilterDefinitionMap).length > 0
-                ) {
-                    this.filterListInternal = this.filterListInternal.map(
-                        (el) =>
-                            Object.assign(
-                                el,
-                                this.initialFilterDefinitionMap[el.field][0]
-                            )
-                    );
-                }
-
                 return this.filterListInternal;
             }
+        },
+        // the filters of a list group, once its controls have given their definitions
+        filtersToDefine() {
+            if (
+                this.filterType === "list" &&
+                this.filterListInternal != null &&
+                Object.keys(this.initialFilterDefinitionMap).length > 0
+            ) {
+                return [...this.filterListInternal];
+            }
+
+            return null;
         },
         combinedCriterion() {
             return {
@@ -301,6 +302,28 @@ export default {
                 this.newFilterFunction = newFilterFunction;
             },
             deep: true,
+        },
+        // The parent's filters have only a field and a threshold, the rest is the definition from the control of that
+        // field. It goes into the parent's own filters, and the list becomes a new array: `criterion` compares the list
+        // with the one before, which the parent may have changed in place, to tell if it has something to emit.
+        // This is before `filterListInternal` and `criterion`, whose watchers use the definitions.
+        filtersToDefine: {
+            handler: function (filters) {
+                const isOwnChange =
+                    this.filterListInternal === this.definedFilterList;
+                this.definedFilterList = null;
+
+                if (filters != null && !isOwnChange) {
+                    this.filterListInternal = filters.map((el) =>
+                        Object.assign(
+                            el,
+                            this.initialFilterDefinitionMap[el.field][0]
+                        )
+                    );
+                    this.definedFilterList = this.filterListInternal;
+                }
+            },
+            immediate: true,
         },
         /*
         Support events for catching new filter lists and functions

@@ -39,8 +39,8 @@
                             encodeURIComponent(cell.value)
                         "
                     >
-                        {{ cell.value }}
-                    </a>
+                        {{ cell.value }}{{ " "
+                    }}</a>
                     <span v-else>{{ cell.value }}</span>
                 </template>
                 <template v-slot:[sourceCellSlot]="cell">
@@ -51,8 +51,8 @@
                             encodeURIComponent(cell.value)
                         "
                     >
-                        {{ cell.value }}
-                    </a>
+                        {{ cell.value }}{{ " "
+                    }}</a>
                     <span v-else>{{ cell.value }}</span>
                 </template>
                 <template #cell(GenesInGeneSet)="row">

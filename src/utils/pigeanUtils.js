@@ -1,8 +1,9 @@
 /* PIGeAN Utilities
 */
+import { cloneDeep } from "@/utils/lodashUtils";
 
 export function toOldStyle(newStylePhenotype){
-    let oldStyle = structuredClone(newStylePhenotype);
+    let oldStyle = cloneDeep(newStylePhenotype);
     oldStyle.description = newStylePhenotype.phenotype_name;
     oldStyle.name = newStylePhenotype.phenotype;
     oldStyle.group = newStylePhenotype.display_group.replaceAll(" ", "_");

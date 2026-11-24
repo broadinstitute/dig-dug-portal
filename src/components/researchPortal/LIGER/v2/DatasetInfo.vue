@@ -226,8 +226,8 @@ export default {
             <div class="section-head">
                 <h5 class="section-title">Cell types</h5>
                 <span v-if="cellTypes.length" class="section-count">{{ cellTypes.length }}</span>
-                <span class="section-note">
-                    {{ cellTypeGene || "Gene" }} expression, log10_cpk
+                <span class="section-note">{{
+                    " " }}{{ cellTypeGene || "Gene" }} expression, log10_cpk
                 </span>
             </div>
 

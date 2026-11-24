@@ -26,6 +26,7 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import pigeanUtils from "@/utils/pigeanUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 // @vue/component
 mountPage(Template, {
@@ -259,7 +260,7 @@ mountPage(Template, {
             return output;
         },
         inputQueryMembership(data){
-            let copy = structuredClone(data);
+            let copy = cloneDeep(data);
             let inputGenes = this.$store.state.roundTripInputGenes;
             // enum filters don't work with raw booleans
             copy.forEach(d => {
@@ -268,7 +269,7 @@ mountPage(Template, {
             return copy;
         },
         formatLabels(data){
-            let copy = structuredClone(data);
+            let copy = cloneDeep(data);
             copy.forEach(d => d.label = this.formatGroupName(d.label));
             return copy;
         },

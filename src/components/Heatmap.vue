@@ -75,9 +75,6 @@ export default {
             phenotypeMap: this.$store.state.bioPortal.phenotypeMap,
             colors: {},
             separator: "___",
-            lo: null,
-            mid: null,
-            hi: null,
         };
     },
     modules: {
@@ -98,11 +95,6 @@ export default {
                     rows: [],
                     empty: true,
                 };
-            }
-            this.hideHeatmap = false;
-            if (!!this.renderConfig.colorByPhenotype) {
-                // Automatically rather than manually get the extremes.
-                this.getExtremes();
             }
             let massagedData = {};
 
@@ -153,6 +145,18 @@ export default {
                 }
             });
             return massagedData;
+        },
+        // Automatically rather than manually get the extremes.
+        extremes() {
+            let mainField = this.renderConfig.main.field;
+            let max = this.heatmapData[0][mainField];
+            this.heatmapData.forEach((d) => {
+                if (d[mainField] > max) {
+                    max = d[mainField];
+                }
+            });
+            // Always start at 0 or not?
+            return { lo: 0, hi: max };
         },
         boxSize() {
             return this.renderConfig.fontSize * 1.5;
@@ -575,7 +579,8 @@ export default {
             if (phenotype === undefined) {
                 return undefined;
             }
-            let alpha = (255 * (mainValue - this.lo)) / (this.hi - this.lo);
+            let { lo, hi } = this.extremes;
+            let alpha = (255 * (mainValue - lo)) / (hi - lo);
             let group = this.getGroup(phenotype);
             let outputString = `${this.colors[group]}${this.alphaToHex(alpha)}`;
             return outputString;
@@ -588,23 +593,6 @@ export default {
             let firstPlace = (alphaInt - lastPlace) / 16;
             let firstDigit = hexDigits[firstPlace];
             return `${firstDigit}${lastDigit}`;
-        },
-        getExtremes() {
-            let mainField = this.renderConfig.main.field;
-            let max = this.heatmapData[0][mainField];
-            let min = this.heatmapData[0][mainField];
-            this.heatmapData.forEach((d) => {
-                if (d[mainField] > max) {
-                    max = d[mainField];
-                }
-                if (d[mainField] < min) {
-                    min = d[mainField];
-                }
-            });
-            // Always start at 0 or not?
-            this.lo = 0;
-            this.hi = max;
-            this.mid = (this.lo + this.hi) / 2;
         },
         truncateColumn(longString) {
             if (!this.renderConfig.truncateColumns) {

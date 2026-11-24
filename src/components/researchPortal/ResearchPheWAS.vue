@@ -31,21 +31,21 @@
                     <span :id="canvasId + 'pheWasInfoBoxContent'"></span>
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
-                        <strong v-if="!linkPhenotypes">
-                            {{
+                        <strong v-if="!linkPhenotypes">{{
+                            " " }}{{
                                 (phenotypeMap[ptKey] &&
                                     phenotypeMap[ptKey].description) ||
                                 ptKey
-                            }}
-                        </strong>
+                            }}{{ " "
+                        }}</strong>
                         <strong v-else>
-                            <a :href="phenotypeLink(ptKey)">
-                                {{
+                            <a :href="phenotypeLink(ptKey)">{{
+                                " " }}{{
                                     (phenotypeMap[ptKey] &&
                                         phenotypeMap[ptKey].description) ||
                                     ptKey
-                                }}
-                            </a>
+                                }}{{ " "
+                            }}</a>
                         </strong>
                         <br />
                         <span
@@ -202,7 +202,6 @@ export default {
             spaceBy: 7,
             trigger: 0,
             hoverItems: {},
-            showCanvas: true,
         };
     },
     modules: {},
@@ -224,7 +223,6 @@ export default {
             return null;
         },
         renderData() {
-            this.showCanvas = true;
             let content = {};
             content["data"] = [];
 
@@ -271,9 +269,11 @@ export default {
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
-                this.showCanvas = false;
                 return null;
             }
+        },
+        showCanvas() {
+            return !!this.renderData;
         },
         adjPlotMargin() {
             let customPlotMargin = this.renderConfig["plot margin"]

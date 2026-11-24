@@ -21,6 +21,7 @@ import alertUtils from "@/utils/alertUtils";
 import pigeanUtils from "@/utils/pigeanUtils.js";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
 // @vue/component
@@ -133,7 +134,7 @@ mountPage(Template, {
             );
         },
         phewasAdjustedData() {
-            let adjustedData = structuredClone(this.phewasAllData);
+            let adjustedData = cloneDeep(this.phewasAllData);
             for (let i = 0; i < adjustedData.length; i++) {
                 if (adjustedData[i].beta_uncorrected < 0) {
                     adjustedData[i].beta_uncorrected = 0;
