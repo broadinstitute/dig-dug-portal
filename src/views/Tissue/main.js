@@ -160,12 +160,12 @@ mountPage(Template, {
             };
         },
         cs2ctData() {
-            let data = this.$store.state.cs2ct.data;
-            data.forEach((d) => {
+            let data = this.$store.state.cs2ct.data.map((d) => ({
                 // Makes biosamples show up alphabetically in the dropdown menu.
-                d.originalBiosample = d.biosample;
-                d.biosample = Formatters.tissueFormatter(d.biosample);
-            });
+                ...d,
+                originalBiosample: d.biosample,
+                biosample: Formatters.tissueFormatter(d.biosample),
+            }));
             return data.filter(d => d.source !== 'bottom-line_analysis_rare');
         },
         showDiffExp(){

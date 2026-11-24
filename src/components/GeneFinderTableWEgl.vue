@@ -507,15 +507,11 @@ export default {
 		},
 
 		groupedAssociations() {
-			//console.log(this.associations);
-			let groups = {};
-			let associations = this.tableData;
-
-			let data = associations; //Object.values(groups);
-
 			// calculate the chiSquared for each row
-
-			data.forEach((r) => (r.chiSquared = this.chiSquared(r)));
+			let data = this.tableData.map((r) => ({
+				...r,
+				chiSquared: this.chiSquared(r),
+			}));
 
 			// sort all the records by combined p-value
 			data.sort((a, b) => a.chiSquared - b.chiSquared);

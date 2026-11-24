@@ -346,7 +346,7 @@ mountPage(Template, {
         },
         hugeScores() {
             let data = sortUtils.sortArrOfObjects(
-                this.$store.state.hugeScores.data,
+                [...this.$store.state.hugeScores.data],
                 "huge",
                 "number",
                 "desc"
@@ -366,17 +366,19 @@ mountPage(Template, {
                 const score = data[i];
                 let phenotypeEntity =
                     this.$store.state.bioPortal.phenotypeMap[score.phenotype];
-                score["group"] = phenotypeEntity
-                    ? phenotypeEntity.group
-                    : "No group info";
-                score["renderScore"] = Math.log(data[i].huge);
 
                 // skip associations not part of the disease group
                 if (!this.phenotypeMap[score.phenotype]) {
                     continue;
                 }
 
-                hugeMap[score.phenotype] = score;
+                hugeMap[score.phenotype] = {
+                    ...score,
+                    group: phenotypeEntity
+                        ? phenotypeEntity.group
+                        : "No group info",
+                    renderScore: Math.log(score.huge),
+                };
             }
 
             // convert to an array, sorted by p-value

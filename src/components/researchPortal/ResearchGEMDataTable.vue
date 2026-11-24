@@ -419,6 +419,10 @@ export default {
 
 		tableContent() {
 			let newTableFormat = Object.assign({}, this.tableFormat);
+			// features are added to and taken out of the list below, the one of tableFormat is shared
+			if (!!newTableFormat["features"]) {
+				newTableFormat["features"] = [...newTableFormat["features"]];
+			}
 			let updatedData = {};
 			let rawData = {};
 

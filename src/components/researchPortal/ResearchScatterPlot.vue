@@ -300,7 +300,8 @@ export default {
 			dimension["height"] = (!!this.renderConfig.height)? this.renderConfig.height * 2:600;
 			dimension["width"] = (!!this.renderConfig.width) ? this.renderConfig.width * 2 : 1000;
 
-			let plotMargin = this.plotMargin;
+			//the given margin belongs to all plots of the page
+			let plotMargin = { ...this.plotMargin };
 
 			if(!!this.renderConfig["plot margin"]) {
 				plotMargin.topMargin = this.renderConfig["plot margin"]["top"];

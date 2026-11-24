@@ -364,15 +364,37 @@ mountPage(Template, {
                 return this.$store.state.diseaseInSession;
             }
         },
+        // with the kp phenotypes as an API parameter the shorter descriptions come first, in the list of the
+        // parameter and for all others that go through the phenotypes of the page
+        shorterPhenotypesFirst() {
+            let contents = this.researchPage;
+            if (
+                contents === null ||
+                contents[0]["field_api_parameters"] == false
+            ) {
+                return false;
+            }
+
+            return JSON.parse(
+                contents[0]["field_api_parameters"]
+            ).parameters.some(
+                (pr) =>
+                    pr.parameter == "phenotype" && pr.values == "kp phenotypes"
+            );
+        },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
+                return this.rawPhenotypes;
             } else {
-                return this.$store.state.phenotypesInSession;
+                return this.phenotypesInOrder(
+                    this.$store.state.phenotypesInSession
+                );
             }
         },
         rawPhenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
+            return this.phenotypesInOrder(
+                this.$store.state.bioPortal.phenotypes
+            );
         },
         kpGenes() {
             return kpGenes;
@@ -398,15 +420,7 @@ mountPage(Template, {
                         pr.parameter == "phenotype" &&
                         pr.values == "kp phenotypes"
                     ) {
-
-                        let shorterFirst = this.phenotypesInSession.sort(
-                            (a, b) =>
-                                a.description.length - b.description.length
-                        );
-
-                        let values = shorterFirst.map((p) => p.name);
-                        //.sort();
-                        pr.values = values;
+                        pr.values = this.phenotypesInSession.map((p) => p.name);
                     }
                 });
 
@@ -1337,6 +1351,13 @@ mountPage(Template, {
         ...uiUtils,
         ...sessionUtils,
 
+        phenotypesInOrder(PHENOTYPES) {
+            return this.shorterPhenotypesFirst
+                ? [...PHENOTYPES].sort(
+                      (a, b) => a.description.length - b.description.length
+                  )
+                : PHENOTYPES;
+        },
         copyOverPlots(DIRECTION) {
 
             if (DIRECTION == 'from') {
