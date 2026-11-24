@@ -38,10 +38,20 @@
 // With `--config`, when the build aliases `bootstrap-vue` to a file of ours that has components (PanKbase's
 // `src/components/bv/index.js`), a `b-*` tag is a hit only for what our component does not support: the props, events,
 // slots and attributes that its own development check reads (`functional("b-x", ..., supported)` or
-// `checksUse("b-x", supported)`, its `props` and its `emits`). The directives and the `$bv` members which that file sets
-// are no hits, nor is the import of the package itself; its stylesheet is. The modifiers of a directive, the methods of
-// a `$bv` member, the keys of a table's fields and what is bound by an object or a dynamic name are not checked there (the
-// components warn about them in development).
+// `checksUse("b-x", supported)`, its `props` and its `emits`). A component that draws icons from an `ICONS` object is
+// also asked for the icon: a literal `icon` (and the literal branches of a ternary) that `ICONS` has no key for is a hit,
+// and one that is not a string is listed as dynamic. The directives and the `$bv` members which that file sets are no
+// hits, nor is an import of a name that it exports; a name it does not export (`ToastPlugin`, `VBPopover`, `BIconCheck`),
+// a namespace import and the package's stylesheet are. Only the files that file imports (transitively) are exempt from
+// these kinds, and a component that it imports and does not use registers nothing. A component made by `h("b-x")` is a hit
+// whatever the file has: on Vue 3 a string is the name of an element.
+//
+// What is not checked there: the modifiers of a directive, the methods of a `$bv` member, the keys of a table's fields,
+// what is bound by an object (`v-bind="obj"`) or by a dynamic name, a dynamic slot name and the keys of a slot's scope.
+// When the code runs, a development build warns about most of them (an attribute, a listener or a slot, a field or item
+// key of a table, a modifier or an option of `v-b-tooltip`, an icon, an option of `$bvToast.toast`), but not about a
+// method that a `$bv` member does not have (`$bvModal.msgBoxOk` is undefined, and the call throws) or about a key of a
+// slot's scope that the component does not pass (it is undefined).
 //
 // Scripts are read with Babel, as in `component-graph.mjs`, templates and the blocks of a `.vue` file with
 // `vue-eslint-parser`, the parser `eslint-plugin-vue` brings, so a comment or a string is never a hit. Styles (the
@@ -692,7 +702,7 @@ export function scan(sources, options = {}) {
   for (const file of files) errors.push(...parsed.get(file).errors);
 
   // 4. The patterns.
-  const context = makeContext({ sources, parsed, followed, files, allFiles, aliases, hits, assets, manifest: options.manifest ?? null, unresolved });
+  const context = makeContext({ sources, parsed, followed, imports, files, allFiles, aliases, hits, assets, manifest: options.manifest ?? null, unresolved });
   context.own = ownBootstrap(context);
   if (context.own) scope.ownBootstrap = { file: context.own.file, tags: [...context.own.tags.keys()].sort(byCodeUnit) };
   for (const file of files) scanFile(context, file);
@@ -723,8 +733,8 @@ function makeContext(base) {
     /** Adds a hit; `extra` is `{ note, detail }`. */
     add(kind, file, line, text, extra = {}) {
       if (!KIND_KEYS.has(kind)) throw new Error(`unknown kind ${kind}`);
-      // What our own components do with BootstrapVue's classes and names is their business.
-      if (context.own && file.startsWith(context.own.folder) && BOOTSTRAP_KINDS.has(kind)) return;
+      // What our own components do with BootstrapVue's classes and names is their business: the files that stand in for the package, not everything in their folder.
+      if (context.own?.files.has(file) && BOOTSTRAP_KINDS.has(kind)) return;
       context.hits[kind].push({ file, line, text: shorten(text), ...extra });
     },
   };
@@ -1480,20 +1490,44 @@ function scanScripts(context, file, read, info) {
     traverse(block.ast.program, (node, parent) => {
       parents.set(node, parent);
       inspect(env, node);
-      if (node.type === 'ImportDeclaration') inspectImport(env, node);
+      if (node.type === 'ImportDeclaration' || ((node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') && node.source)) inspectImport(env, node);
       else if (node.type === 'ObjectExpression' && isOptionsObject(info, env.parent, node)) inspectOptions(env, node);
     });
   }
   return refAccesses;
 }
 
-/** An import: the default `Vue` of `vue`, `set` and `del` of it, and everything of `bootstrap-vue`. */
+/**
+ * An import (or a re-export `export ... from`): the default `Vue` of `vue`, `set` and `del` of it, and everything of
+ * `bootstrap-vue`. Where the build aliases `bootstrap-vue` to a file of ours, only the names that file does not export are a hit.
+ */
 function inspectImport(env, node) {
   const source = node.source.value;
-  const isDefault = node.specifiers.some((specifier) => specifier.type === 'ImportDefaultSpecifier');
+  const isDefault = node.specifiers?.some((specifier) => specifier.type === 'ImportDefaultSpecifier');
   if (isVueSource(source) && isDefault) env.add('vueImport', node);
-  if (source === 'vue' && node.specifiers.some((specifier) => ['set', 'del'].includes(specifier.imported?.name ?? specifier.imported?.value))) env.add('setDelete', node);
-  if ((source === 'bootstrap-vue' && !env.context.own) || source.startsWith('bootstrap-vue/')) env.add('bvImports', node);
+  if (source === 'vue' && node.specifiers?.some((specifier) => ['set', 'del'].includes(specifier.imported?.name ?? specifier.imported?.value))) env.add('setDelete', node);
+  if (source.startsWith('bootstrap-vue/')) env.add('bvImports', node);
+  else if (source === 'bootstrap-vue') {
+    const { own } = env.context;
+    if (!own) env.add('bvImports', node);
+    else {
+      const missing = importsMissing(own, node);
+      if (missing.length > 0) env.add('bvImports', node, undefined, { note: `${own.file} does not export ${missing.join(', ')}` });
+    }
+  }
+}
+
+/** What an import or a re-export of `bootstrap-vue` asks for that the file of ours in its place does not export (a namespace is no name that can be checked). */
+function importsMissing(own, node) {
+  if (own.exportsAll) return [];
+  if (node.type === 'ExportAllDeclaration') return ['a namespace (`export *`)'];
+  const names = node.specifiers.map((specifier) => {
+    if (specifier.type === 'ImportDefaultSpecifier' || specifier.type === 'ExportDefaultSpecifier') return 'default';
+    if (specifier.type === 'ImportNamespaceSpecifier' || specifier.type === 'ExportNamespaceSpecifier') return '*';
+    const name = specifier.imported ?? specifier.local;
+    return name.name ?? name.value;
+  });
+  return names.filter((name) => !own.exports.has(name)).map((name) => (name === '*' ? 'a namespace (`import *`)' : `\`${name}\``));
 }
 
 
@@ -1787,26 +1821,54 @@ const PLAIN_ATTRIBUTE = /^(class|style|id|title|role|tabindex|lang|dir|hidden|(a
 
 /**
  * What a build has in place of BootstrapVue when it aliases `bootstrap-vue` to a file of ours: the components that the
- * file imports, by tag, with what each one supports; the directives and the global properties that it sets. Null without
- * such an alias, or when the file has no such component (one that passes the package on).
+ * file imports and uses (an import that nothing refers to registers nothing), by tag, with what each one supports; the
+ * directives and the global properties that it sets; the names it exports; and the files that stand in for the package
+ * (the file itself, what it imports, transitively, and the stylesheets those import). Null without such an alias, or
+ * when the file has no such component (one that passes the package on).
  */
 function ownBootstrap(context) {
   const alias = aliasFor(context.aliases, 'bootstrap-vue');
   const read = alias?.local ? context.parsed.get(alias.to) : undefined;
   if (read === undefined) return null;
-  const own = { file: alias.to, folder: `${posix.dirname(alias.to)}/`, tags: new Map(), directives: new Set(), members: new Set() };
+  const own = { file: alias.to, files: new Set(), tags: new Map(), directives: new Set(), members: new Set(), exports: new Set(), exportsAll: false };
+  for (const file of reachable(context.imports, alias.to)) {
+    own.files.add(file);
+    for (const { target } of context.followed.get(file)?.targets ?? []) own.files.add(target);
+  }
   const info = infoOf(context, alias.to);
+  const used = new Set();
+  for (const block of read.blocks) {
+    traverse(block.ast.program, (node, parent) => {
+      if (node.type === 'Identifier') {
+        const isName = /^(Import(Default|Namespace)?|Export)Specifier$/.test(parent?.type ?? '') || (isMember(parent) && parent.property === node && !parent.computed) || (isProperty(parent) && parent.key === node && !parent.computed && !parent.shorthand);
+        if (!isName) used.add(node.name);
+      } else if (isCall(node) && isMember(node.callee) && memberName(node.callee) === 'directive' && isString(node.arguments[0])) own.directives.add(node.arguments[0].value);
+      else if (node.type === 'AssignmentExpression' && isMember(node.left) && memberName(node.left)?.startsWith('$')) own.members.add(memberName(node.left));
+    });
+    for (const node of block.ast.program.body) readExports(own, node);
+  }
   for (const name of info.bindings.keys()) {
+    if (!used.has(name)) continue;
     const target = targetOf(context, alias.to, info, { type: 'Identifier', name });
     if (target?.file !== undefined && context.parsed.has(target.file)) readOwnComponent(context, own, target.file);
   }
-  for (const block of read.blocks) {
-    traverse(block.ast.program, (node) => {
-      if (isCall(node) && isMember(node.callee) && memberName(node.callee) === 'directive' && isString(node.arguments[0])) own.directives.add(node.arguments[0].value);
-      else if (node.type === 'AssignmentExpression' && isMember(node.left) && memberName(node.left)?.startsWith('$')) own.members.add(memberName(node.left));
-    });
-  }
   return own.tags.size > 0 ? own : null;
+}
+
+/** The names a statement of the file that stands in for the package exports. */
+function readExports(own, node) {
+  if (node.type === 'ExportDefaultDeclaration') own.exports.add('default');
+  else if (node.type === 'ExportAllDeclaration') own.exportsAll = true;
+  else if (node.type === 'ExportNamedDeclaration') {
+    for (const specifier of node.specifiers) own.exports.add(specifier.exported.name ?? specifier.exported.value);
+    const { declaration } = node;
+    if (declaration?.type === 'VariableDeclaration') {
+      for (const declarator of declaration.declarations) {
+        if (declarator.id.type === 'Identifier') own.exports.add(declarator.id.name);
+        else own.exportsAll = true;
+      }
+    } else if (declaration?.id) own.exports.add(declaration.id.name);
+  }
 }
 
 /** Reads what a component of ours supports from its own development check: `functional(tag, render, options, supported)`, or `checksUse(tag, supported)` among its mixins. */
@@ -1821,6 +1883,9 @@ function readOwnComponent(context, own, file) {
     return found?.type === 'ObjectExpression' ? found : null;
   };
   const member = (object, key) => (object === null ? undefined : entriesOf(object).find((entry) => entry.key === key)?.value);
+  // The icons a component draws, when it reads them from an `ICONS` object of its own or of a file it imports: the names that object has.
+  const iconsObject = literal({ type: 'Identifier', name: 'ICONS' });
+  const icons = iconsObject !== null && !iconsObject.properties.some((property) => !isProperty(property) || property.computed) ? new Set(entriesOf(iconsObject).map(({ key }) => key)) : null;
   const strings = (node) => (node?.type === 'ArrayExpression' ? node.elements.filter(isString).map((element) => element.value) : []);
   for (const block of context.parsed.get(file).blocks) {
     traverse(block.ast.program, (node) => {
@@ -1831,9 +1896,11 @@ function readOwnComponent(context, own, file) {
       const supported = literal(node.arguments[isFunctional ? 3 : 1]);
       const props = member(options, 'props');
       const slots = member(supported, 'slots');
+      const names = new Set((isFunctional ? (props?.type === 'ObjectExpression' ? entriesOf(props).map(({ key }) => key) : strings(props)) : [...info.props.keys()]).map(toKebab));
       own.tags.set(node.arguments[0].value, {
         file,
-        props: new Set((isFunctional ? (props?.type === 'ObjectExpression' ? entriesOf(props).map(({ key }) => key) : strings(props)) : [...info.props.keys()]).map(toKebab)),
+        props: names,
+        icons: names.has('icon') ? icons : null,
         emits: new Set((isFunctional ? strings(member(options, 'emits')) : [...(info.emits ?? [])]).map(toKebab)),
         attributes: new Set(strings(member(supported, 'attributes'))),
         not: new Set(strings(member(supported, 'not'))),
@@ -1844,8 +1911,12 @@ function readOwnComponent(context, own, file) {
   }
 }
 
-/** What a tag is used with that our own component does not support, as its development check would say it. */
-function unsupported(own, tag, attrs, slots) {
+/**
+ * What a tag is used with that our own component does not support, as its development check would say it. A component
+ * that draws icons from a list of ours (`ICONS`) is also asked for an icon it has no body for; `dynamic(kind, attr)` is
+ * called for an `icon` that is not a string in the template, whose value cannot be read.
+ */
+function unsupported(own, tag, attrs, slots, dynamic) {
   const component = own.tags.get(tag);
   if (component === undefined) return [`${own.file} has no such component`];
   const missing = [];
@@ -1861,6 +1932,12 @@ function unsupported(own, tag, attrs, slots) {
     if (!a.directive || a.dir === 'bind') {
       const isProp = component.props.has(toKebab(name)) || ['key', 'ref', 'is'].includes(name);
       if (!isProp && (component.not.has(name) || !(PLAIN_ATTRIBUTE.test(name) || component.attributes.has(name)))) missing.push(`attribute "${name}"`);
+      if (name === 'icon' && component.icons !== null) {
+        // `icon="x"`, `:icon="'x'"`, and the string branches of `:icon="a ? 'x' : 'y'"`; a branch that is not a string cannot be read.
+        const { strings, other } = a.directive ? stringBranches(a.expression) : { strings: a.value === null ? [] : [a.value], other: false };
+        for (const icon of strings) if (!component.icons.has(icon)) missing.push(`icon "${icon}"`);
+        if (other) dynamic('icon', a);
+      }
     } else if (a.dir === 'on') {
       if (!listens(name)) missing.push(`listener "${name}"`);
     } else if (a.dir === 'model') {
@@ -1914,6 +1991,16 @@ function stringLeaves(node) {
   }
   const text = stringOf(node);
   return text === null ? null : [text];
+}
+
+/** The strings an expression can be, and whether it can be something else too: `a ? 'x' : b` is `{ strings: ['x'], other: true }`. */
+function stringBranches(node) {
+  if (node?.type === 'ConditionalExpression') {
+    const [yes, no] = [stringBranches(node.consequent), stringBranches(node.alternate)];
+    return { strings: [...yes.strings, ...no.strings], other: yes.other || no.other };
+  }
+  const text = stringOf(node);
+  return text === null ? { strings: [], other: true } : { strings: [text], other: false };
 }
 
 /** The name of the BootstrapVue component `<component is="b-x">` or `:is="'b-x'"` names, or null. */
@@ -1996,13 +2083,17 @@ function recordSlots(entry, file, el, attrs, source) {
   return filled;
 }
 
-/** A BootstrapVue component made by `h("b-x")` or `createElement("b-x")`: counted as a use; its props are in the call, not read. */
+/**
+ * A BootstrapVue component made by `h("b-x")` or `createElement("b-x")`: counted as a use; its props are in the call, not
+ * read. Always a hit: on Vue 3 a string is the name of an element, which `h` never looks up as a component (that takes
+ * `resolveComponent("b-x")` or the component itself), also when the build has a component of ours of that name.
+ */
 function noteBvRenderCall(env, node, name) {
   const entry = bvEntry(env.context, name);
   entry.uses++;
   entry.files.set(env.file, (entry.files.get(env.file) ?? 0) + 1);
   entry.spellings.add('render call');
-  if (!env.context.own?.tags.has(name)) env.add('bvTags', node);
+  env.add('bvTags', node, undefined, env.context.own?.tags.has(name) ? { note: 'a string is an element on Vue 3: `h` does not resolve the component of ours of this name' } : {});
 }
 
 /** What a bound value is, for the table of props: a function (an arrow, a method), data, a computed, a prop, a constant, a literal. */
@@ -2228,7 +2319,7 @@ function recordBootstrap(context, file, info, env, el, tag, bv, attrs) {
     }
   }
   const slots = recordSlots(entry, file, el, attrs, source);
-  const missing = context.own ? unsupported(context.own, name, attrs, slots) : null;
+  const missing = context.own ? unsupported(context.own, name, attrs, slots, dynamic) : null;
   if (missing === null) context.add('bvTags', file, el.loc.start.line, startTagLabel(el, attrs));
   else if (missing.length > 0) context.add('bvTags', file, el.loc.start.line, startTagLabel(el, attrs), { note: missing.join(', ') });
 }

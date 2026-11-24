@@ -2282,10 +2282,116 @@ test('our own BootstrapVue: a file that only passes the package on is none, and 
   const passed = ownScan('<b-box />', files, './src/utils/bvCompat.js');
   assert.equal(passed.scope.ownBootstrap, undefined);
   assert.deepEqual(passed.hits.bvTags.map(({ file, note }) => [file, note]), [['src/I.vue', undefined], ['src/P.vue', undefined]]);
-  assert.deepEqual(passed.hits.bvImports.map(({ file, line }) => `${file}:${line}`), ['src/I.vue:5', 'src/main.js:1', 'src/utils/bvCompat.js:2']);
+  assert.deepEqual(passed.hits.bvImports.map(({ file, line }) => `${file}:${line}`), ['src/I.vue:5', 'src/main.js:1', 'src/utils/bvCompat.js:2', 'src/utils/bvCompat.js:4']);
   const without = scan(tree({ ...OWN, 'src/P.vue': component('<b-box />') }), { entries: ['src/main.js'] });
   assert.equal(without.hits.bvTags.length, 1);
   assert.deepEqual(without.hits.bvImports.map(({ file }) => file), ['src/main.js']);
+});
+
+const ICON_FILES = {
+  ...OWN,
+  'src/bv/index.js': lines('import BIcon from "./BIcon";', OWN['src/bv/index.js'], 'export const BootstrapVueIcons = { install(app) { app.component("BIcon", BIcon); } };'),
+  'src/bv/icons.js': 'export const ICONS = { download: "<path/>", "info-circle-fill": "<path/>" };',
+  'src/bv/BIcon.js': 'import { functional } from "./helpers";\nimport { ICONS } from "./icons";\nexport default functional("b-icon", function BIcon() {}, { props: { icon: String, variant: String } }, { slots: [] });',
+};
+
+test('our own BootstrapVue: an icon that has no body in ICONS is a hit, the branches of a ternary are read, and what is not a string is listed as dynamic', () => {
+  const found = ownScan(
+    lines(
+      '<div>',
+      '  <b-icon icon="download" variant="x" />', // 3
+      '  <b-icon :icon="\'info-circle-fill\'" />', // 4
+      '  <b-icon :icon="x ? \'download\' : \'info-circle-fill\'" />', // 5
+      '  <b-icon icon="trash" />', // 6
+      '  <b-icon :icon="x ? \'download\' : \'gear-fill\'" />', // 7
+      '  <b-icon :icon="y" />', // 8
+      '  <b-icon :icon="x ? \'download\' : y" />', // 9
+      '  <b-icon :icon="x ? \'bullseye\' : y" />', // 10
+      '</div>',
+    ),
+    ICON_FILES,
+  );
+  assert.deepEqual(
+    found.hits.bvTags.map(({ line, note }) => `${line}: ${note}`),
+    ['6: src/bv/BIcon.js: no icon "trash"', '7: src/bv/BIcon.js: no icon "gear-fill"', '10: src/bv/BIcon.js: no icon "bullseye"'],
+  );
+  const icon = found.bvTags.find(({ tag }) => tag === 'b-icon');
+  assert.deepEqual(icon.dynamic.map(({ line, kind }) => `${line} ${kind}`), ['8 icon', '9 icon', '10 icon']);
+  // A component that has no list of icons is not asked for one, and without the file of icons nothing is checked.
+  assert.deepEqual(ownScan('<b-box icon="trash" />', ICON_FILES).hits.bvTags.map(({ note }) => note), ['src/bv/BBox.js: no attribute "icon"']);
+  const without = { ...ICON_FILES, 'src/bv/BIcon.js': ICON_FILES['src/bv/BIcon.js'].replace('import { ICONS } from "./icons";\n', '') };
+  assert.deepEqual(ownScan('<b-icon icon="trash" />', without).hits.bvTags, []);
+});
+
+test('bvTags: h("b-x") is a hit also where our own component of that name exists: a string is the name of an element on Vue 3', () => {
+  const files = {
+    ...OWN,
+    'src/R.js': lines('import { h } from "vue";', 'export default { render() { return h("b-box", { props: {} }); } };'),
+    'src/main.js': 'import "bootstrap-vue";\nimport "./P.vue";\nimport "./R.js";',
+  };
+  const found = ownScan('<p />', files);
+  assert.deepEqual(found.hits.bvTags.map(({ file, line }) => `${file}:${line}`), ['src/R.js:2']);
+  assert.match(found.hits.bvTags[0].note, /string is an element/);
+  assert.deepEqual(found.bvTags.map(({ tag, uses }) => `${tag} ${uses}`), ['b-box 1']);
+  // The same for the render function's own argument, and for a tag that our components have not.
+  const render = { ...files, 'src/R.js': 'export default { render(createElement) { return createElement("b-other"); } };' };
+  const other = ownScan('<p />', render);
+  assert.deepEqual(other.hits.bvTags.map(({ file, line, note }) => `${file}:${line} ${note}`), ['src/R.js:1 undefined']);
+});
+
+test('our own BootstrapVue: what bootstrap-vue is imported or re-exported for must be a name that the file of ours exports', () => {
+  const files = {
+    ...OWN,
+    'src/I.js': lines(
+      'import { BootstrapVue } from "bootstrap-vue";', // 1
+      'import { ToastPlugin, VBPopover, BootstrapVue as Again } from "bootstrap-vue";', // 2
+      'import Everything from "bootstrap-vue";', // 3
+      'import * as All from "bootstrap-vue";', // 4
+      'export { BIconCheck, BootstrapVue as Same } from "bootstrap-vue";', // 5
+      'export * from "bootstrap-vue";', // 6
+      'import "bootstrap-vue";', // 7
+      'import "bootstrap-vue/dist/bootstrap-vue.css";', // 8
+    ),
+    'src/main.js': 'import "bootstrap-vue";\nimport "./P.vue";\nimport "./I.js";',
+  };
+  const found = ownScan('<p />', files);
+  assert.deepEqual(
+    found.hits.bvImports.map(({ file, line, note }) => `${file}:${line} ${note}`),
+    [
+      'src/I.js:2 src/bv/index.js does not export `ToastPlugin`, `VBPopover`',
+      'src/I.js:3 src/bv/index.js does not export `default`',
+      'src/I.js:4 src/bv/index.js does not export a namespace (`import *`)',
+      'src/I.js:5 src/bv/index.js does not export `BIconCheck`',
+      'src/I.js:6 src/bv/index.js does not export a namespace (`export *`)',
+      'src/I.js:8 undefined',
+    ],
+  );
+  // A default and a name exported by a specifier are there.
+  const wide = { ...files, 'src/bv/index.js': lines(OWN['src/bv/index.js'], 'export default {};', 'export { BootstrapVue as ToastPlugin };') };
+  const hits = ownScan('<p />', wide).hits.bvImports.map(({ line, note }) => `${line} ${note}`);
+  assert.deepEqual(hits, ['2 src/bv/index.js does not export `VBPopover`', '4 src/bv/index.js does not export a namespace (`import *`)', '5 src/bv/index.js does not export `BIconCheck`', '6 src/bv/index.js does not export a namespace (`export *`)', '8 undefined']);
+  // `export *` of another file: the names are not known, so none is asked for.
+  const open = { ...files, 'src/bv/index.js': lines(OWN['src/bv/index.js'], 'export * from "./more";'), 'src/bv/more.js': 'export const ToastPlugin = {};' };
+  assert.deepEqual(ownScan('<p />', open).hits.bvImports.map(({ line }) => line), [8]);
+});
+
+test('our own BootstrapVue: only the files that the alias file imports, transitively, are exempt from the BootstrapVue kinds; a component that is imported and not registered is not supported', () => {
+  const files = {
+    ...OWN,
+    'src/bv/index.js': lines('import BGhost from "./BGhost";', 'import Inner from "./Inner.vue";', OWN['src/bv/index.js']),
+    'src/bv/BGhost.js': 'import { functional } from "./helpers";\nexport default functional("b-ghost", function BGhost() {}, { props: {} }, {});',
+    'src/bv/Inner.vue': lines('<template><div><b-box fluid /></div></template>', '<script>', 'import Deep from "./Deep.vue";', 'export default { components: { Deep } };', '</script>', '<style>.b-table td { color: red; }</style>'),
+    'src/bv/Deep.vue': lines('<template><b-box fluid /></template>', '<script>export default {};</script>', '<style>.b-table td { color: red; }</style>'),
+    'src/bv/Stray.vue': lines('<template><b-box fluid /></template>', '<script>export default {};</script>', '<style>.b-table td { color: red; }</style>'),
+    'src/main.js': 'import "bootstrap-vue";\nimport "./P.vue";\nimport "./bv/Stray.vue";',
+  };
+  const found = ownScan('<b-ghost />', files);
+  assert.deepEqual(found.scope.ownBootstrap.tags, ['b-box', 'b-field']);
+  assert.deepEqual(
+    found.hits.bvTags.map(({ file, line, note }) => `${file}:${line} ${note}`),
+    ['src/P.vue:2 src/bv/index.js has no such component', 'src/bv/Stray.vue:1 src/bv/BBox.js: no attribute "fluid"'],
+  );
+  assert.deepEqual(found.hits.bvCss.map(({ file }) => file), ['src/bv/Stray.vue']);
 });
 
 test('parentAccess: the note says how many levels up it reaches; a page template\'s $parent.fields is read from the main.js beside it', () => {
