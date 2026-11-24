@@ -285,9 +285,9 @@ export default {
                                     v-for="row in previewGenes"
                                     :key="`preview-gene-${row.gene}`"
                                     class="detail-marker"
-                                >
-                                    {{ geneLoadingText(row) }}
-                                </span>
+                                >{{
+                                    " " }}{{ geneLoadingText(row) }}{{ " "
+                                }}</span>
                             </div>
                             <button type="button" class="detail-link-button" @click="selectTab('genes')">
                                 View top {{ topGenes.rows.length }} genes

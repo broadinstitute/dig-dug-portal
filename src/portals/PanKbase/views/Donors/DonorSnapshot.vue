@@ -120,8 +120,8 @@
                                 >
                                     <div class="snapshot-micro-meta">
                                         <span class="snapshot-micro-label snapshot-micro-label-full" :title="plotRow.label">
-                                            {{ plotRow.label }}
-                                        </span>
+                                            {{ plotRow.label }}{{ " "
+                                        }}</span>
                                         <span class="snapshot-micro-value">{{ plotRow.value }} · {{ formatPercent(plotRow.percent) }}</span>
                                     </div>
                                     <div class="snapshot-micro-track">
@@ -163,9 +163,9 @@
                                     v-for="(part, partIndex) in splitFooterParts(card.rowsByCohort[row.key].footer)"
                                     :key="`${row.key}-${card.key}-footer-${partIndex}`"
                                     class="snapshot-card-footer-part"
-                                >
-                                    {{ part }}
-                                </span>
+                                >{{
+                                    " " }}{{ part }}{{ " "
+                                }}</span>
                             </div>
                         </article>
                     </template>

@@ -80,9 +80,9 @@
                                   <span
                                       v-for="gene in ($parent.alternateNames || []).filter((gene) => gene.source == 'alias')"
                                       :key="gene.name"
-                                  >
-                                      {{ gene.name }}
-                                  </span>
+                                  >{{
+                                      " " }}{{ gene.name }}{{ " "
+                                  }}</span>
                                   &nbsp;
                               </div>
                               <div v-if="$parent.regionText">

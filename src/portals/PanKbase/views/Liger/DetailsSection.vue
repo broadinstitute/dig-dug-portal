@@ -138,8 +138,8 @@ export default {
                     <span class="liger-entity-badge" :class="panel.badgeClass">{{ panel.badgeLabel }}</span>
                     <span class="liger-detail-accordion-value">{{ panel.value }}</span>
                 </span>
-                <span class="liger-detail-accordion-indicator">
-                    {{ isDetailPanelActive(panel) ? "−" : "+" }}
+                <span class="liger-detail-accordion-indicator">{{
+                    " " }}{{ isDetailPanelActive(panel) ? "−" : "+" }}
                 </span>
             </button>
 

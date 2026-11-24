@@ -59,8 +59,8 @@
                                 >{{ item[renderConfig["render by"]] }}</a
                             >
                         </template>
-                        <template v-else>
-                            {{ item[renderConfig["render by"]] }}
+                        <template v-else>{{
+                            " " }}{{ item[renderConfig["render by"]] }}
                         </template>
                     </td>
                     <td>

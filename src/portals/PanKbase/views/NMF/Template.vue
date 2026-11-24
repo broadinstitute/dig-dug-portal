@@ -128,9 +128,9 @@
                                             v-for="cell in $parent.splitValues(row.item.top_cells)"
                                             :key="cell"
                                             :style="`background-color: ${$parent.SC.labelColors[$parent.SC.colorByField][$parent.SC.highlightLabel]};`"
-                                        >
-                                            {{ cell }}
-                                        </b-badge>
+                                        >{{
+                                            " " }}{{ cell }}{{ " "
+                                        }}</b-badge>
                                     </div>
                                 </template>
             
@@ -141,9 +141,9 @@
                                             v-for="gene in $parent.splitValues(row.item.top_genes)"
                                             :key="gene"
                                             style="background-color: #fff; color: #000;"
-                                        >
-                                            {{ gene }}
-                                        </b-badge>
+                                        >{{
+                                            " " }}{{ gene }}{{ " "
+                                        }}</b-badge>
                                     </div>
                                 </template>
 

@@ -3597,9 +3597,9 @@ export default {
                             v-for="item in column.items"
                             :key="`${column.label}-${item}`"
                             class="expression-tooltip-chip"
-                        >
-                            {{ item }}
-                        </span>
+                        >{{
+                            " " }}{{ item }}{{ " "
+                        }}</span>
                     </div>
                     <div v-else class="expression-tooltip-value">{{ column.value }}</div>
                 </div>

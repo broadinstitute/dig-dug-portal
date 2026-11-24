@@ -455,14 +455,14 @@
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
-                                                    {{ formatCellValue(cell.value) }}
-                                                </a>
+                                                    {{ formatCellValue(cell.value) }}{{ " "
+                                                }}</a>
                                                 <span
                                                     v-else
                                                     class="table-cell-text"
                                                     :title="formatCellTitle(cell.value)"
-                                                >
-                                                    {{ formatCellValue(cell.value) }}
+                                                >{{
+                                                    " " }}{{ formatCellValue(cell.value) }}
                                                 </span>
                                             </template>
                                         </b-table>
@@ -536,14 +536,14 @@
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
-                                                    {{ formatCellValue(cell.value) }}
-                                                </a>
+                                                    {{ formatCellValue(cell.value) }}{{ " "
+                                                }}</a>
                                                 <span
                                                     v-else
                                                     class="table-cell-text"
                                                     :title="formatCellTitle(cell.value)"
-                                                >
-                                                    {{ formatCellValue(cell.value) }}
+                                                >{{
+                                                    " " }}{{ formatCellValue(cell.value) }}
                                                 </span>
                                             </template>
                                         </b-table>
