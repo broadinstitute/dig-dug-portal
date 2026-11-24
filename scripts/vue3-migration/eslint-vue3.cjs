@@ -16,7 +16,6 @@ module.exports = {
     'vue/no-unused-components': 'off',
     'vue/no-unused-vars': 'off',
     'vue/valid-v-for': 'off',
-    'vue/no-side-effects-in-computed-properties': 'off',
     'vue/return-in-computed-property': 'off',
     'vue/no-async-in-computed-properties': 'off',
 
@@ -26,5 +25,9 @@ module.exports = {
     'vue/no-deprecated-v-on-native-modifier': 'error',
     'vue/no-deprecated-dollar-scopedslots-api': 'error',
     'vue/no-undef-components': ['error', { ignorePatterns: ['^b-', '^B[A-Z]'] }],
+    // Not only style: a computed that sets data or sorts in place runs when its value is first read, and Vue 3
+    // renders slot content lazily, in the child, so that moment moves. A region table whose computed sorted its
+    // rows in place came out unsorted.
+    'vue/no-side-effects-in-computed-properties': 'error',
   },
 };

@@ -20,6 +20,7 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import pigeanUtils from "@/utils/pigeanUtils.js";
+import { cloneDeep } from "@/utils/lodashUtils";
 import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
@@ -174,7 +175,7 @@ mountPage(Template, {
             return this.pigeanPhenotypeMap;
         },
         phewasAllData(){
-            return structuredClone(this.$store.state.phewasData);
+            return cloneDeep(this.$store.state.phewasData);
         },
         hoverDotsToPigean(){
             return this.dotsToPigean;

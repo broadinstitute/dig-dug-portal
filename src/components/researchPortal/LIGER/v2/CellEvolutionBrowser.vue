@@ -3148,8 +3148,8 @@ export default {
                             <template v-if="bodyState === 'empty-gene'">
                                 Pick a gene, tissue and cell type above to see the programs its expression is associated with.
                             </template>
-                            <template v-else-if="bodyState === 'empty-programs'">
-                                {{ scopeSummary }} returned no gene programs.
+                            <template v-else-if="bodyState === 'empty-programs'">{{
+                                " " }}{{ scopeSummary }} returned no gene programs.
                             </template>
                             <!-- The way out is in the message, not only in the
                                  legend: the legend lives on the canvas, and there is

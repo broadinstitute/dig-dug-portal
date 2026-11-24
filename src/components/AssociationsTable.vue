@@ -95,10 +95,10 @@
                                     ? "&#9660;"
                                     : "&#9650;"
                                 : ""
-                        }}
-                    </span>
-                    <span>
-                        {{
+                        }}{{ " "
+                    }}</span>
+                    <span>{{
+                        " " }}{{
                             effectFormatter(
                                 p.dichotomous
                                     ? Math.exp(r.item[`${p.name}:beta`])
@@ -262,7 +262,8 @@ export default {
         groupedAssociations() {
             let data = [];
             let groups = {};
-            let associations = this.tableData;
+            // by p-value, the table's order until the user sorts it
+            let associations = this.sortedAssociations;
 
             for (let i in associations) {
                 let r = associations[i];
@@ -311,7 +312,7 @@ export default {
             return data;
         },
         sortedAssociations() {
-            return this.tableData.sort((a, b) => a.pValue - b.pValue);
+            return [...this.tableData].sort((a, b) => a.pValue - b.pValue);
         },
         tableData() {
             let dataRows = this.associations;

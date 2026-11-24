@@ -58,8 +58,8 @@
                                         >
                                             {{
                                                 $parent.selectedGeneOrRegion[0]
-                                            }}
-                                        </b-badge>
+                                            }}{{ " "
+                                        }}</b-badge>
 
                                         <b-badge
                                             v-if="
@@ -67,9 +67,9 @@
                                                 0
                                             "
                                             class="filter-pill-dataset"
-                                        >
-                                            {{ $parent.selectedDataset[0] }}
-                                        </b-badge>
+                                        >{{
+                                            " " }}{{ $parent.selectedDataset[0] }}{{ " "
+                                        }}</b-badge>
                                         <template
                                             v-if="
                                                 $parent.selectedPhenotypes
@@ -80,8 +80,8 @@
                                                 v-for="phenotype in $parent.selectedPhenotypes"
                                                 :key="phenotype"
                                                 class="filter-pill-phenotype"
-                                            >
-                                                {{
+                                            >{{
+                                                " " }}{{
                                                     !!$store.state.bioPortal
                                                         .phenotypeMap[phenotype]
                                                         ? $store.state.bioPortal
@@ -89,8 +89,8 @@
                                                               phenotype
                                                           ].description
                                                         : phenotype
-                                                }}
-                                            </b-badge>
+                                                }}{{ " "
+                                            }}</b-badge>
                                         </template>
                                     </div>
                                 </b-button>
@@ -459,9 +459,9 @@
                                                 v-for="test in $parent.selectedAnnotations"
                                                 :key="test"
                                                 class="filter-pill-annotation"
-                                            >
-                                                {{ test }}
-                                            </b-badge>
+                                            >{{
+                                                " " }}{{ test }}{{ " "
+                                            }}</b-badge>
                                         </template>
                                         <template
                                             v-if="
@@ -473,9 +473,9 @@
                                                 v-for="test in $parent.selectedTissues"
                                                 :key="test"
                                                 class="filter-pill-tissue"
-                                            >
-                                                {{ test }}
-                                            </b-badge>
+                                            >{{
+                                                " " }}{{ test }}{{ " "
+                                            }}</b-badge>
                                         </template>
                                     </div></b-button
                                 >
@@ -674,13 +674,13 @@
                                                 v-for="test in $parent.selectedTests"
                                                 :key="test"
                                                 class="filter-pill-test"
-                                            >
-                                                {{
+                                            >{{
+                                                " " }}{{
                                                     $parent.testMethods.find(
                                                         (o) => o.value === test
                                                     ).text
-                                                }}
-                                            </b-badge>
+                                                }}{{ " "
+                                            }}</b-badge>
                                         </template>
                                     </div></b-button
                                 >

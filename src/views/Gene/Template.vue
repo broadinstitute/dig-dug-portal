@@ -139,9 +139,9 @@
                                                     )
                                             "
                                             :key="gene.name"
-                                        >
-                                            {{ gene.name }}
-                                        </span>
+                                        >{{
+                                            " " }}{{ gene.name }}{{ " "
+                                        }}</span>
                                         &nbsp;
                                     </div>
                                     <div v-if="$parent.regionText">
@@ -486,7 +486,9 @@
                                     >
                                     </research-phewas-plot>
                                     <unauthorized-message
-                                        :restricted="$store.state.restricted"
+                                        :restricted="
+                                            $parent.transcriptOr52kRestricted
+                                        "
                                     >
                                     </unauthorized-message>
                                     <gene-associations-masks
@@ -814,8 +816,8 @@
                                     $parent.externalResources[gene.source].title
                                 "
                             >
-                                {{ gene.source.toUpperCase() }}
-                            </a>
+                                {{ gene.source.toUpperCase() }}{{ " "
+                            }}</a>
                             <a
                                 v-else
                                 :href="
@@ -826,8 +828,8 @@
                                 :title="
                                     $parent.externalResources[gene.source].title
                                 "
-                            >
-                                {{ gene.source.toUpperCase() }}
+                            >{{
+                                " " }}{{ gene.source.toUpperCase() }}
                             </a>
                         </div>
                     </div>

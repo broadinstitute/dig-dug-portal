@@ -80,9 +80,9 @@
                         class="vks-session-param-phenotype-bubble"
                         role="listitem"
                     >
-                        <span class="vks-session-param-phenotype-bubble-label">
-                            {{ bubble.label }}
-                        </span>
+                        <span class="vks-session-param-phenotype-bubble-label">{{
+                            " " }}{{ bubble.label }}{{ " "
+                        }}</span>
                         <button
                             v-if="canRemovePanelPhenotype"
                             type="button"

@@ -69,8 +69,8 @@
                             </template>
                             <div v-else class="compact-stage-cell" v-b-tooltip.hover :title="row.name">
                                 <span class="type-pill stage-type" :class="stageColorClass(row.activityType)">
-                                    {{ stageLabel(row.activityType) }}
-                                </span>
+                                    {{ stageLabel(row.activityType) }}{{ " "
+                                }}</span>
                                 <span class="compact-resource-name">{{ row.name }}</span>
                             </div>
                         </td>
@@ -133,8 +133,8 @@
                                     @mouseleave="highlightedResourceId = ''"
                                 >
                                     <span class="type-pill resource-type" :class="resourceColorClass(resource.type)">
-                                        {{ resource.type }}
-                                    </span>
+                                        {{ resource.type }}{{ " "
+                                    }}</span>
                                     <span class="compact-resource-name">{{ resource.name }}</span>
                                 </li>
                             </ul>
@@ -199,8 +199,8 @@
                                     @mouseleave="highlightedResourceId = ''"
                                 >
                                     <span class="type-pill resource-type" :class="resourceColorClass(resource.type)">
-                                        {{ resource.type }}
-                                    </span>
+                                        {{ resource.type }}{{ " "
+                                    }}</span>
                                     <span class="compact-resource-name">{{ resource.name }}</span>
                                 </li>
                             </ul>

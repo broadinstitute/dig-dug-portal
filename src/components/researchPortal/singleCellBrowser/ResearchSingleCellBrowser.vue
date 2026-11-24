@@ -288,9 +288,9 @@
                                     <div v-for="field in activeFilterFields" :key="`chip-${field}`"
                                         style="display:flex; gap:4px; align-items:center; font-size:12px; background:#eef3f8; border:1px solid #cfdbe6; border-radius:12px; padding:1px 8px; max-width:100%;">
                                         <span style="font-weight:bold; white-space:nowrap;">{{ displayLabel(field) }}</span>
-                                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                            {{ filterSummaryFor(field) }}
-                                        </span>
+                                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{
+                                            " " }}{{ filterSummaryFor(field) }}{{ " "
+                                        }}</span>
                                         <span @click="clearFieldFilter(field)" style="cursor:pointer; font-weight:bold; opacity:0.6;" title="Remove this filter">&times;</span>
                                     </div>
                                 </div>
@@ -370,13 +370,13 @@
                                                         :checked="isFilterLabelSelected(openFilterField, label)"
                                                         @change="toggleFilterValue(openFilterField, label)"/>
                                                     <span :style="isMissingLabel(label) ? 'font-style:italic; opacity:0.7;' : ''"
-                                                        style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                                        {{ filterLabelDisplay(label) }}
-                                                    </span>
+                                                        style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{
+                                                        " " }}{{ filterLabelDisplay(label) }}{{ " "
+                                                    }}</span>
                                                     <span v-if="facetCountFor(openFilterField, label) !== null"
-                                                        :style="`margin-left:auto; opacity:${facetCountFor(openFilterField, label) ? 0.6 : 0.35}; white-space:nowrap;`">
-                                                        {{ facetCountFor(openFilterField, label).toLocaleString() }}
-                                                    </span>
+                                                        :style="`margin-left:auto; opacity:${facetCountFor(openFilterField, label) ? 0.6 : 0.35}; white-space:nowrap;`">{{
+                                                        " " }}{{ facetCountFor(openFilterField, label).toLocaleString() }}{{ " "
+                                                    }}</span>
                                                 </label>
                                             </div>
                                         </template>

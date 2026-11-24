@@ -33,7 +33,7 @@ export default {
                 return [];
             }
 
-            return this.datasets.sort((a, b) => {
+            return [...this.datasets].sort((a, b) => {
                 if (a.description < b.description) return -1;
                 if (b.description < a.description) return 1;
 

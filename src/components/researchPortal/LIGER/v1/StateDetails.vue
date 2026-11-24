@@ -301,9 +301,9 @@ export default {
                                 v-for="marker in previewMarkers"
                                 :key="marker"
                                 class="detail-marker"
-                            >
-                                {{ marker }}
-                            </span>
+                            >{{
+                                " " }}{{ marker }}{{ " "
+                            }}</span>
                             <button
                                 v-if="hiddenMarkerCount"
                                 type="button"
@@ -371,9 +371,9 @@ export default {
                             v-for="marker in markers"
                             :key="marker"
                             class="detail-marker"
-                        >
-                            {{ marker }}
-                        </span>
+                        >{{
+                            " " }}{{ marker }}{{ " "
+                        }}</span>
                     </div>
                     <div v-else class="empty-state">No marker genes returned.</div>
 

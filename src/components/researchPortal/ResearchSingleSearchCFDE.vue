@@ -31,16 +31,16 @@
 										<div v-for="option in isParameterActive('kp genes').options">
 											<span>
 												<a :href="(option.url) ? option.url + gene : 'javascript:;'" 
-													class="ss-explore">
-													{{option['url label'] }}
-												</a>
+													class="ss-explore">{{
+													" " }}{{option['url label'] }}{{ " "
+												}}</a>
 												<span v-if="!!option.url && !!option.sections"> | </span>
 												<a href="javascript:;" 
 													class="ss-generate-summary"
 													@click="generateSummary(gene, option['summary id'], option['summary label'], option.sections)"
-												>
-													{{option['summary label'] }}
-												</a>
+												>{{
+													" " }}{{option['summary label'] }}{{ " "
+												}}</a>
 											</span>
 										</div>
 									</div>
@@ -67,16 +67,16 @@
 												<span>
 													<a :href="(option.url) ? option.url + phenotype.name : 'javascript:;'"
 														class="ss-explore"
-														>
-														{{ option['url label'] }}
-													</a>
+														>{{
+														" " }}{{ option['url label'] }}{{ " "
+													}}</a>
 													<span v-if="!!option.url && !!option.sections"> | </span>
 													<a href="javascript:;" 
 														class="ss-generate-summary"
 														@click="generateSummary(phenotype.name, option['summary id'], option['summary label'], option.sections)"
-													>
-														{{option['summary label'] }}
-													</a>
+													>{{
+														" " }}{{option['summary label'] }}{{ " "
+													}}</a>
 												</span>
 											</div>
 										</div>
@@ -102,16 +102,16 @@
 														<span>
 															<a :href="(option.url) ? option.url + item.value : 'javascript:;'"
 																class="ss-explore"
-															>
-															{{ option['url label'] }}
-															</a>
+															>{{
+															" " }}{{ option['url label'] }}{{ " "
+															}}</a>
 															<span v-if="!!option.url && !!option.sections"> | </span>
 															<a href="javascript:;" 
 																class="ss-generate-summary"
 																@click="generateSummary(item.value, option['summary id'], option['summary label'], option.sections)"
-															>
-																{{option['summary label'] }}
-															</a>
+															>{{
+																" " }}{{option['summary label'] }}{{ " "
+															}}</a>
 														</span>
 													</div>
 												</div>

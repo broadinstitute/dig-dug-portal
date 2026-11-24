@@ -250,8 +250,8 @@
                         ><span v-if="!!loadingData[data.item.varId]"
                             ><b-spinner small></b-spinner>
                             <span class="sr-only">Loading...</span></span
-                        ><span v-else>
-                            {{ data.detailsShowing ? "Hide" : "Show" }}
+                        ><span v-else>{{
+                            " " }}{{ data.detailsShowing ? "Hide" : "Show" }}
                             Annotations</span
                         >
                     </b-button>
@@ -360,6 +360,7 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload";
 import uiUtils from "@/utils/uiUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 export default {
     name: "VariantSearch",
@@ -544,7 +545,7 @@ export default {
         //This works to display all data fro BI
         tableData() {
             if (this.sortByImpacts && this.variantData.length) {
-                let sortedVariants = structuredClone(this.variantData);
+                let sortedVariants = cloneDeep(this.variantData);
                 //console.log("sortedVariants", sortedVariants);
                 return sortedVariants.sort((a, b) => {
                     return this.sortImpacts(a, b);
@@ -647,7 +648,7 @@ export default {
                     }
                 }
 
-                this.variantData = structuredClone(this.variants);
+                this.variantData = cloneDeep(this.variants);
                 //if default filters are set, filter the variants
                 if (
                     this.filters.impacts.length > 0 ||

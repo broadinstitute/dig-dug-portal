@@ -111,9 +111,9 @@
                 :key="gene.name"
                 class="gp2-view-region-bridge-gene"
                 :style="{ color: gene.color }"
-            >
-                {{ gene.name }}
-            </span>
+            >{{
+                " " }}{{ gene.name }}{{ " "
+            }}</span>
         </div>
         <VariantSifterVariantDotMenu
             :open="dotMenuOpen"

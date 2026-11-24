@@ -6,6 +6,13 @@ import sortUtils from "./sortUtils";
 let cloneDeep = function (VALUE) {
     if (VALUE == null || typeof VALUE != "object") return VALUE;
     if (VALUE instanceof Date) return new Date(VALUE.getTime());
+    // typed arrays copy with slice(); a DataView has none, so copy the bytes it
+    // covers. Without this branch they would fall through to the plain-object copy.
+    if (ArrayBuffer.isView(VALUE)) {
+        return VALUE instanceof DataView
+            ? new DataView(VALUE.buffer.slice(VALUE.byteOffset, VALUE.byteOffset + VALUE.byteLength))
+            : VALUE.slice();
+    }
     if (Array.isArray(VALUE)) return VALUE.map(v => cloneDeep(v));
     if (VALUE instanceof Map) return new Map([...VALUE].map(([k, v]) => [cloneDeep(k), cloneDeep(v)]));
     if (VALUE instanceof Set) return new Set([...VALUE].map(v => cloneDeep(v)));

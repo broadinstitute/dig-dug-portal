@@ -38,9 +38,9 @@
                 <span
                     v-else-if="group.error"
                     class="vks-ancestry-bubbles-status is-error"
-                >
-                    {{ group.error }}
-                </span>
+                >{{
+                    " " }}{{ group.error }}{{ " "
+                }}</span>
                 <span
                     v-else
                     class="vks-ancestry-bubbles-status"
@@ -75,8 +75,8 @@
                 >
                     <span class="vks-ancestry-bubble-label">{{ bubble.label }}</span>
                     <span class="vks-ancestry-bubble-code">{{ bubble.code }}</span>
-                    <span v-if="bubble.count != null" class="vks-ancestry-bubble-count">
-                        {{ formatCount(bubble.count) }}
+                    <span v-if="bubble.count != null" class="vks-ancestry-bubble-count">{{
+                        " " }}{{ formatCount(bubble.count) }}
                     </span>
                 </button>
             </div>

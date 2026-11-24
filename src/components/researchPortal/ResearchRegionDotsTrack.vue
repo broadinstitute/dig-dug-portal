@@ -70,7 +70,6 @@ export default {
         return {
             posData: {},
             groupsList: null,
-            colorGroups:[],
             infoBoxFrozen: false,
         };
     },
@@ -138,15 +137,23 @@ export default {
                 return returnObj;
             }
         },
-        renderData() {
-            let massagedData = {high:null,low:null, data:this.plotData };
+        colorGroups() {
             let colorGroups =[];
 
-            this.plotData.map(row=>{
+            if (Array.isArray(this.plotData) && !!this.plotConfig["color by"]) {
+                this.plotData.map(row=>{
+                    if (!colorGroups.includes(row[this.plotConfig["color by"]])) {
+                        colorGroups.push(row[this.plotConfig["color by"]]);
+                    }
+                })
+            }
 
-                if (!!this.plotConfig["color by"] && !colorGroups.includes(row[this.plotConfig["color by"]])) {
-                    colorGroups.push(row[this.plotConfig["color by"]]);
-                }
+            return colorGroups.sort();
+        },
+        renderData() {
+            let massagedData = {high:null,low:null, data:this.plotData };
+
+            this.plotData.map(row=>{
 
                 let yValue = row[this.plotConfig["y axis field"]];
 
@@ -155,7 +162,6 @@ export default {
 
             })
 
-            this.colorGroups = colorGroups.sort();
             return massagedData;
         },
     },

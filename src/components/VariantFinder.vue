@@ -165,22 +165,48 @@ export default {
         }
     },
 
+    watch: {
+        globalFilters: {
+            handler(globalFilters) {
+                if (!globalFilters) {
+                    return;
+                }
+
+                // update the filters, key by key: on Vue 2, added like this they are
+                // not reactive, so an edit applies when updateFilters is called
+                this.filters = {};
+
+                for (let name in globalFilters) {
+                    this.filters[name] = globalFilters[name];
+                }
+            },
+            immediate: true
+        }
+    },
+
     computed: {
+        // what each phenotype's filters start from, null once they are edited
+        globalFilters() {
+            if (!this.applyAll) {
+                return null;
+            }
+
+            let filters = {};
+
+            for (let i in this.phenotypes) {
+                let name = this.phenotypes[i].name;
+
+                // apply to each phenotype
+                filters[name] = Object.assign({}, this.allFilters);
+            }
+
+            return filters;
+        },
+
         appliedFilters() {
             let filters = {};
 
-            // apply global filters to all phenotypes
-            if (this.applyAll) {
-                this.filters = {};
-
-                // update the filters
-                for (let i in this.phenotypes) {
-                    let name = this.phenotypes[i].name;
-
-                    // apply to each phenotype
-                    this.filters[name] = Object.assign({}, this.allFilters);
-                }
-            } else {
+            if (!this.applyAll) {
                 filters = Object.assign(filters, this.filters);
             }
 

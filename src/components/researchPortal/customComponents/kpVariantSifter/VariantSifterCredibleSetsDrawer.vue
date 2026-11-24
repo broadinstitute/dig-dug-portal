@@ -69,9 +69,9 @@
                             @click="$emit('remove-set', selectionKeyForEntry(entry))"
                         >
                             <span>{{ pillLabel(entry) }}</span>
-                            <span v-if="entry.loaded > 0" class="vks-cs-pill-count">
-                                {{ entry.inRegion }}/{{ entry.loaded }}
-                            </span>
+                            <span v-if="entry.loaded > 0" class="vks-cs-pill-count">{{
+                                " " }}{{ entry.inRegion }}/{{ entry.loaded }}{{ " "
+                            }}</span>
                             <span class="vks-cs-pill-remove" aria-hidden="true">&times;</span>
                         </button>
                     </div>

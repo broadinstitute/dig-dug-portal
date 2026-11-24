@@ -18,6 +18,7 @@ import DownloadChart from "./DownloadChart.vue";
 import plotUtils from "@/utils/plotUtils";
 import bioIndexUtils from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
+import { cloneDeep } from "@/utils/lodashUtils";
 export default {
   name: "pigean-plot",
   components: {
@@ -57,7 +58,7 @@ export default {
   },
   computed: {
     chartData(){
-      let data = structuredClone(this.pigeanData);
+      let data = cloneDeep(this.pigeanData);
       if (this.filter){
         data = data.filter(this.filter);
       }

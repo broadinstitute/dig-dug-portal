@@ -18,8 +18,8 @@
                             :key="p"
                             @click="removePhenotype(i)"
                             class="btn"
-                        >
-                            {{ p }}
+                        >{{
+                            " " }}{{ p }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -29,8 +29,8 @@
                             variant="success"
                             @click="unsetPvalue()"
                             class="btn"
-                        >
-                            {{ pValue }}
+                        >{{
+                            " " }}{{ pValue }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -40,8 +40,8 @@
                             variant="info"
                             @click="unsetBeta()"
                             class="btn"
-                        >
-                            {{ betaText }}
+                        >{{
+                            " " }}{{ betaText }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>

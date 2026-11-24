@@ -92,7 +92,7 @@ export default {
 	computed: {
 		renderData() {
 			let dataInOrder = sortUtils.sortArrOfObjects(
-				this.heatmapData,
+				[...this.heatmapData],
 				"chiSquared",
 				"number",
 				"asc"

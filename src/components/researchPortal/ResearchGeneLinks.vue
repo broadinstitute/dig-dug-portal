@@ -234,6 +234,8 @@ export default {
 		return {
 			spaceBy: 20,
 			GEData: {},
+			// GEData and pkgData.GLData get and lose keys that Vue 2 does not track. The computed
+			// properties made from them read trigger, so that changing it makes them look again.
 			trigger: 0,
 			GLPosData: {},
 			GLData: null,
@@ -254,7 +256,7 @@ export default {
 	},
 	computed: {
 		GLTissues() {
-			this.trigger--;
+			this.trigger;
 			if (Object.keys(this.GEData).length == 0) {
 				return null;
 			} else {
@@ -287,7 +289,7 @@ export default {
 			}
 		},
 		renderData() {
-			this.trigger--;
+			this.trigger;
 
 			let renderObj = {};
 
@@ -332,7 +334,7 @@ export default {
 			return renderObj;
 		},
 		methodsArr() {
-			this.trigger--;
+			this.trigger;
 
 			if (!!this.pkgData.GLData) {
 				let methodIndex = [];
@@ -350,7 +352,7 @@ export default {
 			}
 		},
 		genesArr() {
-			this.trigger--;
+			this.trigger;
 
 			if (!!this.pkgData.GLData) {
 				let genes = [];
@@ -725,6 +727,9 @@ export default {
 				!!this.pkgData.GLData &&
 				Object.keys(this.pkgData.GLData).length > 0
 			) {
+				// GLData may have changed since the last drawing
+				this.trigger++;
+
 				let staredPositions = [];
 				this.GLPosData = {};
 

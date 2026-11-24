@@ -51,6 +51,7 @@
     </div>
 </template>
 <script>
+import { markRaw } from "vue";
 import { BIO_INDEX_HOST, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
@@ -79,12 +80,16 @@ export default {
             loading: false,
             stabilizing: false,
             stabilizationProgress: 0,
-            nodes: new DataSet({
-                queue: true, // Enable queue mode for batch updates
-            }),
-            edges: new DataSet({
-                queue: true,
-            }),
+            nodes: markRaw(
+                new DataSet({
+                    queue: true, // Enable queue mode for batch updates
+                })
+            ),
+            edges: markRaw(
+                new DataSet({
+                    queue: true,
+                })
+            ),
             physicsEnabled: !this.isEmbed || false,
             error: null,
             showNavigation: false,
@@ -308,8 +313,8 @@ export default {
                 this.network.destroy();
                 this.network = null;
             }
-            this.nodes = new DataSet({ queue: true });
-            this.edges = new DataSet({ queue: true });
+            this.nodes = markRaw(new DataSet({ queue: true }));
+            this.edges = markRaw(new DataSet({ queue: true }));
         },
 
         async refreshGraph() {
@@ -356,7 +361,7 @@ export default {
             const options = this.getNetworkOptions();
 
             // In the network initialization code
-            this.network = new Network(container, data, options);
+            this.network = markRaw(new Network(container, data, options));
 
             // Add multiple event listeners for proper stabilization and fitting
             this.network.on("stabilizationStart", () => {
