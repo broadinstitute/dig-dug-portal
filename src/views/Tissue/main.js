@@ -29,7 +29,7 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-import { cloneDeep } from "@/utils/lodashUtils";
+import { cloneDeep, orderBy } from "@/utils/lodashUtils";
 
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
@@ -147,12 +147,16 @@ mountPage(Template, {
             };
             return utils;
         },
+        // in the order of the phenotype picker, for the header and the search box
         rawPhenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
+            return orderBy(this.$store.state.bioPortal.phenotypes, [
+                "group",
+                "description",
+            ]);
         },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
+                return this.rawPhenotypes;
             } else {
                 return this.$store.state.phenotypesInSession;
             }

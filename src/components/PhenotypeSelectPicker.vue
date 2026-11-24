@@ -45,7 +45,7 @@ export default {
 				return [];
 			}
 
-			return this.phenotypes.sort((a, b) => {
+			return [...this.phenotypes].sort((a, b) => {
 				if (a.group < b.group) return -1;
 				if (b.group < a.group) return 1;
 

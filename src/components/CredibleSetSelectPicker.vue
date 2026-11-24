@@ -52,15 +52,15 @@ export default {
             if (!this.credibleSets) {
                 return [];
             }
-            this.credibleSets.sort((a, b) => {
+            let options = [...this.credibleSets].sort((a, b) => {
                 if (a.credibleSetId < b.credibleSetId) return -1;
                 if (b.credibleSetId < a.credibleSetId) return 1;
                 return 0;
             });
-            this.credibleSets.unshift({
+            options.unshift({
                 credibleSetId: 'computed',
             })
-            return this.credibleSets;
+            return options;
         }
     },
     methods: {

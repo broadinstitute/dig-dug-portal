@@ -473,6 +473,7 @@ import keyParams from "@/utils/keyParams";
 import userUtils from "@/utils/userUtils.js";
 import sessionUtils from "@/utils/sessionUtils.js";
 import sortUtils from "@/utils/sortUtils.js";
+import { orderBy } from "@/utils/lodashUtils";
 import Formatters from "@/utils/formatters";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 
@@ -683,7 +684,13 @@ export default {
 
 			let phList = [];
 
-			this.phenotypes.map((p) => {
+			// the order of the phenotype picker, where there is one
+			let phenotypes =
+				TYPE == "correlation"
+					? orderBy(this.phenotypes, ["group", "description"])
+					: this.phenotypes;
+
+			phenotypes.map((p) => {
 				phenotypeIds.map((id) => {
 					if (p.name == id) {
 						phList.push(p);
