@@ -73,6 +73,8 @@ export default {
             default: false
         }
     },
+    // The filters listen for it here, and the template emits it on them. Declared to keep their listener off the root element.
+    emits: ["input-change"],
     components: {
         Autocomplete,
     },

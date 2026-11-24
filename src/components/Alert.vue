@@ -1,3 +1,7 @@
+<template>
+    <div></div>
+</template>
+
 <script>
 import Counter from "@/utils/idCounter";
 import EventBus from "@/utils/eventBus";
@@ -5,9 +9,6 @@ import logErrorEvent from "@/utils/gaUtils";
 
 export default {
     name: "alert",
-    render(h) {
-        return h("div");
-    },
     data() {
         return {
             message: null,

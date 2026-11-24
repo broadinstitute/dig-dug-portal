@@ -45,6 +45,7 @@
 </template>
 
 <script>
+import { h } from "vue";
 import { isEqual, cloneDeep, groupBy } from "@/utils/lodashUtils";
 import {
     filterFromPredicates,
@@ -68,14 +69,11 @@ const EventListener = {
      * In CriterionGroupTemplate we'll use 'change' as the event share between EventListener and the child components.
      *
      */
-    render(createElement) {
-        // Using Vue's createElement API with render functions to eliminate the need to define const EventListener in a separate component file.
-        // Without using Vue's runtime compiler (bloat), we can't define scoped slots directly in it, so instead we use an undocumented internal
-        // feature – of course – to give the element a default slot.
-        // So don't touch this, it works great
-        // https://stackoverflow.com/a/58859267
-
-        return createElement("div", this.$scopedSlots.default());
+    // Declared, or the DOM change events of the inputs in the slot would reach the parent's @change as well.
+    emits: ["change", "filter-mounted"],
+    // A render function eliminates the need to define const EventListener in a separate component file.
+    setup(props, { slots }) {
+        return () => h("div", slots.default());
     },
 };
 

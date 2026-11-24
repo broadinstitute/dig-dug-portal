@@ -2964,16 +2964,17 @@ export default {
                                 >
                                     No matching genes found.
                                 </div>
-                                <button
-                                    v-else
-                                    v-for="gene in geneSuggestions"
-                                    :key="normalizeGeneLabel(gene)"
-                                    type="button"
-                                    class="suggestion-item"
-                                    @click="onSuggestionSelected(gene)"
-                                >
-                                    {{ normalizeGeneLabel(gene) }}
-                                </button>
+                                <template v-else>
+                                    <button
+                                        v-for="gene in geneSuggestions"
+                                        :key="normalizeGeneLabel(gene)"
+                                        type="button"
+                                        class="suggestion-item"
+                                        @click="onSuggestionSelected(gene)"
+                                    >
+                                        {{ normalizeGeneLabel(gene) }}
+                                    </button>
+                                </template>
                             </div>
                         </div>
                         <button class="primary bold"
