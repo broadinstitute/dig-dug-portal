@@ -100,7 +100,6 @@ export default {
                 names[p] = this.phenotypeMap[p]?.description;
             }
 
-            // attach to the dom
             const config = {
                 bindto: "#manhattan",
                 size: {
@@ -201,6 +200,7 @@ export default {
                     },
                 },
             };
+            // attach to the dom
             this.chart = markRaw(c3.generate(config));
         },
     },

@@ -108,6 +108,7 @@
 </template>
 
 <script>
+import { toRaw } from "vue";
 import $ from "jquery";
 
 export default {
@@ -211,6 +212,8 @@ export default {
 			//used rebuild
 			if (this.plotData != null) {
 
+				// toRaw(dValue) below: LDS (see callForLDData) and the keys that the GEM table adds to the
+				// rows are no reason to load everything again
 				let plotDataLocal = this.plotData;
 
 				let plotsKeys = [];
@@ -310,7 +313,7 @@ export default {
 									assoData[group].data[dKey] = {};
 
 									for (const [fKey, fValue] of Object.entries(
-										dValue
+										toRaw(dValue)
 									)) {
 										if (this.dataComparisonConfig != null) {
 											assoData[group].data[dKey][
@@ -393,7 +396,7 @@ export default {
 								assoData[group].data[dKey] = {};
 
 								for (const [fKey, fValue] of Object.entries(
-									dValue
+									toRaw(dValue)
 								)) {
 									if (this.dataComparisonConfig != null) {
 										assoData[group].data[dKey][fKey] =
@@ -452,7 +455,7 @@ export default {
 					assoData: assoData,
 					ldReferences: ldReferences,
 					// the recombination and LD data are loaded again for another zoom or viewing area; not
-					// searchingRegion, whose throw on an unknown region would end the watcher below
+					// searchingRegion, whose throw on an unknown region would end the watcher below on Vue 2
 					region: [this.region, this.regionZoom, this.regionZoom > 0 ? this.regionViewArea : 0],
 				};
 			} else {

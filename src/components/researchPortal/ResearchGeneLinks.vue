@@ -234,7 +234,7 @@ export default {
 		return {
 			spaceBy: 20,
 			GEData: {},
-			// GEData and pkgData.GLData get and lose keys that Vue does not track. The computed
+			// GEData and pkgData.GLData get and lose keys that Vue 2 does not track. The computed
 			// properties made from them read trigger, so that changing it makes them look again.
 			trigger: 0,
 			GLPosData: {},

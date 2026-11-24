@@ -1238,7 +1238,7 @@ export default {
 				updatedData = updatedData;
 			}
 
-			/** somehow newTableFormat doesn't reset  */
+			/** "GENES" is a feature only with linked genes, which are added below */
 			if (!!newTableFormat["features"]) {
 				const index = newTableFormat["features"].indexOf("GENES");
 
@@ -1405,7 +1405,7 @@ export default {
 		rawData() {
 			return this.tableContent.rows;
 		},
-		// replace global tableFormat with newTableFormat
+		// tableFormat with the columns and features of the content
 		newTableFormat() {
 			return !!this.dataset ? this.tableContent.format : null;
 		},

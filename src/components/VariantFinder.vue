@@ -172,8 +172,8 @@ export default {
                     return;
                 }
 
-                // update the filters, key by key: added like this they are not
-                // reactive, so an edit applies when updateFilters is called
+                // update the filters, key by key: on Vue 2, added like this they are
+                // not reactive, so an edit applies when updateFilters is called
                 this.filters = {};
 
                 for (let name in globalFilters) {

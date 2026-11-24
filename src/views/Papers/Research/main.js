@@ -42,6 +42,9 @@ import userUtils from "@/utils/userUtils.js";
 import $ from "jquery";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
+const takesKPPhenotypes = (pr) =>
+    pr.parameter == "phenotype" && pr.values == "kp phenotypes";
+
 // @vue/component
 mountPage(Template, {
     store,
@@ -375,12 +378,14 @@ mountPage(Template, {
                 return false;
             }
 
-            return JSON.parse(
-                contents[0]["field_api_parameters"]
-            ).parameters.some(
-                (pr) =>
-                    pr.parameter == "phenotype" && pr.values == "kp phenotypes"
-            );
+            try {
+                let apiConfig = JSON.parse(contents[0]["field_api_parameters"]);
+
+                return (apiConfig?.parameters || []).some(takesKPPhenotypes);
+            } catch (error) {
+                // apiParameters throws on the pages that use the config, this is read on front pages too
+                return false;
+            }
         },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {
@@ -416,10 +421,7 @@ mountPage(Template, {
                 let parameters = apiConfig.parameters;
 
                 parameters.map((pr) => {
-                    if (
-                        pr.parameter == "phenotype" &&
-                        pr.values == "kp phenotypes"
-                    ) {
+                    if (takesKPPhenotypes(pr)) {
                         pr.values = this.phenotypesInSession.map((p) => p.name);
                     }
                 });
@@ -1135,10 +1137,7 @@ mountPage(Template, {
 
                         if (apis) {
                             apis.parameters.map((pr) => {
-                                if (
-                                    pr.parameter == "phenotype" &&
-                                    pr.values == "kp phenotypes"
-                                ) {
+                                if (takesKPPhenotypes(pr)) {
                                     isKPPhenotype = true;
                                 }
                             });
