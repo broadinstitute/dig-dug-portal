@@ -6,8 +6,9 @@
  * digest already identified as relevant (lead variant, exon-resolved
  * missense genes, linked-vs-unlinked QTL contrasts) — reusing that pure
  * digest-building logic directly, not the AI summary action's LLM call, so
- * this panel doesn't depend on "Generate AI summary" having been run. If LD
- * scores aren't available (the one thing that blocks the digest), falls
+ * this panel doesn't depend on "Generate AI summary" having been run — and
+ * unions in every gene from the Gene scores section for the search region.
+ * If LD scores aren't available (the one thing that blocks the digest), falls
  * back to a simpler gene set (lead variant's exon-resolved gene(s) plus the
  * most significant QTL genes) and skips locus-specific cross-referencing.
  *
@@ -45,14 +46,91 @@ function pubmedTermPart(text) {
     return /\s/.test(value) ? `"${value}"[Title/Abstract]` : `${value}[Title/Abstract]`;
 }
 
-export function buildGp2PubmedQueryTerm({ phenotype, genes }) {
-    const synonyms = GP2_PHENOTYPE_PUBMED_SYNONYMS[phenotype] || [phenotype];
-    const phenotypeParts = synonyms.map(pubmedTermPart).filter(Boolean);
-    const geneParts = Array.from(new Set(genes || [])).map(pubmedTermPart).filter(Boolean);
-    if (!phenotypeParts.length || !geneParts.length) {
+export function phenotypePubmedSynonyms(phenotype) {
+    const name = String(phenotype || "").trim();
+    if (!name) {
+        return [];
+    }
+    return GP2_PHENOTYPE_PUBMED_SYNONYMS[name] || [name];
+}
+
+/**
+ * PubMed Title/Abstract query: phenotype AND (genes OR variants).
+ * Variants are optional — AI-off mode may pass only the lead rsID.
+ */
+export function buildGp2PubmedQueryTerm({ phenotype, genes, variants = [] }) {
+    const phenotypeParts = phenotypePubmedSynonyms(phenotype)
+        .map(pubmedTermPart)
+        .filter(Boolean);
+    const geneParts = Array.from(new Set(genes || []))
+        .map(pubmedTermPart)
+        .filter(Boolean);
+    const variantParts = Array.from(new Set(variants || []))
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+        .map(pubmedTermPart)
+        .filter(Boolean);
+    const entityParts = [...geneParts, ...variantParts];
+    if (!phenotypeParts.length || !entityParts.length) {
         return null;
     }
-    return `(${phenotypeParts.join(" OR ")}) AND (${geneParts.join(" OR ")})`;
+    return `(${phenotypeParts.join(" OR ")}) AND (${entityParts.join(" OR ")})`;
+}
+
+/** Lead association row → PubMed/search display terms (rsID preferred). */
+export function leadVariantSearchTerms(associationRows = []) {
+    const lead = pickLeadVariantRow(associationRows);
+    if (!lead) {
+        return [];
+    }
+    const terms = [];
+    const rs = String(lead.rsID || lead.dbSNP || "").trim();
+    const varId = String(lead["Variant ID"] || lead.varId || "").trim();
+    if (rs) {
+        terms.push(rs);
+    } else if (varId) {
+        terms.push(varId);
+    }
+    return terms;
+}
+
+/**
+ * AI-off LE gene plan: Gene scores symbols only (lead is a separate variant term).
+ */
+export function geneSearchPlanFromGeneScores(geneScoreRows = []) {
+    const genes = geneNamesFromGeneScoreRows(geneScoreRows);
+    const geneReasons = genes.map((gene) => ({
+        gene,
+        reasons: ["Gene scores for this region"],
+    }));
+    return { genes, geneReasons };
+}
+
+/** Terms to mark in AI-off paper abstracts (genes, lead, phenotype synonyms). */
+export function buildGp2LiteratureHighlightTerms({
+    genes = [],
+    variants = [],
+    phenotype = null,
+} = {}) {
+    const terms = [];
+    const seen = new Set();
+    const push = (value) => {
+        const text = String(value || "").trim();
+        if (!text) {
+            return;
+        }
+        const key = text.toLowerCase();
+        if (seen.has(key)) {
+            return;
+        }
+        seen.add(key);
+        terms.push(text);
+    };
+    (genes || []).forEach(push);
+    (variants || []).forEach(push);
+    phenotypePubmedSynonyms(phenotype).forEach(push);
+    // Longer terms first so "Parkinson's Disease" wins over "Parkinson".
+    return terms.sort((a, b) => b.length - a.length);
 }
 
 function formatCompactPValue(value) {
@@ -158,6 +236,57 @@ export function geneSearchPlanFromAiSummaryDigest(digest) {
 /** Genes referenced anywhere in an AI-summary digest (variants + QTL hits). */
 export function geneNamesFromAiSummaryDigest(digest) {
     return geneSearchPlanFromAiSummaryDigest(digest).genes;
+}
+
+/** Unique gene symbols from Gene scores (`gene-scoring`) rows. */
+export function geneNamesFromGeneScoreRows(rows = []) {
+    const names = new Set();
+    (rows || []).forEach((row) => {
+        const symbol = String(row?.Gene || row?.gene || row?.symbol || "").trim();
+        if (symbol) {
+            names.add(symbol);
+        }
+    });
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * Union digest/fallback search genes with Gene scores symbols. Existing
+ * reason lists are preserved; score-only genes get a Gene scores reason.
+ */
+export function mergeGeneSearchPlanWithGeneScores(plan, geneScoreRows = []) {
+    const byGene = new Map();
+    (plan?.geneReasons || []).forEach((entry) => {
+        const gene = entry?.gene;
+        const reasons = entry?.reasons || [];
+        if (reasons.length) {
+            reasons.forEach((reason) => {
+                addGeneReason(byGene, gene, reason);
+            });
+        } else {
+            addGeneReason(byGene, gene, "Locus digest");
+        }
+    });
+    (plan?.genes || []).forEach((gene) => {
+        if (!byGene.has(String(gene || "").trim())) {
+            addGeneReason(byGene, gene, "Locus digest");
+        }
+    });
+    geneNamesFromGeneScoreRows(geneScoreRows).forEach((gene) => {
+        addGeneReason(byGene, gene, "Gene scores for this region");
+    });
+
+    const geneReasons = Array.from(byGene.entries())
+        .map(([gene, reasons]) => ({
+            gene,
+            reasons: Array.from(reasons),
+        }))
+        .sort((a, b) => a.gene.localeCompare(b.gene));
+
+    return {
+        genes: geneReasons.map((entry) => entry.gene),
+        geneReasons,
+    };
 }
 
 /**
@@ -545,6 +674,66 @@ export function formatAbstractWithHighlightedQuote(
 }
 
 /**
+ * Escape abstract HTML and wrap every non-overlapping match of `terms`
+ * (genes, lead variant, phenotype) in <mark>. Longer terms win first.
+ * Returns `{ html, matched }`.
+ */
+export function formatAbstractWithHighlightedTerms(
+    abstract,
+    terms = [],
+    { markClass = "gp2-lit-abstract-mark" } = {}
+) {
+    const source = String(abstract || "");
+    if (!source) {
+        return { html: "", matched: false };
+    }
+    const needles = (terms || [])
+        .map((term) => String(term || "").trim())
+        .filter(Boolean)
+        .sort((a, b) => b.length - a.length);
+    if (!needles.length) {
+        return { html: escapeHtmlForHighlight(source), matched: false };
+    }
+
+    const lower = source.toLowerCase();
+    const ranges = [];
+    needles.forEach((term) => {
+        const needle = term.toLowerCase();
+        let from = 0;
+        while (from < lower.length) {
+            const hit = lower.indexOf(needle, from);
+            if (hit < 0) {
+                break;
+            }
+            const end = hit + needle.length;
+            const overlaps = ranges.some(
+                (range) => hit < range.end && end > range.start
+            );
+            if (!overlaps) {
+                ranges.push({ start: hit, end });
+            }
+            from = hit + needle.length;
+        }
+    });
+    if (!ranges.length) {
+        return { html: escapeHtmlForHighlight(source), matched: false };
+    }
+    ranges.sort((a, b) => a.start - b.start);
+
+    let html = "";
+    let cursor = 0;
+    ranges.forEach((range) => {
+        html += escapeHtmlForHighlight(source.slice(cursor, range.start));
+        html += `<mark class="${markClass}">${escapeHtmlForHighlight(
+            source.slice(range.start, range.end)
+        )}</mark>`;
+        cursor = range.end;
+    });
+    html += escapeHtmlForHighlight(source.slice(cursor));
+    return { html, matched: true };
+}
+
+/**
  * Parses the LLM's claims/excerpts/gaps response and verifies every
  * excerpt is an actual verbatim substring of the paper it's attributed to
  * (whitespace-insensitive, case-insensitive) — an LLM can paraphrase instead
@@ -703,39 +892,68 @@ export async function fetchGp2LiteraturePapers({
     associationRows = [],
     qtlRows = [],
     genes = [],
+    geneScoreRows = [],
+    aiSupport = true,
 }) {
     const phenotype = session?.phenotype?.name;
     if (!phenotype) {
         return { ok: false, reason: "no-data" };
     }
 
-    const digestResult = await resolveGp2AiSummaryDigest({
-        session,
-        region,
-        associationRows,
-        qtlRows,
-        genes,
-    });
-    const locusDigest = digestResult.ok ? digestResult.digest : null;
-
     let geneNames;
     let geneReasons = [];
     let digestFindings = [];
-    if (locusDigest) {
-        const plan = geneSearchPlanFromAiSummaryDigest(locusDigest);
+    let locusDigest = null;
+    let usedLocusDigest = false;
+    let variantsSearched = [];
+
+    if (!aiSupport) {
+        // AI-off: Gene scores genes + lead variant only (no LD digest expansion).
+        const plan = geneSearchPlanFromGeneScores(geneScoreRows);
         geneNames = plan.genes;
         geneReasons = plan.geneReasons;
-        digestFindings = describeGp2LocusDigestFindings(locusDigest);
+        variantsSearched = leadVariantSearchTerms(associationRows);
     } else {
-        geneNames = fallbackGeneNames({ associationRows, qtlRows, genes });
-        geneReasons = geneNames.map((gene) => ({
-            gene,
-            reasons: ["Fallback gene set (LD digest unavailable)"],
-        }));
+        const digestResult = await resolveGp2AiSummaryDigest({
+            session,
+            region,
+            associationRows,
+            qtlRows,
+            genes,
+        });
+        locusDigest = digestResult.ok ? digestResult.digest : null;
+
+        let plan;
+        if (locusDigest) {
+            plan = geneSearchPlanFromAiSummaryDigest(locusDigest);
+            digestFindings = describeGp2LocusDigestFindings(locusDigest);
+            usedLocusDigest = true;
+        } else {
+            const fallbackGenes = fallbackGeneNames({
+                associationRows,
+                qtlRows,
+                genes,
+            });
+            plan = {
+                genes: fallbackGenes,
+                geneReasons: fallbackGenes.map((gene) => ({
+                    gene,
+                    reasons: ["Fallback gene set (LD digest unavailable)"],
+                })),
+            };
+        }
+
+        const merged = mergeGeneSearchPlanWithGeneScores(plan, geneScoreRows);
+        geneNames = merged.genes;
+        geneReasons = merged.geneReasons;
     }
 
-    const term = buildGp2PubmedQueryTerm({ phenotype, genes: geneNames });
-    if (!geneNames.length || !term) {
+    const term = buildGp2PubmedQueryTerm({
+        phenotype,
+        genes: geneNames,
+        variants: variantsSearched,
+    });
+    if ((!geneNames.length && !variantsSearched.length) || !term) {
         return { ok: false, reason: "no-genes" };
     }
 
@@ -747,6 +965,12 @@ export async function fetchGp2LiteraturePapers({
         return pageResult;
     }
 
+    const highlightTerms = buildGp2LiteratureHighlightTerms({
+        genes: geneNames,
+        variants: variantsSearched,
+        phenotype,
+    });
+
     return {
         ok: true,
         phenotype,
@@ -756,7 +980,10 @@ export async function fetchGp2LiteraturePapers({
         digestFindings,
         papers: pageResult.papers,
         locusDigest,
-        usedLocusDigest: Boolean(locusDigest),
+        usedLocusDigest,
+        variantsSearched,
+        highlightTerms,
+        aiSupport: Boolean(aiSupport),
     };
 }
 

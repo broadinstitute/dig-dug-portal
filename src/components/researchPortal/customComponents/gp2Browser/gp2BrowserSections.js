@@ -8,6 +8,15 @@ import {
 /** Section registry for GP2 Browser workspace (visualizer & drawer stack order). */
 export const GP2_BROWSER_SECTIONS = [
     {
+        id: "gene-scores",
+        label: "Gene scores",
+        drawerLabel: "Gene scores",
+        shortLabel: "Scores",
+        description:
+            "Locus-grouped gene prioritization scores for the searched region.",
+        trackImplemented: false,
+    },
+    {
         id: "associations",
         label: "Associations",
         drawerLabel: "Asso.",
@@ -20,15 +29,6 @@ export const GP2_BROWSER_SECTIONS = [
         drawerLabel: "QTL evidences",
         shortLabel: "QTL",
         description: "QTL associations for the viewing region.",
-        trackImplemented: false,
-    },
-    {
-        id: "gene-scores",
-        label: "Gene scores",
-        drawerLabel: "Gene scores",
-        shortLabel: "Scores",
-        description:
-            "Locus-grouped gene prioritization scores for the searched region.",
         trackImplemented: false,
     },
     {
@@ -74,9 +74,9 @@ export const GP2_BROWSER_SECTIONS = [
 ];
 
 export const GP2_DEFAULT_VISIBLE_SECTION_IDS = [
+    "gene-scores",
     "associations",
     "qtl-evidences",
-    "gene-scores",
     "genes",
 ];
 

@@ -1,7 +1,7 @@
 <template>
     <div class="gp2-lit-evidence">
         <div
-            v-if="synthesizing || kgLoading"
+            v-if="aiSupport && (synthesizing || kgLoading)"
             class="gp2-lit-evidence-status"
             role="status"
             aria-live="polite"
@@ -14,7 +14,7 @@
             }}
         </div>
         <div
-            v-if="synthesisError"
+            v-if="aiSupport && synthesisError"
             class="gp2-lit-evidence-status gp2-lit-evidence-status-error"
             role="alert"
         >
@@ -23,18 +23,63 @@
 
         <p class="gp2-lit-evidence-query">
             Searched PubMed for
-            <strong>{{ genesSearched.join(", ") || "—" }}</strong>
-            <span v-if="usedLocusDigest"> (genes from this locus digest)</span>
+            <strong>{{ searchEntitiesLabel }}</strong>
+            <span v-if="!aiSupport"> (Gene scores + lead variant; AI support off)</span>
+            <span v-else-if="usedLocusDigest"> (genes from this locus digest)</span>
             <span v-else> (LD data unavailable; used a simpler gene set)</span>.
         </p>
 
-        <p class="gp2-lit-evidence-variability-note" role="note">
+        <p
+            v-if="aiSupport"
+            class="gp2-lit-evidence-variability-note"
+            role="note"
+        >
             Note: re-running Literature evidence on the same locus can produce slightly
             different evidences, excerpts, and networks. The PubMed paper set is usually
             stable; wording and granularity can vary because synthesis is model-based.
         </p>
 
-        <div class="gp2-lit-evidence-tabs" role="tablist">
+        <template v-if="!aiSupport">
+            <section class="gp2-lit-evidence-papers gp2-lit-evidence-papers-basic">
+                <h3>PubMed papers</h3>
+                <p class="gp2-lit-evidence-findings-note">
+                    {{ papers.length }} paper{{ papers.length === 1 ? "" : "s" }} —
+                    gene symbols, lead variant, and phenotype are highlighted in
+                    abstracts when they appear.
+                </p>
+                <ol v-if="papers.length" class="gp2-lit-evidence-papers-list">
+                    <li v-for="paper in papers" :key="`basic-paper-${paper.pmid}`">
+                        <a
+                            class="gp2-lit-evidence-excerpt-title"
+                            :href="`https://pubmed.ncbi.nlm.nih.gov/${paper.pmid}/`"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {{ paper.title || `PMID ${paper.pmid}` }}
+                        </a>
+                        <div class="gp2-lit-evidence-excerpt-sub">
+                            PMID: {{ paper.pmid
+                            }}<span v-if="paperListMeta(paper)"> · {{ paperListMeta(paper) }}</span
+                            ><span v-if="(paper.authors || []).length"><br /></span
+                            >{{ (paper.authors || []).join(", ") }}
+                        </div>
+                        <div
+                            v-if="paper.abstract"
+                            class="gp2-lit-evidence-excerpt-abstract"
+                        >
+                            <div
+                                class="gp2-lit-evidence-excerpt-abstract-text"
+                                v-html="highlightedTermsAbstractHtml(paper.abstract)"
+                            ></div>
+                        </div>
+                        <p v-else class="gp2-lit-evidence-empty">No abstract available.</p>
+                    </li>
+                </ol>
+                <p v-else class="gp2-lit-evidence-empty">No PubMed papers returned.</p>
+            </section>
+        </template>
+
+        <div v-if="aiSupport" class="gp2-lit-evidence-tabs" role="tablist">
             <button
                 type="button"
                 role="tab"
@@ -64,7 +109,11 @@
             </button>
         </div>
 
-        <div v-show="activeTab === 'evidences'" class="gp2-lit-evidence-evidences-tab">
+        <div
+            v-if="aiSupport"
+            v-show="activeTab === 'evidences'"
+            class="gp2-lit-evidence-evidences-tab"
+        >
             <p v-if="!papers.length" class="gp2-lit-evidence-empty">
                 No PubMed papers matched this search.
             </p>
@@ -134,7 +183,11 @@
             </template>
         </div>
 
-        <div v-show="activeTab === 'excerpts'" class="gp2-lit-evidence-excerpts-tab">
+        <div
+            v-if="aiSupport"
+            v-show="activeTab === 'excerpts'"
+            class="gp2-lit-evidence-excerpts-tab"
+        >
             <h3 class="gp2-lit-evidence-heading">
                 Excerpts
                 <span class="gp2-lit-ai-badge" title="Generated with AI">AI</span>
@@ -215,7 +268,11 @@
             </section>
         </div>
 
-        <div v-show="activeTab === 'summaryDigest'" class="gp2-lit-evidence-digest-tab">
+        <div
+            v-if="aiSupport"
+            v-show="activeTab === 'summaryDigest'"
+            class="gp2-lit-evidence-digest-tab"
+        >
             <section class="gp2-lit-evidence-context">
                 <div v-if="aiSummary" class="gp2-lit-evidence-ai-summary">
                     <h3 class="gp2-lit-evidence-heading">
@@ -267,7 +324,10 @@
 <script>
 import GP2BrowserLiteratureFootnote from "./GP2BrowserLiteratureFootnote.vue";
 import GP2BrowserLiteratureKgNetwork from "./GP2BrowserLiteratureKgNetwork.vue";
-import { formatAbstractWithHighlightedQuote } from "./gp2BrowserLiteratureEvidence.js";
+import {
+    formatAbstractWithHighlightedQuote,
+    formatAbstractWithHighlightedTerms,
+} from "./gp2BrowserLiteratureEvidence.js";
 import { downloadGp2LiteratureEvidenceHtml } from "./gp2BrowserLiteratureEvidenceExport.js";
 
 export default {
@@ -280,6 +340,19 @@ export default {
         genesSearched: {
             type: Array,
             default: () => [],
+        },
+        variantsSearched: {
+            type: Array,
+            default: () => [],
+        },
+        highlightTerms: {
+            type: Array,
+            default: () => [],
+        },
+        /** False = papers-only LE run (no synthesis / KG / digest tabs). */
+        aiSupport: {
+            type: Boolean,
+            default: true,
         },
         /** Each: { gene, reasons: string[] }. */
         geneReasons: {
@@ -367,6 +440,18 @@ export default {
         };
     },
     computed: {
+        searchEntitiesLabel() {
+            const genes = (this.genesSearched || []).filter(Boolean);
+            const variants = (this.variantsSearched || []).filter(Boolean);
+            const parts = [];
+            if (genes.length) {
+                parts.push(genes.join(", "));
+            }
+            if (variants.length) {
+                parts.push(`lead ${variants.join(", ")}`);
+            }
+            return parts.join("; ") || "—";
+        },
         resolvedGeneReasons() {
             if (Array.isArray(this.geneReasons) && this.geneReasons.length) {
                 return this.geneReasons;
@@ -374,9 +459,11 @@ export default {
             return (this.genesSearched || []).map((gene) => ({
                 gene,
                 reasons: [
-                    this.usedLocusDigest
-                        ? "Included from the locus digest"
-                        : "Fallback gene set (LD digest unavailable)",
+                    this.aiSupport
+                        ? this.usedLocusDigest
+                            ? "Included from the locus digest"
+                            : "Fallback gene set (LD digest unavailable)"
+                        : "Gene scores for this region",
                 ],
             }));
         },
@@ -421,6 +508,10 @@ export default {
             if (this.$refs.claimsCol) {
                 this.columnWidth = this.$refs.claimsCol.clientWidth;
             }
+        },
+        highlightedTermsAbstractHtml(abstract) {
+            return formatAbstractWithHighlightedTerms(abstract, this.highlightTerms)
+                .html;
         },
         claimAnchorId(number) {
             return `gp2-lit-claim-${number}`;
@@ -779,6 +870,19 @@ export default {
     margin-top: 20px;
     padding-top: 14px;
     border-top: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.gp2-lit-evidence-papers-basic {
+    margin-top: 8px;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.gp2-lit-evidence-papers-basic .gp2-lit-evidence-excerpt-abstract-text {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
 }
 
 .gp2-lit-evidence-papers-list {

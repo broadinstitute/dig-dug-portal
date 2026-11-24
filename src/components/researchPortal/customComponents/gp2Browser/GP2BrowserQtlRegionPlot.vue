@@ -18,30 +18,60 @@
                 <span>Recombination hotspot (&gt; {{ recombinationBandMinRate }} cM/Mb)</span>
             </span>
         </div>
-        <div v-if="showLegend && legendGenes.length" class="gp2-qtl-region-plot-legend gp2-qtl-region-plot-gene-legend">
-            <label
-                v-for="entry in legendGenes"
-                :key="entry.gene"
-                class="vks-legend-item gp2-qtl-gene-legend-item"
-                @mouseenter="$emit('hover-gene', entry.gene)"
-                @mouseleave="$emit('hover-gene', null)"
+        <div
+            v-if="showLegend && legendGenes.length"
+            class="gp2-qtl-region-plot-gene-legend-wrap"
+        >
+            <button
+                type="button"
+                class="gp2-qtl-gene-legend-toggle"
+                :aria-expanded="geneLegendExpanded ? 'true' : 'false'"
+                :title="
+                    geneLegendExpanded
+                        ? 'Collapse gene list'
+                        : 'Expand gene list'
+                "
+                @click="geneLegendExpanded = !geneLegendExpanded"
             >
-                <input
-                    type="checkbox"
-                    :style="{ accentColor: entry.color }"
-                    :checked="!deselectedGenes.includes(entry.gene)"
-                    @change="onToggleGeneChecked(entry.gene, $event)"
-                />
-                <span>{{ entry.gene }}</span>
-            </label>
-            <label class="vks-legend-item gp2-qtl-gene-legend-item gp2-qtl-gene-legend-all">
-                <input
-                    type="checkbox"
-                    :checked="deselectedGenes.length === 0"
-                    @change="onToggleAllGenesChecked($event)"
-                />
-                <span>Select / unselect all</span>
-            </label>
+                <span class="gp2-qtl-gene-legend-toggle-chevron" aria-hidden="true">
+                    {{ geneLegendExpanded ? "▾" : "▸" }}
+                </span>
+                <span class="gp2-qtl-gene-legend-toggle-label">
+                    Genes
+                    <span class="gp2-qtl-gene-legend-toggle-count">
+                        {{ selectedLegendGeneCount }}/{{ legendGenes.length }}
+                        selected
+                    </span>
+                </span>
+            </button>
+            <div
+                v-show="geneLegendExpanded"
+                class="gp2-qtl-region-plot-legend gp2-qtl-region-plot-gene-legend"
+            >
+                <label
+                    v-for="entry in legendGenes"
+                    :key="entry.gene"
+                    class="vks-legend-item gp2-qtl-gene-legend-item"
+                    @mouseenter="$emit('hover-gene', entry.gene)"
+                    @mouseleave="$emit('hover-gene', null)"
+                >
+                    <input
+                        type="checkbox"
+                        :style="{ accentColor: entry.color }"
+                        :checked="!deselectedGenes.includes(entry.gene)"
+                        @change="onToggleGeneChecked(entry.gene, $event)"
+                    />
+                    <span>{{ entry.gene }}</span>
+                </label>
+                <label class="vks-legend-item gp2-qtl-gene-legend-item gp2-qtl-gene-legend-all">
+                    <input
+                        type="checkbox"
+                        :checked="deselectedGenes.length === 0"
+                        @change="onToggleAllGenesChecked($event)"
+                    />
+                    <span>Select / unselect all</span>
+                </label>
+            </div>
         </div>
         <div ref="canvasWrap" class="gp2-qtl-region-plot-canvas-wrap">
             <canvas
@@ -287,6 +317,8 @@ export default {
     },
     data() {
         return {
+            /** Collapsed by default so association + QTL plots stay closer. */
+            geneLegendExpanded: false,
             dotPositions: [],
             canvasWidth: 0,
             canvasHeight: 0,
@@ -318,6 +350,11 @@ export default {
             return Object.keys(this.geneColorMap || {})
                 .sort((a, b) => a.localeCompare(b))
                 .map((gene) => ({ gene, color: this.geneColorMap[gene] }));
+        },
+        selectedLegendGeneCount() {
+            const deselected = new Set(this.deselectedGenes || []);
+            return this.legendGenes.filter((entry) => !deselected.has(entry.gene))
+                .length;
         },
         recombinationBandFill() {
             return VKS_TRACK_HIGHLIGHT_BAND_FILL;
@@ -383,6 +420,13 @@ export default {
         },
         canPan() {
             return Boolean(this.region && this.plotRows?.length);
+        },
+        deselectedGeneSet() {
+            return new Set(
+                (this.deselectedGenes || [])
+                    .map((gene) => String(gene || "").trim())
+                    .filter(Boolean)
+            );
         },
         viewingRegionWidthLabel() {
             const widthBp = this.effectiveHalfWidthBp * 2;
@@ -514,6 +558,12 @@ export default {
         hoveredLegendGene() {
             this.renderPlot();
         },
+        deselectedGenes: {
+            handler() {
+                this.renderPlot();
+            },
+            deep: true,
+        },
         regionZoom() {
             this.renderPlot();
         },
@@ -641,8 +691,18 @@ export default {
             });
 
             const dotRadius = this.isCompactPlot ? 6 : VKS_DEFAULT_DOT_RADIUS;
+            const deselected = this.deselectedGeneSet;
+            const hoveredGene = String(this.hoveredLegendGene || "").trim();
             this.dotPositions = [];
             this.plotRows.forEach((row) => {
+                const gene = String(row.Gene || "").trim();
+                const isHovered = Boolean(hoveredGene) && gene === hoveredGene;
+                // Keep axes with an empty landscape when all genes are unchecked;
+                // hovering a legend gene still previews its dots.
+                if (deselected.has(gene) && !isHovered) {
+                    return;
+                }
+
                 const position = row.Position;
                 const negLog10 = row["-log10(P-Value)"];
                 if (
@@ -680,7 +740,7 @@ export default {
                         dotColor,
                         dotRadius,
                         pointingUp,
-                        Boolean(this.hoveredLegendGene) && row.Gene === this.hoveredLegendGene
+                        isHovered
                     );
                 }
             });
@@ -1182,8 +1242,44 @@ export default {
     color: #333333;
 }
 
+.gp2-qtl-region-plot-gene-legend-wrap {
+    padding: 0 6px 10px;
+}
+
+.gp2-qtl-gene-legend-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 4px;
+    padding: 2px 4px;
+    border: 0;
+    background: transparent;
+    color: var(--cfde-blue, #2c5c97);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+    cursor: pointer;
+}
+
+.gp2-qtl-gene-legend-toggle:hover {
+    color: var(--cfde-ink, #1b365d);
+}
+
+.gp2-qtl-gene-legend-toggle-chevron {
+    display: inline-block;
+    width: 0.9em;
+    text-align: center;
+}
+
+.gp2-qtl-gene-legend-toggle-count {
+    margin-left: 4px;
+    font-weight: 600;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
 .gp2-qtl-region-plot-gene-legend {
-    padding-top: 0;
+    padding-top: 2px;
+    padding-bottom: 4px;
     display: flex;
     flex-wrap: wrap;
     row-gap: 6px;

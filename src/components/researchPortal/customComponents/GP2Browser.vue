@@ -13,6 +13,7 @@
                 </div>
                 <GP2BrowserMenuBar
                     :recent-searches="recentSearches"
+                    :enable-ai-support="enableAiSupport"
                     @action="onMenuAction"
                 />
             </div>
@@ -143,6 +144,7 @@
                     :step-states="assistantState.stepStates"
                     :cs2ct-star-prompt="assistantState.cs2ctStarPrompt"
                     :understudied-star-prompt="assistantState.understudiedStarPrompt"
+                    :action-catalog-sections="assistantActionCatalogSections"
                     :panel-style="assistantPanelStyle"
                     @close="aiAssistantOpen = false"
                     @update:activeTab="onAssistantActiveTabUpdate"
@@ -252,11 +254,13 @@
             :resolve-host-for-index="bioIndexHostFor"
             :tool-name="'GP2 Browser'"
             :suggest-actions-after-user-action="suggestActionsAfterUserAction"
+            :enable-ai-support="enableAiSupport"
             :refetch-associations-on-zoom="refetchAssociationsOnZoom"
             @close="settingsOpen = false"
             @update:visibleSectionIds="onVisibleSectionIdsUpdate"
             @update:projectId="onProjectIdUpdate"
             @update:suggestActionsAfterUserAction="onSuggestActionsAfterUserActionUpdate"
+            @update:enableAiSupport="onEnableAiSupportUpdate"
             @update:refetchAssociationsOnZoom="onRefetchAssociationsOnZoomUpdate"
         />
 
@@ -266,6 +270,7 @@
             :search-region="activeRegion"
             :literature-evidence-state="literatureEvidenceState"
             :ai-summary-message="lastAiSummaryMessage"
+            :enable-ai-support="enableAiSupport"
             :region-label="literatureEvidenceRegionLabel"
             @close="activeResearchPanelId = null"
             @navigate-region="onGenePrioritizationNavigateRegion"
@@ -502,6 +507,7 @@ import {
 import { matchVksAssistantRequest } from "./kpVariantSifter/variantSifterAssistantActionCatalog.js";
 import {
     GP2_AI_SUMMARY_ACTION_ID,
+    GP2_ASSISTANT_ACTION_CATALOG_SECTIONS,
     GP2_LITERATURE_EVIDENCE_ACTION_ID,
     gp2FindAssistantAction,
 } from "./gp2Browser/gp2BrowserAssistantActionCatalog.js";
@@ -680,6 +686,12 @@ function emptyLiteratureEvidenceState() {
         phenotype: null,
         query: null,
         genesSearched: [],
+        /** Lead (and only) variant terms used when AI support is off. */
+        variantsSearched: [],
+        /** Terms marked in AI-off paper abstracts (genes, lead, phenotype). */
+        highlightTerms: [],
+        /** Whether this LE run used the AI synthesis/KG path. */
+        aiSupport: false,
         /** Each: { gene, reasons: string[] } — why this gene was searched. */
         geneReasons: [],
         /** Bullet strings of structured locus findings from the digest. */
@@ -782,6 +794,8 @@ export default Vue.component("gp2-browser", {
             visibleSectionIds: gp2DefaultVisibleSectionIds(),
             settingsOpen: false,
             suggestActionsAfterUserAction: false,
+            /** When false, LE is papers-only (Gene scores + lead); AI summary/KG off. */
+            enableAiSupport: false,
             refetchAssociationsOnZoom: true,
             canvasActive: false,
             welcomeOpen: true,
@@ -889,6 +903,33 @@ export default Vue.component("gp2-browser", {
                 isSectionVisible(this.visibleSectionIds, section.id)
             );
         },
+        assistantActionCatalogSections() {
+            if (this.enableAiSupport) {
+                return GP2_ASSISTANT_ACTION_CATALOG_SECTIONS;
+            }
+            return GP2_ASSISTANT_ACTION_CATALOG_SECTIONS.map((section) => ({
+                ...section,
+                groups: (section.groups || [])
+                    .filter((group) => group.group !== "AI summary")
+                    .map((group) => {
+                        if (group.group !== "Literature evidence") {
+                            return group;
+                        }
+                        return {
+                            ...group,
+                            actions: (group.actions || []).map((action) =>
+                                action.id === GP2_LITERATURE_EVIDENCE_ACTION_ID
+                                    ? {
+                                          ...action,
+                                          description:
+                                              "Search PubMed using Gene scores genes and the lead variant, then list papers with those terms highlighted in abstracts (AI support is off).",
+                                      }
+                                    : action
+                            ),
+                        };
+                    }),
+            }));
+        },
         exportSessionDefaultFilename() {
             if (!this.searchSession) {
                 return "vks-session-export.json";
@@ -946,6 +987,14 @@ export default Vue.component("gp2-browser", {
             }
             if (hasS2gTrackData(this.s2gState)) {
                 parts.push("SNP 2 gene links");
+            }
+            const geneScoreCount = this.geneScoresState?.rows?.length || 0;
+            if (geneScoreCount > 0) {
+                parts.push(
+                    `${geneScoreCount.toLocaleString()} gene score row${
+                        geneScoreCount === 1 ? "" : "s"
+                    }`
+                );
             }
             return parts.join(" · ");
         },
@@ -2784,6 +2833,9 @@ export default Vue.component("gp2-browser", {
                 return;
             }
             if (payload.action === "generateAiSummary") {
+                if (!this.enableAiSupport) {
+                    return;
+                }
                 this.onExecuteCatalogAction(GP2_AI_SUMMARY_ACTION_ID);
             }
         },
@@ -3116,6 +3168,31 @@ export default Vue.component("gp2-browser", {
         onSuggestActionsAfterUserActionUpdate(enabled) {
             this.suggestActionsAfterUserAction = Boolean(enabled);
         },
+        onEnableAiSupportUpdate(enabled) {
+            const next = Boolean(enabled);
+            if (next === this.enableAiSupport) {
+                return;
+            }
+            this.enableAiSupport = next;
+            // Clear LE so the next run matches the new AI mode.
+            if (
+                this.literatureEvidenceState.loaded ||
+                this.literatureEvidenceState.loading ||
+                this.literatureEvidenceState.synthesizing ||
+                this.literatureEvidenceState.kgLoading
+            ) {
+                this.literatureEvidenceActionToken += 1;
+                this.literatureEvidenceState = emptyLiteratureEvidenceState();
+                this.literatureEvidenceReportAssistant = false;
+                this.literatureEvidenceAssistantStepId = null;
+                if (!next) {
+                    this.lastAiSummaryMessage = null;
+                }
+            }
+            if (!next) {
+                this.lastAiSummaryMessage = null;
+            }
+        },
         /** Open Actions only when Settings → Suggest Actions is enabled. */
         openAssistantSuggestions() {
             if (this.suggestActionsAfterUserAction) {
@@ -3225,12 +3302,14 @@ export default Vue.component("gp2-browser", {
                 });
                 payload.gp2 = buildGp2SessionExtras({
                     qtlState: this.qtlState,
+                    geneScoresState: this.geneScoresState,
                     assistantState: this.assistantState,
                     literatureEvidenceState: this.literatureEvidenceState,
                     aiSummaryMessage: this.lastAiSummaryMessage,
                     visibleSectionIds: this.visibleSectionIds,
                     viewingCenterBp: this.viewingCenterBp,
                     viewingRegionWidthBp: this.viewingRegionWidthBp,
+                    enableAiSupport: this.enableAiSupport,
                 });
                 this.exportSessionBusy = true;
                 const result = await saveJsonBundle(filename, payload);
@@ -3362,6 +3441,29 @@ export default Vue.component("gp2-browser", {
                 this.qtlState = emptyQtlState(this.qtlState);
                 this.lastQtlRegion = null;
             }
+            this.geneScoresRequestToken += 1;
+            if (gp2Extras?.geneScoresRows?.length) {
+                const phenotypeName =
+                    this.searchSession?.phenotype?.name ||
+                    this.searchSession?.phenotype ||
+                    null;
+                this.geneScoresState = {
+                    ...emptyGeneScoresState(this.geneScoresState),
+                    rows: gp2Extras.geneScoresRows,
+                    loadedKey:
+                        gp2Extras.geneScoresLoadedKey ||
+                        gp2GeneScoresLoadKey(phenotypeName, this.dataRegion),
+                    visibleFields: Array.isArray(gp2Extras.geneScoresVisibleFields)
+                        ? gp2Extras.geneScoresVisibleFields.slice()
+                        : gp2DefaultGeneScoreVisibleFields(),
+                };
+            } else {
+                this.geneScoresState = emptyGeneScoresState({
+                    visibleFields: Array.isArray(gp2Extras?.geneScoresVisibleFields)
+                        ? gp2Extras.geneScoresVisibleFields
+                        : this.geneScoresState.visibleFields,
+                });
+            }
             this.lastCredibleSetsListRegion = restored.credibleSetsState?.available
                 ?.length
                 ? restoredActiveRegion
@@ -3403,7 +3505,10 @@ export default Vue.component("gp2-browser", {
             this.aiAssistantOpen = false;
             this.literatureEvidenceState =
                 gp2Extras?.literatureEvidenceState || emptyLiteratureEvidenceState();
-            this.lastAiSummaryMessage = gp2Extras?.aiSummaryMessage || null;
+            this.enableAiSupport = Boolean(gp2Extras?.enableAiSupport);
+            this.lastAiSummaryMessage = this.enableAiSupport
+                ? gp2Extras?.aiSummaryMessage || null
+                : null;
             this.viewingCenterBp = gp2Extras?.viewingCenterBp ?? null;
             this.viewingRegionWidthBp = gp2Extras?.viewingRegionWidthBp ?? 0;
             this.syncUrlSearchParams(restored.searchSession);
@@ -6776,6 +6881,9 @@ export default Vue.component("gp2-browser", {
                 return;
             }
             if (actionId === GP2_AI_SUMMARY_ACTION_ID) {
+                if (!this.enableAiSupport) {
+                    return;
+                }
                 await this.runGenerateAiSummaryAction({ silent, stepId });
                 return;
             }
@@ -7658,9 +7766,9 @@ export default Vue.component("gp2-browser", {
             this.literatureEvidenceAssistantStepId = null;
         },
         /**
-         * Literature evidence is a two-stage flow so the dependency is obvious:
-         * (1) open Actions and run AI summary, then (2) open the LE panel and
-         * run PubMed → evidences → knowledge graph.
+         * Literature evidence: with AI support on, two stages (AI summary then
+         * PubMed → synthesis → KG). With AI support off, PubMed paper list only
+         * (Gene scores genes + lead variant).
          */
         async runGenerateLiteratureEvidenceAction({ silent = false, stepId } = {}) {
             const resolvedStepId =
@@ -7706,6 +7814,7 @@ export default Vue.component("gp2-browser", {
                 this.searchSession.regionLabel ||
                 formatRegion(this.searchSession.region) ||
                 "this locus";
+            const aiSupport = Boolean(this.enableAiSupport);
 
             if (!silent) {
                 this.aiAssistantOpen = true;
@@ -7713,46 +7822,52 @@ export default Vue.component("gp2-browser", {
                     ...this.assistantState,
                     activeTab: "request",
                     executing: true,
-                    executionProgressLabel: "Stage 1/2: AI summary…",
+                    executionProgressLabel: aiSupport
+                        ? "Stage 1/2: AI summary…"
+                        : "Searching PubMed…",
                     threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
                         createAssistantStepMessage(
-                            `Literature evidence for ${regionLabel} runs in two stages: first an AI summary of this locus from your loaded data, then a PubMed search and synthesis.`
+                            aiSupport
+                                ? `Literature evidence for ${regionLabel} runs in two stages: first an AI summary of this locus from your loaded data, then a PubMed search and synthesis.`
+                                : `Literature evidence for ${regionLabel} (AI support off): PubMed search using Gene scores genes and the lead variant, then a highlighted paper list.`
                         ),
                     ]),
                 };
             }
 
-            // Stage 1 — AI summary (visible in Actions). Reuse if already done.
-            const sgStepId = this.researchActionStepId(GP2_AI_SUMMARY_ACTION_ID);
-            const sgAlreadyDone =
-                this.isResearchActionStepDone(GP2_AI_SUMMARY_ACTION_ID) &&
-                Boolean(this.lastAiSummaryMessage);
-            if (sgAlreadyDone) {
-                this.appendLiteratureEvidenceAssistantStep(
-                    "Stage 1/2: AI summary already available for this locus — reusing it."
-                );
-            } else {
-                this.appendLiteratureEvidenceAssistantStep(
-                    "Stage 1/2: generating AI summary in Actions…"
-                );
-                const sgOk = await this.runGenerateAiSummaryAction({
-                    silent,
-                    stepId: sgStepId,
-                    offerNext: false,
-                    keepExecuting: true,
-                });
-                if (actionToken !== this.literatureEvidenceActionToken) {
-                    return;
-                }
-                if (!sgOk) {
+            // Stage 1 — AI summary (only when AI support is enabled).
+            if (aiSupport) {
+                const sgStepId = this.researchActionStepId(GP2_AI_SUMMARY_ACTION_ID);
+                const sgAlreadyDone =
+                    this.isResearchActionStepDone(GP2_AI_SUMMARY_ACTION_ID) &&
+                    Boolean(this.lastAiSummaryMessage);
+                if (sgAlreadyDone) {
                     this.appendLiteratureEvidenceAssistantStep(
-                        "AI summary could not be completed. Continuing with literature evidence using the locus digest or a fallback gene set when possible.",
-                        { isClarify: true }
+                        "Stage 1/2: AI summary already available for this locus — reusing it."
                     );
                 } else {
                     this.appendLiteratureEvidenceAssistantStep(
-                        "Stage 1/2 complete. Opening the Literature evidence panel for stage 2…"
+                        "Stage 1/2: generating AI summary in Actions…"
                     );
+                    const sgOk = await this.runGenerateAiSummaryAction({
+                        silent,
+                        stepId: sgStepId,
+                        offerNext: false,
+                        keepExecuting: true,
+                    });
+                    if (actionToken !== this.literatureEvidenceActionToken) {
+                        return;
+                    }
+                    if (!sgOk) {
+                        this.appendLiteratureEvidenceAssistantStep(
+                            "AI summary could not be completed. Continuing with literature evidence using the locus digest or a fallback gene set when possible.",
+                            { isClarify: true }
+                        );
+                    } else {
+                        this.appendLiteratureEvidenceAssistantStep(
+                            "Stage 1/2 complete. Opening the Literature evidence panel for stage 2…"
+                        );
+                    }
                 }
             }
 
@@ -7844,6 +7959,34 @@ export default Vue.component("gp2-browser", {
             this.literatureEvidenceState.error = null;
             this.setLiteratureEvidenceProgress("Resolving genes for this locus…");
             try {
+                const aiSupport = Boolean(this.enableAiSupport);
+                // AI-off always needs Gene scores; AI-on unions them when the section is on.
+                if (aiSupport ? this.isSectionChecked("gene-scores") : true) {
+                    const geneScoresRegion = cloneGenomicRegion(
+                        this.dataRegion || this.searchSession?.region
+                    );
+                    const phenotypeName =
+                        this.searchSession?.phenotype?.name ||
+                        this.searchSession?.phenotype;
+                    const scoresKey = gp2GeneScoresLoadKey(
+                        phenotypeName,
+                        geneScoresRegion
+                    );
+                    if (
+                        this.geneScoresState?.loadedKey !== scoresKey ||
+                        !this.geneScoresState?.rows?.length
+                    ) {
+                        this.setLiteratureEvidenceProgress("Loading gene scores…");
+                        await this.loadGeneScoresForSession({
+                            ...this.searchSession,
+                            region: geneScoresRegion,
+                        });
+                        if (actionToken !== this.literatureEvidenceActionToken) {
+                            return;
+                        }
+                    }
+                }
+
                 this.setLiteratureEvidenceProgress("Searching PubMed…");
                 const result = await fetchGp2LiteraturePapers({
                     session: this.searchSession,
@@ -7851,6 +7994,8 @@ export default Vue.component("gp2-browser", {
                     associationRows: this.associationsState?.rows || [],
                     qtlRows: this.qtlState?.rawRows || [],
                     genes: this.genesState?.data || [],
+                    geneScoreRows: this.geneScoresState?.rows || [],
+                    aiSupport,
                 });
                 if (actionToken !== this.literatureEvidenceActionToken) {
                     return;
@@ -7858,7 +8003,9 @@ export default Vue.component("gp2-browser", {
                 if (!result.ok) {
                     const message =
                         result.reason === "no-genes"
-                            ? "Not enough data to search the literature for this locus (no genes could be resolved). Please select a Type and Tissue in the QTL evidences drawer to load QTL data for this locus, then try again."
+                            ? aiSupport
+                                ? "Not enough data to search the literature for this locus (no genes could be resolved). Please select a Type and Tissue in the QTL evidences drawer to load QTL data for this locus, then try again."
+                                : "Not enough data to search the literature for this locus. Load Gene scores (and association data for the lead variant), then try again."
                             : result.error?.message || "Could not search PubMed for this locus.";
                     this.literatureEvidenceState.error = message;
                     this.finishLiteratureEvidenceAssistantRun({
@@ -7872,6 +8019,11 @@ export default Vue.component("gp2-browser", {
                 this.literatureEvidenceState.phenotype = result.phenotype;
                 this.literatureEvidenceState.query = result.query;
                 this.literatureEvidenceState.genesSearched = result.genesSearched;
+                this.literatureEvidenceState.variantsSearched =
+                    result.variantsSearched || [];
+                this.literatureEvidenceState.highlightTerms =
+                    result.highlightTerms || [];
+                this.literatureEvidenceState.aiSupport = Boolean(result.aiSupport);
                 this.literatureEvidenceState.geneReasons = result.geneReasons || [];
                 this.literatureEvidenceState.digestFindings = result.digestFindings || [];
                 this.literatureEvidenceState.usedLocusDigest = result.usedLocusDigest;
@@ -7881,23 +8033,52 @@ export default Vue.component("gp2-browser", {
                     result.papers.length < GP2_LITERATURE_INITIAL_LIMIT;
                 this.literatureEvidenceState.loading = false;
 
-                (result.digestFindings || []).forEach((finding) => {
-                    this.appendLiteratureEvidenceAssistantStep(finding);
-                });
-                const geneList = (result.genesSearched || []).join(", ") || "the resolved genes";
-                const digestNote = result.usedLocusDigest
-                    ? " (genes from the locus digest)"
-                    : " (fallback gene set; LD digest unavailable)";
+                if (aiSupport) {
+                    (result.digestFindings || []).forEach((finding) => {
+                        this.appendLiteratureEvidenceAssistantStep(finding);
+                    });
+                }
+                const geneList =
+                    (result.genesSearched || []).join(", ") || "the resolved genes";
+                const variantList = (result.variantsSearched || []).join(", ");
+                const digestNote = !aiSupport
+                    ? variantList
+                        ? " (Gene scores + lead variant; AI support off)"
+                        : " (Gene scores; AI support off)"
+                    : result.usedLocusDigest
+                      ? (this.geneScoresState?.rows || []).length
+                          ? " (locus digest + Gene scores)"
+                          : " (genes from the locus digest)"
+                      : (this.geneScoresState?.rows || []).length
+                        ? " (fallback gene set + Gene scores; LD digest unavailable)"
+                        : " (fallback gene set; LD digest unavailable)";
+                const searchLabel = variantList
+                    ? `${geneList}; lead ${variantList}`
+                    : geneList;
                 this.appendLiteratureEvidenceAssistantStep(
                     result.papers.length
                         ? `Found ${result.papers.length} PubMed paper${
                               result.papers.length === 1 ? "" : "s"
-                          } for ${geneList}${digestNote}.`
-                        : `No PubMed papers matched the search for ${geneList}${digestNote}.`
+                          } for ${searchLabel}${digestNote}.`
+                        : `No PubMed papers matched the search for ${searchLabel}${digestNote}.`
                 );
 
                 if (!result.papers.length) {
                     this.finishLiteratureEvidenceAssistantRun({ ok: true });
+                    return;
+                }
+
+                if (!aiSupport) {
+                    this.appendLiteratureEvidenceAssistantStep(
+                        "Literature evidence is ready in the panel (paper list with highlights)."
+                    );
+                    const offerNext = this.literatureEvidenceReportAssistant;
+                    this.finishLiteratureEvidenceAssistantRun({ ok: true });
+                    if (offerNext) {
+                        this.offerRemainingResearchAction(
+                            GP2_LITERATURE_EVIDENCE_ACTION_ID
+                        );
+                    }
                     return;
                 }
 
@@ -8115,7 +8296,9 @@ export default Vue.component("gp2-browser", {
                 if (pageResult.papers.length < GP2_LITERATURE_RESULT_LIMIT) {
                     state.exhausted = true;
                 }
-                await this.synthesizeAndAppendLiteratureEvidence(pageResult.papers);
+                if (state.aiSupport) {
+                    await this.synthesizeAndAppendLiteratureEvidence(pageResult.papers);
+                }
             } catch (error) {
                 state.loadMoreError =
                     error?.message || "Could not load more PubMed results.";

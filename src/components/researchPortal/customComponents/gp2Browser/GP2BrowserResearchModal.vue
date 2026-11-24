@@ -33,16 +33,24 @@
                         type="button"
                         class="gp2-research-head-action"
                         :disabled="literatureBusy"
-                        title="Re-run PubMed search, evidences, and knowledge graph (skips AI summary)"
+                        :title="
+                            enableAiSupport
+                                ? 'Re-run PubMed search, evidences, and knowledge graph (skips AI summary)'
+                                : 'Re-run PubMed search (Gene scores + lead variant; AI support off)'
+                        "
                         @click="$emit('find-literature-evidence')"
                     >
-                        Find evidences
+                        {{ enableAiSupport ? "Find evidences" : "Find papers" }}
                     </button>
                     <button
                         type="button"
                         class="gp2-research-head-action"
                         :disabled="!canDownloadLiteratureEvidence || literatureBusy"
-                        title="Download evidences, excerpts, papers, and network as HTML"
+                        :title="
+                            enableAiSupport
+                                ? 'Download evidences, excerpts, papers, and network as HTML'
+                                : 'Download paper list as HTML'
+                        "
                         @click="downloadLiteratureEvidence"
                     >
                         Download
@@ -105,6 +113,9 @@
                         <GP2BrowserLiteratureEvidencePanel
                             ref="literaturePanel"
                             :genes-searched="literatureEvidenceState.genesSearched"
+                            :variants-searched="literatureEvidenceState.variantsSearched"
+                            :highlight-terms="literatureEvidenceState.highlightTerms"
+                            :ai-support="literatureEvidenceState.aiSupport"
                             :gene-reasons="literatureEvidenceState.geneReasons"
                             :digest-findings="literatureEvidenceState.digestFindings"
                             :ai-summary="aiSummaryMessage"
@@ -174,6 +185,10 @@ export default {
         aiSummaryMessage: {
             type: String,
             default: null,
+        },
+        enableAiSupport: {
+            type: Boolean,
+            default: false,
         },
         /** Human-readable locus label for LE download filename/header. */
         regionLabel: {

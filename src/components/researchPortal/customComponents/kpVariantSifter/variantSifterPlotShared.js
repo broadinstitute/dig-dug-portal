@@ -343,14 +343,16 @@ export function renderRefVariantRsidLabel(
         return;
     }
     ctx.save();
-    ctx.font = "bold 11px sans-serif";
+    // Retina canvases are 2× CSS px; 20px here reads ~10px on screen.
+    ctx.font = "bold 20px sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "bottom";
-    const labelX = xPos + 12;
-    const labelY = yPos - 10;
+    const labelX = xPos + 14;
+    const labelY = yPos - 12;
     const width = ctx.measureText(text).width;
-    ctx.fillStyle = "rgba(255,255,255,0.88)";
-    ctx.fillRect(labelX - 2, labelY - 11, width + 4, 13);
+    const height = 18;
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fillRect(labelX - 3, labelY - height + 2, width + 6, height);
     ctx.fillStyle = color;
     ctx.fillText(text, labelX, labelY);
     ctx.restore();

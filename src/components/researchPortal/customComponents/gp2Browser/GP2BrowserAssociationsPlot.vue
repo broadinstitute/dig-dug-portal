@@ -18,6 +18,31 @@
         </div>
         <template v-else-if="hasPlotSeriesData">
             <div ref="plotStack" class="vks-associations-plot-stack">
+                <div v-if="showGeneScoresSection" class="vks-plot-section">
+                    <header class="vks-plot-section-head">
+                        <h3 class="vks-plot-section-title">Gene scores</h3>
+                    </header>
+                    <div
+                        v-if="geneScoresState.loading"
+                        class="vks-associations-plot-status vks-associations-plot-status--inline"
+                    >
+                        Loading gene scores…
+                    </div>
+                    <div
+                        v-else-if="geneScoresState.error"
+                        class="vks-associations-plot-status vks-associations-plot-status--inline vks-associations-plot-status--warning"
+                        role="status"
+                    >
+                        {{ geneScoresState.error }}
+                    </div>
+                    <GP2BrowserGeneScoresPanel
+                        v-else-if="geneScoresModel"
+                        :model="geneScoresModel"
+                        :visible-fields="geneScoresState.visibleFields"
+                        :gene-region-markers="plotMarkers?.geneRegionMarkers || []"
+                        @toggle-gene-region="$emit('toggle-gene-region', $event)"
+                    />
+                </div>
                 <div v-if="showGwasCeAssociationsSection" class="vks-plot-section">
                     <header class="vks-plot-section-head">
                         <h3 class="vks-plot-section-title">GWAS-CE associations</h3>
@@ -312,31 +337,6 @@
                         </template>
                     </template>
                 </div>
-                <div v-if="showGeneScoresSection" class="vks-plot-section">
-                    <header class="vks-plot-section-head">
-                        <h3 class="vks-plot-section-title">Gene scores</h3>
-                    </header>
-                    <div
-                        v-if="geneScoresState.loading"
-                        class="vks-associations-plot-status vks-associations-plot-status--inline"
-                    >
-                        Loading gene scores…
-                    </div>
-                    <div
-                        v-else-if="geneScoresState.error"
-                        class="vks-associations-plot-status vks-associations-plot-status--inline vks-associations-plot-status--warning"
-                        role="status"
-                    >
-                        {{ geneScoresState.error }}
-                    </div>
-                    <GP2BrowserGeneScoresPanel
-                        v-else-if="geneScoresModel"
-                        :model="geneScoresModel"
-                        :visible-fields="geneScoresState.visibleFields"
-                        :gene-region-markers="plotMarkers?.geneRegionMarkers || []"
-                        @toggle-gene-region="$emit('toggle-gene-region', $event)"
-                    />
-                </div>
                 <div v-if="showCredibleSetsSection" class="vks-plot-section">
                     <header class="vks-plot-section-head">
                         <h3 class="vks-plot-section-title">Credible sets</h3>
@@ -553,7 +553,6 @@ import {
 } from "./gp2BrowserAssociationsDownsample.js";
 import {
     filterQtlRows,
-    filterQtlRowsByDeselectedGenes,
     filterQtlRowsByGenes,
     filterQtlRowsByPValueMax,
     restrictQtlRowsToRegion,
@@ -1038,14 +1037,14 @@ export default {
         qtlDeselectedGenes() {
             return this.qtlState?.deselectedGenes || [];
         },
-        /** Compact searching-region overview: downsampled, like Associations. */
+        /**
+         * Compact searching-region overview: downsampled, like Associations.
+         * Passes the full gene set; the plot hides unchecked genes itself so
+         * the y-axis stays stable and hover can preview a gene when all are
+         * unchecked.
+         */
         qtlSearchingPlotRows() {
-            return qtlRowsToPlotData(
-                filterQtlRowsByDeselectedGenes(
-                    this.qtlFilteredDownsampledRows,
-                    this.qtlDeselectedGenes
-                )
-            );
+            return qtlRowsToPlotData(this.qtlFilteredDownsampledRows);
         },
         /**
          * Rows for the viewing (zoomed) plot before gene-legend deselection
@@ -1058,12 +1057,7 @@ export default {
         },
         /** 50 kb viewing-region detail plot: raw (undownsampled), like Associations. */
         qtlViewingPlotRows() {
-            return qtlRowsToPlotData(
-                filterQtlRowsByDeselectedGenes(
-                    this.qtlViewingRowsBeforeDeselection,
-                    this.qtlDeselectedGenes
-                )
-            );
+            return qtlRowsToPlotData(this.qtlViewingRowsBeforeDeselection);
         },
         showCredibleSetsSection() {
             return (

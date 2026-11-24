@@ -48,6 +48,10 @@ export default {
             type: Array,
             default: () => [],
         },
+        enableAiSupport: {
+            type: Boolean,
+            default: false,
+        },
     },
     computed: {
         menus() {
@@ -73,6 +77,18 @@ export default {
                       },
                   ];
 
+            const toolsItems = [
+                { id: "genePrioritization", label: "Gene prioritization" },
+                { id: "associatedPhenotypes", label: "Associated phenotypes" },
+                { id: "literatureEvidence", label: "Literature evidence" },
+            ];
+            if (this.enableAiSupport) {
+                toolsItems.push(
+                    { id: "toolsDivider", type: "divider" },
+                    { id: "generateAiSummary", label: "Generate AI summary" }
+                );
+            }
+
             return [
                 {
                     id: "session",
@@ -94,13 +110,7 @@ export default {
                 {
                     id: "tools",
                     label: "Tools",
-                    items: [
-                        { id: "genePrioritization", label: "Gene prioritization" },
-                        { id: "associatedPhenotypes", label: "Associated phenotypes" },
-                        { id: "literatureEvidence", label: "Literature evidence" },
-                        { id: "toolsDivider", type: "divider" },
-                        { id: "generateAiSummary", label: "Generate AI summary" },
-                    ],
+                    items: toolsItems,
                 },
                 {
                     id: "help",

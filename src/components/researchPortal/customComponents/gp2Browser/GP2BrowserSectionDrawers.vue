@@ -31,8 +31,13 @@
                     </button>
                 </header>
                 <div class="vks-section-drawer-body">
+                    <GP2BrowserGeneScoresDrawer
+                        v-if="openSection.id === 'gene-scores'"
+                        :gene-scores-state="geneScoresState"
+                        @update:visibleFields="$emit('update:geneScoresVisibleFields', $event)"
+                    />
                     <VariantSifterAssociationsDrawer
-                        v-if="openSection.id === 'associations'"
+                        v-else-if="openSection.id === 'associations'"
                         :rows="associationsDrawerRows"
                         :filters-index="associationsState.filtersIndex"
                         :loading="associationsState.loading"
@@ -70,6 +75,17 @@
                         @set-reference-variant="$emit('set-reference-variant', $event)"
                         @update:mappingState="$emit('update:mappingState', $event)"
                     />
+                    <GP2BrowserQtlDrawer
+                        v-else-if="openSection.id === 'qtl-evidences'"
+                        :qtl-state="qtlState"
+                        :plot-markers="plotMarkers"
+                        :utils="utils"
+                        @update:selectedTypes="$emit('update:qtlSelectedTypes', $event)"
+                        @update:selectedTissues="$emit('update:qtlSelectedTissues', $event)"
+                        @update:selectedGenes="$emit('update:qtlSelectedGenes', $event)"
+                        @update:pValueMax="$emit('update:qtlPValueMax', $event)"
+                        @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
+                    />
                     <VariantSifterCredibleSetsDrawer
                         v-else-if="openSection.id === 'credible-sets'"
                         :credible-sets-state="credibleSetsState"
@@ -86,22 +102,6 @@
                         v-else-if="openSection.id === 'genes'"
                         :genes-state="genesState"
                         @update:selectedTypes="$emit('update:genesSelectedTypes', $event)"
-                    />
-                    <GP2BrowserQtlDrawer
-                        v-else-if="openSection.id === 'qtl-evidences'"
-                        :qtl-state="qtlState"
-                        :plot-markers="plotMarkers"
-                        :utils="utils"
-                        @update:selectedTypes="$emit('update:qtlSelectedTypes', $event)"
-                        @update:selectedTissues="$emit('update:qtlSelectedTissues', $event)"
-                        @update:selectedGenes="$emit('update:qtlSelectedGenes', $event)"
-                        @update:pValueMax="$emit('update:qtlPValueMax', $event)"
-                        @toggle-star-variant="$emit('toggle-qtl-star-variant', $event)"
-                    />
-                    <GP2BrowserGeneScoresDrawer
-                        v-else-if="openSection.id === 'gene-scores'"
-                        :gene-scores-state="geneScoresState"
-                        @update:visibleFields="$emit('update:geneScoresVisibleFields', $event)"
                     />
                     <VariantSifterGlobalEnrichmentDrawer
                         v-else-if="openSection.id === 'global-enrichment'"

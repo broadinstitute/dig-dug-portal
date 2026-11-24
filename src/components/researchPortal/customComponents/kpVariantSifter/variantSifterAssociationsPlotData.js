@@ -25,6 +25,9 @@ export function associationRowsToPlotData(rows) {
                 ref: row.ref,
                 alt: row.alt,
                 LDS: row.LDS,
+                // Keep rsID/dbSNP so the LD reference diamond can label itself.
+                rsID: row.rsID || row.dbSNP || null,
+                dbSNP: row.dbSNP || row.rsID || null,
             };
         })
         .filter(

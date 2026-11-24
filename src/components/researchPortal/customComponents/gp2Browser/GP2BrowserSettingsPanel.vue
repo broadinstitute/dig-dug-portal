@@ -144,6 +144,24 @@
                             <span>Suggest available actions after user action</span>
                         </label>
                     </section>
+
+                    <section class="vks-settings-section">
+                        <h3 class="vks-ui-section-title">AI support</h3>
+                        <p class="vks-ui-hint">
+                            When off, Literature evidence searches PubMed with Gene
+                            scores genes plus the lead variant only, and shows abstracts
+                            with those terms highlighted (no AI summary, evidences, or
+                            knowledge graph).
+                        </p>
+                        <label class="vks-settings-suggest-label">
+                            <input
+                                type="checkbox"
+                                :checked="enableAiSupport"
+                                @change="onEnableAiSupportChange"
+                            />
+                            <span>Enable AI support</span>
+                        </label>
+                    </section>
                 </div>
 
                 <div
@@ -269,6 +287,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        enableAiSupport: {
+            type: Boolean,
+            default: false,
+        },
         refetchAssociationsOnZoom: {
             type: Boolean,
             default: true,
@@ -343,6 +365,12 @@ export default {
         onSuggestActionsChange(event) {
             this.$emit(
                 "update:suggestActionsAfterUserAction",
+                Boolean(event?.target?.checked)
+            );
+        },
+        onEnableAiSupportChange(event) {
+            this.$emit(
+                "update:enableAiSupport",
                 Boolean(event?.target?.checked)
             );
         },

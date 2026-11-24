@@ -1,15 +1,7 @@
 <template>
     <div class="gp2-gene-scores">
-        <p class="gp2-gene-scores-meta">
-            <template v-if="displayLoci.length">
-                {{ displayLoci.length.toLocaleString() }} locus{{
-                    displayLoci.length === 1 ? "" : "es"
-                }}
-                · {{ geneCount.toLocaleString() }} gene{{
-                    geneCount === 1 ? "" : "s"
-                }}
-            </template>
-            <template v-else>No gene scores in this search region.</template>
+        <p v-if="!displayLoci.length" class="gp2-gene-scores-meta">
+            No gene scores in this search region.
         </p>
 
         <div
@@ -157,12 +149,6 @@ export default {
     computed: {
         displayLoci() {
             return this.model?.loci || [];
-        },
-        geneCount() {
-            return this.displayLoci.reduce(
-                (sum, locus) => sum + (locus.genes?.length || 0),
-                0
-            );
         },
         visibleEvidenceRows() {
             const rows = this.model?.evidenceRows || [];
@@ -387,16 +373,17 @@ export default {
 
 .gp2-gene-scores-locus {
     flex: 0 0 auto;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 10px;
+    border: none;
     background: #fff;
     padding: 0 8px;
 }
 
 .gp2-gene-scores-locus-head {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
     padding: 0 4px 8px;
 }
 
@@ -445,9 +432,12 @@ export default {
     text-underline-offset: 2px;
 }
 
-.gp2-gene-scores-gene-col-head.is-clickable:hover,
-.gp2-gene-scores-gene-col-head.is-highlighted {
+.gp2-gene-scores-gene-col-head.is-clickable:hover {
     color: var(--cfde-ink, #1b365d);
+}
+
+.gp2-gene-scores-gene-col-head.is-highlighted {
+    color: #d32f2f;
 }
 
 .gp2-gene-scores-gene-col-head:disabled {

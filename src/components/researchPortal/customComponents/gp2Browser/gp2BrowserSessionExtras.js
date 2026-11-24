@@ -5,6 +5,7 @@
  * state the shared exporter/importer don't know about:
  * - QTL evidences data (raw rows + the user's type/tissue/gene/p-value
  *   filter selections) — the shared schema has no QTL concept at all.
+ * - Gene scores (`gene-scoring` rows + drawer column visibility).
  * - The Actions assistant's conversation (requests run and the results they
  *   produced, e.g. AI summary / literature evidence confirmations).
  * - Literature evidence panel results (papers + claims/excerpts/gaps + KG).
@@ -24,17 +25,21 @@ import {
     describeGp2LocusDigestFindings,
     geneSearchPlanFromAiSummaryDigest,
 } from "./gp2BrowserLiteratureEvidence.js";
+import { gp2DefaultGeneScoreVisibleFields } from "./gp2BrowserLocusSummaryApi.js";
 
 export function buildGp2SessionExtras({
     qtlState,
+    geneScoresState,
     assistantState,
     literatureEvidenceState,
     aiSummaryMessage = null,
     visibleSectionIds,
     viewingCenterBp,
     viewingRegionWidthBp,
+    enableAiSupport = false,
 }) {
     return {
+        enableAiSupport: Boolean(enableAiSupport),
         qtl: {
             rawRows: qtlState?.rawRows || [],
             selectedTypes: qtlState?.selectedTypes || [],
@@ -42,6 +47,13 @@ export function buildGp2SessionExtras({
             selectedGenes: qtlState?.selectedGenes || [],
             deselectedGenes: qtlState?.deselectedGenes || [],
             pValueMax: qtlState?.pValueMax || "",
+        },
+        geneScores: {
+            rows: geneScoresState?.rows || [],
+            loadedKey: geneScoresState?.loadedKey || null,
+            visibleFields: Array.isArray(geneScoresState?.visibleFields)
+                ? geneScoresState.visibleFields.slice()
+                : gp2DefaultGeneScoreVisibleFields(),
         },
         assistant: {
             threadEntries: assistantState?.threadEntries || [],
@@ -53,16 +65,27 @@ export function buildGp2SessionExtras({
                   phenotype: literatureEvidenceState.phenotype || null,
                   query: literatureEvidenceState.query || null,
                   genesSearched: literatureEvidenceState.genesSearched || [],
+                  variantsSearched: literatureEvidenceState.variantsSearched || [],
+                  highlightTerms: literatureEvidenceState.highlightTerms || [],
+                  aiSupport: Boolean(literatureEvidenceState.aiSupport),
                   geneReasons: literatureEvidenceState.geneReasons || [],
                   digestFindings: literatureEvidenceState.digestFindings || [],
                   aiSummary: aiSummaryMessage ? String(aiSummaryMessage) : null,
                   usedLocusDigest: Boolean(literatureEvidenceState.usedLocusDigest),
                   locusDigest: literatureEvidenceState.locusDigest || null,
                   papers: literatureEvidenceState.papers || [],
-                  claims: literatureEvidenceState.claims || [],
-                  excerpts: literatureEvidenceState.excerpts || [],
-                  gaps: literatureEvidenceState.gaps || [],
-                  kg: literatureEvidenceState.kg || null,
+                  claims: literatureEvidenceState.aiSupport
+                      ? literatureEvidenceState.claims || []
+                      : [],
+                  excerpts: literatureEvidenceState.aiSupport
+                      ? literatureEvidenceState.excerpts || []
+                      : [],
+                  gaps: literatureEvidenceState.aiSupport
+                      ? literatureEvidenceState.gaps || []
+                      : [],
+                  kg: literatureEvidenceState.aiSupport
+                      ? literatureEvidenceState.kg || null
+                      : null,
                   exhausted: Boolean(literatureEvidenceState.exhausted),
               }
             : null,
@@ -75,6 +98,7 @@ export function buildGp2SessionExtras({
 export function restoreGp2SessionExtras(payload) {
     const gp2 = payload?.gp2 || {};
     const qtl = gp2.qtl || {};
+    const geneScores = gp2.geneScores || {};
     const literatureEvidence = gp2.literatureEvidence || null;
     return {
         qtlRows: Array.isArray(qtl.rawRows) ? qtl.rawRows : [],
@@ -83,6 +107,15 @@ export function restoreGp2SessionExtras(payload) {
         qtlSelectedGenes: Array.isArray(qtl.selectedGenes) ? qtl.selectedGenes : [],
         qtlDeselectedGenes: Array.isArray(qtl.deselectedGenes) ? qtl.deselectedGenes : [],
         qtlPValueMax: qtl.pValueMax != null ? String(qtl.pValueMax) : "",
+        geneScoresRows: Array.isArray(geneScores.rows) ? geneScores.rows : [],
+        geneScoresLoadedKey:
+            typeof geneScores.loadedKey === "string" && geneScores.loadedKey
+                ? geneScores.loadedKey
+                : null,
+        geneScoresVisibleFields: Array.isArray(geneScores.visibleFields)
+            ? geneScores.visibleFields.slice()
+            : gp2DefaultGeneScoreVisibleFields(),
+        enableAiSupport: Boolean(gp2.enableAiSupport),
         assistantThreadEntries: Array.isArray(gp2.assistant?.threadEntries)
             ? gp2.assistant.threadEntries
             : [],
@@ -121,6 +154,13 @@ export function restoreGp2SessionExtras(payload) {
                       genesSearched: Array.isArray(literatureEvidence.genesSearched)
                           ? literatureEvidence.genesSearched
                           : [],
+                      variantsSearched: Array.isArray(literatureEvidence.variantsSearched)
+                          ? literatureEvidence.variantsSearched
+                          : [],
+                      highlightTerms: Array.isArray(literatureEvidence.highlightTerms)
+                          ? literatureEvidence.highlightTerms
+                          : [],
+                      aiSupport: Boolean(literatureEvidence.aiSupport),
                       geneReasons,
                       digestFindings,
                       usedLocusDigest: Boolean(literatureEvidence.usedLocusDigest),
@@ -131,16 +171,23 @@ export function restoreGp2SessionExtras(payload) {
                           : [],
                       synthesizing: false,
                       synthesisError: null,
-                      claims: Array.isArray(literatureEvidence.claims)
-                          ? literatureEvidence.claims
-                          : [],
-                      excerpts: Array.isArray(literatureEvidence.excerpts)
-                          ? literatureEvidence.excerpts
-                          : [],
-                      gaps: Array.isArray(literatureEvidence.gaps)
-                          ? literatureEvidence.gaps
-                          : [],
+                      claims:
+                          literatureEvidence.aiSupport &&
+                          Array.isArray(literatureEvidence.claims)
+                              ? literatureEvidence.claims
+                              : [],
+                      excerpts:
+                          literatureEvidence.aiSupport &&
+                          Array.isArray(literatureEvidence.excerpts)
+                              ? literatureEvidence.excerpts
+                              : [],
+                      gaps:
+                          literatureEvidence.aiSupport &&
+                          Array.isArray(literatureEvidence.gaps)
+                              ? literatureEvidence.gaps
+                              : [],
                       kg:
+                          literatureEvidence.aiSupport &&
                           literatureEvidence.kg &&
                           Array.isArray(literatureEvidence.kg.nodes) &&
                           Array.isArray(literatureEvidence.kg.edges)

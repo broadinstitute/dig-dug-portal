@@ -339,7 +339,8 @@ function isHighlightedGene(gene, highlightedGeneNames) {
 /** Red underline under selected gene-symbol labels (canvas px). */
 const HIGHLIGHT_LABEL_UNDERLINE_COLOR = "#ff0000";
 const HIGHLIGHT_LABEL_UNDERLINE_THICKNESS = 4;
-const HIGHLIGHT_LABEL_UNDERLINE_GAP = 4;
+/** Gap below the text midline before the underline (canvas px; labels use ~24px font). */
+const HIGHLIGHT_LABEL_UNDERLINE_GAP = 14;
 
 export function renderGenesTrack(ctx, options) {
     const {
