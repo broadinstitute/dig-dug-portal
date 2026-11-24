@@ -2168,16 +2168,124 @@ test('parentAccess: $parent in a script or a template is a note (what it reaches
   ]);
 });
 
-test('aliases of Vue: const V = Vue and the parameter of install are the global Vue', () => {
-  const found = hitsOf('vueRegister', {
+test('aliases of Vue: const V = Vue is the global Vue; the parameter of install is an app, so only what an app has not is a hit', () => {
+  const files = {
     'src/a.js': lines(
       'import Vue from "vue";', // 1
       'const V = Vue;', // 2
       'V.use(Plugin);', // 3
-      'export default { install(Inst) { Inst.component("a", {}); }, other(Nope) { Nope.use(x); } };', // 4
+      'export default {', // 4
+      '  install(Inst) {', // 5
+      '    Inst.component("a", {}); Inst.use(x); Inst.provide("k", 1); Inst.config.globalProperties.$x = 1; const { globalProperties } = Inst.config;', // 6
+      '    Inst.filter("f", f);', // 7
+      '    Inst.config.productionTip = false;', // 8
+      '    Inst.prototype.$y = 1;', // 9
+      '    Inst.set(o, "k", 1);', // 10
+      '    Inst.directive("d", { bind() {} });', // 11
+      '  },', // 12
+      '  other(Nope) { Nope.use(x); },', // 13
+      '};', // 14
     ),
-  });
-  assert.deepEqual(found.map(({ line, text }) => `${line}: ${text}`), ['3: V.use(Plugin)', '4: Inst.component("a", {})']);
+  };
+  const found = scan(reached(files)).hits;
+  const of = (kind) => found[kind].map(({ line, text }) => `${line}: ${text}`);
+  assert.deepEqual(of('vueRegister'), ['3: V.use(Plugin)', '7: Inst.filter("f", f)']);
+  assert.deepEqual(of('vueConfig'), ['8: Inst.config.productionTip = false']);
+  assert.deepEqual(of('vuePrototype'), ['9: Inst.prototype.$y = 1']);
+  assert.deepEqual(of('setDelete'), ['10: Inst.set(o, "k", 1)']);
+  assert.deepEqual(of('directiveHooks').length, 1);
+  assert.deepEqual(of('vueOther'), []);
+  // A parameter with the name of the imported global Vue hides nothing that is done with that one.
+  assert.equal(hitsOf('vueRegister', { 'src/a.js': 'import Vue from "vue";\nVue.component("b", {});\nexport default { install(Vue) {} };' }).length, 1);
+});
+
+// ---- components of ours in place of BootstrapVue ------------------------------------------------------------------------
+
+const OWN = {
+  'src/bv/index.js': lines(
+    'import BBox from "./BBox";',
+    'import BField from "./BField.vue";',
+    'import tooltip from "./tooltip";',
+    'export const BootstrapVue = { install(app) { app.component("BBox", BBox); app.component("BField", BField); app.directive("b-tooltip", tooltip); app.config.globalProperties.$bvToast = {}; } };',
+  ),
+  'src/bv/tooltip.js': 'export default {};',
+  'src/bv/helpers.js': 'export function functional() {}\nexport function checksUse() {}',
+  'src/bv/shared.js': 'export const SUPPORTED = { attributes: ["name"], not: ["title"], slots: ["default", /^cell\\(.*\\)$/] };',
+  'src/bv/BBox.js': 'import { functional } from "./helpers";\nimport { SUPPORTED } from "./shared";\nexport default functional("b-box", function BBox() {}, { props: { noGutters: Boolean, onRowClicked: Function } }, SUPPORTED);',
+  'src/bv/BField.vue': lines(
+    '<template><div class="b-field"><input /></div></template>',
+    '<script>',
+    'import { checksUse } from "./helpers";',
+    'export default { name: "BField", mixins: checksUse("b-field", { slots: [] }), props: { modelValue: String, size: String }, emits: ["update:modelValue", "update:sortBy", "changed"] };',
+    '</script>',
+    '<style>.b-field {}</style>',
+  ),
+  'src/main.js': 'import "bootstrap-vue";\nimport "./P.vue";',
+};
+const ownConfig = (to) => ({ path: 'vue.config.js', source: `module.exports = { chainWebpack(c) { c.resolve.alias.set("bootstrap-vue$", require.resolve("${to}")); }, pages: { a: { entry: "src/main.js" } } };` });
+const ownScan = (template, files = OWN, to = './src/bv/index.js') => scan(tree({ ...files, 'src/P.vue': component(template) }), { config: ownConfig(to) });
+
+test('our own BootstrapVue: what they support is no hit', () => {
+  const found = ownScan(
+    lines(
+      '<div>',
+      '  <b-box no-gutters :no-gutters="x" name="n" class="c" :style="s" aria-label="a" data-x="1" ref="r" key="k" @click="go" @row-clicked="go" v-if="y">text</b-box>',
+      '  <b-box><template #cell(a)="{ item }">{{ item }}</template><template v-slot:[name]>x</template></b-box>',
+      '  <b-field v-model="text" size="sm" id="i" @changed="go" @update:sortBy="go" @update:sort-by="go" />',
+      '  <p v-b-tooltip.hover="x" @click="$bvToast.toast(1)">x</p>',
+      '</div>',
+    ),
+  );
+  for (const kind of ['bvTags', 'bvDirectives', 'bvInstance', 'bvImports', 'bvCss', 'vueRegister', 'vueConfig']) assert.deepEqual(found.hits[kind], [], kind);
+  assert.deepEqual(found.scope.ownBootstrap, { file: 'src/bv/index.js', tags: ['b-box', 'b-field'] });
+  // The table of what they are used with stays.
+  assert.deepEqual(found.bvTags.map(({ tag, uses }) => `${tag} ${uses}`), ['b-box 2', 'b-field 1']);
+  assert.match(renderReport(found), /In place of BootstrapVue: `src\/bv\/index\.js`, with `b-box`, `b-field`\./);
+});
+
+test('our own BootstrapVue: what they do not support is a hit that names it', () => {
+  const found = ownScan(
+    lines(
+      '<div>',
+      '  <b-box fluid title="t" @row-Contextmenu="go"><template #head(a)>x</template></b-box>',
+      '  <b-field :debounce="1" @click="go">text</b-field>',
+      '  <b-box v-model="x" />',
+      '  <b-field v-model:size="x" />',
+      '  <b-other />',
+      '  <p v-b-modal.m>x</p>',
+      '  <p @click="$bvModal.show(1)">x</p>',
+      '</div>',
+    ),
+  );
+  assert.deepEqual(
+    found.hits.bvTags.map(({ line, note }) => `${line}: ${note}`),
+    [
+      '3: src/bv/BBox.js: no attribute "fluid", attribute "title", listener "row-Contextmenu", slot "head(a)"',
+      '4: src/bv/BField.vue: no attribute "debounce", listener "click", slot "default"',
+      '5: src/bv/BBox.js: no v-model',
+      '6: src/bv/BField.vue: no v-model:size',
+      '7: src/bv/index.js has no such component',
+    ],
+  );
+  const icon = { ...OWN, 'src/main.js': 'import "bootstrap-vue";\nimport "./P.vue";\nimport "./I.vue";', 'src/I.vue': component('<b-icon-check />', 'import { BIconCheck } from "bootstrap-vue";\nexport default { components: { BIconCheck } };') };
+  assert.deepEqual(ownScan('<p />', icon).hits.bvTags.map(({ file, note }) => `${file}: ${note}`), ['src/I.vue: src/bv/index.js has no such component']);
+  assert.deepEqual(found.hits.bvDirectives.map(({ line }) => line), [8]);
+  assert.deepEqual(found.hits.bvInstance.map(({ line }) => line), [9]);
+});
+
+test('our own BootstrapVue: a file that only passes the package on is none, and neither is a build without the alias', () => {
+  const files = {
+    'src/utils/bvCompat.js': 'import Vue from "vue";\nimport { BootstrapVue } from "bootstrap-vue/esm/index.js";\nVue.use(BootstrapVue);\nexport * from "bootstrap-vue/esm/index.js";',
+    'src/main.js': 'import { BootstrapVue } from "bootstrap-vue";\nimport "./P.vue";\nimport "./I.vue";',
+    'src/I.vue': component('<b-icon-check />', 'import { BIconCheck } from "bootstrap-vue";\nexport default { components: { BIconCheck } };'),
+  };
+  const passed = ownScan('<b-box />', files, './src/utils/bvCompat.js');
+  assert.equal(passed.scope.ownBootstrap, undefined);
+  assert.deepEqual(passed.hits.bvTags.map(({ file, note }) => [file, note]), [['src/I.vue', undefined], ['src/P.vue', undefined]]);
+  assert.deepEqual(passed.hits.bvImports.map(({ file, line }) => `${file}:${line}`), ['src/I.vue:5', 'src/main.js:1', 'src/utils/bvCompat.js:2']);
+  const without = scan(tree({ ...OWN, 'src/P.vue': component('<b-box />') }), { entries: ['src/main.js'] });
+  assert.equal(without.hits.bvTags.length, 1);
+  assert.deepEqual(without.hits.bvImports.map(({ file }) => file), ['src/main.js']);
 });
 
 test('parentAccess: the note says how many levels up it reaches; a page template\'s $parent.fields is read from the main.js beside it', () => {

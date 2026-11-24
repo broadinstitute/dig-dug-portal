@@ -35,6 +35,14 @@
 //             BootstrapVue components with the methods called on them, CSS and selectors that target its classes.
 //   Packages  every npm package the reachable files import that itself depends on Vue.
 //
+// With `--config`, when the build aliases `bootstrap-vue` to a file of ours that has components (PanKbase's
+// `src/components/bv/index.js`), a `b-*` tag is a hit only for what our component does not support: the props, events,
+// slots and attributes that its own development check reads (`functional("b-x", ..., supported)` or
+// `checksUse("b-x", supported)`, its `props` and its `emits`). The directives and the `$bv` members which that file sets
+// are no hits, nor is the import of the package itself; its stylesheet is. The modifiers of a directive, the methods of
+// a `$bv` member, the keys of a table's fields and what is bound by an object or a dynamic name are not checked there (the
+// components warn about them in development).
+//
 // Scripts are read with Babel, as in `component-graph.mjs`, templates and the blocks of a `.vue` file with
 // `vue-eslint-parser`, the parser `eslint-plugin-vue` brings, so a comment or a string is never a hit. Styles (the
 // `<style>` blocks, the stylesheets that are imported, and what they `@import`: a `~package`, a partial, a file under
@@ -137,7 +145,7 @@ export const KINDS = [
   // ---- Styles ----
   { key: 'scopedDeep', group: 'Styles', note: true, why: '`>>>`, `/deep/` and `::v-deep` without parentheses are deprecated forms of `:deep(...)` in a scoped style: Vue 3\'s compiler still reads them, with a warning.' },
   // ---- BootstrapVue ----
-  { key: 'bvTags', group: 'BootstrapVue', why: 'BootstrapVue 2 needs Vue 2: every `b-*` tag is a component of ours to write. The table under BootstrapVue components says what each one is used with.' },
+  { key: 'bvTags', group: 'BootstrapVue', why: 'BootstrapVue 2 needs Vue 2: every `b-*` tag is a component of ours to write. The table under BootstrapVue components says what each one is used with. In a build that has its own components (`bootstrap-vue` aliased to a file of ours), only what they do not support is a hit (see the note column).' },
   { key: 'bvImports', group: 'BootstrapVue', why: 'An import of `bootstrap-vue` (the plugin, a component, its icons or its stylesheet) has to go.' },
   { key: 'bvDirectives', group: 'BootstrapVue', why: 'The `v-b-*` directives (`v-b-tooltip`, `v-b-modal`, `v-b-toggle`...) are BootstrapVue\'s; each one is a directive of ours to write.' },
   { key: 'bvInstance', group: 'BootstrapVue', why: '`$bvModal`, `$bvToast` and the `bv::` events on `$root` (`bv::show::modal`, `bv::refresh::table`...) belong to BootstrapVue.' },
@@ -148,6 +156,7 @@ export const KINDS = [
 ];
 
 const KIND_KEYS = new Set(KINDS.map(({ key }) => key));
+const BOOTSTRAP_KINDS = new Set(KINDS.filter(({ group }) => group === 'BootstrapVue').map(({ key }) => key));
 
 // ---- tags, events and attributes Vue 3 knows --------------------------------------------------------------------------
 
@@ -684,6 +693,8 @@ export function scan(sources, options = {}) {
 
   // 4. The patterns.
   const context = makeContext({ sources, parsed, followed, files, allFiles, aliases, hits, assets, manifest: options.manifest ?? null, unresolved });
+  context.own = ownBootstrap(context);
+  if (context.own) scope.ownBootstrap = { file: context.own.file, tags: [...context.own.tags.keys()].sort(byCodeUnit) };
   for (const file of files) scanFile(context, file);
   const styleFiles = unique(files.flatMap((file) => followed.get(file).targets.map(({ target }) => target)).filter((target) => STYLE_EXTENSIONS.has(extensionOf(target)))).sort(byCodeUnit);
   for (const path of styleFiles) scanAsset(context, path);
@@ -703,6 +714,7 @@ function makeContext(base) {
     infos: new Map(),
     bvTags: new Map(),
     bvDirectives: new Map(),
+    own: null,
     stylePackages: [],
     styleSeen: new Set(),
     itemKeys: new Map(),
@@ -711,6 +723,8 @@ function makeContext(base) {
     /** Adds a hit; `extra` is `{ note, detail }`. */
     add(kind, file, line, text, extra = {}) {
       if (!KIND_KEYS.has(kind)) throw new Error(`unknown kind ${kind}`);
+      // What our own components do with BootstrapVue's classes and names is their business.
+      if (context.own && file.startsWith(context.own.folder) && BOOTSTRAP_KINDS.has(kind)) return;
       context.hits[kind].push({ file, line, text: shorten(text), ...extra });
     },
   };
@@ -740,6 +754,9 @@ const MUTATORS = new Set(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', '
 const REMOVED_INTERNALS = new Set(['$vnode', '$createElement', '$isServer', '$ssrContext']);
 const REMOVED_PRIVATES = new Set(['_uid', '_isVue', '_data', '_events', '_watcher', '_watchers', '_vnode']);
 const VUE_REGISTER = new Set(['component', 'use', 'mixin', 'directive', 'filter']);
+/** What an app has of the members that the global Vue of Vue 2 has, and what it has besides. */
+const APP_MEMBERS = new Set(['component', 'use', 'mixin', 'directive', 'provide', 'runWithContext', 'mount', 'unmount', 'onUnmount', 'version']);
+const GONE_CONFIG = new Set(['productionTip', 'devtools', 'ignoredElements', 'silent', 'keyCodes']);
 
 /** Whether `value` can be what a component option `key` holds: a literal where a function belongs is a data property that shares the name. */
 function plausible(key, value) {
@@ -836,6 +853,7 @@ function infoOf(context, file) {
     file,
     bindings: new Map(),
     vueNames: new Set(),
+    appNames: new Set(),
     thisAliases: new Set(),
     ctors: new Set(),
     busNames: new Set(),
@@ -873,9 +891,9 @@ function targetOf(context, file, info, node) {
   const fromSource = (source) => {
     const package_ = packageOf(source);
     if (package_ !== null) {
-      // A package that the build config replaces by a file of ours is that file.
+      // A package that the build config replaces by a file of ours is that file. Not BootstrapVue: its tags stay its tags.
       const alias = aliasFor(context.aliases, source);
-      if (alias !== null && alias.local && alias.key !== 'vue') {
+      if (alias !== null && alias.local && !['vue', 'bootstrap-vue'].includes(alias.key)) {
         const base = posix.join(alias.to, source.slice(alias.key.length));
         const replaced = ['', '.vue', '.js', '/index.js', '/index.vue'].map((extension) => base + extension).find((path) => context.allFiles.has(path));
         if (replaced !== undefined) return { file: replaced, aliasOf: package_ };
@@ -939,9 +957,11 @@ function readBlock(context, file, info, block) {
     } else if (isCall(node) && node.arguments[1]?.type === 'Identifier' && isMember(node.callee) && memberName(node.callee) === 'component') {
       info.registered.add(node.arguments[1].name);
     }
-    // `install(Vue)` of a plugin takes the global Vue under any name.
+    // `install(Vue)` of a plugin takes the global Vue on Vue 2, and an app on Vue 3, under any name.
     if ((isProperty(node) && keyName(node) === 'install' && isFunction(valueOf(node)) && valueOf(node).params[0]?.type === 'Identifier') || (node.type === 'AssignmentExpression' && isMember(node.left) && memberName(node.left) === 'install' && isFunction(node.right) && node.right.params[0]?.type === 'Identifier')) {
-      info.vueNames.add((isProperty(node) ? valueOf(node) : node.right).params[0].name);
+      const { name } = (isProperty(node) ? valueOf(node) : node.right).params[0];
+      if (!info.vueNames.has(name)) info.appNames.add(name);
+      info.vueNames.add(name);
     }
     if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier' && node.init) {
       if (isVueRef(info, node.init)) info.vueNames.add(node.id.name);
@@ -1155,15 +1175,18 @@ function usage(env, node) {
   return current;
 }
 
-/** A member of the global `Vue`. */
+/** A member of the global `Vue`, or of the parameter of a plugin's `install`, which is an app on Vue 3. */
 function vueMember(env, node, name) {
   const at = usage(env, node);
   const outer = env.parent(node);
+  const isApp = node.object.type === 'Identifier' && env.info.appNames.has(node.object.name);
+  if (isApp && APP_MEMBERS.has(name) && !VUE_REGISTER.has(name)) return;
+  if (isApp && name === 'config' && !(isMember(outer) && outer.object === node && GONE_CONFIG.has(memberName(outer)))) return;
   if (['set', 'delete'].includes(name)) env.add('setDelete', at);
   else if (name === 'extend') env.add('vueExtend', at);
   else if (name === 'observable') env.add('vueObservable', at);
   else if (VUE_REGISTER.has(name)) {
-    env.add('vueRegister', at);
+    if (!(isApp && APP_MEMBERS.has(name))) env.add('vueRegister', at);
     const call = env.parent(node);
     const options = name === 'directive' && isCall(call) ? call.arguments[1] : null;
     if (options?.type === 'ObjectExpression') directiveHooks(env, call, isString(call.arguments[0]) ? call.arguments[0].value : '?', options);
@@ -1208,7 +1231,7 @@ function instanceMember(env, node, name, object) {
   else if (name === '$attrs') env.add('attrsUse', at);
   else if (name === '$slots') env.add('slotsAccess', at);
   else if (name === '$bvModal' || name === '$bvToast') {
-    env.add('bvInstance', at);
+    if (!env.context.own?.members.has(name)) env.add('bvInstance', at);
     recordBvCall(env, at);
   }
   else if (name === '$refs' && (object === null || object.type === 'ThisExpression' || (object.type === 'Identifier' && info.thisAliases.has(object.name)))) refAccess(env, node);
@@ -1470,7 +1493,7 @@ function inspectImport(env, node) {
   const isDefault = node.specifiers.some((specifier) => specifier.type === 'ImportDefaultSpecifier');
   if (isVueSource(source) && isDefault) env.add('vueImport', node);
   if (source === 'vue' && node.specifiers.some((specifier) => ['set', 'del'].includes(specifier.imported?.name ?? specifier.imported?.value))) env.add('setDelete', node);
-  if (source === 'bootstrap-vue' || source.startsWith('bootstrap-vue/')) env.add('bvImports', node);
+  if ((source === 'bootstrap-vue' && !env.context.own) || source.startsWith('bootstrap-vue/')) env.add('bvImports', node);
 }
 
 
@@ -1500,7 +1523,9 @@ function resolveTag(context, file, info, tag) {
 function bvName(context, file, info, tag) {
   if (!BV_TAG.test(tag) && !BV_PASCAL.test(tag)) return null;
   const target = resolveTag(context, file, info, tag);
-  if (target !== null && (target.file !== undefined || target.inline)) return null;
+  // Registered for the whole app by the file that stands in for the package: still the BootstrapVue tag.
+  const isOwn = context.own?.tags.has(toKebab(tag)) && !info.components.has(toKey(tag));
+  if (target !== null && (target.file !== undefined || target.inline) && !isOwn) return null;
   return toKebab(tag);
 }
 
@@ -1755,6 +1780,100 @@ function scanTemplate(context, file, read, info) {
   return { refs, refAccesses };
 }
 
+// ---- our own components in place of BootstrapVue --------------------------------------------------------------------------
+
+/** What `functional` and `checksUse` (`src/components/bv/helpers.js`) let through on every tag. */
+const PLAIN_ATTRIBUTE = /^(class|style|id|title|role|tabindex|lang|dir|hidden|(aria|data)-.+)$/;
+
+/**
+ * What a build has in place of BootstrapVue when it aliases `bootstrap-vue` to a file of ours: the components that the
+ * file imports, by tag, with what each one supports; the directives and the global properties that it sets. Null without
+ * such an alias, or when the file has no such component (one that passes the package on).
+ */
+function ownBootstrap(context) {
+  const alias = aliasFor(context.aliases, 'bootstrap-vue');
+  const read = alias?.local ? context.parsed.get(alias.to) : undefined;
+  if (read === undefined) return null;
+  const own = { file: alias.to, folder: `${posix.dirname(alias.to)}/`, tags: new Map(), directives: new Set(), members: new Set() };
+  const info = infoOf(context, alias.to);
+  for (const name of info.bindings.keys()) {
+    const target = targetOf(context, alias.to, info, { type: 'Identifier', name });
+    if (target?.file !== undefined && context.parsed.has(target.file)) readOwnComponent(context, own, target.file);
+  }
+  for (const block of read.blocks) {
+    traverse(block.ast.program, (node) => {
+      if (isCall(node) && isMember(node.callee) && memberName(node.callee) === 'directive' && isString(node.arguments[0])) own.directives.add(node.arguments[0].value);
+      else if (node.type === 'AssignmentExpression' && isMember(node.left) && memberName(node.left)?.startsWith('$')) own.members.add(memberName(node.left));
+    });
+  }
+  return own.tags.size > 0 ? own : null;
+}
+
+/** Reads what a component of ours supports from its own development check: `functional(tag, render, options, supported)`, or `checksUse(tag, supported)` among its mixins. */
+function readOwnComponent(context, own, file) {
+  const info = infoOf(context, file);
+  const literal = (node) => {
+    if (node?.type === 'ObjectExpression') return node;
+    if (node?.type !== 'Identifier') return null;
+    const binding = info.bindings.get(node.name);
+    const from = binding !== undefined && isLocalPath(binding.source) ? resolveImport(file, binding.source, context.allFiles) : null;
+    const found = from === null ? info.constants.get(node.name) : infoOf(context, from).constants.get(binding.imported);
+    return found?.type === 'ObjectExpression' ? found : null;
+  };
+  const member = (object, key) => (object === null ? undefined : entriesOf(object).find((entry) => entry.key === key)?.value);
+  const strings = (node) => (node?.type === 'ArrayExpression' ? node.elements.filter(isString).map((element) => element.value) : []);
+  for (const block of context.parsed.get(file).blocks) {
+    traverse(block.ast.program, (node) => {
+      if (!isCall(node) || node.callee.type !== 'Identifier' || !isString(node.arguments[0])) return;
+      const isFunctional = node.callee.name === 'functional';
+      if (!isFunctional && node.callee.name !== 'checksUse') return;
+      const options = isFunctional ? literal(node.arguments[2]) : null;
+      const supported = literal(node.arguments[isFunctional ? 3 : 1]);
+      const props = member(options, 'props');
+      const slots = member(supported, 'slots');
+      own.tags.set(node.arguments[0].value, {
+        file,
+        props: new Set((isFunctional ? (props?.type === 'ObjectExpression' ? entriesOf(props).map(({ key }) => key) : strings(props)) : [...info.props.keys()]).map(toKebab)),
+        emits: new Set((isFunctional ? strings(member(options, 'emits')) : [...(info.emits ?? [])]).map(toKebab)),
+        attributes: new Set(strings(member(supported, 'attributes'))),
+        not: new Set(strings(member(supported, 'not'))),
+        listeners: isFunctional || member(supported, 'listeners')?.value === true,
+        slots: slots === undefined ? ['default'] : (slots.elements ?? []).map((element) => (element.type === 'RegExpLiteral' ? new RegExp(element.pattern, element.flags) : element.value)),
+      });
+    });
+  }
+}
+
+/** What a tag is used with that our own component does not support, as its development check would say it. */
+function unsupported(own, tag, attrs, slots) {
+  const component = own.tags.get(tag);
+  if (component === undefined) return [`${own.file} has no such component`];
+  const missing = [];
+  const listens = (name) => {
+    const event = toKebab(name);
+    const on = `on${toKey(name)}`;
+    if (component.emits.has(event) || component.props.has(`on-${event}`)) return true;
+    return component.listeners && /^[a-z]+$/.test(name) && !component.not.has(on);
+  };
+  for (const a of attrs) {
+    const name = a.directive ? a.arg : a.name;
+    if (name === null && a.dir !== 'model') continue;
+    if (!a.directive || a.dir === 'bind') {
+      const isProp = component.props.has(toKebab(name)) || ['key', 'ref', 'is'].includes(name);
+      if (!isProp && (component.not.has(name) || !(PLAIN_ATTRIBUTE.test(name) || component.attributes.has(name)))) missing.push(`attribute "${name}"`);
+    } else if (a.dir === 'on') {
+      if (!listens(name)) missing.push(`listener "${name}"`);
+    } else if (a.dir === 'model') {
+      const model = name ?? 'modelValue';
+      if (!component.props.has(toKebab(model)) || !component.emits.has(toKebab(`update:${model}`))) missing.push(`v-model${name === null ? '' : `:${name}`}`);
+    }
+  }
+  for (const slot of slots) {
+    if (!component.slots.some((known) => (typeof known === 'string' ? known === slot : known.test(slot)))) missing.push(`slot "${slot}"`);
+  }
+  return missing.length > 0 ? [`${component.file}: no ${missing[0]}`, ...missing.slice(1)] : [];
+}
+
 // ---- BootstrapVue: the tags, the directives, the refs ------------------------------------------------------------------------
 
 /** The entry of a tag in the table of what BootstrapVue components are used with. */
@@ -1830,9 +1949,11 @@ function slotScope(element, attr) {
   return [...names].sort(byCodeUnit);
 }
 
-/** The slots a BootstrapVue element fills, from its children and from a `v-slot` on the element itself. */
+/** The slots a BootstrapVue element fills, from its children and from a `v-slot` on the element itself. Returns their names (a dynamic one is left out). */
 function recordSlots(entry, file, el, attrs, source) {
+  const filled = new Set();
   const note = (name, raw, syntax, scope) => {
+    if (name !== '[dynamic]') filled.add(raw);
     const slot = addTo(entry.slots, name, () => ({ name, uses: 0, names: new Set(), scope: new Set(), syntax, files: new Set() }));
     slot.uses++;
     slot.files.add(file);
@@ -1870,7 +1991,9 @@ function recordSlots(entry, file, el, attrs, source) {
       }
     }
   }
+  if (implicit) filled.add('default');
   if (implicit && !entry.slots.has('default')) note('default', 'default', 'implicit', []);
+  return filled;
 }
 
 /** A BootstrapVue component made by `h("b-x")` or `createElement("b-x")`: counted as a use; its props are in the call, not read. */
@@ -1879,7 +2002,7 @@ function noteBvRenderCall(env, node, name) {
   entry.uses++;
   entry.files.set(env.file, (entry.files.get(env.file) ?? 0) + 1);
   entry.spellings.add('render call');
-  env.add('bvTags', node);
+  if (!env.context.own?.tags.has(name)) env.add('bvTags', node);
 }
 
 /** What a bound value is, for the table of props: a function (an arrow, a method), data, a computed, a prop, a constant, a literal. */
@@ -2018,7 +2141,7 @@ function recordBootstrap(context, file, info, env, el, tag, bv, attrs) {
     record.files.add(file);
     record.tags.add(bv ?? el.rawName);
     if (a.expression) record.values.add(source.slice(a.expression.range[0], a.expression.range[1]));
-    context.add('bvDirectives', file, a.line, startTagLabel(el, [a]));
+    if (!context.own?.directives.has(a.dir)) context.add('bvDirectives', file, a.line, startTagLabel(el, [a]));
   }
   const name = bv ?? bvThroughIs(attrs);
   if (name === null) return;
@@ -2026,7 +2149,6 @@ function recordBootstrap(context, file, info, env, el, tag, bv, attrs) {
   entry.uses++;
   entry.files.set(file, (entry.files.get(file) ?? 0) + 1);
   entry.spellings.add(bv === null ? 'component is' : tag);
-  context.add('bvTags', file, el.loc.start.line, startTagLabel(el, attrs));
   const dynamic = (kind, a) => entry.dynamic.push({ file, line: a.line, kind, text: a.text });
   const prop = (property, a, form, written) => {
     const record = addTo(entry.props, property, () => ({ name: property, uses: 0, forms: new Set(), written: new Set(), via: new Set(), values: new Set(), sync: 0, kinds: new Set(), files: new Set() }));
@@ -2105,7 +2227,10 @@ function recordBootstrap(context, file, info, env, el, tag, bv, attrs) {
       directive.files.add(file);
     }
   }
-  recordSlots(entry, file, el, attrs, source);
+  const slots = recordSlots(entry, file, el, attrs, source);
+  const missing = context.own ? unsupported(context.own, name, attrs, slots) : null;
+  if (missing === null) context.add('bvTags', file, el.loc.start.line, startTagLabel(el, attrs));
+  else if (missing.length > 0) context.add('bvTags', file, el.loc.start.line, startTagLabel(el, attrs), { note: missing.join(', ') });
 }
 
 /** Resolves the `$refs` accesses of a file against the refs of its template: the `bvRefs` hits, and the methods in the BootstrapVue table. */
@@ -2538,6 +2663,7 @@ export function renderReport(result) {
   }
   lines.push(...bootstrapSection(bvTags, bvDirectives), ...callsSection(bvCalls), ...packagesSection(packages));
   if (scope.config) lines.push(...configSection(scope.config));
+  if (scope.ownBootstrap) lines.push('', `In place of BootstrapVue: ${code(scope.ownBootstrap.file)}, with ${list(scope.ownBootstrap.tags.map((tag) => code(tag)))}. A \`b-*\` tag is a hit only for what these do not support.`);
   lines.push('', '## Unresolved imports', '');
   if (unresolved.length === 0) lines.push('None.');
   else {
