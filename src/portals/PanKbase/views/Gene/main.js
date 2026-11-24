@@ -545,7 +545,7 @@ mountPage(Template, {
         },
         renderPhewas(REF) {
             this.activeTab = REF;
-            let refComponent = this.$children[0].$refs[REF];
+            let refComponent = this.$refs.page.$refs[REF];
             setTimeout(function () {
                 refComponent.renderPheWas();
             }, 500);
@@ -567,7 +567,7 @@ mountPage(Template, {
         },
         renderGTEx(REF) {
             this.activeTab = REF;
-            let refComponent = this.$children[0].$refs[REF];
+            let refComponent = this.$refs.page.$refs[REF];
             setTimeout(function () {
                 refComponent.renderBoxPlot();
             }, 500);

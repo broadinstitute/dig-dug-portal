@@ -13,7 +13,7 @@ Vue.use(BootstrapVueIcons);
 Vue.use(VueCookies);
 
 export function mountPage(Template, options = {}, plugins = []) {
-    const app = createApp({ ...options, render: () => h(Template) });
+    const app = createApp({ ...options, render: () => h(Template, { ref: "page" }) });
     if (options.store) {
         app.use(options.store);
     }
