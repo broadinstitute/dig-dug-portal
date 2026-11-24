@@ -80,7 +80,6 @@ mountPage(Template, {
             showLZSection: false,
             toggleIcon: "+",
             matchingGenes: [],
-            phenotypelist: [],
             hugecalSearchCriterion: keyParams.gene
                 ? [
                       {
@@ -232,6 +231,7 @@ mountPage(Template, {
         },
 
         phenotyopes52KAssociations() {
+            let phenotypelist = [];
             if (this.$store.state.geneAssociations52k.data.length > 0) {
                 for (
                     let i = 0;
@@ -241,10 +241,10 @@ mountPage(Template, {
                     let phenotype = {};
                     phenotype["name"] =
                         this.$store.state.geneAssociations52k.data[i].phenotype;
-                    this.phenotypelist.push(phenotype);
+                    phenotypelist.push(phenotype);
                 }
             }
-            return this.phenotypelist;
+            return phenotypelist;
         },
         docDetails() {
             let gene = this.selectedGene[0];

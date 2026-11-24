@@ -58,7 +58,6 @@ mountPage(Template, {
             geneFinderFilterCriterion: [],
             geneFinderAssociationsMap: {},
             geneFinderRareVariantMap: {},
-            minMaxTPM: null,
             pThresholdVal: "2.5e-6, 1e-5, 0.001",
             rarePThresholdVal: "2.5e-6, 1e-5, 0.001",
             onlyEgl: false,
@@ -346,7 +345,8 @@ mountPage(Template, {
             return data;
         },
 
-        combined() {
+        // the TPM range is that of the rows before the TPM filter, so it comes out of the same pass
+        combinedContent() {
             let combinedData = Object.entries(
                 this.geneFinderAssociationsMap
             ).flatMap((geneFinderItem) => geneFinderItem[1]);
@@ -355,6 +355,7 @@ mountPage(Template, {
             ).flatMap((geneFinderItem) => geneFinderItem[1]);
 
             let grouped = {};
+            let minMaxTPM = null;
 
             if (combinedData.length > 0) {
                 combinedData.map((r) => {
@@ -681,7 +682,7 @@ mountPage(Template, {
                                 d.maxTPM > minMax.max ? d.maxTPM : minMax.max;
                         });
 
-                        this.minMaxTPM = minMax;
+                        minMaxTPM = minMax;
 
                         if (this.tpmFilter) {
                             for (const [gKey, gValue] of Object.entries(
@@ -704,17 +705,21 @@ mountPage(Template, {
                                 }
                             }
                         }
-                    } else {
-                        this.minMaxTPM = null;
                     }
-                } else {
-                    this.minMaxTPM = null;
                 }
             }
 
             let filteredCombined = Object.values(grouped);
 
-            return filteredCombined;
+            return { rows: filteredCombined, minMaxTPM };
+        },
+
+        combined() {
+            return this.combinedContent.rows;
+        },
+
+        minMaxTPM() {
+            return this.combinedContent.minMaxTPM;
         },
     },
 

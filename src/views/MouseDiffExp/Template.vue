@@ -438,7 +438,7 @@
                                             </research-phewas-plot>
                                             <unauthorized-message
                                                 :restricted="
-                                                    $store.state.restricted
+                                                    $parent.transcriptOr52kRestricted
                                                 "
                                             >
                                             </unauthorized-message>

@@ -215,15 +215,20 @@ mountPage(Template, {
             let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
             return x;
         },
-        transcriptOr52k() {
-            let endpoint = !this.$store.state.selectedTranscript
+        transcriptOr52kEndpoint() {
+            return !this.$store.state.selectedTranscript
                 ? this.$store.state.associations52k
                 : this.$store.state.transcriptAssoc;
-            this.$store.state.restricted = endpoint.restricted;
+        },
+        transcriptOr52kRestricted() {
+            return this.transcriptOr52kEndpoint.restricted;
+        },
+        transcriptOr52k() {
+            let data = this.transcriptOr52kEndpoint.data;
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
-                endpoint.data = sessionUtils.getInSession(
-                    endpoint.data,
+                data = sessionUtils.getInSession(
+                    data,
                     this.phenotypesInSession,
                     "phenotype"
                 );
@@ -231,8 +236,8 @@ mountPage(Template, {
 
             let assocMap = {};
 
-            for (let i in endpoint.data) {
-                const assoc = endpoint.data[i];
+            for (let i in data) {
+                const assoc = data[i];
 
                 // skip associations not part of the disease group
                 if (!this.phenotypeMap[assoc.phenotype]) {
@@ -245,13 +250,11 @@ mountPage(Template, {
                 }
             }
 
-            endpoint.data.sort(
+            return [...data].sort(
                 (a, b) =>
                     this.pValueFormatter(a.pValue) -
                     this.pValueFormatter(b.pValue)
             );
-
-            return endpoint.data;
         },
         filteredAssociations() {
             return (

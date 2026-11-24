@@ -99,21 +99,6 @@ mountPage(Template, {
                 ],
             },
             annotation: "",
-            scTissueDataset: null,
-            scbConfig: {
-                type: "cell browser",
-                label: "Single Cell Browser",
-                parameters:{
-                    datasetId: "datasetId",
-                    gene: "gene"
-                },
-                presets:{
-                    datasetId: null,
-                    layout: 3
-                },
-                bioIndex: "https://bioindex.hugeamp.org",
-                bioIndexDev: "https://bioindex-dev.hugeamp.org"
-            },
             connectivityPage: 1,
             connectivityCrisprPage: 1,
             connectivityCrisprFields: [
@@ -187,29 +172,44 @@ mountPage(Template, {
             return this.deployment !== 'production' &&
                 this.$store.state.mouseSummary.data.length > 0;
         },
-        hasMatchingSingleCellTissue(){
-            if(!this.$store.state.singleCellDatasets) return false;
-            if(!Array.isArray(this.$store.state.singleCellDatasets)) return false;
-            if(!this.tissue) return false;
+        scTissueDataset(){
+            if(!this.$store.state.singleCellDatasets) return null;
+            if(!Array.isArray(this.$store.state.singleCellDatasets)) return null;
+            if(!this.tissue) return null;
             let scTissues = this.$store.state.singleCellDatasets.filter(x => x.tissue_a2fkp === this.tissue);
             if (scTissues.length === 0){
                 scTissues = this.$store.state.singleCellDatasets
                     .filter(x => x.tissue.replaceAll(" ", "_") === this.tissue);
             }
             let versionFinder = /_v([\d]+.*[\d]*)/;
-            scTissues.forEach(t => {
+            let versions = scTissues.map(t => {
                 let version = t.datasetId.match(versionFinder);
-                t.version = version === null ? -1 : parseFloat(version[1]);
+                return {
+                    dataset: t,
+                    version: version === null ? -1 : parseFloat(version[1])
+                };
             });
-            scTissues = scTissues.sort((a,b) => b.version - a.version);
-            let scTissue = scTissues[0];
-            if(scTissue){
-                this.scTissueDataset = scTissue;
-                this.scbConfig.presets.datasetId = scTissue.datasetId;
-                return true;
-            }else{
-                return false;
-            }
+            versions.sort((a,b) => b.version - a.version);
+            return versions.length > 0 ? versions[0].dataset : null;
+        },
+        hasMatchingSingleCellTissue(){
+            return this.scTissueDataset !== null;
+        },
+        scbConfig(){
+            return {
+                type: "cell browser",
+                label: "Single Cell Browser",
+                parameters:{
+                    datasetId: "datasetId",
+                    gene: "gene"
+                },
+                presets:{
+                    datasetId: this.scTissueDataset ? this.scTissueDataset.datasetId : null,
+                    layout: 3
+                },
+                bioIndex: "https://bioindex.hugeamp.org",
+                bioIndexDev: "https://bioindex-dev.hugeamp.org"
+            };
         },
         connectivityData(){
             return this.processConnectivityData(this.$store.state.connectivity.data);
