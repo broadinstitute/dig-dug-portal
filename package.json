@@ -23,7 +23,8 @@
     "codemod:template-keys": "node scripts/vue3-migration/template-keys.mjs",
     "tool:compare-render": "node scripts/vue3-migration/compare-render.mjs",
     "tool:compare-css": "node scripts/vue3-migration/compare-css.mjs",
-    "tool:semantics-scan": "node scripts/vue3-migration/semantics-scan.mjs"
+    "tool:semantics-scan": "node scripts/vue3-migration/semantics-scan.mjs",
+    "tool:nocompat-scan": "node scripts/vue3-migration/nocompat-scan.mjs"
   },
   "dependencies": {
     "@amcharts/amcharts4": "4.10.40",
