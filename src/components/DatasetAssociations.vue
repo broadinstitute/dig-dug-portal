@@ -97,11 +97,10 @@
                         >
                         <b-col class="feature-header-item">Sample Size</b-col>
                     </b-row>
-                    <template v-for="(dataset, j) in phenotype">
+                    <template v-for="(dataset, j) in phenotype" :key="`features_${index}_${j}`">
                         <b-row
                             class="features"
                             :class="`features_${index}_${j}`"
-                            :key="`features_${index}_${j}`"
                         >
                             <b-col class="feature-content-item">
                                 <a

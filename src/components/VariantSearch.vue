@@ -77,10 +77,9 @@
                                         "
                                     >
                                         <template
-                                            v-for="(key, value) in disablebtn"
+                                            v-for="(key, value) in disablebtn" :key="key + value"
                                         >
                                             <b-form-checkbox
-                                                :key="key + value"
                                                 v-model="filters['impacts']"
                                                 name="impact"
                                                 :disabled="key"

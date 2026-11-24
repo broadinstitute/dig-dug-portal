@@ -32,9 +32,8 @@
 									<option value="">
 										{{ "Select Tissue" }}
 									</option>
-									<template v-for="tissue in GLTissues">
+									<template v-for="tissue in GLTissues" :key="tissue.tissue">
 										<option
-											:key="tissue.tissue"
 											:value="tissue.tissue"
 											v-html="getTissueLabel(tissue)"
 										></option>
@@ -82,9 +81,8 @@
 							"
 							style="position: absolute; right: 10px; top: 7px"
 						>
-							<template v-for="tissue in Object.keys(GLData)">
+							<template v-for="tissue in Object.keys(GLData)" :key="tissue">
 								<span
-									:key="tissue"
 									:class="'btn GL-search-bubble '"
 									v-html="
 										tissue +

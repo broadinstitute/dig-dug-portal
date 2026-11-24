@@ -51,10 +51,9 @@
 							<template
 								v-for="a in pkgDataSelected.filter(
 									(s) => s.type == 'Annotation'
-								)"
+								)" :key="a.id"
 							>
 								<span
-									:key="a.id"
 									:class="'btn search-bubble '"
 									:style="
 										'background-color:' +
@@ -92,10 +91,9 @@
 							<template
 								v-for="a in pkgDataSelected.filter(
 									(s) => s.type == 'Tissue'
-								)"
+								)" :key="a.id"
 							>
 								<span
-									:key="a.id"
 									:class="'btn search-bubble '"
 									:style="'background-color:#999999'"
 									v-html="

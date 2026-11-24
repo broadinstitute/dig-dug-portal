@@ -213,9 +213,8 @@
                                 >Nearest Genes</b-col
                             >
                         </b-row>
-                        <template v-for="i in 25">
+                        <template v-for="i in 25" :key="`features_top25_${index}_${i}`">
                             <b-row
-                                :key="`features_top25_${index}_${i}`"
                                 :id="`${index}_${item.phenotype.name}_variant_${
                                     i - 1
                                 }`"

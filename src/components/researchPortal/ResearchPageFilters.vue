@@ -33,7 +33,7 @@
 							class="custom-select custom-select-search"
 							v-if="parameter.type == 'list'"
 						>
-							<template v-for="param in parameter.values">
+							<template v-for="param in parameter.values" :key="param.trim()">
 								<option
 									:value="param.trim()"
 									v-html="
@@ -42,7 +42,6 @@
 											parameter.parameter
 										)
 									"
-									:key="param.trim()"
 								></option>
 							</template>
 						</select>
@@ -153,11 +152,10 @@
 										: ''
 								"
 							>
-								<template v-for="gene in kpGenes">
+								<template v-for="gene in kpGenes" :key="gene">
 									<a
 										href="javascript:;"
 										v-html="gene"
-										:key="gene"
 										@click="
 											parameter['convert to region'] &&
 											parameter['convert to region'] ==

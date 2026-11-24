@@ -14,7 +14,7 @@
                 :key="i"
             >
                 <div class="row" :class="'feature-name ' + i" v-html="i"></div>
-                <template v-for="(col, j) in row">
+                <template v-for="(col, j) in row" :key="`c_${i}_${j}`">
                     <b-row
                         :class="'feature-headers ' + i"
                         v-if="j === 0"
@@ -38,7 +38,6 @@
 
                     <b-row
                         :class="'feature-content ' + i + getColContent(col)"
-                        :key="`c_${i}_${j}`"
                     >
                         <template v-for="(item, name) in col">
                             <div

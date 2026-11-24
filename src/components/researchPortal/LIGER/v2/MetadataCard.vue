@@ -235,11 +235,10 @@ export default {
 <template>
     <div class="metadata-card">
         <div class="tab-band" role="tablist">
-            <template v-for="(tab, index) in tabs">
+            <template v-for="(tab, index) in tabs" :key="tab.key">
                 <div v-if="index > 0" :key="tab.key + '-divider'" class="band-divider" aria-hidden="true"></div>
 
                 <button
-                    :key="tab.key"
                     type="button"
                     class="tab"
                     :class="{ active: activeTab === tab.key }"

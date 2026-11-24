@@ -67,9 +67,8 @@
 
             <div class="snapshot-scroll">
                 <div class="snapshot-comparison" :style="comparisonGridStyle">
-                    <template v-for="row in comparisonRows">
+                    <template v-for="row in comparisonRows" :key="`${row.key}-special`">
                         <article
-                            :key="`${row.key}-special`"
                             class="snapshot-card snapshot-card-special"
                             :class="row.cardClass"
                         >
