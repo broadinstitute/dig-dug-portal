@@ -27,6 +27,7 @@ import BTab from "./BTab.vue";
 import BTabs from "./BTabs.vue";
 import BTh from "./BTh.vue";
 import { bvModal } from "./modals";
+import { bvToast } from "./toasts";
 import tooltip from "./tooltip";
 
 const plugin = (components) => ({
@@ -70,6 +71,7 @@ export const BootstrapVue = {
         app.directive("b-tooltip", tooltip);
         const { globalProperties } = app.config;
         globalProperties.$bvModal = bvModal;
+        globalProperties.$bvToast = bvToast(app);
     },
 };
 
