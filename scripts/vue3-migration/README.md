@@ -665,15 +665,32 @@ compared with Vue 2. `configs/vue.config.CFDE.js` and `vue.configPapers.js` are 
   single-cell browser watches what it changes in place (Vue 2 runs a watcher when its array gets an item, Vue 3 only
   when it is replaced) and reads the highlighted labels once. `NMF/Template.vue` gives its tooltips a class:
   BootstrapVue reads `$options._scopeId`, which vue-loader 16 calls `__scopeId`, so the scoped `::v-deep` rule matched
-  nothing. `BulkHeatmap.vue` returns no sample groups as `[]`: an empty selection threw, and Vue 3 did not recover until
-  a reload.
+  nothing. `BulkHeatmap.vue` returns no sample groups as `[]` (an empty selection threw, and Vue 3 did not recover until
+  a reload), and draws, or shows its download button and legend, only with rows and samples: since it mounts with
+  neither, a failed `dea.tsv.gz` gave an empty frame and an unhandled `reading '0'`, and a failed `fields.json.gz` gave
+  axes without cells, where Vue 2 shows nothing. What "Select a dataset" does is unchanged: the old heatmap stays.
+- Scoped styles without nested rules: `pkb-footer.vue`, `Index/Template.vue`, `ResearchSingleCellSelector.vue` and
+  `ResearchSingleCellBrowser.vue` had 27 nested rules in 10 blocks, now written flat, in the same order and with the same
+  specificity. vue-loader 16 turns `.a { decls; .b {} }` into `.a{&[data-v]{decls} .b[data-v]{}}`, so a browser without
+  CSS nesting (Safari before 16.5, Chrome before 112, Firefox before 117) drops the declarations of `.a` with the rest
+  (the footer lost its flex and padding), where Vue 2 wrote `.a[data-v]{decls; …}`. The flat `.a .b` is scoped as
+  `.a .b[data-v]`: own elements only, where Vue 2's nested `.b` also reached into child components, slot content and
+  `v-html`. None of the 27 does (no such element carries those classes), so no `::v-deep`; the two blocks of the
+  single-cell browser match no element of its template at all. A build that has nested rules in a scoped style again
+  prints a number above 0 here (32 before this change, 0 after):
+
+  ```bash
+  node -e 'const postcss = require("postcss"), fs = require("fs"); let n = 0; for (const f of fs.readdirSync(process.argv[1] + "/css").filter((f) => f.endsWith(".css"))) postcss.parse(fs.readFileSync(process.argv[1] + "/css/" + f, "utf8")).walkRules((r) => { if (r.parent.type === "rule") n++; }); console.log(n);' <dest>
+  ```
+
 - Two scripts (`codemod:template-keys`, `tool:nocompat-scan`) and their tests, below.
 
 ### Merging `vue3/pankbase` forward
 
 From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is `vue3/pankbase`.
 
-1. `git merge vue3/pankbase`.
+1. `git diff --stat vue3/pankbase HEAD`: keep the list of files (`--name-only` gives a plain list), for step 7. Then
+   `git merge vue3/pankbase`.
 2. A conflict in a file that the key commits changed (the 41 files of `vue3: template-keys output` and
    `vue3: template keys by hand`; `git show --name-only --format= <commit>` lists them): this branch's own change in the
    file is keys only, and the script writes them again, so take the incoming file whole. Not `--ours`: it drops every
@@ -687,9 +704,11 @@ From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is
    ```
 
    All 41 are keys only today (checked by taking the key attributes out of both versions). The other changes of this
-   branch are in files the key commits did not change: `Phenotype/main.js`, `NMF/Template.vue`, `BulkHeatmap.vue` and
-   the two single-cell browser files. A conflict in one of those, or in any file whose diff shows more than keys, is
-   resolved by hand, keeping both sides. A taken file also loses the hand fixes in it; step 5 puts them back.
+   branch are in eight files the key commits did not change: `Phenotype/main.js`, `NMF/Template.vue`,
+   `BulkHeatmap.vue`, `pkb-footer.vue`, `Index/Template.vue` and the three single-cell browser files
+   (`ResearchSingleCellBrowser.vue`, `ResearchSingleCellSelector.vue`, `ResearchUmapPlotGL.vue`). A conflict in one of
+   those, or in any file whose diff shows more than keys, is resolved by hand, keeping both sides. A taken file also
+   loses the hand fixes in it; step 5 puts them back.
 3. Other conflicts. `package.json`: keep this branch's `vue`, `@vue/compat`, `@vue/compiler-sfc`, `vuex`, the
    `"vue": "$vue"` override and the missing `vue-template-compiler`, and take the rest. `package-lock.json`: take the
    incoming file, then `npm install --package-lock-only`. The two build configs and `src/utils/pageSetup.js`: keep both
@@ -705,6 +724,10 @@ From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is
 7. The checks:
    - The dry run of step 5 again reads Left 0 and `Key errors left on Vue 3` 0, with the line `Vue 3 check: ran`.
    - The tests of the two scripts pass (below).
+   - `git diff --stat vue3/pankbase HEAD` lists the same files as before the merge (step 1), plus the key files the merge
+     added, and the eight non-key fix files above with the same line counts. A merge that is clean, or a `--theirs` on
+     one of those eight, shows no conflict to read, and a lost fix shows only here: the file is missing from the list or
+     its numbers have shrunk.
    - Serve the build and load the pages the merge changed, and gene, phenotype and diff-exp for the typeahead, next to a
      build of `vue3/pankbase` on another port (step 6 of "Portal procedure for page setup").
    - Read what the merge added for a watcher of an array that another file changes in place: Vue 3 does not run that
@@ -782,8 +805,13 @@ actions (sorts, page changes, selects, tabs, clicks, hovers: 749 in all) and by-
 in lockstep, and every difference found has its cause below. Downloads (CSV, TSV, JSON, SVG, PNG) have the same names
 and text, and the real 110 MB single-cell dataset gives the same text. The comparison tools are not in the repository.
 
-- An empty `div` is left at the end of `body` for each tooltip shown (BootstrapVue mounts a tooltip on a new element and
-  Vue 3 keeps its target). Nothing to see.
+- An empty `div` is left at the end of `body` for each time a tooltip is shown, not for each tooltip: ten shows of one
+  tooltip leave ten (BootstrapVue mounts a tooltip on a new element at every show, and Vue 3 keeps its target). Nothing
+  to see.
+- A watcher on a computed value that is an object or an array: when a dependency changes and the computed returns the
+  same object or array as before, Vue 2 runs the watcher and Vue 3 does not (it runs for another value only). Seen on
+  404.html with an empty groups answer (the `diseaseGroup` watcher of `pageMixin`, which loads the front content). Not
+  searched for on other portals' pages: to check there before they switch.
 - A button replaced by its `v-else` branch keeps or loses the focus the other way round (cell-states, NMF).
 - Donors: a numeric filter that is emptied by hand shows its value `0` again at once; Vue 2 does after the next redraw.
   Functional's donor filters follow the boxes after a filter that leaves no donor; Vue 2's go wrong. Vue 3 is right in
@@ -805,6 +833,8 @@ and text, and the real 110 MB single-cell dataset gives the same text. The compa
 - Speed and memory: functional's plots take about 12% longer to appear (median of 20 runs, 4.2 s against 3.7 s), and the
   single-cell dataset about 9% longer to load. The heap after loading is smaller (phenotype 49 MB against 76 MB), and it
   does not grow with sorts and pages on either version.
+- Size: every page loads about 30-33 KB more gzip than on Vue 2 (the JS and CSS of the page, gzip level 6): +3%, and
+  +1.4% on gene.html, which is twice as large. All JS raw is +3.5%.
 - A typeahead whose serializer throws or gives no text for an option shows an empty list on Vue 3 (a component whose
   render throws is replaced by an empty node; Vue 2 keeps the last DOM). The recorded data has no such option; a new
   ancestry code in BioIndex would be the first.
@@ -817,6 +847,14 @@ and text, and the real 110 MB single-cell dataset gives the same text. The compa
 Not tested: login and private data (the private BioIndex, PanKgraph and the LLM gateway answered from made-up data),
 Safari and any other WebKit browser (Chromium for everything; Firefox for the page sweep only: 41 of 42 pages the same,
 and the other, phenotype, depends on which of two answers comes first, on both versions), the header's menus on touch,
-single-cell datasets other than the one that was loaded with real data, and the default config's pages. The full
-comparison ran before the last small change to the single-cell browser; that page's flows and five other pages were run
-again.
+single-cell datasets other than the one that was loaded with real data, and the default config's pages.
+
+Checked as well, on the final build: the comparison of all 42 pages again (the same text, screenshots and errors on 42
+of 42); every page with BioIndex answering 500, answering empty, and not answering at all (the same text on 42 of 42
+for each, and the same errors on all but 404.html, the watcher above, and diff-exp for 500 and empty: Vue 2 logs the
+error of the heatmap's failed render and Vue 3 leaves two empty `div`s where Vue 2 leaves none); and a browser without
+CSS nesting, imitated by dropping the nested blocks from the served CSS (the computed style of every element on index,
+policies, single-cell, cell-states and donors is the same with and without them). The single actions and the flows
+(749 and 458 steps) were not repeated after the last fixes (the flat styles and the heatmap's guard); the pages were
+compared again as a whole, and the heatmap by hand (a failed or empty `dea.tsv.gz` or `fields.json.gz`, "Select a
+dataset", "Select a comparison").
