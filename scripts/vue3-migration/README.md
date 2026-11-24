@@ -634,6 +634,20 @@ config>` has only hits with a reason (PanKbase's are in step 7 of the merge belo
 second bullet below), add to `src/components/bv/` what the scan and the development build (`[bv] <b-x> does not support
 ...`) say is missing, and compare its pages with its Vue 2 build.
 
+An app of a portal's own (a `createApp(...)`; `ResearchPageHeader.vue` makes one for its search box, now with
+`Vue.extend` and `$mount`, which only compat has) gets none of what `mountPage` installs. On plain Vue it needs
+`.use(BootstrapVue)` and `.use(BootstrapVueIcons)` itself, or its `b-*` tags are raw elements: the scan does not see that
+(it takes every tag of ours as registered), and the development build says only `Failed to resolve component`.
+Likewise a bare `h("b-table")` is a raw element, which the scan lists as a hit whatever the build has.
+
+A 0 of the scan is not a proof, also under `bvTags`. It does not check the modifiers of a directive (`v-b-tooltip.top`),
+the methods of a `$bv` member, the keys of a table's fields, what is bound by an object (`v-bind="obj"`) or by a dynamic
+name, a dynamic slot name, nor the keys that the code reads from a slot's scope. When the code runs, a development build
+warns about most of these (an attribute, listener or slot, a field or item key, a modifier or option of `v-b-tooltip`, an
+unknown icon, an option of `$bvToast.toast`), but not about a method that a `$bv` member does not have (`$bvModal.msgBoxOk`
+is undefined, so the call throws) or a key of a slot's scope that the component does not pass (it is undefined). Read
+those uses by hand, and load the pages that have them in a development build.
+
 ### What differs from `vue3/pankbase`
 
 - Packages (`package.json`, `package-lock.json`): `vue`, `@vue/compat` and `@vue/compiler-sfc` 3.5.45, `vuex` 4.1.0, no
@@ -767,9 +781,14 @@ From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is
      with `:value` and `@input`), `rootListener` 4 (the typeahead's list and the toggle of `BDropdown.vue`, meant so),
      `vForRef` 3 (donors: each ref is an array of one; `BTabs.vue`, which looks for its buttons by id), `bvImports` 1
      (the stylesheet), `bvRefs` 3 (refs that the scan cannot place, none of BootstrapVue) and `bvCss` 30 (rules on
-     BootstrapVue's classes, which our components have). What the merge added is to be fixed: without compat `$set` and
-     the like throw, `v-model` on a `value`/`input` component does nothing, and an old lifecycle name is never called. A
-     `bvTags` hit is a use that our component does not support.
+     BootstrapVue's classes: 27 on classes that our components render, `.b-table`, `.b-table-details`,
+     `.b-table-sticky-header`, `.b-pagination` and the like, and the three `.b-popover` rules of `public/css/table.css`,
+     which match nothing: we have no popover, and no page of PanKbase makes one). What the merge added is to be fixed:
+     without compat `$set` and the like throw, `v-model` on a `value`/`input` component does nothing, and an old
+     lifecycle name is never called. A `bvTags` hit is a use that our component does not support: an attribute,
+     listener, `v-model` or slot that it has not, an `icon` that `src/components/bv/icons.js` has no body for, or a tag
+     made by `h("b-x")`. A second `bvImports` hit is a name that `src/components/bv/index.js` does not export
+     (`ToastPlugin`, `VBPopover`, a `BIcon…`).
    - Serve the build and load the pages the merge changed, and gene, phenotype and diff-exp for the typeahead, next to a
      build of `vue3/pankbase` on another port (step 6 of "Portal procedure for page setup").
    - Read what the merge added for a watcher of an array that another file changes in place: Vue 3 does not run that
@@ -811,16 +830,23 @@ files. The report is markdown: a table of the patterns (hits, and notes that may
 each pattern with `file:line` and the code, a table of every `b-*` tag with the props, events and slots it is used with,
 the `v-b-*` directives and `$bv` calls, the packages that depend on Vue, the imports it could not follow, and the files
 that did not parse. Where the config aliases `bootstrap-vue` to components of ours, a `b-*` tag is a hit only for what
-ours do not support, as their own development check declares it (`functional(...)` and `checksUse(...)`). `--json`
-prints the same as JSON. It writes no file. Exit 0 whatever it finds, 2 for a usage error. A 0 is not a proof. It cannot
-see a value known only at run time (`:is`, a ref or event name built from a variable), what a mixin declares for the
-component that uses it (each file is read on its own), `$watch(...)` calls, JSX, templates written as strings, Sass
-nesting with `&-suffix`, loaders and webpack settings other than the aliases, or `public/*.html`. It lists the watchers
-of arrays (`watchArrays`) and notes a change in place only in the watcher's own file, so an array that another component
-changes in place (the single-cell browser had three) is not seen.
+ours do not support, as their own development check declares it (`functional(...)` and `checksUse(...)`), and for an
+`icon` that the component's `ICONS` has no body for (one that is not a literal is listed as dynamic, not as a hit); a
+tag made by `h("b-x")` is always a hit (on Vue 3 a string is an element), and so is an import or re-export of a name that
+the aliased file does not export. Only the files that the aliased file imports are exempt from the BootstrapVue kinds, and
+a component it imports and never uses is not supported. `--json` prints the same as JSON. It writes no file. Exit 0
+whatever it finds, 2 for a usage error. A 0 is not a proof. It cannot see a value known only at run time (`:is`, a ref or
+event name built from a variable), what a mixin declares for the component that uses it (each file is read on its own),
+`$watch(...)` calls, JSX, templates written as strings, Sass nesting with `&-suffix`, loaders and webpack settings other
+than the aliases, or `public/*.html`. Of our own components' uses it does not check the modifiers of a directive, the
+methods of a `$bv` member (`$bvModal.msgBoxOk` is not there: the call throws, with no warning before), the keys of a
+table's fields, what `v-bind="obj"` or a dynamic name binds, a dynamic slot name, nor the keys read from a slot's scope;
+a development build warns about most of these when the code runs, as above. It lists the watchers of arrays
+(`watchArrays`) and notes a change in place only in the watcher's own file, so an array that another component changes in
+place (the single-cell browser had three) is not seen.
 
 The other scripts need Vue 2.7's compiler, which this branch does not have: run them from a `dev/vue3` checkout with
-`--root <this checkout>`. `npm run test:scripts` is not a gate here: 216 of its 707 tests fail, those of the scripts
+`--root <this checkout>`. `npm run test:scripts` is not a gate here: 216 of its 711 tests fail, those of the scripts
 that call `compiler-sfc`'s `parse({ source })` and `compileTemplate` as Vue 2.7 does (Vue 3's `parse` takes other
 arguments: `currentInput.slice is not a function`). The tests of the two scripts above run here, and pass:
 
@@ -878,8 +904,15 @@ tools are not in the repository.
 - Speed and memory: functional's plots appear in 2.1 s (Vue 2: 3.6 s; medians of 6 loads each), mostly because the table
   before them is there sooner. The heap after loading is smaller (phenotype 31 MB against 76 MB), and it does not grow
   with sorts and pages on either version.
-- Size: every page loads 227-230 KB less gzip than on Vue 2 (the JS and CSS of the page, gzip level 6): -22%, and -10% on
-  gene.html, which is twice as large. All JS raw is -13%.
+- Size: every page loads 227-230 KB less gzip than on Vue 2 (the JS and CSS that the page runs, gzip level 6, the
+  `rel=prefetch` chunks that it only offers left out): -21% to -22% on every page (index.html 1,062.7 to 833.1 KB,
+  gene.html 1,088.0 to 858.3 KB, -21.1%). All JS raw, prefetched chunks included, is -13%.
+- Gene: the HuGE phenotype plot, and with it the page, can be 14 px wider (1,310 px instead of 1,296 in a window of 1,280).
+  The plot sets the width of its canvas once, at mount, from the width of its wrapper at that moment, which depends on
+  which of two answers comes first. Vue 2 does it too (2 of 8 loads with eight browsers at once and the machine at a load
+  of 34; 0 of 20 at 24), and this build more often when the machine is overloaded (5 of 8 and 11 of 20; this build draws
+  sooner), never in 31 loads two at a time. Not fixed: the plot's own measuring is not part of this change. Each resize of
+  the window also makes the plot 30 px wider, on both.
 - A typeahead whose serializer throws or gives no text for an option shows an empty list on Vue 3 (a component whose
   render throws is replaced by an empty node; Vue 2 keeps the last DOM). The recorded data has no such option; a new
   ancestry code in BioIndex would be the first.
@@ -895,8 +928,10 @@ and the other, phenotype, depends on which of two answers comes first, on both v
 single-cell datasets other than the one that was loaded with real data, and the default config's pages.
 
 Checked as well: every page with BioIndex answering 500, answering empty, and not answering at all (the same text on 42
-of 42 for each, and the same errors on all but 404.html, the watcher above, and diff-exp for 500 and empty: Vue 2 logs
-the error of the heatmap's failed render and Vue 3 leaves two empty `div`s where Vue 2 leaves none). Under compat,
+of 42 for each, and the same errors on all but 404.html, the watcher above, diff-exp for 500 and empty: Vue 2 logs
+the error of the heatmap's failed render and Vue 3 leaves two empty `div`s where Vue 2 leaves none, and data-browser
+for an answer that is cut off: both log `Failed to execute 'json' on 'Response': Unexpected end of JSON input`, and Vue 2
+a second line, `Unexpected end of JSON input`, that Vue 3 does not; the page's text is the same). Under compat,
 before BootstrapVue went, and not again: Firefox, a browser without CSS nesting, imitated by dropping the nested blocks
 from the served CSS (the computed style of every element on index, policies, single-cell, cell-states and donors is the
 same with and without them), and the heatmap by hand (a failed or empty `dea.tsv.gz` or `fields.json.gz`, "Select a
