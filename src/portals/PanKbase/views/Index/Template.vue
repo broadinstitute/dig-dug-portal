@@ -339,28 +339,27 @@ export default {
 .section-item.medium {
     flex-direction: column-reverse;
     justify-content: flex-end;
-
-    .item-copy {
-        width: -webkit-fill-available;
-        max-width: unset;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-    .item-title {
-        font-weight: bold;
-        font-size: 1.2em;
-    }
-    .item-bg {
-        width: auto;
-        height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        mix-blend-mode: darken;
-        overflow: hidden;
-    }
+}
+.section-item.medium .item-copy {
+    width: -webkit-fill-available;
+    max-width: unset;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.section-item.medium .item-title {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+.section-item.medium .item-bg {
+    width: auto;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    mix-blend-mode: darken;
+    overflow: hidden;
 }
 
 .section-item.soon::after {

@@ -3473,24 +3473,23 @@
 .tabs-wrapper {
     display: flex;
     z-index: 1;
-
-    .tab {
-        padding: 10px 10px;
-        margin: 0 -1px -1px 0;
-        background: #eee;
-        cursor: pointer;
-        font-size: 16px;
-        flex: 1;
-    }
-    .tab:last-child {
-        margin-right: 0;
-    }
-    .tab.selected {
-        cursor: default;
-        background: #fff;
-        border-bottom: white;
-        font-weight: bold;
-    }
+}
+.tabs-wrapper .tab {
+    padding: 10px 10px;
+    margin: 0 -1px -1px 0;
+    background: #eee;
+    cursor: pointer;
+    font-size: 16px;
+    flex: 1;
+}
+.tabs-wrapper .tab:last-child {
+    margin-right: 0;
+}
+.tabs-wrapper .tab.selected {
+    cursor: default;
+    background: #fff;
+    border-bottom: white;
+    font-weight: bold;
 }
 
 
@@ -3513,20 +3512,18 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    svg{
-        width:14px;
-    }
-    path{
-        /*fill:transparent;*/
-        opacity: .25;
-        /*stroke:#434343;*/
-    }
 }
-.colorize-option.active{
-    path{
-        /*fill:#434343;*/
-        opacity: 1;
-    }
+.colorize-option svg{
+    width:14px;
+}
+.colorize-option path{
+    /*fill:transparent;*/
+    opacity: .25;
+    /*stroke:#434343;*/
+}
+.colorize-option.active path{
+    /*fill:#434343;*/
+    opacity: 1;
 }
 
 .legends {
