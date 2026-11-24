@@ -39,8 +39,8 @@
                                     .displayedConnected"
                                 :key="idx"
                                 :class="`connected-node-${connected.shape}`"
-                            >
-                                {{ connected.label
+                            >{{
+                                " " }}{{ connected.label
                                 }}<span
                                     v-if="
                                         idx <
@@ -53,8 +53,8 @@
                                 v-if="row.item.hasMore"
                                 class="show-more-link"
                                 @click.stop="toggleShowMore(row.item.id)"
-                            >
-                                {{
+                            >{{
+                                " " }}{{
                                     row.item.showMore
                                         ? " (show less)"
                                         : "... show more (" +

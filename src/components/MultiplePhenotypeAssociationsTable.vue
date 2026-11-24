@@ -63,10 +63,10 @@
                     >
                         {{
                             r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"
-                        }}
-                    </span>
-                    <span>
-                        {{
+                        }}{{ " "
+                    }}</span>
+                    <span>{{
+                        " " }}{{
                             effectFormatter(
                                 p.dichotomous
                                     ? Math.exp(r.item[`${p.name}:beta`])

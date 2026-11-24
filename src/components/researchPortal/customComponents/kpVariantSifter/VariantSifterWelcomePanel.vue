@@ -79,13 +79,13 @@
                                     @mousedown.prevent="selectPhenotype(phenotype)"
                                 >
                                     <span class="vks-welcome-suggestion-label">
-                                        {{ phenotypeSuggestionLabel(phenotype) }}
-                                    </span>
+                                        {{ phenotypeSuggestionLabel(phenotype) }}{{ " "
+                                    }}</span>
                                     <span
                                         v-if="phenotypeSuggestionMeta(phenotype)"
                                         class="vks-welcome-suggestion-meta"
-                                    >
-                                        {{ phenotypeSuggestionMeta(phenotype) }}
+                                    >{{
+                                        " " }}{{ phenotypeSuggestionMeta(phenotype) }}
                                     </span>
                                 </button>
                             </div>

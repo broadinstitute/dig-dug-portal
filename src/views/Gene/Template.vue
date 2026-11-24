@@ -139,9 +139,9 @@
                                                     )
                                             "
                                             :key="gene.name"
-                                        >
-                                            {{ gene.name }}
-                                        </span>
+                                        >{{
+                                            " " }}{{ gene.name }}{{ " "
+                                        }}</span>
                                         &nbsp;
                                     </div>
                                     <div v-if="$parent.regionText">
@@ -814,8 +814,8 @@
                                     $parent.externalResources[gene.source].title
                                 "
                             >
-                                {{ gene.source.toUpperCase() }}
-                            </a>
+                                {{ gene.source.toUpperCase() }}{{ " "
+                            }}</a>
                             <a
                                 v-else
                                 :href="
@@ -826,8 +826,8 @@
                                 :title="
                                     $parent.externalResources[gene.source].title
                                 "
-                            >
-                                {{ gene.source.toUpperCase() }}
+                            >{{
+                                " " }}{{ gene.source.toUpperCase() }}
                             </a>
                         </div>
                     </div>

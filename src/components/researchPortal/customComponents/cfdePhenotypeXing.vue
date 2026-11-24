@@ -24,8 +24,8 @@
                 <template v-if="!!renderConfig['link to']">
                     <a :href="renderConfig['link to']+item[renderConfig['link field']]">{{ item[renderConfig["render by"]] }}</a>
                 </template>
-                <template v-else>
-                    {{ item[renderConfig["render by"]] }}
+                <template v-else>{{
+                    " " }}{{ item[renderConfig["render by"]] }}
                 </template>
                
 

@@ -104,9 +104,9 @@
                                             v-if="typeof data.value === 'string' && data.value.includes(':')"
                                             :curie="data.value">
                                         </resolved-curie-link>
-                                        <span v-else>
-                                            {{data.value}}
-                                        </span>
+                                        <span v-else>{{
+                                            " " }}{{data.value}}{{ " "
+                                        }}</span>
                                     </span>
                                 </span>
                             </span>

@@ -92,9 +92,9 @@
                             >
                                 <span class="vks-associations-ancestry-bubble-code">{{ series.ancestry }}</span>
                                 <span class="vks-associations-ancestry-bubble-label">{{ series.label }}</span>
-                                <span class="vks-associations-ancestry-bubble-count">
-                                    {{ series.rows.length.toLocaleString() }}
-                                </span>
+                                <span class="vks-associations-ancestry-bubble-count">{{
+                                    " " }}{{ series.rows.length.toLocaleString() }}{{ " "
+                                }}</span>
                             </span>
                         </div>
                         <div
@@ -166,9 +166,9 @@
                             >
                                 <span class="vks-associations-ancestry-bubble-code">{{ series.ancestry }}</span>
                                 <span class="vks-associations-ancestry-bubble-label">{{ series.label }}</span>
-                                <span class="vks-associations-ancestry-bubble-count">
-                                    {{ series.rows.length.toLocaleString() }}
-                                </span>
+                                <span class="vks-associations-ancestry-bubble-count">{{
+                                    " " }}{{ series.rows.length.toLocaleString() }}{{ " "
+                                }}</span>
                             </span>
                         </div>
                         <div

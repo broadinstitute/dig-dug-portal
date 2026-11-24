@@ -31,21 +31,21 @@
                     <span :id="canvasId + 'pheWasInfoBoxContent'"></span>
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
-                        <strong v-if="!linkPhenotypes">
-                            {{
+                        <strong v-if="!linkPhenotypes">{{
+                            " " }}{{
                                 (phenotypeMap[ptKey] &&
                                     phenotypeMap[ptKey].description) ||
                                 ptKey
-                            }}
-                        </strong>
+                            }}{{ " "
+                        }}</strong>
                         <strong v-else>
-                            <a :href="phenotypeLink(ptKey)">
-                                {{
+                            <a :href="phenotypeLink(ptKey)">{{
+                                " " }}{{
                                     (phenotypeMap[ptKey] &&
                                         phenotypeMap[ptKey].description) ||
                                     ptKey
-                                }}
-                            </a>
+                                }}{{ " "
+                            }}</a>
                         </strong>
                         <br />
                         <span

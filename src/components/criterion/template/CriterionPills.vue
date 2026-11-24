@@ -1,7 +1,7 @@
 <template>
     <!-- Pills for everything -->
-    <span v-if="!!filterList && filterList.length > 0" class="filter-pill-collection center">
-        {{ header }}
+    <span v-if="!!filterList && filterList.length > 0" class="filter-pill-collection center">{{
+        " " }}{{ header }}
         <!-- Derive pills from current filter state?
                     Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
                     It would be deterministic upto the compile-time declaration of the CriterionGroupTemplate controls which would lead to predicatable results at runtime
@@ -17,8 +17,8 @@
                 }`,
             }"
             @click="clearable ? $emit('unset', filter) : () => {}"
-        >
-            {{
+        >{{
+            " " }}{{
                 !!filter.label
                     ? typeof filter.label === "function"
                         ? filter.label(filter)

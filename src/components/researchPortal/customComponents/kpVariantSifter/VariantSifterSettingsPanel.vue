@@ -96,15 +96,15 @@
                                         :checked="isVisible(section.id)"
                                         @change="onToggleSection(section.id, $event)"
                                     />
-                                    <span class="vks-settings-section-label">
-                                        {{ section.label }}
-                                    </span>
+                                    <span class="vks-settings-section-label">{{
+                                        " " }}{{ section.label }}{{ " "
+                                    }}</span>
                                 </label>
                                 <span
                                     v-if="section.description"
                                     class="vks-settings-section-desc"
-                                >
-                                    {{ section.description }}
+                                >{{
+                                    " " }}{{ section.description }}
                                 </span>
                             </li>
                         </ul>
@@ -199,8 +199,8 @@
                                 <span
                                     v-if="row.detail"
                                     class="vks-settings-info-detail"
-                                >
-                                    {{ row.detail }}
+                                >{{
+                                    " " }}{{ row.detail }}
                                 </span>
                             </dd>
                         </div>

@@ -86,8 +86,8 @@
                         <h4>
                             Human Homolog 
                             <a :href="`/gene.html?gene=${$store.state.gene}`">
-                                {{ $store.state.gene }}
-                            </a>
+                                {{ $store.state.gene }}{{ " "
+                            }}</a>
                             <tooltip-documentation
                                 name="mouse.diff-exp.homolog.tooltip"
                                 :is-hover="true"

@@ -206,8 +206,8 @@ export default {
                         v-if="!!phenotypeMap[r.item.phenotype]"
                         :href="`/cvdi_pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
                     >
-                        {{ r.item.phenotypeDesc }}
-                    </a>
+                        {{ r.item.phenotypeDesc }}{{ " "
+                    }}</a>
                     <span v-else>{{ r.item.phenotype }}</span>
                 </template>
                 <template #cell(gene_set)="r">
@@ -220,16 +220,16 @@ export default {
                 <template #cell(top_gene_sets)="r">
                     <div class="wrapped-cell-content">
                         <span v-if="r.item.top_gene_sets">
-                            {{ r.item.top_gene_sets }}
-                        </span>
+                            {{ r.item.top_gene_sets }}{{ " "
+                        }}</span>
                         <span v-else>-</span>
                     </div>
                 </template>
                 <template #cell(top_genes)="r">
                     <div class="wrapped-cell-content">
                         <span v-if="r.item.top_genes">
-                            {{ r.item.top_genes }}
-                        </span>
+                            {{ r.item.top_genes }}{{ " "
+                        }}</span>
                         <span v-else>-</span>
                     </div>
                 </template>

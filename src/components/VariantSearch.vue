@@ -250,8 +250,8 @@
                         ><span v-if="!!loadingData[data.item.varId]"
                             ><b-spinner small></b-spinner>
                             <span class="sr-only">Loading...</span></span
-                        ><span v-else>
-                            {{ data.detailsShowing ? "Hide" : "Show" }}
+                        ><span v-else>{{
+                            " " }}{{ data.detailsShowing ? "Hide" : "Show" }}
                             Annotations</span
                         >
                     </b-button>

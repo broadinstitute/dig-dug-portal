@@ -63,8 +63,8 @@
                             >{{ $parent.varId }}
                             <span v-if="$parent.dbSNP">
                                 <span style="color: gray">/</span>
-                                {{ $parent.dbSNP }}
-                            </span>
+                                {{ $parent.dbSNP }}{{ " "
+                            }}</span>
                         </span>
                     </div>
                     <div class="col-md-3 gene-page-header-body">

@@ -37,8 +37,8 @@
                 <strong>{{ tip.row.id }}</strong
                 ><span>{{ xLabel }}: {{ format(tip.row[xKey]) }}</span
                 ><span>{{ yLabel }}: {{ format(tip.row[yKey]) }}</span>
-                <span v-if="colorKey">
-                    {{ colorLabel }}: {{ format(tip.row[colorKey]) }}
+                <span v-if="colorKey">{{
+                    " " }}{{ colorLabel }}: {{ format(tip.row[colorKey]) }}
                 </span>
             </div>
         </div>

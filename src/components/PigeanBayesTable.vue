@@ -37,8 +37,8 @@
                         v-if="!!phenotypeMap[r.item.phenotype]"
                         :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}`"
                     >
-                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
-                    </a>
+                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}{{ " "
+                    }}</a>
                     <span v-else>{{ r.item.phenotype }}</span>
                 </template>
                 <template #cell(gene_set)="r">

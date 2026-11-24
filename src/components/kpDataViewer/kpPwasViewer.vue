@@ -128,8 +128,8 @@
 											) == true
 									)
 							"
-						>
-							{{ infoKey }}: <br />
+						>{{
+							" " }}{{ infoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(infoItem, infoItemKey) in info"
@@ -184,8 +184,8 @@
 											) == true
 									)
 							"
-						>
-							{{ infoKey }}: <br />
+						>{{
+							" " }}{{ infoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(infoItem, infoItemKey) in info"
@@ -308,8 +308,8 @@
 											) == true
 									)
 							"
-						>
-							{{ hLdVInfoKey }}: <br />
+						>{{
+							" " }}{{ hLdVInfoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(hLdVItem, hLdVItemKey) in hLdVInfo"
@@ -367,8 +367,8 @@
 											) == true
 									)
 							"
-						>
-							{{ ldInfoKey }}: <br />
+						>{{
+							" " }}{{ ldInfoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(ldInfoItem, ldInfoItemKey) in ldInfo"

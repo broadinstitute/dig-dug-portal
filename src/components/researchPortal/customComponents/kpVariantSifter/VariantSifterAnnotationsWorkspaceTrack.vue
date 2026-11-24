@@ -90,9 +90,9 @@
                                     :style="{ accentColor: legendSolidColor(annotation) }"
                                 @change="onToggleAnnotation(annotation, $event)"
                             />
-                            <span class="vks-ge-legend-label">
-                                {{ overviewAnnotationLabel(annotation) }}
-                            </span>
+                            <span class="vks-ge-legend-label">{{
+                                " " }}{{ overviewAnnotationLabel(annotation) }}{{ " "
+                            }}</span>
                         </label>
                     </li>
                 </ul>

@@ -84,11 +84,11 @@
                         :class="'gene-with-signal ' + row.type"
                     >
                         <template v-if="row.type == 'protein_coding'">
-                            <a :href="`/gene.html?gene=${row.name}`">
-                                {{ row.name }}
-                            </a></template
+                            <a :href="`/gene.html?gene=${row.name}`">{{
+                                " " }}{{ row.name }}{{ " "
+                            }}</a></template
                         >
-                        <template v-else> {{ row.name }}</template>
+                        <template v-else>{{ " " }}{{ row.name }}</template>
                     </div>
                 </div>
             </div>
