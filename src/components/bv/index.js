@@ -24,6 +24,7 @@ import BSkeletonImg from "./BSkeletonImg";
 import BSkeletonWrapper from "./BSkeletonWrapper";
 import BSpinner from "./BSpinner";
 import BTab from "./BTab.vue";
+import BTable from "./BTable";
 import BTabs from "./BTabs.vue";
 import BTh from "./BTh.vue";
 import { bvModal } from "./modals";
@@ -61,6 +62,7 @@ const components = plugin({
     BSkeletonWrapper,
     BSpinner,
     BTab,
+    BTable,
     BTabs,
     BTh,
 });
