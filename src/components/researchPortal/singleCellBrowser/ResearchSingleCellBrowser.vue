@@ -324,7 +324,7 @@
                                             plotting inference, which calls every field over
                                             the label cap categorical even when it is numbers.
 
-                                            the filter is applied on @change, not @input: the
+                                            the filter is applied on @change, not by v-model: the
                                             mask rebuild plus a full re-aggregation on every
                                             pixel of a drag would be seconds of work per
                                             gesture on a large dataset.
@@ -339,7 +339,7 @@
                                                 :max="numericRangeFor(openFilterField).max"
                                                 :step="numericRangeFor(openFilterField).step"
                                                 :decimals="numericRangeFor(openFilterField).decimals"
-                                                :value="rangeValueFor(openFilterField)"
+                                                :modelValue="rangeValueFor(openFilterField)"
                                                 @change="setFilterRange(openFilterField, $event)"
                                             />
                                         </template>

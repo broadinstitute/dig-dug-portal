@@ -6,7 +6,7 @@
             :displayLabel="label || field"
             :options="processedOptions"
             :totalRowCount="options.length"
-            @input="e => updateFilter(e)">
+            @update:modelValue="e => updateFilter(e)">
 
         </categorical-filter>
     </div>

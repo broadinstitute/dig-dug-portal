@@ -96,6 +96,8 @@ import * as d3 from "d3";
 
 export default {
     name: "NumericRangeFilter",
+    // compat would make value/input of a parent's v-model
+    compatConfig: { COMPONENT_V_MODEL: false },
     props: {
         columnName: {
             type: String,
@@ -113,7 +115,7 @@ export default {
             type: Number,
             default: 0,
         },
-        value: {
+        modelValue: {
             type: Object,
             default: null,
         },
@@ -122,7 +124,7 @@ export default {
             default: 0
         }
     },
-    emits: ["input"],
+    emits: ["update:modelValue"],
     data() {
         return {
             localMin: 0,
@@ -236,7 +238,7 @@ export default {
         },
     },
     watch: {
-        value: {
+        modelValue: {
             immediate: true,
             deep: true,
             handler() {
@@ -278,8 +280,8 @@ export default {
             });
         },
         syncFromValue() {
-            const nextMin = this.value && typeof this.value.min === "number" ? this.value.min : this.domainMin;
-            const nextMax = this.value && typeof this.value.max === "number" ? this.value.max : this.domainMax;
+            const nextMin = this.modelValue && typeof this.modelValue.min === "number" ? this.modelValue.min : this.domainMin;
+            const nextMax = this.modelValue && typeof this.modelValue.max === "number" ? this.modelValue.max : this.domainMax;
 
             this.localMin = this.clampValue(nextMin, this.domainMin, this.domainMax);
             this.localMax = this.clampValue(nextMax, this.localMin, this.domainMax);
@@ -319,7 +321,7 @@ export default {
             return ((value - this.domainMin) / denominator) * this.plotWidth;
         },
         emitValue() {
-            this.$emit("input", {
+            this.$emit("update:modelValue", {
                 min: this.localMin,
                 max: this.localMax,
             });

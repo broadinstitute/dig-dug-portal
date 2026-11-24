@@ -94,10 +94,6 @@ export default {
       default: null,
       validator: size => ['lg', 'md', 'sm'].indexOf(size) > -1
     },
-    value: {
-      type: String
-    },
-    // v-model of Vue 3; a parent gives this or value
     modelValue: {
       type: String
     },
@@ -176,8 +172,7 @@ export default {
     highlightClass: String
   },
 
-  // input must be declared: undeclared, the native input event would reach the parent's @input as well
-  emits: ['hit', 'input', 'update:modelValue', 'keyup'],
+  emits: ['hit', 'update:modelValue', 'keyup'],
 
   computed: {
     id() {
@@ -185,10 +180,6 @@ export default {
     },
     inputGroupClasses() {
       return this.size ? `input-group input-group-${this.size}` : 'input-group'
-    },
-
-    boundValue() {
-      return typeof this.modelValue !== 'undefined' ? this.modelValue : this.value
     },
 
     isListVisible() {
@@ -237,12 +228,11 @@ export default {
       }
     },
 
-    // If v-model is being used, emit the input events and reset the list's active entry. The package's list reset itself
+    // If v-model is being used, emit its event and reset the list's active entry. The package's list reset itself
     // on that event, which it got only with a v-model: without one the entry stays active, as in the package.
     emitInput(newValue) {
-      if (typeof this.boundValue !== 'undefined') {
+      if (typeof this.modelValue !== 'undefined') {
         this.$emit('update:modelValue', newValue)
-        this.$emit('input', newValue)
         this.$refs.list.resetActiveListItem()
       }
     },
@@ -315,7 +305,7 @@ export default {
   data() {
     return {
       isFocused: false,
-      inputValue: this.modelValue || this.value || ''
+      inputValue: this.modelValue || ''
     }
   },
 
@@ -332,7 +322,7 @@ export default {
   },
 
   watch: {
-    boundValue: function(val) {
+    modelValue: function(val) {
       this.inputValue = val
     }
   }

@@ -81,12 +81,14 @@ const EventListener = {
 
 export default {
     name: "criterion-group-template",
+    // the default config builds with compat, which would make value/input of a parent's v-model
+    compatConfig: { COMPONENT_V_MODEL: false },
     components: {
         CriterionPills,
         EventListener,
     },
     props: {
-        value: [Function, Array],
+        modelValue: [Function, Array],
         filterType: {
             type: String,
             // required: true,
@@ -126,7 +128,7 @@ export default {
             default: true,
         },
     },
-    emits: ["update:filter-list", "update:filter-function", "input"],
+    emits: ["update:filter-list", "update:filter-function", "update:modelValue"],
     data() {
         return {
             // the filter on the end prevents malformed initial values from being used in the component
@@ -152,16 +154,16 @@ export default {
     created() {
         if (typeof this.filterList !== "undefined") {
             this.filterListInternal = this.filterList;
-        } else if (!!this.value && Array.isArray(this.value)) {
-            this.filterListInternal = this.value;
+        } else if (!!this.modelValue && Array.isArray(this.modelValue)) {
+            this.filterListInternal = this.modelValue;
         } else {
             this.filterListInternal = [];
         }
 
         if (typeof this.filterFunction !== "undefined") {
             this.filterFunctionInternal = this.filterFunction;
-        } else if (!!this.value && typeof this.value === "function") {
-            this.filterFunctionInternal = this.value;
+        } else if (!!this.modelValue && typeof this.modelValue === "function") {
+            this.filterFunctionInternal = this.modelValue;
         } else {
             this.filterFunctionInternal = (id) => true;
         }
@@ -274,7 +276,7 @@ export default {
             },
             deep: true,
         },
-        value: {
+        modelValue: {
             handler: function (newCriterionValue) {
                 if (this.filterType === "function") {
                     this.filterFunctionInternal = newCriterionValue;
@@ -331,7 +333,7 @@ export default {
 
         The events are `@update:filter-list` and `@update:filter-function`.
 
-        They act like `@input` does with `v-model`, except it's with a filter list or
+        They act like `@update:modelValue` does with `v-model`, except it's with a filter list or
         filter function only. You can use both at the same time.
 
         ```vue
@@ -386,7 +388,7 @@ export default {
         criterion: {
             handler: function (newCriterionValue, oldCriterionValue) {
                 if (!isEqual(newCriterionValue, oldCriterionValue)) {
-                    this.$emit("input", newCriterionValue);
+                    this.$emit("update:modelValue", newCriterionValue);
                 }
             },
             deep: true,

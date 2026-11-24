@@ -35,6 +35,8 @@
 <script>
 export default {
     name: "CategoricalFilter",
+    // compat would make value/input of a parent's v-model
+    compatConfig: { COMPONENT_V_MODEL: false },
     props: {
         columnName: {
             type: String,
@@ -52,18 +54,18 @@ export default {
             type: Number,
             default: 0,
         },
-        value: {
+        modelValue: {
             type: Array,
             default: () => [],
         },
     },
-    emits: ["input"],
+    emits: ["update:modelValue"],
     computed: {
         optionCount() {
             return this.options.length;
         },
         selectedValues() {
-            return Array.isArray(this.value) ? this.value : [];
+            return Array.isArray(this.modelValue) ? this.modelValue : [];
         },
         coveragePercent() {
             if (!this.totalRowCount) {
@@ -86,13 +88,13 @@ export default {
                 ? this.selectedValues.filter((entry) => entry !== value)
                 : this.selectedValues.concat(value);
 
-            this.$emit("input", nextValues);
+            this.$emit("update:modelValue", nextValues);
         },
         selectAll() {
-            this.$emit("input", this.options.map((option) => option.value));
+            this.$emit("update:modelValue", this.options.map((option) => option.value));
         },
         selectNone() {
-            this.$emit("input", []);
+            this.$emit("update:modelValue", []);
         },
         optionBarStyle(option) {
             const width = (option.count / this.maxCount) * 100;

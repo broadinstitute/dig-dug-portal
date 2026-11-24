@@ -11,9 +11,9 @@
             :displayLabel="field"
             :values="cleanupValues"
             :totalRowCount="cleanupValues.length"
-            :value="presetRange"
+            :modelValue="presetRange"
             :customStep="customStep"
-            @input="(e) => updateFilter(e)"
+            @update:modelValue="(e) => updateFilter(e)"
         ></numeric-range-filter>
     </div>
 </template>

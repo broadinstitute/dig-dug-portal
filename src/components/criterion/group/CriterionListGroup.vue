@@ -2,8 +2,8 @@
     <criterion-group-template
         :ref="Math.floor(Math.random() * 10000).toString()"
         
-        :value="value"
-        @input="emitInput"
+        :modelValue="value"
+        @update:modelValue="emitInput"
 
         :hide="hide"
         :filterType="'list'"
