@@ -1,11 +1,11 @@
 <template>
   <div>
-    <download-chart
+    <download-chart v-if="showFrame"
         :chartId="`${plotId}_svg`"
         :filename="`${plotId}_differential_expression`"
         >
     </download-chart>
-    <div style="display:flex; gap:5px" class="legends">
+    <div v-if="showFrame" style="display:flex; gap:5px" class="legends">
         <div style="display:inline-block; width:65%;" class="legend">
             <strong>RUV-normalized counts</strong>
             <div style="display:flex; margin-top:10px" class="marks">
@@ -68,6 +68,7 @@ export default {
           maxExp: null,
           colorScaleArray: [],
           compField: null,
+          drawn: false,
           sampleCharacters: ["▒", "█"], // for additional visual data besides color
           sampleColors: [
                 "rgb(092 174 000)",
@@ -84,6 +85,14 @@ export default {
         sampleGroups(){
             // none while no dataset or comparison is selected
             return this.diseaseData.diseaseLabels || [];
+        },
+        canDraw(){
+            // no rows or no samples: the answers are missing or failed
+            return this.plotData.length > 0 && this.samplesColumns.length > 0;
+        },
+        showFrame(){
+            // the download button and the legend, once there is something to draw or something drawn
+            return this.canDraw || this.drawn;
         },
         sortedSamples(){
             let samples = cloneDeep(this.samplesColumns);
@@ -119,6 +128,9 @@ export default {
     methods: {
         ...sortUtils,
       async drawHeatMap(){
+        // leave what is drawn as it is (nothing at all, if nothing was)
+        if (!this.canDraw) return;
+        this.drawn = true;
         //empty the wrapper first
         document.getElementById(this.plotId).innerHTML = "";
 
@@ -322,7 +334,7 @@ export default {
     watch: {
       plotData:{
             handler(newData, oldData){
-                if(newData !== oldData){
+                if(newData !== oldData && this.canDraw){
                     this.compField = newData[0].comparison_field;
                     this.drawHeatMap();
                 }
