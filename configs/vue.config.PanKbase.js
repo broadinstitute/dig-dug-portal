@@ -345,6 +345,12 @@ module.exports = {
         }
     },
     chainWebpack: (config) => {
+        // Vue 3 under @vue/compat: one Vue module for our code and for the Vue 2 packages, templates compiled as Vue 2's
+        config.resolve.alias.set("vue$", require.resolve("../src/utils/vueCompat.js"));
+        config.module
+            .rule("vue")
+            .use("vue-loader")
+            .tap((options) => ({ ...options, compilerOptions: { compatConfig: { MODE: 2 } } }));
         // Optimize CSS extraction to prevent ordering conflicts in multi-page builds
         // when the same component CSS is used across multiple entry points
         if (config.plugins.has("extract-css")) {
