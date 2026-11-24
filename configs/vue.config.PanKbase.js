@@ -347,6 +347,11 @@ module.exports = {
     chainWebpack: (config) => {
         // Vue 3 under @vue/compat: one Vue module for our code and for the Vue 2 packages, templates compiled as Vue 2's
         config.resolve.alias.set("vue$", require.resolve("../src/utils/vueCompat.js"));
+        // vue-typeahead-bootstrap 2.12 is written for Vue 2: ours is a copy of it for Vue 3
+        config.resolve.alias.set(
+            "vue-typeahead-bootstrap$",
+            require.resolve("../src/components/typeahead/VueTypeaheadBootstrap.vue")
+        );
         config.module
             .rule("vue")
             .use("vue-loader")
