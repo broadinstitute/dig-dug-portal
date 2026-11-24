@@ -283,6 +283,12 @@ mountPage(Template, {
         intFormatter: Formatters.intFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         tissueFormatter: Formatters.tissueFormatter,
+        maFormatter(value) {
+            return value
+                .split(";")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" + ");
+        },
         ifPhenotypeInSearch(DESCRIPTION) {
             let searchKeys = this.phenotypeSearchKey.split(" ");
             let isInPhenotype = 0;
