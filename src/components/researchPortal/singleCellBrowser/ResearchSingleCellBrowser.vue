@@ -1594,7 +1594,7 @@
             document.addEventListener('mousedown', this.handleFilterOutsideClick);
             this.init();
         },
-        beforeDestroy(){
+        beforeUnmount(){
             EventBus.$off('on-select',this.handleSelectEvent);
             document.removeEventListener('mousedown', this.handleFilterOutsideClick);
             this.stopColumnResize();

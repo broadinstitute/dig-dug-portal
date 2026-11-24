@@ -456,7 +456,7 @@ export default {
         document.addEventListener("click", this.onDocumentClick, true);
         document.addEventListener("keydown", this.onDocumentKeydown);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("click", this.onDocumentClick, true);
         document.removeEventListener("keydown", this.onDocumentKeydown);
         if (this.geneLookupTimer) {

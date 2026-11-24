@@ -166,7 +166,7 @@ export default {
         await this.ensureDatasetMetadataLoaded();
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.searchDebounceTimer) {
             clearTimeout(this.searchDebounceTimer);
             this.searchDebounceTimer = null;

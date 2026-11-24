@@ -197,7 +197,7 @@ export default {
 		//listens for search event from nav component
 		EventBus.$on('activate-search', this.onFocus);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		EventBus.$off('activate-search');
 	},
 	computed: {},

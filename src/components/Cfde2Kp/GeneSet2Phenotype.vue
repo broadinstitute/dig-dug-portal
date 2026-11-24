@@ -391,7 +391,7 @@ export default {
     },
     created() {},
     mounted() {},
-    beforeDestroy() {},
+    beforeUnmount() {},
     methods: {
         async fetchGeneSetPhenotype() {
             const phenotypeName = this.phenotype && this.phenotype.name;

@@ -56,7 +56,7 @@ export default {
 		window.addEventListener("resize", this.onResize);
 		this.renderTrack(this.genesData);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {

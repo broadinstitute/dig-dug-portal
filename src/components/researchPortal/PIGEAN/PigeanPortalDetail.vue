@@ -494,7 +494,7 @@ export default {
             this.loadTab();
         },
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.contextController) this.contextController.abort();
         this.contextController = null;
         if (this.controller) this.controller.abort();

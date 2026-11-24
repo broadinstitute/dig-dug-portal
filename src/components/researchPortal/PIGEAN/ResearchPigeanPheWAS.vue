@@ -650,7 +650,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         document.removeEventListener('click', this.handleClickOutside);
     },

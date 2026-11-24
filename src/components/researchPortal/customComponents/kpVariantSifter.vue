@@ -811,7 +811,7 @@ export default {
         this.$nextTick(() => this.setupChromePin());
         this.refreshAssistantLlmHealth();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.regionPanSyncTimer) {
             clearTimeout(this.regionPanSyncTimer);
             this.regionPanSyncTimer = null;

@@ -320,7 +320,7 @@ export default {
     mounted() {
         document.addEventListener("keydown", this.onKeyDown);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("keydown", this.onKeyDown);
     },
     methods: {

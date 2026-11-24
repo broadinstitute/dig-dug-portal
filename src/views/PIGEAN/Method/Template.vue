@@ -164,7 +164,7 @@ export default {
         window.addEventListener("hashchange", this.restore);
         this.scrollToSection();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("hashchange", this.restore);
     },
     methods: {

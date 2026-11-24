@@ -289,7 +289,7 @@ export default {
         this.measureContainer();
         this.renderChart();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
         }

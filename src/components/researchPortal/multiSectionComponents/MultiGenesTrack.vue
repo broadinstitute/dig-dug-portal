@@ -115,7 +115,7 @@ export default {
 	created() {
 		//this.$root.$refs.genesTrack = this;
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {

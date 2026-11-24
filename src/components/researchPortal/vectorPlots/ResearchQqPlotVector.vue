@@ -32,7 +32,7 @@ export default {
     mounted: function () {
         //this.renderPlot('default')
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();

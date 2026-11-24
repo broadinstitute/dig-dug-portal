@@ -156,7 +156,7 @@
         //synchronously, before it reads the dom
         EventBus.$on('chart-export-prepare', this.drawIfPending);
     },
-    beforeDestroy(){
+    beforeUnmount(){
         window.removeEventListener('resize', this.handleResize);
         this.teardownResizeObserver();
         this.teardownContentVisibilityWatch();

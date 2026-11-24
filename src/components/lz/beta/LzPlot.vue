@@ -90,7 +90,7 @@ export default {
     mounted() {
         this.createLZ(this.base_layout, this.base_sources);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         // Clean up plot and event listeners to prevent memory leaks
         this.plot.destroy();
         delete this.plot;

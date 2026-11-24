@@ -528,7 +528,7 @@ export default {
 
         this.init();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.handleResize);
         window.removeEventListener("scroll", this.highlightTopmostTitle);
     },

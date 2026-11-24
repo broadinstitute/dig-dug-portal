@@ -121,7 +121,7 @@ export default {
         this.$nextTick(() => this.fit());
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
 

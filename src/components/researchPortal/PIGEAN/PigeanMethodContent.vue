@@ -63,7 +63,7 @@ export default {
             },
         },
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.controller) this.controller.abort();
     },
     methods: {

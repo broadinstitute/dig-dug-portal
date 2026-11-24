@@ -143,7 +143,7 @@ export default {
         this.observer.observe(this.$refs.host);
         this.draw();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.observer) this.observer.disconnect();
     },
     methods: {

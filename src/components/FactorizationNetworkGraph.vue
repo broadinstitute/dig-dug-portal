@@ -125,7 +125,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.network) {
             this.network.destroy();
         }

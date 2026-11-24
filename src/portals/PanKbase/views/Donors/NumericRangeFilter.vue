@@ -257,7 +257,7 @@ export default {
             this.resizeObserver.observe(this.$refs.chartSvg);
         }
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;

@@ -49,7 +49,7 @@ export default {
     window.addEventListener('resize', this.handleResize);
     this.initResizeObserver();
   },
-  beforeDestroy(){
+  beforeUnmount(){
     window.removeEventListener('resize', this.handleResize);
     this.teardownResizeObserver();
   },

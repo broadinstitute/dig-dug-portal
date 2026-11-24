@@ -87,7 +87,7 @@ export default {
         this.renderPlot();
         window.addEventListener("resize", this.onResize);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {

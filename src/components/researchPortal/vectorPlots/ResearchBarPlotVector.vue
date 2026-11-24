@@ -31,7 +31,7 @@ export default {
     mounted: function () {
         //this.renderPlot(this.margin)
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();

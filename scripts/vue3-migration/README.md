@@ -721,6 +721,13 @@ From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is
    children (`git show` of `vue3: template keys by hand` has all 30 places as they were fixed, by file and `v-for`
    text). The 3 templates with a shared key added by hand are under Kept, not Left, so look at them yourself if their
    file was taken: `:key="section.id"` in the two canvases, `:key="row.phenotype"` in `GeneAssociationsMasks.vue`.
+
+   Then the lifecycle hooks, committed alone too. `codemod:lint-fix` refuses the rule, whose fix is not valid on 2.7:
+
+   ```bash
+   npx eslint --no-eslintrc --plugin vue --parser vue-eslint-parser --parser-options ecmaVersion:2022,sourceType:module \
+       --rule '{"vue/no-deprecated-destroyed-lifecycle":"error"}' --ext .vue,.js --quiet --fix src
+   ```
 6. Build (below). A key in the wrong place is a compile error, so a build that exits 0 has none.
 7. The checks:
    - The dry run of step 5 again reads Left 0 and `Key errors left on Vue 3` 0, with the line `Vue 3 check: ran`.

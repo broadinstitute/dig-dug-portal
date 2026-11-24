@@ -34,7 +34,7 @@ export default {
     mounted: function () {
         //this.renderPlot('default')
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {},
     watch: {},
     methods: {

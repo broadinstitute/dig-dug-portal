@@ -922,7 +922,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         this.endPanListeners();
         if (this.resizeObserver) {

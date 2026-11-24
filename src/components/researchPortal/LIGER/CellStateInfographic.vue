@@ -209,7 +209,7 @@ export default {
         this.lockHeights();
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.fit);
         window.removeEventListener("keydown", this.onWindowKeydown);
     },

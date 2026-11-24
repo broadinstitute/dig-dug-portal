@@ -36,7 +36,7 @@ export default {
         this.tt = this.$refs.tooltip;
     },
     created() {},
-    beforeDestroy() {},
+    beforeUnmount() {},
     methods: {
         showTooltip(content) {
             this.content = content;

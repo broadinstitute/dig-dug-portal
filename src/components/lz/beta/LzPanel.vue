@@ -45,7 +45,7 @@
 *
 * However, the majority of cases relevant to everyday Portal use have thusfar been covered by two decisions:
 *   1) Create an event hook for when data is loaded by the panel (usually on @input), and assign it to a piece of data in page scope. This is "pulling" the data.
-*   2) Removing the panel of the LocusZoom plot in `beforeDestroy` and when the plot emits the event `panel_removed`, so no matter which way the panel is removed,
+*   2) Removing the panel of the LocusZoom plot in `beforeUnmount` and when the plot emits the event `panel_removed`, so no matter which way the panel is removed,
 *       both the representation in LocusZoom, and the Vue component, are deleted.
 *
 * Overall, rather than cluttering multi-visualization pages with a bunch of LocusZoom-specific code, we can encapsulate the logic of  
@@ -89,7 +89,7 @@ export default {
         });
     },
     // defining this hook will let v-for remove components (which means that v-for will be able to add and remove components)
-    beforeDestroy() {
+    beforeUnmount() {
         this.$parent.plot.removePanel(this.id);
     },
     methods: {

@@ -86,7 +86,7 @@ export default {
         this.renderHeatmap();
         this.renderScaleLegend();
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         renderData() {
             if (this.heatmapData.length === 0) {

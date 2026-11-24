@@ -35,7 +35,7 @@ export default {
 	mounted: function () {
 		//this.renderPlot()
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 	},
 	computed: {
 		selectedSplice(){

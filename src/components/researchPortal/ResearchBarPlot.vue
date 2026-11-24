@@ -178,7 +178,7 @@ export default {
         window.addEventListener("resize", this.onResize);
         this.renderBarPlot();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {

@@ -386,7 +386,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.endPanListeners();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();

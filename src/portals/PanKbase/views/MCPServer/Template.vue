@@ -195,7 +195,7 @@ export default {
     },
   },
   mounted() { window.addEventListener("resize", this.onResize); },
-  beforeDestroy() { window.removeEventListener("resize", this.onResize); clearTimeout(this.tm); },
+  beforeUnmount() { window.removeEventListener("resize", this.onResize); clearTimeout(this.tm); },
   methods: {
     onResize() { this.w = window.innerWidth; },
     doCopy(key, text) {

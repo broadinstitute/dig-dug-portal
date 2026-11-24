@@ -249,7 +249,7 @@ export default {
 		window.addEventListener("resize", this.onResize);
 		this.getGlobalEnrichment(this.searchingRegion);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {

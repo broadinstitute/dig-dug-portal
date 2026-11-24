@@ -215,7 +215,7 @@ export default {
 			}
 		})
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("scroll", this.onScroll);
 	},
 	computed: {

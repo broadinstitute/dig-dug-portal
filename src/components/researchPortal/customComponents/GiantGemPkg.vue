@@ -279,7 +279,7 @@ export default {
 			});
 		}
 	},
-	beforeDestroy() {},
+	beforeUnmount() {},
 	computed: {
 		pkgID() {
 			if (this.pkgConfig == null) {

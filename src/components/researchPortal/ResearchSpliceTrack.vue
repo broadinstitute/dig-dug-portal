@@ -116,7 +116,7 @@ export default {
 	created() {
 		console.log("Making the research splice track");
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {

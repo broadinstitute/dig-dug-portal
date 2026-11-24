@@ -199,7 +199,7 @@ export default {
 		window.addEventListener("resize", this.onResize);
 		this.getAnnotations(this.searchingRegion);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {

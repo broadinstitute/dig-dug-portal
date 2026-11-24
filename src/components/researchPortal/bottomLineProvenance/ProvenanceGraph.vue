@@ -181,7 +181,7 @@ export default {
         this.renderGraph();
         window.addEventListener("resize", this.renderGraph);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.renderGraph);
         if (this.network) {
             this.network.destroy();

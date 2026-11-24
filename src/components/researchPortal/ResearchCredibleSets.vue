@@ -205,7 +205,7 @@ export default {
 		window.addEventListener("resize", this.onResize);
 		this.renderCSPlot();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {

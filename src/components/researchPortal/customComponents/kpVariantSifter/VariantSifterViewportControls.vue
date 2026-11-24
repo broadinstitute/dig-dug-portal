@@ -210,7 +210,7 @@ export default {
             }
         },
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.endZoomDragListeners();
     },
     methods: {

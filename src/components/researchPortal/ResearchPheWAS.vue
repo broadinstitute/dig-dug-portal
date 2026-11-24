@@ -314,7 +314,7 @@ export default {
         window.addEventListener("resize", this.onResize);
         this.renderPheWas();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     methods: {

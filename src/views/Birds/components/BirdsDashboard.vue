@@ -83,7 +83,7 @@ export default {
     this.focus(BIRD_PANEL_HTML[initial] ? initial : 'all');
     window.addEventListener('keydown', this.onShortcut);
   },
-  beforeDestroy() { window.removeEventListener('keydown', this.onShortcut); },
+  beforeUnmount() { window.removeEventListener('keydown', this.onShortcut); },
   methods: {
     focus(method) {
       if (!BIRD_PANEL_HTML[method]) return;

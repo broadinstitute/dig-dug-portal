@@ -355,7 +355,7 @@ export default {
             this.loadAndVisualize(this.phenotypeId);
         }
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.network) {
             this.network.destroy();
         }

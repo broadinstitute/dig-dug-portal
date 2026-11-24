@@ -290,7 +290,7 @@ export default {
 	updated() {
 		this.renderPlot();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {

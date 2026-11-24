@@ -248,7 +248,7 @@ export default {
 		
 		this.renderCSPlot();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 		window.removeEventListener('popstate', this.updateUrlSearch);
 		

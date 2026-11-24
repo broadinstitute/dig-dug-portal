@@ -85,7 +85,7 @@ mountPage(Template, {
         this.injectScript("https://cdn.jsdelivr.net/npm/d3@7");
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.browserCanvasAnimationTimer) {
             clearTimeout(this.browserCanvasAnimationTimer);
             this.browserCanvasAnimationTimer = null;

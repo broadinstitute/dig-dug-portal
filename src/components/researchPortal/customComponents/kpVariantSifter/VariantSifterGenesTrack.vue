@@ -196,7 +196,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();

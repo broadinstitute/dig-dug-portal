@@ -816,7 +816,7 @@ export default {
         await this.initializeFromQuery();
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.geneSuggestionTimer) {
             clearTimeout(this.geneSuggestionTimer);
         }

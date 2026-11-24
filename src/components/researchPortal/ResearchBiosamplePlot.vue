@@ -399,7 +399,7 @@ export default {
 			this.getBSAnnotations(this.searchingRegion);
 		}
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {

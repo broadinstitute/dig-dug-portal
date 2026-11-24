@@ -1135,7 +1135,7 @@ export default {
             this.updateGenesDockPin();
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.clearViewMoveTimer();
         if (this.onGlobalPointerUp) {
             window.removeEventListener("mouseup", this.onGlobalPointerUp);

@@ -28,7 +28,7 @@ export default {
         }
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("pointermove", this.handleBrowserCanvasPointerMove);
         window.removeEventListener("pointerup", this.handleBrowserCanvasPointerUp);
         window.removeEventListener("pointercancel", this.handleBrowserCanvasPointerUp);

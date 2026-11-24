@@ -74,7 +74,7 @@ export default {
     mounted() {
         this.$nextTick(() => this.renderNetwork());
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.network) {
             this.network.destroy();
         }

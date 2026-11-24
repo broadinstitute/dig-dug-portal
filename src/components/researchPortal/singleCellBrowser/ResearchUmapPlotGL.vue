@@ -475,7 +475,7 @@ export default {
         window.addEventListener('resize', this.handleResize);
         this.init();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         EventBus.$off('view-transform-change', this.handleUpdateViewTransform);
         window.removeEventListener('resize', this.handleResize);
         this.cleanUp();

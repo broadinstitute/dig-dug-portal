@@ -203,7 +203,7 @@ export default {
 	},
 	created(){
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {

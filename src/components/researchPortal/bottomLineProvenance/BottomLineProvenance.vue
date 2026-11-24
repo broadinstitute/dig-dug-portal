@@ -447,7 +447,7 @@ export default {
         document.addEventListener("click", this.closeTraitListOnOutsideClick);
         window.addEventListener("popstate", this.applySelectionFromQuery);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("click", this.closeTraitListOnOutsideClick);
         window.removeEventListener("popstate", this.applySelectionFromQuery);
     },

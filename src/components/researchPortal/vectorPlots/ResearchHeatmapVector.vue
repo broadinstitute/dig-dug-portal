@@ -24,7 +24,7 @@ export default {
     mounted: function () {
         //this.renderHeatmap()
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();

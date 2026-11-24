@@ -39,7 +39,7 @@ export default {
 	mounted: function () {
 		this.getByorProjects();
 	},
-	beforeDestroy() {},
+	beforeUnmount() {},
 	computed: {},
 	watch: {},
 	methods: {

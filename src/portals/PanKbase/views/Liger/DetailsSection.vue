@@ -25,7 +25,7 @@ export default {
         }
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.registerDetailsApi) {
             this.registerDetailsApi(null);
         }

@@ -357,7 +357,7 @@ export default {
     mounted() {
         document.addEventListener("click", this.onDocumentClick);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("click", this.onDocumentClick);
         if (this.geneLookupTimer) {
             clearTimeout(this.geneLookupTimer);

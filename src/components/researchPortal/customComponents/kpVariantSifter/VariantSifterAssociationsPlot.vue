@@ -823,7 +823,7 @@ export default {
             this.updateGenesDockPin();
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.clearViewSettleTimer();
         if (this.onGlobalPointerUp) {
             window.removeEventListener("mouseup", this.onGlobalPointerUp);

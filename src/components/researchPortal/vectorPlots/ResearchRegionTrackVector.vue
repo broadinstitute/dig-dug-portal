@@ -32,7 +32,7 @@ export default {
     mounted: function () {
         //this.renderRegionTrack()
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();

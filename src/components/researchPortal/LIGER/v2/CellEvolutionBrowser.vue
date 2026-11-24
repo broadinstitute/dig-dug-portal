@@ -1546,7 +1546,7 @@ export default {
         await this.initializeFromQuery();
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.clearSuggestionTimer();
         clearTimeout(this.pulseTimer);
     },

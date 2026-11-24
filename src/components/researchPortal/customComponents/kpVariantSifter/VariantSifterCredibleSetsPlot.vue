@@ -80,7 +80,7 @@ export default {
             this.updateStackCanvasWidth();
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.stackResizeObserver) {
             this.stackResizeObserver.disconnect();
         }

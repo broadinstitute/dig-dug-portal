@@ -76,7 +76,7 @@ export default {
         }
         //window.addEventListener('resize', this.handleResize);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         //window.removeEventListener('resize', this.handleResize);
         if (this.eventElements.length > 0) {
             this.removeAllListeners(this.eventElements);

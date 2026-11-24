@@ -851,7 +851,7 @@ export default {
             this.registryError = error.message;
         }
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.controller) this.controller.abort();
         if (this.highlightController) this.highlightController.abort();
         clearTimeout(this.copyTimer);

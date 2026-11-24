@@ -179,7 +179,7 @@ export default {
         window.addEventListener("resize", this.onResize);
         this.renderBoxPlot();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {

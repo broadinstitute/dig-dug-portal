@@ -272,7 +272,7 @@ export default {
       }
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     // Clean up all tooltips when component is destroyed
     this.cleanupTooltips();
   },

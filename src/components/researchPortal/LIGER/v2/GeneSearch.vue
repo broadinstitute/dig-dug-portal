@@ -74,7 +74,7 @@ export default {
         }
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.unbindDocument();
     },
 
