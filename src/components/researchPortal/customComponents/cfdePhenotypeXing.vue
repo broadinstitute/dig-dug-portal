@@ -2,12 +2,12 @@
 	<div>
         <div class="phenotype-xing-legend">
             <strong>{{ renderConfig["x axis field"] }}: </strong>
-            Max: {{ utils.Formatters.pValueFormatter(dataMax) }}, 
-            <span style="color: #ffaa00">Mean: {{ utils.Formatters.pValueFormatter(dataMean) }}</span>, 
-            Min: {{ utils.Formatters.pValueFormatter(dataMin) }}  |  <strong>{{renderConfig["suppliment field"]}} <span class="value-dot" style="background-color: #000000; width:10px; height:10px; top: 5px; position:relative; display: inline-block;">&nbsp;</span> : </strong>
-            Max: {{ utils.Formatters.pValueFormatter(suppMax) }}, 
-            Mean: {{ utils.Formatters.pValueFormatter(suppMean) }}, 
-            Min: {{ utils.Formatters.pValueFormatter(suppMin) }}
+            Max: {{ utils.Formatters.pValueFormatter(plotContent.dataMax) }},
+            <span style="color: #ffaa00">Mean: {{ utils.Formatters.pValueFormatter(plotContent.dataMean) }}</span>,
+            Min: {{ utils.Formatters.pValueFormatter(plotContent.dataMin) }}  |  <strong>{{renderConfig["suppliment field"]}} <span class="value-dot" style="background-color: #000000; width:10px; height:10px; top: 5px; position:relative; display: inline-block;">&nbsp;</span> : </strong>
+            Max: {{ utils.Formatters.pValueFormatter(plotContent.suppMax) }},
+            Mean: {{ utils.Formatters.pValueFormatter(plotContent.suppMean) }},
+            Min: {{ utils.Formatters.pValueFormatter(plotContent.suppMin) }}
         </div>
         <table class="cfde-xing-table">
                 <thead>
@@ -40,7 +40,7 @@
             </td>
             <td>{{ item["Background"] }}</td>
             <td class="value-td">
-               <span class="mean-pos" :style="'left:' + getMeanXpos(dataMean)" ></span>
+               <span class="mean-pos" :style="'left:' + getMeanXpos(plotContent.dataMean)" ></span>
                <span class="value-dot" :style="'background-color:'+getBGColor(item[renderConfig['color by']])+';left:' + getXpos(item[renderConfig['x axis field']],item[renderConfig['suppliment field']]) + 'width:'+ getDotScale(item[renderConfig['suppliment field']]) + 'px;height:'+getDotScale(item[renderConfig['suppliment field']])+'px;'">
                 &nbsp;
                </span>
@@ -50,8 +50,8 @@
         </tr>
         <tr>
             <td></td><td></td><td></td><td></td><td>
-                <span style="float:left; margin-left: -10px;">{{utils.Formatters.pValueFormatter(dataMin)}}</span>
-                <span style="float:right; margin-right: -10px;">{{utils.Formatters.pValueFormatter(dataMax)}}</span>
+                <span style="float:left; margin-left: -10px;">{{utils.Formatters.pValueFormatter(plotContent.dataMin)}}</span>
+                <span style="float:right; margin-right: -10px;">{{utils.Formatters.pValueFormatter(plotContent.dataMax)}}</span>
             </td>
         </tr>
         </tbody>
@@ -74,12 +74,6 @@ export default {
 	],
 	data() {
 		return {
-			dataMax: null,
-            dataMin: null,
-            dataMean: null,
-            suppMax: null,
-            suppMean: null,
-            suppMin: null,
 		};
 	},
 	modules: {
@@ -95,33 +89,44 @@ export default {
 		//window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
-		renderData() {
+		plotContent() {
             let data = [...new Set(this.data)];
-            let sortData;
+            let content = {
+                rows: undefined,
+                dataMax: null,
+                dataMin: null,
+                dataMean: null,
+                suppMax: null,
+                suppMean: null,
+                suppMin: null,
+            };
 
             switch(this.renderConfig["threshold type"]) {
                 case "highest n":
 
                     data = this.utils.sortUtils.sortArrOfObjects(data, this.renderConfig["x axis field"], "number", 'desc');
 
-                    this.dataMax = data[0][this.renderConfig["x axis field"]];
-                    this.dataMin = data[data.length - 1][this.renderConfig["x axis field"]];
-                    this.dataMean = data[Math.round(data.length / 2)][this.renderConfig["x axis field"]];
+                    content.dataMax = data[0][this.renderConfig["x axis field"]];
+                    content.dataMin = data[data.length - 1][this.renderConfig["x axis field"]];
+                    content.dataMean = data[Math.round(data.length / 2)][this.renderConfig["x axis field"]];
 
                     let suppData = [...new Set(this.data)];
                     suppData = this.utils.sortUtils.sortArrOfObjects(suppData, this.renderConfig["suppliment field"], "number", 'desc');
 
-                    this.suppMax = suppData[0][this.renderConfig["suppliment field"]];
-                    this.suppMin = suppData[suppData.length - 1][this.renderConfig["suppliment field"]];
-                    this.suppMean = suppData[Math.round(suppData.length / 2)][this.renderConfig["suppliment field"]];
+                    content.suppMax = suppData[0][this.renderConfig["suppliment field"]];
+                    content.suppMin = suppData[suppData.length - 1][this.renderConfig["suppliment field"]];
+                    content.suppMean = suppData[Math.round(suppData.length / 2)][this.renderConfig["suppliment field"]];
 
-                    sortData = this.utils.sortUtils.sortArrOfObjects(data, this.renderConfig["threshold field"], "number", 'desc');
+                    let sortData = this.utils.sortUtils.sortArrOfObjects(data, this.renderConfig["threshold field"], "number", 'desc');
 
-                    sortData = sortData.filter((i,iIndex) => iIndex < this.renderConfig["threshold"])
+                    content.rows = sortData.filter((i,iIndex) => iIndex < this.renderConfig["threshold"])
                     break;
             }
             
-            return sortData;
+            return content;
+        },
+		renderData() {
+            return this.plotContent.rows;
         }
 	},
 	watch: {
@@ -133,18 +138,18 @@ export default {
         },
         getXpos(VALUE,SUPP) {
 
-            let xPos = 100 * (Math.log10(VALUE) - Math.log10(this.dataMin))/(Math.log10(this.dataMax) - Math.log10(this.dataMin));
+            let xPos = 100 * (Math.log10(VALUE) - Math.log10(this.plotContent.dataMin))/(Math.log10(this.plotContent.dataMax) - Math.log10(this.plotContent.dataMin));
             let width = this.getDotScale(SUPP);
             return "calc(" + xPos+"% - "+(width/2)+"px);margin-top:-"+(width/2)+"px;";
         },
 
         getMeanXpos(VALUE) {
-            let xPos = 100 * (Math.log10(VALUE) - Math.log10(this.dataMin))/(Math.log10(this.dataMax) - Math.log10(this.dataMin));
+            let xPos = 100 * (Math.log10(VALUE) - Math.log10(this.plotContent.dataMin))/(Math.log10(this.plotContent.dataMax) - Math.log10(this.plotContent.dataMin));
             return "calc(" + xPos+"%);";
         },
 
         getDotScale(VALUE) {
-            let size = Math.round(20 * (VALUE - this.suppMin)/(this.suppMax - this.suppMin));
+            let size = Math.round(20 * (VALUE - this.plotContent.suppMin)/(this.plotContent.suppMax - this.plotContent.suppMin));
             return size;
         }
     },

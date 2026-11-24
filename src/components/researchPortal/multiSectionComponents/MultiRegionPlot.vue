@@ -181,7 +181,6 @@ export default {
 			],
 
 			//rebuilding start
-			assoData: {},
 			ldData: {},
 			recombData: "",
 			assoPos: {},
@@ -247,24 +246,11 @@ export default {
 				return null;
 			}
 		},
-		plotsList() {
+		plotsSetup() {
 			//used rebuild
-			let newRegion = false;
 			let variantField = (!!this.renderConfig['ld server'])? this.renderConfig['ld server']['ref variant field']:null,
 				renderByField = this.renderConfig["render by"],
 				yAxField = this.renderConfig["y axis field"];
-
-			if (
-				!this.refProperties.region ||
-				this.refProperties.region != this.region
-			) {
-				this.refProperties = {
-					region: this.region,
-					refVariants: {},
-					groups: [],
-				};
-				newRegion = true;
-			}
 
 			if (this.plotData != null) {
 
@@ -295,49 +281,23 @@ export default {
 					plotsKeys.push("default");
 				}
 
-				this.assoData = {}; // reset assoData
-				this.ldData = {}; // reset ldData
-				this.recombData = ""; // reset recombData
-				this.assoPos = {};
-				this.ldPos = {};
+				let assoData = {};
+				let ldReferences = {};
 
 				let populationsType = (!!this.renderConfig["ld server"])?
 					this.renderConfig["ld server"]["populations type"]:null;
 
 				plotsKeys.map((group) => {
 
-					this.assoData[group] = {
+					assoData[group] = {
 						yAxHigh: null,
 						yAxLow: null,
 						data: {},
 						variantData: {},
 					};
 
-					if (!!this.ldData[group]) {
-						
-						let refVariant = this.refProperties.refVariants[group];
-
-						if (!plotDataLocal[refVariant]) {
-							this.ldData[group] = {
-								refVariant: null,
-								population: [],
-								data: null,
-							};
-
-							this.refProperties.refVariants[group] = null;
-						}
-					} else {
-						this.ldData[group] = {
-							refVariant: null,
-							population: [],
-							data: null,
-						};
-					}
-
-					if (group != "Combined") {
-						this.assoPos[group] = {};
-						this.ldPos[group] = {};
-					}
+					let refVariant = null;
+					let populations = [];
 
 					if (group != "default") {
 						for (const [dKey, dValue] of Object.entries(
@@ -350,7 +310,7 @@ export default {
 									// set population for calling LD API
 
 									if (populationsType == "fixed") {
-										this.ldData[group].population =
+										populations =
 											this.renderConfig["ld server"][
 											"fixed population"
 											];
@@ -362,58 +322,45 @@ export default {
 											]
 											][group];
 
-										this.ldData[group].population.push(
-											population
-										);
+										populations.push(population);
 									} else {
-										this.ldData[group].population = null;
+										populations = null;
 									}
 
 									// set initial refVarint
 
-									if (
-										!this.refProperties.refVariants[group]
-									) {
-										this.ldData[group].refVariant =
-											this.assoData[group].yAxHigh == null
+									refVariant =
+										assoData[group].yAxHigh == null
+											? dValue[variantField]
+											: yAxValue >
+												assoData[group].yAxHigh
 												? dValue[variantField]
-												: yAxValue >
-													this.assoData[group].yAxHigh
-													? dValue[variantField]
-													: this.ldData[group].refVariant;
-									} else {
-										this.ldData[group].refVariant =
-											this.refProperties.refVariants[
-											group
-											];
-									}
-
-									console.log("this.ldData[group].refVariant",this.ldData[group].refVariant);
+												: refVariant;
 
 									// set high / low values of the group
-									this.assoData[group].yAxHigh =
-										this.assoData[group].yAxHigh == null
+									assoData[group].yAxHigh =
+										assoData[group].yAxHigh == null
 											? Math.ceil(yAxValue)
 											: yAxValue >
-												this.assoData[group].yAxHigh
+												assoData[group].yAxHigh
 												? Math.ceil(yAxValue)
-												: this.assoData[group].yAxHigh;
+												: assoData[group].yAxHigh;
 
-									this.assoData[group].yAxLow =
-										this.assoData[group].yAxLow == null
+									assoData[group].yAxLow =
+										assoData[group].yAxLow == null
 											? Math.floor(yAxValue)
 											: yAxValue <
-												this.assoData[group].yAxLow
+												assoData[group].yAxLow
 												? Math.floor(yAxValue)
-												: this.assoData[group].yAxLow;
+												: assoData[group].yAxLow;
 									// add data to asso data
-									this.assoData[group].data[dKey] = {};
+									assoData[group].data[dKey] = {};
 
 									for (const [fKey, fValue] of Object.entries(
 										dValue
 									)) {
 										if (this.dataComparisonConfig != null) {
-											this.assoData[group].data[dKey][
+											assoData[group].data[dKey][
 												fKey
 											] =
 												this.dataComparisonConfig[
@@ -424,21 +371,19 @@ export default {
 										} else if (
 											this.dataComparisonConfig == null
 										) {
-											this.assoData[group].data[dKey][
+											assoData[group].data[dKey][
 												fKey
 											] = fValue;
 										}
 									}
 
-									let variantKey = this.assoData[group].data[dKey][variantField];
+									let variantKey = assoData[group].data[dKey][variantField];
 
-									this.assoData[group].variantData[variantKey] = this.assoData[group].data[dKey];
+									assoData[group].variantData[variantKey] = assoData[group].data[dKey];
 								}
 							}
 						}
 					} else if (group == "default") {
-
-						let refVariant = null;
 
 						plotDataLocal.map((dValue) => {
 
@@ -449,7 +394,7 @@ export default {
 								// set population for calling LD API
 
 								if (populationsType == "fixed") {
-									this.ldData[group].population =
+									populations =
 										this.renderConfig["ld server"][
 										"fixed population"
 										];
@@ -461,11 +406,9 @@ export default {
 										]
 										];
 
-									this.ldData[group].population.push(
-										population
-									);
+									populations.push(population);
 								} else {
-									this.ldData[group].population = null;
+									populations = null;
 								}
 
 								//let dKey = dValue[this.renderConfig["render by"]];
@@ -476,40 +419,40 @@ export default {
 								// set initial refVarint
 								
 								refVariant =
-									this.assoData[group].yAxHigh == null
+									assoData[group].yAxHigh == null
 										? dVariantKey
 										: yAxValue >
-											this.assoData[group].yAxHigh
+											assoData[group].yAxHigh
 											? dVariantKey
 											: refVariant;
 
 								// set high / low values of the group
-								this.assoData[group].yAxHigh =
-									this.assoData[group].yAxHigh == null
+								assoData[group].yAxHigh =
+									assoData[group].yAxHigh == null
 										? Math.ceil(yAxValue)
 										: yAxValue >
-											this.assoData[group].yAxHigh
+											assoData[group].yAxHigh
 											? yAxValue
 											: Math.ceil(
-												this.assoData[group].yAxHigh
+												assoData[group].yAxHigh
 											);
 
-								this.assoData[group].yAxLow =
-									this.assoData[group].yAxLow == null
+								assoData[group].yAxLow =
+									assoData[group].yAxLow == null
 										? Math.floor(yAxValue)
-										: yAxValue < this.assoData[group].yAxLow
+										: yAxValue < assoData[group].yAxLow
 											? yAxValue
 											: Math.floor(
-												this.assoData[group].yAxLow
+												assoData[group].yAxLow
 											);
 								// add data to asso data
-								this.assoData[group].data[dRenderKey] = {};
+								assoData[group].data[dRenderKey] = {};
 
 								for (const [fKey, fValue] of Object.entries(
 									dValue
 								)) {
 									if (this.dataComparisonConfig != null) {
-										this.assoData[group].data[dRenderKey][fKey] =
+										assoData[group].data[dRenderKey][fKey] =
 											this.dataComparisonConfig[
 												"fields to compare"
 											].includes(fKey) == true
@@ -518,62 +461,68 @@ export default {
 									} else if (
 										this.dataComparisonConfig == null
 									) {
-										this.assoData[group].data[dRenderKey][fKey] =
+										assoData[group].data[dRenderKey][fKey] =
 											fValue;
 									}
 								}
 
-								let variantKey = this.assoData[group].data[dRenderKey][variantField];
+								let variantKey = assoData[group].data[dRenderKey][variantField];
 
-								this.assoData[group].variantData[variantKey] = this.assoData[group].data[dRenderKey];
+								assoData[group].variantData[variantKey] = assoData[group].data[dRenderKey];
 							}
 						});
-
-						if (!!this.fixedRefVariants[group] && !!this.assoData[group].data[this.fixedRefVariants[group]]) {
-							this.ldData[group].refVariant = this.fixedRefVariants[group]
-						} else {
-							this.ldData[group].refVariant = refVariant;
-						}
 					}
 
 					// set LD population
-					let uniqPopulations = [
-						...new Set(this.ldData[group].population),
-					];
-					this.ldData[group].population =
-						uniqPopulations.length > 1
-							? "ALL"
-							: (this.renderConfig["ld server"])? this.renderConfig["ld server"].populations[
-							uniqPopulations[0]
-							]:null;
+					let uniqPopulations = [...new Set(populations)];
+					ldReferences[group] = {
+						refVariant: refVariant,
+						population:
+							uniqPopulations.length > 1
+								? "ALL"
+								: (this.renderConfig["ld server"])? this.renderConfig["ld server"].populations[
+								uniqPopulations[0]
+								]:null,
+					};
 				});
 
 				if (plotsKeys.includes("Combined") == true) {
 					plotsKeys.map((p) => {
-						let yAxHighValue = this.assoData[p].yAxHigh;
-						let yAxLowValue = this.assoData[p].yAxLow;
+						let yAxHighValue = assoData[p].yAxHigh;
+						let yAxLowValue = assoData[p].yAxLow;
 
-						this.assoData.Combined.yAxHigh =
-							this.assoData.Combined.yAxHigh == null
+						assoData.Combined.yAxHigh =
+							assoData.Combined.yAxHigh == null
 								? Math.ceil(yAxHighValue)
-								: yAxHighValue > this.assoData.Combined.yAxHigh
+								: yAxHighValue > assoData.Combined.yAxHigh
 									? Math.ceil(yAxHighValue)
-									: this.assoData.Combined.yAxHigh;
+									: assoData.Combined.yAxHigh;
 
-						this.assoData.Combined.yAxLow =
-							this.assoData.Combined.yAxLow == null
+						assoData.Combined.yAxLow =
+							assoData.Combined.yAxLow == null
 								? Math.floor(yAxLowValue)
-								: yAxLowValue < this.assoData.Combined.yAxLow
+								: yAxLowValue < assoData.Combined.yAxLow
 									? Math.floor(yAxLowValue)
-									: this.assoData.Combined.yAxLow;
+									: assoData.Combined.yAxLow;
 					});
 				}
 
-				this.setUpWrappers();
-				return plotsKeys;
+				return {
+					plotsList: plotsKeys,
+					assoData: assoData,
+					ldReferences: ldReferences,
+					// the recombination and LD data are loaded again for another zoom or viewing area
+					region: this.searchingRegion,
+				};
 			} else {
 				return null;
 			}
+		},
+		plotsList() {
+			return !!this.plotsSetup ? this.plotsSetup.plotsList : null;
+		},
+		assoData() {
+			return !!this.plotsSetup ? this.plotsSetup.assoData : {};
 		},
 		searchingRegion() {
 			if (this.region == null) {
@@ -612,16 +561,7 @@ export default {
 		}
 	},
 	watch: {
-		hoverPos(POS){
-			this.renderPlots();
-		},
-		staredVariants(CONTENT) {
-			this.renderPlots();
-		},
-		starItems(STARS) {
-			this.starGroups = [...new Set(STARS.map(s => s.section))].sort();
-			this.renderPlots();
-		},
+		// before plotsSetup, so that the ldData set at creation is sent too
 		ldData: {
 			handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
@@ -636,6 +576,21 @@ export default {
                 }
             },
             deep: true,
+		},
+		// before the others, so that they find the plots set up
+		plotsSetup: {
+			handler: "setUpPlots",
+			immediate: true,
+		},
+		hoverPos(POS){
+			this.renderPlots();
+		},
+		staredVariants(CONTENT) {
+			this.renderPlots();
+		},
+		starItems(STARS) {
+			this.starGroups = [...new Set(STARS.map(s => s.section))].sort();
+			this.renderPlots();
 		},
 	},
 	methods: {
@@ -982,6 +937,53 @@ export default {
 		},
 		onMouseOut(BOXID) {
 			this.utils.uiUtils.removeOnMouseOut(BOXID.replaceAll(" ", "_"), 1000);
+		},
+		setUpPlots(SETUP) {
+			if (
+				!this.refProperties.region ||
+				this.refProperties.region != this.region
+			) {
+				this.refProperties = {
+					region: this.region,
+					refVariants: {},
+					groups: [],
+				};
+			}
+
+			if (!!SETUP) {
+				this.ldData = {}; // reset ldData
+				this.recombData = ""; // reset recombData
+				this.assoPos = {};
+				this.ldPos = {};
+
+				SETUP.plotsList.map((group) => {
+					let { refVariant, population } = SETUP.ldReferences[group];
+					let groupData = SETUP.assoData[group].data;
+
+					// the reference variant set by the user stays
+					if (group == "default") {
+						let fixedRefVariant = this.fixedRefVariants[group];
+						if (!!fixedRefVariant && !!groupData[fixedRefVariant]) {
+							refVariant = fixedRefVariant;
+						}
+					} else if (Object.keys(groupData).length > 0 && !!this.refProperties.refVariants[group]) {
+						refVariant = this.refProperties.refVariants[group];
+					}
+
+					this.ldData[group] = {
+						refVariant: refVariant,
+						population: population,
+						data: null,
+					};
+
+					if (group != "Combined") {
+						this.assoPos[group] = {};
+						this.ldPos[group] = {};
+					}
+				});
+
+				this.setUpWrappers();
+			}
 		},
 		setUpWrappers() {
 			if(!!this.searchingRegion) {

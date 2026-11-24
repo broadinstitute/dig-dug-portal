@@ -292,7 +292,6 @@ export default {
             spaceBy: 7,
             trigger: 0,
             hoverItems: {},
-            showCanvas: true,
             selectedYAxisFields: [], // Track which y-axis fields are selected
             filterByThreshold: true, // User-controlled threshold filter toggle (initially checked)
             selectedGroups: [], // Track which phenotype groups are selected
@@ -362,7 +361,6 @@ export default {
             return null;
         },
         renderData() {
-            this.showCanvas = true;
             let content = {};
             content["data"] = [];
 
@@ -507,9 +505,11 @@ export default {
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
-                this.showCanvas = false;
                 return null;
             }
+        },
+        showCanvas() {
+            return !!this.renderData;
         },
         adjPlotMargin() {
             let customPlotMargin = this.renderConfig["plot margin"]
