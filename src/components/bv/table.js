@@ -25,8 +25,8 @@ const UNSUPPORTED = {
 };
 const reported = new Set();
 
-// Development only: warns once about each.
-export function checkKeys(kind, list) {
+// Development only: warns once about each. `parent`: the page, for names of its methods.
+export function checkKeys(kind, list, parent) {
     const report = (name) => {
         const message = `[bv] <b-table> does not support the ${kind} key "${name}"`;
         if (!reported.has(message)) {
@@ -39,9 +39,16 @@ export function checkKeys(kind, list) {
         if (kind === "field" && typeof one.key !== "string") {
             report(Object.keys(one).join());
         }
-        // the name of a method of the parent
+        // the name of a method of the parent: BootstrapVue calls it
         if (kind === "field" && typeof one.formatter === "string") {
             report(`formatter: "${one.formatter}"`);
+        }
+        if (
+            kind === "field" &&
+            typeof one.tdClass === "string" &&
+            typeof parent?.[one.tdClass] === "function"
+        ) {
+            report(`tdClass: "${one.tdClass}"`);
         }
     }
 }

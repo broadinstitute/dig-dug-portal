@@ -26,11 +26,7 @@ const isEmpty = (vnodes) =>
     vnodes.length === 0 || (vnodes.length === 1 && vnodes[0].type === Comment);
 
 function slotFor(slots, kind, key) {
-    return (
-        slots[`${kind}(${key})`] ||
-        slots[`${kind}(${key.toLowerCase()})`] ||
-        slots[`${kind}()`]
-    );
+    return slots[`${kind}(${key})`] || slots[`${kind}(${key.toLowerCase()})`];
 }
 
 // One component, with plain rows and cells. (In BootstrapVue rows and header cells are components too.)
@@ -41,14 +37,15 @@ export default {
     mixins: checksUse("b-table", {
         attributes: ["detail-key"],
         not: ["aria-busy", "aria-colcount", "aria-describedby"],
-        slots: [/^cell\(.*\)$/, /^head\(.*\)$/, "row-details", "thead-top"],
+        slots: [/^cell\(.*\)$/, /^head\(.+\)$/, "row-details", "thead-top"],
     }),
     inheritAttrs: false,
     props: {
         bordered: Boolean,
         currentPage: { type: [Number, String], default: 1 },
         emptyText: { type: String, default: "There are no records to show" },
-        fields: Array,
+        // (the defaults of BootstrapVue: a page that passes `undefined` passes what one that passes nothing does, and no change comes of it)
+        fields: { type: Array, default: null },
         filter: String,
         headVariant: String,
         hover: Boolean,
@@ -64,7 +61,7 @@ export default {
         showEmpty: Boolean,
         small: Boolean,
         sortBy: String,
-        sortDesc: Boolean,
+        sortDesc: { type: Boolean, default: false },
         sortIconLeft: Boolean,
         sortNullLast: Boolean,
         // of a field, not of the table: here it is an attribute
@@ -75,13 +72,7 @@ export default {
         tableClass: [Array, Object, String],
         tbodyTrClass: [Array, Function, Object, String],
     },
-    emits: [
-        "filtered",
-        "sort-changed",
-        "update:modelValue",
-        "update:sortBy",
-        "update:sortDesc",
-    ],
+    emits: ["filtered", "update:modelValue", "update:sortBy"],
     data() {
         return {
             localSortBy: this.sortBy || "",
@@ -106,16 +97,20 @@ export default {
         columns() {
             const columns = normalizeFields(this.fields, this.localItems);
             if (process.env.NODE_ENV !== "production") {
-                checkKeys("field", this.fields || []);
+                checkKeys("field", this.fields || [], this.$parent);
             }
             return columns;
         },
         isSortable() {
             return this.columns.some((field) => field.sortable);
         },
+        // what is not a text is no filter (BootstrapVue takes a RegExp too)
+        localFilter() {
+            return typeof this.filter === "string" ? this.filter : "";
+        },
         filteredItems() {
-            return this.filter && this.localItems.length > 0
-                ? filterItems(this.localItems, this.filter, this.columns)
+            return this.localFilter && this.localItems.length > 0
+                ? filterItems(this.localItems, this.localFilter, this.columns)
                 : this.localItems;
         },
         sortedItems() {
@@ -136,23 +131,13 @@ export default {
                 ? this.sortedItems.slice(start, start + perPage)
                 : this.sortedItems.slice();
         },
-        context() {
-            return {
-                filter: this.filter || "",
-                sortBy: this.localSortBy,
-                sortDesc: this.localSortDesc,
-                perPage: atLeast(0, this.perPage),
-                currentPage: atLeast(1, this.currentPage),
-            };
-        },
         toEmit() {
             return {
                 rows: this.computedItems,
                 filteredItems: this.filteredItems,
                 localItems: this.localItems,
-                filter: this.filter || "",
+                filter: this.localFilter,
                 sortBy: this.localSortBy,
-                sortDesc: this.localSortDesc,
             };
         },
     },
@@ -174,9 +159,6 @@ export default {
             if (changed && (now.filter || before.filter)) {
                 const rows = now.filter ? now.filteredItems : now.localItems;
                 this.$emit("filtered", rows, rows.length);
-            }
-            if (now.sortDesc !== before.sortDesc) {
-                this.$emit("update:sortDesc", now.sortDesc);
             }
             if (now.sortBy !== before.sortBy) {
                 this.$emit("update:sortBy", now.sortBy);
@@ -201,10 +183,7 @@ export default {
             } else if (this.localSortBy && !this.noSortReset) {
                 this.localSortBy = "";
                 this.localSortDesc = false;
-            } else {
-                return;
             }
-            this.$emit("sort-changed", this.context);
         },
         // the rows of items, which can be focused (not details)
         itemRows() {
@@ -212,17 +191,17 @@ export default {
                 (row) => row.tabIndex === 0
             );
         },
-        rowClicked(event) {
+        // `items`: the rows of the last render, which the elements are of (`computedItems` can be ahead of them)
+        rowClicked(event, items) {
             if (countsAsClick(event, this.$refs.tbody)) {
                 const row = event.target.closest("tr");
                 const index = this.itemRows().indexOf(row);
                 if (index > -1) {
-                    const item = this.computedItems[index];
-                    this.$emit("row-clicked", item, index, event);
+                    this.$emit("row-clicked", items[index], index, event);
                 }
             }
         },
-        rowKeydown(event) {
+        rowKeydown(event, items) {
             const { keyCode, shiftKey, target } = event;
             const rows = this.itemRows();
             const index = rows.indexOf(target);
@@ -242,7 +221,7 @@ export default {
             event.preventDefault();
             event.stopPropagation();
             if (to === undefined) {
-                this.rowClicked(event);
+                this.rowClicked(event, items);
             } else if (rows[to]) {
                 rows[to].focus();
             }
@@ -454,13 +433,13 @@ export default {
             return rows;
         },
         renderEmpty() {
-            const text = this.filter
+            const text = this.localFilter
                 ? "There are no records matching your request"
                 : this.emptyText;
             return h(
                 "tr",
                 {
-                    key: this.filter ? "empty-filtered" : "empty",
+                    key: this.localFilter ? "empty-filtered" : "empty",
                     class: [
                         "b-table-empty-row",
                         this.rowClass(null, "row-empty"),
@@ -491,7 +470,7 @@ export default {
             }
             const cells = columns.map((field) => ({
                 field,
-                slot: slotFor(slots, "cell", field.key),
+                slot: slotFor(slots, "cell", field.key) || slots["cell()"],
             }));
             const rows = computedItems.flatMap((item, index) =>
                 this.renderRow(item, index, cells)
@@ -505,8 +484,12 @@ export default {
                     key: "tbody",
                     ref: "tbody",
                     role: "rowgroup",
-                    onClick: this.onRowClicked && this.rowClicked,
-                    onKeydown: this.onRowClicked && this.rowKeydown,
+                    onClick:
+                        this.onRowClicked &&
+                        ((event) => this.rowClicked(event, computedItems)),
+                    onKeydown:
+                        this.onRowClicked &&
+                        ((event) => this.rowKeydown(event, computedItems)),
                 },
                 rows
             );
