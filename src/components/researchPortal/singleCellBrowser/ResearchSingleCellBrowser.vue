@@ -1570,12 +1570,16 @@
             }
         },
         watch: {
-            expressionData(){
+            expressionGenes(){
                 this.rebuildExpressionStatsAll();
             },
-            geneNames(){
-                this.sortedGeneNames = [...this.geneNames].sort();
-                this.geneLists["searched genes"] = this.geneNames;
+            geneNames: {
+                //genes are added in place
+                deep: true,
+                handler(){
+                    this.sortedGeneNames = [...this.geneNames].sort();
+                    this.geneLists["searched genes"] = this.geneNames;
+                }
             },
             markersList(){
                 this.geneLists["marker genes"] = this.markersList;
@@ -1596,6 +1600,10 @@
             this.stopColumnResize();
         },
         computed: {
+            //changes when a gene is loaded or evicted, without walking its values
+            expressionGenes(){
+                return Object.keys(this.expressionData);
+            },
             isDev(){
                 return keyParams['dev']===1;
             },

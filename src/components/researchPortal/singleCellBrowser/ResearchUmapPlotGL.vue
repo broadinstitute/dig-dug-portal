@@ -60,7 +60,7 @@
         </div>
 
         <canvas ref="umapCanvas" class="umap-canvas" @click="onClick"></canvas>
-        <canvas ref="umapLabelCanvas" class="umap-label-canvas" :style="`display:${showLabels ? 'block' : 'none'}`"></canvas>
+        <canvas ref="umapLabelCanvas" class="umap-label-canvas" :style="{ display: showLabels ? 'block' : 'none' }"></canvas>
         <canvas v-if="is3dMode" ref="axisIndicatorCanvas" class="umap-axis-indicator"></canvas>
     </div>
 </template>
@@ -440,9 +440,13 @@ export default {
             this.updateHighlightBuffer();
             this.requestRender(true);
         },
-        highlightLabels() {
-            this.updateHighlightBuffer();
-            this.requestRender(true);
+        highlightLabels: {
+            //the selector adds and removes labels in place
+            deep: true,
+            handler() {
+                this.updateHighlightBuffer();
+                this.requestRender(true);
+            },
         },
         expression() {
             this.updateExpressionScale();
@@ -1062,6 +1066,8 @@ export default {
             const metadata = this.labels.metadata[labelField];
             const metadataLabels = this.labels.metadata_labels[labelField];
             const hasHighlightFilter = !!this.highlightLabel || this.highlightLabels.length > 0;
+            //read once, not for every cell: a lookup in a reactive array is slow on Vue 3
+            const highlighted = new Set([...this.highlightLabels, this.highlightLabel]);
             const highlight = new Uint8Array(indices.length);
 
             for (let drawIndex = 0; drawIndex < indices.length; drawIndex++) {
@@ -1073,7 +1079,7 @@ export default {
 
                 const labelIndex = metadata[pointIndex];
                 const label = metadataLabels[labelIndex];
-                highlight[drawIndex] = label === this.highlightLabel || this.highlightLabels.includes(label) ? 255 : 0;
+                highlight[drawIndex] = highlighted.has(label) ? 255 : 0;
             }
 
             this.buffers.points.highlight = this.makeBuffer(highlight, this.buffers.points.highlight);
