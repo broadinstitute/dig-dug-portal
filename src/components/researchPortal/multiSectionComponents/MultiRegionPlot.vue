@@ -511,8 +511,9 @@ export default {
 					plotsList: plotsKeys,
 					assoData: assoData,
 					ldReferences: ldReferences,
-					// the recombination and LD data are loaded again for another zoom or viewing area
-					region: this.searchingRegion,
+					// the recombination and LD data are loaded again for another zoom or viewing area; not
+					// searchingRegion, whose throw on an unknown region would end the watcher below
+					region: [this.region, this.regionZoom, this.regionZoom > 0 ? this.regionViewArea : 0],
 				};
 			} else {
 				return null;

@@ -72,10 +72,6 @@ export default {
 		"plotMargin",
 		"utils"
 	],
-	data() {
-		return {
-		};
-	},
 	modules: {
 	},
 	components: {
