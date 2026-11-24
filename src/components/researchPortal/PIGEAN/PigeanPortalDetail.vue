@@ -61,9 +61,9 @@
                 <details v-if="record">
                     <summary>All source fields</summary>
                     <dl class="pigean-raw-fields">
-                        <template v-for="(value, key) in rawFields"
-                            ><dt :key="key + '-key'">{{ key }}</dt>
-                            <dd :key="key + '-value'">{{ value }}</dd></template
+                        <template v-for="(value, key) in rawFields" :key="key"
+                            ><dt>{{ key }}</dt>
+                            <dd>{{ value }}</dd></template
                         >
                     </dl>
                 </details>

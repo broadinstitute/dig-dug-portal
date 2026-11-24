@@ -254,9 +254,9 @@ export default {
                         <span class="detail-note-label">{{ note.label }}</span>
                         <span class="detail-note-bubble">
                             <dl class="detail-note-grid">
-                                <template v-for="field in note.rows">
-                                    <dt :key="`${note.key}-${field.label}-dt`">{{ field.label }}</dt>
-                                    <dd :key="`${note.key}-${field.label}-dd`">{{ field.value }}</dd>
+                                <template v-for="field in note.rows" :key="`${note.key}-${field.label}`">
+                                    <dt>{{ field.label }}</dt>
+                                    <dd>{{ field.value }}</dd>
                                 </template>
                             </dl>
                         </span>
@@ -265,9 +265,9 @@ export default {
             </div>
             <div class="detail-curation-summary">
                 <dl v-if="provenanceRows.length" class="detail-field-grid">
-                    <template v-for="field in provenanceRows">
-                        <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                        <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                    <template v-for="field in provenanceRows" :key="field.label">
+                        <dt>{{ field.label }}</dt>
+                        <dd>{{ field.value }}</dd>
                     </template>
                 </dl>
                 <div v-else class="empty-state">No curation record reported.</div>
@@ -464,17 +464,17 @@ export default {
                     <h5>Scoring and methods</h5>
                     <p v-if="methodsDetail.text">{{ methodsDetail.text }}</p>
                     <dl v-if="methodsDetail.rows.length" class="detail-field-grid">
-                        <template v-for="field in methodsDetail.rows">
-                            <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                            <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                        <template v-for="field in methodsDetail.rows" :key="field.label">
+                            <dt>{{ field.label }}</dt>
+                            <dd>{{ field.value }}</dd>
                         </template>
                     </dl>
                     <template v-if="methodsDetail.activityWeights.length">
                         <h5 class="detail-subheading">Activity weightings</h5>
                         <dl class="detail-field-grid">
-                            <template v-for="weight in methodsDetail.activityWeights">
-                                <dt :key="`${weight.id}-dt`">{{ weight.label }}</dt>
-                                <dd :key="`${weight.id}-dd`">{{ weight.description }}</dd>
+                            <template v-for="weight in methodsDetail.activityWeights" :key="weight.id || weight.label">
+                                <dt>{{ weight.label }}</dt>
+                                <dd>{{ weight.description }}</dd>
                             </template>
                         </dl>
                     </template>

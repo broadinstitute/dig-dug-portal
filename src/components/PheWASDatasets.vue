@@ -28,8 +28,8 @@
                     >
                     <b-col class="top-level-header-item">View</b-col>
                 </b-row>
-                <template v-for="(item, index) in tableData">
-                    <b-row :key="index" class="top-level-value">
+                <template v-for="(item, index) in tableData" :key="index">
+                    <b-row class="top-level-value">
                         <b-col cols="4" class="top-level-value-item"
                             ><a
                                 :href="`/phenotype.html?phenotype=${item.phenotype.name}`"
@@ -104,7 +104,6 @@
                     </b-row>
 
                     <div
-                        :key="`features_${index}`"
                         :class="`features_${index}`"
                         class="feature-content-wrapper hidden"
                     >
@@ -190,7 +189,6 @@
                         </template>
                     </div>
                     <div
-                        :key="`features_top25_${index}`"
                         :class="`features_top25_${index}`"
                         class="feature-content-wrapper hidden"
                     >

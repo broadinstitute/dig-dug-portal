@@ -39,10 +39,9 @@
                     <b-row
                         :class="'feature-content ' + i + getColContent(col)"
                     >
-                        <template v-for="(item, name) in col">
+                        <template v-for="(item, name) in col" :key="name">
                             <div
                                 class="col"
-                                :key="name"
                                 v-if="item == '' && item == null"
                                 :class="
                                     $parent.config[
@@ -63,7 +62,6 @@
                             ></div>
                             <div
                                 class="col"
-                                :key="name"
                                 v-else
                                 :class="
                                     $parent.config[

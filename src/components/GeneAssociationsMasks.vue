@@ -19,7 +19,7 @@
                     >CFDE Gene Sets</b-col
                 >
             </b-row>
-            <template v-for="(row, i) in paginatedAssociations">
+            <template v-for="(row, i) in paginatedAssociations" :key="row.phenotype">
                 <b-row
                     v-if="phenotypeMap[row.phenotype]"
                     :key="row.phenotype + i"

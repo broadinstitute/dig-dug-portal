@@ -13,7 +13,7 @@
                 @import-session="$emit('import-session')"
             />
             <div v-if="canvasActive" class="vks-canvas-tracks">
-                <template v-for="section in canvasTrackSections">
+                <template v-for="section in canvasTrackSections" :key="section.id">
                     <VariantSifterAssociationsPlot
                         v-if="section.id === 'associations'"
                         :key="section.id"

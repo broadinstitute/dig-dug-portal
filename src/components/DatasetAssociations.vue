@@ -9,9 +9,8 @@
                 <b-col class="top-level-header-item">Sample Size</b-col>
                 <b-col class="top-level-header-item">View</b-col>
             </b-row>
-            <template v-for="(phenotype, name, index) in groupedAssociations">
+            <template v-for="(phenotype, name, index) in groupedAssociations" :key="name">
                 <b-row
-                    :key="name"
                     :class="
                         index < (currentPage - 1) * perPage ||
                         index >= currentPage * perPage
@@ -80,7 +79,6 @@
                 <div
                     :class="`feature-headers-${index}`"
                     class="feature-content-wrapper hidden"
-                    :key="`features_${index}`"
                 >
                     <b-row class="feature-header">
                         <b-col class="feature-header-item">Dataset</b-col

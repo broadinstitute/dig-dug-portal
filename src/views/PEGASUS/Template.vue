@@ -199,14 +199,13 @@
                             :key="i"
                         >
                             <dl class="row">
-                                <template v-for="detail in column">
+                                <template v-for="detail in column" :key="detail.label">
                                     <dt
                                         class="col-sm-4"
-                                        :key="detail.label + '-label'"
                                     >
                                         {{ detail.label }}
                                     </dt>
-                                    <dd class="col-sm-7" :key="detail.label">
+                                    <dd class="col-sm-7">
                                         <a
                                             v-if="detail.href"
                                             :href="detail.href"

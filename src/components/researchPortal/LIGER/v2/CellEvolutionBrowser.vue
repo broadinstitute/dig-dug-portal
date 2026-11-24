@@ -2752,9 +2752,9 @@ export default {
                     </div>
 
                     <dl v-if="canvasTooltip.stats" class="tip-stats">
-                        <template v-for="stat in canvasTooltip.stats">
-                            <dt :key="stat.label + '-l'">{{ stat.label }}</dt>
-                            <dd :key="stat.label + '-v'">{{ stat.value }}</dd>
+                        <template v-for="stat in canvasTooltip.stats" :key="stat.label">
+                            <dt>{{ stat.label }}</dt>
+                            <dd>{{ stat.value }}</dd>
                         </template>
                     </dl>
 
