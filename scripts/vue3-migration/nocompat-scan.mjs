@@ -76,7 +76,7 @@ const USAGE = 'usage: node scripts/vue3-migration/nocompat-scan.mjs [--root <dir
 export const KINDS = [
   // ---- Script: instance members ----
   { key: 'setDelete', group: 'Script', why: '`$set`, `$delete`, `Vue.set` and `Vue.delete` do not exist in Vue 3, which tracks added and deleted keys itself: assign to the key, or `delete` it.' },
-  { key: 'eventBus', group: 'Script', why: '`$on`, `$off` and `$once` are gone from component instances and from `new Vue()` used as a bus. A bus needs an emitter of its own (the listener is the receiver in the note column).' },
+  { key: 'eventBus', group: 'Script', why: '`$on`, `$off` and `$once` are gone from component instances and from `new Vue()` used as a bus. A bus needs an emitter of its own, which is no hit (the listener is the receiver in the note column).' },
   { key: 'emitOnOther', group: 'Script', note: true, why: '`$emit` on something other than the component itself (`$root`, `$parent`, a bus): the sending half of a bus. It has to move with the `$on` listeners.' },
   { key: 'children', group: 'Script', why: '`$children` is gone: pass what is needed through props, provide/inject or refs.' },
   { key: 'listeners', group: 'Script', why: '`$listeners` is gone: listeners are in `$attrs` as `onXxx`, so `v-bind="$listeners"` and `v-on="$listeners"` bind nothing, or twice next to `v-bind="$attrs"`.' },
@@ -120,7 +120,7 @@ export const KINDS = [
   { key: 'keyCodeModifier', group: 'Template', why: 'A numeric key code modifier (`@keyup.13`) is gone: use the key name (`.enter`, `.page-down`).' },
   { key: 'oldSlotSyntax', group: 'Template', why: '`slot="name"` and `slot-scope` are gone: `v-slot:name="props"` (`#name="props"`) on a `<template>` or on the component.' },
   { key: 'templateFilters', group: 'Template', why: 'Template filters (`{{ x | f }}`) are gone, and `|` is now the bitwise OR: `x | f` evaluates to a number, with no error.' },
-  { key: 'vModelComponent', group: 'Template', why: '`v-model` on a component of ours (or of a package) binds `modelValue` and listens to `update:modelValue` on Vue 3, not `value` and `input`: the child\'s contract has to change with it (see the note column).' },
+  { key: 'vModelComponent', group: 'Template', why: '`v-model` on a component of ours (or of a package) binds `modelValue` and listens to `update:modelValue` on Vue 3, not `value` and `input`: the child\'s contract has to change with it (see the note column; a child that has the new one is no hit).' },
   { key: 'inlineTemplate', group: 'Template', why: '`inline-template` is gone.' },
   { key: 'isOnElement', group: 'Template', why: '`is` on a plain element needs the `vue:` prefix on Vue 3 (`is="vue:my-row"`); without it the element is a native one with an `is` attribute.' },
   { key: 'templateNoDirective', group: 'Template', why: 'A `<template>` with no `v-if`, `v-for` or `v-slot` renders as a native `<template>` element on Vue 3 (its content is inert), where Vue 2 rendered the children.' },
@@ -1116,6 +1116,9 @@ function arrayKindOf(info, name) {
   return null;
 }
 
+/** An object with a `$on` of its own: a bus that is no Vue instance. */
+const isEmitter = (object) => object?.type === 'ObjectExpression' && entriesOf(object).some(({ key }) => key === '$on');
+
 /** What `$on`, `$off`, `$once` or `$emit` is called on, as a kind and a note. */
 function receiverOf(env, node) {
   const { info } = env;
@@ -1129,11 +1132,13 @@ function receiverOf(env, node) {
   }
   if (node.type === 'Identifier') {
     if (info.busNames.has(node.name)) return { kind: 'bus', note: `on: bus ${node.name} (new Vue() in this file)` };
+    if (isEmitter(info.moduleConsts.get(node.name))) return { kind: 'emitter' };
     const binding = info.bindings.get(node.name);
     const target = binding !== undefined && isLocalPath(binding.source) ? resolveImport(env.file, binding.source, env.context.allFiles) : null;
     if (target !== null && infoOf(env.context, target).busExports.has(binding.imported === '*' ? 'default' : binding.imported)) {
       return { kind: 'bus', note: `on: bus ${node.name} (new Vue() in ${target})` };
     }
+    if (target !== null && binding.imported === 'default' && isEmitter(infoOf(env.context, target).defaultObject)) return { kind: 'emitter' };
   }
   return { kind: 'other', note: 'on: other' };
 }
@@ -1183,12 +1188,13 @@ function instanceMember(env, node, name, object) {
   const at = usage(env, node);
   if (name === '$set' || name === '$delete') env.add('setDelete', at);
   else if (name === '$on' || name === '$off' || name === '$once') {
-    env.add('eventBus', at, undefined, { note: receiverOf(env, object).note });
+    const receiver = receiverOf(env, object);
+    if (receiver.kind !== 'emitter') env.add('eventBus', at, undefined, { note: receiver.note });
     const call = env.parent(node);
     if (isCall(call) && call.callee === node && stringOf(call.arguments[0])?.startsWith('hook:')) env.add('hookEvents', call);
   } else if (name === '$emit') {
     const receiver = receiverOf(env, object);
-    if (receiver.kind !== 'component') env.add('emitOnOther', at, undefined, { note: receiver.note });
+    if (!['component', 'emitter'].includes(receiver.kind)) env.add('emitOnOther', at, undefined, { note: receiver.note });
   } else if (name === '$children') env.add('children', at);
   else if (name === '$listeners') env.add('listeners', at);
   else if (name === '$scopedSlots') env.add('scopedSlots', at);
@@ -1582,13 +1588,14 @@ function coercionNote(a, tag) {
 }
 
 /** What a component's `v-model` is, from the file that defines it. */
+const VUE3_CONTRACT = ': modelValue + update:modelValue';
 function contractOf(context, target) {
   if (target === null) return 'component not found';
   if (target.package !== undefined) return `package ${target.package}`;
   if (target.inline) return 'a component written in place';
   const child = infoOf(context, target.file);
   if (child.model !== null) return `${target.file}: ${child.model.prop} + ${child.model.event} (model option)`;
-  if (child.props.has('modelValue')) return `${target.file}: modelValue + update:modelValue`;
+  if (child.props.has('modelValue')) return `${target.file}${VUE3_CONTRACT}`;
   if (child.props.has('value')) return `${target.file}: value + input (Vue 2 contract)`;
   return `${target.file}: no value or modelValue prop`;
 }
@@ -1679,7 +1686,8 @@ function scanTemplate(context, file, read, info) {
         if (a.dir === 'on' && a.arg?.startsWith('bv::')) hit('bvInstance', [a]);
         if (isBind(a, 'slot') || isBind(a, 'slot-scope') || a.dir === 'slot-scope') hit('oldSlotSyntax', [a]);
         if (a.dir === 'model' && isComponent && !bv && tag !== 'component') {
-          hit('vModelComponent', [a], { note: contractOf(context, resolveTag(context, file, info, tag)) });
+          const note = contractOf(context, resolveTag(context, file, info, tag));
+          if (!note.endsWith(VUE3_CONTRACT)) hit('vModelComponent', [a], { note });
         } else if (a.dir === 'model' && tag === 'component') {
           hit('vModelComponent', [...attrs.filter((other) => isAttr(other, 'is')), a].sort((x, y) => x.attr.range[0] - y.attr.range[0]), { note: 'dynamic component' });
         }

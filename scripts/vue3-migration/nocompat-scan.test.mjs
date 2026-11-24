@@ -340,6 +340,36 @@ test('eventBus: $on, $off and $once, with what they are called on; mitt, jQuery 
   ]);
 });
 
+test('eventBus and emitOnOther: an object with a $on of its own is an emitter, not a hit; an object without one is', () => {
+  const files = {
+    'src/utils/eventBus.js': lines(
+      'const EventBus = {', // 1
+      '  $on(event, handler) {},', // 2
+      '  $off(event) {},', // 3
+      '  $once(event, handler) { EventBus.$on(event, handler); this.$off(event); },', // 4
+      '  $emit(event) {},', // 5
+      '};', // 6
+      'export default EventBus;', // 7
+    ),
+    'src/utils/other.js': 'export default { emit() {} };',
+    'src/a.js': lines(
+      'import EventBus from "@/utils/eventBus.js";', // 1
+      'import other from "@/utils/other.js";', // 2
+      'import { named } from "@/utils/eventBus.js";', // 3
+      'EventBus.$on("a", f); EventBus.$once("a", f); EventBus.$off("a", f); EventBus.$emit("a");', // 4
+      'other.$on("b", f);', // 5
+      'named.$on("c", f);', // 6
+      'other.$emit("b");', // 7
+    ),
+  };
+  assert.deepEqual(notesOf('eventBus', files), [
+    { line: 5, text: 'other.$on("b", f)', note: 'on: other' },
+    { line: 6, text: 'named.$on("c", f)', note: 'on: other' },
+    { line: 4, text: 'this.$off(event)', note: 'on: the component' },
+  ]);
+  assert.deepEqual(notesOf('emitOnOther', files), [{ line: 7, text: 'other.$emit("b")', note: 'on: other' }]);
+});
+
 test('emitOnOther: $emit on a bus, $root or $parent is a note; the component\'s own $emit and other emitters are not', () => {
   const found = notesOf('emitOnOther', {
     'src/utils/eventBus.js': 'import Vue from "vue";\nexport default new Vue();',
@@ -881,7 +911,7 @@ test('templateFilters: a filter in an interpolation or a binding; || and a strin
   ]);
 });
 
-test('vModelComponent: v-model on a component with the child\'s contract; on a native element or a BootstrapVue component it is not', () => {
+test('vModelComponent: v-model on a component with the child\'s contract; on a child with modelValue, a native element or a BootstrapVue component it is not', () => {
   const found = notesOf('vModelComponent', {
     'src/components/Parent.vue': component(
       lines(
@@ -914,7 +944,6 @@ test('vModelComponent: v-model on a component with the child\'s contract; on a n
   assert.deepEqual(found, [
     { line: 3, text: '<child-a v-model="a">', note: 'src/components/ChildA.vue: value + input (Vue 2 contract)' },
     { line: 4, text: '<child-b v-model.trim="b">', note: 'src/components/ChildB.vue: checked + change (model option)' },
-    { line: 5, text: '<child-c v-model="c">', note: 'src/components/ChildC.vue: modelValue + update:modelValue' },
     { line: 6, text: '<child-d v-model="d">', note: 'src/components/ChildD.vue: no value or modelValue prop' },
     { line: 7, text: '<vue-typeahead-bootstrap v-model="q">', note: 'package vue-typeahead-bootstrap' },
     { line: 8, text: '<component :is="which" v-model="w">', note: 'dynamic component' },
