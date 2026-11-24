@@ -18,6 +18,8 @@ import BRow from "./BRow";
 import BSkeletonImg from "./BSkeletonImg";
 import BSkeletonWrapper from "./BSkeletonWrapper";
 import BSpinner from "./BSpinner";
+import BTab from "./BTab.vue";
+import BTabs from "./BTabs.vue";
 import BTh from "./BTh.vue";
 
 const plugin = (components) => ({
@@ -45,6 +47,8 @@ export const BootstrapVue = plugin({
     BSkeletonImg,
     BSkeletonWrapper,
     BSpinner,
+    BTab,
+    BTabs,
     BTh,
 });
 
