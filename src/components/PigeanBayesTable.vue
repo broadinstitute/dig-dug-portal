@@ -144,6 +144,7 @@
 </template>
 <script>
 import Formatters from "@/utils/formatters";
+import { cloneDeep } from "@/utils/lodashUtils";
 import PigeanBayesTable from "./PigeanBayesTable.vue";
 import DataDownload from "@/components/DataDownload.vue";
 export default {
@@ -170,7 +171,7 @@ export default {
     },
     computed: {
         tableData() {
-            let data = structuredClone(this.pigeanData);
+            let data = cloneDeep(this.pigeanData);
             if (this.filter) {
                 data = data.filter(this.filter);
             }

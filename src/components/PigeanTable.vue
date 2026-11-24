@@ -13,6 +13,7 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
+import { cloneDeep } from "@/utils/lodashUtils";
 export default {
     name: "pigean-table",
     components: {
@@ -222,7 +223,7 @@ export default {
             return allFields;
         },
         describePhenotypes(data) {
-            let inputData = structuredClone(data);
+            let inputData = cloneDeep(data);
             for (let i = 0; i < inputData.length; i++) {
                 if (!inputData[i].phenotype) {
                     continue;

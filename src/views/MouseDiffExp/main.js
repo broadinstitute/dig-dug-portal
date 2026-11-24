@@ -29,6 +29,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
@@ -147,7 +148,7 @@ mountPage(Template, {
             return utils;
         },
         rareVariantRenderConfig() {
-            let config = structuredClone(this.commonVariantRenderConfig);
+            let config = cloneDeep(this.commonVariantRenderConfig);
             config["beta field"] = "beta";
             config["hover content"].push("beta");
             config["thresholds"].push(0.05);
@@ -177,7 +178,7 @@ mountPage(Template, {
             };
         },
         diffExpData() {
-            let data = structuredClone(this.$store.state.diffExp.data);
+            let data = cloneDeep(this.$store.state.diffExp.data);
             for (let i = 0; i < data.length; i++) {
                 data[i].founder_sex = `${data[i].founder}_${data[i].sex}`;
             }

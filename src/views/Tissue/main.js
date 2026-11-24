@@ -29,6 +29,7 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import { pageMixin } from "@/mixins/pageMixin";
@@ -275,7 +276,7 @@ mountPage(Template, {
             return `${prefix}_${dataPoint.tissue}_${dataPoint.comparison}`;
         },
         processConnectivityData(inputData){
-            let data = structuredClone(inputData);
+            let data = cloneDeep(inputData);
             data.forEach(d => {
                 let pValField = d.best_direction === "reversed"
                     ? "reversed_p_adj" : d.best_direction === "concordant" 
