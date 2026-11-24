@@ -82,7 +82,8 @@ export default {
             return this.zNormData;
         },
         sampleGroups(){
-            return this.diseaseData.diseaseLabels;
+            // none while no dataset or comparison is selected
+            return this.diseaseData.diseaseLabels || [];
         },
         sortedSamples(){
             let samples = cloneDeep(this.samplesColumns);
