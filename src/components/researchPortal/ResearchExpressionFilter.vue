@@ -25,8 +25,8 @@
 						@change="applyFilter()"
 					>
 						<option value="" selected>All</option>
-						<template v-for="collection in processedCollection">
-							<option :value="collection" :key="collection">
+						<template v-for="collection in processedCollection" :key="collection">
+							<option :value="collection">
 								{{ collection }}
 							</option>
 						</template>
@@ -41,8 +41,8 @@
 						:disabled="!diseases.length"
 					>
 						<option value="" selected>All</option>
-						<template v-for="diseaseName in diseases">
-							<option :value="diseaseName" :key="diseaseName">
+						<template v-for="diseaseName in diseases" :key="diseaseName">
+							<option :value="diseaseName">
 								{{ tissueFormatter(diseaseName) }}
 							</option>
 						</template>

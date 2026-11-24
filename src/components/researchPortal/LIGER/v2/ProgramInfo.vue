@@ -556,9 +556,9 @@ export default {
                         <span v-if="topTraits.length" class="section-note">Top {{ topTraits.length }} by |beta|</span>
                     </h5>
                     <dl v-if="topTraits.length" class="pair-list">
-                        <template v-for="trait in topTraits">
-                            <dt :key="trait.key + '-l'">{{ trait.label }}</dt>
-                            <dd :key="trait.key + '-v'">{{ trait.group }}</dd>
+                        <template v-for="trait in topTraits" :key="trait.key + '-l'">
+                            <dt>{{ trait.label }}</dt>
+                            <dd>{{ trait.group }}</dd>
                         </template>
                     </dl>
                     <div v-else-if="loadingTraits" class="section-empty">Loading…</div>
@@ -750,9 +750,9 @@ export default {
                                 <span v-if="!group.flagging" class="report-info-only">informational only</span>
                             </div>
                             <dl v-if="group.fields.length" class="pair-list">
-                                <template v-for="item in group.fields">
-                                    <dt :key="group.key + item.key + '-l'">{{ item.label }}</dt>
-                                    <dd :key="group.key + item.key + '-v'">{{ item.value }}</dd>
+                                <template v-for="item in group.fields" :key="group.key + item.key + '-l'">
+                                    <dt>{{ item.label }}</dt>
+                                    <dd>{{ item.value }}</dd>
                                 </template>
                             </dl>
                         </div>

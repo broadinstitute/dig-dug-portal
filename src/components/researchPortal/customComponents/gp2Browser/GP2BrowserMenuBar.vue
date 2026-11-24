@@ -10,20 +10,17 @@
             menu-class="vks-menu-list"
             toggle-class="vks-menu-toggle"
         >
-            <template v-for="item in menu.items">
+            <template v-for="item in menu.items" :key="item.id">
                 <b-dropdown-divider
                     v-if="item.type === 'divider'"
-                    :key="item.id"
                 />
                 <b-dropdown-header
                     v-else-if="item.type === 'header'"
-                    :key="item.id"
                 >
                     {{ item.label }}
                 </b-dropdown-header>
                 <b-dropdown-item
                     v-else
-                    :key="item.id"
                     :disabled="Boolean(item.disabled)"
                     :title="item.title || item.label"
                     @click="onSelect(menu, item)"

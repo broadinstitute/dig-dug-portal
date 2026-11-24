@@ -187,13 +187,12 @@ export default {
                 </tr>
             </thead>
             <tbody>
-                <template v-for="(group, groupIndex) in renderGroups">
-                    <tr v-if="group.label" :key="`group-${groupIndex}`" class="heat-table-group">
+                <template v-for="(group, groupIndex) in renderGroups" :key="`group-${groupIndex}`">
+                    <tr v-if="group.label" class="heat-table-group">
                         <td :colspan="columns.length">{{ group.label }}</td>
                     </tr>
                     <tr
                         v-for="row in group.rows"
-                        :key="`row-${groupIndex}-${row.key}`"
                         :class="{ 'clickable-cell': clickable }"
                         @click="onRowClick(row)"
                     >

@@ -245,9 +245,9 @@ export default {
                  this record, opposite the name. -->
             <div class="detail-curation-summary">
                 <dl v-if="summaryFields.length" class="detail-field-grid">
-                    <template v-for="field in summaryFields">
-                        <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                        <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                    <template v-for="field in summaryFields" :key="`${field.label}-dt`">
+                        <dt>{{ field.label }}</dt>
+                        <dd>{{ field.value }}</dd>
                     </template>
                 </dl>
                 <div v-else class="empty-state">No program metadata reported.</div>

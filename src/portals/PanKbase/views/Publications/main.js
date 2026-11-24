@@ -72,7 +72,7 @@ new Vue({
         });
         this.publications = allPubs;
     },
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

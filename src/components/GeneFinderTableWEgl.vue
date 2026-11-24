@@ -21,9 +21,8 @@
 				<div class="col-md-10">
 					<span style="font-size: 13px"
 						>Common variant p-value:
-						<template v-for="tValue in pThreshold">
+						<template v-for="tValue in pThreshold" :key="tValue">
 							<span
-								:key="tValue"
 								:style="
 									'margin-right:5px; background-color:' +
 									getPColor(tValue, 'MAGMA')
@@ -36,9 +35,8 @@
 						v-if="Object.keys(rareVariantMap).length > 0"
 						style="font-size: 13px"
 						>Rare variant p-value:
-						<template v-for="tValue in rarePThreshold">
+						<template v-for="tValue in rarePThreshold" :key="tValue">
 							<span
-								:key="tValue"
 								:style="
 									'margin-right:5px; background-color:' +
 									getPColor(tValue, 'rare')
@@ -189,11 +187,10 @@
 					<template
 						v-for="(
 							itemValue, itemIndex
-						) in groupedAssociationsDisplay"
+						) in groupedAssociationsDisplay" :key="itemValue.gene"
 					>
 						<tr
 							:id="itemValue.gene"
-							:key="itemValue.gene"
 							:class="
 								currentGene == itemValue.gene
 									? 'current-gene'
@@ -247,10 +244,9 @@
 							</td>
 							<td class="no-padding text-center">
 								<template
-									v-for="phenotype in itemValue.phenotypes"
+									v-for="phenotype in itemValue.phenotypes" :key="phenotype"
 								>
 									<div
-										:key="phenotype"
 										class="multi-values-div"
 										:class="
 											hugeRange(
@@ -314,7 +310,7 @@
 								class="no-padding text-center"
 							>
 								<template
-									v-for="phenotype in itemValue.phenotypes"
+									v-for="phenotype in itemValue.phenotypes" :key="phenotype"
 								>
 									<!--:class="
 											itemValue[phenotype + ':pValue'] <
@@ -324,7 +320,6 @@
 										"
 										-->
 									<div
-										:key="phenotype"
 										class="multi-values-div"
 										:style="
 											'background-color:' +
@@ -352,7 +347,7 @@
 								class="no-padding text-center"
 							>
 								<template
-									v-for="phenotype in itemValue.phenotypes"
+									v-for="phenotype in itemValue.phenotypes" :key="phenotype"
 								>
 									<!--:class="
 											itemValue[phenotype + ':pValue'] <
@@ -362,7 +357,6 @@
 										"
 										-->
 									<div
-										:key="phenotype"
 										class="multi-values-div"
 										:style="
 											'background-color:' +

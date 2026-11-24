@@ -1,9 +1,8 @@
 <template>
     <span class="pigean-ontology-links">
-        <template v-for="(mapping, index) in mappings">
+        <template v-for="(mapping, index) in mappings" :key="index">
             <a
                 v-if="url(mapping.target_id)"
-                :key="index"
                 :href="url(mapping.target_id)"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -18,7 +17,7 @@
                     relation(mapping.predicate)
                 }}</small>
             </a>
-            <span v-else :key="index" :title="description(mapping)">{{
+            <span v-else :title="description(mapping)">{{
                 mapping.target_id
             }}</span>
         </template>

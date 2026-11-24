@@ -277,6 +277,12 @@ new Vue({
         
     },
     methods: {
+        maFormatter(value) {
+            return value
+                .split(";")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" + ");
+        },
         ...uiUtils,
         ...sessionUtils,
         intFormatter: Formatters.intFormatter,
@@ -303,7 +309,7 @@ new Vue({
         }
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

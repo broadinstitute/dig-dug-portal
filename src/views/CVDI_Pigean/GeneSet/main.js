@@ -177,7 +177,7 @@ new Vue({
         this.genesetSearchOptions = await cvdiBioIndexUtils.getAllGenesets();
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

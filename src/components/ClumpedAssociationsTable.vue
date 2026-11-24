@@ -48,11 +48,10 @@
                     >
                 </template>
                 <template
-                    v-for="p in phenotypes"
+                    v-for="p in phenotypes" :key="p"
                     #[phenotypeVariantColumn(p)]="r"
                 >
                     <a
-                        :key="p"
                         :href="`/variant.html?variant=${r.item[`${p}:varId`]}`"
                         >{{ r.item[`${p}:dbSNP`] || r.item[`${p}:varId`] }}</a
                     >

@@ -47,8 +47,8 @@
 		</div>
 		<div v-if="page == 'front'" class="row disease-systems-front">
 			<div class="disease-systems-tree col-md-12">
-				<template v-for="system in diseaseSystems">
-					<div class="disease-system col-md-2" :key="system">
+				<template v-for="system in diseaseSystems" :key="system">
+					<div class="disease-system col-md-2">
 						<img
 							class="disease-systems-icon"
 							:src="

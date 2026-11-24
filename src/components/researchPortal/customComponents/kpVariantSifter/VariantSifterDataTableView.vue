@@ -49,9 +49,9 @@
                     </thead>
                     <tbody>
                         <template
-                            v-for="(row, rowIndex) in pagedRows"
+                            v-for="(row, rowIndex) in pagedRows" :key="rowKey(row, rowIndex)"
                         >
-                            <tr :key="rowKey(row, rowIndex)">
+                            <tr>
                                 <td v-if="showStarColumn">
                                     <b-icon
                                         :icon="isStarred(row) ? 'star-fill' : 'star'"
@@ -84,7 +84,6 @@
                             </tr>
                             <tr
                                 v-if="expandedPanelsForRow(row).length"
-                                :key="`${rowKey(row, rowIndex)}-details`"
                                 class="vks-mapping-details-row"
                             >
                                 <td :colspan="detailColspan">

@@ -84,7 +84,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getComplications");
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 

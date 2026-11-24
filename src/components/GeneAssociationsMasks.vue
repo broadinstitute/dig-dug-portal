@@ -19,10 +19,9 @@
                     >CFDE Gene Sets</b-col
                 >
             </b-row>
-            <template v-for="(row, i) in paginatedAssociations">
+            <template v-for="(row, i) in paginatedAssociations" :key="row.phenotype + i">
                 <b-row
                     v-if="phenotypeMap[row.phenotype]"
-                    :key="row.phenotype + i"
                     class="data top-level-value"
                 >
                     <b-col class="top-level-value-item" cols="3">
@@ -95,7 +94,6 @@
                 <!-- CFDE Gene Set subtable for this row -->
                 <b-row
                     v-if="expandedRowKey === row.phenotype"
-                    :key="'cfde-' + row.phenotype"
                     class="cfde-geneset-subtable-row"
                 >
                     <b-col cols="12">
@@ -178,7 +176,6 @@
                 </b-row>
                 <mask-table
                     v-if="!!phenotypeMap[row.phenotype]"
-                    :key="(currentPage - 1) * perPage + i"
                     :mask-data="row.masks"
                     :index="(currentPage - 1) * perPage + i"
                     :dichotomous="!!phenotypeMap[row.phenotype].dichotomous"

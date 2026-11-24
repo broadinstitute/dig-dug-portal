@@ -143,8 +143,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <template v-for="(row, rowIndex) in pagedRows">
-                                        <tr :key="row['Variant ID'] + '-' + rowIndex">
+                                    <template v-for="(row, rowIndex) in pagedRows" :key="row['Variant ID'] + '-' + rowIndex">
+                                        <tr>
                                             <td v-if="starColumn">
                                                 <b-icon
                                                     :icon="isStarred(row) ? 'star-fill' : 'star'"
@@ -183,7 +183,6 @@
                                         </tr>
                                         <tr
                                             v-if="expandedPanelsForRow(row).length"
-                                            :key="`${row['Variant ID']}-${rowIndex}-details`"
                                             class="vks-mapping-details-row"
                                         >
                                             <td :colspan="mappingDetailColspan">

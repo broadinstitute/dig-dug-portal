@@ -22,7 +22,7 @@ new Vue({
         this.content = content;
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

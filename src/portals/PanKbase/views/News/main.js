@@ -51,7 +51,7 @@ new Vue({
             console.log('newsItem', this.newsItem);
         }
     },
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

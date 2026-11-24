@@ -13,10 +13,9 @@
                 @import-session="$emit('import-session')"
             />
             <div v-if="canvasActive" class="vks-canvas-tracks">
-                <template v-for="section in canvasTrackSections">
+                <template v-for="section in canvasTrackSections" :key="section.id">
                     <VariantSifterAssociationsPlot
                         v-if="section.id === 'associations'"
-                        :key="section.id"
                         :rows="associationPlotRows"
                         :selected-ancestries="associationsState.selectedAncestries || []"
                         :selected-phenotypes="associationsState.selectedPhenotypes || []"
@@ -67,7 +66,6 @@
                     />
                     <VariantSifterTrackStrip
                         v-else
-                        :key="section.id + '-strip'"
                         :section="section"
                     />
                 </template>

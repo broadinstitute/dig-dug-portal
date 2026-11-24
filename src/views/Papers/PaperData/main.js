@@ -43,7 +43,7 @@ new Vue({
         //this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait); //for now, data from kp4cd
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 

@@ -81,7 +81,7 @@ new Vue({
         const bioIndex = isDev ? this.scbConfig.bioIndexDev : this.scbConfig.bioIndex;
         this.allMetadata = await this.fetchMetadata(bioIndex+metadataEndpoint);
     },
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
     methods: {

@@ -66,9 +66,9 @@
 								</h4>
 								<ol>
 									<template
-										v-for="value in $parent.searchResults"
+										v-for="value in $parent.searchResults" :key="value.nid"
 									>
-										<li :key="value.nid">
+										<li>
 											<a
 												:href="
 													'/help.html?page=' +

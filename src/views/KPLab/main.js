@@ -62,7 +62,7 @@ new Vue({
         ...uiUtils,
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

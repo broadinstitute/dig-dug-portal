@@ -41,7 +41,7 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
     },
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

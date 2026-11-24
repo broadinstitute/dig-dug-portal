@@ -72,8 +72,8 @@
 								? 'display:none !important;'
 								: ''
 								">
-							<template v-for="option in listOptions[parameter.parameter]">
-								<a href="javascript:;" v-html="option.label" :key="option.value" @click="setListValue(
+							<template v-for="option in listOptions[parameter.parameter]" :key="option.value">
+								<a href="javascript:;" v-html="option.label" @click="setListValue(
 									option.value,
 									parameter.parameter,
 									paramIndex,
@@ -104,11 +104,10 @@
 										: ''
 									"
 							>
-								<template v-for="gene in kpGenes">
+								<template v-for="gene in kpGenes" :key="gene">
 									<a
 										href="javascript:;"
 										v-html="gene"
-										:key="gene"
 										@click="
 											parameter['convert to region'] &&
 												parameter['convert to region'] ==

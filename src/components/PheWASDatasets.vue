@@ -28,8 +28,8 @@
                     >
                     <b-col class="top-level-header-item">View</b-col>
                 </b-row>
-                <template v-for="(item, index) in tableData">
-                    <b-row :key="index" class="top-level-value">
+                <template v-for="(item, index) in tableData" :key="index">
+                    <b-row class="top-level-value">
                         <b-col cols="4" class="top-level-value-item"
                             ><a
                                 :href="`/phenotype.html?phenotype=${item.phenotype.name}`"
@@ -104,7 +104,6 @@
                     </b-row>
 
                     <div
-                        :key="`features_${index}`"
                         :class="`features_${index}`"
                         class="feature-content-wrapper hidden"
                     >
@@ -126,10 +125,9 @@
                                 >Effective Sample Size</b-col
                             >
                         </b-row>
-                        <template v-for="(dataset, j) in item.datasets">
+                        <template v-for="(dataset, j) in item.datasets" :key="`features_${index}_${j}`">
                             <b-row
                                 v-if="!!datasetMap[dataset.dataset]"
-                                :key="`features_${index}_${j}`"
                                 :class="`features_${index}_${j}`"
                                 class="feature-row"
                             >
@@ -190,7 +188,6 @@
                         </template>
                     </div>
                     <div
-                        :key="`features_top25_${index}`"
                         :class="`features_top25_${index}`"
                         class="feature-content-wrapper hidden"
                     >
@@ -213,9 +210,8 @@
                                 >Nearest Genes</b-col
                             >
                         </b-row>
-                        <template v-for="i in 25">
+                        <template v-for="i in 25" :key="`features_top25_${index}_${i}`">
                             <b-row
-                                :key="`features_top25_${index}_${i}`"
                                 :id="`${index}_${item.phenotype.name}_variant_${
                                     i - 1
                                 }`"

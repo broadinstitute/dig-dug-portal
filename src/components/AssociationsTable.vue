@@ -80,9 +80,8 @@
                     {{ mafFormatter(r.item.maf) }}
                 </template>
 
-                <template v-for="p in phenotypes" #[phenotypeBetaColumn(p)]="r">
+                <template v-for="p in phenotypes" :key="p.name" #[phenotypeBetaColumn(p)]="r">
                     <span
-                        :key="p.name"
                         :class="`effect ${
                             r.item[`${p.name}:beta`] < 0
                                 ? 'negative'
@@ -268,7 +267,7 @@ export default {
         groupedAssociations() {
             let data = [];
             let groups = {};
-            let associations = this.tableData;
+            let associations = this.sortedAssociations;
 
             for (let i in associations) {
                 let r = associations[i];
@@ -317,7 +316,7 @@ export default {
             return data;
         },
         sortedAssociations() {
-            return this.tableData.sort((a, b) => a.pValue - b.pValue);
+            return [...this.tableData].sort((a, b) => a.pValue - b.pValue);
         },
         tableData() {
             let dataRows = this.associations;

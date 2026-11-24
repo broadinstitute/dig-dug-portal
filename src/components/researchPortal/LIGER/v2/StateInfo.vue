@@ -281,9 +281,9 @@ export default {
                         <span v-if="topTraits.length" class="section-note">Top {{ topTraits.length }} by |beta|</span>
                     </h5>
                     <dl v-if="topTraits.length" class="pair-list">
-                        <template v-for="trait in topTraits">
-                            <dt :key="trait.key + '-l'">{{ trait.label }}</dt>
-                            <dd :key="trait.key + '-v'">{{ trait.group }}</dd>
+                        <template v-for="trait in topTraits" :key="trait.key + '-l'">
+                            <dt>{{ trait.label }}</dt>
+                            <dd>{{ trait.group }}</dd>
                         </template>
                     </dl>
                     <div v-else-if="loadingTraits" class="section-empty">Loading…</div>
@@ -296,9 +296,9 @@ export default {
                     Interpreting <template v-if="geneLabel">{{ geneLabel }}</template><template v-else>a gene</template> in this state
                 </h5>
                 <dl class="guidance">
-                    <template v-for="row in geneGuidance">
-                        <dt :key="row.label + '-l'">{{ row.label }}</dt>
-                        <dd :key="row.label + '-v'">{{ row.value }}</dd>
+                    <template v-for="row in geneGuidance" :key="row.label + '-l'">
+                        <dt>{{ row.label }}</dt>
+                        <dd>{{ row.value }}</dd>
                     </template>
                 </dl>
             </section>
@@ -306,9 +306,9 @@ export default {
             <section v-if="stateGuidance.length" class="info-section">
                 <h5 class="section-title">How to read this state</h5>
                 <dl class="guidance">
-                    <template v-for="row in stateGuidance">
-                        <dt :key="row.label + '-l'">{{ row.label }}</dt>
-                        <dd :key="row.label + '-v'">{{ row.value }}</dd>
+                    <template v-for="row in stateGuidance" :key="row.label + '-l'">
+                        <dt>{{ row.label }}</dt>
+                        <dd>{{ row.value }}</dd>
                     </template>
                 </dl>
             </section>
@@ -395,9 +395,9 @@ export default {
             <h5 class="section-title">Scoring and methods</h5>
 
             <dl v-if="methodRows.length" class="guidance">
-                <template v-for="row in methodRows">
-                    <dt :key="row.label + '-l'">{{ row.label }}</dt>
-                    <dd :key="row.label + '-v'">{{ row.value }}</dd>
+                <template v-for="row in methodRows" :key="row.label + '-l'">
+                    <dt>{{ row.label }}</dt>
+                    <dd>{{ row.value }}</dd>
                 </template>
             </dl>
 

@@ -545,7 +545,7 @@ new Vue({
             this.maxTimeGcg = newData.maxTime;
         },
     },
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

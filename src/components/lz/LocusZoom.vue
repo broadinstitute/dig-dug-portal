@@ -382,6 +382,7 @@ export default {
     },
     watch: {
         region(newRegion) {
+            if (!this.plot) return;
             this.plot.applyState({
                 chr: newRegion.chr,
                 start: newRegion.start,
@@ -389,10 +390,12 @@ export default {
             });
         },
         filter(filter) {
+            if (!this.plot) return;
             this.applyFilter(filter);
             this.plot.applyState();
         },
         filterAssociations(associationsFilter) {
+            if (!this.plot) return;
             this.applyFilter(associationsFilter, "association");
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
@@ -400,6 +403,7 @@ export default {
             let data_layers = this.getDataLayers();
         },
         filterAnnotations(annotationsFilter) {
+            if (!this.plot) return;
             this.applyFilter(annotationsFilter, "intervals");
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)

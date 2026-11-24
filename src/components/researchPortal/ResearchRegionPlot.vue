@@ -2,8 +2,8 @@
 	<div class="mbm-plot-content row" id="rp_region_plot">
 		<div v-if="plotsList.length > 1" class="show-hide-plots col-md-12">
 			<strong>Show/hide region plots</strong>
-			<template v-for="(item, itemIndex) in plotsList">
-				<span :key="item" v-if="item != 'Combined'" class="group-bubble" v-html="item" :style="'background-color:' +
+			<template v-for="(item, itemIndex) in plotsList" :key="item">
+				<span v-if="item != 'Combined'" class="group-bubble" v-html="item" :style="'background-color:' +
 					compareGroupColors[itemIndex] +
 					';'
 					" @click="

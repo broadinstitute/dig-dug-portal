@@ -37,7 +37,7 @@ new Vue({
         this.$store.dispatch("kp4cd/getPaperMenu", keyParams.paper);
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 

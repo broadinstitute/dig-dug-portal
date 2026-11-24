@@ -48,7 +48,7 @@
                     </div>
                     <div class="pws-phenotype-group-wrapper">
                         <template
-                            v-for="(item, i) in topAssociationsGrouped[key]"
+                            v-for="(item, i) in topAssociationsGrouped[key]" :key="i"
                         >
                             <template v-if="i != 0">
                                 <div
@@ -82,7 +82,6 @@
                             <div
                                 class="pws-phenotype-row"
                                 :class="i != 0 ? key2id(key) + ' hidden' : ''"
-                                :key="i"
                             >
                                 <div
                                     class="pws-progress-bar"

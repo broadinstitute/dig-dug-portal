@@ -1026,7 +1026,7 @@ new Vue({
         },
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

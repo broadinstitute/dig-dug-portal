@@ -43,7 +43,7 @@ new Vue({
         this.init();
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 

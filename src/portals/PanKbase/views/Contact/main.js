@@ -21,7 +21,7 @@ new Vue({
         this.about = content;
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

@@ -23,8 +23,8 @@
                 <div class="reset-button-container">
                     <button class="btn btn-sm btn-warning context-search-btn" @click="parent.resetSearch()">Reset search</button>
                 </div>
-                <template v-for="option in contextOptions">
-                    <div :key="option['context id']" class="row">
+                <template v-for="option in contextOptions" :key="option['context id']">
+                    <div class="row">
                         <div class="col-md-10">
                             {{ option["context id"] }}
                             <div><strong v-html="option.label"></strong></div>
@@ -41,8 +41,8 @@
                  :size="listOptions.length >= 5 ? 5 : 'auto'"
                  :style="listOptions.length == 0 ? 'display:none !important;' : ''"
                  style="float:right">
-                <template v-for="option in listOptions">
-                    <a :key="option.value"
+                <template v-for="option in listOptions" :key="option.value">
+                    <a
                        href="javascript:;" 
                        v-html="option.label"
                        @click="parent.setListValue(option.value, parameterFocused, paramIndex, true); listOptions = [];"

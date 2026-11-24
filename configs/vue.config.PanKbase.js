@@ -345,6 +345,15 @@ module.exports = {
         }
     },
     chainWebpack: (config) => {
+        // TRIAL ONLY: Vue 3.5 under @vue/compat, Vuex 4 behind an install() shim
+        const path = require("path");
+        config.resolve.alias
+            .set("vue$", path.resolve(__dirname, "../src/vue3-trial/vue-shim.js"))
+            .set("vuex$", path.resolve(__dirname, "../src/vue3-trial/vuex-shim.js"));
+        config.module
+            .rule("vue")
+            .use("vue-loader")
+            .tap((options) => ({ ...options, compilerOptions: { compatConfig: { MODE: 2 } } }));
         // Optimize CSS extraction to prevent ordering conflicts in multi-page builds
         // when the same component CSS is used across multiple entry points
         if (config.plugins.has("extract-css")) {

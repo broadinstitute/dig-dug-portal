@@ -20,7 +20,7 @@ new Vue({
         let content = await getPankbaseContent(this.pageId, true);
         this.about = highlightIntro(content);
     },
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

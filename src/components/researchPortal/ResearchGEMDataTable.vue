@@ -136,10 +136,9 @@
 							@click="showHideStared()"
 						></b-icon>
 					</th>
-					<template v-for="(value, index) in topRows">
+					<template v-for="(value, index) in topRows" :key="index">
 						<th
 							v-if="getIfChecked(value) == true"
-							:key="index"
 							@click="
 								!!tableFormat['top rows'].includes(value) ||
 								value == 'Credible Set'
@@ -205,14 +204,13 @@
 									([tdValue, tdKey]) =>
 										topRows.includes(tdKey)
 								)
-						"
+						" :key="tdKey"
 					>
 						<td
 							v-if="
 								ifDataObject(tdValue) == false &&
 								getIfChecked(tdKey) == true
 							"
-							:key="tdKey"
 							v-html="formatValue(tdValue, tdKey)"
 							:class="getColumnId(tdKey)"
 						></td>
@@ -221,7 +219,6 @@
 								ifDataObject(tdValue) == true &&
 								getIfChecked(tdKey) == true
 							"
-							:key="tdKey"
 							class="multi-value-td"
 							:class="getColumnId(tdKey)"
 						>

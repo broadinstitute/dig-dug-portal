@@ -38,7 +38,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

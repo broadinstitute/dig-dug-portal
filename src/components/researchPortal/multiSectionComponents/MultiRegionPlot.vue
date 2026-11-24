@@ -3,8 +3,8 @@
 		<div class="col-md-12">
 			<div v-if="plotsList.length > 1" class="show-hide-plots">
 				<strong>Show/hide region plots</strong>
-				<template v-for="(item, itemIndex) in plotsList">
-					<span :key="item" v-if="item != 'Combined'" class="group-bubble" v-html="item" :style="'background-color:' +
+				<template v-for="(item, itemIndex) in plotsList" :key="item">
+					<span v-if="item != 'Combined'" class="group-bubble" v-html="item" :style="'background-color:' +
 						compareGroupColors[itemIndex] +
 						';'
 						" @click="

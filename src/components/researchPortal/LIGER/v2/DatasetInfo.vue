@@ -199,16 +199,16 @@ export default {
 
                 <div v-if="hasAnyFields" class="info-columns">
                     <dl v-if="provenanceFields.length" class="info-fields">
-                        <template v-for="fieldItem in provenanceFields">
-                            <dt :key="fieldItem.label + '-label'">{{ fieldItem.label }}</dt>
-                            <dd :key="fieldItem.label + '-value'">{{ fieldItem.value }}</dd>
+                        <template v-for="fieldItem in provenanceFields" :key="fieldItem.label + '-label'">
+                            <dt>{{ fieldItem.label }}</dt>
+                            <dd>{{ fieldItem.value }}</dd>
                         </template>
                     </dl>
 
                     <dl v-if="methodFields.length" class="info-fields">
-                        <template v-for="fieldItem in methodFields">
-                            <dt :key="fieldItem.label + '-label'">{{ fieldItem.label }}</dt>
-                            <dd :key="fieldItem.label + '-value'">
+                        <template v-for="fieldItem in methodFields" :key="fieldItem.label + '-label'">
+                            <dt>{{ fieldItem.label }}</dt>
+                            <dd>
                                 <a v-if="isEmail(fieldItem.label)" :href="'mailto:' + fieldItem.value">{{ fieldItem.value }}</a>
                                 <template v-else>{{ fieldItem.value }}</template>
                             </dd>

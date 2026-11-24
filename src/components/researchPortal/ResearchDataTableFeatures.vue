@@ -39,10 +39,9 @@
 					v-for="(featureValue, featureIndex) in featuresData[value]"
 					:key="featureIndex"
 				>
-					<template v-for="headerValue in featuresFormat[value]">
+					<template v-for="headerValue in featuresFormat[value]" :key="headerValue">
 						<td
 							v-if="!!summarySection && featureIndex < featureRowsNumber && !!featuresFormat[value].includes(headerValue)"
-							:key="headerValue"
 							v-html="
 								formatValue(
 									featureValue[headerValue],
@@ -53,7 +52,6 @@
 
 						<td
 							v-if="!summarySection && !!featuresFormat[value].includes(headerValue)"
-							:key="headerValue"
 							v-html="formatValue(
 								featureValue[headerValue],
 								headerValue

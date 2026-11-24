@@ -166,10 +166,9 @@
 					<th v-if="!!tableFormat['select column']" class="select-items-control">
 						
 					</th>
-					<template v-for="(value, index) in topRows">
+					<template v-for="(value, index) in topRows" :key="index">
 						<th
 							v-if="getIfChecked(value) == true && value !== tableFormat['select column']"
-							:key="index"
 							@click="!!multiSectionPage?callFilter(value):applySorting(value)"
 							class="byor-tooltip"
 							:class="
@@ -231,11 +230,10 @@
 											getIfChecked(tdKey) == true &&
 											tdKey !== tableFormat['select column']
 									)
-							"
+							" :key="tdKey"
 						>
 							<td
 									v-if="ifDataObject(tdValue) == false"
-									:key="tdKey"
 									:class="getColumnId(tdKey)"
 								>
 								<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options"> 
@@ -296,7 +294,6 @@
 								v-if="
 									ifDataObject(tdValue) == true
 								"
-								:key="tdKey"
 								class="multi-value-td"
 								:class="getColumnId(tdKey)"
 							>
@@ -372,8 +369,8 @@
 					</tr>
 					<!-- testing dynamic sub table-->
 					<template v-if="!!tableFormat['column formatting']">
-						<template v-for="(itemValue, itemKey) in tableFormat['column formatting']">
-						<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))" :key="value[itemKey]"
+						<template v-for="(itemValue, itemKey) in tableFormat['column formatting']" :key="value[itemKey]">
+						<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))"
 						>
 						<td :colspan="topRowNumber">
 							<research-sub-section
@@ -392,7 +389,7 @@
 						</td>
 						</tr>
 						<!-- testing BYOGL table-->
-						<tr v-if="itemValue.type.includes('byogl section') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))" :key="value[itemKey]"
+						<tr v-if="itemValue.type.includes('byogl section') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))"
 						>
 							<td :colspan="topRowNumber">
 								<research-byogl-section

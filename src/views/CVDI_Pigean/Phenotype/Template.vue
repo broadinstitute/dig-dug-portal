@@ -37,7 +37,7 @@
                         class="page-phenotypes-list"
                     >
                         <template
-                            v-for="item in $parent.phenotypesInSession"
+                            v-for="item in $parent.phenotypesInSession" :key="item.phenotype"
                         >
                             <li
                                 v-if="
@@ -45,7 +45,6 @@
                                         item.phenotype_name
                                     )
                                 "
-                                :key="item.phenotype"
                             >
                                 <a
                                     href="javascript:;"

@@ -36,7 +36,7 @@
                     >
                         <template
                             v-for="item in $store.state.pigeanAllPhenotypes
-                                .data"
+                                .data" :key="item.phenotype"
                         >
                             <li
                                 v-if="
@@ -44,7 +44,6 @@
                                         item.phenotype_name
                                     )
                                 "
-                                :key="item.phenotype"
                             >
                                 <a
                                     href="javascript:;"

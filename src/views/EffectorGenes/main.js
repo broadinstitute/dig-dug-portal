@@ -46,7 +46,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 

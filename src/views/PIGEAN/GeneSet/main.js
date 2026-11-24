@@ -166,7 +166,7 @@ new Vue({
             pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

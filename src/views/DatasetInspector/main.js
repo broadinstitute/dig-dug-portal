@@ -53,7 +53,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
     },
 
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 

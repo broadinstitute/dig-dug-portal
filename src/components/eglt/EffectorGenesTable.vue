@@ -346,7 +346,7 @@
                         <template
                             v-for="(col, i) in config[dataset][
                                 'topLevelRender'
-                            ]"
+                            ]" :key="i"
                         >
                             <div
                                 v-if="i == config[dataset]['topLevelPrime']"
@@ -358,7 +358,6 @@
                                     '-' +
                                     value[i]
                                 "
-                                :key="i"
                                 v-html="formatContent(i, value[i], 'top')"
                             ></div>
                             <div
@@ -371,7 +370,6 @@
                                     '-' +
                                     value[i]
                                 "
-                                :key="i"
                                 v-html="formatContent(i, value[i], 'top')"
                             ></div>
                         </template>

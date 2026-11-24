@@ -78,11 +78,11 @@ export default {
                     </tr>
                 </thead>
                 <tbody>
-                    <template v-for="group in groups">
-                        <tr :key="'group-' + group.name" class="group-row">
+                    <template v-for="group in groups" :key="'group-' + group.name">
+                        <tr class="group-row">
                             <th colspan="3" scope="colgroup">{{ group.name }}</th>
                         </tr>
-                        <tr v-for="row in group.rows" :key="group.name + '::' + row.key">
+                        <tr v-for="row in group.rows">
                             <!-- The raw API code is the tooltip: identity stays
                                  keyed by it internally, and it is what to quote in
                                  a bug report. -->

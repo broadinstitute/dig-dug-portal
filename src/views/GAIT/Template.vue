@@ -520,7 +520,7 @@
                                                     >View optional columns
                                                 </strong>
                                                 <template
-                                                    v-for="field in $parent.optionalFields"
+                                                    v-for="field in $parent.optionalFields" :key="field.key"
                                                 >
                                                     <b-checkbox
                                                         v-if="
@@ -528,7 +528,6 @@
                                                                 field.key
                                                             ) < 0
                                                         "
-                                                        :key="field.key"
                                                         v-model="field.visible"
                                                         :disabled="
                                                             $parent

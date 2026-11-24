@@ -19,9 +19,8 @@
                 <b-col v-if="showStudy" class="feature-header-item">Study</b-col>
                 <b-col v-if="showPmid" class="feature-header-item">PMID</b-col>
             </b-row>
-            <template v-for="(mask, j) in formattedMasks">
+            <template v-for="(mask, j) in formattedMasks" :key="`features_${index}_${j}`">
                 <b-row
-                    :key="`features_${index}_${j}`"
                     class="features"
                     :class="`features_${index}_${j}`"
                 >

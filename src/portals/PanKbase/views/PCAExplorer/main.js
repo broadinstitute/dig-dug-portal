@@ -21,7 +21,7 @@ new Vue({
         let content = await getPankbaseContent(this.pageId, true);
         this.info = content;
     },
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");

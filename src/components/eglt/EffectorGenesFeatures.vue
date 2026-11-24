@@ -14,12 +14,11 @@
                 :key="i"
             >
                 <div class="row" :class="'feature-name ' + i" v-html="i"></div>
-                <template v-for="(col, j) in row">
+                <template v-for="(col, j) in row" :key="`h_${i}_${j}`">
                     <b-row
                         :class="'feature-headers ' + i"
                         v-if="j === 0"
                         :title="i"
-                        :key="`h_${i}_${j}`"
                     >
                         <div
                             class="col"
@@ -38,12 +37,10 @@
 
                     <b-row
                         :class="'feature-content ' + i + getColContent(col)"
-                        :key="`c_${i}_${j}`"
                     >
-                        <template v-for="(item, name) in col">
+                        <template v-for="(item, name) in col" :key="name">
                             <div
                                 class="col"
-                                :key="name"
                                 v-if="item == '' && item == null"
                                 :class="
                                     $parent.config[
@@ -64,7 +61,6 @@
                             ></div>
                             <div
                                 class="col"
-                                :key="name"
                                 v-else
                                 :class="
                                     $parent.config[

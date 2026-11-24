@@ -73,7 +73,7 @@
 							class=""
 							style="position: absolute; right: 10px; top: 7px"
 						>
-							<template v-for="c in credibleSets">
+							<template v-for="c in credibleSets" :key="c.credibleSetId + ', ' + c.phenotype">
 								<span
 									:id="
 										getBubbleId(
@@ -103,7 +103,6 @@
 										) +
 										';'
 									"
-									:key="c.credibleSetId + ', ' + c.phenotype"
 									@click="
 										removeCSData(
 											c.credibleSetId,

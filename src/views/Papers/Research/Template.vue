@@ -780,7 +780,7 @@
 									</div>
 								</template>
 							</template>
-							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">	
+							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)" :key="index">	
 								<research-section
 									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section'] && !!$parent.rawSearchParameters"
 									:sectionIndex="'section-' + index"
@@ -796,7 +796,6 @@
 									:plotLegend="$parent.plotLegend"
 									:tableLegend="$parent.tableLegend"
 									:utils="$parent.utilsBox"
-									:key="index"
 									:starItems="$parent.starItems"
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
@@ -812,7 +811,6 @@
 									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
-									:key="index"
 									:sectionsConfig="config"
 									:description="!!$parent.sectionDescriptions ?
 										$parent.sectionDescriptions[config['section id']]
